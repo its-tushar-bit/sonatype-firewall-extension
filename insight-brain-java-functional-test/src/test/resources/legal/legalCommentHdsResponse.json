@@ -11,6 +11,13 @@
         "version": "2.2.6.RELEASE"
       }
     },
+    "licenseId": "MIT",
+    "licenseText": "MIT blah-blah-blah",
+    "licenseObligations": [
+      {
+        "name": "Inclusion of Copyright"
+      }
+    ],
     "comments": [
       {
         "content": "Copyright SomeDeveloper 2019-2020 All Right reserved",

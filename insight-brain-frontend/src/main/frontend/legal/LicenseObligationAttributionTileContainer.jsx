@@ -10,7 +10,9 @@ import {
   saveAttribution,
   setAttributionScope,
   setAttributionText,
-  setShowAttributionModal
+  setShowAttributionModal,
+  setObligationScope,
+  setObligationStatus
 } from './advancedLegalObligationActions';
 import LicenseObligationAttributionTile from './LicenseObligationAttributionTile';
 import { find, propEq } from 'ramda';
@@ -27,7 +29,9 @@ function mapStateToProps({ advancedLegal }, ownProps) {
     showAttributionModal: attributionState.showAttributionModal,
     error: attributionState.error,
     saveAttributionSubmitMask: attributionState.saveAttributionSubmitMask,
-    availableScopes: advancedLegal.availableScopes
+    availableScopes: advancedLegal.availableScopes,
+    existingObligation: advancedLegal.component.component.licenseLegalData.obligations
+        .find(o => o.name === ownProps.name)
   };
 }
 
@@ -36,7 +40,9 @@ const mapDispatchToProps = {
   setAttributionScope,
   setShowAttributionModal,
   saveAttribution,
-  cancelAttributionModal
+  cancelAttributionModal,
+  setObligationScope,
+  setObligationStatus
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(LicenseObligationAttributionTile);

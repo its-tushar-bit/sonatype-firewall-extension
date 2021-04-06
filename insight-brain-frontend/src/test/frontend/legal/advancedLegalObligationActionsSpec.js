@@ -55,12 +55,19 @@ describe('advancedLegalObligationActions', function () {
 
     it('immediately dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED action', function () {
       store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(saveAttribution('name'));
+      store.dispatch(saveAttribution({obligationName: 'name', isAttributionDirty: true}));
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED);
       expect(actions[0].payload).toEqual({ name: 'name' });
+    });
+
+    it('does not dispatch anything when not dirty', function() {
+      store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(saveAttribution({obligationName: 'name', isAttributionDirty: false}));
+      const actions = store.getActions();
+      expect(actions.length).toBe(0);
     });
 
     it('dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED action when the API succeeds with' +
@@ -84,7 +91,7 @@ describe('advancedLegalObligationActions', function () {
         }
       });
 
-      store.dispatch(saveAttribution('name')).then(() => {
+      store.dispatch(saveAttribution({obligationName: 'name', isAttributionDirty: true})).then(() => {
         setTimeout(() => {
           const actions = store.getActions();
           expect(axios.post).toHaveBeenCalledWith(
@@ -125,7 +132,7 @@ describe('advancedLegalObligationActions', function () {
         }
       });
 
-      store.dispatch(saveAttribution('name')).then(() => {
+      store.dispatch(saveAttribution({obligationName: 'name', isAttributionDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation/attribution',
@@ -162,7 +169,7 @@ describe('advancedLegalObligationActions', function () {
         }
       });
 
-      store.dispatch(saveAttribution('name')).then(() => {
+      store.dispatch(saveAttribution({obligationName: 'name', isAttributionDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/obligation/attribution',
@@ -195,7 +202,7 @@ describe('advancedLegalObligationActions', function () {
         }
       });
 
-      store.dispatch(saveAttribution('name')).then(() => {
+      store.dispatch(saveAttribution({obligationName: 'name', isAttributionDirty: true})).then(() => {
         setTimeout(() => {
           const actions = store.getActions();
           expect(axios.delete).toHaveBeenCalledWith(
@@ -236,7 +243,7 @@ describe('advancedLegalObligationActions', function () {
         }
       });
 
-      store.dispatch(saveAttribution('name')).then(() => {
+      store.dispatch(saveAttribution({obligationName: 'name', isAttributionDirty: true})).then(() => {
         setTimeout(() => {
           const actions = store.getActions();
           expect(axios.delete).toHaveBeenCalledWith(
@@ -270,7 +277,7 @@ describe('advancedLegalObligationActions', function () {
         }
       });
 
-      store.dispatch(saveAttribution('name')).then(() => {
+      store.dispatch(saveAttribution({obligationName: 'name', isAttributionDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.delete).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id');
@@ -585,6 +592,131 @@ describe('advancedLegalObligationActions', function () {
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
       expect(actions[0].payload).toEqual({ name: 'name' });
+    });
+  });
+
+  describe('save obligation attribution and status', function() {
+    let store;
+    let initialState = {
+      advancedLegal: {
+        component: {
+          component: {
+            componentIdentifier: 'componentIdentifier',
+            licenseLegalData: {
+              obligations: [
+                {
+                  name: 'Must State Changes',
+                  id: 'd387da0b87a9428fbc352f437c8294cf',
+                  status: 'FLAGGED',
+                  comment: 'comment',
+                  ownerId: 'ROOT_ORGANIZATION_ID'
+                }
+              ],
+              attributions: [
+                {id: 'id', obligationName: 'Must State Changes', content: 'content', ownerId: 'ROOT_ORGANIZATION_ID' }
+              ]
+            }
+          }
+        },
+        availableScopes: {
+          values: [
+            { id: 'org', publicId: 'org', type: 'organization' },
+            { id: 'ROOT_ORGANIZATION_ID', publicId: 'ROOT_ORGANIZATION_ID', type: 'organization' }
+          ]
+        }
+      }
+    };
+
+    it('dispatches the expected actions on success', function(done) {
+      store = SpecUtil.mockReduxStore(initialState);
+      const expectedPostBody = {
+        id: 'id',
+        componentIdentifier: 'componentIdentifier',
+        obligationName: 'Must State Changes',
+        content: 'content'
+      };
+      mockAxiosCalls({
+        post: {
+          [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(
+              { data: 'postData' }),
+          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(
+              {
+                data: {
+                  data: 'dataPOST2'
+                }
+              })
+        },
+        get: {
+          [getComponentObligationAttributionUrl('organization', 'org', 'componentIdentifier', 'Must State Changes')]:
+              Promise.resolve(
+                  { data: [{ id: 'id', content: 'content', ownerId: 'ROOT_ORGANIZATION_ID', foo: 'bar' }] }),
+          [getComponentObligationUrl('organization', 'org', 'componentIdentifier',
+              'Must State Changes')]:
+              Promise.resolve(
+                  {
+                    data: {
+                      id: 'd387da0b87a9428fbc352f437c8294cf',
+                      comment: 'comment',
+                      ownerId: 'ROOT_ORGANIZATION_ID',
+                      status: 'FLAGGED',
+                      name: 'Must State Changes'
+                    }
+                  })
+        }
+      });
+      store.dispatch(saveAttribution({
+        obligationName: 'Must State Changes',
+        isAttributionDirty: true,
+        isObligationDirty: true,
+        existingObligation: { name: 'Must State Changes', 'status': 'FLAGGED' }
+      })).then(() => {
+        setTimeout(() => {
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/' +
+              'component/obligation/attribution',
+              expectedPostBody);
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org/component/obligation/attribution?' +
+              'componentIdentifier=%22componentIdentifier%22&obligationName=Must%20State%20Changes');
+          expect(axios.post).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/' +
+              'obligation/attribution',
+              {
+                id: 'id',
+                componentIdentifier: 'componentIdentifier',
+                obligationName: 'Must State Changes',
+                content: 'content'
+              });
+          expect(axios.get).toHaveBeenCalledWith(
+              '/api/experimental/licenseLegalMetadata/organization/org/component/obligation/attribution?' +
+              'componentIdentifier=%22componentIdentifier%22&obligationName=Must%20State%20Changes');
+          expect(actions.length).toBe(5);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            name: 'Must State Changes',
+            value: { id: 'id', content: 'content', ownerId: 'ROOT_ORGANIZATION_ID' }
+          });
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+          expect(actions[3].payload).toEqual({
+            name: 'Must State Changes',
+            value: {
+              id: 'd387da0b87a9428fbc352f437c8294cf',
+              comment: 'comment',
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              status: 'FLAGGED'
+            }
+          });
+          expect(actions[4].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
+          expect(actions[4].payload).toEqual({ name: 'Must State Changes' });
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS * 2);
+      });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED);
     });
   });
 });

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
+import { setObligationScope, setObligationStatus } from '../../advancedLegalObligationActions';
 
 import NoticesModal from './NoticesModal';
 import {
@@ -22,7 +23,9 @@ function mapStateToProps({ advancedLegal }) {
     availableScopes: advancedLegal.availableScopes,
     notices: advancedLegal.component.component.licenseLegalData.noticeFiles,
     error: advancedLegal.component.component.licenseLegalData.noticesError,
-    submitMaskState: advancedLegal.component.component.licenseLegalData.saveNoticesSubmitMask
+    submitMaskState: advancedLegal.component.component.licenseLegalData.saveNoticesSubmitMask,
+    existingObligation: advancedLegal.component.component.licenseLegalData.obligations
+        .find(o => o.name === 'Inclusion of Notice')
   };
 }
 
@@ -32,7 +35,9 @@ const mapDispatchToProps = {
   setNoticeStatus,
   addNotice,
   setNoticesScope,
-  saveNotices
+  saveNotices,
+  setObligationScope,
+  setObligationStatus
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(NoticesModal);

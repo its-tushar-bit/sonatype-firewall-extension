@@ -14,6 +14,7 @@ import {
   setLicensesScope,
   setLicenseStatus
 } from '../advancedLegalFileActions';
+import { setObligationScope, setObligationStatus } from '../../advancedLegalObligationActions';
 
 function mapStateToProps({ advancedLegal }) {
   return {
@@ -22,7 +23,9 @@ function mapStateToProps({ advancedLegal }) {
     availableScopes: advancedLegal.availableScopes,
     licenses: advancedLegal.component.component.licenseLegalData.licenseFiles,
     error: advancedLegal.component.component.licenseLegalData.licensesError,
-    submitMaskState: advancedLegal.component.component.licenseLegalData.saveLicensesSubmitMask
+    submitMaskState: advancedLegal.component.component.licenseLegalData.saveLicensesSubmitMask,
+    existingObligation: advancedLegal.component.component.licenseLegalData.obligations
+        .find(o => o.name === 'Inclusion of License')
   };
 }
 
@@ -32,7 +35,9 @@ const mapDispatchToProps = {
   setLicenseStatus,
   addLicense,
   setLicensesScope,
-  saveLicenses
+  saveLicenses,
+  setObligationScope,
+  setObligationStatus
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(LicensesModal);

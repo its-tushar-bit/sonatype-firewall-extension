@@ -31,7 +31,16 @@ describe('NoticesModalContainer', function() {
               componentNoticesScopeOwnerId: 'componentNoticesScopeOwnerId',
               noticeFiles: 'noticeFiles',
               noticesError: 'noticesError',
-              saveNoticesSubmitMask: 'saveNoticesSubmitMask'
+              saveNoticesSubmitMask: 'saveNoticesSubmitMask',
+              obligations: [
+                {
+                  'name': 'Inclusion of Notice',
+                  'status': 'FLAGGED'
+                },
+                {
+                  'name': 'Something else'
+                }
+              ]
             }
           }
         },

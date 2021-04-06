@@ -23,6 +23,7 @@ import {
   ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL
 } from './advancedLegalObligationActions';
 import { __, find, findIndex, lensPath, merge, over, propEq } from 'ramda';
+import { saveNoticesSubmitMaskDone, saveLicensesSubmitMaskDone } from './files/advancedLegalFileReducer';
 
 function updateAttribution(newAttribution, obligationName, state) {
   const attributionIndex = findIndex(propEq('obligationName', obligationName),
@@ -181,6 +182,13 @@ export const advancedLegalObligationReducerActionMap = {
   [ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED]: saveObligationRequested,
   [ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED]: saveObligationSucceeded,
   [ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED]: saveObligationFailed,
-  [ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE]: saveObligationSubmitMaskDone,
+  [ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE]: (payload, state) => {
+    // Manually chain required actions together, until the components have independent reducers.
+    const state1 = saveObligationSubmitMaskDone(payload, state);
+    const state2 = saveNoticesSubmitMaskDone(payload, state1);
+    const state3 = saveLicensesSubmitMaskDone(payload, state2);
+    const state4 = saveAttributionSubmitMaskDone(payload, state3);
+    return state4;
+  },
   [ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL]: cancelObligationModal
 };

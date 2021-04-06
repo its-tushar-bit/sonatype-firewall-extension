@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import NoticesModal from '../../../../../main/frontend/legal/files/notices/NoticesModal';
-import { NxButton, NxForm, NxModal, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
+import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
 
 describe('NoticesModal', function() {
   let getShallowComponent,
@@ -145,21 +145,6 @@ describe('NoticesModal', function() {
     const noticesScope = wrapper.find('select');
     noticesScope.simulate('change', { currentTarget: { value: 'appId' } });
     expect(setNoticesScopeSpy).toHaveBeenCalledWith('appId');
-  });
-
-  it('has the correct modal properties', function() {
-    const wrapper = getShallowComponent();
-    const form = wrapper.find(NxModal);
-    expect(form.prop('onClose')).toBe(cancelNoticesModalSpy);
-  });
-
-  it('has the correct form properties', function() {
-    const wrapper = getShallowComponent();
-    const form = wrapper.find(NxForm);
-    expect(form.prop('onCancel')).toBe(cancelNoticesModalSpy);
-    expect(form.prop('onSubmit')).toBe(saveNoticesSpy);
-    expect(form.prop('submitError')).toBe('error');
-    expect(form.prop('submitMaskState')).toBe('submitMaskState');
   });
 
   it('has a validation error if a custom notice has no content', function() {

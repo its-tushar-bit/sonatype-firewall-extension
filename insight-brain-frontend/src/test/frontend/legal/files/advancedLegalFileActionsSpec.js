@@ -60,11 +60,18 @@ describe('advancedLegalFileActions', function() {
 
     it('immediately dispatches a ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED action', function() {
       store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(saveNotices());
+      store.dispatch(saveNotices({isNoticesDirty: true}));
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED);
+    });
+
+    it('does not dispatch anything when not dirty', function() {
+      store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(saveNotices({isNoticesDirty: false}));
+      const actions = store.getActions();
+      expect(actions.length).toBe(0);
     });
 
     it('dispatches ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED and ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE actions on' +
@@ -85,7 +92,7 @@ describe('advancedLegalFileActions', function() {
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
-      store.dispatch(saveNotices()).then(() => {
+      store.dispatch(saveNotices({isNoticesDirty: true})).then(() => {
         setTimeout(() => {
           const actions = store.getActions();
           expect(axios.post).toHaveBeenCalledWith(
@@ -140,7 +147,7 @@ describe('advancedLegalFileActions', function() {
           }
         ]
       };
-      store.dispatch(saveNotices()).then(() => {
+      store.dispatch(saveNotices({isNoticesDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/application/app/component/legalFile', expectedPostBody);
@@ -191,7 +198,7 @@ describe('advancedLegalFileActions', function() {
           }
         ]
       };
-      store.dispatch(saveNotices()).then(() => {
+      store.dispatch(saveNotices({isNoticesDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/application/app/component/legalFile', expectedPostBody);
@@ -222,7 +229,7 @@ describe('advancedLegalFileActions', function() {
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
-      store.dispatch(saveNotices()).then(() => {
+      store.dispatch(saveNotices({isNoticesDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
@@ -255,7 +262,7 @@ describe('advancedLegalFileActions', function() {
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
-      store.dispatch(saveNotices()).then(() => {
+      store.dispatch(saveNotices({isNoticesDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
@@ -313,11 +320,18 @@ describe('advancedLegalFileActions', function() {
 
     it('immediately dispatches a ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED action', function() {
       store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(saveLicenses());
+      store.dispatch(saveLicenses({isLicensesDirty: true}));
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+    });
+
+    it('does not dispatch anything when not dirty', function() {
+      store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(saveLicenses({isLicensesDirty: false}));
+      const actions = store.getActions();
+      expect(actions.length).toBe(0);
     });
 
     it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED and ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE actions on'
@@ -338,7 +352,7 @@ describe('advancedLegalFileActions', function() {
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
-      store.dispatch(saveLicenses()).then(() => {
+      store.dispatch(saveLicenses({isLicensesDirty: true})).then(() => {
         setTimeout(() => {
           const actions = store.getActions();
           expect(axios.post).toHaveBeenCalledWith(
@@ -394,7 +408,7 @@ describe('advancedLegalFileActions', function() {
           }
         ]
       };
-      store.dispatch(saveLicenses()).then(() => {
+      store.dispatch(saveLicenses({isLicensesDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/application/app/component/legalFile', expectedPostBody);
@@ -446,7 +460,7 @@ describe('advancedLegalFileActions', function() {
           }
         ]
       };
-      store.dispatch(saveLicenses()).then(() => {
+      store.dispatch(saveLicenses({isLicensesDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/application/app/component/legalFile', expectedPostBody);
@@ -477,7 +491,7 @@ describe('advancedLegalFileActions', function() {
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
-      store.dispatch(saveLicenses()).then(() => {
+      store.dispatch(saveLicenses({isLicensesDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
@@ -510,7 +524,7 @@ describe('advancedLegalFileActions', function() {
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: []
       };
-      store.dispatch(saveLicenses()).then(() => {
+      store.dispatch(saveLicenses({isLicensesDirty: true})).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
             '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',

@@ -13,8 +13,13 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage.CopyrightStatements;
 import com.sonatype.clm.testing.functional.pages.EditCopyrightsModal;
+import com.sonatype.clm.testing.functional.pages.EditCopyrightsModal.StatusDropdownMenu;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
+import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import com.codeborne.selenide.CollectionCondition;
@@ -24,6 +29,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class EditCopyrightsTest
@@ -40,8 +47,12 @@ public class EditCopyrightsTest
   @Before
   public void init() throws IOException {
     app = tempEntity.newApplicationWithParent(EditCopyrightsTest.class.getSimpleName());
-    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474",
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
+        "033e7a20b23ea284d474", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
+    tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "Inclusion of Copyright", null,
+        ObligationStatus.OPEN, "NA");
 
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
@@ -56,6 +67,15 @@ public class EditCopyrightsTest
     testCLMServer.getHdsServer()
         .respondWith("[]")
         .atUri("/rest/legal/file");
+
+    testCLMServer.getHdsServer()
+      .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails.json"),
+              StandardCharsets.UTF_8))
+      .atUri("rest/ci/componentDetails");
+    testCLMServer.getHdsServer()
+      .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetailsList.json"),
+              StandardCharsets.UTF_8))
+      .atUri("rest/ci/componentDetails/list");
 
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
   }
@@ -189,5 +209,43 @@ public class EditCopyrightsTest
         .isEqualTo("Copyright SomeDeveloper 2019-2020");
 
     assertThat(ComponentLegalOverviewPage.copyrightStatements().all().size()).isEqualTo(3);
+  }
+
+  @Test
+  public void modifyObligationStatus() {
+    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
+    ComponentLegalOverviewPage.editCopyrightButton().shouldBe(Condition.visible).click();
+
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0", "", "jar");
+    assertThat(new ComponentObligationDAO().getByOwnerIdAndComponentIdentifierAndObligationName(
+        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, "Inclusion of Copyright")).isNull();
+
+    EditCopyrightsModal modal = new EditCopyrightsModal();
+    modal.should(Condition.appear);
+    modal.save().shouldHave(Condition.cssClass("disabled"));
+
+    modal.statusDropdown().shouldBe(Condition.visible);
+    modal.statusDropdown().shouldBe(enabled);
+    modal.statusDropdown().selectedStatus().shouldHave(text("Unreviewed"));
+
+    // when we pull down the list
+    modal.statusDropdown().click();
+    StatusDropdownMenu menu = modal.statusDropdown().dropdownMenu();
+
+    // then the status list is complete, except for the selected status.
+    assertThat(String.join(",", menu.options().texts())).isEqualTo("Fulfilled,Flagged,Not Applicable");
+    
+    // Changing the status
+    modal.statusDropdownItems().find(Condition.exactText("Flagged")).click();
+    
+    // should enable the save button
+    modal.save().shouldNotHave(Condition.cssClass("disabled")).click();
+    modal.should(Condition.disappear);
+
+    // The status in the DB should change
+    assertThat(new ComponentObligationDAO().getByOwnerIdAndComponentIdentifierAndObligationName(
+        Organization.ROOT_ORGANIZATION_ID, componentIdentifier, "Inclusion of Copyright").getStatus())
+        .isEqualTo(ObligationStatus.FLAGGED);
   }
 }

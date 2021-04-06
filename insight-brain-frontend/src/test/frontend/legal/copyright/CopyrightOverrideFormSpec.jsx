@@ -6,8 +6,9 @@
 
 import CopyrightOverrideForm from '../../../../main/frontend/legal/copyright/CopyrightOverrideForm';
 import * as enzymeUtils from '../../enzymeUtils';
-import {NxForm, NxModal, NxToggle, NxTextInput, NxDropdown} from '@sonatype/react-shared-components';
+import {NxForm, NxModal, NxToggle, NxTextInput} from '@sonatype/react-shared-components';
 import {pathSet} from '../../../../main/frontend/util/jsUtil';
+import ObligationStatusComponent from '../../../../main/frontend/legal/shared/ObligationStatusComponent';
 
 describe('CopyrightOverrideForm component', function() {
   let getShallowComponent,
@@ -98,15 +99,9 @@ describe('CopyrightOverrideForm component', function() {
 
   it('displays the obligation status', function() {
     let wrapper = getShallowComponent();
-    const statusDropdown = wrapper.find(NxDropdown);
-    const statusLabelChildren = statusDropdown.prop('label').props['children'];
-    expect(statusLabelChildren[0].props['icon'].iconName).toBe('exclamation-triangle');
-    expect(statusLabelChildren[1].props['children']).toEqual('Flagged');
-    const statusOptions = statusDropdown.find('button');
-    expect(statusOptions.length).toBe(3);
-    expect(statusOptions.at(0).childAt(1)).toHaveText('Fulfilled');
-    expect(statusOptions.at(1).childAt(1)).toHaveText('Not Applicable');
-    expect(statusOptions.at(2).childAt(0)).toHaveText('Unreviewed'); // No icon
+    const statusDropdown = wrapper.find(ObligationStatusComponent);
+    const propObligation = statusDropdown.prop('existingObligation');
+    expect(propObligation.status).toBe('FLAGGED');
   });
 
   it('modify toggle', function() {

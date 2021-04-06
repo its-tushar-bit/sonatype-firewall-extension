@@ -38,38 +38,56 @@ const saveAttributionRequested = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_A
 const saveAttributionFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
 const saveAttributionFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
 
-export function saveAttribution(obligationName) {
+export function saveAttribution({obligationName, existingObligation, isAttributionDirty, isObligationDirty}) {
   return (dispatch, getState) => {
-    dispatch(saveAttributionRequested({ name: obligationName }));
-
-    const advancedLegalState = getState().advancedLegal;
-    const attributionState = find(propEq('obligationName', obligationName),
-        advancedLegalState.component.component.licenseLegalData.attributions);
-    const ownerId = attributionState.ownerId;
-    const scopeVisited = advancedLegalState.availableScopes.values[0];
-    const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
-    const ownerType = scope.type;
-    const ownerPublicId = scope.publicId;
-    const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
-
-    if (attributionState.id !== null && attributionState.content === '') {
-      return axios.delete(getDeleteComponentObligationAttributionUrl(attributionState.id))
-          .then(() => onAttributionSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
-              obligationName))
-          .catch(error => {
-            dispatch(saveAttributionFailed({ name: obligationName, value: Messages.getHttpErrorMessage(error) }));
-          });
+    if (isAttributionDirty) {
+      return saveAndRefreshAttribution(dispatch,
+          getState,
+          obligationName,
+          isObligationDirty);
+    }
+    else if (isObligationDirty) {
+      return saveObligation(existingObligation.name)(dispatch, getState);
     }
     else {
-      const attributionPayload = getAttributionPayload(advancedLegalState, obligationName, attributionState);
-      return axios.post(getSaveComponentObligationAttributionUrl(ownerType, ownerPublicId), attributionPayload)
-          .then(() => onAttributionSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
-              obligationName))
-          .catch(error => {
-            dispatch(saveAttributionFailed({ name: obligationName, value: Messages.getHttpErrorMessage(error) }));
-          });
+      return;
     }
   };
+}
+
+function saveAndRefreshAttribution(dispatch,
+                                   getState,
+                                   obligationName,
+                                   isObligationDirty) {
+  const advancedLegalState = getState().advancedLegal;
+  const attributionState = find(propEq('obligationName', obligationName),
+      advancedLegalState.component.component.licenseLegalData.attributions);
+  const ownerId = attributionState.ownerId;
+  const scopeVisited = advancedLegalState.availableScopes.values[0];
+  const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
+  const ownerType = scope.type;
+  const ownerPublicId = scope.publicId;
+  const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
+
+  dispatch(saveAttributionRequested({ name: obligationName }));
+
+  if (attributionState.id !== null && attributionState.content === '') {
+    return axios.delete(getDeleteComponentObligationAttributionUrl(attributionState.id))
+        .then(() => onAttributionSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId,
+            componentIdentifier, obligationName, isObligationDirty, getState))
+        .catch(error => {
+          dispatch(saveAttributionFailed({ name: obligationName, value: Messages.getHttpErrorMessage(error) }));
+        });
+  }
+  else {
+    const attributionPayload = getAttributionPayload(advancedLegalState, obligationName, attributionState);
+    return axios.post(getSaveComponentObligationAttributionUrl(ownerType, ownerPublicId), attributionPayload)
+        .then(() => onAttributionSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId,
+            componentIdentifier, obligationName, isObligationDirty, getState))
+        .catch(error => {
+          dispatch(saveAttributionFailed({ name: obligationName, value: Messages.getHttpErrorMessage(error) }));
+        });
+  }
 }
 
 function getAttributionPayload(advancedLegalState, obligationName, attributionState) {
@@ -86,14 +104,17 @@ function getAttributionPayload(advancedLegalState, obligationName, attributionSt
   return payload;
 }
 
-const onAttributionSaveSuccess = (dispatch, ownerType, ownerPublicId, componentIdentifier, name) =>
+const onAttributionSaveSuccess = (dispatch, ownerType, ownerPublicId, componentIdentifier, name,
+                                  isObligationDirty, getState) =>
   axios.get(getComponentObligationAttributionUrl(ownerType, ownerPublicId, componentIdentifier, name))
       .then(payload => {
         const value = payload.data.length > 0 ?
           pick(['id', 'content', 'ownerId', 'lastUpdatedByUsername', 'lastUpdatedAt'], payload.data[0]) :
           { id: null, content: '', ownerId: 'ROOT_ORGANIZATION_ID' };
         dispatch(saveAttributionFulfilled({ name, value }));
-        startSaveAttributionSubmitMaskDoneTimer(dispatch, { name });
+
+        isObligationDirty ? saveObligation(name)(dispatch, getState) :
+          startSaveAttributionSubmitMaskDoneTimer(dispatch, { name });
       })
       .catch(error => {
         dispatch(saveAttributionFailed({ name, value: Messages.getHttpErrorMessage(error) }));

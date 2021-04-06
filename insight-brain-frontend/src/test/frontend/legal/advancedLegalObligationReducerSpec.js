@@ -425,7 +425,8 @@ describe('advancedLegalObligationReducer', function () {
                 licenseLegalData: {
                   obligations: [
                     { name: 'obligation1' }, { name: 'obligation2' }
-                  ]
+                  ],
+                  attributions: []
                 }
               }
             }

@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -44,8 +45,12 @@ public class EditCopyrightsModal
     return $("#edit-copyright-scope-selection");
   }
 
-  public SelenideElement statusDropdown() {
-    return $("#edit-copyright-obligation-status-selection");
+  public StatusDropdown statusDropdown() {
+    return new StatusDropdown();
+  }
+
+  public ElementsCollection statusDropdownItems() {
+    return children("#edit-copyright-obligation-status-selection button");
   }
 
   public Button save() {
@@ -54,5 +59,50 @@ public class EditCopyrightsModal
 
   public Button cancel() {
     return new Button(childSelector(".nx-form__cancel-btn"));
+  }
+
+  public static class StatusDropdown
+      extends BasicElement<StatusDropdown>
+  {
+    public StatusDropdown() {
+      super("#edit-copyright-obligation-status-selection");
+    }
+
+    public SelenideElement selectedStatus() {
+      return child(".nx-dropdown__toggle");
+    }
+
+    public SelenideElement openMenuButton() {
+      return $(".nx-dropdown__toggle");
+    }
+
+    public StatusDropdownMenu dropdownMenu() {
+      return new StatusDropdownMenu(selector);
+    }
+  }
+
+  public static class StatusDropdownMenu
+      extends BasicElement<StatusDropdownMenu>
+  {
+    public StatusDropdownMenu(String selector) {
+      super(selector, ".nx-dropdown-menu");
+    }
+
+    public ElementsCollection options() {
+      return children(".edit-copyright-obligation-status-selection__option");
+    }
+
+    public StatusDropdownOption option(int i) {
+      return new StatusDropdownOption("edit-copyright-obligation-status-selection__option",
+          SelectorUtils.nthChild(i + 1));
+    }
+  }
+
+  public static class StatusDropdownOption
+      extends BasicElement<StatusDropdownOption>
+  {
+    public StatusDropdownOption(String... selectors) {
+      super(selectors);
+    }
   }
 }

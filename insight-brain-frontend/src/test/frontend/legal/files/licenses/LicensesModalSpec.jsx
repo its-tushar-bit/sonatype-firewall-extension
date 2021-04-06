@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import LicensesModal from '../../../../../main/frontend/legal/files/licenses/LicensesModal';
-import { NxButton, NxForm, NxModal, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
+import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
 
 describe('LicensesModal', function() {
   let getShallowComponent,
@@ -145,21 +145,6 @@ describe('LicensesModal', function() {
     const licensesScope = wrapper.find('select');
     licensesScope.simulate('change', { currentTarget: { value: 'appId' } });
     expect(setLicensesScopeSpy).toHaveBeenCalledWith('appId');
-  });
-
-  it('has the correct modal properties', function() {
-    const wrapper = getShallowComponent();
-    const form = wrapper.find(NxModal);
-    expect(form.prop('onClose')).toBe(cancelLicensesModalSpy);
-  });
-
-  it('has the correct form properties', function() {
-    const wrapper = getShallowComponent();
-    const form = wrapper.find(NxForm);
-    expect(form.prop('onCancel')).toBe(cancelLicensesModalSpy);
-    expect(form.prop('onSubmit')).toBe(saveLicensesSpy);
-    expect(form.prop('submitError')).toBe('error');
-    expect(form.prop('submitMaskState')).toBe('submitMaskState');
   });
 
   it('has a validation error if a custom license has no content', function() {

@@ -10,6 +10,7 @@ import {getLegalFileUrl, getSaveLegalFileUrl} from '../../util/CLMLocation';
 import {Messages} from '../../util/CommonServices';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 import {isScopeOverride} from '../legalUtility';
+import { saveObligation } from '../advancedLegalObligationActions';
 
 export const ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL';
 export const ADVANCED_LEGAL_CANCEL_NOTICES_MODAL = 'ADVANCED_LEGAL_CANCEL_NOTICES_MODAL';
@@ -34,50 +35,59 @@ const saveNoticesSucceeded = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_NOTIC
 const saveNoticesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_NOTICES_FAILED);
 const saveNoticesSubmitMaskDone = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE);
 
-export function saveNotices() {
+export function saveNotices({existingObligation, isNoticesDirty, isObligationDirty}) {
   return (dispatch, getState) => {
-    dispatch(saveNoticesRequested());
+    if (isNoticesDirty) {
+      dispatch(saveNoticesRequested());
 
-    const advancedLegalState = getState().advancedLegal;
-    const { values: availableScopeValues } = advancedLegalState.availableScopes;
-    const { licenseLegalData, componentIdentifier } = advancedLegalState.component.component;
-    const {
-      componentNoticesId,
-      componentNoticesScopeOwnerId: ownerId,
-      originalComponentNoticesScopeOwnerId: originalOwnerId,
-      noticeFiles
-    } = licenseLegalData;
-    const scopeVisited = advancedLegalState.availableScopes.values[0];
-    const scope = find(propEq('id', ownerId), availableScopeValues);
-    const ownerType = scope.type;
-    const ownerPublicId = scope.publicId;
-    const isScopeOverrideValue = isScopeOverride(originalOwnerId, ownerId, availableScopeValues);
-    const payload = {
-      id: isScopeOverrideValue ? null : componentNoticesId,
-      legalFileType: 'notice',
-      componentIdentifier,
-      legalFileOverrides: noticeFiles.map(noticeFile => (
-        {
-          id: isScopeOverrideValue ? null : noticeFile.id,
-          originalContentHash: noticeFile.originalContentHash,
-          content: noticeFile.content,
-          status: noticeFile.status
-        }
-      ))
-    };
+      const advancedLegalState = getState().advancedLegal;
+      const { values: availableScopeValues } = advancedLegalState.availableScopes;
+      const { licenseLegalData, componentIdentifier } = advancedLegalState.component.component;
+      const {
+        componentNoticesId,
+        componentNoticesScopeOwnerId: ownerId,
+        originalComponentNoticesScopeOwnerId: originalOwnerId,
+        noticeFiles
+      } = licenseLegalData;
+      const scopeVisited = advancedLegalState.availableScopes.values[0];
+      const scope = find(propEq('id', ownerId), availableScopeValues);
+      const ownerType = scope.type;
+      const ownerPublicId = scope.publicId;
+      const isScopeOverrideValue = isScopeOverride(originalOwnerId, ownerId, availableScopeValues);
+      const payload = {
+        id: isScopeOverrideValue ? null : componentNoticesId,
+        legalFileType: 'notice',
+        componentIdentifier,
+        legalFileOverrides: noticeFiles.map(noticeFile => (
+          {
+            id: isScopeOverrideValue ? null : noticeFile.id,
+            originalContentHash: noticeFile.originalContentHash,
+            content: noticeFile.content,
+            status: noticeFile.status
+          }
+        ))
+      };
 
-    return axios.post(getSaveLegalFileUrl(ownerType, ownerPublicId), payload)
-        .then(() => {
-          axios.get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier, 'notice'))
-              .then(responsePayload => {
-                dispatch(saveNoticesSucceeded(responsePayload.data));
-                startSaveNoticesSubmitMaskDoneTimer(dispatch);
-              })
-              .catch(error => {
-                dispatch(saveNoticesFailed(Messages.getHttpErrorMessage(error)));
-              });
-        })
-        .catch(error => dispatch(saveNoticesFailed(Messages.getHttpErrorMessage(error))));
+      return axios.post(getSaveLegalFileUrl(ownerType, ownerPublicId), payload)
+          .then(() => {
+            axios.get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier, 'notice'))
+                .then(responsePayload => {
+                  dispatch(saveNoticesSucceeded(responsePayload.data));
+                  isObligationDirty ? saveObligation(existingObligation.name)(dispatch,
+                      getState) : startSaveNoticesSubmitMaskDoneTimer(dispatch);
+                })
+                .catch(error => {
+                  dispatch(saveNoticesFailed(Messages.getHttpErrorMessage(error)));
+                });
+          })
+          .catch(error => dispatch(saveNoticesFailed(Messages.getHttpErrorMessage(error))));
+    }
+    else if (isObligationDirty) {
+      return saveObligation(existingObligation.name)(dispatch, getState);
+    }
+    else {
+      return;
+    }
   };
 }
 
@@ -108,50 +118,59 @@ const saveLicensesSucceeded = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICE
 const saveLicensesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
 const saveLicensesSubmitMaskDone = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE);
 
-export function saveLicenses() {
+export function saveLicenses({existingObligation, isLicensesDirty, isObligationDirty}) {
   return (dispatch, getState) => {
-    dispatch(saveLicensesRequested());
+    if (isLicensesDirty) {
+      dispatch(saveLicensesRequested());
 
-    const advancedLegalState = getState().advancedLegal;
-    const { values: availableScopeValues } = advancedLegalState.availableScopes;
-    const { licenseLegalData, componentIdentifier } = advancedLegalState.component.component;
-    const {
-      componentLicensesId,
-      componentLicensesScopeOwnerId: ownerId,
-      originalComponentLicensesScopeOwnerId: originalOwnerId,
-      licenseFiles
-    } = licenseLegalData;
-    const scopeVisited = advancedLegalState.availableScopes.values[0];
-    const scope = find(propEq('id', ownerId), availableScopeValues);
-    const ownerType = scope.type;
-    const ownerPublicId = scope.publicId;
-    const isScopeOverrideValue = isScopeOverride(originalOwnerId, ownerId, availableScopeValues);
-    const payload = {
-      id: isScopeOverrideValue ? null : componentLicensesId,
-      legalFileType: 'license',
-      componentIdentifier,
-      legalFileOverrides: licenseFiles.map(licenseFile => (
-        {
-          id: isScopeOverrideValue ? null : licenseFile.id,
-          originalContentHash: licenseFile.originalContentHash,
-          content: licenseFile.content,
-          status: licenseFile.status
-        }
-      ))
-    };
+      const advancedLegalState = getState().advancedLegal;
+      const { values: availableScopeValues } = advancedLegalState.availableScopes;
+      const { licenseLegalData, componentIdentifier } = advancedLegalState.component.component;
+      const {
+        componentLicensesId,
+        componentLicensesScopeOwnerId: ownerId,
+        originalComponentLicensesScopeOwnerId: originalOwnerId,
+        licenseFiles
+      } = licenseLegalData;
+      const scopeVisited = advancedLegalState.availableScopes.values[0];
+      const scope = find(propEq('id', ownerId), availableScopeValues);
+      const ownerType = scope.type;
+      const ownerPublicId = scope.publicId;
+      const isScopeOverrideValue = isScopeOverride(originalOwnerId, ownerId, availableScopeValues);
+      const payload = {
+        id: isScopeOverrideValue ? null : componentLicensesId,
+        legalFileType: 'license',
+        componentIdentifier,
+        legalFileOverrides: licenseFiles.map(licenseFile => (
+          {
+            id: isScopeOverrideValue ? null : licenseFile.id,
+            originalContentHash: licenseFile.originalContentHash,
+            content: licenseFile.content,
+            status: licenseFile.status
+          }
+        ))
+      };
 
-    return axios.post(getSaveLegalFileUrl(ownerType, ownerPublicId), payload)
-        .then(() => {
-          axios.get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier, 'license'))
-              .then(responsePayload => {
-                dispatch(saveLicensesSucceeded(responsePayload.data));
-                startSaveLicensesSubmitMaskDoneTimer(dispatch);
-              })
-              .catch(error => dispatch(saveLicensesFailed(Messages.getHttpErrorMessage(error))));
-        })
-        .catch(error => {
-          dispatch(saveLicensesFailed(Messages.getHttpErrorMessage(error)));
-        });
+      return axios.post(getSaveLegalFileUrl(ownerType, ownerPublicId), payload)
+          .then(() => {
+            axios.get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier, 'license'))
+                .then(responsePayload => {
+                  dispatch(saveLicensesSucceeded(responsePayload.data));
+                  isObligationDirty ? saveObligation(existingObligation.name)(dispatch,
+                      getState) : startSaveLicensesSubmitMaskDoneTimer(dispatch);
+                })
+                .catch(error => dispatch(saveLicensesFailed(Messages.getHttpErrorMessage(error))));
+          })
+          .catch(error => {
+            dispatch(saveLicensesFailed(Messages.getHttpErrorMessage(error)));
+          });
+    }
+    else if (isObligationDirty) {
+      return saveObligation(existingObligation.name)(dispatch, getState);
+    }
+    else {
+      return;
+    }
   };
 }
 

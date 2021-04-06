@@ -31,7 +31,16 @@ describe('LicensesModalContainer', function() {
               componentLicensesScopeOwnerId: 'componentLicensesScopeOwnerId',
               licenseFiles: 'licenseFiles',
               licensesError: 'licensesError',
-              saveLicensesSubmitMask: 'saveLicensesSubmitMask'
+              saveLicensesSubmitMask: 'saveLicensesSubmitMask',
+              obligations: [
+                {
+                  'name': 'Inclusion of License',
+                  'status': 'FLAGGED'
+                },
+                {
+                  'name': 'Something else'
+                }
+              ]
             }
           }
         },

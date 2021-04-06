@@ -123,7 +123,7 @@ const saveNoticesFailed = (payload, state) =>
     saveNoticesSubmitMask: null
   }, state);
 
-const saveNoticesSubmitMaskDone = (_, state) =>
+export const saveNoticesSubmitMaskDone = (_, state) =>
   updateLicenseLegalData({
     saveNoticesSubmitMask: null,
     showNoticesModal: false
@@ -222,7 +222,7 @@ const saveLicensesFailed = (payload, state) =>
     saveLicensesSubmitMask: null
   }, state);
 
-const saveLicensesSubmitMaskDone = (_, state) =>
+export const saveLicensesSubmitMaskDone = (_, state) =>
   updateLicenseLegalData({
     saveLicensesSubmitMask: null,
     showLicensesModal: false

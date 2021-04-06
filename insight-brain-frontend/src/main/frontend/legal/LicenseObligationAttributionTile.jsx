@@ -16,7 +16,8 @@ import {
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { availableScopesPropType } from './advancedLegalPropTypes';
+import { availableScopesPropType, licenseObligationPropType } from './advancedLegalPropTypes';
+import ObligationStatusComponent from './shared/ObligationStatusComponent';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -28,6 +29,8 @@ export default function LicenseObligationAttributionTile(props) {
     saveAttribution,
     setShowAttributionModal,
     cancelAttributionModal,
+    setObligationStatus,
+    setObligationScope,
     // state
     id,
     name,
@@ -38,23 +41,76 @@ export default function LicenseObligationAttributionTile(props) {
     scope,
     error,
     saveAttributionSubmitMask,
-    showAttributionModal
+    showAttributionModal,
+    existingObligation
   } = props;
   const isAttributionPresent = () => id !== null;
-  const isDirty = () => attributionText !== originalAttributionText || scope !== originalScope;
+  const isAttributionDirty = () => attributionText !== originalAttributionText || scope !== originalScope;
+  const isDirty = () => isAttributionDirty() || isObligationDirty();
   const isValid = () => isDirty() && (isAttributionPresent() || attributionText);
   const validationErrorMessage = isAttributionPresent() ? 'Must change attribution text or scope.' :
     'Must add attribution text.';
   const [attributionTextInput, setAttributionTextInput] = useState(initialState(attributionText));
 
+  function isObligationDirty() {
+    return existingObligation && existingObligation.status !== existingObligation.originalStatus;
+  }
+
+  const resetExistingObligation = () => {
+    if (existingObligation) {
+      setObligationStatus({ name: existingObligation.name, value: existingObligation.originalStatus });
+      setObligationScope({ name: existingObligation.name, value: existingObligation.originalScope });
+    }
+  };
+
+  const getSubmitMaskState = () => {
+    const nullIfUndef = (b) => b === undefined ? null : b;
+    const mainSubmitMaskState = nullIfUndef(saveAttributionSubmitMask);
+    const obligationSubmitMaskState = existingObligation ? nullIfUndef(
+        existingObligation.saveObligationSubmitMask) : null;
+    if (mainSubmitMaskState === null) {
+      return obligationSubmitMaskState;
+    }
+    if (obligationSubmitMaskState === null) {
+      return mainSubmitMaskState;
+    }
+    return mainSubmitMaskState && obligationSubmitMaskState;
+  };
+
+  const setObligationScopeIfNeeded = (event) => {
+    if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
+      setObligationScope({ name: existingObligation.name, value: event.target.value });
+    }
+  };
+
+  const onObligationChange = (value) => {
+    setObligationStatus({ name: existingObligation.name, value });
+    if (value === existingObligation.originalStatus) {
+      setObligationScope(
+          { name: existingObligation.name, value: existingObligation.originalScope });
+    }
+    else {
+      setObligationScope({ name: existingObligation.name, value: scope });
+    }
+  };
+
+  const trySave = (name) => {
+    saveAttribution({
+      obligationName: name,
+      existingObligation,
+      isAttributionDirty: isAttributionDirty(),
+      isObligationDirty: isObligationDirty()
+    });
+  };
+
   const createAttributionModal = () => {
     return <NxModal id="license-obligation-attribution-modal"
-                    onClose={ () => cancelAttributionModal({ name }) }>
-      <NxForm onCancel={ () => cancelAttributionModal({ name }) }
+                    onClose={ () => {resetExistingObligation(); cancelAttributionModal({ name });} }>
+      <NxForm onCancel={ () => {resetExistingObligation(); cancelAttributionModal({ name });} }
               submitBtnText="Save"
-              onSubmit={ () => saveAttribution(name) }
-              submitError={ error }
-              submitMaskState={ saveAttributionSubmitMask }
+              onSubmit={ () => trySave(name) }
+              submitError={ error || (existingObligation ? existingObligation.error : false) }
+              submitMaskState={ getSubmitMaskState() }
               validationErrors={ isValid() ? undefined : validationErrorMessage }>
         <header className="nx-modal-header">
           <h2 className="nx-h2">
@@ -74,10 +130,17 @@ export default function LicenseObligationAttributionTile(props) {
                          } }
               />
           </NxFormGroup>
-          <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
+          { existingObligation &&
+            (<ObligationStatusComponent existingObligation={ existingObligation } onChange={ onObligationChange }/>)
+          }
+          <NxFormGroup id="license-obligation-attribution-scope-selection-group"
+                       label="Scope" sublabel="Apply changes to" isRequired>
             <select className="nx-form-select nx-form-select--long"
                     value={ scope }
-                    onChange={ payload => setAttributionScope({ name, value: payload.currentTarget.value }) }>
+                    onChange={ payload => {
+                      setAttributionScope({ name, value: payload.currentTarget.value });
+                      setObligationScopeIfNeeded(payload);
+                    } }>
               { availableScopes.values.map(createScopeOption) }
             </select>
           </NxFormGroup>
@@ -131,5 +194,8 @@ LicenseObligationAttributionTile.propTypes = {
   scope: PropTypes.string.isRequired,
   error: PropTypes.string,
   saveAttributionSubmitMask: PropTypes.bool,
-  showAttributionModal: PropTypes.bool.isRequired
+  showAttributionModal: PropTypes.bool.isRequired,
+  existingObligation: licenseObligationPropType,
+  setObligationStatus: PropTypes.func.isRequired,
+  setObligationScope: PropTypes.func.isRequired
 };

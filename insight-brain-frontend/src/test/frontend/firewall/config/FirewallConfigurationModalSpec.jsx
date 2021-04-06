@@ -80,10 +80,6 @@ describe('FirewallConfigurationModal', function() {
     expect(integrityRatingToggle).toHaveProp('isChecked', false);
     expect(integrityRatingToggle).toHaveText('Integrity Rating policy condition type');
 
-    const manageAllToggle = modalContent.find('#auto-unquarantine-toggle-all');
-    expect(manageAllToggle).toExist();
-    expect(manageAllToggle).toHaveProp('isChecked', false);
-
     const toggles = modalContent.find('#auto-release-condition-toggles').find(NxToggle);
     expect(toggles.at(0)).toExist();
     expect(toggles.at(0)).toHaveProp('isChecked', true);
@@ -128,14 +124,6 @@ describe('FirewallConfigurationModal', function() {
 
     testToggle.simulate('change');
     expect(toggleAutoUnquarantineEnabledSpy).toHaveBeenCalledWith('testId');
-  });
-
-  it('calls toggleAutoUnquarantineAll when manage all toggle is changed', function() {
-    const component = getShallowComponent(),
-        allToggle = component.find('#auto-unquarantine-toggle-all');
-
-    allToggle.simulate('change');
-    expect(toggleAutoUnquarantineAllSpy).toHaveBeenCalledWith(true);
   });
 
   it('renders a submit Mask if saving is in progress', function() {

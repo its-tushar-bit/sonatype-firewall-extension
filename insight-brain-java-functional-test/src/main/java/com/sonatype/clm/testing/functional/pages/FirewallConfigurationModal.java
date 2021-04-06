@@ -26,10 +26,6 @@ public class FirewallConfigurationModal
     return new NxCheckbox(autoUnquarantineToggleIntegrityRating());
   }
 
-  public SelenideElement autoUnquarantineToggleAll() {
-    return child("#auto-unquarantine-toggle-all");
-  }
-
   public SelenideElement autoUnquarantineToggleWithIndex(int index) {
     return child("#auto-release-condition-toggles .nx-toggle:nth-of-type(" + index + ")");
   }

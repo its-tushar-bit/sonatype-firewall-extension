@@ -13,7 +13,6 @@ import {
   FIREWALL_SAVE_CONFIGURATION_FAILED,
   FIREWALL_SAVE_CONFIGURATION_FULFILLED,
   FIREWALL_SAVE_CONFIGURATION_REQUESTED,
-  FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL,
   FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED
 } from '../firewallActions';
 import {pathSet} from '../../util/jsUtil';
@@ -81,16 +80,6 @@ const toggleAutoUnquarantineEnabled = (payload, state) => {
   return updatedComputedProps(newState);
 };
 
-const toggleAutoUnquarantineAll = (payload, state) => {
-  let newState = state;
-  state.formState.conditionTypes.forEach((element, index) => {
-    if (element.id !== INTEGRITY_RATING_POLICY_TYPE_ID) {
-      newState = pathSet(['formState', 'conditionTypes', index, 'autoReleaseQuarantineEnabled'], payload, newState);
-    }
-  });
-  return updatedComputedProps(newState);
-};
-
 const updatedComputedProps = (state) => {
   return pathSet(['viewState', 'isDirty'], isConfigurationChanged(state), state);
 };
@@ -111,7 +100,6 @@ const reducerActionMap = {
   [FIREWALL_LOAD_CONFIGURATION_REQUESTED]: always(initialState),
   [FIREWALL_LOAD_CONFIGURATION_FULFILLED]: loadConfigurationFulfilled,
   [FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED]: toggleAutoUnquarantineEnabled,
-  [FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ALL]: toggleAutoUnquarantineAll,
   [FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE]: configurationSaveMaskTimerDone
 };
 

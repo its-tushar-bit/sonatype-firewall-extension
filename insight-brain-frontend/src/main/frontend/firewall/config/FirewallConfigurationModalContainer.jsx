@@ -11,7 +11,6 @@ import {
   closeConfigurationModal,
   loadConfiguration,
   saveConfiguration,
-  toggleAutoUnquarantineAll,
   toggleAutoUnquarantineEnabled
 } from '../firewallActions';
 
@@ -27,8 +26,7 @@ const mapDispatchToProps = {
   loadConfiguration,
   toggleAutoUnquarantineEnabled,
   closeConfigurationModal,
-  saveConfiguration,
-  toggleAutoUnquarantineAll
+  saveConfiguration
 };
 
 const FirewallConfigurationModalContainer = connect(mapStateToProps, mapDispatchToProps)(FirewallConfigurationModal);

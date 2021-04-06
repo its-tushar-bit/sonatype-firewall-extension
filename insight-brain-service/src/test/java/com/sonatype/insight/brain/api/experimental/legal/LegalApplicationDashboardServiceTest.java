@@ -51,6 +51,7 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
 
@@ -405,6 +406,30 @@ public class LegalApplicationDashboardServiceTest
         LicenseObligationReviewStatus.COMPLETED);
   }
 
+  @Test
+  public void testGetLicenseLegalApplicationDashboard_HasObligationsButNoneSaved() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ApplicationComponent applicationComponent =
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash", componentIdentifier);
+    String effectiveLicenseId = "effectiveLicenseId";
+    tempEntity.newApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId);
+    LicenseObligationDTO licenseObligationDTO = new LicenseObligationDTO("obligation", Collections.emptySet());
+    LicenseMetadataDTO licenseMetadataDTO = new LicenseMetadataDTO();
+    licenseMetadataDTO.setLicenseId(effectiveLicenseId);
+    licenseMetadataDTO.setLicenseObligations(Collections.singleton(licenseObligationDTO));
+    doReturn(Collections.singletonList(licenseMetadataDTO)).when(mockApiLicenseLegalHdsService)
+        .getLicenseMetadata(any());
+
+    List<ApiLicenseLegalApplicationComponentDTO> result =
+        legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), null);
+
+    assertThat(result).hasSize(1);
+    assertApiLicenseLegalApplicationComponentDTO(result.get(0), componentIdentifier,
+        Collections.singletonList(new ApiLicenseDTOV2(effectiveLicenseId, null, Collections.emptyList())), 0, 1,
+        LicenseObligationReviewStatus.UNREVIEWED);
+  }
+
   private void setupLicenseObligations(
       Application app,
       ComponentIdentifier componentIdentifier,
@@ -444,8 +469,8 @@ public class LegalApplicationDashboardServiceTest
             licenses.stream().map(license -> license.licenseId).collect(Collectors.toSet()));
     assertThat(dto.licenses.stream().flatMap(license -> license.licenseThreatGroups.stream())
         .map(group -> group.licenseThreatGroupName).collect(Collectors.toList())).containsExactlyInAnyOrderElementsOf(
-            licenses.stream().flatMap(license -> license.licenseThreatGroups.stream())
-                .map(group -> group.licenseThreatGroupName).collect(Collectors.toList()));
+        licenses.stream().flatMap(license -> license.licenseThreatGroups.stream())
+            .map(group -> group.licenseThreatGroupName).collect(Collectors.toList()));
     assertThat(dto.reviewCompletedCount).isEqualTo(reviewCompletedCount);
     assertThat(dto.reviewTotalCount).isEqualTo(reviewTotalCount);
     assertThat(dto.reviewStatus).isEqualTo(reviewStatus);

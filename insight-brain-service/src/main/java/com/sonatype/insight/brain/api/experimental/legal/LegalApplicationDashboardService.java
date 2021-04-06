@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -156,8 +157,13 @@ public class LegalApplicationDashboardService
         int flaggedCount = 0;
         int openCount = 0;
         int addressedCount = 0;
-        for (ComponentObligation obligation : obligations) {
-          switch (obligation.getStatus()) {
+        for (String obligationName : allObligationNames) {
+          ObligationStatus status = obligations.stream()
+              .filter(o -> o.getObligationName().equals(obligationName))
+              .map(ComponentObligation::getStatus)
+              .findFirst()
+              .orElse(ObligationStatus.OPEN);
+          switch (status) {
             case FLAGGED:
               flaggedCount++;
               break;
@@ -222,8 +228,8 @@ public class LegalApplicationDashboardService
         : apiLicenseLegalHdsService.getLicenseMetadata(licenseIds).parallelStream()
         .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, licenseMetadata ->
             licenseMetadata.getLicenseObligations().stream()
-            .map(LicenseObligationDTO::getName)
-            .collect(Collectors.toSet())));
+                .map(LicenseObligationDTO::getName)
+                .collect(Collectors.toSet())));
   }
 
   private Set<String> filterLicenseIdsByThreatGroups(

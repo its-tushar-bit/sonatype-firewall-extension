@@ -13,7 +13,7 @@ import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile'
 import CopyrightStatementsTile from '../../../main/frontend/legal/copyright/CopyrightStatementsTile';
 import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
 import { mount } from 'enzyme/build';
-import LicenseObligationsTileContainer from '../../../main/frontend/legal/LicenseObligationsTileContainer';
+import LicenseObligationsTileContainer from '../../../main/frontend/legal/obligation/LicenseObligationsTileContainer';
 
 describe('ComponentLegalOverviewPage', function() {
   let minimalProps,

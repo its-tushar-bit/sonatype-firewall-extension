@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import LicenseObligationModal from '../../../main/frontend/legal/LicenseObligationModal';
+import LicenseObligationModal from '../../../main/frontend/legal/obligation/LicenseObligationModal';
 import { NxDropdown, NxForm, NxTextInput } from '@sonatype/react-shared-components';
 
 describe('LicenseObligationModal', function() {

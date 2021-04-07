@@ -10,7 +10,7 @@ import {getLegalFileUrl, getSaveLegalFileUrl} from '../../util/CLMLocation';
 import {Messages} from '../../util/CommonServices';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 import {isScopeOverride} from '../legalUtility';
-import { saveObligation } from '../advancedLegalObligationActions';
+import { saveObligation } from '../obligation/advancedLegalObligationActions';
 
 export const ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL';
 export const ADVANCED_LEGAL_CANCEL_NOTICES_MODAL = 'ADVANCED_LEGAL_CANCEL_NOTICES_MODAL';

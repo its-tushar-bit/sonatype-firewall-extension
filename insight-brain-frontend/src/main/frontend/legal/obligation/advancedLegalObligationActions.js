@@ -11,12 +11,12 @@ import {
   getDeleteComponentObligationUrl,
   getSaveComponentObligationAttributionUrl,
   getSaveComponentObligationUrl
-} from '../util/CLMLocation';
-import { payloadParamActionCreator } from '../util/reduxUtil';
+} from '../../util/CLMLocation';
+import { payloadParamActionCreator } from '../../util/reduxUtil';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { find, pick, propEq } from 'ramda';
-import { Messages } from '../util/CommonServices';
-import { isScopeOverride } from './legalUtility';
+import { Messages } from '../../util/CommonServices';
+import { isScopeOverride } from '../legalUtility';
 
 export const ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT = 'ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT';
 export const ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE = 'ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE';

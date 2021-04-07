@@ -12,9 +12,9 @@ import {
   NxTextInput,
   nxTextInputStateHelpers
 } from '@sonatype/react-shared-components';
-import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from './advancedLegalConstants';
+import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from '../advancedLegalConstants';
 import * as PropTypes from 'prop-types';
-import { availableScopesPropType, licenseObligationPropType } from './advancedLegalPropTypes';
+import { availableScopesPropType, licenseObligationPropType } from '../advancedLegalPropTypes';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 

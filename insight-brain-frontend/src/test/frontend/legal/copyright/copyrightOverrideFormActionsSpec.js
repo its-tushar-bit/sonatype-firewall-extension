@@ -16,7 +16,7 @@ import {
   ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED,
   ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE
-} from '../../../../main/frontend/legal/advancedLegalObligationActions.js';
+} from '../../../../main/frontend/legal/obligation/advancedLegalObligationActions.js';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 import {
   getComponentCopyrightOverrideUrl,

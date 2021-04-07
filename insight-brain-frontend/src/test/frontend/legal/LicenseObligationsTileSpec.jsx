@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../enzymeUtils';
-import LicenseObligationsTile from '../../../main/frontend/legal/LicenseObligationsTile';
+import LicenseObligationsTile from '../../../main/frontend/legal/obligation/LicenseObligationsTile';
 import { NxFontAwesomeIcon, NxSegmentedButton, NxStatefulAccordion } from '@sonatype/react-shared-components';
 
 describe('LicenseObligationsTile component', function() {

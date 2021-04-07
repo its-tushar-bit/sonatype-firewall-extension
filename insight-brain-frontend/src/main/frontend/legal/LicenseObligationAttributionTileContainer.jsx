@@ -13,7 +13,7 @@ import {
   setShowAttributionModal,
   setObligationScope,
   setObligationStatus
-} from './advancedLegalObligationActions';
+} from './obligation/advancedLegalObligationActions';
 import LicenseObligationAttributionTile from './LicenseObligationAttributionTile';
 import { find, propEq } from 'ramda';
 

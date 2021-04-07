@@ -13,7 +13,7 @@ import {
   SET_DISPLAY_COPYRIGHT_OVERRIDE_MODAL
 } from './copyrightOverrideFormActions';
 import {Messages} from '../../util/CommonServices';
-import {ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE} from '../advancedLegalObligationActions';
+import {ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE} from '../obligation/advancedLegalObligationActions';
 
 const initialState = Object.freeze({
   saveCopyrightError: null,

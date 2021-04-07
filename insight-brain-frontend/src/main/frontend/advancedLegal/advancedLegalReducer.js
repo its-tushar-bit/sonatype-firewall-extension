@@ -21,7 +21,7 @@ import {
 import { ACTIONABLE_OBLIGATIONS, TEXT_BASED_OBLIGATIONS } from '../legal/advancedLegalConstants';
 import { COPYRIGHT_OVERRIDE_SAVE_FULFILLED } from '../legal/copyright/copyrightOverrideFormActions';
 import { lensPath, over } from 'ramda';
-import { advancedLegalObligationReducerActionMap } from '../legal/advancedLegalObligationReducer';
+import { advancedLegalObligationReducerActionMap } from '../legal/obligation/advancedLegalObligationReducer';
 import { advancedLegalFileReducerActionMap } from '../legal/files/advancedLegalFileReducer';
 
 const initialState = {

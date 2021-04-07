@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useState } from 'react';
+import React, {Fragment, useState} from 'react';
 import {
   NxAccordion,
   NxFontAwesomeIcon,
@@ -11,12 +11,12 @@ import {
   NxSegmentedButton,
   NxStatefulAccordion
 } from '@sonatype/react-shared-components';
-import { licenseLegalMetadataPropType, licenseObligationsPropTypes } from './advancedLegalPropTypes';
-import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from './advancedLegalConstants';
-import { faCheckCircle, faExclamationTriangle, faMinusCircle } from '@fortawesome/pro-solid-svg-icons';
+import {licenseLegalMetadataPropType, licenseObligationsPropTypes} from '../advancedLegalPropTypes';
+import {OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES} from '../advancedLegalConstants';
+import {faCheckCircle, faExclamationTriangle, faMinusCircle} from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import LicenseObligationModalContainer from './LicenseObligationModalContainer';
-import { find, propEq } from 'ramda';
+import {find, propEq} from 'ramda';
 
 export default function LicenseObligationsTile(props) {
   const {

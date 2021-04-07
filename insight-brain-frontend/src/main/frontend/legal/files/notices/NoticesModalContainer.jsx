@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { setObligationScope, setObligationStatus } from '../../advancedLegalObligationActions';
+import { setObligationScope, setObligationStatus } from '../../obligation/advancedLegalObligationActions';
 
 import NoticesModal from './NoticesModal';
 import {

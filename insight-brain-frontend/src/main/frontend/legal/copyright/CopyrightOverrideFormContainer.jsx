@@ -7,7 +7,7 @@
 import {connect} from 'react-redux';
 import CopyrightOverrideForm from './CopyrightOverrideForm';
 import {saveCopyrightOverride, setDisplayCopyrightOverrideModal} from './copyrightOverrideFormActions';
-import {setObligationScope, setObligationStatus} from '../advancedLegalObligationActions';
+import {setObligationScope, setObligationStatus} from '../obligation/advancedLegalObligationActions';
 
 const mapDispatchToProps = {
   saveCopyrightOverride,

@@ -23,7 +23,7 @@ import {
   ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED
-} from '../../../main/frontend/legal/advancedLegalObligationActions';
+} from '../../../main/frontend/legal/obligation/advancedLegalObligationActions';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 describe('advancedLegalObligationActions', function () {

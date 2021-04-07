@@ -14,7 +14,7 @@ import {
   setLicensesScope,
   setLicenseStatus
 } from '../advancedLegalFileActions';
-import { setObligationScope, setObligationStatus } from '../../advancedLegalObligationActions';
+import { setObligationScope, setObligationStatus } from '../../obligation/advancedLegalObligationActions';
 
 function mapStateToProps({ advancedLegal }) {
   return {

@@ -9,7 +9,7 @@ import {getComponentCopyrightOverrideUrl, getSaveComponentCopyrightOverrideUrl} 
 import axios from 'axios';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 import {isScopeOverride} from '../legalUtility';
-import {saveObligation} from '../advancedLegalObligationActions';
+import {saveObligation} from '../obligation/advancedLegalObligationActions';
 
 export const COPYRIGHT_OVERRIDE_SAVE_REQUESTED = 'COPYRIGHT_OVERRIDE_SAVE_REQUESTED';
 export const COPYRIGHT_OVERRIDE_SAVE_FULFILLED = 'COPYRIGHT_OVERRIDE_SAVE_FULFILLED';

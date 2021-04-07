@@ -23,7 +23,7 @@ import {
   ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL
 } from './advancedLegalObligationActions';
 import { __, find, findIndex, lensPath, merge, over, propEq } from 'ramda';
-import { saveNoticesSubmitMaskDone, saveLicensesSubmitMaskDone } from './files/advancedLegalFileReducer';
+import { saveNoticesSubmitMaskDone, saveLicensesSubmitMaskDone } from '../files/advancedLegalFileReducer';
 
 function updateAttribution(newAttribution, obligationName, state) {
   const attributionIndex = findIndex(propEq('obligationName', obligationName),

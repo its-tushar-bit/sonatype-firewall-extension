@@ -23,7 +23,7 @@ import {
   ADVANCED_LEGAL_SET_OBLIGATION_STATUS,
   ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL,
   ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL
-} from '../../../main/frontend/legal/advancedLegalObligationActions.js';
+} from '../../../main/frontend/legal/obligation/advancedLegalObligationActions.js';
 
 describe('advancedLegalObligationReducer', function () {
   describe('ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT action', function () {

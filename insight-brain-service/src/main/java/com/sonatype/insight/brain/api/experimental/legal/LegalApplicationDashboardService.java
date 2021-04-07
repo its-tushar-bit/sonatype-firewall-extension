@@ -27,11 +27,14 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
+import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
+import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.license.License;
@@ -80,6 +83,8 @@ public class LegalApplicationDashboardService
 
   private final MultiLicenseDAO multiLicenseDAO;
 
+  private final InnerSourceComponentDAO innerSourceComponentDAO;
+
   @Inject
   public LegalApplicationDashboardService(
       ProductLicense productLicense,
@@ -88,7 +93,8 @@ public class LegalApplicationDashboardService
       ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
       ComponentObligationDAO componentObligationDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
-      MultiLicenseDAO multiLicenseDAO)
+      MultiLicenseDAO multiLicenseDAO,
+      InnerSourceComponentDAO innerSourceComponentDAO)
   {
     this.productLicense = productLicense;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -97,6 +103,7 @@ public class LegalApplicationDashboardService
     this.componentObligationDAO = componentObligationDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.multiLicenseDAO = multiLicenseDAO;
+    this.innerSourceComponentDAO = innerSourceComponentDAO;
   }
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
@@ -121,6 +128,12 @@ public class LegalApplicationDashboardService
     if (isEmpty(applicationComponents)) {
       return Collections.emptyList();
     }
+
+    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(application.getId()).stream()
+        .map(InnerSourceComponent::getPackageUrl)
+        .collect(Collectors.toSet());
+    applicationComponents.removeIf(c -> c.getComponentIdentifier() != null && innerSourcePackageUrls
+        .contains(ReportInnerSource.getVersionlessPackageUrl(c.getComponentIdentifier()).getPackageUrl()));
 
     Set<String> licenseIdsFound = getLicenseIds(applicationComponents);
     Map<String, Set<String>> obligationNamesByLicenseId = getLicenseObligationsFromHds(licenseIdsFound);

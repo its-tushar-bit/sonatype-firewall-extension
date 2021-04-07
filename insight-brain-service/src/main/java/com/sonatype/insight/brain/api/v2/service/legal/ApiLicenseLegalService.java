@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
@@ -72,6 +73,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -82,6 +84,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
@@ -191,6 +194,8 @@ public class ApiLicenseLegalService
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
+  private final InnerSourceComponentDAO innerSourceComponentDAO;
+
   @Inject
   public ApiLicenseLegalService(
       MultiLicenseDAO multiLicenseDAO,
@@ -216,7 +221,8 @@ public class ApiLicenseLegalService
       ComponentObligationDAO componentObligationDAO,
       ComponentObligationAttributionDAO componentObligationAttributionDAO,
       AggregateFileDAO aggregateFileDAO,
-      LicenseThreatGroupDAO licenseThreatGroupDAO)
+      LicenseThreatGroupDAO licenseThreatGroupDAO,
+      InnerSourceComponentDAO innerSourceComponentDAO)
   {
     this.multiLicenseDAO = multiLicenseDAO;
     this.apiLicenseLegalHdsService = apiLicenseLegalHdsService;
@@ -243,6 +249,7 @@ public class ApiLicenseLegalService
     this.componentObligationAttributionDAO = componentObligationAttributionDAO;
     this.aggregateFileDAO = aggregateFileDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
+    this.innerSourceComponentDAO = innerSourceComponentDAO;
   }
 
   public ApiLicenseLegalApplicationDashboardResultDTO getLicenseLegalApplicationsDashboard(
@@ -447,6 +454,12 @@ public class ApiLicenseLegalService
   private ApiLicenseLegalApplicationReportDTO getApplicationReportFromReportRawData(
       final Owner application, final ApiReportRawDataDTOV2 latestRawReport)
   {
+    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(application.getId()).stream()
+        .map(InnerSourceComponent::getPackageUrl)
+        .collect(Collectors.toSet());
+    latestRawReport.components.removeIf(component -> component.componentIdentifier != null && innerSourcePackageUrls
+        .contains(ReportInnerSource.getVersionlessPackageUrl(component.componentIdentifier.toComponentIdentifier())
+            .getPackageUrl()));
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
         getReportMultiLicenses(latestRawReport);
     Set<ApiLicenseDTO> multiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
@@ -1119,6 +1132,12 @@ public class ApiLicenseLegalService
     for (ApiLicenseLegalApplicationDashboardDTO dto : result) {
       List<ApplicationComponentLicensesDTO> componentLicenses = applicationComponentLicenseDAO
           .getApplicationComponentEffectiveLicenses(dto.applicationId, Sets.newHashSet(dto.stageTypeId));
+
+      Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(dto.applicationId).stream()
+          .map(InnerSourceComponent::getPackageUrl)
+          .collect(Collectors.toSet());
+      componentLicenses.removeIf(c -> c.getComponentIdentifier() != null && innerSourcePackageUrls
+          .contains(ReportInnerSource.getVersionlessPackageUrl(c.getComponentIdentifier()).getPackageUrl()));
 
       applicationIdStageTypeIdComponentLicensesMap.put(dto.applicationId, dto.stageTypeId, componentLicenses);
       // Collect all licenses to make a single HDS call instead of one per component

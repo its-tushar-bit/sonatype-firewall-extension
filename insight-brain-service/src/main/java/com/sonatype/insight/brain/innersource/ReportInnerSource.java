@@ -114,7 +114,7 @@ public final class ReportInnerSource
     return false;
   }
 
-  private static PackageUrlIdentifier getVersionlessPackageUrl(final ComponentIdentifier componentIdentifier) {
+  public static PackageUrlIdentifier getVersionlessPackageUrl(final ComponentIdentifier componentIdentifier) {
     if (componentIdentifier != null) {
       return new PackageUrlIdentifier(String.format("pkg:maven/%s/%s",
           componentIdentifier.get(ComponentIdentifier.MAVEN_GROUP_ID),

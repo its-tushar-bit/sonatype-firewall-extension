@@ -63,10 +63,13 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.api.v2.service.DefaultApiLicenseDataAdapter;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
+import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -167,6 +170,9 @@ public class ApiLicenseLegalServiceTest
       "LGPL-2.1",
       "LGPL-3.0"
   };
+
+  private static final ComponentIdentifier INNER_SOURCE_COMPONENT_IDENTIFIER =
+      ComponentIdentifier.createMavenCoordinates("org.company.lib", "lib-web", "1.0-SNAPSHOT", "", "jar");
 
   @Inject
   private ApiLicenseLegalService apiLicenseLegalService;
@@ -393,6 +399,36 @@ public class ApiLicenseLegalServiceTest
         findResult(resultDto.results, appTagEval1.getLeft().getId()), 1, 1);
     assertLegalLicenseApplicationDashboardDTO(appTagEval2.getLeft(), appTagEval2.getMiddle(), appTagEval2.getRight(),
         findResult(resultDto.results, appTagEval2.getLeft().getId()), 1, 1);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationsDashboard_IgnoresInnerSourceComponents() {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date());
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    ApplicationComponent innerSourceComponent = tempEntity.newApplicationComponent(app.getId(),
+        BuildStageType.ID, "hash1", componentIdentifier1);
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier2);
+    tempEntity.newInnerSourceComponent(
+        ReportInnerSource.getVersionlessPackageUrl(innerSourceComponent.getComponentIdentifier()).getPackageUrl(),
+        new ApplicationDAO().getById(policyEvaluation.getApplicationId()));
+
+    ApiLicenseLegalApplicationDashboardResultDTO resultDto = apiLicenseLegalService
+        .getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);
+
+    assertThat(resultDto.totalResultsCount).isEqualTo(1);
+    assertThat(resultDto.results).hasSize(1);
+    ApiLicenseLegalApplicationDashboardDTO dto = resultDto.results.get(0);
+    assertThat(dto.applicationId).isEqualTo(app.getId());
+    assertThat(dto.applicationName).isEqualTo(app.getName());
+    assertThat(dto.applicationPublicId).isEqualTo(app.getPublicId());
+    assertThat(dto.lastScanTime).isEqualTo(policyEvaluation.getTime().getTime());
+    assertThat(dto.stageTypeId).isEqualTo(policyEvaluation.getStageTypeId());
+    assertThat(dto.stageTypeName).isEqualTo(StageTypes.getById(policyEvaluation.getStageTypeId()).getName());
+    assertThat(dto.componentsReviewedCount).isEqualTo(1);
+    assertThat(dto.componentsTotalCount).isEqualTo(1);
   }
 
   @Test
@@ -903,6 +939,7 @@ public class ApiLicenseLegalServiceTest
       throws Exception
   {
     ComponentIdentifier[] expectedComponentIdentifiers = rawReport.components.stream()
+        .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
         .map(component -> component.componentIdentifier.toComponentIdentifier()).toArray(ComponentIdentifier[]::new);
     LicenseMetadataDTO[] licenseMetadata = getContent(licenseMetadataResource, LicenseMetadataDTO[].class);
     when(mockApiLicenseLegalHdsService.getLicenseMetadata(licenseIdArgumentCaptor.capture()))
@@ -2008,12 +2045,14 @@ public class ApiLicenseLegalServiceTest
       ApiReportRawDataDTOV2 rawReport,
       String[] expectedLicenseIds)
   {
-    assertThat(components).hasSize(rawReport.components.size());
+    assertThat(components).hasSize((int) rawReport.components.stream()
+        .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER)).count());
     List<Collection<String>> licenseIds = licenseIdArgumentCaptor.getAllValues();
     assertThat(licenseIds).hasSize(1);
     assertThat(licenseIds.get(0)).containsExactlyInAnyOrder(expectedLicenseIds);
     Set<String> expectedLicenseLegalMetadataLicenseIds = new LinkedHashSet<>(Arrays.asList(expectedLicenseIds));
     expectedLicenseLegalMetadataLicenseIds.addAll(rawReport.components.stream()
+        .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
         .flatMap(component -> Stream.concat(Stream.concat(component.licenseData.declaredLicenses.stream(),
             component.licenseData.observedLicenses.stream()),
             component.licenseData.effectiveLicenses.stream()))
@@ -2230,6 +2269,10 @@ public class ApiLicenseLegalServiceTest
         File file = Report.getCacheFile(reportFile, filename);
         FileUtils.copyURLToFile(getClass().getResource("/" + getClass().getSimpleName() + "/report/" + filename), file);
       }
+      if (new InnerSourceComponentDAO().getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
+        tempEntity.newInnerSourceComponent(ReportInnerSource.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
+            .getPackageUrl(), new ApplicationDAO().getById(evaluation.getApplicationId()));
+      }
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -2244,10 +2287,13 @@ public class ApiLicenseLegalServiceTest
     expectedAttributes.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, new ApplicationLicenseUsageTelemetry(
         application.getPublicId(),
         rawReport.components.stream()
+            .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
             .map(component -> component.hash)
             .filter(StringUtils::isNotBlank)
             .collect(Collectors.toCollection(LinkedHashSet::new)),
-        rawReport.components.stream().filter(component -> component.licenseData != null)
+        rawReport.components.stream()
+            .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
+            .filter(component -> component.licenseData != null)
             .map(component -> component.licenseData)
             .flatMap(licenseData -> Stream.concat(
                 Stream.concat(licenseData.declaredLicenses.stream(), licenseData.observedLicenses.stream()),

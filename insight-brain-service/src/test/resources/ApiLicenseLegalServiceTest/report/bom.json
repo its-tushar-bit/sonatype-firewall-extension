@@ -821,5 +821,67 @@
       } ],
       "name" : "micrometer-core"
     }
-  } ]
+  },
+  {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "lib-web",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.company.lib",
+        "version" : "1.0-SNAPSHOT"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "lib-web-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/org.company.apps:sample-app:war:3.5-SNAPSHOT/org.company.lib:lib-web:jar:1.0-SNAPSHOT", "target/sample-app-3.5-SNAPSHOT.war/WEB-INF/lib/lib-web-1.0-SNAPSHOT.jar" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b2e6f28293c5ffa487b9",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1617723198000,
+    "lastModifiedEntryTime" : 1617723200000,
+    "website" : null,
+    "identificationSource" : "Package Manifest",
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "THIRD_PARTY",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "mvn",
+      "hasLicense" : false,
+      "hasIdentity" : false,
+      "hasSecurity" : false
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.company.lib"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "lib-web"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0-SNAPSHOT"
+      } ],
+      "name" : "lib-web"
+    },
+    "directDependency" : true,
+    "innerSource" : true,
+    "innerSourceData" : {
+      "ownerApplicationName" : "inner-producer-evaluate",
+      "ownerApplicationId" : "34ebc21cfe1f4c1898c1c51470201ae4"
+    }
+  }]
 }

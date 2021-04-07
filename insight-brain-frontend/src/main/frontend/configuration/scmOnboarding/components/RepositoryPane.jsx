@@ -258,7 +258,8 @@ RepositoryPane.propTypes = {
   }),
   scmConfigurationHref: PropTypes.string,
   scmProvider: PropTypes.string,
-  currentHostUrlState: PropTypes.shape(textInputPropType),
+  // textInputPropType is implied required, but this val is optional
+  currentHostUrlState: PropTypes.oneOfType(PropTypes.object, PropTypes.shape(textInputPropType)),
   defaultHostUrl: PropTypes.string,
   isGitHostNeeded: PropTypes.bool,
   isSelectingOrganization: PropTypes.bool,

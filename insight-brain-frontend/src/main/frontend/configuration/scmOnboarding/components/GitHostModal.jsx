@@ -114,7 +114,8 @@ export default function GitHostModal(props) {
 GitHostModal.propTypes = {
   loadRepositories: PropTypes.func.isRequired,
   scmProvider: PropTypes.string,
-  currentHostUrlState: PropTypes.shape(textInputPropType),
+  // textInputPropType is implied required, but this val is optional
+  currentHostUrlState: PropTypes.oneOfType(PropTypes.object, PropTypes.shape(textInputPropType)),
   defaultHostUrl: PropTypes.string,
   setCurrentHostUrl: PropTypes.func.isRequired,
   validateScmHostUrl: PropTypes.func.isRequired,

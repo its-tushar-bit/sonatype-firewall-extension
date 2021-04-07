@@ -8,7 +8,6 @@ import React, {useState} from 'react';
 import * as PropTypes from 'prop-types';
 
 import {
-  NxOverflowTooltip,
   NxFilterInput,
   NxDropdown
 } from '@sonatype/react-shared-components';
@@ -20,32 +19,34 @@ import './DropdownFilterInput.scss';
 function DropdownFilterInput(props) {
   const {
     children,
-    filterFn
+    filterFn,
+    ...nxDropdownProps
   } = props;
-
-  const filteredChildren = () => {
-    if (!filterFn || !children) {
-      return children;
-    }
-    return children.filter(child => filterFn(child, filterValue));
-  };
 
   const [filterValue, setFilterValue] = useState('');
 
-  const wrappedChildren = filteredChildren() && React.Children.map(filteredChildren(), child => (
-    <NxOverflowTooltip>{child}</NxOverflowTooltip>
-  ));
+  const filterChildren = () => {
+    if (!children || !filterFn) {
+      // don't need a filter if no children or no filter function
+      return children;
+    }
+    return [
+      <NxFilterInput key="__filter" className="nx-dropdown-menu-filter" onChange={setFilterValue} value={filterValue}/>,
+      ...children.filter(child => filterFn(child, filterValue))
+    ];
+  };
+
   return (
-    <NxDropdown {...props}>
-      <NxFilterInput className="nx-dropdown-menu-filter" onChange={setFilterValue} value={filterValue}/>
-      {wrappedChildren}
+    <NxDropdown {...nxDropdownProps}>
+      {filterChildren()}
     </NxDropdown>
   );
 }
 
 DropdownFilterInput.propTypes = {
   children: PropTypes.arrayOf(PropTypes.element),
-  filterFn: PropTypes.func
+  filterFn: PropTypes.func,
+  nxDropdownProps: PropTypes.object
 };
 
 export default DropdownFilterInput;

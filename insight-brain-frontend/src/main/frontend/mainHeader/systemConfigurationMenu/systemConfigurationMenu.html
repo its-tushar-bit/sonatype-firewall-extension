@@ -78,13 +78,13 @@
         Automatic SCM Configuration
       </a>
     </div>
+    <div id="system-configuration-scm-onboarding" ng-if="vm.permissions.MANAGE_AUTOMATIC_SCM_CONFIGURATION">
+      <a ui-sref="scmOnboarding" class="iq-dropdown-menu__link--main-header">SCM Onboarding</a>
+    </div>
     <div id="system-configuration-advanced-search"
          ng-if="vm.permissions.CONFIGURE_SYSTEM"
          ng-class="{'active': vm.state.includes('advancedSearch')}">
       <a ui-sref="advancedSearchConfig" class="iq-dropdown-menu__link--main-header">Advanced Search</a>
-    </div>
-    <div id="system-configuration-scm-onboarding" ng-if="vm.permissions.MANAGE_AUTOMATIC_SCM_CONFIGURATION">
-      <a ui-sref="scmOnboarding" class="iq-dropdown-menu__link--main-header">SCM Onboarding</a>
     </div>
   </div>
 </div>

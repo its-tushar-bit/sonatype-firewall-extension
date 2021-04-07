@@ -19,6 +19,7 @@ import automaticSourceControlConfigurationModule
 import MailConfigContainer from './mail/MailConfigContainer';
 import ProxyConfigContainer from './proxy/ProxyConfigContainer';
 import ScmOnboardingContainer from './scmOnboarding/ScmOnboardingContainer';
+import LabsDataInsightsContainer from './labsDataInsights/LabsDataInsightsContainer';
 import scmOnboardingActions from './scmOnboarding/scmOnboardingActions';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import { always } from 'ramda';
@@ -36,6 +37,8 @@ export default angular.module('configurationModule',
         ['$ngRedux']))
     .component('scmOnboarding', react2angular(withStoreProvider(ScmOnboardingContainer), ['isAuthorized'],
         ['$ngRedux', '$state']))
+    .component('labsDataInsights', react2angular(withStoreProvider(LabsDataInsightsContainer), ['isAuthorized'],
+        ['$ngRedux']))
     .factory('scmOnboardingActions', scmOnboardingActions)
     .config(routes);
 
@@ -55,6 +58,20 @@ function routes($stateProvider) {
   };
 
   $stateProvider
+      .state('dataInsights', {
+        component: 'labsDataInsights',
+        url: '/dataInsights',
+        data: {
+          title: 'Data Insights'
+        },
+        resolve: {
+          isAuthorized: [
+            'PermissionService', function(PermissionService) {
+              return PermissionService.isLabsDataInsightsEnabled();
+            }
+          ]
+        }
+      })
       .state('mailConfig', {
         component: 'mailConfig',
         url: '/mailConfig',

@@ -214,6 +214,10 @@ export function getFirewallQuarantineSummaryUrl() {
   return uriTemplate`/api/experimental/firewall/quarantine/summary`;
 }
 
+export function getProductFeaturesUrl() {
+  return uriTemplate`/rest/product/features`;
+}
+
 export const getReportBomUrl = getBrowseReportUrl('bom.json');
 
 export const getReportUnknownJsUrl = getBrowseReportUrl('unknownjs.json');
@@ -502,9 +506,7 @@ angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations
             '/applicable';
       },
 
-      getProductFeaturesUrl: function() {
-        return baseUrl.get() + '/rest/product/features';
-      },
+      getProductFeaturesUrl,
 
       getComponentRisksUrl,
 

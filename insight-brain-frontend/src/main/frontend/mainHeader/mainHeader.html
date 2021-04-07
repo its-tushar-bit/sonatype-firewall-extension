@@ -101,9 +101,10 @@
       <div class="iq-nav-bar--system">
         <user-menu></user-menu>
         <notifications-menu></notifications-menu>
-        <system-configuration-menu ng-if="vm.hasAnyPermission()"
+        <system-configuration-menu ng-if="vm.hasAnyPermission() || vm.isLabsDataInsightsEnabled"
                                    permissions="vm.permissions"
-                                   is-webhooks-supported="vm.isWebhooksSupported">
+                                   is-webhooks-supported="vm.isWebhooksSupported"
+                                   is-labs-data-insights-enabled="vm.isLabsDataInsightsEnabled">
         </system-configuration-menu>
         <help-menu></help-menu>
       </div>

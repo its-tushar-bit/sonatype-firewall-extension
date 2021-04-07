@@ -86,5 +86,9 @@
          ng-class="{'active': vm.state.includes('advancedSearch')}">
       <a ui-sref="advancedSearchConfig" class="iq-dropdown-menu__link--main-header">Advanced Search</a>
     </div>
+    <div id="system-labs-data-insights"
+         ng-if="vm.isLabsDataInsightsEnabled">
+      <a ui-sref="dataInsights" class="iq-dropdown-menu__link--main-header">Data Insights</a>
+    </div>
   </div>
 </div>

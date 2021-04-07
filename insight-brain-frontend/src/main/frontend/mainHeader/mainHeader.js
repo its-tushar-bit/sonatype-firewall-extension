@@ -43,6 +43,7 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.isFirewallSupported = false;
   vm.isFirewallEnabled = false;
   vm.isAdvancedLegalPackSupported = false;
+  vm.isLabsDataInsightsEnabled = false;
 
   function getReleaseVersion() {
     const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
@@ -92,6 +93,8 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
             ProductFeatures.isAvailable('release-integrity');
 
         vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable('advanced-legal-pack');
+
+        vm.isLabsDataInsightsEnabled = ProductFeatures.isAvailable('data-insights');
       });
     });
   }

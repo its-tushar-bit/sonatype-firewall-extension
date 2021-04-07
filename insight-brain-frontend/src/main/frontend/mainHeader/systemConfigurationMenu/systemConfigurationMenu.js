@@ -40,6 +40,7 @@ export default {
   controllerAs: 'vm',
   bindings: {
     permissions: '<',
-    isWebhooksSupported: '<'
+    isWebhooksSupported: '<',
+    isLabsDataInsightsEnabled: '<'
   }
 };

@@ -33,6 +33,7 @@ import copyrightOverrideReducer from '../legal/copyright/copyrightOverrideReduce
 import componentCopyrightDetailsReducer from '../legal/copyright/componentCopyrightDetailsReducer';
 import manageLegalFiltersReducer from '../legal/dashboard/filter/manageLegalFiltersReducer';
 import legalApplicationDetailsReducer from '../legal/application/legalApplicationDetailsReducer';
+import labsDataInsightsReducer from '../configuration/labsDataInsights/labsDataInsightsReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -63,5 +64,6 @@ export default combineReducers({
   firewall: firewallReducer,
   firewallConfigurationModal: firewallConfigurationModalReducer,
   manageLegalFilters: manageLegalFiltersReducer,
-  legalApplicationDetails: legalApplicationDetailsReducer
+  legalApplicationDetails: legalApplicationDetailsReducer,
+  labsDataInsights: labsDataInsightsReducer
 });

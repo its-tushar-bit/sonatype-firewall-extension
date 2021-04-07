@@ -71,4 +71,8 @@ public class SystemConfigMenu
   public SelenideElement scmOnboarding() {
     return child("#system-configuration-scm-onboarding a");
   }
+
+  public SelenideElement dataInsights() {
+    return child("#system-labs-data-insights a");
+  }
 }

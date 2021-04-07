@@ -4,7 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import axios from 'axios';
 import CLMContextLocationModule from './CLMContextLocation';
+import {getProductFeaturesUrl} from '../util/CLMLocation';
 
 var module = angular.module('PermissionServiceModule', [CLMContextLocationModule.name]);
 export default module;
@@ -45,10 +47,23 @@ module.service('PermissionService', [
         });
 
         return deferred.promise;
-      }
+      },
+      isLabsDataInsightsEnabled: isLabsDataInsightsFeatureEnabled
     };
   }
 ]);
+
+function isLabsDataInsightsFeatureEnabled() {
+  var promise = axios.get(getProductFeaturesUrl())
+      .then(function(response) {
+        return response.data.includes('data-insights');
+      })
+      .catch(function() {
+        return false;
+      });
+
+  return promise;
+}
 
 module.directive('authorizationWrapper', function () {
   return {

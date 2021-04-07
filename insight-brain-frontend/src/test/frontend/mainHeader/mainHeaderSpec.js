@@ -127,6 +127,27 @@ describe('mainHeaderSpec', function() {
     expect(vm.isAdvancedLegalPackSupported).toBe(false);
   });
 
+  it('properly loads on not supported labs data insights', function() {
+    vm.$onInit();
+    loginDeferred.resolve();
+    productFeaturesDeferred.resolve();
+    $scope.$digest();
+
+    expect(vm.isLabsDataInsightsEnabled).toBe(false);
+  });
+
+  it('properly loads on supported labs data insights', function() {
+    mockProductFeatures.isAvailable.and.callFake(function(feature) {
+      return feature === 'data-insights';
+    });
+    vm.$onInit();
+    loginDeferred.resolve();
+    productFeaturesDeferred.resolve();
+    $scope.$digest();
+
+    expect(vm.isLabsDataInsightsEnabled).toBe(true);
+  });
+
   it('does not load success metrics, permissions, or features until after login', function() {
     vm.$onInit();
 

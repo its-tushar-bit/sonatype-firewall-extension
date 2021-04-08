@@ -166,7 +166,9 @@ export default function LicenseObligationAttributionTile(props) {
              className="nx-tile license-obligation-attribution-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Attribution for &quot;{ name }&quot;</h2>
+          <h2 className="nx-h2">
+            { title }
+          </h2>
         </div>
         <div className="nx-tile__actions">
           <NxButton variant="tertiary" onClick={ () => {

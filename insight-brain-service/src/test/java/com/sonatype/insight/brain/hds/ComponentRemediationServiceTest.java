@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -307,7 +308,7 @@ public class ComponentRemediationServiceTest
    * a1v1 has failing alert, a1v2 has warning alert, and a1v3 has no alerts.
    */
   @Test
-  public void testNoAdvanced_NoDependencies() {
+  public void testGetSuggestedRemediation_NoAdvanced_NoDependencies() {
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>());
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3);
     mockHdsGetComponentDependencies(returnDto);
@@ -332,7 +333,7 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and a2v4 has no alerts.
    */
   @Test
-  public void testNoAdvanced_WithDependencies() {
+  public void testGetSuggestedRemediation_NoAdvanced_WithDependencies() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -370,7 +371,7 @@ public class ComponentRemediationServiceTest
    * a1v1 has failing alert, a1v2 has warning alert, and a1v3 has no alerts.
    */
   @Test
-  public void testAdvanced_NoDependencies() {
+  public void testGetSuggestedRemediation_Advanced_NoDependencies() {
     ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>());
     List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3);
     mockHdsGetComponentDependencies(returnDto);
@@ -393,7 +394,7 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and a2v4 has no alerts.
    */
   @Test
-  public void testAdvanced_EmptyDependencies() {
+  public void testGetSuggestedRemediation_Advanced_EmptyDependencies() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
 
     dependenciesMap.put(purlA1V1, Collections.emptyList());
@@ -425,7 +426,7 @@ public class ComponentRemediationServiceTest
    * a1 has a warn alert (*non-failing), a2 has a warn alert, and a3 has no alerts (*non-violating).
    */
   @Test
-  public void testAdvanced_NonMaven() {
+  public void testGetSuggestedRemediation_Advanced_NonMaven() {
     ComponentIdentifier compIdNgA1 = ComponentIdentifier.createNugetCoordinates("a1", "v");
     ComponentIdentifier compIdNgA2 = ComponentIdentifier.createNugetCoordinates("a2", "v");
     ComponentIdentifier compIdNgA3 = ComponentIdentifier.createNugetCoordinates("a3", "v");
@@ -484,7 +485,7 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, and a2v4 has no alerts.
    */
   @Test
-  public void testAdvanced_NoStage() {
+  public void testGetSuggestedRemediation_Advanced_NoStage() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -523,7 +524,7 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, a2v4 has no alerts, and a2v5 has warning alert.
    */
   @Test
-  public void testAdvanced_CurrentVersionNotFirstInAllVersions() {
+  public void testGetSuggestedRemediation_Advanced_CurrentVersionNotFirstInAllVersions() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -566,7 +567,7 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alerts, a2v4 has no alerts, and a2v5 has warning alert.
    */
   @Test
-  public void testAdvanced_CurrentVersionLastInAllVersions() {
+  public void testGetSuggestedRemediation_Advanced_CurrentVersionLastInAllVersions() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -604,7 +605,7 @@ public class ComponentRemediationServiceTest
    * a2v3 has no alerts.
    */
   @Test
-  public void testAdvanced_CurrentVersionNonViolatingWithDependencies() {
+  public void testGetSuggestedRemediation_Advanced_CurrentVersionNonViolatingWithDependencies() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -635,7 +636,7 @@ public class ComponentRemediationServiceTest
    * a2v2 has warning alert.
    */
   @Test
-  public void testAdvanced_CurrentVersionNonFailingWithDependencies() {
+  public void testGetSuggestedRemediation_Advanced_CurrentVersionNonFailingWithDependencies() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -665,7 +666,7 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, and a2v5 has warning alert.
    */
   @Test
-  public void testAdvanced_AllViolating() {
+  public void testGetSuggestedRemediation_Advanced_AllViolating() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -698,7 +699,7 @@ public class ComponentRemediationServiceTest
    * a2v3 has no alerts.
    */
   @Test
-  public void testAdvanced_AllFailing() {
+  public void testGetSuggestedRemediation_Advanced_AllFailing() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -725,7 +726,7 @@ public class ComponentRemediationServiceTest
    * a1v3 has no alerts, and a2v1 has failing alert.
    */
   @Test
-  public void testAdvanced_SingleVersion_DependenciesFailing() {
+  public void testGetSuggestedRemediation_Advanced_SingleVersion_DependenciesFailing() {
     Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
     Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
 
@@ -754,7 +755,7 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, and a2v11 has no alert.
    */
   @Test
-  public void testAdvanced_WithClassifier() {
+  public void testGetSuggestedRemediation_Advanced_WithClassifier() {
     PackageUrlIdentifier purlA1V11WithClassifier = PackageUrlIdentifier.fromComponentIdentifier(
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v11", "c1", "jar"));
     PackageUrlIdentifier purlA2V11WithClassifier = PackageUrlIdentifier.fromComponentIdentifier(
@@ -794,7 +795,7 @@ public class ComponentRemediationServiceTest
    * a2v1 has failing alert, a2v2 has warning alert, a2v3 has no alert, and a2v11 has no alert.
    */
   @Test
-  public void testAdvanced_NullClassifier() {
+  public void testGetSuggestedRemediation_Advanced_NullClassifier() {
     PackageUrlIdentifier purlA1V11NullClassifier = PackageUrlIdentifier.fromComponentIdentifier(
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v11", null, "jar"));
     PackageUrlIdentifier purlA2V11NullClassifier = PackageUrlIdentifier.fromComponentIdentifier(
@@ -833,7 +834,7 @@ public class ComponentRemediationServiceTest
    * a1v3 has no alerts, and a2v1 has failing alert on transitive-only policy.
    */
   @Test
-  public void testAdvanced_DependencyTypePolicy() {
+  public void testGetSuggestedRemediation_Advanced_DependencyTypePolicy() {
     new PolicyDAO().delete(policyG1A2V1);
     Policy policy = new Policy("policyG1A2V1", "policyG1A2V1");
     policy.setOwnerId(org.getParentOwnerId());

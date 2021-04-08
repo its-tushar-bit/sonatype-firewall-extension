@@ -1190,7 +1190,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier
         .createMavenCoordinates("org.springframework.boot", "spring-boot-actuator", "2.2.6.RELEASE", "", "jar");
     // Set the HDS data
-    doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT")))
+    doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT", "Apache-2.0")))
         .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
     ComponentLegalCommentDTO componentLegalCommentDTO = createComponentLegalCommentDTO(componentIdentifier);
     ComponentLegalFileDTO componentLegalFileDTO = createComponentLegalFileDTO(componentIdentifier);
@@ -1212,12 +1212,18 @@ public class ApiLicenseLegalServiceTest
         LegalFileType.LICENSE, "legalContentHash");
     LegalFileOverride licenseOverride = tempEntity.newLegalFileOverride("originalHash3", "hash3",
         "overrideContent", ComponentLegalPartStatus.ENABLED, licenseLegalFile.getId());
+    ComponentObligation componentObligation = tempEntity.newComponentObligation(componentIdentifier,
+        application.getId(), "name", "comment", ObligationStatus.OPEN, "legalContentHash");
+    ComponentObligationAttribution attribution = tempEntity.newComponentObligationAttribution(
+        componentIdentifier, application.getId(), "name", "content1", "legalContentHash");
+    ComponentObligationAttribution additionalAttribution = tempEntity.newComponentObligationAttribution(
+        componentIdentifier, application.getId(), null, "content2", "legalContentHash");
 
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
     mockReport(policyEvaluation);
 
-    //Verify that the application report contains the overridden data
+    // Verify that the application report contains the overridden data
     ApiLicenseLegalApplicationReportDTO apiLicenseLegalApplicationReportDTO =
         apiLicenseLegalService.getLicenseLegalApplicationReport(application);
     ApiLicenseLegalComponentDTO apiLicenseLegalComponentDTO =
@@ -1240,6 +1246,11 @@ public class ApiLicenseLegalServiceTest
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.noticeFiles).containsExactly(
         new ApiLicenseLegalFileDTO(noticeOverride.getId(), null, noticeOverride.getContent(),
             noticeOverride.getOriginalContentHash(), licenseOverride.getStatus()));
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.obligations).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(new ApiLicenseLegalObligationDTO(componentObligation));
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.attributions).containsExactly(
+        new ComponentObligationAttributionDTO(attribution),
+        new ComponentObligationAttributionDTO(additionalAttribution));
   }
 
   @Test

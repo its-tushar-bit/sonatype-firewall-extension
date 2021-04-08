@@ -121,6 +121,7 @@ export default function ComponentLegalOverviewPage(props) {
             <NoticeTextsTileContainer/>
             <LicenseTextsTileContainer/>
             { obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer) }
+            <LicenseObligationAttributionTileContainer name={ null }/>
           </div>
         </div>}
       </LoadWrapper>

@@ -51,6 +51,10 @@ export default function LicenseObligationAttributionTile(props) {
   const validationErrorMessage = isAttributionPresent() ? 'Must change attribution text or scope.' :
     'Must add attribution text.';
   const [attributionTextInput, setAttributionTextInput] = useState(initialState(attributionText));
+  const isAdditionalAttribution = name === null;
+  const title = isAdditionalAttribution ? 'Additional Attribution' : 'Attribution for "' + name + '"';
+  const editOrAdd = isAttributionPresent() ? 'Edit' : 'Add';
+  const toId = s => s.toLowerCase().replace(/\s+/g, '-');
 
   function isObligationDirty() {
     return existingObligation && existingObligation.status !== existingObligation.originalStatus;
@@ -104,7 +108,7 @@ export default function LicenseObligationAttributionTile(props) {
   };
 
   const createAttributionModal = () => {
-    return <NxModal id="license-obligation-attribution-modal"
+    return <NxModal id="edit-attribution-modal"
                     onClose={ () => {resetExistingObligation(); cancelAttributionModal({ name });} }>
       <NxForm onCancel={ () => {resetExistingObligation(); cancelAttributionModal({ name });} }
               submitBtnText="Save"
@@ -114,13 +118,15 @@ export default function LicenseObligationAttributionTile(props) {
               validationErrors={ isValid() ? undefined : validationErrorMessage }>
         <header className="nx-modal-header">
           <h2 className="nx-h2">
-            Attribution for &quot;{ name }&quot;
+            { editOrAdd + ' ' + title }
           </h2>
         </header>
         <div className="nx-modal-content">
           <NxFormGroup label="Attribution Text"
-                       sublabel="Enter information that will be included in the attribution report to fulfill the
-                       related obligation."
+                       sublabel={ isAdditionalAttribution ?
+                         'Enter any additional information that needs to be included in the attribution report.' :
+                         'Enter information that needs to be included in the attribution report to fulfill the ' +
+                         'related obligation.' }
                        isRequired>
             <NxTextInput type="textarea"
                          { ...attributionTextInput }
@@ -133,9 +139,9 @@ export default function LicenseObligationAttributionTile(props) {
           { existingObligation &&
             (<ObligationStatusComponent existingObligation={ existingObligation } onChange={ onObligationChange }/>)
           }
-          <NxFormGroup id="license-obligation-attribution-scope-selection-group"
-                       label="Scope" sublabel="Apply changes to" isRequired>
-            <select className="nx-form-select nx-form-select--long"
+          <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
+            <select id="edit-attribution-scope-selection"
+                    className="nx-form-select nx-form-select--long"
                     value={ scope }
                     onChange={ payload => {
                       setAttributionScope({ name, value: payload.currentTarget.value });
@@ -156,7 +162,8 @@ export default function LicenseObligationAttributionTile(props) {
   const classes = classnames('nx-tile-content', { 'license-no-legal-elements-text': !isAttributionPresent() });
 
   return (
-    <section id="license-obligation-attribution-tile" className="nx-tile">
+    <section id={ isAdditionalAttribution ? 'additional-attribution-tile' : toId(name) + '-attribution-tile' }
+             className="nx-tile license-obligation-attribution-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Attribution for &quot;{ name }&quot;</h2>
@@ -167,7 +174,7 @@ export default function LicenseObligationAttributionTile(props) {
             setShowAttributionModal({ name, value: true });
           } }>
             <NxFontAwesomeIcon icon={ isAttributionPresent() ? faPen : faPlus }/>
-            <span>{ isAttributionPresent() ? 'Edit' : 'Add' } Attribution</span>
+            <span>{ editOrAdd }</span>
           </NxButton>
         </div>
         { showAttributionModal && createAttributionModal() }
@@ -186,7 +193,7 @@ LicenseObligationAttributionTile.propTypes = {
   setShowAttributionModal: PropTypes.func.isRequired,
   cancelAttributionModal: PropTypes.func.isRequired,
   id: PropTypes.string,
-  name: PropTypes.string.isRequired,
+  name: PropTypes.string,
   originalAttributionText: PropTypes.string,
   attributionText: PropTypes.string.isRequired,
   availableScopes: availableScopesPropType,

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -78,9 +79,13 @@ public class ComponentObligationAttributionDAO
         " WHERE entity.ownerId=?1" + //
         " AND entity.componentIdFormat=?2" + //
         " AND entity.componentIdCoordinatesJson=?3" + //
-        " AND entity.obligationName IN (?4)";
-    return getList(tx, sQuery, ownerId, componentIdentifier.getFormat(),
-        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()), obligationNames);
+        " AND (entity.obligationName IN (?4)" + //
+        (obligationNames.contains(null) ? " OR entity.obligationName IS NULL" : "") + //
+        ")";
+    return getList(tx, sQuery,
+        ownerId,
+        componentIdentifier.getFormat(), ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()),
+        obligationNames.stream().filter(Objects::nonNull).collect(Collectors.toSet()));
   }
 
   public List<ComponentObligationAttribution> getByOwnerIdAndComponentIdentifier(

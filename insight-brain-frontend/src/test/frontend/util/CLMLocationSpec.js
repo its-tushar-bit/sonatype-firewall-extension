@@ -274,7 +274,7 @@ describe('CLMLocation.js', function() {
         .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution');
   });
 
-  it('should return the get component obligation attribution url', function() {
+  it('should return the get component obligation attribution url with an obligation name', function() {
     const compIdentifier = {
       format: 'maven',
       coordinates: {
@@ -290,6 +290,24 @@ describe('CLMLocation.js', function() {
             'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
             'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
             'ch.qos.logback%22%2C%22version%22%3A%220.6%22%7D%7D&obligationName=obligationName');
+  });
+
+  it('should return the get component obligation attribution url without an obligation name', function() {
+    const compIdentifier = {
+      format: 'maven',
+      coordinates: {
+        artifactId: 'logback-access',
+        classifier: '',
+        extension: 'jar',
+        groupId: 'ch.qos.logback',
+        version: '0.6'
+      }
+    };
+    expect(CLMLocation.getComponentObligationAttributionUrl('ownerType', 'ownerId', compIdentifier, null))
+        .toBe('/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution?' +
+            'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
+            'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
+            'ch.qos.logback%22%2C%22version%22%3A%220.6%22%7D%7D');
   });
 
   it('should return the delete component obligation attribution url', function() {

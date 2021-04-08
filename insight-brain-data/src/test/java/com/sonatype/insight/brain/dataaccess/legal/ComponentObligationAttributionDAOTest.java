@@ -152,6 +152,25 @@ public class ComponentObligationAttributionDAOTest
   }
 
   @Test
+  public void testGetByOwnerIdAndComponentIdentifierAndObligationNames_Null() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    ComponentObligationAttribution componentObligationAttribution1 = tempEntity.newComponentObligationAttribution(
+        componentIdentifier, organization.getId(), null, "content1", "legalContentHash1");
+    ComponentObligationAttribution componentObligationAttribution2 = tempEntity.newComponentObligationAttribution(
+        componentIdentifier, organization.getId(), null, "content2", "legalContentHash2");
+    tempEntity.newComponentObligationAttribution(componentIdentifier.createAlternativeVersion("v2"),
+        organization.getId(), null, "content3", "legalContentHash3");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, application.getId(), null, "content4",
+        "legalContentHash4");
+    tempEntity.newComponentObligationAttribution(componentIdentifier, organization.getId(), "name", "content5",
+        "legalContentHash5");
+
+    assertThat(dao.getByOwnerIdAndComponentIdentifierAndObligationNames(organization.getId(), componentIdentifier,
+        Collections.singleton(null))).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        componentObligationAttribution1, componentObligationAttribution2);
+  }
+
+  @Test
   public void testGetByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy_Single() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     String obligationName = "name";

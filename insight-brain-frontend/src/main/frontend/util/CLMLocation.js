@@ -309,8 +309,12 @@ export function getSaveComponentObligationAttributionUrl(orgOrApp, ownerId) {
 }
 
 export function getComponentObligationAttributionUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
-  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution\
-?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+  if (obligationName) {
+    return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution
+      ?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+  }
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution
+    ?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
 
 export function getDeleteComponentObligationAttributionUrl(componentObligationAttributionId) {

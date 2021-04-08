@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import java.util.Locale;
+
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
@@ -149,6 +151,27 @@ public class ComponentLegalOverviewPage
 
     public SelenideElement text() {
       return child("blockquote");
+    }
+  }
+
+  public static Attribution attribution(String obligationName) {
+    return new Attribution(obligationName == null ? "#additional-attribution-tile" :
+        "#" + obligationName.toLowerCase(Locale.ROOT).replaceAll("\\s+", "-") + "-attribution-tile");
+  }
+
+  public static class Attribution
+      extends BasicElement<Attribution>
+  {
+    Attribution(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement button() {
+      return child("button");
+    }
+
+    public SelenideElement content() {
+      return child(".nx-tile-content");
     }
   }
 }

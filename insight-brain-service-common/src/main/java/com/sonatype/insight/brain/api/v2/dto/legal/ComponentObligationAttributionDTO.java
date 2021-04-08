@@ -26,6 +26,7 @@ public class ComponentObligationAttributionDTO
 
   private String ownerId;
 
+  @JsonInclude()
   private String obligationName;
 
   private String content;

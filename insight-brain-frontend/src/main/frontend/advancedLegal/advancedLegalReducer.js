@@ -152,34 +152,39 @@ function loadComponentFulfilled(payload, state) {
     return o1Index - o2Index;
   });
 
-  const newAttributions = newObligations
-      .filter(obligation => TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0)
-      .map(obligation => {
-        const attribution = payload.component.licenseLegalData.attributions.find(a => {
-          return a.obligationName === obligation.name;
-        });
-        if (attribution === undefined) {
-          return {
-            id: null,
-            obligationName: obligation.name,
-            content: '',
-            originalContent: '',
-            ownerId: 'ROOT_ORGANIZATION_ID',
-            originalOwnerId: 'ROOT_ORGANIZATION_ID',
-            showAttributionModal: false,
-            error: null,
-            saveAttributionSubmitMask: null
-          };
-        }
-        return {
-          ...attribution,
-          originalContent: attribution.content,
-          originalOwnerId: attribution.ownerId,
-          showAttributionModal: false,
-          error: null,
-          saveAttributionSubmitMask: null
-        };
-      });
+  const getAttributionOrNew = (attributions, obligationName) => {
+    const attribution = attributions.find(a => {
+      return a.obligationName === obligationName;
+    });
+    if (attribution === undefined) {
+      return {
+        id: null,
+        obligationName: obligationName,
+        content: '',
+        originalContent: '',
+        ownerId: 'ROOT_ORGANIZATION_ID',
+        originalOwnerId: 'ROOT_ORGANIZATION_ID',
+        showAttributionModal: false,
+        error: null,
+        saveAttributionSubmitMask: null
+      };
+    }
+    return {
+      ...attribution,
+      originalContent: attribution.content,
+      originalOwnerId: attribution.ownerId,
+      showAttributionModal: false,
+      error: null,
+      saveAttributionSubmitMask: null
+    };
+  };
+
+  const newAttributions = [
+    ...newObligations
+        .filter(obligation => TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0)
+        .map(obligation => getAttributionOrNew(payload.component.licenseLegalData.attributions, obligation.name)),
+    getAttributionOrNew(payload.component.licenseLegalData.attributions, null)
+  ];
 
   const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(noticeFile => ({
     ...noticeFile,

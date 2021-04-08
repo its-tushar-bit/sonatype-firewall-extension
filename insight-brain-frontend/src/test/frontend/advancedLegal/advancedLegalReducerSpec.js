@@ -144,7 +144,7 @@ describe('advancedLegalReducer', function () {
       ]);
     });
 
-    it('sets the obligation attribution data for text based obligations without attributions', function () {
+    it('sets the attribution data for additional or text based obligations without attributions', function () {
       const state = {
         component: {
           loading: true,
@@ -176,9 +176,11 @@ describe('advancedLegalReducer', function () {
         expect(obligation.originalStatus).toBe(obligation.status);
       });
 
-      expect(component.component.licenseLegalData.attributions.length).toBe(TEXT_BASED_OBLIGATIONS.length);
+      expect(component.component.licenseLegalData.attributions.length).toBe(TEXT_BASED_OBLIGATIONS.length + 1);
       component.component.licenseLegalData.attributions.forEach(attribution => {
-        expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
+        if (attribution.obligationName !== null) {
+          expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
+        }
         expect(attribution.obligationName).not.toBe('other');
         expect(attribution.id).toBeNull();
         expect(attribution.content).toBe('');
@@ -191,7 +193,7 @@ describe('advancedLegalReducer', function () {
       });
     });
 
-    it('sets the obligation attribution data for text based obligations with attributions', function () {
+    it('sets the obligation attribution data for additional or text based obligations with attributions', function () {
       const state = {
         component: {
           loading: true,
@@ -214,6 +216,8 @@ describe('advancedLegalReducer', function () {
         componentInfo.component.licenseLegalData.attributions.push(
             {id: 'id', obligationName: element, content: 'content', ownerId: 'ownerId'});
       });
+      componentInfo.component.licenseLegalData.attributions.push(
+          {id: 'id', obligationName: null, content: 'content', ownerId: 'ownerId'});
       componentInfo.component.licenseLegalData.obligations.push({ name: 'other', status: 'status'});
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
@@ -226,7 +230,9 @@ describe('advancedLegalReducer', function () {
       });
 
       component.component.licenseLegalData.attributions.forEach(attribution => {
-        expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
+        if (attribution.obligationName !== null) {
+          expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
+        }
         expect(attribution.obligationName).not.toBe('other');
         expect(attribution.id).toBe('id');
         expect(attribution.content).toBe('content');
@@ -285,7 +291,19 @@ describe('advancedLegalReducer', function () {
           }
         ],
         obligations: [],
-        attributions: [],
+        attributions: [
+          {
+            id: null,
+            obligationName: null,
+            content: '',
+            originalContent: '',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+            originalOwnerId: 'ROOT_ORGANIZATION_ID',
+            showAttributionModal: false,
+            error: null,
+            saveAttributionSubmitMask: null
+          }
+        ],
         noticesError: null,
         saveNoticesSubmitMask: null,
         showLicensesModal: false,

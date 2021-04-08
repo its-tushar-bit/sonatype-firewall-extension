@@ -49,7 +49,7 @@ export const licenseObligationAttributionsPropType = PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string,
       content: PropTypes.string,
-      obligationName: PropTypes.string.isRequired,
+      obligationName: PropTypes.string,
       lastUpdatedByUsername: PropTypes.string,
       lastUpdatedAt: PropTypes.number
     })

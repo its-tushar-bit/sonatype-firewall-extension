@@ -235,7 +235,7 @@ public class ComponentRemediationService
     return dependencyAlerts;
   }
 
-  public Map<PackageUrlIdentifier, List<PolicyAlert>> evaluateAndGetPolicyAlertsByComponent(
+  private Map<PackageUrlIdentifier, List<PolicyAlert>> evaluateAndGetPolicyAlertsByComponent(
       String ownerId,
       Stage stage,
       List<Component> components)

@@ -46,7 +46,7 @@ export default function LabsDataInsights(props) {
 }
 
 LabsDataInsights.propTypes = {
-  loadingLabsDataInsights: PropTypes.bool,
+  loadingLabsDataInsights: PropTypes.bool.isRequired,
   loadLabsDataInsights: PropTypes.func.isRequired,
   errorMessage: PropTypes.string,
   isAuthorized: PropTypes.bool.isRequired

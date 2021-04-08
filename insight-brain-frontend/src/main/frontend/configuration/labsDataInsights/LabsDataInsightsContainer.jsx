@@ -9,9 +9,8 @@ import LabsDataInsights from './LabsDataInsights';
 
 function mapStateToProps({ labsDataInsights }) {
   return {
-    loadingLabsDataInsights: labsDataInsights.viewState.loadingDataInsights,
-    lastErrorMessage: labsDataInsights.viewState.lastErrorMessage,
-    labsDataInsights: labsDataInsights.dataInsights
+    errorMessage: labsDataInsights.viewState.errorMessage,
+    loadingLabsDataInsights: labsDataInsights.viewState.loadingLabsDataInsights
   };
 }
 const LabsDataInsightsContainer = connect(mapStateToProps, labsDataInsightsActions)(LabsDataInsights);

@@ -17,6 +17,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -378,7 +379,7 @@ public class PullRequestCommentingHashBuilderTest
   private SortedMap<ComponentIdentifier, RemediationVersionDTO> createRemediationVersionMap(final int entryCount) {
     SortedMap<ComponentIdentifier, RemediationVersionDTO> map = new TreeMap<>();
     for (int i = 0; i < entryCount; i++) {
-      map.put(identifiers[i], new RemediationVersionDTO("2.0.0"));
+      map.put(identifiers[i], new RemediationVersionDTO("2.0.0", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
     }
     return map;
   }

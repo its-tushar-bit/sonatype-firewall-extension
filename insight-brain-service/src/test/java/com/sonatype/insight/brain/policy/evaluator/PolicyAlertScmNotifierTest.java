@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
@@ -193,7 +194,8 @@ public class PolicyAlertScmNotifierTest
         application, githubRepositoryInfo)).thenReturn(true);
 
     // and there are suggested remediations
-    Optional<RemediationVersionDTO> remediationVersionOptional = Optional.of(new RemediationVersionDTO("2.0.1"));
+    Optional<RemediationVersionDTO> remediationVersionOptional = Optional.of(new RemediationVersionDTO("2.0.1",
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
     when(mockPullRequestCommentingRemediationService.getRemediationVersion(
         any(), eq(application.getId()))).thenReturn(remediationVersionOptional);
 
@@ -231,7 +233,8 @@ public class PolicyAlertScmNotifierTest
         application, githubRepositoryInfo)).thenReturn(true);
 
     // and there are suggested remediations
-    Optional<RemediationVersionDTO> remediationVersionOptional = Optional.of(new RemediationVersionDTO("2.0.1"));
+    Optional<RemediationVersionDTO> remediationVersionOptional = Optional.of(new RemediationVersionDTO("2.0.1",
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
     when(mockPullRequestCommentingRemediationService.getRemediationVersion(
         any(), eq(application.getId()))).thenReturn(remediationVersionOptional);
 

@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
@@ -704,10 +705,12 @@ public class PullRequestFeedbackDetailsTest
     //setup remediationVersionMap
     remediationVersionMap = new HashMap<>();
     ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
-    remediationVersionMap.put(ci, new RemediationVersionDTO("1.4.200", 3));
+    remediationVersionMap
+        .put(ci, new RemediationVersionDTO("1.4.200", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 3));
     ComponentIdentifier ci2 = ComponentIdentifier
         .createMavenCoordinates("org.springframework.security", "spring-security-web", "4.2.3.RELEASE", "", "jar");
-    remediationVersionMap.put(ci2, new RemediationVersionDTO("4.5.0.RELEASE"));
+    remediationVersionMap.put(ci2, new RemediationVersionDTO("4.5.0.RELEASE",
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
 
     //setup pullRequestLineComments
     pullRequestLineComments = new ArrayList<>();

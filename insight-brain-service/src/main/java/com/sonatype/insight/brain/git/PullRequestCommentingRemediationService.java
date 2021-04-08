@@ -29,12 +29,16 @@ import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 @Named
 @Singleton
 public class PullRequestCommentingRemediationService
 {
+  //Experimental flag, to be removed when feature is finished
+  public static final String ADVANCED_REMEDIATION_IN_IQ_FOR_SCM = "advancedRemediationInIqForScm";
+
   private static final String VERSION_KEY = "version";
 
   private final ApplicationDAO applicationDAO;
@@ -45,23 +49,27 @@ public class PullRequestCommentingRemediationService
 
   private final ProductLicense productLicense;
 
+  private final InsightConfig insightConfig;
+
   @Inject
   public PullRequestCommentingRemediationService(
       final ApplicationDAO applicationDAO,
       final ComponentInfoService componentInfoService,
       final ComponentRemediationService componentRemediationService,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final InsightConfig insightConfig)
   {
     this.applicationDAO = applicationDAO;
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
     this.componentRemediationService = componentRemediationService;
     this.productLicense = productLicense;
+    this.insightConfig = insightConfig;
   }
 
   /**
-   * Returns a map of component identifier and remediation versions for a given set of component identifiers.
-   * The map will contains entries only for the components for which a remediation version is found.
+   * Returns a map of component identifier and remediation versions for a given set of component identifiers. The map
+   * will contains entries only for the components for which a remediation version is found.
    */
   public SortedMap<ComponentIdentifier, RemediationVersionDTO> getRemediationVersionMap(
       final List<PolicyViolation> policyViolations,
@@ -102,51 +110,70 @@ public class PullRequestCommentingRemediationService
             OwnerType.APPLICATION, ownerId, null);
 
     if (remediationValueDto != null) {
-      ComponentIdentifier remediationComponentIdentifier = getRemediationComponentIdentifier(remediationValueDto);
-      remediationVersionDTO = getRemediationVersionDTO(componentDetailsDTOs, remediationComponentIdentifier);
+      Optional<ApiVersionChangeOptionDTO> versionChangeDTO =
+          getApplicableVersionChange(remediationValueDto.versionChanges);
+      remediationVersionDTO = getRemediationVersionDTO(componentDetailsDTOs, versionChangeDTO);
     }
     return Optional.ofNullable(remediationVersionDTO);
   }
 
   private RemediationVersionDTO getRemediationVersionDTO(
       final List<ComponentDetailsDTO> componentDetailsDTOs,
-      final ComponentIdentifier remediationComponentIdentifier)
+      Optional<ApiVersionChangeOptionDTO> versionChangeDTO)
   {
-    if (remediationComponentIdentifier != null) {
-      if (productLicense.hasFeature(LicensedFeature.BREAKING_CHANGE)) {
-        // Collect breaking changes info
-        Optional<ComponentDetailsDTO> componentDetailsDTO = componentDetailsDTOs.stream()
-            .filter(dto -> dto.componentIdentifier.compareTo(remediationComponentIdentifier) == 0)
-            .findFirst();
-
-        if (componentDetailsDTO.isPresent()) {
-          return
-              new RemediationVersionDTO(remediationComponentIdentifier.getCoordinates().get(VERSION_KEY),
-                  componentDetailsDTO.get().breakingChangesCount);
-        }
-      }
-      return new RemediationVersionDTO(remediationComponentIdentifier.getCoordinates().get(VERSION_KEY));
+    if (!versionChangeDTO.isPresent()) {
+      return null;
     }
-    return null;
+
+    RemediationVersionDTO remediationVersionDTO = null;
+    ComponentIdentifier remediationComponentIdentifier = getRemediationComponentIdentifier(versionChangeDTO.get());
+
+    if (productLicense.hasFeature(LicensedFeature.BREAKING_CHANGE)) {
+      // Collect breaking changes info
+      Optional<ComponentDetailsDTO> componentDetailsDTO = componentDetailsDTOs.stream()
+          .filter(dto -> dto.componentIdentifier.compareTo(remediationComponentIdentifier) == 0)
+          .findFirst();
+
+      if (componentDetailsDTO.isPresent()) {
+        remediationVersionDTO =
+            new RemediationVersionDTO(remediationComponentIdentifier.getCoordinates().get(VERSION_KEY),
+                versionChangeDTO.get().getType(), componentDetailsDTO.get().breakingChangesCount);
+      }
+    }
+    else {
+      remediationVersionDTO =
+          new RemediationVersionDTO(remediationComponentIdentifier.getCoordinates().get(VERSION_KEY),
+              versionChangeDTO.get().getType());
+    }
+
+    return remediationVersionDTO;
   }
 
-  private ComponentIdentifier getRemediationComponentIdentifier(ApiComponentRemediationValueDTO remediationValueDto) {
-    ComponentIdentifier remediationComponentIdentifier = null;
+  private ComponentIdentifier getRemediationComponentIdentifier(ApiVersionChangeOptionDTO versionChangeDTO) {
+    ApiComponentIdentifierDTOV2 identifierDTOV2 =
+        versionChangeDTO.getData().getComponent().componentIdentifier;
+    return new ComponentIdentifier(identifierDTOV2.getFormat(), identifierDTOV2.getCoordinates());
+  }
 
-    if (remediationValueDto != null) {
-      List<ApiVersionChangeOptionDTO> versionChanges = remediationValueDto.versionChanges;
-      if (!versionChanges.isEmpty()) {
-        for (ApiVersionChangeOptionDTO versionChange : versionChanges) {
-          if (versionChange.getType() == ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS) {
-            ApiComponentIdentifierDTOV2 identifierDTOV2 =
-                versionChange.getData().getComponent().componentIdentifier;
-            remediationComponentIdentifier =
-                new ComponentIdentifier(identifierDTOV2.getFormat(), identifierDTOV2.getCoordinates());
-            break;
-          }
-        }
-      }
+  private Optional<ApiVersionChangeOptionDTO> getApplicableVersionChange(
+      List<ApiVersionChangeOptionDTO> versionChanges)
+  {
+    if (versionChanges.isEmpty()) {
+      return Optional.empty();
     }
-    return remediationComponentIdentifier;
+
+    Optional<ApiVersionChangeOptionDTO> versionChange = Optional.empty();
+    if (insightConfig.isExperimentalFeatureEnabled(ADVANCED_REMEDIATION_IN_IQ_FOR_SCM)) {
+      versionChange = versionChanges.stream().filter(
+          vChange -> vChange.getType() ==
+              ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES).findFirst();
+    }
+    if (!versionChange.isPresent()) {
+      versionChange = versionChanges.stream().filter(
+          vChange -> vChange.getType() ==
+              ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS).findFirst();
+    }
+
+    return versionChange;
   }
 }

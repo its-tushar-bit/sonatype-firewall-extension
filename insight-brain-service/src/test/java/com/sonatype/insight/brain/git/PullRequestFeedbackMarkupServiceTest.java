@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails.ComponentInfo;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -117,7 +118,8 @@ public class PullRequestFeedbackMarkupServiceTest
     Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap = new HashMap<>();
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
-    remediationVersionMap.put(componentIdentifier, new RemediationVersionDTO("1.4.200"));
+    remediationVersionMap.put(componentIdentifier, new RemediationVersionDTO("1.4.200",
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
 
     //setup pullRequestLineComments
     List<PullRequestLineCommentDTO> pullRequestLineComments = new ArrayList<>();
@@ -189,7 +191,8 @@ public class PullRequestFeedbackMarkupServiceTest
     // when: when generating comment line markup
     final Optional<String> contents =
         pullRequestFeedbackMarkupService.createLineMarkup(policyViolations, "Test Component",
-            new RemediationVersionDTO("123"), SourceControlProvider.GITHUB);
+            new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS),
+            SourceControlProvider.GITHUB);
 
     // then: markup is generated
     final String expectedContent =

@@ -274,6 +274,25 @@ public class ApplicationDAO
   public void delete(TransactionContext tx, Application application) {
     long start = System.currentTimeMillis();
 
+    // Cascade to source control config
+    new SourceControlDAO().deleteByOwnerId(tx, application.getId());
+
+    // Cascade to source control default branch commit history
+    new SourceControlDefaultBranchCommitHistoryDAO().deleteByApplicationId(tx, application.getId());
+
+    // Cascade to source control events
+    // SourceControl events reference policy evaluations, so policy evaluation deletions will cascade to source control
+    // events. Since we don't enroll policy evaluation deletions in the current transaction, the linked source control
+    // events will be deleted in a separate transaction.
+    // On H2, when multiple applications are deleted in the same transaction (for ex, the parent organization is
+    // deleted), if we enroll the deletion of source control events in the current transaction, this can deadlock with
+    // the deletions of source control events cascaded from policy evaluation deletions.
+    // In other words, if we enroll the deletion of source control events in the current transaction here,
+    // it's possible that multiple transactions will try to get a table lock on the "source_control_event" table and
+    // that will result in a JPA OptimisticLockException.
+    // See https://issues.sonatype.org/browse/INT-4896
+    new SourceControlEventDAO().deleteByApplicationId(application.getId());
+
     // For H2, we do not enroll the policy violation and evaluation deletions in the transaction on purpose.
     // This improves performance and keeps db operations (including commits) reasonably short, which means other
     // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
@@ -342,15 +361,6 @@ public class ApplicationDAO
     if (proprietaryConfig != null) {
       proprietaryConfigDAO.delete(tx, proprietaryConfig);
     }
-
-    // Cascade to SourceControl config
-    new SourceControlDAO().deleteByOwnerId(tx, application.getId());
-
-    // Cascade to SourceControl default branch commit history
-    new SourceControlDefaultBranchCommitHistoryDAO().deleteByApplicationId(tx, application.getId());
-
-    // Cascade to SourceControl events
-    new SourceControlEventDAO().deleteByApplicationId(tx, application.getId());
 
     // Cascade to locks
     ClusterLock.deleteForPolicyViolations(tx, application);

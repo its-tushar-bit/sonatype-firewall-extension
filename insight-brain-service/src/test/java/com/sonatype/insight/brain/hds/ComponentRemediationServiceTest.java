@@ -43,7 +43,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.inject.Binder;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -887,10 +886,8 @@ public class ComponentRemediationServiceTest
       for (ApiVersionChangeOptionDTO dto : remediationDto.versionChanges) {
         if (dto.getType().equals(expected.getType())) {
           assertThat(dto.getData().getComponent().packageUrl).isEqualTo(expected.getData().getComponent().packageUrl);
-          assertThat(equalsMavenIdsIgnoringBlankClassifier(
-              dto.getData().getComponent().componentIdentifier.toComponentIdentifier(),
-              expected.getData().getComponent().componentIdentifier.toComponentIdentifier())
-          ).isTrue();
+          assertThat(dto.getData().getComponent().componentIdentifier.toComponentIdentifier())
+              .isEqualTo(expected.getData().getComponent().componentIdentifier.toComponentIdentifier());
           assertThat(dto.getData().getComponent().displayName)
               .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(expected.getData().getComponent().componentIdentifier
                   .toComponentIdentifier()).toString());
@@ -901,20 +898,5 @@ public class ComponentRemediationServiceTest
       // we expected to find that the remediationDto purl matches with expected purl, but did not find one.
       assertThat(found).as(expected.getType() + " does not exist in remediation result!").isTrue();
     }
-  }
-
-  private boolean equalsMavenIdsIgnoringBlankClassifier(ComponentIdentifier actual, ComponentIdentifier expected) {
-    if (!actual.isMaven() || !expected.isMaven()) {
-      return actual.equals(expected);
-    }
-
-    return actual.get(ComponentIdentifier.MAVEN_GROUP_ID).equals(expected.get(ComponentIdentifier.MAVEN_GROUP_ID))
-        && actual.get(ComponentIdentifier.MAVEN_ARTIFACT_ID).equals(expected.get(ComponentIdentifier.MAVEN_ARTIFACT_ID))
-        && actual.get(ComponentIdentifier.VERSION).equals(expected.get(ComponentIdentifier.VERSION))
-        && actual.get(ComponentIdentifier.MAVEN_EXTENSION).equals(expected.get(ComponentIdentifier.MAVEN_EXTENSION))
-        && ((StringUtils.isBlank(actual.get(ComponentIdentifier.MAVEN_CLASSIFIER))
-              && StringUtils.isBlank(expected.get(ComponentIdentifier.MAVEN_CLASSIFIER)))
-            || actual.get(ComponentIdentifier.MAVEN_CLASSIFIER).equals(
-                expected.get(ComponentIdentifier.MAVEN_CLASSIFIER)));
   }
 }

@@ -278,7 +278,7 @@ public class ComponentRemediationService
     for (PackageUrlIdentifier versionPurl : nonViolatingVersions) {
       if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl)))
       {
-        return Optional.of(versionPurl.toComponentIdentifier());
+        return Optional.of(versionPurl.ensureCompleteIdentifier());
       }
     }
     return Optional.empty();
@@ -292,7 +292,7 @@ public class ComponentRemediationService
       List<PolicyAlert> policyAlerts = dependencyAlerts.get(versionPurl);
       if (policyAlerts == null || !hasFailAction(policyAlerts))
       {
-        return Optional.of(versionPurl.toComponentIdentifier());
+        return Optional.of(versionPurl.ensureCompleteIdentifier());
       }
     }
     return Optional.empty();

@@ -1914,6 +1914,59 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
+  public void testGetLicenseLegalComponentReport_GetsStageScansByPassedHash() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    tempEntity.newApplicationComponent(owner.getId(), StageTypes.BUILD.getId(), "otherHash", componentIdentifier);
+    PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.BUILD.getId(), "scanIdBuild",
+        new Date());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), null,
+            null, "otherHash", null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.stageScans)
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new ApiLicenseLegalStageScanDTO(StageTypes.SOURCE.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.BUILD.getName(), buildEval.getScanId(), buildEval.getTime()),
+            new ApiLicenseLegalStageScanDTO(StageTypes.STAGE_RELEASE.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.RELEASE.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.OPERATE.getName(), null, null));
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_GetsStageScansByComponentIdentifier() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+    tempEntity.newApplicationComponent(owner.getId(), StageTypes.BUILD.getId(), namedComponentDetails.getHash(),
+        componentIdentifier);
+    PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(owner.getId(), StageTypes.BUILD.getId(), "scanIdBuild",
+        new Date());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport.component.stageScans)
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(
+            new ApiLicenseLegalStageScanDTO(StageTypes.SOURCE.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.BUILD.getName(), buildEval.getScanId(), buildEval.getTime()),
+            new ApiLicenseLegalStageScanDTO(StageTypes.STAGE_RELEASE.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.RELEASE.getName(), null, null),
+            new ApiLicenseLegalStageScanDTO(StageTypes.OPERATE.getName(), null, null));
+  }
+
+  @Test
   public void testGetLicenseLegalComponentReport_SortsObligations() throws Exception {
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");

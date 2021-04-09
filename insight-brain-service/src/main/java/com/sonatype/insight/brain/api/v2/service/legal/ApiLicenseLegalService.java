@@ -573,6 +573,9 @@ public class ApiLicenseLegalService
 
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentIdentifier compIdentifier = getComponentIdentifier(componentIdentifier, packageUrl, hash);
+    // We get the component by coordinates from HDS
+    // A passed in aggregate component synthetic hash (i.e. hash of its coordinates)
+    // will be different to the HDS component hash i.e. hash may not equal component.getHash()
     Component component = componentInfoService.augmentComponentDetails(owner, componentInfoService
         .getUnaugmentedComponentDetails(owner, compIdentifier, httpRequest, identificationSource, scanId));
     if (component.getHash() == null && hash != null) {
@@ -630,7 +633,10 @@ public class ApiLicenseLegalService
       highestEffectiveLicenseThreatGroup = getHighestLicenseThreatGroupWithHierarchy(tx, owner.getId(),
           licenseData.effectiveLicenses.stream().map(effectiveLicense -> effectiveLicense.licenseId)
               .collect(Collectors.toCollection(LinkedHashSet::new)));
-      stageScansForOwnerAndHash = getStageScansForOwnerAndHash(tx, owner, component.getHash());
+      // We prefer hash over component.getHash() to get the stage scans since
+      // hash should always equal ApplicationComponent.getHash()
+      // component.getHash() may not equal ApplicationComponent.getHash()
+      stageScansForOwnerAndHash = getStageScans(tx, owner, hash, compIdentifier);
     }
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
         licenseData.effectiveLicenses, licenses, licenseMetadataById);
@@ -665,17 +671,47 @@ public class ApiLicenseLegalService
     return result == null ? null : new ApiLicenseDataAdapter().convert(result);
   }
 
-  private List<ApiLicenseLegalStageScanDTO> getStageScansForOwnerAndHash(
+  /**
+   * Tries to find the scan report information for each applicable stage for the given owner and application component
+   * hash or component identifier.
+   * <p>
+   * If the passed owner is not an application, then null is returned because under the context of an organization, a
+   * component may belong to multiple different application stage scans.
+   * <p>
+   * If the passed owner is an application, then its application components are requested either by application
+   * component hash (may be passed) or by component identifier (always passed).
+   * <p>
+   * If an application component exists for a given stage, then the last policy evaluation is found for the application
+   * and stage and its details are returned.
+   *
+   * @param tx                       the {@link TransactionContext} to use.
+   * @param owner                    the {@link Owner} to get the stage scans for.
+   * @param applicationComponentHash the application component hash to get the stage scans for, may be null, if it is
+   *                                 null the componentIdentifier will be used instead.
+   * @param componentIdentifier      the {@link ComponentIdentifier} to get the stage scans for, ignored if the
+   *                                 applicationComponentHash is passed.
+   * @return null if the owner is not an application, else a list of {@link ApiLicenseLegalStageScanDTO} for each
+   * applicable stage.
+   */
+  private List<ApiLicenseLegalStageScanDTO> getStageScans(
       TransactionContext tx,
       Owner owner,
-      String hash)
+      String applicationComponentHash,
+      ComponentIdentifier componentIdentifier)
   {
     if (owner.getType() != OwnerType.APPLICATION) {
       return null;
     }
     List<ApiLicenseLegalStageScanDTO> results = new ArrayList<>();
-    List<ApplicationComponent> applicationComponents =
-        applicationComponentDAO.getByApplicationIdAndHash(tx, owner.getId(), hash);
+    List<ApplicationComponent> applicationComponents;
+    if (applicationComponentHash != null) {
+      applicationComponents =
+          applicationComponentDAO.getByApplicationIdAndHash(tx, owner.getId(), applicationComponentHash);
+    }
+    else {
+      applicationComponents =
+          applicationComponentDAO.getByApplicationIdAndComponentIdentifier(tx, owner.getId(), componentIdentifier);
+    }
     for (StageType stageType : StageTypes.getAll()) {
       if (StageTypes.isIgnoredForDashboard(stageType.getId())) {
         continue;

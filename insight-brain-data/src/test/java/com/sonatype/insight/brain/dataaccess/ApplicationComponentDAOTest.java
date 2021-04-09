@@ -530,6 +530,34 @@ public class ApplicationComponentDAOTest
         new Object[]{applicationWithoutReview.getId(), DevelopStageType.ID});
   }
 
+  @Test
+  public void testGetByApplicationIdAndComponentIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+    ApplicationComponent applicationComponent1 =
+        tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash1", componentIdentifier);
+    tempEntity.newApplicationComponent(app2.getId(), BuildStageType.ID, "hash1", componentIdentifier);
+    ApplicationComponent applicationComponent3 =
+        tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "hash1", componentIdentifier);
+    ApplicationComponent applicationComponent4 =
+        tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash2", componentIdentifier);
+    tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, "hash3",
+        componentIdentifier.createAlternativeVersion("v2"));
+
+    assertThat(dao.getByApplicationIdAndComponentIdentifier(app1.getId(), componentIdentifier))
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(applicationComponent1, applicationComponent3, applicationComponent4);
+  }
+
+  @Test
+  public void testGetByApplicationIdAndComponentIdentifier_Empty() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    Application app = tempEntity.newApplicationWithParent();
+
+    assertThat(dao.getByApplicationIdAndComponentIdentifier(app.getId(), componentIdentifier)).isEmpty();
+  }
+
   public void assertApplicationComponent(ApplicationComponent expected, ApplicationComponent actual) {
     assertThat(actual).isNotNull();
     assertThat(actual.getApplicationId()).isEqualTo(expected.getApplicationId());

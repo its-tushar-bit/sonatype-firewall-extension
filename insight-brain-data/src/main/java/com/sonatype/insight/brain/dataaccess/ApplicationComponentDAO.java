@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
@@ -101,6 +103,26 @@ public class ApplicationComponentDAO
     String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
         " WHERE entity.applicationId=?1 AND entity.hash=?2";
     return getList(tx, sQuery, appId, hash);
+  }
+
+  public List<ApplicationComponent> getByApplicationIdAndComponentIdentifier(
+      String appId,
+      ComponentIdentifier componentIdentifier)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationIdAndComponentIdentifier(tx, appId, componentIdentifier);
+    }
+  }
+
+  public List<ApplicationComponent> getByApplicationIdAndComponentIdentifier(
+      TransactionContext tx,
+      String appId,
+      ComponentIdentifier componentIdentifier)
+  {
+    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+        " WHERE entity.applicationId=?1 AND entity.componentIdFormat=?2 AND entity.componentIdCoordinatesJson=?3";
+    return getList(tx, sQuery, appId, componentIdentifier.getFormat(),
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates()));
   }
 
   public ApplicationComponent getLastByHash(String hash) {

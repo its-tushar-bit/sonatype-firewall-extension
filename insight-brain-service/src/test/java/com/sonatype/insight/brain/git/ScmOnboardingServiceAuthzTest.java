@@ -20,7 +20,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-import org.junit.Test.None;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -77,7 +76,7 @@ public class ScmOnboardingServiceAuthzTest
     scmOnboardingService.loadRepositories(null, GITHUB_COM);
   }
 
-  @Test(expected = None.class /* no exception expected */)
+  @Test
   public void testGetDefaultHostUrl_Authorized() throws Exception {
     grantManageAutomaticSourceControlPermission();
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
@@ -94,7 +93,7 @@ public class ScmOnboardingServiceAuthzTest
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 
-  @Test(expected = None.class /* no exception expected */)
+  @Test
   public void testImportRepositories_Authorized() throws Exception {
     grantManageAutomaticSourceControlPermission();
     scmOnboardingService

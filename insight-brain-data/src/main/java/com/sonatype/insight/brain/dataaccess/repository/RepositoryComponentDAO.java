@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.repository;
 
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,6 +26,13 @@ import com.sonatype.insight.error.exception.BadRequestException;
 public class RepositoryComponentDAO
     extends AbstractOperationalSqlDAO<RepositoryComponent>
 {
+  /*
+    For queries on `quarantineTime` or `unquarantineTime`, if we query using `IS NOT NULL` the applicable indices
+    are not used by H2. By changing this to `> {d EPOCH_START}` the queries return the same results but the applicable
+    indices are also used.
+  */
+  private static final String EPOCH_START = new SimpleDateFormat("yyyy-MM-dd").format(Date.from(Instant.EPOCH));
+
   @Override
   public RepositoryComponent getById(TransactionContext tx, String id) {
     String sQuery = "SELECT entity FROM RepositoryComponent entity" + //
@@ -89,8 +98,8 @@ public class RepositoryComponentDAO
    * @since 1.106
    */
   public long getQuarantinedComponentCount() {
-    String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" //
-        + " WHERE component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NULL";
+    String sQuery = String.format("SELECT COUNT(component.id) FROM RepositoryComponent component" //
+        + " WHERE component.quarantineTime > {d '%s'} AND component.unquarantineTime IS NULL", EPOCH_START);
 
     return getSingle(Long.class, sQuery);
   }
@@ -135,9 +144,9 @@ public class RepositoryComponentDAO
   }
 
   public long getAutoReleaseQuarantinedCountByDate(Date date) {
-    String sQuery = "SELECT COUNT(component.id) FROM RepositoryComponent component" //
-        + " WHERE component.quarantineTime IS NOT NULL AND component.unquarantineTime >=?1"
-        + " AND component.autoUnquarantined = true";
+    String sQuery = String.format("SELECT COUNT(component.id) FROM RepositoryComponent component" //
+        + " WHERE component.quarantineTime > {d '%s'} AND component.unquarantineTime >=?1"
+        + " AND component.autoUnquarantined = true", EPOCH_START);
 
     return getSingle(Number.class, sQuery, date).longValue();
   }
@@ -217,18 +226,21 @@ public class RepositoryComponentDAO
       case AUDIT:
         return String.format(" %s (component.quarantineTime IS NULL)", prefix);
       case QUARANTINE:
-        return String
-            .format(" %s (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NULL)", prefix);
+        return String.format(" %s (component.quarantineTime > {d '%s'} AND component.unquarantineTime IS NULL)", prefix,
+            EPOCH_START);
       case UNQUARANTINE_AUTO:
-        return String
-            .format(" %s (component.unquarantineTime IS NOT NULL AND component.autoUnquarantined = true)", prefix);
+        return String.format(
+            " %s (component.quarantineTime > {d '%s'} AND component.unquarantineTime > {d '%s'}" +
+                " AND component.autoUnquarantined = true)", prefix, EPOCH_START, EPOCH_START);
       case UNQUARANTINE_MANUAL:
         return String.format(
-            " %s (component.unquarantineTime IS NOT NULL AND (component.autoUnquarantined = false" +
-                " OR component.autoUnquarantined IS NULL))",
-            prefix);
+            " %s (component.quarantineTime > {d '%s'} AND component.unquarantineTime > {d '%s'}" +
+                " AND (component.autoUnquarantined = false OR component.autoUnquarantined IS NULL))",
+            prefix, EPOCH_START, EPOCH_START);
       case UNQUARANTINE_ALL:
-        return String.format(" %s (component.unquarantineTime IS NOT NULL)", prefix);
+        return String
+            .format(" %s (component.quarantineTime > {d '%s'} AND component.unquarantineTime > {d '%s'})", prefix,
+                EPOCH_START, EPOCH_START);
       case ALL:
       default:
         return "";

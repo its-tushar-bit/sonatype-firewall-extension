@@ -105,7 +105,7 @@ public class ScmOnboardingResourceTest
   }
 
   @Test
-  public void testDefaultHostUrl() throws Exception {
+  public void testGetDefaultHostUrl() throws Exception {
     // when
     HttpResponse response = restRequest().path(DEFAULT_HOST_URL)
         .query("provider", "github")
@@ -162,7 +162,7 @@ public class ScmOnboardingResourceTest
   }
 
   @Test
-  public void testCheckScmUrl_valid() throws Exception {
+  public void testValidateScmHostUrl_valid() throws Exception {
     // when validating the SCM URL
     HttpResponse response = restRequest().path(VALIDATE_SCM_HOST_URL)
         .parameter("github")
@@ -180,7 +180,7 @@ public class ScmOnboardingResourceTest
   }
 
   @Test
-  public void testCheckScmUrl_invalidUrl() throws Exception {
+  public void testValidateScmHostUrl_invalidUrl() throws Exception {
     // when validating the SCM URL
     HttpResponse response = restRequest().path(VALIDATE_SCM_HOST_URL)
         .parameter("github")
@@ -199,7 +199,7 @@ public class ScmOnboardingResourceTest
   }
 
   @Test
-  public void testCheckScmUrl_invalidProvider() throws Exception {
+  public void testValidateScmHostUrl_invalidProvider() throws Exception {
     // when validating the SCM URL
     HttpResponse response = restRequest().path(VALIDATE_SCM_HOST_URL)
         .parameter("invalid")

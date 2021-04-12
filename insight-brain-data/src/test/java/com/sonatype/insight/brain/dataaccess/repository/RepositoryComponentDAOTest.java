@@ -386,9 +386,8 @@ public class RepositoryComponentDAOTest
     setupMockDataForGetFirewallRepositoryComponents();
 
     // SETUP FILTER
-    final FirewallSortableField sortField = FirewallSortableField.QUARANTINE_TIME;
     FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.AUDIT, sortField, true,
+        new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.AUDIT, null, true,
             Collections.emptyList());
 
     // EXECUTE
@@ -428,25 +427,24 @@ public class RepositoryComponentDAOTest
     setupMockDataForGetFirewallRepositoryComponents();
 
     // SETUP FILTER
-    final FirewallSortableField sortField = FirewallSortableField.QUARANTINE_TIME;
     FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.ALL, sortField, true,
+        new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.ALL, null, true,
             Collections.emptyList());
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
+    final List<RepositoryComponent> all = dao.getFirewallRepositoryComponents(filter);
 
     // ASSERTION
-    assertThat(autoUnquarantined).isNotEmpty();
-    assertThat(autoUnquarantined.size()).isEqualTo(8);
-    assertComponentForFirewall(autoUnquarantined.get(0), "/audit1", null, null, null);
-    assertComponentForFirewall(autoUnquarantined.get(1), "/autoreleased1", june1st2020, june2nd2020, true);
-    assertComponentForFirewall(autoUnquarantined.get(2), "/autoreleased2", june2nd2020, june3rd2020, true);
-    assertComponentForFirewall(autoUnquarantined.get(3), "/autoreleased3", june3rd2020, june4th2020, true);
-    assertComponentForFirewall(autoUnquarantined.get(4), "/autoreleased4", june4th2020, june5th2020, true);
-    assertComponentForFirewall(autoUnquarantined.get(5), "/quarantined1", june5th2020, null, null);
-    assertComponentForFirewall(autoUnquarantined.get(6), "/quarantined2", june6th2020, null, null);
-    assertComponentForFirewall(autoUnquarantined.get(7), "/manualreleased1", june7th2020, june8th2020, false);
+    assertThat(all).isNotEmpty();
+    assertThat(all.size()).isEqualTo(8);
+    assertComponentForFirewall(all.get(0), "/audit1", null, null, null);
+    assertComponentForFirewall(all.get(1), "/manualreleased1", june7th2020, june8th2020, false);
+    assertComponentForFirewall(all.get(2), "/quarantined2", june6th2020, null, null);
+    assertComponentForFirewall(all.get(3), "/quarantined1", june5th2020, null, null);
+    assertComponentForFirewall(all.get(4), "/autoreleased4", june4th2020, june5th2020, true);
+    assertComponentForFirewall(all.get(5), "/autoreleased3", june3rd2020, june4th2020, true);
+    assertComponentForFirewall(all.get(6), "/autoreleased2", june2nd2020, june3rd2020, true);
+    assertComponentForFirewall(all.get(7), "/autoreleased1", june1st2020, june2nd2020, true);
   }
 
   @Test
@@ -486,12 +484,13 @@ public class RepositoryComponentDAOTest
     assertThat(autoUnquarantinedDesc).isNotEmpty();
     assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(4);
     assertThat(autoUnquarantinedDesc.size()).isEqualTo(2);
-    assertComponentForFirewall(autoUnquarantinedDesc.get(0), "/autoreleased4", june4th2020, june5th2020, true);
-    assertComponentForFirewall(autoUnquarantinedDesc.get(1), "/autoreleased3", june3rd2020, june4th2020, true);
+    // Default sort will always return entries in the same order as inserted
+    assertComponentForFirewall(autoUnquarantinedDesc.get(0), "/autoreleased1", june1st2020, june2nd2020, true);
+    assertComponentForFirewall(autoUnquarantinedDesc.get(1), "/autoreleased2", june2nd2020, june3rd2020, true);
   }
 
   @Test
-  public void testGetFirewallRepositoryComponents_filterByPolicyName() {
+  public void testGetFirewallRepositoryComponents_filterByPolicyId() {
     setupMockDataForGetFirewallRepositoryComponents();
 
     // FILTER BY POLICY NAME
@@ -508,8 +507,8 @@ public class RepositoryComponentDAOTest
     assertThat(autoUnquarantinedFiltered).isNotEmpty();
     assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(2);
     assertThat(autoUnquarantinedFiltered.size()).isEqualTo(2);
-    assertComponentForFirewall(autoUnquarantinedFiltered.get(0), "/autoreleased2", june2nd2020, june3rd2020, true);
-    assertComponentForFirewall(autoUnquarantinedFiltered.get(1), "/autoreleased3", june3rd2020, june4th2020, true);
+    assertComponentForFirewall(autoUnquarantinedFiltered.get(0), "/autoreleased3", june3rd2020, june4th2020, true);
+    assertComponentForFirewall(autoUnquarantinedFiltered.get(1), "/autoreleased2", june2nd2020, june3rd2020, true);
   }
 
   @Test
@@ -528,9 +527,9 @@ public class RepositoryComponentDAOTest
     assertThat(autoUnquarantined3Items).isNotEmpty();
     assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(4);
     assertThat(autoUnquarantined3Items.size()).isEqualTo(3);
-    assertComponentForFirewall(autoUnquarantined3Items.get(0), "/autoreleased1", june1st2020, june2nd2020, true);
-    assertComponentForFirewall(autoUnquarantined3Items.get(1), "/autoreleased2", june2nd2020, june3rd2020, true);
-    assertComponentForFirewall(autoUnquarantined3Items.get(2), "/autoreleased3", june3rd2020, june4th2020, true);
+    assertComponentForFirewall(autoUnquarantined3Items.get(0), "/autoreleased4", june4th2020, june5th2020, true);
+    assertComponentForFirewall(autoUnquarantined3Items.get(1), "/autoreleased3", june3rd2020, june4th2020, true);
+    assertComponentForFirewall(autoUnquarantined3Items.get(2), "/autoreleased2", june2nd2020, june3rd2020, true);
   }
 
   @Test
@@ -549,11 +548,11 @@ public class RepositoryComponentDAOTest
     assertThat(autoUnquarantined2ndPage).isNotEmpty();
     assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(4);
     assertThat(autoUnquarantined2ndPage.size()).isEqualTo(1);
-    assertComponentForFirewall(autoUnquarantined2ndPage.get(0), "/autoreleased4", june4th2020, june5th2020, true);
+    assertComponentForFirewall(autoUnquarantined2ndPage.get(0), "/autoreleased1", june1st2020, june2nd2020, true);
   }
 
   @Test
-  public void testGetFirewallRepositoryComponents_pageDoesnotExist() {
+  public void testGetFirewallRepositoryComponents_pageDoesNotExist() {
     setupMockDataForGetFirewallRepositoryComponents();
 
     // SETUP FILTER
@@ -603,6 +602,86 @@ public class RepositoryComponentDAOTest
   }
 
   @Test
+  public void testGetFirewallRepositoryComponents_AuditWithQuarantineOrder() {
+    //Setup: Filter with component state set to null
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.AUDIT,
+            FirewallSortableField.QUARANTINE_TIME, true, Collections.emptyList());
+
+    //When: executing 'getFirewallRepositoryComponents'
+    //Then: expect exception to be thrown
+    assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field cannot be specified for component state AUDIT");
+
+    assertThatThrownBy(() -> dao.getTotalFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field cannot be specified for component state AUDIT");
+  }
+
+  @Test
+  public void testGetFirewallRepositoryComponents_AuditWithReleaseQuarantineOrder() {
+    //Setup: Filter with component state set to null
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.AUDIT,
+            FirewallSortableField.RELEASE_QUARANTINE_TIME, true, Collections.emptyList());
+
+    //When: executing 'getFirewallRepositoryComponents'
+    //Then: expect exception to be thrown
+    assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field cannot be specified for component state AUDIT");
+
+    assertThatThrownBy(() -> dao.getTotalFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field cannot be specified for component state AUDIT");
+  }
+
+  @Test
+  public void testGetFirewallRepositoryComponents_AllWithQuarantineOrder() {
+    //Setup: Filter with component state set to null
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.ALL,
+            FirewallSortableField.QUARANTINE_TIME, true, Collections.emptyList());
+
+    //When: executing 'getFirewallRepositoryComponents'
+    //Then: expect exception to be thrown
+    assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field cannot be specified for component state ALL");
+
+    assertThatThrownBy(() -> dao.getTotalFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field cannot be specified for component state ALL");
+  }
+
+  @Test
+  public void testGetFirewallRepositoryComponents_AllWithReleaseQuarantineOrder() {
+    //Setup: Filter with component state set to null
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.ALL,
+            FirewallSortableField.RELEASE_QUARANTINE_TIME, true, Collections.emptyList());
+
+    //When: executing 'getFirewallRepositoryComponents'
+    //Then: expect exception to be thrown
+    assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field cannot be specified for component state ALL");
+
+    assertThatThrownBy(() -> dao.getTotalFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field cannot be specified for component state ALL");
+  }
+
+  @Test
+  public void testGetFirewallRepositoryComponents_QuarantineWithReleaseQuarantineOrder() {
+    //Setup: Filter with component state set to null
+    FirewallRepositoryComponentFilter filter =
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.QUARANTINE,
+            FirewallSortableField.RELEASE_QUARANTINE_TIME, true, Collections.emptyList());
+
+    //When: executing 'getFirewallRepositoryComponents'
+    //Then: expect exception to be thrown
+    assertThatThrownBy(() -> dao.getFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field releaseQuarantineTime is not applicable to component state QUARANTINE");
+
+    assertThatThrownBy(() -> dao.getTotalFirewallRepositoryComponents(filter)).isInstanceOf(BadRequestException.class)
+        .hasMessage("Sortable field releaseQuarantineTime is not applicable to component state QUARANTINE");
+  }
+
+  @Test
   public void testGetTotalFirewallRepositoryComponents_MultiplePolicyViolations() {
     setupMockDataForGetFirewallRepositoryComponents();
 
@@ -620,44 +699,27 @@ public class RepositoryComponentDAOTest
 
   private void setupMockDataForGetFirewallRepositoryComponents() {
     // ADD COMPONENT
-    final RepositoryComponent component1 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/autoreleased1", june1st2020, june2nd2020, true);
+    tempEntity
+        .newRepositoryComponent(repository.getId(), "/autoreleased1", june1st2020, june2nd2020, june8th2020, true);
     final RepositoryComponent component2 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/autoreleased2", june2nd2020, june3rd2020, true);
+        tempEntity
+            .newRepositoryComponent(repository.getId(), "/autoreleased2", june2nd2020, june3rd2020, june7th2020, true);
     final RepositoryComponent component3 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/autoreleased3", june3rd2020, june4th2020, true);
-    final RepositoryComponent component4 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/autoreleased4", june4th2020, june5th2020, true);
-    final RepositoryComponent component5 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june5th2020, null, false);
-    final RepositoryComponent component6 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june6th2020, null, false);
-    final RepositoryComponent component7 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/manualreleased1", june7th2020, june8th2020, false);
-    final RepositoryComponent component8 =
-        tempEntity.newRepositoryComponent(repository.getId(), "/audit1", null, null, false);
+        tempEntity
+            .newRepositoryComponent(repository.getId(), "/autoreleased3", june3rd2020, june4th2020, june6th2020, true);
+    tempEntity
+        .newRepositoryComponent(repository.getId(), "/autoreleased4", june4th2020, june5th2020, june5th2020, true);
+    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june5th2020, null, june4th2020, false);
+    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june6th2020, null, june3rd2020, false);
+    tempEntity.newRepositoryComponent(repository.getId(), "/manualreleased1", june7th2020, june8th2020, june2nd2020,
+        false);
+    tempEntity.newRepositoryComponent(repository.getId(), "/audit1", null, null, june1st2020, false);
 
     // CREATE POLICY VIOLATION
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased1", false, "policy_id_1", "policy_1",
-        component1.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased2", false, "policy_id_2", "policy_2",
         component2.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased3", false, "policy_id_2", "policy_2",
         component3.getComponentIdentifier());
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased4", false, "policy_id_4", "policy_4",
-        component4.getComponentIdentifier());
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased4", false, "policy_id_4_another",
-        "policy_4_another", component4.getComponentIdentifier());
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined1", false, "policy_id_5", "policy_5",
-        component5.getComponentIdentifier());
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined2", false, "policy_id_6", "policy_6",
-        component6.getComponentIdentifier());
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined2", false, "policy_id_6_another",
-        "policy_6_another", component6.getComponentIdentifier());
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/manualreleased1", false, "policy_id_7", "policy_7",
-        component7.getComponentIdentifier());
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/audit1", false, "policy_id_8", "policy_8",
-        component8.getComponentIdentifier());
   }
 
   private void assertComponentForFirewall(

@@ -156,12 +156,12 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
@@ -2068,7 +2068,7 @@ public class TemporaryEntity
                                                     Date evalTime,
                                                     boolean isAutoUnquarantined)
   {
-    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, new Date(), "hash",
+    RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, evalTime, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
         IdentificationSource.SONATYPE.getId(), evalTime);
     repositoryComponent.setQuarantineTime(quarantineTime);

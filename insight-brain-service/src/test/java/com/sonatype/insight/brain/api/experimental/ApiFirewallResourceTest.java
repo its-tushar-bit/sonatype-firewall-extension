@@ -420,7 +420,6 @@ public class ApiFirewallResourceTest
         .query("page", 1)
         .query("pageSize", 2)
         .query("policyId", policy1.getId())
-        .query("sortBy", FirewallSortableField.RELEASE_QUARANTINE_TIME.getLabel())
         .query("asc", "false")
         .get();
 
@@ -431,6 +430,18 @@ public class ApiFirewallResourceTest
     final ApiFirewallComponentDTO componentDTO1 = responseDTO.getResults().get(0);
     ApiFirewallServiceTest
         .assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, null);
+  }
+
+  @Test
+  public void testGetQuarantineList_InvalidSortOrder() throws Exception {
+    HttpResponse response = restRequest()
+        .path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.QUARANTINED_PATH)
+        .query("sortBy", FirewallSortableField.RELEASE_QUARANTINE_TIME.getLabel())
+        .get();
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
+    assertThat(response.getBodyText())
+        .isEqualTo("Sortable field releaseQuarantineTime is not applicable to component state QUARANTINE");
   }
 
   @Test

@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
+import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -147,11 +148,13 @@ public class RepositoryComponentDAO
     StringBuilder sQuery = new StringBuilder(baseQuery);
 
     // SORTING
-    if (null == filter.sortableField) {
-      filter.sortableField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
+    if (null != filter.sortableField) {
+      sQuery.append(" ORDER BY component.").append(filter.sortableField.getColumn());
+    }
+    else {
+      sQuery.append(" ORDER BY component.time");
     }
 
-    sQuery.append(" ORDER BY component.").append(filter.sortableField.getColumn());
     if (filter.asc) {
       sQuery.append(" ASC");
     }
@@ -174,14 +177,13 @@ public class RepositoryComponentDAO
   }
 
   public long getTotalFirewallRepositoryComponents(FirewallRepositoryComponentFilter filter) {
+    String sQuery = getBaseFirewallComponentsQueryAndViolations(filter, "SELECT COUNT(DISTINCT component)");
     List<Object> parameters = new ArrayList<>();
 
     // FILTER
     if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
       parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID));
     }
-
-    String sQuery = getBaseFirewallComponentsQueryAndViolations(filter, "SELECT COUNT(DISTINCT component)");
 
     return getSingle(Long.class, sQuery, parameters.toArray());
   }
@@ -190,18 +192,18 @@ public class RepositoryComponentDAO
       FirewallRepositoryComponentFilter filter,
       String selectStatement)
   {
-    StringBuilder sQuery = new StringBuilder(selectStatement
-        + " FROM RepositoryComponent component, "
-        + " RepositoryPolicyViolation policyViolation"
-        + " WHERE component.repositoryId = policyViolation.repositoryId"
-        + " AND component.pathname = policyViolation.pathname");
-
-    sQuery.append(getFirewallComponentStateClause(filter));
+    validateFirewallRepositoryComponentFilter(filter);
+    StringBuilder sQuery = new StringBuilder(selectStatement + " FROM RepositoryComponent component");
 
     // FILTER
     if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
-      sQuery.append(" AND policyViolation.policyId=?1");
+      sQuery.append(" , RepositoryPolicyViolation policyViolation"
+          + " WHERE component.repositoryId = policyViolation.repositoryId"
+          + " AND component.pathname = policyViolation.pathname"
+          + " AND policyViolation.policyId=?1");
     }
+
+    sQuery.append(getFirewallComponentStateClause(filter));
 
     return sQuery.toString();
   }
@@ -209,25 +211,46 @@ public class RepositoryComponentDAO
   private static String getFirewallComponentStateClause(
       final FirewallRepositoryComponentFilter filter)
   {
+    String prefix = filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID) ? "AND" : "WHERE";
+
+    switch (filter.firewallComponentFilterState) {
+      case AUDIT:
+        return String.format(" %s (component.quarantineTime IS NULL)", prefix);
+      case QUARANTINE:
+        return String
+            .format(" %s (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NULL)", prefix);
+      case UNQUARANTINE_AUTO:
+        return String
+            .format(" %s (component.unquarantineTime IS NOT NULL AND component.autoUnquarantined = true)", prefix);
+      case UNQUARANTINE_MANUAL:
+        return String.format(
+            " %s (component.unquarantineTime IS NOT NULL AND (component.autoUnquarantined = false" +
+                " OR component.autoUnquarantined IS NULL))",
+            prefix);
+      case UNQUARANTINE_ALL:
+        return String.format(" %s (component.unquarantineTime IS NOT NULL)", prefix);
+      case ALL:
+      default:
+        return "";
+    }
+  }
+
+  private static void validateFirewallRepositoryComponentFilter(final FirewallRepositoryComponentFilter filter) {
     if (filter.firewallComponentFilterState == null) {
       throw new BadRequestException("firewallComponentFilterState is required and cannot be null.");
     }
 
-    switch (filter.firewallComponentFilterState) {
-      case AUDIT:
-        return " AND (component.quarantineTime IS NULL)";
-      case QUARANTINE:
-        return " AND (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NULL)";
-      case UNQUARANTINE_AUTO:
-        return " AND (component.unquarantineTime IS NOT NULL AND component.autoUnquarantined = true)";
-      case UNQUARANTINE_MANUAL:
-        return " AND (component.unquarantineTime IS NOT NULL AND (component.autoUnquarantined = false OR" +
-            " component.autoUnquarantined IS NULL))";
-      case UNQUARANTINE_ALL:
-        return " AND (component.unquarantineTime IS NOT NULL)";
-      case ALL:
-      default:
-        return "";
+    if (filter.firewallComponentFilterState.equals(FirewallComponentFilterState.QUARANTINE) &&
+        FirewallSortableField.RELEASE_QUARANTINE_TIME.equals(filter.sortableField)) {
+      throw new BadRequestException(
+          "Sortable field releaseQuarantineTime is not applicable to component state QUARANTINE");
+    }
+
+    if ((filter.firewallComponentFilterState.equals(FirewallComponentFilterState.AUDIT) ||
+        filter.firewallComponentFilterState.equals(FirewallComponentFilterState.ALL)) &&
+        filter.sortableField != null) {
+      throw new BadRequestException(String
+          .format("Sortable field cannot be specified for component state %s", filter.firewallComponentFilterState));
     }
   }
 

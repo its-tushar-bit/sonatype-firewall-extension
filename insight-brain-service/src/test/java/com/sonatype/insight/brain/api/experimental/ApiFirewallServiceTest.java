@@ -663,7 +663,7 @@ public class ApiFirewallServiceTest
 
     // VERIFY
     assertThat(unquarantineList.getTotal()).isEqualTo(3);
-    assertThat(unquarantineList.getResults().size()).isEqualTo(2);
+    assertThat(unquarantineList.getResults()).hasSize(2);
 
     final ApiFirewallComponentDTO componentDTO1 = unquarantineList.getResults().get(0);
     assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, june2nd2020);
@@ -704,11 +704,12 @@ public class ApiFirewallServiceTest
     final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getComponents(filter);
 
     // VERIFY
-    assertThat(unquarantineList.getTotal()).isEqualTo(1);
-    assertThat(unquarantineList.getResults().size()).isEqualTo(1);
+    assertThat(unquarantineList.getTotal()).isEqualTo(2);
+    assertThat(unquarantineList.getResults()).hasSize(2);
 
     final ApiFirewallComponentDTO componentDTO1 = unquarantineList.getResults().get(0);
     assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, june2nd2020);
+    assertRepositoryComponentZeroViolations(unquarantineList.getResults().get(1), june2nd2020, june3rd2020);
   }
 
   @Test
@@ -756,7 +757,7 @@ public class ApiFirewallServiceTest
 
     // VERIFY
     assertThat(unquarantineList.getTotal()).isEqualTo(3);
-    assertThat(unquarantineList.getResults().size()).isEqualTo(2);
+    assertThat(unquarantineList.getResults()).hasSize(2);
 
     final ApiFirewallComponentDTO componentDTO1 = unquarantineList.getResults().get(0);
     assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, june2nd2020);
@@ -821,12 +822,33 @@ public class ApiFirewallServiceTest
       final Date quarantineDate,
       final Date dateCleared)
   {
+    assertRepositoryComponent(componentDTO, quarantineDate, dateCleared);
     assertThat(componentDTO.displayName).isEqualTo("g : a : v");
     assertThat(componentDTO.repository).isEqualTo("repo1");
     assertThat(componentDTO.dateCleared).isEqualTo(dateCleared);
     assertThat(componentDTO.quarantineDate).isEqualTo(quarantineDate);
-    assertThat(componentDTO.policyViolations.size()).isEqualTo(1);
+    assertThat(componentDTO.policyViolations).hasSize(1);
     PolicyViolationTestHelper
         .assertApiPolicyViolationDTOV2(componentDTO.policyViolations.get(0), expectedPolicyViolation);
+  }
+
+  static void assertRepositoryComponentZeroViolations(
+      final ApiFirewallComponentDTO componentDTO,
+      final Date quarantineDate,
+      final Date dateCleared)
+  {
+    assertRepositoryComponent(componentDTO, quarantineDate, dateCleared);
+    assertThat(componentDTO.policyViolations).isEmpty();
+  }
+
+  static void assertRepositoryComponent(
+      final ApiFirewallComponentDTO componentDTO,
+      final Date quarantineDate,
+      final Date dateCleared)
+  {
+    assertThat(componentDTO.displayName).isEqualTo("g : a : v");
+    assertThat(componentDTO.repository).isEqualTo("repo1");
+    assertThat(componentDTO.dateCleared).isEqualTo(dateCleared);
+    assertThat(componentDTO.quarantineDate).isEqualTo(quarantineDate);
   }
 }

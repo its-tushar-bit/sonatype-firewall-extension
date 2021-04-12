@@ -29,16 +29,12 @@ import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 @Named
 @Singleton
 public class PullRequestCommentingRemediationService
 {
-  //Experimental flag, to be removed when feature is finished
-  public static final String ADVANCED_REMEDIATION_IN_IQ_FOR_SCM = "advancedRemediationInIqForScm";
-
   private static final String VERSION_KEY = "version";
 
   private final ApplicationDAO applicationDAO;
@@ -49,22 +45,18 @@ public class PullRequestCommentingRemediationService
 
   private final ProductLicense productLicense;
 
-  private final InsightConfig insightConfig;
-
   @Inject
   public PullRequestCommentingRemediationService(
       final ApplicationDAO applicationDAO,
       final ComponentInfoService componentInfoService,
       final ComponentRemediationService componentRemediationService,
-      final ProductLicense productLicense,
-      final InsightConfig insightConfig)
+      final ProductLicense productLicense)
   {
     this.applicationDAO = applicationDAO;
     this.componentInfoService = componentInfoService;
     componentInfoService.setToolName("ci");
     this.componentRemediationService = componentRemediationService;
     this.productLicense = productLicense;
-    this.insightConfig = insightConfig;
   }
 
   /**
@@ -163,11 +155,10 @@ public class PullRequestCommentingRemediationService
     }
 
     Optional<ApiVersionChangeOptionDTO> versionChange = Optional.empty();
-    if (insightConfig.isExperimentalFeatureEnabled(ADVANCED_REMEDIATION_IN_IQ_FOR_SCM)) {
-      versionChange = versionChanges.stream().filter(
-          vChange -> vChange.getType() ==
-              ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES).findFirst();
-    }
+    versionChange = versionChanges.stream().filter(
+        vChange -> vChange.getType() ==
+            ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES).findFirst();
+
     if (!versionChange.isPresent()) {
       versionChange = versionChanges.stream().filter(
           vChange -> vChange.getType() ==

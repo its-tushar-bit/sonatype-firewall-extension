@@ -76,9 +76,9 @@ import static org.mockito.Mockito.verify;
 public class ScmOnboardingServiceTest
     extends AbstractComponentTest
 {
-  private static final String PAGE_0 = "/ApiScmOnboardingServiceTest/allRepos0.json";
+  private static final String PAGE_0 = "allRepos0.json";
 
-  public static final String PAGE_1 = "/ApiScmOnboardingServiceTest/emptyResponse.json";
+  public static final String PAGE_1 = "emptyResponse.json";
 
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
@@ -260,7 +260,8 @@ public class ScmOnboardingServiceTest
 
   private String getResourceAsString(String filename) throws IOException {
     StringWriter writer = new StringWriter();
-    IOUtils.copy(this.getClass().getResourceAsStream(filename), writer, StandardCharsets.UTF_8);
+    IOUtils.copy(getClass().getResourceAsStream("/" + ScmOnboardingServiceTest.class.getSimpleName() + "/" + filename),
+        writer, StandardCharsets.UTF_8);
     return writer.toString();
   }
 

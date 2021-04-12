@@ -70,8 +70,8 @@ public class ScmOnboardingResourceTest
 
   @Test
   public void testLoadRepositories() throws Exception {
-    mockRepoForPage(gitService, 0, getResourceAsString("/ApiScmOnboardingServiceTest/allRepos0.json"));
-    mockRepoForPage(gitService, 1, getResourceAsString("/ApiScmOnboardingServiceTest/emptyResponse.json"));
+    mockRepoForPage(gitService, 0, getResourceAsString("/ScmOnboardingServiceTest/allRepos0.json"));
+    mockRepoForPage(gitService, 1, getResourceAsString("/ScmOnboardingServiceTest/emptyResponse.json"));
 
     // given root org is configured for github
     PasswordHandler pwHandler = getCLMServer().getInstance(PasswordHandler.class);

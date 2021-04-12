@@ -542,9 +542,7 @@ public class ComponentInfoService
         componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
       }
       else {
-        componentDetailsList = getInformationVersionsHds(identifier, identificationSource);
-        //In case it's a third-party component, the data must be replace with the local information
-        updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
+        componentDetailsList = getInformationVersionsHds(identifier, identificationSource, owner, scanId);
       }
     }
     else if (isThirdPartyIdentificationSource(identificationSource)) {
@@ -554,9 +552,10 @@ public class ComponentInfoService
       throw new BadRequestException("Invalid format: " + identifier.getFormat());
     }
 
-    log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
-        componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
-
+    if (componentDetailsList != null && CollectionUtils.isNotEmpty(componentDetailsList.getList())) {
+      log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
+          componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
+    }
     return componentDetailsList;
   }
 
@@ -582,11 +581,25 @@ public class ComponentInfoService
 
   private ComponentDetailsList getInformationVersionsHds(
       final ComponentIdentifier identifier,
-      final String identificationSource)
+      final String identificationSource,
+      final Owner owner,
+      final String scanId)
   {
     String url = "rest/" + toolName + "/componentDetails/list";
-    ComponentDetailsList componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
-        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    try {
+      componentDetailsList = hdsClient.get(ComponentDetailsList.class, url,
+          Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(identifier)));
+    }
+    catch (BadRequestException e) {
+      // try using third party data
+      if (isThirdPartyIdentificationSource(identificationSource)) {
+        log.debug("Failed to get component details from HDS, trying with third party data for component {}: ",
+            identifier, e);
+        return thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
+      }
+      throw e;
+    }
 
     if (CollectionUtils.isEmpty(componentDetailsList.getList()) &&
         isPackageManifestIdentificationSource(identificationSource)) {
@@ -596,6 +609,8 @@ public class ComponentInfoService
       componentDetailsList = new ComponentDetailsList();
       componentDetailsList.setList(Collections.singletonList(details));
     }
+    //In case it's a third-party component, the data must be replace with the local information
+    updateThirdPartyInformation(identifier, identificationSource, componentDetailsList, owner, scanId);
     return componentDetailsList;
   }
 

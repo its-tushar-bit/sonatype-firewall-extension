@@ -97,8 +97,8 @@ import static com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersi
 import static com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
@@ -1366,6 +1366,70 @@ public class ComponentInfoServiceTest
 
     componentDetails = componentDetailsList.getList().get(1);
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier2);
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ErrorHdsComponent_ThirdParty() {
+    String scanId = "test";
+    String identificationSource = "cyclone";
+
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("name", "test");
+    coordinates.put("version", "2.0.0");
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(ComponentIdentifier.FORMAT_PYPI, coordinates);
+
+    when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
+            "/componentDetails/list",
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier1))))
+        .thenThrow(BadRequestException.class);
+
+    ComponentDetails tpComponentDetails = newNamedComponentDetails(componentIdentifier1);
+    tpComponentDetails.setIdentificationSource(identificationSource);
+    tpComponentDetails.setSecurityVulnerabilities(asList(
+        new SecurityVulnerability("cve-8", "cve", 8.1f),
+        new SecurityVulnerability("cve-4", "cve", 4f)));
+    tpComponentDetails.setDeclaredLicenses(Collections.singleton(new License("Apache-2.0", "Apache License 2.0")));
+
+    ComponentDetailsList thirdPartyComponentDetailsList = new ComponentDetailsList();
+    thirdPartyComponentDetailsList.setList(Collections.singletonList(tpComponentDetails));
+
+    when(thirdPartyComponentDAO.getAllVersions(application.getId(), componentIdentifier1, scanId))
+        .thenReturn(thirdPartyComponentDetailsList);
+
+    ComponentDetailsList componentDetailsList =
+        componentInfoService.getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId);
+
+    assertThat(componentDetailsList).isNotNull();
+    assertThat(componentDetailsList.getList()).hasSize(1);
+
+    ComponentDetails componentDetails = componentDetailsList.getList().get(0);
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+    assertThat(componentDetails.getSecurityVulnerabilities()).hasSize(2);
+    assertThat(componentDetails.getDeclaredLicenses()).extracting(License::getLicenseId, License::getLicenseName)
+        .contains(tuple("Apache-2.0", "Apache License 2.0"));
+    assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
+
+  }
+
+  @Test
+  public void testGetComponentDetailsList_ErrorHdsComponent() {
+    String scanId = "test";
+    String identificationSource = IdentificationSource.SONATYPE.toString();
+
+    Map<String, String> coordinates = new HashMap<>();
+    coordinates.put("name", "test");
+    coordinates.put("version", "2.0.0");
+    ComponentIdentifier componentIdentifier1 = new ComponentIdentifier(ComponentIdentifier.FORMAT_PYPI, coordinates);
+
+    when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
+            "/componentDetails/list",
+        Collections.singletonMap("componentIdentifier", ComponentIdentifierAdapter.toJson(componentIdentifier1))))
+        .thenThrow(BadRequestException.class);
+
+    assertThatThrownBy(
+        () -> componentInfoService
+            .getComponentDetailsList(componentIdentifier1, application, identificationSource, scanId))
+        .isInstanceOf(BadRequestException.class);
   }
 
   @Test

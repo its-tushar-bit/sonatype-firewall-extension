@@ -78,53 +78,53 @@ public class ScmOnboardingServiceAuthzTest
   }
 
   @Test(expected = None.class /* no exception expected */)
-  public void test_getDefaultHostUrl_Authorized() throws Exception {
+  public void testGetDefaultHostUrl_Authorized() throws Exception {
     grantManageAutomaticSourceControlPermission();
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void test_getDefaultHostUrl_Unauthorized() throws Exception {
+  public void testGetDefaultHostUrl_Unauthorized() throws Exception {
     login();
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void test_getDefaultHostUrl_Unauthenticated() throws Exception {
+  public void testGetDefaultHostUrl_Unauthenticated() throws Exception {
     scmOnboardingService.getDefaultHostUrl(PROVIDER, org.getId());
   }
 
   @Test(expected = None.class /* no exception expected */)
-  public void test_importRepositories_Authorized() throws Exception {
+  public void testImportRepositories_Authorized() throws Exception {
     grantManageAutomaticSourceControlPermission();
     scmOnboardingService
         .importRepositories(org.getId(), new ImportRepositoriesRequest(Collections.emptyList(), 0, 0));
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void test_importRepositories_Unauthorized() throws Exception {
+  public void testImportRepositories_Unauthorized() throws Exception {
     login();
     scmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void test_importRepositories_Unauthenticated() throws Exception {
+  public void testImportRepositories_Unauthenticated() throws Exception {
     scmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
   }
 
   @Test
-  public void testCheckScmUrl_Authorized() {
+  public void testValidateScmHostUrl_Authorized() {
     grantGlobalPermission(Permission.READ);
     scmOnboardingService.validateScmHostUrl("GITHUB", "https://localhost/org/proj");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testCheckScmUrl_Unauthenticated() {
+  public void testValidateScmHostUrl_Unauthenticated() {
     scmOnboardingService.validateScmHostUrl("GITHUB", "https://localhost/org/proj");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testCheckScmUrl_Unauthorized() {
+  public void testValidateScmHostUrl_Unauthorized() {
     login();
     scmOnboardingService.validateScmHostUrl("GITHUB", "https://localhost/org/proj");
   }

@@ -408,7 +408,7 @@ public class ApiLicenseLegalResourceAuditTest
 
     restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_DELETE_PATH)
-        .parameter(componentObligation.getId())
+        .query("componentObligationId", componentObligation.getId())
         .delete();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_COMPONENT_OBLIGATION, null);
@@ -424,7 +424,7 @@ public class ApiLicenseLegalResourceAuditTest
 
     restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_DELETE_PATH)
-        .parameter(componentObligation.getId())
+        .query("componentObligationId", componentObligation.getId())
         .with(unauthorizedUser())
         .delete();
 

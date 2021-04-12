@@ -8,7 +8,7 @@ import {
   getComponentObligationAttributionUrl,
   getComponentObligationUrl,
   getDeleteComponentObligationAttributionUrl,
-  getDeleteComponentObligationUrl,
+  getDeleteComponentObligationsUrl,
   getSaveComponentObligationAttributionUrl,
   getSaveComponentObligationUrl
 } from '../../util/CLMLocation';
@@ -162,7 +162,7 @@ export function saveObligation(name) {
     const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
 
     if (obligationState.id !== null && obligationState.comment === '' && obligationState.status === 'OPEN') {
-      return axios.delete(getDeleteComponentObligationUrl(obligationState.id))
+      return axios.delete(getDeleteComponentObligationsUrl([obligationState.id]))
           .then(() => onObligationSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier,
               name))
           .catch(error => {

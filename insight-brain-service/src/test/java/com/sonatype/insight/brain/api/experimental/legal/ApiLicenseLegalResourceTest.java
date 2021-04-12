@@ -330,11 +330,32 @@ public class ApiLicenseLegalResourceTest
 
     HttpResponse response = restRequest()
         .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_DELETE_PATH)
-        .parameter(componentObligation.getId())
+        .query("componentObligationId", componentObligation.getId())
         .delete();
 
     assertResponseStatus(204, response);
     assertThat(new ComponentObligationDAO().getById(componentObligation.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteComponentObligation_multiple() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentObligation componentObligation1 = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "obligationName", null,
+        ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
+
+    ComponentObligation componentObligation2 = tempEntity.newComponentObligation(
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), application.getId(), "otherObligationName", null,
+        ObligationStatus.FULFILLED, ComponentLegalService.NOT_IMPLEMENTED);
+
+    HttpResponse response = restRequest()
+        .path(ApiLicenseLegalResource.COMPONENT_OBLIGATION_DELETE_PATH)
+        .query("componentObligationId", componentObligation1.getId(), componentObligation2.getId())
+        .delete();
+
+    assertResponseStatus(204, response);
+    assertThat(new ComponentObligationDAO().getById(componentObligation1.getId())).isNull();
+    assertThat(new ComponentObligationDAO().getById(componentObligation2.getId())).isNull();
   }
 
   @Test

@@ -339,8 +339,9 @@ describe('CLMLocation.js', function() {
   });
 
   it('should return the delete component obligation url', function() {
-    expect(CLMLocation.getDeleteComponentObligationUrl('obligationId'))
-        .toBe('/api/experimental/licenseLegalMetadata/component/obligation/obligationId');
+    expect(CLMLocation.getDeleteComponentObligationsUrl(['obligationIdOne', 'obligationIdTwo']))
+        .toBe('/api/experimental/licenseLegalMetadata/component/obligation' +
+            '?componentObligationId=obligationIdOne&componentObligationId=obligationIdTwo');
   });
 
   it('should return the save legal file url', function() {

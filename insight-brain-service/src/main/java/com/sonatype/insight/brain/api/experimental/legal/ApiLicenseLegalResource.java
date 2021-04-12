@@ -63,7 +63,7 @@ public class ApiLicenseLegalResource
 
   public static final String COMPONENT_OBLIGATIONS_PATH = COMPONENT_PATH + "/obligations";
 
-  public static final String COMPONENT_OBLIGATION_DELETE_PATH = "/component/obligation/{componentObligationId}";
+  public static final String COMPONENT_OBLIGATION_DELETE_PATH = "/component/obligation";
 
   public static final String COMPONENT_OBLIGATION_ATTRIBUTION_PATH = COMPONENT_OBLIGATION_PATH + "/attribution";
 
@@ -283,8 +283,8 @@ public class ApiLicenseLegalResource
   @Path(COMPONENT_OBLIGATION_DELETE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.DELETE_COMPONENT_OBLIGATION)
-  public void deleteComponentObligation(@PathParam("componentObligationId") String componentObligationId) {
-    componentLegalService.deleteComponentObligation(componentObligationId);
+  public void deleteComponentObligations(@QueryParam("componentObligationId") List<String> componentObligationIds) {
+    componentLegalService.deleteComponentObligations(componentObligationIds);
   }
 
   /**

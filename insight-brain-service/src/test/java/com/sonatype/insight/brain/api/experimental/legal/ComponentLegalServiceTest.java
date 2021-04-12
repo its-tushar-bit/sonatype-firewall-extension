@@ -1235,14 +1235,14 @@ public class ComponentLegalServiceTest
   public void testDeleteComponentObligation_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.ADVANCED_LEGAL_PACK);
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> componentLegalService.deleteComponentObligation(null));
+        .isThrownBy(() -> componentLegalService.deleteComponentObligations(null));
   }
 
   @Test
   public void testDeleteComponentObligation_DoesNotExist() {
     String id = "doesNotExist";
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> componentLegalService.deleteComponentObligation(id))
+        .isThrownBy(() -> componentLegalService.deleteComponentObligations(Arrays.asList(id)))
         .withMessageContaining("ComponentObligation with ID " + id + " does not exist.");
   }
 
@@ -1254,7 +1254,7 @@ public class ComponentLegalServiceTest
         dto.getComponentIdentifier().toComponentIdentifier(), app.getId(), dto.getName(), dto.getComment(),
         dto.getStatus(), ComponentLegalService.NOT_IMPLEMENTED);
 
-    componentLegalService.deleteComponentObligation(componentObligation.getId());
+    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
 
     assertThat(componentObligationDAO.getById(componentObligation.getId())).isNull();
   }

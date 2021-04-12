@@ -9,7 +9,7 @@ import {
   getDeleteComponentObligationAttributionUrl,
   getComponentObligationAttributionUrl,
   getSaveComponentObligationUrl,
-  getDeleteComponentObligationUrl,
+  getDeleteComponentObligationsUrl,
   getComponentObligationUrl
 } from '../../../main/frontend/util/CLMLocation';
 import {
@@ -472,7 +472,7 @@ describe('advancedLegalObligationActions', function () {
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
-          [getDeleteComponentObligationUrl('id')]: Promise.resolve({})
+          [getDeleteComponentObligationsUrl(['id'])]: Promise.resolve({})
         },
         get: {
           [getComponentObligationUrl('organization', 'org', 'componentIdentifier',
@@ -484,7 +484,7 @@ describe('advancedLegalObligationActions', function () {
         setTimeout(() => {
           const actions = store.getActions();
           expect(axios.delete).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/component/obligation/id');
+              '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id');
           expect(axios.get).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/' +
               'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name');
@@ -514,7 +514,7 @@ describe('advancedLegalObligationActions', function () {
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
-          [getDeleteComponentObligationUrl('id')]: Promise.resolve({})
+          [getDeleteComponentObligationsUrl(['id'])]: Promise.resolve({})
         },
         get: {
           [getComponentObligationUrl('organization', 'org', 'componentIdentifier',
@@ -536,7 +536,7 @@ describe('advancedLegalObligationActions', function () {
         setTimeout(() => {
           const actions = store.getActions();
           expect(axios.delete).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/component/obligation/id');
+              '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id');
           expect(axios.get).toHaveBeenCalledWith(
               '/api/experimental/licenseLegalMetadata/organization/org/component/' +
               'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name');
@@ -573,14 +573,14 @@ describe('advancedLegalObligationActions', function () {
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
-          [getDeleteComponentObligationUrl('id')]: Promise.reject('error')
+          [getDeleteComponentObligationsUrl(['id'])]: Promise.reject('error')
         }
       });
 
       store.dispatch(saveObligation('name')).then(() => {
         const actions = store.getActions();
         expect(axios.delete).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/component/obligation/id');
+            '/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=id');
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED);
         expect(actions[1].payload).toEqual(

@@ -398,22 +398,24 @@ public class ComponentLegalService
   }
 
   /**
-   * Delete a {@link ComponentObligation} by its {@link ComponentObligation#getId()}.
+   * Delete {@link ComponentObligation}s by its {@link ComponentObligation#getId()}.
    *
-   * @param componentObligationId the {@link ComponentObligation#getId()} representing the {@link ComponentObligation}
-   *                              to be deleted.
+   * @param componentObligationIds a list of the {@link ComponentObligation#getId()} representing the {@link
+   *                               ComponentObligation} to be deleted.
    * @since 1.106
    */
-  public void deleteComponentObligation(String componentObligationId) {
+  public void deleteComponentObligations(List<String> componentObligationIds) {
     checkLicense();
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       tx.begin();
-      ComponentObligation componentObligation = componentObligationDAO.getByIdNotNull(tx, componentObligationId);
-      Owner owner = ownerDAO.getById(tx, componentObligation.getOwnerId());
-      auditComponentObligation(owner, componentObligation.getComponentIdentifier(),
-          componentObligation.getObligationName(), componentObligation.getStatus(), componentObligation.getComment());
-      checkLegalReviewerPermission(owner);
-      componentObligationDAO.delete(tx, componentObligation);
+      for (String componentObligationId : componentObligationIds) {
+        ComponentObligation componentObligation = componentObligationDAO.getByIdNotNull(tx, componentObligationId);
+        Owner owner = ownerDAO.getById(tx, componentObligation.getOwnerId());
+        auditComponentObligation(owner, componentObligation.getComponentIdentifier(),
+            componentObligation.getObligationName(), componentObligation.getStatus(), componentObligation.getComment());
+        checkLegalReviewerPermission(owner);
+        componentObligationDAO.delete(tx, componentObligation);
+      }
       tx.commit();
     }
   }

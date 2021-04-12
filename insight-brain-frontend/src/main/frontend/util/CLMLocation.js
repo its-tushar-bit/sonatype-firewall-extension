@@ -340,8 +340,9 @@ export function getComponentObligationUrl(orgOrApp, ownerId, componentIdentifier
     ?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
 }
 
-export function getDeleteComponentObligationUrl(componentObligationId) {
-  return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation/${componentObligationId}`;
+export function getDeleteComponentObligationsUrl(componentObligationIds) {
+  const queryParams = componentObligationIds.join('&componentObligationId=');
+  return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=` + queryParams;
 }
 
 export function getSaveLegalFileUrl(orgOrApp, ownerId) {
@@ -371,8 +372,7 @@ export function getCopyrightFileCountUrl(orgOrApp, ownerId, componentHash, compo
 /fileCount?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
 
-export default
-angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
+export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl', '$window', function(baseUrl, $window) {
     function getUserTelemetryPrefix() {
       const isRM = $window.clmEndpoint && $window.clmEndpoint.type === 'rm';

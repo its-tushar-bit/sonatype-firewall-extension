@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -479,7 +480,7 @@ public class ComponentLegalServiceAuthzTest
     ComponentObligation componentObligation = tempEntity.newComponentObligation(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
         ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
-    componentLegalService.deleteComponentObligation(componentObligation.getId());
+    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -488,7 +489,7 @@ public class ComponentLegalServiceAuthzTest
     ComponentObligation componentObligation = tempEntity.newComponentObligation(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
         ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
-    componentLegalService.deleteComponentObligation(componentObligation.getId());
+    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
   }
 
   @Test
@@ -497,7 +498,7 @@ public class ComponentLegalServiceAuthzTest
     ComponentObligation componentObligation = tempEntity.newComponentObligation(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "obligationName", null,
         ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
-    componentLegalService.deleteComponentObligation(componentObligation.getId());
+    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -505,7 +506,7 @@ public class ComponentLegalServiceAuthzTest
     ComponentObligation componentObligation = tempEntity.newComponentObligation(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
         ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
-    componentLegalService.deleteComponentObligation(componentObligation.getId());
+    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
   }
 
   @Test(expected = UnauthorizedException.class)
@@ -514,7 +515,7 @@ public class ComponentLegalServiceAuthzTest
     ComponentObligation componentObligation = tempEntity.newComponentObligation(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
         ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
-    componentLegalService.deleteComponentObligation(componentObligation.getId());
+    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
   }
 
   @Test
@@ -523,7 +524,7 @@ public class ComponentLegalServiceAuthzTest
     ComponentObligation componentObligation = tempEntity.newComponentObligation(
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), org.getId(), "obligationName", null,
         ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
-    componentLegalService.deleteComponentObligation(componentObligation.getId());
+    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -603,7 +604,7 @@ public class ComponentLegalServiceAuthzTest
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getOrganizationId(), "obligationName", null,
         ObligationStatus.OPEN, ComponentLegalService.NOT_IMPLEMENTED);
     grantLegalReviewerPermission(app.getId());
-    componentLegalService.deleteComponentObligation(componentObligation.getId());
+    componentLegalService.deleteComponentObligations(Arrays.asList(componentObligation.getId()));
   }
 
   @Test(expected = UnauthenticatedException.class)

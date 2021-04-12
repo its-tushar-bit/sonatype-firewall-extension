@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.TemplateUtils;
@@ -126,15 +127,24 @@ public class PullRequestLineFeedback
     String threatImage = PullRequestFeedbackDetails.getImageForThreatLevel(threatLevel);
     String suggestedVersion = remediationVersionDTO == null ? "" : remediationVersionDTO.getVersion();
     int breakingChangesCount = -1;
-    if (remediationVersionDTO != null && remediationVersionDTO.getBreakingChangesCount() != null) {
-      breakingChangesCount = remediationVersionDTO.getBreakingChangesCount();
+    boolean remediationForDependencies = false;
+    if (remediationVersionDTO != null) {
+      if (remediationVersionDTO.getBreakingChangesCount() != null) {
+        breakingChangesCount = remediationVersionDTO.getBreakingChangesCount();
+      }
+      if (remediationVersionDTO.getRemediationType() != null) {
+        remediationForDependencies = ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
+            .equals(remediationVersionDTO.getRemediationType());
+      }
     }
+
     return ImmutableMap.<String, Object>builder()
         .put("componentNameAndVersion", displayName)
         .put("threatLevel", threatLevel)
         .put("threatImage", threatImage)
         .put("policiesViolated", getPoliciesViolatedMap(violations, baseUrl, true))
         .put("suggestedVersion", suggestedVersion)
+        .put("remediationForDependencies", remediationForDependencies)
         .put("breakingChangesCount", breakingChangesCount)
         .put("policiesViolatedCount", violations.size())
         .put("date", new SimpleDateFormat("MMM dd, yyyy").format(new Date()))

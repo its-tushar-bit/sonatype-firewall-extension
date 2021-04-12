@@ -4,7 +4,7 @@
 
 **com.h2database : h2 : 1.4.190** - [line comment](/bitbucket/projects/sonatype/repos/enhanced-commit-information/pull-requests/10/overview?commentId=12345)
 
-:shield: **Bumping to version 1.4.200** will resolve these violations
+:shield: **Bumping to version 1.4.200** will resolve all policy violations for this component
   - Few breaking changes - This version upgrade may require moderate effort.
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
@@ -16,7 +16,7 @@
 
 **org.springframework.security : spring-security-web : 4.2.3.RELEASE**
 
-:shield: **Bumping to version 4.5.0.RELEASE** will resolve these violations
+:shield: **Bumping to version 4.5.0.RELEASE** will resolve all policy violations for this component and its dependencies
 
 | **Threat (of 10)** | **Policy** | **Violation Details** |
 | --- | --- | --- |

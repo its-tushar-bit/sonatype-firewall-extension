@@ -49,13 +49,16 @@ public class PullRequestLineFeedbackTest
 
   public static final String MULTIPLE_WITH_SUGGESTION = "multipleWithSuggestion";
 
+  public static final String MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION =
+      "multipleWithSuggestionAndDependencyRemediation";
+
   public static final String SINGLE_NO_SUGGESTION = "singleNoSuggestion";
 
   public static final String SINGLE_WITH_SUGGESTION = "singleWithSuggestion";
 
   @Inject
   private InsightConfig config;
-  
+
   private Map<String, PullRequestLineFeedback> testCases;
 
   @Before
@@ -67,6 +70,10 @@ public class PullRequestLineFeedbackTest
             baseUrl, null))
         .put(MULTIPLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
             baseUrl, new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 3)))
+        .put(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION,
+            new PullRequestLineFeedback(defaultPolicyViolations(10), "Test Component",
+                baseUrl,
+                new RemediationVersionDTO("123", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES, 3)))
         .put(SINGLE_NO_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", baseUrl,
             null))
         .put(SINGLE_WITH_SUGGESTION, new PullRequestLineFeedback(defaultPolicyViolations(1), "Test Component", baseUrl,
@@ -84,6 +91,12 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_multipleWithSuggestion_github() throws Exception {
     assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION),
         "PullRequestLineFeedback_multipleWithSuggestion.md", SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleWithSuggestionAndDependencyRemediation_github() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION),
+        "PullRequestLineFeedback_multipleWithSuggestionAndDependencyRemediation.md", SourceControlProvider.GITHUB);
   }
 
   @Test
@@ -111,6 +124,13 @@ public class PullRequestLineFeedbackTest
   }
 
   @Test
+  public void testPullRequestFeedback_multipleWithSuggestionAndDependencyRemediation_gitlab() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION),
+        "PullRequestLineFeedback_multipleWithSuggestionAndDependencyRemediation_gitlab.md",
+        SourceControlProvider.GITLAB);
+  }
+
+  @Test
   public void testPullRequestFeedback_singleNoSuggestion_gitlab() throws Exception {
     assertContents(testCases.get(SINGLE_NO_SUGGESTION),
         "PullRequestLineFeedback_singleNoSuggestions_gitlab.md", SourceControlProvider.GITLAB);
@@ -132,6 +152,13 @@ public class PullRequestLineFeedbackTest
   public void testPullRequestFeedback_multipleWithSuggestion_bitbucket() throws Exception {
     assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION),
         "PullRequestLineFeedback_multipleWithSuggestion_noHtml.md", SourceControlProvider.BITBUCKET);
+  }
+
+  @Test
+  public void testPullRequestFeedback_multipleWithSuggestionAndDependencyRemediation_bitbucket() throws Exception {
+    assertContents(testCases.get(MULTIPLE_WITH_SUGGESTION_AND_DEPENDENCY_REMEDIATION),
+        "PullRequestLineFeedback_multipleWithSuggestionAndDependencyRemediation_noHtml.md",
+        SourceControlProvider.BITBUCKET);
   }
 
   @Test
@@ -221,7 +248,7 @@ public class PullRequestLineFeedbackTest
     final Path path = Paths.get(getClass().getResource("/PullRequestLineFeedbackTest/" + resourceName).toURI());
     return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
   }
-  
+
   private void assertContents(
       final PullRequestLineFeedback details,
       final String expectedContentFile,

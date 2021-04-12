@@ -8,7 +8,7 @@
 <p></p>
 
 <#if suggestedVersion?has_content>
-  :shield: **Bumping to version ${suggestedVersion}** will resolve <#if ( policiesViolatedCount > 1 )>these violations<#else>this violation</#if> (as of _${date}_)<#lt>
+  :shield: **Bumping to version ${suggestedVersion}** will resolve all policy violations for this component<#if ( remediationForDependencies )> and its dependencies</#if> (as of _${date}_)<#lt>
   <@breakingChanges count=breakingChangesCount minimalMarkdown=false width=width/><#lt>
 <#else>
   :warning: No recommended versions are available for this component (as of _${date}_)<#lt>

@@ -5,7 +5,7 @@
     <b>10&nbsp;&nbsp;&nbsp; Test Component</b></summary>
 <p></p>
 
-:shield: **Bumping to version 123** will resolve all policy violations for this component (as of _Apr 01, 2020_)
+:shield: **Bumping to version 123** will resolve all policy violations for this component and its dependencies (as of _Apr 01, 2020_)
   - <img alt="Few breaking changes" src="https://cdn.sonatype.com/iq-for-scm/1.0/orange-bar.png" width="12" height="12">&nbsp; Few breaking changes - This version upgrade may require moderate effort.
 
 Threat (of 10) | Policy | Violation Details

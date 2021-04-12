@@ -5,7 +5,7 @@
     <b>1&nbsp;&nbsp;&nbsp; Test Component</b></summary>
 <p></p>
 
-:shield: **Bumping to version 123** will resolve this violation (
+:shield: **Bumping to version 123** will resolve all policy violations for this component (
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |

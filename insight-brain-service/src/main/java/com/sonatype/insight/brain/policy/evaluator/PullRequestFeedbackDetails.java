@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.PullRequestLineCommentDTO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.SourceControlComponentDetails;
@@ -257,9 +258,17 @@ public class PullRequestFeedbackDetails
               getSuggestedVersion(remediationVersionMap, componentEntry.getValue());
           String suggestedVersion = remediationVersionDTO != null ? remediationVersionDTO.getVersion() : "";
           int breakingChangesCount = -1;
-          if (remediationVersionDTO != null && remediationVersionDTO.getBreakingChangesCount() != null) {
-            breakingChangesCount = remediationVersionDTO.getBreakingChangesCount();
+          boolean remediationForDependencies = false;
+          if (remediationVersionDTO != null) {
+            if (remediationVersionDTO.getBreakingChangesCount() != null) {
+              breakingChangesCount = remediationVersionDTO.getBreakingChangesCount();
+            }
+            if (remediationVersionDTO.getRemediationType() != null) {
+              remediationForDependencies = ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES
+                  .equals(remediationVersionDTO.getRemediationType());
+            }
           }
+
           return ImmutableMap.<String, Object>builder()
               .put("componentNameAndVersion",
                   sourceControlComponentDetails.getComponentInfo(componentEntry.getKey()).getDisplayName())
@@ -272,6 +281,7 @@ public class PullRequestFeedbackDetails
               .put("highestThreatLevel",
                   getHighestThreatLevel(componentEntry.getValue()))
               .put("suggestedVersion", suggestedVersion)
+              .put("remediationForDependencies", remediationForDependencies)
               .put("breakingChangesCount", breakingChangesCount)
               .put("lineCommentLink",
                   getLineCommentLink(pullRequestLineComments, componentEntry.getValue(), gitRepositoryInfo, prNumber))

@@ -15,7 +15,7 @@
 **${component.componentNameAndVersion}**<#if component.lineCommentLink?has_content> - [line comment](${component.lineCommentLink})</#if><#lt>
 
   <#if component.suggestedVersion?has_content>
-    :shield: **Bumping to version ${component.suggestedVersion}** will resolve <#if ( component.policiesViolated?size > 1 )>these violations<#else>this violation</#if><#lt>
+    :shield: **Bumping to version ${component.suggestedVersion}** will resolve all policy violations for this component<#if ( component.remediationForDependencies )> and its dependencies</#if><#lt>
     <@breakingChanges count=component.breakingChangesCount minimalMarkdown=true />
   <#else>
     :warning: No recommended versions are available for this component<#lt>

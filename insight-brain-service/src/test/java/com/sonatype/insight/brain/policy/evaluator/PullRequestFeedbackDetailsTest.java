@@ -78,11 +78,11 @@ public class PullRequestFeedbackDetailsTest
   private PolicyEvaluation defaultBranchPolicyEvaluation;
 
   private PolicyViolationDiff<PolicyViolation> diff;
-  
+
   private Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap;
 
   private List<PullRequestLineCommentDTO> pullRequestLineComments;
-  
+
   private GitRepositoryInfo githubGitRepositoryInfo;
 
   private GitRepositoryInfo gitlabGitRepositoryInfo;
@@ -701,16 +701,17 @@ public class PullRequestFeedbackDetailsTest
     //setup diff
     diff = policyEvaluationDiffService.createPolicyViolationDiff(defaultBranchPolicyEvaluation,
         featureBranchPolicyEvaluation, MINIMUM_THREAT_LEVEL).get();
-    
+
     //setup remediationVersionMap
     remediationVersionMap = new HashMap<>();
     ComponentIdentifier ci = ComponentIdentifier.createMavenCoordinates("com.h2database", "h2", "1.4.190", "", "jar");
     remediationVersionMap
         .put(ci, new RemediationVersionDTO("1.4.200", ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS, 3));
+    //setup it is explicitly set the remediation with dependencies in order to check the variation on the message
     ComponentIdentifier ci2 = ComponentIdentifier
         .createMavenCoordinates("org.springframework.security", "spring-security-web", "4.2.3.RELEASE", "", "jar");
     remediationVersionMap.put(ci2, new RemediationVersionDTO("4.5.0.RELEASE",
-        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS));
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES));
 
     //setup pullRequestLineComments
     pullRequestLineComments = new ArrayList<>();

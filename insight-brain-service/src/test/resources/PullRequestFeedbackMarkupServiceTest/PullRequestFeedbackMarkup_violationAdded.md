@@ -7,7 +7,7 @@
 com.h2database : h2 : 1.4.190</b> - <a href="http://example.com/project/repository/pull/10#discussion_r12345">line comment</a></summary>
 <p></p>
 
-:shield: **Bumping to version 1.4.200** will resolve these violations
+:shield: **Bumping to version 1.4.200** will resolve all policy violations for this component
 
 Threat (of 10) | Policy | Violation Details
 --- | --- | --- |

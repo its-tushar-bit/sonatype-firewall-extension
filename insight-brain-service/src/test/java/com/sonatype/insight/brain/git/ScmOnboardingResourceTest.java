@@ -86,7 +86,7 @@ public class ScmOnboardingResourceTest
         .get();
 
     // then the response is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+    assertResponseStatus(200, response);
     SCMRepositories responseList = response.getBody(SCMRepositories.class);
     assertThat(responseList.availableRepositories).hasSize(13);
   }
@@ -113,7 +113,7 @@ public class ScmOnboardingResourceTest
         .get();
 
     // then the response is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+    assertResponseStatus(200, response);
     Map<String, String> responseList = response.getBody(Map.class);
     assertThat(responseList).hasSize(1);
     assertThat(responseList.get("defaultHostUrl")).isEqualTo("");
@@ -137,7 +137,7 @@ public class ScmOnboardingResourceTest
         .post();
 
     // then the response is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+    assertResponseStatus(200, response);
     ImportResults importResults = response.getBody(ImportResults.class);
     List<SCMRepository> importedRepoList = importResults.getImportedRepositories();
     assertThat(importedRepoList).hasSize(1);
@@ -170,7 +170,7 @@ public class ScmOnboardingResourceTest
         .get();
 
     // then result is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+    assertResponseStatus(200, response);
 
     // and value is present
     @SuppressWarnings("unchecked")
@@ -188,7 +188,7 @@ public class ScmOnboardingResourceTest
         .get();
 
     // then result is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+    assertResponseStatus(200, response);
 
     // and value is present
     @SuppressWarnings("unchecked")
@@ -207,7 +207,7 @@ public class ScmOnboardingResourceTest
         .get();
 
     // then result is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SC_OK);
+    assertResponseStatus(200, response);
 
     // and value is present
     @SuppressWarnings("unchecked")

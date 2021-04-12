@@ -242,6 +242,9 @@ public class ApiLegalCopyrightService
   }
 
   private Map<String, AggregateFile> getAggregateFiles(final String componentHash) {
+    if (componentHash == null) {
+      return Collections.emptyMap();
+    }
     final ApplicationComponent lastByHash = applicationComponentDAO.getLastByHash(componentHash);
     final List<AggregateFile> aggregateFiles =
         aggregateFileDAO.getByApplicationComponentId(lastByHash.getId());

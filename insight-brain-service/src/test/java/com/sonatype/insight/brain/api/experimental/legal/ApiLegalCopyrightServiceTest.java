@@ -152,8 +152,8 @@ public class ApiLegalCopyrightServiceTest
         .getComponentLegalCommentFilePaths(mavenIdentifier);
 
     final CopyrightFilePathsDTO copyrightContexts = apiLegalCopyrightService.getCopyrightFilePaths(
-            OwnerType.APPLICATION, "1",
-            mavenIdentifier, "hash", "copyright hash 2", 0, 10);
+        OwnerType.APPLICATION, "1",
+        mavenIdentifier, "hash", "copyright hash 2", 0, 10);
 
     assertThat(copyrightContexts.getTotalFileMatches()).isEqualTo(3);
     assertThat(copyrightContexts.getFilePaths()).hasSize(3).containsExactly(
@@ -271,8 +271,8 @@ public class ApiLegalCopyrightServiceTest
         .getAnameRawComponentLegalComments(ImmutableSet.of(aggregateFileGroup));
 
     final CopyrightFilePathsDTO copyrightContexts = apiLegalCopyrightService.getCopyrightFilePaths(
-            OwnerType.APPLICATION, "1",
-            anameIdentifier, componentHash, "content1Hash", 0, 10);
+        OwnerType.APPLICATION, "1",
+        anameIdentifier, componentHash, "content1Hash", 0, 10);
 
     assertThat(copyrightContexts.getTotalFileMatches()).isEqualTo(4);
     assertThat(copyrightContexts.getFilePaths()).hasSize(4).containsExactly(
@@ -282,8 +282,8 @@ public class ApiLegalCopyrightServiceTest
         filePath("z/path", 1));
 
     final CopyrightFilePathsDTO copyrightContextsPage1 = apiLegalCopyrightService.getCopyrightFilePaths(
-            OwnerType.APPLICATION, "1",
-            anameIdentifier, componentHash, "content1Hash", 0, 2);
+        OwnerType.APPLICATION, "1",
+        anameIdentifier, componentHash, "content1Hash", 0, 2);
 
     assertThat(copyrightContextsPage1.getTotalFileMatches()).isEqualTo(4);
     assertThat(copyrightContextsPage1.getFilePaths()).hasSize(2).containsExactly(
@@ -291,13 +291,24 @@ public class ApiLegalCopyrightServiceTest
         filePath("path2/file", 1));
 
     final CopyrightFilePathsDTO copyrightContextsPage2 = apiLegalCopyrightService.getCopyrightFilePaths(
-            OwnerType.APPLICATION, "1",
-            anameIdentifier, componentHash, "content1Hash", 2, 4);
+        OwnerType.APPLICATION, "1",
+        anameIdentifier, componentHash, "content1Hash", 2, 4);
 
     assertThat(copyrightContextsPage2.getTotalFileMatches()).isEqualTo(4);
     assertThat(copyrightContextsPage2.getFilePaths()).hasSize(2).containsExactly(
         filePath("some/path", 2),
         filePath("z/path", 1));
+  }
+
+  @Test
+  public void testGetCopyrightFilePaths_NullHash() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createAnameCoordinates("n", "q", "v");
+
+    CopyrightFilePathsDTO copyrightFilePathsDTO = apiLegalCopyrightService.getCopyrightFilePaths(OwnerType.APPLICATION,
+        "ownerId", componentIdentifier, null, "copyrightContentHash", 0, 10);
+    assertThat(copyrightFilePathsDTO).isNotNull();
+    assertThat(copyrightFilePathsDTO.getFilePaths()).isEmpty();
+    assertThat(copyrightFilePathsDTO.getTotalFileMatches()).isEqualTo(0);
   }
 
   @Test
@@ -342,15 +353,23 @@ public class ApiLegalCopyrightServiceTest
 
     final List<String> copyrightContextContent1 = apiLegalCopyrightService.getCopyrightContextContent(
         OwnerType.APPLICATION, "1",
-            anameIdentifier, componentHash, "contentAHash", "other/path");
+        anameIdentifier, componentHash, "contentAHash", "other/path");
 
     assertThat(copyrightContextContent1).containsExactlyInAnyOrder("Content 1", "Content 2");
 
     final List<String> copyrightContextContent2 = apiLegalCopyrightService.getCopyrightContextContent(
-            OwnerType.APPLICATION, "1",
-            anameIdentifier, componentHash, "content2Hash", "other/path");
+        OwnerType.APPLICATION, "1",
+        anameIdentifier, componentHash, "content2Hash", "other/path");
 
     assertThat(copyrightContextContent2).containsExactly("Content 2");
+  }
+
+  @Test
+  public void testGetCopyrightContextContent_NullHash() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createAnameCoordinates("n", "q", "v");
+
+    assertThat(apiLegalCopyrightService.getCopyrightContextContent(OwnerType.APPLICATION, "ownerId",
+        componentIdentifier, null, "copyrightContentHash", "some/path")).isEmpty();
   }
 
   @Test
@@ -433,6 +452,14 @@ public class ApiLegalCopyrightServiceTest
         .hasEntrySatisfying("content1Hash", new Condition<>(Predicate.isEqual(3), "content1Hash"))
         .hasEntrySatisfying("content2Hash", new Condition<>(Predicate.isEqual(1), "content2Hash"))
         .hasEntrySatisfying("contentAHash", new Condition<>(Predicate.isEqual(4), "contentAHash"));
+  }
+
+  @Test
+  public void testGetCopyrightFileCount_NullHash() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createAnameCoordinates("n", "q", "v");
+
+    assertThat(apiLegalCopyrightService.getCopyrightFileCount(OwnerType.APPLICATION, "ownerId", componentIdentifier,
+        null)).isEmpty();
   }
 
   private ComponentIdentifier createInvalidComponentIdentifier()

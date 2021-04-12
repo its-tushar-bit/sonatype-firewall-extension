@@ -2021,6 +2021,26 @@ public class ApiLicenseLegalServiceTest
         .containsExactly("a", "b", "k", "x", "y", "z", null);
   }
 
+  @Test
+  public void testGetLicenseLegalComponentReport_NullHash() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createAnameCoordinates("n", "q", "v");
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setComponentIdentifier(componentIdentifier);
+    namedComponentDetails.setHash(null);
+    doReturn(namedComponentDetails)
+        .when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
+    ApiLicenseLegalComponentReportDTO licenseLegalComponentReport =
+        apiLicenseLegalService.getLicenseLegalComponentReport(owner.getType(), owner.getPublicId(), componentIdentifier,
+            null, null, null, IdentificationSource.SONATYPE.toString(), null);
+
+    assertThat(licenseLegalComponentReport).isNotNull();
+    assertThat(licenseLegalComponentReport.component).isNotNull();
+    assertThat(licenseLegalComponentReport.component.licenseLegalData).isNotNull();
+    assertThat(licenseLegalComponentReport.component.licenseLegalData.copyrights).isEmpty();
+  }
+
   private NamedComponentDetails createNamedComponentDetails() {
     return createNamedComponentDetails(Arrays.asList("Apache-2.0+", "Apache-2.0-MIT"),
         Arrays.asList("GPL-3.0-LGPL-2.0", "Beerware"));

@@ -756,6 +756,9 @@ public class ApiLicenseLegalService
   }
 
   private List<String> getAggregateHashes(final String componentHash) {
+    if (componentHash == null) {
+      return Collections.emptyList();
+    }
     final ApplicationComponent lastByHash = applicationComponentDAO.getLastByHash(componentHash);
     return aggregateFileDAO.getByApplicationComponentId(lastByHash.getId()).stream()
         .map(AggregateFile::getHash)

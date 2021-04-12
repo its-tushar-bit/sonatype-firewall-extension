@@ -274,68 +274,68 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testDefaultHostUrl_noProvider() {
-    testNoProvider(null);
-    testNoProvider("");
-    testNoProvider(" ");
+  public void testGetDefaultHostUrl_noProvider() {
+    testGetDefaultHostUrl_noProvider(null);
+    testGetDefaultHostUrl_noProvider("");
+    testGetDefaultHostUrl_noProvider(" ");
   }
 
-  private void testNoProvider(String provider) {
+  private void testGetDefaultHostUrl_noProvider(String provider) {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       scmOnboardingService.getDefaultHostUrl(provider, "org-id-not-checked");
     }).withMessageContaining("Provider has not been specified");
   }
 
   @Test
-  public void testDefaultHostUrl_invalidProvider() {
+  public void testGetDefaultHostUrl_invalidProvider() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       scmOnboardingService.getDefaultHostUrl("invalid", "org-id-not-checked");
     }).withMessageContaining("Invalid provider: invalid");
   }
 
   @Test
-  public void testDefaultHostUrl_noOrgId() {
-    testDefaultByProvider("github", "");
-    testDefaultByProvider("gitlab", "");
-    testDefaultByProvider("bitbucket", "");
+  public void testGetDefaultHostUrl_noOrgId() {
+    testGetDefaultHostUrlByProvider("github", "");
+    testGetDefaultHostUrlByProvider("gitlab", "");
+    testGetDefaultHostUrlByProvider("bitbucket", "");
   }
 
-  private void testDefaultByProvider(String provider, String expectedUrl) {
+  private void testGetDefaultHostUrlByProvider(String provider, String expectedUrl) {
     assertThat(scmOnboardingService.getDefaultHostUrl(provider, org.getId())).isEqualTo(expectedUrl);
   }
 
   @Test
-  public void testDefaultHostUrl_orgWithScm() {
+  public void testGetDefaultHostUrl_orgWithScm() {
     // test a variety of different hosts
-    testDefaultHostUrl_repoUrlGH("http://example.com:8899/owner/app", "http://example.com:8899");
-    testDefaultHostUrl_repoUrlGH("https://example.com:8443/owner/app", "https://example.com:8443");
-    testDefaultHostUrl_repoUrlGH("http://example.com/owner/app", "http://example.com");
-    testDefaultHostUrl_repoUrlGH("http://example.com:80/owner/app", "http://example.com:80");
-    testDefaultHostUrl_repoUrlGH("https://example.com/owner/app", "https://example.com");
-    testDefaultHostUrl_repoUrlGH("https://example.com:443/owner/app", "https://example.com:443");
+    testGetDefaultHostUrl_repoUrlGH("http://example.com:8899/owner/app", "http://example.com:8899");
+    testGetDefaultHostUrl_repoUrlGH("https://example.com:8443/owner/app", "https://example.com:8443");
+    testGetDefaultHostUrl_repoUrlGH("http://example.com/owner/app", "http://example.com");
+    testGetDefaultHostUrl_repoUrlGH("http://example.com:80/owner/app", "http://example.com:80");
+    testGetDefaultHostUrl_repoUrlGH("https://example.com/owner/app", "https://example.com");
+    testGetDefaultHostUrl_repoUrlGH("https://example.com:443/owner/app", "https://example.com:443");
   }
 
   @Test
-  public void testDefaultHostUrl_bitbucketOrgWithScm() {
+  public void testGetDefaultHostUrl_bitbucketOrgWithScm() {
     // test a variety of different hosts
-    testDefaultHostUrl_repoUrlBB("https://localhost:7990/biz/scm/scm/org/project", "https://localhost:7990/biz/scm");
-    testDefaultHostUrl_repoUrlBB("https://localhost:7990/scm/biz/scm/org/project", "https://localhost:7990/scm/biz");
-    testDefaultHostUrl_repoUrlBB("https://example.com:5000/bitbucket/scm/org/proj",
+    testGetDefaultHostUrl_repoUrlBB("https://localhost:7990/biz/scm/scm/org/project", "https://localhost:7990/biz/scm");
+    testGetDefaultHostUrl_repoUrlBB("https://localhost:7990/scm/biz/scm/org/project", "https://localhost:7990/scm/biz");
+    testGetDefaultHostUrl_repoUrlBB("https://example.com:5000/bitbucket/scm/org/proj",
         "https://example.com:5000/bitbucket");
-    testDefaultHostUrl_repoUrlBB("https://example.com/scm/org/proj", "https://example.com");
-    testDefaultHostUrl_repoUrlBB("https://bitbucket.org/org/proj", "https://bitbucket.org");
-    testDefaultHostUrl_repoUrlBB("https://example.com:443/scm/owner/app", "https://example.com:443");
+    testGetDefaultHostUrl_repoUrlBB("https://example.com/scm/org/proj", "https://example.com");
+    testGetDefaultHostUrl_repoUrlBB("https://bitbucket.org/org/proj", "https://bitbucket.org");
+    testGetDefaultHostUrl_repoUrlBB("https://example.com:443/scm/owner/app", "https://example.com:443");
   }
 
-  private void testDefaultHostUrl_repoUrlGH(String repoUrl, String expectedDefaultHostUrl) {
-    testDefaultHostUrl_repoUrl(repoUrl, expectedDefaultHostUrl, SourceControlProvider.GITHUB.name());
+  private void testGetDefaultHostUrl_repoUrlGH(String repoUrl, String expectedDefaultHostUrl) {
+    testGetDefaultHostUrl_repoUrl(repoUrl, expectedDefaultHostUrl, SourceControlProvider.GITHUB.name());
   }
 
-  private void testDefaultHostUrl_repoUrlBB(String repoUrl, String expectedDefaultHostUrl) {
-    testDefaultHostUrl_repoUrl(repoUrl, expectedDefaultHostUrl, SourceControlProvider.BITBUCKET.name());
+  private void testGetDefaultHostUrl_repoUrlBB(String repoUrl, String expectedDefaultHostUrl) {
+    testGetDefaultHostUrl_repoUrl(repoUrl, expectedDefaultHostUrl, SourceControlProvider.BITBUCKET.name());
   }
 
-  private void testDefaultHostUrl_repoUrl(String repoUrl, String expectedDefaultHosturl, String provider) {
+  private void testGetDefaultHostUrl_repoUrl(String repoUrl, String expectedDefaultHosturl, String provider) {
     // given an org
     Organization organization = tempEntity.newOrganization();
 
@@ -357,7 +357,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testDefaultHostUrl_otherOrgsWithScm() {
+  public void testGetDefaultHostUrl_otherOrgsWithScm() {
     // given an app with a custom repo URL
     SourceControl scApp1a = new SourceControl.Builder()
         .setOwnerId(app.getId())
@@ -391,7 +391,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testDefaultHostUrl_otherOrgsWithCustomTokens() {
+  public void testGetDefaultHostUrl_otherOrgsWithCustomTokens() {
     // given an org with a custom token
     Organization orgCustom = tempEntity.newOrganization("custom");
     sourceControlDAO.insert(new SourceControl.Builder()
@@ -416,7 +416,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testDefaultHostUrl_orgWithNoScm() {
+  public void testGetDefaultHostUrl_orgWithNoScm() {
     // when we get the host URL for an org with no SCM defined
     String defaultHostUrl = scmOnboardingService.getDefaultHostUrl("github", org.getId());
 
@@ -425,7 +425,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepos_allNew() throws Exception {
+  public void testImportRepositories_allNew() throws Exception {
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
@@ -484,7 +484,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepos_existingApp() throws Exception {
+  public void testImportRepositories_existingApp() throws Exception {
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
@@ -539,7 +539,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testImportRepos_existingSourceControl() {
+  public void testImportRepositories_existingSourceControl() {
     // given SCM imports are enabled
     automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
 
@@ -598,13 +598,13 @@ public class ScmOnboardingServiceTest
   }
 
   @Test(expected = BadRequestException.class)
-  public void testImportRepos_nullScmRepos() {
+  public void testImportRepositories_nullScmRepos() {
     // when import with null scm repos, it throws an exception
     scmOnboardingService.importRepositories(org.getId(), new ImportRepositoriesRequest());
   }
 
   @Test
-  public void testImportRepos_invalidBatchParams_zeroTotalRepoCount() {
+  public void testImportRepositories_invalidBatchParams_zeroTotalRepoCount() {
     // given invalid totalRepoCount
     int totalRepoCount = 0;
 
@@ -725,7 +725,7 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testValidation() {
+  public void testValidateScmHostUrl() {
     // expect null response when no error is found
     assertThat(scmOnboardingService.validateScmHostUrl("github", "http://example.com/").isValid).isTrue();
 

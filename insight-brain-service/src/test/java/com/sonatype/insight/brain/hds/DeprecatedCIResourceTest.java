@@ -25,7 +25,7 @@ public class DeprecatedCIResourceTest
   private final String className = getClass().getSimpleName();
 
   @Test
-  public void testScan() throws Exception {
+  public void testPutScan() throws Exception {
     final String applicationPublicId = className + "_AppId";
     tempEntity.newApplicationWithParent(applicationPublicId);
 
@@ -55,14 +55,14 @@ public class DeprecatedCIResourceTest
   }
 
   @Test
-  public void testScan_Unlicensed() throws Exception {
+  public void testPutScan_Unlicensed() throws Exception {
     uninstallLicense();
     HttpResponse response = scanRequest("unlicensedapp").put();
     assertResponseStatus(402, response);
   }
 
   @Test
-  public void testScan_FeatureUnlicensed() throws Exception {
+  public void testPutScan_FeatureUnlicensed() throws Exception {
     setMissingFeature(LicensedFeature.CI_INTEGRATION);
 
     HttpResponse response = scanRequest("unlicensedapp").put();

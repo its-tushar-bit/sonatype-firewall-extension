@@ -7,9 +7,15 @@ import axios from 'axios';
 import {SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS} from '@sonatype/react-shared-components';
 
 import {noPayloadActionCreator, payloadParamActionCreator} from '../util/reduxUtil';
-import {getFirewallConfigurationUrl, getFirewallStatusUrl, getFirewallReleaseQuarantineSummaryUrl,
-  getFirewallQuarantineSummaryUrl} from '../util/CLMLocation';
 import {Messages} from '../util/CommonServices';
+import {
+  getFirewallConfigurationUrl,
+  getFirewallStatusUrl,
+  getFirewallReleaseQuarantineSummaryUrl,
+  getFirewallQuarantineSummaryUrl,
+  getFirewallReleaseQuarantineListUrl,
+  getPoliciesUrl
+} from '../util/CLMLocation';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -58,6 +64,26 @@ const loadReleaseQuarantineSummaryRequested = noPayloadActionCreator(FIREWALL_RE
 const loadReleaseQuarantineSummaryFulfilled = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED);
 const loadReleaseQuarantineSummaryFailed = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED);
 
+export const FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED = 'FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED';
+export const FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED = 'FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED';
+export const FIREWALL_RELEASE_QUARANTINE_LIST_FAILED = 'FIREWALL_RELEASE_QUARANTINE_LIST_FAILED';
+
+const loadReleaseQuarantineListRequested = noPayloadActionCreator(FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED);
+const loadReleaseQuarantineListFulfilled = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED);
+const loadReleaseQuarantineListFailed = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_LIST_FAILED);
+
+export const FIREWALL_POLICIES_REQUESTED = 'FIREWALL_POLICIES_REQUESTED';
+export const FIREWALL_POLICIES_FULFILLED = 'FIREWALL_POLICIES_FULFILLED';
+export const FIREWALL_POLICIES_FAILED = 'FIREWALL_POLICIES_FAILED';
+
+const loadPoliciesRequested = noPayloadActionCreator(FIREWALL_POLICIES_REQUESTED);
+const loadPoliciesFulfilled = payloadParamActionCreator(FIREWALL_POLICIES_FULFILLED);
+const loadPoliciesFailed = payloadParamActionCreator(FIREWALL_POLICIES_FAILED);
+
+export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE';
+export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING';
+export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER';
+
 export const FIREWALL_QUARANTINE_SUMMARY_REQUESTED = 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED';
 export const FIREWALL_QUARANTINE_SUMMARY_FULFILLED = 'FIREWALL_QUARANTINE_SUMMARY_FULFILLED';
 export const FIREWALL_QUARANTINE_SUMMARY_FAILED = 'FIREWALL_QUARANTINE_SUMMARY_FAILED';
@@ -98,6 +124,45 @@ export function loadReleaseQuarantineSummary() {
         })
         .catch(error => {
           dispatch(loadReleaseQuarantineSummaryFailed(Messages.getHttpErrorMessage(error)));
+        });
+  };
+}
+
+export function loadAutoUnquarantineGridData() {
+  return (dispatch) => {
+    dispatch(loadReleaseQuarantineList());
+    dispatch(loadPolicies());
+  };
+}
+
+export function loadReleaseQuarantineList() {
+  return function(dispatch, getState) {
+    let gridState = getState().firewall.autoUnquarantineState.autoUnquarantineGridState,
+        apiPage = gridState.currentPage ? gridState.currentPage + 1 : 1,
+        filterValue = gridState.filterPolicyId === '' ? null : gridState.filterPolicyId,
+        sortAsc = gridState.sortDir === null ? gridState.sortDir : gridState.sortDir === 'asc';
+
+    dispatch(loadReleaseQuarantineListRequested());
+    return axios.get(getFirewallReleaseQuarantineListUrl(apiPage, gridState.pageSize, gridState.sortField, sortAsc,
+        filterValue))
+        .then(({data}) => {
+          dispatch(loadReleaseQuarantineListFulfilled(data));
+        })
+        .catch(error => {
+          dispatch(loadReleaseQuarantineListFailed(Messages.getHttpErrorMessage(error)));
+        });
+  };
+}
+
+export function loadPolicies() {
+  return function(dispatch) {
+    dispatch(loadPoliciesRequested());
+    return axios.get(getPoliciesUrl())
+        .then(({data}) => {
+          dispatch(loadPoliciesFulfilled(data));
+        })
+        .catch(error => {
+          dispatch(loadPoliciesFailed(Messages.getHttpErrorMessage(error)));
         });
   };
 }
@@ -162,4 +227,25 @@ export function openConfigurationModal() {
 
 export function closeConfigurationModal() {
   return setShowConfigurationModal(false);
+}
+
+export function setAutoUnquarantineGridPage(page) {
+  return {
+    type: FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
+    payload: { 'currentPage': page }
+  };
+}
+
+export function setAutoUnquarantineGridSorting(sortDir, sortField) {
+  return {
+    type: FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
+    payload: { 'sortDir': sortDir, 'sortField': sortField }
+  };
+}
+
+export function setAutoUnquarantineGridPolicyFilter(policyId) {
+  return {
+    type: FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER,
+    payload: { 'policyId': policyId }
+  };
 }

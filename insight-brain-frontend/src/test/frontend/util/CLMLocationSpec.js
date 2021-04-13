@@ -376,6 +376,23 @@ describe('CLMLocation.js', function() {
         .toBe('/api/experimental/licenseLegalMetadata/dashboard/application/application-id');
   });
 
+  it('should return the firewall release quarantine url with params', function() {
+    let urlStart = '/api/experimental/firewall/components/autoReleasedFromQuarantine?',
+        page = 1,
+        pageSize = 12,
+        sortBy = 'quarantineTime',
+        sortAsc = false,
+        policyId = 'testId';
+
+    // Test required params
+    expect(CLMLocation.getFirewallReleaseQuarantineListUrl(page, pageSize))
+        .toBe(urlStart + `page=${page}&pageSize=${pageSize}`);
+
+    // Test optional params
+    expect(CLMLocation.getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId))
+        .toBe(urlStart + `page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&asc=${sortAsc}&policyId=${policyId}`);
+  });
+
   describe('ComponentCopyrightDetails', function() {
     it('getCopyrightFilePathsUrl should return the URL for copyright file paths', function() {
       expect(CLMLocation.getCopyrightFilePathsUrl('organization', 'org', 'hash', 'identifier',

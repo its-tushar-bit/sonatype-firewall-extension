@@ -5,6 +5,7 @@
  */
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@import '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
 
 firewall, firewall-auto-unquarantine {
   display: contents;
@@ -100,4 +101,15 @@ h2.iq-firewall-table-label {
   margin: 0 $nx-spacing-l 0 $nx-spacing-l;
   border: solid 1px #d1d6f0;
   display: inline-block;
+}
+
+// Firewall component grid column
+.iq-firewall-grid-component {
+  .nx-truncate-ellipsis {
+    width: 450px;
+  }
+}
+
+.iq-firewall-auto-unquarantine-table {
+  height: pagination-table-height(12, 1);
 }

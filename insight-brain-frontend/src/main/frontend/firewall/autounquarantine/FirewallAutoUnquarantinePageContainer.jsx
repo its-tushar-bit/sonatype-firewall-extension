@@ -6,7 +6,15 @@
 import {connect} from 'react-redux';
 import FirewallAutoUnquarantinePage from './FirewallAutoUnquarantinePage';
 import {pick} from 'ramda';
-import {loadData, openConfigurationModal} from '../firewallActions';
+import {
+  loadData,
+  loadReleaseQuarantineList,
+  loadAutoUnquarantineGridData,
+  openConfigurationModal,
+  setAutoUnquarantineGridSorting,
+  setAutoUnquarantineGridPolicyFilter,
+  setAutoUnquarantineGridPage
+} from '../firewallActions';
 
 function mapStateToProps({firewall}) {
   return {
@@ -16,12 +24,18 @@ function mapStateToProps({firewall}) {
     ...pick([
       'loadedReleaseQuarantineSummary', 'autoReleaseQuarantineCountMTD', 'autoReleaseQuarantineCountYTD',
       'loadedConfiguration', 'enabledPolicyConditionTypesCount', 'totalPolicyConditionTypesCount'
-    ], firewall.autoUnquarantineState.viewState)
+    ], firewall.autoUnquarantineState.viewState),
+    ...firewall.autoUnquarantineState.autoUnquarantineGridState
   };
 }
 
 const mapDispatchToProps = {
   loadData,
+  loadReleaseQuarantineList,
+  loadAutoUnquarantineGridData,
+  setAutoUnquarantineGridPage,
+  setAutoUnquarantineGridSorting,
+  setAutoUnquarantineGridPolicyFilter,
   openConfigurationModal
 };
 

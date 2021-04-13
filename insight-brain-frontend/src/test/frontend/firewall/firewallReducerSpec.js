@@ -43,6 +43,19 @@ describe('firewallReducer', function() {
       expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
       expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
 
+      //autoUnquarantineState.autoUnquarantinedGridState
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadedReleaseQuarantineList).toBe(false);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadAutoUnquarantineGridError).toBeNull();
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadedPolicies).toBe(false);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantineList).toEqual([]);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantinePageCount).toBe(0);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.pageSize).toBe(12);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.currentPage).toBeNull();
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortDir).toBeNull();
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortField).toBeNull();
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.filterPolicyId).toBe('');
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.policies).toEqual([]);
+
       //quarantineSummaryState.viewState
       expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
       expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
@@ -794,6 +807,188 @@ describe('firewallReducer', function() {
       // autoUnquarantineState.viewState
       expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
       expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe('error');
+    });
+  });
+
+  describe('FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      expect(reduce(initialState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED' })).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            loadedReleaseQuarantineList: false,
+            releaseQuarantineList: []
+          }
+        }
+      });
+    });
+  });
+
+  describe('FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      let payload = {'pageCount': 1, 'page': 1, 'results': [{'test': 'testVal'}, {'test': 'testVal'}]};
+
+      expect(reduce(initialState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED', payload: payload })).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            loadedReleaseQuarantineList: true,
+            releaseQuarantineList: payload.results,
+            releaseQuarantinePageCount: payload.pageCount,
+            currentPage: payload.pageCount - 1
+          }
+        }
+      });
+    });
+  });
+
+  describe('FIREWALL_RELEASE_QUARANTINE_LIST_FAILED action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      let payload = 'error!';
+
+      expect(reduce(initialState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FAILED', payload: payload })).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            loadAutoUnquarantineGridError: payload,
+            loadedReleaseQuarantineList: true,
+            releaseQuarantineList: []
+          }
+        }
+      });
+    });
+  });
+
+  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      let payload = { currentPage: 123 };
+
+      expect(reduce(initialState, { type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE', payload})).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            currentPage: payload.currentPage
+          }
+        }
+      });
+    });
+  });
+
+  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      let payload = { sortField: 'testSort', sortDir: 'asc' };
+
+      expect(reduce(initialState, { type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING', payload: payload})).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            sortField: 'testSort',
+            sortDir: 'asc'
+          }
+        }
+      });
+    });
+  });
+
+  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      let payload = { policyId: '456' };
+
+      expect(reduce(initialState, { type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER', payload: payload })).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            filterPolicyId: payload.policyId
+          }
+        }
+      });
+    });
+  });
+
+  describe('FIREWALL_POLICIES_REQUESTED action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_REQUESTED' })).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            policies: []
+          }
+        }
+      });
+    });
+  });
+
+  describe('FIREWALL_POLICIES_FULFILLED action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      let payload = {
+        policies: [{
+          'name': 'testName',
+          'ownerId': 'ROOT_ORGANIZATION_ID'
+        }, {
+          'name': 'testName2',
+          'ownerId': 'invalid-owner'
+        }]
+      };
+
+      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_FULFILLED', payload: payload })).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            loadedPolicies: true,
+            policies: [{ 'name': 'testName', 'ownerId': 'ROOT_ORGANIZATION_ID' }]
+          }
+        }
+      });
+    });
+  });
+
+  describe('FIREWALL_POLICIES_FAILED action', function() {
+    let initialState = reduce();
+
+    it('updates the state', function() {
+      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_FAILED' })).toEqual({
+        ...initialState,
+        autoUnquarantineState: {
+          ...initialState.autoUnquarantineState,
+          autoUnquarantineGridState: {
+            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            loadedPolicies: true,
+            policies: []
+          }
+        }
+      });
     });
   });
 

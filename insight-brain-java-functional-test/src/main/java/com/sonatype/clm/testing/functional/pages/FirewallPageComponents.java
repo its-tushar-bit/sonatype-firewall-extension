@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 public class FirewallPageComponents
@@ -157,6 +158,22 @@ public class FirewallPageComponents
 
     public SelenideElement header() {
       return child(FirewallAutoUnquarantinePage.CHILD_HEADER_CSS_CLASS);
+    }
+
+    public SelenideElement tableBody() {
+      return child("#iq-firewall-auto-unquarantine-table-body");
+    }
+
+    public ElementsCollection tableBodyRows() {
+      return tableBody().findAll(".iq-firewall-grid-component");
+    }
+
+    public SelenideElement quarantineTimeHeader() {
+      return child("#quarantineTime-header");
+    }
+
+    public SelenideElement releaseQuarantineTimeHeader() {
+      return child("#releaseQuarantineTime-header");
     }
   }
 }

@@ -5,22 +5,34 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.Date;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineMtd;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineYtd;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.google.common.collect.ImmutableMap.of;
 
@@ -30,6 +42,11 @@ public class FirewallAutoUnquarantinePageTest
   private final FirewallAutoUnquarantinePage page = new FirewallAutoUnquarantinePage();
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    setupData();
+  }
 
   @Before
   public void before() {
@@ -47,6 +64,20 @@ public class FirewallAutoUnquarantinePageTest
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
 
     hardreset();
+  }
+
+  public static void setupData() {
+    RepositoryManager repositoryManager = staticTempEntity.newRepositoryManager("1");
+    Repository repository = staticTempEntity.newRepository(repositoryManager, "central", true, false);
+
+    ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
+    Date date1 = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
+    Date date2 = Date.from(LocalDateTime.now().withDayOfMonth(2).toInstant(offset));
+
+    staticTempEntity.newRepositoryComponent(repository.getId(), "g:a:1", date1, date1, true);
+    staticTempEntity.newRepositoryComponent(repository.getId(), "g:a:2", date2, date2, true);
+    staticTempEntity.newRepositoryComponent(repository.getId(), "g:a:3", new Date(), new Date(), false);
+    staticTempEntity.newRepositoryComponent(repository.getId(), "g:a:4", new Date(), null, false);
   }
 
   @Test
@@ -94,7 +125,7 @@ public class FirewallAutoUnquarantinePageTest
     FirewallAutoUnquarantineMtd firewallAutoUnquarantineMtd = page.firewallAutoReleaseQuarantineMtd();
     firewallAutoUnquarantineMtd.shouldBe(visible);
     firewallAutoUnquarantineMtd.shouldBe(visible);
-    firewallAutoUnquarantineMtd.cardContent().shouldBe(Condition.text("0"));
+    firewallAutoUnquarantineMtd.cardContent().shouldBe(text("2"));
   }
 
   @Test
@@ -108,7 +139,7 @@ public class FirewallAutoUnquarantinePageTest
     FirewallAutoUnquarantineYtd firewallAutoUnquarantineYtd = page.firewallAutoReleaseQuarantineYtd();
     firewallAutoUnquarantineYtd.shouldBe(visible);
     firewallAutoUnquarantineYtd.shouldBe(visible);
-    firewallAutoUnquarantineYtd.cardContent().shouldBe(Condition.text("0"));
+    firewallAutoUnquarantineYtd.cardContent().shouldBe(text("2"));
   }
 
   @Test
@@ -185,5 +216,67 @@ public class FirewallAutoUnquarantinePageTest
     page.firewallAutoReleaseQuarantineYtd().shouldBe(visible);
     page.loadError().shouldBe(hidden);
     page.retryButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testFirewallAutoUnquarantineTable_TableBodyCount() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
+
+    page.shouldBe(visible);
+    page.firewallUnquarantineTable().tableBodyRows().shouldHaveSize(2);
+    page.firewallUnquarantineTable().tableBodyRows().shouldHave(texts("g : a : v", "g : a : v"));
+
+    eyesWatcher.eyesCheck("Auto Unquarantine Grid visible with data");
+  }
+
+  @Test
+  public void testFirewallAutoUnquarantineTable_Sorting() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
+
+    page.shouldBe(visible);
+
+    SelenideElement quarantineTimeHeader = page.firewallUnquarantineTable().quarantineTimeHeader();
+    SelenideElement releaseQuarantineTimeHeader = page.firewallUnquarantineTable().releaseQuarantineTimeHeader();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date unsorted"));
+    releaseQuarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Date Cleared unsorted"));
+    quarantineTimeHeader.click();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date ascending"));
+    releaseQuarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Date Cleared unsorted"));
+    quarantineTimeHeader.click();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date descending"));
+    releaseQuarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Date Cleared unsorted"));
+    releaseQuarantineTimeHeader.click();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date unsorted"));
+    releaseQuarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Date Cleared ascending"));
+    releaseQuarantineTimeHeader.click();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date unsorted"));
+    releaseQuarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Date Cleared descending"));
+    releaseQuarantineTimeHeader.click();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date unsorted"));
+    releaseQuarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Date Cleared unsorted"));
   }
 }

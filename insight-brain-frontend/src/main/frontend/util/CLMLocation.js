@@ -210,6 +210,20 @@ export function getFirewallReleaseQuarantineSummaryUrl() {
   return uriTemplate`/api/experimental/firewall/releaseQuarantine/summary`;
 }
 
+export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId) {
+  let params = toURIParams({
+    'page': page,
+    'pageSize': pageSize,
+    'sortBy': sortBy,
+    'asc': sortAsc,
+    'policyId': policyId
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/api/experimental/firewall/components/autoReleasedFromQuarantine` + params;
+}
+
 export function getFirewallQuarantineSummaryUrl() {
   return uriTemplate`/api/experimental/firewall/quarantine/summary`;
 }
@@ -352,6 +366,10 @@ export function getSaveLegalFileUrl(orgOrApp, ownerId) {
 export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier, legalFileType) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile
     ?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
+}
+
+export function getPoliciesUrl() {
+  return uriTemplate`/api/v2/policies`;
 }
 
 export function getCopyrightFilePathsUrl(orgOrApp, ownerId, componentHash, componentIdentifier,

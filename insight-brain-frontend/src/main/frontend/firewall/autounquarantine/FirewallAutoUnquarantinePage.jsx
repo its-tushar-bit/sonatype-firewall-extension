@@ -66,7 +66,7 @@ export default function FirewallAutoUnquarantinePage(props) {
           <FirewallAutoReleaseQuarantineYtd autoReleaseQuarantineCountYTD={autoReleaseQuarantineCountYTD}/>
           <FirewallAutoUnquarantineStatus { ...props }/>
         </div>
-        <FirewallUnquarantineTable/>
+        <FirewallUnquarantineTable { ...props }/>
       </LoadWrapper>
     </main>
   );

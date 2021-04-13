@@ -12,6 +12,8 @@ import FirewallAutoUnquarantinePage
 describe('FirewallAutoUnquarantinePageContainer', function() {
   let FirewallAutoUnquarantinePageContainer,
       loadDataMock,
+      loadReleaseQuarantineListMock,
+      loadAutoUnquarantineGridDataMock,
       openConfigurationModalMock,
       store,
       state,
@@ -20,6 +22,14 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
   beforeEach(function() {
     loadDataMock = jasmine.createSpy('loadDataMock').and.returnValue({
       type: 'LOAD_FIREWALL_DATA'
+    });
+
+    loadReleaseQuarantineListMock = jasmine.createSpy('loadReleaseQuarantineListMock').and.returnValue({
+      type: 'LOAD_RELEASE_QUARANTINE_LIST'
+    });
+
+    loadAutoUnquarantineGridDataMock = jasmine.createSpy('loadAutoUnquarantineGridDataMock').and.returnValue({
+      type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA'
     });
 
     openConfigurationModalMock = jasmine.createSpy('openConfigurationModalMock').and.returnValue({
@@ -31,6 +41,8 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
             'inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnquarantinePageContainer')({
           '../firewallActions': {
             loadData: loadDataMock,
+            loadReleaseQuarantineList: loadReleaseQuarantineListMock,
+            loadAutoUnquarantineGridData: loadAutoUnquarantineGridDataMock,
             openConfigurationModal: openConfigurationModalMock
           }
         }).default;
@@ -129,9 +141,13 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
   it('maps action creators to props', function() {
     const wrapper = shallow(vdom).dive();
     const loadDataActionCreator = wrapper.prop('loadData');
+    const loadReleaseQuarantineListActionCreator = wrapper.prop('loadReleaseQuarantineList');
+    const loadAutoUnquarantineGridDataActionCreator = wrapper.prop('loadAutoUnquarantineGridData');
     const openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal');
 
     expect(loadDataActionCreator).toEqual(jasmine.any(Function));
+    expect(loadReleaseQuarantineListActionCreator).toEqual(jasmine.any(Function));
+    expect(loadAutoUnquarantineGridDataActionCreator).toEqual(jasmine.any(Function));
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
@@ -139,9 +155,24 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
     loadDataActionCreator();
     expect(store.getActions()).toEqual([{ type: 'LOAD_FIREWALL_DATA' }]);
 
+    loadReleaseQuarantineListActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_RELEASE_QUARANTINE_LIST' }
+    ]);
+
+    loadAutoUnquarantineGridDataActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_RELEASE_QUARANTINE_LIST' },
+      { type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA' }
+    ]);
+
     openConfigurationModalActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_RELEASE_QUARANTINE_LIST' },
+      { type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA' },
       { type: 'OPEN_FIREWALL_CONFIGURATION' }
     ]);
   });

@@ -17,6 +17,7 @@ import {
   NxTooltip
 } from '@sonatype/react-shared-components';
 import NxExternalLink from '../../../../../main/frontend/react/NxExternalLink';
+import {createRepo} from './utils';
 
 describe('ResultsTable', function () {
   let minimalPropsShallow,
@@ -191,18 +192,6 @@ describe('ResultsTable', function () {
       });
     });
   });
-
-  // utility functions
-  const createRepo = (postfix) => {
-    return {
-      httpCloneUrl: `url-${postfix}`,
-      namespace: `ns-${postfix}`,
-      project: `prj-${postfix}`,
-      description: `desc-${postfix}`,
-      isSelected: false,
-      isImported: false
-    };
-  };
 
   describe('pagination', () => {
     const REPO_COUNT = 40;

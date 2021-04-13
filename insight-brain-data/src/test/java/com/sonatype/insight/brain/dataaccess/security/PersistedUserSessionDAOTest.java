@@ -67,6 +67,19 @@ public class PersistedUserSessionDAOTest
         .containsExactlyInAnyOrder(persistedUserSession1.getId(), persistedUserSession2.getId());
   }
 
+  @Test
+  public void testDeleteById() {
+    PersistedUserSession persistedUserSession1 = new PersistedUserSession(new SimpleSession());
+    persistedUserSessionDAO.insert(persistedUserSession1);
+    PersistedUserSession persistedUserSession2 = new PersistedUserSession(new SimpleSession());
+    persistedUserSessionDAO.insert(persistedUserSession2);
+
+    persistedUserSessionDAO.deleteById(persistedUserSession1.getId());
+
+    assertThat(persistedUserSessionDAO.getAll()).extracting(PersistedUserSession::getId)
+        .containsExactly(persistedUserSession2.getId());
+  }
+
   private SimpleSession createSession() {
     SimpleSession simpleSession = new SimpleSession();
     simpleSession.setStartTimestamp(new Date());

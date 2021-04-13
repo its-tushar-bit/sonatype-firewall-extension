@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.dataaccess.security;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO.SessionAndStoredJson;
@@ -27,7 +30,10 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class ShiroSessionDAOTest
     extends AbstractDbDAOTest
@@ -337,6 +343,61 @@ public class ShiroSessionDAOTest
         .containsExactly(session1.getId(), session2.getId());
     assertThat(new PersistedUserSessionDAO().getById(persistedUserSession.getId())).isNull();
     assertThat(ShiroSessionDAO.SESSION_CACHE.get(persistedUserSession.getId())).isNull();
+  }
+
+  @Test
+  public void testDeleteById_ConcurrentlyModified() throws Throwable {
+    PersistedUserSessionDAO persistedUserSessionDAOSpy = spy(new PersistedUserSessionDAO());
+    CountDownLatch afterGetLatch = new CountDownLatch(1);
+    CountDownLatch beforeDeleteLatch = new CountDownLatch(1);
+    // This mocking is only done to protect against the old form i.e.
+    // PersistedUserSessionDAO.delete(persistedUserSessionDAO.getById(id.toString()));
+    doAnswer(invocationOnMock -> {
+      try {
+        PersistedUserSession persistedUserSession = (PersistedUserSession) invocationOnMock.callRealMethod();
+        afterGetLatch.countDown();
+        assertThat(beforeDeleteLatch.await(3, TimeUnit.SECONDS)).isTrue();
+        return persistedUserSession;
+      }
+      catch (Throwable e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    }).when(persistedUserSessionDAOSpy).getById(any());
+    doAnswer(invocationOnMock -> {
+      try {
+        afterGetLatch.countDown(); // There is no get used in PersistedUserSessionDAO.deleteById so just count down
+        assertThat(beforeDeleteLatch.await(3, TimeUnit.SECONDS)).isTrue();
+        invocationOnMock.callRealMethod();
+        return null;
+      }
+      catch (Throwable e) {
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    }).when(persistedUserSessionDAOSpy).deleteById(any());
+    ShiroSessionDAO shiroSessionDAO = new ShiroSessionDAO(persistedUserSessionDAOSpy);
+    SimpleSession session = createSession();
+    session.setId("id");
+    persistedUserSessionDAOSpy.insert(new PersistedUserSession(session));
+    AtomicReference<Throwable> throwable = new AtomicReference<>();
+    CountDownLatch endLatch = new CountDownLatch(1);
+
+    new Thread(() -> {
+      try {
+        shiroSessionDAO.deleteById(session.getId());
+      }
+      catch (Throwable e) {
+        throwable.set(e);
+      }
+      endLatch.countDown();
+    }).start();
+
+    assertThat(afterGetLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    persistedUserSessionDAOSpy.delete(new PersistedUserSession(session));
+    beforeDeleteLatch.countDown();
+    assertThat(endLatch.await(3, TimeUnit.SECONDS)).isTrue();
+    if (throwable.get() != null) {
+      throw throwable.get();
+    }
   }
 
   private SessionAndStoredJson getSessionFromCache(Serializable id) {

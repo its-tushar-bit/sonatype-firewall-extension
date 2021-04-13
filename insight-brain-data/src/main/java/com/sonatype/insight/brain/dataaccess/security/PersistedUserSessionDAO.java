@@ -36,4 +36,9 @@ public class PersistedUserSessionDAO
       throw new EntityNotFoundException();
     }
   }
+
+  public void deleteById(String id) {
+    String sQuery = "DELETE FROM PersistedUserSession entity WHERE entity.id=?1";
+    createQuery(sQuery, id).executeUpdate();
+  }
 }

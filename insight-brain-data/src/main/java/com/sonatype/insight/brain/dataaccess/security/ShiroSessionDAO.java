@@ -37,7 +37,16 @@ public class ShiroSessionDAO
   // Visible for testing
   static final long DELAY_BETWEEN_LAST_ACCESS_TIME_UPDATES = Duration.ofSeconds(5).toMillis();
 
-  private final PersistedUserSessionDAO persistedUserSessionDAO = new PersistedUserSessionDAO();
+  private final PersistedUserSessionDAO persistedUserSessionDAO;
+
+  // Visible for testing
+  ShiroSessionDAO(PersistedUserSessionDAO persistedUserSessionDAO) {
+    this.persistedUserSessionDAO = persistedUserSessionDAO;
+  }
+
+  public ShiroSessionDAO() {
+    this(new PersistedUserSessionDAO());
+  }
 
   @Override
   protected Serializable doCreate(Session session) {
@@ -115,7 +124,7 @@ public class ShiroSessionDAO
 
   public void deleteById(Serializable id) {
     if (id != null) {
-      persistedUserSessionDAO.delete(persistedUserSessionDAO.getById(id.toString()));
+      persistedUserSessionDAO.deleteById(id.toString());
       SESSION_CACHE.remove(id);
     }
   }

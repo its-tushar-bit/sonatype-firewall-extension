@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.api.GitApi;
+import com.sonatype.nexus.git.utils.api.GitException;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
@@ -40,6 +41,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.zeroturnaround.exec.InvalidExitValueException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -152,7 +154,7 @@ public class SourceControlScanServiceTest
   }
 
   @Test
-  public void testOnManifestScan_WithNoSourceControl() throws Exception {
+  public void testOnSourceControlScan_WithNoSourceControl() throws Exception {
     // given there is no source control info for an application
     doReturn(null).when(spySourceControlUtils)
         .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
@@ -168,7 +170,7 @@ public class SourceControlScanServiceTest
   }
 
   @Test
-  public void testOnManifestScan_triggerScan() throws Exception {
+  public void testOnSourceControlScan_triggerScan() throws Exception {
     // given an event
     sourceControlEvent.setBranchName("branch");
     sourceControlEvent.setStatusId("statusId");
@@ -189,6 +191,51 @@ public class SourceControlScanServiceTest
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
     when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanMetadata.class)))
         .thenReturn(scanResult);
+
+    // when we receive a source control scan event
+    service.onSourceControlScan(sourceControlEvent);
+
+    // then it creates the target directory
+    assertThat(new File(sourceControlDir, APP_ID)).isDirectory();
+
+    // and it calls the repository sync
+    verify(mockGitApi).cloneOrPullRepository(isA(File.class), eq(sourceControlEvent.getBranchName()));
+
+    // and it evaluates a policy
+    verify(policyEvaluateService).evaluateWithPolling(eq("statusId"),
+        isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
+        eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
+        eq("userAgent"));
+  }
+
+  @Test
+  public void testOnSourceControlScan_sparseCheckoutEmpty() throws Exception {
+    // given an event
+    sourceControlEvent.setBranchName("branch");
+    sourceControlEvent.setStatusId("statusId");
+    sourceControlEvent.setApplicationId(APP_ID);
+    sourceControlEvent.setStageTypeId(Stage.ID_DEVELOP);
+    sourceControlEvent.setUserAgent("userAgent");
+    sourceControlEvent.setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // and a source control configuration
+    doReturn(mockGitRepositoryInfo).when(spySourceControlUtils)
+        .getGitRepositoryInfoForApplication(sourceControlEvent.getApplicationId());
+    when(mockGitApiFactory.createGitApi(mockGitRepositoryInfo)).thenReturn(mockGitApi);
+
+    // and a scan result
+    scanResult = new ScanResult();
+    File scanDir = mock(File.class);
+    scanResult.setScanFile(mock(File.class));
+    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
+    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanMetadata.class)))
+        .thenReturn(scanResult);
+
+    // Sparse checkout leaves no entry on working directory - exception thrown
+    InvalidExitValueException innerException =
+        new InvalidExitValueException("Sparse checkout leaves no entry on working directory", null);
+    GitException exception = new GitException("Invalid exit code executing command", innerException);
+    when(mockGitApi.cloneOrPullRepository(any(), any())).thenThrow(exception);
 
     // when we receive a source control scan event
     service.onSourceControlScan(sourceControlEvent);

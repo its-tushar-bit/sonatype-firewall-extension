@@ -42,6 +42,7 @@ import com.sonatype.nexus.iq.manager.RepositorySyncResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeroturnaround.exec.InvalidExitValueException;
 
 /**
  * service for doing internal scans of source control files of a project.
@@ -178,9 +179,18 @@ public class SourceControlScanService
       return new RepositorySyncExecutor().execute(new RepositorySyncCommand(gitApi, branch, repositoryDirectory));
     }
     catch (GitException e) {
-      // clean up the local repo directory on exception; it will start fresh next time
-      sourceControlUtils.deleteCheckoutDirectory(application);
-      throw e;
+      final Throwable cause = e.getCause();
+      if (cause instanceof InvalidExitValueException && cause.getMessage() != null &&
+          cause.getMessage().contains("Sparse checkout leaves no entry on working directory")) {
+        log.debug("{} for application '{}': {}", cause.getMessage(), application.getPublicId(),
+            gitRepositoryInfo.repositoryUrl);
+        return new RepositorySyncResult();
+      }
+      else {
+        // clean up the local repo directory on exception; it will start fresh next time
+        sourceControlUtils.deleteCheckoutDirectory(application);
+        throw e;
+      }
     }
   }
 

@@ -139,6 +139,7 @@
   line-height: $nx-line-height;
 }
 
+.nx-text-link,
 .nx-list__link {
   &:hover,&:focus {
     color: inherit;

@@ -291,11 +291,13 @@ public class DashboardApplicationsTest
     setViewportSize(WebDriverRunner.getWebDriver());
 
     // CSV export - filter out threat level 1
+    DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     eyesWatcher.eyesCheck("Applications tab with form-mask");
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -307,10 +309,12 @@ public class DashboardApplicationsTest
     assertApplicationsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out Release violations
+    DashboardPage.filterToggle().click();
     DashboardFilters.stageFilter().twisty().click();
     DashboardFilters.stageFilter().allItems().click();
     DashboardFilters.stageFilter().release().click();
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -321,10 +325,12 @@ public class DashboardApplicationsTest
     assertApplicationsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out app4
+    DashboardPage.filterToggle().click();
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(5).click();
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -336,11 +342,11 @@ public class DashboardApplicationsTest
 
   @Test
   public void testApplicationNameTooltip() {
-    String appName = "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW";
+    String appName = "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW";
 
     createViolation(tempEntity.newApplication(appName, "long", org.getId()),
-        BuildStageType.ID, 8);
-    createViolation(tempEntity.newApplication("A", "short", org.getId()), BuildStageType.ID, 5);
+        BuildStageType.ID, 8, "scan123");
+    createViolation(tempEntity.newApplication("A", "short", org.getId()), BuildStageType.ID, 5, "scan123");
     ApplicationsResults table = DashboardPage.applicationsView().results();
     refresh();
 
@@ -466,12 +472,12 @@ public class DashboardApplicationsTest
     return tempEntity.newApplication("App" + id, id, org.getId());
   }
 
-  private PolicyEvaluation createEvaluation(Application app, String stageType) {
-    return tempEntity.newPolicyEvaluation(app.getId(), stageType, app.getName() + stageType);
+  private PolicyViolation createViolation(Application app, String stageType, int threatLevel) {
+    return createViolation(app, stageType, threatLevel, app.getName() + stageType);
   }
 
-  private PolicyViolation createViolation(Application app, String stageType, int threatLevel) {
-    PolicyEvaluation evaluation = createEvaluation(app, stageType);
+  private PolicyViolation createViolation(Application app, String stageType, int threatLevel, String scanId) {
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageType, scanId);
     int componentIndex = componentCounter++;
     String group = "Group" + componentIndex;
     String artifact = "Artifact" + componentIndex;
@@ -493,10 +499,12 @@ public class DashboardApplicationsTest
   }
 
   private void showLowRiskViolations() {
+    DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.apply();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.closeButton().click();
   }
 
   private void clearFilters() {

@@ -20,6 +20,7 @@ import applicationReportRoot from './applicationReportRoot';
 import rawLicenseDisplay from './rawData/rawLicenseDisplay/rawLicenseDisplay';
 import applicationReportRawData from './rawData/applicationReportRawData';
 import applicationReportVulnerabilities from './vulnerabilities/ApplicationReportVulnerabilities';
+import applicationReportFilter from './applicationReportFilter';
 
 export default angular.module('applicationReportModule',
     [
@@ -27,6 +28,7 @@ export default angular.module('applicationReportModule',
       ComponentDisplayModule.name, selectedComponentServiceModule.name, 'ngRedux'
     ])
     .component('applicationReport', applicationReport)
+    .component('applicationReportFilter', applicationReportFilter)
     .component('applicationReportRoot', applicationReportRoot)
     .component('applicationReportResults', applicationReportResults)
     .component('reevaluationErrorModal', reevaluationErrorModal)

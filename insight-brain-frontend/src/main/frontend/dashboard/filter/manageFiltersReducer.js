@@ -17,10 +17,8 @@ import {
   DELETE_FILTER_REQUESTED,
   DELETE_FILTER_FULFILLED,
   DELETE_FILTER_FAILED,
-  TOGGLE_FILTERS_DROPDOWN,
   SELECT_FILTER_TO_DELETE,
   HIDE_DELETE_FILTER_MODAL,
-  DOCUMENT_CLICKED,
   SAVE_FILTER_OVERWRITE_REQUESTED,
   SAVE_DUPLICATE_FILTER_REQUESTED,
   SAVE_CONFIRM_CANCELLED
@@ -28,7 +26,6 @@ import {
 
 import {
   APPLY_FILTER_FULFILLED,
-  APPLY_FILTER_REQUESTED,
   FETCH_CURRENT_FILTER_FULFILLED,
   SET_DISPLAY_SAVE_FILTER_MODAL
 } from './dashboardFilterActions';
@@ -44,7 +41,6 @@ const initState = {
   appliedFilterName: null,
   existingDuplicateFilterName: null,
   showDirtyAsterisk: false,
-  filtersDropdownOpen: false,
   filterToDelete: null,
   deleteFilterError: null,
   deleteFilterSaving: false,
@@ -77,24 +73,12 @@ const reducerActionMap = {
   [DELETE_FILTER_FULFILLED]: deleteFilterFulfilled,
   [DELETE_FILTER_FAILED]: deleteFilterFailed,
   [SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps(['saveFilterSaving', 'saveFilterError', 'saveFilterSuccess']),
-  [TOGGLE_FILTERS_DROPDOWN]: propSet('filtersDropdownOpen'),
   [SELECT_FILTER_TO_DELETE]: selectFilterToDelete,
   [HIDE_DELETE_FILTER_MODAL]: resetProps(['filterToDelete']),
-  [DOCUMENT_CLICKED]: closeFiltersMenuIfNeeded,
-  [APPLY_FILTER_REQUESTED]: closeFiltersMenuIfNeeded,
   [SAVE_FILTER_OVERWRITE_REQUESTED]: saveFilterOverwriteRequested,
   [SAVE_DUPLICATE_FILTER_REQUESTED]: saveDuplicateFilterRequested,
   [SAVE_CONFIRM_CANCELLED]: saveConfirmCancelled
 };
-
-function closeFiltersMenuIfNeeded(payload, state) {
-  // don't close Filters Menu while Delete Filter modal is open
-  if (state.filterToDelete) {
-    return state;
-  }
-
-  return {...state, filtersDropdownOpen: false};
-}
 
 function fetchSavedFiltersFulfilled(payload, state) {
   return compose(propSet('savedFilters', payload), resetProps(['savedFilterListError'], payload))(state);

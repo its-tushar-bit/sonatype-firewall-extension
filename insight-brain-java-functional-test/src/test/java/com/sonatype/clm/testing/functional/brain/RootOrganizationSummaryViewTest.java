@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -53,6 +54,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
   public void testSourceControlTile() {
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -70,6 +72,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "TEST_TOKEN", SourceControlProvider.GITHUB);
     refresh();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -90,6 +93,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
   public void testSourceControlTile_LicensingAwareNoLicense() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
+    MainHeader.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     OwnerSummaryPage.summaryTile().dropdownButton().click();
@@ -112,6 +116,7 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
   public void testSourceControlTile_LicensingAwareNotificationOnly() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
+    MainHeader.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     OwnerSummaryPage.summaryTile().dropdownButton().click();

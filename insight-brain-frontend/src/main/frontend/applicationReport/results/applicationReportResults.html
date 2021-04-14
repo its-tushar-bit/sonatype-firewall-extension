@@ -110,6 +110,16 @@
     </div>
   </div>
   <div class="iq-tile iq-tile--application-report nx-viewport-sized__container">
+    <div class="iq-tile--application-report-pre-header-row nx-btn-bar">
+      <iq-toggle input-id="'aggregate-by-component-toggle'"
+                 on-change="vm.aggregateByComponentToggle"
+                 is-checked="vm.aggregate"
+                 toggle-label="vm.aggregateByComponentToggleLabel"
+                 toggle-tooltip="vm.aggregateByComponentToggleTooltip"></iq-toggle>
+      <button id="filter-toggle" class="btn" ng-click="vm.toggleFilterSidebar(!vm.filterSidebarOpen)">
+        <i class="fa fa-filter"></i>Filter
+      </button>
+    </div>
     <div class="iq-tile-content iq-tile-content--fixed-table nx-viewport-sized__container">
       <div class="iq-scrollable iq-scrollable--fixed-table nx-viewport-sized__scrollable"
            detect-scrollbar="vm.renderedEntries">

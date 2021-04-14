@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxErrorAlert, NxSubmitMask, NxLoadError } from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxSubmitMask, NxLoadError, NxModal } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import DeleteFilterModal
@@ -23,6 +23,19 @@ describe('DeleteFilterModal', function() {
       hideDeleteFilterModal,
       deleteFilter
     });
+  });
+
+  it('renders NxModal when filterToDelete is not null', function() {
+    const shallowRender = getShallowComponent();
+    console.log(shallowRender.debug());
+    expect(shallowRender).toMatchSelector(NxModal);
+  });
+
+  it('renders nothing filterToDelete is null', function() {
+    const shallowRender = getShallowComponent({
+      filterToDelete: null
+    });
+    expect(shallowRender).toBeEmptyRender();
   });
 
   describe('when deleteFilterError is null', function() {
@@ -108,13 +121,6 @@ describe('DeleteFilterModal', function() {
     });
   });
 
-  describe('onClose handler', function() {
-    it('fires hideDeleteFilterModal action', function() {
-      getShallowComponent().simulate('close');
-      expect(hideDeleteFilterModal).toHaveBeenCalled();
-    });
-  });
-
   describe('onSubmit handler', function() {
     it('fires deleteFilter action with filterToDelete and calls preventDefault on the event', function() {
       const preventDefault = jasmine.createSpy('preventDefault');
@@ -127,15 +133,9 @@ describe('DeleteFilterModal', function() {
   });
 
   describe('cancel button click handler', function() {
-    it('fires hideDeleteFilterModal action and calls stopImmediatePropagation on the nativeEvent', function() {
-      const stopImmediatePropagation = jasmine.createSpy('stopImmediatePropagation');
+    it('fires hideDeleteFilterModal action', function() {
       const cancelButton = getShallowComponent().find('#delete-filter-modal-cancel-button');
-      cancelButton.simulate('click', {
-        nativeEvent: {
-          stopImmediatePropagation
-        }
-      });
-      expect(stopImmediatePropagation).toHaveBeenCalled();
+      cancelButton.simulate('click');
       expect(hideDeleteFilterModal).toHaveBeenCalled();
     });
   });

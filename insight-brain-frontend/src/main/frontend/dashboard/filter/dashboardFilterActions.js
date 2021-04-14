@@ -34,6 +34,7 @@ export const TOGGLE_APPS_AND_ORGS = 'TOGGLE_APPS_AND_ORGS';
 export const SELECT_AGE = 'SELECT_AGE';
 export const REVERT_FILTER = 'REVERT_FILTER';
 export const SET_DISPLAY_SAVE_FILTER_MODAL = 'SET_DISPLAY_SAVE_FILTER_MODAL';
+export const TOGGLE_FILTER_SIDEBAR = 'TOGGLE_FILTER_SIDEBAR';
 
 export function loadFilter(resultsType = null) {
   return (dispatch, getState) => {
@@ -160,5 +161,7 @@ export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
     payload: { selectedOrganizations, selectedApplications }
   };
 }
+
+export const toggleFilterSidebar = payloadParamActionCreator(TOGGLE_FILTER_SIDEBAR);
 
 export const revert = noPayloadActionCreator(REVERT_FILTER);

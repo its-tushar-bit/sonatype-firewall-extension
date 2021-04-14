@@ -24,6 +24,6 @@ describe('NeedsAcknowledgementInfoRowSpec', function() {
     const infoAlert = tableCell.find(NxInfoAlert);
 
     expect(tableCell.prop('colSpan')).toEqual(6);
-    expect(infoAlert).toHaveText('Select your filter criteria on the left, and click \'apply\' to see results.');
+    expect(infoAlert).toHaveText('Select your filter criteria and click \'apply\' to see results.');
   });
 });

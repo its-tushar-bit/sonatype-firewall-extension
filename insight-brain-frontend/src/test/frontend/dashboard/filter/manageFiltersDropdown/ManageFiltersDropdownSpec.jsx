@@ -3,18 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
 import { shallow } from 'enzyme';
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import { NxDropdown } from '@sonatype/react-shared-components';
-
-import DocumentClickListenerWrapper from '../../../../../main/frontend/react/DocumentClickListenerWrapper';
 import ManageFiltersDropdown
   from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
 
 describe('ManageFiltersDropdown', function() {
   let props, getShallowComponent, applyDefaultFilter, applySavedFilter, toggleFiltersDropdown, selectFilterToDelete,
-      handleDocumentClick;
+      handleDocumentClick, DeleteFilterModalContainerMock;
 
   beforeEach(function() {
     applyDefaultFilter = jasmine.createSpy('applyDefaultFilter');
@@ -22,6 +21,9 @@ describe('ManageFiltersDropdown', function() {
     toggleFiltersDropdown = jasmine.createSpy('toggleFiltersDropdown');
     selectFilterToDelete = jasmine.createSpy('selectFilterToDelete');
     handleDocumentClick = jasmine.createSpy('handleDocumentClick');
+
+    DeleteFilterModalContainerMock = jasmine.createSpy('DeleteFilterModalContainer')
+        .and.returnValue(<div>Delete Filter Modal</div>);
 
     props = {
       showDirtyAsterisk: false,
@@ -39,32 +41,31 @@ describe('ManageFiltersDropdown', function() {
       applySavedFilter,
       toggleFiltersDropdown,
       selectFilterToDelete,
-      handleDocumentClick
+      handleDocumentClick,
+      DeleteFilterModal: DeleteFilterModalContainerMock
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ManageFiltersDropdown, props);
   });
 
+  it('renders provided DeleteFilterModal', function() {
+    const component = getShallowComponent();
+    expect(component.childAt(0)).toMatchSelector(DeleteFilterModalContainerMock);
+  });
+
   it('renders NxDropdown component', function() {
     const component = getShallowComponent();
-    expect(component).toMatchSelector(NxDropdown);
+    expect(component.childAt(1)).toMatchSelector(NxDropdown);
   });
 
-  it('renders open dropdown when filtersDropdownOpen is true', function() {
+  it('renders closed dropdown by default', function() {
     const component = getShallowComponent();
-    expect(component).toHaveProp('isOpen', true);
-  });
-
-  it('renders closed dropdown when filtersDropdownOpen is false', function() {
-    const component = getShallowComponent({
-      filtersDropdownOpen: false
-    });
-    expect(component).toHaveProp('isOpen', false);
+    expect(component.find(NxDropdown)).toHaveProp('isOpen', false);
   });
 
   describe('dropdown toggle', function() {
     it('renders appliedFilterName as dropdown toggle label', function() {
-      const component = getShallowComponent(),
+      const component = getShallowComponent().find(NxDropdown),
           labelProp = component.prop('label');
 
       const asteriskVDom = labelProp.props.children[0];
@@ -75,7 +76,7 @@ describe('ManageFiltersDropdown', function() {
     });
 
     it('renders appliedFilterName with asterisk as dropdown toggle label if showDirtyAsterisk is true', function() {
-      const component = getShallowComponent({ showDirtyAsterisk: true }),
+      const component = getShallowComponent({ showDirtyAsterisk: true }).find(NxDropdown),
           labelProp = component.prop('label');
 
       const asteriskVDom = shallow(labelProp.props.children[0]);
@@ -88,7 +89,7 @@ describe('ManageFiltersDropdown', function() {
     });
 
     it('renders "Default" as dropdown toggle label if appliedFilterName is null', function() {
-      const component = getShallowComponent({ appliedFilterName: null }),
+      const component = getShallowComponent({ appliedFilterName: null }).find(NxDropdown),
           labelProp = component.prop('label');
 
       const asteriskVDom = labelProp.props.children[0];
@@ -99,7 +100,7 @@ describe('ManageFiltersDropdown', function() {
     });
 
     it('renders "Default" with asterisk as dropdown toggle label if showDirtyAsterisk is true', function() {
-      const component = getShallowComponent({ appliedFilterName: null, showDirtyAsterisk: true }),
+      const component = getShallowComponent({ appliedFilterName: null, showDirtyAsterisk: true }).find(NxDropdown),
           labelProp = component.prop('label');
 
       const asteriskVDom = shallow(labelProp.props.children[0]);
@@ -113,16 +114,10 @@ describe('ManageFiltersDropdown', function() {
   });
 
   describe('dropdown menu', function() {
-    it('wraps options with DocumentClickListenerWrapper', function() {
-      const component = getShallowComponent(),
-          defaultOption = component.find(DocumentClickListenerWrapper).childAt(0);
-
-      expect(defaultOption).toHaveText('Default');
-    });
 
     it('renders default option and empty list message if no savedFilters provided', function() {
       const component = getShallowComponent({ savedFilters: [] }),
-          options = component.find(DocumentClickListenerWrapper).children(),
+          options = component.find(NxDropdown).children(),
           defaultOption = options.at(0),
           emptyListMessage = options.at(1);
 
@@ -134,7 +129,7 @@ describe('ManageFiltersDropdown', function() {
 
     it('renders savedFilters options with delete buttons', function() {
       const component = getShallowComponent({ appliedFilterName: null }),
-          options = component.find(DocumentClickListenerWrapper).children();
+          options = component.find(NxDropdown).children();
 
       expect(options.length).toBe(3);
       expect(options.at(0)).toHaveText('Default');
@@ -196,70 +191,18 @@ describe('ManageFiltersDropdown', function() {
     });
   });
 
-  describe('onKeyDown handler', function() {
-
-    describe('when the Escape key is pressed', function() {
-      it('fires the action to close the dropdown if open', function() {
-        const component = getShallowComponent();
-
-        component.simulate('keyDown', {key: 'Escape'});
-        expect(toggleFiltersDropdown).toHaveBeenCalledWith(false);
-      });
-
-      it('doesn\'t fire the action to close the dropdown if already closed', function() {
-        const component = getShallowComponent({
-          filtersDropdownOpen: false
-        });
-
-        component.simulate('keyDown', {key: 'Escape'});
-        expect(toggleFiltersDropdown).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when the Esc key is pressed (IE11)', function() {
-      it('fires the action to close the dropdown if open', function() {
-        const component = getShallowComponent();
-
-        component.simulate('keyDown', {key: 'Esc'});
-        expect(toggleFiltersDropdown).toHaveBeenCalledWith(false);
-      });
-
-      it('doesn\'t fire the action to close the dropdown if already closed', function() {
-        const component = getShallowComponent({
-          filtersDropdownOpen: false
-        });
-
-        component.simulate('keyDown', {key: 'Esc'});
-        expect(toggleFiltersDropdown).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when other key is pressed', function() {
-      it('doesn\'t fire the action to close the dropdown if open', function() {
-        const element = getShallowComponent();
-
-        element.simulate('keyDown', {key: '3'});
-        expect(toggleFiltersDropdown).not.toHaveBeenCalled();
-      });
-    });
-  });
-
   describe('onToggleCollapse handler', function() {
-    it('fires the action to open the dropdown if closed', function() {
-      const component = getShallowComponent({
-        filtersDropdownOpen: false
-      });
-
-      component.simulate('toggleCollapse');
-      expect(toggleFiltersDropdown).toHaveBeenCalledWith(true);
-    });
-  });
-
-  describe('onDocumentClick handler', function() {
-    it('fires handleDocumentClick action', function() {
+    it('opens and closes the dropdown', function() {
       const component = getShallowComponent();
-      component.find(DocumentClickListenerWrapper).simulate('documentClick');
-      expect(handleDocumentClick).toHaveBeenCalled();
+
+      expect(component.find(NxDropdown)).toHaveProp('isOpen', false);
+      component.find(NxDropdown).prop('onToggleCollapse')();
+      component.update();
+      expect(component.find(NxDropdown)).toHaveProp('isOpen', true);
+
+      component.find(NxDropdown).prop('onToggleCollapse')();
+      component.update();
+      expect(component.find(NxDropdown)).toHaveProp('isOpen', false);
     });
   });
 });

@@ -12,7 +12,7 @@ export default function NeedsAcknowledgementInfoRow({colSpan}) {
     <NxTableRow>
       <NxTableCell colSpan={colSpan} metaInfo>
         <NxInfoAlert id="needs-acknowledgement">
-          {'Select your filter criteria on the left, and click \'apply\' to see results.'}
+          {'Select your filter criteria and click \'apply\' to see results.'}
         </NxInfoAlert>
       </NxTableCell>
     </NxTableRow>

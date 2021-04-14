@@ -17,8 +17,7 @@ function mapStateToProps({ manageLegalFilters, legalDashboardFilter }) {
       'showDirtyAsterisk',
       'showSaveFilterModal',
       'savedFilters',
-      'filtersDropdownOpen',
-      'filterToDelete'
+      'filtersDropdownOpen'
     ], manageLegalFilters)
   };
 }

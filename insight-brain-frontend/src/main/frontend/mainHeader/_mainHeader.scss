@@ -6,6 +6,10 @@
 /*
   #Main Header
 */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
 $header-dropdown-panel-background-color-rgba: rgba(0, 0, 0, 0.2);
 $main-header-background: $iq-blue;
 $main-header-color: $iq-off-white;
@@ -185,7 +189,7 @@ $main-header-nav-breakpoint: 1150px;
   &, &:hover, &:active, &:focus {
     background: none;
     border: none;
-    color: $main-header-color;
+    color: $nx-grey-1100;
     outline: none;
     text-decoration: none;
   }
@@ -197,14 +201,15 @@ $main-header-nav-breakpoint: 1150px;
 }
 
 .iq-nav-bar--system {
+  @include container-horizontal;
   align-items: center;
-  border-left: 1px solid $main-header-color;
+  border-left: 1px solid $nx-indigo-100;
   box-sizing: border-box;
   display: flex;
-  flex-shrink: 0;
-  flex-grow: 1;
+  flex: 1 0 200px;
+  height: 32px;
   justify-content: space-around;
-  max-width: 250px;
+  padding-left: $nx-spacing-xl;
 
   .iq-dropdown {
     flex: 0 0;
@@ -215,11 +220,13 @@ $main-header-nav-breakpoint: 1150px;
   #HEADER DROPDOWNS
 */
 .iq-dropdown-toggle--main-header {
-  color: $main-header-color;
-  padding-top: 12px;
+  color: $nx-grey-1100;
+  height: auto;
+  margin-right: $nx-spacing-l;
+  padding-top: 0;
 
   &:hover {
-    color: $main-header-color;
+    color: $nx-grey-1100;
     text-decoration: none;
   }
 
@@ -230,6 +237,8 @@ $main-header-nav-breakpoint: 1150px;
 }
 
 .iq-dropdown-menu--main-header {
+  margin-top: $nx-spacing-md;
+
   &:first-child {
     padding-bottom: 12px;
   }
@@ -266,7 +275,7 @@ $main-header-nav-breakpoint: 1150px;
   font-size: 10px;
   height: 16px;
   position: absolute;
-  top: 23px;
+  top: 16px;
   left: 22px;
   text-align: center;
   width: 16px;
@@ -285,13 +294,18 @@ $main-header-nav-breakpoint: 1150px;
   width: auto;
 
   .iq-dropdown-menu {
-    left: 4px;
-  }
-}
+    left: unset;
+    right: 24px;
 
-.nx-icon--user-caret {
-  .nx-icon {
-    font-size: 16px;
+    &::before {
+      left: unset;
+      right: 7px;
+    }
+
+    &::after {
+      left: unset;
+      right: 8px;
+    }
   }
 }
 
@@ -313,7 +327,7 @@ $main-header-nav-breakpoint: 1150px;
 .iq-dropdown--notifications {
   .iq-dropdown-menu--main-header {
     padding-bottom: 8px;
-    right: -80px;
+    right: -60px;
     left: auto;
     width: 360px;
 
@@ -472,4 +486,12 @@ system-notice, change-default-admin-password-notice {
 
 main-header.nx-page-header {
   border-bottom: none;
+}
+
+.iq-login-button-container,
+.iq-nav-bar--system {
+  position: absolute;
+  right: $nx-spacing-l;
+  top: 20px;
+  z-index: 1040;
 }

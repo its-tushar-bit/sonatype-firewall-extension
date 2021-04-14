@@ -15,6 +15,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 import * as PropTypes from 'prop-types';
+import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 
 export default function DeleteFilterModal(props) {
 
@@ -27,6 +28,8 @@ export default function DeleteFilterModal(props) {
     deleteFilterSuccess
   } = props;
 
+  useEscapeKeyStack(filterToDelete != null, hideDeleteFilterModal);
+
   const handleDeleteFilter = evt => {
     if (evt) {
       evt.preventDefault();
@@ -35,15 +38,8 @@ export default function DeleteFilterModal(props) {
     deleteFilter(filterToDelete);
   };
 
-  const handleCancelButtonClick = evt => {
-    // needs this to keep filters dropdown open
-    evt.nativeEvent.stopImmediatePropagation();
-    hideDeleteFilterModal();
-  };
-
-  return (
-    <NxModal id="delete-filter-modal"
-             onClose={hideDeleteFilterModal}>
+  return filterToDelete ? (
+    <NxModal id="delete-filter-modal">
       <form className="nx-form" onSubmit={handleDeleteFilter} noValidate>
         { (deleteFilterSaving || deleteFilterSuccess) &&
           <NxSubmitMask message="Removing…" success={deleteFilterSuccess} />
@@ -68,7 +64,7 @@ export default function DeleteFilterModal(props) {
           <div className="nx-btn-bar">
             <NxButton id="delete-filter-modal-cancel-button"
                       type="button"
-                      onClick={handleCancelButtonClick}>
+                      onClick={hideDeleteFilterModal}>
               Cancel
             </NxButton>
             { !deleteFilterError &&
@@ -80,7 +76,7 @@ export default function DeleteFilterModal(props) {
         </footer>
       </form>
     </NxModal>
-  );
+  ) : null;
 }
 
 DeleteFilterModal.propTypes = {

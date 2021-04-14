@@ -29,7 +29,6 @@ export default function LegalDashboardFilter(props) {
     showSaveFilterModal,
     savedFilters,
     filtersDropdownOpen,
-    filterToDelete,
 
     // filter items
     organizations,
@@ -69,7 +68,6 @@ export default function LegalDashboardFilter(props) {
   return (
     <Fragment>
       { showSaveFilterModal && <SaveLegalFilterModalContainer/> }
-      { filterToDelete && <DeleteLegalFilterModalContainer/> }
       <header className="dashboard-filter-header" id="dashboard-filter-header">
         <h3 className="nx-h3">Filter</h3>
         {!loading && !loadError &&
@@ -82,7 +80,8 @@ export default function LegalDashboardFilter(props) {
           filtersDropdownOpen,
           toggleFiltersDropdown,
           selectFilterToDelete,
-          handleDocumentClick
+          handleDocumentClick,
+          DeleteFilterModal: DeleteLegalFilterModalContainer
         }}/>
         }
         {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}

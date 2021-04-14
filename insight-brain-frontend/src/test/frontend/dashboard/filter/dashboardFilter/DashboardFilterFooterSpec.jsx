@@ -214,12 +214,30 @@ describe('DashboardFilter footer', function() {
   });
 
   describe('Revert button onClick handler', function() {
-    it('calls revert callback', function() {
+    it('calls revert callback and is not styled as disabled if filters are dirty', function() {
       const revert = jasmine.createSpy('revert'),
-          shallowRender = getShallowComponent({ revert });
+          shallowRender = getShallowComponent({
+            revert,
+            filtersAreDirty: true
+          });
 
-      shallowRender.find('#dashboard-filter-revert').simulate('click');
+      const revertButton = shallowRender.find('#dashboard-filter-revert');
+      expect(revertButton).not.toHaveClassName('disabled');
+      revertButton.simulate('click');
       expect(revert).toHaveBeenCalled();
+    });
+
+    it('does not call revert callback and styled as disabled if filters are not dirty', function() {
+      const revert = jasmine.createSpy('revert'),
+          shallowRender = getShallowComponent({
+            revert,
+            filtersAreDirty: false
+          });
+
+      const revertButton = shallowRender.find('#dashboard-filter-revert');
+      expect(revertButton).toHaveClassName('disabled');
+      revertButton.simulate('click');
+      expect(revert).not.toHaveBeenCalled();
     });
   });
 

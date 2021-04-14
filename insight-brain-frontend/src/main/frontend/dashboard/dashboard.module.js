@@ -40,10 +40,7 @@ dashboardModule.config(['$stateProvider', '$urlRouterProvider', function($stateP
     }
   }).state('dashboard.overview', {
     abstract: true,
-    views: {
-      content: 'dashboardResultsContainer',
-      filter: 'dashboardFilter'
-    }
+    component: 'dashboardResultsContainer'
   }).state('dashboard.overview.violations', {
     url: '/violations',
     component: 'violations',

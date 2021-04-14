@@ -18,6 +18,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.ImportPolicyModal;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
@@ -79,6 +80,7 @@ public class OrganizationSummaryViewTest
     organization = tempEntity.newOrganization(YE_OLE_ORGANIZATION);
     rootOrganization = organizationDAO.getByIdNotNull(ROOT_ORGANIZATION_ID);
     super.init(organization);
+    MainHeader.closeNavigationSidebar();
   }
 
   @Override
@@ -335,6 +337,7 @@ public class OrganizationSummaryViewTest
     dao.insert(dontPurgeSuccessMetrics);
 
     refresh();
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().dataRetentionButton().shouldBe(visible).click();
 
@@ -385,6 +388,7 @@ public class OrganizationSummaryViewTest
     testProductLicense.setMissingFeatures(LicensedFeature.POLICY_MONITORING);
     refresh();
 
+    MainHeader.closeNavigationSidebar();
     DataRetentionTile tile = OwnerSummaryPage.dataRetentionTile();
 
     OwnerSummaryPage.summaryTile().dropdownButton().click();
@@ -418,6 +422,7 @@ public class OrganizationSummaryViewTest
         tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refresh();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -433,6 +438,7 @@ public class OrganizationSummaryViewTest
     sourceControlDAO.update(rootSourceControl);
     refresh();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -448,6 +454,7 @@ public class OrganizationSummaryViewTest
     tempEntity.newSourceControl(organization.getId(), null, "TEST_TOKEN", null);
     refresh();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -467,6 +474,7 @@ public class OrganizationSummaryViewTest
   public void testSourceControlTile_LicensingAwareNoLicense() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
+    MainHeader.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     OwnerSummaryPage.summaryTile().dropdownButton().click();
@@ -489,6 +497,7 @@ public class OrganizationSummaryViewTest
   public void testSourceControlTile_LicensingAwareNotificationOnly() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
+    MainHeader.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     OwnerSummaryPage.summaryTile().dropdownButton().click();

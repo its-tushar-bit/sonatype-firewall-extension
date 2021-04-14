@@ -22,6 +22,7 @@ import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.GreedyTable.HeaderColumn;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
@@ -144,6 +145,7 @@ public abstract class AbstractSummaryViewTest
     labelTile.labelLists().shouldHaveSize(1);
 
     // scroll to the labels tile
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().labelsButtonInDropdown().shouldBe(visible).click();
 
@@ -231,6 +233,7 @@ public abstract class AbstractSummaryViewTest
         new UserNotification("test@test.com", Stage.ID_BUILD))));
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
+    MainHeader.closeNavigationSidebar();
     testLabelTile_Local(localLabels);
     eyesWatcher.eyesCheck();
     testLTGTile_Local(locaLTGs);
@@ -456,6 +459,7 @@ public abstract class AbstractSummaryViewTest
     }
 
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
+    MainHeader.closeNavigationSidebar();
     testLabelTile_Inherited(inheritedLabels, parentOwners);
     testLTGTile_Inherited(inheritedLTGs, parentOwners);
     testAccessTile_Inherited(testUser, parentOwners);

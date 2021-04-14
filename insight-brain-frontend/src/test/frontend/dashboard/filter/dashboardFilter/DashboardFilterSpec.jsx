@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { mount } from 'enzyme';
 import { NxErrorAlert } from '@sonatype/react-shared-components';
 
 import DashboardFilterFooter from
@@ -20,10 +19,12 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
 import ManageFiltersDropdown
   from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
+import DeleteFilterModalContainer
+  from '../../../../../main/frontend/dashboard/filter/deleteFilterModal/DeleteFilterModalContainer';
 
 describe('DashboardFilter', function() {
-  let getShallowComponent, getMountedComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock,
-      DeleteFilterModalContainerMock, DashboardFilter;
+  let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock,
+      DashboardFilter;
 
   const filterData = {
     organizations: [
@@ -81,38 +82,19 @@ describe('DashboardFilter', function() {
       loadFilter: loadFilterSpy,
       loading: false,
       savedFilters,
-      filtersDropdownOpen: true,
-      filterToDelete: null,
       applyDefaultFilter: jasmine.createSpy('applyDefaultFilter'),
-      applySavedFilter: jasmine.createSpy('applySavedFilter'),
-      toggleFiltersDropdown: jasmine.createSpy('toggleFiltersDropdown'),
-      handleDocumentClick: jasmine.createSpy('handleDocumentClick')
+      applySavedFilter: jasmine.createSpy('applySavedFilter')
     };
     SaveFilterModalContainerMock = jasmine.createSpy('SaveFilterModalContainer')
         .and.returnValue(<div>Save Filter Modal</div>);
 
-    DeleteFilterModalContainerMock = jasmine.createSpy('DeleteFilterModalContainer')
-        .and.returnValue(<div>Delete Filter Modal</div>);
-
     DashboardFilter = require(
         'inject-loader!../../../../../main/frontend/dashboard/filter/dashboardFilter/DashboardFilter'
     )({
-      '../saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock,
-      '../deleteFilterModal/DeleteFilterModalContainer': DeleteFilterModalContainerMock
+      '../saveFilterModal/SaveFilterModalContainer': SaveFilterModalContainerMock
     }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardFilter, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(DashboardFilter, minimalProps);
-  });
-
-  /**
-   * This is a functional component so it needs to be mounted
-   * in order to test the calls that happen inside the `useEffect` hook.
-   */
-  it('fires the loadFilter action', function() {
-    const component = mount(<DashboardFilter {...minimalProps} />);
-    expect(loadFilterSpy).toHaveBeenCalled();
-    component.unmount();
   });
 
   describe('apply named filter error', function() {
@@ -141,18 +123,15 @@ describe('DashboardFilter', function() {
           shallowRender = getShallowComponent(props),
           header = shallowRender.find('.dashboard-filter-header');
 
-      expect(header.childAt(0)).toMatchSelector('h3.nx-h3');
-      expect(header.childAt(0)).toHaveText('Filter');
+      expect(header.childAt(0).find('.dashboard-filter-header__title-text')).toHaveText('Filter');
 
       expect(header.childAt(1)).toContainReact(
         <ManageFiltersDropdown appliedFilterName="some filter"
                                showDirtyAsterisk={true}
                                savedFilters={savedFilters}
-                               filtersDropdownOpen={true}
                                applyDefaultFilter={minimalProps.applyDefaultFilter}
                                applySavedFilter={minimalProps.applySavedFilter}
-                               toggleFiltersDropdown={minimalProps.toggleFiltersDropdown}
-                               handleDocumentClick={minimalProps.handleDocumentClick}/>
+                               DeleteFilterModal={DeleteFilterModalContainer}/>
       );
     });
 
@@ -162,10 +141,10 @@ describe('DashboardFilter', function() {
             showDirtyAsterisk: true,
             loading: true
           },
-          shallowRender = getMountedComponent(props),
+          shallowRender = getShallowComponent(props),
           header = shallowRender.find('.dashboard-filter-header');
 
-      expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
+      expect(header).not.toContainMatchingElement(ManageFiltersDropdown);
     });
 
     it('does not render ManageFiltersDropdown if loadError', function() {
@@ -174,10 +153,10 @@ describe('DashboardFilter', function() {
             showDirtyAsterisk: true,
             loadError: 'Error'
           },
-          shallowRender = getMountedComponent(props),
+          shallowRender = getShallowComponent(props),
           header = shallowRender.find('.dashboard-filter-header');
 
-      expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
+      expect(header).not.toContainMatchingElement(ManageFiltersDropdown);
     });
   });
 
@@ -277,12 +256,15 @@ describe('DashboardFilter', function() {
       expect(loadWrapperElement).toHaveProp('loading', true);
     });
 
-    it('passes loadFilter to loadWrapper as its retryHandler prop', function() {
+    it('passes retryHandler to LoadWrapper that calls loadFilter with no args', function() {
       const fullFilter = getShallowComponent({ loading: true }),
           loadWrapperElement = fullFilter.find(LoadWrapper);
 
       expect(loadWrapperElement).toHaveProp('loading', true);
-      expect(loadWrapperElement).toHaveProp('retryHandler', loadFilterSpy);
+      loadWrapperElement.prop('retryHandler')();
+      expect(loadFilterSpy).toHaveBeenCalled();
+      expect(loadFilterSpy.calls.count()).toEqual(1);
+      expect(loadFilterSpy.calls.argsFor(0)).toEqual([]);
     });
 
     it('renders the age filter based on showAgeFilter prop', function() {
@@ -358,19 +340,88 @@ describe('DashboardFilter', function() {
     });
   });
 
-  describe('DeleteFilterModal', function() {
-    it('is rendered when filterToDelete is not null', function() {
-      const shallowRender = getShallowComponent({
-        filterToDelete: 'bar'
-      });
+  describe('Close button', function() {
+    it('is not disabled and closes sidebar when filtersAreDirty and needsAcknowledgement are false', function() {
+      const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar'),
+          shallowRender = getShallowComponent({
+            toggleFilterSidebar: toggleFilterSidebarSpy
+          });
 
-      expect(shallowRender).toContainReact(<DeleteFilterModalContainerMock/>);
+      const closeButton = shallowRender.find('#dashboard-filter-close-btn');
+      expect(closeButton).not.toHaveClassName('disabled');
+      closeButton.simulate('click');
+      expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(false);
     });
 
-    it('is not rendered when filterToDelete is null', function() {
+    it('does not render tooltip when filtersAreDirty and needsAcknowledgement are false', function() {
       const shallowRender = getShallowComponent();
 
-      expect(shallowRender).not.toContainReact(<DeleteFilterModalContainerMock/>);
+      const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
+      expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
+      expect(tooltip).toHaveProp('title', '');
+    });
+
+    describe('when filtersAreDirty', function() {
+      it('is disabled', function() {
+        const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar'),
+            shallowRender = getShallowComponent({
+              toggleFilterSidebar: toggleFilterSidebarSpy,
+              filtersAreDirty: true
+            });
+
+        const closeButton = shallowRender.find('#dashboard-filter-close-btn');
+        expect(closeButton).toHaveClassName('disabled');
+        closeButton.simulate('click');
+        expect(toggleFilterSidebarSpy).not.toHaveBeenCalled();
+      });
+
+      it('renders tooltip', function() {
+        const shallowRender = getShallowComponent({
+          filtersAreDirty: true
+        });
+
+        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
+        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
+        expect(tooltip).toHaveProp('title', 'Please apply or revert filter');
+      });
+    });
+
+    describe('when needsAcknowledgement', function() {
+      it('is disabled', function() {
+        const toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebar'),
+            shallowRender = getShallowComponent({
+              toggleFilterSidebar: toggleFilterSidebarSpy,
+              needsAcknowledgement: true
+            });
+
+        const closeButton = shallowRender.find('#dashboard-filter-close-btn');
+        expect(closeButton).toHaveClassName('disabled');
+        closeButton.simulate('click');
+        expect(toggleFilterSidebarSpy).not.toHaveBeenCalled();
+      });
+
+      it('renders tooltip', function() {
+        const shallowRender = getShallowComponent({
+          needsAcknowledgement: true
+        });
+
+        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
+        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
+        expect(tooltip).toHaveProp('title', 'Please apply a filter');
+      });
+    });
+
+    describe('when both needsAcknowledgement and filtersAreDirty', function() {
+      it('renders needsAcknowledgement tooltip', function() {
+        const shallowRender = getShallowComponent({
+          needsAcknowledgement: true,
+          filtersAreDirty: true
+        });
+
+        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
+        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
+        expect(tooltip).toHaveProp('title', 'Please apply a filter');
+      });
     });
   });
 });

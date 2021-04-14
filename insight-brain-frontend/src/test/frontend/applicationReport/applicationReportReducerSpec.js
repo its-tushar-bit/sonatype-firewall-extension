@@ -111,6 +111,7 @@ describe('applicationReportReducer', function() {
       });
       expect(newState).toEqual({
         pendingLoads: new Set(),
+        filterSidebarOpen: false,
         reevaluating: false,
         loadError: null,
         reevaluationError: null,
@@ -1825,6 +1826,24 @@ describe('applicationReportReducer', function() {
         sortFields: ['c', 'd'],
         dir: 'asc'
       });
+    });
+  });
+
+  describe('APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR action', function() {
+    it('sets filterSidebarOpen to payload', function() {
+      const state = Object.freeze({
+        filterSidebarOpen: false,
+        other: otherObject
+      });
+      const newStateWithTruePayload = reduce(state,
+          { type: 'APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR', payload: true });
+      expect(newStateWithTruePayload.filterSidebarOpen).toBe(true);
+      expect(newStateWithTruePayload.other).toBe(otherObject); // other properties are not modified
+
+      const newStateWithFalsePayload = reduce(state,
+          { type: 'APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR', payload: false });
+      expect(newStateWithFalsePayload.filterSidebarOpen).toBe(false);
+      expect(newStateWithFalsePayload.other).toBe(otherObject); // other properties are not modified
     });
   });
 });

@@ -232,7 +232,7 @@ public class FirewallAutoUnquarantinePageTest
     eyesWatcher.eyesCheck("Auto Unquarantine Grid visible with data");
   }
 
-  @Test
+  //@Test TODO enable when CLM-18248 is done
   public void testFirewallAutoUnquarantineTable_Sorting() {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));

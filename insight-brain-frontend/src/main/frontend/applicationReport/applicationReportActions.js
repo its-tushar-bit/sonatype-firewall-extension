@@ -45,6 +45,7 @@ export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 export const GENERATE_VULNERABILITY_ENTRIES = 'GENERATE_VULNERABILITY_ENTRIES';
 export const SET_SORTING_PARAMETERS = 'SET_SORTING_PARAMETERS';
 export const SELECT_COMPONENT = 'SELECT_COMPONENT';
+export const APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR = 'APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR';
 
 // To be used for filters that are done by substring matching, as opposed to matching a discrete set of values
 export const SET_SUBSTRING_FIELD_FILTER = 'SET_SUBSTRING_FIELD_FILTER';
@@ -239,6 +240,7 @@ const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_R
 const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
 const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
 const setSelectedComponent = payloadParamActionCreator(SELECT_COMPONENT);
+const toggleFilterSidebar = payloadParamActionCreator(APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR);
 export const setSorting = payloadParamActionCreator(SET_SORTING);
 
 export const setAggregateReportEntries = payloadParamActionCreator(SET_AGGREGATE_REPORT_ENTRIES);
@@ -323,6 +325,7 @@ export default function applicationReportActions() {
     selectComponent,
     selectRootAncestor,
     unselectRootAncestor,
-    setSortingParameters
+    setSortingParameters,
+    toggleFilterSidebar
   };
 }

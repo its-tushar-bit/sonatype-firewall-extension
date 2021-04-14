@@ -1,71 +1,13 @@
-<aside class="nx-page-sidebar" id="application-report-sidebar">
-  <iq-back-button ng-if="!vm.reportParameters.embeddable"
-                  state="violations"
-                  text="All Reports"
-                  class="iq-sidebar-back-button">
-  </iq-back-button>
-  <fieldset class="iq-radio-group iq-form-group">
-    <legend class="iq-label">Application Report View</legend>
-    <iq-radio id="aggregate-by-component-radio"
-              model="vm.aggregate"
-              value="true"
-              on-click="vm.setAggregateReportEntries(value)">
-      Aggregated by Component
-    </iq-radio>
-    <iq-radio id="no-aggregation-radio"
-              model="vm.aggregate"
-              value="false"
-              on-click="vm.setAggregateReportEntries(value)">
-      All Violations
-    </iq-radio>
-  </fieldset>
-  <fieldset class="iq-form-group">
-    <legend class="iq-label">Filters</legend>
-    <iq-tree-view-multi-select id="proprietary-filter"
-                               name="proprietary-filter"
-                               available="vm.availableProprietaryFilterOptions"
-                               selected="vm.exactValueFilters.proprietary"
-                               on-change="vm.setProprietaryFilterOptions(selected)">
-      Proprietary
-    </iq-tree-view-multi-select>
-    <iq-tree-view-multi-select id="match-state-filter"
-                               name="match-state-filter"
-                               available="vm.availableMatchStateFilterOptions"
-                               selected="vm.exactValueFilters.matchState"
-                               on-change="vm.setMatchStateFilterOptions(selected)">
-      Component Match State
-    </iq-tree-view-multi-select>
-    <iq-tree-view-multi-select id="violation-state-filter"
-                               name="violation-state-filter"
-                               available="vm.availableViolationStateFilterOptions"
-                               selected="vm.violationStateCheckedIds"
-                               on-change="vm.setViolationStateFilterOptions(selected)">
-      Violation State
-    </iq-tree-view-multi-select>
-    <iq-tree-view-multi-select id="dependency-type-filter"
-                               available="vm.availableDependencyTypeFilterOptions"
-                               selected="vm.exactValueFilters.derivedDependencyType"
-                               on-change="vm.setDependencyTypeFilterOptions(selected)">
-      Dependency Type
-    </iq-tree-view-multi-select>
-    <iq-tree-view-multi-select id="policy-type-filter"
-                               is-disabled="!vm.policyTypeFilterEnabled"
-                               disabled-tooltip="Reevaluate the report in order to enable Policy Types filter"
-                               available="vm.availablePolicyTypeFilterOptions"
-                               selected="vm.exactValueFilters.policyThreatCategory"
-                               on-change="vm.setPolicyTypeFilterOptions(selected)">
-      Policy Types
-    </iq-tree-view-multi-select>
-    <iq-tree-view-policy-threat-level-slider id="threat-level-filter"
-                                             selected-range="vm.policyThreatLevelFilterSelectedRange"
-                                             on-change="vm.setPolicyThreatLevelFilter(value)">
-    </iq-tree-view-policy-threat-level-slider>
-  </fieldset>
-</aside>
+<application-report-filter></application-report-filter>
 <main id="application-report"
       class="nx-page-main nx-viewport-sized"
       form-mask="vm.formMaskController"
       mask-message="Re-Evaluating"
       mask-attach-to-body>
+  <iq-back-button ng-if="!vm.reportParameters.embeddable"
+                  state="violations"
+                  text="All Reports"
+                  class="iq-page-back-button">
+  </iq-back-button>
   <application-report-results></application-report-results>
 </main>

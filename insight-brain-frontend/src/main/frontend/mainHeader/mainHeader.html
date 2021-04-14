@@ -1,122 +1,31 @@
-<div class="iq-header">
-  <div class="iq-header__inner">
-    <div class="iq-title">
-      <div class="iq-title__logo-container">
-        <img src="img/mainHeader_2019/IQ-logo-2019.svg" class="iq-logo" alt="Logo">
-        <img src="img/mainHeader_2019/IQ-logo-2019.svg#print" class="iq-logo iq-logo--print" alt="Logo">
-      </div>
-      <div class="iq-title__text-container">
-        <div class="iq-title__product">
-          Nexus <span class="iq-small-caps">IQ</span> Server
-        </div>
-        <div class="iq-title__sub-title">
-          <span class="iq-title__attribution">
-            by Sonatype
-          </span>
-          <span class="iq-title__version visual-testing-ignore">
-            {{vm.productEdition}} release {{::vm.getReleaseVersion()}}
-          </span>
-        </div>
-      </div>
-    </div>
-    <div id="main-header-buttons" class="iq-main-header-nav-container" ng-if="vm.isLoggedIn()">
-      <div class="iq-navigation">
-        <a ui-sref="dashboard.overview.violations"
-           class="iq-navigation__button"
-           id="dashboard-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('dashboard') }"
-           ng-if="vm.isDashboardAvailable()">
-          <nx-font-awesome-icon icon="vm.faTachometerAltFast"
-                                class="iq-main-nav__button-icon"
-                                size="'2x'">
-          </nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Dashboard</div>
-        </a>
-        <a ui-sref="violations"
-           class="iq-navigation__button"
-           id="reporting-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('violations') }"
-           ng-if="vm.isReportsListAvailable()">
-          <nx-font-awesome-icon icon="vm.faFileAlt"
-                                class="iq-main-nav__button-icon"
-                                size="'2x'">
-          </nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Reports</div>
-        </a>
-        <a ui-sref="management.view"
-           class="iq-navigation__button"
-           id="policies-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('management') }"
-           ng-if="vm.isLicensed()">
-          <nx-font-awesome-icon icon="vm.faSitemap"
-                                class="iq-main-nav__button-icon"
-                                size="'2x'">
-          </nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Orgs &amp; Policies</div>
-        </a>
-        <a ui-sref="labs.successMetrics"
-           class="iq-navigation__button"
-           id="labs-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('labs') }"
-           ng-if="vm.isSuccessMetricsEnabled">
-          <nx-font-awesome-icon icon="vm.faAnalytics" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Metrics</div>
-        </a>
-        <a ui-sref="vulnerabilitySearch"
-           class="iq-navigation__button"
-           id="vulnerability-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('vulnerabilitySearch') ||
-           vm.$state.includes('vulnerabilitySearchDetail')}"
-           ng-if="vm.isLicensed()">
-          <nx-font-awesome-icon icon="vm.faBug" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Vulnerabilities</div>
-        </a>
-        <a ui-sref="advancedSearch"
-           class="iq-navigation__button"
-           id="search-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('advancedSearch') }"
-           ng-if="vm.isLicensed() && vm.isAdvancedSearchEnabled">
-          <nx-font-awesome-icon icon="vm.faSearch" class="iq-main-nav__button-icon" size="'2x'"></nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Search</div>
-        </a>
-        <a ui-sref="firewall"
-           class="iq-navigation__button"
-           id="firewall-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('firewallStatus') }"
-           ng-if="vm.isLicensed() && vm.isFirewallEnabled && vm.isFirewallSupported">
-          <nx-font-awesome-icon icon="vm.faFireSmoke" class="iq-main-nav__button-icon"
-                                size="'2x'"></nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Firewall</div>
-        </a>
-        <a ui-sref="legalDashboard"
-           class="iq-navigation__button"
-           id="advanced-legal-navigation-button"
-           ng-class="{ 'active' : vm.$state.includes('legalDashboard') }"
-           ng-if="vm.isLicensed() && vm.isAdvancedLegalPackSupported">
-          <nx-font-awesome-icon icon="vm.faGavel" class="iq-main-nav__button-icon"
-                                size="'2x'"></nx-font-awesome-icon>
-          <div class="iq-main-nav__button-label">Legal</div>
-        </a>
-      </div>
-      <div class="iq-nav-bar--system">
-        <user-menu></user-menu>
-        <notifications-menu></notifications-menu>
-        <system-configuration-menu ng-if="vm.hasAnyPermission() || vm.isLabsDataInsightsEnabled"
-                                   permissions="vm.permissions"
-                                   is-webhooks-supported="vm.isWebhooksSupported"
-                                   is-labs-data-insights-enabled="vm.isLabsDataInsightsEnabled">
-        </system-configuration-menu>
-        <help-menu></help-menu>
-      </div>
-    </div>
-    <div class="iq-login-button-container">
-      <button id="login-header-btn"
-              class="iq-btn iq-btn--main-header iq-pull-right"
-              ng-if="vm.shouldShowLoginButton()"
-              ng-click="vm.login()">
-        <nx-font-awesome-icon icon="vm.faUserAlt"></nx-font-awesome-icon><!--
-     --><span class="iq-btn__content--main-header">Login</span>
-      </button>
-    </div>
-  </div>
+<iq-sidebar-nav current-state="vm.$state.current"
+                product-edition="vm.productEdition"
+                release-version="vm.getReleaseVersion()"
+                is-logged-in="!!vm.isLoggedIn()"
+                is-licensed="vm.isLicensed()"
+                is-dashboard-available="vm.isDashboardAvailable()"
+                is-reports-list-available="vm.isReportsListAvailable()"
+                is-success-metrics-enabled="vm.isSuccessMetricsEnabled"
+                is-advanced-search-enabled="vm.isAdvancedSearchEnabled"
+                is-firewall-enabled="vm.isFirewallEnabled && vm.isFirewallSupported"
+                is-legal-enabled="vm.isAdvancedLegalPackSupported">
+</iq-sidebar-nav>
+<div class="iq-nav-bar--system" ng-if="vm.isLoggedIn()">
+  <help-menu></help-menu>
+  <notifications-menu></notifications-menu>
+  <system-configuration-menu ng-if="vm.hasAnyPermission() || vm.isLabsDataInsightsEnabled"
+                             permissions="vm.permissions"
+                             is-webhooks-supported="vm.isWebhooksSupported"
+                             is-labs-data-insights-enabled="vm.isLabsDataInsightsEnabled">
+  </system-configuration-menu>
+  <user-menu></user-menu>
+</div>
+<div class="iq-login-button-container">
+  <button id="login-header-btn"
+          class="iq-btn iq-btn--main-header iq-pull-right"
+          ng-if="vm.shouldShowLoginButton()"
+          ng-click="vm.login()">
+    <nx-font-awesome-icon icon="vm.faUserAlt"></nx-font-awesome-icon><!--
+ --><span class="iq-btn__content--main-header">Login</span>
+  </button>
 </div>

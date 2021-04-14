@@ -20,6 +20,6 @@ public class MainView
    * modals and the MainHeader is within this element
    */
   public static SelenideElement uiView() {
-    return $(".nx-page > [ui-view]");
+    return $(".nx-page-content > ui-view");
   }
 }

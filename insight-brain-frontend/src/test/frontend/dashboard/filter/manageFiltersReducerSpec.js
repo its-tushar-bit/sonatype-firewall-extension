@@ -417,22 +417,6 @@ describe('manageFiltersReducer', function() {
     });
   });
 
-  describe('TOGGLE_FILTERS_DROPDOWN action', function() {
-    it('sets filtersDropdownOpen to the payload', function() {
-      const state = Object.freeze({
-        filtersDropdownOpen: false,
-        other: otherObject
-      });
-      const action = {
-        type: 'TOGGLE_FILTERS_DROPDOWN',
-        payload: true
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
   describe('SELECT_FILTER_TO_DELETE action', function() {
     it('resets deleteFilter flags and sets filterToDelete to the payload', function() {
       const state = Object.freeze({
@@ -466,66 +450,6 @@ describe('manageFiltersReducer', function() {
       };
       const newState = reduce(state, action);
       expect(newState.filterToDelete).toBeNull();
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('DOCUMENT_CLICKED action', function() {
-    it('sets filtersDropdownOpen to false if delete filter modal is not open', function() {
-      const state = Object.freeze({
-        filterToDelete: null,
-        filtersDropdownOpen: true,
-        other: otherObject
-      });
-      const action = {
-        type: 'DOCUMENT_CLICKED'
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-
-    it('does not set filtersDropdownOpen to false if delete filter modal is open', function() {
-      const state = Object.freeze({
-        filterToDelete: 'foo',
-        filtersDropdownOpen: true,
-        other: otherObject
-      });
-      const action = {
-        type: 'DOCUMENT_CLICKED'
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('APPLY_FILTER_REQUESTED action', function() {
-    it('sets filtersDropdownOpen to false if delete filter modal is not open', function() {
-      const state = Object.freeze({
-        filterToDelete: null,
-        filtersDropdownOpen: true,
-        other: otherObject
-      });
-      const action = {
-        type: 'APPLY_FILTER_REQUESTED'
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-
-    it('does not set filtersDropdownOpen to false if delete filter modal is open', function() {
-      const state = Object.freeze({
-        filterToDelete: 'foo',
-        filtersDropdownOpen: true,
-        other: otherObject
-      });
-      const action = {
-        type: 'APPLY_FILTER_REQUESTED'
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

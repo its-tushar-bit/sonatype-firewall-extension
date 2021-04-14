@@ -284,6 +284,15 @@ describe('dashboardFilterReducer', function() {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
+      it('sets filterSidebarOpen to true if needsAcknowledgement', function() {
+        initState.filterSidebarOpen = false;
+        action.payload.needsAcknowledgement = true;
+        var state = Object.freeze(initState);
+        var newState = reduce(state, action);
+        expect(newState.filterSidebarOpen).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
       testApplyFilter();
     });
 
@@ -687,6 +696,68 @@ describe('dashboardFilterReducer', function() {
       expect(newState.filtersAreDirty).toBe(false);
       expect(newState.selected).toEqual(state.appliedFilter);
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('TOGGLE_FILTER_SIDEBAR action', function() {
+    it('sets filterSidebarOpen to payload', function() {
+      const state = Object.freeze({
+        filterSidebarOpen: true,
+        other: otherObject
+      });
+      const newState = reduce(state, {type: 'TOGGLE_FILTER_SIDEBAR', payload: true});
+      expect(newState.filterSidebarOpen).toBe(true);
+      expect(newState.other).toBe(otherObject); // other properties are not modified
+
+      expect(reduce(newState, {type: 'TOGGLE_FILTER_SIDEBAR', payload: false}).filterSidebarOpen).toBe(false);
+    });
+
+    describe('when filters are dirty', function() {
+      it('does not close filter sidebar', function() {
+        const state = Object.freeze({
+          filterSidebarOpen: true,
+          filtersAreDirty: true,
+          other: otherObject
+        });
+        const newState = reduce(state, {type: 'TOGGLE_FILTER_SIDEBAR', payload: false});
+        expect(newState.filterSidebarOpen).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('opens filter sidebar', function() {
+        const state = Object.freeze({
+          filterSidebarOpen: false,
+          filtersAreDirty: true,
+          other: otherObject
+        });
+        const newState = reduce(state, {type: 'TOGGLE_FILTER_SIDEBAR', payload: true});
+        expect(newState.filterSidebarOpen).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+    });
+
+    describe('when needsAcknowledgement is true', function() {
+      it('does not close filter sidebar', function() {
+        const state = Object.freeze({
+          filterSidebarOpen: true,
+          needsAcknowledgement: true,
+          other: otherObject
+        });
+        const newState = reduce(state, {type: 'TOGGLE_FILTER_SIDEBAR', payload: false});
+        expect(newState.filterSidebarOpen).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('opens filter sidebar', function() {
+        const state = Object.freeze({
+          filterSidebarOpen: false,
+          needsAcknowledgement: true,
+          other: otherObject
+        });
+        const newState = reduce(state, {type: 'TOGGLE_FILTER_SIDEBAR', payload: true});
+        expect(newState.filterSidebarOpen).toBe(true);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
     });
   });
 });

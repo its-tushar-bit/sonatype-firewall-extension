@@ -3,42 +3,52 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment } from 'react';
+import React, { Fragment, useRef, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { isEmpty, map } from 'ramda';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
 import { NxDropdown, NxFontAwesomeIcon, NxButton } from '@sonatype/react-shared-components';
 
-import DocumentClickListenerWrapper from '../../../react/DocumentClickListenerWrapper';
 import { DEFAULT_FILTER_NAME } from '../defaultFilter';
+import useClickAway from '../../../react/useClickAway';
+import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 
 export default function ManageFiltersDropdown(props) {
   const {
     showDirtyAsterisk,
     applyDefaultFilter,
     applySavedFilter,
-    filtersDropdownOpen,
-    toggleFiltersDropdown,
     selectFilterToDelete,
-    handleDocumentClick
+    DeleteFilterModal
   } = props;
+
+  const ref = useRef(null);
+
+  const [filtersDropdownOpen, toggleFiltersDropdown] = useState(false);
+
+  useClickAway(ref, () => toggleFiltersDropdown(false));
+  useEscapeKeyStack(filtersDropdownOpen, () => toggleFiltersDropdown(false));
 
   const savedFilters = props.savedFilters || [],
       appliedFilterName = props.appliedFilterName || DEFAULT_FILTER_NAME;
 
-  const handleKeyPress = event => {
-    if ((event.key === 'Escape' || event.key === 'Esc') && filtersDropdownOpen) {
-      toggleFiltersDropdown(false);
-    }
-  };
-
   const handleDropdownToggle = () => {
-    toggleFiltersDropdown(true);
+    toggleFiltersDropdown(!filtersDropdownOpen);
   };
 
   const handleDeleteFilter = ({ name }) => {
     selectFilterToDelete(name);
+  };
+
+  const handleSelectDefaultFilter = () => {
+    applyDefaultFilter();
+    toggleFiltersDropdown(false);
+  };
+
+  const handleSelectSavedFilter = filter => {
+    applySavedFilter(filter);
+    toggleFiltersDropdown(false);
   };
 
   function getOptionClassNames(isSelected) {
@@ -52,7 +62,7 @@ export default function ManageFiltersDropdown(props) {
 
     return (
       <div key={filter.name} className={getOptionClassNames(isSelected)}>
-        <button onClick={() => applySavedFilter(filter)}
+        <button onClick={() => handleSelectSavedFilter(filter)}
                 className="nx-dropdown-button nx-dropdown-button--select-filter">
           <span>{filter.name}</span>
         </button>
@@ -61,6 +71,10 @@ export default function ManageFiltersDropdown(props) {
         </NxButton>
       </div>
     );
+  }
+
+  function preventDefault(event) {
+    event.preventDefault();
   }
 
   const options = map(getFilterOption, savedFilters),
@@ -79,22 +93,24 @@ export default function ManageFiltersDropdown(props) {
       );
 
   return (
-    <NxDropdown className="iq-manage-filters-dropdown"
-                isOpen={filtersDropdownOpen}
-                onKeyDown={handleKeyPress}
-                onToggleCollapse={handleDropdownToggle}
-                label={dropdownLabel}
-                tabIndex={0}>
-      <DocumentClickListenerWrapper onDocumentClick={handleDocumentClick}>
+    <div ref={ref}>
+      <DeleteFilterModal/>
+      <NxDropdown className="iq-manage-filters-dropdown"
+                  isOpen={filtersDropdownOpen}
+                  onToggleCollapse={handleDropdownToggle}
+                  label={dropdownLabel}
+                  onCloseClick={preventDefault}
+                  onCloseKeyDown={preventDefault}
+                  tabIndex={0}>
         <div key='Default' className={getOptionClassNames(DEFAULT_FILTER_NAME === appliedFilterName)}>
-          <button onClick={applyDefaultFilter}
+          <button onClick={handleSelectDefaultFilter}
                   className="nx-dropdown-button nx-dropdown-button--select-filter">
             <span>Default</span>
           </button>
         </div>
         {isEmpty(options) ? emptyListMessage : options}
-      </DocumentClickListenerWrapper>
-    </NxDropdown>
+      </NxDropdown>
+    </div>
   );
 }
 
@@ -106,8 +122,6 @@ ManageFiltersDropdown.propTypes = {
   })),
   applyDefaultFilter: PropTypes.func.isRequired,
   applySavedFilter: PropTypes.func.isRequired,
-  filtersDropdownOpen: PropTypes.bool.isRequired,
-  toggleFiltersDropdown: PropTypes.func.isRequired,
   selectFilterToDelete: PropTypes.func.isRequired,
-  handleDocumentClick: PropTypes.func.isRequired
+  DeleteFilterModal: PropTypes.elementType
 };

@@ -35,6 +35,12 @@ export default function DashboardFilterFooter(props) {
           return;
         }
         onApplyCurrentFilter();
+      },
+      handleRevertBtnClick = () => {
+        if (!filtersAreDirty) {
+          return;
+        }
+        revert();
       };
 
   const footerHTML = (
@@ -42,11 +48,12 @@ export default function DashboardFilterFooter(props) {
       <NxButton id="dashboard-filter-revert"
                 variant="tertiary"
                 className={revertBtnClassnames}
-                disabled={!filtersAreDirty}
-                onClick={revert}>
+                onClick={handleRevertBtnClick}>
         Revert
       </NxButton>
-      <NxTooltip id="dashboard-filter-save-tooltip" title={filtersAreDirty ? 'Please apply filter before saving' : ''}>
+      <NxTooltip id="dashboard-filter-save-tooltip"
+                 placement="top-end"
+                 title={filtersAreDirty ? 'Please apply filter before saving' : ''}>
         <NxButton id="dashboard-filter-save"
                   className={saveBtnClassnames}
                   onClick={handleSaveBtnClick}>
@@ -54,6 +61,7 @@ export default function DashboardFilterFooter(props) {
         </NxButton>
       </NxTooltip>
       <NxTooltip id="dashboard-filter-apply-tooltip"
+                 placement="top-end"
                  title={filtersAreDirty ? '' : 'There are no changes to update.'}>
         <NxButton id="dashboard-filter-apply"
                   variant="primary"

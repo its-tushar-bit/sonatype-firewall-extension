@@ -6,12 +6,11 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter;
 import com.sonatype.clm.testing.functional.elements.IQDropdown;
-import com.sonatype.clm.testing.functional.elements.IqCheckbox;
-import com.sonatype.clm.testing.functional.elements.IqRadio;
+import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
-import com.sonatype.clm.testing.functional.elements.IqTreeViewMultiSelect;
-import com.sonatype.clm.testing.functional.elements.PolicyThreatLevelFilter;
+import com.sonatype.clm.testing.functional.elements.IqToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
@@ -28,7 +27,7 @@ public class ApplicationReportPage
   public static final String ROOT = "application-report";
 
   public static final Condition DIRECT_DEPENDENCY_CLASS = cssClass("direct");
-  
+
   public static final Condition TRANSITIVE_DEPENDENCY_CLASS = cssClass("transitive");
 
   private static final String DEPENDENCY_INDICATOR_SELECTOR = ".iq-dependency-indicator";
@@ -68,6 +67,10 @@ public class ApplicationReportPage
     return child("#application-report-commit");
   }
 
+  public IqBackButton backButton() {
+    return new IqBackButton(ROOT);
+  }
+
   public SelenideElement reevaluateButton() {
     return child("#reevaluate-button");
   }
@@ -86,6 +89,14 @@ public class ApplicationReportPage
 
   public IQGrandfatheringIndicator grandfatheringIndicator() {
     return new IQGrandfatheringIndicator(childSelector(".iq-grandfathering-indicator"));
+  }
+
+  public SelenideElement filterToggle() {
+    return child("#filter-toggle");
+  }
+
+  public ApplicationReportFilter filterPanel() {
+    return new ApplicationReportFilter();
   }
 
   public ElementsCollection resultRows() {
@@ -112,32 +123,8 @@ public class ApplicationReportPage
     return new CipModal("#cip-modal");
   }
 
-  public IqRadio showAggregatedViolationsRadio() {
-    return new IqRadio(child("#aggregate-by-component-radio"));
-  }
-
-  public IqRadio showAllViolationsRadio() {
-    return new IqRadio(child("#no-aggregation-radio"));
-  }
-
-  public ProprietaryFilter proprietaryFilter() {
-    return new ProprietaryFilter("#proprietary-filter");
-  }
-
-  public MatchStateFilter matchStateFilter() {
-    return new MatchStateFilter("#match-state-filter");
-  }
-
-  public ViolationStateFilter violationStateFilter() {
-    return new ViolationStateFilter("#violation-state-filter");
-  }
-
-  public static DependencyTypeFilter dependencyTypeFilter() {
-    return new DependencyTypeFilter("#dependency-type-filter");
-  }
-
-  public PolicyTypeFilter policyTypeFilter() {
-    return new PolicyTypeFilter("#policy-type-filter");
+  public IqToggle aggregateByComponentToggle() {
+    return new IqToggle(child("iq-toggle"));
   }
 
   public AppReportHeaders headers() {
@@ -402,7 +389,7 @@ public class ApplicationReportPage
     }
 
     public IqSortingHeader componentNameHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--application-report-component-display a"));
+      return new IqSortingHeader(childSelector(" .iq-cell--application-report-component-display a"));
     }
 
     public SelenideElement policyNameFilterInput() {
@@ -412,113 +399,6 @@ public class ApplicationReportPage
     public SelenideElement componentNameFilterInput() {
       return child(".iq-cell--application-report-component-name-filter input");
     }
-  }
-
-  public static class ProprietaryFilter
-      extends IqTreeViewMultiSelect
-  {
-    public ProprietaryFilter(String selector) {
-      super(selector);
-    }
-
-    public IqCheckbox nonProprietary() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
-    }
-
-    public IqCheckbox proprietary() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(3)));
-    }
-  }
-
-  public static class MatchStateFilter
-      extends IqTreeViewMultiSelect
-  {
-    public MatchStateFilter(String selector) {
-      super(selector);
-    }
-
-    public IqCheckbox exact() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
-    }
-
-    public IqCheckbox similar() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(3)));
-    }
-
-    public IqCheckbox unknown() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(4)));
-    }
-  }
-
-  public static class ViolationStateFilter
-      extends IqTreeViewMultiSelect
-  {
-    public ViolationStateFilter(String selector) {
-      super(selector);
-    }
-
-    public IqCheckbox notViolating() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
-    }
-
-    public IqCheckbox open() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(3)));
-    }
-
-    public IqCheckbox waived() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(4)));
-    }
-
-    public IqCheckbox grandfathered() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(5)));
-    }
-  }
-
-  public static class DependencyTypeFilter extends IqTreeViewMultiSelect
-  {
-    public DependencyTypeFilter(final String selector) {
-      super(selector);
-    }
-
-    public IqCheckbox direct() {
-      return super.checkboxItem(2);
-    }
-
-    public IqCheckbox transitive() {
-      return super.checkboxItem(3);
-    }
-
-    public IqCheckbox unknown() {
-      return super.checkboxItem(4);
-    }
-  }
-
-  public static class PolicyTypeFilter
-      extends IqTreeViewMultiSelect
-  {
-    public PolicyTypeFilter(String selector) {
-      super(selector);
-    }
-
-    public IqCheckbox security() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(2)));
-    }
-
-    public IqCheckbox license() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(3)));
-    }
-
-    public IqCheckbox quality() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(4)));
-    }
-
-    public IqCheckbox other() {
-      return new IqCheckbox(child(".iq-tree-view__children .iq-tree-view__child", nthChild(5)));
-    }
-  }
-
-  public static PolicyThreatLevelFilter policyThreatLevelFilter() {
-    return new PolicyThreatLevelFilter("#threat-level-filter");
   }
 
   public SelenideElement policyTypeFilterWarning() {

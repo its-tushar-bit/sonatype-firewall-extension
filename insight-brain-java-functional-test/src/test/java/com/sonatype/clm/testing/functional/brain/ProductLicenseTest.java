@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.GettingStartedPage;
 import com.sonatype.clm.testing.functional.pages.ProductLicensePage;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -16,6 +17,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
@@ -80,6 +82,10 @@ public class ProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldNotBe(visible);
     ProductLicensePage.licensedApplications().shouldBe(visible).shouldHave(text("100 (0 in use)"));
     ProductLicensePage.products().shouldHave(texts("Nexus Auditor"));
+
+    MainHeader.openNavigationSidebar();
+    MainHeader.productLogo().shouldHave(attribute("alt", "Auditor"));
+    eyesWatcher.eyesCheck("Nexus Auditor Logo");
   }
 
   @Test
@@ -91,6 +97,10 @@ public class ProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("45"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Nexus Firewall"));
+
+    MainHeader.openNavigationSidebar();
+    MainHeader.productLogo().shouldHave(attribute("alt", "Firewall"));
+    eyesWatcher.eyesCheck("Nexus Firewall Logo");
   }
 
   @Test
@@ -103,6 +113,25 @@ public class ProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
     ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle"));
+
+    MainHeader.openNavigationSidebar();
+    MainHeader.productLogo().shouldHave(attribute("alt", "Lifecycle"));
+    eyesWatcher.eyesCheck("Nexus Lifecycle Logo");
+  }
+
+  @Test
+  public void testLicenseInformation_LifecycleFoundationOnly() throws Exception {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
+
+    refreshOrOpen(ProductLicensePage.url());
+
+    ProductLicensePage.licensedDevelopers().shouldBe(visible).shouldHave(text("50"));
+    ProductLicensePage.licensedApplications().shouldNotBe(visible);
+    ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle Foundation"));
+
+    MainHeader.openNavigationSidebar();
+    MainHeader.productLogo().shouldHave(attribute("alt", "Lifecycle Foundation"));
+    eyesWatcher.eyesCheck("Nexus Lifecycle Logo - Foundation");
   }
 
   @Test
@@ -162,7 +191,7 @@ public class ProductLicenseTest
     ProductLicensePage.uninstallLicenseBtn().shouldBe(hidden);
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Install License"));
 
-    eyesWatcher.eyesCheck();
+    eyesWatcher.eyesCheck("Sonatype Logo");
 
     uploadMockLicense();
 

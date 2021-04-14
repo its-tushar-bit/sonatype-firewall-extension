@@ -1,0 +1,50 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+main-header,
+iq-sidebar-nav {
+  display: contents;
+}
+
+.nx-global-sidebar {
+  flex-shrink: 0;
+}
+
+.iq-sidebar-nav-footer {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  font-size: $nx-font-size-xs;
+  margin-top: auto;
+  padding-bottom: $nx-spacing-l;
+  text-align: center;
+}
+
+.iq-sidebar-nav-footer__product-info {
+  height: 2em * $nx-line-height;
+}
+
+.iq-sidebar-nav-footer__powered {
+  margin-top: $nx-spacing-sm;
+}
+
+.iq-sidebar-nav-footer__created {
+  margin-top: $nx-spacing-md;
+}
+
+.nx-global-sidebar.closed {
+  .iq-sidebar-nav-footer__powered,
+  .iq-sidebar-nav-footer__created {
+    // we're keeping these elements present but invisible
+    // so that they help in positioning the one visible footer element
+    // we also truncate so that text doesn't wrap in a new line and maintains its original height
+    @include nx-truncate-ellipsis;
+    visibility: hidden;
+  }
+}

@@ -5,6 +5,7 @@
  */
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 body {
   &:not(.nx-body) {
@@ -27,14 +28,25 @@ ui-view {
 }
 
 // global errors
-.nx-page-content > .iq-alert {
-  align-self: flex-start;
-  margin-top: 86px;
-  width: 50%;
-  max-width: 400px;
+.nx-page-main--error {
+  display: flex;
+  justify-content: center;
 
-  &:first-child:last-child {
-    margin-left: auto;
-    margin-right: auto;
+  > .iq-alert {
+    align-self: flex-start;
+    justify-content: center;
+    width: 50%;
+    max-width: 400px;
+  }
+}
+
+.nx-page-content--full-width {
+  position: relative;
+
+  .nx-page-main {
+    flex: 1 1 var(--content-width);
+    // 32px top-bar height + 20px top-bar top spacing + 20px top-bar bottom spacing
+    margin-top: calc(32px + 40px);
+    padding-top: 0;
   }
 }

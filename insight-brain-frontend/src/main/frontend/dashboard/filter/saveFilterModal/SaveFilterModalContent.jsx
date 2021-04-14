@@ -23,6 +23,7 @@ import { validateMaxLength, validateNonEmpty, hasValidationErrors } from '../../
 import { isNil, reject } from 'ramda';
 import { DEFAULT_FILTER_NAME } from '../defaultFilter';
 import { WARNING_OVERWRITE, WARNING_NAME_IN_USE } from '../manageFiltersReducer';
+import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 
 const SAVE_MODE_OVERWRITE = 'overwrite';
 const SAVE_MODE_SAVE_AS = 'saveAs';
@@ -42,6 +43,7 @@ export default function SaveFilterModalContent(props) {
 
   const [saveMode, setSaveMode] = useState(appliedFilterName ? SAVE_MODE_OVERWRITE : SAVE_MODE_SAVE_AS);
   const [filterName, setFilterName] = useState(initialState(''));
+  useEscapeKeyStack(true, cancelSaveFilter);
 
   const trySave = (e) => {
     e.preventDefault();
@@ -118,7 +120,7 @@ export default function SaveFilterModalContent(props) {
     </NxFieldset>;
 
   return (
-    <NxModal id="save-filter-modal" onClose={cancelSaveFilter}>
+    <NxModal id="save-filter-modal">
       <form className="nx-form" onSubmit={trySave} noValidate>
         { (saveFilterSaving || saveFilterSuccess) &&
           <NxSubmitMask message="Saving…" success={saveFilterSuccess} /> }

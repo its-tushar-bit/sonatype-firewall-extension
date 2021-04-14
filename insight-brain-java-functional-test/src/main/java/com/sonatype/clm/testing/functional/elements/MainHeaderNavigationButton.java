@@ -15,9 +15,9 @@ import static com.codeborne.selenide.Condition.cssClass;
 public class MainHeaderNavigationButton
     extends BasicElement<MainHeaderNavigationButton>
 {
-  public static final Condition CLASS_ACTIVE = cssClass("active");
+  public static final Condition CLASS_ACTIVE = cssClass("selected");
 
   public MainHeaderNavigationButton(String selector) {
-    super(".iq-navigation", selector);
+    super(".nx-global-sidebar__navigation", selector);
   }
 }

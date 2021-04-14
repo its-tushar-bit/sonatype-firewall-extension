@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.ManageFiltersDropdown;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
@@ -161,17 +162,20 @@ public class ViolationDetailsTest
   @Test
   public void testStageLink() {
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
+    MainHeader.closeNavigationSidebar();
     ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
 
     tile.stage(1).link().shouldHave(text("Build")).click();
     waitUntilUrl(ApplicationReportPage.url(application, "scan1"));
 
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
+    MainHeader.closeNavigationSidebar();
 
     tile.stage(3).link().shouldHave(text("Release")).click();
     waitUntilUrl(ApplicationReportPage.url(application, "scan2"));
 
     refreshOrOpen(ViolationDetailsPage.url(securityPolicyViolation.getId()));
+    MainHeader.closeNavigationSidebar();
     tile.stage(2).link().shouldNot(exist);
     tile.stage(4).link().should(exist);
   }
@@ -351,6 +355,7 @@ public class ViolationDetailsTest
 
     refreshOrOpen(DashboardPage.urlToViolations());
     NxTreeViewMultiSelect appFilter = DashboardFilters.applicationFilter();
+    DashboardPage.filterToggle().click();
     appFilter.twisty().click();
     appFilter.multiSelectList().shouldHaveSize(3);
     appFilter.checkboxItem(3).click();
@@ -358,6 +363,7 @@ public class ViolationDetailsTest
     ageFilter.twisty().click();
     ageFilter.radioItem(6).click();
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
 
     DashboardPage.violationsView().headers().threatHeader().click();
     DashboardPage.violationsView().results().violations().shouldHaveSize(51);
@@ -375,9 +381,11 @@ public class ViolationDetailsTest
     DashboardPage.violationsView().results().violations().shouldHaveSize(51);
 
     NxPolicyThreatLevelFilter threatLevelFilter = DashboardFilters.policyThreatLevelFilter();
+    DashboardPage.filterToggle().click();
     threatLevelFilter.twisty().click();
     threatLevelFilter.slider().setValues(8, 10);
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.violationsView().results().violations().shouldHaveSize(1);
 
     refreshOrOpen(ViolationDetailsPage.urlWithQueryParams(selectedPolicyViolation.getId(), "violation", "filter"));
@@ -385,8 +393,10 @@ public class ViolationDetailsTest
 
     refreshOrOpen(DashboardPage.urlToViolations());
     ManageFiltersDropdown manage = new ManageFiltersDropdown();
+    DashboardPage.filterToggle().click();
     manage.openMenuButton().click();
     manage.dropdownMenu().defaultFilterOption().click();
+    DashboardFilters.closeButton().click();
   }
 
   private void mockHdsResponseForVulnerabilityDetails() {

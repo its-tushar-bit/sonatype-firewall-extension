@@ -27,12 +27,14 @@ import {
   TOGGLE_APPS_AND_ORGS,
   SELECT_AGE,
   REVERT_FILTER,
-  SET_DISPLAY_SAVE_FILTER_MODAL
+  SET_DISPLAY_SAVE_FILTER_MODAL,
+  TOGGLE_FILTER_SIDEBAR
 } from './dashboardFilterActions';
 
 import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
 
 const initState = Object.freeze({
+  filterSidebarOpen: false,
   loading: true,
   loadError: null,
   applyFilterError: null,
@@ -83,6 +85,7 @@ export default function dashboardFilterReducer(state = initState, {type, payload
       return compose(
           applyFilter(payload),
           propSet('needsAcknowledgement', payload.needsAcknowledgement),
+          propSet('filterSidebarOpen', payload.needsAcknowledgement),
           propSet('loading', false)
       )(state);
 
@@ -131,6 +134,12 @@ export default function dashboardFilterReducer(state = initState, {type, payload
 
     case SET_DISPLAY_SAVE_FILTER_MODAL:
       return {...state, showSaveFilterModal: payload};
+
+    case TOGGLE_FILTER_SIDEBAR:
+      return state.filterSidebarOpen && (state.filtersAreDirty || state.needsAcknowledgement) ? state : {
+        ...state,
+        filterSidebarOpen: payload
+      };
 
     default:
       return state;

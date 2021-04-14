@@ -33,6 +33,8 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.google.common.collect.ImmutableMap.of;
+import static com.sonatype.clm.testing.functional.elements.MainHeader.CSS_SIDEBAR_CLOSED;
+import static com.sonatype.clm.testing.functional.elements.MainHeader.CSS_SIDEBAR_OPEN;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 
 public class MainHeaderTest
@@ -70,6 +72,25 @@ public class MainHeaderTest
         testCLMServer.getCLMServer().getInstance(ProductLicenseService.class).validateLicense().productEdition
             + " release " + version;
     MainHeader.productVersion().shouldHave(text(productVersion));
+  }
+
+  @Test
+  public void testSidebar_DefaultsToOpen() {
+    MainHeader.sidebar()
+        .shouldBe(visible)
+        .shouldHave(CSS_SIDEBAR_OPEN)
+        .shouldNotHave(CSS_SIDEBAR_CLOSED);
+  }
+
+  @Test
+  public void testSidebar_Toggles() {
+    MainHeader.sidebar().shouldBe(visible).shouldHave(CSS_SIDEBAR_OPEN);
+    eyesWatcher.eyesCheck("Left Nav Sidebar Open");
+    MainHeader.toggleNavigationButton().shouldBe(visible).click();
+    MainHeader.sidebar().shouldBe(visible).shouldHave(CSS_SIDEBAR_CLOSED);
+    eyesWatcher.eyesCheck("Left Nav Sidebar Closed");
+    MainHeader.toggleNavigationButton().shouldBe(visible).click();
+    MainHeader.sidebar().shouldBe(visible).shouldHave(CSS_SIDEBAR_OPEN);
   }
 
   @Test

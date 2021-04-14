@@ -113,7 +113,8 @@ public class PolicyCentricReportWaiverTest
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
 
-    reportPage.showAllViolationsRadio().click();
+    reportPage.aggregateByComponentToggle().shouldBeOn().click();
+    reportPage.aggregateByComponentToggle().shouldBeOff();
 
     reportPage.resultRow(2).shouldHave(text("ch.qos.logback : logback-access : 0.6"));
   }
@@ -344,3 +345,4 @@ public class PolicyCentricReportWaiverTest
     return null;
   }
 }
+

@@ -299,20 +299,4 @@ describe('LegalDashboardFilter', function() {
       expect(shallowRender).not.toContainReact(<SaveLegalFilterModalContainerMock/>);
     });
   });
-
-  describe('DeleteFilterModal', function() {
-    it('is rendered when filterToDelete is not null', function() {
-      const shallowRender = getShallowComponent({
-        filterToDelete: 'bar'
-      });
-
-      expect(shallowRender).toContainReact(<DeleteLegalFilterModalContainerMock/>);
-    });
-
-    it('is not rendered when filterToDelete is null', function() {
-      const shallowRender = getShallowComponent();
-
-      expect(shallowRender).not.toContainReact(<DeleteLegalFilterModalContainerMock/>);
-    });
-  });
 });

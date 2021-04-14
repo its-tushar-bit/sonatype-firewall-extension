@@ -15,10 +15,7 @@ function mapStateToProps({ manageFilters, dashboardFilter }) {
     ...pick([
       'appliedFilterName',
       'showDirtyAsterisk',
-      'showSaveFilterModal',
-      'savedFilters',
-      'filtersDropdownOpen',
-      'filterToDelete'
+      'savedFilters'
     ], manageFilters)
   };
 }

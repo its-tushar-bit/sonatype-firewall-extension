@@ -22,16 +22,18 @@
 </head>
 <body class="nx-body" ng-csp="no-unsafe-eval">
   <div class="nx-page">
-    <main-header class="nx-page-header" ng-if="!$state.params.embeddable" product-edition="{{productEdition}}">
-    </main-header>
     <system-notice ng-if="!error"></system-notice>
     <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>
-    <div class="nx-page-content" ui-view ng-if="!error"></div>
-    <div class="nx-page-content" ng-if="error">
-      <div ng-cloak ng-if="error" class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i><strong>Error</strong>
-        <p>An unrecoverable error has occurred while loading the page.</p>
-        <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
+    <div id="iq-content" class="nx-page-content nx-page-content--full-width" >
+      <main-header ng-if="!$state.params.embeddable" product-edition="{{productEdition}}">
+      </main-header>
+      <ui-view ng-if="!error"></ui-view>
+      <div class="nx-page-main nx-page-main--error" ng-if="error">
+        <div ng-cloak class="iq-alert iq-alert--error">
+          <i class="fa fa-warning"></i><strong>Error</strong>
+          <p>An unrecoverable error has occurred while loading the page.</p>
+          <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
+        </div>
       </div>
     </div>
   </div>

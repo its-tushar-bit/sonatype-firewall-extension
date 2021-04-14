@@ -129,7 +129,7 @@ describe('DashboardViolationsTable', function() {
           infoBox = tRow.find('#needs-acknowledgement');
 
       expect(tBody.children().length).toEqual(1);
-      expect(infoBox).toHaveText('Select your filter criteria on the left, and click \'apply\' to see results.');
+      expect(infoBox).toHaveText('Select your filter criteria and click \'apply\' to see results.');
     });
 
     it('renders an empty message if the table is empty', () => {

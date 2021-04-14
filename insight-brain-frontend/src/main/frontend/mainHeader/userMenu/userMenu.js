@@ -5,7 +5,7 @@
  */
 import { pick } from 'ramda';
 import modalWrapperTemplate from './userDetailsModalWrapper.html';
-import { faUserAlt } from '@fortawesome/pro-regular-svg-icons';
+import { faUserCircle } from '@fortawesome/pro-solid-svg-icons';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import template from './userMenu.html';
 import { showUserTokenModal } from './userToken/userTokenActions';
@@ -14,7 +14,7 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
   var vm = this;
   vm.logoutMask = undefined;
 
-  vm.faUserAlt = faUserAlt;
+  vm.faUserCircle = faUserCircle;
   vm.faCaretDown = faCaretDown;
 
   const mapDispatchToProps = {

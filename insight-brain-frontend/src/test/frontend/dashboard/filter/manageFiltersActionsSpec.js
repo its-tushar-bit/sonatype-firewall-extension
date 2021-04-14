@@ -426,7 +426,7 @@ describe('manageFilterActions', function() {
       expect(store.getActions().length).toBe(1);
     });
 
-    it('closes filters dropdown and delete filter modal after deleteSavedFilters completes', function(done) {
+    it('closes delete filter modal after deleteSavedFilters completes', function(done) {
       const getSavedFiltersResponse = { foo: 'bar' };
 
       mockAxiosCalls({
@@ -445,10 +445,8 @@ describe('manageFilterActions', function() {
             expect(actions.length).toBe(3);
 
             setTimeout(function() {
-              expect(actions.length).toBe(5);
-              expect(actions[3].type).toBe('TOGGLE_FILTERS_DROPDOWN');
-              expect(actions[3].payload).toBe(false);
-              expect(actions[4].type).toBe('HIDE_DELETE_FILTER_MODAL');
+              expect(actions.length).toBe(4);
+              expect(actions[3].type).toBe('HIDE_DELETE_FILTER_MODAL');
 
               done();
             }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);

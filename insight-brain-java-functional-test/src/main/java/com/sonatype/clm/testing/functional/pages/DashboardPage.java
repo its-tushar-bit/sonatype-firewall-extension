@@ -44,7 +44,7 @@ public class DashboardPage
 
   public static final String ROOT =  "#dashboard-container";
 
-  public static final String NEEDS_ACKNOWLEDGEMENT_MESSAGE = "Select your filter criteria on the left, and click " +
+  public static final String NEEDS_ACKNOWLEDGEMENT_MESSAGE = "Select your filter criteria and click " +
       "'apply' to see results.";
 
   public static SelenideElement dashboardContainer() {
@@ -65,6 +65,14 @@ public class DashboardPage
 
   public static SelenideElement exportResultsLink() {
     return $("#export-results");
+  }
+
+  public static SelenideElement filterToggle() {
+    return $("#filter-toggle");
+  }
+
+  public static SelenideElement filterToggleDirtyAsterisk() {
+    return $("#filter-toggle-dirty-asterisk");
   }
 
   public static DashboardComponents componentsView() {

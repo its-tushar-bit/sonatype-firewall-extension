@@ -3,8 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { shallow } from 'enzyme';
 import { NxModal, NxSubmitMask, NxWarningAlert } from '@sonatype/react-shared-components';
 import NxTextInput from '@sonatype/react-shared-components/components/NxTextInput/NxTextInput';
 
@@ -13,19 +11,10 @@ import SaveFilterModalContent
   from '../../../../../main/frontend/dashboard/filter/saveFilterModal/SaveFilterModalContent';
 
 describe('SaveFilterModalContent component', function() {
-  let getShallowComponent,
-      mountedComponent;
+  let getShallowComponent;
 
   beforeEach(function() {
     getShallowComponent = enzymeUtils.getShallowComponent(SaveFilterModalContent);
-  });
-
-  afterEach(function() {
-    if (mountedComponent) {
-      mountedComponent.unmount();
-    }
-
-    mountedComponent = null;
   });
 
   it('returns an NxModal component', function() {
@@ -45,13 +34,13 @@ describe('SaveFilterModalContent component', function() {
   });
 
   it('returns an NxSubmitMask component iff saveFilterSuccess or saveFilterSaving is true', function() {
-    let wrapper = shallow(<SaveFilterModalContent/>);
+    let wrapper = getShallowComponent();
     expect(wrapper.find(NxSubmitMask)).not.toExist();
 
-    wrapper = shallow(<SaveFilterModalContent saveFilterSuccess={true} />);
+    wrapper = getShallowComponent({ saveFilterSuccess: true });
     expect(wrapper.find(NxSubmitMask)).toExist();
 
-    wrapper = shallow(<SaveFilterModalContent saveFilterSaving={true} />);
+    wrapper = getShallowComponent({ saveFilterSaving: true });
     expect(wrapper.find(NxSubmitMask)).toExist();
   });
 

@@ -19,6 +19,7 @@ import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupTile;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.MoveApplicationDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
@@ -507,6 +508,7 @@ public class ApplicationSummaryViewTest
   public void testSourceControlTile() {
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -523,6 +525,7 @@ public class ApplicationSummaryViewTest
         tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     refresh();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -540,6 +543,7 @@ public class ApplicationSummaryViewTest
     sourceControlDAO.update(rootSourceControl);
     refresh();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -555,6 +559,7 @@ public class ApplicationSummaryViewTest
     tempEntity.newSourceControl(application.getId(), "http://github.com/aaa/bbb", "TEST_TOKEN", null);
     refresh();
 
+    MainHeader.closeNavigationSidebar();
     OwnerSummaryPage.summaryTile().dropdownButton().click();
     OwnerSummaryPage.summaryTile().sourceControlButton().shouldBe(visible).click();
 
@@ -572,6 +577,7 @@ public class ApplicationSummaryViewTest
   public void testSourceControlTile_LicensingAwareNoLicense() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     refresh();
+    MainHeader.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     OwnerSummaryPage.summaryTile().dropdownButton().click();
@@ -594,6 +600,7 @@ public class ApplicationSummaryViewTest
   public void testSourceControlTile_LicensingAwareNotificationOnly() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
+    MainHeader.closeNavigationSidebar();
     SourceControlTile tile = OwnerSummaryPage.sourceControlTile();
 
     OwnerSummaryPage.summaryTile().dropdownButton().click();

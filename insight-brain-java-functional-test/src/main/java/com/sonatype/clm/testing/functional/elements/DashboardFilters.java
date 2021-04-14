@@ -27,6 +27,22 @@ public class DashboardFilters
 
   public static final Condition SELECTED_SAVED_FILTER_OPTION = cssClass("iq-manage-filters-dropdown__option--selected");
 
+  public static SelenideElement filterContainer() {
+    return $("#dashboard-filter-container");
+  }
+
+  public static SelenideElement modalBackdrop() {
+    return $("#dashboard-filter-container .nx-modal-backdrop");
+  }
+
+  public static SelenideElement closeButton() {
+    return $("#dashboard-filter-close-btn");
+  }
+
+  public static Tooltip closeButtonTooltip() {
+    return new Tooltip("#dashboard-filter-close-btn-tooltip");
+  }
+
   public static NxTreeViewMultiSelect organizationFilter() {
     return new NxTreeViewMultiSelect("#org-app-filters > div:nth-child(1)");
   }

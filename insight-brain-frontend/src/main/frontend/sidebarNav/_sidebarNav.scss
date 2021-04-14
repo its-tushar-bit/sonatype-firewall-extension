@@ -10,6 +10,11 @@ sidebar-view {
   display: contents;
 }
 
+#iq-content .nx-page-sidebar {
+  margin-top: $nx-main-header-height;
+  padding-top: $nx-spacing-sm;
+}
+
 .nx-page-sidebar.nx-page-sidebar--nav-sidebar {
   //allow scrolling list to go all the way to the bottom
   padding-bottom: 0;

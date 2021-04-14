@@ -194,6 +194,7 @@ public class DashboardViolationsTest
     showLowRiskViolations();
     table.violations().shouldHaveSize(4);
 
+    DashboardPage.filterToggle().click();
     AgeFilter ageFilter = DashboardFilters.ageFilter();
     ageFilter.shouldBe(visible).counter().shouldHave(text("past 30 days"));
     ageFilter.twisty().click();
@@ -228,20 +229,11 @@ public class DashboardViolationsTest
     secondViolation.componentEllipsis().hover();
     Tooltip.get().shouldHave(text("g2 : a2 : v2-SNAPSHOT-TEST-RELEASE-CANDIDATE-1234567890"));
 
-    DashboardFilters.revertButton().hover();
-    Tooltip.get().shouldBe(hidden);
-
     secondViolation.policy().shouldBe(visible).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text(securityPolicy.getName()));
 
-    DashboardFilters.revertButton().hover();
-    Tooltip.get().shouldBe(hidden);
-
     secondViolation.application().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text(app2.getName()));
-
-    DashboardFilters.revertButton().hover();
-    Tooltip.get().shouldBe(hidden);
 
     ViolationsHeaders headers = DashboardPage.violationsView().headers();
 
@@ -378,9 +370,11 @@ public class DashboardViolationsTest
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out threat level 1
+    DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -393,10 +387,12 @@ public class DashboardViolationsTest
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out Build violations
+    DashboardPage.filterToggle().click();
     DashboardFilters.stageFilter().twisty().click();
     DashboardFilters.stageFilter().allItems().click();
     DashboardFilters.stageFilter().build().click();
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -408,10 +404,12 @@ public class DashboardViolationsTest
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out Security policy type violations
+    DashboardPage.filterToggle().click();
     DashboardFilters.policyTypeFilter().twisty().click();
     DashboardFilters.policyTypeFilter().allItems().click();
     DashboardFilters.policyTypeFilter().security().click();
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = ImmutableMap.of(
@@ -420,10 +418,12 @@ public class DashboardViolationsTest
     assertViolationsCsv(exportCsv, expectedResults, policyViolationsByPolicyAndDate);
 
     // CSV export - filter out App1
+    DashboardPage.filterToggle().click();
     DashboardFilters.applicationFilter().twisty().click();
     DashboardFilters.applicationFilter().allItems().click();
     DashboardFilters.applicationFilter().checkboxItem(2).click();
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     assertThat(exportCsv).as("Expected empty export").isEqualTo(CSV_HEADERS);
@@ -860,10 +860,11 @@ public class DashboardViolationsTest
   }
 
   private void showLowRiskViolations() {
+    DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.apply();
-    DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.closeButton().click();
   }
 
   private void clearFilters() {

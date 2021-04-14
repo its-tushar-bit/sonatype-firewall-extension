@@ -158,7 +158,7 @@ describe('DashboardApplicationsTable', function() {
 
       expect(alertRow).toExist();
       expect(alertRow.find(NxInfoAlert)).toHaveText(
-          'Select your filter criteria on the left, and click \'apply\' to see results.');
+          'Select your filter criteria and click \'apply\' to see results.');
     });
 
     it('renders a row with an error message when an error is present with the appropriate retry handler', function() {

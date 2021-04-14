@@ -1355,6 +1355,7 @@ public abstract class AbstractPolicyEditorTest
         .chooseOption(conditionTypesOptionMap.get(SecurityVulnerabilityCategoryConditionType.class));
     vulnerabilityCategory.operator().selectedItem().shouldHave(text("is")).click();
     vulnerabilityCategory.operator().listItem(1).shouldHave(text("is not")).click();
+    MainHeader.closeNavigationSidebar();
     vulnerabilityCategory.value().selectedItem().shouldHave(text("Configuration")).click();
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 

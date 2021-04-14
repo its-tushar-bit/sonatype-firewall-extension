@@ -24,6 +24,11 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
 
     updateRenderedEntriesPromise: null,
 
+    aggregateByComponentToggleLabel: 'Aggregate by component',
+
+    aggregateByComponentToggleTooltip: 'By default the Application Report aggregates violations by component. ' +
+        'To see all violations not Aggregated by Component, please switch the toggle off.',
+
     $onInit() {
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
       $scope.$watch('vm.reportParameters', function(reportParameters) {
@@ -39,6 +44,10 @@ function ApplicationReportResultsController($state, $ngRedux, $scope, $timeout, 
           showCipModalIfNecessary();
         }
       });
+    },
+
+    aggregateByComponentToggle() {
+      vm.setAggregateReportEntries(!vm.aggregate);
     },
 
     $onDestroy() {

@@ -18,7 +18,7 @@ public class RoutingErrorBox
   }
 
   public static SelenideElement errorBox() {
-    return $(".iq-alert--error[ng-if='error']");
+    return $(".iq-alert--error");
   }
 
   public static SelenideElement errorMessage() {

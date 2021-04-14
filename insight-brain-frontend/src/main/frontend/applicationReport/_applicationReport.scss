@@ -5,6 +5,8 @@
  */
 @import "results/cipModal/cipModal";
 @import "rawData/applicationReportRawData";
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
 $iq-application-report-policy-threat-level-width: 90px;
 $iq-application-report-policy-name-width: 225px;
@@ -33,17 +35,34 @@ application-report-root, application-report, application-report-results, applica
     border-bottom: 1px solid $iq-grey-4;
   }
 
-  .iq-back-button {
-    margin-bottom: $iq-spacing-sm;
-  }
-
   .iq-tile {
     margin-top: 0;
+  }
+
+  .iq-page-back-button {
+    margin-bottom: $nx-spacing-xs;
   }
 }
 
 .iq-tile--application-report {
   margin-bottom: 0;
+}
+
+.iq-tile--application-report-pre-header-row {
+  display: flex;
+  justify-content: flex-end;
+
+  &.nx-btn-bar {
+    margin-bottom: 0px;
+  }
+
+  .nx-toggle {
+    margin: 10px 0 8px 0;
+  }
+
+  #filter-toggle {
+    margin-left: $iq-spacing-l;
+  }
 }
 
 .iq-dropdown--application-results-options {
@@ -151,3 +170,35 @@ tbody .iq-cell--application-report-component-display {
 .iq-vulnerability-component-name {
   max-width: 850px;
 }
+
+#application-report-sidebar {
+  $top-nav-height: 72px;
+  $sidebar-width: 344px;
+
+  position: fixed;
+  bottom: 0;
+  right: 0;
+
+  background-color: $nx-white;
+  border: 1px $nx-indigo-100 solid;
+  box-sizing: border-box;
+  height: calc(100% - #{$top-nav-height});
+  width: $sidebar-width;
+  padding: $nx-spacing-l;
+  z-index: 1040; // behind the CIP but above all else
+}
+
+.application-report-filter-header__title {
+  @include container-horizontal;
+  border-bottom: 1px $nx-indigo-100 solid;
+  padding-bottom: $nx-spacing-xs;
+  position: relative; // needed for box-shadow to render
+  z-index: 1;
+  display: flex;
+
+  .application-report-filter-header__title-text {
+    flex-grow: 1;
+    margin-top: 6px;
+  }
+}
+

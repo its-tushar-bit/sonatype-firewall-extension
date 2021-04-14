@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
+import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 import template from './helpMenu.html';
 
 /* global clmServerVersion */

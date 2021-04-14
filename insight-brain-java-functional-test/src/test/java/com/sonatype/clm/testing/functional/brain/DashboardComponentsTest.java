@@ -255,10 +255,12 @@ public class DashboardComponentsTest
     assertComponentsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out threat level 1
+    DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
     eyesWatcher.eyesCheck("Components tab with form-mask");
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -269,8 +271,11 @@ public class DashboardComponentsTest
     assertComponentsCsv(exportCsv, expectedResults);
 
     // CSV export - filter out threat level 3
+    DashboardPage.filterToggle().click();
+    DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(7, 10);
     DashboardFilters.apply();
+    DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();
     exportCsv = new String(responseCopyHandler.consumeResponse());
     expectedResults = new String[]{
@@ -480,10 +485,11 @@ public class DashboardComponentsTest
   }
 
   private void showLowRiskViolations() {
+    DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(0, 10);
     DashboardFilters.apply();
-    DashboardFilters.policyThreatLevelFilter().twisty().click();
+    DashboardFilters.closeButton().click();
   }
 
   private void clearFilters() {

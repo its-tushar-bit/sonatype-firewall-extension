@@ -143,7 +143,7 @@ describe('DashboardComponentsTable', function() {
 
       expect(alertRow).toExist();
       expect(alertRow.find(NxInfoAlert)).toHaveText(
-          'Select your filter criteria on the left, and click \'apply\' to see results.');
+          'Select your filter criteria and click \'apply\' to see results.');
     });
 
     it('renders an empty message on the NxTableBody if there are no components to display', function() {

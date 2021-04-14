@@ -5,18 +5,53 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
 public class MainHeader
 {
+  public static final Condition CSS_SIDEBAR_OPEN = Condition.cssClass("open");
+
+  public static final Condition CSS_SIDEBAR_CLOSED = Condition.cssClass("closed");
+
   public static SelenideElement get() {
     return $("main-header");
   }
 
+  public static SelenideElement sidebar() {
+    return $(".nx-global-sidebar");
+  }
+
   public static SelenideElement productVersion() {
-    return $(".iq-title__version");
+    return $(".iq-sidebar-nav-footer__product-info");
+  }
+
+  public static SelenideElement productLogo() {
+    return $(".nx-global-sidebar__logo");
+  }
+
+  public static SelenideElement toggleNavigationButton() {
+    return $(".nx-global-sidebar__toggle");
+  }
+
+  public static void closeNavigationSidebar() {
+    SelenideElement sidebarToggle = toggleNavigationButton();
+    if (sidebar().has(CSS_SIDEBAR_CLOSED)) {
+      return;
+    }
+
+    sidebarToggle.click();
+  }
+
+  public static void openNavigationSidebar() {
+    SelenideElement sidebarToggle = toggleNavigationButton();
+    if (sidebar().has(CSS_SIDEBAR_OPEN)) {
+      return;
+    }
+
+    sidebarToggle.click();
   }
 
   public static MainHeaderNavigationButton dashboardNavigationButton() {

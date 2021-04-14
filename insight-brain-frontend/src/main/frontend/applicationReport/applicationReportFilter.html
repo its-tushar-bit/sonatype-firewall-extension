@@ -1,0 +1,50 @@
+<aside  ng-if="vm.filterSidebarOpen" id="application-report-sidebar" class="nx-viewport-sized">
+  <fieldset class="iq-form-group">
+    <div class="application-report-filter-header__title">
+      <h3 class="nx-h3 application-report-filter-header__title-text">Filter</h3>
+      <button id="application-report-filter-close-btn" class="nx-btn nx-btn--icon-only"
+              ng-click="vm.closeSideBarFilterIfOpen()">
+        <nx-font-awesome-icon icon="vm.faArrowToRightIcon"></nx-font-awesome-icon>
+      </button>
+    </div>
+    <iq-tree-view-multi-select id="proprietary-filter"
+                               name="proprietary-filter"
+                               available="vm.availableProprietaryFilterOptions"
+                               selected="vm.exactValueFilters.proprietary"
+                               on-change="vm.setProprietaryFilterOptions(selected)">
+      Proprietary
+    </iq-tree-view-multi-select>
+    <iq-tree-view-multi-select id="match-state-filter"
+                               name="match-state-filter"
+                               available="vm.availableMatchStateFilterOptions"
+                               selected="vm.exactValueFilters.matchState"
+                               on-change="vm.setMatchStateFilterOptions(selected)">
+      Component Match State
+    </iq-tree-view-multi-select>
+    <iq-tree-view-multi-select id="violation-state-filter"
+                               name="violation-state-filter"
+                               available="vm.availableViolationStateFilterOptions"
+                               selected="vm.violationStateCheckedIds"
+                               on-change="vm.setViolationStateFilterOptions(selected)">
+      Violation State
+    </iq-tree-view-multi-select>
+    <iq-tree-view-multi-select id="dependency-type-filter"
+                               available="vm.availableDependencyTypeFilterOptions"
+                               selected="vm.exactValueFilters.derivedDependencyType"
+                               on-change="vm.setDependencyTypeFilterOptions(selected)">
+      Dependency Type
+    </iq-tree-view-multi-select>
+    <iq-tree-view-multi-select id="policy-type-filter"
+                               is-disabled="!vm.policyTypeFilterEnabled"
+                               disabled-tooltip="Reevaluate the report in order to enable Policy Types filter"
+                               available="vm.availablePolicyTypeFilterOptions"
+                               selected="vm.exactValueFilters.policyThreatCategory"
+                               on-change="vm.setPolicyTypeFilterOptions(selected)">
+      Policy Types
+    </iq-tree-view-multi-select>
+    <iq-tree-view-policy-threat-level-slider id="threat-level-filter"
+                                             selected-range="vm.policyThreatLevelFilterSelectedRange"
+                                             on-change="vm.setPolicyThreatLevelFilter(value)">
+    </iq-tree-view-policy-threat-level-slider>
+  </fieldset>
+</aside>

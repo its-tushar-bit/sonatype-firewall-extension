@@ -49,7 +49,8 @@ import {
   UNSELECT_ROOT_ANCESTOR,
   GENERATE_VULNERABILITY_ENTRIES,
   SET_SORTING_PARAMETERS,
-  SELECT_COMPONENT
+  SELECT_COMPONENT,
+  APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR
 } from './applicationReportActions';
 
 import { sortItemsByFields } from '../util/sortUtils';
@@ -63,6 +64,7 @@ import { pathSet } from '../util/jsUtil';
 
 const initState = Object.freeze({
   pendingLoads: new Set(),
+  filterSidebarOpen: false,
   reevaluating: false,
   loadError: null,
   reevaluationError: null,
@@ -203,6 +205,9 @@ export default function applicationReportReducer(state = initState, {type, paylo
 
     case SELECT_COMPONENT:
       return setSelectedComponent(state, payload);
+
+    case APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR:
+      return { ...state, filterSidebarOpen: payload };
 
     default:
       return state;

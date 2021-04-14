@@ -23,8 +23,7 @@ describe('LegalDashboardFilterContainerSpec', function() {
         showDirtyAsterisk: 'showDirtyAsterisk',
         showSaveFilterModal: 'showSaveFilterModal',
         savedFilters: 'savedFilters',
-        filtersDropdownOpen: 'filtersDropdownOpen',
-        filterToDelete: 'filterToDelete'
+        filtersDropdownOpen: 'filtersDropdownOpen'
       },
       legalDashboardFilter: {
         foo: 'bar'
@@ -54,7 +53,6 @@ describe('LegalDashboardFilterContainerSpec', function() {
     expect(wrapper).toHaveProp('showSaveFilterModal', 'showSaveFilterModal');
     expect(wrapper).toHaveProp('savedFilters', 'savedFilters');
     expect(wrapper).toHaveProp('filtersDropdownOpen', 'filtersDropdownOpen');
-    expect(wrapper).toHaveProp('filterToDelete', 'filterToDelete');
     expect(wrapper).toHaveProp('foo', 'bar');
   });
 

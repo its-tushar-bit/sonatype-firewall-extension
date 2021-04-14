@@ -446,15 +446,6 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 .component-container {
   height: 100%;
   overflow-y: auto;
-
-  & > div {
-    margin: 0 auto;
-    width: 850px;
-
-    @media (min-width: 1250px) {
-      width: 1110px;
-    }
-  }
 }
 
 .component-total-risk {

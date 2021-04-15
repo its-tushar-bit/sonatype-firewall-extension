@@ -9,14 +9,7 @@ import withStoreProvider from '../../reactAdapter/StoreProvider';
 
 export default angular
   .module('appReport', [])
-  .component(
-    'appReport',
-    react2angular(
-      withStoreProvider(ReportPageContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
-  )
+  .component('appReport', react2angular(withStoreProvider(ReportPageContainer), [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -25,8 +18,7 @@ function routes($stateProvider) {
     data: {
       title: 'Application Report',
     },
-    url:
-      '/reactAppReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId',
+    url: '/reactAppReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId',
   });
 }
 

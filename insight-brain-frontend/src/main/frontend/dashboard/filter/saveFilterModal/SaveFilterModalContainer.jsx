@@ -31,8 +31,5 @@ function mapStateToProps({ manageFilters }) {
   };
 }
 
-const SaveFilterModalContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(SaveFilterModalContent);
+const SaveFilterModalContainer = connect(mapStateToProps, mapDispatchToProps)(SaveFilterModalContent);
 export default SaveFilterModalContainer;

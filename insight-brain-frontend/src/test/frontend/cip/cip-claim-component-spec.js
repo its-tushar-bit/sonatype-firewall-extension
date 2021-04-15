@@ -42,12 +42,7 @@ describe('CIP Claim Component tests', function () {
     })
   );
   // setup our http backend to return what we want
-  beforeEach(inject(function (
-    $rootScope,
-    $controller,
-    $httpBackend,
-    $location
-  ) {
+  beforeEach(inject(function ($rootScope, $controller, $httpBackend, $location) {
     window.InsightDatatable = {
       getActiveTable: function () {
         return {
@@ -108,24 +103,15 @@ describe('CIP Claim Component tests', function () {
     expect(scope.formValid()).toEqual(true);
 
     $http
-      .expectPOST(
-        SpecUtil.toRegExp('../brain/rest/component/identified'),
-        function (data) {
-          var obj = JSON.parse(data);
-          expect(obj.componentIdentifier.coordinates.groupId).toEqual(
-            'groupid'
-          );
-          expect(obj.componentIdentifier.coordinates.artifactId).toEqual(
-            'artifactid'
-          );
-          expect(obj.componentIdentifier.coordinates.version).toEqual(
-            'version'
-          );
-          expect(obj.componentIdentifier.coordinates.classifier).toEqual('');
-          expect(obj.componentIdentifier.coordinates.extension).toEqual('e');
-          return true;
-        }
-      )
+      .expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified'), function (data) {
+        var obj = JSON.parse(data);
+        expect(obj.componentIdentifier.coordinates.groupId).toEqual('groupid');
+        expect(obj.componentIdentifier.coordinates.artifactId).toEqual('artifactid');
+        expect(obj.componentIdentifier.coordinates.version).toEqual('version');
+        expect(obj.componentIdentifier.coordinates.classifier).toEqual('');
+        expect(obj.componentIdentifier.coordinates.extension).toEqual('e');
+        return true;
+      })
       .respond(component);
     scope.claimSubmit();
     $http.flush();
@@ -143,9 +129,7 @@ describe('CIP Claim Component tests', function () {
         id: '1',
       },
     ];
-    $http
-      .expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified'))
-      .respond(component);
+    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(component);
     scope.claimSubmit();
     $http.flush();
 
@@ -155,9 +139,7 @@ describe('CIP Claim Component tests', function () {
 
   it('Can revoke a claim on a component', inject(function (Dialog) {
     spyOn(Dialog, 'open');
-    $http
-      .expectDELETE(SpecUtil.toRegExp('../brain/rest/component/identified/1'))
-      .respond(204);
+    $http.expectDELETE(SpecUtil.toRegExp('../brain/rest/component/identified/1')).respond(204);
 
     scope.revokeClaimSubmit();
 
@@ -192,9 +174,7 @@ describe('CIP Claim Component tests', function () {
       },
     ];
 
-    $http
-      .expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified'))
-      .respond(component);
+    $http.expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(component);
     scope.claimUpdateSubmit();
     $http.flush();
     confirmDataViewUpdated(1);
@@ -213,9 +193,7 @@ describe('CIP Claim Component tests', function () {
       scope.claimForm = { $setDirty: angular.noop };
       formSetDirtySpy = spyOn(scope.claimForm, '$setDirty');
 
-      element = angular.element(
-        '<div clm-datepicker><input name="foo" ng-model="claimData.createTimeText"></div>'
-      );
+      element = angular.element('<div clm-datepicker><input name="foo" ng-model="claimData.createTimeText"></div>');
       $compile(element)(scope);
     }));
 

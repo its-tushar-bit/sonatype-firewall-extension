@@ -22,15 +22,8 @@ describe('userForm', function () {
     );
   }
 
-  beforeEach(
-    angular.mock.module(userModule.name, LegacyConfigurationModule.name)
-  );
-  beforeEach(inject(function (
-    _$componentController_,
-    _$rootScope_,
-    _UserStore_,
-    _Dialog_
-  ) {
+  beforeEach(angular.mock.module(userModule.name, LegacyConfigurationModule.name));
+  beforeEach(inject(function (_$componentController_, _$rootScope_, _UserStore_, _Dialog_) {
     $componentController = _$componentController_;
     $rootScope = _$rootScope_;
     UserStore = _UserStore_;
@@ -84,15 +77,9 @@ describe('userForm', function () {
 
     dirtyUserController.user.firstName = 'Alan';
 
-    expect(
-      noUserParentScope.$broadcast('pageChangeStarted').defaultPrevented
-    ).toEqual(false);
-    expect(
-      cleanUserParentScope.$broadcast('pageChangeStarted').defaultPrevented
-    ).toEqual(false);
-    expect(
-      dirtyUserParentScope.$broadcast('pageChangeStarted').defaultPrevented
-    ).toEqual(true);
+    expect(noUserParentScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(false);
+    expect(cleanUserParentScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(false);
+    expect(dirtyUserParentScope.$broadcast('pageChangeStarted').defaultPrevented).toEqual(true);
   });
 
   describe('saveClick', function () {

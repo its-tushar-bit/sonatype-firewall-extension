@@ -4,12 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-export default function RepositoryReportController(
-  $http,
-  $stateParams,
-  CLMLocations,
-  ReEvaluateModal
-) {
+export default function RepositoryReportController($http, $stateParams, CLMLocations, ReEvaluateModal) {
   var vm = this;
 
   vm.doLoad = doLoad;
@@ -22,26 +17,19 @@ export default function RepositoryReportController(
 
   function doLoad() {
     delete vm.error;
-    $http
-      .get(CLMLocations.getRepositoryInfoUrl($stateParams.repositoryId))
-      .then(
-        function (response) {
-          vm.repository = response.data.repository;
-          vm.repository.oldestEvalTimestamp = response.data.oldestEvalTimestamp;
-        },
-        function (error) {
-          vm.error = error;
-        }
-      );
+    $http.get(CLMLocations.getRepositoryInfoUrl($stateParams.repositoryId)).then(
+      function (response) {
+        vm.repository = response.data.repository;
+        vm.repository.oldestEvalTimestamp = response.data.oldestEvalTimestamp;
+      },
+      function (error) {
+        vm.error = error;
+      }
+    );
   }
 
   function reEvaluatePolicy() {
     ReEvaluateModal.open();
   }
 }
-RepositoryReportController.$inject = [
-  '$http',
-  '$stateParams',
-  'CLMLocations',
-  'ReEvaluateModal',
-];
+RepositoryReportController.$inject = ['$http', '$stateParams', 'CLMLocations', 'ReEvaluateModal'];

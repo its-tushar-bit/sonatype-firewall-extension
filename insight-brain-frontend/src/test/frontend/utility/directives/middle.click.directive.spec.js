@@ -19,18 +19,14 @@ describe('middle.click.directive.js', function () {
   }));
 
   it('does not call ng-click action without middle-click', function () {
-    element = compile('<a href="test" ng-click="doSomething($event)"></a>')(
-      scope
-    );
+    element = compile('<a href="test" ng-click="doSomething($event)"></a>')(scope);
     scope.$digest();
     triggerMiddleClick(element);
     expect(scope.doSomething).not.toHaveBeenCalled();
   });
 
   it('calls ng-click action with middle-click', function () {
-    element = compile(
-      '<a href="test" ng-click="doSomething($event)" middle-click></a>'
-    )(scope);
+    element = compile('<a href="test" ng-click="doSomething($event)" middle-click></a>')(scope);
     scope.$digest();
     triggerMiddleClick(element);
     expect(scope.doSomething).toHaveBeenCalledWith(event);
@@ -38,8 +34,7 @@ describe('middle.click.directive.js', function () {
 
   function triggerMiddleClick(element) {
     // the event type is determined by the browser... not all browsers support auxclick
-    var eventType =
-      'onauxclick' in document.documentElement ? 'auxclick' : 'mousedown';
+    var eventType = 'onauxclick' in document.documentElement ? 'auxclick' : 'mousedown';
     event = jQuery.Event(eventType);
     event.which = 2;
     element.trigger(event);

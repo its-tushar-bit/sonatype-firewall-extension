@@ -48,7 +48,4 @@ const mapDispatchToProps = {
   setObligationStatus,
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LicenseObligationAttributionTile);
+export default connect(mapStateToProps, mapDispatchToProps)(LicenseObligationAttributionTile);

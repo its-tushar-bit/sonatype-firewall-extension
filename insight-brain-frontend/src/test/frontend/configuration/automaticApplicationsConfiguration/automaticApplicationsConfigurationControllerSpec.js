@@ -26,17 +26,11 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function () {
     getConfigurationDeferred = $q.defer();
     saveConfigurationDeferred = $q.defer();
     mockOrganizationStore = {
-      get: jasmine
-        .createSpy()
-        .and.returnValue(organizationStoreGetDeferred.promise),
+      get: jasmine.createSpy().and.returnValue(organizationStoreGetDeferred.promise),
     };
     mockAutomaticApplicationsConfigurationService = {
-      getConfiguration: jasmine
-        .createSpy()
-        .and.returnValue(getConfigurationDeferred.promise),
-      saveConfiguration: jasmine
-        .createSpy()
-        .and.returnValue(saveConfigurationDeferred.promise),
+      getConfiguration: jasmine.createSpy().and.returnValue(getConfigurationDeferred.promise),
+      saveConfiguration: jasmine.createSpy().and.returnValue(saveConfigurationDeferred.promise),
     };
     vm = $componentController('automaticApplicationsConfiguration', {
       OrganizationStore: mockOrganizationStore,
@@ -64,21 +58,13 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function () {
       $scope.$digest();
 
       expect(mockOrganizationStore.get).toHaveBeenCalled();
-      expect(vm.organizationOptions).toEqual([
-        { name: 'Test Organization', id: 'TEST_ORGANIZATION_ID' },
-      ]);
+      expect(vm.organizationOptions).toEqual([{ name: 'Test Organization', id: 'TEST_ORGANIZATION_ID' }]);
 
-      expect(
-        mockAutomaticApplicationsConfigurationService.getConfiguration
-      ).toHaveBeenCalled();
+      expect(mockAutomaticApplicationsConfigurationService.getConfiguration).toHaveBeenCalled();
       expect(vm.automaticApplicationCreationEnabled).toEqual(true);
-      expect(vm.automaticApplicationCreationOrganizationId).toEqual(
-        'organizationId'
-      );
+      expect(vm.automaticApplicationCreationOrganizationId).toEqual('organizationId');
       expect(vm.savedAutomaticApplicationCreationEnabled).toEqual(true);
-      expect(vm.savedAutomaticApplicationCreationOrganizationId).toEqual(
-        'organizationId'
-      );
+      expect(vm.savedAutomaticApplicationCreationOrganizationId).toEqual('organizationId');
 
       expect(vm.loaded).toEqual(true);
     });
@@ -100,15 +86,11 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function () {
       getConfigurationDeferred.reject({ status: 404, data: 'not found' });
       $scope.$digest();
 
-      expect(
-        mockAutomaticApplicationsConfigurationService.getConfiguration
-      ).toHaveBeenCalled();
+      expect(mockAutomaticApplicationsConfigurationService.getConfiguration).toHaveBeenCalled();
       expect(vm.automaticApplicationCreationEnabled).toBe(undefined);
       expect(vm.automaticApplicationCreationOrganizationId).toBe(undefined);
       expect(vm.savedAutomaticApplicationCreationEnabled).toBe(undefined);
-      expect(vm.savedAutomaticApplicationCreationOrganizationId).toBe(
-        undefined
-      );
+      expect(vm.savedAutomaticApplicationCreationOrganizationId).toBe(undefined);
       expect(vm.error.status).toEqual(404);
       expect(vm.error.data).toEqual('not found');
       expect(vm.loaded).toEqual(false);
@@ -139,13 +121,9 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function () {
       saveConfigurationDeferred.resolve(configuration);
       $scope.$digest();
 
-      expect(
-        mockAutomaticApplicationsConfigurationService.saveConfiguration
-      ).toHaveBeenCalledWith(configuration);
+      expect(mockAutomaticApplicationsConfigurationService.saveConfiguration).toHaveBeenCalledWith(configuration);
       expect(vm.savedAutomaticApplicationCreationEnabled).toEqual(true);
-      expect(vm.savedAutomaticApplicationCreationOrganizationId).toEqual(
-        'organizationId'
-      );
+      expect(vm.savedAutomaticApplicationCreationOrganizationId).toEqual('organizationId');
     });
 
     it('sets the error if the save request fails', function () {
@@ -160,9 +138,7 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function () {
       saveConfigurationDeferred.reject({ status: 400, data: 'bad request' });
       $scope.$digest();
 
-      expect(
-        mockAutomaticApplicationsConfigurationService.saveConfiguration
-      ).toHaveBeenCalledWith(configuration);
+      expect(mockAutomaticApplicationsConfigurationService.saveConfiguration).toHaveBeenCalledWith(configuration);
       expect(vm.error.status).toEqual(400);
       expect(vm.error.data).toEqual('bad request');
     });
@@ -195,9 +171,7 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function () {
       vm.cancel();
 
       expect(vm.automaticApplicationCreationEnabled).toEqual(true);
-      expect(vm.automaticApplicationCreationOrganizationId).toEqual(
-        'organizationId'
-      );
+      expect(vm.automaticApplicationCreationOrganizationId).toEqual('organizationId');
     });
 
     it('does not save if the form is invalid', function () {
@@ -208,9 +182,7 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function () {
       vm.automaticApplicationsConfigurationForm.$valid = false;
       vm.save();
 
-      expect(
-        mockAutomaticApplicationsConfigurationService.saveConfiguration
-      ).not.toHaveBeenCalled();
+      expect(mockAutomaticApplicationsConfigurationService.saveConfiguration).not.toHaveBeenCalled();
     });
 
     it('does not save if the form is unchanged', function () {
@@ -225,9 +197,7 @@ describe('automaticApplicationsConfigurationControllerSpec.js', function () {
       vm.savedAutomaticApplicationCreationOrganizationId = 'a';
       vm.save();
 
-      expect(
-        mockAutomaticApplicationsConfigurationService.saveConfiguration
-      ).not.toHaveBeenCalled();
+      expect(mockAutomaticApplicationsConfigurationService.saveConfiguration).not.toHaveBeenCalled();
     });
   });
 

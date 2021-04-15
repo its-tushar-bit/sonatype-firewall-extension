@@ -25,20 +25,8 @@ const ownerIdTypeMap = {
 };
 
 export default function ViolationDetailsTile(props) {
-  const {
-      $state,
-      violationDetails,
-      stageTypes,
-      stateGo,
-      activeWaivers,
-    } = props,
-    {
-      applicationPublicId,
-      policyName,
-      threatLevel,
-      policyOwner,
-      stageData,
-    } = violationDetails,
+  const { $state, violationDetails, stageTypes, stateGo, activeWaivers } = props,
+    { applicationPublicId, policyName, threatLevel, policyOwner, stageData } = violationDetails,
     policyExists = !!policyOwner.ownerId,
     threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
     threatLevelClassName = classnames(
@@ -48,26 +36,15 @@ export default function ViolationDetailsTile(props) {
     ),
     parseISODate = (time) => new Date(time),
     openTime = timeAgo(parseISODate(violationDetails.openTime)),
-    parseRecentEvaluationTimes = compose(
-      parseISODate,
-      prop('mostRecentEvaluationTime')
-    ),
-    mostRecentEvaluationTimes = map(
-      parseRecentEvaluationTimes,
-      values(violationDetails.stageData)
-    ),
+    parseRecentEvaluationTimes = compose(parseISODate, prop('mostRecentEvaluationTime')),
+    mostRecentEvaluationTimes = map(parseRecentEvaluationTimes, values(violationDetails.stageData)),
     mostRecentEvaluationTimestamp = reduce(max, 0, mostRecentEvaluationTimes),
     mostRecentEvaluationTime = timeAgo(mostRecentEvaluationTimestamp),
     // pair each possible stage type with its respective (optional) data from the backend
-    stageDisplayData = map(
-      (stageType) => [stageType, stageData[stageType.stageTypeId]],
-      stageTypes
-    ),
+    stageDisplayData = map((stageType) => [stageType, stageData[stageType.stageTypeId]], stageTypes),
     createStageDisplay = ([stageType, stageData]) => (
       <dd className="iq-read-only-data" key={stageType.stageTypeId}>
-        <StageDisplay
-          {...{ $state, stageType, stageData, applicationPublicId }}
-        />
+        <StageDisplay {...{ $state, stageType, stageData, applicationPublicId }} />
       </dd>
     ),
     onManageWaiversClick = () => {
@@ -78,11 +55,7 @@ export default function ViolationDetailsTile(props) {
       });
     },
     manageWaiversButton = (
-      <NxButton
-        id="violation-page-manage-waivers"
-        variant="tertiary"
-        onClick={onManageWaiversClick}
-      >
+      <NxButton id="violation-page-manage-waivers" variant="tertiary" onClick={onManageWaiversClick}>
         <NxFontAwesomeIcon icon={faEye} />
         <span>Manage Waivers</span>
       </NxButton>
@@ -123,9 +96,7 @@ export default function ViolationDetailsTile(props) {
     return (
       <div className={titleClassnames}>
         <h2 className="nx-h2">
-          <ViolationExclamation
-            threatLevelCategory={titleThreatLevelCategory}
-          />
+          <ViolationExclamation threatLevelCategory={titleThreatLevelCategory} />
           {violationNameText}
         </h2>
         {nonExistingPolicyText}
@@ -134,10 +105,7 @@ export default function ViolationDetailsTile(props) {
   };
 
   return (
-    <section
-      id="violation-details-tile"
-      className="nx-tile iq-violation-details"
-    >
+    <section id="violation-details-tile" className="nx-tile iq-violation-details">
       <header
         className={classnames('nx-tile-header', {
           'nx-tile-header--disabled': !policyExists,
@@ -160,9 +128,7 @@ export default function ViolationDetailsTile(props) {
           </div>
           <div className="iq-violation-details__policy-type">
             <dt>Policy Type</dt>
-            <dd className="iq-read-only-data">
-              {capitalize(violationDetails.policyThreatCategory)}
-            </dd>
+            <dd className="iq-read-only-data">{capitalize(violationDetails.policyThreatCategory)}</dd>
           </div>
           <div className="iq-violation-details__first-reported">
             <dt>First Reported</dt>
@@ -173,8 +139,7 @@ export default function ViolationDetailsTile(props) {
           <div className="iq-violation-details__last-reported">
             <dt>Last Reported</dt>
             <dd className="iq-read-only-data">
-              {mostRecentEvaluationTime.age}{' '}
-              {mostRecentEvaluationTime.qualifier}
+              {mostRecentEvaluationTime.age} {mostRecentEvaluationTime.qualifier}
             </dd>
           </div>
         </dl>
@@ -195,9 +160,7 @@ export default function ViolationDetailsTile(props) {
                       id: policyOwner.ownerId,
                     })}
                   />
-                  <a href={getOwnerHref(policyOwner)}>
-                    {policyOwner.ownerName}
-                  </a>
+                  <a href={getOwnerHref(policyOwner)}>{policyOwner.ownerName}</a>
                 </Fragment>
               ) : (
                 'Policy no longer exists'
@@ -222,8 +185,7 @@ export const violationDetailsPropTypes = {
   }).isRequired,
   threatLevel: PropTypes.number.isRequired,
   openTime: PropTypes.string.isRequired,
-  stageData: PropTypes.objectOf(StageDisplay.propTypes.stageData.isRequired)
-    .isRequired,
+  stageData: PropTypes.objectOf(StageDisplay.propTypes.stageData.isRequired).isRequired,
   applicationPublicId: PropTypes.string.isRequired,
   organizationName: PropTypes.string.isRequired,
   applicationName: PropTypes.string.isRequired,

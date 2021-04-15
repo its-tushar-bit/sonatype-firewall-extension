@@ -9,8 +9,7 @@ export default function MiddleClickDirective() {
     restrict: 'A',
     link: function (scope, element, attrs) {
       // auxclick is mainly supported in newer browsers. If not supported fallback to mousedown.
-      var event =
-        'onauxclick' in document.documentElement ? 'auxclick' : 'mousedown';
+      var event = 'onauxclick' in document.documentElement ? 'auxclick' : 'mousedown';
       element.on(event, function (e) {
         // make sure we have an ng-click attribute in addition to a middle click
         if (attrs.ngClick && e.which === 2) {

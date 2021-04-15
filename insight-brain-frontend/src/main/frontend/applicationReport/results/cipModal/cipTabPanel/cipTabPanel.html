@@ -3,10 +3,7 @@
   class="iq-cip-tab-panel"
   ng-class="vm.selectedComponent.innerSource ? 'iq-cip-tab-panel__inner-source' : ''"
 >
-  <div
-    ng-if="vm.selectedComponent.innerSource"
-    class="iq-grid-row iq-grid-row__inner-source-info"
-  >
+  <div ng-if="vm.selectedComponent.innerSource" class="iq-grid-row iq-grid-row__inner-source-info">
     <div class="iq-grid-col iq-grid-col--33">
       <h3>{{vm.selectedComponent.innerSourceData.ownerApplicationName}}</h3>
       <em>InnerSource</em>
@@ -23,9 +20,8 @@
     </div>
     <div class="iq-grid-col iq-grid-col--67">
       <div class="iq-alert iq-alert--info">
-        <i class="fa fa-info-circle"></i>InnerSource components are software
-        components that are developed internally and shared with other internal
-        projects.
+        <i class="fa fa-info-circle"></i>InnerSource components are software components that are developed internally
+        and shared with other internal projects.
       </div>
     </div>
   </div>
@@ -54,22 +50,12 @@
       close-cip-modal="vm.closeCipModal()"
       use-new-waiver-pages="true"
     ></div>
-    <cip-similar
-      ng-switch-when="similar"
-      similar-components="vm.selectedComponent.matchDetails"
-    ></cip-similar>
-    <cip-occurrences
-      ng-switch-when="occurrences"
-      pathnames="vm.selectedComponent.pathnames"
-    ></cip-occurrences>
+    <cip-similar ng-switch-when="similar" similar-components="vm.selectedComponent.matchDetails"></cip-similar>
+    <cip-occurrences ng-switch-when="occurrences" pathnames="vm.selectedComponent.pathnames"></cip-occurrences>
     <div ng-switch-when="licenses" cip-license-editor></div>
     <div ng-switch-when="vulnerabilities" cip-vulnerability-editor></div>
     <div ng-switch-when="labels" cip-label-editor></div>
-    <cip-claim-component
-      ng-switch-when="claimComponent"
-      component="vm.selectedComponent"
-    >
-    </cip-claim-component>
+    <cip-claim-component ng-switch-when="claimComponent" component="vm.selectedComponent"> </cip-claim-component>
     <cip-audit
       ng-switch-when="auditLog"
       scan-id="vm.scanId"

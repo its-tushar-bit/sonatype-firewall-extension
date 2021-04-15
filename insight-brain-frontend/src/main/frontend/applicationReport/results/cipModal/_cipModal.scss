@@ -43,12 +43,10 @@ $cip-modal-max-height: 550px;
 
     #informationPanel {
       height: calc(
-        (100vh - #{$cip-modal-vertical-margins}) - #{$cip-modal-header-height} -
-          #{$cip-modal-footer-height}
+        (100vh - #{$cip-modal-vertical-margins}) - #{$cip-modal-header-height} - #{$cip-modal-footer-height}
       );
       max-height: calc(
-        #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} -
-          #{$cip-modal-footer-height}
+        #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} - #{$cip-modal-footer-height}
       );
 
       .tab-content {
@@ -155,27 +153,23 @@ cip-occurrences,
 cip-audit,
 #claim-component-editor {
   height: calc(
-    100vh - #{$cip-modal-vertical-margins} - #{$cip-modal-header-height} - #{$cip-modal-tab-bar-height} -
-      #{$cip-modal-footer-height} - var(--inner-source-height) - #{$iq-cip-tab-content-padding-top}
+    100vh - #{$cip-modal-vertical-margins} - #{$cip-modal-header-height} - #{$cip-modal-tab-bar-height} - #{$cip-modal-footer-height} -
+      var(--inner-source-height) - #{$iq-cip-tab-content-padding-top}
   );
   max-height: calc(
-    #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} -
-      #{$cip-modal-tab-bar-height} - #{$cip-modal-footer-height} -
-      var(--inner-source-height) - #{$iq-cip-tab-content-padding-top}
+    #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} - #{$cip-modal-tab-bar-height} -
+      #{$cip-modal-footer-height} - var(--inner-source-height) - #{$iq-cip-tab-content-padding-top}
   );
 }
 
 .cip-policy-wrapper {
   height: calc(
-    100vh - #{$cip-modal-vertical-margins} - #{$cip-modal-header-height} - #{$cip-modal-tab-bar-height} -
-      #{$cip-modal-footer-height} - #{$iq-spacing-xs} - var(
-        --inner-source-height
-      ) - 42px
+    100vh - #{$cip-modal-vertical-margins} - #{$cip-modal-header-height} - #{$cip-modal-tab-bar-height} - #{$cip-modal-footer-height} -
+      #{$iq-spacing-xs} - var(--inner-source-height) - 42px
   ); // button bar & margins
   max-height: calc(
-    #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} -
-      #{$cip-modal-tab-bar-height} - #{$cip-modal-footer-height} - #{$iq-spacing-xs} -
-      var(--inner-source-height) - 42px
+    #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} - #{$cip-modal-tab-bar-height} -
+      #{$cip-modal-footer-height} - #{$iq-spacing-xs} - var(--inner-source-height) - 42px
   ); // button bar & margins
 }
 

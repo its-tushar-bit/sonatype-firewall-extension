@@ -16,17 +16,12 @@ import {
 } from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/free-solid-svg-icons';
 
-import ComponentDisplay, {
-  componentPropTypes,
-} from '../../ComponentDisplay/ReactComponentDisplay';
+import ComponentDisplay, { componentPropTypes } from '../../ComponentDisplay/ReactComponentDisplay';
 import { getBaseUrl } from '../../util/urlUtil';
 
 function createRow(data, $state) {
   const { securityCode, cvssScore, key, policyThreatLevel } = data;
-  const linkUrl =
-    getBaseUrl(window.location.href) +
-    '/ui/links/vln/' +
-    encodeURIComponent(securityCode);
+  const linkUrl = getBaseUrl(window.location.href) + '/ui/links/vln/' + encodeURIComponent(securityCode);
 
   return (
     <NxTableRow key={key}>
@@ -67,10 +62,7 @@ function createRow(data, $state) {
   );
 }
 
-export default function ApplicationReportVulnerabilitiesTable({
-  vulnerabilities,
-  $state,
-}) {
+export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities, $state }) {
   const rows = vulnerabilities.map((vuln) => createRow(vuln, $state));
 
   return (
@@ -85,9 +77,7 @@ export default function ApplicationReportVulnerabilitiesTable({
               <NxTableCell>Component</NxTableCell>
             </NxTableRow>
           </NxTableHead>
-          <NxTableBody emptyMessage="This report contains no vulnerabilities.">
-            {rows}
-          </NxTableBody>
+          <NxTableBody emptyMessage="This report contains no vulnerabilities.">{rows}</NxTableBody>
         </NxTable>
       </div>
     </div>

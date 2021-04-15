@@ -295,15 +295,7 @@ applications {
 .iq-cell--application,
 .iq-cell--component {
   // Adding an extra pixel to avoid IE11-specific rounding bug CLM-16084
-  width: calc(
-    (
-        100% -
-          (
-            #{$iq-cell-threat-width + $iq-cell-age-width +
-              $iq-cell-chevron-width + 1}
-          )
-      ) / 3
-  );
+  width: calc((100% - (#{$iq-cell-threat-width + $iq-cell-age-width + $iq-cell-chevron-width + 1})) / 3);
 }
 
 .iq-cell--age {
@@ -338,19 +330,14 @@ applications {
       width: calc(
         (
             100% -
-              (
-                #{$iq-cell-threat-width + $iq-cell-scroll-bar-width +
-                  $iq-cell-age-width + $iq-cell-chevron-width + 1}
-              )
+              (#{$iq-cell-threat-width + $iq-cell-scroll-bar-width + $iq-cell-age-width + $iq-cell-chevron-width + 1})
           ) / 3
       );
     }
 
     .iq-cell--age {
-      width: $iq-cell-age-width + $iq-cell-chevron-width +
-        $iq-cell-scroll-bar-width;
-      max-width: $iq-cell-age-width + $iq-cell-chevron-width +
-        $iq-cell-scroll-bar-width;
+      width: $iq-cell-age-width + $iq-cell-chevron-width + $iq-cell-scroll-bar-width;
+      max-width: $iq-cell-age-width + $iq-cell-chevron-width + $iq-cell-scroll-bar-width;
     }
   }
 }

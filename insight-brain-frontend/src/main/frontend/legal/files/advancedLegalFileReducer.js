@@ -28,30 +28,13 @@ import {
 import { __, find, lensPath, merge, over, propEq } from 'ramda';
 
 const updateLicenseLegalData = (newLicenseLegalData, state) =>
-  over(
-    lensPath(['component', 'component', 'licenseLegalData']),
-    merge(__, newLicenseLegalData),
-    state
-  );
+  over(lensPath(['component', 'component', 'licenseLegalData']), merge(__, newLicenseLegalData), state);
 
 const getNoticeByOriginalContentHash = (originalContentHash, state) =>
-  find(
-    propEq('originalContentHash', originalContentHash),
-    state.component.component.licenseLegalData.noticeFiles
-  );
+  find(propEq('originalContentHash', originalContentHash), state.component.component.licenseLegalData.noticeFiles);
 
 const updateNotice = (newNotice, index, state) =>
-  over(
-    lensPath([
-      'component',
-      'component',
-      'licenseLegalData',
-      'noticeFiles',
-      index,
-    ]),
-    merge(__, newNotice),
-    state
-  );
+  over(lensPath(['component', 'component', 'licenseLegalData', 'noticeFiles', index]), merge(__, newNotice), state);
 
 const setShowNoticesModal = (payload, state) =>
   updateLicenseLegalData(
@@ -65,14 +48,9 @@ const cancelNoticesModal = (_, state) =>
   updateLicenseLegalData(
     {
       showNoticesModal: false,
-      componentNoticesScopeOwnerId:
-        state.component.component.licenseLegalData
-          .originalComponentNoticesScopeOwnerId,
+      componentNoticesScopeOwnerId: state.component.component.licenseLegalData.originalComponentNoticesScopeOwnerId,
       noticeFiles: state.component.component.licenseLegalData.noticeFiles
-        .filter(
-          (noticeFile) =>
-            noticeFile.id !== null || noticeFile.originalContentHash !== null
-        )
+        .filter((noticeFile) => noticeFile.id !== null || noticeFile.originalContentHash !== null)
         .map((noticeFile) => ({
           ...noticeFile,
           content: noticeFile.originalContent,
@@ -139,12 +117,7 @@ const saveNoticesSucceeded = (payload, state) => {
     id: legalFileOverride.id,
     originalContentHash: legalFileOverride.originalContentHash,
     relPath: legalFileOverride.originalContentHash
-      ? (
-          getNoticeByOriginalContentHash(
-            legalFileOverride.originalContentHash,
-            state
-          ) || { relPath: null }
-        ).relPath
+      ? (getNoticeByOriginalContentHash(legalFileOverride.originalContentHash, state) || { relPath: null }).relPath
       : null,
     originalContent: legalFileOverride.content,
     content: legalFileOverride.content,
@@ -186,23 +159,10 @@ export const saveNoticesSubmitMaskDone = (_, state) =>
   );
 
 const getLicenseByOriginalContentHash = (originalContentHash, state) =>
-  find(
-    propEq('originalContentHash', originalContentHash),
-    state.component.component.licenseLegalData.licenseFiles
-  );
+  find(propEq('originalContentHash', originalContentHash), state.component.component.licenseLegalData.licenseFiles);
 
 const updateLicense = (newLicense, index, state) =>
-  over(
-    lensPath([
-      'component',
-      'component',
-      'licenseLegalData',
-      'licenseFiles',
-      index,
-    ]),
-    merge(__, newLicense),
-    state
-  );
+  over(lensPath(['component', 'component', 'licenseLegalData', 'licenseFiles', index]), merge(__, newLicense), state);
 
 const setShowLicensesModal = (payload, state) =>
   updateLicenseLegalData(
@@ -216,14 +176,9 @@ const cancelLicensesModal = (_, state) =>
   updateLicenseLegalData(
     {
       showLicensesModal: false,
-      componentLicensesScopeOwnerId:
-        state.component.component.licenseLegalData
-          .originalComponentLicensesScopeOwnerId,
+      componentLicensesScopeOwnerId: state.component.component.licenseLegalData.originalComponentLicensesScopeOwnerId,
       licenseFiles: state.component.component.licenseLegalData.licenseFiles
-        .filter(
-          (licenseFile) =>
-            licenseFile.id !== null || licenseFile.originalContentHash !== null
-        )
+        .filter((licenseFile) => licenseFile.id !== null || licenseFile.originalContentHash !== null)
         .map((licenseFile) => ({
           ...licenseFile,
           content: licenseFile.originalContent,
@@ -290,12 +245,7 @@ const saveLicensesSucceeded = (payload, state) => {
     id: legalFileOverride.id,
     originalContentHash: legalFileOverride.originalContentHash,
     relPath: legalFileOverride.originalContentHash
-      ? (
-          getLicenseByOriginalContentHash(
-            legalFileOverride.originalContentHash,
-            state
-          ) || { relPath: null }
-        ).relPath
+      ? (getLicenseByOriginalContentHash(legalFileOverride.originalContentHash, state) || { relPath: null }).relPath
       : null,
     originalContent: legalFileOverride.content,
     content: legalFileOverride.content,

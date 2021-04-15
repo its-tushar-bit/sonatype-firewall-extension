@@ -5,11 +5,7 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseObligationModal from '../../../main/frontend/legal/obligation/LicenseObligationModal';
-import {
-  NxDropdown,
-  NxForm,
-  NxTextInput,
-} from '@sonatype/react-shared-components';
+import { NxDropdown, NxForm, NxTextInput } from '@sonatype/react-shared-components';
 
 describe('LicenseObligationModal', function () {
   let getShallowComponent,
@@ -27,9 +23,7 @@ describe('LicenseObligationModal', function () {
     setObligationScopeSpy = jasmine.createSpy('setObligationScopeSpy');
     saveObligationSpy = jasmine.createSpy('saveObligationSpy');
     cancelObligationModalSpy = jasmine.createSpy('cancelObligationModalSpy');
-    createObligationStatusIconSpy = jasmine
-      .createSpy('createObligationStatusIconSpy')
-      .and.returnValue('possibleIcon');
+    createObligationStatusIconSpy = jasmine.createSpy('createObligationStatusIconSpy').and.returnValue('possibleIcon');
     minimalProps = {
       setObligationStatus: setObligationStatusSpy,
       setObligationComment: setObligationCommentSpy,
@@ -60,10 +54,7 @@ describe('LicenseObligationModal', function () {
         ],
       },
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LicenseObligationModal,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LicenseObligationModal, minimalProps);
   });
 
   it('renders the modal with the OPEN status', function () {
@@ -167,10 +158,7 @@ describe('LicenseObligationModal', function () {
   it('disables the submit button if nothing is dirty', function () {
     const wrapper = getShallowComponent();
     const result = wrapper.find(NxForm);
-    expect(result).toHaveProp(
-      'validationErrors',
-      'Must change obligation status, or comments, or scope.'
-    );
+    expect(result).toHaveProp('validationErrors', 'Must change obligation status, or comments, or scope.');
   });
 
   it('enables the submit button if the status is dirty', function () {

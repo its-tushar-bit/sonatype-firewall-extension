@@ -98,9 +98,7 @@ describe('cipModal', function () {
         component.coordinates = 'unknown component coordinates';
         vm.selectedComponent = component;
         scope.$digest();
-        expect(Properties.setFilename).toHaveBeenCalledWith(
-          'unknown component coordinates'
-        );
+        expect(Properties.setFilename).toHaveBeenCalledWith('unknown component coordinates');
       });
 
       it('calls Properties.setFilename with null if matchState is not "unknown"', function () {
@@ -126,9 +124,7 @@ describe('cipModal', function () {
       it('calls Properties.setMatchState', function () {
         vm.selectedComponent = component;
         scope.$digest();
-        expect(Properties.setMatchState).toHaveBeenCalledWith(
-          'test-match-state'
-        );
+        expect(Properties.setMatchState).toHaveBeenCalledWith('test-match-state');
       });
 
       it('calls Properties.setDependencyType with "transitive" when isDirectDependency is false', function () {
@@ -161,9 +157,7 @@ describe('cipModal', function () {
       it('enhances legacy report data with component identifier', function () {
         vm.selectedComponent = component;
         scope.$digest();
-        expect(
-          ComponentUtil.enhanceWithComponentIdentifier
-        ).toHaveBeenCalledWith(component);
+        expect(ComponentUtil.enhanceWithComponentIdentifier).toHaveBeenCalledWith(component);
       });
 
       it('handles null value', function () {
@@ -171,9 +165,7 @@ describe('cipModal', function () {
         scope.$digest();
         expect(SelectedComponent.toggle).not.toHaveBeenCalled();
         expect(Coordinates.set).not.toHaveBeenCalled();
-        expect(
-          ComponentUtil.enhanceWithComponentIdentifier
-        ).not.toHaveBeenCalled();
+        expect(ComponentUtil.enhanceWithComponentIdentifier).not.toHaveBeenCalled();
         expect(Properties.setHash).not.toHaveBeenCalled();
         expect(Properties.setFilename).not.toHaveBeenCalled();
         expect(Properties.setProprietary).not.toHaveBeenCalled();

@@ -3,21 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  append,
-  equals,
-  compose,
-  curry,
-  merge,
-  pick,
-  find,
-  propEq,
-} from 'ramda';
+import { append, equals, compose, curry, merge, pick, find, propEq } from 'ramda';
 import { propSet } from '../../../util/jsUtil';
-import {
-  createReducerFromActionMap,
-  propSetConst,
-} from '../../../util/reduxUtil';
+import { createReducerFromActionMap, propSetConst } from '../../../util/reduxUtil';
 import {
   LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED,
   LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED,
@@ -70,9 +58,7 @@ export const WARNING_OVERWRITE = 'overwriteWarning';
  * Create a function for reducerActionMap which resets the specified properties back to their values from initState.
  * the payload parameter is ignored
  */
-const resetProps = curry((propNames, payload, state) =>
-  merge(state, pick(propNames, initState))
-);
+const resetProps = curry((propNames, payload, state) => merge(state, pick(propNames, initState)));
 
 /*
  * A map from action name to reducer function.  The reducer functions must all take two parameters: the payload and
@@ -84,16 +70,10 @@ const reducerActionMap = {
   [LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED]: updateAppliedFilterName,
   [LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED]: fetchSavedFiltersFulfilled,
   [LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED]: propSet('savedFilterListError'),
-  [LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED]: propSetConst(
-    'saveFilterSaving',
-    true
-  ),
+  [LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED]: propSetConst('saveFilterSaving', true),
   [LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED]: saveFilterFulfilled,
   [LEGAL_DASHBOARD_SAVE_FILTER_FAILED]: saveFilterFailed,
-  [LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED]: propSetConst(
-    'deleteFilterSaving',
-    true
-  ),
+  [LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED]: propSetConst('deleteFilterSaving', true),
   [LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED]: deleteFilterFulfilled,
   [LEGAL_DASHBOARD_DELETE_FILTER_FAILED]: deleteFilterFailed,
   [LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps([
@@ -121,10 +101,7 @@ function closeFiltersMenuIfNeeded(payload, state) {
 }
 
 function fetchSavedFiltersFulfilled(payload, state) {
-  return compose(
-    propSet('savedFilters', payload),
-    resetProps(['savedFilterListError'], payload)
-  )(state);
+  return compose(propSet('savedFilters', payload), resetProps(['savedFilterListError'], payload))(state);
 }
 
 function updateAppliedFilterName(payload, state) {
@@ -185,10 +162,7 @@ function saveConfirmCancelled(payload, state) {
 
 function selectFilterToDelete(payload, state) {
   return compose(
-    resetProps(
-      ['deleteFilterSaving', 'deleteFilterError', 'deleteFilterSuccess'],
-      null
-    ),
+    resetProps(['deleteFilterSaving', 'deleteFilterError', 'deleteFilterSuccess'], null),
     propSet('filterToDelete', payload)
   )(state);
 }
@@ -201,10 +175,7 @@ function deleteFilterFulfilled(payload, state) {
     stateWithDeleteFilterSuccess = { ...state, deleteFilterSuccess: true };
 
   if (activeFilterWasDeleted) {
-    return compose(
-      setShowDirtyAsterisk(),
-      resetProps(['appliedFilterName'], null)
-    )(stateWithDeleteFilterSuccess);
+    return compose(setShowDirtyAsterisk(), resetProps(['appliedFilterName'], null))(stateWithDeleteFilterSuccess);
   }
 
   return stateWithDeleteFilterSuccess;
@@ -231,8 +202,5 @@ const setShowDirtyAsterisk = () => (state) => {
  * The main reducer function for this file.  Works by looking up the action type in the reducerAction map
  * and then executing the found function
  */
-const manageLegalFiltersReducer = createReducerFromActionMap(
-  reducerActionMap,
-  initState
-);
+const manageLegalFiltersReducer = createReducerFromActionMap(reducerActionMap, initState);
 export default manageLegalFiltersReducer;

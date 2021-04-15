@@ -28,7 +28,4 @@ const mapDispatchToProps = {
   cancelObligationModal,
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LicenseObligationModal);
+export default connect(mapStateToProps, mapDispatchToProps)(LicenseObligationModal);

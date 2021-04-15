@@ -11,10 +11,6 @@ import pendoService from './pendoService';
 import sanitizeUrlService from './sanitizeUrlService';
 
 export default angular
-  .module('pendoModule', [
-    'ui.router',
-    clmLocationModule.name,
-    commonServicesModule.name,
-  ])
+  .module('pendoModule', ['ui.router', clmLocationModule.name, commonServicesModule.name])
   .service('pendoService', pendoService)
   .service('sanitizeUrlService', sanitizeUrlService);

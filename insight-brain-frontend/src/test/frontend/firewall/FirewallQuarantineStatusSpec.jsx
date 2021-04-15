@@ -19,10 +19,7 @@ describe('FirewallQuarantineStatus', function () {
       quarantineEnabled: true,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      FirewallQuarantineStatus,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(FirewallQuarantineStatus, minimalProps);
   });
 
   it('renders a component with the "nx-card" class', function () {
@@ -31,9 +28,7 @@ describe('FirewallQuarantineStatus', function () {
 
   it('renders a card header', function () {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText(
-      'Quarantine Status'
-    );
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Quarantine Status');
   });
 
   it('renders card content', function () {

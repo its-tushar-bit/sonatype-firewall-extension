@@ -17,13 +17,7 @@ function mapStateToProps({ advancedLegal, router }) {
 
 const mapDispatchToProps = { ...advancedLegalActions };
 
-const AdvancedLegalApplicationContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(AdvancedLegalApplicationPage);
+const AdvancedLegalApplicationContainer = connect(mapStateToProps, mapDispatchToProps)(AdvancedLegalApplicationPage);
 export default AdvancedLegalApplicationContainer;
 
-AdvancedLegalApplicationContainer.propTypes = pick(
-  ['$state'],
-  AdvancedLegalApplicationPage.propTypes
-);
+AdvancedLegalApplicationContainer.propTypes = pick(['$state'], AdvancedLegalApplicationPage.propTypes);

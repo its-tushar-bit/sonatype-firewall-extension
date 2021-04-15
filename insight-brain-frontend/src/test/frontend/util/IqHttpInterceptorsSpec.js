@@ -29,9 +29,7 @@ describe('IqHttpInterceptors', function () {
       // make server date 5 seconds behind
       var currentDate = new Date(),
         serverDate = new Date(currentDate - 5000),
-        dateHeaderValue =
-          $filter('date')(serverDate, 'EEE, dd MMM yyyy HH:mm:ss', 'GMT') +
-          ' GMT',
+        dateHeaderValue = $filter('date')(serverDate, 'EEE, dd MMM yyyy HH:mm:ss', 'GMT') + ' GMT',
         parsedDate;
 
       function getTimeWithoutMilliseconds(date) {
@@ -39,13 +37,9 @@ describe('IqHttpInterceptors', function () {
       }
 
       // mock response with Date header 5 seconds in the past
-      $httpBackend
-        .expectGET('test')
-        .respond(200, {}, { Date: dateHeaderValue });
+      $httpBackend.expectGET('test').respond(200, {}, { Date: dateHeaderValue });
 
-      spyOn(SessionSecurityService, 'setServerDate').and.callFake(function (
-        date
-      ) {
+      spyOn(SessionSecurityService, 'setServerDate').and.callFake(function (date) {
         parsedDate = date;
       });
 
@@ -54,9 +48,7 @@ describe('IqHttpInterceptors', function () {
       $httpBackend.flush();
 
       expect(SessionSecurityService.setServerDate).toHaveBeenCalled();
-      expect(getTimeWithoutMilliseconds(parsedDate)).toEqual(
-        getTimeWithoutMilliseconds(serverDate)
-      );
+      expect(getTimeWithoutMilliseconds(parsedDate)).toEqual(getTimeWithoutMilliseconds(serverDate));
     });
 
     it('does not call SessionSecurityService.setServerDate if there is no Date header', function () {

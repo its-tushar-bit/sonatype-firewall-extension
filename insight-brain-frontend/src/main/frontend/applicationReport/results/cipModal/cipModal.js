@@ -28,10 +28,7 @@ function CipModalController(
 
   Object.assign(vm, {
     $onInit() {
-      vm.unsubscribeFromReduxStore = $ngRedux.connect(
-        mapStateToThis,
-        applicationReportActions
-      )(vm);
+      vm.unsubscribeFromReduxStore = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
 
       Properties.setStageId(vm.metadata.stageId);
 
@@ -82,19 +79,13 @@ function CipModalController(
     ComponentUtil.enhanceWithComponentIdentifier(selectedComponent);
 
     Properties.setHash(selectedComponent.hash);
-    Properties.setFilename(
-      selectedComponent.matchState === 'unknown'
-        ? selectedComponent.coordinates
-        : null
-    );
+    Properties.setFilename(selectedComponent.matchState === 'unknown' ? selectedComponent.coordinates : null);
     Properties.setProprietary(selectedComponent.proprietary || false);
     Properties.setMatchState(selectedComponent.matchState);
     Coordinates.setIdentificationSource(selectedComponent.identificationSource);
     Properties.setDependencyType(
       selectedComponent.dependencyInfo &&
-        (selectedComponent.dependencyInfo.isDirectDependency
-          ? 'direct'
-          : 'transitive')
+        (selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive')
     );
     Properties.setInnerSource(selectedComponent.innerSource);
     if (selectedComponent.componentIdentifier) {
@@ -107,13 +98,7 @@ function CipModalController(
 }
 
 export function mapStateToThis({ applicationReport }) {
-  let {
-    selectedReport,
-    selectedComponentIndex,
-    selectedRootAncestor,
-    metadata,
-    selectedComponent,
-  } = applicationReport;
+  let { selectedReport, selectedComponentIndex, selectedRootAncestor, metadata, selectedComponent } = applicationReport;
   let previousComponent = null;
 
   if (selectedRootAncestor) {

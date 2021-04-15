@@ -26,13 +26,8 @@ describe('uninstall.license.controller.spec.js', function () {
     scope.$destroy();
   });
 
-  it('sets the error variable correctly upon failure', inject(function (
-    $httpBackend,
-    CLMLocations
-  ) {
-    $httpBackend
-      .expectDELETE(CLMLocations.getLicenseUploadUrl())
-      .respond(500, 'failed');
+  it('sets the error variable correctly upon failure', inject(function ($httpBackend, CLMLocations) {
+    $httpBackend.expectDELETE(CLMLocations.getLicenseUploadUrl()).respond(500, 'failed');
 
     vm.uninstall();
     $httpBackend.flush();

@@ -41,14 +41,8 @@ export default function ApplicationCategoryEditorController(
     if (vm.isApp) {
       $q.all([
         ApplicationStore[vm.loadError ? 'refresh' : 'get'](),
-        $http.get(
-          CLMLocations.getApplicableOrganizationTags(
-            CLMContextLocations.getEntityId()
-          )
-        ),
-        $http.get(
-          CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())
-        ),
+        $http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId())),
+        $http.get(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())),
       ]).then(
         function (results) {
           var organizationCategories = results[1].data,
@@ -77,10 +71,7 @@ export default function ApplicationCategoryEditorController(
           originalCategoryArray = angular.copy(vm.categories);
 
           if (!vm.ownerName) {
-            vm.loadError =
-              'Could not find an application with ID ' +
-              CLMContextLocations.getEntityId() +
-              '.';
+            vm.loadError = 'Could not find an application with ID ' + CLMContextLocations.getEntityId() + '.';
           }
         },
         function (error) {
@@ -95,17 +86,10 @@ export default function ApplicationCategoryEditorController(
   function save() {
     delete vm.submitError;
 
-    var appliedCategories = vm.categories
-      .filter(prop('isApplied'))
-      .map(omit(['isApplied']));
+    var appliedCategories = vm.categories.filter(prop('isApplied')).map(omit(['isApplied']));
 
     vm.categoryEditorMask
-      .wrap(
-        $http.put(
-          CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId()),
-          appliedCategories
-        )
-      )
+      .wrap($http.put(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId()), appliedCategories))
       .then(
         function () {
           originalCategoryArray = angular.copy(vm.categories);

@@ -21,11 +21,7 @@ export default function SameOwnerStateNavigationService($state) {
     return function (to, params) {
       var isApp = $state.current.name.indexOf('application') !== -1,
         isRepositories = $state.current.name.indexOf('repositories') !== -1,
-        type = isApp
-          ? 'application'
-          : isRepositories
-          ? 'repositories'
-          : 'organization',
+        type = isApp ? 'application' : isRepositories ? 'repositories' : 'organization',
         ownerId = isApp ? 'applicationPublicId' : 'organizationId';
 
       to = 'management.' + ownerState + '.' + type + (to ? '.' + to : '');

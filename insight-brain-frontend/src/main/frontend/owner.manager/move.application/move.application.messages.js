@@ -5,7 +5,6 @@
  */
 export default {
   ERROR_INCOMPATIBLE_DESTINATION:
-    'Failed to move application due to incompatible destination. ' +
-    "Click 'Details' for more information.",
+    'Failed to move application due to incompatible destination. ' + "Click 'Details' for more information.",
   ERROR_NO_DESTINATIONS: 'No available destination organizations.',
 };

@@ -11,12 +11,7 @@ describe('role.membership.controller.spec.js', function () {
 
   beforeEach(angular.mock.module(roleMembershipModule.name));
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    _$httpBackend_,
-    _$q_,
-    _CLMContextLocations_
-  ) {
+  beforeEach(inject(function (_$rootScope_, _$httpBackend_, _$q_, _CLMContextLocations_) {
     $httpBackend = _$httpBackend_;
     $rootScope = _$rootScope_;
     $q = _$q_;
@@ -41,11 +36,7 @@ describe('role.membership.controller.spec.js', function () {
     inject(function ($controller, $rootScope) {
       scope = $rootScope.$new();
 
-      vm = $controller(
-        'role.membership.controller',
-        { $scope: scope },
-        controllerProps
-      );
+      vm = $controller('role.membership.controller', { $scope: scope }, controllerProps);
       scope.vm = vm;
 
       vm.accessEditorSearch = {
@@ -64,8 +55,7 @@ describe('role.membership.controller.spec.js', function () {
 
   it('sets vm.members', function () {
     createController({
-      originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0]
-        .membersByOwner[0].members,
+      originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members,
     });
 
     expect(vm.members.length).toBe(2);
@@ -93,8 +83,7 @@ describe('role.membership.controller.spec.js', function () {
   describe('search', function () {
     beforeEach(function () {
       createController({
-        originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0]
-          .membersByOwner[0].members,
+        originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members,
       });
 
       vm.accessEditorSearchMask = { wrap: SpecUtil.promiseWrapper($q) };
@@ -148,9 +137,7 @@ describe('role.membership.controller.spec.js', function () {
     createController();
 
     expect(vm.getTooltip({ realm: 'foo' })).toBe('foo');
-    expect(vm.getTooltip({ realm: 'foo', email: 'test@test.com' })).toBe(
-      'foo\ntest@test.com'
-    );
+    expect(vm.getTooltip({ realm: 'foo', email: 'test@test.com' })).toBe('foo\ntest@test.com');
     // existing LDAP entry but connection is down so no realm/email
     expect(vm.getTooltip({ displayName: 'test' })).toBe(null);
   });
@@ -213,8 +200,7 @@ describe('role.membership.controller.spec.js', function () {
   });
 
   it('sets isDirty when the currentMembers have a different set of names from the originalMembers', function () {
-    var originalMembers = accessMockData.getMoreRoleMappings().membersByRole[0]
-      .membersByOwner[0].members;
+    var originalMembers = accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members;
 
     createController({ originalMembers: originalMembers });
 
@@ -295,12 +281,9 @@ describe('role.membership.controller.spec.js', function () {
     });
 
     Object.keys(mapping).forEach(function (type) {
-      it(
-        'returns ' + mapping[type] + ' if the item has a ' + type + ' type',
-        function () {
-          expect(vm.getIconName({ type: type })).toBe(mapping[type]);
-        }
-      );
+      it('returns ' + mapping[type] + ' if the item has a ' + type + ' type', function () {
+        expect(vm.getIconName({ type: type })).toBe(mapping[type]);
+      });
     });
   });
 });

@@ -119,12 +119,8 @@ describe('owner.editor.controller.spec.js', function () {
           spyOn($state, 'go');
           vm.dirtyOwner.publicId = publicId;
           vm.dirtyOwner.id = id;
-          $httpBackend
-            .expectPOST('/rest/' + type + '/icon/' + id)
-            .respond(500, 'Server Error');
-          saveDeferred.resolve(
-            angular.extend({ id }, angular.copy(vm.dirtyOwner))
-          );
+          $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond(500, 'Server Error');
+          saveDeferred.resolve(angular.extend({ id }, angular.copy(vm.dirtyOwner)));
           $httpBackend.flush();
           $timeout.flush();
 
@@ -151,9 +147,7 @@ describe('owner.editor.controller.spec.js', function () {
           spyOn($state, 'go');
 
           $httpBackend.expectPOST('/rest/' + type + '/icon/' + id).respond('');
-          saveDeferred.resolve(
-            angular.extend({ id }, angular.copy(vm.dirtyOwner))
-          );
+          saveDeferred.resolve(angular.extend({ id }, angular.copy(vm.dirtyOwner)));
           $httpBackend.flush();
           $timeout.flush();
 

@@ -35,11 +35,7 @@ export default angular
   .filter('removeDashes', removeDashes)
   .filter('wrapWith', wrapWith);
 
-export function createDashboardDataRequestPayload(
-  filter,
-  maxResults,
-  sortFields
-) {
+export function createDashboardDataRequestPayload(filter, maxResults, sortFields) {
   var params = {};
   if (sortFields && sortFields.length) {
     params.orderBy = sortFields.join();
@@ -54,8 +50,7 @@ export function createDashboardDataRequestPayload(
     params.tagIds = setToArray(filter.categories);
     params.policyViolationStates = setToArray(filter.policyViolationStates);
     params.maxDaysOld = filter.maxDaysOld;
-    params.policyThreatLevelRange =
-      filter.policyThreatLevels && filter.policyThreatLevels.join(',');
+    params.policyThreatLevelRange = filter.policyThreatLevels && filter.policyThreatLevels.join(',');
 
     if (filter.policyTypes && filter.policyTypes.size > 0) {
       params.policyThreatCategories = setToArray(filter.policyTypes).join(',');

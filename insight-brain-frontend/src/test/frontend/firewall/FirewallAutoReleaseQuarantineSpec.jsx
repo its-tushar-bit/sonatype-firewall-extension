@@ -6,11 +6,7 @@
 import * as enzymeUtils from '../enzymeUtils';
 
 describe('FirewallAutoReleaseQuarantine', function () {
-  let minimalProps,
-    FirewallAutoReleaseQuarantine,
-    getShallowComponent,
-    stateMock,
-    stateHrefSpy;
+  let minimalProps, FirewallAutoReleaseQuarantine, getShallowComponent, stateMock, stateHrefSpy;
 
   beforeEach(function () {
     stateHrefSpy = jasmine.createSpy().and.returnValue('href');
@@ -26,10 +22,7 @@ describe('FirewallAutoReleaseQuarantine', function () {
       $state: stateMock,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      FirewallAutoReleaseQuarantine,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(FirewallAutoReleaseQuarantine, minimalProps);
   });
 
   it('renders a component with the "nx-card" class', function () {
@@ -38,9 +31,7 @@ describe('FirewallAutoReleaseQuarantine', function () {
 
   it('renders a card header', function () {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText(
-      'Auto Released from Quarantine'
-    );
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Auto Released from Quarantine');
   });
 
   it('renders card content', function () {

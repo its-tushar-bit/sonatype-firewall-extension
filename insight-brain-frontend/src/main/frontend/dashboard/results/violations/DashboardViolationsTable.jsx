@@ -5,18 +5,10 @@
  */
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxTable,
-  NxTableBody,
-  NxTableCell,
-  NxTableHead,
-  NxTableRow,
-} from '@sonatype/react-shared-components';
+import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
 
-import DashboardViolationsTableRow, {
-  violationPropTypes,
-} from './DashboardViolationsTableRow';
+import DashboardViolationsTableRow, { violationPropTypes } from './DashboardViolationsTableRow';
 import { extractSortFieldName } from '../../../util/sortUtils';
 import { Messages } from '../../../util/CommonServices';
 import MaxResultsInfoRow from '../MaxResultsInfoRow';
@@ -58,12 +50,8 @@ export default function DashboardViolationsTable(props) {
     const columnFields = DEFAULT_SORT_FIELDS[index],
       currentColumn = extractSortFieldName(columnFields[0]),
       isCurrentColumnSorted = sortedColumn === currentColumn,
-      isUp =
-        isCurrentColumnSorted &&
-        (sortInverted ? isSortReversed : !isSortReversed),
-      isDown =
-        isCurrentColumnSorted &&
-        (!sortInverted ? isSortReversed : !isSortReversed);
+      isUp = isCurrentColumnSorted && (sortInverted ? isSortReversed : !isSortReversed),
+      isDown = isCurrentColumnSorted && (!sortInverted ? isSortReversed : !isSortReversed);
 
     return isUp ? 'asc' : isDown ? 'desc' : null;
   };
@@ -88,14 +76,9 @@ export default function DashboardViolationsTable(props) {
       return (
         <Fragment>
           {results.map((violation) => (
-            <DashboardViolationsTableRow
-              {...{ stateGo, violation }}
-              key={violation.policyViolationId}
-            />
+            <DashboardViolationsTableRow {...{ stateGo, violation }} key={violation.policyViolationId} />
           ))}
-          {numResults > MAX_RESULTS && (
-            <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} />
-          )}
+          {numResults > MAX_RESULTS && <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} />}
         </Fragment>
       );
     }
@@ -115,25 +98,13 @@ export default function DashboardViolationsTable(props) {
             >
               Threat
             </NxTableCell>
-            <NxTableCell
-              onClick={() => doSort(1)}
-              sortDir={getColumnDirection(1)}
-              isSortable
-            >
+            <NxTableCell onClick={() => doSort(1)} sortDir={getColumnDirection(1)} isSortable>
               Policy
             </NxTableCell>
-            <NxTableCell
-              onClick={() => doSort(2)}
-              sortDir={getColumnDirection(2)}
-              isSortable
-            >
+            <NxTableCell onClick={() => doSort(2)} sortDir={getColumnDirection(2)} isSortable>
               Application
             </NxTableCell>
-            <NxTableCell
-              onClick={() => doSort(3)}
-              sortDir={getColumnDirection(3)}
-              isSortable
-            >
+            <NxTableCell onClick={() => doSort(3)} sortDir={getColumnDirection(3)} isSortable>
               Component
             </NxTableCell>
             <NxTableCell
@@ -154,11 +125,7 @@ export default function DashboardViolationsTable(props) {
           error={Messages.getHttpErrorMessage(error)}
           retryHandler={reload}
         >
-          {needsAcknowledgement ? (
-            <NeedsAcknowledgementInfoRow colSpan={colSpan} />
-          ) : (
-            bodyFragment()
-          )}
+          {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
         </NxTableBody>
       </NxTable>
     </div>
@@ -175,10 +142,6 @@ DashboardViolationsTable.propTypes = {
     results: PropTypes.arrayOf(violationPropTypes),
     numResults: PropTypes.number,
     sortFields: PropTypes.arrayOf(PropTypes.string),
-    error: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.instanceOf(Error),
-      PropTypes.object,
-    ]),
+    error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
   }),
 };

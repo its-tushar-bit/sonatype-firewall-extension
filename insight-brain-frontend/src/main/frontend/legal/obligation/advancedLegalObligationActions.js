@@ -18,61 +18,29 @@ import { find, pick, propEq } from 'ramda';
 import { Messages } from '../../util/CommonServices';
 import { isScopeOverride } from '../legalUtility';
 
-export const ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT =
-  'ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT';
-export const ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE =
-  'ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE';
-export const ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL =
-  'ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL';
-export const ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL =
-  'ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL';
+export const ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT = 'ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT';
+export const ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE = 'ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE';
+export const ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL = 'ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL';
+export const ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL = 'ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL';
 
-export const setAttributionText = payloadParamActionCreator(
-  ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT
-);
-export const setAttributionScope = payloadParamActionCreator(
-  ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE
-);
-export const setShowAttributionModal = payloadParamActionCreator(
-  ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL
-);
-export const cancelAttributionModal = payloadParamActionCreator(
-  ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL
-);
+export const setAttributionText = payloadParamActionCreator(ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT);
+export const setAttributionScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE);
+export const setShowAttributionModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL);
+export const cancelAttributionModal = payloadParamActionCreator(ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL);
 
-export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED =
-  'ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED';
-export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED =
-  'ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED';
-export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED =
-  'ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED';
-export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE =
-  'ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE';
+export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED = 'ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED';
+export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED = 'ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED';
+export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED = 'ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED';
+export const ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE';
 
-const saveAttributionRequested = payloadParamActionCreator(
-  ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED
-);
-const saveAttributionFulfilled = payloadParamActionCreator(
-  ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED
-);
-const saveAttributionFailed = payloadParamActionCreator(
-  ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED
-);
+const saveAttributionRequested = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED);
+const saveAttributionFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
+const saveAttributionFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
 
-export function saveAttribution({
-  obligationName,
-  existingObligation,
-  isAttributionDirty,
-  isObligationDirty,
-}) {
+export function saveAttribution({ obligationName, existingObligation, isAttributionDirty, isObligationDirty }) {
   return (dispatch, getState) => {
     if (isAttributionDirty) {
-      return saveAndRefreshAttribution(
-        dispatch,
-        getState,
-        obligationName,
-        isObligationDirty
-      );
+      return saveAndRefreshAttribution(dispatch, getState, obligationName, isObligationDirty);
     } else if (isObligationDirty) {
       return saveObligation(existingObligation.name)(dispatch, getState);
     } else {
@@ -81,12 +49,7 @@ export function saveAttribution({
   };
 }
 
-function saveAndRefreshAttribution(
-  dispatch,
-  getState,
-  obligationName,
-  isObligationDirty
-) {
+function saveAndRefreshAttribution(dispatch, getState, obligationName, isObligationDirty) {
   const advancedLegalState = getState().advancedLegal;
   const attributionState = find(
     propEq('obligationName', obligationName),
@@ -94,14 +57,10 @@ function saveAndRefreshAttribution(
   );
   const ownerId = attributionState.ownerId;
   const scopeVisited = advancedLegalState.availableScopes.values[0];
-  const scope = find(
-    propEq('id', ownerId),
-    advancedLegalState.availableScopes.values
-  );
+  const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
   const ownerType = scope.type;
   const ownerPublicId = scope.publicId;
-  const componentIdentifier =
-    advancedLegalState.component.component.componentIdentifier;
+  const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
 
   dispatch(saveAttributionRequested({ name: obligationName }));
 
@@ -128,16 +87,9 @@ function saveAndRefreshAttribution(
         );
       });
   } else {
-    const attributionPayload = getAttributionPayload(
-      advancedLegalState,
-      obligationName,
-      attributionState
-    );
+    const attributionPayload = getAttributionPayload(advancedLegalState, obligationName, attributionState);
     return axios
-      .post(
-        getSaveComponentObligationAttributionUrl(ownerType, ownerPublicId),
-        attributionPayload
-      )
+      .post(getSaveComponentObligationAttributionUrl(ownerType, ownerPublicId), attributionPayload)
       .then(() =>
         onAttributionSaveSuccess(
           dispatch,
@@ -160,15 +112,10 @@ function saveAndRefreshAttribution(
   }
 }
 
-function getAttributionPayload(
-  advancedLegalState,
-  obligationName,
-  attributionState
-) {
+function getAttributionPayload(advancedLegalState, obligationName, attributionState) {
   const payload = {
     id: attributionState.id,
-    componentIdentifier:
-      advancedLegalState.component.component.componentIdentifier,
+    componentIdentifier: advancedLegalState.component.component.componentIdentifier,
     obligationName: obligationName,
     content: attributionState.content,
   };
@@ -195,27 +142,11 @@ const onAttributionSaveSuccess = (
   getState
 ) =>
   axios
-    .get(
-      getComponentObligationAttributionUrl(
-        ownerType,
-        ownerPublicId,
-        componentIdentifier,
-        name
-      )
-    )
+    .get(getComponentObligationAttributionUrl(ownerType, ownerPublicId, componentIdentifier, name))
     .then((payload) => {
       const value =
         payload.data.length > 0
-          ? pick(
-              [
-                'id',
-                'content',
-                'ownerId',
-                'lastUpdatedByUsername',
-                'lastUpdatedAt',
-              ],
-              payload.data[0]
-            )
+          ? pick(['id', 'content', 'ownerId', 'lastUpdatedByUsername', 'lastUpdatedAt'], payload.data[0])
           : { id: null, content: '', ownerId: 'ROOT_ORGANIZATION_ID' };
       dispatch(saveAttributionFulfilled({ name, value }));
 
@@ -241,51 +172,26 @@ function startSaveAttributionSubmitMaskDoneTimer(dispatch, payload) {
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
-export const ADVANCED_LEGAL_SET_OBLIGATION_STATUS =
-  'ADVANCED_LEGAL_SET_OBLIGATION_STATUS';
-export const ADVANCED_LEGAL_SET_OBLIGATION_COMMENT =
-  'ADVANCED_LEGAL_SET_OBLIGATION_COMMENT';
-export const ADVANCED_LEGAL_SET_OBLIGATION_SCOPE =
-  'ADVANCED_LEGAL_SET_OBLIGATION_SCOPE';
-export const ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL =
-  'ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL';
-export const ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL =
-  'ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL';
+export const ADVANCED_LEGAL_SET_OBLIGATION_STATUS = 'ADVANCED_LEGAL_SET_OBLIGATION_STATUS';
+export const ADVANCED_LEGAL_SET_OBLIGATION_COMMENT = 'ADVANCED_LEGAL_SET_OBLIGATION_COMMENT';
+export const ADVANCED_LEGAL_SET_OBLIGATION_SCOPE = 'ADVANCED_LEGAL_SET_OBLIGATION_SCOPE';
+export const ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL = 'ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL';
+export const ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL = 'ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL';
 
-export const setObligationStatus = payloadParamActionCreator(
-  ADVANCED_LEGAL_SET_OBLIGATION_STATUS
-);
-export const setObligationComment = payloadParamActionCreator(
-  ADVANCED_LEGAL_SET_OBLIGATION_COMMENT
-);
-export const setObligationScope = payloadParamActionCreator(
-  ADVANCED_LEGAL_SET_OBLIGATION_SCOPE
-);
-export const setShowObligationModal = payloadParamActionCreator(
-  ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL
-);
-export const cancelObligationModal = payloadParamActionCreator(
-  ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL
-);
+export const setObligationStatus = payloadParamActionCreator(ADVANCED_LEGAL_SET_OBLIGATION_STATUS);
+export const setObligationComment = payloadParamActionCreator(ADVANCED_LEGAL_SET_OBLIGATION_COMMENT);
+export const setObligationScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_OBLIGATION_SCOPE);
+export const setShowObligationModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL);
+export const cancelObligationModal = payloadParamActionCreator(ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL);
 
-export const ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED =
-  'ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED';
-export const ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED =
-  'ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED';
-export const ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED =
-  'ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED';
-export const ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE =
-  'ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE';
+export const ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED = 'ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED';
+export const ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED = 'ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED';
+export const ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED = 'ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED';
+export const ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE';
 
-const saveObligationRequested = payloadParamActionCreator(
-  ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED
-);
-const saveObligationSucceeded = payloadParamActionCreator(
-  ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED
-);
-const saveObligationFailed = payloadParamActionCreator(
-  ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED
-);
+const saveObligationRequested = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
+const saveObligationSucceeded = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
+const saveObligationFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED);
 
 export function saveObligation(name) {
   return (dispatch, getState) => {
@@ -298,30 +204,16 @@ export function saveObligation(name) {
     );
     const ownerId = obligationState.ownerId;
     const scopeVisited = advancedLegalState.availableScopes.values[0];
-    const scope = find(
-      propEq('id', ownerId),
-      advancedLegalState.availableScopes.values
-    );
+    const scope = find(propEq('id', ownerId), advancedLegalState.availableScopes.values);
     const ownerType = scope.type;
     const ownerPublicId = scope.publicId;
-    const componentIdentifier =
-      advancedLegalState.component.component.componentIdentifier;
+    const componentIdentifier = advancedLegalState.component.component.componentIdentifier;
 
-    if (
-      obligationState.id !== null &&
-      obligationState.comment === '' &&
-      obligationState.status === 'OPEN'
-    ) {
+    if (obligationState.id !== null && obligationState.comment === '' && obligationState.status === 'OPEN') {
       return axios
         .delete(getDeleteComponentObligationsUrl([obligationState.id]))
         .then(() =>
-          onObligationSaveSuccess(
-            dispatch,
-            scopeVisited.type,
-            scopeVisited.publicId,
-            componentIdentifier,
-            name
-          )
+          onObligationSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier, name)
         )
         .catch((error) => {
           dispatch(
@@ -332,23 +224,11 @@ export function saveObligation(name) {
           );
         });
     } else {
-      const obligationPayload = getObligationPayload(
-        advancedLegalState,
-        obligationState
-      );
+      const obligationPayload = getObligationPayload(advancedLegalState, obligationState);
       return axios
-        .post(
-          getSaveComponentObligationUrl(ownerType, ownerPublicId),
-          obligationPayload
-        )
+        .post(getSaveComponentObligationUrl(ownerType, ownerPublicId), obligationPayload)
         .then(() =>
-          onObligationSaveSuccess(
-            dispatch,
-            scopeVisited.type,
-            scopeVisited.publicId,
-            componentIdentifier,
-            name
-          )
+          onObligationSaveSuccess(dispatch, scopeVisited.type, scopeVisited.publicId, componentIdentifier, name)
         )
         .catch((error) => {
           dispatch(
@@ -365,8 +245,7 @@ export function saveObligation(name) {
 function getObligationPayload(advancedLegalState, obligationState) {
   const payload = {
     id: obligationState.id,
-    componentIdentifier:
-      advancedLegalState.component.component.componentIdentifier,
+    componentIdentifier: advancedLegalState.component.component.componentIdentifier,
     name: obligationState.name,
     comment: obligationState.comment,
     status: obligationState.status,
@@ -374,46 +253,19 @@ function getObligationPayload(advancedLegalState, obligationState) {
 
   if (
     payload.id !== null &&
-    isScopeOverride(
-      obligationState.originalOwnerId,
-      obligationState.ownerId,
-      advancedLegalState.availableScopes.values
-    )
+    isScopeOverride(obligationState.originalOwnerId, obligationState.ownerId, advancedLegalState.availableScopes.values)
   ) {
     payload.id = null;
   }
   return payload;
 }
 
-const onObligationSaveSuccess = (
-  dispatch,
-  ownerType,
-  ownerPublicId,
-  componentIdentifier,
-  name
-) =>
+const onObligationSaveSuccess = (dispatch, ownerType, ownerPublicId, componentIdentifier, name) =>
   axios
-    .get(
-      getComponentObligationUrl(
-        ownerType,
-        ownerPublicId,
-        componentIdentifier,
-        name
-      )
-    )
+    .get(getComponentObligationUrl(ownerType, ownerPublicId, componentIdentifier, name))
     .then((payload) => {
       const value = payload.data
-        ? pick(
-            [
-              'id',
-              'comment',
-              'ownerId',
-              'status',
-              'lastUpdatedByUsername',
-              'lastUpdatedAt',
-            ],
-            payload.data
-          )
+        ? pick(['id', 'comment', 'ownerId', 'status', 'lastUpdatedByUsername', 'lastUpdatedAt'], payload.data)
         : {
             id: null,
             comment: '',

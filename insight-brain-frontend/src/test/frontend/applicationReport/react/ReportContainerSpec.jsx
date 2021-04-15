@@ -11,16 +11,12 @@ describe('ReportContainer component', function () {
   let ReportContainer, loadMetadataActionMock, state, store, vdom;
 
   beforeEach(function () {
-    loadMetadataActionMock = jasmine
-      .createSpy('loadReportMetadata')
-      .and.returnValue({ type: 'LOAD_DATA' });
-    ReportContainer = require('inject-loader!../../../../main/frontend/applicationReport/react/ReportContainer')(
-      {
-        '../applicationReportActions': {
-          loadReportMetadata: loadMetadataActionMock,
-        },
-      }
-    ).default;
+    loadMetadataActionMock = jasmine.createSpy('loadReportMetadata').and.returnValue({ type: 'LOAD_DATA' });
+    ReportContainer = require('inject-loader!../../../../main/frontend/applicationReport/react/ReportContainer')({
+      '../applicationReportActions': {
+        loadReportMetadata: loadMetadataActionMock,
+      },
+    }).default;
 
     state = {
       applicationReport: {

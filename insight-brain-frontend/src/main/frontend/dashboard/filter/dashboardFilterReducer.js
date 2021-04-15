@@ -3,20 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  compose,
-  curry,
-  equals,
-  find,
-  indexBy,
-  map,
-  merge,
-  pick,
-  prop,
-  propEq,
-  sortBy,
-  uniqBy,
-} from 'ramda';
+import { compose, curry, equals, find, indexBy, map, merge, pick, prop, propEq, sortBy, uniqBy } from 'ramda';
 import { propSet, pathSet, lookup } from '../../util/jsUtil';
 import defaultFilter from './defaultFilter';
 import {
@@ -72,27 +59,18 @@ const initState = Object.freeze({
   selected: defaultFilter,
 });
 
-const resetProps = curry((propNames, state) =>
-  merge(state, pick(propNames, initState))
-);
+const resetProps = curry((propNames, state) => merge(state, pick(propNames, initState)));
 
-export default function dashboardFilterReducer(
-  state = initState,
-  { type, payload }
-) {
+export default function dashboardFilterReducer(state = initState, { type, payload }) {
   switch (type) {
     case UI_ROUTER_ON_FINISH: {
-      const isViolationsTab =
-        payload.toState.name === 'dashboard.overview.violations';
+      const isViolationsTab = payload.toState.name === 'dashboard.overview.violations';
       const newState = { ...state, isViolationsTab };
       return setShowAgeFilter(newState);
     }
 
     case LOAD_FILTER_REQUESTED:
-      return compose(
-        propSet('loading', true),
-        resetProps(['loadError'])
-      )(state);
+      return compose(propSet('loading', true), resetProps(['loadError']))(state);
 
     case LOAD_FILTER_FAILED:
       return { ...state, loadError: payload, loading: false };
@@ -112,10 +90,7 @@ export default function dashboardFilterReducer(
       return resetProps(['applyFilterError', 'loadErrorFilterName'], state);
 
     case APPLY_FILTER_FULFILLED: {
-      return compose(
-        applyFilter(payload),
-        propSet('needsAcknowledgement', false)
-      )(state);
+      return compose(applyFilter(payload), propSet('needsAcknowledgement', false))(state);
     }
 
     case APPLY_FILTER_FAILED:
@@ -137,17 +112,13 @@ export default function dashboardFilterReducer(
       return compose(setFiltersAreDirty, selectAge(payload))(state);
 
     case REVERT_FILTER:
-      return compose(
-        revertFilter,
-        resetProps(['filtersAreDirty', 'loadErrorFilterName'])
-      )(state);
+      return compose(revertFilter, resetProps(['filtersAreDirty', 'loadErrorFilterName']))(state);
 
     case SET_DISPLAY_SAVE_FILTER_MODAL:
       return { ...state, showSaveFilterModal: payload };
 
     case TOGGLE_FILTER_SIDEBAR:
-      return state.filterSidebarOpen &&
-        (state.filtersAreDirty || state.needsAcknowledgement)
+      return state.filterSidebarOpen && (state.filtersAreDirty || state.needsAcknowledgement)
         ? state
         : {
             ...state,
@@ -171,9 +142,7 @@ const toggleFilter = ({ filterName, selectedIds }) => (state) => {
   return pathSet(['selected', filterName], selectedIds, state);
 };
 
-const toggleAppsAndOrgs = ({ selectedOrganizations, selectedApplications }) => (
-  state
-) => {
+const toggleAppsAndOrgs = ({ selectedOrganizations, selectedApplications }) => (state) => {
   return compose(
     pathSet(['selected', 'organizations'], selectedOrganizations),
     pathSet(['selected', 'applications'], selectedApplications)
@@ -193,21 +162,14 @@ function setAvailable(state, payload) {
   const { applications } = payload;
 
   // add missing Orgs (no permission to org scenario)
-  const appsWithNoOrg = applications.filter(
-    (app) => findOrgById(app.organizationId) === undefined
-  );
+  const appsWithNoOrg = applications.filter((app) => findOrgById(app.organizationId) === undefined);
   const missingOrgs = uniqBy(
     prop('id'),
-    map(
-      (app) => ({ id: app.organizationId, name: app.organizationName }),
-      appsWithNoOrg
-    )
+    map((app) => ({ id: app.organizationId, name: app.organizationName }), appsWithNoOrg)
   );
 
   // filter out ROOT ORG
-  const orgsWithoutRoot = payload.organizations.filter(
-    (organization) => organization.id !== 'ROOT_ORGANIZATION_ID'
-  );
+  const orgsWithoutRoot = payload.organizations.filter((organization) => organization.id !== 'ROOT_ORGANIZATION_ID');
   const organizations = [...orgsWithoutRoot, ...missingOrgs];
 
   // populate categories owner
@@ -240,37 +202,26 @@ const applyFilter = ({ filter }) => (state) => {
 
   // organizations: select only visible orgs
   const organizationFilters = filter.organizationFilters || [];
-  const findAvailableOrgById = (id) =>
-    find(propEq('id', id), state.organizations);
+  const findAvailableOrgById = (id) => find(propEq('id', id), state.organizations);
   const visibleOrgIds = organizationFilters.filter(findAvailableOrgById);
   const organizations = new Set(visibleOrgIds);
 
   // applications: include potentially missing selected apps belonging to selected orgs
   const belongsToSelectedOrg = (app) => organizations.has(app.organizationId);
-  const appsFromSelectedOrgs = state.applications
-    .filter(belongsToSelectedOrg)
-    .map(prop('id'));
-  const applications = new Set([
-    ...filter.applicationFilters,
-    ...appsFromSelectedOrgs,
-  ]);
+  const appsFromSelectedOrgs = state.applications.filter(belongsToSelectedOrg).map(prop('id'));
+  const applications = new Set([...filter.applicationFilters, ...appsFromSelectedOrgs]);
 
   // categories: avoid adding no-longer-existing category ids to selected.categories
   const tagFilters = filter.tagFilters || [];
   const existingCategoryIds = new Set(state.categories.map(prop('id')));
-  const selectedCategoryIds = tagFilters.filter((categoryId) =>
-    existingCategoryIds.has(categoryId)
-  );
+  const selectedCategoryIds = tagFilters.filter((categoryId) => existingCategoryIds.has(categoryId));
   const categories = new Set(selectedCategoryIds);
 
   const stages = new Set(filter.stageTypeFilters);
   const policyTypes = new Set(filter.policyThreatCategoryFilters);
   const policyViolationStates = new Set(filter.policyViolationStates);
   const maxDaysOld = getAge(state, filter.maxDaysOld);
-  const policyThreatLevels = [
-    filter.minPolicyThreatLevel,
-    filter.maxPolicyThreatLevel,
-  ];
+  const policyThreatLevels = [filter.minPolicyThreatLevel, filter.maxPolicyThreatLevel];
 
   const selected = Object.freeze({
     organizations,

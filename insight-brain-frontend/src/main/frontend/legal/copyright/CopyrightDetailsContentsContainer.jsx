@@ -16,14 +16,8 @@ function mapStateToProps({ advancedLegal, componentCopyrightDetails }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
   return {
-    loading:
-      component.loading ||
-      availableScopes.loading ||
-      componentCopyrightDetails.loadingCopyrightFileCounts,
-    error:
-      component.error ||
-      availableScopes.error ||
-      componentCopyrightDetails.errorCopyrightFileCounts,
+    loading: component.loading || availableScopes.loading || componentCopyrightDetails.loadingCopyrightFileCounts,
+    error: component.error || availableScopes.error || componentCopyrightDetails.errorCopyrightFileCounts,
     availableScopes,
     componentCopyrightDetails,
     ...pick(['component'], component),
@@ -36,8 +30,5 @@ const mapDispatchToProps = {
   loadFilePathsOnPageUpdate,
 };
 
-const CopyrightDetailsContentsContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(CopyrightDetailsContents);
+const CopyrightDetailsContentsContainer = connect(mapStateToProps, mapDispatchToProps)(CopyrightDetailsContents);
 export default CopyrightDetailsContentsContainer;

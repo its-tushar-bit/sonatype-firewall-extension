@@ -4,55 +4,28 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import {
-  both,
-  complement,
-  compose,
-  find,
-  isNil,
-  prop,
-  propEq,
-  propSatisfies,
-} from 'ramda';
+import { both, complement, compose, find, isNil, prop, propEq, propSatisfies } from 'ramda';
 
-import {
-  noPayloadActionCreator,
-  payloadParamActionCreator,
-} from '../util/reduxUtil';
-import {
-  getViolationDetailsUrl,
-  getVulnerabilityJsonDetailUrl,
-  getApplicableWaiversUrl,
-} from '../util/CLMLocation';
+import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
+import { getViolationDetailsUrl, getVulnerabilityJsonDetailUrl, getApplicableWaiversUrl } from '../util/CLMLocation';
 import { isNilOrEmpty } from '../util/jsUtil';
 
-export const VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED =
-  'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED';
-export const VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED =
-  'VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED';
-export const VIOLATION_LOAD_VIOLATION_DETAILS_FAILED =
-  'VIOLATION_LOAD_VIOLATION_DETAILS_FAILED';
+export const VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED';
+export const VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED = 'VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED';
+export const VIOLATION_LOAD_VIOLATION_DETAILS_FAILED = 'VIOLATION_LOAD_VIOLATION_DETAILS_FAILED';
 
-export const VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED =
-  'VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED';
-export const VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED =
-  'VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED';
+export const VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED = 'VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED';
+export const VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED = 'VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED';
 
-export const VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED =
-  'VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED';
-export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED =
-  'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED';
-export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED =
-  'VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED';
+export const VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED';
+export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED';
+export const VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED = 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED';
 
 export function loadViolation(id) {
   return function (dispatch) {
     dispatch(loadViolationDetailsRequested());
 
-    const parallelRequests = [
-      dispatch(fetchCrossStageViolation(id)),
-      dispatch(fetchApplicableWaivers(id)),
-    ];
+    const parallelRequests = [dispatch(fetchCrossStageViolation(id)), dispatch(fetchApplicableWaivers(id))];
 
     return Promise.all(parallelRequests)
       .then(compose(dispatch, loadViolationDetailsFulfilled))
@@ -65,15 +38,7 @@ export function fetchApplicableWaivers(id) {
   return function (dispatch) {
     return axios
       .get(getApplicableWaiversUrl(id))
-      .then(
-        compose(
-          dispatch,
-          payloadParamActionCreator(
-            VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED
-          ),
-          prop('data')
-        )
-      );
+      .then(compose(dispatch, payloadParamActionCreator(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED), prop('data')));
   };
 }
 
@@ -91,9 +56,7 @@ export function fetchCrossStageViolation(id) {
 
     return axios.get(getViolationDetailsUrl(id)).then(({ data }) =>
       dispatch(
-        payloadParamActionCreator(
-          VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED
-        )({
+        payloadParamActionCreator(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED)({
           violationDetails: data,
           selectedViolationId: id,
         })
@@ -102,21 +65,12 @@ export function fetchCrossStageViolation(id) {
   };
 }
 
-const loadViolationDetailsRequested = noPayloadActionCreator(
-  VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED
-);
-const loadViolationDetailsFulfilled = noPayloadActionCreator(
-  VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED
-);
-const loadViolationDetailsFailed = payloadParamActionCreator(
-  VIOLATION_LOAD_VIOLATION_DETAILS_FAILED
-);
+const loadViolationDetailsRequested = noPayloadActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED);
+const loadViolationDetailsFulfilled = noPayloadActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED);
+const loadViolationDetailsFailed = payloadParamActionCreator(VIOLATION_LOAD_VIOLATION_DETAILS_FAILED);
 
 const isNotNil = complement(isNil),
-  isSecurityReference = both(
-    isNotNil,
-    propEq('type', 'SECURITY_VULNERABILITY_REFID')
-  ),
+  isSecurityReference = both(isNotNil, propEq('type', 'SECURITY_VULNERABILITY_REFID')),
   hasSecurityReference = propSatisfies(isSecurityReference, 'reference');
 
 export function loadVulnerabilityDetails() {
@@ -126,17 +80,11 @@ export function loadVulnerabilityDetails() {
       } = getState(),
       { constraintViolations, componentIdentifier } = violationDetails;
 
-    if (
-      isNilOrEmpty(constraintViolations) ||
-      isNilOrEmpty(constraintViolations[0].reasons)
-    ) {
+    if (isNilOrEmpty(constraintViolations) || isNilOrEmpty(constraintViolations[0].reasons)) {
       return Promise.resolve();
     }
 
-    const reasonWithRefId = find(
-      hasSecurityReference,
-      constraintViolations[0].reasons
-    );
+    const reasonWithRefId = find(hasSecurityReference, constraintViolations[0].reasons);
 
     if (reasonWithRefId) {
       dispatch(loadVulnerabilityDetailsRequested());
@@ -151,12 +99,6 @@ export function loadVulnerabilityDetails() {
   };
 }
 
-const loadVulnerabilityDetailsRequested = noPayloadActionCreator(
-  VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED
-);
-const loadVulnerabilityDetailsFulfilled = payloadParamActionCreator(
-  VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED
-);
-const loadVulnerabilityDetailsFailed = payloadParamActionCreator(
-  VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED
-);
+const loadVulnerabilityDetailsRequested = noPayloadActionCreator(VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED);
+const loadVulnerabilityDetailsFulfilled = payloadParamActionCreator(VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED);
+const loadVulnerabilityDetailsFailed = payloadParamActionCreator(VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED);

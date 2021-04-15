@@ -12,16 +12,9 @@
   </header>
   <div class="iq-modal-content">
     <system-notice></system-notice>
-    <div
-      ng-class="{'iq-form-row': !vm.showSamlSso, 'iq-grid-row': vm.showSamlSso}"
-    >
-      <p
-        id="sso-text"
-        class="iq-grid-col iq-grid-col--33"
-        ng-if="vm.showSamlSso"
-      >
-        Single sign-on via {{vm.identityProviderName}} by clicking the Single
-        Sign-On button.
+    <div ng-class="{'iq-form-row': !vm.showSamlSso, 'iq-grid-row': vm.showSamlSso}">
+      <p id="sso-text" class="iq-grid-col iq-grid-col--33" ng-if="vm.showSamlSso">
+        Single sign-on via {{vm.identityProviderName}} by clicking the Single Sign-On button.
       </p>
       <div class="iq-grid-col">
         <div class="iq-form-group">
@@ -77,24 +70,14 @@
         >
           Sign in</button
         ><!--
-      --><button
-          ng-if="!vm.inAuthRequiredState()"
-          id="login-cancel"
-          class="iq-btn"
-          type="button"
-          ng-click="$dismiss()"
-        >
+      --><button ng-if="!vm.inAuthRequiredState()" id="login-cancel" class="iq-btn" type="button" ng-click="$dismiss()">
           Cancel
         </button>
       </div>
     </div>
     <div class="iq-grid-row">
-      <p
-        ng-if="licensed && vm.inAuthRequiredState()"
-        id="login-vulnerability-link"
-      >
-        You can now look up a vulnerability without logging in. To explore more
-        visit:
+      <p ng-if="licensed && vm.inAuthRequiredState()" id="login-vulnerability-link">
+        You can now look up a vulnerability without logging in. To explore more visit:
         <a ui-sref="vulnerabilitySearch">Vulnerability Lookup</a>.
       </p>
     </div>

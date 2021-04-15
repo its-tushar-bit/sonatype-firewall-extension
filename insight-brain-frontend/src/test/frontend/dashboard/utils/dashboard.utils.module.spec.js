@@ -12,9 +12,7 @@ describe('dashboard.utils.module', function () {
     var createDashboardDataRequestPayload;
 
     beforeEach(inject(function ($injector) {
-      createDashboardDataRequestPayload = $injector.get(
-        'createDashboardDataRequestPayload'
-      );
+      createDashboardDataRequestPayload = $injector.get('createDashboardDataRequestPayload');
     }));
 
     it('sets maxResults as specified', function () {
@@ -145,10 +143,7 @@ describe('dashboard.utils.module', function () {
     });
 
     it('sets orderBy if sortFields array is not empty', function () {
-      var request = createDashboardDataRequestPayload({}, null, [
-        '-foo',
-        'bar',
-      ]);
+      var request = createDashboardDataRequestPayload({}, null, ['-foo', 'bar']);
       expect(request.orderBy).toBe('-foo,bar');
     });
   });

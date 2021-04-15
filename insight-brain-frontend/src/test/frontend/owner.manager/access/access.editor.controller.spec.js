@@ -72,9 +72,7 @@ describe('access.editor.controller.spec.js', function () {
       });
     });
 
-    $httpBackend
-      .expectGET(CLMContextLocations.getRoleMappingUrl())
-      .respond(accessMockData.getMoreRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getMoreRoleMappings());
     $httpBackend.flush();
 
     expect(vm.role).toBeDefined();
@@ -92,9 +90,7 @@ describe('access.editor.controller.spec.js', function () {
       });
     });
 
-    $httpBackend
-      .expectGET(CLMContextLocations.getRoleMappingUrl())
-      .respond(accessMockData.getMoreRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getMoreRoleMappings());
     $httpBackend.flush();
 
     expect(vm.role).toBeUndefined();
@@ -118,9 +114,7 @@ describe('access.editor.controller.spec.js', function () {
         return true;
       };
     });
-    $httpBackend
-      .expectGET(CLMContextLocations.getRoleMappingUrl())
-      .respond(accessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     $httpBackend.flush();
     vm.removeRole = jasmine.createSpy();
     vm.accessEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
@@ -141,9 +135,7 @@ describe('access.editor.controller.spec.js', function () {
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
       });
     });
-    $httpBackend
-      .expectGET(CLMContextLocations.getRoleMappingUrl())
-      .respond(accessMockData.getRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
     $httpBackend.flush();
     expect(vm.availableRoles.length).toBe(0);
 
@@ -151,12 +143,8 @@ describe('access.editor.controller.spec.js', function () {
     deleteServiceResourceDefer.resolve();
     $timeout.flush();
     expect(vm.availableRoles.length).toBe(1);
-    expect(mockRootScope.$broadcast).toHaveBeenCalledWith(
-      'resource.data.modified'
-    );
-    expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith(
-      'add-access'
-    );
+    expect(mockRootScope.$broadcast).toHaveBeenCalledWith('resource.data.modified');
+    expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('add-access');
     SpecUtil.expectStateChangeNotPrevented(scope);
   });
 
@@ -169,9 +157,7 @@ describe('access.editor.controller.spec.js', function () {
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
       });
     });
-    $httpBackend
-      .expectGET(CLMContextLocations.getRoleMappingUrl())
-      .respond(accessMockData.getMoreRoleMappings());
+    $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getMoreRoleMappings());
     $httpBackend.flush();
     expect(vm.availableRoles.length).toBe(1);
     vm.rolePicker = mockRolePicker;
@@ -185,21 +171,15 @@ describe('access.editor.controller.spec.js', function () {
     vm.accessEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
 
     vm.save();
-    $httpBackend
-      .expectPUT(CLMContextLocations.getRoleMappingUrl(vm.role.roleId))
-      .respond(200);
+    $httpBackend.expectPUT(CLMContextLocations.getRoleMappingUrl(vm.role.roleId)).respond(200);
     $httpBackend.flush();
     $timeout(function () {}, 1000); // mask delay = 0.8s
     $timeout.flush();
 
     expect(vm.availableRoles.length).toBe(0);
-    expect(mockRootScope.$broadcast).toHaveBeenCalledWith(
-      'resource.data.modified'
-    );
+    expect(mockRootScope.$broadcast).toHaveBeenCalledWith('resource.data.modified');
     expect(vm.isNew).toBeFalsy();
-    expect(
-      mockSameOwnerStateNavigationService.goEdit
-    ).toHaveBeenCalledWith('edit-access', { roleId: 'abcdef' });
+    expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('edit-access', { roleId: 'abcdef' });
   });
 
   describe('Page Changes', function () {
@@ -212,9 +192,7 @@ describe('access.editor.controller.spec.js', function () {
         return [];
       };
 
-      $httpBackend
-        .expectGET(CLMContextLocations.getRoleMappingUrl())
-        .respond(accessMockData.getMoreRoleMappings());
+      $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getMoreRoleMappings());
       $httpBackend.flush();
     }));
 

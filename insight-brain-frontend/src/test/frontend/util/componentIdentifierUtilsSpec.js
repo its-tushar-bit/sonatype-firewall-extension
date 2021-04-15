@@ -51,9 +51,7 @@ describe('componentIdentifierUtils', function () {
         'version' +
         unitSeparator +
         '0.9.5';
-      expect(serializeComponentIdentifier(componentIdentifier)).toEqual(
-        expectedValue
-      );
+      expect(serializeComponentIdentifier(componentIdentifier)).toEqual(expectedValue);
     });
   });
 });

@@ -6,14 +6,7 @@
 import { faInbox } from '@fortawesome/pro-solid-svg-icons';
 import template from './notificationsMenu.html';
 
-function NotificationsController(
-  $scope,
-  $http,
-  $sce,
-  CLMLocations,
-  timeAgoService,
-  Messages
-) {
+function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoService, Messages) {
   var vm = this;
 
   vm.faInbox = faInbox;
@@ -38,10 +31,7 @@ function NotificationsController(
   }
 
   function openDetail(notification) {
-    if (
-      $scope.selectedNotification &&
-      $scope.selectedNotification === notification
-    ) {
+    if ($scope.selectedNotification && $scope.selectedNotification === notification) {
       $scope.selectedNotification = null;
     } else {
       $scope.selectedNotification = notification;
@@ -76,23 +66,14 @@ function NotificationsController(
       function (error) {
         $scope.loading = false;
         $scope.errorText =
-          'An error occurred while loading notifications. (' +
-          Messages.getHttpErrorMessage(error) +
-          ')';
+          'An error occurred while loading notifications. (' + Messages.getHttpErrorMessage(error) + ')';
         $scope.unreadNotificationCount = '!';
       }
     );
   }
 }
 
-NotificationsController.$inject = [
-  '$scope',
-  '$http',
-  '$sce',
-  'CLMLocations',
-  'timeAgoService',
-  'Messages',
-];
+NotificationsController.$inject = ['$scope', '$http', '$sce', 'CLMLocations', 'timeAgoService', 'Messages'];
 
 export default {
   controller: NotificationsController,

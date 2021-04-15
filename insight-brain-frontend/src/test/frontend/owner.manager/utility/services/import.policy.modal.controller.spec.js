@@ -16,13 +16,7 @@ describe('import.policy.modal.controller.spec.js', function () {
     })
   );
 
-  beforeEach(inject(function (
-    $rootScope,
-    $q,
-    $controller,
-    _$httpBackend_,
-    _CLMContextLocations_
-  ) {
+  beforeEach(inject(function ($rootScope, $q, $controller, _$httpBackend_, _CLMContextLocations_) {
     scope = $rootScope.$new();
     scope.$dismiss = jasmine.createSpy('$dismiss');
 
@@ -64,9 +58,7 @@ describe('import.policy.modal.controller.spec.js', function () {
     it('Test import failure', function () {
       validateInitialState();
 
-      $httpBackend
-        .expectPOST(CLMContextLocations.getImportPolicyUrl())
-        .respond(500, 'Some failure');
+      $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond(500, 'Some failure');
 
       vm.doSubmit(submitEvent);
       $httpBackend.flush();
@@ -79,11 +71,9 @@ describe('import.policy.modal.controller.spec.js', function () {
       validateInitialState();
       scope.$close = jasmine.createSpy('close');
 
-      $httpBackend
-        .expectPOST(CLMContextLocations.getImportPolicyUrl())
-        .respond({
-          ownerName: 'test',
-        });
+      $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond({
+        ownerName: 'test',
+      });
       spyOn(PolicyHierarchyStore, 'refresh');
 
       vm.doSubmit(submitEvent);

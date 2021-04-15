@@ -21,9 +21,7 @@ const initialPurposeState = Object.freeze({
     stageTypes: null,
   }),
   // state has a key for each valid purpose, with each key's value initially being `initialPurposeState`
-  initialState = Object.freeze(
-    fromPairs(map(pair(__, initialPurposeState), validPurposes))
-  );
+  initialState = Object.freeze(fromPairs(map(pair(__, initialPurposeState), validPurposes)));
 
 const reducerActionMap = {
   [FETCH_STAGE_TYPES_REQUESTED]: fetchStageTypesRequested,
@@ -31,8 +29,7 @@ const reducerActionMap = {
   [FETCH_STAGE_TYPES_FAILED]: fetchStageTypesFailed,
 };
 
-const getShortName = ({ stageTypeId, stageName }) =>
-    stageTypeId === 'stage-release' ? 'Stage' : stageName,
+const getShortName = ({ stageTypeId, stageName }) => (stageTypeId === 'stage-release' ? 'Stage' : stageName),
   addShortName = (stageType) =>
     Object.freeze({
       ...stageType,

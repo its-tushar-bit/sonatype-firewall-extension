@@ -57,21 +57,13 @@ export default function DropdownSelector() {
 
     scope.$watch('vm.options', function (options) {
       ctrl.$setPristine();
-      element[
-        angular.isUndefined(options) || scope.vm.disabled
-          ? 'addClass'
-          : 'removeClass'
-      ]('disabled');
+      element[angular.isUndefined(options) || scope.vm.disabled ? 'addClass' : 'removeClass']('disabled');
     });
 
     if (scope.vm.noOptionsString) {
       scope.$watch('vm.options.length', function (hasOptions) {
         // no-options class should only show if no options are available from a defined options set
-        element[
-          angular.isUndefined(scope.vm.options) || hasOptions
-            ? 'removeClass'
-            : 'addClass'
-        ]('no-options');
+        element[angular.isUndefined(scope.vm.options) || hasOptions ? 'removeClass' : 'addClass']('no-options');
       });
     }
 
@@ -85,25 +77,18 @@ export default function DropdownSelector() {
       }
 
       if (modelValue) {
-        return scope.vm.optionNameParam
-          ? modelValue[scope.vm.optionNameParam]
-          : modelValue;
+        return scope.vm.optionNameParam ? modelValue[scope.vm.optionNameParam] : modelValue;
       } else {
         return scope.vm.emptyOptionString || 'None Selected';
       }
     }
 
     function isEmpty(viewValue) {
-      return (
-        !viewValue ||
-        viewValue === (scope.vm.emptyOptionString || 'None Selected')
-      );
+      return !viewValue || viewValue === (scope.vm.emptyOptionString || 'None Selected');
     }
 
     function selectItem(item) {
-      ctrl.$setViewValue(
-        scope.vm.optionNameParam ? item[scope.vm.optionNameParam] : item
-      );
+      ctrl.$setViewValue(scope.vm.optionNameParam ? item[scope.vm.optionNameParam] : item);
     }
   }
 }

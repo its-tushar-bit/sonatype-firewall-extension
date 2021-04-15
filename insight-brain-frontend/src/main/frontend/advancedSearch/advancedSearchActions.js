@@ -5,14 +5,8 @@
  */
 import axios from 'axios';
 
-import {
-  noPayloadActionCreator,
-  payloadParamActionCreator,
-} from '../util/reduxUtil';
-import {
-  getAdvancedSearchConfigUrl,
-  getAdvancedSearchUrl,
-} from '../util/CLMLocation';
+import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
+import { getAdvancedSearchConfigUrl, getAdvancedSearchUrl } from '../util/CLMLocation';
 
 export const ADVANCED_SEARCH_LOAD_REQUESTED = 'ADVANCED_SEARCH_LOAD_REQUESTED';
 export const ADVANCED_SEARCH_LOAD_FULFILLED = 'ADVANCED_SEARCH_LOAD_FULFILLED';
@@ -47,23 +41,16 @@ export function load() {
   };
 }
 
-export const ADVANCED_SEARCH_SET_CURRENT_QUERY =
-  'ADVANCED_SEARCH_SET_CURRENT_QUERY';
-export const setCurrentQuery = payloadParamActionCreator(
-  ADVANCED_SEARCH_SET_CURRENT_QUERY
-);
+export const ADVANCED_SEARCH_SET_CURRENT_QUERY = 'ADVANCED_SEARCH_SET_CURRENT_QUERY';
+export const setCurrentQuery = payloadParamActionCreator(ADVANCED_SEARCH_SET_CURRENT_QUERY);
 
-export const ADVANCED_SEARCH_QUERY_REQUESTED =
-  'ADVANCED_SEARCH_QUERY_REQUESTED';
-export const ADVANCED_SEARCH_QUERY_FULFILLED =
-  'ADVANCED_SEARCH_QUERY_FULFILLED';
+export const ADVANCED_SEARCH_QUERY_REQUESTED = 'ADVANCED_SEARCH_QUERY_REQUESTED';
+export const ADVANCED_SEARCH_QUERY_FULFILLED = 'ADVANCED_SEARCH_QUERY_FULFILLED';
 export const ADVANCED_SEARCH_QUERY_FAILED = 'ADVANCED_SEARCH_QUERY_FAILED';
 export const ADVANCED_SEARCH_RESET_QUERY = 'ADVANCED_SEARCH_RESET_QUERY';
 
 const queryRequested = noPayloadActionCreator(ADVANCED_SEARCH_QUERY_REQUESTED);
-const queryFulfilled = payloadParamActionCreator(
-  ADVANCED_SEARCH_QUERY_FULFILLED
-);
+const queryFulfilled = payloadParamActionCreator(ADVANCED_SEARCH_QUERY_FULFILLED);
 const queryFailed = payloadParamActionCreator(ADVANCED_SEARCH_QUERY_FAILED);
 const resetSearchQuery = noPayloadActionCreator(ADVANCED_SEARCH_RESET_QUERY);
 
@@ -75,9 +62,7 @@ export function searchFormSubmit(pageIncrement) {
 
     const formState = getState().advancedSearch.formState;
     // If next or previous is not requested, request page 0. Requesting page 0 means, firing initial search.
-    const page = pageIncrement
-      ? formState.searchResult.page + pageIncrement
-      : 0;
+    const page = pageIncrement ? formState.searchResult.page + pageIncrement : 0;
 
     dispatch(queryRequested());
     axios

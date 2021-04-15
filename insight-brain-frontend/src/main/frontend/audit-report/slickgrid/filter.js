@@ -36,9 +36,7 @@
         if (e.keyCode === 13) {
           e.preventDefault();
         }
-        _columnFilters[$(this).data('columnId')] = $.trim(
-          $(this).val()
-        ).toUpperCase();
+        _columnFilters[$(this).data('columnId')] = $.trim($(this).val()).toUpperCase();
         _grid.getData().refresh();
       });
     }
@@ -80,10 +78,7 @@
               .data('columnId', columns[i].id)
               .attr(
                 'placeholder',
-                ' Search ' +
-                  (columns[i].shortName !== null
-                    ? columns[i].shortName
-                    : columns[i].name)
+                ' Search ' + (columns[i].shortName !== null ? columns[i].shortName : columns[i].name)
               )
               .val(_columnFilters[columns[i].id]);
           }
@@ -111,11 +106,7 @@
             }
 
             //force the field into a string
-            if (
-              ('' + fieldData)
-                .toUpperCase()
-                .indexOf(_columnFilters[columnId]) === -1
-            ) {
+            if (('' + fieldData).toUpperCase().indexOf(_columnFilters[columnId]) === -1) {
               return false;
             }
           }

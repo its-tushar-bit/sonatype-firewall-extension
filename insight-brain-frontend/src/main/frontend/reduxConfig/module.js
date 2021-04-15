@@ -30,6 +30,4 @@ function config($ngReduxProvider) {
 }
 config.$inject = ['$ngReduxProvider'];
 
-export default angular
-  .module('reduxConfig', [ngReduxModule, reduxUiRouterModule.name])
-  .config(config);
+export default angular.module('reduxConfig', [ngReduxModule, reduxUiRouterModule.name]).config(config);

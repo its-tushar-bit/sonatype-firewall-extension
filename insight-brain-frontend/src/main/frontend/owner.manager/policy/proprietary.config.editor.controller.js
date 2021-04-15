@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ProprietaryConfigEditorController(
-  $scope,
-  Messages,
-  ProprietaryConfigHierarchyStore
-) {
+export default function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHierarchyStore) {
   var vm = this,
     PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
 
@@ -89,10 +85,7 @@ export default function ProprietaryConfigEditorController(
       keypressEvent.preventDefault();
     }
 
-    var matcherToAdd =
-      vm.matcherType === vm.matcherTypes.REGEX
-        ? vm.regexMatcher
-        : vm.packageMatcher;
+    var matcherToAdd = vm.matcherType === vm.matcherTypes.REGEX ? vm.regexMatcher : vm.packageMatcher;
 
     if (!matcherToAdd) {
       return;
@@ -119,17 +112,13 @@ export default function ProprietaryConfigEditorController(
       return aMatcher !== theMatcher;
     });
     if (theMatcher.type === vm.matcherTypes.REGEX) {
-      vm.dirtyProprietaryConfig.regexes = vm.dirtyProprietaryConfig.regexes.filter(
-        function (aMatcher) {
-          return aMatcher !== theMatcher.matcher;
-        }
-      );
+      vm.dirtyProprietaryConfig.regexes = vm.dirtyProprietaryConfig.regexes.filter(function (aMatcher) {
+        return aMatcher !== theMatcher.matcher;
+      });
     } else {
-      vm.dirtyProprietaryConfig.packages = vm.dirtyProprietaryConfig.packages.filter(
-        function (aMatcher) {
-          return aMatcher !== theMatcher.matcher;
-        }
-      );
+      vm.dirtyProprietaryConfig.packages = vm.dirtyProprietaryConfig.packages.filter(function (aMatcher) {
+        return aMatcher !== theMatcher.matcher;
+      });
     }
   }
 
@@ -141,16 +130,9 @@ export default function ProprietaryConfigEditorController(
   }
 
   function isAddButtonDisabled() {
-    var matcherToAdd =
-      vm.matcherType === vm.matcherTypes.REGEX
-        ? vm.regexMatcher
-        : vm.packageMatcher;
+    var matcherToAdd = vm.matcherType === vm.matcherTypes.REGEX ? vm.regexMatcher : vm.packageMatcher;
     return !matcherToAdd;
   }
 }
 
-ProprietaryConfigEditorController.$inject = [
-  '$scope',
-  'Messages',
-  'ProprietaryConfigHierarchyStore',
-];
+ProprietaryConfigEditorController.$inject = ['$scope', 'Messages', 'ProprietaryConfigHierarchyStore'];

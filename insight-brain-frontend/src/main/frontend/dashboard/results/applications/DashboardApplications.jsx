@@ -14,14 +14,7 @@ import DashboardMask from '../dashboardMask/DashboardMask';
 export const APPLICATIONS_RESULTS_TYPE = 'applications';
 
 export default function DashboardApplications(props) {
-  const {
-    applicationResults,
-    filterLoading,
-    needsAcknowledgement,
-    filtersAreDirty,
-    loadResults,
-    sortResults,
-  } = props;
+  const { applicationResults, filterLoading, needsAcknowledgement, filtersAreDirty, loadResults, sortResults } = props;
 
   const doLoad = () => {
     loadResults(APPLICATIONS_RESULTS_TYPE);
@@ -42,10 +35,7 @@ export default function DashboardApplications(props) {
   };
 
   return (
-    <div
-      id="dashboard-applications"
-      className="iq-dashboard-applications nx-viewport-sized__container"
-    >
+    <div id="dashboard-applications" className="iq-dashboard-applications nx-viewport-sized__container">
       {filtersAreDirty && <DashboardMask />}
       <DashboardApplicationsTable {...tableProps} />
     </div>

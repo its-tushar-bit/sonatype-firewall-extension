@@ -8,14 +8,8 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 
 import { filterToJson } from './dashboardFilterService';
 import { SET_DISPLAY_SAVE_FILTER_MODAL } from './dashboardFilterActions';
-import {
-  noPayloadActionCreator,
-  payloadParamActionCreator,
-} from '../../util/reduxUtil';
-import {
-  getDashboardDeleteFilterUrl,
-  getDashboardSavedFilters,
-} from '../../util/CLMLocation';
+import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+import { getDashboardDeleteFilterUrl, getDashboardSavedFilters } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 
 export const FETCH_SAVED_FILTERS_FULFILLED = 'FETCH_SAVED_FILTERS_FULFILLED';
@@ -28,10 +22,8 @@ export const HIDE_DELETE_FILTER_MODAL = 'HIDE_DELETE_FILTER_MODAL';
 export const DELETE_FILTER_REQUESTED = 'DELETE_FILTER_REQUESTED';
 export const DELETE_FILTER_FULFILLED = 'DELETE_FILTER_FULFILLED';
 export const DELETE_FILTER_FAILED = 'DELETE_FILTER_FAILED';
-export const SAVE_FILTER_OVERWRITE_REQUESTED =
-  'SAVE_FILTER_OVERWRITE_REQUESTED';
-export const SAVE_DUPLICATE_FILTER_REQUESTED =
-  'SAVE_DUPLICATE_FILTER_REQUESTED';
+export const SAVE_FILTER_OVERWRITE_REQUESTED = 'SAVE_FILTER_OVERWRITE_REQUESTED';
+export const SAVE_DUPLICATE_FILTER_REQUESTED = 'SAVE_DUPLICATE_FILTER_REQUESTED';
 export const SAVE_CONFIRM_CANCELLED = 'SAVE_CONFIRM_CANCELLED';
 
 export function fetchSavedFilters() {
@@ -46,13 +38,9 @@ export function fetchSavedFilters() {
   };
 }
 
-const fetchSavedFiltersFulfilled = payloadParamActionCreator(
-  FETCH_SAVED_FILTERS_FULFILLED
-);
+const fetchSavedFiltersFulfilled = payloadParamActionCreator(FETCH_SAVED_FILTERS_FULFILLED);
 
-const fetchSavedFiltersFailed = payloadParamActionCreator(
-  FETCH_SAVED_FILTERS_FAILED
-);
+const fetchSavedFiltersFailed = payloadParamActionCreator(FETCH_SAVED_FILTERS_FAILED);
 
 export function saveFilter({ name, isOverwriting }) {
   return (dispatch, getState) => {
@@ -68,9 +56,7 @@ export function saveFilter({ name, isOverwriting }) {
       }
 
       const normalizedName = normalize(name);
-      const existingDuplicateFilter = savedFilters.find(
-        (filterName) => normalizedName === normalize(filterName.name)
-      );
+      const existingDuplicateFilter = savedFilters.find((filterName) => normalizedName === normalize(filterName.name));
 
       if (existingDuplicateFilter) {
         return dispatch({
@@ -115,12 +101,8 @@ export function cancelSaveFilter() {
   };
 }
 
-export const selectFilterToDelete = payloadParamActionCreator(
-  SELECT_FILTER_TO_DELETE
-);
-export const hideDeleteFilterModal = noPayloadActionCreator(
-  HIDE_DELETE_FILTER_MODAL
-);
+export const selectFilterToDelete = payloadParamActionCreator(SELECT_FILTER_TO_DELETE);
+export const hideDeleteFilterModal = noPayloadActionCreator(HIDE_DELETE_FILTER_MODAL);
 
 export function deleteFilter(filterName) {
   return (dispatch) => {

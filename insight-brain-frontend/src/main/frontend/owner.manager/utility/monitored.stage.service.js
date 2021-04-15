@@ -20,13 +20,9 @@ function createInheritOrNoMonitorOption(policyMonitoringByOwner, stages) {
       parentsName = policyMonitoringOwner.ownerName;
     }
     if (policyMonitoringOwner.policyMonitoring) {
-      var theStage = getMonitoredStage(
-        policyMonitoringOwner.policyMonitoring,
-        stages
-      );
+      var theStage = getMonitoredStage(policyMonitoringOwner.policyMonitoring, stages);
       inheritOrNoMonitorOption = {
-        stageName:
-          'Inherit from ' + parentsName + ' (' + theStage.stageName + ')',
+        stageName: 'Inherit from ' + parentsName + ' (' + theStage.stageName + ')',
       };
       return true;
     }
@@ -45,8 +41,6 @@ function createInheritOrNoMonitorOption(policyMonitoringByOwner, stages) {
 
 function getMonitoredStage(policyMonitoring, stages) {
   return stages.filter(function (stage) {
-    return policyMonitoring
-      ? stage.stageTypeId === policyMonitoring.stageTypeId
-      : !stage.stageTypeId;
+    return policyMonitoring ? stage.stageTypeId === policyMonitoring.stageTypeId : !stage.stageTypeId;
   })[0];
 }

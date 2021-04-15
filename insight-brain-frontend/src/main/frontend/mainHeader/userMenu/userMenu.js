@@ -10,17 +10,7 @@ import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import template from './userMenu.html';
 import { showUserTokenModal } from './userToken/userTokenActions';
 
-function UserMenuController(
-  $rootScope,
-  $scope,
-  $http,
-  $ngRedux,
-  CLMLocations,
-  Modal,
-  messages,
-  pendoService,
-  actions
-) {
+function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
   var vm = this;
   vm.logoutMask = undefined;
 
@@ -43,8 +33,7 @@ function UserMenuController(
     },
 
     logout() {
-      const serverLogout = () =>
-        $http['delete'](CLMLocations.getSessionLogoutUrl());
+      const serverLogout = () => $http['delete'](CLMLocations.getSessionLogoutUrl());
 
       vm.logoutMask.wrap(
         pendoService

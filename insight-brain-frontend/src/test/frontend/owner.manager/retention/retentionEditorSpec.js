@@ -4,11 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import retentionModule from '../../../../main/frontend/owner.manager/retention/module';
-import {
-  disabledRetentionPolicies,
-  inheritedRetentionPolicies,
-  customRetentionPolicies,
-} from './retentionMockData';
+import { disabledRetentionPolicies, inheritedRetentionPolicies, customRetentionPolicies } from './retentionMockData';
 
 describe('retentionEditor', function () {
   let $scope,
@@ -27,19 +23,15 @@ describe('retentionEditor', function () {
     $scope = $rootScope.$new();
     $q = _$q_;
     $componentController = _$componentController_;
-    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', [
-      'isRootOrg',
-    ]);
+    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', ['isRootOrg']);
     mockCLMContextLocations.isRootOrg.and.returnValue(false);
     getRootOrganizationRetentionPoliciesDeferred = $q.defer();
     getRetentionPoliciesDeferred = $q.defer();
     setRetentionPoliciesDeferred = $q.defer();
     mockRetentionService = {
-      getRootOrganizationRetentionPolicies: jasmine
-        .createSpy()
-        .and.callFake(function () {
-          return getRootOrganizationRetentionPoliciesDeferred.promise;
-        }),
+      getRootOrganizationRetentionPolicies: jasmine.createSpy().and.callFake(function () {
+        return getRootOrganizationRetentionPoliciesDeferred.promise;
+      }),
       getRetentionPolicies: jasmine.createSpy().and.callFake(function () {
         return getRetentionPoliciesDeferred.promise;
       }),
@@ -74,24 +66,14 @@ describe('retentionEditor', function () {
 
     it('loads reports and parent reports for an organization on success', function () {
       getRetentionPoliciesDeferred.resolve(inheritedRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
-      expect(vm.applicationReportsFromServer).toEqual(
-        inheritedRetentionPolicies.applicationReports
-      );
-      expect(vm.parentApplicationReportsFromServer).toEqual(
-        customRetentionPolicies.applicationReports
-      );
-      expect(vm.successMetricsFromServer).toEqual(
-        inheritedRetentionPolicies.successMetrics
-      );
-      expect(vm.parentSuccessMetricsFromServer).toEqual(
-        customRetentionPolicies.successMetrics
-      );
+      expect(vm.applicationReportsFromServer).toEqual(inheritedRetentionPolicies.applicationReports);
+      expect(vm.parentApplicationReportsFromServer).toEqual(customRetentionPolicies.applicationReports);
+      expect(vm.successMetricsFromServer).toEqual(inheritedRetentionPolicies.successMetrics);
+      expect(vm.parentSuccessMetricsFromServer).toEqual(customRetentionPolicies.successMetrics);
       expect(vm.error).toBeUndefined();
     });
 
@@ -108,16 +90,10 @@ describe('retentionEditor', function () {
 
       $scope.$digest();
 
-      expect(
-        mockRetentionService.getRootOrganizationRetentionPolicies
-      ).not.toHaveBeenCalled();
-      expect(vm.applicationReportsFromServer).toEqual(
-        customRetentionPolicies.applicationReports
-      );
+      expect(mockRetentionService.getRootOrganizationRetentionPolicies).not.toHaveBeenCalled();
+      expect(vm.applicationReportsFromServer).toEqual(customRetentionPolicies.applicationReports);
       expect(vm.parentApplicationReportsFromServer).toBeUndefined();
-      expect(vm.successMetricsFromServer).toEqual(
-        customRetentionPolicies.successMetrics
-      );
+      expect(vm.successMetricsFromServer).toEqual(customRetentionPolicies.successMetrics);
       expect(vm.parentSuccessMetricsFromServer).toBeUndefined();
       expect(vm.error).toBeUndefined();
     });
@@ -145,9 +121,7 @@ describe('retentionEditor', function () {
           inheritPolicy: true,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -169,9 +143,7 @@ describe('retentionEditor', function () {
           enablePurging: false,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -194,9 +166,7 @@ describe('retentionEditor', function () {
           maxAge: '1 year',
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -231,9 +201,7 @@ describe('retentionEditor', function () {
           enablePurging: false,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -257,9 +225,7 @@ describe('retentionEditor', function () {
           enablePurging: true,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -281,9 +247,7 @@ describe('retentionEditor', function () {
           inheritPolicy: true,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -337,9 +301,7 @@ describe('retentionEditor', function () {
           inheritPolicy: true,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -376,9 +338,7 @@ describe('retentionEditor', function () {
           maxAge: '1 year',
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -401,9 +361,7 @@ describe('retentionEditor', function () {
           maxAge: '2 years',
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -423,9 +381,7 @@ describe('retentionEditor', function () {
           },
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -446,9 +402,7 @@ describe('retentionEditor', function () {
           maxAge: '1 day',
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -466,9 +420,7 @@ describe('retentionEditor', function () {
           },
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -508,18 +460,10 @@ describe('retentionEditor', function () {
 
       $scope.$digest();
 
-      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual(
-        'keep at most 1 day, 1 report'
-      );
-      expect(vm.getParentMaxReportsAndMaxAge('stage 2')).toEqual(
-        'keep at most 2 days, 2 reports'
-      );
-      expect(vm.getParentMaxReportsAndMaxAge('stage 3')).toEqual(
-        'keep at most 2 days, 1 report'
-      );
-      expect(vm.getParentMaxReportsAndMaxAge('stage 4')).toEqual(
-        'keep at most 1 day, 2 reports'
-      );
+      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual('keep at most 1 day, 1 report');
+      expect(vm.getParentMaxReportsAndMaxAge('stage 2')).toEqual('keep at most 2 days, 2 reports');
+      expect(vm.getParentMaxReportsAndMaxAge('stage 3')).toEqual('keep at most 2 days, 1 report');
+      expect(vm.getParentMaxReportsAndMaxAge('stage 4')).toEqual('keep at most 1 day, 2 reports');
     });
 
     it('returns the correct text if only the parent maxCount exists', function () {
@@ -541,12 +485,8 @@ describe('retentionEditor', function () {
 
       $scope.$digest();
 
-      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual(
-        'keep at most 1 report'
-      );
-      expect(vm.getParentMaxReportsAndMaxAge('stage 2')).toEqual(
-        'keep at most 2 reports'
-      );
+      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual('keep at most 1 report');
+      expect(vm.getParentMaxReportsAndMaxAge('stage 2')).toEqual('keep at most 2 reports');
     });
 
     it('returns the correct text if only the parent maxAge exists', function () {
@@ -564,16 +504,12 @@ describe('retentionEditor', function () {
 
       $scope.$digest();
 
-      expect(vm.getParentMaxReportsAndMaxAge('stage')).toEqual(
-        'keep at most 1 day'
-      );
+      expect(vm.getParentMaxReportsAndMaxAge('stage')).toEqual('keep at most 1 day');
     });
 
     it('returns the correct text if the parent has purging disabled', function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        disabledRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
 
       $scope.$digest();
 
@@ -584,9 +520,7 @@ describe('retentionEditor', function () {
   describe('getParentSuccessMetricsMaxAge', function () {
     it('returns the correct text if the parent has purging enabled', function () {
       getRetentionPoliciesDeferred.resolve(inheritedRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -595,9 +529,7 @@ describe('retentionEditor', function () {
 
     it('returns the correct text if the parent has purging disabled', function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        disabledRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
 
       $scope.$digest();
 
@@ -621,9 +553,7 @@ describe('retentionEditor', function () {
           inheritPolicy: true,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -650,9 +580,7 @@ describe('retentionEditor', function () {
           inheritPolicy: true,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -679,9 +607,7 @@ describe('retentionEditor', function () {
           inheritPolicy: true,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -707,9 +633,7 @@ describe('retentionEditor', function () {
           maxAge: '3 years',
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -734,9 +658,7 @@ describe('retentionEditor', function () {
           inheritPolicy: true,
         },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -753,9 +675,7 @@ describe('retentionEditor', function () {
   describe('save', function () {
     it('sets the correct data retention policies for the inherit form value on success', function () {
       getRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -796,27 +716,19 @@ describe('retentionEditor', function () {
 
       setRetentionPoliciesDeferred.resolve({ status: 204, data: 'no content' });
       getRetentionPoliciesDeferred = $q.defer();
-      getRetentionPoliciesDeferred.resolve(
-        inheritedRetentionPoliciesWithNullValues
-      );
+      getRetentionPoliciesDeferred.resolve(inheritedRetentionPoliciesWithNullValues);
 
       $scope.$digest();
 
-      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(
-        inheritedRetentionPoliciesWithNullValues
-      );
-      expect(vm.applicationReportsFromServer).toEqual(
-        inheritedRetentionPoliciesWithNullValues.applicationReports
-      );
+      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(inheritedRetentionPoliciesWithNullValues);
+      expect(vm.applicationReportsFromServer).toEqual(inheritedRetentionPoliciesWithNullValues.applicationReports);
       expect(vm.isDirty()).toBe(false);
       expect(vm.submitError).toBeUndefined();
     });
 
     it("sets the correct data retention policies for the don't purge form value on success", function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -837,21 +749,15 @@ describe('retentionEditor', function () {
 
       $scope.$digest();
 
-      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(
-        disabledRetentionPolicies
-      );
-      expect(vm.applicationReportsFromServer).toEqual(
-        disabledRetentionPolicies.applicationReports
-      );
+      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(disabledRetentionPolicies);
+      expect(vm.applicationReportsFromServer).toEqual(disabledRetentionPolicies.applicationReports);
       expect(vm.isDirty()).toBe(false);
       expect(vm.submitError).toBeUndefined();
     });
 
     it('sets the correct data retention policies for the custom form value on success', function () {
       getRetentionPoliciesDeferred.resolve(inheritedRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -900,21 +806,15 @@ describe('retentionEditor', function () {
 
       $scope.$digest();
 
-      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(
-        expectedNewApplicationReports
-      );
-      expect(vm.applicationReportsFromServer).toEqual(
-        expectedNewApplicationReports.applicationReports
-      );
+      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(expectedNewApplicationReports);
+      expect(vm.applicationReportsFromServer).toEqual(expectedNewApplicationReports.applicationReports);
       expect(vm.isDirty()).toBe(false);
       expect(vm.submitError).toBeUndefined();
     });
 
     it('sets the submit error on failure', function () {
       getRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -937,9 +837,7 @@ describe('retentionEditor', function () {
 
     it('waits for the saving and loading requests to resolve before clearing the mask', function () {
       getRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
@@ -972,9 +870,7 @@ describe('retentionEditor', function () {
 
       expect(isPromiseResolved).not.toHaveBeenCalled();
 
-      getRootOrganizationRetentionPoliciesDeferred.resolve(
-        customRetentionPolicies
-      );
+      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
       $scope.$digest();
 
       expect(isPromiseResolved).toHaveBeenCalled();

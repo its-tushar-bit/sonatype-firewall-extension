@@ -5,11 +5,7 @@
  */
 import React, { useContext } from 'react';
 
-import {
-  NxFontAwesomeIcon,
-  NxTableCell,
-  NxTableRow,
-} from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { faExternalLink } from '@fortawesome/pro-regular-svg-icons';
 import RouterStateContext from '../../../react/RouterStateContext';
@@ -30,32 +26,18 @@ export default function DashboardApplicationsTableStageRiskRow(props) {
   });
 
   return (
-    <NxTableRow
-      id={stageRowAutomationId}
-      className={rowClassNames}
-      key={stageRisk.scanId}
-    >
+    <NxTableRow id={stageRowAutomationId} className={rowClassNames} key={stageRisk.scanId}>
       <NxTableCell>
         <a href={reportRef} target="_blank" rel="noopener noreferrer">
           <NxFontAwesomeIcon icon={faExternalLink} />
           {stageRisk.stageTypeName}
         </a>
       </NxTableCell>
-      <NxTableCell className="nx-cell--num">
-        {stageRisk.risk.totalRisk}
-      </NxTableCell>
-      <NxTableCell className="nx-cell--num">
-        {stageRisk.risk.criticalRisk}
-      </NxTableCell>
-      <NxTableCell className="nx-cell--num">
-        {stageRisk.risk.severeRisk}
-      </NxTableCell>
-      <NxTableCell className="nx-cell--num">
-        {stageRisk.risk.moderateRisk}
-      </NxTableCell>
-      <NxTableCell className="nx-cell--num">
-        {stageRisk.risk.lowRisk}
-      </NxTableCell>
+      <NxTableCell className="nx-cell--num">{stageRisk.risk.totalRisk}</NxTableCell>
+      <NxTableCell className="nx-cell--num">{stageRisk.risk.criticalRisk}</NxTableCell>
+      <NxTableCell className="nx-cell--num">{stageRisk.risk.severeRisk}</NxTableCell>
+      <NxTableCell className="nx-cell--num">{stageRisk.risk.moderateRisk}</NxTableCell>
+      <NxTableCell className="nx-cell--num">{stageRisk.risk.lowRisk}</NxTableCell>
     </NxTableRow>
   );
 }

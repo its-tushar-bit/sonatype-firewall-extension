@@ -6,12 +6,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { faCopy } from '@fortawesome/free-solid-svg-icons';
-import {
-  NxButton,
-  NxFontAwesomeIcon,
-  NxTextInput,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxTextInput, NxTooltip } from '@sonatype/react-shared-components';
 
 export default function UserTokenDisplay({ userToken }) {
   const { userCode, passCode } = userToken;
@@ -20,8 +15,7 @@ export default function UserTokenDisplay({ userToken }) {
     evt.preventDefault();
   };
 
-  const copyToClipboard = (textToCopy) =>
-    navigator.clipboard.writeText(textToCopy);
+  const copyToClipboard = (textToCopy) => navigator.clipboard.writeText(textToCopy);
 
   return (
     <form onSubmit={onSubmit}>
@@ -39,11 +33,7 @@ export default function UserTokenDisplay({ userToken }) {
         </div>
         <div className="nx-btn-bar">
           <NxTooltip title="Copy to clipboard">
-            <NxButton
-              id="user-token-copy-usercode"
-              variant="tertiary"
-              onClick={() => copyToClipboard(userCode)}
-            >
+            <NxButton id="user-token-copy-usercode" variant="tertiary" onClick={() => copyToClipboard(userCode)}>
               <NxFontAwesomeIcon icon={faCopy} />
             </NxButton>
           </NxTooltip>
@@ -63,11 +53,7 @@ export default function UserTokenDisplay({ userToken }) {
         </div>
         <div className="nx-btn-bar">
           <NxTooltip title="Copy to clipboard">
-            <NxButton
-              id="user-token-copy-passcode"
-              variant="tertiary"
-              onClick={() => copyToClipboard(passCode)}
-            >
+            <NxButton id="user-token-copy-passcode" variant="tertiary" onClick={() => copyToClipboard(passCode)}>
               <NxFontAwesomeIcon icon={faCopy} />
             </NxButton>
           </NxTooltip>

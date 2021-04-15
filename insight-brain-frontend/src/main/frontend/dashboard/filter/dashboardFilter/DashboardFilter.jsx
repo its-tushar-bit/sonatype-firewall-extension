@@ -75,9 +75,7 @@ export default function DashboardFilter(props) {
     onCategoriesChange = curriedToggleFilter('categories'),
     onStagesChange = curriedToggleFilter('stages'),
     onPolicyTypesChange = curriedToggleFilter('policyTypes'),
-    onPolicyViolationStatesChange = curriedToggleFilter(
-      'policyViolationStates'
-    ),
+    onPolicyViolationStatesChange = curriedToggleFilter('policyViolationStates'),
     onPolicyThreatChange = curriedToggleFilter('policyThreatLevels'),
     ref = useRef(null);
 
@@ -90,12 +88,8 @@ export default function DashboardFilter(props) {
       ...rest,
       id: id ? id.toString() : null,
     }),
-    stringifiedAges = showAgeFilter
-      ? map(stringifyNullableAgeOption, ages)
-      : [],
-    stringifiedSelectedAge = selected.maxDaysOld
-      ? selected.maxDaysOld.toString()
-      : selected.maxDaysOld;
+    stringifiedAges = showAgeFilter ? map(stringifyNullableAgeOption, ages) : [],
+    stringifiedSelectedAge = selected.maxDaysOld ? selected.maxDaysOld.toString() : selected.maxDaysOld;
 
   useClickAway(ref, () => toggleFilterSidebar(false));
   useEscapeKeyStack(true, () => toggleFilterSidebar(false));
@@ -120,8 +114,7 @@ export default function DashboardFilter(props) {
     loadFilter();
   }
 
-  const applicationCategoryTooltip = (prop) =>
-    (prop && prop.owner && `in ${prop.owner}`) || '';
+  const applicationCategoryTooltip = (prop) => (prop && prop.owner && `in ${prop.owner}`) || '';
 
   const closeFilterBtnTooltip = needsAcknowledgement
     ? 'Please apply a filter'
@@ -130,20 +123,12 @@ export default function DashboardFilter(props) {
     : '';
 
   return (
-    <aside
-      ref={ref}
-      id="dashboard-filter-container"
-      className="nx-viewport-sized"
-    >
+    <aside ref={ref} id="dashboard-filter-container" className="nx-viewport-sized">
       {showSaveFilterModal && <SaveFilterModalContainer />}
       <header className="dashboard-filter-header" id="dashboard-filter-header">
         <div className="dashboard-filter-header__title">
           <h3 className="nx-h3 dashboard-filter-header__title-text">Filter</h3>
-          <NxTooltip
-            id="dashboard-filter-close-btn-tooltip"
-            placement="top-end"
-            title={closeFilterBtnTooltip}
-          >
+          <NxTooltip id="dashboard-filter-close-btn-tooltip" placement="top-end" title={closeFilterBtnTooltip}>
             <NxButton
               id="dashboard-filter-close-btn"
               onClick={handleCloseBtnClick}
@@ -169,17 +154,11 @@ export default function DashboardFilter(props) {
             }}
           />
         )}
-        {loadErrorFilterName && (
-          <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>
-        )}
+        {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
       </header>
 
       <div className="dashboard-filter nx-viewport-sized__scrollable">
-        <LoadWrapper
-          loading={loading}
-          error={loadError}
-          retryHandler={handleRetry}
-        >
+        <LoadWrapper loading={loading} error={loadError} retryHandler={handleRetry}>
           {() => (
             <Fragment>
               <IqOrgAppPicker
@@ -268,8 +247,7 @@ export default function DashboardFilter(props) {
           needsAcknowledgement,
           setDisplaySaveFilterModal,
           revert,
-          onApplyCurrentFilter: () =>
-            applyFilter(filterToJson(selected), appliedFilterName),
+          onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
           onCancelApplyFilter: applyFilterCancelled,
         }}
       />

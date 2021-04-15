@@ -12,17 +12,12 @@ const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]Z');
 export default function ApplicationReportVulnerabilitiesHeader({ metadata }) {
   return (
     <div className="nx-tile-header">
-      <div
-        id="application-report-vulnerabilities-title"
-        className="nx-tile-header__title"
-      >
+      <div id="application-report-vulnerabilities-title" className="nx-tile-header__title">
         <h1 className="nx-h1">
           Vulnerabilities for {metadata.application.name} {metadata.reportTitle}
         </h1>
       </div>
-      <div className="nx-tile-header__subtitle visual-testing-ignore">
-        {formatDate(metadata.reportTime)}
-      </div>
+      <div className="nx-tile-header__subtitle visual-testing-ignore">{formatDate(metadata.reportTime)}</div>
     </div>
   );
 }

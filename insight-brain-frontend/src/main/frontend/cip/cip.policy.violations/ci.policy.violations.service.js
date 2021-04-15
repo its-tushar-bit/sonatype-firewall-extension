@@ -50,18 +50,9 @@ function processConstraint(constraint) {
   return processedConstraint;
 }
 
-export default function CIPolicyViolations(
-  $http,
-  $q,
-  SelectedComponent,
-  CLMLocations,
-  $state
-) {
+export default function CIPolicyViolations($http, $q, SelectedComponent, CLMLocations, $state) {
   function doLegacyLoad(deferred) {
-    $q.all([
-      $http.get(CLM.path + 'rest/policy/actionType'),
-      $http.get('policyalerts.json'),
-    ]).then(
+    $q.all([$http.get(CLM.path + 'rest/policy/actionType'), $http.get('policyalerts.json')]).then(
       function (result) {
         var actionMap = buildActionMapById(result[0].data),
           policyAlerts = result[1].data.aaData || [],
@@ -73,34 +64,26 @@ export default function CIPolicyViolations(
             addIfNotFound(processedActions, actionMap[action.actionTypeId]);
           });
 
-          angular.forEach(
-            policyAlert.trigger.componentFacts,
-            function (componentFact) {
-              if (componentFact.hash === SelectedComponent.get().hash) {
-                var processedConstraints = [];
-                angular.forEach(
-                  componentFact.constraintFacts,
-                  function (constraintFact) {
-                    processedConstraints.push(
-                      processConstraint(constraintFact)
-                    );
-                  }
-                );
-                processedPolicyAlerts.push({
-                  id: policyAlert.trigger.policyId,
-                  name: policyAlert.trigger.policyName,
-                  threatLevel: policyAlert.trigger.threatLevel,
-                  groupId: componentFact.groupId,
-                  artifactId: componentFact.artifactId,
-                  version: componentFact.version,
-                  hash: componentFact.hash,
-                  constraints: processedConstraints,
-                  actions: processedActions,
-                  policyViolationId: policyAlert.trigger.policyViolationId,
-                });
-              }
+          angular.forEach(policyAlert.trigger.componentFacts, function (componentFact) {
+            if (componentFact.hash === SelectedComponent.get().hash) {
+              var processedConstraints = [];
+              angular.forEach(componentFact.constraintFacts, function (constraintFact) {
+                processedConstraints.push(processConstraint(constraintFact));
+              });
+              processedPolicyAlerts.push({
+                id: policyAlert.trigger.policyId,
+                name: policyAlert.trigger.policyName,
+                threatLevel: policyAlert.trigger.threatLevel,
+                groupId: componentFact.groupId,
+                artifactId: componentFact.artifactId,
+                version: componentFact.version,
+                hash: componentFact.hash,
+                constraints: processedConstraints,
+                actions: processedActions,
+                policyViolationId: policyAlert.trigger.policyViolationId,
+              });
             }
-          );
+          });
         });
         deferred.resolve(processedPolicyAlerts);
       },
@@ -116,10 +99,7 @@ export default function CIPolicyViolations(
 
       // for iframe reports just use policythreats.json relative to current url
       const url = $state.params.scanId
-        ? CLMLocations.getReportPolicyThreatsUrl(
-            $state.params.publicId,
-            $state.params.scanId
-          )
+        ? CLMLocations.getReportPolicyThreatsUrl($state.params.publicId, $state.params.scanId)
         : 'policythreats.json';
 
       $http.get(url).then(
@@ -134,26 +114,23 @@ export default function CIPolicyViolations(
 
             angular.forEach(policyThreats, function (policyThreat) {
               if (policyThreat.hash === SelectedComponent.get().hash) {
-                angular.forEach(
-                  policyThreat.activeViolations,
-                  function (activeViolation) {
-                    var actions = [];
-                    angular.forEach(activeViolation.actions, function (action) {
-                      addIfNotFound(actions, action);
-                    });
+                angular.forEach(policyThreat.activeViolations, function (activeViolation) {
+                  var actions = [];
+                  angular.forEach(activeViolation.actions, function (action) {
+                    addIfNotFound(actions, action);
+                  });
 
-                    processedPolicyAlerts.push({
-                      id: activeViolation.policyId,
-                      name: activeViolation.policyName,
-                      threatLevel: activeViolation.policyThreatLevel,
-                      hash: policyThreat.hash,
-                      constraints: activeViolation.constraints,
-                      constraintFactsJson: activeViolation.constraintFactsJson,
-                      actions: actions,
-                      policyViolationId: activeViolation.policyViolationId,
-                    });
-                  }
-                );
+                  processedPolicyAlerts.push({
+                    id: activeViolation.policyId,
+                    name: activeViolation.policyName,
+                    threatLevel: activeViolation.policyThreatLevel,
+                    hash: policyThreat.hash,
+                    constraints: activeViolation.constraints,
+                    constraintFactsJson: activeViolation.constraintFactsJson,
+                    actions: actions,
+                    policyViolationId: activeViolation.policyViolationId,
+                  });
+                });
               }
             });
 
@@ -168,10 +145,4 @@ export default function CIPolicyViolations(
     },
   };
 }
-CIPolicyViolations.$inject = [
-  '$http',
-  '$q',
-  'SelectedComponent',
-  'CLMLocations',
-  '$state',
-];
+CIPolicyViolations.$inject = ['$http', '$q', 'SelectedComponent', 'CLMLocations', '$state'];

@@ -5,23 +5,13 @@
  */
 
 import React from 'react';
-import {
-  NxFieldset,
-  NxForm,
-  NxModal,
-  NxToggle,
-} from '@sonatype/react-shared-components';
+import { NxFieldset, NxForm, NxModal, NxToggle } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from './firewallConfigurationModalReducer';
 
 export default function FirewallConfigurationModal(props) {
   // Actions
-  const {
-    toggleAutoUnquarantineEnabled,
-    saveConfiguration,
-    loadConfiguration,
-    closeConfigurationModal,
-  } = props;
+  const { toggleAutoUnquarantineEnabled, saveConfiguration, loadConfiguration, closeConfigurationModal } = props;
 
   //viewState
   const { submitMaskSuccessState, saveConfigurationError, isDirty } = props;
@@ -33,16 +23,11 @@ export default function FirewallConfigurationModal(props) {
   const { loadedConfiguration, loadConfigurationError } = props;
 
   const getIntegrityRatingIndex = () => {
-    return conditionTypes.findIndex(
-      (element) => element.id === INTEGRITY_RATING_POLICY_TYPE_ID
-    );
+    return conditionTypes.findIndex((element) => element.id === INTEGRITY_RATING_POLICY_TYPE_ID);
   };
 
   return (
-    <NxModal
-      id="firewall-configuration-modal"
-      onClose={closeConfigurationModal}
-    >
+    <NxModal id="firewall-configuration-modal" onClose={closeConfigurationModal}>
       <NxForm
         onSubmit={saveConfiguration}
         loadError={loadConfigurationError}
@@ -68,16 +53,10 @@ export default function FirewallConfigurationModal(props) {
             <NxToggle
               id="auto-unquarantine-toggle-integrity-rating"
               className="nx-toggle--no-gap"
-              onChange={() =>
-                toggleAutoUnquarantineEnabled(INTEGRITY_RATING_POLICY_TYPE_ID)
-              }
-              isChecked={
-                conditionTypes[getIntegrityRatingIndex()]
-                  .autoReleaseQuarantineEnabled
-              }
+              onChange={() => toggleAutoUnquarantineEnabled(INTEGRITY_RATING_POLICY_TYPE_ID)}
+              isChecked={conditionTypes[getIntegrityRatingIndex()].autoReleaseQuarantineEnabled}
             >
-              {conditionTypes[getIntegrityRatingIndex()].name} policy condition
-              type
+              {conditionTypes[getIntegrityRatingIndex()].name} policy condition type
             </NxToggle>
           </NxFieldset>
           <NxFieldset
@@ -89,10 +68,7 @@ export default function FirewallConfigurationModal(props) {
           >
             <div id="auto-release-condition-toggles">
               {conditionTypes
-                .filter(
-                  (condition) =>
-                    condition.id !== INTEGRITY_RATING_POLICY_TYPE_ID
-                )
+                .filter((condition) => condition.id !== INTEGRITY_RATING_POLICY_TYPE_ID)
                 .map((condition, index) => (
                   <NxToggle
                     onChange={() => toggleAutoUnquarantineEnabled(condition.id)}

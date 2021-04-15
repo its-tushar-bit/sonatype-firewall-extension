@@ -100,14 +100,10 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages) {
   };
 
   const getStageOrder = (report) => {
-    return stagesOrder[report['stage']] !== undefined
-      ? stagesOrder[report['stage']]
-      : 7;
+    return stagesOrder[report['stage']] !== undefined ? stagesOrder[report['stage']] : 7;
   };
 
-  const byStage = comparator(
-    (reportA, reportB) => getStageOrder(reportA) < getStageOrder(reportB)
-  );
+  const byStage = comparator((reportA, reportB) => getStageOrder(reportA) < getStageOrder(reportB));
 
   function loadInnerSourceReportUrl() {
     if (vm.selectedComponent && vm.selectedComponent.latestReport) {
@@ -115,34 +111,22 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages) {
     }
 
     const innerSourceData = vm.selectedComponent.innerSourceData;
-    if (
-      vm.selectedComponent.innerSource &&
-      innerSourceData &&
-      innerSourceData.ownerApplicationId
-    ) {
-      $http
-        .get(
-          CLMLocations.getApplicationReportsUrl(
-            innerSourceData.ownerApplicationId
-          )
-        )
-        .then(
-          function (response) {
-            const { data } = response;
-            if (data && data.length > 0) {
-              const lastInnerSourceReportData = sort(byStage, data)[0];
-              vm.selectedComponent.latestReport = {
-                stage: lastInnerSourceReportData.stage,
-                url: CLMLocations.getAbsoluteUrl(
-                  lastInnerSourceReportData.latestReportHtmlUrl
-                ),
-              };
-            }
-          },
-          function (response) {
-            vm.error = Messages.getHttpErrorMessage(response);
+    if (vm.selectedComponent.innerSource && innerSourceData && innerSourceData.ownerApplicationId) {
+      $http.get(CLMLocations.getApplicationReportsUrl(innerSourceData.ownerApplicationId)).then(
+        function (response) {
+          const { data } = response;
+          if (data && data.length > 0) {
+            const lastInnerSourceReportData = sort(byStage, data)[0];
+            vm.selectedComponent.latestReport = {
+              stage: lastInnerSourceReportData.stage,
+              url: CLMLocations.getAbsoluteUrl(lastInnerSourceReportData.latestReportHtmlUrl),
+            };
           }
-        );
+        },
+        function (response) {
+          vm.error = Messages.getHttpErrorMessage(response);
+        }
+      );
     }
   }
 

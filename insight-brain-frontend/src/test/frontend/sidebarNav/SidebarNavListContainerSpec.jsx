@@ -8,30 +8,20 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 
 describe('SidebarNavListContainer', function () {
-  let SidebarNavListContainer,
-    loadSidebarNavMock,
-    gotoNewVulnerabilityMock,
-    state,
-    store,
-    vdom,
-    mock$State;
+  let SidebarNavListContainer, loadSidebarNavMock, gotoNewVulnerabilityMock, state, store, vdom, mock$State;
 
   beforeEach(function () {
-    loadSidebarNavMock = jasmine
-      .createSpy('loadSidebarNav')
-      .and.returnValue({ type: 'LOAD_LEFT_NAV' });
+    loadSidebarNavMock = jasmine.createSpy('loadSidebarNav').and.returnValue({ type: 'LOAD_LEFT_NAV' });
     gotoNewVulnerabilityMock = jasmine
       .createSpy('gotoNewVulnerability')
       .and.returnValue({ type: 'GOTO_NEW_VULNERABILITY' });
 
-    SidebarNavListContainer = require('inject-loader!../../../main/frontend/sidebarNav/SidebarNavListContainer')(
-      {
-        './sidebarNavListActions': {
-          loadSidebarNav: loadSidebarNavMock,
-          gotoNewVulnerability: gotoNewVulnerabilityMock,
-        },
-      }
-    ).default;
+    SidebarNavListContainer = require('inject-loader!../../../main/frontend/sidebarNav/SidebarNavListContainer')({
+      './sidebarNavListActions': {
+        loadSidebarNav: loadSidebarNavMock,
+        gotoNewVulnerability: gotoNewVulnerabilityMock,
+      },
+    }).default;
 
     state = {
       sidebarNavList: {
@@ -113,14 +103,9 @@ describe('SidebarNavListContainer', function () {
     store.dispatch({ type: 'BLAH' });
     wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('data', [
-      { policyViolationId: 'idFromDetailsPage' },
-    ]);
+    expect(wrapper).toHaveProp('data', [{ policyViolationId: 'idFromDetailsPage' }]);
     expect(wrapper).toHaveProp('contentType', 'violations');
-    expect(wrapper).toHaveProp(
-      'backButtonStateName',
-      'dashboard.overview.violations'
-    );
+    expect(wrapper).toHaveProp('backButtonStateName', 'dashboard.overview.violations');
     expect(wrapper).toHaveProp('loading', false);
     expect(wrapper).toHaveProp('error', null);
   });
@@ -140,10 +125,7 @@ describe('SidebarNavListContainer', function () {
 
     gotoNewVulnerabilityCreator();
 
-    expect(store.getActions()).toEqual([
-      { type: 'LOAD_LEFT_NAV' },
-      { type: 'GOTO_NEW_VULNERABILITY' },
-    ]);
+    expect(store.getActions()).toEqual([{ type: 'LOAD_LEFT_NAV' }, { type: 'GOTO_NEW_VULNERABILITY' }]);
   });
 
   it('sets the scrollToSelection prop according on the previous state', function () {

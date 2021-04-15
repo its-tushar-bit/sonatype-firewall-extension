@@ -13,9 +13,7 @@ describe('number.input.with.string.value.spec.js', function () {
   beforeEach(inject(function ($compile, $rootScope) {
     scope = $rootScope.$new();
     scope.numberModel = undefined;
-    inputElement = $compile(
-      '<input type="number" ng-model="numberModel" number-input-with-string-value/>'
-    )(scope);
+    inputElement = $compile('<input type="number" ng-model="numberModel" number-input-with-string-value/>')(scope);
     scope.$digest();
   }));
   describe('Positive Cases', function () {

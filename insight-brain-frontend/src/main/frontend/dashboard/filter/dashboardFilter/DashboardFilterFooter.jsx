@@ -6,12 +6,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
-import {
-  NxErrorAlert,
-  NxButton,
-  NxFontAwesomeIcon,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { faSync } from '@fortawesome/free-solid-svg-icons';
 
 export default function DashboardFilterFooter(props) {
@@ -63,11 +58,7 @@ export default function DashboardFilterFooter(props) {
         placement="top-end"
         title={filtersAreDirty ? 'Please apply filter before saving' : ''}
       >
-        <NxButton
-          id="dashboard-filter-save"
-          className={saveBtnClassnames}
-          onClick={handleSaveBtnClick}
-        >
+        <NxButton id="dashboard-filter-save" className={saveBtnClassnames} onClick={handleSaveBtnClick}>
           Save
         </NxButton>
       </NxTooltip>
@@ -92,19 +83,10 @@ export default function DashboardFilterFooter(props) {
     <NxErrorAlert>
       <span>{applyFilterError}</span>
       <div className="nx-btn-bar">
-        <NxButton
-          id="dashboard-filter-cancel-button"
-          variant="tertiary"
-          type="button"
-          onClick={onCancelApplyFilter}
-        >
+        <NxButton id="dashboard-filter-cancel-button" variant="tertiary" type="button" onClick={onCancelApplyFilter}>
           Cancel
         </NxButton>
-        <NxButton
-          id="dashboard-filter-retry-button"
-          variant="error"
-          onClick={handleApplyBtnClick}
-        >
+        <NxButton id="dashboard-filter-retry-button" variant="error" onClick={handleApplyBtnClick}>
           <NxFontAwesomeIcon icon={faSync} />
           <span>Retry</span>
         </NxButton>
@@ -112,11 +94,7 @@ export default function DashboardFilterFooter(props) {
     </NxErrorAlert>
   );
 
-  return (
-    <footer className="dashboard-filter-footer">
-      {applyFilterError ? footerErrorHTML : footerHTML}
-    </footer>
-  );
+  return <footer className="dashboard-filter-footer">{applyFilterError ? footerErrorHTML : footerHTML}</footer>;
 }
 DashboardFilterFooter.propTypes = {
   applyFilterError: PropTypes.string,

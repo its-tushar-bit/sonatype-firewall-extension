@@ -34,26 +34,20 @@ export default function DeleteModalReduxController(
 
   $scope.$on('$destroy', vm.unsubscribe);
 
-  $scope.$watchGroup(
-    ['vm.deleting', 'vm.success'],
-    function ([deleting, success]) {
-      if (success) {
-        vm.deleteResourceMask.showSuccessMaskBriefly().then(function () {
-          $scope.$close();
-        });
-      } else {
-        vm.deleteResourceMask[deleting ? 'activateMask' : 'removeMask']();
-      }
+  $scope.$watchGroup(['vm.deleting', 'vm.success'], function ([deleting, success]) {
+    if (success) {
+      vm.deleteResourceMask.showSuccessMaskBriefly().then(function () {
+        $scope.$close();
+      });
+    } else {
+      vm.deleteResourceMask[deleting ? 'activateMask' : 'removeMask']();
     }
-  );
+  });
 
   function mapStateToThis(state) {
     const mappedState = stateMapper(state);
 
-    return Object.assign(
-      { error: Messages.getHttpErrorMessage(mappedState.errorState) },
-      mappedState
-    );
+    return Object.assign({ error: Messages.getHttpErrorMessage(mappedState.errorState) }, mappedState);
   }
 }
 

@@ -7,13 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import { NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
 
 describe('ComponentOverviewTile', function () {
-  let getShallowComponent,
-    $state,
-    now,
-    terseAgoSpy,
-    timeAgoSpy,
-    minimalProps,
-    ComponentOverviewTile;
+  let getShallowComponent, $state, now, terseAgoSpy, timeAgoSpy, minimalProps, ComponentOverviewTile;
 
   beforeEach(function () {
     $state = {
@@ -21,9 +15,7 @@ describe('ComponentOverviewTile', function () {
       href: jasmine.createSpy('$state.href'),
     };
     now = new Date();
-    terseAgoSpy = jasmine
-      .createSpy('terseAgo')
-      .and.callFake((time) => 'terseAgo ' + time);
+    terseAgoSpy = jasmine.createSpy('terseAgo').and.callFake((time) => 'terseAgo ' + time);
     timeAgoSpy = jasmine.createSpy('timeAgo').and.callFake((time) => ({
       age: 'timeAgo ' + time,
       qualifier: 'ago',
@@ -56,18 +48,13 @@ describe('ComponentOverviewTile', function () {
       licenseNames: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
       $state,
     };
-    ComponentOverviewTile = require('inject-loader!../../../main/frontend/legal/ComponentOverviewTile')(
-      {
-        '../util/CommonServices': {
-          terseAgo: terseAgoSpy,
-          timeAgo: timeAgoSpy,
-        },
-      }
-    ).default;
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ComponentOverviewTile,
-      minimalProps
-    );
+    ComponentOverviewTile = require('inject-loader!../../../main/frontend/legal/ComponentOverviewTile')({
+      '../util/CommonServices': {
+        terseAgo: terseAgoSpy,
+        timeAgo: timeAgoSpy,
+      },
+    }).default;
+    getShallowComponent = enzymeUtils.getShallowComponent(ComponentOverviewTile, minimalProps);
   });
 
   it('renders the review status as unreviewed if all are open', function () {
@@ -80,9 +67,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Unreviewed'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
   });
 
   it('renders the review status as complete if all are fulfilled', function () {
@@ -95,9 +80,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
   });
 
   it('renders the review status as complete if all are not applicable', function () {
@@ -110,9 +93,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
   });
 
   it('renders the review status as complete if all are fulfilled or not applicable', function () {
@@ -128,9 +109,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
   });
 
   it('renders the review status as flagged if any are flagged', function () {
@@ -143,9 +122,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Flagged'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Flagged');
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
@@ -158,9 +135,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Flagged'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Flagged');
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
@@ -173,9 +148,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Flagged'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Flagged');
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
@@ -188,9 +161,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Flagged'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Flagged');
   });
 
   it('renders the review status as in progress if some are done and none are flagged', function () {
@@ -206,9 +177,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'In Progress'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('In Progress');
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
@@ -221,9 +190,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'In Progress'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('In Progress');
   });
 
   it('renders the review status as unreviewed if there are no obligations and no effective licenses', function () {
@@ -237,9 +204,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Unreviewed'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
   });
 
   it('renders the review status as complete if there are no obligations and one or more effective licenses', function () {
@@ -252,9 +217,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
@@ -265,9 +228,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
   });
 
   it('renders the review status as unreviewed if there are no obligations and effectively unspecified licenses', function () {
@@ -281,9 +242,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Unreviewed'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
 
     wrapper = getShallowComponent({
       component: {
@@ -295,9 +254,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Unreviewed'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
 
     wrapper = getShallowComponent({
       component: {
@@ -309,9 +266,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Unreviewed'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
 
     wrapper = getShallowComponent({
       component: {
@@ -323,9 +278,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Unreviewed'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
 
     wrapper = getShallowComponent({
       component: {
@@ -337,9 +290,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Unreviewed'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
 
     wrapper = getShallowComponent({
       component: {
@@ -358,9 +309,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
-      'Unreviewed'
-    );
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
   });
 
   it('renders no last modified and modified by', function () {
@@ -380,12 +329,8 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
-      'Never'
-    );
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
-      'N/A'
-    );
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('Never');
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('N/A');
   });
 
   it('renders the correct last modified and modified by', function () {
@@ -423,12 +368,8 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
-      'timeAgo ' + getTimeDaysAgo(1) + ' ago'
-    );
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
-      'user1'
-    );
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(1) + ' ago');
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user1');
 
     wrapper = getShallowComponent({
       component: {
@@ -464,12 +405,8 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
-      'timeAgo ' + getTimeDaysAgo(2) + ' ago'
-    );
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
-      'user2'
-    );
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(2) + ' ago');
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user2');
 
     wrapper = getShallowComponent({
       component: {
@@ -505,12 +442,8 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
-      'timeAgo ' + getTimeDaysAgo(3) + ' ago'
-    );
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
-      'user3'
-    );
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(3) + ' ago');
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user3');
 
     wrapper = getShallowComponent({
       component: {
@@ -546,12 +479,8 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
-      'timeAgo ' + getTimeDaysAgo(4) + ' ago'
-    );
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
-      'user4'
-    );
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(4) + ' ago');
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user4');
 
     wrapper = getShallowComponent({
       component: {
@@ -587,12 +516,8 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
-      'timeAgo ' + getTimeDaysAgo(5) + ' ago'
-    );
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
-      'user5'
-    );
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(5) + ' ago');
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user5');
 
     wrapper = getShallowComponent({
       component: {
@@ -628,12 +553,8 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
-      'timeAgo ' + getTimeDaysAgo(6) + ' ago'
-    );
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
-      'user6'
-    );
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(6) + ' ago');
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user6');
 
     wrapper = getShallowComponent({
       component: {
@@ -669,16 +590,11 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
-      'timeAgo ' + getTimeDaysAgo(7) + ' ago'
-    );
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
-      'user7'
-    );
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(7) + ' ago');
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user7');
   });
 
-  const getTimeDaysAgo = (days) =>
-    new Date(new Date(now).setDate(new Date(now).getDate() - days)).getTime();
+  const getTimeDaysAgo = (days) => new Date(new Date(now).setDate(new Date(now).getDate() - days)).getTime();
 
   it('renders the review progress with open counting as not done', function () {
     const wrapper = getShallowComponent({
@@ -690,9 +606,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText(
-      '0/1 complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText('0/1 complete');
   });
 
   it('renders the review progress with flagged counting as not done', function () {
@@ -705,9 +619,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText(
-      '0/1 complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText('0/1 complete');
   });
 
   it('renders the review progress with fulfilled counting as done', function () {
@@ -720,9 +632,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText(
-      '1/1 complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText('1/1 complete');
   });
 
   it('renders the review progress with ignored counting as done', function () {
@@ -735,9 +645,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText(
-      '1/1 complete'
-    );
+    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText('1/1 complete');
   });
 
   it('renders the fulfilled count', function () {
@@ -826,9 +734,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText(
-      '0'
-    );
+    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText('0');
 
     let wrapper = getShallowComponent({
       component: {
@@ -839,9 +745,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText(
-      '1'
-    );
+    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText('1');
 
     wrapper = getShallowComponent({
       component: {
@@ -855,9 +759,7 @@ describe('ComponentOverviewTile', function () {
         },
       },
     });
-    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText(
-      '2'
-    );
+    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText('2');
   });
 
   it('renders the licenses', function () {
@@ -876,17 +778,9 @@ describe('ComponentOverviewTile', function () {
 
   it('renders the stages', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('#component-overview-tile-build')).toHaveText(
-      'Build ' + 'terseAgo ' + getTimeDaysAgo(1)
-    );
-    expect(wrapper.find('#component-overview-tile-stage-release')).toHaveText(
-      'Stage'
-    );
-    expect(wrapper.find('#component-overview-tile-release')).toHaveText(
-      'Release'
-    );
-    expect(wrapper.find('#component-overview-tile-operate')).toHaveText(
-      'Operate'
-    );
+    expect(wrapper.find('#component-overview-tile-build')).toHaveText('Build ' + 'terseAgo ' + getTimeDaysAgo(1));
+    expect(wrapper.find('#component-overview-tile-stage-release')).toHaveText('Stage');
+    expect(wrapper.find('#component-overview-tile-release')).toHaveText('Release');
+    expect(wrapper.find('#component-overview-tile-operate')).toHaveText('Operate');
   });
 });

@@ -95,9 +95,7 @@ describe('cached.service.spec', function () {
       expect(success).toHaveBeenCalledWith({ id: 'bar' });
     }));
 
-    it('parallel requests use same http request', inject(function (
-      $httpBackend
-    ) {
+    it('parallel requests use same http request', inject(function ($httpBackend) {
       var success = jasmine.createSpy('success'),
         failure = jasmine.createSpy('failure');
 

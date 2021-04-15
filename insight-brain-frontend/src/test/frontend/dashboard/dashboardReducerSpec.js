@@ -40,14 +40,9 @@ describe('dashboardReducer', function () {
         type: 'UNKNOWN',
       };
       var newState = reduce(undefined, action);
-      expect(newState.violations.sortFields).toEqual([
-        '-firstOccurrenceTime',
-        '-threatLevel',
-      ]);
+      expect(newState.violations.sortFields).toEqual(['-firstOccurrenceTime', '-threatLevel']);
       expect(newState.components.sortFields).toEqual(['-score']);
-      expect(newState.applications.sortFields).toEqual([
-        '-totalApplicationRisk.totalRisk',
-      ]);
+      expect(newState.applications.sortFields).toEqual(['-totalApplicationRisk.totalRisk']);
     });
   });
 
@@ -301,9 +296,7 @@ describe('dashboardReducer', function () {
       expect(newState.violations.sortFields).toBe(action.payload.sortFields);
       expect(newState.violations.other).toBe(otherObject); // other properties are not modified
       expect(newState.components.sortFields).toBe(state.components.sortFields);
-      expect(newState.applications.sortFields).toBe(
-        state.applications.sortFields
-      );
+      expect(newState.applications.sortFields).toBe(state.applications.sortFields);
     });
 
     it('updates components sortFields', function () {
@@ -327,9 +320,7 @@ describe('dashboardReducer', function () {
       expect(newState.components.sortFields).toBe(action.payload.sortFields);
       expect(newState.components.other).toBe(otherObject); // other properties are not modified
       expect(newState.violations.sortFields).toBe(state.violations.sortFields);
-      expect(newState.applications.sortFields).toBe(
-        state.applications.sortFields
-      );
+      expect(newState.applications.sortFields).toBe(state.applications.sortFields);
     });
 
     it('updates applications sortFields', function () {

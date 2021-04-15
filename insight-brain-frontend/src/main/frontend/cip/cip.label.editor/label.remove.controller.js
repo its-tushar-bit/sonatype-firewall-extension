@@ -4,13 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global CLM */
-export default function LabelRemoveController(
-  $scope,
-  $http,
-  label,
-  SelectedComponent,
-  messages
-) {
+export default function LabelRemoveController($scope, $http, label, SelectedComponent, messages) {
   //accept, send delete request to server
   $scope.accept = function () {
     $scope.labelDeleting = true;
@@ -54,10 +48,4 @@ export default function LabelRemoveController(
   $scope.doLoad();
 }
 
-LabelRemoveController.$inject = [
-  '$scope',
-  '$http',
-  'label',
-  'SelectedComponent',
-  'Messages',
-];
+LabelRemoveController.$inject = ['$scope', '$http', 'label', 'SelectedComponent', 'Messages'];

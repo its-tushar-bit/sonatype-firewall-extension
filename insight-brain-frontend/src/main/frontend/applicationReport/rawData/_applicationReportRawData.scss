@@ -34,12 +34,7 @@ application-report-raw-data {
   .iq-table--fixed__content {
     .iq-cell--report-raw-data-license,
     .iq-cell--report-raw-data-component {
-      width: calc(
-        (
-            100% - #{$iq-cell-report-raw-data-security-code-width +
-              $iq-cell-report-raw-data-cvss-width}
-          ) / 2
-      );
+      width: calc((100% - #{$iq-cell-report-raw-data-security-code-width + $iq-cell-report-raw-data-cvss-width}) / 2);
     }
   }
 
@@ -51,8 +46,7 @@ application-report-raw-data {
           (
               100% -
                 (
-                  #{$iq-cell-report-raw-data-security-code-width} + #{$iq-cell-report-raw-data-cvss-width -
-                    $iq-scrollbar-width}
+                  #{$iq-cell-report-raw-data-security-code-width} + #{$iq-cell-report-raw-data-cvss-width - $iq-scrollbar-width}
                 )
             ) / 2
         );

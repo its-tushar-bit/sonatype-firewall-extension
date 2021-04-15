@@ -38,11 +38,7 @@ module.exports = {
     ApplicationMockData: false,
     Promise: false,
   },
-  extends: [
-    'eslint:recommended',
-    'plugin:react/recommended',
-    'plugin:prettier/recommended',
-  ],
+  extends: ['eslint:recommended', 'plugin:react/recommended', 'plugin:prettier/recommended'],
   plugins: ['deprecate'],
   rules: {
     eqeqeq: ['error', 'always', { null: 'ignore' }],
@@ -55,16 +51,7 @@ module.exports = {
     'vars-on-top': 'off',
     'no-console': isProd ? ['error', { allow: ['warn', 'error'] }] : 'off',
     'no-debugger': isProd ? 'error' : 'off',
-    'deprecate/member-expression': [
-      'error',
-      { name: 'angular.merge', use: 'ramdajs deep merge methods' },
-    ],
-    'prettier/prettier': [
-      'error',
-      {
-        endOfLine: 'auto',
-      },
-    ],
+    'deprecate/member-expression': ['error', { name: 'angular.merge', use: 'ramdajs deep merge methods' }],
   },
   settings: {
     react: {

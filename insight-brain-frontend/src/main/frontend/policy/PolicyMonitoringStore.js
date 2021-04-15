@@ -7,10 +7,7 @@
 import commonServicesModule from '../util/CommonServices';
 import CLMContextLocationModule from '../util/CLMContextLocation';
 
-var policyModule = angular.module('Policy', [
-  CLMContextLocationModule.name,
-  commonServicesModule.name,
-]);
+var policyModule = angular.module('Policy', [CLMContextLocationModule.name, commonServicesModule.name]);
 
 policyModule.service('PolicyMonitoringStore', [
   'CLMContextLocations',
@@ -24,10 +21,7 @@ policyModule.service('PolicyMonitoringStore', [
         return $http.get(CLMContextLocations.getApplicablePolicyMonitoring());
       },
       save: function (policyMonitoring) {
-        return $http.put(
-          CLMContextLocations.getPolicyMonitoringUrl(),
-          policyMonitoring
-        );
+        return $http.put(CLMContextLocations.getPolicyMonitoringUrl(), policyMonitoring);
       },
       remove: function () {
         return $http['delete'](CLMContextLocations.getPolicyMonitoringUrl());

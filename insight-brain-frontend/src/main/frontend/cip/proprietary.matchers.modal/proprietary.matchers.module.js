@@ -11,8 +11,5 @@ import proprietaryMatchersModalService from './proprietary.matchers.modal';
 export default angular
   .module('proprietary.matchers', ['CommonServices', 'utility.directives'])
   .service('proprietary.matchers.service', proprietaryMatchersService)
-  .controller(
-    'proprietary.matchers.modal.controller',
-    proprietaryMatchersModalController
-  )
+  .controller('proprietary.matchers.modal.controller', proprietaryMatchersModalController)
   .service('proprietary.matchers.modal', proprietaryMatchersModalService);

@@ -15,23 +15,16 @@ describe('PolicyViolationConstraintInfoTile', function () {
       },
     ],
   };
-  const getShallowComponent = enzymeUtils.getShallowComponent(
-    PolicyViolationConstraintInfoTile,
-    minimalProps
-  );
+  const getShallowComponent = enzymeUtils.getShallowComponent(PolicyViolationConstraintInfoTile, minimalProps);
 
   it('renders Policy Constraint title', function () {
-    const header = getShallowComponent().find(
-      '.nx-tile-header .nx-tile-header__title h2'
-    );
+    const header = getShallowComponent().find('.nx-tile-header .nx-tile-header__title h2');
     expect(header).toHaveText('Policy Constraint');
   });
 
   it('renders an h3 with policy constraint name', function () {
     const header = getShallowComponent().find('div.nx-tile-content h3.nx-h3');
-    expect(header).toHaveText(
-      'test constraint is in violation for the following reason(s):'
-    );
+    expect(header).toHaveText('test constraint is in violation for the following reason(s):');
   });
 
   it('renders violation reasons', function () {

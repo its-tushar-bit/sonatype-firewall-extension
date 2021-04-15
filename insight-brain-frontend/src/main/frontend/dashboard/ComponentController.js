@@ -44,11 +44,7 @@ componentModule.controller('componentController', [
             var applicationComponent = $scope.applicationComponents[i];
 
             var risk = 0;
-            for (
-              var j = 0;
-              j < applicationComponent.policyViolations.length;
-              j++
-            ) {
+            for (var j = 0; j < applicationComponent.policyViolations.length; j++) {
               risk += applicationComponent.policyViolations[j].threatLevel;
             }
             applicationComponent.risk = risk;
@@ -107,10 +103,7 @@ componentModule.directive('riskPie', [
           .attr('width', scope.width)
           .attr('height', scope.height)
           .append('g')
-          .attr(
-            'transform',
-            'translate(' + scope.width / 2 + ',' + scope.height / 2 + ')'
-          )
+          .attr('transform', 'translate(' + scope.width / 2 + ',' + scope.height / 2 + ')')
           .attr('class', scope.clazz);
 
         svg.append('circle').attr('cx', 0).attr('cy', 0).attr('r', radius);

@@ -7,12 +7,7 @@ import successMetricsModule from '../../../../../main/frontend/labs/successMetri
 import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
 
 describe('application-counts-chart component', function () {
-  beforeEach(
-    angular.mock.module(
-      successMetricsModule.name,
-      legacyConfigurationModule.name
-    )
-  );
+  beforeEach(angular.mock.module(successMetricsModule.name, legacyConfigurationModule.name));
 
   var getVm;
 

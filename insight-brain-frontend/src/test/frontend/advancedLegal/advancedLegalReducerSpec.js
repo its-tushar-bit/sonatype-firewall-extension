@@ -132,11 +132,7 @@ describe('advancedLegalReducer', function () {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
         payload: componentInfo,
       });
-      expect(
-        newState.component.component.licenseLegalData.obligations.map((o) =>
-          pick(['name'], o)
-        )
-      ).toEqual([
+      expect(newState.component.component.licenseLegalData.obligations.map((o) => pick(['name'], o))).toEqual([
         { name: 'Inclusion of Copyright' },
         { name: 'Inclusion of Notice' },
         { name: 'Inclusion of License' },
@@ -186,27 +182,21 @@ describe('advancedLegalReducer', function () {
         expect(obligation.originalStatus).toBe(obligation.status);
       });
 
-      expect(component.component.licenseLegalData.attributions.length).toBe(
-        TEXT_BASED_OBLIGATIONS.length + 1
-      );
-      component.component.licenseLegalData.attributions.forEach(
-        (attribution) => {
-          if (attribution.obligationName !== null) {
-            expect(TEXT_BASED_OBLIGATIONS).toContain(
-              attribution.obligationName
-            );
-          }
-          expect(attribution.obligationName).not.toBe('other');
-          expect(attribution.id).toBeNull();
-          expect(attribution.content).toBe('');
-          expect(attribution.ownerId).toBe('ROOT_ORGANIZATION_ID');
-          expect(attribution.originalContent).toBe(attribution.content);
-          expect(attribution.originalOwnerId).toBe(attribution.ownerId);
-          expect(attribution.showAttributionModal).toBeFalsy();
-          expect(attribution.error).toBeNull();
-          expect(attribution.saveAttributionSubmitMask).toBeNull();
+      expect(component.component.licenseLegalData.attributions.length).toBe(TEXT_BASED_OBLIGATIONS.length + 1);
+      component.component.licenseLegalData.attributions.forEach((attribution) => {
+        if (attribution.obligationName !== null) {
+          expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
         }
-      );
+        expect(attribution.obligationName).not.toBe('other');
+        expect(attribution.id).toBeNull();
+        expect(attribution.content).toBe('');
+        expect(attribution.ownerId).toBe('ROOT_ORGANIZATION_ID');
+        expect(attribution.originalContent).toBe(attribution.content);
+        expect(attribution.originalOwnerId).toBe(attribution.ownerId);
+        expect(attribution.showAttributionModal).toBeFalsy();
+        expect(attribution.error).toBeNull();
+        expect(attribution.saveAttributionSubmitMask).toBeNull();
+      });
     });
 
     it('sets the obligation attribution data for additional or text based obligations with attributions', function () {
@@ -259,24 +249,20 @@ describe('advancedLegalReducer', function () {
         expect(obligation.originalStatus).toBe(obligation.status);
       });
 
-      component.component.licenseLegalData.attributions.forEach(
-        (attribution) => {
-          if (attribution.obligationName !== null) {
-            expect(TEXT_BASED_OBLIGATIONS).toContain(
-              attribution.obligationName
-            );
-          }
-          expect(attribution.obligationName).not.toBe('other');
-          expect(attribution.id).toBe('id');
-          expect(attribution.content).toBe('content');
-          expect(attribution.ownerId).toBe('ownerId');
-          expect(attribution.originalContent).toBe(attribution.content);
-          expect(attribution.originalOwnerId).toBe(attribution.ownerId);
-          expect(attribution.showAttributionModal).toBeFalsy();
-          expect(attribution.error).toBeNull();
-          expect(attribution.saveAttributionSubmitMask).toBeNull();
+      component.component.licenseLegalData.attributions.forEach((attribution) => {
+        if (attribution.obligationName !== null) {
+          expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
         }
-      );
+        expect(attribution.obligationName).not.toBe('other');
+        expect(attribution.id).toBe('id');
+        expect(attribution.content).toBe('content');
+        expect(attribution.ownerId).toBe('ownerId');
+        expect(attribution.originalContent).toBe(attribution.content);
+        expect(attribution.originalOwnerId).toBe(attribution.ownerId);
+        expect(attribution.showAttributionModal).toBeFalsy();
+        expect(attribution.error).toBeNull();
+        expect(attribution.saveAttributionSubmitMask).toBeNull();
+      });
     });
 
     it('sets the notices and licenses view data', function () {
@@ -395,22 +381,14 @@ describe('advancedLegalReducer', function () {
         payload: componentInfo,
       });
 
-      expect(
-        newState.component.component.licenseLegalData
-          .originalComponentNoticesScopeOwnerId
-      ).toBe('ROOT_ORGANIZATION_ID');
-      expect(
-        newState.component.component.licenseLegalData
-          .componentNoticesScopeOwnerId
-      ).toBe('ROOT_ORGANIZATION_ID');
-      expect(
-        newState.component.component.licenseLegalData
-          .originalComponentLicensesScopeOwnerId
-      ).toBe('ROOT_ORGANIZATION_ID');
-      expect(
-        newState.component.component.licenseLegalData
-          .componentLicensesScopeOwnerId
-      ).toBe('ROOT_ORGANIZATION_ID');
+      expect(newState.component.component.licenseLegalData.originalComponentNoticesScopeOwnerId).toBe(
+        'ROOT_ORGANIZATION_ID'
+      );
+      expect(newState.component.component.licenseLegalData.componentNoticesScopeOwnerId).toBe('ROOT_ORGANIZATION_ID');
+      expect(newState.component.component.licenseLegalData.originalComponentLicensesScopeOwnerId).toBe(
+        'ROOT_ORGANIZATION_ID'
+      );
+      expect(newState.component.component.licenseLegalData.componentLicensesScopeOwnerId).toBe('ROOT_ORGANIZATION_ID');
     });
   });
 
@@ -658,16 +636,9 @@ describe('advancedLegalReducer', function () {
         },
       });
 
-      expect(
-        newState.component.component.licenseLegalData.componentCopyrightId
-      ).toBe('componentCopyrightId');
-      expect(
-        newState.component.component.licenseLegalData
-          .componentCopyrightScopeOwnerId
-      ).toBe('owner');
-      expect(newState.component.component.licenseLegalData.copyrights).toBe(
-        copyrightOverrides
-      );
+      expect(newState.component.component.licenseLegalData.componentCopyrightId).toBe('componentCopyrightId');
+      expect(newState.component.component.licenseLegalData.componentCopyrightScopeOwnerId).toBe('owner');
+      expect(newState.component.component.licenseLegalData.copyrights).toBe(copyrightOverrides);
     });
   });
 });

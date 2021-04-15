@@ -37,30 +37,19 @@ export default function MonitoredStageEditorController(
 
   function doLoad() {
     delete vm.loadError;
-    $q.all([
-      StageTypeStore.get(),
-      PolicyMonitoringStore.getApplicable(),
-      ProductFeatures.load(),
-    ]).then(
+    $q.all([StageTypeStore.get(), PolicyMonitoringStore.getApplicable(), ProductFeatures.load()]).then(
       function (results) {
         vm.stages = angular.copy(results[0]);
         var policyMonitoringByOwner = results[1].data.policyMonitoringByOwner;
 
-        vm.stages.unshift(
-          MonitoredStageService.createInheritOrNoMonitorOption(
-            policyMonitoringByOwner,
-            vm.stages
-          )
-        );
+        vm.stages.unshift(MonitoredStageService.createInheritOrNoMonitorOption(policyMonitoringByOwner, vm.stages));
         vm.monitoredStage = MonitoredStageService.getMonitoredStage(
           policyMonitoringByOwner[0].policyMonitoring,
           vm.stages
         );
 
         originalStage = angular.copy(vm.monitoredStage);
-        vm.isMonitoringSupported = ProductFeatures.isAvailable(
-          'policy-monitoring'
-        );
+        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
       },
       function (error) {
         vm.loadError = Messages.getHttpErrorMessage(error);
@@ -73,11 +62,7 @@ export default function MonitoredStageEditorController(
 
     delete vm.submitError;
     vm.continuousMonitoringEditorMask
-      .wrap(
-        vm.monitoredStage.stageTypeId
-          ? PolicyMonitoringStore.save(payload)
-          : PolicyMonitoringStore.remove()
-      )
+      .wrap(vm.monitoredStage.stageTypeId ? PolicyMonitoringStore.save(payload) : PolicyMonitoringStore.remove())
       .then(
         function () {
           originalStage = angular.copy(vm.monitoredStage);

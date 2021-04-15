@@ -25,11 +25,7 @@ export function areAllSelected(selected, items) {
  * @param apps Array
  * @returns Array of {orgId:String, apps:Array}
  */
-export const groupAppsByOrgId = pipe(
-  groupBy(prop('organizationId')),
-  toPairs,
-  map(zipObj(['orgId', 'apps']))
-);
+export const groupAppsByOrgId = pipe(groupBy(prop('organizationId')), toPairs, map(zipObj(['orgId', 'apps'])));
 
 /**
  * @param obj

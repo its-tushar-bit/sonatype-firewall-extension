@@ -50,9 +50,7 @@ export default function FormMaskDirective($parse) {
 
         if (maskMessage) {
           msgElement = $(
-            '<div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' +
-              maskMessage +
-              '</h3></div>'
+            '<div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' + maskMessage + '</h3></div>'
           );
 
           maskElement.append(msgElement);

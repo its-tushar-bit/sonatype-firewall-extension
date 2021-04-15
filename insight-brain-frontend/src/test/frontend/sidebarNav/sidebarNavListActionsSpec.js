@@ -62,9 +62,7 @@ describe('sidebarNavListActions', function () {
       store.dispatch(loadSidebarNav(stateParams));
 
       expect(DashboardFilterActions.loadFilter).toHaveBeenCalled();
-      expect(store.getActions()[0].type).toEqual(
-        LOAD_SIDEBAR_NAV_LIST_REQUESTED
-      );
+      expect(store.getActions()[0].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
       expect(store.getActions()[0].payload).toEqual({
         sidebarReference: 'filter',
         sidebarId: '12345',
@@ -88,9 +86,7 @@ describe('sidebarNavListActions', function () {
     });
 
     it('dispatches LOAD_SIDEBAR_NAV_LIST_FULFILLED with violations results data', function (done) {
-      spyOn(DashboardFilterActions, 'loadFilter').and.returnValue(
-        Promise.resolve({})
-      );
+      spyOn(DashboardFilterActions, 'loadFilter').and.returnValue(Promise.resolve({}));
 
       store
         .dispatch(
@@ -101,12 +97,8 @@ describe('sidebarNavListActions', function () {
           })
         )
         .then(() => {
-          expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith(
-            'violations'
-          );
-          expect(store.getActions()[2].type).toEqual(
-            LOAD_SIDEBAR_NAV_LIST_FULFILLED
-          );
+          expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('violations');
+          expect(store.getActions()[2].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FULFILLED);
           expect(store.getActions()[2].payload).toEqual({
             data: { foo: 'bar' },
             contentType: 'violations',
@@ -120,9 +112,7 @@ describe('sidebarNavListActions', function () {
     it('dispatches LOAD_SIDEBAR_NAV_LIST_FAILED when the response fails', function (done) {
       const responseError = 'errrr!';
 
-      spyOn(DashboardFilterActions, 'loadFilter').and.returnValue(
-        Promise.reject(responseError)
-      );
+      spyOn(DashboardFilterActions, 'loadFilter').and.returnValue(Promise.reject(responseError));
 
       store
         .dispatch(
@@ -133,17 +123,13 @@ describe('sidebarNavListActions', function () {
           })
         )
         .then(() => {
-          expect(store.getActions()[2].type).toEqual(
-            LOAD_SIDEBAR_NAV_LIST_FAILED
-          );
+          expect(store.getActions()[2].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FAILED);
           expect(store.getActions()[2].payload).toEqual(responseError);
 
           done();
         });
 
-      expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith(
-        'violations'
-      );
+      expect(DashboardFilterActions.loadFilter).toHaveBeenCalledWith('violations');
     });
 
     it('dispatches LOAD_SIDEBAR_NAV_LIST_FAILED if an unknown sidebarReference is passed in', function () {
@@ -158,13 +144,9 @@ describe('sidebarNavListActions', function () {
       );
 
       expect(store.getActions().length).toBe(2);
-      expect(store.getActions()[0].type).toEqual(
-        LOAD_SIDEBAR_NAV_LIST_REQUESTED
-      );
+      expect(store.getActions()[0].type).toEqual(LOAD_SIDEBAR_NAV_LIST_REQUESTED);
       expect(store.getActions()[1].type).toEqual(LOAD_SIDEBAR_NAV_LIST_FAILED);
-      expect(store.getActions()[1].payload).toEqual(
-        'Unknown sidebarReference: thisisnotreal'
-      );
+      expect(store.getActions()[1].payload).toEqual('Unknown sidebarReference: thisisnotreal');
       expect(DashboardFilterActions.loadFilter).not.toHaveBeenCalled();
     });
   });

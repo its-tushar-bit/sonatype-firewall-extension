@@ -14,11 +14,7 @@ import {
   NxToggle,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import {
-  availableScopesPropType,
-  legalFilesPropType,
-  licenseObligationPropType,
-} from '../../advancedLegalPropTypes';
+import { availableScopesPropType, legalFilesPropType, licenseObligationPropType } from '../../advancedLegalPropTypes';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 import ObligationStatusComponent from '../../shared/ObligationStatusComponent';
 
@@ -52,9 +48,7 @@ export default function NoticesModal(props) {
           type="textarea"
           value={notice.content}
           isPristine={notice.isPristine}
-          onChange={(payload) =>
-            setNoticeContent({ index: index, value: payload })
-          }
+          onChange={(payload) => setNoticeContent({ index: index, value: payload })}
           disabled={notice.status === 'disabled'}
         />
       </td>
@@ -86,21 +80,14 @@ export default function NoticesModal(props) {
 
   const isValid = () => {
     return !notices.some(
-      (notice) =>
-        notice.id === null &&
-        notice.originalContentHash === null &&
-        notice.content === ''
+      (notice) => notice.id === null && notice.originalContentHash === null && notice.content === ''
     );
   };
 
-  const notDirtyErrorMessage =
-    'Must add a new notice or change the content or status of a notice.';
+  const notDirtyErrorMessage = 'Must add a new notice or change the content or status of a notice.';
 
   function isObligationDirty() {
-    return (
-      existingObligation &&
-      existingObligation.status !== existingObligation.originalStatus
-    );
+    return existingObligation && existingObligation.status !== existingObligation.originalStatus;
   }
 
   const resetExistingObligation = () => {
@@ -158,10 +145,7 @@ export default function NoticesModal(props) {
   };
 
   const setObligationScopeIfNeeded = (event) => {
-    if (
-      existingObligation &&
-      existingObligation.status !== existingObligation.originalStatus
-    ) {
+    if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
       setObligationScope({
         name: existingObligation.name,
         value: event.target.value,
@@ -205,9 +189,7 @@ export default function NoticesModal(props) {
         }}
         submitBtnText="Save"
         onSubmit={trySave}
-        submitError={
-          error || (existingObligation ? existingObligation.error : false)
-        }
+        submitError={error || (existingObligation ? existingObligation.error : false)}
         submitMaskState={getSubmitMaskState()}
         validationErrors={getValidationErrors()}
       >
@@ -227,30 +209,20 @@ export default function NoticesModal(props) {
                 notices.map(createFormRowItem)
               ) : (
                 <tr>
-                  <td className="no-legal-texts-found">
-                    No notice texts found
-                  </td>
+                  <td className="no-legal-texts-found">No notice texts found</td>
                   <td />
                 </tr>
               )}
             </tbody>
           </table>
           <div className="nx-btn-bar nx-btn-bar--left">
-            <NxButton
-              id="add-notice"
-              type="button"
-              variant="tertiary"
-              onClick={addNotice}
-            >
+            <NxButton id="add-notice" type="button" variant="tertiary" onClick={addNotice}>
               <NxFontAwesomeIcon icon={faPlus} />
               <span>Add Notice Text</span>
             </NxButton>
           </div>
           {existingObligation && (
-            <ObligationStatusComponent
-              existingObligation={existingObligation}
-              onChange={onObligationChange}
-            />
+            <ObligationStatusComponent existingObligation={existingObligation} onChange={onObligationChange} />
           )}
           <NxFormGroup
             id="edit-notices-attribution-scope-selection-group"

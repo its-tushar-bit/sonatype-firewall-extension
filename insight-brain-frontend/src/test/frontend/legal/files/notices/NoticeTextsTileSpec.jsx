@@ -35,10 +35,7 @@ describe('NoticeTextsTile', function () {
       ],
       showNoticesModal: false,
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      NoticeTextsTile,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(NoticeTextsTile, minimalProps);
   });
 
   it('renders a header with label `Notice Texts`', function () {
@@ -50,9 +47,7 @@ describe('NoticeTextsTile', function () {
     const wrapper = getShallowComponent();
     const notices = wrapper.find('.legal-file');
     expect(notices.length).toBe(2);
-    expect(notices.at(0).find('.legal-file-path')).toHaveText(
-      'path1/notice.txt'
-    );
+    expect(notices.at(0).find('.legal-file-path')).toHaveText('path1/notice.txt');
     expect(notices.at(0).find('blockquote')).toHaveText('notice content 1');
     expect(notices.at(1).find('.legal-file-path')).toHaveText('');
     expect(notices.at(1).find('blockquote')).toHaveText('notice content 2');

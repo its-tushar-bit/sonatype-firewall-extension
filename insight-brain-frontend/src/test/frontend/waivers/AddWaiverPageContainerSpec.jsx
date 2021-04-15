@@ -24,32 +24,24 @@ describe('AddWaiverPageContainer', function () {
     vdom;
 
   beforeEach(function () {
-    loadAddWaiverDataMock = jasmine
-      .createSpy('loadAddWaiverData')
-      .and.returnValue({
-        type: 'LOAD_ADD_WAIVER_DATA',
-      });
+    loadAddWaiverDataMock = jasmine.createSpy('loadAddWaiverData').and.returnValue({
+      type: 'LOAD_ADD_WAIVER_DATA',
+    });
     saveWaiverMock = jasmine.createSpy('saveWaiver').and.returnValue({
       type: 'SAVE_WAIVER',
     });
-    setWaiverCommentMock = jasmine
-      .createSpy('setWaiverComment')
-      .and.returnValue({
-        type: 'SET_WAIVER_COMMENT',
-      });
+    setWaiverCommentMock = jasmine.createSpy('setWaiverComment').and.returnValue({
+      type: 'SET_WAIVER_COMMENT',
+    });
     setWaiverScopeMock = jasmine.createSpy('setWaiverScope').and.returnValue({
       type: 'SET_WAIVER_SCOPE',
     });
-    setApplyToAllComponentsMock = jasmine
-      .createSpy('setApplyToAllComponents')
-      .and.returnValue({
-        type: 'SET_APPLY_TO_ALL_COMPONENTS',
-      });
-    openVulnerabilityDetailsModalMock = jasmine
-      .createSpy('openVulnerabilityDetailsModal')
-      .and.returnValue({
-        type: 'OPEN_VULNERABILITY_DETAILS_MODAL',
-      });
+    setApplyToAllComponentsMock = jasmine.createSpy('setApplyToAllComponents').and.returnValue({
+      type: 'SET_APPLY_TO_ALL_COMPONENTS',
+    });
+    openVulnerabilityDetailsModalMock = jasmine.createSpy('openVulnerabilityDetailsModal').and.returnValue({
+      type: 'OPEN_VULNERABILITY_DETAILS_MODAL',
+    });
     cancelActionMock = jasmine.createSpy('cancelAction').and.returnValue({
       type: '@@reduxUiRouter/stateGo',
     });
@@ -57,22 +49,20 @@ describe('AddWaiverPageContainer', function () {
       type: 'ADD_WAIVER_SET_EXPIRY_TIME',
     });
 
-    AddWaiverPageContainer = require('inject-loader!../../../main/frontend/waivers/AddWaiverPageContainer')(
-      {
-        './waiverActions': {
-          loadAddWaiverData: loadAddWaiverDataMock,
-          saveWaiver: saveWaiverMock,
-          setWaiverComment: setWaiverCommentMock,
-          setWaiverScope: setWaiverScopeMock,
-          setExpiryTime: setExpiryTimeMock,
-          setApplyToAllComponents: setApplyToAllComponentsMock,
-          returnToAddWaiverOriginPage: cancelActionMock,
-        },
-        '../vulnerabilityDetails/vulnerabilityDetailsModalActions': {
-          openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock,
-        },
-      }
-    ).default;
+    AddWaiverPageContainer = require('inject-loader!../../../main/frontend/waivers/AddWaiverPageContainer')({
+      './waiverActions': {
+        loadAddWaiverData: loadAddWaiverDataMock,
+        saveWaiver: saveWaiverMock,
+        setWaiverComment: setWaiverCommentMock,
+        setWaiverScope: setWaiverScopeMock,
+        setExpiryTime: setExpiryTimeMock,
+        setApplyToAllComponents: setApplyToAllComponentsMock,
+        returnToAddWaiverOriginPage: cancelActionMock,
+      },
+      '../vulnerabilityDetails/vulnerabilityDetailsModalActions': {
+        openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock,
+      },
+    }).default;
 
     state = {
       addWaiver: {
@@ -125,14 +115,10 @@ describe('AddWaiverPageContainer', function () {
     const wrapper = shallow(vdom).dive(),
       loadAddWaiverDataActionCreator = wrapper.prop('loadAddWaiverData'),
       saveWaiverActionCreator = wrapper.prop('saveWaiver'),
-      setApplyToAllComponentsActionCreator = wrapper.prop(
-        'setApplyToAllComponents'
-      ),
+      setApplyToAllComponentsActionCreator = wrapper.prop('setApplyToAllComponents'),
       setWaiverScopeActionCreator = wrapper.prop('setWaiverScope'),
       setWaiverCommentActionCreator = wrapper.prop('setWaiverComment'),
-      openVulnerabilityDetailsModalActionCreator = wrapper.prop(
-        'openVulnerabilityDetailsModal'
-      ),
+      openVulnerabilityDetailsModalActionCreator = wrapper.prop('openVulnerabilityDetailsModal'),
       returnToAddWaiverOriginPageActionCreator = wrapper.prop('cancelAction'),
       setExpiryTimeActionCreator = wrapper.prop('setExpiryTime');
 
@@ -141,12 +127,8 @@ describe('AddWaiverPageContainer', function () {
     expect(setApplyToAllComponentsActionCreator).toEqual(jasmine.any(Function));
     expect(setWaiverScopeActionCreator).toEqual(jasmine.any(Function));
     expect(setWaiverCommentActionCreator).toEqual(jasmine.any(Function));
-    expect(openVulnerabilityDetailsModalActionCreator).toEqual(
-      jasmine.any(Function)
-    );
-    expect(returnToAddWaiverOriginPageActionCreator).toEqual(
-      jasmine.any(Function)
-    );
+    expect(openVulnerabilityDetailsModalActionCreator).toEqual(jasmine.any(Function));
+    expect(returnToAddWaiverOriginPageActionCreator).toEqual(jasmine.any(Function));
     expect(setExpiryTimeActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
@@ -155,10 +137,7 @@ describe('AddWaiverPageContainer', function () {
     expect(store.getActions()).toEqual([{ type: 'LOAD_ADD_WAIVER_DATA' }]);
 
     saveWaiverActionCreator();
-    expect(store.getActions()).toEqual([
-      { type: 'LOAD_ADD_WAIVER_DATA' },
-      { type: 'SAVE_WAIVER' },
-    ]);
+    expect(store.getActions()).toEqual([{ type: 'LOAD_ADD_WAIVER_DATA' }, { type: 'SAVE_WAIVER' }]);
 
     setApplyToAllComponentsActionCreator();
     expect(store.getActions()).toEqual([

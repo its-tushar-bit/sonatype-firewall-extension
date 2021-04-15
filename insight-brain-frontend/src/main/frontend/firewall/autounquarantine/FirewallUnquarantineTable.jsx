@@ -50,8 +50,7 @@ export default function FirewallUnquarantineTable(props) {
   }
 
   function sortPage(columnId) {
-    let nextSortDir =
-      sortField === columnId ? getNextSortDir(sortDir) : getNextSortDir(null);
+    let nextSortDir = sortField === columnId ? getNextSortDir(sortDir) : getNextSortDir(null);
 
     setAutoUnquarantineGridSorting(nextSortDir, columnId);
     loadReleaseQuarantineList();
@@ -78,14 +77,9 @@ export default function FirewallUnquarantineTable(props) {
 
   function getHighestPolicyViolationName(policyViolations) {
     const reducer = (policy, currentValue) =>
-      policy.threatLevel > currentValue.threatLevel ||
-      policy.policyId === filterPolicyId
-        ? policy
-        : currentValue;
+      policy.threatLevel > currentValue.threatLevel || policy.policyId === filterPolicyId ? policy : currentValue;
 
-    return policyViolations.length === 0
-      ? ''
-      : policyViolations.reduce(reducer).policyName;
+    return policyViolations.length === 0 ? '' : policyViolations.reduce(reducer).policyName;
   }
 
   return (
@@ -117,11 +111,7 @@ export default function FirewallUnquarantineTable(props) {
           <NxTableRow isFilterHeader>
             <NxTableCell />
             <NxTableCell>
-              <select
-                className="nx-form-select"
-                onChange={setPolicyIdFilter}
-                value={filterPolicyId}
-              >
+              <select className="nx-form-select" onChange={setPolicyIdFilter} value={filterPolicyId}>
                 {/* Effectively clears the filter. */}
                 <option value={''}></option>
 
@@ -147,39 +137,27 @@ export default function FirewallUnquarantineTable(props) {
         >
           {releaseQuarantineList &&
             releaseQuarantineList.map((row, index) => {
-              let policyViolationName = getHighestPolicyViolationName(
-                row.policyViolations
-              );
+              let policyViolationName = getHighestPolicyViolationName(row.policyViolations);
 
               return (
                 <NxTableRow key={index}>
                   <NxTableCell className="iq-firewall-grid-component">
                     <NxOverflowTooltip title={row.displayName}>
-                      <div className="nx-truncate-ellipsis">
-                        {row.displayName}
-                      </div>
+                      <div className="nx-truncate-ellipsis">{row.displayName}</div>
                     </NxOverflowTooltip>
                   </NxTableCell>
                   <NxTableCell>
                     <NxOverflowTooltip title={policyViolationName}>
-                      <div className="nx-truncate-ellipsis">
-                        {policyViolationName}
-                      </div>
+                      <div className="nx-truncate-ellipsis">{policyViolationName}</div>
                     </NxOverflowTooltip>
                   </NxTableCell>
-                  <NxTableCell>
-                    {new Date(row.quarantineDate).toLocaleDateString()}
-                  </NxTableCell>
+                  <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
                   <NxTableCell>
                     <NxOverflowTooltip title={row.repository}>
-                      <div className="nx-truncate-ellipsis">
-                        {row.repository}
-                      </div>
+                      <div className="nx-truncate-ellipsis">{row.repository}</div>
                     </NxOverflowTooltip>
                   </NxTableCell>
-                  <NxTableCell>
-                    {new Date(row.dateCleared).toLocaleDateString()}
-                  </NxTableCell>
+                  <NxTableCell>{new Date(row.dateCleared).toLocaleDateString()}</NxTableCell>
                 </NxTableRow>
               );
             })}

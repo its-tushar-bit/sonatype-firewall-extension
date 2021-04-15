@@ -161,23 +161,16 @@ describe('addSuccessMetricsReportModal', function () {
     it('does nothing if isCreateEnabled is false', function () {
       var close = jasmine.createSpy('close'),
         mockSuccessMetricsDataService = {
-          createSuccessMetricsReportForCurrentUser: jasmine.createSpy(
-            'createSuccessMetricsReportForCurrentUser'
-          ),
+          createSuccessMetricsReportForCurrentUser: jasmine.createSpy('createSuccessMetricsReportForCurrentUser'),
         },
-        vm = getVm(
-          { close: close },
-          { successMetricsDataService: mockSuccessMetricsDataService }
-        );
+        vm = getVm({ close: close }, { successMetricsDataService: mockSuccessMetricsDataService });
 
       expect(vm.isCreateEnabled()).toBe(false);
 
       vm.onSubmit();
 
       expect(close).not.toHaveBeenCalled();
-      expect(
-        mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser
-      ).not.toHaveBeenCalled();
+      expect(mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser).not.toHaveBeenCalled();
     });
 
     it('calls successMetricsDataService.createSuccessMetricsReportForCurrentUser and then calls close with the result', function () {
@@ -194,10 +187,7 @@ describe('addSuccessMetricsReportModal', function () {
             return promise;
           },
         },
-        vm = getVm(
-          { close: close },
-          { successMetricsDataService: mockSuccessMetricsDataService }
-        );
+        vm = getVm({ close: close }, { successMetricsDataService: mockSuccessMetricsDataService });
 
       vm.maskController = mockMaskController;
 
@@ -256,9 +246,7 @@ describe('addSuccessMetricsReportModal', function () {
 
         vm.onSubmit();
 
-        expect(
-          mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser
-        ).toHaveBeenCalledWith({
+        expect(mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser).toHaveBeenCalledWith({
           name: name,
           scope: {
             organizationIds: selectedOrganizations,
@@ -302,9 +290,7 @@ describe('addSuccessMetricsReportModal', function () {
 
       vm.onSubmit();
 
-      expect(
-        mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser
-      ).toHaveBeenCalledWith({
+      expect(mockSuccessMetricsDataService.createSuccessMetricsReportForCurrentUser).toHaveBeenCalledWith({
         name: name,
         scope: {},
         includeLatestData: false,
@@ -325,10 +311,7 @@ describe('addSuccessMetricsReportModal', function () {
             return promise;
           },
         },
-        vm = getVm(
-          { close: close },
-          { successMetricsDataService: mockSuccessMetricsDataService }
-        );
+        vm = getVm({ close: close }, { successMetricsDataService: mockSuccessMetricsDataService });
 
       vm.maskController = mockMaskController;
 
@@ -364,10 +347,7 @@ describe('addSuccessMetricsReportModal', function () {
           mockMaskController = {
             wrap: jasmine.createSpy('wrap').and.returnValue(wrapPromise),
           },
-          vm = getVm(
-            { close: close },
-            { successMetricsDataService: mockSuccessMetricsDataService }
-          );
+          vm = getVm({ close: close }, { successMetricsDataService: mockSuccessMetricsDataService });
 
         vm.maskController = mockMaskController;
 

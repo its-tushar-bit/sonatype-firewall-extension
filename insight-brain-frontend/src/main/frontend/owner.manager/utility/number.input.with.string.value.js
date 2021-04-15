@@ -9,12 +9,7 @@ export default function NumberInputWithStringValue() {
     link: NumberInputWithStringValueLink,
   };
 
-  function NumberInputWithStringValueLink(
-    scope,
-    element,
-    attrs,
-    ngModelController
-  ) {
+  function NumberInputWithStringValueLink(scope, element, attrs, ngModelController) {
     ngModelController.$parsers.push(parseToString);
     ngModelController.$formatters.push(formatToNumber);
 

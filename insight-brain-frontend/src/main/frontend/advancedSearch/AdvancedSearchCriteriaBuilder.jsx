@@ -5,32 +5,17 @@
  */
 import React, { Fragment } from 'react';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
-import {
-  faCaretDown,
-  faCaretRight,
-  faPlusCircle,
-} from '@fortawesome/pro-solid-svg-icons';
+import { faCaretDown, faCaretRight, faPlusCircle } from '@fortawesome/pro-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 
 export default function AdvancedSearchCriteriaBuilder(props) {
-  const {
-    setCurrentQuery,
-    currentQuery,
-    showCriteriaBuilder,
-    setShowCriteriaBuilder,
-    inputFieldId,
-  } = props;
+  const { setCurrentQuery, currentQuery, showCriteriaBuilder, setShowCriteriaBuilder, inputFieldId } = props;
 
   function prefixTagOnClickHandler(prefix) {
     return () => {
-      setCurrentQuery(
-        currentQuery.trim() +
-          (currentQuery.trim() !== '' ? ' ' : '') +
-          prefix +
-          ':'
-      );
+      setCurrentQuery(currentQuery.trim() + (currentQuery.trim() !== '' ? ' ' : '') + prefix + ':');
       document.getElementById(inputFieldId).focus();
     };
   }
@@ -72,30 +57,15 @@ export default function AdvancedSearchCriteriaBuilder(props) {
               setShowCriteriaBuilder(!showCriteriaBuilder);
             }}
           >
-            <NxFontAwesomeIcon
-              icon={showCriteriaBuilder ? faCaretDown : faCaretRight}
-            />{' '}
-            Add Search Terms
+            <NxFontAwesomeIcon icon={showCriteriaBuilder ? faCaretDown : faCaretRight} /> Add Search Terms
           </NxButton>
         </div>
       </div>
       {showCriteriaBuilder && (
-        <div
-          id="advanced-search-query-builder-container"
-          className="iq-adv-search__query-builder"
-        >
-          {queryBuilderGroup(
-            'Organization',
-            'organizationId',
-            'organizationName'
-          )}
+        <div id="advanced-search-query-builder-container" className="iq-adv-search__query-builder">
+          {queryBuilderGroup('Organization', 'organizationId', 'organizationName')}
 
-          {queryBuilderGroup(
-            'Application',
-            'applicationId',
-            'applicationName',
-            'applicationPublicId'
-          )}
+          {queryBuilderGroup('Application', 'applicationId', 'applicationName', 'applicationPublicId')}
 
           {queryBuilderGroup(
             'Application Category',
@@ -113,13 +83,7 @@ export default function AdvancedSearchCriteriaBuilder(props) {
             'componentLabelDescription'
           )}
 
-          {queryBuilderGroup(
-            'Policy',
-            'policyId',
-            'policyName',
-            'policyThreatCategory',
-            'policyThreatLevel'
-          )}
+          {queryBuilderGroup('Policy', 'policyId', 'policyName', 'policyThreatCategory', 'policyThreatLevel')}
 
           {queryBuilderGroup(
             'Security Vulnerability',

@@ -10,12 +10,7 @@ describe('legalDashboardFilterService', function () {
   describe('filterToJson()', function () {
     var filter = {
       organizations: new Set(['orgId1', 'orgId2']),
-      applications: new Set([
-        'applicationIdZ',
-        'applicationIdA',
-        'applicationIdQ',
-        'applicationIdR',
-      ]),
+      applications: new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']),
       stages: new Set(['release', 'stage-release', 'build']),
       categories: new Set(['tagId1', 'tagId2', null]),
       progressOptions: new Set(['NOT_REVIEWED']),
@@ -24,11 +19,7 @@ describe('legalDashboardFilterService', function () {
     it('creates proper filter json representation', function () {
       var filterJson = filterToJson(filter);
       expect(filterJson.organizationFilters).toEqual(['orgId1', 'orgId2']);
-      expect(filterJson.stageTypeFilters).toEqual([
-        'release',
-        'stage-release',
-        'build',
-      ]);
+      expect(filterJson.stageTypeFilters).toEqual(['release', 'stage-release', 'build']);
       expect(filterJson.categoryFilters).toEqual(['tagId1', 'tagId2', null]);
       expect(filterJson.applicationFilters).toEqual([
         'applicationIdZ',

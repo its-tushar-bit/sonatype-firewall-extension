@@ -16,26 +16,15 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
     mockPolicyViolationGrandfatheringService,
     vm;
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    $q,
-    _$timeout_,
-    _$httpBackend_,
-    $componentController,
-    CLMLocations
-  ) {
+  beforeEach(inject(function (_$rootScope_, $q, _$timeout_, _$httpBackend_, $componentController, CLMLocations) {
     $scope = _$rootScope_.$new();
     $timeout = _$timeout_;
     $httpBackend = _$httpBackend_;
     getGrandfatheringDeferred = $q.defer();
     setGrandfatheringDeferred = $q.defer();
     mockPolicyViolationGrandfatheringService = {
-      getGrandfathering: jasmine
-        .createSpy()
-        .and.returnValue(getGrandfatheringDeferred.promise),
-      setGrandfathering: jasmine
-        .createSpy()
-        .and.returnValue(setGrandfatheringDeferred.promise),
+      getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDeferred.promise),
+      setGrandfathering: jasmine.createSpy().and.returnValue(setGrandfatheringDeferred.promise),
       getStatusMessage: JSON.stringify,
     };
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
@@ -64,9 +53,7 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
 
       $httpBackend.flush();
 
-      expect(
-        mockPolicyViolationGrandfatheringService.getGrandfathering
-      ).toHaveBeenCalled();
+      expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(config);
       expect(vm.originalConfiguration).toEqual(config);
       expect(vm.statusMessage).toEqual(JSON.stringify(config));
@@ -80,9 +67,7 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
 
       $timeout.flush();
 
-      expect(
-        mockPolicyViolationGrandfatheringService.getGrandfathering
-      ).toHaveBeenCalled();
+      expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(undefined);
       expect(vm.originalConfiguration).toEqual(undefined);
       expect(vm.statusMessage).toEqual(undefined);
@@ -110,12 +95,8 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
 
       $httpBackend.flush();
 
-      expect(
-        mockPolicyViolationGrandfatheringService.setGrandfathering
-      ).toHaveBeenCalledWith(newConfig);
-      expect(
-        mockPolicyViolationGrandfatheringService.getGrandfathering
-      ).toHaveBeenCalled();
+      expect(mockPolicyViolationGrandfatheringService.setGrandfathering).toHaveBeenCalledWith(newConfig);
+      expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(newConfig);
       expect(vm.originalConfiguration).toEqual(newConfig);
     }));
@@ -138,12 +119,8 @@ describe('PolicyViolationGrandfatheringEditorController', function () {
 
       $timeout.flush();
 
-      expect(
-        mockPolicyViolationGrandfatheringService.setGrandfathering
-      ).toHaveBeenCalledWith(newConfig);
-      expect(
-        mockPolicyViolationGrandfatheringService.getGrandfathering
-      ).not.toHaveBeenCalled();
+      expect(mockPolicyViolationGrandfatheringService.setGrandfathering).toHaveBeenCalledWith(newConfig);
+      expect(mockPolicyViolationGrandfatheringService.getGrandfathering).not.toHaveBeenCalled();
       expect(vm.currentConfiguration).toEqual(newConfig);
       expect(vm.originalConfiguration).toEqual(oldConfig);
       expect(vm.submitError).toEqual('not found');

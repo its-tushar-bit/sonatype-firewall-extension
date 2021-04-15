@@ -5,11 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  faCube,
-  faSitemap,
-  faTerminal,
-} from '@fortawesome/free-solid-svg-icons';
+import { faCube, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import { getComponentName } from '../util/componentNameUtils';

@@ -10,17 +10,11 @@ export default function StateHistoryService($rootScope) {
     },
     states = [];
 
-  $rootScope.$on(
-    '$stateChangeSuccess',
-    function (event, toState, toParams, fromState) {
-      if (
-        states.length === 0 ||
-        !angular.equals(states[states.length - 1], fromState)
-      ) {
-        states.push(fromState);
-      }
+  $rootScope.$on('$stateChangeSuccess', function (event, toState, toParams, fromState) {
+    if (states.length === 0 || !angular.equals(states[states.length - 1], fromState)) {
+      states.push(fromState);
     }
-  );
+  });
 
   function getPreviousState() {
     return states.length ? states[states.length - 1] : undefined;

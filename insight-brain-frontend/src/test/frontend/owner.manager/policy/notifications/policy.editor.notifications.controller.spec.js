@@ -121,12 +121,8 @@ describe('policy.editor.notifications.controller.spec.js', function () {
       .expectGET(CLMLocations.getProductFeaturesUrl())
       .respond(['policy-monitoring', 'webhooks-for-applications']);
 
-    $httpBackend
-      .whenGET(CLMContextLocations.getRoleMappingUrl())
-      .respond(membershipMapping);
-    getWebhooks = $httpBackend.whenGET(
-      CLMContextLocations.getNotificationWebhooksUrl()
-    );
+    $httpBackend.whenGET(CLMContextLocations.getRoleMappingUrl()).respond(membershipMapping);
+    getWebhooks = $httpBackend.whenGET(CLMContextLocations.getNotificationWebhooksUrl());
     getWebhooks.respond(webhooks);
   }));
 
@@ -220,11 +216,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
       expect(vm.recipients[1].webhookId).toBe('key2');
     });
 
-    it('still shows editor if jira projects fails', inject(function (
-      CLMContextLocations,
-      $controller,
-      $httpBackend
-    ) {
+    it('still shows editor if jira projects fails', inject(function (CLMContextLocations, $controller, $httpBackend) {
       var error = 'error';
 
       jiraServiceResolver.reset();
@@ -402,9 +394,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
 
       vm.removeRecipient(vm.recipients[1]);
       expect(vm.notifications.userNotifications.length).toBe(1);
-      expect(vm.notifications.userNotifications[0].emailAddress).toBe(
-        'zoo@test.com'
-      );
+      expect(vm.notifications.userNotifications[0].emailAddress).toBe('zoo@test.com');
 
       expect(vm.recipients.length).toBe(5);
       expect(vm.recipients[1].roleId).toBe('2');
@@ -474,9 +464,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
         ],
       };
       vm = initController(notifications);
-      vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', [
-        '$setPristine',
-      ]);
+      vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', ['$setPristine']);
       keypressEvent = jasmine.createSpyObj('keypressEvent', ['preventDefault']);
     });
 
@@ -526,9 +514,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
         vm.addEmailRecipient('user-recipient@test.com');
 
         expect(vm.notifications.userNotifications.length).toBe(3);
-        expect(vm.notifications.userNotifications[2].emailAddress).toBe(
-          'user-recipient@test.com'
-        );
+        expect(vm.notifications.userNotifications[2].emailAddress).toBe('user-recipient@test.com');
         expect(vm.notifications.userNotifications[2].stageIds).toEqual([]);
 
         expect(vm.recipients.length).toBe(7);
@@ -601,23 +587,17 @@ describe('policy.editor.notifications.controller.spec.js', function () {
 
       // add
       vm.addRoleRecipient('1');
-      expect(vm.getAvailableRoles()).toEqual(
-        membershipMapping.membersByRole.slice(1)
-      );
+      expect(vm.getAvailableRoles()).toEqual(membershipMapping.membersByRole.slice(1));
 
       vm.addRoleRecipient('2');
-      expect(vm.getAvailableRoles()).toEqual(
-        membershipMapping.membersByRole.slice(2)
-      );
+      expect(vm.getAvailableRoles()).toEqual(membershipMapping.membersByRole.slice(2));
 
       vm.addRoleRecipient('3');
       expect(vm.getAvailableRoles()).toEqual([]);
 
       // remove
       vm.removeRecipient(vm.recipients[2]);
-      expect(vm.getAvailableRoles()).toEqual(
-        membershipMapping.membersByRole.slice(2)
-      );
+      expect(vm.getAvailableRoles()).toEqual(membershipMapping.membersByRole.slice(2));
     });
   });
 
@@ -627,9 +607,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
         jiraNotifications: [],
       };
       var vm = initController(notifications, true);
-      vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', [
-        '$setPristine',
-      ]);
+      vm.addRecipientForm = jasmine.createSpyObj('addRecipientForm', ['$setPristine']);
 
       expect(vm.availableJiraProjects).toEqual(jiraProjects);
 
@@ -821,9 +799,7 @@ describe('policy.editor.notifications.controller.spec.js', function () {
       };
       var vm = initController(notifications, true);
 
-      expect(vm.getDisplayName(recipient)).toBe(
-        'Undefined webhook: unknown-webhook'
-      );
+      expect(vm.getDisplayName(recipient)).toBe('Undefined webhook: unknown-webhook');
     });
 
     it('returns webhook id for webhookNotifications if unable to load webhooks', function () {

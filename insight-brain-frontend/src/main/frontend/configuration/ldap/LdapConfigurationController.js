@@ -79,14 +79,7 @@ function testRequest($scope, $http, resourceUrl, requestData) {
   );
 }
 
-export function LdapConfigurationController(
-  $scope,
-  $state,
-  Dialog,
-  ldapStore,
-  ErrorDialog,
-  isAuthorized
-) {
+export function LdapConfigurationController($scope, $state, Dialog, ldapStore, ErrorDialog, isAuthorized) {
   function isDirty() {
     if ($scope.ldapNameForm && $scope.ldapNameForm.$visible) {
       return true;
@@ -113,8 +106,7 @@ export function LdapConfigurationController(
     return (
       $scope.ldapEditor &&
       !$scope.ldapEditor.$invalid &&
-      (($scope.ldapNameForm && $scope.ldapNameForm.$visible) ||
-        ($scope.ldap && $scope.ldap.name))
+      (($scope.ldapNameForm && $scope.ldapNameForm.$visible) || ($scope.ldap && $scope.ldap.name))
     );
   };
 
@@ -128,10 +120,7 @@ export function LdapConfigurationController(
     $scope.ldap.$save().then(
       function (ldapServer) {
         $scope.saving = false;
-        if (
-          $state.current.name === 'edit-ldap' ||
-          $state.current.name === 'create-ldap'
-        ) {
+        if ($state.current.name === 'edit-ldap' || $state.current.name === 'create-ldap') {
           $state.go('edit-ldap.connection', { ldapId: ldapServer.id });
         }
       },
@@ -221,13 +210,7 @@ LdapConfigurationController.$inject = [
   'isAuthorized',
 ];
 
-export function LdapConnectionController(
-  $scope,
-  Modal,
-  $http,
-  CLMContextLocations,
-  ErrorDialog
-) {
+export function LdapConnectionController($scope, Modal, $http, CLMContextLocations, ErrorDialog) {
   $scope.ldapProtocols = ['LDAP', 'LDAPS'];
   $scope.ldapMethods = ['NONE', 'SIMPLE', 'DIGESTMD5', 'CRAMMD5'];
   $scope.alerts = [];
@@ -255,12 +238,7 @@ export function LdapConnectionController(
       return; // No existing connection i.e. an insert
     }
     if (isHostnameOrPortChanged()) {
-      if (
-        angular.equals(
-          origLdapConn.systemPassword,
-          $scope.ldapConn.systemPassword
-        )
-      ) {
+      if (angular.equals(origLdapConn.systemPassword, $scope.ldapConn.systemPassword)) {
         $scope.ldapConn.systemPassword = undefined;
         $scope.ldapConnectionEditor['ldap-system-password'].$setDirty();
       }
@@ -277,11 +255,7 @@ export function LdapConnectionController(
       return false; // Form isn't ready
     }
     // Only show the message if the hostname or port are updated and they haven't started entering a password
-    return (
-      isUpdate() &&
-      isHostnameOrPortChanged() &&
-      $scope.ldapConn.systemPassword === undefined
-    );
+    return isUpdate() && isHostnameOrPortChanged() && $scope.ldapConn.systemPassword === undefined;
   };
 
   function isUpdate() {
@@ -301,12 +275,7 @@ export function LdapConnectionController(
 
   $scope.testInProgress = false;
   $scope.testConnection = function () {
-    testRequest(
-      $scope,
-      $http,
-      CLMContextLocations.getLdapConnectionTest(),
-      $scope.ldapConn
-    );
+    testRequest($scope, $http, CLMContextLocations.getLdapConnectionTest(), $scope.ldapConn);
   };
 
   $scope.reset = resetDialog(Modal, function () {
@@ -317,35 +286,27 @@ export function LdapConnectionController(
 
   $scope.save = function () {
     $scope.saving = true;
-    $http
-      .put(CLMContextLocations.getLdapConnectionConfig(), $scope.ldapConn)
-      .then(
-        function (response) {
-          $scope.saving = false;
-          origLdapConn = response.data;
-          $scope.ldapConn = angular.copy(origLdapConn);
-          showAlert($scope.alerts, {
-            type: 'success',
-            msg: 'Configuration saved.',
-          });
-        },
-        function (error) {
-          $scope.saving = false;
-          ErrorDialog.open(error);
-        }
-      );
+    $http.put(CLMContextLocations.getLdapConnectionConfig(), $scope.ldapConn).then(
+      function (response) {
+        $scope.saving = false;
+        origLdapConn = response.data;
+        $scope.ldapConn = angular.copy(origLdapConn);
+        showAlert($scope.alerts, {
+          type: 'success',
+          msg: 'Configuration saved.',
+        });
+      },
+      function (error) {
+        $scope.saving = false;
+        ErrorDialog.open(error);
+      }
+    );
   };
 
   $scope.$watch('ldapConn.protocol', function (newProtocol) {
-    if (
-      newProtocol === 'LDAP' &&
-      (!$scope.ldapConn.port || $scope.ldapConn.port === 636)
-    ) {
+    if (newProtocol === 'LDAP' && (!$scope.ldapConn.port || $scope.ldapConn.port === 636)) {
       $scope.ldapConn.port = 389;
-    } else if (
-      newProtocol === 'LDAPS' &&
-      (!$scope.ldapConn.port || $scope.ldapConn.port === 389)
-    ) {
+    } else if (newProtocol === 'LDAPS' && (!$scope.ldapConn.port || $scope.ldapConn.port === 389)) {
       $scope.ldapConn.port = 636;
     }
   });
@@ -361,22 +322,9 @@ export function LdapConnectionController(
   );
 }
 
-LdapConnectionController.$inject = [
-  '$scope',
-  'Modal',
-  '$http',
-  'CLMContextLocations',
-  'ErrorDialog',
-];
+LdapConnectionController.$inject = ['$scope', 'Modal', '$http', 'CLMContextLocations', 'ErrorDialog'];
 
-export function LdapUsermappingController(
-  $scope,
-  Modal,
-  $http,
-  CLMContextLocations,
-  ErrorDialog,
-  $q
-) {
+export function LdapUsermappingController($scope, Modal, $http, CLMContextLocations, ErrorDialog, $q) {
   $scope.alerts = [];
   delete $scope.ldapUserMapping; // make sure the scope is clean while we query backend
 
@@ -387,10 +335,7 @@ export function LdapUsermappingController(
   $scope.groupMappingTypes = ['NONE', 'STATIC', 'DYNAMIC'];
 
   $scope.isDirty = function () {
-    return (
-      $scope.ldapUserMapping &&
-      !angular.equals(origLdapUserMapping, $scope.ldapUserMapping)
-    );
+    return $scope.ldapUserMapping && !angular.equals(origLdapUserMapping, $scope.ldapUserMapping);
   };
 
   $scope.canSaveEdit = function () {
@@ -411,26 +356,21 @@ export function LdapUsermappingController(
 
   $scope.save = function () {
     $scope.saving = true;
-    $http
-      .put(
-        CLMContextLocations.getLdapUserMappingConfig(),
-        $scope.ldapUserMapping
-      )
-      .then(
-        function (response) {
-          $scope.saving = false;
-          origLdapUserMapping = response.data;
-          $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
-          showAlert($scope.alerts, {
-            type: 'success',
-            msg: 'Configuration saved.',
-          });
-        },
-        function (error) {
-          $scope.saving = false;
-          ErrorDialog.open(error);
-        }
-      );
+    $http.put(CLMContextLocations.getLdapUserMappingConfig(), $scope.ldapUserMapping).then(
+      function (response) {
+        $scope.saving = false;
+        origLdapUserMapping = response.data;
+        $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
+        showAlert($scope.alerts, {
+          type: 'success',
+          msg: 'Configuration saved.',
+        });
+      },
+      function (error) {
+        $scope.saving = false;
+        ErrorDialog.open(error);
+      }
+    );
   };
 
   $scope.testInProgress = false;
@@ -445,37 +385,30 @@ export function LdapUsermappingController(
       resolve: {
         users: function () {
           var deferred = $q.defer();
-          $http
-            .put(
-              CLMContextLocations.getLdapUserMappingTest(),
-              $scope.ldapUserMapping
-            )
-            .then(
-              function (response) {
-                var users = response.data;
-                // Add property that holds the count of fields that are populated
-                users.forEach(function (user) {
-                  user.fieldCount = 0;
-                  user.membership = (user.membership || []).join(', ');
-                  ['username', 'realName', 'email', 'membership'].forEach(
-                    function (field) {
-                      if (user[field]) {
-                        user.fieldCount++;
-                      }
-                    }
-                  );
+          $http.put(CLMContextLocations.getLdapUserMappingTest(), $scope.ldapUserMapping).then(
+            function (response) {
+              var users = response.data;
+              // Add property that holds the count of fields that are populated
+              users.forEach(function (user) {
+                user.fieldCount = 0;
+                user.membership = (user.membership || []).join(', ');
+                ['username', 'realName', 'email', 'membership'].forEach(function (field) {
+                  if (user[field]) {
+                    user.fieldCount++;
+                  }
                 });
-                deferred.resolve(users);
-              },
-              function (errorResponse) {
-                $scope.testInProgress = false;
-                showAlert($scope.alerts, {
-                  type: 'error',
-                  msg: errorResponse.data,
-                });
-                deferred.reject(errorResponse);
-              }
-            );
+              });
+              deferred.resolve(users);
+            },
+            function (errorResponse) {
+              $scope.testInProgress = false;
+              showAlert($scope.alerts, {
+                type: 'error',
+                msg: errorResponse.data,
+              });
+              deferred.reject(errorResponse);
+            }
+          );
           return deferred.promise;
         },
       },
@@ -507,10 +440,7 @@ export function LdapUsermappingController(
   };
 
   $scope.isGroupFieldRequired = function (groupMappingType) {
-    return (
-      $scope.ldapUserMapping &&
-      $scope.ldapUserMapping.groupMappingType === groupMappingType
-    );
+    return $scope.ldapUserMapping && $scope.ldapUserMapping.groupMappingType === groupMappingType;
   };
 
   $http.get(CLMContextLocations.getLdapUserMappingConfig()).then(
@@ -519,14 +449,8 @@ export function LdapUsermappingController(
 
       // non-required properties must be initialized to empty string (not null or undefined) so that
       // pristine-ness styles work correctly in regards to whitespace
-      [
-        'userBaseDN',
-        'userFilter',
-        'userPasswordAttribute',
-        'groupBaseDN',
-      ].forEach(function (nonRequiredProp) {
-        origLdapUserMapping[nonRequiredProp] =
-          origLdapUserMapping[nonRequiredProp] || '';
+      ['userBaseDN', 'userFilter', 'userPasswordAttribute', 'groupBaseDN'].forEach(function (nonRequiredProp) {
+        origLdapUserMapping[nonRequiredProp] = origLdapUserMapping[nonRequiredProp] || '';
       });
 
       $scope.ldapUserMapping = angular.copy(origLdapUserMapping);
@@ -537,14 +461,7 @@ export function LdapUsermappingController(
   );
 }
 
-LdapUsermappingController.$inject = [
-  '$scope',
-  'Modal',
-  '$http',
-  'CLMContextLocations',
-  'ErrorDialog',
-  '$q',
-];
+LdapUsermappingController.$inject = ['$scope', 'Modal', '$http', 'CLMContextLocations', 'ErrorDialog', '$q'];
 
 export function LdapCheckUserMappingController($scope, users) {
   $scope.users = users;

@@ -52,9 +52,7 @@ describe('notificationsMenu', function () {
     expect(notificationScope.notifications[0].id).toEqual('1234');
     expect(notificationScope.notifications[0].type).toEqual('default');
     expect(notificationScope.notifications[0].summaryText).toEqual('summary');
-    expect(notificationScope.notifications[0].detailHtml.toString()).toEqual(
-      'detail'
-    );
+    expect(notificationScope.notifications[0].detailHtml.toString()).toEqual('detail');
     expect(notificationScope.notifications[0].dateCreated).toEqual(tenDaysAgo);
     expect(notificationScope.notifications[0].viewed).toEqual(false);
     expect(notificationScope.notifications[0].age).toEqual(10);
@@ -147,21 +145,15 @@ describe('notificationsMenu', function () {
     expect(notificationScope.notifications[1].age).toEqual(1);
     expect(notificationScope.notifications[1].ageQualifier).toEqual('hour ago');
     expect(notificationScope.notifications[2].age).toEqual(1);
-    expect(notificationScope.notifications[2].ageQualifier).toEqual(
-      'minute ago'
-    );
+    expect(notificationScope.notifications[2].ageQualifier).toEqual('minute ago');
     expect(notificationScope.notifications[3].age).toEqual('');
     expect(notificationScope.notifications[3].ageQualifier).toEqual('Just now');
     expect(notificationScope.notifications[4].age).toEqual(10);
     expect(notificationScope.notifications[4].ageQualifier).toEqual('days ago');
     expect(notificationScope.notifications[5].age).toEqual(10);
-    expect(notificationScope.notifications[5].ageQualifier).toEqual(
-      'hours ago'
-    );
+    expect(notificationScope.notifications[5].ageQualifier).toEqual('hours ago');
     expect(notificationScope.notifications[6].age).toEqual(10);
-    expect(notificationScope.notifications[6].ageQualifier).toEqual(
-      'minutes ago'
-    );
+    expect(notificationScope.notifications[6].ageQualifier).toEqual('minutes ago');
     expect(notificationScope.notifications[7].age).toEqual('');
     expect(notificationScope.notifications[7].ageQualifier).toEqual('Just now');
   }));
@@ -184,15 +176,11 @@ describe('notificationsMenu', function () {
 
     expect(notificationScope.unreadNotificationCount).toEqual(1);
     expect(notificationScope.notifications[0].viewed).toEqual(false);
-    $httpBackend
-      .expectPOST(CLMLocations.getNotificationViewedUrl(), { id: '1' })
-      .respond(200);
+    $httpBackend.expectPOST(CLMLocations.getNotificationViewedUrl(), { id: '1' }).respond(200);
     vm.openDetail(notificationScope.notifications[0]);
     $httpBackend.flush();
     expect(notificationScope.unreadNotificationCount).toEqual(0);
     expect(notificationScope.notifications[0].viewed).toEqual(true);
-    expect(notificationScope.selectedNotification).toEqual(
-      notificationScope.notifications[0]
-    );
+    expect(notificationScope.selectedNotification).toEqual(notificationScope.notifications[0]);
   }));
 });

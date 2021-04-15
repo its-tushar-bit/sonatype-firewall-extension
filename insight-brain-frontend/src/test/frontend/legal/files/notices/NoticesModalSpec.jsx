@@ -5,12 +5,7 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import NoticesModal from '../../../../../main/frontend/legal/files/notices/NoticesModal';
-import {
-  NxButton,
-  NxForm,
-  NxTextInput,
-  NxToggle,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
 
 describe('NoticesModal', function () {
   let getShallowComponent,
@@ -74,10 +69,7 @@ describe('NoticesModal', function () {
       error: 'error',
       submitMaskState: 'submitMaskState',
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      NoticesModal,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(NoticesModal, minimalProps);
   });
 
   it('renders no notice texts found if there are no notices', function () {
@@ -160,12 +152,8 @@ describe('NoticesModal', function () {
     expect(noticesScopeOptions.at(0)).toHaveText('Application - app');
     expect(noticesScopeOptions.at(1).prop('value')).toEqual('orgId');
     expect(noticesScopeOptions.at(1)).toHaveText('Organization - org');
-    expect(noticesScopeOptions.at(2).prop('value')).toEqual(
-      'ROOT_ORGANIZATION_ID'
-    );
-    expect(noticesScopeOptions.at(2)).toHaveText(
-      'Organization - Root Organization'
-    );
+    expect(noticesScopeOptions.at(2).prop('value')).toEqual('ROOT_ORGANIZATION_ID');
+    expect(noticesScopeOptions.at(2)).toHaveText('Organization - Root Organization');
   });
 
   it('sets the notices scope to the selected value when changed', function () {
@@ -190,9 +178,7 @@ describe('NoticesModal', function () {
       ],
     });
     const form = wrapper.find(NxForm);
-    expect(form.prop('validationErrors')).toBe(
-      'A custom notice must have text.'
-    );
+    expect(form.prop('validationErrors')).toBe('A custom notice must have text.');
   });
 
   it('has a validation error if there has been no changes', function () {
@@ -211,9 +197,7 @@ describe('NoticesModal', function () {
       ],
     });
     const form = wrapper.find(NxForm);
-    expect(form.prop('validationErrors')).toBe(
-      'Must add a new notice or change the content or status of a notice.'
-    );
+    expect(form.prop('validationErrors')).toBe('Must add a new notice or change the content or status of a notice.');
   });
 
   it('has no validation error if the scope has changed', function () {

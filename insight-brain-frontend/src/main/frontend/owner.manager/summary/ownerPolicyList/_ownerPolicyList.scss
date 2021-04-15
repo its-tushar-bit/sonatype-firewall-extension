@@ -72,9 +72,8 @@ owner-policy-list {
     width: calc(
       100% -
         (
-          #{$iq-cell-proxy-width} + 1px + #{$iq-cell-build-width} + 1px + #{$iq-cell-stage-width} +
-            1px + #{$iq-cell-develop-width} + 1px + #{$iq-cell-release-width} + 1px +
-            #{$iq-cell-operate-width} + 1px + 33px
+          #{$iq-cell-proxy-width} + 1px + #{$iq-cell-build-width} + 1px + #{$iq-cell-stage-width} + 1px + #{$iq-cell-develop-width} +
+            1px + #{$iq-cell-release-width} + 1px + #{$iq-cell-operate-width} + 1px + 33px
         )
     );
   }

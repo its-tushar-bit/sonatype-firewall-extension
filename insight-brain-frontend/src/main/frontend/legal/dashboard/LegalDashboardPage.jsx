@@ -4,12 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxStatefulTabs,
-  NxTab,
-  NxTabList,
-  NxTabPanel,
-} from '@sonatype/react-shared-components';
+import { NxStatefulTabs, NxTab, NxTabList, NxTabPanel } from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from './LegalDashboardApplicationsTab';
 import * as PropTypes from 'prop-types';
 import LegalDashboardFilterContainer from './filter/LegalDashboardFilterContainer';
@@ -30,15 +25,8 @@ export default function LegalDashboardPage(props) {
 
   return (
     <div id="legal-dashboard" className="nx-page-content">
-      <LoadWrapper
-        loading={loading}
-        error={loadError}
-        retryHandler={loadResults}
-      >
-        <aside
-          id="legal-dashboard-filter-container"
-          className="nx-page-sidebar"
-        >
+      <LoadWrapper loading={loading} error={loadError} retryHandler={loadResults}>
+        <aside id="legal-dashboard-filter-container" className="nx-page-sidebar">
           <LegalDashboardFilterContainer />
         </aside>
         <main id="legal-dashboard-container" className="nx-page-main">
@@ -47,11 +35,7 @@ export default function LegalDashboardPage(props) {
           </div>
           <div className="nx-tile nx-viewport-sized__container">
             <div className="nx-tile-content nx-viewport-sized__container">
-              <NxStatefulTabs
-                className="nx-viewport-sized__container"
-                defaultActiveTab={0}
-                onTabSelect={() => {}}
-              >
+              <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
                 <NxTabList>
                   <NxTab>Applications</NxTab>
                 </NxTabList>

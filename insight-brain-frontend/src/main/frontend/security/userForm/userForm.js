@@ -18,8 +18,7 @@ export default {
   controller: UserFormController,
 };
 
-const invalidCharactersMessage =
-  'Use valid characters: alphanumeric, "_", "." or "-"';
+const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
 
 function UserFormController($scope, UserStore, Dialog) {
   var vm = this;
@@ -83,8 +82,7 @@ function UserFormController($scope, UserStore, Dialog) {
     if (isDirty()) {
       Dialog.open({
         title: 'Unsaved Changes',
-        body:
-          'The current user has unsaved changes, continuing will lose them.',
+        body: 'The current user has unsaved changes, continuing will lose them.',
         id: 'dirty-user-confirmation',
         buttons: [
           {

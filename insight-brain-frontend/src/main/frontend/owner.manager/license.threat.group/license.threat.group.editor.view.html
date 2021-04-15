@@ -23,9 +23,7 @@
     <div class="iq-tile-content">
       <div class="iq-form-row">
         <div class="iq-form-group">
-          <label for="editor-ltg-name" class="iq-label"
-            >License Threat Group Name</label
-          >
+          <label for="editor-ltg-name" class="iq-label">License Threat Group Name</label>
           <input
             id="editor-ltg-name"
             class="iq-text-input"
@@ -44,9 +42,7 @@
           />
         </div>
         <div class="iq-form-group">
-          <label class="iq-label" for="editor-ltg-threat-level"
-            >Threat Level</label
-          >
+          <label class="iq-label" for="editor-ltg-threat-level">Threat Level</label>
           <threat-level-selector
             id="editor-ltg-threat-level"
             class="test-threat-level"
@@ -57,9 +53,7 @@
         </div>
       </div>
       <div class="iq-form-group">
-        <label class="iq-label" for="editor-ltg-included-licenses"
-          >Included Licenses</label
-        >
+        <label class="iq-label" for="editor-ltg-included-licenses">Included Licenses</label>
         <double-column-picker
           id="editor-ltg-included-licenses"
           list="vm.availableLicenses"
@@ -72,11 +66,7 @@
         </double-column-picker>
       </div>
     </div>
-    <div
-      class="iq-tile-footer"
-      submit-wrapper="vm.submitError"
-      retry="vm.save()"
-    >
+    <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
       <button
         id="save-ltg-button"
         class="iq-btn iq-btn--primary"

@@ -39,21 +39,14 @@ function PolicyViolationGrandfatheringEditorController(
 
     doLoad() {
       delete vm.loadError;
-      const promises = [
-        PolicyViolationGrandfatheringService.getGrandfathering(),
-        ProductFeatures.load(),
-      ];
+      const promises = [PolicyViolationGrandfatheringService.getGrandfathering(), ProductFeatures.load()];
 
       $q.all(promises).then(
         function (results) {
           vm.originalConfiguration = results[0];
           vm.currentConfiguration = angular.copy(results[0]);
-          vm.statusMessage = PolicyViolationGrandfatheringService.getStatusMessage(
-            vm.originalConfiguration
-          );
-          vm.isGrandfatheringSupported = ProductFeatures.isAvailable(
-            'policy-grandfathering'
-          );
+          vm.statusMessage = PolicyViolationGrandfatheringService.getStatusMessage(vm.originalConfiguration);
+          vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
         },
         function (error) {
           vm.loadError = Messages.getHttpErrorMessage(error);
@@ -64,9 +57,7 @@ function PolicyViolationGrandfatheringEditorController(
     save() {
       delete vm.submitError;
       vm.violationGrandfatheringEditorMask.wrap(
-        PolicyViolationGrandfatheringService.setGrandfathering(
-          vm.currentConfiguration
-        )
+        PolicyViolationGrandfatheringService.setGrandfathering(vm.currentConfiguration)
           .then(vm.doLoad)
           .catch(function (error) {
             vm.submitError = Messages.getHttpErrorMessage(error);

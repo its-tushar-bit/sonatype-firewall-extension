@@ -25,9 +25,7 @@ describe('NoticeTextsTileContainer', function () {
         },
       },
     };
-    setShowNoticesModalSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'setShowNoticesModalSpy' });
+    setShowNoticesModalSpy = jasmine.createSpy().and.returnValue({ type: 'setShowNoticesModalSpy' });
 
     NoticeTextsTileContainer = require('inject-loader!../../../../../main/frontend/legal/files/notices/NoticeTextsTileContainer')(
       {

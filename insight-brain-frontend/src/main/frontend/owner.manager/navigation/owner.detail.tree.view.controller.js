@@ -45,20 +45,10 @@ export default function OwnerDetailTreeViewController(
     var promises = [$http.get(CLMContextLocations.getOwnerDetailsUrl())];
 
     if (vm.isApp) {
-      promises.push(
-        ApplicationStore.getById(CLMContextLocations.getEntityId())
-      );
-      promises.push(
-        $http.get(
-          CLMLocations.getApplicableOrganizationTags(
-            CLMContextLocations.getEntityId()
-          )
-        )
-      );
+      promises.push(ApplicationStore.getById(CLMContextLocations.getEntityId()));
+      promises.push($http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId())));
     } else if (!vm.isRepositories) {
-      promises.push(
-        OrganizationStore.getById(CLMContextLocations.getEntityId())
-      );
+      promises.push(OrganizationStore.getById(CLMContextLocations.getEntityId()));
     }
 
     promises.push(ProductFeatures.load());
@@ -67,12 +57,8 @@ export default function OwnerDetailTreeViewController(
       function (results) {
         vm.details = results[0].data;
         var allMembersByRoles = vm.details.roles.membersByRole;
-        vm.details.roles = LocalRoleService.getRolesWithLocalMembers(
-          allMembersByRoles
-        );
-        vm.rolesWithoutLocalMembersExist =
-          LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles)
-            .length > 0;
+        vm.details.roles = LocalRoleService.getRolesWithLocalMembers(allMembersByRoles);
+        vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(allMembersByRoles).length > 0;
 
         if (!vm.isRepositories) {
           vm.ownerName = results[1].name;
@@ -83,12 +69,8 @@ export default function OwnerDetailTreeViewController(
         } else {
           vm.ownerName = 'Repositories';
         }
-        vm.isMonitoringSupported = ProductFeatures.isAvailable(
-          'policy-monitoring'
-        );
-        vm.isGrandfatheringSupported = ProductFeatures.isAvailable(
-          'policy-grandfathering'
-        );
+        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
+        vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
       },
       function (error) {
         vm.error = error;

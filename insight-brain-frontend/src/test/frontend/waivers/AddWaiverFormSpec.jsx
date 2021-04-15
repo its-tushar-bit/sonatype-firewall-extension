@@ -3,12 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  NxButton,
-  NxFieldset,
-  NxRadio,
-  NxTextInput,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxFieldset, NxRadio, NxTextInput } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../enzymeUtils';
 import AddWaiverForm from '../../../main/frontend/waivers/AddWaiverForm';
@@ -33,9 +28,7 @@ describe('AddWaiverForm', function () {
     setWaiverCommentSpy = jasmine.createSpy('setWaiverComment');
     setWaiverScopeSpy = jasmine.createSpy('setWaiverScope');
     setApplyToAllComponentsSpy = jasmine.createSpy('setApplyToAllComponents');
-    openVulnerabilityDetailsModalSpy = jasmine.createSpy(
-      'loadAddWaiverDataSpy'
-    );
+    openVulnerabilityDetailsModalSpy = jasmine.createSpy('loadAddWaiverDataSpy');
     cancelActionSpy = jasmine.createSpy('cancelAction');
     setExpiryTimeSpy = jasmine.createSpy('setExpiryTime');
 
@@ -84,10 +77,7 @@ describe('AddWaiverForm', function () {
       cancelAction: cancelActionSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      AddWaiverForm,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);
   });
 
   it('renders a form with the appropriate classes', function () {
@@ -113,10 +103,7 @@ describe('AddWaiverForm', function () {
       policySpan = policySection.find('.iq-threat-level');
 
     expect(policySection).toHaveClassName('.nx-form-group');
-    expect(ViolationExclamationComponent).toHaveProp(
-      'threatLevelCategory',
-      'severe'
-    );
+    expect(ViolationExclamationComponent).toHaveProp('threatLevelCategory', 'severe');
     expect(policySpan).toHaveClassName('.iq-threat-level--severe');
     expect(policySpan).toHaveText('policy name');
   });
@@ -141,14 +128,10 @@ describe('AddWaiverForm', function () {
 
   it('renders a link to see vulnerability details and opens the modal on click', function () {
     const component = getShallowComponent(),
-      vulnerabilityDetailsSection = component.find(
-        '.iq-add-waiver-form__vulnerability_details_link'
-      ),
+      vulnerabilityDetailsSection = component.find('.iq-add-waiver-form__vulnerability_details_link'),
       vulnerabilityDetailsLink = vulnerabilityDetailsSection.find('a');
 
-    expect(vulnerabilityDetailsLink).toHaveText(
-      'See Security Vulnerability Details'
-    );
+    expect(vulnerabilityDetailsLink).toHaveText('See Security Vulnerability Details');
     expect(openVulnerabilityDetailsModalSpy).not.toHaveBeenCalled();
     vulnerabilityDetailsLink.simulate('click');
     expect(openVulnerabilityDetailsModalSpy).toHaveBeenCalledWith({
@@ -163,9 +146,7 @@ describe('AddWaiverForm', function () {
 
     component = getShallowComponent({ vulnerabilityId: null });
     expect(component.find(VulnerabilityDetailsModalContainer)).not.toExist();
-    expect(
-      component.find('.iq-add-waiver-form__vulnerability_details_link')
-    ).not.toExist();
+    expect(component.find('.iq-add-waiver-form__vulnerability_details_link')).not.toExist();
   });
 
   it('renders a fieldset with NxRadios for the WaiverTargets', function () {
@@ -333,14 +314,7 @@ describe('AddWaiverForm', function () {
         form = component.find('.nx-form');
 
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith(
-        'violationId',
-        'application',
-        'id1',
-        'waiver comments',
-        false,
-        null
-      );
+      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false, null);
     });
 
     it('passes the number of days chosen for the expiry time', function () {
@@ -348,14 +322,7 @@ describe('AddWaiverForm', function () {
         form = component.find('.nx-form');
 
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith(
-        'violationId',
-        'application',
-        'id1',
-        'waiver comments',
-        false,
-        7
-      );
+      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false, 7);
 
       component = getShallowComponent({
         selectedWaiverScope: {
@@ -368,14 +335,7 @@ describe('AddWaiverForm', function () {
       });
       form = component.find('.nx-form');
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith(
-        'violationId',
-        'organization',
-        'idOrg',
-        'waiver comments',
-        false,
-        30
-      );
+      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'organization', 'idOrg', 'waiver comments', false, 30);
     });
   });
 

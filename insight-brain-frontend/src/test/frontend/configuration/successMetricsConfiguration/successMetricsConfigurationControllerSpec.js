@@ -23,12 +23,8 @@ describe('successMetricsConfigurationSpec.js', function () {
     isSuccessMetricsEnabledDeferred = $q.defer();
     saveSuccessMetricsEnabledDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
-      isSuccessMetricsEnabled: jasmine
-        .createSpy()
-        .and.returnValue(isSuccessMetricsEnabledDeferred.promise),
-      saveSuccessMetricsEnabled: jasmine
-        .createSpy()
-        .and.returnValue(saveSuccessMetricsEnabledDeferred.promise),
+      isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
+      saveSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(saveSuccessMetricsEnabledDeferred.promise),
     };
     vm = $componentController('successMetricsConfiguration', {
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
@@ -44,9 +40,7 @@ describe('successMetricsConfigurationSpec.js', function () {
       isSuccessMetricsEnabledDeferred.resolve(true);
       $scope.$digest();
 
-      expect(
-        mockSystemConfigurationPropertyService.isSuccessMetricsEnabled
-      ).toHaveBeenCalled();
+      expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
       expect(vm.successMetricsEnabled).toBe(true);
     });
 
@@ -57,9 +51,7 @@ describe('successMetricsConfigurationSpec.js', function () {
       });
       $scope.$digest();
 
-      expect(
-        mockSystemConfigurationPropertyService.isSuccessMetricsEnabled
-      ).toHaveBeenCalled();
+      expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
       expect(vm.successMetricsEnabled).toBe(undefined);
       expect(vm.error.status).toEqual(404);
       expect(vm.error.data).toEqual('not found');
@@ -89,9 +81,7 @@ describe('successMetricsConfigurationSpec.js', function () {
       });
       $scope.$digest();
 
-      expect(
-        mockSystemConfigurationPropertyService.saveSuccessMetricsEnabled
-      ).toHaveBeenCalledWith(false);
+      expect(mockSystemConfigurationPropertyService.saveSuccessMetricsEnabled).toHaveBeenCalledWith(false);
       expect(vm.error).toBeUndefined();
       expect(vm.savedSuccessMetricsEnabled).toBe(false);
     });
@@ -106,9 +96,7 @@ describe('successMetricsConfigurationSpec.js', function () {
       });
       $scope.$digest();
 
-      expect(
-        mockSystemConfigurationPropertyService.saveSuccessMetricsEnabled
-      ).toHaveBeenCalledWith(true);
+      expect(mockSystemConfigurationPropertyService.saveSuccessMetricsEnabled).toHaveBeenCalledWith(true);
       expect(vm.error.status).toEqual(401);
       expect(vm.error.data).toEqual('unauthorized');
       expect(vm.savedSuccessMetricsEnabled).toBe(true);

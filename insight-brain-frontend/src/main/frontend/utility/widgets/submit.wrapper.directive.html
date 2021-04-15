@@ -1,12 +1,9 @@
 <div>
   <div error="vm.error" message="vm.errorMessage" retry="vm.retry()">
     <div ng-show="vm.error != null" class="iq-alert iq-alert--error">
-      <i class="fa fa-warning"></i
-      ><span ng-if="vm.error">{{vm.errorDetails(vm.error)}}</span>
+      <i class="fa fa-warning"></i><span ng-if="vm.error">{{vm.errorDetails(vm.error)}}</span>
       <div class="iq-btn-bar">
-        <a href class="btn btn-error" ng-click="vm.retry()"
-          ><i class="fa fa-refresh"></i>Retry</a
-        >
+        <a href class="btn btn-error" ng-click="vm.retry()"><i class="fa fa-refresh"></i>Retry</a>
       </div>
     </div>
   </div>

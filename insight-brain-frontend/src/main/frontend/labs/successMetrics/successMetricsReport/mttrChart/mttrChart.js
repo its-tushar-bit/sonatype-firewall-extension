@@ -58,14 +58,6 @@ function controller() {
     const xAxis = new Axes.Category(xScale, 'bottom');
     const yAxisLabelText = 'Days to Resolve';
 
-    return createScatterPlotChart(
-      xAccessor,
-      xScale,
-      xAxis,
-      null,
-      yAxisLabelText,
-      lineConfigs,
-      dataset
-    );
+    return createScatterPlotChart(xAccessor, xScale, xAxis, null, yAxisLabelText, lineConfigs, dataset);
   }
 }

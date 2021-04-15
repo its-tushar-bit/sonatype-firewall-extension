@@ -18,10 +18,7 @@ describe('DropdownFilterInput', function () {
     onToggleCollapse: () => {},
     isElementFiltered: () => true,
   };
-  const getShallowComponent = enzymeUtils.getShallowComponent(
-    DropdownFilterInput,
-    minimalProps
-  );
+  const getShallowComponent = enzymeUtils.getShallowComponent(DropdownFilterInput, minimalProps);
 
   beforeEach(() => {
     container = document.createElement('div');

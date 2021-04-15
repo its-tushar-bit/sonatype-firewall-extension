@@ -6,46 +6,26 @@
 
 import axios from 'axios';
 import { find, propEq } from 'ramda';
-import {
-  getLegalDashboardApplicationUrl,
-  getApplicationUrl,
-  getActionStageUrl,
-} from '../../util/CLMLocation';
-import {
-  payloadParamActionCreator,
-  noPayloadActionCreator,
-} from '../../util/reduxUtil';
+import { getLegalDashboardApplicationUrl, getApplicationUrl, getActionStageUrl } from '../../util/CLMLocation';
+import { payloadParamActionCreator, noPayloadActionCreator } from '../../util/reduxUtil';
 
-export const LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED = 'LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED = 'LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED = 'LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED';
 
-export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED = 'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED = 'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED = 'LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED';
 
 export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED =
   'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED';
 export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED =
   'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED';
-export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED =
-  'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED';
+export const LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED = 'LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED';
 
-const legalApplicationDetailsLoadAppRequested = noPayloadActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED
-);
-const legalApplicationDetailsLoadAppFulfilled = payloadParamActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED
-);
-const legalApplicationDetailsLoadAppFailed = payloadParamActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED
-);
+const legalApplicationDetailsLoadAppRequested = noPayloadActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED);
+const legalApplicationDetailsLoadAppFulfilled = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED);
+const legalApplicationDetailsLoadAppFailed = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED);
 
 const legalApplicationDetailsLoadStageRequested = noPayloadActionCreator(
   LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED
@@ -53,9 +33,7 @@ const legalApplicationDetailsLoadStageRequested = noPayloadActionCreator(
 const legalApplicationDetailsLoadStageFulfilled = payloadParamActionCreator(
   LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED
 );
-const legalApplicationDetailsLoadStageFailed = payloadParamActionCreator(
-  LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED
-);
+const legalApplicationDetailsLoadStageFailed = payloadParamActionCreator(LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED);
 
 const legalApplicationDetailsLoadComponentsRequested = noPayloadActionCreator(
   LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED
@@ -88,9 +66,7 @@ export function loadApplication(applicationPublicId, stageTypeId) {
 function loadStageType(stageTypeId) {
   return (dispatch) => {
     if (!stageTypeId) {
-      dispatch(
-        legalApplicationDetailsLoadStageFailed('stageTypeId is mandatory.')
-      );
+      dispatch(legalApplicationDetailsLoadStageFailed('stageTypeId is mandatory.'));
       return Promise.reject('stageTypeId is mandatory.');
     }
     dispatch(legalApplicationDetailsLoadStageRequested());
@@ -98,14 +74,9 @@ function loadStageType(stageTypeId) {
     return axios
       .get(getActionStageUrl())
       .then((response) => {
-        const stageType = find(
-          propEq('stageTypeId', stageTypeId),
-          response.data
-        );
+        const stageType = find(propEq('stageTypeId', stageTypeId), response.data);
         if (stageType) {
-          return dispatch(
-            legalApplicationDetailsLoadStageFulfilled(stageType.stageName)
-          );
+          return dispatch(legalApplicationDetailsLoadStageFulfilled(stageType.stageName));
         }
         return Promise.reject(`${stageTypeId} is not a valid stage type ID.`);
       })
@@ -124,9 +95,7 @@ function loadComponents(applicationPublicId, stageTypeId) {
       .post(getLegalDashboardApplicationUrl(applicationPublicId), {
         stageTypeIds: [stageTypeId],
       })
-      .then((response) =>
-        dispatch(legalApplicationDetailsLoadComponentsFulfilled(response.data))
-      )
+      .then((response) => dispatch(legalApplicationDetailsLoadComponentsFulfilled(response.data)))
       .catch((error) => {
         dispatch(legalApplicationDetailsLoadComponentsFailed(error));
         return Promise.reject(error);

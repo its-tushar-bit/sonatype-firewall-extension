@@ -64,9 +64,7 @@ describe('advancedLegalObligationActions', function () {
 
     it('immediately dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED action', function () {
       store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(
-        saveAttribution({ obligationName: 'name', isAttributionDirty: true })
-      );
+      store.dispatch(saveAttribution({ obligationName: 'name', isAttributionDirty: true }));
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
@@ -76,16 +74,13 @@ describe('advancedLegalObligationActions', function () {
 
     it('does not dispatch anything when not dirty', function () {
       store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(
-        saveAttribution({ obligationName: 'name', isAttributionDirty: false })
-      );
+      store.dispatch(saveAttribution({ obligationName: 'name', isAttributionDirty: false }));
       const actions = store.getActions();
       expect(actions.length).toBe(0);
     });
 
     it(
-      'dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED action when the API succeeds with' +
-        ' create/update',
+      'dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED action when the API succeeds with' + ' create/update',
       function (done) {
         store = SpecUtil.mockReduxStore(initialState);
         const expectedPostBody = {
@@ -96,10 +91,9 @@ describe('advancedLegalObligationActions', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentObligationAttributionUrl(
-              'organization',
-              'ROOT_ORGANIZATION_ID'
-            )]: Promise.resolve({ data: 'postData' }),
+            [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
+              data: 'postData',
+            }),
           },
           get: {
             [getComponentObligationAttributionUrl(
@@ -140,9 +134,7 @@ describe('advancedLegalObligationActions', function () {
                   '/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
               );
               expect(actions.length).toBe(3);
-              expect(actions[1].type).toBe(
-                ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED
-              );
+              expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
               expect(actions[1].payload).toEqual({
                 name: 'name',
                 value: {
@@ -151,9 +143,7 @@ describe('advancedLegalObligationActions', function () {
                   ownerId: 'ROOT_ORGANIZATION_ID',
                 },
               });
-              expect(actions[2].type).toBe(
-                ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE
-              );
+              expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
               expect(actions[2].payload).toEqual({ name: 'name' });
               done();
             }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -167,8 +157,7 @@ describe('advancedLegalObligationActions', function () {
     );
 
     it(
-      'dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the save API fails with' +
-        ' create/update',
+      'dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the save API fails with' + ' create/update',
       function (done) {
         store = SpecUtil.mockReduxStore(initialState);
         const expectedPostBody = {
@@ -179,10 +168,7 @@ describe('advancedLegalObligationActions', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentObligationAttributionUrl(
-              'organization',
-              'ROOT_ORGANIZATION_ID'
-            )]: Promise.reject('error'),
+            [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error'),
           },
         });
 
@@ -200,9 +186,7 @@ describe('advancedLegalObligationActions', function () {
               expectedPostBody
             );
             expect(actions.length).toBe(2);
-            expect(actions[1].type).toBe(
-              ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED
-            );
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
             expect(actions[1].payload).toEqual({
               name: 'name',
               value: 'error',
@@ -218,8 +202,7 @@ describe('advancedLegalObligationActions', function () {
     );
 
     it(
-      'dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the get API fails with' +
-        ' create/update',
+      'dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the get API fails with' + ' create/update',
       function (done) {
         store = SpecUtil.mockReduxStore(initialState);
         const expectedPostBody = {
@@ -230,10 +213,9 @@ describe('advancedLegalObligationActions', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentObligationAttributionUrl(
-              'organization',
-              'ROOT_ORGANIZATION_ID'
-            )]: Promise.resolve('postData'),
+            [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve(
+              'postData'
+            ),
           },
           get: {
             [getComponentObligationAttributionUrl(
@@ -259,9 +241,7 @@ describe('advancedLegalObligationActions', function () {
               expectedPostBody
             );
             expect(actions.length).toBe(2);
-            expect(actions[1].type).toBe(
-              ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED
-            );
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
             expect(actions[1].payload).toEqual({
               name: 'name',
               value: 'error',
@@ -281,14 +261,11 @@ describe('advancedLegalObligationActions', function () {
         'no attribution at a higher scope',
       function (done) {
         let state = { ...initialState };
-        state.advancedLegal.component.component.licenseLegalData.attributions[0].content =
-          '';
+        state.advancedLegal.component.component.licenseLegalData.attributions[0].content = '';
         store = SpecUtil.mockReduxStore(state);
         mockAxiosCalls({
           del: {
-            [getDeleteComponentObligationAttributionUrl('id')]: Promise.resolve(
-              {}
-            ),
+            [getDeleteComponentObligationAttributionUrl('id')]: Promise.resolve({}),
           },
           get: {
             [getComponentObligationAttributionUrl(
@@ -318,9 +295,7 @@ describe('advancedLegalObligationActions', function () {
                   'obligation/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
               );
               expect(actions.length).toBe(3);
-              expect(actions[1].type).toBe(
-                ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED
-              );
+              expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
               expect(actions[1].payload).toEqual({
                 name: 'name',
                 value: {
@@ -329,9 +304,7 @@ describe('advancedLegalObligationActions', function () {
                   ownerId: 'ROOT_ORGANIZATION_ID',
                 },
               });
-              expect(actions[2].type).toBe(
-                ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE
-              );
+              expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
               expect(actions[2].payload).toEqual({ name: 'name' });
               done();
             }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -349,16 +322,12 @@ describe('advancedLegalObligationActions', function () {
         'an attribution at a higher scope',
       function (done) {
         let state = { ...initialState };
-        state.advancedLegal.component.component.licenseLegalData.attributions[0].content =
-          '';
-        state.advancedLegal.component.component.licenseLegalData.attributions[0].ownerId =
-          'org';
+        state.advancedLegal.component.component.licenseLegalData.attributions[0].content = '';
+        state.advancedLegal.component.component.licenseLegalData.attributions[0].ownerId = 'org';
         store = SpecUtil.mockReduxStore(state);
         mockAxiosCalls({
           del: {
-            [getDeleteComponentObligationAttributionUrl('id')]: Promise.resolve(
-              {}
-            ),
+            [getDeleteComponentObligationAttributionUrl('id')]: Promise.resolve({}),
           },
           get: {
             [getComponentObligationAttributionUrl(
@@ -396,9 +365,7 @@ describe('advancedLegalObligationActions', function () {
                   'obligation/attribution?componentIdentifier=%22componentIdentifier%22&obligationName=name'
               );
               expect(actions.length).toBe(3);
-              expect(actions[1].type).toBe(
-                ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED
-              );
+              expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
               expect(actions[1].payload).toEqual({
                 name: 'name',
                 value: {
@@ -407,9 +374,7 @@ describe('advancedLegalObligationActions', function () {
                   ownerId: 'ROOT_ORGANIZATION_ID',
                 },
               });
-              expect(actions[2].type).toBe(
-                ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE
-              );
+              expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE);
               expect(actions[2].payload).toEqual({ name: 'name' });
               done();
             }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -424,31 +389,24 @@ describe('advancedLegalObligationActions', function () {
 
     it('dispatches a ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED action when the API fails with delete', function (done) {
       let state = { ...initialState };
-      state.advancedLegal.component.component.licenseLegalData.attributions[0].content =
-        '';
+      state.advancedLegal.component.component.licenseLegalData.attributions[0].content = '';
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
-          [getDeleteComponentObligationAttributionUrl('id')]: Promise.reject(
-            'error'
-          ),
+          [getDeleteComponentObligationAttributionUrl('id')]: Promise.reject('error'),
         },
       });
 
-      store
-        .dispatch(
-          saveAttribution({ obligationName: 'name', isAttributionDirty: true })
-        )
-        .then(() => {
-          const actions = store.getActions();
-          expect(axios.delete).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id'
-          );
-          expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
-          expect(actions[1].payload).toEqual({ name: 'name', value: 'error' });
-          done();
-        });
+      store.dispatch(saveAttribution({ obligationName: 'name', isAttributionDirty: true })).then(() => {
+        const actions = store.getActions();
+        expect(axios.delete).toHaveBeenCalledWith(
+          '/api/experimental/licenseLegalMetadata/component/obligation/attribution/id'
+        );
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED);
+        expect(actions[1].payload).toEqual({ name: 'name', value: 'error' });
+        done();
+      });
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
@@ -501,8 +459,7 @@ describe('advancedLegalObligationActions', function () {
     });
 
     it(
-      'dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED action when the API succeeds with' +
-        ' create/update',
+      'dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED action when the API succeeds with' + ' create/update',
       function (done) {
         store = SpecUtil.mockReduxStore(initialState);
         const expectedPostBody = {
@@ -514,18 +471,12 @@ describe('advancedLegalObligationActions', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentObligationUrl(
-              'organization',
-              'ROOT_ORGANIZATION_ID'
-            )]: Promise.resolve({ data: 'postData' }),
+            [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
+              data: 'postData',
+            }),
           },
           get: {
-            [getComponentObligationUrl(
-              'organization',
-              'org',
-              'componentIdentifier',
-              'name'
-            )]: Promise.resolve({
+            [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: Promise.resolve({
               data: {
                 id: 'id',
                 comment: 'comment',
@@ -551,9 +502,7 @@ describe('advancedLegalObligationActions', function () {
                 'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
             );
             expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED
-            );
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
             expect(actions[1].payload).toEqual({
               name: 'name',
               value: {
@@ -565,9 +514,7 @@ describe('advancedLegalObligationActions', function () {
                 lastUpdatedAt: 1618873200000,
               },
             });
-            expect(actions[2].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE
-            );
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
             expect(actions[2].payload).toEqual({ name: 'name' });
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -581,8 +528,7 @@ describe('advancedLegalObligationActions', function () {
     );
 
     it(
-      'dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED action when the save API fails with' +
-        ' create/update',
+      'dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED action when the save API fails with' + ' create/update',
       function (done) {
         store = SpecUtil.mockReduxStore(initialState);
         const expectedPostBody = {
@@ -594,10 +540,7 @@ describe('advancedLegalObligationActions', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentObligationUrl(
-              'organization',
-              'ROOT_ORGANIZATION_ID'
-            )]: Promise.reject('error'),
+            [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.reject('error'),
           },
         });
 
@@ -621,8 +564,7 @@ describe('advancedLegalObligationActions', function () {
     );
 
     it(
-      'dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED action when the get API fails with' +
-        ' create/update',
+      'dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED action when the get API fails with' + ' create/update',
       function (done) {
         store = SpecUtil.mockReduxStore(initialState);
         const expectedPostBody = {
@@ -634,18 +576,10 @@ describe('advancedLegalObligationActions', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentObligationUrl(
-              'organization',
-              'ROOT_ORGANIZATION_ID'
-            )]: Promise.resolve('postData'),
+            [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve('postData'),
           },
           get: {
-            [getComponentObligationUrl(
-              'organization',
-              'org',
-              'componentIdentifier',
-              'name'
-            )]: Promise.reject('error'),
+            [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: Promise.reject('error'),
           },
         });
 
@@ -673,22 +607,17 @@ describe('advancedLegalObligationActions', function () {
         'no obligation at a higher scope',
       function (done) {
         let state = { ...initialState };
-        state.advancedLegal.component.component.licenseLegalData.obligations[0].status =
-          'OPEN';
-        state.advancedLegal.component.component.licenseLegalData.obligations[0].comment =
-          '';
+        state.advancedLegal.component.component.licenseLegalData.obligations[0].status = 'OPEN';
+        state.advancedLegal.component.component.licenseLegalData.obligations[0].comment = '';
         store = SpecUtil.mockReduxStore(state);
         mockAxiosCalls({
           del: {
             [getDeleteComponentObligationsUrl(['id'])]: Promise.resolve({}),
           },
           get: {
-            [getComponentObligationUrl(
-              'organization',
-              'org',
-              'componentIdentifier',
-              'name'
-            )]: Promise.resolve({ data: null }),
+            [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: Promise.resolve({
+              data: null,
+            }),
           },
         });
 
@@ -703,9 +632,7 @@ describe('advancedLegalObligationActions', function () {
                 'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
             );
             expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED
-            );
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
             expect(actions[1].payload).toEqual({
               name: 'name',
               value: {
@@ -715,9 +642,7 @@ describe('advancedLegalObligationActions', function () {
                 status: 'OPEN',
               },
             });
-            expect(actions[2].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE
-            );
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
             expect(actions[2].payload).toEqual({ name: 'name' });
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -735,24 +660,16 @@ describe('advancedLegalObligationActions', function () {
         'an obligation at a higher scope',
       function (done) {
         let state = { ...initialState };
-        state.advancedLegal.component.component.licenseLegalData.obligations[0].ownerId =
-          'org';
-        state.advancedLegal.component.component.licenseLegalData.obligations[0].comment =
-          '';
-        state.advancedLegal.component.component.licenseLegalData.obligations[0].status =
-          'OPEN';
+        state.advancedLegal.component.component.licenseLegalData.obligations[0].ownerId = 'org';
+        state.advancedLegal.component.component.licenseLegalData.obligations[0].comment = '';
+        state.advancedLegal.component.component.licenseLegalData.obligations[0].status = 'OPEN';
         store = SpecUtil.mockReduxStore(state);
         mockAxiosCalls({
           del: {
             [getDeleteComponentObligationsUrl(['id'])]: Promise.resolve({}),
           },
           get: {
-            [getComponentObligationUrl(
-              'organization',
-              'org',
-              'componentIdentifier',
-              'name'
-            )]: Promise.resolve({
+            [getComponentObligationUrl('organization', 'org', 'componentIdentifier', 'name')]: Promise.resolve({
               data: {
                 id: 'id2',
                 comment: 'comment2',
@@ -776,9 +693,7 @@ describe('advancedLegalObligationActions', function () {
                 'obligation?componentIdentifier=%22componentIdentifier%22&obligationName=name'
             );
             expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED
-            );
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
             expect(actions[1].payload).toEqual({
               name: 'name',
               value: {
@@ -790,9 +705,7 @@ describe('advancedLegalObligationActions', function () {
                 lastUpdatedAt: 1618873200000,
               },
             });
-            expect(actions[2].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE
-            );
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
             expect(actions[2].payload).toEqual({ name: 'name' });
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -807,10 +720,8 @@ describe('advancedLegalObligationActions', function () {
 
     it('dispatches a ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED action when the API fails with delete', function (done) {
       let state = { ...initialState };
-      state.advancedLegal.component.component.licenseLegalData.obligations[0].status =
-        'OPEN';
-      state.advancedLegal.component.component.licenseLegalData.obligations[0].comment =
-        '';
+      state.advancedLegal.component.component.licenseLegalData.obligations[0].status = 'OPEN';
+      state.advancedLegal.component.component.licenseLegalData.obligations[0].comment = '';
       store = SpecUtil.mockReduxStore(state);
       mockAxiosCalls({
         del: {
@@ -887,14 +798,10 @@ describe('advancedLegalObligationActions', function () {
       };
       mockAxiosCalls({
         post: {
-          [getSaveComponentObligationAttributionUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          )]: Promise.resolve({ data: 'postData' }),
-          [getSaveComponentObligationUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          )]: Promise.resolve({
+          [getSaveComponentObligationAttributionUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
+            data: 'postData',
+          }),
+          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
             data: {
               data: 'dataPOST2',
             },
@@ -971,9 +878,7 @@ describe('advancedLegalObligationActions', function () {
                 'componentIdentifier=%22componentIdentifier%22&obligationName=Must%20State%20Changes'
             );
             expect(actions.length).toBe(5);
-            expect(actions[1].type).toBe(
-              ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED
-            );
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED);
             expect(actions[1].payload).toEqual({
               name: 'Must State Changes',
               value: {
@@ -982,12 +887,8 @@ describe('advancedLegalObligationActions', function () {
                 ownerId: 'ROOT_ORGANIZATION_ID',
               },
             });
-            expect(actions[2].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED
-            );
-            expect(actions[3].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED
-            );
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
+            expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
             expect(actions[3].payload).toEqual({
               name: 'Must State Changes',
               value: {
@@ -997,9 +898,7 @@ describe('advancedLegalObligationActions', function () {
                 status: 'FLAGGED',
               },
             });
-            expect(actions[4].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE
-            );
+            expect(actions[4].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
             expect(actions[4].payload).toEqual({ name: 'Must State Changes' });
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS * 2);

@@ -4,16 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import {
-  NxOverflowTooltip,
-  NxTableCell,
-  NxTableRow,
-} from '@sonatype/react-shared-components';
+import { NxOverflowTooltip, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 
 import * as PropTypes from 'prop-types';
-import DashboardHeatMapCell, {
-  heatMapColorStylerPropTypes,
-} from '../DashboardHeatMapCell';
+import DashboardHeatMapCell, { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
 import DashboardApplicationsTableStageRiskRow, {
   applicationRiskPropTypes,
 } from './DashboardApplicationsTableStageRiskRow';
@@ -22,33 +16,20 @@ export default function DashboardApplicationsTableRow(props) {
   const { application, colorStyler, tableRowIndex } = props,
     { totalApplicationRisk, stageRisks } = application,
     automationId = `app${tableRowIndex}_`,
-    isLastStageRisk = (currentRiskIndex) =>
-      currentRiskIndex === stageRisks.length - 1;
+    isLastStageRisk = (currentRiskIndex) => currentRiskIndex === stageRisks.length - 1;
 
   const mainRow = (
     <NxTableRow id={automationId} className="iq-dashboard-application-row">
       <NxTableCell>
         <NxOverflowTooltip>
-          <div className="nx-truncate-ellipsis">
-            {application.applicationName}
-          </div>
+          <div className="nx-truncate-ellipsis">{application.applicationName}</div>
         </NxOverflowTooltip>
       </NxTableCell>
-      <DashboardHeatMapCell colorStyler={colorStyler}>
-        {totalApplicationRisk.totalRisk}
-      </DashboardHeatMapCell>
-      <DashboardHeatMapCell colorStyler={colorStyler}>
-        {totalApplicationRisk.criticalRisk}
-      </DashboardHeatMapCell>
-      <DashboardHeatMapCell colorStyler={colorStyler}>
-        {totalApplicationRisk.severeRisk}
-      </DashboardHeatMapCell>
-      <DashboardHeatMapCell colorStyler={colorStyler}>
-        {totalApplicationRisk.moderateRisk}
-      </DashboardHeatMapCell>
-      <DashboardHeatMapCell colorStyler={colorStyler}>
-        {totalApplicationRisk.lowRisk}
-      </DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>{totalApplicationRisk.totalRisk}</DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>{totalApplicationRisk.criticalRisk}</DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>{totalApplicationRisk.severeRisk}</DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>{totalApplicationRisk.moderateRisk}</DashboardHeatMapCell>
+      <DashboardHeatMapCell colorStyler={colorStyler}>{totalApplicationRisk.lowRisk}</DashboardHeatMapCell>
     </NxTableRow>
   );
 

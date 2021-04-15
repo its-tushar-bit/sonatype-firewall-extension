@@ -17,15 +17,7 @@ describe('evaluate.application.modal.controller.spec.js', function () {
     })
   );
 
-  beforeEach(inject(function (
-    $rootScope,
-    $q,
-    $controller,
-    _$timeout_,
-    _$httpBackend_,
-    _CLMLocations_,
-    StageTypeStore
-  ) {
+  beforeEach(inject(function ($rootScope, $q, $controller, _$timeout_, _$httpBackend_, _CLMLocations_, StageTypeStore) {
     var stageTypeStoreDefer = $q.defer();
 
     scope = $rootScope.$new();
@@ -58,29 +50,21 @@ describe('evaluate.application.modal.controller.spec.js', function () {
   it('Loads bundle and stages properly', function () {
     expect(vm.evaluationState).toBe('ready');
     expect(vm.stages).toEqual(MockData.getDashboardStageData());
-    expect(vm.bundle.applicationPublicId).toEqual(
-      mockSelectedApplication.publicId
-    );
+    expect(vm.bundle.applicationPublicId).toEqual(mockSelectedApplication.publicId);
     expect(vm.bundle.applicationName).toEqual(mockSelectedApplication.name);
     expect(vm.bundle.stage).toBeUndefined();
     expect(vm.bundle.notify).toEqual('true');
     expect(vm.error).toBeFalsy();
   });
 
-  it('Compiles bundle url with expected values', inject(function (
-    CLMLocations
-  ) {
+  it('Compiles bundle url with expected values', inject(function (CLMLocations) {
     spyOn(CLMLocations, 'getBundleUploadUrl').and.returnValue(true);
 
     vm.bundle.stage = vm.stages[2];
     vm.bundle.file = '/test/test/test.war';
     vm.uploadBundleUrl();
 
-    expect(CLMLocations.getBundleUploadUrl).toHaveBeenCalledWith(
-      mockSelectedApplication.publicId,
-      'release',
-      'true'
-    );
+    expect(CLMLocations.getBundleUploadUrl).toHaveBeenCalledWith(mockSelectedApplication.publicId, 'release', 'true');
   }));
 
   it('Test Form validation', function () {
@@ -143,13 +127,7 @@ describe('evaluate.application.modal.controller.spec.js', function () {
 
     it('Test submit failure', function () {
       $httpBackend
-        .expectPOST(
-          CLMLocations.getBundleUploadUrl(
-            mockSelectedApplication.publicId,
-            'release',
-            'true'
-          )
-        )
+        .expectPOST(CLMLocations.getBundleUploadUrl(mockSelectedApplication.publicId, 'release', 'true'))
         .respond(500, 'Some failure');
 
       vm.doSubmit();
@@ -163,13 +141,7 @@ describe('evaluate.application.modal.controller.spec.js', function () {
     it('Test submit success', function () {
       vm.bundle.notify = 'false';
       $httpBackend
-        .expectPOST(
-          CLMLocations.getBundleUploadUrl(
-            mockSelectedApplication.publicId,
-            'release',
-            'false'
-          )
-        )
+        .expectPOST(CLMLocations.getBundleUploadUrl(mockSelectedApplication.publicId, 'release', 'false'))
         .respond({
           ticketId: 'ticket',
         });
@@ -178,120 +150,65 @@ describe('evaluate.application.modal.controller.spec.js', function () {
       expect(appendSpy).toHaveBeenCalledWith('filename', 'testfile');
       validateInitialState();
 
-      $httpBackend
-        .expectGET(
-          CLMLocations.getEvaluationStatusUrl(
-            mockSelectedApplication.publicId,
-            'ticket'
-          )
-        )
-        .respond({
-          ticketId: 'ticket',
-          scanId: 'scanId',
-          currentStep: 1,
-          totalSteps: 1,
-        });
+      $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId, 'ticket')).respond({
+        ticketId: 'ticket',
+        scanId: 'scanId',
+        currentStep: 1,
+        totalSteps: 1,
+      });
 
       $httpBackend.flush();
-      expect(vm.pollingUrl).toEqual(
-        CLMLocations.getEvaluationStatusUrl(
-          mockSelectedApplication.publicId,
-          'ticket'
-        )
-      );
+      expect(vm.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId, 'ticket'));
     });
 
     it('Test evaluation polling loop', function () {
       $httpBackend
-        .expectPOST(
-          CLMLocations.getBundleUploadUrl(
-            mockSelectedApplication.publicId,
-            'release',
-            'true'
-          )
-        )
+        .expectPOST(CLMLocations.getBundleUploadUrl(mockSelectedApplication.publicId, 'release', 'true'))
         .respond({
           ticketId: 'ticket',
         });
 
       vm.doSubmit();
       validateInitialState();
-      $httpBackend
-        .expectGET(
-          CLMLocations.getEvaluationStatusUrl(
-            mockSelectedApplication.publicId,
-            'ticket'
-          )
-        )
-        .respond({
-          ticketId: 'ticket',
-          currentStep: 1,
-          totalSteps: 2,
-        });
+      $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId, 'ticket')).respond({
+        ticketId: 'ticket',
+        currentStep: 1,
+        totalSteps: 2,
+      });
 
       $httpBackend.flush();
 
-      $httpBackend
-        .expectGET(
-          CLMLocations.getEvaluationStatusUrl(
-            mockSelectedApplication.publicId,
-            'ticket'
-          )
-        )
-        .respond({
-          ticketId: 'ticket',
-          scanId: 'scanId',
-          currentStep: 2,
-          totalSteps: 2,
-        });
+      $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId, 'ticket')).respond({
+        ticketId: 'ticket',
+        scanId: 'scanId',
+        currentStep: 2,
+        totalSteps: 2,
+      });
 
       $timeout.flush();
       $httpBackend.flush();
-      expect(vm.pollingUrl).toEqual(
-        CLMLocations.getEvaluationStatusUrl(
-          mockSelectedApplication.publicId,
-          'ticket'
-        )
-      );
+      expect(vm.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId, 'ticket'));
     });
 
     it('Test evaluation error', function () {
       $httpBackend
-        .expectPOST(
-          CLMLocations.getBundleUploadUrl(
-            mockSelectedApplication.publicId,
-            'release',
-            'true'
-          )
-        )
+        .expectPOST(CLMLocations.getBundleUploadUrl(mockSelectedApplication.publicId, 'release', 'true'))
         .respond({
           ticketId: 'ticket',
         });
 
       vm.doSubmit();
       validateInitialState();
-      $httpBackend
-        .expectGET(
-          CLMLocations.getEvaluationStatusUrl(
-            mockSelectedApplication.publicId,
-            'ticket'
-          )
-        )
-        .respond({
-          ticketId: 'ticket',
-          currentStep: 1,
-          totalSteps: 2,
-          error: 'something aint right',
-        });
+      $httpBackend.expectGET(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId, 'ticket')).respond({
+        ticketId: 'ticket',
+        currentStep: 1,
+        totalSteps: 2,
+        error: 'something aint right',
+      });
 
       $timeout.flush();
       $httpBackend.flush();
-      expect(vm.pollingUrl).toEqual(
-        CLMLocations.getEvaluationStatusUrl(
-          mockSelectedApplication.publicId,
-          'ticket'
-        )
-      );
+      expect(vm.pollingUrl).toEqual(CLMLocations.getEvaluationStatusUrl(mockSelectedApplication.publicId, 'ticket'));
       expect(vm.error).toEqual('something aint right');
     });
   });

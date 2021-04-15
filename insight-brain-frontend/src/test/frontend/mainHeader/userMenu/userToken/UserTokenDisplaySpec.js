@@ -3,12 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  NxButton,
-  NxFontAwesomeIcon,
-  NxTextInput,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxTextInput, NxTooltip } from '@sonatype/react-shared-components';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 
 import * as enzymeUtils from '../../../enzymeUtils';
@@ -25,10 +20,7 @@ describe('UserTokenDisplay', function () {
       },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      UserTokenDisplay,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(UserTokenDisplay, minimalProps);
   });
 
   it('renders a form with 2 inputs for the user token information', function () {

@@ -10,16 +10,12 @@ import applicationResourceMockData from '../mock.data/application.resource.mock.
 
 describe('owner.summary.controller.js', function () {
   beforeEach(
-    angular.mock.module(
-      ownerManagerModule.name,
-      legacyConfigurationModule.name,
-      function ($provide) {
-        $provide.value('$cookies', {
-          get: angular.noop,
-        });
-        SpecUtil.mockNgRedux($provide);
-      }
-    )
+    angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
+      SpecUtil.mockNgRedux($provide);
+    })
   );
 
   function createTests(type, storeName, owner) {
@@ -66,46 +62,26 @@ describe('owner.summary.controller.js', function () {
           return deleteOwnerDefer.promise;
         },
       };
-      mockGrandfatherModalService = jasmine.createSpyObj(
-        'mockGrandfatherModalService',
-        ['open']
-      );
-      mockRevokeGrandfatheringModalService = jasmine.createSpyObj(
-        'mockRevokeGrandfatheringModalService',
-        ['open']
-      );
-      mockEvaluateAppModalService = jasmine.createSpyObj(
-        'mockEvaluateAppModalService',
-        ['open']
-      );
+      mockGrandfatherModalService = jasmine.createSpyObj('mockGrandfatherModalService', ['open']);
+      mockRevokeGrandfatheringModalService = jasmine.createSpyObj('mockRevokeGrandfatheringModalService', ['open']);
+      mockEvaluateAppModalService = jasmine.createSpyObj('mockEvaluateAppModalService', ['open']);
       mockPermissionService = {
-        isContextAuthorized: jasmine
-          .createSpy()
-          .and.returnValue(isContextAuthorizedDefer.promise),
+        isContextAuthorized: jasmine.createSpy().and.returnValue(isContextAuthorizedDefer.promise),
       };
-      mockChangeApplicationIdService = jasmine.createSpyObj(
-        'mockChangeApplicationIdService',
-        ['open']
-      );
+      mockChangeApplicationIdService = jasmine.createSpyObj('mockChangeApplicationIdService', ['open']);
       mockPolicyViolationGrandfatheringService = {
-        getGrandfathering: jasmine
-          .createSpy()
-          .and.returnValue(getGrandfatheringDefer.promise),
+        getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDefer.promise),
       };
 
       spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(
-        stageTypeStoreDefer.promise
-      );
+      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
 
       mockState = {
         current: {
           name: 'management.' + type + '-view',
         },
-        params: isApp
-          ? { applicationPublicId: owner.publicId }
-          : { organizationId: owner.id },
+        params: isApp ? { applicationPublicId: owner.publicId } : { organizationId: owner.id },
         href: function () {},
         go: function () {},
       };
@@ -139,18 +115,14 @@ describe('owner.summary.controller.js', function () {
       resolveGetGrandfathering(true);
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
       resolveApplicationEvaluatePermission(true);
 
       if (isApp) {
         $timeout.flush();
         expect(vm.stages).toEqual(MockData.getDashboardStageData());
-        expect(vm.applicationSummary).toEqual(
-          applicationResourceMockData.getApplicationSummaryUrl()
-        );
+        expect(vm.applicationSummary).toEqual(applicationResourceMockData.getApplicationSummaryUrl());
         expect(vm.hasPermissionToChangeAppId).toEqual(true);
         expect(vm.hasPermissionToEvaluateApp).toEqual(true);
         expect(vm.isGrandfatheringEnabled).toEqual(true);
@@ -167,9 +139,7 @@ describe('owner.summary.controller.js', function () {
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(false);
       resolveApplicationEvaluatePermission(false);
 
@@ -188,9 +158,7 @@ describe('owner.summary.controller.js', function () {
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
 
       if (isApp) {
@@ -200,17 +168,12 @@ describe('owner.summary.controller.js', function () {
 
         vm.openReport(MockData.getDashboardStageData()[0]);
 
-        expect(mockState.href).toHaveBeenCalledWith(
-          'applicationReport.policy',
-          {
-            publicId: applicationResourceMockData.getApplicationSummaryUrl()
-              .publicId,
-            scanId: applicationResourceMockData.getApplicationSummaryUrl()
-              .policyEvaluations[
-              MockData.getDashboardStageData()[0].stageTypeId
-            ].scanId,
-          }
-        );
+        expect(mockState.href).toHaveBeenCalledWith('applicationReport.policy', {
+          publicId: applicationResourceMockData.getApplicationSummaryUrl().publicId,
+          scanId: applicationResourceMockData.getApplicationSummaryUrl().policyEvaluations[
+            MockData.getDashboardStageData()[0].stageTypeId
+          ].scanId,
+        });
         expect(mockWindow.open).toHaveBeenCalled();
       } else {
         $httpBackend.flush();
@@ -223,9 +186,7 @@ describe('owner.summary.controller.js', function () {
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
 
       if (isApp) {
         $timeout.flush();
@@ -242,9 +203,7 @@ describe('owner.summary.controller.js', function () {
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       $timeout.flush();
 
       expect(vm.owner).toBeUndefined();
@@ -255,9 +214,7 @@ describe('owner.summary.controller.js', function () {
       mockOwnerStore.resolveRefresh([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveStageTypeStore(MockData.getDashboardStageData());
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
 
       if (isApp) {
@@ -293,9 +250,7 @@ describe('owner.summary.controller.js', function () {
       resolveGetGrandfathering(false);
       stageTypeStoreDefer.reject('Error');
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
 
       if (isApp) {
         $timeout.flush();
@@ -312,9 +267,7 @@ describe('owner.summary.controller.js', function () {
       resolveGetGrandfathering(false);
       resolveStageTypeStore(MockData.getDashboardStageData());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationWritePermission(true);
 
       if (isApp) {
@@ -330,10 +283,7 @@ describe('owner.summary.controller.js', function () {
       deleteOwnerDefer.resolve();
       $timeout.flush();
 
-      expect(mockState.go).toHaveBeenCalledWith(
-        'management.view.organization',
-        { organizationId: owner.id }
-      );
+      expect(mockState.go).toHaveBeenCalledWith('management.view.organization', { organizationId: owner.id });
     });
 
     if (isApp) {
@@ -343,12 +293,8 @@ describe('owner.summary.controller.js', function () {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
-          $httpBackend
-            .expectGET(CLMLocations.getProductFeaturesUrl())
-            .respond([]);
-          resolveApplicationSummary(
-            applicationResourceMockData.getApplicationSummaryUrl()
-          );
+          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
+          resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
           resolveApplicationWritePermission(true);
           $timeout.flush();
 
@@ -356,9 +302,7 @@ describe('owner.summary.controller.js', function () {
 
           vm.changeApplicationId();
 
-          expect(
-            mockChangeApplicationIdService.open
-          ).toHaveBeenCalledWith(owner, [owner]);
+          expect(mockChangeApplicationIdService.open).toHaveBeenCalledWith(owner, [owner]);
         });
 
         it('does not call ChangeApplicationIdService.open when hasPermissionToChangeAppId is false', function () {
@@ -366,12 +310,8 @@ describe('owner.summary.controller.js', function () {
           mockOwnerStore.resolveGetById(owner);
           resolveGetGrandfathering(false);
           resolveStageTypeStore(MockData.getDashboardStageData());
-          $httpBackend
-            .expectGET(CLMLocations.getProductFeaturesUrl())
-            .respond([]);
-          resolveApplicationSummary(
-            applicationResourceMockData.getApplicationSummaryUrl()
-          );
+          $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
+          resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
           resolveApplicationWritePermission(false);
           $timeout.flush();
 
@@ -427,9 +367,7 @@ describe('owner.summary.controller.js', function () {
 
           $timeout.flush();
 
-          expect(vm.getDisabledGrandfatherTooltipMessage()).toBe(
-            'Grandfathering is not enabled for this application.'
-          );
+          expect(vm.getDisabledGrandfatherTooltipMessage()).toBe('Grandfathering is not enabled for this application.');
         });
 
         it('returns not supported tooltip message', function () {
@@ -467,9 +405,7 @@ describe('owner.summary.controller.js', function () {
 
           $timeout.flush();
 
-          expect(vm.getDisabledEvaluateTooltipMessage()).toBe(
-            'Insufficient permissions to evaluate application'
-          );
+          expect(vm.getDisabledEvaluateTooltipMessage()).toBe('Insufficient permissions to evaluate application');
         });
 
         it('returns undefined when evaluate app is licensed and supported', function () {
@@ -485,9 +421,7 @@ describe('owner.summary.controller.js', function () {
 
           $timeout.flush();
 
-          expect(vm.getDisabledEvaluateTooltipMessage()).toBe(
-            'Evaluate application is not supported by your license.'
-          );
+          expect(vm.getDisabledEvaluateTooltipMessage()).toBe('Evaluate application is not supported by your license.');
         });
       });
 
@@ -523,9 +457,7 @@ describe('owner.summary.controller.js', function () {
         }
 
         vm.revokeGrandfathering();
-        expect(
-          mockRevokeGrandfatheringModalService.open
-        ).not.toHaveBeenCalled();
+        expect(mockRevokeGrandfatheringModalService.open).not.toHaveBeenCalled();
       });
 
       it('opens modal when grandfathering is supported', function () {
@@ -544,9 +476,7 @@ describe('owner.summary.controller.js', function () {
 
     function resolveApplicationSummary() {
       if (isApp) {
-        $httpBackend
-          .expectGET(CLMLocations.getApplicationSummaryUrl(owner.publicId))
-          .respond.apply(null, arguments);
+        $httpBackend.expectGET(CLMLocations.getApplicationSummaryUrl(owner.publicId)).respond.apply(null, arguments);
         $httpBackend.flush();
       }
     }
@@ -560,11 +490,7 @@ describe('owner.summary.controller.js', function () {
 
     function resolveApplicationWritePermission(hasPermission) {
       if (isApp) {
-        expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(
-          ['WRITE'],
-          type,
-          owner.id
-        );
+        expect(mockPermissionService.isContextAuthorized).toHaveBeenCalledWith(['WRITE'], type, owner.id);
         isContextAuthorizedDefer.resolve(hasPermission);
       }
     }
@@ -582,19 +508,14 @@ describe('owner.summary.controller.js', function () {
 
     function resolveGetGrandfathering(calculatedEnabled) {
       if (isApp) {
-        expect(
-          mockPolicyViolationGrandfatheringService.getGrandfathering
-        ).toHaveBeenCalled();
+        expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
         getGrandfatheringDefer.resolve({
           calculatedEnabled,
         });
       }
     }
 
-    function createGrandfatheringMocks(
-      isGrandfatheringEnabled,
-      isGrandfatheringSuppored
-    ) {
+    function createGrandfatheringMocks(isGrandfatheringEnabled, isGrandfatheringSuppored) {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(isGrandfatheringEnabled);
@@ -602,15 +523,10 @@ describe('owner.summary.controller.js', function () {
       $httpBackend
         .expectGET(CLMLocations.getProductFeaturesUrl())
         .respond(isGrandfatheringSuppored ? ['policy-grandfathering'] : []);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
     }
 
-    function createEvaluateAppMocks(
-      hasEvaluateAppPermission,
-      isEvaluateAppSupported
-    ) {
+    function createEvaluateAppMocks(hasEvaluateAppPermission, isEvaluateAppSupported) {
       mockOwnerStore.resolveGet([owner]);
       mockOwnerStore.resolveGetById(owner);
       resolveGetGrandfathering(false);
@@ -618,9 +534,7 @@ describe('owner.summary.controller.js', function () {
       $httpBackend
         .expectGET(CLMLocations.getProductFeaturesUrl())
         .respond(isEvaluateAppSupported ? ['cli-integration'] : []);
-      resolveApplicationSummary(
-        applicationResourceMockData.getApplicationSummaryUrl()
-      );
+      resolveApplicationSummary(applicationResourceMockData.getApplicationSummaryUrl());
       resolveApplicationEvaluatePermission(hasEvaluateAppPermission);
     }
   }

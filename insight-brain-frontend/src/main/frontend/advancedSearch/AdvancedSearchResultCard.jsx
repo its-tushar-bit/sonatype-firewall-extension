@@ -16,36 +16,22 @@ import {
   faUniversity,
 } from '@fortawesome/pro-regular-svg-icons';
 import { faHexagon, faTag } from '@fortawesome/pro-solid-svg-icons';
-import {
-  NxFontAwesomeIcon,
-  NxThreatIndicator,
-} from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxThreatIndicator } from '@sonatype/react-shared-components';
 
-export default function AdvancedSearchResultCard({
-  searchResultItem,
-  groupIdentifier,
-  $state,
-}) {
+export default function AdvancedSearchResultCard({ searchResultItem, groupIdentifier, $state }) {
   // The following constants are conditions whether this particular row should be presented in result card or not
   const organizationName =
       searchResultItem.organizationName &&
-      (searchResultItem.itemType === 'ORGANIZATION' ||
-        groupIdentifier !== 'ORGANIZATION_NAME'),
+      (searchResultItem.itemType === 'ORGANIZATION' || groupIdentifier !== 'ORGANIZATION_NAME'),
     applicationName =
       searchResultItem.applicationName &&
-      (searchResultItem.itemType === 'APPLICATION' ||
-        groupIdentifier !== 'APPLICATION_NAME'),
+      (searchResultItem.itemType === 'APPLICATION' || groupIdentifier !== 'APPLICATION_NAME'),
     applicationCategory = searchResultItem.applicationCategoryName,
-    componentName =
-      searchResultItem.componentName && groupIdentifier !== 'COMPONENT_NAME',
+    componentName = searchResultItem.componentName && groupIdentifier !== 'COMPONENT_NAME',
     componentLabel = searchResultItem.componentLabelId,
     report = searchResultItem.policyEvaluationStage,
-    securityIssue =
-      searchResultItem.vulnerabilityId &&
-      groupIdentifier !== 'VULNERABILITY_ID',
-    vulnerabilityDescription =
-      searchResultItem.vulnerabilityId &&
-      groupIdentifier !== 'VULNERABILITY_ID',
+    securityIssue = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',
+    vulnerabilityDescription = searchResultItem.vulnerabilityId && groupIdentifier !== 'VULNERABILITY_ID',
     policy =
       searchResultItem.policyId &&
       searchResultItem.policyName &&
@@ -126,16 +112,11 @@ export default function AdvancedSearchResultCard({
         {applicationCategory && (
           <tr className="nx-table-row">
             <td className="nx-cell">
-              <NxFontAwesomeIcon
-                icon={faHexagon}
-                className={searchResultItem.applicationCategoryColor}
-              />
+              <NxFontAwesomeIcon icon={faHexagon} className={searchResultItem.applicationCategoryColor} />
             </td>
             <td className="nx-cell">Application Category</td>
             <td className="nx-cell">
-              <a href={getCategoryHref()}>
-                {searchResultItem.applicationCategoryName}
-              </a>
+              <a href={getCategoryHref()}>{searchResultItem.applicationCategoryName}</a>
               {searchResultItem.applicationCategoryDescription &&
                 ` - ${searchResultItem.applicationCategoryDescription}`}
             </td>
@@ -155,25 +136,15 @@ export default function AdvancedSearchResultCard({
         {componentLabel && (
           <tr className="nx-table-row">
             <td className="nx-cell">
-              <NxFontAwesomeIcon
-                icon={faTag}
-                className={searchResultItem.componentLabelColor}
-              />
+              <NxFontAwesomeIcon icon={faTag} className={searchResultItem.componentLabelColor} />
             </td>
             <td className="nx-cell">Component Label</td>
             <td className="nx-cell">
-              {searchResultItem.organizationId && (
-                <a href={getOrgLabelHref()}>
-                  {searchResultItem.componentLabelName}
-                </a>
-              )}
+              {searchResultItem.organizationId && <a href={getOrgLabelHref()}>{searchResultItem.componentLabelName}</a>}
               {searchResultItem.applicationPublicId && (
-                <a href={getAppLabelHref()}>
-                  {searchResultItem.componentLabelName}
-                </a>
+                <a href={getAppLabelHref()}>{searchResultItem.componentLabelName}</a>
               )}
-              {searchResultItem.componentLabelDescription &&
-                ` - ${searchResultItem.componentLabelDescription}`}
+              {searchResultItem.componentLabelDescription && ` - ${searchResultItem.componentLabelDescription}`}
             </td>
           </tr>
         )}
@@ -185,9 +156,7 @@ export default function AdvancedSearchResultCard({
             </td>
             <td className="nx-cell">Report</td>
             <td className="nx-cell">
-              <a href={getReportHref()}>
-                {searchResultItem.policyEvaluationStage}
-              </a>
+              <a href={getReportHref()}>{searchResultItem.policyEvaluationStage}</a>
             </td>
           </tr>
         )}
@@ -210,9 +179,7 @@ export default function AdvancedSearchResultCard({
               <NxFontAwesomeIcon icon={faText} />
             </td>
             <td className="nx-cell">Vulnerability Description</td>
-            <td className="nx-cell">
-              {searchResultItem.vulnerabilityDescription}
-            </td>
+            <td className="nx-cell">{searchResultItem.vulnerabilityDescription}</td>
           </tr>
         )}
 
@@ -223,17 +190,10 @@ export default function AdvancedSearchResultCard({
             </td>
             <td className="nx-cell">Policy</td>
             <td className="nx-cell">
-              <NxThreatIndicator
-                policyThreatLevel={searchResultItem.policyThreatLevel}
-              />
-              {searchResultItem.policyThreatLevel} -{' '}
-              {searchResultItem.policyThreatCategory} -{' '}
-              {searchResultItem.organizationId && (
-                <a href={getOrgPolicyHref()}>{searchResultItem.policyName}</a>
-              )}
-              {searchResultItem.applicationPublicId && (
-                <a href={getAppPolicyHref()}>{searchResultItem.policyName}</a>
-              )}
+              <NxThreatIndicator policyThreatLevel={searchResultItem.policyThreatLevel} />
+              {searchResultItem.policyThreatLevel} - {searchResultItem.policyThreatCategory} -{' '}
+              {searchResultItem.organizationId && <a href={getOrgPolicyHref()}>{searchResultItem.policyName}</a>}
+              {searchResultItem.applicationPublicId && <a href={getAppPolicyHref()}>{searchResultItem.policyName}</a>}
             </td>
           </tr>
         )}

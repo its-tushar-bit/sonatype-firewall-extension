@@ -17,10 +17,7 @@ describe('UnsavedChangesModal', function () {
   };
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      UnsavedChangesModal,
-      propsObj
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(UnsavedChangesModal, propsObj);
   });
 
   it('renders an NxModal component with unsaved-modal id', function () {
@@ -30,18 +27,14 @@ describe('UnsavedChangesModal', function () {
 
   it('calls onContinue when continue button is clicked', function () {
     const shallowComponent = getShallowComponent();
-    const button = shallowComponent.find(
-      '#unsaved-changes-modal-continue-button'
-    );
+    const button = shallowComponent.find('#unsaved-changes-modal-continue-button');
     button.simulate('click');
     expect(mockOnContinue).toHaveBeenCalled();
   });
 
   it('calls onClose when cancel button is clicked', function () {
     const shallowComponent = getShallowComponent();
-    const button = shallowComponent.find(
-      '#unsaved-changes-modal-cancel-button'
-    );
+    const button = shallowComponent.find('#unsaved-changes-modal-cancel-button');
     button.simulate('click');
     expect(mockOnClose).toHaveBeenCalled();
   });

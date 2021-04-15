@@ -89,9 +89,7 @@
       const me = this;
 
       // this.rangeHighlights is like options.rangeHighlights but with the percentages computed
-      this.rangeHighlights = options.rangeHighlights.map(function (
-        rangeHighlight
-      ) {
+      this.rangeHighlights = options.rangeHighlights.map(function (rangeHighlight) {
         const { start, end } = rangeHighlight,
           range = me.max - me.min,
           startPercent = (start / range) * 100,
@@ -100,11 +98,7 @@
         return { ...rangeHighlight, startPercent, endPercent };
       });
 
-      const rangeHighlightEls = this.rangeHighlights.map(function ({
-          startPercent,
-          endPercent,
-          cls,
-        }) {
+      const rangeHighlightEls = this.rangeHighlights.map(function ({ startPercent, endPercent, cls }) {
           const el = $('<div class="slider-range-highlight">')
             .addClass(cls)
             .css({
@@ -114,9 +108,7 @@
 
           return el;
         }),
-        highlightContainer = this.picker.find(
-          '.slider-range-highlight-container'
-        );
+        highlightContainer = this.picker.find('.slider-range-highlight-container');
 
       rangeHighlightEls.forEach((el) => el.appendTo(highlightContainer));
     }
@@ -135,8 +127,7 @@
     this.tooltip = this.picker.find('.tooltip');
     this.tooltipInner = this.tooltip.find('div.tooltip-inner');
 
-    this.orientation =
-      this.element.data('slider-orientation') || options.orientation;
+    this.orientation = this.element.data('slider-orientation') || options.orientation;
     switch (this.orientation) {
       case 'vertical':
         this.picker.addClass('slider-vertical');
@@ -146,15 +137,12 @@
         this.tooltip.addClass('right')[0].style.left = '100%';
         break;
       default:
-        this.picker
-          .addClass('slider-horizontal')
-          .css('width', this.element.outerWidth());
+        this.picker.addClass('slider-horizontal').css('width', this.element.outerWidth());
         this.orientation = 'horizontal';
         this.stylePos = 'left';
         this.mousePos = 'pageX';
         this.sizePos = 'offsetWidth';
-        this.tooltip.addClass('top')[0].style.top =
-          -this.tooltip.outerHeight() - 14 + 'px';
+        this.tooltip.addClass('top')[0].style.top = -this.tooltip.outerHeight() - 14 + 'px';
         break;
     }
 
@@ -254,36 +242,23 @@
       this.handle1Stype[this.stylePos] = this.percentage[0] + '%';
       this.handle2Stype[this.stylePos] = this.percentage[1] + '%';
       if (this.orientation == 'vertical') {
-        this.selectionElStyle.top =
-          Math.min(this.percentage[0], this.percentage[1]) + '%';
-        this.selectionElStyle.height =
-          Math.abs(this.percentage[0] - this.percentage[1]) + '%';
+        this.selectionElStyle.top = Math.min(this.percentage[0], this.percentage[1]) + '%';
+        this.selectionElStyle.height = Math.abs(this.percentage[0] - this.percentage[1]) + '%';
       } else {
-        this.selectionElStyle.left =
-          Math.min(this.percentage[0], this.percentage[1]) + '%';
-        this.selectionElStyle.width =
-          Math.abs(this.percentage[0] - this.percentage[1]) + '%';
+        this.selectionElStyle.left = Math.min(this.percentage[0], this.percentage[1]) + '%';
+        this.selectionElStyle.width = Math.abs(this.percentage[0] - this.percentage[1]) + '%';
       }
       if (this.range) {
-        this.tooltipInner.text(
-          this.formater(this.value[0]) + ' : ' + this.formater(this.value[1])
-        );
+        this.tooltipInner.text(this.formater(this.value[0]) + ' : ' + this.formater(this.value[1]));
         this.tooltip[0].style[this.stylePos] =
-          (this.size *
-            (this.percentage[0] +
-              (this.percentage[1] - this.percentage[0]) / 2)) /
-            100 -
-          (this.orientation === 'vertical'
-            ? this.tooltip.outerHeight() / 2
-            : this.tooltip.outerWidth() / 2) +
+          (this.size * (this.percentage[0] + (this.percentage[1] - this.percentage[0]) / 2)) / 100 -
+          (this.orientation === 'vertical' ? this.tooltip.outerHeight() / 2 : this.tooltip.outerWidth() / 2) +
           'px';
       } else {
         this.tooltipInner.text(this.formater(this.value[0]));
         this.tooltip[0].style[this.stylePos] =
           (this.size * this.percentage[0]) / 100 -
-          (this.orientation === 'vertical'
-            ? this.tooltip.outerHeight() / 2
-            : this.tooltip.outerWidth() / 2) +
+          (this.orientation === 'vertical' ? this.tooltip.outerHeight() / 2 : this.tooltip.outerWidth() / 2) +
           'px';
       }
 
@@ -294,32 +269,18 @@
 
             const toAdd = me.rangeHighlights
                 .filter(
-                  ({ startPercent, endPercent }) =>
-                    (percent >= startPercent && percent < endPercent) ||
-                    percent === 100
+                  ({ startPercent, endPercent }) => (percent >= startPercent && percent < endPercent) || percent === 100
                 )
                 .map(({ cls }) => cls),
-              toRemove = me.rangeHighlights
-                .filter(({ cls }) => toAdd.indexOf(cls) === -1)
-                .map(({ cls }) => cls);
+              toRemove = me.rangeHighlights.filter(({ cls }) => toAdd.indexOf(cls) === -1).map(({ cls }) => cls);
 
             return { toAdd, toRemove };
           },
-          {
-            toAdd: toAdd1,
-            toRemove: toRemove1,
-          } = getClassesToAddAndRemoveByPercent(this.percentage[0]),
-          {
-            toAdd: toAdd2,
-            toRemove: toRemove2,
-          } = getClassesToAddAndRemoveByPercent(this.percentage[1]);
+          { toAdd: toAdd1, toRemove: toRemove1 } = getClassesToAddAndRemoveByPercent(this.percentage[0]),
+          { toAdd: toAdd2, toRemove: toRemove2 } = getClassesToAddAndRemoveByPercent(this.percentage[1]);
 
-        this.handle1
-          .addClass(toAdd1.join(' '))
-          .removeClass(toRemove1.join(' '));
-        this.handle2
-          .addClass(toAdd2.join(' '))
-          .removeClass(toRemove2.join(' '));
+        this.handle1.addClass(toAdd1.join(' ')).removeClass(toRemove1.join(' '));
+        this.handle2.addClass(toAdd2.join(' ')).removeClass(toRemove2.join(' '));
       }
     },
 
@@ -435,19 +396,12 @@
       var val;
       if (this.range) {
         val = [
-          this.min +
-            Math.round((this.diff * this.percentage[0]) / 100 / this.step) *
-              this.step,
-          this.min +
-            Math.round((this.diff * this.percentage[1]) / 100 / this.step) *
-              this.step,
+          this.min + Math.round((this.diff * this.percentage[0]) / 100 / this.step) * this.step,
+          this.min + Math.round((this.diff * this.percentage[1]) / 100 / this.step) * this.step,
         ];
         this.value = val;
       } else {
-        val =
-          this.min +
-          Math.round((this.diff * this.percentage[0]) / 100 / this.step) *
-            this.step;
+        val = this.min + Math.round((this.diff * this.percentage[0]) / 100 / this.step) * this.step;
         this.value = [val, this.value[1]];
       }
       if (this.showHandleValues) {
@@ -461,10 +415,8 @@
       if (this.touchCapable) {
         ev = ev.touches[0];
       }
-      var percentage =
-        ((ev[this.mousePos] - this.offset[this.stylePos]) * 100) / this.size;
-      percentage =
-        Math.round(percentage / this.percentage[2]) * this.percentage[2];
+      var percentage = ((ev[this.mousePos] - this.offset[this.stylePos]) * 100) / this.size;
+      percentage = Math.round(percentage / this.percentage[2]) * this.percentage[2];
       return Math.max(0, Math.min(100, percentage));
     },
 
@@ -510,10 +462,7 @@
         data = $this.data('slider'),
         options = typeof option === 'object' && option;
       if (!data) {
-        $this.data(
-          'slider',
-          (data = new Slider(this, $.extend({}, $.fn.slider.defaults, options)))
-        );
+        $this.data('slider', (data = new Slider(this, $.extend({}, $.fn.slider.defaults, options))));
       }
       if (typeof option == 'string') {
         data[option](val);

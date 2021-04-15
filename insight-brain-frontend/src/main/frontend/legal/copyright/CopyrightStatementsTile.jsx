@@ -4,10 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  availableScopesPropType,
-  componentPropType,
-} from '../advancedLegalPropTypes';
+import { availableScopesPropType, componentPropType } from '../advancedLegalPropTypes';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faAngleRight, faPen } from '@fortawesome/pro-solid-svg-icons';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
@@ -29,13 +26,9 @@ export default function CopyrightStatementsTile(props) {
   const createAttributionModal = <CopyrightOverrideFormContainer />;
 
   const isCopyrightPresent = () =>
-    component.licenseLegalData.copyrights.filter((c) => c.status === 'enabled')
-      .length > 0;
+    component.licenseLegalData.copyrights.filter((c) => c.status === 'enabled').length > 0;
 
-  const noDataText = () =>
-    component.licenseLegalData.copyrights.length > 0
-      ? 'None enabled'
-      : 'None found';
+  const noDataText = () => (component.licenseLegalData.copyrights.length > 0 ? 'None enabled' : 'None found');
 
   const createItem = (copyright, index) => {
     return (
@@ -63,11 +56,7 @@ export default function CopyrightStatementsTile(props) {
           <h2 className="nx-h2">Copyright Statements</h2>
         </div>
         <div className="nx-tile__actions">
-          <NxButton
-            id="edit-copyrights"
-            variant="tertiary"
-            onClick={() => setDisplayCopyrightOverrideModal(true)}
-          >
+          <NxButton id="edit-copyrights" variant="tertiary" onClick={() => setDisplayCopyrightOverrideModal(true)}>
             <NxFontAwesomeIcon icon={faPen} />
             <span>Edit</span>
           </NxButton>

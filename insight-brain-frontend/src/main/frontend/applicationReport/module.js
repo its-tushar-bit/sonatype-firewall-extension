@@ -41,11 +41,7 @@ export default angular
   .component('applicationReportRawData', applicationReportRawData)
   .component(
     'applicationReportVulnerabilities',
-    react2angular(
-      applicationReportVulnerabilities,
-      [],
-      ['$ngRedux', '$state', 'applicationReportActions']
-    )
+    react2angular(applicationReportVulnerabilities, [], ['$ngRedux', '$state', 'applicationReportActions'])
   )
   .factory('applicationReportActions', applicationReportActions)
   .config(routes);
@@ -53,8 +49,7 @@ export default angular
 function routes($stateProvider, $urlRouterProvider) {
   $stateProvider
     .state('applicationReport', {
-      url:
-        '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId',
+      url: '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId',
       abstract: true,
       component: 'applicationReportRoot',
       params: {

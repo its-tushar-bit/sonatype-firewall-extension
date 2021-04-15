@@ -7,10 +7,7 @@
 import { always } from 'ramda';
 
 import { UI_ROUTER_ON_FINISH } from '../../../reduxUiRouter/routerActions';
-import {
-  createReducerFromActionMap,
-  propSetConst,
-} from '../../../util/reduxUtil';
+import { createReducerFromActionMap, propSetConst } from '../../../util/reduxUtil';
 import {
   USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED,
   USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED,
@@ -116,8 +113,5 @@ const reducerActionMap = {
   [USER_TOKEN_MASK_TIMER_DONE]: propSetConst('deleteUserTokenLoading', null),
 };
 
-const userTokenReducer = createReducerFromActionMap(
-  reducerActionMap,
-  initialState
-);
+const userTokenReducer = createReducerFromActionMap(reducerActionMap, initialState);
 export default userTokenReducer;

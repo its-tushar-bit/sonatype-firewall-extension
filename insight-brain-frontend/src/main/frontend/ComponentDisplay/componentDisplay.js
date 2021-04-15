@@ -27,11 +27,7 @@ function ComponentDisplayController($scope) {
 
     $onInit() {
       $scope.$watchGroup(
-        [
-          'vm.component.displayName',
-          'vm.component.filename',
-          'vm.component.filenames',
-        ],
+        ['vm.component.displayName', 'vm.component.filename', 'vm.component.filenames'],
         vm.updateDisplay
       );
       vm.updateDisplay();

@@ -26,10 +26,7 @@ describe('BackButton (React)', function () {
       },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      BackButton,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(BackButton, minimalProps);
   });
 
   it('renders an NxBackButton with the href and title from the state, and the specified text', function () {

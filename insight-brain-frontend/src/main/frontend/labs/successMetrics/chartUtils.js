@@ -3,18 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  pipe,
-  map,
-  prop,
-  apply,
-  applyTo,
-  xprod,
-  reject,
-  prepend,
-  curry,
-  reverse,
-} from 'ramda';
+import { pipe, map, prop, apply, applyTo, xprod, reject, prepend, curry, reverse } from 'ramda';
 import { Axes, Components, Dataset, Plots, Scales } from 'plottable';
 
 // This is needed to avoid truncation of max and min scatter points.
@@ -83,22 +72,12 @@ export const getMaxAccessedValue = pipe(
  * should come earlier in the list
  * @param data the array of objects making up the data set
  */
-export function createScatterPlotChart(
-  xAccessor,
-  xScale,
-  xAxis,
-  xAxisLabelText,
-  yAxisLabelText,
-  lineConfigs,
-  data
-) {
+export function createScatterPlotChart(xAccessor, xScale, xAxis, xAxisLabelText, yAxisLabelText, lineConfigs, data) {
   const colorScale = new Scales.Color().domain(map(prop('name'), lineConfigs)),
     yAccessors = map(prop('yAccessor'), lineConfigs),
     maxValue = getMaxAccessedValue(data, yAccessors),
     padding = Y_SCALE_PADDING_FACTOR * maxValue,
-    yScaleTickGenerator = Scales.TickGenerators.intervalTickGenerator(
-      calculateTickInterval(maxValue)
-    ),
+    yScaleTickGenerator = Scales.TickGenerators.intervalTickGenerator(calculateTickInterval(maxValue)),
     yDomainMax = Math.max(1, maxValue) + padding,
     yScale = new Scales.Linear()
       .domainMin(0 - padding)
@@ -107,18 +86,13 @@ export function createScatterPlotChart(
     // partially applied form of getScatterPlot, ready to take yAccessor, colorDomain, and className as
     // remaining args
     getPlot = getScatterPlot(data, colorScale, xScale, yScale, xAccessor),
-    getPlotForLineConfig = ({ name, yAccessor, className }) =>
-      getPlot(yAccessor, name, className),
+    getPlotForLineConfig = ({ name, yAccessor, className }) => getPlot(yAccessor, name, className),
     plots = map(getPlotForLineConfig, reverse(lineConfigs)),
     plotGroup = new Components.Group(plots),
     legend = new Components.Legend(colorScale).maxEntriesPerRow(Infinity),
     yAxis = new Axes.Numeric(yScale, 'left').endTickLength(0),
-    xAxisLabel = xAxisLabelText
-      ? new Components.AxisLabel(xAxisLabelText)
-      : null,
-    yAxisLabel = new Components.AxisLabel(yAxisLabelText)
-      .yAlignment('center')
-      .angle(-90),
+    xAxisLabel = xAxisLabelText ? new Components.AxisLabel(xAxisLabelText) : null,
+    yAxisLabel = new Components.AxisLabel(yAxisLabelText).yAlignment('center').angle(-90),
     tableRows = [
       [null, null, legend],
       [yAxisLabel, yAxis, plotGroup],

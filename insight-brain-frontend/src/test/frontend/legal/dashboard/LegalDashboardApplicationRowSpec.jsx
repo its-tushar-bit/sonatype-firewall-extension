@@ -4,11 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import {
-  NxBinaryDonutChart,
-  NxTableCell,
-  NxTableRow,
-} from '@sonatype/react-shared-components';
+import { NxBinaryDonutChart, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 
 describe('LegalDashboardApplicationRow component', function () {
   let getShallowComponent, terseAgoSpy, LegalDashboardApplicationRow;
@@ -38,10 +34,7 @@ describe('LegalDashboardApplicationRow component', function () {
       }
     ).default;
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LegalDashboardApplicationRow,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardApplicationRow, minimalProps);
   });
 
   it('renders a NxTableRow with appropriate cells', function () {

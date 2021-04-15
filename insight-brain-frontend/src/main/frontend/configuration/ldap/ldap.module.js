@@ -17,10 +17,7 @@ import {
   LdapCheckLoginController,
 } from './LdapConfigurationController';
 import LdapServerListController from './ldap.server.list.controller';
-import {
-  LdapServerOrderingController,
-  LdapServerOrderingModal,
-} from './ldap.server.ordering.controller';
+import { LdapServerOrderingController, LdapServerOrderingModal } from './ldap.server.ordering.controller';
 
 import listTemplate from '../components/ldap.server.list.html';
 import editTemplate from '../components/ldap.html';

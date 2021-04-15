@@ -10,13 +10,7 @@ describe('ldap.server.ordering.controller.spec.js', function () {
 
   beforeEach(angular.mock.module(ldapModule.name));
 
-  beforeEach(inject(function (
-    $httpBackend,
-    $controller,
-    $rootScope,
-    LdapConfigurationStore,
-    CLMContextLocations
-  ) {
+  beforeEach(inject(function ($httpBackend, $controller, $rootScope, LdapConfigurationStore, CLMContextLocations) {
     $httpBackend.whenGET(CLMContextLocations.getLdapConfig()).respond([
       { id: 'b', priority: 2 },
       { id: 'a', priority: 1 },
@@ -119,9 +113,7 @@ describe('ldap.server.ordering.controller.spec.js', function () {
     });
 
     it('successful', inject(function ($httpBackend, CLMLocations) {
-      $httpBackend
-        .expectPUT(CLMLocations.getLdapPriority(), ['a', 'c', 'b'])
-        .respond(204, '');
+      $httpBackend.expectPUT(CLMLocations.getLdapPriority(), ['a', 'c', 'b']).respond(204, '');
       scope.vm.save();
       $httpBackend.flush();
 
@@ -130,9 +122,7 @@ describe('ldap.server.ordering.controller.spec.js', function () {
     }));
 
     it('error', inject(function ($httpBackend, CLMLocations) {
-      $httpBackend
-        .expectPUT(CLMLocations.getLdapPriority(), ['a', 'c', 'b'])
-        .respond(404, 'Some Error Occurred');
+      $httpBackend.expectPUT(CLMLocations.getLdapPriority(), ['a', 'c', 'b']).respond(404, 'Some Error Occurred');
       scope.vm.save();
       $httpBackend.flush();
 

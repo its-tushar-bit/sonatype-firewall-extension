@@ -31,14 +31,8 @@ describe('DashboardViolations', function () {
       stateGo: () => {},
     };
 
-    (getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardViolations,
-      minimalProps
-    )),
-      (getMountedComponent = enzymeUtils.getMountedComponent(
-        DashboardViolations,
-        minimalProps
-      ));
+    (getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolations, minimalProps)),
+      (getMountedComponent = enzymeUtils.getMountedComponent(DashboardViolations, minimalProps));
   });
 
   it('renders a component', () => {
@@ -80,14 +74,8 @@ describe('DashboardViolations', function () {
 
     expect(table).toExist();
     expect(table).toHaveProp('violations', minimalProps.results.violations);
-    expect(table).toHaveProp(
-      'needsAcknowledgement',
-      minimalProps.needsAcknowledgement
-    );
-    expect(table).toHaveProp(
-      'maxDaysOld',
-      minimalProps.appliedFilter.maxDaysOld
-    );
+    expect(table).toHaveProp('needsAcknowledgement', minimalProps.needsAcknowledgement);
+    expect(table).toHaveProp('maxDaysOld', minimalProps.appliedFilter.maxDaysOld);
     expect(table).toHaveProp('stateGo', minimalProps.stateGo);
     expect(table).toHaveProp('sortViolations');
     expect(table).toHaveProp('reload');

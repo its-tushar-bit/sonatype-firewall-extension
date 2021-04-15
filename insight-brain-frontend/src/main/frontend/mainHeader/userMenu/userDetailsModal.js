@@ -21,9 +21,7 @@ function userDetailsModalController() {
 
   Object.assign(vm, {
     getGroups() {
-      return sort((a, b) => a.localeCompare(b), vm.currentUser.groups).join(
-        ', '
-      );
+      return sort((a, b) => a.localeCompare(b), vm.currentUser.groups).join(', ');
     },
   });
 }

@@ -52,8 +52,7 @@ export default function PolicyEditorNotificationsController(
   vm.isNotificationsSupported = undefined;
   vm.isFirewallSupported = undefined;
   vm.resetNotifications = resetNotifications;
-  vm.isNotificationsSupportedForStage =
-    ProductFeatures.isNotificationsSupportedForStage;
+  vm.isNotificationsSupportedForStage = ProductFeatures.isNotificationsSupportedForStage;
   vm.isNotificationsFormDisabled = isNotificationsFormDisabled;
   vm.isCheckboxForStageDisabled = isCheckboxForStageDisabled;
   vm.getAvailableWebhooks = getAvailableWebhooks;
@@ -128,19 +127,13 @@ export default function PolicyEditorNotificationsController(
         updateAvailableJiraProjects();
         loadRecipients();
 
-        vm.isMonitoringSupported = ProductFeatures.isAvailable(
-          'policy-monitoring'
-        );
-        vm.isNotificationsSupported = ProductFeatures.isAvailable(
-          'notifications'
-        );
+        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
+        vm.isNotificationsSupported = ProductFeatures.isAvailable('notifications');
         vm.isFirewallSupported = ProductFeatures.isAvailable('firewall');
 
         if (vm.isWebhooksSupported) {
           updateAvailableWebhooks();
-          if (
-            vm.recipientTypeOptions.indexOf(vm.recipientTypes.WEBHOOK) === -1
-          ) {
+          if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.WEBHOOK) === -1) {
             vm.recipientTypeOptions.push(vm.recipientTypes.WEBHOOK);
           }
         }
@@ -236,27 +229,15 @@ export default function PolicyEditorNotificationsController(
 
     // remove notifications from original policy notifications
     if (recipient.roleId) {
-      vm.notifications.roleNotifications.splice(
-        vm.notifications.roleNotifications.indexOf(recipient),
-        1
-      );
+      vm.notifications.roleNotifications.splice(vm.notifications.roleNotifications.indexOf(recipient), 1);
       updateAvailableRoles();
     } else if (recipient.emailAddress) {
-      vm.notifications.userNotifications.splice(
-        vm.notifications.userNotifications.indexOf(recipient),
-        1
-      );
+      vm.notifications.userNotifications.splice(vm.notifications.userNotifications.indexOf(recipient), 1);
     } else if (recipient.projectKey) {
-      vm.notifications.jiraNotifications.splice(
-        vm.notifications.jiraNotifications.indexOf(recipient),
-        1
-      );
+      vm.notifications.jiraNotifications.splice(vm.notifications.jiraNotifications.indexOf(recipient), 1);
       updateAvailableJiraProjects();
     } else if (recipient.webhookId) {
-      vm.notifications.webhookNotifications.splice(
-        vm.notifications.webhookNotifications.indexOf(recipient),
-        1
-      );
+      vm.notifications.webhookNotifications.splice(vm.notifications.webhookNotifications.indexOf(recipient), 1);
       updateAvailableWebhooks();
     }
   }
@@ -271,21 +252,10 @@ export default function PolicyEditorNotificationsController(
   }
 
   function getJiraDisplayName(recipient) {
-    if (
-      !vm.jiraError &&
-      jiraProjectNames[recipient.projectKey] &&
-      jiraIssueTypes[recipient.issueTypeId]
-    ) {
-      return (
-        jiraProjectNames[recipient.projectKey] +
-        ' (' +
-        jiraIssueTypes[recipient.issueTypeId] +
-        ')'
-      );
+    if (!vm.jiraError && jiraProjectNames[recipient.projectKey] && jiraIssueTypes[recipient.issueTypeId]) {
+      return jiraProjectNames[recipient.projectKey] + ' (' + jiraIssueTypes[recipient.issueTypeId] + ')';
     }
-    return (
-      recipient.projectKey + ' (Issue Type ID: ' + recipient.issueTypeId + ')'
-    );
+    return recipient.projectKey + ' (Issue Type ID: ' + recipient.issueTypeId + ')';
   }
 
   function getWebhookDisplayName(recipient) {
@@ -296,10 +266,7 @@ export default function PolicyEditorNotificationsController(
           })
         : undefined;
       if (webhook) {
-        return (
-          'Webhook: ' +
-          (webhook.description ? webhook.description : webhook.url)
-        );
+        return 'Webhook: ' + (webhook.description ? webhook.description : webhook.url);
       } else {
         return 'Undefined webhook: ' + recipient.webhookId;
       }
@@ -391,10 +358,7 @@ export default function PolicyEditorNotificationsController(
   }
 
   function updateAvailableRoles() {
-    if (
-      !vm.notifications.roleNotifications ||
-      vm.notifications.roleNotifications.length === 0
-    ) {
+    if (!vm.notifications.roleNotifications || vm.notifications.roleNotifications.length === 0) {
       availableRoles = vm.roles;
       return;
     }
@@ -415,10 +379,7 @@ export default function PolicyEditorNotificationsController(
       return;
     }
 
-    if (
-      !vm.notifications.jiraNotifications ||
-      vm.notifications.jiraNotifications.length === 0
-    ) {
+    if (!vm.notifications.jiraNotifications || vm.notifications.jiraNotifications.length === 0) {
       vm.availableJiraProjects = jiraProjects;
       return;
     }
@@ -437,26 +398,18 @@ export default function PolicyEditorNotificationsController(
   }
 
   function updateAvailableWebhooks() {
-    if (
-      !vm.notifications.webhookNotifications ||
-      vm.notifications.webhookNotifications.length === 0 ||
-      !vm.webhooks
-    ) {
+    if (!vm.notifications.webhookNotifications || vm.notifications.webhookNotifications.length === 0 || !vm.webhooks) {
       availableWebhooks = vm.webhooks;
     } else {
       availableWebhooks = vm.webhooks.filter(function (webhook) {
-        return !vm.notifications.webhookNotifications.some(function (
-          notification
-        ) {
+        return !vm.notifications.webhookNotifications.some(function (notification) {
           return webhook.id === notification.webhookId;
         });
       });
     }
     if (availableWebhooks) {
       availableWebhooks.forEach(function (webhook) {
-        webhook.displayName = webhook.description
-          ? webhook.description
-          : webhook.url;
+        webhook.displayName = webhook.description ? webhook.description : webhook.url;
       });
     }
   }
@@ -468,8 +421,7 @@ export default function PolicyEditorNotificationsController(
   function isAddButtonDisabled() {
     return (
       (vm.recipientType !== vm.recipientTypes.JIRA && !vm.recipientToAdd) ||
-      (vm.recipientType === vm.recipientTypes.JIRA &&
-        (!vm.recipientToAdd || !vm.recipientToAddIssueType)) ||
+      (vm.recipientType === vm.recipientTypes.JIRA && (!vm.recipientToAdd || !vm.recipientToAddIssueType)) ||
       vm.isNotificationsFormDisabled()
     );
   }
@@ -480,16 +432,12 @@ export default function PolicyEditorNotificationsController(
   }
 
   function isNotificationsFormDisabled() {
-    return (
-      vm.disabled || !ProductFeatures.isNotificationsSupportedForAnyStage()
-    );
+    return vm.disabled || !ProductFeatures.isNotificationsSupportedForAnyStage();
   }
 
   function isCheckboxForStageDisabled(recipient, stageTypeId) {
     return (
-      vm.disabled ||
-      !vm.isStageApplicable(recipient, stageTypeId) ||
-      !vm.isNotificationsSupportedForStage(stageTypeId)
+      vm.disabled || !vm.isStageApplicable(recipient, stageTypeId) || !vm.isNotificationsSupportedForStage(stageTypeId)
     );
   }
 }

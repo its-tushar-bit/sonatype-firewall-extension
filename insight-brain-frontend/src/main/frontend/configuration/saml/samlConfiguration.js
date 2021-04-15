@@ -15,15 +15,7 @@ export default {
   controller: SamlConfigurationController,
 };
 
-function SamlConfigurationController(
-  $scope,
-  BaseUrl,
-  $http,
-  CLMContextLocations,
-  Messages,
-  Dialog,
-  $window
-) {
+function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations, Messages, Dialog, $window) {
   const vm = this;
   const defaultSaml = {
     identityProviderName: 'identity provider',
@@ -79,10 +71,7 @@ function SamlConfigurationController(
     save() {
       resetErrors();
       let formData = new FormData();
-      formData.append(
-        'identityProviderXml',
-        vm.saml.identityProviderMetadataXml
-      );
+      formData.append('identityProviderXml', vm.saml.identityProviderMetadataXml);
       let payload = omit(['identityProviderMetadataXml'], vm.saml);
       formData.append('samlConfiguration', JSON.stringify(payload));
       vm.samlConfigurationMask
@@ -136,12 +125,7 @@ function SamlConfigurationController(
       if (vm.isUpdating && $window.navigator.msSaveBlob) {
         $http
           .get(CLMContextLocations.getSamlConfigurationUrl() + '/metadata')
-          .then((response) =>
-            $window.navigator.msSaveBlob(
-              new Blob([response.data]),
-              'metadata.xml'
-            )
-          );
+          .then((response) => $window.navigator.msSaveBlob(new Blob([response.data]), 'metadata.xml'));
       }
     },
     shouldEnableDownloadMetadataLink() {
@@ -162,11 +146,7 @@ function SamlConfigurationController(
   function deleteConfiguration() {
     resetErrors();
     vm.samlConfigurationMask
-      .wrap(
-        $http
-          .delete(CLMContextLocations.getSamlConfigurationUrl())
-          .then(vm.load)
-      )
+      .wrap($http.delete(CLMContextLocations.getSamlConfigurationUrl()).then(vm.load))
       .catch((error) => onError('saveOrDeleteError', error));
   }
 

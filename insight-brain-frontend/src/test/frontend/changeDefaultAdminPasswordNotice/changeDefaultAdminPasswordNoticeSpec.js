@@ -9,12 +9,9 @@ describe('changeDefaultAdminPasswordNotice component', () => {
   let vm;
 
   beforeEach(
-    angular.mock.module(
-      changeDefaultAdminPasswordNoticeModule.name,
-      ($provide) => {
-        SpecUtil.mockNgRedux($provide);
-      }
-    )
+    angular.mock.module(changeDefaultAdminPasswordNoticeModule.name, ($provide) => {
+      SpecUtil.mockNgRedux($provide);
+    })
   );
 
   beforeEach(inject(($componentController) => {

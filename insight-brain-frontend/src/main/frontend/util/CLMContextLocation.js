@@ -60,10 +60,7 @@ locationModule.factory('CLMContextLocations', [
     }
 
     function isRootOrg() {
-      return (
-        isOrganization() &&
-        $state.params.organizationId === 'ROOT_ORGANIZATION_ID'
-      );
+      return isOrganization() && $state.params.organizationId === 'ROOT_ORGANIZATION_ID';
     }
 
     function getServicePath() {
@@ -118,75 +115,39 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getApplicableLabelsUrl: function () {
-        return (
-          baseUrl.get() +
-          '/api/v2/labels/' +
-          getServicePathWithId() +
-          '/applicable'
-        );
+        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/applicable';
       },
 
       getDeleteLabelsUrl: function (label) {
-        return (
-          baseUrl.get() +
-          '/api/v2/labels/' +
-          getServicePathWithId() +
-          '/' +
-          encodeURIComponent(label.id)
-        );
+        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
       },
 
       getLicenseGroupsUrl: function (ownerId, ownerType) {
         return (
-          baseUrl.get() +
-          '/rest/licenseThreatGroup/' +
-          (ownerId ? ownerType + '/' + ownerId : getServicePathWithId())
+          baseUrl.get() + '/rest/licenseThreatGroup/' + (ownerId ? ownerType + '/' + ownerId : getServicePathWithId())
         );
       },
 
       getApplicableLicenseGroupsUrl: function () {
-        return (
-          baseUrl.get() +
-          '/rest/licenseThreatGroup/' +
-          getServicePathWithId() +
-          '/applicable'
-        );
+        return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/applicable';
       },
 
       getDeleteLicenseGroupUrl: function (group) {
         return (
-          baseUrl.get() +
-          '/rest/licenseThreatGroup/' +
-          getServicePathWithId() +
-          '/' +
-          encodeURIComponent(group.id)
+          baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' + encodeURIComponent(group.id)
         );
       },
 
       getLicenseGroupLicensesUrl: function (group) {
-        return (
-          baseUrl.get() +
-          '/rest/licenseThreatGroupLicense/' +
-          getServicePathWithId() +
-          '/' +
-          group.id
-        );
+        return baseUrl.get() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
       },
 
       getConditionValueTypeUrl: function () {
-        return (
-          baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId()
-        );
+        return baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId();
       },
 
       getPolicyUrl: function (ownerType, ownerId) {
-        return (
-          baseUrl.get() +
-          '/rest/policy/' +
-          (ownerType || getServicePath()) +
-          '/' +
-          (ownerId || getId())
-        );
+        return baseUrl.get() + '/rest/policy/' + (ownerType || getServicePath()) + '/' + (ownerId || getId());
       },
 
       getEntitiesUrl: function () {
@@ -198,9 +159,7 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getAddIconUrl: function (ownerType, ownerId) {
-        var servicePath = ownerType
-          ? encodeURIComponent(ownerType)
-          : getServicePath();
+        var servicePath = ownerType ? encodeURIComponent(ownerType) : getServicePath();
         return (
           baseUrl.get() +
           '/rest/' +
@@ -212,50 +171,27 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getEntityId: function () {
-        return isApplication()
-          ? appId.raw()
-          : isOrganization()
-          ? orgId.raw()
-          : 'global';
+        return isApplication() ? appId.raw() : isOrganization() ? orgId.raw() : 'global';
       },
 
       getOwnerImageUrl,
 
       getApplicablePolicies: function () {
-        return (
-          baseUrl.get() +
-          '/rest/policy/' +
-          getServicePathWithId() +
-          '/applicable'
-        );
+        return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
       },
 
       getRobotUrl: function (ownerType, hashcode) {
-        return (
-          baseUrl.get() +
-          '/rest/' +
-          ownerType +
-          '/services/generateIcon/' +
-          hashcode
-        );
+        return baseUrl.get() + '/rest/' + ownerType + '/services/generateIcon/' + hashcode;
       },
 
       getRoleMappingUrl: function (roleId) {
-        return (
-          baseUrl.get() +
-          '/rest/membershipMapping/' +
-          getServicePathWithId() +
-          (roleId ? '/role/' + roleId : '')
-        );
+        return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId() + (roleId ? '/role/' + roleId : '');
       },
 
       getFindUsersUrl: function (type, typeId) {
         var servicePath = null;
         if (type && typeId) {
-          servicePath =
-            window.encodeURIComponent(type) +
-            '/' +
-            window.encodeURIComponent(typeId);
+          servicePath = window.encodeURIComponent(type) + '/' + window.encodeURIComponent(typeId);
         } else {
           servicePath = getServicePathWithId();
         }
@@ -273,9 +209,7 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getPolicyMonitoringUrl: function () {
-        return (
-          baseUrl.get() + '/rest/policyMonitoring/' + getServicePathWithId()
-        );
+        return baseUrl.get() + '/rest/policyMonitoring/' + getServicePathWithId();
       },
 
       getApplicablePolicyMonitoring: function () {
@@ -295,35 +229,19 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getApplicationCategoriesUrl: function () {
-        return (
-          baseUrl.get() +
-          '/api/v2/applicationCategories/organization/' +
-          getId()
-        );
+        return baseUrl.get() + '/api/v2/applicationCategories/organization/' + getId();
       },
 
       getPolicyTagUrl: function (policyId) {
-        return (
-          baseUrl.get() +
-          '/rest/appliedTag/policy/' +
-          encodeURIComponent(policyId) +
-          '/' +
-          getServicePathWithId()
-        );
+        return baseUrl.get() + '/rest/appliedTag/policy/' + encodeURIComponent(policyId) + '/' + getServicePathWithId();
       },
 
       getPermissionTestUrl: function (global) {
-        return (
-          baseUrl.get() +
-          '/rest/user/permissions/' +
-          (global ? 'global/global' : getServicePathWithId())
-        );
+        return baseUrl.get() + '/rest/user/permissions/' + (global ? 'global/global' : getServicePathWithId());
       },
 
       getOwnerDetailsUrl: function () {
-        return (
-          baseUrl.get() + '/rest/sidebar/' + getServicePathWithId() + '/details'
-        );
+        return baseUrl.get() + '/rest/sidebar/' + getServicePathWithId() + '/details';
       },
 
       getPermissionContextTestUrl,
@@ -359,9 +277,7 @@ locationModule.factory('CLMContextLocations', [
       },
 
       getRetentionPoliciesUrl: function (orgId) {
-        return `${baseUrl.get()}/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(
-          orgId
-        )}`;
+        return `${baseUrl.get()}/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
       },
 
       getSamlConfigurationUrl: function () {

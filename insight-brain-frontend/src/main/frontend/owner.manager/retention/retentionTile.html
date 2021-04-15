@@ -7,11 +7,7 @@
   reload="vm.load()"
 >
   <div class="iq-tile__actions">
-    <button
-      id="edit-retention-button"
-      class="iq-btn iq-btn--tertiary"
-      same-owner-edit-sref="edit-data-retention"
-    >
+    <button id="edit-retention-button" class="iq-btn iq-btn--tertiary" same-owner-edit-sref="edit-data-retention">
       <i class="fa fa-edit"></i>Edit
     </button>
   </div>
@@ -27,10 +23,7 @@
     <thead>
       <tr class="iq-table-row">
         <th class="iq-cell iq-cell--header iq-cell--retention-title"></th>
-        <th
-          class="iq-cell iq-cell--header"
-          ng-repeat="(stage, retention) in vm.applicationReports.stages"
-        >
+        <th class="iq-cell iq-cell--header" ng-repeat="(stage, retention) in vm.applicationReports.stages">
           {{::stage}}
         </th>
       </tr>
@@ -38,26 +31,18 @@
     <tbody>
       <tr class="iq-table-row">
         <td class="iq-cell iq-cell--retention-title">Max Age</td>
-        <td
-          class="iq-cell"
-          ng-repeat="applicationReport in vm.applicationReports.stages"
-        >
+        <td class="iq-cell" ng-repeat="applicationReport in vm.applicationReports.stages">
           {{::vm.getMaxAge(applicationReport)}}
         </td>
       </tr>
       <tr class="iq-table-row">
         <td class="iq-cell iq-cell--retention-title">Max Reports</td>
-        <td
-          class="iq-cell"
-          ng-repeat="applicationReport in vm.applicationReports.stages"
-        >
+        <td class="iq-cell" ng-repeat="applicationReport in vm.applicationReports.stages">
           {{::vm.getMaxReports(applicationReport)}}
         </td>
       </tr>
     </tbody>
   </table>
   <h4 class="iq-list__title">Success Metrics</h4>
-  <div class="iq-read-only-data" id="success-metrics-retention-tile">
-    {{::vm.getSuccessMetricsMaxAge()}}
-  </div>
+  <div class="iq-read-only-data" id="success-metrics-retention-tile">{{::vm.getSuccessMetricsMaxAge()}}</div>
 </div>

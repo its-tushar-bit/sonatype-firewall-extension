@@ -55,17 +55,9 @@
       _grid.render();
 
       if (selectedRows.length == _grid.getDataLength()) {
-        _grid.updateColumnHeader(
-          _options.columnId,
-          '<input type="checkbox" checked="checked">',
-          _options.toolTip
-        );
+        _grid.updateColumnHeader(_options.columnId, '<input type="checkbox" checked="checked">', _options.toolTip);
       } else {
-        _grid.updateColumnHeader(
-          _options.columnId,
-          '<input type="checkbox">',
-          _options.toolTip
-        );
+        _grid.updateColumnHeader(_options.columnId, '<input type="checkbox">', _options.toolTip);
       }
     }
 
@@ -73,10 +65,7 @@
       if (e.which == 32) {
         if (_grid.getColumns()[args.cell].id === _options.columnId) {
           // if editing, try to commit
-          if (
-            !_grid.getEditorLock().isActive() ||
-            _grid.getEditorLock().commitCurrentEdit()
-          ) {
+          if (!_grid.getEditorLock().isActive() || _grid.getEditorLock().commitCurrentEdit()) {
             toggleRowSelection(args.row);
           }
           e.preventDefault();
@@ -87,15 +76,9 @@
 
     function handleClick(e, args) {
       // clicking on a row select checkbox
-      if (
-        _grid.getColumns()[args.cell].id === _options.columnId &&
-        $(e.target).is(':checkbox')
-      ) {
+      if (_grid.getColumns()[args.cell].id === _options.columnId && $(e.target).is(':checkbox')) {
         // if editing, try to commit
-        if (
-          _grid.getEditorLock().isActive() &&
-          !_grid.getEditorLock().commitCurrentEdit()
-        ) {
+        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit()) {
           e.preventDefault();
           e.stopImmediatePropagation();
           return;
@@ -122,10 +105,7 @@
     function handleHeaderClick(e, args) {
       if (args.column.id == _options.columnId && $(e.target).is(':checkbox')) {
         // if editing, try to commit
-        if (
-          _grid.getEditorLock().isActive() &&
-          !_grid.getEditorLock().commitCurrentEdit()
-        ) {
+        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit()) {
           e.preventDefault();
           e.stopImmediatePropagation();
           return;
@@ -159,17 +139,9 @@
       };
     }
 
-    function checkboxSelectionFormatter(
-      row,
-      cell,
-      value,
-      columnDef,
-      dataContext
-    ) {
+    function checkboxSelectionFormatter(row, cell, value, columnDef, dataContext) {
       if (dataContext) {
-        return _selectedRowsLookup[row]
-          ? '<input type="checkbox" checked="checked">'
-          : '<input type="checkbox">';
+        return _selectedRowsLookup[row] ? '<input type="checkbox" checked="checked">' : '<input type="checkbox">';
       }
       return null;
     }

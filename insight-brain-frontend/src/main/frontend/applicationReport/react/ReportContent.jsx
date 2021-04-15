@@ -44,23 +44,14 @@ export default function ReportContent(props) {
     setSorting,
     setStringFieldFilter,
   } = props;
-  const displayedEntries = selectedReport
-    ? selectedReport.displayedEntries
-    : [];
-  const getSubstringFiltersProp = (propName) =>
-    propOr('', propName, substringFilters);
+  const displayedEntries = selectedReport ? selectedReport.displayedEntries : [];
+  const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
-  const derivedComponentNameFilter = getSubstringFiltersProp(
-    'derivedComponentName'
-  );
+  const derivedComponentNameFilter = getSubstringFiltersProp('derivedComponentName');
 
   function requestSort(settings) {
     let direction = 'asc';
-    if (
-      sortConfiguration &&
-      sortConfiguration.key === settings.key &&
-      sortConfiguration.dir === 'asc'
-    ) {
+    if (sortConfiguration && sortConfiguration.key === settings.key && sortConfiguration.dir === 'asc') {
       direction = 'desc';
     }
     const sortingOrder = settings.sortingOrder;
@@ -82,15 +73,9 @@ export default function ReportContent(props) {
     setStringFieldFilter('derivedComponentName', filter);
   };
 
-  const dirPolicyThreatLevel = getDirection(
-    sortConfiguration,
-    'policyThreatLevel'
-  );
+  const dirPolicyThreatLevel = getDirection(sortConfiguration, 'policyThreatLevel');
   const dirPolicyName = getDirection(sortConfiguration, 'policyName');
-  const dirComponentName = getDirection(
-    sortConfiguration,
-    'derivedComponentName'
-  );
+  const dirComponentName = getDirection(sortConfiguration, 'derivedComponentName');
 
   return (
     <section className="nx-tile iq-app-report__results-table-tile">
@@ -125,11 +110,7 @@ export default function ReportContent(props) {
             </NxTableRow>
             <NxTableRow className="nx-table-row--filter-header">
               <NxTableCell colSpan={2}>
-                <NxFilterInput
-                  placeholder="policy name"
-                  onChange={filterPolicyName}
-                  value={policyNameFilter}
-                />
+                <NxFilterInput placeholder="policy name" onChange={filterPolicyName} value={policyNameFilter} />
               </NxTableCell>
               <NxTableCell>
                 <NxFilterInput
@@ -140,9 +121,7 @@ export default function ReportContent(props) {
               </NxTableCell>
             </NxTableRow>
           </NxTableHead>
-          <NxTableBody emptyMessage="No Results">
-            {displayedEntries.map(createRow)}
-          </NxTableBody>
+          <NxTableBody emptyMessage="No Results">{displayedEntries.map(createRow)}</NxTableBody>
         </NxTable>
       </div>
     </section>

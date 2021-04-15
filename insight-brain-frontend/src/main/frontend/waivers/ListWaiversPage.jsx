@@ -8,12 +8,7 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-import {
-  NxBackButton,
-  NxButton,
-  NxFontAwesomeIcon,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxBackButton, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
 import ViolationExclamation from '../react/ViolationExclamation';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
@@ -53,29 +48,18 @@ export default function ListWaiversPage(props) {
 
   useEffect(load, [violationId]);
 
-  const redirectToAddWaiverPage = () =>
-    hasPermissionForAppWaivers && $state.go('addWaiver', { violationId });
-  const violationDetailsHref = $state.href(
-    $state.get('sidebarView.violation'),
-    {
-      id: violationId,
-      type: $state.params.type,
-      sidebarReference: $state.params.sidebarReference,
-    }
+  const redirectToAddWaiverPage = () => hasPermissionForAppWaivers && $state.go('addWaiver', { violationId });
+  const violationDetailsHref = $state.href($state.get('sidebarView.violation'), {
+    id: violationId,
+    type: $state.params.type,
+    sidebarReference: $state.params.sidebarReference,
+  });
+
+  const { componentName, constraintName, policyName, reasons, threatLevelCategory } = extractViolationDetails(
+    violationDetails
   );
 
-  const {
-    componentName,
-    constraintName,
-    policyName,
-    reasons,
-    threatLevelCategory,
-  } = extractViolationDetails(violationDetails);
-
-  const policyClassnames = classnames(
-    'iq-threat-level',
-    `iq-threat-level--${threatLevelCategory}`
-  );
+  const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
 
   return (
     <Fragment>
@@ -86,18 +70,11 @@ export default function ListWaiversPage(props) {
           error={loadManageWaiversDataError}
           retryHandler={load}
         >
-          <NxBackButton
-            targetPageTitle="Violation Details"
-            href={violationDetailsHref}
-          />
+          <NxBackButton targetPageTitle="Violation Details" href={violationDetailsHref} />
           <div className="nx-page-title">
             <h1 className="nx-h1">Waivers for Violation</h1>
             <div className="list-waivers__threat-indicator">
-              {threatLevelCategory && (
-                <ViolationExclamation
-                  threatLevelCategory={threatLevelCategory}
-                />
-              )}
+              {threatLevelCategory && <ViolationExclamation threatLevelCategory={threatLevelCategory} />}
               <span className={policyClassnames}>{policyName}</span>
             </div>
           </div>
@@ -110,10 +87,7 @@ export default function ListWaiversPage(props) {
                 <label className="nx-label">
                   <span className="nx-label__text">Constraint Name</span>
                 </label>
-                <div
-                  id="list-waivers-constraint-name"
-                  className="iq-read-only-data"
-                >
+                <div id="list-waivers-constraint-name" className="iq-read-only-data">
                   {constraintName}
                 </div>
               </div>
@@ -121,24 +95,15 @@ export default function ListWaiversPage(props) {
                 <label className="nx-label">
                   <span className="nx-label__text">Conditions</span>
                 </label>
-                <div
-                  id="list-waivers-conditions"
-                  className="iq-read-only-data iq-read-only-data--vertical"
-                >
-                  {reasons &&
-                    reasons.map((reason, index) => (
-                      <span key={index}>{reason}</span>
-                    ))}
+                <div id="list-waivers-conditions" className="iq-read-only-data iq-read-only-data--vertical">
+                  {reasons && reasons.map((reason, index) => <span key={index}>{reason}</span>)}
                 </div>
               </div>
               <div className="nx-form-group iq-read-only">
                 <label className="nx-label">
                   <span className="nx-label__text">Component Name</span>
                 </label>
-                <div
-                  id="list-waivers-component-name"
-                  className="iq-read-only-data"
-                >
+                <div id="list-waivers-component-name" className="iq-read-only-data">
                   {componentName}
                 </div>
               </div>
@@ -152,11 +117,7 @@ export default function ListWaiversPage(props) {
               <div className="nx-tile__actions">
                 <NxTooltip
                   id="add-waiver-btn-tooltip"
-                  title={
-                    hasPermissionForAppWaivers
-                      ? ''
-                      : 'Insufficient permissions to Add Waiver'
-                  }
+                  title={hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver'}
                 >
                   <NxButton
                     className={classnames({
@@ -195,17 +156,9 @@ export default function ListWaiversPage(props) {
 ListWaiversPage.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
-  loadManageWaiversDataError: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.instanceOf(Error),
-    PropTypes.object,
-  ]),
+  loadManageWaiversDataError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
   loadingManageWaiversData: PropTypes.bool,
-  loadApplicableWaiversError: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.instanceOf(Error),
-    PropTypes.object,
-  ]),
+  loadApplicableWaiversError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
   loadingApplicableWaivers: PropTypes.bool,
   loadManageWaiversData: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),

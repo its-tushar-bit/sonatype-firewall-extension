@@ -29,16 +29,8 @@ export default function RevokeGrandfatheringModalController(
   }
 
   function doSubmit() {
-    return $http.put(
-      CLMLocations.getRevokeGrandfatheringUrl(vm.applicationPublicId)
-    );
+    return $http.put(CLMLocations.getRevokeGrandfatheringUrl(vm.applicationPublicId));
   }
 }
 
-RevokeGrandfatheringModalController.$inject = [
-  '$scope',
-  '$http',
-  'Messages',
-  'CLMLocations',
-  'selectedApplication',
-];
+RevokeGrandfatheringModalController.$inject = ['$scope', '$http', 'Messages', 'CLMLocations', 'selectedApplication'];

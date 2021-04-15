@@ -86,18 +86,11 @@ describe('proprietary.config.editor.controller.spec.js', function () {
     expect(vm.localMatchers.length).toEqual(3);
     expect(vm.proprietaryConfigs.length).toEqual(2);
 
-    expect(vm.proprietaryConfigs[0].proprietaryConfig[0].packages).toEqual([
-      'com.sonatype',
-      'com.local',
-    ]);
-    expect(vm.proprietaryConfigs[0].proprietaryConfig[0].regexes).toEqual([
-      '.*/test\\.zip',
-    ]);
+    expect(vm.proprietaryConfigs[0].proprietaryConfig[0].packages).toEqual(['com.sonatype', 'com.local']);
+    expect(vm.proprietaryConfigs[0].proprietaryConfig[0].regexes).toEqual(['.*/test\\.zip']);
 
     expect(vm.proprietaryConfigs[1].proprietaryConfig[0].packages).toEqual([]);
-    expect(vm.proprietaryConfigs[1].proprietaryConfig[0].regexes).toEqual([
-      '.*/foo\\.zip',
-    ]);
+    expect(vm.proprietaryConfigs[1].proprietaryConfig[0].regexes).toEqual(['.*/foo\\.zip']);
 
     expect(vm.dirtyProprietaryConfig.packages.length).toEqual(2);
     expect(vm.dirtyProprietaryConfig.regexes.length).toEqual(1);
@@ -128,9 +121,7 @@ describe('proprietary.config.editor.controller.spec.js', function () {
   });
 
   it('proprietary config editor fails to load data', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getProprietaryConfigUrl())
-      .respond(500, 'foo');
+    $httpBackend.expectGET(CLMContextLocations.getProprietaryConfigUrl()).respond(500, 'foo');
     $httpBackend.flush();
     $timeout.flush();
     expect(vm.loadError).toEqual('foo');
@@ -143,10 +134,7 @@ describe('proprietary.config.editor.controller.spec.js', function () {
     $httpBackend.flush();
 
     expect(vm.localMatchers.length).toBe(3);
-    expect(vm.dirtyProprietaryConfig.packages).toEqual([
-      'com.sonatype',
-      'com.local',
-    ]);
+    expect(vm.dirtyProprietaryConfig.packages).toEqual(['com.sonatype', 'com.local']);
     expect(vm.dirtyProprietaryConfig.regexes).toEqual(['.*/test\\.zip']);
     expect(vm.localMatchers[0].type).toBe(vm.matcherTypes.PACKAGE);
     expect(vm.localMatchers[1].type).toBe(vm.matcherTypes.PACKAGE);
@@ -181,10 +169,7 @@ describe('proprietary.config.editor.controller.spec.js', function () {
       .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
-    vm.proprietaryConfigEditor = jasmine.createSpyObj(
-      'proprietaryConfigEditor',
-      ['$setPristine']
-    );
+    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
 
     // add a regex that matches the string of an existing package name
     vm.matcherType = vm.matcherTypes.REGEX;
@@ -218,10 +203,7 @@ describe('proprietary.config.editor.controller.spec.js', function () {
 
     vm.matcherType = vm.matcherTypes.PACKAGE;
     vm.packageMatcher = 'foo';
-    vm.proprietaryConfigEditor = jasmine.createSpyObj(
-      'proprietaryConfigEditor',
-      ['$setPristine']
-    );
+    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
 
     vm.addMatcher();
     expect(vm.packageMatcher).toBeUndefined();
@@ -238,10 +220,7 @@ describe('proprietary.config.editor.controller.spec.js', function () {
       .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
-    vm.proprietaryConfigEditor = jasmine.createSpyObj(
-      'proprietaryConfigEditor',
-      ['$setPristine']
-    );
+    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
 
     expect(vm.localMatchers.length).toBe(3);
     expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);
@@ -260,10 +239,7 @@ describe('proprietary.config.editor.controller.spec.js', function () {
       .respond(ProprietaryMockData.getProprietaryConfiguration());
     $httpBackend.flush();
 
-    vm.proprietaryConfigEditor = jasmine.createSpyObj(
-      'proprietaryConfigEditor',
-      ['$setPristine']
-    );
+    vm.proprietaryConfigEditor = jasmine.createSpyObj('proprietaryConfigEditor', ['$setPristine']);
 
     expect(vm.localMatchers.length).toBe(3);
     expect(vm.dirtyProprietaryConfig.packages.length).toBe(2);

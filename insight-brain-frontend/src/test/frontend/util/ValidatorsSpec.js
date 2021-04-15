@@ -18,8 +18,7 @@ describe('ValidatorsSpec', function () {
         array: ['foo'],
       });
       element = $compile(
-        '<form><input name="input" type="text" unique-validator="array" ng-model="model.value">' +
-          '</form>'
+        '<form><input name="input" type="text" unique-validator="array" ng-model="model.value">' + '</form>'
       )(scope);
       formController = element.controller('form');
     }));
@@ -78,8 +77,7 @@ describe('ValidatorsSpec', function () {
             }),
           });
           var element = $compile(
-            '<form><input name="input" type="text" input-validator="validator" ng-model="model.value">' +
-              '</form>'
+            '<form><input name="input" type="text" input-validator="validator" ng-model="model.value">' + '</form>'
           )(scope);
 
           var formController = element.controller('form');
@@ -87,15 +85,9 @@ describe('ValidatorsSpec', function () {
           scope.$apply(function () {
             formController.input.$setViewValue('foo');
           });
-          expect(formController.$valid)[
-            testCase ? 'toBeTruthy' : 'toBeFalsy'
-          ]();
-          expect(formController.input.$valid)[
-            testCase ? 'toBeTruthy' : 'toBeFalsy'
-          ]();
-          expect(formController.input.$error.validity)[
-            !testCase ? 'toBeTruthy' : 'toBeFalsy'
-          ]();
+          expect(formController.$valid)[testCase ? 'toBeTruthy' : 'toBeFalsy']();
+          expect(formController.input.$valid)[testCase ? 'toBeTruthy' : 'toBeFalsy']();
+          expect(formController.input.$error.validity)[!testCase ? 'toBeTruthy' : 'toBeFalsy']();
         })
       );
     });

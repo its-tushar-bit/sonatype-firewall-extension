@@ -37,12 +37,7 @@ describe('source.control.tile.spec', function () {
 
   beforeEach(angular.mock.module(sourceControlModule.name, utilityModule.name));
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    $injector,
-    _$componentController_,
-    _$q_
-  ) {
+  beforeEach(inject(function (_$rootScope_, $injector, _$componentController_, _$q_) {
     $rootScope = _$rootScope_;
     $scope = $rootScope.$new();
     EventNameConstant = $injector.get('event.name.constant');
@@ -53,16 +48,12 @@ describe('source.control.tile.spec', function () {
       'isApplication',
       'isRootOrg',
     ]);
-    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', [
-      'getById',
+    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
+    mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', ['getById']);
+    mockSourceControlService = jasmine.createSpyObj('mockSourceControlService', [
+      'getCompositeSourceControlRecord',
+      'getProviderTypesMap',
     ]);
-    mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', [
-      'getById',
-    ]);
-    mockSourceControlService = jasmine.createSpyObj(
-      'mockSourceControlService',
-      ['getCompositeSourceControlRecord', 'getProviderTypesMap']
-    );
     $componentController = _$componentController_;
     $q = _$q_;
     getByIdDeferred = $q.defer();
@@ -70,10 +61,7 @@ describe('source.control.tile.spec', function () {
     mockSourceControlService.getProviderTypesMap.and.returnValue({
       github: 'GitHub',
     });
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', [
-      'isAvailable',
-      'load',
-    ]);
+    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
     loadProductFeaturesDefer = $q.defer();
     mockProductFeatures.load.and.returnValue(loadProductFeaturesDefer.promise);
     mockProductFeatures.isAvailable.and.callFake(function (feature) {
@@ -90,13 +78,9 @@ describe('source.control.tile.spec', function () {
       mockOrganizationStore.getById.and.callFake(function (id) {
         return id === ROOT_ORGANIZATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
-        function (ownerType, id) {
-          return ownerType === 'organization' && id === ROOT_ORGANIZATION_ID
-            ? getSourceControlDeferred.promise
-            : null;
-        }
-      );
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
+        return ownerType === 'organization' && id === ROOT_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
+      });
 
       vm = $componentController('sourceControlTile', {
         $scope: $scope,
@@ -127,9 +111,7 @@ describe('source.control.tile.spec', function () {
       $scope.$digest();
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(
-        ROOT_ORGANIZATION_ID
-      );
+      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ROOT_ORGANIZATION_ID);
       expect(vm.ownerName).toBe('rootOrganizationName');
       expect(vm.error).toBeUndefined();
     });
@@ -230,9 +212,7 @@ describe('source.control.tile.spec', function () {
       expect(vm.error).toBeUndefined();
       expect(vm.sourceControl.provider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
-      expect(vm.itemSubText).toEqual(
-        'Provides the default source control configuration settings'
-      );
+      expect(vm.itemSubText).toEqual('Provides the default source control configuration settings');
     });
 
     describe('isSourceControlSupported', function () {
@@ -389,13 +369,9 @@ describe('source.control.tile.spec', function () {
       mockOrganizationStore.getById.and.callFake(function (id) {
         return id === SUB_ORGANIZATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
-        function (ownerType, id) {
-          return ownerType === 'organization' && id === SUB_ORGANIZATION_ID
-            ? getSourceControlDeferred.promise
-            : null;
-        }
-      );
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
+        return ownerType === 'organization' && id === SUB_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
+      });
 
       vm = $componentController('sourceControlTile', {
         $scope: $scope,
@@ -426,9 +402,7 @@ describe('source.control.tile.spec', function () {
       $scope.$digest();
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(
-        SUB_ORGANIZATION_ID
-      );
+      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(SUB_ORGANIZATION_ID);
       expect(vm.ownerName).toBe('subOrganizationName');
       expect(vm.error).toBeUndefined();
     });
@@ -491,9 +465,7 @@ describe('source.control.tile.spec', function () {
       expect(vm.error).toBeUndefined();
       expect(vm.sourceControl.provider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
-      expect(vm.itemSubText).toEqual(
-        'Inherit access token from Root Organization'
-      );
+      expect(vm.itemSubText).toEqual('Inherit access token from Root Organization');
     });
 
     it('loads source control and provides correct text if provider is defined and token specified', function () {
@@ -517,9 +489,7 @@ describe('source.control.tile.spec', function () {
       expect(vm.error).toBeUndefined();
       expect(vm.sourceControl.provider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
-      expect(vm.itemSubText).toEqual(
-        'Provides default access token for subOrganizationName'
-      );
+      expect(vm.itemSubText).toEqual('Provides default access token for subOrganizationName');
     });
   });
 
@@ -532,13 +502,9 @@ describe('source.control.tile.spec', function () {
       mockApplicationStore.getById.and.callFake(function (id) {
         return id === APPLICATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
-        function (ownerType, id) {
-          return ownerType === 'application' && id === APPLICATION_ID
-            ? getSourceControlDeferred.promise
-            : null;
-        }
-      );
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
+        return ownerType === 'application' && id === APPLICATION_ID ? getSourceControlDeferred.promise : null;
+      });
 
       vm = $componentController('sourceControlTile', {
         $scope: $scope,
@@ -620,9 +586,7 @@ describe('source.control.tile.spec', function () {
       expect(vm.error).toBeUndefined();
       expect(vm.sourceControl.provider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
-      expect(vm.itemSubText).toEqual(
-        'Inherit access token from Root Organization (GitHub)'
-      );
+      expect(vm.itemSubText).toEqual('Inherit access token from Root Organization (GitHub)');
     });
 
     it('loads source control and provides correct subtext if provider is defined and token specified', function () {
@@ -643,9 +607,7 @@ describe('source.control.tile.spec', function () {
       expect(vm.error).toBeUndefined();
       expect(vm.sourceControl.provider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
-      expect(vm.itemSubText).toEqual(
-        'Provides default access token for applicationName (GitHub)'
-      );
+      expect(vm.itemSubText).toEqual('Provides default access token for applicationName (GitHub)');
     });
 
     it('loads the source control and provides the correct text if provider is not defined', function () {

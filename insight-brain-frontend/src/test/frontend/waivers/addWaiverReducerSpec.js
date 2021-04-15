@@ -38,16 +38,12 @@ describe('addWaiverReducer', function () {
     });
 
     it('calls textHelpers.initialState for waiverComments', function () {
-      const textHelperInitialStateSpy = jasmine
-        .createSpy('initialState')
-        .and.callFake((val) => ({ value: val }));
-      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')(
-        {
-          '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
-            initialState: textHelperInitialStateSpy,
-          },
-        }
-      ).default;
+      const textHelperInitialStateSpy = jasmine.createSpy('initialState').and.callFake((val) => ({ value: val }));
+      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')({
+        '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
+          initialState: textHelperInitialStateSpy,
+        },
+      }).default;
       const action = { type: 'UNKNOWN' };
       const newState = reducerWithMockDeps(undefined, action);
 
@@ -284,17 +280,13 @@ describe('addWaiverReducer', function () {
 
   describe('WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT action', function () {
     it('sets waiverComments and isDiry props', function () {
-      const textHelperUserInputSpy = jasmine
-        .createSpy('userInput')
-        .and.callFake((validator, val) => ({ value: val }));
-      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')(
-        {
-          '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
-            userInput: textHelperUserInputSpy,
-            initialState: () => {},
-          },
-        }
-      ).default;
+      const textHelperUserInputSpy = jasmine.createSpy('userInput').and.callFake((validator, val) => ({ value: val }));
+      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')({
+        '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
+          userInput: textHelperUserInputSpy,
+          initialState: () => {},
+        },
+      }).default;
       const initialState = {
         isDirty: false,
         loading: false,

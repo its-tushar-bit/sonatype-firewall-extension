@@ -30,10 +30,7 @@ describe('SidebarNavViolationList', function () {
       ],
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      SidebarNavViolationList,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(SidebarNavViolationList, minimalProps);
   });
 
   function validateNavListItems(ulChild, violation) {
@@ -49,9 +46,7 @@ describe('SidebarNavViolationList', function () {
 
     const threatIndicator = listItem.childAt(0);
     expect(threatIndicator).toMatchSelector(NxThreatIndicator);
-    expect(threatIndicator.prop('policyThreatLevel')).toEqual(
-      violation.threatLevel
-    );
+    expect(threatIndicator.prop('policyThreatLevel')).toEqual(violation.threatLevel);
 
     const policyNameElement = listItem.childAt(1);
     expect(policyNameElement.text()).toEqual(`${threatLevel} ${policyName}`);
@@ -139,9 +134,7 @@ describe('SidebarNavViolationList', function () {
         if (flag === 'sidebar-nav') {
           expect(typeof callback).toEqual('function');
           expect(time).toEqual(200);
-          const selectedItem = container.querySelector(
-            '.nx-list__item.selected'
-          );
+          const selectedItem = container.querySelector('.nx-list__item.selected');
           expect(selectedItem).not.toBeNull();
           const scrollSpy = spyOn(selectedItem, 'scrollIntoView');
           callback();

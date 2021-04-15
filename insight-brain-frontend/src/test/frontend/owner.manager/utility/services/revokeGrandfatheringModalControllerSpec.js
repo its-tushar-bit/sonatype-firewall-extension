@@ -10,13 +10,7 @@ describe('RevokeGrandfatheringModalController', function () {
 
   beforeEach(angular.mock.module(ownerManagerModule.name));
 
-  beforeEach(inject(function (
-    $rootScope,
-    $controller,
-    _$httpBackend_,
-    _CLMLocations_,
-    _$q_
-  ) {
+  beforeEach(inject(function ($rootScope, $controller, _$httpBackend_, _CLMLocations_, _$q_) {
     scope = $rootScope.$new();
     scope.$dismiss = jasmine.createSpy('$dismiss').and.returnValue(undefined);
 
@@ -42,13 +36,7 @@ describe('RevokeGrandfatheringModalController', function () {
   });
 
   it('calls scope.$dismiss when the server responds with success', function () {
-    $httpBackend
-      .expectPUT(
-        CLMLocations.getRevokeGrandfatheringUrl(
-          mockSelectedApplication.publicId
-        )
-      )
-      .respond(200);
+    $httpBackend.expectPUT(CLMLocations.getRevokeGrandfatheringUrl(mockSelectedApplication.publicId)).respond(200);
 
     vm.revokeGrandfathering();
 
@@ -59,11 +47,7 @@ describe('RevokeGrandfatheringModalController', function () {
 
   it('sets vm.error when the server responds with error', function () {
     $httpBackend
-      .expectPUT(
-        CLMLocations.getRevokeGrandfatheringUrl(
-          mockSelectedApplication.publicId
-        )
-      )
+      .expectPUT(CLMLocations.getRevokeGrandfatheringUrl(mockSelectedApplication.publicId))
       .respond(500, 'Some failure');
 
     vm.revokeGrandfathering();

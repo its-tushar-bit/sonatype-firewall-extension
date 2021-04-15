@@ -34,11 +34,7 @@ describe('applicationReportReducer', function () {
       expect(newState.reevaluationError).toBe(null);
       expect(newState.selectedReport).toBe(null);
       expect(newState.aggregate).toBe(true);
-      expect(newState.sortFields).toEqual([
-        '-policyThreatLevel',
-        'policyName',
-        'derivedComponentName',
-      ]);
+      expect(newState.sortFields).toEqual(['-policyThreatLevel', 'policyName', 'derivedComponentName']);
       expect(newState.rawDataSortFields).toEqual([
         'derivedComponentName',
         'licenseSortKey',
@@ -124,17 +120,8 @@ describe('applicationReportReducer', function () {
         loadError: null,
         reevaluationError: null,
         aggregate: true,
-        rawDataSortFields: [
-          'derivedComponentName',
-          'licenseSortKey',
-          'securityCode',
-          '-cvssScore',
-        ],
-        sortFields: [
-          '-policyThreatLevel',
-          'policyName',
-          'derivedComponentName',
-        ],
+        rawDataSortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
         exactValueFilters: {},
         reportRawData: null,
         reportParameters: {
@@ -155,11 +142,7 @@ describe('applicationReportReducer', function () {
         isInnerSourceEnabled: false,
         sortConfiguration: {
           key: 'policyThreatLevel',
-          sortFields: [
-            '-policyThreatLevel',
-            'policyName',
-            'derivedComponentName',
-          ],
+          sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
           dir: 'desc',
         },
         selectedComponent: null,
@@ -231,11 +214,7 @@ describe('applicationReportReducer', function () {
         selectedReport: null,
         policyTypeFilterEnabled: null,
         other: otherObject,
-        sortFields: [
-          '-policyThreatLevel',
-          'policyName',
-          'derivedComponentName',
-        ],
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
       });
       const entries = [
         { policyThreatLevel: 1 },
@@ -278,11 +257,7 @@ describe('applicationReportReducer', function () {
         vulnerabilitiesPageEnabled: jasmine.anything(),
         isInnerSourceEnabled: false,
         other: otherObject,
-        sortFields: [
-          '-policyThreatLevel',
-          'policyName',
-          'derivedComponentName',
-        ],
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
@@ -1221,9 +1196,7 @@ describe('applicationReportReducer', function () {
         },
       ]);
 
-      expect(newState.selectedReport.allEntries).toBe(
-        state.selectedReport.allEntries
-      );
+      expect(newState.selectedReport.allEntries).toBe(state.selectedReport.allEntries);
     });
   });
 
@@ -1309,9 +1282,7 @@ describe('applicationReportReducer', function () {
         },
       ]);
 
-      expect(newState.selectedReport.allEntries).toBe(
-        state.selectedReport.allEntries
-      );
+      expect(newState.selectedReport.allEntries).toBe(state.selectedReport.allEntries);
     });
   });
 
@@ -1399,9 +1370,7 @@ describe('applicationReportReducer', function () {
         },
       ]);
 
-      expect(newState.reportRawData.allEntries).toBe(
-        state.reportRawData.allEntries
-      );
+      expect(newState.reportRawData.allEntries).toBe(state.reportRawData.allEntries);
     });
   });
 
@@ -1503,9 +1472,7 @@ describe('applicationReportReducer', function () {
         },
       ]);
 
-      expect(newState.reportRawData.allEntries).toBe(
-        state.reportRawData.allEntries
-      );
+      expect(newState.reportRawData.allEntries).toBe(state.reportRawData.allEntries);
     });
   });
 
@@ -1607,9 +1574,7 @@ describe('applicationReportReducer', function () {
         },
       ]);
 
-      expect(newState.reportRawData.allEntries).toBe(
-        state.reportRawData.allEntries
-      );
+      expect(newState.reportRawData.allEntries).toBe(state.reportRawData.allEntries);
     });
   });
 

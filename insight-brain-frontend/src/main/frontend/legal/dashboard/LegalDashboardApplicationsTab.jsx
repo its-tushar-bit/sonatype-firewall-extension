@@ -29,8 +29,7 @@ export default function LegalDashboardApplicationsTab({
 }) {
   const [page, setPage] = useState(0);
   const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
-  const previousResultsBackend =
-    (applications.backendPage - 1) * pagesToFill * itemsPerPage;
+  const previousResultsBackend = (applications.backendPage - 1) * pagesToFill * itemsPerPage;
   const rows = slice(
     page * itemsPerPage - previousResultsBackend,
     (page + 1) * itemsPerPage - previousResultsBackend,
@@ -70,37 +69,21 @@ export default function LegalDashboardApplicationsTab({
     setPage(0);
   }
 
-  const emptyMessage =
-    'No applications found given the applied filters and permissions.';
+  const emptyMessage = 'No applications found given the applied filters and permissions.';
 
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
       {filtersAreDirty && <div className="form-mask" />}
-      <NxTable
-        id="legal-dashboard-applications-table"
-        className="legal-dashboard-table"
-      >
+      <NxTable id="legal-dashboard-applications-table" className="legal-dashboard-table">
         <NxTableHead>
           <NxTableRow>
-            <NxTableCell
-              isSortable
-              sortDir={getSortDir('APPLICATION_NAME')}
-              onClick={() => sort('APPLICATION_NAME')}
-            >
+            <NxTableCell isSortable sortDir={getSortDir('APPLICATION_NAME')} onClick={() => sort('APPLICATION_NAME')}>
               Application
             </NxTableCell>
-            <NxTableCell
-              isSortable
-              sortDir={getSortDir('LAST_SCAN_TIME')}
-              onClick={() => sort('LAST_SCAN_TIME')}
-            >
+            <NxTableCell isSortable sortDir={getSortDir('LAST_SCAN_TIME')} onClick={() => sort('LAST_SCAN_TIME')}>
               Last Scan
             </NxTableCell>
-            <NxTableCell
-              isSortable
-              sortDir={getSortDir('TAG_NAMES')}
-              onClick={() => sort('TAG_NAMES')}
-            >
+            <NxTableCell isSortable sortDir={getSortDir('TAG_NAMES')} onClick={() => sort('TAG_NAMES')}>
               App Categories
             </NxTableCell>
             <NxTableCell>Components Reviewed</NxTableCell>
@@ -112,11 +95,7 @@ export default function LegalDashboardApplicationsTab({
           error={Messages.getHttpErrorMessage(applications.error)}
         >
           {rows.map((row, index) => (
-            <LegalDashboardApplicationRow
-              key={index}
-              row={row}
-              stateGo={stateGo}
-            />
+            <LegalDashboardApplicationRow key={index} row={row} stateGo={stateGo} />
           ))}
         </NxTableBody>
       </NxTable>

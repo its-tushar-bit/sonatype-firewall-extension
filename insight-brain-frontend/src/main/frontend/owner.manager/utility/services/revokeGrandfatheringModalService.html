@@ -1,9 +1,6 @@
 <div id="revoke-grandfathering-modal">
   <div class="iq-modal-header">
-    <h2>
-      <i class="fa size-20px fa-history"></i>Revoke Grandfathered Policy
-      Violations
-    </h2>
+    <h2><i class="fa size-20px fa-history"></i>Revoke Grandfathered Policy Violations</h2>
   </div>
   <form
     name="revokeGrandfatheringForm"
@@ -17,15 +14,12 @@
         ><!--
      --><span
           ><!--
-       -->Revoking the grandfathered policy violations for the application will
-          reinstate violations if applicable.
+       -->Revoking the grandfathered policy violations for the application will reinstate violations if applicable.
         </span>
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{ error : vm.error }">
-      <div ng-if="vm.error" class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i>{{ vm.error }}
-      </div>
+      <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{ vm.error }}</div>
       <button
         ng-if="!vm.error"
         class="iq-btn iq-btn--primary"

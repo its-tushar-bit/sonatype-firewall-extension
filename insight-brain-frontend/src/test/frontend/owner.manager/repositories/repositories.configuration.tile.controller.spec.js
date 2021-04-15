@@ -7,11 +7,7 @@ import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.ma
 import RepositoriesResourceMockData from '../mock.data/repositories.resource.mock.data';
 
 describe('repositories.configuration.tile.controller.spec.js', function () {
-  var vm,
-    $httpBackend,
-    CLMLocations,
-    deleteServiceResourceDefer,
-    mockDeleteService;
+  var vm, $httpBackend, CLMLocations, deleteServiceResourceDefer, mockDeleteService;
 
   beforeEach(
     angular.mock.module(ownerManagerModule.name, function ($provide) {
@@ -48,16 +44,12 @@ describe('repositories.configuration.tile.controller.spec.js', function () {
       .respond(RepositoriesResourceMockData.getRepositoriesUrl());
     $httpBackend.flush();
 
-    expect(vm.repositories).toEqual(
-      RepositoriesResourceMockData.getRepositoriesUrl().repositories
-    );
+    expect(vm.repositories).toEqual(RepositoriesResourceMockData.getRepositoriesUrl().repositories);
     expect(vm.error).toBeUndefined();
   });
 
   it('Missing Repositories', function () {
-    $httpBackend
-      .expectGET(CLMLocations.getRepositoriesUrl())
-      .respond(400, 'Bad Request');
+    $httpBackend.expectGET(CLMLocations.getRepositoriesUrl()).respond(400, 'Bad Request');
     $httpBackend.flush();
 
     expect(vm.error).toBeDefined();
@@ -69,8 +61,7 @@ describe('repositories.configuration.tile.controller.spec.js', function () {
       .respond(RepositoriesResourceMockData.getRepositoriesUrl());
     $httpBackend.flush();
 
-    var mockRepositories = RepositoriesResourceMockData.getRepositoriesUrl()
-      .repositories;
+    var mockRepositories = RepositoriesResourceMockData.getRepositoriesUrl().repositories;
     expect(vm.repositories).toEqual(mockRepositories);
     vm.removeRepository(mockRepositories[1]);
     deleteServiceResourceDefer.resolve();

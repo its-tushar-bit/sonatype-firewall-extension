@@ -48,11 +48,7 @@ describe('manageFiltersReducer', function () {
           policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
           stageTypeFilters: ['release', 'stage-release', 'build'],
           tagFilters: ['tagId1', 'tagId2', null],
-          applicationFilters: [
-            'applicationIdZ',
-            'applicationIdA',
-            'applicationIdQ',
-          ],
+          applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
           policyViolationStates: ['OPEN', 'WAIVED'],
           maxDaysOld: 90,
           minPolicyThreatLevel: 3,
@@ -136,9 +132,7 @@ describe('manageFiltersReducer', function () {
     });
   }
 
-  testSetsAppliedFilterNameAndShowDirtyAsterisk(
-    'FETCH_CURRENT_FILTER_FULFILLED'
-  );
+  testSetsAppliedFilterNameAndShowDirtyAsterisk('FETCH_CURRENT_FILTER_FULFILLED');
   testSetsAppliedFilterNameAndShowDirtyAsterisk('APPLY_FILTER_FULFILLED');
 
   describe('FETCH_SAVED_FILTERS_FULFILLED action', function () {
@@ -292,10 +286,7 @@ describe('manageFiltersReducer', function () {
           payload: { name: 'foo' },
         };
         const newState = reduce(state, action);
-        expect(newState.savedFilters).toEqual([
-          { name: 'bar' },
-          { name: 'foo' },
-        ]);
+        expect(newState.savedFilters).toEqual([{ name: 'bar' }, { name: 'foo' }]);
         expect(newState.appliedFilterName).toBe('foo');
         expect(newState.saveFilterSuccess).toBe(true);
         expect(newState.showDirtyAsterisk).toBe(false);

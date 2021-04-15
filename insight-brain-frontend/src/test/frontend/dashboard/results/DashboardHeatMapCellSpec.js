@@ -19,10 +19,7 @@ describe('DashboardHeatMapCell', function () {
       },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardHeatMapCell,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardHeatMapCell, minimalProps);
   });
 
   it('renders score passed as children prop', function () {

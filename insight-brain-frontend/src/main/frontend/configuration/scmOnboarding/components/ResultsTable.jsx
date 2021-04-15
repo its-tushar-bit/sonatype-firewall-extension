@@ -49,10 +49,7 @@ export default function ResultsTable(props) {
   const maxRowsPerPage = 15;
 
   const filteredRepos = useMemo(
-    () =>
-      repositories === null
-        ? null
-        : repositories.filter(isRepositorySelectedByFilter),
+    () => (repositories === null ? null : repositories.filter(isRepositorySelectedByFilter)),
     [repositories, filters]
   );
 
@@ -67,10 +64,7 @@ export default function ResultsTable(props) {
 
   const currentPagedRepos = useMemo(() => {
     let currentPage = getDefinedPage();
-    return filteredRepos.slice(
-      currentPage * maxRowsPerPage,
-      (currentPage + 1) * maxRowsPerPage
-    );
+    return filteredRepos.slice(currentPage * maxRowsPerPage, (currentPage + 1) * maxRowsPerPage);
   }, [page, filteredRepos]);
 
   function getCurrentPage() {
@@ -115,11 +109,7 @@ export default function ResultsTable(props) {
 
   function requestSort(settings) {
     let direction = 'asc';
-    if (
-      sortConfiguration &&
-      sortConfiguration.key === settings.key &&
-      sortConfiguration.dir === 'asc'
-    ) {
+    if (sortConfiguration && sortConfiguration.key === settings.key && sortConfiguration.dir === 'asc') {
       direction = 'desc';
     }
     const sortingOrder = settings.sortingOrder;
@@ -148,11 +138,7 @@ export default function ResultsTable(props) {
   function changeFilter(filterName, filterValue) {
     setFilters(propSet(filterName, filterValue, filters));
     setSelectedRepositories(
-      repositories.filter(
-        (repo) =>
-          repo[filterName].includes(filterValue) &&
-          selectedRepositories.includes(repo)
-      )
+      repositories.filter((repo) => repo[filterName].includes(filterValue) && selectedRepositories.includes(repo))
     );
 
     // when filters change, always reset to the first page
@@ -192,11 +178,7 @@ export default function ResultsTable(props) {
           </NxTableRow>
           <NxTableRow isFilterHeader>
             <NxTableCell className="iq-scmonboarding__select-all-cell">
-              <NxCheckbox
-                checkboxId="iq-scmonboarding-select-all"
-                isChecked={isAllChecked}
-                onChange={toggleSelectAll}
-              >
+              <NxCheckbox checkboxId="iq-scmonboarding-select-all" isChecked={isAllChecked} onChange={toggleSelectAll}>
                 All
               </NxCheckbox>
             </NxTableCell>
@@ -204,9 +186,7 @@ export default function ResultsTable(props) {
               <NxFilterInput
                 id="iq-scmonboarding-namespace-filter"
                 value={filters.namespace}
-                onChange={(filterValue) =>
-                  changeFilter('namespace', filterValue)
-                }
+                onChange={(filterValue) => changeFilter('namespace', filterValue)}
               />
             </NxTableCell>
             <NxTableCell className="iq-scmonboarding__filter-cell">
@@ -220,9 +200,7 @@ export default function ResultsTable(props) {
               <NxFilterInput
                 id="iq-scmonboarding-description-filter"
                 value={filters.description}
-                onChange={(filterValue) =>
-                  changeFilter('description', filterValue)
-                }
+                onChange={(filterValue) => changeFilter('description', filterValue)}
               />
             </NxTableCell>
           </NxTableRow>
@@ -241,11 +219,7 @@ export default function ResultsTable(props) {
       </NxTable>
       {canRenderPagination() && (
         <div className="nx-table-container__footer">
-          <NxPagination
-            onChange={setCurrentPage}
-            pageCount={getPageCount()}
-            currentPage={getCurrentPage()}
-          />
+          <NxPagination onChange={setCurrentPage} pageCount={getPageCount()} currentPage={getCurrentPage()} />
         </div>
       )}
     </div>
@@ -287,23 +261,14 @@ export function RepositoryRow(props) {
   return (
     <NxTableRow key={rowKey}>
       <NxTableCell>
-        <NxCheckbox
-          checkboxId={rowKey}
-          isChecked={selectedRepositories.includes(repo)}
-          onChange={toggleSelection}
-        />
+        <NxCheckbox checkboxId={rowKey} isChecked={selectedRepositories.includes(repo)} onChange={toggleSelection} />
       </NxTableCell>
-      <NxTableCell className="iq-scm-repository-namespace">
-        {repo.namespace}
-      </NxTableCell>
+      <NxTableCell className="iq-scm-repository-namespace">{repo.namespace}</NxTableCell>
       <NxTableCell className="iq-scm-repository-project">
         <NxExternalLink href={repo.httpCloneUrl}>{repo.project}</NxExternalLink>
       </NxTableCell>
       <NxTableCell className="iq-scm-repository-description">
-        <NxTooltip
-          title={repo.description}
-          className="iq-scm-repo-description-tooltip"
-        >
+        <NxTooltip title={repo.description} className="iq-scm-repo-description-tooltip">
           <div className="nx-truncate-ellipsis">{repo.description}</div>
         </NxTooltip>
       </NxTableCell>

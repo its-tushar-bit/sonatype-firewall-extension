@@ -14,10 +14,7 @@ export function serializeComponentIdentifier(componentIdentifier) {
   const { format, coordinates } = componentIdentifier,
     // use U+001F UNIT SEPARATOR to separate coordinate field names from values, and use U+001E RECORD SEPARATOR to
     // separate the key/value pairs from each other
-    coordinatePairStrings = map(
-      join('\u001f'),
-      sortBy(prop(0), toPairs(coordinates))
-    ),
+    coordinatePairStrings = map(join('\u001f'), sortBy(prop(0), toPairs(coordinates))),
     coordinatesString = join('\u001e', coordinatePairStrings);
 
   return `${format}:${coordinatesString}`;

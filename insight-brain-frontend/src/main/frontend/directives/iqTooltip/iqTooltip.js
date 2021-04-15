@@ -51,8 +51,7 @@ var iqTooltip = function ($timeout, $window) {
           var overflowElement = attrs.tooltipOverflowElementSelector
             ? element[0].querySelector(attrs.tooltipOverflowElementSelector)
             : element[0];
-          overflowFlag =
-            overflowElement.scrollWidth > overflowElement.clientWidth;
+          overflowFlag = overflowElement.scrollWidth > overflowElement.clientWidth;
         }
         return overflowFlag;
       }

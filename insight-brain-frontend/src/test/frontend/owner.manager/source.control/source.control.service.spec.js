@@ -7,17 +7,11 @@ import clmLocationModule from '../../../../main/frontend/util/CLMLocation';
 import sourceControlModule from '../../../../main/frontend/owner.manager/source.control/module';
 
 describe('SourceControlService', function () {
-  beforeEach(
-    angular.mock.module(sourceControlModule.name, clmLocationModule.name)
-  );
+  beforeEach(angular.mock.module(sourceControlModule.name, clmLocationModule.name));
 
   let SourceControlService, CLMLocations, $httpBackend, successSpy, failSpy;
 
-  beforeEach(inject(function (
-    _SourceControlService_,
-    _CLMLocations_,
-    _$httpBackend_
-  ) {
+  beforeEach(inject(function (_SourceControlService_, _CLMLocations_, _$httpBackend_) {
     SourceControlService = _SourceControlService_;
     CLMLocations = _CLMLocations_;
     $httpBackend = _$httpBackend_;
@@ -44,51 +38,31 @@ describe('SourceControlService', function () {
     };
 
     it('returns the source control record with inherited fields for an organization', function () {
-      SourceControlService.getCompositeSourceControlRecord(
-        'organization',
-        'ORGANIZATION_ID'
-      )
+      SourceControlService.getCompositeSourceControlRecord('organization', 'ORGANIZATION_ID')
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getCompositeSourceControlUrl(
-            'organization',
-            'ORGANIZATION_ID'
-          )
-        )
+        .expectGET(CLMLocations.getCompositeSourceControlUrl('organization', 'ORGANIZATION_ID'))
         .respond(resultOrgRecord);
       $httpBackend.flush();
 
-      expect(successSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining(resultOrgRecord)
-      );
+      expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining(resultOrgRecord));
       expect(failSpy).not.toHaveBeenCalled();
     });
 
     it('returns 404 on a failed request', function () {
-      SourceControlService.getCompositeSourceControlRecord(
-        'organization',
-        'non-existent'
-      )
+      SourceControlService.getCompositeSourceControlRecord('organization', 'non-existent')
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getCompositeSourceControlUrl(
-            'organization',
-            'non-existent'
-          )
-        )
+        .expectGET(CLMLocations.getCompositeSourceControlUrl('organization', 'non-existent'))
         .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
-      expect(failSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 404, data: 'not found' })
-      );
+      expect(failSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 404, data: 'not found' }));
     });
   });
 
@@ -107,48 +81,26 @@ describe('SourceControlService', function () {
     };
 
     it('creates the source control record for an organization', function () {
-      SourceControlService.addSourceControlRecord(
-        'organization',
-        'ROOT_ORGANIZATION_ID',
-        orgRecord
-      )
+      SourceControlService.addSourceControlRecord('organization', 'ROOT_ORGANIZATION_ID', orgRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPOST(
-          CLMLocations.getSourceControlUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          ),
-          inputOrgRecord
-        )
+        .expectPOST(CLMLocations.getSourceControlUrl('organization', 'ROOT_ORGANIZATION_ID'), inputOrgRecord)
         .respond(orgRecord);
       $httpBackend.flush();
 
-      expect(successSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining(orgRecord)
-      );
+      expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining(orgRecord));
       expect(failSpy).not.toHaveBeenCalled();
     });
 
     it('returns 400 on a failed request', function () {
-      SourceControlService.addSourceControlRecord(
-        'organization',
-        'ROOT_ORGANIZATION_ID',
-        orgRecord
-      )
+      SourceControlService.addSourceControlRecord('organization', 'ROOT_ORGANIZATION_ID', orgRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPOST(
-          CLMLocations.getSourceControlUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          ),
-          inputOrgRecord
-        )
+        .expectPOST(CLMLocations.getSourceControlUrl('organization', 'ROOT_ORGANIZATION_ID'), inputOrgRecord)
         .respond(400, 'SourceControl already exists');
       $httpBackend.flush();
 
@@ -162,29 +114,17 @@ describe('SourceControlService', function () {
     });
 
     it('returns 404 on a failed request', function () {
-      SourceControlService.addSourceControlRecord(
-        'organization',
-        'ROOT_ORGANIZATION_ID',
-        orgRecord
-      )
+      SourceControlService.addSourceControlRecord('organization', 'ROOT_ORGANIZATION_ID', orgRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPOST(
-          CLMLocations.getSourceControlUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          ),
-          inputOrgRecord
-        )
+        .expectPOST(CLMLocations.getSourceControlUrl('organization', 'ROOT_ORGANIZATION_ID'), inputOrgRecord)
         .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
-      expect(failSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 404, data: 'not found' })
-      );
+      expect(failSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 404, data: 'not found' }));
     });
   });
 
@@ -203,48 +143,26 @@ describe('SourceControlService', function () {
     };
 
     it('updates the source control record for an organization', function () {
-      SourceControlService.updateSourceControlRecord(
-        'organization',
-        'ROOT_ORGANIZATION_ID',
-        orgRecord
-      )
+      SourceControlService.updateSourceControlRecord('organization', 'ROOT_ORGANIZATION_ID', orgRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPUT(
-          CLMLocations.getSourceControlUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          ),
-          inputOrgRecord
-        )
+        .expectPUT(CLMLocations.getSourceControlUrl('organization', 'ROOT_ORGANIZATION_ID'), inputOrgRecord)
         .respond(orgRecord);
       $httpBackend.flush();
 
-      expect(successSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining(orgRecord)
-      );
+      expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining(orgRecord));
       expect(failSpy).not.toHaveBeenCalled();
     });
 
     it('returns 400 on a failed request', function () {
-      SourceControlService.updateSourceControlRecord(
-        'organization',
-        'ROOT_ORGANIZATION_ID',
-        orgRecord
-      )
+      SourceControlService.updateSourceControlRecord('organization', 'ROOT_ORGANIZATION_ID', orgRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPUT(
-          CLMLocations.getSourceControlUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          ),
-          inputOrgRecord
-        )
+        .expectPUT(CLMLocations.getSourceControlUrl('organization', 'ROOT_ORGANIZATION_ID'), inputOrgRecord)
         .respond(400, 'SourceControl provider is invalid');
       $httpBackend.flush();
 
@@ -258,45 +176,26 @@ describe('SourceControlService', function () {
     });
 
     it('returns 404 on a failed request', function () {
-      SourceControlService.updateSourceControlRecord(
-        'organization',
-        'ROOT_ORGANIZATION_ID',
-        orgRecord
-      )
+      SourceControlService.updateSourceControlRecord('organization', 'ROOT_ORGANIZATION_ID', orgRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPUT(
-          CLMLocations.getSourceControlUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          ),
-          inputOrgRecord
-        )
+        .expectPUT(CLMLocations.getSourceControlUrl('organization', 'ROOT_ORGANIZATION_ID'), inputOrgRecord)
         .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
-      expect(failSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 404, data: 'not found' })
-      );
+      expect(failSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 404, data: 'not found' }));
     });
   });
 
   describe('deleteSourceControlRecord_ForOrg', function () {
     it('deletes the source control record for an organization', function () {
-      SourceControlService.deleteSourceControlRecord(
-        'organization',
-        'ORGANIZATION_ID'
-      )
-        .then(successSpy)
-        .catch(failSpy);
+      SourceControlService.deleteSourceControlRecord('organization', 'ORGANIZATION_ID').then(successSpy).catch(failSpy);
 
       $httpBackend
-        .expectDELETE(
-          CLMLocations.getSourceControlUrl('organization', 'ORGANIZATION_ID')
-        )
+        .expectDELETE(CLMLocations.getSourceControlUrl('organization', 'ORGANIZATION_ID'))
         .respond('no content');
       $httpBackend.flush();
 
@@ -305,24 +204,15 @@ describe('SourceControlService', function () {
     });
 
     it('returns 404 on a failed request', function () {
-      SourceControlService.deleteSourceControlRecord(
-        'organization',
-        'non-existent'
-      )
-        .then(successSpy)
-        .catch(failSpy);
+      SourceControlService.deleteSourceControlRecord('organization', 'non-existent').then(successSpy).catch(failSpy);
 
       $httpBackend
-        .expectDELETE(
-          CLMLocations.getSourceControlUrl('organization', 'non-existent')
-        )
+        .expectDELETE(CLMLocations.getSourceControlUrl('organization', 'non-existent'))
         .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
-      expect(failSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 404, data: 'not found' })
-      );
+      expect(failSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 404, data: 'not found' }));
     });
   });
 
@@ -340,51 +230,31 @@ describe('SourceControlService', function () {
     };
 
     it('returns the source control record with inherited fields for an application', function () {
-      SourceControlService.getCompositeSourceControlRecord(
-        'application',
-        'APPLICATION_ID'
-      )
+      SourceControlService.getCompositeSourceControlRecord('application', 'APPLICATION_ID')
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getCompositeSourceControlUrl(
-            'application',
-            'APPLICATION_ID'
-          )
-        )
+        .expectGET(CLMLocations.getCompositeSourceControlUrl('application', 'APPLICATION_ID'))
         .respond(resultAppRecord);
       $httpBackend.flush();
 
-      expect(successSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining(resultAppRecord)
-      );
+      expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining(resultAppRecord));
       expect(failSpy).not.toHaveBeenCalled();
     });
 
     it('returns 404 on a failed request', function () {
-      SourceControlService.getCompositeSourceControlRecord(
-        'APPLICATION_ID',
-        'non-existent'
-      )
+      SourceControlService.getCompositeSourceControlRecord('APPLICATION_ID', 'non-existent')
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getCompositeSourceControlUrl(
-            'APPLICATION_ID',
-            'non-existent'
-          )
-        )
+        .expectGET(CLMLocations.getCompositeSourceControlUrl('APPLICATION_ID', 'non-existent'))
         .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
-      expect(failSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 404, data: 'not found' })
-      );
+      expect(failSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 404, data: 'not found' }));
     });
   });
 
@@ -397,23 +267,14 @@ describe('SourceControlService', function () {
     };
 
     it('returns the source control validation record for an application', function () {
-      SourceControlService.validateCompositeSCMConfig(
-        'application',
-        'APPLICATION_ID'
-      )
-        .then(successSpy)
-        .catch(failSpy);
+      SourceControlService.validateCompositeSCMConfig('application', 'APPLICATION_ID').then(successSpy).catch(failSpy);
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getValidateScmConfigUrl('application', 'APPLICATION_ID')
-        )
+        .expectGET(CLMLocations.getValidateScmConfigUrl('application', 'APPLICATION_ID'))
         .respond(resultSourceControlValidationResult);
       $httpBackend.flush();
 
-      expect(successSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining(resultSourceControlValidationResult)
-      );
+      expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining(resultSourceControlValidationResult));
       expect(failSpy).not.toHaveBeenCalled();
     });
   });
@@ -433,42 +294,26 @@ describe('SourceControlService', function () {
     };
 
     it('creates the source control record for an application', function () {
-      SourceControlService.addSourceControlRecord(
-        'application',
-        'APPLICATION_ID',
-        appRecord
-      )
+      SourceControlService.addSourceControlRecord('application', 'APPLICATION_ID', appRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPOST(
-          CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'),
-          inputAppRecord
-        )
+        .expectPOST(CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'), inputAppRecord)
         .respond(appRecord);
       $httpBackend.flush();
 
-      expect(successSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining(appRecord)
-      );
+      expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining(appRecord));
       expect(failSpy).not.toHaveBeenCalled();
     });
 
     it('returns 400 on a failed request', function () {
-      SourceControlService.addSourceControlRecord(
-        'application',
-        'APPLICATION_ID',
-        appRecord
-      )
+      SourceControlService.addSourceControlRecord('application', 'APPLICATION_ID', appRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPOST(
-          CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'),
-          inputAppRecord
-        )
+        .expectPOST(CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'), inputAppRecord)
         .respond(400, 'SourceControl already exists');
       $httpBackend.flush();
 
@@ -482,26 +327,17 @@ describe('SourceControlService', function () {
     });
 
     it('returns 404 on a failed request', function () {
-      SourceControlService.addSourceControlRecord(
-        'application',
-        'non-existent',
-        appRecord
-      )
+      SourceControlService.addSourceControlRecord('application', 'non-existent', appRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPOST(
-          CLMLocations.getSourceControlUrl('application', 'non-existent'),
-          inputAppRecord
-        )
+        .expectPOST(CLMLocations.getSourceControlUrl('application', 'non-existent'), inputAppRecord)
         .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
-      expect(failSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 404, data: 'not found' })
-      );
+      expect(failSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 404, data: 'not found' }));
     });
   });
 
@@ -520,42 +356,26 @@ describe('SourceControlService', function () {
     };
 
     it('updates the source control record for an application', function () {
-      SourceControlService.updateSourceControlRecord(
-        'application',
-        'APPLICATION_ID',
-        appRecord
-      )
+      SourceControlService.updateSourceControlRecord('application', 'APPLICATION_ID', appRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPUT(
-          CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'),
-          inputAppRecord
-        )
+        .expectPUT(CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'), inputAppRecord)
         .respond(appRecord);
       $httpBackend.flush();
 
-      expect(successSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining(appRecord)
-      );
+      expect(successSpy).toHaveBeenCalledWith(jasmine.objectContaining(appRecord));
       expect(failSpy).not.toHaveBeenCalled();
     });
 
     it('returns 400 on a failed request', function () {
-      SourceControlService.updateSourceControlRecord(
-        'application',
-        'APPLICATION_ID',
-        appRecord
-      )
+      SourceControlService.updateSourceControlRecord('application', 'APPLICATION_ID', appRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPUT(
-          CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'),
-          inputAppRecord
-        )
+        .expectPUT(CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'), inputAppRecord)
         .respond(400, 'SourceControl provider is invalid');
       $httpBackend.flush();
 
@@ -569,42 +389,26 @@ describe('SourceControlService', function () {
     });
 
     it('returns 404 on a failed request', function () {
-      SourceControlService.updateSourceControlRecord(
-        'application',
-        'non-existent',
-        appRecord
-      )
+      SourceControlService.updateSourceControlRecord('application', 'non-existent', appRecord)
         .then(successSpy)
         .catch(failSpy);
 
       $httpBackend
-        .expectPUT(
-          CLMLocations.getSourceControlUrl('application', 'non-existent'),
-          inputAppRecord
-        )
+        .expectPUT(CLMLocations.getSourceControlUrl('application', 'non-existent'), inputAppRecord)
         .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
-      expect(failSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 404, data: 'not found' })
-      );
+      expect(failSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 404, data: 'not found' }));
     });
   });
 
   describe('deleteSourceControlRecord_ForApp', function () {
     it('deletes the source control record for an application', function () {
-      SourceControlService.deleteSourceControlRecord(
-        'application',
-        'APPLICATION_ID'
-      )
-        .then(successSpy)
-        .catch(failSpy);
+      SourceControlService.deleteSourceControlRecord('application', 'APPLICATION_ID').then(successSpy).catch(failSpy);
 
       $httpBackend
-        .expectDELETE(
-          CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID')
-        )
+        .expectDELETE(CLMLocations.getSourceControlUrl('application', 'APPLICATION_ID'))
         .respond('no content');
       $httpBackend.flush();
 
@@ -613,24 +417,15 @@ describe('SourceControlService', function () {
     });
 
     it('returns 404 on a failed request', function () {
-      SourceControlService.deleteSourceControlRecord(
-        'application',
-        'non-existent'
-      )
-        .then(successSpy)
-        .catch(failSpy);
+      SourceControlService.deleteSourceControlRecord('application', 'non-existent').then(successSpy).catch(failSpy);
 
       $httpBackend
-        .expectDELETE(
-          CLMLocations.getSourceControlUrl('application', 'non-existent')
-        )
+        .expectDELETE(CLMLocations.getSourceControlUrl('application', 'non-existent'))
         .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
-      expect(failSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 404, data: 'not found' })
-      );
+      expect(failSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 404, data: 'not found' }));
     });
   });
 });

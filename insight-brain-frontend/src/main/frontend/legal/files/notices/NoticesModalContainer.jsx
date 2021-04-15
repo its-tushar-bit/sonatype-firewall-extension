@@ -4,10 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import {
-  setObligationScope,
-  setObligationStatus,
-} from '../../obligation/advancedLegalObligationActions';
+import { setObligationScope, setObligationStatus } from '../../obligation/advancedLegalObligationActions';
 
 import NoticesModal from './NoticesModal';
 import {
@@ -21,17 +18,12 @@ import {
 
 function mapStateToProps({ advancedLegal }) {
   return {
-    scope:
-      advancedLegal.component.component.licenseLegalData
-        .componentNoticesScopeOwnerId,
-    originalScope:
-      advancedLegal.component.component.licenseLegalData
-        .originalComponentNoticesScopeOwnerId,
+    scope: advancedLegal.component.component.licenseLegalData.componentNoticesScopeOwnerId,
+    originalScope: advancedLegal.component.component.licenseLegalData.originalComponentNoticesScopeOwnerId,
     availableScopes: advancedLegal.availableScopes,
     notices: advancedLegal.component.component.licenseLegalData.noticeFiles,
     error: advancedLegal.component.component.licenseLegalData.noticesError,
-    submitMaskState:
-      advancedLegal.component.component.licenseLegalData.saveNoticesSubmitMask,
+    submitMaskState: advancedLegal.component.component.licenseLegalData.saveNoticesSubmitMask,
     existingObligation: advancedLegal.component.component.licenseLegalData.obligations.find(
       (o) => o.name === 'Inclusion of Notice'
     ),

@@ -5,12 +5,7 @@
  */
 import template from './iqOrgAppPickerAngular.html';
 
-import {
-  isSelected,
-  areAllSelected,
-  groupAppsByOrgId,
-  selectedMapToSet,
-} from './utils';
+import { isSelected, areAllSelected, groupAppsByOrgId, selectedMapToSet } from './utils';
 
 const iqOrgAppPickerAngular = {
   template,
@@ -34,10 +29,7 @@ function IqOrgAppPickerAngularController() {
   vm.onSelectedOrganizationsChange = onSelectedOrganizationsChange;
   vm.onSelectedApplicationsChange = onSelectedApplicationsChange;
 
-  vm.$onChanges = function ({
-    providedSelectedOrganizations,
-    providedSelectedApplications,
-  }) {
+  vm.$onChanges = function ({ providedSelectedOrganizations, providedSelectedApplications }) {
     if (providedSelectedOrganizations) {
       vm.selectedOrganizations =
         providedSelectedOrganizations.currentValue instanceof Set
@@ -59,10 +51,7 @@ function IqOrgAppPickerAngularController() {
   }
 
   function onSelectedOrganizationsChange(selectedOrganizations, toggledOrg) {
-    const selectedApplications = selectApplications(
-      selectedOrganizations,
-      toggledOrg
-    );
+    const selectedApplications = selectApplications(selectedOrganizations, toggledOrg);
     vm.onChange({ selectedOrganizations, selectedApplications });
   }
 
@@ -95,10 +84,7 @@ function IqOrgAppPickerAngularController() {
       return apps;
     } else {
       // if Org was toggled and deselected && all related apps are selected - deselect all related apps
-      if (
-        orgId === toggledOrg &&
-        areAllSelected(vm.selectedApplications, apps)
-      ) {
+      if (orgId === toggledOrg && areAllSelected(vm.selectedApplications, apps)) {
         return [];
       }
       return apps.filter(isSelected(vm.selectedApplications));
@@ -110,14 +96,10 @@ function IqOrgAppPickerAngularController() {
    * @param selectedApps map of selected apps
    */
   const shouldOrgBeSelected = (selectedApps) => (org) => {
-    const relatedApps = vm.applications.filter(
-      (app) => app.organizationId === org.id
-    );
+    const relatedApps = vm.applications.filter((app) => app.organizationId === org.id);
     const hasApps = relatedApps.length !== 0;
 
     // deselect an Org only if it has apps and not all of them are selected
-    return areAllSelected(selectedApps, relatedApps) || !hasApps
-      ? vm.selectedOrganizations.has(org.id)
-      : false;
+    return areAllSelected(selectedApps, relatedApps) || !hasApps ? vm.selectedOrganizations.has(org.id) : false;
   };
 }

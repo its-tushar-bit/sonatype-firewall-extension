@@ -3,12 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ProprietaryMatchersModalController(
-  $scope,
-  ownerAppId,
-  pathNames,
-  ProprietaryMatchersService
-) {
+export default function ProprietaryMatchersModalController($scope, ownerAppId, pathNames, ProprietaryMatchersService) {
   var vm = this;
 
   vm.addMatchersForm = undefined;
@@ -66,29 +61,16 @@ export default function ProprietaryMatchersModalController(
       return;
     }
 
-    vm.formMask
-      .wrap(
-        ProprietaryMatchersService.addComponentMatchers(
-          ownerAppId,
-          vm.selectedPathNames,
-          vm.regex
-        )
-      )
-      .then(
-        function () {
-          $scope.$close();
-          delete vm.error;
-        },
-        function (error) {
-          vm.error = error;
-        }
-      );
+    vm.formMask.wrap(ProprietaryMatchersService.addComponentMatchers(ownerAppId, vm.selectedPathNames, vm.regex)).then(
+      function () {
+        $scope.$close();
+        delete vm.error;
+      },
+      function (error) {
+        vm.error = error;
+      }
+    );
   }
 }
 
-ProprietaryMatchersModalController.$inject = [
-  '$scope',
-  'ownerAppId',
-  'pathNames',
-  'proprietary.matchers.service',
-];
+ProprietaryMatchersModalController.$inject = ['$scope', 'ownerAppId', 'pathNames', 'proprietary.matchers.service'];

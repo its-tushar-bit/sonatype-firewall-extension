@@ -14,8 +14,7 @@ export default function OwnerContext($rootScope) {
         if (newApplicationId) {
           var date = new Date();
           date.setTime(date.getTime() + 60 * 60 * 24 * 365);
-          document.cookie =
-            'clmAppId=' + newApplicationId + '; expires=' + date.toGMTString();
+          document.cookie = 'clmAppId=' + newApplicationId + '; expires=' + date.toGMTString();
         } else {
           document.cookie = 'clmAppId=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
         }

@@ -10,10 +10,7 @@ import clmContextLocationModule from '../../util/CLMContextLocation';
 import utilityModule from '../../utility/utility.module';
 
 export default angular
-  .module('retentionModule', [
-    clmContextLocationModule.name,
-    utilityModule.name,
-  ])
+  .module('retentionModule', [clmContextLocationModule.name, utilityModule.name])
   .service('retentionService', retentionService)
   .component('retentionTile', retentionTile)
   .component('retentionEditor', retentionEditor);

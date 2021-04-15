@@ -6,31 +6,15 @@
 import React, { Fragment } from 'react';
 import { componentCopyrightDetailsPropType } from '../advancedLegalPropTypes';
 import { pageCount, pageRange } from './copyrightDetailsUtils';
-import {
-  NxLoadWrapper,
-  NxPagination,
-  NxTreeView,
-} from '@sonatype/react-shared-components';
+import { NxLoadWrapper, NxPagination, NxTreeView } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 export default function CopyrightFilesTile(props) {
-  const {
-    componentCopyrightDetails,
-    loadCopyrightContexts,
-    hideCopyrightContext,
-    pageChange,
-  } = props;
+  const { componentCopyrightDetails, loadCopyrightContexts, hideCopyrightContext, pageChange } = props;
 
   function filePathTitle(filePath) {
-    const multiMatchSuffix =
-      filePath.copyrightMatches > 1
-        ? ` (${filePath.copyrightMatches} matches)`
-        : '';
-    return (
-      <span className="truncate-ellipsis-left">
-        {`${filePath.filePath}${multiMatchSuffix}`}
-      </span>
-    );
+    const multiMatchSuffix = filePath.copyrightMatches > 1 ? ` (${filePath.copyrightMatches} matches)` : '';
+    return <span className="truncate-ellipsis-left">{`${filePath.filePath}${multiMatchSuffix}`}</span>;
   }
 
   function isFilePathOpen(filePath) {
@@ -61,14 +45,8 @@ export default function CopyrightFilesTile(props) {
         loading={componentCopyrightDetails.loadingCopyrightContext}
       >
         {componentCopyrightDetails.copyrightContexts.map((context, index) => (
-          <blockquote
-            key={index}
-            className="nx-blockquote copyright-preformatted"
-          >
-            {highlightCopyright(
-              context,
-              componentCopyrightDetails.selectedCopyright.content
-            )}
+          <blockquote key={index} className="nx-blockquote copyright-preformatted">
+            {highlightCopyright(context, componentCopyrightDetails.selectedCopyright.content)}
           </blockquote>
         ))}
       </NxLoadWrapper>
@@ -99,19 +77,13 @@ export default function CopyrightFilesTile(props) {
   }
 
   function hasFilePaths() {
-    return (
-      componentCopyrightDetails.filePaths &&
-      componentCopyrightDetails.filePaths.length > 0
-    );
+    return componentCopyrightDetails.filePaths && componentCopyrightDetails.filePaths.length > 0;
   }
 
   function showingPathsHeader() {
     if (hasFilePaths() && !componentCopyrightDetails.loadingFilePaths) {
       return `Showing 
-          ${pageRange(
-            componentCopyrightDetails.filePathsPage,
-            componentCopyrightDetails.filePaths
-          )} of 
+          ${pageRange(componentCopyrightDetails.filePathsPage, componentCopyrightDetails.filePaths)} of 
           ${componentCopyrightDetails.totalFileMatches} file paths`;
     }
     return '';
@@ -130,14 +102,10 @@ export default function CopyrightFilesTile(props) {
   }
 
   function filePathsPage() {
-    const filePathPageCount = pageCount(
-      componentCopyrightDetails.totalFileMatches
-    );
+    const filePathPageCount = pageCount(componentCopyrightDetails.totalFileMatches);
     return (
       <Fragment>
-        {componentCopyrightDetails.filePaths.map((path, index) =>
-          createFilePathItem(index, path)
-        )}
+        {componentCopyrightDetails.filePaths.map((path, index) => createFilePathItem(index, path))}
         {filePathsPagination(filePathPageCount)}
       </Fragment>
     );
@@ -147,9 +115,7 @@ export default function CopyrightFilesTile(props) {
     return hasFilePaths() ? (
       filePathsPage()
     ) : (
-      <div className="copyright-no-files">
-        No file paths to display for manually added copyrights
-      </div>
+      <div className="copyright-no-files">No file paths to display for manually added copyrights</div>
     );
   }
 
@@ -163,9 +129,7 @@ export default function CopyrightFilesTile(props) {
       <div className="nx-tile-content">
         <p className="nx-p">{showingPathsHeader()}</p>
         <NxLoadWrapper
-          retryHandler={() =>
-            pageChange(componentCopyrightDetails.filePathsPage)
-          }
+          retryHandler={() => pageChange(componentCopyrightDetails.filePathsPage)}
           error={componentCopyrightDetails.errorFilePaths}
           loading={componentCopyrightDetails.loadingFilePaths}
         >

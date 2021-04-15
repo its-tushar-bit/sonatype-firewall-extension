@@ -6,33 +6,23 @@
 import * as enzymeUtils from '../enzymeUtils';
 
 describe('ViolationDetailsSubtitle', function () {
-  let getComponentNameMock,
-    ViolationDetailsSubtitle,
-    minimalProps,
-    getShallowComponent;
+  let getComponentNameMock, ViolationDetailsSubtitle, minimalProps, getShallowComponent;
 
   beforeEach(function () {
-    getComponentNameMock = jasmine
-      .createSpy('getComponentName')
-      .and.returnValue('foo : bar');
+    getComponentNameMock = jasmine.createSpy('getComponentName').and.returnValue('foo : bar');
 
     minimalProps = {
       organizationName: 'Org 1',
       applicationName: 'App 1',
     };
 
-    ViolationDetailsSubtitle = require('inject-loader!../../../main/frontend/violation/ViolationDetailsSubtitle')(
-      {
-        '../util/componentNameUtils': {
-          getComponentName: getComponentNameMock,
-        },
-      }
-    ).default;
+    ViolationDetailsSubtitle = require('inject-loader!../../../main/frontend/violation/ViolationDetailsSubtitle')({
+      '../util/componentNameUtils': {
+        getComponentName: getComponentNameMock,
+      },
+    }).default;
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ViolationDetailsSubtitle,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ViolationDetailsSubtitle, minimalProps);
   });
 
   it('renders a nx-tile-header__subtitle', function () {
@@ -41,9 +31,7 @@ describe('ViolationDetailsSubtitle', function () {
 
   describe('organization name part', function () {
     it('renders and icon and the org name as the first iq-violation-details__subtitle-part', function () {
-      const part = getShallowComponent()
-        .find('.iq-violation-details__subtitle-part')
-        .at(0);
+      const part = getShallowComponent().find('.iq-violation-details__subtitle-part').at(0);
 
       expect(part).toExist();
       expect(part).toHaveText('<NxFontAwesomeIcon />Org 1');
@@ -52,9 +40,7 @@ describe('ViolationDetailsSubtitle', function () {
 
   describe('application name part', function () {
     it('renders and icon and the app name as the second iq-violation-details__subtitle-part', function () {
-      const part = getShallowComponent()
-        .find('.iq-violation-details__subtitle-part')
-        .at(1);
+      const part = getShallowComponent().find('.iq-violation-details__subtitle-part').at(1);
 
       expect(part).toExist();
       expect(part).toHaveText('<NxFontAwesomeIcon />App 1');
@@ -63,9 +49,7 @@ describe('ViolationDetailsSubtitle', function () {
 
   describe('component name part', function () {
     it('renders and icon and the component name as the third iq-violation-details__subtitle-part', function () {
-      const part = getShallowComponent()
-        .find('.iq-violation-details__subtitle-part')
-        .at(2);
+      const part = getShallowComponent().find('.iq-violation-details__subtitle-part').at(2);
 
       expect(part).toExist();
       expect(part).toHaveText('<NxFontAwesomeIcon />foo : bar');
@@ -80,9 +64,7 @@ describe('ViolationDetailsSubtitle', function () {
 
       getShallowComponent(nameProps);
 
-      expect(getComponentNameMock).toHaveBeenCalledWith(
-        jasmine.objectContaining(nameProps)
-      );
+      expect(getComponentNameMock).toHaveBeenCalledWith(jasmine.objectContaining(nameProps));
     });
   });
 });

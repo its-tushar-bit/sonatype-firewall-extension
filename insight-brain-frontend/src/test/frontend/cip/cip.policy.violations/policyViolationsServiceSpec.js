@@ -32,9 +32,7 @@ describe('PolicyViolationsService', function () {
 
   describe('get', function () {
     it('uses "policythreats.json" relative to current url when called from within an iframe in report', function () {
-      $httpBackend
-        .expectGET(/^policythreats\.json\?timestamp=[0-9]+/)
-        .respond(200, { version: 3 });
+      $httpBackend.expectGET(/^policythreats\.json\?timestamp=[0-9]+/).respond(200, { version: 3 });
       policyViolationsService.get();
       expect($httpBackend.flush).not.toThrow();
     });
@@ -43,9 +41,7 @@ describe('PolicyViolationsService', function () {
       $state.params.scanId = 'testScanId';
       $state.params.publicId = 'testPublicId';
       $httpBackend
-        .expectGET(
-          /^\/rest\/report\/testPublicId\/testScanId\/browseReport\/policythreats\.json\?timestamp=[0-9]+/
-        )
+        .expectGET(/^\/rest\/report\/testPublicId\/testScanId\/browseReport\/policythreats\.json\?timestamp=[0-9]+/)
         .respond(200, { version: 3 });
       policyViolationsService.get();
       expect($httpBackend.flush).not.toThrow();

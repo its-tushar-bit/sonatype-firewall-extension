@@ -27,8 +27,7 @@ describe('LicensesModalContainer', function () {
         component: {
           component: {
             licenseLegalData: {
-              originalComponentLicensesScopeOwnerId:
-                'originalComponentLicensesScopeOwnerId',
+              originalComponentLicensesScopeOwnerId: 'originalComponentLicensesScopeOwnerId',
               componentLicensesScopeOwnerId: 'componentLicensesScopeOwnerId',
               licenseFiles: 'licenseFiles',
               licensesError: 'licensesError',
@@ -48,24 +47,12 @@ describe('LicensesModalContainer', function () {
         availableScopes: 'availableScopes',
       },
     };
-    cancelLicensesModalSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'cancelLicensesModalSpy' });
-    setLicenseContentSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'setLicenseContentSpy' });
-    setLicenseStatusSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'setLicenseStatusSpy' });
-    addLicenseSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'addLicenseSpy' });
-    setLicensesScopeSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'setLicensesScopeSpy' });
-    saveLicensesSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'saveLicensesSpy' });
+    cancelLicensesModalSpy = jasmine.createSpy().and.returnValue({ type: 'cancelLicensesModalSpy' });
+    setLicenseContentSpy = jasmine.createSpy().and.returnValue({ type: 'setLicenseContentSpy' });
+    setLicenseStatusSpy = jasmine.createSpy().and.returnValue({ type: 'setLicenseStatusSpy' });
+    addLicenseSpy = jasmine.createSpy().and.returnValue({ type: 'addLicenseSpy' });
+    setLicensesScopeSpy = jasmine.createSpy().and.returnValue({ type: 'setLicensesScopeSpy' });
+    saveLicensesSpy = jasmine.createSpy().and.returnValue({ type: 'saveLicensesSpy' });
     LicensesModalContainer = require('inject-loader!../../../../../main/frontend/legal/files/licenses/LicensesModalContainer')(
       {
         '../advancedLegalFileActions': {
@@ -85,10 +72,7 @@ describe('LicensesModalContainer', function () {
   it('maps the state slice to props', () => {
     const wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('scope', 'componentLicensesScopeOwnerId');
-    expect(wrapper).toHaveProp(
-      'originalScope',
-      'originalComponentLicensesScopeOwnerId'
-    );
+    expect(wrapper).toHaveProp('originalScope', 'originalComponentLicensesScopeOwnerId');
     expect(wrapper).toHaveProp('availableScopes', 'availableScopes');
     expect(wrapper).toHaveProp('licenses', 'licenseFiles');
     expect(wrapper).toHaveProp('error', 'licensesError');

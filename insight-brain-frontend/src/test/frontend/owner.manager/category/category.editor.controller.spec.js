@@ -8,17 +8,13 @@ import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigura
 
 describe('category.editor.controller.spec.js', function () {
   beforeEach(
-    angular.mock.module(
-      ownerManagerModule.name,
-      legacyConfigurationModule.name,
-      function ($provide) {
-        $provide.value('$cookies', {
-          get: angular.noop,
-        });
+    angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
 
-        $provide.value('$stateParams', {});
-      }
-    )
+      $provide.value('$stateParams', {});
+    })
   );
 
   var vm,
@@ -82,10 +78,7 @@ describe('category.editor.controller.spec.js', function () {
     expect(vm.siblings[2].id).toBe('c');
   });
 
-  it('Captures names of associated apps', inject(function (
-    $controller,
-    $stateParams
-  ) {
+  it('Captures names of associated apps', inject(function ($controller, $stateParams) {
     $stateParams.categoryId = 'testCatId';
 
     vm = $controller('category.editor.controller', {
@@ -93,13 +86,9 @@ describe('category.editor.controller.spec.js', function () {
       DeleteModalService: mockDeleteService,
     });
 
-    var spy = spyOn(mockDeleteService, 'deleteCustom').and.returnValue(
-      deleteServiceResourceDefer.promise
-    );
+    var spy = spyOn(mockDeleteService, 'deleteCustom').and.returnValue(deleteServiceResourceDefer.promise);
     mockCategory.id = 'testCatId';
-    mockCategoryStore.resolveGet([
-      { applicationCategories: [{ id: 'testCatId_neg' }, mockCategory] },
-    ]);
+    mockCategoryStore.resolveGet([{ applicationCategories: [{ id: 'testCatId_neg' }, mockCategory] }]);
     mockCategoryStore.resolveGetById(mockCategory);
     mockCategoryStore.resolveGetApplied({
       data: {
@@ -124,18 +113,14 @@ describe('category.editor.controller.spec.js', function () {
 
     vm.deleteCategory();
 
-    expect(spy.calls.mostRecent().args[1]).toMatch(
-      'in use by the following applications: Test App.'
-    );
+    expect(spy.calls.mostRecent().args[1]).toMatch('in use by the following applications: Test App.');
   }));
 
   it('Updates siblings list after creating new', function () {
     inject(function ($controller) {
       vm = $controller('category.editor.controller', { $scope: scope });
     });
-    resolveLoad([
-      { store: { create: function () {} }, applicationCategories: [] },
-    ]);
+    resolveLoad([{ store: { create: function () {} }, applicationCategories: [] }]);
     $timeout.flush();
     mockCategory.$new = true;
     vm.dirtyCategory = mockCategory;
@@ -151,10 +136,7 @@ describe('category.editor.controller.spec.js', function () {
     expect(vm.siblings.length).toBe(1);
   });
 
-  it('Finds match with URL parameter', inject(function (
-    $controller,
-    $stateParams
-  ) {
+  it('Finds match with URL parameter', inject(function ($controller, $stateParams) {
     $stateParams.categoryId = '456';
 
     vm = $controller('category.editor.controller', {
@@ -193,10 +175,7 @@ describe('category.editor.controller.spec.js', function () {
     expect(vm.submitError).toBe('dammit');
   }));
 
-  it('After delete goes to create new category', inject(function (
-    $controller,
-    $stateParams
-  ) {
+  it('After delete goes to create new category', inject(function ($controller, $stateParams) {
     $stateParams.categoryId = '1';
     vm = $controller('category.editor.controller', {
       $scope: scope,
@@ -212,9 +191,7 @@ describe('category.editor.controller.spec.js', function () {
     deleteServiceResourceDefer.resolve();
     $timeout.flush();
     // then
-    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith(
-      'create-category'
-    );
+    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-category');
     expect(mockCategory.$revert).toHaveBeenCalled();
   }));
 
@@ -271,9 +248,7 @@ describe('category.editor.controller.spec.js', function () {
     });
     mockCategoryStore.resolveGetApplied({
       data: {
-        applicationTagsByOwner: [
-          { applicationTags: [{ applicationId: 'testAppId' }] },
-        ],
+        applicationTagsByOwner: [{ applicationTags: [{ applicationId: 'testAppId' }] }],
       },
     });
   }

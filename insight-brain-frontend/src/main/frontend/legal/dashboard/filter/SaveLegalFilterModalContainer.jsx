@@ -31,8 +31,5 @@ function mapStateToProps({ manageLegalFilters }) {
   };
 }
 
-const SaveLegalFilterModalContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(SaveFilterModalContent);
+const SaveLegalFilterModalContainer = connect(mapStateToProps, mapDispatchToProps)(SaveFilterModalContent);
 export default SaveLegalFilterModalContainer;

@@ -14,12 +14,7 @@ export default {
   controller: ApplicationReportController,
 };
 
-export function ApplicationReportController(
-  $scope,
-  $ngRedux,
-  applicationReportActions,
-  Modal
-) {
+export function ApplicationReportController($scope, $ngRedux, applicationReportActions, Modal) {
   const vm = this;
 
   let reevaluationErrorModal = undefined;
@@ -109,9 +104,4 @@ function mapStateToThis(state) {
   );
 }
 
-ApplicationReportController.$inject = [
-  '$scope',
-  '$ngRedux',
-  'applicationReportActions',
-  'Modal',
-];
+ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions', 'Modal'];

@@ -12,11 +12,7 @@ export default {
   controller: ApplicationReportRootController,
 };
 
-function ApplicationReportRootController(
-  $state,
-  $ngRedux,
-  applicationReportActions
-) {
+function ApplicationReportRootController($state, $ngRedux, applicationReportActions) {
   const vm = this;
 
   Object.assign(vm, {
@@ -38,8 +34,4 @@ function ApplicationReportRootController(
   });
 }
 
-ApplicationReportRootController.$inject = [
-  '$state',
-  '$ngRedux',
-  'applicationReportActions',
-];
+ApplicationReportRootController.$inject = ['$state', '$ngRedux', 'applicationReportActions'];

@@ -83,24 +83,13 @@ function AppSecurityController($scope, $http, clmAppLocations, isAuthorized) {
   $scope.doLoad();
 }
 
-AppSecurityController.$inject = [
-  '$scope',
-  '$http',
-  'CLMContextLocations',
-  'isAuthorized',
-];
+AppSecurityController.$inject = ['$scope', '$http', 'CLMContextLocations', 'isAuthorized'];
 
 /**
  * Controller for the editor component of each row of the Administration Roles table.  This essentially
  * manages a role-management directive along with some submissions buttons
  */
-function AppSecurityEditorController(
-  $scope,
-  $http,
-  Dialog,
-  clmAppLocations,
-  Messages
-) {
+function AppSecurityEditorController($scope, $http, Dialog, clmAppLocations, Messages) {
   $scope.alerts = [];
   $scope.$watch('role', function (newVal) {
     if (newVal) {
@@ -118,8 +107,7 @@ function AppSecurityEditorController(
     if ($scope.isDirty()) {
       Dialog.open({
         title: 'Unsaved Changes',
-        body:
-          'This role may contain unsaved changes, continuing will discard them.',
+        body: 'This role may contain unsaved changes, continuing will discard them.',
         buttons: [
           {
             name: 'Continue',
@@ -146,20 +134,18 @@ function AppSecurityEditorController(
     if ($scope.isDirty()) {
       currentMembers = $scope.getCurrentMembersToSave();
 
-      return $http
-        .put(clmAppLocations.getRoleMappingUrl(roleId), currentMembers)
-        .then(
-          function () {
-            $scope.$emit('roleSaveComplete', roleId, currentMembers);
-            $scope.hide();
-          },
-          function (error) {
-            $scope.alerts.push({
-              type: 'error',
-              msg: Messages.getHttpErrorMessage(error),
-            });
-          }
-        );
+      return $http.put(clmAppLocations.getRoleMappingUrl(roleId), currentMembers).then(
+        function () {
+          $scope.$emit('roleSaveComplete', roleId, currentMembers);
+          $scope.hide();
+        },
+        function (error) {
+          $scope.alerts.push({
+            type: 'error',
+            msg: Messages.getHttpErrorMessage(error),
+          });
+        }
+      );
     } else {
       $scope.hide();
     }
@@ -168,13 +154,7 @@ function AppSecurityEditorController(
   //isDirty bound from role.membership.controller
 }
 
-AppSecurityEditorController.$inject = [
-  '$scope',
-  '$http',
-  'Dialog',
-  'CLMContextLocations',
-  'Messages',
-];
+AppSecurityEditorController.$inject = ['$scope', '$http', 'Dialog', 'CLMContextLocations', 'Messages'];
 
 function AppSecurityEditorDirective() {
   return {
@@ -191,12 +171,7 @@ function AppSecurityEditorDirective() {
 export default angular //
   .module(
     'ApplicationSecurityModule', //
-    [
-      commonServicesModule.name,
-      angularCommonModule.name,
-      CLMContextLocationModule.name,
-      'role.membership.module',
-    ]
+    [commonServicesModule.name, angularCommonModule.name, CLMContextLocationModule.name, 'role.membership.module']
   )
   .controller('AppSecurityController', AppSecurityController) //
   .controller('AppSecurityEditorController', AppSecurityEditorController) //

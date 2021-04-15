@@ -10,8 +10,7 @@ const accessMockData = {
         {
           roleId: '2cb71b3468d649789163ea2e212b5411',
           roleName: 'Test Role',
-          roleDescription:
-            'Evaluates applications and views policy violation summary results.',
+          roleDescription: 'Evaluates applications and views policy violation summary results.',
           membersByOwner: [
             {
               ownerId: 'asdf',

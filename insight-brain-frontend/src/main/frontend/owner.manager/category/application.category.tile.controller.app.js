@@ -33,14 +33,8 @@ export default function ApplicationCategoryTileControllerApp(
     if (vm.isApp) {
       $q.all([
         ApplicationStore[vm.error ? 'refresh' : 'get'](),
-        $http.get(
-          CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())
-        ),
-        $http.get(
-          CLMLocations.getApplicableOrganizationTags(
-            CLMContextLocations.getEntityId()
-          )
-        ),
+        $http.get(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())),
+        $http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId())),
       ]).then(
         function (results) {
           results[0].forEach(function (candidate) {
@@ -53,10 +47,7 @@ export default function ApplicationCategoryTileControllerApp(
           vm.areAnyCategoriesDefined = results[2].data.length > 0;
 
           if (!vm.ownerName) {
-            vm.error =
-              'Could not find an application with ID ' +
-              CLMContextLocations.getEntityId() +
-              '.';
+            vm.error = 'Could not find an application with ID ' + CLMContextLocations.getEntityId() + '.';
           }
         },
         function (error) {

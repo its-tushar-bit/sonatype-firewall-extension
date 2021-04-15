@@ -40,13 +40,7 @@ export default function DeleteModalService(Modal) {
     }).result;
   }
 
-  function DeleteCustom(
-    headerText,
-    bodyText,
-    maskText,
-    continueAction,
-    dismissOnError
-  ) {
+  function DeleteCustom(headerText, bodyText, maskText, continueAction, dismissOnError) {
     return Modal.open({
       animation: false,
       backdrop: 'static',
@@ -86,13 +80,7 @@ export default function DeleteModalService(Modal) {
    * `deleting` boolean for whether the delete is currently in progress
    * `success` boolean for whether the delete was successful
    */
-  function DeleteRedux(
-    headerText,
-    bodyText,
-    maskText,
-    continueAction,
-    stateMapper
-  ) {
+  function DeleteRedux(headerText, bodyText, maskText, continueAction, stateMapper) {
     return Modal.open({
       animation: false,
       backdrop: 'static',

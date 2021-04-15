@@ -26,11 +26,7 @@ const pairToURIParam = compose(join('='), map(encodeURIComponent));
  * {k: String} -> String
  * Converts object to URI params string omitting empty values
  */
-export const toURIParams = compose(
-  join('&'),
-  map(pairToURIParam),
-  toNonNullPairs
-);
+export const toURIParams = compose(join('&'), map(pairToURIParam), toNonNullPairs);
 
 export function getBaseUrl(url) {
   const segments = ['/assets/', '/rest/report/'];
@@ -76,10 +72,7 @@ export function uriTemplate(strings, ...params) {
     // it will always be one entry longer than the parts array. The last part will thus be
     // droppedby `zip` so we have to add it back with `append`
     finalPart = whitespaceStrippedStrings[whitespaceStrippedStrings.length - 1],
-    parts = append(
-      finalPart,
-      flatten(zip(whitespaceStrippedStrings, escapedParams))
-    );
+    parts = append(finalPart, flatten(zip(whitespaceStrippedStrings, escapedParams)));
 
   return `${BASE_URL || ''}${join('', parts)}`;
 }

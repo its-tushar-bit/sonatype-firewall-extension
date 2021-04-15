@@ -107,13 +107,11 @@ storesModule.service('StageTypeStore', [
   '$ngRedux',
   '$q',
   function ($ngRedux, $q) {
-    const getCurrentStageState = (purpose) =>
-      $ngRedux.getState().stages[purpose];
+    const getCurrentStageState = (purpose) => $ngRedux.getState().stages[purpose];
 
     function stagesPromiseProvider(purpose) {
       return function () {
-        const alreadyLoadedStageTypes = getCurrentStageState(purpose)
-          .stageTypes;
+        const alreadyLoadedStageTypes = getCurrentStageState(purpose).stageTypes;
 
         if (alreadyLoadedStageTypes) {
           return $q.resolve(angular.copy(alreadyLoadedStageTypes));
@@ -202,10 +200,7 @@ storesModule.service('PolicyStore', [
                 policyStores[key] = null;
               });
               store = StoreFactory.getStore(
-                angular.extend(
-                  { url: clmAppLocations.getPolicyUrl() },
-                  policyStoreTemplate
-                )
+                angular.extend({ url: clmAppLocations.getPolicyUrl() }, policyStoreTemplate)
               );
               policyStores[ownerId] = store;
               deferred.resolve(store);
@@ -243,10 +238,7 @@ storesModule.service('ConstraintStore', [
             id: 'id',
             url: clmAppLocations.getConditionValueTypeUrl(),
           }),
-          conditionDeferred = $q.all([
-            conditionTypeStore.get(),
-            conditionValueTypeStore.get(),
-          ]);
+          conditionDeferred = $q.all([conditionTypeStore.get(), conditionValueTypeStore.get()]);
         return conditionDeferred;
       },
     };
@@ -349,13 +341,9 @@ function CachedStoreFactory(StoreFactory, CLMContextLocations) {
       storeKey = null;
 
     function refreshStore() {
-      var key = config.getKey
-        ? config.getKey()
-        : CLMContextLocations.getEntityId();
+      var key = config.getKey ? config.getKey() : CLMContextLocations.getEntityId();
       if (!store || key !== storeKey) {
-        store = StoreFactory.getStore(
-          angular.extend({ url: config.getUrl() }, config)
-        );
+        store = StoreFactory.getStore(angular.extend({ url: config.getUrl() }, config));
         storeKey = key;
       }
 
@@ -385,14 +373,6 @@ function CachedStoreFactory(StoreFactory, CLMContextLocations) {
   };
 }
 
-storesModule.service('CachedStore', [
-  'StoreFactory',
-  'CLMContextLocations',
-  CachedStoreFactory,
-]);
+storesModule.service('CachedStore', ['StoreFactory', 'CLMContextLocations', CachedStoreFactory]);
 
-storesModule.service('CachedHierarchyStore', [
-  'HierarchyStoreFactory',
-  'CLMContextLocations',
-  CachedStoreFactory,
-]);
+storesModule.service('CachedHierarchyStore', ['HierarchyStoreFactory', 'CLMContextLocations', CachedStoreFactory]);

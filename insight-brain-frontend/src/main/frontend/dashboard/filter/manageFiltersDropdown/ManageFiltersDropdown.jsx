@@ -8,24 +8,14 @@ import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { isEmpty, map } from 'ramda';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/index';
-import {
-  NxDropdown,
-  NxFontAwesomeIcon,
-  NxButton,
-} from '@sonatype/react-shared-components';
+import { NxDropdown, NxFontAwesomeIcon, NxButton } from '@sonatype/react-shared-components';
 
 import { DEFAULT_FILTER_NAME } from '../defaultFilter';
 import useClickAway from '../../../react/useClickAway';
 import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 
 export default function ManageFiltersDropdown(props) {
-  const {
-    showDirtyAsterisk,
-    applyDefaultFilter,
-    applySavedFilter,
-    selectFilterToDelete,
-    DeleteFilterModal,
-  } = props;
+  const { showDirtyAsterisk, applyDefaultFilter, applySavedFilter, selectFilterToDelete, DeleteFilterModal } = props;
 
   const ref = useRef(null);
 
@@ -72,11 +62,7 @@ export default function ManageFiltersDropdown(props) {
         >
           <span>{filter.name}</span>
         </button>
-        <NxButton
-          onClick={() => handleDeleteFilter(filter)}
-          variant="icon-only"
-          className="nx-btn--delete-filter"
-        >
+        <NxButton onClick={() => handleDeleteFilter(filter)} variant="icon-only" className="nx-btn--delete-filter">
           <NxFontAwesomeIcon icon={faTrashAlt} />
         </NxButton>
       </div>
@@ -90,19 +76,13 @@ export default function ManageFiltersDropdown(props) {
   const options = map(getFilterOption, savedFilters),
     dropdownLabel = (
       <Fragment>
-        {showDirtyAsterisk && (
-          <span className="iq-manage-filters-dropdown__dirty-asterisk">*</span>
-        )}
-        <span className="iq-manage-filters-dropdown__label">
-          {appliedFilterName}
-        </span>
+        {showDirtyAsterisk && <span className="iq-manage-filters-dropdown__dirty-asterisk">*</span>}
+        <span className="iq-manage-filters-dropdown__label">{appliedFilterName}</span>
       </Fragment>
     ),
     emptyListMessage = (
       <div className="nx-list">
-        <div className="nx-list__item nx-list__item--empty">
-          No saved filters
-        </div>
+        <div className="nx-list__item nx-list__item--empty">No saved filters</div>
       </div>
     );
 
@@ -118,16 +98,8 @@ export default function ManageFiltersDropdown(props) {
         onCloseKeyDown={preventDefault}
         tabIndex={0}
       >
-        <div
-          key="Default"
-          className={getOptionClassNames(
-            DEFAULT_FILTER_NAME === appliedFilterName
-          )}
-        >
-          <button
-            onClick={handleSelectDefaultFilter}
-            className="nx-dropdown-button nx-dropdown-button--select-filter"
-          >
+        <div key="Default" className={getOptionClassNames(DEFAULT_FILTER_NAME === appliedFilterName)}>
+          <button onClick={handleSelectDefaultFilter} className="nx-dropdown-button nx-dropdown-button--select-filter">
             <span>Default</span>
           </button>
         </div>

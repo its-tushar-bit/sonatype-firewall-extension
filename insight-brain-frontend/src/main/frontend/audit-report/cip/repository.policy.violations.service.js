@@ -18,12 +18,7 @@ function addIfNotFound(actions, action) {
   actions.push(action);
 }
 
-export default function RepositoryPolicyViolations(
-  $http,
-  $q,
-  SelectedComponent,
-  OwnerContext
-) {
+export default function RepositoryPolicyViolations($http, $q, SelectedComponent, OwnerContext) {
   return {
     get: function () {
       var deferred = $q.defer();
@@ -33,37 +28,31 @@ export default function RepositoryPolicyViolations(
             'rest/repositories/' +
             OwnerContext.ownerId +
             '/report/policyThreat/' +
-            encodeURIComponent(SelectedComponent.get().pathname).replace(
-              /%2F/gi,
-              '/'
-            )
+            encodeURIComponent(SelectedComponent.get().pathname).replace(/%2F/gi, '/')
         )
         .then(
           function (response) {
             var policyThreat = response.data,
               processedPolicyAlerts = [];
 
-            angular.forEach(
-              policyThreat.activePolicyViolations,
-              function (activeViolation) {
-                var actions = [];
-                angular.forEach(activeViolation.actions, function (action) {
-                  addIfNotFound(actions, action);
-                });
+            angular.forEach(policyThreat.activePolicyViolations, function (activeViolation) {
+              var actions = [];
+              angular.forEach(activeViolation.actions, function (action) {
+                addIfNotFound(actions, action);
+              });
 
-                processedPolicyAlerts.push({
-                  id: activeViolation.policyId,
-                  name: activeViolation.policyName,
-                  threatLevel: activeViolation.policyThreatLevel,
-                  hash: policyThreat.hash,
-                  constraints: activeViolation.constraints,
-                  actions: actions,
-                  blocksUnquarantine: activeViolation.blocksUnquarantine,
-                  constraintFactsJson: activeViolation.constraintFactsJson,
-                  isRequestWaiverDisabled: true,
-                });
-              }
-            );
+              processedPolicyAlerts.push({
+                id: activeViolation.policyId,
+                name: activeViolation.policyName,
+                threatLevel: activeViolation.policyThreatLevel,
+                hash: policyThreat.hash,
+                constraints: activeViolation.constraints,
+                actions: actions,
+                blocksUnquarantine: activeViolation.blocksUnquarantine,
+                constraintFactsJson: activeViolation.constraintFactsJson,
+                isRequestWaiverDisabled: true,
+              });
+            });
             deferred.resolve(processedPolicyAlerts);
           },
           function () {
@@ -74,9 +63,4 @@ export default function RepositoryPolicyViolations(
     },
   };
 }
-RepositoryPolicyViolations.$inject = [
-  '$http',
-  '$q',
-  'SelectedComponent',
-  'OwnerContext',
-];
+RepositoryPolicyViolations.$inject = ['$http', '$q', 'SelectedComponent', 'OwnerContext'];

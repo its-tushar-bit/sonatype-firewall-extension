@@ -19,19 +19,14 @@ describe('ObligationStatusComponent component', function () {
   };
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ObligationStatusComponent,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ObligationStatusComponent, minimalProps);
   });
 
   it('displays the obligation status', function () {
     let wrapper = getShallowComponent();
     const statusDropdown = wrapper.find(NxDropdown);
     const statusLabelChildren = statusDropdown.prop('label').props['children'];
-    expect(statusLabelChildren[0].props['icon'].iconName).toBe(
-      'exclamation-triangle'
-    );
+    expect(statusLabelChildren[0].props['icon'].iconName).toBe('exclamation-triangle');
     expect(statusLabelChildren[1].props['children']).toEqual('Flagged');
     const statusOptions = statusDropdown.find('button');
     expect(statusOptions.length).toBe(3);
@@ -43,8 +38,6 @@ describe('ObligationStatusComponent component', function () {
   it('displays the obligation name', function () {
     let wrapper = getShallowComponent();
     const nameLabel = wrapper.find('.nx-sub-label');
-    expect(nameLabel).toHaveText(
-      'Change the review status of the obligation "Name of Obligation" to'
-    );
+    expect(nameLabel).toHaveText('Change the review status of the obligation "Name of Obligation" to');
   });
 });

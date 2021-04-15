@@ -13,16 +13,12 @@ describe('DashboardApplicationsTableStageRiskRow', function () {
   let getMountedComponent, realUseContext, hrefSpy;
 
   beforeEach(function () {
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      DashboardApplicationsTableStageRiskRow
-    );
+    getMountedComponent = enzymeUtils.getMountedComponent(DashboardApplicationsTableStageRiskRow);
     hrefSpy = jasmine.createSpy('href').and.returnValue('linkToReport');
 
     // Mock the expected hook 'useContext'
     realUseContext = React.useContext;
-    React.useContext = jasmine
-      .createSpy('useContextHook')
-      .and.returnValue({ href: hrefSpy });
+    React.useContext = jasmine.createSpy('useContextHook').and.returnValue({ href: hrefSpy });
   });
 
   afterEach(function () {

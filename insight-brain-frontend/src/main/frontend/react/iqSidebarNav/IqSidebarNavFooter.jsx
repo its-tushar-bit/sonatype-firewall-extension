@@ -15,18 +15,12 @@ export default function IqSidebarNavFooter(props) {
   return (
     <footer className="iq-sidebar-nav-footer">
       <div className="iq-sidebar-nav-footer__product-info">
-        {productName && (
-          <span className={productNameClasses}>{productName}</span>
-        )}{' '}
+        {productName && <span className={productNameClasses}>{productName}</span>}{' '}
         {releaseNumber && (
-          <span className="iq-sidebar-nav-footer__release-number visual-testing-ignore">
-            Release {releaseNumber}
-          </span>
+          <span className="iq-sidebar-nav-footer__release-number visual-testing-ignore">Release {releaseNumber}</span>
         )}
       </div>
-      <div className="iq-sidebar-nav-footer__powered">
-        Powered by Nexus IQ Server
-      </div>
+      <div className="iq-sidebar-nav-footer__powered">Powered by Nexus IQ Server</div>
       <div className="iq-sidebar-nav-footer__created">Created by Sonatype</div>
     </footer>
   );

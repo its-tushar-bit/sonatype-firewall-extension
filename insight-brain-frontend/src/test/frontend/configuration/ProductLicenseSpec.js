@@ -22,39 +22,26 @@ describe('ProductLicense', function () {
       licensedUsersToDisplay: 50,
       firewallUsersToDisplay: 45,
       applicationLimitToDisplay: 30,
-      products: [
-        'Nexus Pro+',
-        'Nexus Auditor',
-        'Nexus Lifecycle',
-        'Nexus Firewall',
-      ],
+      products: ['Nexus Pro+', 'Nexus Auditor', 'Nexus Lifecycle', 'Nexus Firewall'],
       productEdition: 'Lifecycle',
     });
 
   beforeEach(
-    angular.mock.module(
-      productLicenseModule.name,
-      httpInterceptors.name,
-      function ($provide) {
-        modalResultSpy = jasmine.createSpy('modalResultSpy');
-        modalOpenSpy = jasmine.createSpy('modalOpenSpy').and.returnValue({
-          result: {
-            then: modalResultSpy,
-          },
-        });
-        $provide.value('$window', mockWindow);
-        $provide.value('Modal', { open: modalOpenSpy });
-        SpecUtil.mockPermissionService($provide);
-      }
-    )
+    angular.mock.module(productLicenseModule.name, httpInterceptors.name, function ($provide) {
+      modalResultSpy = jasmine.createSpy('modalResultSpy');
+      modalOpenSpy = jasmine.createSpy('modalOpenSpy').and.returnValue({
+        result: {
+          then: modalResultSpy,
+        },
+      });
+      $provide.value('$window', mockWindow);
+      $provide.value('Modal', { open: modalOpenSpy });
+      SpecUtil.mockPermissionService($provide);
+    })
   );
 
   function getController($componentController, scope, bindings) {
-    var controller = $componentController(
-      'productLicense',
-      { $scope: scope },
-      bindings || { isAuthorized: true }
-    );
+    var controller = $componentController('productLicense', { $scope: scope }, bindings || { isAuthorized: true });
     controller.formMask = {
       wrap: SpecUtil.promiseWrapper($q),
       showSuccessMaskBriefly: jasmine.createSpy().and.returnValue($q.resolve()),
@@ -97,11 +84,7 @@ describe('ProductLicense', function () {
   describe('successful load', function () {
     var $componentController, CLMLocations, $httpBackend;
 
-    beforeEach(inject(function (
-      _$componentController_,
-      _CLMLocations_,
-      _$httpBackend_
-    ) {
+    beforeEach(inject(function (_$componentController_, _CLMLocations_, _$httpBackend_) {
       $componentController = _$componentController_;
       CLMLocations = _CLMLocations_;
       $httpBackend = _$httpBackend_;
@@ -109,9 +92,7 @@ describe('ProductLicense', function () {
 
     it('should be set with data', function () {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])
-        )
+        .expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
         .respond(mockLicenseSummary);
       vm = getController($componentController, scope);
       $httpBackend.flush();
@@ -119,28 +100,18 @@ describe('ProductLicense', function () {
       expect(vm.summaryUrl).toBeDefined();
       expect(vm.uploadUrl).toBeDefined();
       expect(vm.isLoaded()).toBeTruthy();
-      expect(vm.license.expiryTimestamp).toEqual(
-        mockLicenseSummary.expiryTimestamp
-      );
+      expect(vm.license.expiryTimestamp).toEqual(mockLicenseSummary.expiryTimestamp);
       expect(vm.license.contactName).toEqual(mockLicenseSummary.contactName);
-      expect(vm.license.contactCompany).toEqual(
-        mockLicenseSummary.contactCompany
-      );
+      expect(vm.license.contactCompany).toEqual(mockLicenseSummary.contactCompany);
       expect(vm.license.contactEmail).toEqual(mockLicenseSummary.contactEmail);
-      expect(vm.license.licensedUsers).toEqual(
-        mockLicenseSummary.licensedUsers
-      );
-      expect(vm.license.applicationLimit).toEqual(
-        mockLicenseSummary.applicationLimit
-      );
+      expect(vm.license.licensedUsers).toEqual(mockLicenseSummary.licensedUsers);
+      expect(vm.license.applicationLimit).toEqual(mockLicenseSummary.applicationLimit);
       expect(vm.license.products).toEqual(mockLicenseSummary.products);
     });
 
     it('sets displayUserLimits to true if licensedUsersToDisplay or firewallUsersToDisplay are not null', function () {
       var response = mockLicenseSummary,
-        url = SpecUtil.toRegExp(
-          CLMLocations.getLicenseSummaryUrl().split('?')[0]
-        );
+        url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
 
       $httpBackend.expectGET(url).respond(response);
       vm = getController($componentController, scope);
@@ -182,9 +153,7 @@ describe('ProductLicense', function () {
 
     it('sets userLimits to a list of objects containing the non-null user limits', function () {
       var response = mockLicenseSummary,
-        url = SpecUtil.toRegExp(
-          CLMLocations.getLicenseSummaryUrl().split('?')[0]
-        );
+        url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
 
       $httpBackend.expectGET(url).respond(response);
       vm = getController($componentController, scope);
@@ -229,9 +198,7 @@ describe('ProductLicense', function () {
 
     it('sets displayApplicationLimit to true if applicationLimitToDisplay is not null', function () {
       var response = mockLicenseSummary,
-        url = SpecUtil.toRegExp(
-          CLMLocations.getLicenseSummaryUrl().split('?')[0]
-        );
+        url = SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]);
 
       $httpBackend.expectGET(url).respond(response);
       vm = getController($componentController, scope);
@@ -258,9 +225,7 @@ describe('ProductLicense', function () {
       });
 
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])
-        )
+        .expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
         .respond(mockLicenseSummary);
       vm = getController($componentController, scope);
       $httpBackend.flush();
@@ -269,9 +234,7 @@ describe('ProductLicense', function () {
 
       now = mockNow + 5;
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])
-        )
+        .expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
         .respond(mockLicenseSummary);
       vm = getController($componentController, scope);
       $httpBackend.flush();
@@ -281,17 +244,8 @@ describe('ProductLicense', function () {
   });
 
   describe('402 Payment Required failure', function () {
-    beforeEach(inject(function (
-      $componentController,
-      $rootScope,
-      CLMLocations,
-      $httpBackend
-    ) {
-      $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])
-        )
-        .respond(402);
+    beforeEach(inject(function ($componentController, $rootScope, CLMLocations, $httpBackend) {
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])).respond(402);
       vm = getController($componentController, scope);
       $httpBackend.flush();
     }));
@@ -306,16 +260,9 @@ describe('ProductLicense', function () {
   });
 
   describe('Server error other than 402', function () {
-    beforeEach(inject(function (
-      $componentController,
-      $rootScope,
-      CLMLocations,
+    beforeEach(inject(function ($componentController, $rootScope, CLMLocations, $httpBackend) {
       $httpBackend
-    ) {
-      $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])
-        )
+        .expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
         .respond(500, 'ERROR');
       vm = getController($componentController, scope);
       $httpBackend.flush();
@@ -351,16 +298,9 @@ describe('ProductLicense', function () {
   describe('Modals should show/hide when told to', function () {
     var licenseInput;
 
-    beforeEach(inject(function (
-      $compile,
-      $componentController,
-      $httpBackend,
-      CLMLocations
-    ) {
+    beforeEach(inject(function ($compile, $componentController, $httpBackend, CLMLocations) {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0])
-        )
+        .expectGET(SpecUtil.toRegExp(CLMLocations.getLicenseSummaryUrl().split('?')[0]))
         .respond(mockLicenseSummary);
       vm = getController($componentController, scope);
       $httpBackend.flush();
@@ -384,9 +324,7 @@ describe('ProductLicense', function () {
     ) {
       vm.onFileChanged();
       expect(modalOpenSpy).toHaveBeenCalled();
-      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual(
-        'eula-modal-template'
-      );
+      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual('eula-modal-template');
 
       // trigger success
       $httpBackend.expectPOST('').respond(204);
@@ -408,9 +346,7 @@ describe('ProductLicense', function () {
       expect(modalOpenSpy).toHaveBeenCalled();
 
       // trigger success
-      $httpBackend
-        .expectPOST(SpecUtil.toRegExp('/rest/product/license'))
-        .respond(501, 'failure');
+      $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/product/license')).respond(501, 'failure');
       modalResultSpy.calls.mostRecent().args[0]();
       $httpBackend.flush();
 
@@ -420,9 +356,7 @@ describe('ProductLicense', function () {
     it('Should show confirmation when uninstalling license', function () {
       vm.viewUninstallLicense();
       expect(modalOpenSpy).toHaveBeenCalled();
-      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual(
-        'license-uninstall-modal-template'
-      );
+      expect(modalOpenSpy.calls.mostRecent().args[0].templateUrl).toEqual('license-uninstall-modal-template');
     });
   });
 });

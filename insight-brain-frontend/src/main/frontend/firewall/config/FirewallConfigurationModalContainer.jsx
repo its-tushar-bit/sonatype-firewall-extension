@@ -18,10 +18,7 @@ function mapStateToProps({ firewallConfigurationModal, firewall }) {
   return {
     ...firewallConfigurationModal.viewState,
     ...firewallConfigurationModal.formState,
-    ...pick(
-      ['loadedConfiguration', 'loadConfigurationError'],
-      firewall.autoUnquarantineState.viewState
-    ),
+    ...pick(['loadedConfiguration', 'loadConfigurationError'], firewall.autoUnquarantineState.viewState),
   };
 }
 
@@ -32,8 +29,5 @@ const mapDispatchToProps = {
   saveConfiguration,
 };
 
-const FirewallConfigurationModalContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(FirewallConfigurationModal);
+const FirewallConfigurationModalContainer = connect(mapStateToProps, mapDispatchToProps)(FirewallConfigurationModal);
 export default FirewallConfigurationModalContainer;

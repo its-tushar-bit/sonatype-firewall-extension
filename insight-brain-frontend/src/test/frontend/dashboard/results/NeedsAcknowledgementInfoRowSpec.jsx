@@ -11,10 +11,7 @@ describe('NeedsAcknowledgementInfoRowSpec', function () {
   let getShallowComponent;
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      NeedsAcknowledgementInfoRow,
-      { colSpan: 6 }
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(NeedsAcknowledgementInfoRow, { colSpan: 6 });
   });
 
   it('renders a component', () => {
@@ -27,8 +24,6 @@ describe('NeedsAcknowledgementInfoRowSpec', function () {
     const infoAlert = tableCell.find(NxInfoAlert);
 
     expect(tableCell.prop('colSpan')).toEqual(6);
-    expect(infoAlert).toHaveText(
-      "Select your filter criteria and click 'apply' to see results."
-    );
+    expect(infoAlert).toHaveText("Select your filter criteria and click 'apply' to see results.");
   });
 });

@@ -23,11 +23,9 @@ describe('SidebarNavList', function () {
       .createSpy('SidebarNavViolationListMock')
       .and.returnValue(<div>SidebarNavViolationList</div>);
 
-    SidebarNavList = require('inject-loader!../../../main/frontend/sidebarNav/SidebarNavList')(
-      {
-        './SidebarNavViolationList': SidebarNavViolationListMock,
-      }
-    ).default;
+    SidebarNavList = require('inject-loader!../../../main/frontend/sidebarNav/SidebarNavList')({
+      './SidebarNavViolationList': SidebarNavViolationListMock,
+    }).default;
 
     loadSidebarNavSpy = jasmine.createSpy('loadSidebarNav');
     gotoNewVulnerabilitySpy = jasmine.createSpy('gotoNewVulnerability');
@@ -61,14 +59,8 @@ describe('SidebarNavList', function () {
       contentType: 'violations',
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      SidebarNavList,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      SidebarNavList,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(SidebarNavList, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(SidebarNavList, minimalProps);
   });
 
   it('renders an aside component with the sidebar-nav-list id', function () {
@@ -95,16 +87,14 @@ describe('SidebarNavList', function () {
   });
 
   it("sets the LoadWrapper's loading flag based on the loading prop", function () {
-    const getLoadWrapper = (props) =>
-      getShallowComponent(props).find(LoadWrapper);
+    const getLoadWrapper = (props) => getShallowComponent(props).find(LoadWrapper);
 
     expect(getLoadWrapper({ loading: false })).toHaveProp('loading', false);
     expect(getLoadWrapper({ loading: true })).toHaveProp('loading', true);
   });
 
   it("sets the LoadWrapper's error flag based on the error prop", function () {
-    const getLoadWrapper = (props) =>
-      getShallowComponent(props).find(LoadWrapper);
+    const getLoadWrapper = (props) => getShallowComponent(props).find(LoadWrapper);
 
     expect(getLoadWrapper({ error: 'error' })).toHaveProp('error', 'error');
     expect(getLoadWrapper({ error: null })).toHaveProp('error', null);
@@ -233,8 +223,7 @@ describe('SidebarNavList', function () {
   });
 
   it('properly renders a SidebarNavViolationList component if the contentType is violations', function () {
-    const getLoadWrapper = (props) =>
-      getShallowComponent(props).find(LoadWrapper);
+    const getLoadWrapper = (props) => getShallowComponent(props).find(LoadWrapper);
     const data = [
       {
         policyViolationId: 'aaa',
@@ -252,17 +241,8 @@ describe('SidebarNavList', function () {
       gotoNewVulnerability: gotoNewVulnerabilitySpy,
       data,
     });
-    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp(
-      'currentViolationId',
-      '123456'
-    );
-    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp(
-      'violations',
-      data
-    );
-    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp(
-      'onClick',
-      gotoNewVulnerabilitySpy
-    );
+    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp('currentViolationId', '123456');
+    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp('violations', data);
+    expect(loadWrapper.find(SidebarNavViolationListMock)).toHaveProp('onClick', gotoNewVulnerabilitySpy);
   });
 });

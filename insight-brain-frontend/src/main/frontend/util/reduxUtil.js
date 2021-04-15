@@ -8,9 +8,7 @@ import { always, curry, lensProp, set } from 'ramda';
  * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.
  * The payload is ignored and is only an argument to conform to the interface needed by reducerActionMap
  */
-export const propSetConst = curry((propName, constValue, payload, state) =>
-  set(lensProp(propName), constValue, state)
-);
+export const propSetConst = curry((propName, constValue, payload, state) => set(lensProp(propName), constValue, state));
 
 /**
  * A generic reducer function parameterized over a reducerActionMap and an initialState.
@@ -40,9 +38,7 @@ export const payloadParamActionCreator = (type) => (payload) => ({
   type,
   payload,
 });
-export const mappedPayloadParamActionCreator = (type, mapper) => (
-  payloadSrc
-) => ({
+export const mappedPayloadParamActionCreator = (type, mapper) => (payloadSrc) => ({
   type,
   payload: mapper(payloadSrc),
 });

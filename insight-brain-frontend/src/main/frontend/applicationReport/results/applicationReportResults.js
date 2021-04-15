@@ -39,10 +39,7 @@ function ApplicationReportResultsController(
       'To see all violations not Aggregated by Component, please switch the toggle off.',
 
     $onInit() {
-      vm.unsubscribe = $ngRedux.connect(
-        mapStateToThis,
-        applicationReportActions
-      )(vm);
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
       $scope.$watch('vm.reportParameters', function (reportParameters) {
         if (reportParameters) {
           OwnerContext.setOwnerId(reportParameters.appId);
@@ -50,15 +47,12 @@ function ApplicationReportResultsController(
         }
       });
 
-      $scope.$watch(
-        'vm.selectedReport.displayedEntries',
-        function (newValue, oldValue) {
-          updateRenderedEntries();
-          if (newValue && !oldValue) {
-            showCipModalIfNecessary();
-          }
+      $scope.$watch('vm.selectedReport.displayedEntries', function (newValue, oldValue) {
+        updateRenderedEntries();
+        if (newValue && !oldValue) {
+          showCipModalIfNecessary();
         }
-      );
+      });
     },
 
     aggregateByComponentToggle() {
@@ -70,19 +64,13 @@ function ApplicationReportResultsController(
     },
 
     reload() {
-      vm.loadReport(
-        $state.params.publicId,
-        $state.params.scanId,
-        !!$state.params.unknownjs
-      );
+      vm.loadReport($state.params.publicId, $state.params.scanId, !!$state.params.unknownjs);
     },
 
     coveragePercent() {
       const { totalArtifactCount, knownArtifactCount } = vm.selectedReport;
 
-      return totalArtifactCount
-        ? Math.round((100 * knownArtifactCount) / totalArtifactCount)
-        : 0;
+      return totalArtifactCount ? Math.round((100 * knownArtifactCount) / totalArtifactCount) : 0;
     },
 
     openCipModal(componentIndex) {
@@ -104,10 +92,7 @@ function ApplicationReportResultsController(
     },
 
     onDerivedComponentNameFilterChange() {
-      vm.setStringFieldFilter(
-        'derivedComponentName',
-        vm.derivedComponentNameSubstringFilter
-      );
+      vm.setStringFieldFilter('derivedComponentName', vm.derivedComponentNameSubstringFilter);
     },
 
     onPolicyNameFilterChange() {
@@ -115,10 +100,7 @@ function ApplicationReportResultsController(
     },
 
     getReportPdfDownloadUrl: function () {
-      return CLMLocations.getReportPdfDownloadUrl(
-        vm.metadata.application.publicId,
-        vm.reportParameters.scanId
-      );
+      return CLMLocations.getReportPdfDownloadUrl(vm.metadata.application.publicId, vm.reportParameters.scanId);
     },
   });
 
@@ -137,10 +119,7 @@ function ApplicationReportResultsController(
   }
 
   function doUpdateStep(remainingEntries) {
-    const [firstChunk, furtherRemainingEntries] = splitAt(
-      100,
-      remainingEntries
-    );
+    const [firstChunk, furtherRemainingEntries] = splitAt(100, remainingEntries);
 
     vm.renderedEntries = vm.renderedEntries.concat(firstChunk);
 
@@ -148,12 +127,7 @@ function ApplicationReportResultsController(
       // NOTE the delay of 1 is only necessary due to unit tests - angular-mock's fake implementation
       // of $timeout gets confused when everything has a delay of zero and flushes chained timeouts as
       // opposed to only timeouts that existed at the time flush was called
-      vm.updateRenderedEntriesPromise = $timeout(
-        doUpdateStep,
-        1,
-        true,
-        furtherRemainingEntries
-      );
+      vm.updateRenderedEntriesPromise = $timeout(doUpdateStep, 1, true, furtherRemainingEntries);
     }
   }
 
@@ -161,19 +135,13 @@ function ApplicationReportResultsController(
     const { policyViolationId } = vm.reportParameters || {};
     if (isNil(vm.selectedComponentIndex) && policyViolationId) {
       const findPredicate = propEq('policyViolationId', policyViolationId);
-      let selectedComponentIndex = findIndex(
-        findPredicate,
-        vm.selectedReport.displayedEntries
-      );
+      let selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.displayedEntries);
       if (selectedComponentIndex >= 0) {
         vm.openCipModal(selectedComponentIndex);
         vm.refreshReportUrlRemovePolicyViolationId();
       } else {
         // attempt to find in all entries in case it's not currently displayed
-        selectedComponentIndex = findIndex(
-          findPredicate,
-          vm.selectedReport.allEntries
-        );
+        selectedComponentIndex = findIndex(findPredicate, vm.selectedReport.allEntries);
         if (selectedComponentIndex >= 0) {
           showCipModalForIndexResolvedFromAllEntries(selectedComponentIndex);
         }
@@ -182,16 +150,9 @@ function ApplicationReportResultsController(
   }
 
   function showCipModalForIndexResolvedFromAllEntries(selectedComponentIndex) {
-    const foundEntryWithOriginPolicyViolationId =
-      vm.selectedReport.allEntries[selectedComponentIndex];
-    const findPredicateByHash = propEq(
-      'hash',
-      foundEntryWithOriginPolicyViolationId.hash
-    );
-    const componentIndexByHash = findIndex(
-      findPredicateByHash,
-      vm.selectedReport.displayedEntries
-    );
+    const foundEntryWithOriginPolicyViolationId = vm.selectedReport.allEntries[selectedComponentIndex];
+    const findPredicateByHash = propEq('hash', foundEntryWithOriginPolicyViolationId.hash);
+    const componentIndexByHash = findIndex(findPredicateByHash, vm.selectedReport.displayedEntries);
     if (componentIndexByHash >= 0) {
       vm.openCipModal(componentIndexByHash);
       vm.refreshReportUrlRemovePolicyViolationId();
@@ -200,10 +161,7 @@ function ApplicationReportResultsController(
 }
 
 export function mapStateToThis({ applicationReport }) {
-  const {
-    policyName,
-    derivedComponentName,
-  } = applicationReport.substringFilters;
+  const { policyName, derivedComponentName } = applicationReport.substringFilters;
 
   return {
     ...applicationReport,

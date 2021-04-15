@@ -25,10 +25,7 @@ export default angular
   .component('iqPolicyThreatLevelSlider', iqPolicyThreatLevelSlider)
   .component('iqTreeViewMultiSelect', iqTreeViewMultiSelect)
   .component('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
-  .component(
-    'iqTreeViewPolicyThreatLevelSlider',
-    iqTreeViewPolicyThreatLevelSlider
-  )
+  .component('iqTreeViewPolicyThreatLevelSlider', iqTreeViewPolicyThreatLevelSlider)
   .component('iqOrgAppPickerAngular', iqOrgAppPickerAngular)
   .component('externalLink', externalLink)
   .directive('iqRenderPlottable', iqRenderPlottable)

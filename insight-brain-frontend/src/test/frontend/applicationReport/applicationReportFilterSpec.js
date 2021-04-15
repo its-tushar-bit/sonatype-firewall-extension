@@ -45,9 +45,7 @@ describe('applicationReportFilter component', function () {
   }));
 
   it('sets the availableProprietaryFilterOptions', function () {
-    const ids = controller.availableProprietaryFilterOptions.map(
-      ({ id }) => id
-    );
+    const ids = controller.availableProprietaryFilterOptions.map(({ id }) => id);
     expect(ids.length).toBe(2);
 
     expect(ids).toContain(true);
@@ -64,9 +62,7 @@ describe('applicationReportFilter component', function () {
   });
 
   it('sets the availableViolationStateFilterOptions', function () {
-    const ids = controller.availableViolationStateFilterOptions.map(
-      ({ id }) => id
-    );
+    const ids = controller.availableViolationStateFilterOptions.map(({ id }) => id);
     expect(ids.length).toBe(4);
 
     expect(ids).toContain('notViolating');
@@ -91,10 +87,7 @@ describe('applicationReportFilter component', function () {
 
       controller.setProprietaryFilterOptions(selectedIds);
 
-      expect(controller.setExactValueFilter).toHaveBeenCalledWith(
-        'proprietary',
-        selectedIds
-      );
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('proprietary', selectedIds);
     });
   });
 
@@ -104,10 +97,7 @@ describe('applicationReportFilter component', function () {
 
       controller.setDependencyTypeFilterOptions(selectedIds);
 
-      expect(controller.setExactValueFilter).toHaveBeenCalledWith(
-        'derivedDependencyType',
-        selectedIds
-      );
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('derivedDependencyType', selectedIds);
     });
   });
 
@@ -117,10 +107,7 @@ describe('applicationReportFilter component', function () {
 
       controller.setMatchStateFilterOptions(selectedIds);
 
-      expect(controller.setExactValueFilter).toHaveBeenCalledWith(
-        'matchState',
-        selectedIds
-      );
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('matchState', selectedIds);
     });
   });
 
@@ -129,27 +116,18 @@ describe('applicationReportFilter component', function () {
       return function () {
         controller.setViolationStateFilterOptions(new Set(selectedIds));
 
-        expect(controller.setExactValueFilter).toHaveBeenCalledWith(
-          'derivedViolationState',
-          new Set(expectedFilter)
-        );
+        expect(controller.setExactValueFilter).toHaveBeenCalledWith('derivedViolationState', new Set(expectedFilter));
       };
     }
 
-    it(
-      'calls setExactValueFilter with a fieldName of "derivedViolationState"',
-      doTest([], [])
-    );
+    it('calls setExactValueFilter with a fieldName of "derivedViolationState"', doTest([], []));
 
     it(
       'passes a filter that includes "notViolating" when the notViolating id is selected',
       doTest(['notViolating'], ['notViolating'])
     );
 
-    it(
-      'passes a filter that includes "open" when the open id is selected',
-      doTest(['open'], ['open'])
-    );
+    it('passes a filter that includes "open" when the open id is selected', doTest(['open'], ['open']));
 
     it(
       'passes a filter that includes "waived" and "waived+grandfathered" when the waived id is selected',
@@ -163,10 +141,7 @@ describe('applicationReportFilter component', function () {
 
     it(
       'combines filters using set union',
-      doTest(
-        ['open', 'waived', 'grandfathered'],
-        ['open', 'waived', 'grandfathered', 'waived+grandfathered']
-      )
+      doTest(['open', 'waived', 'grandfathered'], ['open', 'waived', 'grandfathered', 'waived+grandfathered'])
     );
   });
 
@@ -176,10 +151,7 @@ describe('applicationReportFilter component', function () {
 
       controller.setPolicyTypeFilterOptions(selectedIds);
 
-      expect(controller.setExactValueFilter).toHaveBeenCalledWith(
-        'policyThreatCategory',
-        selectedIds
-      );
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('policyThreatCategory', selectedIds);
     });
   });
 
@@ -192,34 +164,17 @@ describe('applicationReportFilter component', function () {
       scope.$digest();
       expect(controller.violationStateCheckedIds).toEqual(new Set());
 
-      controller.exactValueFilters.derivedViolationState = new Set([
-        'notViolating',
-        'waived',
-        'waived+grandfathered',
-      ]);
+      controller.exactValueFilters.derivedViolationState = new Set(['notViolating', 'waived', 'waived+grandfathered']);
       scope.$digest();
-      expect(controller.violationStateCheckedIds).toEqual(
-        new Set(['notViolating', 'waived'])
-      );
+      expect(controller.violationStateCheckedIds).toEqual(new Set(['notViolating', 'waived']));
 
-      controller.exactValueFilters.derivedViolationState = new Set([
-        'notViolating',
-        'open',
-      ]);
+      controller.exactValueFilters.derivedViolationState = new Set(['notViolating', 'open']);
       scope.$digest();
-      expect(controller.violationStateCheckedIds).toEqual(
-        new Set(['notViolating', 'open'])
-      );
+      expect(controller.violationStateCheckedIds).toEqual(new Set(['notViolating', 'open']));
 
-      controller.exactValueFilters.derivedViolationState = new Set([
-        'waived',
-        'waived+grandfathered',
-        'grandfathered',
-      ]);
+      controller.exactValueFilters.derivedViolationState = new Set(['waived', 'waived+grandfathered', 'grandfathered']);
       scope.$digest();
-      expect(controller.violationStateCheckedIds).toEqual(
-        new Set(['waived', 'grandfathered'])
-      );
+      expect(controller.violationStateCheckedIds).toEqual(new Set(['waived', 'grandfathered']));
     });
 
     it('sets violationStateCheckedIds to the empty set when derivedViolationState is undefined', function () {
@@ -227,13 +182,9 @@ describe('applicationReportFilter component', function () {
       scope.$digest();
       expect(controller.violationStateCheckedIds).toEqual(new Set());
 
-      controller.exactValueFilters.derivedViolationState = new Set([
-        'notViolating',
-      ]);
+      controller.exactValueFilters.derivedViolationState = new Set(['notViolating']);
       scope.$digest();
-      expect(controller.violationStateCheckedIds).toEqual(
-        new Set(['notViolating'])
-      );
+      expect(controller.violationStateCheckedIds).toEqual(new Set(['notViolating']));
 
       controller.exactValueFilters = {};
       scope.$digest();
@@ -245,28 +196,19 @@ describe('applicationReportFilter component', function () {
     it('calls setExactValueFilter with an empty Set if full range is selected', function () {
       const expectedFilter = new Set();
       controller.setPolicyThreatLevelFilter([0, 10]);
-      expect(controller.setExactValueFilter).toHaveBeenCalledWith(
-        'policyThreatLevel',
-        expectedFilter
-      );
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('policyThreatLevel', expectedFilter);
     });
 
     it('calls setExactValueFilter with the Set of all values in the selected range inclusive', function () {
       const expectedFilter = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       controller.setPolicyThreatLevelFilter([0, 9]);
-      expect(controller.setExactValueFilter).toHaveBeenCalledWith(
-        'policyThreatLevel',
-        expectedFilter
-      );
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('policyThreatLevel', expectedFilter);
     });
 
     it('calls setExactValueFilter with the Set of single value if the range of single threat is selected', function () {
       const expectedFilter = new Set([9]);
       controller.setPolicyThreatLevelFilter([9, 9]);
-      expect(controller.setExactValueFilter).toHaveBeenCalledWith(
-        'policyThreatLevel',
-        expectedFilter
-      );
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('policyThreatLevel', expectedFilter);
     });
   });
 
@@ -276,9 +218,7 @@ describe('applicationReportFilter component', function () {
       controller.policyThreatLevelFilterSelectedRange = [5, 6];
       controller.exactValueFilters.policyThreatLevel = null;
       scope.$digest();
-      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(
-        expectedSelectedRange
-      );
+      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(expectedSelectedRange);
     });
 
     it('sets selected range to full range if policyThreatLevel filter value is an empty Set', function () {
@@ -286,27 +226,15 @@ describe('applicationReportFilter component', function () {
       controller.policyThreatLevelFilterSelectedRange = [5, 6];
       controller.exactValueFilters.policyThreatLevel = new Set();
       scope.$digest();
-      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(
-        expectedSelectedRange
-      );
+      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(expectedSelectedRange);
     });
 
     it('sets selected range using min and max values in policyThreatLevel filter', function () {
       const expectedSelectedRange = [0, 7];
       controller.policyThreatLevelFilterSelectedRange = [5, 6];
-      controller.exactValueFilters.policyThreatLevel = new Set([
-        7,
-        3,
-        1,
-        2,
-        4,
-        5,
-        0,
-      ]);
+      controller.exactValueFilters.policyThreatLevel = new Set([7, 3, 1, 2, 4, 5, 0]);
       scope.$digest();
-      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(
-        expectedSelectedRange
-      );
+      expect(controller.policyThreatLevelFilterSelectedRange).toEqual(expectedSelectedRange);
     });
   });
 });

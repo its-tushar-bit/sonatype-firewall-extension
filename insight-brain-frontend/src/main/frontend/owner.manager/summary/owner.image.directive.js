@@ -3,10 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function OwnerImageDirective(
-  CLMContextLocations,
-  EventNameConstant
-) {
+export default function OwnerImageDirective(CLMContextLocations, EventNameConstant) {
   return {
     scope: {
       owner: '=ownerImage',
@@ -22,10 +19,7 @@ export default function OwnerImageDirective(
       scope.$on(EventNameConstant.OWNER_UPDATED, function (e, owner) {
         if (angular.equals(scope.owner, owner) && scope.ownerUrl) {
           if (scope.ownerUrl.indexOf('?') !== -1) {
-            scope.ownerUrl = scope.ownerUrl.substring(
-              0,
-              scope.ownerUrl.indexOf('?')
-            );
+            scope.ownerUrl = scope.ownerUrl.substring(0, scope.ownerUrl.indexOf('?'));
           }
           scope.ownerUrl += '?timestamp=' + Date.now();
         }

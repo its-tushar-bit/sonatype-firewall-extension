@@ -27,8 +27,7 @@ describe('NoticesModalContainer', function () {
         component: {
           component: {
             licenseLegalData: {
-              originalComponentNoticesScopeOwnerId:
-                'originalComponentNoticesScopeOwnerId',
+              originalComponentNoticesScopeOwnerId: 'originalComponentNoticesScopeOwnerId',
               componentNoticesScopeOwnerId: 'componentNoticesScopeOwnerId',
               noticeFiles: 'noticeFiles',
               noticesError: 'noticesError',
@@ -48,24 +47,12 @@ describe('NoticesModalContainer', function () {
         availableScopes: 'availableScopes',
       },
     };
-    cancelNoticesModalSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'cancelNoticesModalSpy' });
-    setNoticeContentSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'setNoticeContentSpy' });
-    setNoticeStatusSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'setNoticeStatusSpy' });
-    addNoticeSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'addNoticeSpy' });
-    setNoticesScopeSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'setNoticesScopeSpy' });
-    saveNoticesSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'saveNoticesSpy' });
+    cancelNoticesModalSpy = jasmine.createSpy().and.returnValue({ type: 'cancelNoticesModalSpy' });
+    setNoticeContentSpy = jasmine.createSpy().and.returnValue({ type: 'setNoticeContentSpy' });
+    setNoticeStatusSpy = jasmine.createSpy().and.returnValue({ type: 'setNoticeStatusSpy' });
+    addNoticeSpy = jasmine.createSpy().and.returnValue({ type: 'addNoticeSpy' });
+    setNoticesScopeSpy = jasmine.createSpy().and.returnValue({ type: 'setNoticesScopeSpy' });
+    saveNoticesSpy = jasmine.createSpy().and.returnValue({ type: 'saveNoticesSpy' });
     NoticesModalContainer = require('inject-loader!../../../../../main/frontend/legal/files/notices/NoticesModalContainer')(
       {
         '../advancedLegalFileActions': {
@@ -85,10 +72,7 @@ describe('NoticesModalContainer', function () {
   it('maps the state slice to props', () => {
     const wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('scope', 'componentNoticesScopeOwnerId');
-    expect(wrapper).toHaveProp(
-      'originalScope',
-      'originalComponentNoticesScopeOwnerId'
-    );
+    expect(wrapper).toHaveProp('originalScope', 'originalComponentNoticesScopeOwnerId');
     expect(wrapper).toHaveProp('availableScopes', 'availableScopes');
     expect(wrapper).toHaveProp('notices', 'noticeFiles');
     expect(wrapper).toHaveProp('error', 'noticesError');

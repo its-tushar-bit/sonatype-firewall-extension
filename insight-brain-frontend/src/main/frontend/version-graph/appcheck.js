@@ -23,9 +23,7 @@
   function getAge(reportDate, endDate) {
     var val,
       unit,
-      diff =
-        (endDate ? endDate.getTime() : new Date().getTime()) -
-        reportDate.getTime();
+      diff = (endDate ? endDate.getTime() : new Date().getTime()) - reportDate.getTime();
     if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
       val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
       unit = 'year';
@@ -94,16 +92,11 @@
       config.w = config.width;
       config.visTop = config.h / 2 + 5;
       config.visLeft = config.w / 2 - 3.5;
-      config.fillColors =
-        data.length === 3 ? [red, yellow, blue] : [red, orange, yellow, blue];
+      config.fillColors = data.length === 3 ? [red, yellow, blue] : [red, orange, yellow, blue];
       config.strokeColors =
-        data.length === 3
-          ? [darkRed, darkYellow, darkBlue]
-          : [darkRed, darkOrange, darkYellow, darkBlue];
+        data.length === 3 ? [darkRed, darkYellow, darkBlue] : [darkRed, darkOrange, darkYellow, darkBlue];
       config.textColors =
-        data.length === 3
-          ? ['#9d0c11', '#83740d', 'white']
-          : ['#9d0c11', darkOrange, '#83740d', 'white'];
+        data.length === 3 ? ['#9d0c11', '#83740d', 'white'] : ['#9d0c11', darkOrange, '#83740d', 'white'];
       donutChart(data, config);
     } else {
       var vis = new pv.Panel().width(config.width).height(config.height);
@@ -169,9 +162,7 @@
       .left(config.visLeft)
       .top(config.visTop)
       .outerRadius(function () {
-        return (
-          config.outerRadius + (maxIndex - this.index) * config.outerRadiusStep
-        );
+        return config.outerRadius + (maxIndex - this.index) * config.outerRadiusStep;
       })
       .innerRadius(config.innerRadius)
       .angle(function (d) {
@@ -196,33 +187,19 @@
         .add(pv.Label)
         .left(function () {
           if (this.index === 1 && wedge.angle() < 0.61) {
-            return (
-              config.visLeft +
-              (this.innerRadius() - 5) * Math.cos(wedge.midAngle())
-            );
+            return config.visLeft + (this.innerRadius() - 5) * Math.cos(wedge.midAngle());
           }
-          return (
-            config.visLeft +
-            (this.outerRadius() + 3) * Math.cos(wedge.midAngle())
-          );
+          return config.visLeft + (this.outerRadius() + 3) * Math.cos(wedge.midAngle());
         })
         .top(function () {
           if (this.index === 1 && wedge.angle() < 0.61) {
-            return (
-              config.visTop +
-              (this.innerRadius() - 5) * Math.sin(wedge.midAngle())
-            );
+            return config.visTop + (this.innerRadius() - 5) * Math.sin(wedge.midAngle());
           }
-          return (
-            config.visTop +
-            (this.outerRadius() + 3) * Math.sin(wedge.midAngle())
-          );
+          return config.visTop + (this.outerRadius() + 3) * Math.sin(wedge.midAngle());
         })
         .font('bold ' + config.fontSize + 'px arial')
         .text(function (d) {
-          return d === 0 || this.index === dd.length - 1
-            ? ''
-            : Math.round((d / total) * 100) + '%';
+          return d === 0 || this.index === dd.length - 1 ? '' : Math.round((d / total) * 100) + '%';
         })
         .textStyle(
           pv.colors(textColors).by(function () {
@@ -230,31 +207,19 @@
           })
         )
         .textAlign(function () {
-          var angle =
-            wedge.midAngle() < 0
-              ? Math.PI * 2 + wedge.midAngle()
-              : wedge.midAngle();
+          var angle = wedge.midAngle() < 0 ? Math.PI * 2 + wedge.midAngle() : wedge.midAngle();
           if (this.index === 2 && angle > Math.PI * 1.5) {
             return 'left';
           } else if (Math.abs((angle % Math.PI) - Math.PI / 2) < 0.31) {
             return 'center';
           } else if (this.index === 1 && wedge.angle() < 0.61) {
-            return angle > Math.PI / 2 && angle < 1.5 * Math.PI
-              ? 'left'
-              : 'right';
+            return angle > Math.PI / 2 && angle < 1.5 * Math.PI ? 'left' : 'right';
           }
-          return angle > Math.PI / 2 && angle < 1.5 * Math.PI
-            ? 'right'
-            : 'left';
+          return angle > Math.PI / 2 && angle < 1.5 * Math.PI ? 'right' : 'left';
         })
         .textBaseline(function () {
-          var angle =
-            wedge.midAngle() < 0
-              ? Math.PI * 2 + wedge.midAngle()
-              : wedge.midAngle();
-          if (
-            Math.abs(((angle + Math.PI / 2) % Math.PI) - Math.PI / 2) < 0.31
-          ) {
+          var angle = wedge.midAngle() < 0 ? Math.PI * 2 + wedge.midAngle() : wedge.midAngle();
+          if (Math.abs(((angle + Math.PI / 2) % Math.PI) - Math.PI / 2) < 0.31) {
             return 'middle';
           } else if (this.index === 1 && wedge.angle() < 0.61) {
             return angle > Math.PI ? 'top' : 'bottom';
@@ -318,14 +283,7 @@
         .textBaseline('middle');
     }
 
-    vis = root
-      .add(pv.Panel)
-      .bottom(0)
-      .right(0)
-      .width(w)
-      .height(h)
-      .strokeStyle(bgBorder)
-      .fillStyle(bgBlue);
+    vis = root.add(pv.Panel).bottom(0).right(0).width(w).height(h).strokeStyle(bgBorder).fillStyle(bgBlue);
 
     for (i = 1; i < 5; i++) {
       vis
@@ -352,11 +310,7 @@
               return itemIndex === 0 ? red : itemIndex === 1 ? orange : yellow;
             })
             .strokeStyle(function () {
-              return itemIndex === 0
-                ? darkRed
-                : itemIndex === 1
-                ? darkOrange
-                : darkYellow;
+              return itemIndex === 0 ? darkRed : itemIndex === 1 ? darkOrange : darkYellow;
             });
         }
       });
@@ -381,10 +335,7 @@
     var labelHeight = config.fontSize * 2,
       barWidth = labelText.length * config.fontSize * 0.6,
       barTop = config.height / 2 - labelHeight / 2,
-      barStart =
-        config.leftPadding +
-        (config.width - config.leftPadding - config.rightPadding - barWidth) /
-          2;
+      barStart = config.leftPadding + (config.width - config.leftPadding - config.rightPadding - barWidth) / 2;
 
     vis
       .add(pv.Bar)

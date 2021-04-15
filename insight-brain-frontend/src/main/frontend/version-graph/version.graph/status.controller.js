@@ -4,12 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global clmEndpoint */
-export default function StatusController(
-  $scope,
-  State,
-  Coordinates,
-  OwnerContext
-) {
+export default function StatusController($scope, State, Coordinates, OwnerContext) {
   $scope.openView = function ($event, action) {
     $event.preventDefault();
     clmEndpoint.openView($scope, action);

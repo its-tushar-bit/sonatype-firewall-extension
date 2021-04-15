@@ -19,12 +19,9 @@ function systemNoticeController(systemNoticeService, $scope) {
       });
   };
 
-  $scope.$on(
-    'systemNoticeUpdated',
-    function (systemNoticeUpdated, systemNotice) {
-      vm.systemNotice = systemNotice;
-    }
-  );
+  $scope.$on('systemNoticeUpdated', function (systemNoticeUpdated, systemNotice) {
+    vm.systemNotice = systemNotice;
+  });
 }
 
 systemNoticeController.$inject = ['systemNoticeService', '$scope'];

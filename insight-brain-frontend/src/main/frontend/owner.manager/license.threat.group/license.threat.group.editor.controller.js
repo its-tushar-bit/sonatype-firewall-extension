@@ -43,11 +43,7 @@ export default function LicenseThreatGroupEditorController(
   });
 
   function deleteLTG() {
-    DeleteModalService.deleteResource(
-      'License Threat Group',
-      vm.dirtyLTG.name,
-      vm.dirtyLTG
-    ).then(function () {
+    DeleteModalService.deleteResource('License Threat Group', vm.dirtyLTG.name, vm.dirtyLTG).then(function () {
       isNavigatingAfterRemove = true;
 
       if (vm.isApp) {
@@ -85,13 +81,8 @@ export default function LicenseThreatGroupEditorController(
 
         results[1].data.licenseThreatGroupsByOwner.forEach(function (owner) {
           owner.licenseThreatGroups.some(function (ltg, index) {
-            if (
-              $stateParams.licenseThreatGroupId &&
-              ltg.id === $stateParams.licenseThreatGroupId
-            ) {
-              vm.nextLTG =
-                owner.licenseThreatGroups[index + 1] ||
-                owner.licenseThreatGroups[index - 1];
+            if ($stateParams.licenseThreatGroupId && ltg.id === $stateParams.licenseThreatGroupId) {
+              vm.nextLTG = owner.licenseThreatGroups[index + 1] || owner.licenseThreatGroups[index - 1];
               return true;
             }
           });
@@ -106,15 +97,12 @@ export default function LicenseThreatGroupEditorController(
             if (ltgCandidate.id === $stateParams.licenseThreatGroupId) {
               vm.dirtyLTG = ltgCandidate.$clone();
 
-              originalPickedLicenseIds = vm.dirtyLTG.licenses.map(function (
-                license
-              ) {
+              originalPickedLicenseIds = vm.dirtyLTG.licenses.map(function (license) {
                 return license.licenseId;
               });
 
               vm.availableLicenses.forEach(function (license) {
-                license.picked =
-                  originalPickedLicenseIds.indexOf(license.id) > -1;
+                license.picked = originalPickedLicenseIds.indexOf(license.id) > -1;
               });
 
               return true;
@@ -142,10 +130,7 @@ export default function LicenseThreatGroupEditorController(
 
       vm.availableLicenses.forEach(function (license) {
         if (license.picked) {
-          var newLicense = angular.extend(
-            licenseGroupStore.create('licenses'),
-            { licenseId: license.id }
-          );
+          var newLicense = angular.extend(licenseGroupStore.create('licenses'), { licenseId: license.id });
           vm.dirtyLTG.licenses.push(newLicense);
         }
       });
@@ -161,9 +146,7 @@ export default function LicenseThreatGroupEditorController(
           }
 
           vm.ltgEditor.$setPristine();
-          originalPickedLicenseIds = vm.dirtyLTG.licenses.map(function (
-            license
-          ) {
+          originalPickedLicenseIds = vm.dirtyLTG.licenses.map(function (license) {
             return license.licenseId;
           });
         },
@@ -177,8 +160,7 @@ export default function LicenseThreatGroupEditorController(
   function isLTGDirty() {
     var isLicensePickerDirty = vm.availableLicenses.some(function (license) {
       return (
-        (license.picked &&
-          originalPickedLicenseIds.indexOf(license.id) === -1) ||
+        (license.picked && originalPickedLicenseIds.indexOf(license.id) === -1) ||
         (!license.picked && originalPickedLicenseIds.indexOf(license.id) > -1)
       );
     });
@@ -190,8 +172,7 @@ export default function LicenseThreatGroupEditorController(
     return item.longDisplayName;
   }
 
-  const getFullDisplayName = ({ shortDisplayName, longDisplayName }) =>
-    `(${shortDisplayName}) ${longDisplayName}`;
+  const getFullDisplayName = ({ shortDisplayName, longDisplayName }) => `(${shortDisplayName}) ${longDisplayName}`;
 }
 
 LicenseThreatGroupEditorController.$inject = [

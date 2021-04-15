@@ -3,18 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  isNil,
-  join,
-  map,
-  negate,
-  pick,
-  pipe,
-  prop,
-  sort,
-  startsWith,
-  toUpper,
-} from 'ramda';
+import { isNil, join, map, negate, pick, pipe, prop, sort, startsWith, toUpper } from 'ramda';
 
 import template from './cipAudit.html';
 
@@ -36,37 +25,26 @@ function CipAuditController($scope, $http, CLMLocations, Messages) {
     sort: '-time',
 
     $onInit() {
-      $scope.$watchGroup(
-        ['vm.applicationPublicId', 'vm.scanId', 'vm.component'],
-        vm.doLoad
-      );
+      $scope.$watchGroup(['vm.applicationPublicId', 'vm.scanId', 'vm.component'], vm.doLoad);
     },
 
     doLoad() {
       vm.error = undefined;
       vm.auditRecords = undefined;
 
-      $http
-        .get(
-          CLMLocations.getReportAuditLogUrl(
-            vm.applicationPublicId,
-            vm.scanId,
-            vm.component
-          )
-        )
-        .then(
-          function (response) {
-            const { data } = response,
-              records = (data && data.aaData) || [];
+      $http.get(CLMLocations.getReportAuditLogUrl(vm.applicationPublicId, vm.scanId, vm.component)).then(
+        function (response) {
+          const { data } = response,
+            records = (data && data.aaData) || [];
 
-            vm.auditRecords = map(processAuditRecord, records);
-            vm.sortRecords();
-          },
-          function (response) {
-            vm.auditRecords = [];
-            vm.error = Messages.getHttpErrorMessage(response);
-          }
-        );
+          vm.auditRecords = map(processAuditRecord, records);
+          vm.sortRecords();
+        },
+        function (response) {
+          vm.auditRecords = [];
+          vm.error = Messages.getHttpErrorMessage(response);
+        }
+      );
     },
 
     onSortChange([sortCol]) {
@@ -96,10 +74,7 @@ CipAuditController.$inject = ['$scope', '$http', 'CLMLocations', 'Messages'];
 const processAuditRecord = (record) => ({
   user: 'anonymous', // default value, usually overridden by the `pick` below
   action: statusToActionMap[record.status] || record.status,
-  detail:
-    record.filename === 'security.json'
-      ? createSecurityDetails(record)
-      : createLicenseDetails(record),
+  detail: record.filename === 'security.json' ? createSecurityDetails(record) : createLicenseDetails(record),
 
   // some audit entries use null when there isn't a comment while others use a blank string.  Normalize to prevent
   // confusing sorting
@@ -119,8 +94,7 @@ const statusToActionMap = {
 
 function createSecurityDetails(record) {
   const { source, reference } = record,
-    referenceIncludesSource =
-      !isNil(source) && startsWith(toUpper(source), toUpper(reference)),
+    referenceIncludesSource = !isNil(source) && startsWith(toUpper(source), toUpper(reference)),
     refString = referenceIncludesSource ? reference : `${source}-${reference}`;
 
   return `Vulnerability ${refString}`;
@@ -129,7 +103,5 @@ function createSecurityDetails(record) {
 function createLicenseDetails(record) {
   const { overriddenLicenses } = record;
 
-  return overriddenLicenses
-    ? `License as ${join(', ', overriddenLicenses)}`
-    : 'License Analysis';
+  return overriddenLicenses ? `License as ${join(', ', overriddenLicenses)}` : 'License Analysis';
 }

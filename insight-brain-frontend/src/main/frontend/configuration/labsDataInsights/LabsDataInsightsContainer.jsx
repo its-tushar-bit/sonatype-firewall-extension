@@ -13,8 +13,5 @@ function mapStateToProps({ labsDataInsights }) {
     loadingLabsDataInsights: labsDataInsights.viewState.loadingLabsDataInsights,
   };
 }
-const LabsDataInsightsContainer = connect(
-  mapStateToProps,
-  labsDataInsightsActions
-)(LabsDataInsights);
+const LabsDataInsightsContainer = connect(mapStateToProps, labsDataInsightsActions)(LabsDataInsights);
 export default LabsDataInsightsContainer;

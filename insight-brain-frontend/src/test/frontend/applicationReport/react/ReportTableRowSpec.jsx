@@ -27,10 +27,7 @@ describe('ReportTableRow component', function () {
       },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ReportTableRow,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ReportTableRow, minimalProps);
   });
 
   it('renders a NxTableRow', function () {
@@ -61,14 +58,7 @@ describe('ReportTableRow component', function () {
       secondTd = cells.at(1).find(NxTableCell),
       thirdTd = cells.at(2).find(NxTableCell);
 
-    assertMinimalProperties(
-      rows,
-      cells,
-      firstTd,
-      secondTd,
-      thirdTd,
-      props.component
-    );
+    assertMinimalProperties(rows, cells, firstTd, secondTd, thirdTd, props.component);
   });
 
   it('renders properties with direct dependency type', function () {
@@ -121,18 +111,9 @@ describe('ReportTableRow component', function () {
       secondTd = cells.at(1).find(NxTableCell),
       thirdTd = cells.at(2).find(NxTableCell);
 
-    assertMinimalProperties(
-      rows,
-      cells,
-      firstTd,
-      secondTd,
-      thirdTd,
-      props.component
-    );
+    assertMinimalProperties(rows, cells, firstTd, secondTd, thirdTd, props.component);
     expect(thirdTd.find(NxFontAwesomeIcon)).toExist();
-    expect(thirdTd.find('span').first()).toHaveClassName(
-      'iq-text-indicator iq-text-indicator--waived iq-pull-right'
-    );
+    expect(thirdTd.find('span').first()).toHaveClassName('iq-text-indicator iq-text-indicator--waived iq-pull-right');
     expect(thirdTd.find('span').last()).toHaveText('Waived');
   });
 
@@ -154,14 +135,7 @@ describe('ReportTableRow component', function () {
       secondTd = cells.at(1).find(NxTableCell),
       thirdTd = cells.at(2).find(NxTableCell);
 
-    assertMinimalProperties(
-      rows,
-      cells,
-      firstTd,
-      secondTd,
-      thirdTd,
-      props.component
-    );
+    assertMinimalProperties(rows, cells, firstTd, secondTd, thirdTd, props.component);
     expect(thirdTd.find(NxFontAwesomeIcon)).toExist();
     expect(thirdTd.find('span').first()).toHaveClassName(
       'iq-text-indicator iq-text-indicator--grandfathered iq-pull-right'
@@ -169,14 +143,7 @@ describe('ReportTableRow component', function () {
     expect(thirdTd.find('span').last()).toHaveText('Grandfathered');
   });
 
-  const assertMinimalProperties = (
-    rows,
-    cells,
-    firstTd,
-    secondTd,
-    thirdTd,
-    component
-  ) => {
+  const assertMinimalProperties = (rows, cells, firstTd, secondTd, thirdTd, component) => {
     expect(rows).toExist();
     expect(cells).toExist();
     expect(firstTd).toExist();

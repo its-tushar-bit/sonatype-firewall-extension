@@ -27,9 +27,7 @@ describe('threat.level.selector.directive.spec.js', function () {
     expect(element.find('.dropdown-menu li').length).toBe(11);
     element.find('.dropdown-menu li a').each(function (index) {
       // We convert classList in an array since it is a DOMTokentList. Jasmine allows array-like objects as of v2.3.4.
-      expect(Array.prototype.slice.apply(this.classList, [0])).toContain(
-        'ltg-threat-level-' + (10 - index)
-      );
+      expect(Array.prototype.slice.apply(this.classList, [0])).toContain('ltg-threat-level-' + (10 - index));
     });
   });
 
@@ -40,12 +38,9 @@ describe('threat.level.selector.directive.spec.js', function () {
       isolatedScope.vm.selectLevel(i);
       isolatedScope.$apply();
 
-      expect(
-        Array.prototype.slice.apply(
-          element.find('a.selected-threat-level').get(0).classList,
-          [0]
-        )
-      ).toContain('ltg-threat-level-' + i);
+      expect(Array.prototype.slice.apply(element.find('a.selected-threat-level').get(0).classList, [0])).toContain(
+        'ltg-threat-level-' + i
+      );
     }
   });
 });

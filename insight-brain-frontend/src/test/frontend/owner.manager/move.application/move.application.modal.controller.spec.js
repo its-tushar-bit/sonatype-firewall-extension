@@ -40,9 +40,7 @@ describe('move.application.modal.controller.js', function () {
     },
   };
 
-  beforeEach(
-    angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name)
-  );
+  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name));
 
   beforeEach(inject(function (_$rootScope_, $controller, _$q_) {
     $rootScope = _$rootScope_;
@@ -50,9 +48,7 @@ describe('move.application.modal.controller.js', function () {
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy('$close');
     moveApplicationErrorModal = jasmine.createSpyObj('errorModal', ['open']);
-    moveApplicationSuccessModal = jasmine.createSpyObj('successModal', [
-      'open',
-    ]);
+    moveApplicationSuccessModal = jasmine.createSpyObj('successModal', ['open']);
 
     initController = function () {
       return $controller('move.application.modal.controller', {
@@ -186,10 +182,7 @@ describe('move.application.modal.controller.js', function () {
       it('assigns provided incompatibilities to vm.incompatibilities', function () {
         expect(vm.incompatibilities).toBeUndefined();
         scope.$apply(); // resolve promises
-        expect(vm.incompatibilities).toEqual([
-          'incompatibility1',
-          'incompatibility2',
-        ]);
+        expect(vm.incompatibilities).toEqual(['incompatibility1', 'incompatibility2']);
       });
 
       describe('vm.getError()', function () {
@@ -204,10 +197,7 @@ describe('move.application.modal.controller.js', function () {
           moveApplicationErrorModal.open.and.returnValue($q.resolve());
           scope.$apply(); // resolve promises
           vm.showIncompatibilities();
-          expect(moveApplicationErrorModal.open).toHaveBeenCalledWith([
-            'incompatibility1',
-            'incompatibility2',
-          ]);
+          expect(moveApplicationErrorModal.open).toHaveBeenCalledWith(['incompatibility1', 'incompatibility2']);
         });
       });
     });
@@ -222,15 +212,10 @@ describe('move.application.modal.controller.js', function () {
         spyOn($rootScope, '$broadcast').and.callThrough();
         moveApplicationSuccessModal.open.and.returnValue($q.resolve());
         scope.$apply(); // resolve promises
-        expect($rootScope.$broadcast).toHaveBeenCalledWith(
-          'reload.owner.tree.data'
-        );
+        expect($rootScope.$broadcast).toHaveBeenCalledWith('reload.owner.tree.data');
         expect(scope.$close).toHaveBeenCalled();
         expect(moveApplicationErrorModal.open).not.toHaveBeenCalled();
-        expect(moveApplicationSuccessModal.open).toHaveBeenCalledWith([
-          'warning1',
-          'warning2',
-        ]);
+        expect(moveApplicationSuccessModal.open).toHaveBeenCalledWith(['warning1', 'warning2']);
       });
     });
   });

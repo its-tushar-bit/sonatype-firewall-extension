@@ -3,21 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  NxOverflowTooltip,
-  NxTableCell,
-  NxTableRow,
-  NxThreatIndicator,
-} from '@sonatype/react-shared-components';
+import { NxOverflowTooltip, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
 import ComponentDisplay from '../../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
 import * as enzymeUtils from '../../enzymeUtils';
 
 describe('DashboardViolationsTableRow', function () {
-  let minimalProps,
-    getShallowComponent,
-    stateGoSpy,
-    terseAgoSpy,
-    DashboardViolationsTableRow;
+  let minimalProps, getShallowComponent, stateGoSpy, terseAgoSpy, DashboardViolationsTableRow;
 
   beforeEach(() => {
     stateGoSpy = jasmine.createSpy('stateGo');
@@ -40,10 +31,7 @@ describe('DashboardViolationsTableRow', function () {
       }
     ).default;
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardViolationsTableRow,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolationsTableRow, minimalProps);
   });
 
   it('links on click to the violation details state', () => {
@@ -119,9 +107,7 @@ describe('DashboardViolationsTableRow', function () {
         cells = row.find(NxTableCell),
         timeCell = cells.at(4);
 
-      expect(terseAgoSpy).toHaveBeenCalledWith(
-        minimalProps.violation.firstOccurrenceTime
-      );
+      expect(terseAgoSpy).toHaveBeenCalledWith(minimalProps.violation.firstOccurrenceTime);
       expect(timeCell).toExist();
     });
 

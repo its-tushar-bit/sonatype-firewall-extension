@@ -134,9 +134,7 @@ describe('manageLegalFilterActions', function () {
       const actions = store.getActions();
 
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(
-        'LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED'
-      );
+      expect(actions[0].type).toBe('LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED');
       expect(actions[0].payload).toBeUndefined();
     });
 
@@ -146,9 +144,7 @@ describe('manageLegalFilterActions', function () {
       const actions = store.getActions();
 
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(
-        'LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED'
-      );
+      expect(actions[0].type).toBe('LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED');
       expect(actions[0].payload).toBeUndefined();
     });
 
@@ -158,9 +154,7 @@ describe('manageLegalFilterActions', function () {
       const actions = store.getActions();
 
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(
-        'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED'
-      );
+      expect(actions[0].type).toBe('LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED');
       expect(actions[0].payload).toEqual('bar');
     });
 
@@ -170,9 +164,7 @@ describe('manageLegalFilterActions', function () {
       const actions = store.getActions();
 
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(
-        'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED'
-      );
+      expect(actions[0].type).toBe('LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED');
       expect(actions[0].payload).toEqual('bar');
     });
 
@@ -182,9 +174,7 @@ describe('manageLegalFilterActions', function () {
       const actions = store.getActions();
 
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(
-        'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED'
-      );
+      expect(actions[0].type).toBe('LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED');
       expect(actions[0].payload).toEqual('bar');
     });
 
@@ -205,24 +195,17 @@ describe('manageLegalFilterActions', function () {
         },
       });
 
-      store
-        .dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
-        .then(() => {
-          actions = store.getActions();
-          expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
-          expect(axios.put).toHaveBeenCalledWith(
-            dashboardSavedFiltersUrl,
-            expectedPUTBody
-          );
-          expect(actions.length).toBe(3);
-          expect(actions[1].type).toBe('LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED');
-          expect(actions[1].payload).toEqual(putSavedFilterResponse);
-          expect(actions[2].type).toBe(
-            'LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED'
-          );
-          expect(actions[2].payload).toEqual(getSavedFiltersResponse);
-          done();
-        });
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: false })).then(() => {
+        actions = store.getActions();
+        expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
+        expect(axios.put).toHaveBeenCalledWith(dashboardSavedFiltersUrl, expectedPUTBody);
+        expect(actions.length).toBe(3);
+        expect(actions[1].type).toBe('LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED');
+        expect(actions[1].payload).toEqual(putSavedFilterResponse);
+        expect(actions[2].type).toBe('LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED');
+        expect(actions[2].payload).toEqual(getSavedFiltersResponse);
+        done();
+      });
 
       let actions = store.getActions();
       expect(actions.length).toBe(1);
@@ -235,19 +218,14 @@ describe('manageLegalFilterActions', function () {
         },
       });
 
-      store
-        .dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
-        .catch(() => {
-          const actions = store.getActions();
-          expect(axios.put).toHaveBeenCalledWith(
-            dashboardSavedFiltersUrl,
-            expectedPUTBody
-          );
-          expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('LEGAL_DASHBOARD_SAVE_FILTER_FAILED');
-          expect(actions[1].payload.status).toBe(403);
-          done();
-        });
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: false })).catch(() => {
+        const actions = store.getActions();
+        expect(axios.put).toHaveBeenCalledWith(dashboardSavedFiltersUrl, expectedPUTBody);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe('LEGAL_DASHBOARD_SAVE_FILTER_FAILED');
+        expect(actions[1].payload.status).toBe(403);
+        done();
+      });
 
       expect(store.getActions().length).toBe(1);
     });
@@ -266,22 +244,15 @@ describe('manageLegalFilterActions', function () {
         },
       });
 
-      store
-        .dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
-        .catch(() => {
-          const actions = store.getActions();
-          expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
-          expect(axios.put).toHaveBeenCalledWith(
-            dashboardSavedFiltersUrl,
-            expectedPUTBody
-          );
-          expect(actions.length).toBe(3);
-          expect(actions[2].type).toBe(
-            'LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED'
-          );
-          expect(actions[2].payload.status).toBe(403);
-          done();
-        });
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: false })).catch(() => {
+        const actions = store.getActions();
+        expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
+        expect(axios.put).toHaveBeenCalledWith(dashboardSavedFiltersUrl, expectedPUTBody);
+        expect(actions.length).toBe(3);
+        expect(actions[2].type).toBe('LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED');
+        expect(actions[2].payload.status).toBe(403);
+        done();
+      });
 
       expect(store.getActions().length).toBe(1);
     });
@@ -329,9 +300,7 @@ describe('manageLegalFilterActions', function () {
     });
 
     it('dispatches LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED if overwriting but warning is displayed', function (done) {
-      store
-        .dispatch(saveFilter({ name: 'foo', isOverwriting: true }))
-        .then(done);
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: true })).then(done);
 
       const actions = store.getActions();
       const state = store.getState();
@@ -358,9 +327,7 @@ describe('manageLegalFilterActions', function () {
       const actions = store.getActions();
 
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(
-        'LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL'
-      );
+      expect(actions[0].type).toBe('LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL');
     });
 
     it('immediately sends a LEGAL_DASHBOARD_SAVE_CONFIRM_CANCELLED action when saveFilterWarning not null', function () {
@@ -428,9 +395,7 @@ describe('manageLegalFilterActions', function () {
         store.dispatch(deleteFilter(filterToDelete)).then(() => {
           const actions = store.getActions();
           expect(actions.length).toBe(3);
-          expect(actions[1].type).toBe(
-            'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED'
-          );
+          expect(actions[1].type).toBe('LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED');
           expect(actions[1].payload).toBe(filterToDelete);
           done();
         });
@@ -460,9 +425,7 @@ describe('manageLegalFilterActions', function () {
         expect(actions.length).toBe(3);
         expect(actions[1].type).toBe('LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED');
         expect(actions[1].payload).toBe(filterToDelete);
-        expect(actions[2].type).toBe(
-          'LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED'
-        );
+        expect(actions[2].type).toBe('LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED');
         expect(actions[2].payload).toEqual(getSavedFiltersResponse);
         done();
       });
@@ -490,13 +453,9 @@ describe('manageLegalFilterActions', function () {
 
         setTimeout(function () {
           expect(actions.length).toBe(5);
-          expect(actions[3].type).toBe(
-            'LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN'
-          );
+          expect(actions[3].type).toBe('LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN');
           expect(actions[3].payload).toBe(false);
-          expect(actions[4].type).toBe(
-            'LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL'
-          );
+          expect(actions[4].type).toBe('LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL');
 
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -536,9 +495,7 @@ describe('manageLegalFilterActions', function () {
       store.dispatch(deleteFilter(filterToDelete)).catch(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(3);
-        expect(actions[2].type).toBe(
-          'LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED'
-        );
+        expect(actions[2].type).toBe('LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED');
         expect(actions[2].payload.status).toEqual(403);
         done();
       });

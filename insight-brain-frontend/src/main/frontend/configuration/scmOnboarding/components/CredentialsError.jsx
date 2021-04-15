@@ -10,34 +10,23 @@ import ownerConstant from '../../../utility/services/owner.constant';
 import { displayName } from '../utils/providers';
 
 function CredentialsError(props) {
-  const {
-    inLoadWrapper,
-    errorCode,
-    hostUrlClicked,
-    selectedOrganization,
-    scmProvider,
-    $state,
-  } = props;
+  const { inLoadWrapper, errorCode, hostUrlClicked, selectedOrganization, scmProvider, $state } = props;
 
   if (!errorCode) {
     return null;
   }
 
   function getSourceControlIdToUpdate() {
-    if (
-      !selectedOrganization ||
-      selectedOrganization.sourceControl.token.value === null
-    ) {
+    if (!selectedOrganization || selectedOrganization.sourceControl.token.value === null) {
       return ownerConstant.ROOT_ORGANIZATION_ID;
     } else {
       return selectedOrganization.organization.id;
     }
   }
 
-  const scmConfigurationHref = $state.href(
-    'management.edit.organization.edit-source-control',
-    { organizationId: getSourceControlIdToUpdate() }
-  );
+  const scmConfigurationHref = $state.href('management.edit.organization.edit-source-control', {
+    organizationId: getSourceControlIdToUpdate(),
+  });
 
   const ERROR_SHORT_DESC = {
     SCM_AUTHN_FAILURE: 'Authentication Error',
@@ -53,14 +42,9 @@ function CredentialsError(props) {
   };
   const errorDetailDescription = () => {
     let description = ERROR_DETAIL_DESC[errorCode];
-    description =
-      description !== undefined
-        ? description
-        : 'IQ Server was unable to connect to';
+    description = description !== undefined ? description : 'IQ Server was unable to connect to';
     return (
-      `${description} ${displayName(
-        scmProvider
-      )} using the credentials associated with the ` +
+      `${description} ${displayName(scmProvider)} using the credentials associated with the ` +
       `${selectedOrganization.organization.name} Organization.`
     );
   };
@@ -79,8 +63,7 @@ function CredentialsError(props) {
       ) : (
         <strong>{errorShortDescription()}. </strong>
       )}
-      {errorDetailDescription()} You may try a {hostUrlBlock()} or manage your
-      SCM configuration in the{' '}
+      {errorDetailDescription()} You may try a {hostUrlBlock()} or manage your SCM configuration in the{' '}
       <a href={scmConfigurationHref}>Orgs & Policies</a> page.
     </Fragment>
   );

@@ -1,35 +1,19 @@
-<div
-  class="iq-tile iq-tile--dashboard-common-messages"
-  ng-if="vm.loadCommonResults()"
->
-  <div
-    load-wrapper="vm.errorMessage"
-    loading="!vm.results && !vm.needsAcknowledgement"
-    reload="vm.reload()"
-  >
-    <div
-      class="iq-alert iq-alert--info"
-      id="needs-acknowledgement"
-      ng-if="vm.needsAcknowledgement"
-    >
-      <i class="fa fa-info-circle"></i>Select your filter criteria on the left,
-      and click 'apply' to see results.
+<div class="iq-tile iq-tile--dashboard-common-messages" ng-if="vm.loadCommonResults()">
+  <div load-wrapper="vm.errorMessage" loading="!vm.results && !vm.needsAcknowledgement" reload="vm.reload()">
+    <div class="iq-alert iq-alert--info" id="needs-acknowledgement" ng-if="vm.needsAcknowledgement">
+      <i class="fa fa-info-circle"></i>Select your filter criteria on the left, and click 'apply' to see results.
     </div>
     <div ng-if="vm.results && !vm.needsAcknowledgement">
       <div ng-if="vm.results.length === 0">
         <em class="clm-bar-text-offset" id="dashboard-common-results-no-data">
           <span ng-if="vm.isViolationsTab">
-            No data available {{vm.maxDaysOld ? 'in the last ' + vm.maxDaysOld +
-            ' days' : ''}} given the applied filters and permissions.
+            No data available {{vm.maxDaysOld ? 'in the last ' + vm.maxDaysOld + ' days' : ''}} given the applied
+            filters and permissions.
           </span>
-          <span ng-if="!vm.isViolationsTab">
-            No data available given the applied filters and permissions.
-          </span>
+          <span ng-if="!vm.isViolationsTab"> No data available given the applied filters and permissions. </span>
         </em>
       </div>
-      <div id="max-results-shown" ng-if="vm.numResults > vm.maxResults">
-        First {{vm.maxResults}} results shown
-      </div>
+      <div id="max-results-shown" ng-if="vm.numResults > vm.maxResults">First {{vm.maxResults}} results shown</div>
     </div>
   </div>
 </div>

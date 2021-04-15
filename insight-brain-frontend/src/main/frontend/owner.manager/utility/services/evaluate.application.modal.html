@@ -9,40 +9,28 @@
       </div>
     </div>
   </div>
-  <div ng-show="vm.evaluationState == 'loading'">
-    <i class="icon icon-time"></i> Loading...
-  </div>
+  <div ng-show="vm.evaluationState == 'loading'"><i class="icon icon-time"></i> Loading...</div>
   <div ng-show="vm.evaluationState == 'polling'">
     <div class="iq-modal-content">
       <p>
-        Closing this panel will not interrupt the evaluation. It will still
-        progress until it is complete. When the evaluation has been completed
-        you can view the results by clicking on the button below.
+        Closing this panel will not interrupt the evaluation. It will still progress until it is complete. When the
+        evaluation has been completed you can view the results by clicking on the button below.
       </p>
       <dl class="iq-list iq-list--definition-list">
         <dt class="iq-list__item iq-list__item--label">File:</dt>
         <!--
      -->
-        <dd class="iq-list__item" id="bundle-file-name">
-          {{vm.bundle.filename}}
-        </dd>
+        <dd class="iq-list__item" id="bundle-file-name">{{vm.bundle.filename}}</dd>
         <dt class="iq-list__item iq-list__item--label">Application:</dt>
         <!--
      -->
-        <dd class="iq-list__item" id="bundle-app-name">
-          {{vm.bundle.applicationName}}
-        </dd>
+        <dd class="iq-list__item" id="bundle-app-name">{{vm.bundle.applicationName}}</dd>
         <dt class="iq-list__item iq-list__item--label">Stage:</dt>
         <!--
      -->
-        <dd class="iq-list__item" id="bundle-stage-name">
-          {{vm.bundle.stage.stageName}}
-        </dd>
+        <dd class="iq-list__item" id="bundle-stage-name">{{vm.bundle.stage.stageName}}</dd>
       </dl>
-      <div
-        class="iq-progress-bar progress progress-striped"
-        ng-class="{active: !vm.evaluationStatus.scanId}"
-      >
+      <div class="iq-progress-bar progress progress-striped" ng-class="{active: !vm.evaluationStatus.scanId}">
         <div class="bar" ng-style="{width: vm.getProgressWidth() + '%'}"></div>
       </div>
       <div id="evaluate-bundle-status">
@@ -50,9 +38,7 @@
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{ 'iq-error' : vm.error }">
-      <div ng-if="vm.error" class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i>{{vm.error}}
-      </div>
+      <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{vm.error}}</div>
       <button
         ng-if="!vm.error"
         id="evaluate-bundle-view"
@@ -63,12 +49,7 @@
       >
         View Report</button
       ><!--
-   --><button
-        ng-if="vm.error"
-        class="iq-btn iq-btn--error"
-        type="submit"
-        ng-click="vm.retry()"
-      >
+   --><button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" ng-click="vm.retry()">
         <i class="fa fa-refresh"></i>Retry</button
       ><!--
    --><button
@@ -82,30 +63,15 @@
       </button>
     </div>
   </div>
-  <div
-    ng-show="vm.evaluationState != 'loading' && vm.evaluationState != 'polling'"
-  >
-    <form
-      class="iq-form iq-form--no-padding iq-form--no-border"
-      name="evaluateBundle"
-      ng-submit="vm.doSubmit($event)"
-    >
+  <div ng-show="vm.evaluationState != 'loading' && vm.evaluationState != 'polling'">
+    <form class="iq-form iq-form--no-padding iq-form--no-border" name="evaluateBundle" ng-submit="vm.doSubmit($event)">
       <div class="iq-modal-content">
         <div class="iq-form-group">
-          <label class="iq-label" for="bundle-file"
-            >Select the file you want evaluated</label
-          >
-          <input
-            type="file"
-            file-model="vm.bundle.file"
-            id="bundle-file"
-            name="file"
-          />
+          <label class="iq-label" for="bundle-file">Select the file you want evaluated</label>
+          <input type="file" file-model="vm.bundle.file" id="bundle-file" name="file" />
         </div>
         <div class="iq-form-group">
-          <label class="iq-label" for="bundle-stage">
-            Which stage should this evaluation be associated with?
-          </label>
+          <label class="iq-label" for="bundle-stage"> Which stage should this evaluation be associated with? </label>
           <dropdown-selector
             id="bundle-stage"
             ng-model="vm.bundle.stage"
@@ -116,17 +82,13 @@
           </dropdown-selector>
         </div>
         <fieldset class="iq-form-group iq-radio-group">
-          <legend class="iq-label">
-            Should notifications be sent if this application violates any
-            policies?
-          </legend>
+          <legend class="iq-label">Should notifications be sent if this application violates any policies?</legend>
           <div
             id="eval-notifications-disabled-message"
             ng-if="!vm.isNotificationsSupported"
             class="iq-alert iq-alert--info iq-alert--form-item"
           >
-            <i class="fa fa-info-circle"></i>Notifications are not supported by
-            your license.
+            <i class="fa fa-info-circle"></i>Notifications are not supported by your license.
           </div>
           <iq-radio
             model="vm.bundle.notify"
@@ -145,9 +107,7 @@
         </fieldset>
       </div>
       <div class="iq-modal-footer" ng-class="{ 'iq-error' : vm.error }">
-        <div ng-if="vm.error" class="iq-alert iq-alert--error">
-          <i class="fa fa-warning"></i>{{vm.error}}
-        </div>
+        <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{vm.error}}</div>
         <button
           ng-if="!vm.error"
           id="evaluate-bundle-upload"
@@ -157,28 +117,12 @@
         >
           Upload</button
         ><!--
-     --><button
-          ng-if="vm.error"
-          class="iq-btn iq-btn--error"
-          type="submit"
-          ng-click="vm.retry()"
-        >
+     --><button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" ng-click="vm.retry()">
           <i class="fa fa-refresh"></i>Retry</button
         ><!--
-     --><button
-          id="evaluate-bundle-cancel"
-          class="iq-btn"
-          type="button"
-          ng-click="$close()"
-        >
-          Cancel
-        </button>
+     --><button id="evaluate-bundle-cancel" class="iq-btn" type="button" ng-click="$close()">Cancel</button>
       </div>
-      <input
-        type="hidden"
-        name="{{vm.csrfTokenName}}"
-        value="{{vm.csrfTokenValue}}"
-      />
+      <input type="hidden" name="{{vm.csrfTokenName}}" value="{{vm.csrfTokenValue}}" />
     </form>
   </div>
 </div>

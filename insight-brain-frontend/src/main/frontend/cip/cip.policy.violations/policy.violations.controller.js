@@ -107,12 +107,9 @@ export default function PolicyViolationsController(
   };
   $scope.alerts = [];
 
-  $scope.$on(
-    'component.evaluation.updated',
-    function (event, componentKey, promises) {
-      promises.push($scope.doLoad());
-    }
-  );
+  $scope.$on('component.evaluation.updated', function (event, componentKey, promises) {
+    promises.push($scope.doLoad());
+  });
 
   $scope.$watch(
     function () {

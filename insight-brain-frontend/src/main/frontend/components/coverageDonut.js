@@ -25,18 +25,7 @@ export default function CoverageDonut() {
       function updateGraph() {
         if (scope.percentKnownComponents !== undefined) {
           HealthCheck.artifactsChart(1 - scope.percentKnownComponents / 100, {
-            ...pick(
-              [
-                'width',
-                'height',
-                'fillColors',
-                'strokeColor',
-                'lineWidth',
-                'innerRadius',
-                'outerRadius',
-              ],
-              scope
-            ),
+            ...pick(['width', 'height', 'fillColors', 'strokeColor', 'lineWidth', 'innerRadius', 'outerRadius'], scope),
             element: element[0],
           });
         }

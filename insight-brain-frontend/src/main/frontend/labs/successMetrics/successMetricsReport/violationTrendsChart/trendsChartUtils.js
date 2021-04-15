@@ -13,22 +13,12 @@ export const BAR_TOOLTIP_OFFSET_HORIZONTAL = 5;
 export function moveGuidelineAndTooltip(el, nearestEntity, guideline, tooltip) {
   // set content before we get tooltip width
   tooltip.setContent(nearestEntity.datum.timePeriodName);
-  const position = getGuidelineTooltipPosition(
-    el,
-    nearestEntity,
-    tooltip.getWidth()
-  );
+  const position = getGuidelineTooltipPosition(el, nearestEntity, tooltip.getWidth());
   guideline.value(nearestEntity.datum.timePeriodIndex);
   tooltip.show(position.left, position.top);
 }
 
-export function moveBarTooltip(
-  el,
-  nearestEntity,
-  tooltip,
-  tooltipOffsetTop,
-  showTrendArrow
-) {
+export function moveBarTooltip(el, nearestEntity, tooltip, tooltipOffsetTop, showTrendArrow) {
   tooltipOffsetTop = tooltipOffsetTop || 0;
   const position = getBarTooltipPosition(el, nearestEntity, tooltipOffsetTop);
   let trendsIcon = '';
@@ -41,17 +31,12 @@ export function moveBarTooltip(
     }
   }
 
-  tooltip.show(
-    position.left,
-    position.top,
-    Math.abs(nearestEntity.datum.violations) + trendsIcon
-  );
+  tooltip.show(position.left, position.top, Math.abs(nearestEntity.datum.violations) + trendsIcon);
 }
 
 function getBarTooltipPosition(el, nearestEntity, tooltipOffsetTop) {
   return {
-    left:
-      el.offsetLeft + nearestEntity.position.x + BAR_TOOLTIP_OFFSET_HORIZONTAL,
+    left: el.offsetLeft + nearestEntity.position.x + BAR_TOOLTIP_OFFSET_HORIZONTAL,
     top: el.offsetTop + tooltipOffsetTop,
   };
 }

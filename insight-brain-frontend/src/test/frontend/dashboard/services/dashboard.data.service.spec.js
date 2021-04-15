@@ -30,9 +30,7 @@ describe('dashboard.data.service.spec', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
   beforeEach(function () {
-    classyBrewSpy = jasmine
-      .createSpy('classyBrew')
-      .and.returnValue('classyBrew');
+    classyBrewSpy = jasmine.createSpy('classyBrew').and.returnValue('classyBrew');
     const dashboardDataService = require('inject-loader!../../../../main/frontend/dashboard/services/dashboard.data.service')(
       {
         '../utils/classybrew.factory': {
@@ -54,11 +52,7 @@ describe('dashboard.data.service.spec', function () {
           {
             hash: 'f60e9504841ba867a692',
             displayName: {
-              parts: [
-                { field: 'any', value: 'foo' },
-                { value: ' : ' },
-                { field: 'any', value: 'bar' },
-              ],
+              parts: [{ field: 'any', value: 'foo' }, { value: ' : ' }, { field: 'any', value: 'bar' }],
             },
             derivedComponentName: 'foo : bar',
             stageTypeId: 'stage-release',
@@ -81,10 +75,7 @@ describe('dashboard.data.service.spec', function () {
       getNewestRisks(filter, []).then(function (data) {
         const { results, numResults } = data;
 
-        expect(axios.post).toHaveBeenCalledWith(
-          newRisksUrl,
-          expectedRequestPayload
-        );
+        expect(axios.post).toHaveBeenCalledWith(newRisksUrl, expectedRequestPayload);
         expect(results[0].hash).toBe('f60e9504841ba867a692');
         expect(results[0].derivedComponentName).toBe('foo : bar');
         expect(results[1].hash).toBe('1249e25aebb15358bedd');
@@ -96,13 +87,7 @@ describe('dashboard.data.service.spec', function () {
 
     it('translates sortFields', function () {
       const newRisksUrl = getNewestRisksUrl(),
-        expectedSortFields = [
-          '-AGE',
-          '-THREAT_LEVEL',
-          'POLICY_NAME',
-          '-COMPONENT_NAME',
-          'APPLICATION_NAME',
-        ];
+        expectedSortFields = ['-AGE', '-THREAT_LEVEL', 'POLICY_NAME', '-COMPONENT_NAME', 'APPLICATION_NAME'];
 
       const expectedRequestData = {
         ...expectedRequestPayload,
@@ -184,10 +169,7 @@ describe('dashboard.data.service.spec', function () {
 
       getApplicationRisks(filter, []).then((response) => {
         const { results, numResults, classyBrew } = response;
-        expect(axios.post).toHaveBeenCalledWith(
-          applicationRiskUrl,
-          expectedRequestPayload
-        );
+        expect(axios.post).toHaveBeenCalledWith(applicationRiskUrl, expectedRequestPayload);
         expect(results).toEqual(originalRisks);
         expect(numResults).toEqual(2);
         expect(classyBrew).toEqual('classyBrew');
@@ -199,13 +181,7 @@ describe('dashboard.data.service.spec', function () {
 
     it('translates sortFields', function () {
       const applicationsRiskUrl = getApplicationRisksUrl(),
-        expectedSortFields = [
-          '-LOW_RISK',
-          'SEVERE_RISK',
-          '-MODERATE_RISK',
-          '-CRITICAL_RISK',
-          'NAME',
-        ];
+        expectedSortFields = ['-LOW_RISK', 'SEVERE_RISK', '-MODERATE_RISK', '-CRITICAL_RISK', 'NAME'];
 
       const expectedRequestData = {
         ...expectedRequestPayload,
@@ -228,10 +204,7 @@ describe('dashboard.data.service.spec', function () {
         'applicationName',
       ]);
 
-      expect(axios.post).toHaveBeenCalledWith(
-        applicationsRiskUrl,
-        expectedRequestData
-      );
+      expect(axios.post).toHaveBeenCalledWith(applicationsRiskUrl, expectedRequestData);
     });
   });
 
@@ -242,11 +215,7 @@ describe('dashboard.data.service.spec', function () {
           {
             hash: 'f60e9504841ba867a692',
             displayName: {
-              parts: [
-                { field: 'any', value: 'foo' },
-                { value: ' : ' },
-                { field: 'any', value: 'bar' },
-              ],
+              parts: [{ field: 'any', value: 'foo' }, { value: ' : ' }, { field: 'any', value: 'bar' }],
             },
             derivedComponentName: 'foo : bar',
             score: 12,
@@ -270,10 +239,7 @@ describe('dashboard.data.service.spec', function () {
 
       getComponentRisks(filter, []).then(function (data) {
         const { results, numResults, classyBrew } = data;
-        expect(axios.post).toHaveBeenCalledWith(
-          componentRiskUrl,
-          expectedRequestPayload
-        );
+        expect(axios.post).toHaveBeenCalledWith(componentRiskUrl, expectedRequestPayload);
         expect(results[0].hash).toBe('f60e9504841ba867a692');
         expect(results[0].derivedComponentName).toBe('foo : bar');
         expect(results[1].hash).toBe('1249e25aebb15358bedd');
@@ -320,10 +286,7 @@ describe('dashboard.data.service.spec', function () {
         'scoreLow',
       ]);
 
-      expect(axios.post).toHaveBeenCalledWith(
-        componentRisksUrl,
-        expectedRequestData
-      );
+      expect(axios.post).toHaveBeenCalledWith(componentRisksUrl, expectedRequestData);
     });
   });
 });

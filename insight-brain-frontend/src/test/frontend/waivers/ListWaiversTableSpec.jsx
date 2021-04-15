@@ -21,16 +21,11 @@ import ComponentDisplay from '../../../main/frontend/ComponentDisplay/ReactCompo
 import NxExternalLink from '../../../main/frontend/react/NxExternalLink';
 
 describe('ListWaiversTable', function () {
-  let minimalProps,
-    ListWaiversTable,
-    violationDetailsMock,
-    getShallowComponent,
-    setWaiverToDeleteSpy;
+  let minimalProps, ListWaiversTable, violationDetailsMock, getShallowComponent, setWaiverToDeleteSpy;
 
   beforeEach(function () {
     setWaiverToDeleteSpy = jasmine.createSpy('setWaiverToDelete');
-    ListWaiversTable = require('inject-loader!../../../main/frontend/waivers/ListWaiversTable')()
-      .default;
+    ListWaiversTable = require('inject-loader!../../../main/frontend/waivers/ListWaiversTable')().default;
 
     violationDetailsMock = {
       filename: 'filename',
@@ -57,10 +52,7 @@ describe('ListWaiversTable', function () {
       setWaiverToDelete: setWaiverToDeleteSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ListWaiversTable,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversTable, minimalProps);
   });
 
   it('renders an NxTable with header', function () {
@@ -127,16 +119,7 @@ describe('ListWaiversTable', function () {
     expect(icon.prop('icon')).toEqual(faTrashAlt);
   };
 
-  const assertWaiverTableRow = (
-    tableRow,
-    dateCreated,
-    scope,
-    components,
-    expiration,
-    comments,
-    isExpired,
-    waiver
-  ) => {
+  const assertWaiverTableRow = (tableRow, dateCreated, scope, components, expiration, comments, isExpired, waiver) => {
     if (isExpired) {
       expect(tableRow).toHaveClassName('list-waivers-row--expired');
     } else {
@@ -161,10 +144,7 @@ describe('ListWaiversTable', function () {
   };
 
   it('renders an NxTableBody with active and expired waivers sorted by createTime desc', function () {
-    const baselineDate = moment(
-      '2020-10-05T19:56:17.509+0000',
-      'YYYY-MM-DDThh:mm:ss.SSS+0000'
-    );
+    const baselineDate = moment('2020-10-05T19:56:17.509+0000', 'YYYY-MM-DDThh:mm:ss.SSS+0000');
     moment.now = () => baselineDate;
 
     const activeWaivers = [

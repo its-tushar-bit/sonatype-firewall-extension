@@ -5,11 +5,7 @@
  */
 import { map, props } from 'ramda';
 
-import {
-  sortItemsByFields,
-  sortColumn,
-  getColumnDirection,
-} from '../../../main/frontend/util/sortUtils';
+import { sortItemsByFields, sortColumn, getColumnDirection } from '../../../main/frontend/util/sortUtils';
 
 describe('sortUtils specs', function () {
   describe('sortItemsByFields', function () {
@@ -138,8 +134,7 @@ describe('sortUtils specs', function () {
             { field: 'Version', value: '4.3.16.RELEASE' },
           ],
         },
-        derivedComponentName:
-          'org.springframework.spring-webmvc.4.3.16.RELEASE',
+        derivedComponentName: 'org.springframework.spring-webmvc.4.3.16.RELEASE',
       },
       {
         hash: '4',
@@ -148,8 +143,7 @@ describe('sortUtils specs', function () {
         waived: false,
         grandfathered: false,
         componentIdentifier: 'apache',
-        derivedComponentName:
-          'org.apache.tomcat.embed.tomcat-embed-core.8.5.29',
+        derivedComponentName: 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29',
       },
       {
         hash: '5',
@@ -167,8 +161,7 @@ describe('sortUtils specs', function () {
             { field: 'Version', value: '2.8.11.1' },
           ],
         },
-        derivedComponentName:
-          'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1',
+        derivedComponentName: 'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1',
       },
       {
         hash: '5',
@@ -177,8 +170,7 @@ describe('sortUtils specs', function () {
         waived: false,
         grandfathered: false,
         componentIdentifier: 'foo',
-        derivedComponentName:
-          'com.fasterxml.jackson.core.jackson-databind.2.8.11.1',
+        derivedComponentName: 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1',
       },
       {
         hash: '5',
@@ -255,17 +247,9 @@ describe('sortUtils specs', function () {
     ];
 
     it("sorts by supplied properties (in descending order if prefixed with a '-')", function () {
-      const fields = [
-        '-policyThreatLevel',
-        'policyName',
-        'derivedComponentName',
-      ];
+      const fields = ['-policyThreatLevel', 'policyName', 'derivedComponentName'];
       const result = sortItemsByFields(fields, input);
-      expect(
-        map(props(['policyThreatLevel', 'policyName', 'derivedComponentName']))(
-          result
-        )
-      ).toEqual([
+      expect(map(props(['policyThreatLevel', 'policyName', 'derivedComponentName']))(result)).toEqual([
         [9, 'Policy 4', 'junit.junit.4.12'],
         [9, 'Policy 9', 'junit.junit.4.12'],
         [8, 'Policy 6', 'junit.junit.4.12'],
@@ -278,17 +262,9 @@ describe('sortUtils specs', function () {
         [4, 'Policy 2', 'junit.junit.4.8'],
         [4, 'Policy 5', 'junit.junit.4.12'],
         [4, 'Policy 8', 'org.springframework.spring-webmvc.4.3.16.RELEASE'],
-        [
-          3,
-          'Policy 11',
-          'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1',
-        ],
+        [3, 'Policy 11', 'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1'],
         [3, 'Policy 3', 'ant.ant.1.62'],
-        [
-          2,
-          'Policy 10',
-          'com.fasterxml.jackson.core.jackson-databind.2.8.11.1',
-        ],
+        [2, 'Policy 10', 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1'],
         [0, 'None', 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29'],
       ]);
     });
@@ -335,75 +311,27 @@ describe('sortUtils specs', function () {
     });
 
     it('sorts null values to the end when sorting descending', () => {
-      const nullSortInput = [
-        { foo: '3' },
-        { foo: '2' },
-        { foo: null },
-        { foo: '4' },
-        { foo: '1' },
-      ];
+      const nullSortInput = [{ foo: '3' }, { foo: '2' }, { foo: null }, { foo: '4' }, { foo: '1' }];
       const result = sortItemsByFields(['-foo'], nullSortInput);
-      expect(result).toEqual([
-        { foo: '4' },
-        { foo: '3' },
-        { foo: '2' },
-        { foo: '1' },
-        { foo: null },
-      ]);
+      expect(result).toEqual([{ foo: '4' }, { foo: '3' }, { foo: '2' }, { foo: '1' }, { foo: null }]);
     });
 
     it('sorts undefined values to the end when sorting descending', () => {
-      const nullSortInput = [
-        { foo: '3' },
-        { foo: '2' },
-        { foo: undefined },
-        { foo: '4' },
-        { foo: '1' },
-      ];
+      const nullSortInput = [{ foo: '3' }, { foo: '2' }, { foo: undefined }, { foo: '4' }, { foo: '1' }];
       const result = sortItemsByFields(['-foo'], nullSortInput);
-      expect(result).toEqual([
-        { foo: '4' },
-        { foo: '3' },
-        { foo: '2' },
-        { foo: '1' },
-        { foo: undefined },
-      ]);
+      expect(result).toEqual([{ foo: '4' }, { foo: '3' }, { foo: '2' }, { foo: '1' }, { foo: undefined }]);
     });
 
     it('sorts null values to the beginning when sorting ascending', () => {
-      const nullSortInput = [
-        { foo: '3' },
-        { foo: '2' },
-        { foo: null },
-        { foo: '4' },
-        { foo: '1' },
-      ];
+      const nullSortInput = [{ foo: '3' }, { foo: '2' }, { foo: null }, { foo: '4' }, { foo: '1' }];
       const result = sortItemsByFields(['foo'], nullSortInput);
-      expect(result).toEqual([
-        { foo: null },
-        { foo: '1' },
-        { foo: '2' },
-        { foo: '3' },
-        { foo: '4' },
-      ]);
+      expect(result).toEqual([{ foo: null }, { foo: '1' }, { foo: '2' }, { foo: '3' }, { foo: '4' }]);
     });
 
     it('sorts undefined values to the beginning when sorting ascending', () => {
-      const nullSortInput = [
-        { foo: '3' },
-        { foo: '2' },
-        { foo: undefined },
-        { foo: '4' },
-        { foo: '1' },
-      ];
+      const nullSortInput = [{ foo: '3' }, { foo: '2' }, { foo: undefined }, { foo: '4' }, { foo: '1' }];
       const result = sortItemsByFields(['foo'], nullSortInput);
-      expect(result).toEqual([
-        { foo: undefined },
-        { foo: '1' },
-        { foo: '2' },
-        { foo: '3' },
-        { foo: '4' },
-      ]);
+      expect(result).toEqual([{ foo: undefined }, { foo: '1' }, { foo: '2' }, { foo: '3' }, { foo: '4' }]);
     });
 
     it('returns the list unchanged if no properties to sort by are supplied', function () {

@@ -46,7 +46,4 @@ export default angular
   .component('systemConfigurationMenu', systemConfigurationMenu)
   .component('mainHeader', mainHeader)
   .component('userDetailsModal', userDetailsModal)
-  .component(
-    'userTokenModal',
-    react2angular(withStoreProvider(UserTokenModalContainer), [], ['$ngRedux'])
-  );
+  .component('userTokenModal', react2angular(withStoreProvider(UserTokenModalContainer), [], ['$ngRedux']));

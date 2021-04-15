@@ -53,11 +53,7 @@ export default function PolicyEditorController(
   });
 
   function deletePolicy() {
-    DeleteModalService.deleteResource(
-      'Policy',
-      vm.dirtyPolicy.name,
-      vm.dirtyPolicy
-    ).then(function () {
+    DeleteModalService.deleteResource('Policy', vm.dirtyPolicy.name, vm.dirtyPolicy).then(function () {
       // Model needs to be clean in order to navigate
       vm.dirtyPolicy.$revert();
       SameOwnerStateNavigationService.goEdit('create-policy');
@@ -79,9 +75,7 @@ export default function PolicyEditorController(
           vm.siblings = vm.siblings.concat(owner.policies);
         });
 
-        vm.isGrandfatheringSupported = ProductFeatures.isAvailable(
-          'policy-grandfathering'
-        );
+        vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
         if (results.length > 2) {
           vm.dirtyPolicy = results[2].$clone();
 
@@ -116,19 +110,12 @@ export default function PolicyEditorController(
 
           // A newly created policy won't have any tags associated with it
           if ($stateParams.policyId) {
-            promises.push(
-              $http.get(
-                CLMContextLocations.getPolicyTagUrl($stateParams.policyId)
-              )
-            );
+            promises.push($http.get(CLMContextLocations.getPolicyTagUrl($stateParams.policyId)));
           }
 
           $q.all(promises).then(
             function (results) {
-              loadCategories(
-                results[0],
-                results.length > 1 ? results[1].data : undefined
-              );
+              loadCategories(results[0], results.length > 1 ? results[1].data : undefined);
             },
             function (error) {
               vm.loadError = error;
@@ -144,9 +131,7 @@ export default function PolicyEditorController(
     delete vm.loadError;
 
     function loadCategories(categoriesByOwner, availableCategories) {
-      vm.hasPolicyCategories = Boolean(
-        availableCategories && availableCategories.length > 0
-      );
+      vm.hasPolicyCategories = Boolean(availableCategories && availableCategories.length > 0);
 
       var appliedCategoriesById = vm.hasPolicyCategories
         ? availableCategories.map(function (category) {
@@ -158,10 +143,7 @@ export default function PolicyEditorController(
       categoriesByOwner.forEach(function (owner) {
         //we only want to append categories that are actually part of the owner of the policy being shown.  We don't
         //want to show tags from children when showing a parent policy in read only mode
-        if (
-          vm.dirtyPolicy &&
-          (!vm.dirtyPolicy.ownerId || vm.dirtyPolicy.ownerId === owner.ownerId)
-        ) {
+        if (vm.dirtyPolicy && (!vm.dirtyPolicy.ownerId || vm.dirtyPolicy.ownerId === owner.ownerId)) {
           startConcat = true;
         }
         if (startConcat) {
@@ -196,9 +178,7 @@ export default function PolicyEditorController(
       var isNew = vm.dirtyPolicy.$new;
       delete vm.submitError;
 
-      var appliedCategories = vm.categories
-        .filter(prop('isApplied'))
-        .map((c) => c.$getOriginal());
+      var appliedCategories = vm.categories.filter(prop('isApplied')).map((c) => c.$getOriginal());
 
       vm.policyEditorMask.wrap(savePolicy).then(function () {
         if (isNew) {
@@ -219,8 +199,7 @@ export default function PolicyEditorController(
   function isInheritanceSectionDirty() {
     return (
       vm.isOrgOwner &&
-      ((vm.hasPolicyCategories &&
-        !angular.equals(originalCategories, vm.categories)) ||
+      ((vm.hasPolicyCategories && !angular.equals(originalCategories, vm.categories)) ||
         originalHasPolicyCategories !== vm.hasPolicyCategories)
     );
   }

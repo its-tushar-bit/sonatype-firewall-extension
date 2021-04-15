@@ -15,8 +15,7 @@ describe('successMetricsReportSpec', function () {
     $scope,
     mockSystemConfigurationPropertyService = {
       checkSuccessMetricsEnabled: undefined,
-      SUCCESS_METRICS_DISABLED_MESSAGE:
-        'Success metrics have been disabled by your system administrator.',
+      SUCCESS_METRICS_DISABLED_MESSAGE: 'Success metrics have been disabled by your system administrator.',
     },
     checkSuccessMetricsEnabledDeferred,
     resetPromise,
@@ -142,20 +141,12 @@ describe('successMetricsReportSpec', function () {
     applicationStoreDeferred = $q.defer();
 
     mockSuccessMetricsDataService = {
-      getChartData: jasmine
-        .createSpy()
-        .and.returnValue(getChartDataDeferred.promise),
-      getComponentCountsData: jasmine
-        .createSpy()
-        .and.returnValue(getComponentCountsDataDeferred.promise),
+      getChartData: jasmine.createSpy().and.returnValue(getChartDataDeferred.promise),
+      getComponentCountsData: jasmine.createSpy().and.returnValue(getComponentCountsDataDeferred.promise),
       getSuccessMetricsReportsForCurrentUser: jasmine
         .createSpy()
-        .and.returnValue(
-          getSuccessMetricsReportsForCurrentUserDeferred.promise
-        ),
-      getApplicationByInternalId: jasmine
-        .createSpy()
-        .and.returnValue(applicationStoreDeferred.promise),
+        .and.returnValue(getSuccessMetricsReportsForCurrentUserDeferred.promise),
+      getApplicationByInternalId: jasmine.createSpy().and.returnValue(applicationStoreDeferred.promise),
     };
 
     vm = $componentController('successMetricsReport', {
@@ -178,9 +169,7 @@ describe('successMetricsReportSpec', function () {
       applicationCountsData: applicationCountsData,
     });
     getComponentCountsDataDeferred.resolve(componentCountsData);
-    getSuccessMetricsReportsForCurrentUserDeferred.resolve(
-      getSuccessMetricsReportsForCurrentUserData
-    );
+    getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
     $scope.$digest();
 
     expect(vm.loaded).toBeTruthy();
@@ -201,17 +190,15 @@ describe('successMetricsReportSpec', function () {
       applicationCountsData: applicationCountsData,
     });
     getComponentCountsDataDeferred.resolve(componentCountsData);
-    getSuccessMetricsReportsForCurrentUserDeferred.resolve(
-      getSuccessMetricsReportsForCurrentUserData
-    );
+    getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
     $scope.$digest();
 
     expect(mockSuccessMetricsDataService.getChartData).toHaveBeenCalledWith(
       getSuccessMetricsReportsForCurrentUserData[0]
     );
-    expect(
-      mockSuccessMetricsDataService.getComponentCountsData
-    ).toHaveBeenCalledWith(getSuccessMetricsReportsForCurrentUserData[0]);
+    expect(mockSuccessMetricsDataService.getComponentCountsData).toHaveBeenCalledWith(
+      getSuccessMetricsReportsForCurrentUserData[0]
+    );
   });
 
   it('sets the successMetricsChartName from the matched SuccessMetrics', function () {
@@ -222,24 +209,18 @@ describe('successMetricsReportSpec', function () {
       applicationCountsData: applicationCountsData,
     });
     getComponentCountsDataDeferred.resolve(componentCountsData);
-    getSuccessMetricsReportsForCurrentUserDeferred.resolve(
-      getSuccessMetricsReportsForCurrentUserData
-    );
+    getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
     $scope.$digest();
 
     expect(vm.successMetricsReport.name).toBe('Success Metrics 1');
   });
 
   it('properly loads on disabled success metrics', function () {
-    checkSuccessMetricsEnabledDeferred.reject(
-      mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE
-    );
+    checkSuccessMetricsEnabledDeferred.reject(mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
     $scope.$digest();
 
     expect(vm.loaded).toBeTruthy();
-    expect(vm.error).toBe(
-      mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE
-    );
+    expect(vm.error).toBe(mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
     expect(vm.hasDisabledError()).toBe(true);
   });
 
@@ -281,9 +262,7 @@ describe('successMetricsReportSpec', function () {
     $scope.$digest();
 
     expect(mockSuccessMetricsDataService.getChartData).not.toHaveBeenCalled();
-    expect(
-      mockSuccessMetricsDataService.getComponentCountsData
-    ).not.toHaveBeenCalled();
+    expect(mockSuccessMetricsDataService.getComponentCountsData).not.toHaveBeenCalled();
     expect(vm.error).toBe('Could not find report with id SuccessMetrics1');
     expect(vm.hasDisabledError()).toBe(false);
     expect(vm.loaded).toBe(true);
@@ -296,9 +275,7 @@ describe('successMetricsReportSpec', function () {
 
     it('returns true if mttrData is an empty list', function () {
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsReportsForCurrentUserDeferred.resolve(
-        getSuccessMetricsReportsForCurrentUserData
-      );
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
       getChartDataDeferred.resolve({
         mttrData: [],
         averagesData: {
@@ -320,9 +297,7 @@ describe('successMetricsReportSpec', function () {
         applicationCountsData: applicationCountsData,
       });
       getComponentCountsDataDeferred.resolve(componentCountsData);
-      getSuccessMetricsReportsForCurrentUserDeferred.resolve(
-        getSuccessMetricsReportsForCurrentUserData
-      );
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
 
       $scope.$digest();
 
@@ -398,9 +373,7 @@ describe('successMetricsReportSpec', function () {
         'length is more than 1',
       function () {
         checkSuccessMetricsEnabledDeferred.resolve(true);
-        getSuccessMetricsReportsForCurrentUserDeferred.resolve(
-          getSuccessMetricsReportsForCurrentUserData
-        );
+        getSuccessMetricsReportsForCurrentUserDeferred.resolve(getSuccessMetricsReportsForCurrentUserData);
         getChartDataDeferred.resolve({
           mttrData: mttrData,
           averagesData: averagesData,
@@ -477,9 +450,7 @@ describe('successMetricsReportSpec', function () {
       });
 
       getComponentCountsDataDeferred.resolve(componentCountsData);
-      applicationStoreDeferred.reject(
-        'Could not find Application with internal id app1'
-      );
+      applicationStoreDeferred.reject('Could not find Application with internal id app1');
 
       $scope.$digest();
 
@@ -507,9 +478,7 @@ describe('successMetricsReportSpec', function () {
       $scope.$digest();
 
       expect(vm.activeApplicationCount).toBe(0);
-      expect(
-        mockSuccessMetricsDataService.getApplicationByInternalId
-      ).not.toHaveBeenCalled();
+      expect(mockSuccessMetricsDataService.getApplicationByInternalId).not.toHaveBeenCalled();
       expect(vm.error).toBeUndefined();
       expect(vm.hasDisabledError()).toBe(false);
       expect(vm.singleApplicationName).toBeUndefined();

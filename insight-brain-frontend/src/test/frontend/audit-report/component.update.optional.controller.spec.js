@@ -32,9 +32,7 @@ describe('component.update.optional.controller', function () {
   });
 
   it('performs a reevaluations', inject(function ($httpBackend) {
-    $httpBackend
-      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate'))
-      .respond(204);
+    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate')).respond(204);
     vm.forceReevaluation();
     $httpBackend.flush();
 
@@ -42,18 +40,14 @@ describe('component.update.optional.controller', function () {
   }));
 
   it('handles reevaluation failures', inject(function ($httpBackend) {
-    $httpBackend
-      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate'))
-      .respond(404, 'failure');
+    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate')).respond(404, 'failure');
     vm.forceReevaluation();
     $httpBackend.flush();
 
     expect(vm.error).toEqual('failure');
 
     // Recovers on retry success
-    $httpBackend
-      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate'))
-      .respond(204);
+    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate')).respond(204);
     vm.forceReevaluation();
     $httpBackend.flush();
 

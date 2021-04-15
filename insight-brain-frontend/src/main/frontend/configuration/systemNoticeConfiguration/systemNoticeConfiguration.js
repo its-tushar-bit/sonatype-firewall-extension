@@ -49,10 +49,7 @@ function SystemNoticeConfigurationController($rootScope, systemNoticeService) {
       .saveSystemNotice(vm.systemNotice)
       .then(function (data) {
         vm.savedSystemNotice = data;
-        $rootScope.$broadcast(
-          'systemNoticeUpdated',
-          angular.copy(vm.savedSystemNotice)
-        );
+        $rootScope.$broadcast('systemNoticeUpdated', angular.copy(vm.savedSystemNotice));
       })
       .catch(function (error) {
         vm.error = error;
@@ -68,9 +65,6 @@ function SystemNoticeConfigurationController($rootScope, systemNoticeService) {
   }
 }
 
-SystemNoticeConfigurationController.$inject = [
-  '$rootScope',
-  'systemNoticeService',
-];
+SystemNoticeConfigurationController.$inject = ['$rootScope', 'systemNoticeService'];
 
 export default systemNoticeConfiguration;

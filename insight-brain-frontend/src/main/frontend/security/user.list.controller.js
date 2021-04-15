@@ -78,19 +78,17 @@ export default function UserListController(
 
           scope.resetClick = function () {
             scope.state = 'pending';
-            $http
-              .put(clmLocations.getUserUrl() + '/' + user.id + '/reset')
-              .then(
-                function (response) {
-                  scope.newPassword = response.data.newPassword;
-                  scope.state = 'complete';
-                  $scope.passwordChangedForUser(scope.user);
-                },
-                function (error) {
-                  scope.state = 'failed';
-                  scope.error = messages.getHttpErrorMessage(error);
-                }
-              );
+            $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').then(
+              function (response) {
+                scope.newPassword = response.data.newPassword;
+                scope.state = 'complete';
+                $scope.passwordChangedForUser(scope.user);
+              },
+              function (error) {
+                scope.state = 'failed';
+                scope.error = messages.getHttpErrorMessage(error);
+              }
+            );
           };
 
           scope.okClick = function () {

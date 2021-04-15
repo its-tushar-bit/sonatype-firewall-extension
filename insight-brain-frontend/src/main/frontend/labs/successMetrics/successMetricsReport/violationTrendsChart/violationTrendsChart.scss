@@ -83,8 +83,7 @@ $total-delta-icon-margin-left: 8px;
 
 .iq-cell--violation-trends-chart-total-number {
   // leave space for floated delta icon = icon width + icon margins
-  margin-right: 10px + $total-delta-icon-margin-right +
-    $total-delta-icon-margin-left;
+  margin-right: 10px + $total-delta-icon-margin-right + $total-delta-icon-margin-left;
 }
 
 .iq-cell--violation-trends-chart-total-delta-icon {

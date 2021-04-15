@@ -18,12 +18,7 @@ export default function EvaluateApplicationModalController(
   StageTypeStore,
   ProductFeatures
 ) {
-  var validEvaluateBundleStages = [
-      'build',
-      'stage-release',
-      'release',
-      'operate',
-    ],
+  var validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'],
     vm = this;
 
   vm.bundle = undefined;
@@ -68,9 +63,7 @@ export default function EvaluateApplicationModalController(
     vm.evaluationState = 'loading';
     vm.bundle = {
       notify: 'true',
-      applicationPublicId: selectedApplication
-        ? selectedApplication.publicId
-        : null,
+      applicationPublicId: selectedApplication ? selectedApplication.publicId : null,
       applicationName: selectedApplication ? selectedApplication.name : null,
     };
 
@@ -91,9 +84,7 @@ export default function EvaluateApplicationModalController(
           }
         });
 
-        vm.isNotificationsSupported = ProductFeatures.isAvailable(
-          'notifications'
-        );
+        vm.isNotificationsSupported = ProductFeatures.isAvailable('notifications');
       },
       function (error) {
         vm.evaluationState = 'ready';
@@ -109,9 +100,7 @@ export default function EvaluateApplicationModalController(
           vm.evaluationStatus = response.data;
           if (vm.evaluationStatus.error) {
             setError(vm.evaluationStatus.error, doSubmit);
-          } else if (
-            vm.evaluationStatus.currentStep < vm.evaluationStatus.totalSteps
-          ) {
+          } else if (vm.evaluationStatus.currentStep < vm.evaluationStatus.totalSteps) {
             $timeout(doPoll, 500);
           }
         },
@@ -141,10 +130,7 @@ export default function EvaluateApplicationModalController(
     form.append('filename', fileElement.files[0].name);
     $http.post(vm.uploadBundleUrl(), form).then(
       function (response) {
-        vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(
-          vm.bundle.applicationPublicId,
-          response.data.ticketId
-        );
+        vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, response.data.ticketId);
         doPoll();
       },
       function (errorResponse) {
@@ -156,9 +142,7 @@ export default function EvaluateApplicationModalController(
   }
 
   function getProgressWidth() {
-    return vm.evaluationStatus
-      ? (vm.evaluationStatus.currentStep / vm.evaluationStatus.totalSteps) * 100
-      : '0';
+    return vm.evaluationStatus ? (vm.evaluationStatus.currentStep / vm.evaluationStatus.totalSteps) * 100 : '0';
   }
 
   function isFormValid() {

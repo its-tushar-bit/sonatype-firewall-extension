@@ -10,10 +10,7 @@ import { loadData, openConfigurationModal } from './firewallActions';
 
 function mapStateToProps({ firewall }) {
   return {
-    ...pick(
-      ['loadedStatus', 'isShowConfigurationModal', 'loadError'],
-      firewall.viewState
-    ),
+    ...pick(['loadedStatus', 'isShowConfigurationModal', 'loadError'], firewall.viewState),
     ...pick(['isEnabled'], firewall.statusState),
     ...pick(['autoUnquarantineEnabled'], firewall.configurationState),
     ...pick(

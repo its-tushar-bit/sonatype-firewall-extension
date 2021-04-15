@@ -4,14 +4,9 @@
     ng-click="isExpanded = vm.available.length && !vm.readOnly && !isExpanded"
     ng-class="{disabled: vm.readOnly}"
   >
-    <div ng-if="vm.shouldShowSelected()" class="iq-counter">
-      {{vm.getSelectedName()}}
-    </div>
+    <div ng-if="vm.shouldShowSelected()" class="iq-counter">{{vm.getSelectedName()}}</div>
     <div class="iq-tree-view__twisty">
-      <span
-        class="iq-tree-view__twisty-icon"
-        ng-class="{ expand: !isExpanded, collapse: isExpanded }"
-      ></span>
+      <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded, collapse: isExpanded }"></span>
     </div>
     <div class="iq-tree-view__text">
       <span ng-transclude></span>

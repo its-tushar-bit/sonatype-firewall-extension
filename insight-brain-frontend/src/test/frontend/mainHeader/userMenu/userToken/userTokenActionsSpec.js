@@ -23,10 +23,7 @@ import {
   USER_TOKEN_MASK_TIMER_DONE,
   USER_TOKEN_SHOW_MODAL,
 } from '../../../../../main/frontend/mainHeader/userMenu/userToken/userTokenActions';
-import {
-  checkUserTokenExistenceUrl,
-  userTokenUrl,
-} from '../../../../../main/frontend/util/CLMLocation';
+import { checkUserTokenExistenceUrl, userTokenUrl } from '../../../../../main/frontend/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 describe('userTokenActions', function () {
@@ -73,9 +70,7 @@ describe('userTokenActions', function () {
       store.dispatch(checkUserTokenExistence());
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toEqual(
-        USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED
-      );
+      expect(store.getActions()[0].type).toEqual(USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED);
       expect(store.getActions()[0].payload).toBeUndefined();
     });
 
@@ -103,17 +98,13 @@ describe('userTokenActions', function () {
         store.dispatch(checkUserTokenExistence()).then(() => {
           expect(axios.get).toHaveBeenCalledWith(expectedUrl);
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(
-            USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED
-          );
+          expect(store.getActions()[1].type).toBe(USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED);
           expect(store.getActions()[1].payload).toBe(true);
           done();
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED);
       });
 
       it('dispatches the USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED action with result data on false', function (done) {
@@ -128,17 +119,13 @@ describe('userTokenActions', function () {
         store.dispatch(checkUserTokenExistence()).then(() => {
           expect(axios.get).toHaveBeenCalledWith(expectedUrl);
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(
-            USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED
-          );
+          expect(store.getActions()[1].type).toBe(USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED);
           expect(store.getActions()[1].payload).toBe(false);
           done();
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED);
       });
     });
 
@@ -153,17 +140,13 @@ describe('userTokenActions', function () {
         store.dispatch(checkUserTokenExistence()).then(() => {
           expect(axios.get).toHaveBeenCalledWith(expectedUrl);
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(
-            USER_TOKEN_CHECK_TOKEN_EXISTENCE_FAILED
-          );
+          expect(store.getActions()[1].type).toBe(USER_TOKEN_CHECK_TOKEN_EXISTENCE_FAILED);
           expect(store.getActions()[1].payload).toBe('Err');
           done();
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED);
       });
     });
   });
@@ -185,9 +168,7 @@ describe('userTokenActions', function () {
       store.dispatch(generateUserToken());
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toEqual(
-        USER_TOKEN_GENERATE_TOKEN_REQUESTED
-      );
+      expect(store.getActions()[0].type).toEqual(USER_TOKEN_GENERATE_TOKEN_REQUESTED);
       expect(store.getActions()[0].payload).toBeUndefined();
     });
 
@@ -219,9 +200,7 @@ describe('userTokenActions', function () {
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_GENERATE_TOKEN_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_GENERATE_TOKEN_REQUESTED);
       });
 
       it('dispatches the USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED action with result data', function (done) {
@@ -236,17 +215,13 @@ describe('userTokenActions', function () {
         store.dispatch(generateUserToken()).then(() => {
           expect(axios.post).toHaveBeenCalledWith(expectedUrl);
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(
-            USER_TOKEN_GENERATE_TOKEN_FULFILLED
-          );
+          expect(store.getActions()[1].type).toBe(USER_TOKEN_GENERATE_TOKEN_FULFILLED);
           expect(store.getActions()[1].payload).toEqual({ token: 'userToken' });
           done();
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_GENERATE_TOKEN_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_GENERATE_TOKEN_REQUESTED);
       });
     });
 
@@ -261,17 +236,13 @@ describe('userTokenActions', function () {
         store.dispatch(generateUserToken()).then(() => {
           expect(axios.post).toHaveBeenCalledWith(expectedUrl);
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(
-            USER_TOKEN_GENERATE_TOKEN_FAILED
-          );
+          expect(store.getActions()[1].type).toBe(USER_TOKEN_GENERATE_TOKEN_FAILED);
           expect(store.getActions()[1].payload).toBe('Err');
           done();
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_GENERATE_TOKEN_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_GENERATE_TOKEN_REQUESTED);
       });
     });
   });
@@ -293,9 +264,7 @@ describe('userTokenActions', function () {
       store.dispatch(deleteUserToken());
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toEqual(
-        USER_TOKEN_DELETE_TOKEN_REQUESTED
-      );
+      expect(store.getActions()[0].type).toEqual(USER_TOKEN_DELETE_TOKEN_REQUESTED);
       expect(store.getActions()[0].payload).toBeUndefined();
     });
 
@@ -327,9 +296,7 @@ describe('userTokenActions', function () {
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_DELETE_TOKEN_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_DELETE_TOKEN_REQUESTED);
       });
 
       it('dispatches the USER_TOKEN_DELETE_TOKEN_FULFILLED action with result data', function (done) {
@@ -342,16 +309,12 @@ describe('userTokenActions', function () {
         store.dispatch(deleteUserToken()).then(() => {
           expect(axios.delete).toHaveBeenCalledWith(expectedUrl);
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(
-            USER_TOKEN_DELETE_TOKEN_FULFILLED
-          );
+          expect(store.getActions()[1].type).toBe(USER_TOKEN_DELETE_TOKEN_FULFILLED);
           done();
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_DELETE_TOKEN_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_DELETE_TOKEN_REQUESTED);
       });
     });
 
@@ -366,17 +329,13 @@ describe('userTokenActions', function () {
         store.dispatch(deleteUserToken()).then(() => {
           expect(axios.delete).toHaveBeenCalledWith(expectedUrl);
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(
-            USER_TOKEN_DELETE_TOKEN_FAILED
-          );
+          expect(store.getActions()[1].type).toBe(USER_TOKEN_DELETE_TOKEN_FAILED);
           expect(store.getActions()[1].payload).toBe('Err');
           done();
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(
-          USER_TOKEN_DELETE_TOKEN_REQUESTED
-        );
+        expect(store.getActions()[0].type).toBe(USER_TOKEN_DELETE_TOKEN_REQUESTED);
       });
     });
   });

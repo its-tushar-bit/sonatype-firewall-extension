@@ -1,9 +1,6 @@
 <div class="nx-page-main iq-legacy-report-container nx-viewport-sized">
   <div class="container container--repo-report nx-viewport-sized__container">
-    <div
-      style="width: 990px; margin: auto"
-      class="nx-viewport-sized__container"
-    >
+    <div style="width: 990px; margin: auto" class="nx-viewport-sized__container">
       <div
         class="nx-viewport-sized__container"
         load-wrapper="vm.error"
@@ -13,9 +10,7 @@
       >
         <h3 id="report-title">
           <div id="report-title-left">
-            <div>
-              Repository results for <em>{{vm.repository.publicId}}</em>
-            </div>
+            <div>Repository results for <em>{{vm.repository.publicId}}</em></div>
             <div
               ng-if="vm.repository.oldestEvalTimestamp"
               class="last-eval"
@@ -35,10 +30,7 @@
             </button>
           </div>
         </h3>
-        <div
-          id="evaluation-report-container"
-          class="nx-viewport-sized__container"
-        >
+        <div id="evaluation-report-container" class="nx-viewport-sized__container">
           <iframe
             class="nx-viewport-sized__scrollable"
             ng-src="{{vm.reportUrl}}"

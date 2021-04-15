@@ -35,10 +35,7 @@ export default angular
   .component('systemSetup', systemSetup)
   .component('learningTopics', learningTopics)
   .component('gettingStartedDocLink', gettingStartedDocLink)
-  .service(
-    'gettingStartedUsageTelemetryService',
-    gettingStartedUsageTelemetryService
-  )
+  .service('gettingStartedUsageTelemetryService', gettingStartedUsageTelemetryService)
   .value('routerListener', routerListener) // add to angular so we can test it
   .config([
     '$stateProvider',
@@ -63,7 +60,4 @@ function routerListener($transitions, gettingStartedUsageTelemetryService) {
   });
 }
 
-routerListener.$inject = [
-  '$transitions',
-  'gettingStartedUsageTelemetryService',
-];
+routerListener.$inject = ['$transitions', 'gettingStartedUsageTelemetryService'];

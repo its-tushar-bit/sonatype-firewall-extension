@@ -13,8 +13,7 @@ function mapStateToProps({ scmOnboarding, router }) {
   return {
     // config
     loadingPage: scmOnboarding.viewState.loadingPage,
-    isScmOnboardingFeatureEnabled:
-      scmOnboarding.configState.isScmOnboardingFeatureEnabled,
+    isScmOnboardingFeatureEnabled: scmOnboarding.configState.isScmOnboardingFeatureEnabled,
     scmProvider: scmOnboarding.configState.scmProvider,
 
     // compositeSourceControl data
@@ -25,8 +24,7 @@ function mapStateToProps({ scmOnboarding, router }) {
     // organizations
     organizations: scmOnboarding.formState.organizations,
     selectedOrganization: scmOnboarding.formState.selectedOrganization,
-    isNewOrganizationModalVisible:
-      scmOnboarding.viewState.isNewOrganizationModalVisible,
+    isNewOrganizationModalVisible: scmOnboarding.viewState.isNewOrganizationModalVisible,
 
     // repositories
     loadingRepositories: scmOnboarding.viewState.loadingRepositories,
@@ -37,8 +35,7 @@ function mapStateToProps({ scmOnboarding, router }) {
     failedImportCount: scmOnboarding.formState.failedImportCount,
     failedRepos: scmOnboarding.formState.failedRepos,
     newlyImportedRepos: scmOnboarding.formState.newlyImportedRepos,
-    isImportStatusDialogVisible:
-      scmOnboarding.viewState.isImportStatusDialogVisible,
+    isImportStatusDialogVisible: scmOnboarding.viewState.isImportStatusDialogVisible,
     isImporting: scmOnboarding.viewState.isImporting,
 
     // host URL
@@ -56,16 +53,12 @@ function mapStateToProps({ scmOnboarding, router }) {
 
     // error state
     generalError: scmOnboarding.viewState.generalError,
-    loadRepositoriesErrorCode:
-      scmOnboarding.viewState.loadRepositoriesErrorCode,
+    loadRepositoriesErrorCode: scmOnboarding.viewState.loadRepositoriesErrorCode,
     addOrganizationError: scmOnboarding.viewState.addOrganizationError,
   };
 }
 
-const ScmOnboardingContainer = connect(
-  mapStateToProps,
-  scmOnboardingActions
-)(ScmOnboarding);
+const ScmOnboardingContainer = connect(mapStateToProps, scmOnboardingActions)(ScmOnboarding);
 export default ScmOnboardingContainer;
 
 ScmOnboardingContainer.propTypes = {

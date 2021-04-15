@@ -42,13 +42,7 @@ export default function ReportPage(props) {
 
   useEffect(() => {
     if (publicId && scanId) {
-      setReportParameters(
-        publicId,
-        scanId,
-        unknownjs,
-        embeddable,
-        policyViolationId
-      );
+      setReportParameters(publicId, scanId, unknownjs, embeddable, policyViolationId);
       loadReport();
     }
   }, [publicId, scanId]);
@@ -65,11 +59,7 @@ export default function ReportPage(props) {
         }}
       />
       <main className="nx-page-main iq-app-report">
-        <LoadWrapper
-          loading={loading}
-          error={loadError}
-          retryHandler={loadReport}
-        >
+        <LoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
           <ReportTitle
             metadataDetails={metadata}
             scanId={scanId}

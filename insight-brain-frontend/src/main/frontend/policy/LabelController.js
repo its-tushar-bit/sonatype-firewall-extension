@@ -9,10 +9,7 @@ import storesModule from '../util/Stores';
 
 var labelTemplate = { id: null, label: null, color: null, description: '' };
 
-var labelModule = angular.module('Labels', [
-  CLMContextLocationModule.name,
-  storesModule.name,
-]);
+var labelModule = angular.module('Labels', [CLMContextLocationModule.name, storesModule.name]);
 
 labelModule.service('LabelStore', [
   'CachedStore',

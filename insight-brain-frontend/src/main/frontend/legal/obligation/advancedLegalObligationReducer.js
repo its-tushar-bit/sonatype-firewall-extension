@@ -23,10 +23,7 @@ import {
   ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL,
 } from './advancedLegalObligationActions';
 import { __, find, findIndex, lensPath, merge, over, propEq } from 'ramda';
-import {
-  saveNoticesSubmitMaskDone,
-  saveLicensesSubmitMaskDone,
-} from '../files/advancedLegalFileReducer';
+import { saveNoticesSubmitMaskDone, saveLicensesSubmitMaskDone } from '../files/advancedLegalFileReducer';
 
 function updateAttribution(newAttribution, obligationName, state) {
   const attributionIndex = findIndex(
@@ -38,9 +35,7 @@ function updateAttribution(newAttribution, obligationName, state) {
     'component',
     'licenseLegalData',
     'attributions',
-    attributionIndex === -1
-      ? state.component.component.licenseLegalData.attributions.length
-      : attributionIndex,
+    attributionIndex === -1 ? state.component.component.licenseLegalData.attributions.length : attributionIndex,
   ]);
   return over(lens, merge(__, newAttribution), state);
 }
@@ -136,13 +131,7 @@ function updateObligation(newObligation, obligationName, state) {
     propEq('name', obligationName),
     state.component.component.licenseLegalData.obligations
   );
-  const lens = lensPath([
-    'component',
-    'component',
-    'licenseLegalData',
-    'obligations',
-    obligationIndex,
-  ]);
+  const lens = lensPath(['component', 'component', 'licenseLegalData', 'obligations', obligationIndex]);
   return over(lens, merge(__, newObligation), state);
 }
 
@@ -223,10 +212,7 @@ function saveObligationSubmitMaskDone(payload, state) {
 }
 
 function cancelObligationModal(payload, state) {
-  const obligation = find(
-    propEq('name', payload.name),
-    state.component.component.licenseLegalData.obligations
-  );
+  const obligation = find(propEq('name', payload.name), state.component.component.licenseLegalData.obligations);
   return updateObligation(
     {
       showObligationModal: false,

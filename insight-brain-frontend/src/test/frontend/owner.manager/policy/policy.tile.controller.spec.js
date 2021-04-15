@@ -21,9 +21,7 @@ describe('policy.tile.controller.spec.js', function () {
     $timeout,
     $rootScope,
     $controller,
-    mockPolicyHierarchyStore = StoreUtils().createMockStore(
-      'PolicyHierarchyStore'
-    ),
+    mockPolicyHierarchyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
     mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(
       PolicyTileMockData.getApplicablePolicies(),
       'policiesByOwner'
@@ -31,14 +29,10 @@ describe('policy.tile.controller.spec.js', function () {
     stageTypeStoreDefer,
     EventNameConstant,
     MonitoredStageService,
-    mockPolicyMonitoringStore = StoreUtils().createMockStore(
-      'PolicyMonitoringStore'
-    ),
+    mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
     CLMLocations,
     CLMContextLocations,
-    mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore(
-      'ProprietaryConfigHierarchyStore'
-    ),
+    mockProprietaryConfigurationHierarchyStore = StoreUtils().createMockStore('ProprietaryConfigHierarchyStore'),
     mockProprietaryConfigurationHierarchyStoreData = StoreUtils().createMockHierarchyStoreData(
       ProprietaryMockData.getProprietaryConfigurationStoreMockData(),
       'proprietaryConfigByOwners'
@@ -75,18 +69,12 @@ describe('policy.tile.controller.spec.js', function () {
     stageTypeStoreDefer = $q.defer();
     getGrandfatheringDefer = $q.defer();
     mockPolicyViolationGrandfatheringService = {
-      getGrandfathering: jasmine
-        .createSpy()
-        .and.returnValue(getGrandfatheringDefer.promise),
+      getGrandfathering: jasmine.createSpy().and.returnValue(getGrandfatheringDefer.promise),
       getStatusMessage: JSON.stringify,
     };
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-    spyOn(StageTypeStore, 'getActionStages').and.returnValue(
-      stageTypeStoreDefer.promise
-    );
-    $httpBackend
-      .expectGET(CLMLocations.getProductFeaturesUrl())
-      .respond(['policy-monitoring']);
+    spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
   }));
 
   afterEach(function () {
@@ -102,12 +90,8 @@ describe('policy.tile.controller.spec.js', function () {
       stageName: 'Develop',
       stageTypeId: 'develop',
     });
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
-    mockProprietaryConfigurationHierarchyStore.resolveGet(
-      mockProprietaryConfigurationHierarchyStoreData
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
     $httpBackend.flush();
 
@@ -115,27 +99,15 @@ describe('policy.tile.controller.spec.js', function () {
     expect(vm.policiesByOwner.length).toEqual(mockPolicyStoreData.length);
     vm.policiesByOwner.forEach(function (owner, ownerIndex) {
       owner.policies.forEach(function (policy, policyIndex) {
-        expect(policy.name).toEqual(
-          mockPolicyStoreData[ownerIndex].policies[policyIndex].name
-        );
-        expect(policy.threatLevel).toEqual(
-          mockPolicyStoreData[ownerIndex].policies[policyIndex].threatLevel
-        );
-        expect(policy.actions).toEqual(
-          mockPolicyStoreData[ownerIndex].policies[policyIndex].actions
-        );
+        expect(policy.name).toEqual(mockPolicyStoreData[ownerIndex].policies[policyIndex].name);
+        expect(policy.threatLevel).toEqual(mockPolicyStoreData[ownerIndex].policies[policyIndex].threatLevel);
+        expect(policy.actions).toEqual(mockPolicyStoreData[ownerIndex].policies[policyIndex].actions);
         expect(policy.enforcementAction).toBeDefined();
         expect(policy.enforcementAction['build'][0].actionTypeId).toEqual(
-          mockPolicyStoreData[ownerIndex].policies[policyIndex].actions[
-            'build'
-          ][0].actionTypeId
+          mockPolicyStoreData[ownerIndex].policies[policyIndex].actions['build'][0].actionTypeId
         );
-        expect(
-          policy.enforcementAction['stage-release'][0].actionTypeId
-        ).toEqual(
-          mockPolicyStoreData[ownerIndex].policies[policyIndex].actions[
-            'stage-release'
-          ][0].actionTypeId
+        expect(policy.enforcementAction['stage-release'][0].actionTypeId).toEqual(
+          mockPolicyStoreData[ownerIndex].policies[policyIndex].actions['stage-release'][0].actionTypeId
         );
       });
     });
@@ -145,21 +117,12 @@ describe('policy.tile.controller.spec.js', function () {
 
   it('Uses the placeholder value for monitored stage if one is not inherited', function () {
     createController();
-    spyOn(MonitoredStageService, 'getMonitoredStage').and.returnValue(
-      undefined
-    );
-    spyOn(
-      MonitoredStageService,
-      'createInheritOrNoMonitorOption'
-    ).and.returnValue({ stageName: 'Do not monitor' });
+    spyOn(MonitoredStageService, 'getMonitoredStage').and.returnValue(undefined);
+    spyOn(MonitoredStageService, 'createInheritOrNoMonitorOption').and.returnValue({ stageName: 'Do not monitor' });
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
-    mockProprietaryConfigurationHierarchyStore.resolveGet(
-      mockProprietaryConfigurationHierarchyStoreData
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
     $httpBackend.flush();
 
@@ -170,12 +133,8 @@ describe('policy.tile.controller.spec.js', function () {
     createController();
     mockPolicyHierarchyStore.rejectGet('dagnabbit');
     resolveStageTypeStore(MockData.getDashboardStageData());
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
-    mockProprietaryConfigurationHierarchyStore.resolveGet(
-      mockProprietaryConfigurationHierarchyStoreData
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
 
     $timeout.flush();
     $httpBackend.flush();
@@ -185,12 +144,8 @@ describe('policy.tile.controller.spec.js', function () {
     vm.doLoad();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
-    mockProprietaryConfigurationHierarchyStore.resolveGet(
-      mockProprietaryConfigurationHierarchyStoreData
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
 
     expect(vm.error).toBeUndefined();
@@ -228,12 +183,8 @@ describe('policy.tile.controller.spec.js', function () {
     createController();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
-    mockProprietaryConfigurationHierarchyStore.resolveGet(
-      mockProprietaryConfigurationHierarchyStoreData
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     $timeout.flush();
     $httpBackend.flush();
 
@@ -248,19 +199,13 @@ describe('policy.tile.controller.spec.js', function () {
     createController();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
-    mockProprietaryConfigurationHierarchyStore.resolveGet(
-      mockProprietaryConfigurationHierarchyStoreData
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     getGrandfatheringDefer.resolve({});
 
     $httpBackend.flush();
 
-    expect(
-      mockPolicyViolationGrandfatheringService.getGrandfathering
-    ).not.toHaveBeenCalled();
+    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).not.toHaveBeenCalled();
     expect(vm.grandfatheringStatusMessage).toBe(undefined);
   });
 
@@ -279,19 +224,13 @@ describe('policy.tile.controller.spec.js', function () {
     createController();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
-    mockProprietaryConfigurationHierarchyStore.resolveGet(
-      mockProprietaryConfigurationHierarchyStoreData
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     getGrandfatheringDefer.resolve(config);
 
     $httpBackend.flush();
 
-    expect(
-      mockPolicyViolationGrandfatheringService.getGrandfathering
-    ).toHaveBeenCalled();
+    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
     expect(vm.grandfatheringStatusMessage).toBe(JSON.stringify(config));
   });
 
@@ -310,19 +249,13 @@ describe('policy.tile.controller.spec.js', function () {
     createController();
     mockPolicyHierarchyStore.resolveGet(mockPolicyStoreData);
     resolveStageTypeStore(MockData.getDashboardStageData());
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
-    mockProprietaryConfigurationHierarchyStore.resolveGet(
-      mockProprietaryConfigurationHierarchyStoreData
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
+    mockProprietaryConfigurationHierarchyStore.resolveGet(mockProprietaryConfigurationHierarchyStoreData);
     getGrandfatheringDefer.resolve(config);
 
     $httpBackend.flush();
 
-    expect(
-      mockPolicyViolationGrandfatheringService.getGrandfathering
-    ).toHaveBeenCalled();
+    expect(mockPolicyViolationGrandfatheringService.getGrandfathering).toHaveBeenCalled();
     expect(vm.grandfatheringStatusMessage).toBe(JSON.stringify(config));
   });
 

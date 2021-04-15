@@ -11,12 +11,7 @@ window.Insight = window.Insight || {};
 describe('cip.label.editor tests', function () {
   var scope;
 
-  beforeEach(
-    angular.mock.module(
-      cipLabelEditorModule.name,
-      testComponentProviderModule.name
-    )
-  );
+  beforeEach(angular.mock.module(cipLabelEditorModule.name, testComponentProviderModule.name));
 
   beforeEach(function () {
     window.CLM = { path: '../brain/' };
@@ -33,11 +28,7 @@ describe('cip.label.editor tests', function () {
       scope = $rootScope.$new();
 
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            '../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'
-          )
-        )
+        .expectGET(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'))
         .respond({
           labelsByOwner: [
             {
@@ -56,101 +47,72 @@ describe('cip.label.editor tests', function () {
             },
           ],
         });
-      $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            '../brain/api/v2/labels/application/bom1-12345678/applicable'
-          )
-        )
-        .respond({
-          labelsByOwner: [
-            {
-              ownerId: 'orgOwnerId',
-              ownerName: 'orgName',
-              ownerType: 'organization',
-              labels: [
-                {
-                  id: 'one',
-                  ownerId: 'orgOwnerId',
-                  label: 'one',
-                  description: 'one',
-                  color: 'red',
-                },
-              ],
-            },
-            {
-              ownerId: 'appOwnerId',
-              ownerName: 'appName',
-              ownerType: 'application',
-              labels: [
-                {
-                  id: 'two',
-                  ownerId: 'appOwnerId',
-                  label: 'two',
-                  description: 'two',
-                  color: 'blue',
-                },
-              ],
-            },
-          ],
-        });
+      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/application/bom1-12345678/applicable')).respond({
+        labelsByOwner: [
+          {
+            ownerId: 'orgOwnerId',
+            ownerName: 'orgName',
+            ownerType: 'organization',
+            labels: [
+              {
+                id: 'one',
+                ownerId: 'orgOwnerId',
+                label: 'one',
+                description: 'one',
+                color: 'red',
+              },
+            ],
+          },
+          {
+            ownerId: 'appOwnerId',
+            ownerName: 'appName',
+            ownerType: 'application',
+            labels: [
+              {
+                id: 'two',
+                ownerId: 'appOwnerId',
+                label: 'two',
+                description: 'two',
+                color: 'blue',
+              },
+            ],
+          },
+        ],
+      });
       $controller('LabelsController', { $scope: scope, global: {} });
 
       $httpBackend.flush();
     }));
 
-    it('reloads both applied and applicable labels upon refresh', inject(function (
+    it('reloads both applied and applicable labels upon refresh', inject(function ($httpBackend) {
       $httpBackend
-    ) {
-      $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            '../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'
-          )
-        )
+        .expectGET(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'))
         .respond({ labelsByOwner: [] });
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            '../brain/api/v2/labels/application/bom1-12345678/applicable'
-          )
-        )
+        .expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/application/bom1-12345678/applicable'))
         .respond({ labelsByOwner: [] });
       scope.doLoad();
       expect($httpBackend.flush).not.toThrow();
     }));
 
     it('Test Filter', function () {
-      scope.itemLabels = [
-        { label: 'foo', color: 'black' },
-        { label: 'asdf' },
-        { label: 'bar' },
-      ];
+      scope.itemLabels = [{ label: 'foo', color: 'black' }, { label: 'asdf' }, { label: 'bar' }];
       expect(scope.isApplied({ label: 'bbb' })).toEqual(true);
       expect(scope.isApplied({ label: 'foo' })).toEqual(false);
     });
 
     it('Test Add Application scoped Label', inject(function ($httpBackend) {
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(
-            '../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'
-          ),
-          {
-            id: 'two',
-            ownerId: 'appId',
-            label: 'two',
-            description: 'two',
-            color: 'blue',
-          }
-        )
+        .expectPOST(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'), {
+          id: 'two',
+          ownerId: 'appId',
+          label: 'two',
+          description: 'two',
+          color: 'blue',
+        })
         .respond([]);
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            '../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'
-          )
-        )
+        .expectGET(SpecUtil.toRegExp('../brain/rest/label/component/application/bom1-12345678/3102cdd0edd5a05afe00'))
         .respond({
           labelsByOwner: [
             {
@@ -183,44 +145,38 @@ describe('cip.label.editor tests', function () {
             },
           ],
         });
-      $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            '../brain/api/v2/labels/application/bom1-12345678/applicable'
-          )
-        )
-        .respond({
-          labelsByOwner: [
-            {
-              ownerId: 'orgOwnerId',
-              ownerName: 'orgName',
-              ownerType: 'organization',
-              labels: [
-                {
-                  id: 'one',
-                  ownerId: 'orgOwnerId',
-                  label: 'one',
-                  description: 'one',
-                  color: 'red',
-                },
-              ],
-            },
-            {
-              ownerId: 'appOwnerId',
-              ownerName: 'appName',
-              ownerType: 'application',
-              labels: [
-                {
-                  id: 'two',
-                  ownerId: 'appOwnerId',
-                  label: 'two',
-                  description: 'two',
-                  color: 'blue',
-                },
-              ],
-            },
-          ],
-        });
+      $httpBackend.expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/application/bom1-12345678/applicable')).respond({
+        labelsByOwner: [
+          {
+            ownerId: 'orgOwnerId',
+            ownerName: 'orgName',
+            ownerType: 'organization',
+            labels: [
+              {
+                id: 'one',
+                ownerId: 'orgOwnerId',
+                label: 'one',
+                description: 'one',
+                color: 'red',
+              },
+            ],
+          },
+          {
+            ownerId: 'appOwnerId',
+            ownerName: 'appName',
+            ownerType: 'application',
+            labels: [
+              {
+                id: 'two',
+                ownerId: 'appOwnerId',
+                label: 'two',
+                description: 'two',
+                color: 'blue',
+              },
+            ],
+          },
+        ],
+      });
 
       scope.addLabel({
         id: 'two',
@@ -260,11 +216,7 @@ describe('cip.label.editor tests', function () {
     it('Test Add Organization scoped Label', inject(function ($httpBackend) {
       expect(scope.labelLoading).toBeTruthy();
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            'api/v2/labels/application/bom1-12345678/applicable/context/one'
-          )
-        )
+        .expectGET(SpecUtil.toRegExp('api/v2/labels/application/bom1-12345678/applicable/context/one'))
         .respond({
           id: 'orgOwnerId',
           name: 'orgName',
@@ -288,18 +240,13 @@ describe('cip.label.editor tests', function () {
       };
 
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(
-            '../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00'
-          ),
-          {
-            id: 'one',
-            ownerId: 'orgOwnerId',
-            label: 'one',
-            description: 'one',
-            color: 'red',
-          }
-        )
+        .expectPOST(SpecUtil.toRegExp('../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00'), {
+          id: 'one',
+          ownerId: 'orgOwnerId',
+          label: 'one',
+          description: 'one',
+          color: 'red',
+        })
         .respond([]);
 
       scope.accept();
@@ -313,11 +260,7 @@ describe('cip.label.editor tests', function () {
       expect(scope.labelLoading).toBeTruthy();
       expect(scope.labelAddError).toBeNull();
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            'api/v2/labels/application/bom1-12345678/applicable/context/one'
-          )
-        )
+        .expectGET(SpecUtil.toRegExp('api/v2/labels/application/bom1-12345678/applicable/context/one'))
         .respond(403, 'Insufficient permissions');
       $httpBackend.flush();
       expect(scope.labelLoading).toBeFalsy();
@@ -349,17 +292,11 @@ describe('cip.label.editor tests', function () {
     it('Test Remove', inject(function ($httpBackend) {
       expect(scope.labelLoading).toBeTruthy();
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            '../brain/api/v2/labels/organization/orgOwnerId/applicable/context/one'
-          )
-        )
+        .expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/organization/orgOwnerId/applicable/context/one'))
         .respond({ labelsByOwner: [] });
       $httpBackend
         .expectDELETE(
-          SpecUtil.toRegExp(
-            '../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00/one'
-          )
+          SpecUtil.toRegExp('../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00/one')
         )
         .respond([]);
       scope.accept();
@@ -370,23 +307,15 @@ describe('cip.label.editor tests', function () {
       expect(scope.$close).toHaveBeenCalled();
     }));
 
-    it('Tests Remove failure sets correct flags', inject(function (
-      $httpBackend
-    ) {
+    it('Tests Remove failure sets correct flags', inject(function ($httpBackend) {
       expect(scope.labelLoading).toBeTruthy();
       expect(scope.labelRemoveError).toBeNull();
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(
-            '../brain/api/v2/labels/organization/orgOwnerId/applicable/context/one'
-          )
-        )
+        .expectGET(SpecUtil.toRegExp('../brain/api/v2/labels/organization/orgOwnerId/applicable/context/one'))
         .respond(403, 'Insufficient permissions');
       $httpBackend
         .expectDELETE(
-          SpecUtil.toRegExp(
-            '../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00/one'
-          )
+          SpecUtil.toRegExp('../brain/rest/label/component/organization/orgOwnerId/3102cdd0edd5a05afe00/one')
         )
         .respond([]);
       scope.accept();

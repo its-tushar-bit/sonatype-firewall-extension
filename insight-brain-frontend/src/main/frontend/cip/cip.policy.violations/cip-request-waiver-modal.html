@@ -3,9 +3,8 @@
 </div>
 <div class="iq-modal-content">
   <div id="request-waiver-explanatory-text" class="iq-alert iq-alert--info">
-    <i class="fa size-16px fa-info-circle" aria-hidden="true"></i>To request a
-    waiver, please share the Policy Violation ID and sample curl command (found
-    below) with the approver.
+    <i class="fa size-16px fa-info-circle" aria-hidden="true"></i>To request a waiver, please share the Policy Violation
+    ID and sample curl command (found below) with the approver.
     <a
       href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers#Waivers-RequestingaWaivertobeAdded"
       target="_blank"
@@ -13,8 +12,7 @@
     >
       Learn about automating waiver requests.
     </a>
-    You can also share the link to the violation details page where a waiver can
-    be added.
+    You can also share the link to the violation details page where a waiver can be added.
   </div>
   <label class="iq-label request-waiver-modal-section">Policy</label>
   <div
@@ -23,21 +21,13 @@
   >
     {{policy.name}}
   </div>
-  <label class="iq-label iq-label--spaced request-waiver-modal-section"
-    >Constraint Name</label
-  >
+  <label class="iq-label iq-label--spaced request-waiver-modal-section">Constraint Name</label>
   <div id="request-waiver-constraint-name">
-    <div ng-repeat="constraint in policy.constraints">
-      {{constraint.constraintName}}
-    </div>
+    <div ng-repeat="constraint in policy.constraints">{{constraint.constraintName}}</div>
   </div>
-  <label class="iq-label iq-label--spaced request-waiver-modal-section"
-    >Conditions</label
-  >
+  <label class="iq-label iq-label--spaced request-waiver-modal-section">Conditions</label>
   <div id="request-waiver-conditions">
-    <div ng-repeat="conditionReason in conditionReasons track by $index">
-      {{conditionReason}}
-    </div>
+    <div ng-repeat="conditionReason in conditionReasons track by $index">{{conditionReason}}</div>
   </div>
   <label class="iq-label iq-label--spaced request-waiver-modal-section">
     Policy Violation ID
@@ -48,15 +38,10 @@
       tooltip="Copy id to clipboard"
       copied-tooltip
     >
-      <i
-        class="fa fa-clipboard fa-fw"
-        title="Copy violation id to clipboard"
-      ></i>
+      <i class="fa fa-clipboard fa-fw" title="Copy violation id to clipboard"></i>
     </button>
   </label>
-  <div id="request-waiver-policy-violation-id" class="visual-testing-ignore">
-    {{policy.policyViolationId}}
-  </div>
+  <div id="request-waiver-policy-violation-id" class="visual-testing-ignore">{{policy.policyViolationId}}</div>
 
   <label class="iq-label iq-label--spaced request-waiver-modal-section">
     Policy Violation Details Page
@@ -67,17 +52,11 @@
       tooltip="Copy link to clipboard"
       copied-tooltip
     >
-      <i
-        class="fa fa-clipboard fa-fw"
-        title="Copy violation details link to clipboard"
-      ></i>
+      <i class="fa fa-clipboard fa-fw" title="Copy violation details link to clipboard"></i>
     </button>
   </label>
   <div class="visual-testing-ignore request-waiver-policy-violation-page-link">
-    <a
-      target="_blank"
-      rel="noopener"
-      ui-sref="sidebarView.violation({id:policy.policyViolationId})"
+    <a target="_blank" rel="noopener" ui-sref="sidebarView.violation({id:policy.policyViolationId})"
       >{{policyViolationPageUrl}}</a
     >
   </div>
@@ -99,11 +78,5 @@
   </div>
 </div>
 <div class="iq-modal-footer">
-  <button
-    id="request-waiver-modal-close-btn"
-    class="iq-btn"
-    ng-click="$dismiss()"
-  >
-    Close
-  </button>
+  <button id="request-waiver-modal-close-btn" class="iq-btn" ng-click="$dismiss()">Close</button>
 </div>

@@ -10,11 +10,7 @@
         >
           <i class="fa fa-pencil"></i>Reorder List</button
         ><!--
-     --><button
-          class="iq-btn iq-btn--tertiary"
-          id="add-ldap-button"
-          ui-sref="create-ldap"
-        >
+     --><button class="iq-btn iq-btn--tertiary" id="add-ldap-button" ui-sref="create-ldap">
           <i class="fa fa-plus"></i>Add a Server
         </button>
       </div>
@@ -22,18 +18,13 @@
         <div class="iq-tile-header__title">
           <h2>LDAP Servers</h2>
         </div>
-        <div class="iq-tile-header__subtitle">
-          will be queried in the order listed
-        </div>
+        <div class="iq-tile-header__subtitle">will be queried in the order listed</div>
       </div>
     </div>
     <div class="iq-tile-content">
       <div class="iq-list iq-list--clickable">
         <ul>
-          <li
-            class="iq-list__item iq-list__item--empty"
-            ng-if="vm.ldapList.length <= 0"
-          >
+          <li class="iq-list__item iq-list__item--empty" ng-if="vm.ldapList.length <= 0">
             No LDAP servers are defined
           </li>
           <li

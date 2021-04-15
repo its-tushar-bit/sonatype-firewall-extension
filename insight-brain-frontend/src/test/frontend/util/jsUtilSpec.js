@@ -3,13 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  capitalize,
-  getFutureDate,
-  isNilOrEmpty,
-  multiGroupBy,
-  union,
-} from '../../../main/frontend/util/jsUtil';
+import { capitalize, getFutureDate, isNilOrEmpty, multiGroupBy, union } from '../../../main/frontend/util/jsUtil';
 
 describe('jsUtil', function () {
   describe('isNilOrEmpty', function () {
@@ -43,9 +37,7 @@ describe('jsUtil', function () {
     });
 
     it('returns the union of the two sets', function () {
-      expect(union(new Set([1, 2, 3]), new Set([5, 2, 4, 'a']))).toEqual(
-        new Set([1, 2, 3, 4, 5, 'a'])
-      );
+      expect(union(new Set([1, 2, 3]), new Set([5, 2, 4, 'a']))).toEqual(new Set([1, 2, 3, 4, 5, 'a']));
     });
 
     it('does not modify either input', function () {

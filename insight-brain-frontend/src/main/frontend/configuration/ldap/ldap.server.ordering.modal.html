@@ -70,9 +70,7 @@
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{error : vm.error}">
-      <div ng-if="vm.error" class="iq-alert iq-alert--warning">
-        <i class="fa fa-warning"></i>{{vm.error}}
-      </div>
+      <div ng-if="vm.error" class="iq-alert iq-alert--warning"><i class="fa fa-warning"></i>{{vm.error}}</div>
       <button
         ng-if="!vm.error"
         class="iq-btn iq-btn--primary"
@@ -83,18 +81,10 @@
       >
         Save</button
       ><!--
-   --><button
-        ng-if="vm.error"
-        class="iq-btn iq-btn--error"
-        type="submit"
-        submit-validation
-        submit-dirty="vm.isDirty()"
-      >
+   --><button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" submit-validation submit-dirty="vm.isDirty()">
         <i class="fa fa-refresh"></i>Retry</button
       ><!--
-   --><button class="iq-btn" type="button" ng-click="vm.cancel()">
-        Cancel
-      </button>
+   --><button class="iq-btn" type="button" ng-click="vm.cancel()">Cancel</button>
     </div>
   </form>
 </div>

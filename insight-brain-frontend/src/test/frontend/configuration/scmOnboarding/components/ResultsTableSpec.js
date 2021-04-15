@@ -21,10 +21,7 @@ import NxExternalLink from '../../../../../main/frontend/react/NxExternalLink';
 import { createRepo } from './utils';
 
 describe('ResultsTable', function () {
-  let minimalPropsShallow,
-    minimalPropsMounted,
-    getShallowComponent,
-    getMountedComponent;
+  let minimalPropsShallow, minimalPropsMounted, getShallowComponent, getMountedComponent;
 
   beforeEach(() => {
     minimalPropsShallow = {
@@ -35,14 +32,8 @@ describe('ResultsTable', function () {
       selectedRepositories: [],
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ResultsTable,
-      minimalPropsShallow
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      ResultsTable,
-      minimalPropsMounted
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ResultsTable, minimalPropsShallow);
+    getMountedComponent = enzymeUtils.getMountedComponent(ResultsTable, minimalPropsMounted);
   });
 
   it('renders a table', () => {
@@ -55,9 +46,7 @@ describe('ResultsTable', function () {
   describe('Renders RepositoryRow', () => {
     it('renders repositoryRow within table', () => {
       // given a repository
-      const setSelectedRepositories = jasmine.createSpy(
-        'setSelectedRepositories'
-      );
+      const setSelectedRepositories = jasmine.createSpy('setSelectedRepositories');
       const repositories = [
         {
           httpCloneUrl: 'https://example.com/',
@@ -105,9 +94,7 @@ describe('ResultsTable', function () {
         };
         const repositories = [repository];
         const selectedRepositories = checkboxData ? [repository] : [];
-        const setSelectedRepositories = jasmine.createSpy(
-          'setSelectedRepositories'
-        );
+        const setSelectedRepositories = jasmine.createSpy('setSelectedRepositories');
 
         it('creates row with checkbox set to: ' + checkboxData, () => {
           // when the component is rendered
@@ -120,23 +107,15 @@ describe('ResultsTable', function () {
             tableBody = table.find(NxTableBody),
             repositoryRow = table.find(RepositoryRow),
             checkbox = tableBody.find(NxCheckbox),
-            namespaceCell = tableBody
-              .find('.iq-scm-repository-namespace')
-              .first(),
+            namespaceCell = tableBody.find('.iq-scm-repository-namespace').first(),
             projectCell = tableBody.find('.iq-scm-repository-project').first(),
-            descriptionCell = tableBody
-              .find('.iq-scm-repository-description')
-              .first();
+            descriptionCell = tableBody.find('.iq-scm-repository-description').first();
 
           // then properties are passed to RepositoryRow
           expect(repositoryRow.prop('rowKey')).toEqual('https://example.com/');
           expect(repositoryRow.prop('repo')).toEqual(repository);
-          expect(repositoryRow.prop('setSelectedRepositories')).toEqual(
-            setSelectedRepositories
-          );
-          expect(repositoryRow.prop('selectedRepositories')).toEqual(
-            selectedRepositories
-          );
+          expect(repositoryRow.prop('setSelectedRepositories')).toEqual(setSelectedRepositories);
+          expect(repositoryRow.prop('selectedRepositories')).toEqual(selectedRepositories);
 
           // and the checkbox matches expected values
           expect(checkbox.prop('checkboxId')).toEqual('https://example.com/');
@@ -145,13 +124,9 @@ describe('ResultsTable', function () {
           // and the cells to contain the expected text
           expect(namespaceCell.text()).toEqual('namespace');
           expect(projectCell.text().trim()).toEqual('project');
-          expect(projectCell.find(NxExternalLink).prop('href')).toEqual(
-            'https://example.com/'
-          );
+          expect(projectCell.find(NxExternalLink).prop('href')).toEqual('https://example.com/');
           expect(descriptionCell.text()).toEqual('description');
-          expect(descriptionCell.find(NxTooltip).prop('title')).toEqual(
-            'description'
-          );
+          expect(descriptionCell.find(NxTooltip).prop('title')).toEqual('description');
         });
 
         it('requests selection change from: ' + checkboxData, () => {
@@ -169,18 +144,14 @@ describe('ResultsTable', function () {
           checkboxInput.simulate('change');
 
           // then the redux action is triggered
-          expect(setSelectedRepositories).toHaveBeenCalledWith(
-            checkboxData ? [] : [repository]
-          );
+          expect(setSelectedRepositories).toHaveBeenCalledWith(checkboxData ? [] : [repository]);
         });
 
         it('requests select all set to: ' + checkboxData, () => {
           // given an isAllChecked prop being true or false
           const isAllChecked = checkboxData;
           const setIsAllChecked = jasmine.createSpy('setIsAllChecked');
-          const setSelectedRepositories = jasmine.createSpy(
-            'setSelectedRepositories'
-          );
+          const setSelectedRepositories = jasmine.createSpy('setSelectedRepositories');
           const props = {
             repositories,
             setIsAllChecked,
@@ -196,9 +167,7 @@ describe('ResultsTable', function () {
 
           // then the redux actions are triggered
           expect(setIsAllChecked).toHaveBeenCalledWith(!isAllChecked);
-          expect(setSelectedRepositories).toHaveBeenCalledWith(
-            isAllChecked ? [] : repositories
-          );
+          expect(setSelectedRepositories).toHaveBeenCalledWith(isAllChecked ? [] : repositories);
         });
       });
     });
@@ -226,9 +195,7 @@ describe('ResultsTable', function () {
             dir: configuredDirection,
             key: selectedField,
           };
-          const setSortingParameters = jasmine.createSpy(
-            'setSortingParameters'
-          );
+          const setSortingParameters = jasmine.createSpy('setSortingParameters');
 
           const component = getMountedComponent({
               setSortingParameters,
@@ -258,17 +225,9 @@ describe('ResultsTable', function () {
     const TEST_STEP_SIZE = 5;
 
     // given test repos sized 5 to 40
-    const expectedPageCount = Array.from({ length: REPO_COUNT }).map(
-      (v, i) => Math.floor((i - 1) / PAGE_SIZE) + 1
-    );
-    for (
-      let repoCount = TEST_STEP_SIZE;
-      repoCount < REPO_COUNT;
-      repoCount += TEST_STEP_SIZE
-    ) {
-      const repositories = Array.from({ length: repoCount }).map((v, i) =>
-        createRepo(i)
-      );
+    const expectedPageCount = Array.from({ length: REPO_COUNT }).map((v, i) => Math.floor((i - 1) / PAGE_SIZE) + 1);
+    for (let repoCount = TEST_STEP_SIZE; repoCount < REPO_COUNT; repoCount += TEST_STEP_SIZE) {
+      const repositories = Array.from({ length: repoCount }).map((v, i) => createRepo(i));
 
       it(`displays ${expectedPageCount[repoCount]} pages for ${repoCount} repos`, () => {
         // when the component is rendered
@@ -276,20 +235,14 @@ describe('ResultsTable', function () {
           pagination = component.find(NxPagination);
 
         // the rendered page count is correct
-        expect(pagination.prop('pageCount')).toEqual(
-          expectedPageCount[repoCount]
-        );
+        expect(pagination.prop('pageCount')).toEqual(expectedPageCount[repoCount]);
       });
     }
   });
 
   describe('filters', () => {
-    const repositories = ['aaaa', 'bbbb', 'aabb'].map((prefix) =>
-      createRepo(prefix)
-    );
-    const setSelectedRepositories = jasmine.createSpy(
-      'setSelectedRepositories'
-    );
+    const repositories = ['aaaa', 'bbbb', 'aabb'].map((prefix) => createRepo(prefix));
+    const setSelectedRepositories = jasmine.createSpy('setSelectedRepositories');
     const selectedRepositories = [];
 
     ['namespace', 'description', 'project'].forEach((filterName) => {
@@ -299,9 +252,7 @@ describe('ResultsTable', function () {
             selectedRepositories,
             setSelectedRepositories,
           }),
-          filterInput = component.find(
-            `#iq-scmonboarding-${filterName}-filter`
-          );
+          filterInput = component.find(`#iq-scmonboarding-${filterName}-filter`);
 
         // when filter does not match any repos
         filterInput.simulate('change', 'doesntexist');
@@ -314,60 +265,46 @@ describe('ResultsTable', function () {
 
         // then only one repository row with the matching repo is generated
         expect(component.find(RepositoryRow).length).toBe(1);
-        expect(component.find(RepositoryRow).prop('repo')).toEqual(
-          repositories[0]
-        );
+        expect(component.find(RepositoryRow).prop('repo')).toEqual(repositories[0]);
 
         // when the filter matches multipel repos
         filterInput.simulate('change', 'aa');
 
         // then repository rows with the matching repos are generated
         expect(component.find(RepositoryRow).length).toBe(2);
-        expect(component.find(RepositoryRow).first().prop('repo')).toEqual(
-          repositories[0]
-        );
-        expect(component.find(RepositoryRow).last().prop('repo')).toEqual(
-          repositories[2]
-        );
+        expect(component.find(RepositoryRow).first().prop('repo')).toEqual(repositories[0]);
+        expect(component.find(RepositoryRow).last().prop('repo')).toEqual(repositories[2]);
       });
 
-      it(
-        'deselects filtered-out components when filtering by ' + filterName,
-        () => {
-          const component = getShallowComponent({
-              repositories,
-              selectedRepositories: repositories,
-              setSelectedRepositories,
-            }),
-            filterInput = component.find(
-              `#iq-scmonboarding-${filterName}-filter`
-            );
+      it('deselects filtered-out components when filtering by ' + filterName, () => {
+        const component = getShallowComponent({
+            repositories,
+            selectedRepositories: repositories,
+            setSelectedRepositories,
+          }),
+          filterInput = component.find(`#iq-scmonboarding-${filterName}-filter`);
 
-          // when not filtering anything
-          setSelectedRepositories.calls.reset();
-          filterInput.simulate('change', '');
+        // when not filtering anything
+        setSelectedRepositories.calls.reset();
+        filterInput.simulate('change', '');
 
-          // then everything remains selected
-          expect(setSelectedRepositories).toHaveBeenCalledWith(repositories);
+        // then everything remains selected
+        expect(setSelectedRepositories).toHaveBeenCalledWith(repositories);
 
-          // when applying a filter
-          setSelectedRepositories.calls.reset();
-          filterInput.simulate('change', 'aa');
+        // when applying a filter
+        setSelectedRepositories.calls.reset();
+        filterInput.simulate('change', 'aa');
 
-          // then filtered-out repos are deselected
-          expect(setSelectedRepositories).toHaveBeenCalledWith([
-            repositories[0],
-            repositories[2],
-          ]);
+        // then filtered-out repos are deselected
+        expect(setSelectedRepositories).toHaveBeenCalledWith([repositories[0], repositories[2]]);
 
-          // when using a filter that matches no repos
-          setSelectedRepositories.calls.reset();
-          filterInput.simulate('change', 'does not exist');
+        // when using a filter that matches no repos
+        setSelectedRepositories.calls.reset();
+        filterInput.simulate('change', 'does not exist');
 
-          // then everything is deselected
-          expect(setSelectedRepositories).toHaveBeenCalledWith([]);
-        }
-      );
+        // then everything is deselected
+        expect(setSelectedRepositories).toHaveBeenCalledWith([]);
+      });
     });
   });
 });

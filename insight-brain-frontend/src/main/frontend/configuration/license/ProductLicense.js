@@ -20,16 +20,7 @@ export default {
 
 const mkLimit = (name, count) => ({ name, count });
 
-function ProductLicenseController(
-  $http,
-  $scope,
-  clmLocations,
-  $timeout,
-  $window,
-  $cookies,
-  Modal,
-  Messages
-) {
+function ProductLicenseController($http, $scope, clmLocations, $timeout, $window, $cookies, Modal, Messages) {
   const vm = this;
 
   Object.assign(vm, {
@@ -55,15 +46,12 @@ function ProductLicenseController(
             });
 
             vm.userLimits = [
-              data.licensedUsersToDisplay &&
-                mkLimit('Lifecycle', data.licensedUsersToDisplay),
-              data.firewallUsersToDisplay &&
-                mkLimit('Firewall', data.firewallUsersToDisplay),
+              data.licensedUsersToDisplay && mkLimit('Lifecycle', data.licensedUsersToDisplay),
+              data.firewallUsersToDisplay && mkLimit('Firewall', data.firewallUsersToDisplay),
             ].filter(identity);
 
             vm.displayUserLimits = vm.userLimits.length > 0;
-            vm.displayApplicationLimit =
-              data.applicationLimitToDisplay !== null;
+            vm.displayApplicationLimit = data.applicationLimitToDisplay !== null;
           },
           function (errorResponse) {
             if (errorResponse.status !== 402) {
@@ -113,11 +101,9 @@ function ProductLicenseController(
           var form = new FormData();
           form.append('file', $('#license-input')[0].files[0]);
 
-          vm.formMask
-            .wrap($http.post(vm.uploadUrl, form))
-            .then(vm.postInstall, function (error) {
-              vm.submitError = Messages.getHttpErrorMessage(error);
-            });
+          vm.formMask.wrap($http.post(vm.uploadUrl, form)).then(vm.postInstall, function (error) {
+            vm.submitError = Messages.getHttpErrorMessage(error);
+          });
         },
         function () {
           $window.location.reload();

@@ -5,24 +5,13 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxTableCell,
-  NxTableRow,
-  NxThreatIndicator,
-  NxOverflowTooltip,
-} from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableRow, NxThreatIndicator, NxOverflowTooltip } from '@sonatype/react-shared-components';
 
 import { terseAgo } from '../../../util/CommonServices';
 import ComponentDisplay from '../../../ComponentDisplay/ReactComponentDisplay';
 
 export default function DashboardViolationsTableRow({ stateGo, violation }) {
-  const {
-      policyViolationId,
-      threatLevel,
-      policyName,
-      applicationName,
-      firstOccurrenceTime,
-    } = violation,
+  const { policyViolationId, threatLevel, policyName, applicationName, firstOccurrenceTime } = violation,
     displayTime = terseAgo(firstOccurrenceTime);
 
   const goToViolationDetails = () => {
@@ -34,12 +23,7 @@ export default function DashboardViolationsTableRow({ stateGo, violation }) {
   };
 
   return (
-    <NxTableRow
-      key={policyViolationId}
-      onClick={goToViolationDetails}
-      className="iq-dashboard-violation"
-      isClickable
-    >
+    <NxTableRow key={policyViolationId} onClick={goToViolationDetails} className="iq-dashboard-violation" isClickable>
       <NxTableCell className="iq-threat-cell">
         <NxThreatIndicator policyThreatLevel={threatLevel} />
         <span className="nx-threat-number">{threatLevel}</span>

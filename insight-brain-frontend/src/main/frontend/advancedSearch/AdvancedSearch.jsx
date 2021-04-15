@@ -28,17 +28,12 @@ export default function AdvancedSearch(props) {
 
   const { $state } = props;
 
-  const loadError = isEnabled
-    ? loadErrorProp
-    : 'Advanced Search is not turned on!';
+  const loadError = isEnabled ? loadErrorProp : 'Advanced Search is not turned on!';
 
   useEffect(load, []);
 
   return (
-    <main
-      id="advanced-search-page"
-      className="nx-page-main nx-page-main--advanced-search"
-    >
+    <main id="advanced-search-page" className="nx-page-main nx-page-main--advanced-search">
       <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
         <div className="nx-page-title">
           <h1 className="nx-h1" id="advanced-search-page-title">
@@ -46,11 +41,7 @@ export default function AdvancedSearch(props) {
           </h1>
         </div>
         <AdvancedSearchForm {...props} />
-        <LoadWrapper
-          loading={waitingSearchResponse}
-          error={queryError}
-          retryHandler={() => searchFormSubmit()}
-        >
+        <LoadWrapper loading={waitingSearchResponse} error={queryError} retryHandler={() => searchFormSubmit()}>
           {groupingByDTOS.map(advancedSearchResultsGroupedBy)}
         </LoadWrapper>
       </LoadWrapper>
@@ -58,12 +49,7 @@ export default function AdvancedSearch(props) {
   );
 
   function advancedSearchResultsGroupedBy(groupingByDto) {
-    const {
-        groupBy,
-        additionalInfo,
-        groupIdentifier,
-        searchResultItemDTOS,
-      } = groupingByDto,
+    const { groupBy, additionalInfo, groupIdentifier, searchResultItemDTOS } = groupingByDto,
       detailedInfoHref = $state.href($state.get('vulnerabilitySearchDetail'), {
         id: groupBy,
       });
@@ -77,12 +63,9 @@ export default function AdvancedSearch(props) {
         </header>
         <div className="nx-tile-content">
           {additionalInfo && <p className="nx-p">{additionalInfo}</p>}
-          {(groupIdentifier === 'VULNERABILITY_ID' ||
-            groupIdentifier === 'VULNERABILITY_DESCRIPTION') && (
+          {(groupIdentifier === 'VULNERABILITY_ID' || groupIdentifier === 'VULNERABILITY_DESCRIPTION') && (
             <p className="nx-p">
-              <a href={detailedInfoHref}>
-                Click here for detailed information.
-              </a>
+              <a href={detailedInfoHref}>Click here for detailed information.</a>
             </p>
           )}
           {searchResultItemDTOS.map((searchResultItem) => (

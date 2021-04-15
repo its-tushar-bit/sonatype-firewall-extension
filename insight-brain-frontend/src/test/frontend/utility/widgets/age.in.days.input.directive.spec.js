@@ -9,9 +9,7 @@ import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigura
 describe('age.in.days.input.directive.spec.js', function () {
   var element, scope, isolatedScope, vm, $compile, $httpBackend;
 
-  beforeEach(
-    angular.mock.module(utilityModule.name, legacyConfigurationModule.name)
-  );
+  beforeEach(angular.mock.module(utilityModule.name, legacyConfigurationModule.name));
 
   afterEach(function () {
     $httpBackend.verifyNoOutstandingExpectation();
@@ -27,10 +25,9 @@ describe('age.in.days.input.directive.spec.js', function () {
       ageModel: '3',
     });
 
-    element = $compile(
-      '<form name="testform"><age-in-days-input ng-model="ageModel">' +
-        '</age-in-days-input></form>'
-    )(scope).children();
+    element = $compile('<form name="testform"><age-in-days-input ng-model="ageModel">' + '</age-in-days-input></form>')(
+      scope
+    ).children();
 
     isolatedScope = element.isolateScope();
     vm = isolatedScope.vm;

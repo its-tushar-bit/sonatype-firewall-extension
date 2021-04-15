@@ -23,23 +23,12 @@ const dashboardCommonResults = {
   replace: true,
 };
 
-function DashboardCommonResultsController(
-  Dialog,
-  ApplicationStore,
-  Messages,
-  $ngRedux,
-  dashboardFilterActions
-) {
+function DashboardCommonResultsController(Dialog, ApplicationStore, Messages, $ngRedux, dashboardFilterActions) {
   const vm = this;
 
   Object.assign(vm, {
     loadCommonResults() {
-      return (
-        !vm.results ||
-        vm.results.length === 0 ||
-        vm.numResults > vm.maxResults ||
-        vm.needsAcknowledgement
-      );
+      return !vm.results || vm.results.length === 0 || vm.numResults > vm.maxResults || vm.needsAcknowledgement;
     },
 
     $onChanges({ error }) {
@@ -57,8 +46,7 @@ function DashboardCommonResultsController(
   function openFilterInvalidDialog() {
     Dialog.open({
       title: 'Filter invalid',
-      body:
-        'Your filter settings have become invalid because of permission changes, click OK to reload.',
+      body: 'Your filter settings have become invalid because of permission changes, click OK to reload.',
       buttons: [
         {
           name: 'OK',

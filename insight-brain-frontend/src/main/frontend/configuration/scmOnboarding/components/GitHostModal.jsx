@@ -5,13 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxModal,
-  NxForm,
-  NxTextInput,
-  NxErrorAlert,
-  NxInfoAlert,
-} from '@sonatype/react-shared-components';
+import { NxModal, NxForm, NxTextInput, NxErrorAlert, NxInfoAlert } from '@sonatype/react-shared-components';
 import { organizationPropType } from '../ScmOnboarding';
 import { textInputPropType } from '../scmPropTypes';
 import { hasValidationErrors } from '../../../util/validationUtil';
@@ -45,10 +39,7 @@ export default function GitHostModal(props) {
   const onContinueClicked = () => {
     setShowHostDialog(false);
     setIsGitHostNeeded(false);
-    loadRepositories(
-      selectedOrganization.organization.id,
-      currentHostUrlState.value
-    );
+    loadRepositories(selectedOrganization.organization.id, currentHostUrlState.value);
   };
 
   function validateAndSetCurrentHostUrl(value) {
@@ -128,10 +119,7 @@ GitHostModal.propTypes = {
   loadRepositories: PropTypes.func.isRequired,
   scmProvider: PropTypes.string,
   // textInputPropType is implied required, but this val is optional
-  currentHostUrlState: PropTypes.oneOfType(
-    PropTypes.object,
-    PropTypes.shape(textInputPropType)
-  ),
+  currentHostUrlState: PropTypes.oneOfType(PropTypes.object, PropTypes.shape(textInputPropType)),
   defaultHostUrl: PropTypes.string,
   setCurrentHostUrl: PropTypes.func.isRequired,
   validateScmHostUrl: PropTypes.func.isRequired,

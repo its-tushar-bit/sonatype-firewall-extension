@@ -39,9 +39,7 @@ function RetentionTileController(
 
       vm.error = undefined;
       const promises = [];
-      promises.push(
-        OrganizationStore.getById(CLMContextLocations.getEntityId())
-      );
+      promises.push(OrganizationStore.getById(CLMContextLocations.getEntityId()));
       promises.push(retentionService.getRetentionPolicies());
       $q.all(promises).then(
         function (results) {
@@ -72,9 +70,7 @@ function RetentionTileController(
     },
 
     getSuccessMetricsMaxAge() {
-      return vm.successMetrics.enablePurging
-        ? 'Max Age ' + vm.successMetrics.maxAge
-        : NOT_ENABLED;
+      return vm.successMetrics.enablePurging ? 'Max Age ' + vm.successMetrics.maxAge : NOT_ENABLED;
     },
   });
 

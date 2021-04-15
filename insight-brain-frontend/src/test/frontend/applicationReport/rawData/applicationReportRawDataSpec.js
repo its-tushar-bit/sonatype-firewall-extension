@@ -262,12 +262,8 @@ describe('applicationReportRawData', function () {
         },
       };
 
-      expect(mapStateToThis(stateWithIdPresent)).toEqual(
-        jasmine.objectContaining({ vulnerabilityId: 'CVE-3456' })
-      );
-      expect(mapStateToThis(stateWithNullId)).toEqual(
-        jasmine.objectContaining({ vulnerabilityId: null })
-      );
+      expect(mapStateToThis(stateWithIdPresent)).toEqual(jasmine.objectContaining({ vulnerabilityId: 'CVE-3456' }));
+      expect(mapStateToThis(stateWithNullId)).toEqual(jasmine.objectContaining({ vulnerabilityId: null }));
     });
   });
 
@@ -304,9 +300,7 @@ describe('applicationReportRawData', function () {
     it('calls selectedComponent.toggle first and then calls openVulnerabilityDetailsModal', function () {
       const { securityCode, componentIdentifier } = mockRawDataEntry;
       vm.openVulnerabilitiesModal(mockRawDataEntry);
-      expect(SelectedComponent.toggle).toHaveBeenCalledBefore(
-        vm.openVulnerabilityDetailsModal
-      );
+      expect(SelectedComponent.toggle).toHaveBeenCalledBefore(vm.openVulnerabilityDetailsModal);
       expect(SelectedComponent.toggle).toHaveBeenCalledWith(mockRawDataEntry);
       expect(vm.openVulnerabilityDetailsModal).toHaveBeenCalledWith({
         vulnerabilityId: securityCode,

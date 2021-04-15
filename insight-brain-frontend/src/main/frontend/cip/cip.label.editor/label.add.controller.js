@@ -7,14 +7,7 @@
 import { pick } from 'ramda';
 
 //the add controller, controlling the add modal
-export default function LabelAddController(
-  $scope,
-  label,
-  SelectedComponent,
-  OwnerContext,
-  messages,
-  $http
-) {
+export default function LabelAddController($scope, label, SelectedComponent, OwnerContext, messages, $http) {
   var component = SelectedComponent.get();
   $scope.displayName = component.displayName;
 
@@ -49,8 +42,7 @@ export default function LabelAddController(
     $scope.labelOwners = [];
 
     const url =
-      `${CLM.path}api/v2/labels/${OwnerContext.ownerType}/` +
-      `${OwnerContext.ownerId}/applicable/context/${label.id}`;
+      `${CLM.path}api/v2/labels/${OwnerContext.ownerType}/` + `${OwnerContext.ownerId}/applicable/context/${label.id}`;
 
     $http.get(url).then(
       function (response) {
@@ -74,11 +66,4 @@ export default function LabelAddController(
 
   $scope.doLoad();
 }
-LabelAddController.$inject = [
-  '$scope',
-  'label',
-  'SelectedComponent',
-  'OwnerContext',
-  'Messages',
-  '$http',
-];
+LabelAddController.$inject = ['$scope', 'label', 'SelectedComponent', 'OwnerContext', 'Messages', '$http'];

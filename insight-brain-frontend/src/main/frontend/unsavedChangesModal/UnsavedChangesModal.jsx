@@ -4,11 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxButton,
-  NxModal,
-  NxWarningAlert,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 export default function UnsavedChangesModal({ onContinue, onClose }) {
@@ -19,9 +15,7 @@ export default function UnsavedChangesModal({ onContinue, onClose }) {
       </header>
       <div className="nx-modal-content">
         <NxWarningAlert className="nx-alert--modifier">
-          <span>
-            The page may contain unsaved changes; continuing will discard them.
-          </span>
+          <span>The page may contain unsaved changes; continuing will discard them.</span>
         </NxWarningAlert>
       </div>
       <footer className="nx-footer">
@@ -29,11 +23,7 @@ export default function UnsavedChangesModal({ onContinue, onClose }) {
           <NxButton onClick={onClose} id="unsaved-changes-modal-cancel-button">
             Cancel
           </NxButton>
-          <NxButton
-            variant="primary"
-            id="unsaved-changes-modal-continue-button"
-            onClick={onContinue}
-          >
+          <NxButton variant="primary" id="unsaved-changes-modal-continue-button" onClick={onContinue}>
             Continue
           </NxButton>
         </div>

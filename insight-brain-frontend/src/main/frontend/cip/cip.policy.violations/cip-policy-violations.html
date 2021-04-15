@@ -185,13 +185,7 @@
     </div>
   </script>
   <div style="width: 100%; margin-bottom: 5px" class="clearfix">
-    <button
-      id="view-existing-waivers"
-      class="btn pull-right"
-      ng-click="viewWaivers()"
-    >
-      View Existing Waivers
-    </button>
+    <button id="view-existing-waivers" class="btn pull-right" ng-click="viewWaivers()">View Existing Waivers</button>
     <div ng-if="quarantined">
       <span><i class="icon icon-ban-circle"></i> Quarantined </span>
       <a
@@ -214,10 +208,7 @@
           <th class="cip-policy-table-header waivers-column">Waivers</th>
         </tr>
       </thead>
-      <tr
-        class="tm-cip-waiver-row"
-        ng-repeat="policyAlert in processedPolicyAlerts"
-      >
+      <tr class="tm-cip-waiver-row" ng-repeat="policyAlert in processedPolicyAlerts">
         <td
           align="left"
           valign="top"
@@ -227,10 +218,7 @@
           <div>
             <b>{{::policyAlert.name}}</b>
           </div>
-          <ul
-            class="actions"
-            ng-if="::(policyAlert.actions.length || policyAlert.blocksUnquarantine)"
-          >
+          <ul class="actions" ng-if="::(policyAlert.actions.length || policyAlert.blocksUnquarantine)">
             <li ng-if="::quarantined && policyAlert.blocksUnquarantine">
               <i>Proxy fail</i> <i class="icon icon-ban-circle"></i>
             </li>
@@ -251,10 +239,7 @@
         </td>
         <td>
           <div ng-repeat="constraint in policyAlert.constraints">
-            <div
-              ng-repeat="condition in constraint.conditions"
-              style="color: #555555"
-            >
+            <div ng-repeat="condition in constraint.conditions" style="color: #555555">
               {{condition.conditionReason}}
             </div>
           </div>

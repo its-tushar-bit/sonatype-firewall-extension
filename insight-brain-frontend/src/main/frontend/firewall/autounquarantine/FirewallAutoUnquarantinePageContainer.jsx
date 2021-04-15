@@ -18,10 +18,7 @@ import {
 
 function mapStateToProps({ firewall }) {
   return {
-    ...pick(
-      ['loadedStatus', 'isShowConfigurationModal', 'loadError'],
-      firewall.viewState
-    ),
+    ...pick(['loadedStatus', 'isShowConfigurationModal', 'loadError'], firewall.viewState),
     ...pick(['isEnabled'], firewall.statusState),
     ...pick(['autoUnquarantineEnabled'], firewall.configurationState),
     ...pick(
@@ -49,7 +46,4 @@ const mapDispatchToProps = {
   openConfigurationModal,
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(FirewallAutoUnquarantinePage);
+export default connect(mapStateToProps, mapDispatchToProps)(FirewallAutoUnquarantinePage);

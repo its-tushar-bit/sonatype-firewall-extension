@@ -9,32 +9,23 @@ import configureStore from 'redux-mock-store';
 import Firewall from '../../../main/frontend/firewall/Firewall';
 
 describe('FirewallContainer', function () {
-  let FirewallContainer,
-    loadDataMock,
-    openConfigurationModalMock,
-    store,
-    state,
-    vdom;
+  let FirewallContainer, loadDataMock, openConfigurationModalMock, store, state, vdom;
 
   beforeEach(function () {
     loadDataMock = jasmine.createSpy('loadDataMock').and.returnValue({
       type: 'LOAD_FIREWALL_DATA',
     });
 
-    openConfigurationModalMock = jasmine
-      .createSpy('openConfigurationModalMock')
-      .and.returnValue({
-        type: 'OPEN_FIREWALL_CONFIGURATION',
-      });
+    openConfigurationModalMock = jasmine.createSpy('openConfigurationModalMock').and.returnValue({
+      type: 'OPEN_FIREWALL_CONFIGURATION',
+    });
 
-    FirewallContainer = require('inject-loader!../../../main/frontend/firewall/FirewallContainer')(
-      {
-        './firewallActions': {
-          loadData: loadDataMock,
-          openConfigurationModal: openConfigurationModalMock,
-        },
-      }
-    ).default;
+    FirewallContainer = require('inject-loader!../../../main/frontend/firewall/FirewallContainer')({
+      './firewallActions': {
+        loadData: loadDataMock,
+        openConfigurationModal: openConfigurationModalMock,
+      },
+    }).default;
 
     state = {
       loadError: 'this is not the error',
@@ -162,9 +153,7 @@ describe('FirewallContainer', function () {
   it('maps action creators to props', function () {
     const wrapper = shallow(vdom).dive();
     const loadDataActionCreator = wrapper.prop('loadData');
-    const openConfigurationModalActionCreator = wrapper.prop(
-      'openConfigurationModal'
-    );
+    const openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal');
 
     expect(loadDataActionCreator).toEqual(jasmine.any(Function));
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
@@ -175,10 +164,7 @@ describe('FirewallContainer', function () {
     expect(store.getActions()).toEqual([{ type: 'LOAD_FIREWALL_DATA' }]);
 
     openConfigurationModalActionCreator();
-    expect(store.getActions()).toEqual([
-      { type: 'LOAD_FIREWALL_DATA' },
-      { type: 'OPEN_FIREWALL_CONFIGURATION' },
-    ]);
+    expect(store.getActions()).toEqual([{ type: 'LOAD_FIREWALL_DATA' }, { type: 'OPEN_FIREWALL_CONFIGURATION' }]);
   });
 
   it('renders Firewall component', function () {

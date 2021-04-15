@@ -20,9 +20,7 @@ export default function ReportStatusBar(props) {
   const policyComponentCount = getReportProp('policyComponentCount');
   const totalArtifactCount = getReportProp('totalArtifactCount');
   const knownArtifactCount = getReportProp('knownArtifactCount');
-  const grandfatheredPolicyViolationCount = getReportProp(
-    'grandfatheredPolicyViolationCount'
-  );
+  const grandfatheredPolicyViolationCount = getReportProp('grandfatheredPolicyViolationCount');
 
   const coveragePercent = () => {
     if (knownArtifactCount !== 0 && totalArtifactCount !== 0) {
@@ -36,15 +34,9 @@ export default function ReportStatusBar(props) {
       <div className="nx-tile-content">
         <div className="iq-indicator-row">
           <div className="iq-threat-indicators">
-            <div className="iq-threat-indicator critical">
-              {criticalViolationCount}
-            </div>
-            <div className="iq-threat-indicator severe">
-              {severeViolationCount}
-            </div>
-            <div className="iq-threat-indicator moderate">
-              {moderateViolationCount}
-            </div>
+            <div className="iq-threat-indicator critical">{criticalViolationCount}</div>
+            <div className="iq-threat-indicator severe">{severeViolationCount}</div>
+            <div className="iq-threat-indicator moderate">{moderateViolationCount}</div>
             <div className="iq-caption">
               <h3 className="iq-caption__text">
                 {nonLowViolationCount} VIOLATION
@@ -58,20 +50,14 @@ export default function ReportStatusBar(props) {
           </div>
           <div className="iq-coverage-indicator">
             <div className="iq-caption">
-              <h3 className="iq-caption__text">
-                {totalArtifactCount} COMPONENTS
-              </h3>
-              <p className="iq-caption__sub-text">
-                {coveragePercent()}% of all components identified
-              </p>
+              <h3 className="iq-caption__text">{totalArtifactCount} COMPONENTS</h3>
+              <p className="iq-caption__sub-text">{coveragePercent()}% of all components identified</p>
             </div>
           </div>
           <div className="iq-grandfathering-indicator">
             <NxFontAwesomeIcon icon={faHistory} />
             <div className="iq-caption">
-              <h3 className="iq-caption__text">
-                {grandfatheredPolicyViolationCount} Grandfathered
-              </h3>
+              <h3 className="iq-caption__text">{grandfatheredPolicyViolationCount} Grandfathered</h3>
               <p className="iq-caption__sub-text">violations</p>
             </div>
           </div>

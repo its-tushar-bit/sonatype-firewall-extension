@@ -34,93 +34,36 @@ describe('firewallReducer', function () {
       expect(newState.statusState.isEnabled).toBe(false);
 
       //autoUnquarantineState.viewState
-      expect(
-        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
-      ).toBe(false);
-      expect(
-        newState.autoUnquarantineState.viewState
-          .loadReleaseQuarantineSummaryError
-      ).toBe(null);
-      expect(
-        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD
-      ).toBe('-');
-      expect(
-        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD
-      ).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
-        false
-      );
-      expect(
-        newState.autoUnquarantineState.viewState.loadConfigurationError
-      ).toBeNull();
-      expect(
-        newState.autoUnquarantineState.viewState
-          .enabledPolicyConditionTypesCount
-      ).toBe(0);
-      expect(
-        newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount
-      ).toBe(0);
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe(null);
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('-');
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
 
       //autoUnquarantineState.autoUnquarantinedGridState
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState
-          .loadedReleaseQuarantineList
-      ).toBe(false);
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState
-          .loadAutoUnquarantineGridError
-      ).toBeNull();
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState.loadedPolicies
-      ).toBe(false);
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState
-          .releaseQuarantineList
-      ).toEqual([]);
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState
-          .releaseQuarantinePageCount
-      ).toBe(0);
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState.pageSize
-      ).toBe(12);
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState.currentPage
-      ).toBeNull();
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState.sortDir
-      ).toBeNull();
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState.sortField
-      ).toBeNull();
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState.filterPolicyId
-      ).toBe('');
-      expect(
-        newState.autoUnquarantineState.autoUnquarantineGridState.policies
-      ).toEqual([]);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadedReleaseQuarantineList).toBe(false);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadAutoUnquarantineGridError).toBeNull();
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadedPolicies).toBe(false);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantineList).toEqual([]);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantinePageCount).toBe(0);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.pageSize).toBe(12);
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.currentPage).toBeNull();
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortDir).toBeNull();
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortField).toBeNull();
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.filterPolicyId).toBe('');
+      expect(newState.autoUnquarantineState.autoUnquarantineGridState.policies).toEqual([]);
 
       //quarantineSummaryState.viewState
-      expect(
-        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
-      ).toBe(false);
-      expect(
-        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
-      ).toBe(null);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(
-        false
-      );
-      expect(
-        newState.quarantineSummaryState.viewState
-          .quarantineEnabledRepositoryCount
-      ).toBe(0);
+      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
+      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(false);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(0);
       expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(0);
-      expect(
-        newState.quarantineSummaryState.viewState.totalComponentCount
-      ).toBe(0);
-      expect(
-        newState.quarantineSummaryState.viewState.quarantinedComponentCount
-      ).toBe(0);
+      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(0);
+      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(0);
 
       //configurationState
       expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
@@ -353,15 +296,10 @@ describe('firewallReducer', function () {
       });
       const newState = reduce(state, {
         type: 'FIREWALL_SAVE_CONFIGURATION_FULFILLED',
-        payload: [
-          { id: 'IntegrityRating', autoReleaseQuarantineEnabled: true },
-        ],
+        payload: [{ id: 'IntegrityRating', autoReleaseQuarantineEnabled: true }],
       });
       // autoUnquarantineState
-      expect(
-        newState.autoUnquarantineState.viewState
-          .enabledPolicyConditionTypesCount
-      ).toBe(1);
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
 
       // configurationState
       expect(newState.configurationState.autoUnquarantineEnabled).toBe(true);
@@ -397,12 +335,8 @@ describe('firewallReducer', function () {
         type: 'FIREWALL_LOAD_CONFIGURATION_REQUESTED',
       });
       // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
-        false
-      );
-      expect(
-        newState.autoUnquarantineState.viewState.loadConfigurationError
-      ).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
       expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
       expect(newState.autoUnquarantineState.other).toBe(otherObject);
 
@@ -450,26 +384,14 @@ describe('firewallReducer', function () {
       });
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_CONFIGURATION_FULFILLED',
-        payload: [
-          { autoReleaseQuarantineEnabled: true },
-          { autoReleaseQuarantineEnabled: false },
-        ],
+        payload: [{ autoReleaseQuarantineEnabled: true }, { autoReleaseQuarantineEnabled: false }],
       });
 
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
-        true
-      );
-      expect(
-        newState.autoUnquarantineState.viewState.loadConfigurationError
-      ).toBeNull();
-      expect(
-        newState.autoUnquarantineState.viewState
-          .enabledPolicyConditionTypesCount
-      ).toBe(1);
-      expect(
-        newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount
-      ).toBe(2);
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(2);
 
       // configurationState
       expect(newState.configurationState).toEqual({
@@ -524,12 +446,8 @@ describe('firewallReducer', function () {
       expect(newState.viewState.loadError).toBe('error!');
 
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
-        true
-      );
-      expect(
-        newState.autoUnquarantineState.viewState.loadConfigurationError
-      ).toBe('error!');
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
 
       // properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -562,12 +480,8 @@ describe('firewallReducer', function () {
       expect(newState.viewState.loadError).toBe('old error!');
 
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
-        true
-      );
-      expect(
-        newState.autoUnquarantineState.viewState.loadConfigurationError
-      ).toBe('error!');
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
     });
   });
 
@@ -600,12 +514,8 @@ describe('firewallReducer', function () {
         type: 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED',
       });
 
-      expect(
-        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
-      ).toBe(false);
-      expect(
-        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
-      ).toBe(null);
+      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
+      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
       expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
       // other properties are not modified
@@ -659,23 +569,12 @@ describe('firewallReducer', function () {
         payload: payload,
       });
 
-      expect(
-        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
-      ).toBe(true);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(
-        true
-      );
+      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(true);
       expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(5);
-      expect(
-        newState.quarantineSummaryState.viewState
-          .quarantineEnabledRepositoryCount
-      ).toBe(2);
-      expect(
-        newState.quarantineSummaryState.viewState.totalComponentCount
-      ).toBe(10);
-      expect(
-        newState.quarantineSummaryState.viewState.quarantinedComponentCount
-      ).toBe(3);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(2);
+      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(10);
+      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(3);
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
       expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
       // other properties are not modified
@@ -721,12 +620,8 @@ describe('firewallReducer', function () {
       expect(newState.viewState.loadError).toBe('error!');
 
       // newState.quarantineSummaryState
-      expect(
-        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
-      ).toBe(true);
-      expect(
-        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
-      ).toBe('error!');
+      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
+      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe('error!');
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
       expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
       // other properties are not modified
@@ -757,12 +652,8 @@ describe('firewallReducer', function () {
       expect(newState.viewState.loadError).toBe('old error!');
 
       // newState.quarantineSummaryState
-      expect(
-        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
-      ).toBe(true);
-      expect(
-        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
-      ).toBe('error!');
+      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
+      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe('error!');
     });
   });
 
@@ -787,13 +678,8 @@ describe('firewallReducer', function () {
       });
 
       // autoUnquarantineState.viewState
-      expect(
-        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
-      ).toBe(false);
-      expect(
-        newState.autoUnquarantineState.viewState
-          .loadReleaseQuarantineSummaryError
-      ).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBeNull();
       expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
 
       // viewState
@@ -841,19 +727,10 @@ describe('firewallReducer', function () {
       });
 
       // viewState
-      expect(
-        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD
-      ).toBe('0');
-      expect(
-        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD
-      ).toBe('1');
-      expect(
-        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
-      ).toBe(true);
-      expect(
-        newState.autoUnquarantineState.viewState
-          .loadReleaseQuarantineSummaryError
-      ).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('0');
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('1');
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBeNull();
 
       // properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -898,16 +775,9 @@ describe('firewallReducer', function () {
       expect(newState.viewState.loadError).toBe('error');
 
       // autoUnquarantineState.viewState
-      expect(
-        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD
-      ).toBe('-');
-      expect(
-        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
-      ).toBe(true);
-      expect(
-        newState.autoUnquarantineState.viewState
-          .loadReleaseQuarantineSummaryError
-      ).toBe('error');
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe('error');
 
       // properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -940,13 +810,8 @@ describe('firewallReducer', function () {
       expect(newState.viewState.loadError).toBe('old error!');
 
       // autoUnquarantineState.viewState
-      expect(
-        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
-      ).toBe(true);
-      expect(
-        newState.autoUnquarantineState.viewState
-          .loadReleaseQuarantineSummaryError
-      ).toBe('error');
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe('error');
     });
   });
 
@@ -1106,9 +971,7 @@ describe('firewallReducer', function () {
     let initialState = reduce();
 
     it('updates the state', function () {
-      expect(
-        reduce(initialState, { type: 'FIREWALL_POLICIES_REQUESTED' })
-      ).toEqual({
+      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_REQUESTED' })).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
@@ -1161,9 +1024,7 @@ describe('firewallReducer', function () {
     let initialState = reduce();
 
     it('updates the state', function () {
-      expect(
-        reduce(initialState, { type: 'FIREWALL_POLICIES_FAILED' })
-      ).toEqual({
+      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_FAILED' })).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
@@ -1199,57 +1060,26 @@ describe('firewallReducer', function () {
       expect(newState.statusState.isEnabled).toBe(false);
 
       //autoUnquarantineState.viewState
-      expect(
-        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
-      ).toBe(false);
-      expect(
-        newState.autoUnquarantineState.viewState
-          .loadReleaseQuarantineSummaryError
-      ).toBe(null);
-      expect(
-        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD
-      ).toBe('-');
-      expect(
-        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD
-      ).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
-        false
-      );
-      expect(
-        newState.autoUnquarantineState.viewState.loadConfigurationError
-      ).toBeNull();
-      expect(
-        newState.autoUnquarantineState.viewState
-          .enabledPolicyConditionTypesCount
-      ).toBe(0);
-      expect(
-        newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount
-      ).toBe(0);
+      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe(null);
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
+      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('-');
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
+      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
+      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
 
       //configurationState
       expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
 
       //quarantineSummaryState.viewState
-      expect(
-        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
-      ).toBe(false);
-      expect(
-        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
-      ).toBe(null);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(
-        false
-      );
-      expect(
-        newState.quarantineSummaryState.viewState
-          .quarantineEnabledRepositoryCount
-      ).toBe(0);
+      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
+      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(false);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(0);
       expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(0);
-      expect(
-        newState.quarantineSummaryState.viewState.totalComponentCount
-      ).toBe(0);
-      expect(
-        newState.quarantineSummaryState.viewState.quarantinedComponentCount
-      ).toBe(0);
+      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(0);
+      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(0);
     });
   });
 });

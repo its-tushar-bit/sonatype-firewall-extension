@@ -17,22 +17,13 @@ describe('policy.editor.actions.controller.spec.js', function () {
 
   var vm, stageTypeStoreDefer, CLMLocations, $httpBackend;
 
-  beforeEach(inject(function (
-    $q,
-    _$timeout_,
-    _$httpBackend_,
-    $controller,
-    _CLMLocations_,
-    StageTypeStore
-  ) {
+  beforeEach(inject(function ($q, _$timeout_, _$httpBackend_, $controller, _CLMLocations_, StageTypeStore) {
     CLMLocations = _CLMLocations_;
     $httpBackend = _$httpBackend_;
 
     stageTypeStoreDefer = $q.defer();
     spyOn(stageTypeStoreDefer.promise, 'then').and.callThrough();
-    spyOn(StageTypeStore, 'getActionStages').and.returnValue(
-      stageTypeStoreDefer.promise
-    );
+    spyOn(StageTypeStore, 'getActionStages').and.returnValue(stageTypeStoreDefer.promise);
     stageTypeStoreDefer.resolve(MockData.getActionStageData());
     vm = $controller('policy.editor.actions.controller', {}, { actions: [] });
   }));

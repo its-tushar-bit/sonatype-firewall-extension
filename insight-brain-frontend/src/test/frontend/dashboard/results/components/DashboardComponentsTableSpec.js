@@ -33,14 +33,8 @@ describe('DashboardComponentsTable', function () {
       },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardComponentsTable,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      DashboardComponentsTable,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardComponentsTable, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(DashboardComponentsTable, minimalProps);
   });
 
   it('renders a NxTable', function () {
@@ -138,17 +132,13 @@ describe('DashboardComponentsTable', function () {
         },
         needsAcknowledgement: true,
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         body = table.find(NxTableBody),
         alertRow = body.find(NxTableRow);
 
       expect(alertRow).toExist();
-      expect(alertRow.find(NxInfoAlert)).toHaveText(
-        "Select your filter criteria and click 'apply' to see results."
-      );
+      expect(alertRow.find(NxInfoAlert)).toHaveText("Select your filter criteria and click 'apply' to see results.");
     });
 
     it('renders an empty message on the NxTableBody if there are no components to display', function () {
@@ -158,16 +148,12 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['-score'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         body = table.find(NxTableBody),
         emptyMessageRow = body.find(NxTableRow);
 
-      expect(emptyMessageRow).toHaveText(
-        'No data available given the applied filters and permissions.'
-      );
+      expect(emptyMessageRow).toHaveText('No data available given the applied filters and permissions.');
     });
 
     it('renders a row with an error message when an error is present with the appropriate retry handler', function () {
@@ -178,23 +164,16 @@ describe('DashboardComponentsTable', function () {
           error: 'error while retrieving results',
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         body = table.find(NxTableBody),
         errorRow = body.find(NxLoadError);
 
-      expect(body).toHaveProp(
-        'error',
-        dashboardComponentProps.componentResults.error
-      );
+      expect(body).toHaveProp('error', dashboardComponentProps.componentResults.error);
       expect(body).toHaveProp('retryHandler', minimalProps.reload);
 
       // to avoid the text added by the internal error components, we'll find the first span for the error message
-      expect(errorRow.find('span').at(0)).toHaveText(
-        'An error occurred loading data. error while retrieving results'
-      );
+      expect(errorRow.find('span').at(0)).toHaveText('An error occurred loading data. error while retrieving results');
 
       errorRow.find(NxButton).simulate('click');
       expect(minimalProps.reload).toHaveBeenCalled();
@@ -233,9 +212,7 @@ describe('DashboardComponentsTable', function () {
     };
 
     it('identifies default direction of sorting for the columns on render', function () {
-      const dashboardComponentTable = getShallowComponent(
-          defaultPropsForSortChecks
-        ),
+      const dashboardComponentTable = getShallowComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -254,9 +231,7 @@ describe('DashboardComponentsTable', function () {
     });
 
     it('calls sortComponents with derivedComponentName if clicked none to asc', function () {
-      const dashboardComponentTable = getMountedComponent(
-          defaultPropsForSortChecks
-        ),
+      const dashboardComponentTable = getMountedComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -264,9 +239,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(derivedComponentNameHeader).toHaveProp('sortDir', null);
       derivedComponentNameHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        'derivedComponentName',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['derivedComponentName']);
     });
 
     it('calls sortComponents with -derivedComponentName if clicked asc to desc', function () {
@@ -276,9 +249,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['derivedComponentName'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -286,9 +257,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(derivedComponentNameHeader).toHaveProp('sortDir', 'asc');
       derivedComponentNameHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-derivedComponentName',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-derivedComponentName']);
     });
 
     it('calls sortComponents with derivedComponentName if clicked desc to asc', function () {
@@ -298,9 +267,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['-derivedComponentName'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -308,15 +275,11 @@ describe('DashboardComponentsTable', function () {
 
       expect(derivedComponentNameHeader).toHaveProp('sortDir', 'desc');
       derivedComponentNameHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        'derivedComponentName',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['derivedComponentName']);
     });
 
     it('calls sortComponents with -affectedApplications if clicked none to desc', function () {
-      const dashboardComponentTable = getMountedComponent(
-          defaultPropsForSortChecks
-        ),
+      const dashboardComponentTable = getMountedComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -324,9 +287,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(affectedApplicationsHeader).toHaveProp('sortDir', null);
       affectedApplicationsHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-affectedApplications',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-affectedApplications']);
     });
 
     it('calls sortComponents with affectedApplications if clicked desc to asc', function () {
@@ -336,9 +297,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['-affectedApplications'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -346,9 +305,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(affectedApplicationsHeader).toHaveProp('sortDir', 'desc');
       affectedApplicationsHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        'affectedApplications',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['affectedApplications']);
     });
 
     it('calls sortComponents with -affectedApplications if clicked asc to desc', function () {
@@ -358,9 +315,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['affectedApplications'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -368,9 +323,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(affectedApplicationsHeader).toHaveProp('sortDir', 'asc');
       affectedApplicationsHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-affectedApplications',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-affectedApplications']);
     });
 
     it('calls sortComponents with -score if clicked none to desc', function () {
@@ -380,9 +333,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['affectedApplications'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -395,9 +346,7 @@ describe('DashboardComponentsTable', function () {
 
     it('calls sortComponents with score if clicked desc to asc', function () {
       const dashboardComponentProps = defaultPropsForSortChecks;
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -415,9 +364,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['score'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -429,9 +376,7 @@ describe('DashboardComponentsTable', function () {
     });
 
     it('calls sortComponents with -scoreCritical if clicked none to desc', function () {
-      const dashboardComponentTable = getMountedComponent(
-          defaultPropsForSortChecks
-        ),
+      const dashboardComponentTable = getMountedComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -439,9 +384,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(totalRiskHeader).toHaveProp('sortDir', null);
       totalRiskHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-scoreCritical',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-scoreCritical']);
     });
 
     it('calls sortComponents with scoreCritical if clicked desc to asc', function () {
@@ -451,9 +394,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['-scoreCritical'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -461,9 +402,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(totalRiskHeader).toHaveProp('sortDir', 'desc');
       totalRiskHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        'scoreCritical',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['scoreCritical']);
     });
 
     it('calls sortComponents with -scoreCritical if clicked asc to desc', function () {
@@ -473,9 +412,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['scoreCritical'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -483,15 +420,11 @@ describe('DashboardComponentsTable', function () {
 
       expect(totalRiskHeader).toHaveProp('sortDir', 'asc');
       totalRiskHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-scoreCritical',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-scoreCritical']);
     });
 
     it('calls sortComponents with -scoreSevere if clicked none to desc', function () {
-      const dashboardComponentTable = getMountedComponent(
-          defaultPropsForSortChecks
-        ),
+      const dashboardComponentTable = getMountedComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -499,9 +432,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(totalRiskHeader).toHaveProp('sortDir', null);
       totalRiskHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-scoreSevere',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-scoreSevere']);
     });
 
     it('calls sortComponents with scoreSevere if clicked desc to asc', function () {
@@ -511,9 +442,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['-scoreSevere'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -531,9 +460,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['scoreSevere'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -541,15 +468,11 @@ describe('DashboardComponentsTable', function () {
 
       expect(totalRiskHeader).toHaveProp('sortDir', 'asc');
       totalRiskHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-scoreSevere',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-scoreSevere']);
     });
 
     it('calls sortComponents with -scoreModerate if clicked none to desc', function () {
-      const dashboardComponentTable = getMountedComponent(
-          defaultPropsForSortChecks
-        ),
+      const dashboardComponentTable = getMountedComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -557,9 +480,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(totalRiskHeader).toHaveProp('sortDir', null);
       totalRiskHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-scoreModerate',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-scoreModerate']);
     });
 
     it('calls sortComponents with scoreModerate if clicked desc to asc', function () {
@@ -569,9 +490,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['-scoreModerate'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -579,9 +498,7 @@ describe('DashboardComponentsTable', function () {
 
       expect(totalRiskHeader).toHaveProp('sortDir', 'desc');
       totalRiskHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        'scoreModerate',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['scoreModerate']);
     });
 
     it('calls sortComponents with -scoreModerate if clicked asc to desc', function () {
@@ -591,9 +508,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['scoreModerate'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -601,15 +516,11 @@ describe('DashboardComponentsTable', function () {
 
       expect(totalRiskHeader).toHaveProp('sortDir', 'asc');
       totalRiskHeader.simulate('click');
-      expect(minimalProps.sortComponents).toHaveBeenCalledWith([
-        '-scoreModerate',
-      ]);
+      expect(minimalProps.sortComponents).toHaveBeenCalledWith(['-scoreModerate']);
     });
 
     it('calls sortComponents with -scoreLow if clicked none to desc', function () {
-      const dashboardComponentTable = getMountedComponent(
-          defaultPropsForSortChecks
-        ),
+      const dashboardComponentTable = getMountedComponent(defaultPropsForSortChecks),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -627,9 +538,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['-scoreLow'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),
@@ -647,9 +556,7 @@ describe('DashboardComponentsTable', function () {
           sortFields: ['scoreLow'],
         },
       };
-      const dashboardComponentTable = getMountedComponent(
-          dashboardComponentProps
-        ),
+      const dashboardComponentTable = getMountedComponent(dashboardComponentProps),
         table = dashboardComponentTable.find(NxTable),
         head = table.find(NxTableHead),
         headerRow = head.find(NxTableRow),

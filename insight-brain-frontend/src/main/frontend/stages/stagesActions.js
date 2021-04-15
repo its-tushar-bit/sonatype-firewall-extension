@@ -7,11 +7,7 @@ import axios from 'axios';
 import { contains, keys } from 'ramda';
 
 import { payloadParamActionCreator } from '../util/reduxUtil';
-import {
-  getDashboardStageUrl,
-  getActionStageUrl,
-  getCliStageUrl,
-} from '../util/CLMLocation';
+import { getDashboardStageUrl, getActionStageUrl, getCliStageUrl } from '../util/CLMLocation';
 
 export const FETCH_STAGE_TYPES_REQUESTED = 'FETCH_STAGE_TYPES_REQUESTED';
 export const FETCH_STAGE_TYPES_FULFILLED = 'FETCH_STAGE_TYPES_FULFILLED';
@@ -51,9 +47,7 @@ export function fetchStageTypes(purpose) {
   };
 }
 
-const fetchStageTypesRequested = payloadParamActionCreator(
-  FETCH_STAGE_TYPES_REQUESTED
-);
+const fetchStageTypesRequested = payloadParamActionCreator(FETCH_STAGE_TYPES_REQUESTED);
 
 const fetchStageTypesFulfilled = (purpose, data) => ({
   type: FETCH_STAGE_TYPES_FULFILLED,

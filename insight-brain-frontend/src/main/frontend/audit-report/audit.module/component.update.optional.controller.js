@@ -4,14 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global Brain */
-export default function ComponentUpdateOptionalController(
-  $scope,
-  $rootScope,
-  $http,
-  $q,
-  Messages,
-  OwnerContext
-) {
+export default function ComponentUpdateOptionalController($scope, $rootScope, $http, $q, Messages, OwnerContext) {
   var vm = this;
 
   vm.error = null;
@@ -30,11 +23,4 @@ export default function ComponentUpdateOptionalController(
   }
 }
 
-ComponentUpdateOptionalController.$inject = [
-  '$scope',
-  '$rootScope',
-  '$http',
-  '$q',
-  'Messages',
-  'OwnerContext',
-];
+ComponentUpdateOptionalController.$inject = ['$scope', '$rootScope', '$http', '$q', 'Messages', 'OwnerContext'];

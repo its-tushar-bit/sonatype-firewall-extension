@@ -8,10 +8,7 @@ import axios from 'axios';
 import { fetchStageTypes } from '../../stages/stagesActions';
 import { fetchSavedFilters } from './manageFiltersActions';
 import { loadResults } from '../results/dashboardResultsActions';
-import {
-  noPayloadActionCreator,
-  payloadParamActionCreator,
-} from '../../util/reduxUtil';
+import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import {
   getApplicationsUrl,
   getOrganizationsUrl,
@@ -22,8 +19,7 @@ import { filterToJson } from './dashboardFilterService';
 import defaultFilter from './defaultFilter';
 
 export const LOAD_FILTER_REQUESTED = 'LOAD_FILTER_REQUESTED';
-export const FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED =
-  'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
+export const FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED = 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
 export const FETCH_CURRENT_FILTER_FULFILLED = 'FETCH_CURRENT_FILTER_FULFILLED';
 export const LOAD_FILTER_FAILED = 'LOAD_FILTER_FAILED';
 export const APPLY_SAVED_FILTER_FAILED = 'APPLY_SAVED_FILTER_FAILED';
@@ -32,8 +28,7 @@ export const APPLY_FILTER_FULFILLED = 'APPLY_FILTER_FULFILLED';
 export const APPLY_FILTER_FAILED = 'APPLY_FILTER_FAILED';
 export const APPLY_FILTER_CANCELLED = 'APPLY_FILTER_CANCELLED';
 export const REFRESH_VIOLATION_DETAILS = 'REFRESH_VIOLATION_DETAILS';
-export const REFRESH_VIOLATION_DETAILS_FAILED =
-  'REFRESH_VIOLATION_DETAILS_FAILED';
+export const REFRESH_VIOLATION_DETAILS_FAILED = 'REFRESH_VIOLATION_DETAILS_FAILED';
 export const TOGGLE_FILTER = 'TOGGLE_FILTER';
 export const TOGGLE_APPS_AND_ORGS = 'TOGGLE_APPS_AND_ORGS';
 export const SELECT_AGE = 'SELECT_AGE';
@@ -69,9 +64,7 @@ export function loadFilter(resultsType = null) {
             dashboard.stageTypes
           )
         );
-        return dispatch(
-          fetchCurrentFilterFulfilled(filterData.data, resultsType)
-        );
+        return dispatch(fetchCurrentFilterFulfilled(filterData.data, resultsType));
       })
       .catch((error) => {
         dispatch(loadFilterFailed(error));
@@ -80,12 +73,7 @@ export function loadFilter(resultsType = null) {
   };
 }
 
-function fetchAvailableFilterOptionsFulfilled(
-  applications,
-  organizations,
-  categories,
-  stages
-) {
+function fetchAvailableFilterOptionsFulfilled(applications, organizations, categories, stages) {
   return {
     type: FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED,
     payload: {
@@ -127,9 +115,7 @@ export function applyFilter(filter, basedOnFilterName) {
         dispatch(applyFilterFailed(error));
         return Promise.reject(error);
       })
-      .then(({ data }) =>
-        dispatch(applyFilterFulfilled(data, basedOnFilterName))
-      );
+      .then(({ data }) => dispatch(applyFilterFulfilled(data, basedOnFilterName)));
 }
 
 export function applyDefaultFilter() {
@@ -154,13 +140,9 @@ export function applySavedFilter({ filter, name }) {
 
 const applyFilterFailed = payloadParamActionCreator(APPLY_FILTER_FAILED);
 
-export const applyFilterCancelled = noPayloadActionCreator(
-  APPLY_FILTER_CANCELLED
-);
+export const applyFilterCancelled = noPayloadActionCreator(APPLY_FILTER_CANCELLED);
 
-const applySavedFilterFailed = payloadParamActionCreator(
-  APPLY_SAVED_FILTER_FAILED
-);
+const applySavedFilterFailed = payloadParamActionCreator(APPLY_SAVED_FILTER_FAILED);
 
 function applyFilterFulfilled(filter, basedOnFilterName) {
   return (dispatch, getState) => {
@@ -181,9 +163,7 @@ export function toggleFilter(filterName, selectedIds) {
 
 export const selectAge = payloadParamActionCreator(SELECT_AGE);
 
-export const setDisplaySaveFilterModal = payloadParamActionCreator(
-  SET_DISPLAY_SAVE_FILTER_MODAL
-);
+export const setDisplaySaveFilterModal = payloadParamActionCreator(SET_DISPLAY_SAVE_FILTER_MODAL);
 
 export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
   return {
@@ -192,8 +172,6 @@ export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
   };
 }
 
-export const toggleFilterSidebar = payloadParamActionCreator(
-  TOGGLE_FILTER_SIDEBAR
-);
+export const toggleFilterSidebar = payloadParamActionCreator(TOGGLE_FILTER_SIDEBAR);
 
 export const revert = noPayloadActionCreator(REVERT_FILTER);

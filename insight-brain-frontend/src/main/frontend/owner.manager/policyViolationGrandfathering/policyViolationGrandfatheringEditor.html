@@ -12,9 +12,8 @@
         <h2>Policy Violation Grandfathering</h2>
       </div>
       <div class="iq-tile-header__subtitle">
-        Policy violation grandfathering can be enabled on organizations and
-        applications. These settings can be inherited by child organizations and
-        applications.
+        Policy violation grandfathering can be enabled on organizations and applications. These settings can be
+        inherited by child organizations and applications.
       </div>
     </header>
     <div id="violation-grandfathering-status-message">{{vm.statusMessage}}</div>
@@ -26,18 +25,14 @@
       form-mask="vm.violationGrandfatheringEditorMask"
       mask-attach-to-body
     >
-      <fieldset
-        id="violation-grandfathering-enable-toggle-control-group"
-        class="iq-radio-group iq-form-group"
-      >
+      <fieldset id="violation-grandfathering-enable-toggle-control-group" class="iq-radio-group iq-form-group">
         <legend class="iq-label">Enable Policy Violation Grandfathering</legend>
         <div
           id="violation-grandfathering-disabled-message"
           ng-if="!vm.currentConfiguration.allowChange"
           class="iq-alert iq-alert--info iq-alert--form-item"
         >
-          <i class="fa fa-info-circle"></i>The parent selection cannot be
-          overridden.
+          <i class="fa fa-info-circle"></i>The parent selection cannot be overridden.
         </div>
         <iq-radio
           model="vm.currentConfiguration.enabled"
@@ -64,17 +59,9 @@
           Disable
         </iq-radio>
       </fieldset>
-      <div
-        id="violation-grandfathering-override-toggle-control-group"
-        class="iq-form-group"
-        ng-if="!vm.isApp"
-      >
-        <label class="iq-label" ng-if="vm.isRootOrg"
-          >Allow Override by Child Organizations and Applications</label
-        >
-        <label class="iq-label" ng-if="!vm.isRootOrg"
-          >Allow Override by Child Applications</label
-        >
+      <div id="violation-grandfathering-override-toggle-control-group" class="iq-form-group" ng-if="!vm.isApp">
+        <label class="iq-label" ng-if="vm.isRootOrg">Allow Override by Child Organizations and Applications</label>
+        <label class="iq-label" ng-if="!vm.isRootOrg">Allow Override by Child Applications</label>
         <iq-checkbox
           label="Allow override"
           id="policy-violation-grandfathering-override"
@@ -84,11 +71,7 @@
         >
         </iq-checkbox>
       </div>
-      <footer
-        class="iq-tile-footer"
-        submit-wrapper="vm.submitError"
-        retry="vm.save()"
-      >
+      <footer class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button
           type="submit"
           class="iq-btn iq-btn--primary"
@@ -107,8 +90,7 @@
 
   <div ng-if="!vm.isGrandfatheringSupported">
     <div class="iq-alert iq-alert--error">
-      <i class="fa fa-warning"></i>Policy Violation Grandfathering is not
-      supported by your license.
+      <i class="fa fa-warning"></i>Policy Violation Grandfathering is not supported by your license.
     </div>
   </div>
 </section>

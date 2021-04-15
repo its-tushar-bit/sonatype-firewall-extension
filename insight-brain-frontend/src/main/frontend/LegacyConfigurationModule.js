@@ -3,21 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-function restoreLegacyBehavior(
-  $qProvider,
-  $compileProvider,
-  $locationProvider
-) {
+function restoreLegacyBehavior($qProvider, $compileProvider, $locationProvider) {
   $qProvider.errorOnUnhandledRejections(false);
   $compileProvider.preAssignBindingsEnabled(true);
   $locationProvider.hashPrefix('');
 }
 
-restoreLegacyBehavior.$inject = [
-  '$qProvider',
-  '$compileProvider',
-  '$locationProvider',
-];
+restoreLegacyBehavior.$inject = ['$qProvider', '$compileProvider', '$locationProvider'];
 
 /**
  * This module configures various angular providers in a way that restores behaviors which existed before

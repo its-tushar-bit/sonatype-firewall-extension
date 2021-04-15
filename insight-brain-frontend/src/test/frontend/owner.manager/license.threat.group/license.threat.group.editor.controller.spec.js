@@ -34,14 +34,7 @@ describe('license.threat.group.editor.controller.spec.js', function () {
     mockLicenseGroupStore = StoreUtils().createMockStore('licenseGroupStore'),
     mockLTG = ResourceUtils().createMockResource();
 
-  beforeEach(inject(function (
-    $rootScope,
-    _$q_,
-    _$timeout_,
-    _$httpBackend_,
-    _CLMLocations_,
-    _CLMContextLocations_
-  ) {
+  beforeEach(inject(function ($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMLocations_, _CLMContextLocations_) {
     scope = $rootScope.$new();
     $timeout = _$timeout_;
     $q = _$q_;
@@ -61,14 +54,10 @@ describe('license.threat.group.editor.controller.spec.js', function () {
   }));
 
   const prepareBackendServices = () => {
-    $httpBackend
-      .whenGET(CLMLocations.getLicensesUrl())
-      .respond(LicenseResourceMockData.getLicensesUrl());
+    $httpBackend.whenGET(CLMLocations.getLicensesUrl()).respond(LicenseResourceMockData.getLicensesUrl());
     $httpBackend
       .whenGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-      .respond(
-        LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl()
-      );
+      .respond(LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl());
   };
 
   const flushBackendServices = () => {
@@ -96,8 +85,8 @@ describe('license.threat.group.editor.controller.spec.js', function () {
 
     expect(vm.siblings.length).toBe(1);
     expect(vm.siblings).toContain(
-      LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl()
-        .licenseThreatGroupsByOwner[0].licenseThreatGroups[0]
+      LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl().licenseThreatGroupsByOwner[0]
+        .licenseThreatGroups[0]
     );
   }));
 
@@ -186,9 +175,7 @@ describe('license.threat.group.editor.controller.spec.js', function () {
     expect(vm.submitError).toBe('dagnabbit');
   }));
 
-  it('After delete goes to create new license threat group', inject(function (
-    $controller
-  ) {
+  it('After delete goes to create new license threat group', inject(function ($controller) {
     spyOn(SameOwnerStateNavigationService, 'goEdit');
     vm = $controller('license.threat.group.editor.controller', {
       $scope: scope,
@@ -206,15 +193,11 @@ describe('license.threat.group.editor.controller.spec.js', function () {
     deleteServiceResourceDefer.resolve();
     $timeout.flush();
 
-    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith(
-      'create-license-threat-group'
-    );
+    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-license-threat-group');
     SpecUtil.expectStateChangeNotPrevented(scope);
   }));
 
-  it('After last app LTG delete goes to summary page', inject(function (
-    $controller
-  ) {
+  it('After last app LTG delete goes to summary page', inject(function ($controller) {
     vm = $controller('license.threat.group.editor.controller', {
       $scope: scope,
       SameOwnerStateNavigationService: SameOwnerStateNavigationService,
@@ -239,11 +222,9 @@ describe('license.threat.group.editor.controller.spec.js', function () {
     });
   }));
 
-  it('Picks the licenses that are already included with the LTG', inject(function (
-    $controller
-  ) {
-    var licenses = LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl()
-      .licenseThreatGroupsByOwner[0].licenseThreatGroups[0].licenses;
+  it('Picks the licenses that are already included with the LTG', inject(function ($controller) {
+    var licenses = LicenseThreatGroupResourceMockData.getApplicableLicenseGroupsUrl().licenseThreatGroupsByOwner[0]
+      .licenseThreatGroups[0].licenses;
     vm = $controller('license.threat.group.editor.controller', {
       $scope: scope,
       $stateParams: { licenseThreatGroupId: '1' },
@@ -260,23 +241,15 @@ describe('license.threat.group.editor.controller.spec.js', function () {
     });
   }));
 
-  it('Adds display name to the licenses on load', inject(function (
-    $controller
-  ) {
+  it('Adds display name to the licenses on load', inject(function ($controller) {
     vm = $controller('license.threat.group.editor.controller', {
       $scope: scope,
     });
 
     flushBackendServices();
 
-    const displayNames = vm.availableLicenses.map(
-      (license) => license.fullDisplayName
-    );
-    const expectedDisplayNames = [
-      '(AAL) Attribution Assurance License',
-      '(Adobe) Adobe',
-      '(Adobe-AFM) Adobe-AFM',
-    ];
+    const displayNames = vm.availableLicenses.map((license) => license.fullDisplayName);
+    const expectedDisplayNames = ['(AAL) Attribution Assurance License', '(Adobe) Adobe', '(Adobe-AFM) Adobe-AFM'];
     expect(displayNames).toEqual(expectedDisplayNames);
   }));
 

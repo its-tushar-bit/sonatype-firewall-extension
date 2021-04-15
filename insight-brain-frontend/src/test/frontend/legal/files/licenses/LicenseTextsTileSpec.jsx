@@ -35,10 +35,7 @@ describe('LicenseTextsTile', function () {
       ],
       showLicensesModal: false,
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LicenseTextsTile,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LicenseTextsTile, minimalProps);
   });
 
   it('renders a header with label `License Texts`', function () {
@@ -50,9 +47,7 @@ describe('LicenseTextsTile', function () {
     const wrapper = getShallowComponent();
     const licenses = wrapper.find('.legal-file');
     expect(licenses.length).toBe(2);
-    expect(licenses.at(0).find('.legal-file-path')).toHaveText(
-      'path1/license.txt'
-    );
+    expect(licenses.at(0).find('.legal-file-path')).toHaveText('path1/license.txt');
     expect(licenses.at(0).find('blockquote')).toHaveText('license content 1');
     expect(licenses.at(1).find('.legal-file-path')).toHaveText('');
     expect(licenses.at(1).find('blockquote')).toHaveText('license content 2');

@@ -5,12 +5,7 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import LicensesModal from '../../../../../main/frontend/legal/files/licenses/LicensesModal';
-import {
-  NxButton,
-  NxForm,
-  NxTextInput,
-  NxToggle,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
 
 describe('LicensesModal', function () {
   let getShallowComponent,
@@ -74,10 +69,7 @@ describe('LicensesModal', function () {
       error: 'error',
       submitMaskState: 'submitMaskState',
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LicensesModal,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LicensesModal, minimalProps);
   });
 
   it('renders no license texts found if there are no licenses', function () {
@@ -160,12 +152,8 @@ describe('LicensesModal', function () {
     expect(licensesScopeOptions.at(0)).toHaveText('Application - app');
     expect(licensesScopeOptions.at(1).prop('value')).toEqual('orgId');
     expect(licensesScopeOptions.at(1)).toHaveText('Organization - org');
-    expect(licensesScopeOptions.at(2).prop('value')).toEqual(
-      'ROOT_ORGANIZATION_ID'
-    );
-    expect(licensesScopeOptions.at(2)).toHaveText(
-      'Organization - Root Organization'
-    );
+    expect(licensesScopeOptions.at(2).prop('value')).toEqual('ROOT_ORGANIZATION_ID');
+    expect(licensesScopeOptions.at(2)).toHaveText('Organization - Root Organization');
   });
 
   it('sets the licenses scope to the selected value when changed', function () {
@@ -190,9 +178,7 @@ describe('LicensesModal', function () {
       ],
     });
     const form = wrapper.find(NxForm);
-    expect(form.prop('validationErrors')).toBe(
-      'A custom license must have text.'
-    );
+    expect(form.prop('validationErrors')).toBe('A custom license must have text.');
   });
 
   it('has a validation error if there has been no changes', function () {
@@ -211,9 +197,7 @@ describe('LicensesModal', function () {
       ],
     });
     const form = wrapper.find(NxForm);
-    expect(form.prop('validationErrors')).toBe(
-      'Must add a new license or change the content or status of a license.'
-    );
+    expect(form.prop('validationErrors')).toBe('Must add a new license or change the content or status of a license.');
   });
 
   it('has no validation error if the scope has changed', function () {

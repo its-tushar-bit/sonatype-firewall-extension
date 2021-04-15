@@ -80,9 +80,7 @@ describe('dashboardFilterActions: non-angular', function () {
         mockAxiosCalls({
           get: {
             ...mockGetData,
-            [getApplicationsUrl()]: Promise.reject(
-              'failed to get applications data'
-            ),
+            [getApplicationsUrl()]: Promise.reject('failed to get applications data'),
           },
         });
 
@@ -201,10 +199,7 @@ describe('dashboardFilterActions: non-angular', function () {
             expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
             expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
             expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
-            expect(axios.post).toHaveBeenCalledWith(
-              getNewestRisksUrl(),
-              expectedRisksPayload
-            );
+            expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
 
             expect(store.getActions().length).toBe(6);
 
@@ -257,89 +252,82 @@ describe('dashboardFilterActions: non-angular', function () {
         }
       );
 
-      it(
-        'fires filter actions and calls loads results ' +
-          'with the param supplied when called',
-        function (done) {
-          filterJson.needsAcknowledgement = false;
-          mockAxiosCalls({
-            get: {
-              ...mockGetData,
-              [getDashboardFilters()]: Promise.resolve({ data: filterJson }),
-            },
-            post: {
-              [getApplicationRisksUrl()]: Promise.resolve({
-                data: {
-                  dashboardResults: [],
-                  numResults: 0,
-                },
-              }),
-            },
-          });
-
-          store = SpecUtil.mockReduxStore(initialState);
-
-          const expectedApplicationsRisksPayload = {
-            ...expectedRisksPayload,
-            orderBy: '-TOTAL_RISK',
-          };
-
-          store.dispatch(loadFilter('applications')).then(() => {
-            expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
-            expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
-            expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
-            expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
-            expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
-            expect(axios.post).toHaveBeenCalledWith(
-              getApplicationRisksUrl(),
-              expectedApplicationsRisksPayload
-            );
-
-            expect(store.getActions().length).toBe(6);
-
-            expect(store.getActions()[1]).toEqual({
-              type: 'FETCH_SAVED_FILTERS_FULFILLED',
-              payload: 'saved filters data',
-            });
-
-            expect(store.getActions()[2]).toEqual({
-              type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
-              payload: {
-                organizations: 'organizations data',
-                applications: 'applications data',
-                stages: initialState.stages.dashboard.stageTypes,
-                categories: 'tag data',
+      it('fires filter actions and calls loads results ' + 'with the param supplied when called', function (done) {
+        filterJson.needsAcknowledgement = false;
+        mockAxiosCalls({
+          get: {
+            ...mockGetData,
+            [getDashboardFilters()]: Promise.resolve({ data: filterJson }),
+          },
+          post: {
+            [getApplicationRisksUrl()]: Promise.resolve({
+              data: {
+                dashboardResults: [],
+                numResults: 0,
               },
-            });
+            }),
+          },
+        });
 
-            expect(store.getActions()[3]).toEqual({
-              type: 'FETCH_CURRENT_FILTER_FULFILLED',
-              payload: {
-                name: '',
-                basedOnFilterName: 'Test1',
-                filter: 'filter data',
-                needsAcknowledgement: false,
-              },
-            });
+        store = SpecUtil.mockReduxStore(initialState);
 
-            expect(store.getActions()[4]).toEqual({
-              type: 'LOAD_RESULTS_REQUESTED',
-              payload: 'applications',
-            });
+        const expectedApplicationsRisksPayload = {
+          ...expectedRisksPayload,
+          orderBy: '-TOTAL_RISK',
+        };
 
-            const lastAction = store.getActions()[5];
-            expect(lastAction.type).toEqual('LOAD_RESULTS_FULFILLED');
-            expect(lastAction.payload).not.toBeNull();
-            expect(lastAction.payload.resultsType).toEqual('applications');
-            done();
+        store.dispatch(loadFilter('applications')).then(() => {
+          expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getDashboardFilters());
+          expect(axios.get).toHaveBeenCalledWith(getDashboardSavedFilters());
+          expect(axios.post).toHaveBeenCalledWith(getApplicationRisksUrl(), expectedApplicationsRisksPayload);
+
+          expect(store.getActions().length).toBe(6);
+
+          expect(store.getActions()[1]).toEqual({
+            type: 'FETCH_SAVED_FILTERS_FULFILLED',
+            payload: 'saved filters data',
           });
 
-          expect(store.getActions().length).toBe(1);
-          expect(store.getActions()[0]).toEqual({
-            type: 'LOAD_FILTER_REQUESTED',
+          expect(store.getActions()[2]).toEqual({
+            type: 'FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED',
+            payload: {
+              organizations: 'organizations data',
+              applications: 'applications data',
+              stages: initialState.stages.dashboard.stageTypes,
+              categories: 'tag data',
+            },
           });
-        }
-      );
+
+          expect(store.getActions()[3]).toEqual({
+            type: 'FETCH_CURRENT_FILTER_FULFILLED',
+            payload: {
+              name: '',
+              basedOnFilterName: 'Test1',
+              filter: 'filter data',
+              needsAcknowledgement: false,
+            },
+          });
+
+          expect(store.getActions()[4]).toEqual({
+            type: 'LOAD_RESULTS_REQUESTED',
+            payload: 'applications',
+          });
+
+          const lastAction = store.getActions()[5];
+          expect(lastAction.type).toEqual('LOAD_RESULTS_FULFILLED');
+          expect(lastAction.payload).not.toBeNull();
+          expect(lastAction.payload.resultsType).toEqual('applications');
+          done();
+        });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()[0]).toEqual({
+          type: 'LOAD_FILTER_REQUESTED',
+        });
+      });
     });
   });
 
@@ -351,22 +339,9 @@ describe('dashboardFilterActions: non-angular', function () {
 
     const action = applyFilter('test filters', 'test filter name');
 
-    testSuccessfullyUpdatesFiltersAndLoadsResults(
-      action,
-      'test filters',
-      'test filter name'
-    );
-    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(
-      action,
-      'test filters',
-      'test filter name'
-    );
-    testFailedToUpdateFilter(
-      action,
-      'test filters',
-      'test filter name',
-      expectedFailAction
-    );
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, 'test filters', 'test filter name');
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, 'test filters', 'test filter name');
+    testFailedToUpdateFilter(action, 'test filters', 'test filter name', expectedFailAction);
   });
 
   describe('applySavedFilter', function () {
@@ -382,22 +357,9 @@ describe('dashboardFilterActions: non-angular', function () {
 
     const action = applySavedFilter(savedFilter);
 
-    testSuccessfullyUpdatesFiltersAndLoadsResults(
-      action,
-      'test filters',
-      'test filter name'
-    );
-    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(
-      action,
-      'test filters',
-      'test filter name'
-    );
-    testFailedToUpdateFilter(
-      action,
-      'test filters',
-      'test filter name',
-      expectedFailAction
-    );
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, 'test filters', 'test filter name');
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, 'test filters', 'test filter name');
+    testFailedToUpdateFilter(action, 'test filters', 'test filter name', expectedFailAction);
   });
 
   describe('applyDefaultFilter', function () {
@@ -425,12 +387,7 @@ describe('dashboardFilterActions: non-angular', function () {
     });
   });
 
-  function testFailedToUpdateFilter(
-    action,
-    expectedFilter,
-    expectedFilterName,
-    expectedFailAction
-  ) {
+  function testFailedToUpdateFilter(action, expectedFilter, expectedFilterName, expectedFailAction) {
     it(`dispatches ${expectedFailAction.type} if failed to update filters`, function (done) {
       mockAxiosCalls({
         put: {
@@ -460,11 +417,7 @@ describe('dashboardFilterActions: non-angular', function () {
     });
   }
 
-  function testSuccessfullyUpdatesFiltersAndLoadsResults(
-    action,
-    expectedFilter,
-    expectedFilterName
-  ) {
+  function testSuccessfullyUpdatesFiltersAndLoadsResults(action, expectedFilter, expectedFilterName) {
     it('updates filters and loads results', function (done) {
       mockAxiosCalls({
         put: {
@@ -486,10 +439,7 @@ describe('dashboardFilterActions: non-angular', function () {
       store = SpecUtil.mockReduxStore(initialState);
 
       store.dispatch(action).then(() => {
-        expect(axios.post).toHaveBeenCalledWith(
-          getNewestRisksUrl(),
-          expectedRisksPayload
-        );
+        expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
         expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
           filter: expectedFilter,
           basedOnFilterName: expectedFilterName,
@@ -527,11 +477,7 @@ describe('dashboardFilterActions: non-angular', function () {
     });
   }
 
-  function testSuccessfullyUpdatesFiltersButFailsToLoadsResults(
-    action,
-    expectedFilter,
-    expectedFilterName
-  ) {
+  function testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, expectedFilter, expectedFilterName) {
     it('returns rejected promise and does not dispatch apply filter failed action if failed to load results', function (done) {
       mockAxiosCalls({
         put: {
@@ -547,10 +493,7 @@ describe('dashboardFilterActions: non-angular', function () {
       store = SpecUtil.mockReduxStore(initialState);
 
       store.dispatch(action).catch(() => {
-        expect(axios.post).toHaveBeenCalledWith(
-          getNewestRisksUrl(),
-          expectedRisksPayload
-        );
+        expect(axios.post).toHaveBeenCalledWith(getNewestRisksUrl(), expectedRisksPayload);
         expect(axios.put).toHaveBeenCalledWith(getDashboardFilters(), {
           filter: expectedFilter,
           basedOnFilterName: expectedFilterName,

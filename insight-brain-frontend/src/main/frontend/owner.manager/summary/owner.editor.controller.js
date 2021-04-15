@@ -43,8 +43,7 @@ export default function OwnerEditorController(
   vm.siblings = siblings;
   vm.userIconPreview = undefined;
   vm.unsavedModalVisible = false;
-  const invalidCharactersMessage =
-    'Use valid characters: alphanumeric, "_", "." or "-"';
+  const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
   vm.formMessages = {
     duplicate: 'ID is already in use',
     validNameCharacters: invalidCharactersMessage,
@@ -66,9 +65,7 @@ export default function OwnerEditorController(
 
   $scope.$watch('vm.icon.source', function () {
     if ($window.URL && vm.icon.source) {
-      vm.userIconPreview = $window.URL.createObjectURL(
-        $('#icon-file')[0].files[0]
-      );
+      vm.userIconPreview = $window.URL.createObjectURL($('#icon-file')[0].files[0]);
     }
   });
 
@@ -91,12 +88,7 @@ export default function OwnerEditorController(
   });
 
   function isDirty() {
-    return (
-      !(
-        vm.icon.type === originalIconType ||
-        (!vm.icon.type && !originalIconType)
-      ) || vm.dirtyOwner.isDirty()
-    );
+    return !(vm.icon.type === originalIconType || (!vm.icon.type && !originalIconType)) || vm.dirtyOwner.isDirty();
   }
 
   function fileUploadComplete(content) {
@@ -122,10 +114,7 @@ export default function OwnerEditorController(
         vm.dirtyOwner.$save().then(function (result) {
           var form = $('#custom-icon-form'),
             nameChanged = !vm.ownerEditor.name.$pristine,
-            iconUploadUrl = CLMContextLocations.getAddIconUrl(
-              ownerType,
-              result.id
-            );
+            iconUploadUrl = CLMContextLocations.getAddIconUrl(ownerType, result.id);
           vm.ownerEditor.name.$setPristine();
 
           if (vm.icon.type === '') {
@@ -163,12 +152,7 @@ export default function OwnerEditorController(
       .then(
         function (updatedOwner) {
           originalIconType = vm.icon.type;
-          $rootScope.$broadcast(
-            EventNameConstant.OWNER_UPDATED,
-            updatedOwner,
-            ownerType,
-            isNew
-          );
+          $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, updatedOwner, ownerType, isNew);
           if (isNew) {
             $state.go(
               'management.view.' + ownerType,
@@ -188,12 +172,7 @@ export default function OwnerEditorController(
             vm.error = messages.getHttpErrorMessage(error);
           } else {
             preventDismiss = true;
-            $rootScope.$broadcast(
-              EventNameConstant.OWNER_UPDATED,
-              vm.dirtyOwner,
-              ownerType,
-              isNew
-            );
+            $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, vm.dirtyOwner, ownerType, isNew);
             $state.go(
               'management.view.' + ownerType,
               ownerType === 'application'

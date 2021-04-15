@@ -7,18 +7,12 @@
 import commonServicesModule from './util/CommonServices';
 import formsModule from './FormsModule';
 import CLMLocationModule from './util/CLMLocation';
-import {
-  httpInterceptors,
-  unauthenticatedResponseHttpInterceptor,
-} from './util/HttpInterceptors';
+import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './util/HttpInterceptors';
 import IqHttpInterceptorsModule from './util/IqHttpInterceptors';
 import productFeaturesModule from './util/ProductFeatures';
 import gettingStartedModule from './configuration/gettingStarted/module';
 import { GETTING_STARTED_STATE } from './configuration/gettingStarted/module';
-import {
-  REDIRECTED_ACTION,
-  DEPARTED_ACTION,
-} from './configuration/gettingStarted/gettingStartedUsageTelemetryService';
+import { REDIRECTED_ACTION, DEPARTED_ACTION } from './configuration/gettingStarted/gettingStartedUsageTelemetryService';
 import SessionSecurityModule from './SessionSecurityModule';
 import mainHeaderModule from './mainHeader/module';
 import ReportModule from './ReportApp';
@@ -37,11 +31,7 @@ $.fn.modal.Constructor.prototype.enforceFocus = function () {
   var that = this;
   var done = false;
   $(document).on('focusin.modal', function (e) {
-    if (
-      !done &&
-      that.$element[0] !== e.target &&
-      !that.$element.has(e.target).length
-    ) {
+    if (!done && that.$element[0] !== e.target && !that.$element.has(e.target).length) {
       done = true;
       that.$element.focus();
     }
@@ -93,26 +83,20 @@ export const InitModule = angular
                 $q = injector.get('$q'),
                 Messages = injector.get('Messages');
 
-              return $q
-                .all([
-                  ProductFeatures.load(),
-                  ProductLicense.load(),
-                  CurrentUser.waitForLogin(),
-                ])
-                .then(
-                  function () {
-                    if (ProductFeatures.isDashboardAvailable()) {
-                      return 'dashboard.overview.violations';
-                    } else if (ProductFeatures.isReportsListAvailable()) {
-                      return 'violations';
-                    } else {
-                      return 'gettingStarted';
-                    }
-                  },
-                  function (err) {
-                    $rootScope.error = Messages.getHttpErrorMessage(err);
+              return $q.all([ProductFeatures.load(), ProductLicense.load(), CurrentUser.waitForLogin()]).then(
+                function () {
+                  if (ProductFeatures.isDashboardAvailable()) {
+                    return 'dashboard.overview.violations';
+                  } else if (ProductFeatures.isReportsListAvailable()) {
+                    return 'violations';
+                  } else {
+                    return 'gettingStarted';
                   }
-                );
+                },
+                function (err) {
+                  $rootScope.error = Messages.getHttpErrorMessage(err);
+                }
+              );
             },
           })
           .state('home', {
@@ -139,9 +123,7 @@ export const InitModule = angular
        * Allow for images to be sourced from blobs. This was removed from AngularJS with closed issue:
        * https://github.com/angular/angular.js/issues/3889
        */
-      $compileProvider.imgSrcSanitizationWhitelist(
-        /^\s*(https?|ftp|file|blob):|data:image\//
-      );
+      $compileProvider.imgSrcSanitizationWhitelist(/^\s*(https?|ftp|file|blob):|data:image\//);
       $compileProvider.debugInfoEnabled(angularDebug);
     },
   ])
@@ -242,10 +224,7 @@ export const InitModule = angular
         }
 
         function registerPreLoginStateHandler() {
-          cancelPreLoginStateHandler = $rootScope.$on(
-            '$stateChangeStart',
-            preLoginStateHandler
-          );
+          cancelPreLoginStateHandler = $rootScope.$on('$stateChangeStart', preLoginStateHandler);
         }
 
         function onLicenseSuccess({ productEdition }) {
@@ -254,10 +233,7 @@ export const InitModule = angular
 
           // replay state transtion caught while license was loading so that preLoginStateHandler can process it
           if (savedStateDuringLicenseFetch) {
-            $state.go(
-              savedStateDuringLicenseFetch.state,
-              savedStateDuringLicenseFetch.params
-            );
+            $state.go(savedStateDuringLicenseFetch.state, savedStateDuringLicenseFetch.params);
           }
         }
 
@@ -268,10 +244,7 @@ export const InitModule = angular
         }
 
         function onLicenseFailure(err) {
-          cancelUnlicensedStateChangeHandler = $rootScope.$on(
-            '$stateChangeStart',
-            unlicensedStateChangeHandler
-          );
+          cancelUnlicensedStateChangeHandler = $rootScope.$on('$stateChangeStart', unlicensedStateChangeHandler);
 
           if (err.status === 402) {
             $state.go('productlicense');
@@ -281,10 +254,7 @@ export const InitModule = angular
         }
 
         let savedStateDuringLicenseFetch = null,
-          cancelPreLicenseFetchStateHandler = $rootScope.$on(
-            '$stateChangeStart',
-            preLicenseFetchStateHandler
-          );
+          cancelPreLicenseFetchStateHandler = $rootScope.$on('$stateChangeStart', preLicenseFetchStateHandler);
 
         return ProductLicense.load()
           .finally(cancelPreLicenseFetchStateHandler)
@@ -330,8 +300,7 @@ export const InitModule = angular
         ProductFeatures.load().then(function () {
           if (!ProductFeatures.isAvailable('allow-external-hyperlinks')) {
             const externalLinkClickHandler = (e) => {
-              const isExternalLink = (anchor) =>
-                anchor.hostname && anchor.hostname !== location.hostname;
+              const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
               const anchor = getAnchor(e.target);
               if (isExternalLink(anchor)) {
                 externalLinkModalService.open(anchor.href);
@@ -393,25 +362,17 @@ export const InitModule = angular
         // This listener is active until login succeeds. If a page navigation occurs (successfully) before that
         // time, that means that the page navigated to must be one that allows unauthenticated use, so the login
         // modal should be closed without completing the login
-        let cancelLoginDismissListener = $rootScope.$on(
-          '$stateChangeSuccess',
-          function () {
-            LoginModalService.dismiss(
-              'Navigated to a page that does not require authentication'
-            );
-          }
-        );
+        let cancelLoginDismissListener = $rootScope.$on('$stateChangeSuccess', function () {
+          LoginModalService.dismiss('Navigated to a page that does not require authentication');
+        });
 
-        $rootScope.$on(
-          '$stateChangeError',
-          function (event, toState, toParams, fromState, fromParams, error) {
-            if (typeof error === 'string') {
-              $rootScope.error = error;
-            } else {
-              setRootError(error);
-            }
+        $rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
+          if (typeof error === 'string') {
+            $rootScope.error = error;
+          } else {
+            setRootError(error);
           }
-        );
+        });
 
         let isProcessingStateChange = false;
 
@@ -422,42 +383,35 @@ export const InitModule = angular
           return isDirtyPath ? path(isDirtyPath, state) : false;
         }
 
-        $rootScope.$on(
-          '$stateChangeStart',
-          function (event, toState, toParams) {
-            if (!isProcessingStateChange) {
-              var e = $rootScope.$broadcast('pageChangeStarted');
-              if (e.defaultPrevented || isPageDirty()) {
-                isProcessingStateChange = true;
-                event.preventDefault();
-                unsavedChangesModalService
-                  .open()
-                  .then(
-                    function () {
-                      $state.go(toState, toParams);
-                      $rootScope.$broadcast('pageChangeAccepted');
-                    },
-                    function () {
-                      $rootScope.$broadcast('pageChangeCanceled');
-                    }
-                  )
-                  .finally(() => {
-                    isProcessingStateChange = false;
-                  });
-              } else {
-                $rootScope.$broadcast('pageChangeAccepted');
-              }
+        $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {
+          if (!isProcessingStateChange) {
+            var e = $rootScope.$broadcast('pageChangeStarted');
+            if (e.defaultPrevented || isPageDirty()) {
+              isProcessingStateChange = true;
+              event.preventDefault();
+              unsavedChangesModalService
+                .open()
+                .then(
+                  function () {
+                    $state.go(toState, toParams);
+                    $rootScope.$broadcast('pageChangeAccepted');
+                  },
+                  function () {
+                    $rootScope.$broadcast('pageChangeCanceled');
+                  }
+                )
+                .finally(() => {
+                  isProcessingStateChange = false;
+                });
+            } else {
+              $rootScope.$broadcast('pageChangeAccepted');
             }
           }
-        );
+        });
 
         function unloadListener() {
           if ($state.current.name === GETTING_STARTED_STATE) {
-            gettingStartedUsageTelemetryService.submitData(
-              DEPARTED_ACTION,
-              null,
-              true
-            );
+            gettingStartedUsageTelemetryService.submitData(DEPARTED_ACTION, null, true);
           }
 
           if (!isProcessingStateChange) {
@@ -468,8 +422,7 @@ export const InitModule = angular
             });
 
             return e.defaultPrevented || isPageDirty()
-              ? e.message ||
-                  'The page may contain unsaved changes, continuing will discard them.'
+              ? e.message || 'The page may contain unsaved changes, continuing will discard them.'
               : undefined;
           }
         }

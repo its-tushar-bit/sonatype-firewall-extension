@@ -50,9 +50,7 @@ httpInterceptors.factory('cacheBusterHttpInterceptor', [
     return {
       request: function (config) {
         if (
-          (config.url.indexOf('/rest/') > -1 ||
-            config.url.indexOf('/api/') > -1 ||
-            config.url.indexOf('.json') > -1) &&
+          (config.url.indexOf('/rest/') > -1 || config.url.indexOf('/api/') > -1 || config.url.indexOf('.json') > -1) &&
           config.url.indexOf('timestamp=') < 0
         ) {
           config.params = config.params || {};
@@ -92,58 +90,44 @@ export var unauthenticatedResponseHttpInterceptor = angular
     '$http',
     'LoginModalService',
     'UnauthenticatedRequestQueueService',
-    function (
-      $rootScope,
-      $q,
-      $http,
-      LoginModalService,
-      UnauthenticatedRequestQueueService
-    ) {
+    function ($rootScope, $q, $http, LoginModalService, UnauthenticatedRequestQueueService) {
       function authenticate(showSamlSso, identityProviderName) {
         return LoginModalService.show(showSamlSso, identityProviderName);
       }
 
-      $rootScope.$on(
-        'userNeedsAuthentication',
-        function (event, response, deferred) {
-          if (response.config && response.config.waitForLogin === false) {
-            deferred.reject(response);
-          } else {
-            // add a new function to the queue that will handle resolving the promise retrieved from event emitter
-            UnauthenticatedRequestQueueService.addRequest(function () {
-              // simply replay the request
-              $http(response.config).then(
-                function () {
-                  deferred.resolve(arguments[0]);
-                },
-                function () {
-                  deferred.reject(arguments[0]);
-                }
-              );
-            });
-            // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
-            // the other messages, the data will be added to the queue, but the dialog portion will be ignored
-            if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-              authenticate(
-                response.headers('WWW-Authenticate') === 'SAML',
-                response.headers('X-SAML-IdP')
-              ).then(
-                function () {
-                  // retry failed requests and then clear the queue
-                  $q.all(
-                    UnauthenticatedRequestQueueService.getPromises()
-                  ).finally(function () {
-                    UnauthenticatedRequestQueueService.clearRequests();
-                  });
-                },
-                function () {
-                  // login was cancelled
+      $rootScope.$on('userNeedsAuthentication', function (event, response, deferred) {
+        if (response.config && response.config.waitForLogin === false) {
+          deferred.reject(response);
+        } else {
+          // add a new function to the queue that will handle resolving the promise retrieved from event emitter
+          UnauthenticatedRequestQueueService.addRequest(function () {
+            // simply replay the request
+            $http(response.config).then(
+              function () {
+                deferred.resolve(arguments[0]);
+              },
+              function () {
+                deferred.reject(arguments[0]);
+              }
+            );
+          });
+          // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
+          // the other messages, the data will be added to the queue, but the dialog portion will be ignored
+          if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
+            authenticate(response.headers('WWW-Authenticate') === 'SAML', response.headers('X-SAML-IdP')).then(
+              function () {
+                // retry failed requests and then clear the queue
+                $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function () {
                   UnauthenticatedRequestQueueService.clearRequests();
-                }
-              );
-            }
+                });
+              },
+              function () {
+                // login was cancelled
+                UnauthenticatedRequestQueueService.clearRequests();
+              }
+            );
           }
         }
-      );
+      });
     },
   ]);

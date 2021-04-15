@@ -72,10 +72,7 @@ function successMetricsReportController(
   }
 
   function hasDisabledError() {
-    return (
-      vm.error ===
-      systemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE
-    );
+    return vm.error === systemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE;
   }
 }
 

@@ -134,8 +134,5 @@ const reducerActionMap = {
   [COPYRIGHT_DETAILS_FAILED]: failureCopyrightDetails,
 };
 
-const componentCopyrightDetailsReducer = createReducerFromActionMap(
-  reducerActionMap,
-  initialState
-);
+const componentCopyrightDetailsReducer = createReducerFromActionMap(reducerActionMap, initialState);
 export default componentCopyrightDetailsReducer;

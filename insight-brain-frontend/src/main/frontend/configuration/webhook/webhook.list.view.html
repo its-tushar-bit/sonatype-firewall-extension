@@ -3,11 +3,7 @@
     <div id="webhooks-list" class="iq-tile iq-tile--sys-prefs">
       <div ng-if="vm.isWebhooksSupported">
         <div class="iq-tile__actions">
-          <button
-            class="btn btn-tertiary"
-            ng-click="vm.newWebhook()"
-            id="create-webhook"
-          >
+          <button class="btn btn-tertiary" ng-click="vm.newWebhook()" id="create-webhook">
             <i class="icon icon-plus"></i> Add a Webhook
           </button>
         </div>
@@ -19,17 +15,13 @@
             <h2>Webhooks</h2>
           </div>
           <div class="iq-tile-header__subtitle">
-            IQ Server will send a POST request to the specified URL when the
-            associated events occur.
+            IQ Server will send a POST request to the specified URL when the associated events occur.
           </div>
         </div>
         <div class="iq-tile-content">
           <div class="iq-list iq-list--clickable">
             <ul class="iq-list iq-list--clickable">
-              <li
-                class="iq-list__item iq-list__item--empty"
-                ng-if="vm.webhooks.length <= 0"
-              >
+              <li class="iq-list__item iq-list__item--empty" ng-if="vm.webhooks.length <= 0">
                 No webhooks are defined
               </li>
               <li
@@ -39,12 +31,8 @@
               >
                 <i class="fa fa-chevron-right iq-pull-right"></i>
                 <span class="webhook-url">
-                  <img
-                    src="img/webhooks_16px.png"
-                    class="webhook-icon"
-                    alt="Webhooks"
-                  />{{::(webhook.description ? webhook.description :
-                  webhook.url)}}
+                  <img src="img/webhooks_16px.png" class="webhook-icon" alt="Webhooks" />{{::(webhook.description ?
+                  webhook.description : webhook.url)}}
                 </span>
                 <p class="iq-list__subtext">
                   <span
@@ -52,11 +40,7 @@
                     class="webhook-event-types"
                     ng-class="{'iq-list__item--disabled': vm.isEventTypeDisabled(eventType)}"
                   >
-                    <i
-                      class="fa fa-circle size-10px"
-                      title="{{::eventType}}"
-                    ></i
-                    >{{::eventType}}
+                    <i class="fa fa-circle size-10px" title="{{::eventType}}"></i>{{::eventType}}
                   </span>
                 </p>
               </li>
@@ -66,8 +50,7 @@
       </div>
       <div id="webhooks-list-license-error" ng-if="!vm.isWebhooksSupported">
         <div class="iq-alert iq-alert--error">
-          <i class="fa fa-warning"></i>Webhooks feature is not supported by your
-          license.
+          <i class="fa fa-warning"></i>Webhooks feature is not supported by your license.
         </div>
       </div>
     </div>

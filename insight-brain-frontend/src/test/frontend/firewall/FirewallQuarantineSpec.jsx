@@ -9,17 +9,13 @@ describe('FirewallQuarantine', function () {
   let minimalProps, FirewallQuarantine, getShallowComponent;
 
   beforeEach(function () {
-    FirewallQuarantine = require('inject-loader!../../../main/frontend/firewall/FirewallQuarantine')()
-      .default;
+    FirewallQuarantine = require('inject-loader!../../../main/frontend/firewall/FirewallQuarantine')().default;
 
     minimalProps = {
       quarantinedComponentCount: 2,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      FirewallQuarantine,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(FirewallQuarantine, minimalProps);
   });
 
   it('renders a component with the "nx-card" class', function () {
@@ -28,9 +24,7 @@ describe('FirewallQuarantine', function () {
 
   it('renders a card header', function () {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText(
-      'Quarantine'
-    );
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Quarantine');
   });
 
   it('renders card content', function () {

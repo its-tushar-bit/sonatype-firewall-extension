@@ -26,11 +26,7 @@ export default function Firewall(props) {
   const { isEnabled } = props;
 
   // autoUnquarantineState.viewState
-  const {
-    autoReleaseQuarantineCountMTD,
-    loadedReleaseQuarantineSummary,
-    loadedConfiguration,
-  } = props;
+  const { autoReleaseQuarantineCountMTD, loadedReleaseQuarantineSummary, loadedConfiguration } = props;
 
   // quarantineSummaryState
   const { loadedQuarantineSummary } = props;
@@ -80,18 +76,8 @@ function determineError(loadedStatus, isEnabled, loadError) {
   }
 }
 
-function isDataLoaded(
-  loadedStatus,
-  loadedReleaseQuarantineSummary,
-  loadedConfiguration,
-  loadedQuarantineSummary
-) {
-  return (
-    loadedStatus &&
-    loadedReleaseQuarantineSummary &&
-    loadedConfiguration &&
-    loadedQuarantineSummary
-  );
+function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration, loadedQuarantineSummary) {
+  return loadedStatus && loadedReleaseQuarantineSummary && loadedConfiguration && loadedQuarantineSummary;
 }
 
 Firewall.propTypes = {

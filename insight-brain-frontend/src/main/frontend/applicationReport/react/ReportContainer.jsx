@@ -23,22 +23,14 @@ function mapStateToProps({ applicationReport, router }) {
       ],
       applicationReport
     ),
-    ...pick(
-      ['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'],
-      router.currentParams
-    ),
-    loading:
-      !applicationReport.loadError &&
-      (!!applicationReport.pendingLoads.size || !applicationReport.metadata),
+    ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams),
+    loading: !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata),
   };
 }
 
 const mapDispatchToProps = { ...applicationReportActions, stateGo };
 
-const ReportPageContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ReportPage);
+const ReportPageContainer = connect(mapStateToProps, mapDispatchToProps)(ReportPage);
 export default ReportPageContainer;
 
 ReportPageContainer.propTypes = pick(['$state'], ReportPage.propTypes);

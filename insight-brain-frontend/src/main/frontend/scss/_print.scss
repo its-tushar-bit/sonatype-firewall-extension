@@ -107,8 +107,7 @@
     $cell-padding-bottom: 10px;
     $main-line-height: 24px;
     $link-line-height: 12px;
-    $row-height: $cell-padding-top + $main-line-height + $link-line-height +
-      $cell-padding-bottom;
+    $row-height: $cell-padding-top + $main-line-height + $link-line-height + $cell-padding-bottom;
     tbody {
       .nx-cell {
         height: $main-line-height + $link-line-height;

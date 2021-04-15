@@ -7,26 +7,18 @@
       <dt>Username:</dt>
       <!--
    -->
-      <dd id="user-details-modal-username" class="iq-read-only-data">
-        {{vm.currentUser.username}}
-      </dd>
+      <dd id="user-details-modal-username" class="iq-read-only-data">{{vm.currentUser.username}}</dd>
       <dt>Display Name:</dt>
       <!--
    -->
-      <dd id="user-details-modal-display-name" class="iq-read-only-data">
-        {{vm.currentUser.displayName}}
-      </dd>
+      <dd id="user-details-modal-display-name" class="iq-read-only-data">{{vm.currentUser.displayName}}</dd>
       <dt>Groups:</dt>
       <!--
    -->
-      <dd id="user-details-modal-groups" class="iq-read-only-data">
-        {{vm.getGroups()}}
-      </dd>
+      <dd id="user-details-modal-groups" class="iq-read-only-data">{{vm.getGroups()}}</dd>
     </dl>
   </div>
   <div class="iq-modal-footer">
-    <button id="user-details-modal-close" class="iq-btn" ng-click="vm.close()">
-      Close
-    </button>
+    <button id="user-details-modal-close" class="iq-btn" ng-click="vm.close()">Close</button>
   </div>
 </div>

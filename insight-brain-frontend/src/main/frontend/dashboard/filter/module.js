@@ -28,10 +28,7 @@ const module = angular
     componentsModule.name,
     'ngRedux',
   ])
-  .component(
-    'dashboardFilter',
-    react2angular(withStoreProvider(DashboardFilterContainer), [], ['$ngRedux'])
-  )
+  .component('dashboardFilter', react2angular(withStoreProvider(DashboardFilterContainer), [], ['$ngRedux']))
   .value('dashboardFilterActions', dashboardFilterActions)
   .value('dashboardFilterReducer', dashboardFilterReducer);
 

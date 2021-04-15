@@ -5,10 +5,7 @@
  */
 import axios from 'axios';
 
-import {
-  noPayloadActionCreator,
-  payloadParamActionCreator,
-} from '../../../util/reduxUtil';
+import { noPayloadActionCreator, payloadParamActionCreator } from '../../../util/reduxUtil';
 import {
   getApplicationsUrl,
   getApplicationTagsUrl,
@@ -22,30 +19,20 @@ import { filterToJson } from './legalDashboardFilterService';
 import { fetchSavedFilters } from './manageLegalFiltersActions';
 import defaultFilter from './defaultFilter';
 
-export const LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED =
-  'LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED';
-export const LEGAL_DASHBOARD_LOAD_FILTER_FAILED =
-  'LEGAL_DASHBOARD_LOAD_FILTER_FAILED';
+export const LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED = 'LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED';
+export const LEGAL_DASHBOARD_LOAD_FILTER_FAILED = 'LEGAL_DASHBOARD_LOAD_FILTER_FAILED';
 export const LEGAL_DASHBOARD_FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED =
   'LEGAL_DASHBOARD_FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED';
-export const LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED =
-  'LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED';
-export const LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED =
-  'LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED';
-export const LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED =
-  'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED';
-export const LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED =
-  'LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED';
-export const LEGAL_DASHBOARD_APPLY_FILTER_FAILED =
-  'LEGAL_DASHBOARD_APPLY_FILTER_FAILED';
-export const LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED =
-  'LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED';
+export const LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED = 'LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED';
+export const LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED = 'LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED';
+export const LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED = 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED';
+export const LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED = 'LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED';
+export const LEGAL_DASHBOARD_APPLY_FILTER_FAILED = 'LEGAL_DASHBOARD_APPLY_FILTER_FAILED';
+export const LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED = 'LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED';
 export const LEGAL_DASHBOARD_TOGGLE_FILTER = 'LEGAL_DASHBOARD_TOGGLE_FILTER';
-export const LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS =
-  'LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS';
+export const LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS = 'LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS';
 export const LEGAL_DASHBOARD_REVERT_FILTER = 'LEGAL_DASHBOARD_REVERT_FILTER';
-export const LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL =
-  'LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL';
+export const LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL = 'LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL';
 
 export function loadFilter(resultsType = null) {
   return (dispatch, getState) => {
@@ -75,9 +62,7 @@ export function loadFilter(resultsType = null) {
             dashboard.stageTypes
           )
         );
-        return dispatch(
-          fetchCurrentFilterFulfilled(filterData.data, resultsType)
-        );
+        return dispatch(fetchCurrentFilterFulfilled(filterData.data, resultsType));
       })
       .catch((error) => {
         dispatch(loadFilterFailed(error));
@@ -86,12 +71,7 @@ export function loadFilter(resultsType = null) {
   };
 }
 
-function fetchAvailableFilterOptionsFulfilled(
-  applications,
-  organizations,
-  categories,
-  stages
-) {
+function fetchAvailableFilterOptionsFulfilled(applications, organizations, categories, stages) {
   return {
     type: LEGAL_DASHBOARD_FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED,
     payload: {
@@ -117,9 +97,7 @@ function fetchCurrentFilterFulfilled(filter, resultsType) {
   };
 }
 
-const loadFilterFailed = payloadParamActionCreator(
-  LEGAL_DASHBOARD_LOAD_FILTER_FAILED
-);
+const loadFilterFailed = payloadParamActionCreator(LEGAL_DASHBOARD_LOAD_FILTER_FAILED);
 
 function persistAppliedFilter(filter, basedOnFilterName) {
   return (dispatch) => {
@@ -140,9 +118,7 @@ export function applyFilter(filter, basedOnFilterName) {
         dispatch(applyFilterFailed(Messages.getHttpErrorMessage(error)));
         return Promise.reject(error);
       })
-      .then(({ data }) =>
-        dispatch(applyFilterFulfilled(data, basedOnFilterName))
-      );
+      .then(({ data }) => dispatch(applyFilterFulfilled(data, basedOnFilterName)));
 }
 
 export function applyDefaultFilter() {
@@ -165,17 +141,11 @@ export function applySavedFilter({ filter, name }) {
       .then(({ data }) => dispatch(applyFilterFulfilled(data, name)));
 }
 
-const applyFilterFailed = payloadParamActionCreator(
-  LEGAL_DASHBOARD_APPLY_FILTER_FAILED
-);
+const applyFilterFailed = payloadParamActionCreator(LEGAL_DASHBOARD_APPLY_FILTER_FAILED);
 
-export const applyFilterCancelled = noPayloadActionCreator(
-  LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED
-);
+export const applyFilterCancelled = noPayloadActionCreator(LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED);
 
-const applySavedFilterFailed = payloadParamActionCreator(
-  LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED
-);
+const applySavedFilterFailed = payloadParamActionCreator(LEGAL_DASHBOARD_APPLY_SAVED_FILTER_FAILED);
 
 function applyFilterFulfilled(data, basedOnFilterName) {
   return (dispatch) => {
@@ -196,9 +166,7 @@ export function toggleFilter(filterName, selectedIds) {
     payload: { filterName, selectedIds },
   };
 }
-export const setDisplaySaveFilterModal = payloadParamActionCreator(
-  LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL
-);
+export const setDisplaySaveFilterModal = payloadParamActionCreator(LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL);
 
 export function toggleAppsAndOrgs(selectedOrganizations, selectedApplications) {
   return {

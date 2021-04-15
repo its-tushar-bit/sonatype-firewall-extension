@@ -7,11 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
-import {
-  NxBackButton,
-  NxButton,
-  NxFontAwesomeIcon,
-} from '@sonatype/react-shared-components';
+import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 describe('ListWaiversPage', function () {
@@ -28,19 +24,13 @@ describe('ListWaiversPage', function () {
     setWaiverToDeleteMock;
 
   beforeEach(function () {
-    ListWaiversTableMock = jasmine
-      .createSpy('ListWaiversTableMock')
-      .and.returnValue(<div>ListWaiversTable</div>);
-    DeleteWaiverModalMock = jasmine
-      .createSpy('DeleteWaiverModalMock')
-      .and.returnValue(<div>Delete Waiver Modal</div>);
+    ListWaiversTableMock = jasmine.createSpy('ListWaiversTableMock').and.returnValue(<div>ListWaiversTable</div>);
+    DeleteWaiverModalMock = jasmine.createSpy('DeleteWaiverModalMock').and.returnValue(<div>Delete Waiver Modal</div>);
 
-    ListWaiversPage = require('inject-loader!../../../main/frontend/waivers/ListWaiversPage')(
-      {
-        './ListWaiversTable': ListWaiversTableMock,
-        './deleteWaiverModal/DeleteWaiverModalContainer': DeleteWaiverModalMock,
-      }
-    ).default;
+    ListWaiversPage = require('inject-loader!../../../main/frontend/waivers/ListWaiversPage')({
+      './ListWaiversTable': ListWaiversTableMock,
+      './deleteWaiverModal/DeleteWaiverModalContainer': DeleteWaiverModalMock,
+    }).default;
 
     loadManageWaiversDataSpy = jasmine.createSpy('loadManageWaiversDataSpy');
     setWaiverToDeleteMock = () => {};
@@ -92,10 +82,7 @@ describe('ListWaiversPage', function () {
       waiverToDelete: null,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ListWaiversPage,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversPage, minimalProps);
   });
 
   it('renders a component with the "nx-page-main" class', function () {
@@ -131,10 +118,7 @@ describe('ListWaiversPage', function () {
       violationDetails: violationDetailsMock,
     });
     expect(component.find(ViolationExclamation)).toExist();
-    expect(component.find(ViolationExclamation)).toHaveProp(
-      'threatLevelCategory',
-      'severe'
-    );
+    expect(component.find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'severe');
   });
 
   it('renders the DeleteWaiverModal component if there is a waiverToDelete in the state', function () {
@@ -184,9 +168,7 @@ describe('ListWaiversPage', function () {
     const component = getShallowComponent({
       violationDetails: violationDetailsMock,
     });
-    const policyNameSpan = component.find(
-      '.list-waivers__threat-indicator span'
-    );
+    const policyNameSpan = component.find('.list-waivers__threat-indicator span');
     expect(policyNameSpan).toHaveText('policyName');
     expect(policyNameSpan).toMatchSelector('.iq-threat-level');
     expect(policyNameSpan).toMatchSelector('.iq-threat-level--severe');
@@ -204,9 +186,7 @@ describe('ListWaiversPage', function () {
     const component = getShallowComponent({
       violationDetails: violationDetailsMock,
     });
-    expect(component.find('#list-waivers-constraint-name')).toHaveText(
-      'constraint name'
-    );
+    expect(component.find('#list-waivers-constraint-name')).toHaveText('constraint name');
   });
 
   it('properly renders the conditions section', function () {
@@ -220,9 +200,7 @@ describe('ListWaiversPage', function () {
     const component = getShallowComponent({
       violationDetails: violationDetailsMock,
     });
-    expect(component.find('#list-waivers-component-name')).toHaveText(
-      'filename'
-    );
+    expect(component.find('#list-waivers-component-name')).toHaveText('filename');
   });
 
   it('shows a button on the waiver list table header', function () {
@@ -272,10 +250,7 @@ describe('ListWaiversPage', function () {
         expect(addWaiverButton).toHaveClassName('disabled');
       });
       it('renders with tooltip', function () {
-        expect(addWaiverButton.parent()).toHaveProp(
-          'title',
-          'Insufficient permissions to Add Waiver'
-        );
+        expect(addWaiverButton.parent()).toHaveProp('title', 'Insufficient permissions to Add Waiver');
       });
     });
   });
@@ -300,18 +275,10 @@ describe('ListWaiversPage', function () {
     expect(table).toHaveProp('expiredWaivers', expiredWaivers);
     expect(table).toHaveProp('violationDetails', violationDetailsMock);
     expect(table).toHaveProp('setWaiverToDelete', setWaiverToDeleteMock);
-    expect(table).toHaveProp(
-      'loadingApplicableWaivers',
-      loadingApplicableWaivers
-    );
-    expect(table).toHaveProp(
-      'loadApplicableWaiversError',
-      loadApplicableWaiversError
-    );
+    expect(table).toHaveProp('loadingApplicableWaivers', loadingApplicableWaivers);
+    expect(table).toHaveProp('loadApplicableWaiversError', loadApplicableWaiversError);
 
-    const reloadApplicableWaiversCallback = table.prop(
-      'reloadApplicableWaivers'
-    );
+    const reloadApplicableWaiversCallback = table.prop('reloadApplicableWaivers');
     reloadApplicableWaiversCallback();
     expect(loadApplicableWaiversSpy).toHaveBeenCalledWith('violationId');
   });

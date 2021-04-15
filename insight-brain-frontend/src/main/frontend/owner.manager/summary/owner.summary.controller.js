@@ -62,9 +62,7 @@ export default function OwnerSummaryController(
 
   var siblings,
     stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
-    type = vm.isApp
-      ? ownerConstant.APPLICATION_TYPE
-      : ownerConstant.ORGANIZATION_TYPE,
+    type = vm.isApp ? ownerConstant.APPLICATION_TYPE : ownerConstant.ORGANIZATION_TYPE,
     id = $state.params[stateIdField];
 
   vm.doLoad();
@@ -86,11 +84,7 @@ export default function OwnerSummaryController(
 
   function doLoad() {
     var store = vm.isApp ? ApplicationStore : OrganizationStore,
-      promises = [
-        store[vm.error ? 'refresh' : 'get'](),
-        store.getById(id),
-        ProductFeatures.load(),
-      ];
+      promises = [store[vm.error ? 'refresh' : 'get'](), store.getById(id), ProductFeatures.load()];
 
     if (vm.isApp) {
       promises.push(StageTypeStore.getDashboardStages());
@@ -102,9 +96,7 @@ export default function OwnerSummaryController(
       function (results) {
         siblings = results[0];
         vm.owner = results[1];
-        vm.isGrandfatheringSupported = ProductFeatures.isAvailable(
-          'policy-grandfathering'
-        );
+        vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
         vm.isEvaluateApplicationAvailable = ProductFeatures.isEvaluateApplicationAvailable();
 
         if (vm.isApp) {
@@ -125,21 +117,15 @@ export default function OwnerSummaryController(
   }
 
   function getAppChangePermissions() {
-    PermissionService.isContextAuthorized(
-      ['WRITE'],
-      'application',
-      vm.owner.id
-    ).then(function (hasPermission) {
+    PermissionService.isContextAuthorized(['WRITE'], 'application', vm.owner.id).then(function (hasPermission) {
       vm.hasPermissionToChangeAppId = hasPermission;
     });
   }
 
   function getAppEvaluatePermissions() {
-    PermissionService.isContextAuthorized(
-      ['EVALUATE_APPLICATION'],
-      'application',
-      vm.owner.id
-    ).then(function (hasPermission) {
+    PermissionService.isContextAuthorized(['EVALUATE_APPLICATION'], 'application', vm.owner.id).then(function (
+      hasPermission
+    ) {
       vm.hasPermissionToEvaluateApp = hasPermission;
     });
   }
@@ -173,11 +159,7 @@ export default function OwnerSummaryController(
   }
 
   function deleteOwner() {
-    DeleteModalService.deleteResource(
-      vm.getResourceTypeName(),
-      vm.owner.name,
-      vm.owner
-    ).then(function () {
+    DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function () {
       $rootScope.$broadcast('owner.deleted', vm.owner, type);
       vm.goToParentView();
     });
@@ -208,8 +190,7 @@ export default function OwnerSummaryController(
       $window.open(
         $state.href('applicationReport.policy', {
           publicId: vm.applicationSummary.publicId,
-          scanId:
-            vm.applicationSummary.policyEvaluations[stage.stageTypeId].scanId,
+          scanId: vm.applicationSummary.policyEvaluations[stage.stageTypeId].scanId,
         }),
         '_blank'
       );

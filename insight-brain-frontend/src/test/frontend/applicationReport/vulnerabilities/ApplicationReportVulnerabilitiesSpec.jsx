@@ -47,9 +47,7 @@ describe('ApplicationReportVulnerabilities', function () {
 
     mockNgRedux = configureStore()(() => state);
     mockActions = {
-      loadReportAllData: jasmine
-        .createSpy('loadReportAllData')
-        .and.returnValue({ type: 'FOO' }),
+      loadReportAllData: jasmine.createSpy('loadReportAllData').and.returnValue({ type: 'FOO' }),
     };
 
     vdom = (
@@ -79,44 +77,25 @@ describe('ApplicationReportVulnerabilities', function () {
   it('correctly maps the redux state to the ApplicationReportVulnerabilitiesPage props', function () {
     mountedComponent = mount(vdom);
 
-    const pageWrapper = mountedComponent.find(
-      MockApplicationReportVulnerabiltiesPage
-    );
+    const pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
 
-    expect(pageWrapper).toHaveProp(
-      'vulnerabilities',
-      state.applicationReport.vulnerabilities
-    );
-    expect(pageWrapper).toHaveProp(
-      'metadata',
-      state.applicationReport.metadata
-    );
-    expect(pageWrapper).toHaveProp(
-      'loadError',
-      state.applicationReport.loadError
-    );
+    expect(pageWrapper).toHaveProp('vulnerabilities', state.applicationReport.vulnerabilities);
+    expect(pageWrapper).toHaveProp('metadata', state.applicationReport.metadata);
+    expect(pageWrapper).toHaveProp('loadError', state.applicationReport.loadError);
   });
 
   it('sets the ApplicationReportVulnerabilitiesPage loading prop based on the pendingLoads in the redux state', function () {
     mountedComponent = mount(vdom);
 
-    let pageWrapper = mountedComponent.find(
-      MockApplicationReportVulnerabiltiesPage
-    );
+    let pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
 
     expect(pageWrapper).toHaveProp('loading', false);
 
     // update state
-    state = set(
-      lensPath(['applicationReport', 'pendingLoads']),
-      new Set(['foo']),
-      state
-    );
+    state = set(lensPath(['applicationReport', 'pendingLoads']), new Set(['foo']), state);
     mockNgRedux.dispatch({ type: 'ANY_ACTION' });
     mountedComponent.update();
-    pageWrapper = mountedComponent.find(
-      MockApplicationReportVulnerabiltiesPage
-    );
+    pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
 
     expect(pageWrapper).toHaveProp('loading', true);
   });
@@ -126,18 +105,11 @@ describe('ApplicationReportVulnerabilities', function () {
         ...state,
         applicationReport: omit(['vulnerabilities'], state.applicationReport),
       }),
-      vdom = (
-        <ApplicationReportVulnerabilities
-          $ngRedux={mockNgRedux}
-          applicationReportActions={mockActions}
-        />
-      );
+      vdom = <ApplicationReportVulnerabilities $ngRedux={mockNgRedux} applicationReportActions={mockActions} />;
 
     mountedComponent = mount(vdom);
 
-    const pageWrapper = mountedComponent.find(
-      MockApplicationReportVulnerabiltiesPage
-    );
+    const pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
 
     expect(pageWrapper).toHaveProp('vulnerabilities', []);
   });
@@ -161,9 +133,7 @@ describe('ApplicationReportVulnerabilities', function () {
   it('passes the $state prop on to the ApplicationReportVulnerabilitiesPage', function () {
     mountedComponent = mount(vdom);
 
-    const pageWrapper = mountedComponent.find(
-      MockApplicationReportVulnerabiltiesPage
-    );
+    const pageWrapper = mountedComponent.find(MockApplicationReportVulnerabiltiesPage);
 
     expect(pageWrapper).toHaveProp('$state', mock$State);
   });

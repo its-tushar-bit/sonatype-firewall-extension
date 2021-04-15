@@ -41,9 +41,7 @@ import isIqIframe from '../util/isIqFrame';
               var plugin = createPluginFn();
               if (tabName) {
                 if (getPluginMap().hasOwnProperty(tabName)) {
-                  Insight.InformationPanelPlugins[
-                    getPluginMap()[tabName]
-                  ] = plugin;
+                  Insight.InformationPanelPlugins[getPluginMap()[tabName]] = plugin;
                   return;
                 }
               }
@@ -130,10 +128,7 @@ import isIqIframe from '../util/isIqFrame';
             }
           } else {
             // non auth error, again nothing funky, just reject
-            deferred.rejectWith(
-              context,
-              Array.prototype.slice.apply(arguments)
-            );
+            deferred.rejectWith(context, Array.prototype.slice.apply(arguments));
           }
         }
       );
@@ -166,11 +161,7 @@ import isIqIframe from '../util/isIqFrame';
       // Note at most 31 stylesheets can be loaded this way
       document.createStyleSheet(url);
     } else {
-      $('<link></link>')
-        .attr('type', 'text/css')
-        .attr('rel', 'stylesheet')
-        .attr('href', url)
-        .appendTo(head);
+      $('<link></link>').attr('type', 'text/css').attr('rel', 'stylesheet').attr('href', url).appendTo(head);
     }
   });
 })();

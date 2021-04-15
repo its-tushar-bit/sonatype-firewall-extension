@@ -28,13 +28,9 @@ export default function TargetOrganizationDropdown(props) {
     };
 
   function getOptionClassNames(isSelected) {
-    return classnames(
-      'nx-dropdown-button',
-      'iq-scm-onboarding-dropdown__option',
-      {
-        'iq-scm-onboarding-dropdown__option--selected': isSelected,
-      }
-    );
+    return classnames('nx-dropdown-button', 'iq-scm-onboarding-dropdown__option', {
+      'iq-scm-onboarding-dropdown__option--selected': isSelected,
+    });
   }
 
   const filterFn = (orgButton, filterValue) => {
@@ -44,9 +40,7 @@ export default function TargetOrganizationDropdown(props) {
     if (!orgButton || !orgButton.props || !orgButton.props.children) {
       return false;
     }
-    return orgButton.props.children
-      .toLowerCase()
-      .includes(filterValue.toLowerCase());
+    return orgButton.props.children.toLowerCase().includes(filterValue.toLowerCase());
   };
 
   return (
@@ -54,11 +48,7 @@ export default function TargetOrganizationDropdown(props) {
       filterFn={filterFn}
       id="iq-scm-target-organization"
       label={
-        loadingOrganizations
-          ? 'Loading...'
-          : selectedOrganization
-          ? selectedOrganization.organization.name
-          : 'Select'
+        loadingOrganizations ? 'Loading...' : selectedOrganization ? selectedOrganization.organization.name : 'Select'
       }
       disabled={loadingOrganizations}
       isOpen={isOpen}
@@ -74,10 +64,7 @@ export default function TargetOrganizationDropdown(props) {
             href={$state.href('scmOnboardingOrg', {
               organizationId: org.organization.id,
             })}
-            className={getOptionClassNames(
-              selectedOrganization &&
-                selectedOrganization.organization.id === org.id
-            )}
+            className={getOptionClassNames(selectedOrganization && selectedOrganization.organization.id === org.id)}
           >
             {org.organization.name}
           </a>

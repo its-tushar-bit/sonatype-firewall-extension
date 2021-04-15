@@ -66,21 +66,14 @@
                         ng-init="isLastMapping = $last"
                       >
                         <span ng-if="$first">
-                          <i
-                            class="glyphicons-sonatype small"
-                            ng-class="grouping.icon"
-                          ></i>
+                          <i class="glyphicons-sonatype small" ng-class="grouping.icon"></i>
                         </span>
                         <span
                           ng-if="$parent.expanded && $last && role.membersByOwner.length > 1 && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members)"
                           tooltip="Inherited from parent"
                           tooltip-placement="bottom"
                         >
-                          <img
-                            src="img/icon-elbow-up-gray.png"
-                            class="inherited-icon"
-                            alt="Inherited"
-                          />
+                          <img src="img/icon-elbow-up-gray.png" class="inherited-icon" alt="Inherited" />
                         </span>
                         <span
                           ng-repeat="member in mapping.members | filter: { type: grouping.type } | orderBy:'displayName'"
@@ -100,12 +93,7 @@
                   </div>
                   <div class="iq-list__row--admin-member">
                     <div class="iq-list__actions">
-                      <button
-                        type="button"
-                        class="btn btn-mini btn-icon-only"
-                        title="Edit Role"
-                        ng-disabled="true"
-                      >
+                      <button type="button" class="btn btn-mini btn-icon-only" title="Edit Role" ng-disabled="true">
                         <i class="fa fa-fw fa-pencil"></i>
                       </button>
                     </div>

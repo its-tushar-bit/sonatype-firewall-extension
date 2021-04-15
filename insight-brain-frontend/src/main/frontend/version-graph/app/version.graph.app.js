@@ -36,10 +36,7 @@ function loginAndStartPendoService($http, CLMLocations, pendoService) {
 loginAndStartPendoService.$inject = ['$http', 'CLMLocations', 'pendoService'];
 
 const versionGraphAppModule = angular
-  .module('version.graph.app', [
-    versionGraphModule.name,
-    versionGraphPendoModule.name,
-  ])
+  .module('version.graph.app', [versionGraphModule.name, versionGraphPendoModule.name])
   .service('loginAndStartPendo', loginAndStartPendoService)
   .service('OwnerContext', ownerContext)
   .factory('$exceptionHandler', exceptionHandler)
@@ -165,9 +162,7 @@ $.extend(true, window, {
           $rootScope.$on('viewDetails', function (event, version) {
             if (Coordinates.getFormat() === 'maven') {
               var gav = Coordinates.get();
-              const hash = Coordinates.isOriginalVersion()
-                ? Properties.getHash()
-                : null;
+              const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
 
               listener(
                 OwnerContext.ownerId,
@@ -194,9 +189,7 @@ $.extend(true, window, {
         function (Coordinates, OwnerContext, Properties, $rootScope) {
           $rootScope.$on('viewDetails', function (event, version) {
             var coordinates = [];
-            const hash = Coordinates.isOriginalVersion()
-              ? Properties.getHash()
-              : null;
+            const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
 
             angular.forEach(Coordinates.get(), function (value, field) {
               coordinates.push(field);
@@ -263,9 +256,7 @@ $.extend(true, window, {
               Properties.setProprietary(properties.proprietary);
               Properties.setFilename(properties.filename);
               Properties.setHash(properties.hash);
-              Coordinates.setIdentificationSource(
-                properties.identificationSource
-              );
+              Coordinates.setIdentificationSource(properties.identificationSource);
 
               if (properties.appId) {
                 OwnerContext.setApplicationId(properties.appId);

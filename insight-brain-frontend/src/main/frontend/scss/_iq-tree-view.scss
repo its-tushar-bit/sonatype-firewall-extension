@@ -250,8 +250,7 @@
       $input-prepend-width: 32px;
       $input-padding: 6px;
       $input-border: 1px;
-      $filter-input-offset: $input-prepend-width + $input-padding * 2 +
-        $input-border;
+      $filter-input-offset: $input-prepend-width + $input-padding * 2 + $input-border;
       width: calc(100% - #{$filter-input-offset});
     }
   }

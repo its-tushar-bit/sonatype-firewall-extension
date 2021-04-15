@@ -30,11 +30,7 @@ describe('proprietary.matchers.service.spec', function () {
         regex: '(testRegex)',
       };
       $httpBackend.expectPOST(expectedUrl, expectedPayload).respond(200, '');
-      proprietaryMatchersService.addComponentMatchers(
-        'testApp123',
-        ['foo', 'bar'],
-        '(testRegex)'
-      );
+      proprietaryMatchersService.addComponentMatchers('testApp123', ['foo', 'bar'], '(testRegex)');
       expect($httpBackend.flush).not.toThrow();
     });
 
@@ -76,11 +72,9 @@ describe('proprietary.matchers.service.spec', function () {
         name: 'Test Application',
       };
       $httpBackend.expectGET(expectedUrl).respond(200, applicationInfo);
-      proprietaryMatchersService
-        .getApplicationInfo('testApp123')
-        .then(function (info) {
-          expect(info).toEqual(applicationInfo);
-        });
+      proprietaryMatchersService.getApplicationInfo('testApp123').then(function (info) {
+        expect(info).toEqual(applicationInfo);
+      });
       $httpBackend.flush();
     });
 
@@ -88,11 +82,9 @@ describe('proprietary.matchers.service.spec', function () {
       var expectedUrl = '../rest/application/testApp123';
       $httpBackend.expectGET(expectedUrl).respond(400, 'not found');
       var result = undefined;
-      proprietaryMatchersService
-        .getApplicationInfo('testApp123')
-        .catch(function (message) {
-          result = message;
-        });
+      proprietaryMatchersService.getApplicationInfo('testApp123').catch(function (message) {
+        result = message;
+      });
       $httpBackend.flush();
       expect(result).toBe('not found');
     });

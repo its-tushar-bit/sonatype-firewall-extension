@@ -51,18 +51,16 @@ export default function ImportPolicyModalController(
     var form = $('form[name=importPolicy]');
 
     var formData = new FormData(form[0]);
-    vm.importPolicyMask
-      .wrap($http.post(CLMContextLocations.getImportPolicyUrl(), formData))
-      .then(
-        function () {
-          PolicyHierarchyStore.refresh();
-          $rootScope.$broadcast('policy.imported');
-          $scope.$close();
-        },
-        function (error) {
-          setError(Messages.getHttpErrorMessage(error), doSubmit);
-        }
-      );
+    vm.importPolicyMask.wrap($http.post(CLMContextLocations.getImportPolicyUrl(), formData)).then(
+      function () {
+        PolicyHierarchyStore.refresh();
+        $rootScope.$broadcast('policy.imported');
+        $scope.$close();
+      },
+      function (error) {
+        setError(Messages.getHttpErrorMessage(error), doSubmit);
+      }
+    );
   }
 }
 

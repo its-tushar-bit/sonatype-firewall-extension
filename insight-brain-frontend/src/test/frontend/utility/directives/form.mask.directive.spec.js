@@ -46,10 +46,7 @@ describe('form.mask.directive.spec.js', function () {
       expect(getFormMaskElement().find('h3').text()).toEqual(' Success!');
     });
 
-    it('Directive properly wraps promise with mask', inject(function (
-      $q,
-      $timeout
-    ) {
+    it('Directive properly wraps promise with mask', inject(function ($q, $timeout) {
       var deferred = $q.defer(),
         results;
 
@@ -74,10 +71,7 @@ describe('form.mask.directive.spec.js', function () {
       expect(results).toEqual({ data: 123 });
     }));
 
-    it('Directive properly returns failed arguments from wrap', inject(function (
-      $q,
-      $timeout
-    ) {
+    it('Directive properly returns failed arguments from wrap', inject(function ($q, $timeout) {
       var deferred = $q.defer(),
         results;
 
@@ -98,11 +92,7 @@ describe('form.mask.directive.spec.js', function () {
       expect(results).toEqual({ data: 123 });
     }));
 
-    it('Directive properly skips success mask', inject(function (
-      $compile,
-      $q,
-      $timeout
-    ) {
+    it('Directive properly skips success mask', inject(function ($compile, $q, $timeout) {
       $compile(element.attr('mask-skip-success', ''))(scope);
 
       expect(scope.formMask).toBeDefined();
@@ -157,9 +147,7 @@ describe('form.mask.directive.spec.js', function () {
     });
 
     function getFormMaskElement() {
-      return attachToBody
-        ? angular.element($('div.form-mask', $('body')))
-        : element.find('div.form-mask');
+      return attachToBody ? angular.element($('div.form-mask', $('body'))) : element.find('div.form-mask');
     }
   }
 });

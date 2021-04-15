@@ -16,18 +16,14 @@
   >
     <div class="iq-tile-header iq-tile-header--hrule">
       <div class="iq-tile-header__title">
-        <img
-          src="img/proprietary_component_20px.png"
-          class="iq-tile-header__icon"
-        />
+        <img src="img/proprietary_component_20px.png" class="iq-tile-header__icon" />
         <h2>Proprietary Component Configuration</h2>
       </div>
     </div>
     <div class="iq-tile-content">
       <p>
-        These entries are provided to Nexus IQ scanners and are used to help
-        identify internal components. If a specified package or file is
-        contained within a component, it will be considered proprietary.
+        These entries are provided to Nexus IQ scanners and are used to help identify internal components. If a
+        specified package or file is contained within a component, it will be considered proprietary.
       </p>
       <div
         class="iq-list inherited-proprietary-component-matchers"
@@ -36,16 +32,8 @@
       >
         <h4 class="iq-list__title">INHERITED FROM {{::owner.ownerName}}</h4>
         <ul>
-          <li
-            class="iq-list__item"
-            ng-repeat="matcher in owner.proprietaryConfig[0].packages"
-          >
-            {{::matcher}}
-          </li>
-          <li
-            class="iq-list__item"
-            ng-repeat="matcher in owner.proprietaryConfig[0].regexes"
-          >
+          <li class="iq-list__item" ng-repeat="matcher in owner.proprietaryConfig[0].packages">{{::matcher}}</li>
+          <li class="iq-list__item" ng-repeat="matcher in owner.proprietaryConfig[0].regexes">
             {{::matcher}} <i class="regular">(regex)</i>
           </li>
         </ul>
@@ -53,10 +41,7 @@
 
       <div class="iq-list local-proprietary-component-matchers">
         <h4 class="iq-list__title">LOCAL</h4>
-        <div
-          class="iq-list__item iq-list__item--empty"
-          ng-if="!vm.localMatchers || vm.localMatchers.length === 0"
-        >
+        <div class="iq-list__item iq-list__item--empty" ng-if="!vm.localMatchers || vm.localMatchers.length === 0">
           No local matchers configured
         </div>
         <ul>
@@ -74,9 +59,7 @@
               <i class="fa fa-trash"></i>
             </button>
             {{::matcher.matcher}}
-            <i class="regular" ng-if="matcher.type === vm.matcherTypes.REGEX"
-              >(regex)</i
-            >
+            <i class="regular" ng-if="matcher.type === vm.matcherTypes.REGEX">(regex)</i>
           </li>
         </ul>
       </div>
@@ -147,11 +130,7 @@
       </div>
     </div>
 
-    <div
-      class="iq-tile-footer"
-      submit-wrapper="vm.submitError"
-      retry="vm.save()"
-    >
+    <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
       <button
         type="submit"
         class="iq-btn iq-btn--primary"

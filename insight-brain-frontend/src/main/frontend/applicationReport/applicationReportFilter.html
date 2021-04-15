@@ -1,8 +1,4 @@
-<aside
-  ng-if="vm.filterSidebarOpen"
-  id="application-report-sidebar"
-  class="nx-viewport-sized"
->
+<aside ng-if="vm.filterSidebarOpen" id="application-report-sidebar" class="nx-viewport-sized">
   <fieldset class="iq-form-group">
     <div class="application-report-filter-header__title">
       <h3 class="nx-h3 application-report-filter-header__title-text">Filter</h3>
@@ -11,9 +7,7 @@
         class="nx-btn nx-btn--icon-only"
         ng-click="vm.closeSideBarFilterIfOpen()"
       >
-        <nx-font-awesome-icon
-          icon="vm.faArrowToRightIcon"
-        ></nx-font-awesome-icon>
+        <nx-font-awesome-icon icon="vm.faArrowToRightIcon"></nx-font-awesome-icon>
       </button>
     </div>
     <iq-tree-view-multi-select

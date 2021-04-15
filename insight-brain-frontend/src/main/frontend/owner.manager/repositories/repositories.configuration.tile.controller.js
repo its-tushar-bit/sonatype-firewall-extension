@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ConfigurationTileController(
-  $http,
-  CLMLocations,
-  DeleteModalService
-) {
+export default function ConfigurationTileController($http, CLMLocations, DeleteModalService) {
   var vm = this;
 
   vm.doLoad = doLoad;
@@ -51,15 +47,9 @@ export default function ConfigurationTileController(
     });
 
     function deleteRepository() {
-      return $http.delete(
-        CLMLocations.getRepositoryInfoUrl(repository.repository.id)
-      );
+      return $http.delete(CLMLocations.getRepositoryInfoUrl(repository.repository.id));
     }
   }
 }
 
-ConfigurationTileController.$inject = [
-  '$http',
-  'CLMLocations',
-  'DeleteModalService',
-];
+ConfigurationTileController.$inject = ['$http', 'CLMLocations', 'DeleteModalService'];

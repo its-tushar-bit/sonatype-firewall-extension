@@ -48,18 +48,16 @@ describe('select.application.contact.controller.spec.js', function () {
       });
     });
     vm.search();
-    $httpBackend
-      .whenGET('/rest/user/global/global/query?groups=false')
-      .respond({
-        members: [
-          {
-            internalName: 'Foo',
-          },
-          {
-            internalName: 'JohnDoe',
-          },
-        ],
-      });
+    $httpBackend.whenGET('/rest/user/global/global/query?groups=false').respond({
+      members: [
+        {
+          internalName: 'Foo',
+        },
+        {
+          internalName: 'JohnDoe',
+        },
+      ],
+    });
     $httpBackend.flush();
     $timeout.flush();
     expect(vm.selected).toBeDefined();

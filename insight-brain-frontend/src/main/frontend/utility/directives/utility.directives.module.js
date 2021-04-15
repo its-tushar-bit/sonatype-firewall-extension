@@ -21,10 +21,7 @@ import sort from './sort.directive';
 import submitValidation from './submit.validation.directive';
 
 export default angular
-  .module('utility.directives', [
-    AngularCommonModule.name,
-    CommonServicesModule.name,
-  ])
+  .module('utility.directives', [AngularCommonModule.name, CommonServicesModule.name])
   .directive('copiedTooltip', copiedTooltip)
   .directive('copyToClipboard', copyToClipboard)
   .directive('detectScrollbar', detectScrollbar)

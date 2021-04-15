@@ -5,11 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  faExclamationCircle,
-  faExclamationTriangle,
-  faSquare,
-} from '@fortawesome/free-solid-svg-icons';
+import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import { terseAgo } from '../util/CommonServices';
@@ -19,20 +15,11 @@ const iconByActionTypeId = {
   warn: faExclamationTriangle,
 };
 
-export default function StageDisplay({
-  $state,
-  stageType,
-  stageData,
-  applicationPublicId,
-}) {
+export default function StageDisplay({ $state, stageType, stageData, applicationPublicId }) {
   const displayName = stageType.shortName;
 
   if (stageData) {
-    const {
-        mostRecentEvaluationTime,
-        mostRecentScanId,
-        actionTypeId,
-      } = stageData,
+    const { mostRecentEvaluationTime, mostRecentScanId, actionTypeId } = stageData,
       icon = iconByActionTypeId[actionTypeId],
       iconClassName = actionTypeId
         ? `iq-violation-details__stage-action iq-violation-details__stage-action--${actionTypeId}`

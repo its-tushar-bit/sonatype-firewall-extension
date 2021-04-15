@@ -27,10 +27,7 @@ export default function LicenseThreatGroupTileController(
     $http.get(CLMContextLocations.getApplicableLicenseGroupsUrl()).then(
       function (results) {
         vm.applicableLicenseGroups = results.data.licenseThreatGroupsByOwner;
-        vm.applicableLicenseGroups.forEach(function (
-          applicableLicenseGroup,
-          index
-        ) {
+        vm.applicableLicenseGroups.forEach(function (applicableLicenseGroup, index) {
           applicableLicenseGroup.inherited = index > 0;
         });
 

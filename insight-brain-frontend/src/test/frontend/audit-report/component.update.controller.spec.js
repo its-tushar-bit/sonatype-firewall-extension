@@ -33,13 +33,11 @@ describe('component.update.controller', function () {
 
     secondaryScope = $rootScope.$new();
 
-    var updatedSpy = jasmine
-      .createSpy('updatedSpy')
-      .and.callFake(function (event, hash, promises) {
-        promise = $q.defer();
-        spyOn(promise.promise, 'then').and.callThrough();
-        promises.push(promise.promise);
-      });
+    var updatedSpy = jasmine.createSpy('updatedSpy').and.callFake(function (event, hash, promises) {
+      promise = $q.defer();
+      spyOn(promise.promise, 'then').and.callThrough();
+      promises.push(promise.promise);
+    });
     secondaryScope.$on('component.evaluation.updated', updatedSpy);
   }));
 
@@ -49,9 +47,7 @@ describe('component.update.controller', function () {
   });
 
   it('reevaluate error', inject(function ($httpBackend) {
-    $httpBackend
-      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd'))
-      .respond(404, 'failure');
+    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd')).respond(404, 'failure');
     $httpBackend.flush();
     expect(scope.vm.error).toEqual('failure');
 
@@ -61,9 +57,7 @@ describe('component.update.controller', function () {
   }));
 
   it('update error', inject(function ($httpBackend, $timeout) {
-    $httpBackend
-      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd'))
-      .respond(204);
+    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd')).respond(204);
     $httpBackend.flush();
 
     expect(scope.vm.reevaluated).toBeTruthy();
@@ -81,9 +75,7 @@ describe('component.update.controller', function () {
   }));
 
   it('complete success', inject(function ($httpBackend, $timeout) {
-    $httpBackend
-      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd'))
-      .respond(204);
+    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd')).respond(204);
     $httpBackend.flush();
 
     expect(scope.vm.reevaluated).toBeTruthy();

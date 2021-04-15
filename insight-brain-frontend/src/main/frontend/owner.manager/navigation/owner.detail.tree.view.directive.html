@@ -1,18 +1,9 @@
-<div
-  id="owner-editing-detail-tree-view"
-  class="iq-owner-tree-view iq-owner-tree-view--detail"
->
+<div id="owner-editing-detail-tree-view" class="iq-owner-tree-view iq-owner-tree-view--detail">
   <div load-wrapper="vm.error" loading="!vm.details" reload="vm.doLoad()">
     <div class="iq-owner-tree-view__header">
-      <a same-owner-view-sref>
-        <i class="fa fa-chevron-left size-14px"></i>{{vm.ownerName}}
-      </a>
+      <a same-owner-view-sref> <i class="fa fa-chevron-left size-14px"></i>{{vm.ownerName}} </a>
     </div>
-    <div
-      id="application-category-tree-view-group"
-      ng-if="!vm.isRepositories"
-      class="iq-tree-view iq-owner-tree-view"
-    >
+    <div id="application-category-tree-view-group" ng-if="!vm.isRepositories" class="iq-tree-view iq-owner-tree-view">
       <a
         class="iq-tree-view__trigger iq-owner-tree-view__row"
         ng-class="{ 'child-selected': vm.state.$current.name.endsWith('category') }"
@@ -25,9 +16,7 @@
                 collapse: vm.categoryState.isExpanded || vm.state.$current.name.endsWith('category')}"
           ></span>
         </div>
-        <hexagon
-          class="size-16px size-fw outline iq-owner-tree-view__icon"
-        ></hexagon
+        <hexagon class="size-16px size-fw outline iq-owner-tree-view__icon"></hexagon
         ><!--
      --><span class="iq-tree-view__text">Application Categories</span>
       </a>
@@ -66,19 +55,13 @@
           ui-sref=".category({ categoryId: category.id })"
           ui-sref-active="selected"
         >
-          <hexagon
-            class="size-16px size-fw {{category.color}} iq-owner-tree-view__icon"
-          ></hexagon
+          <hexagon class="size-16px size-fw {{category.color}} iq-owner-tree-view__icon"></hexagon
           ><!--
        --><span class="iq-tree-view__text">{{ category.name }}</span>
         </a>
       </div>
     </div>
-    <div
-      id="policy-tree-view-group"
-      ng-if="!vm.isRepositories"
-      class="iq-tree-view iq-owner-tree-view"
-    >
+    <div id="policy-tree-view-group" ng-if="!vm.isRepositories" class="iq-tree-view iq-owner-tree-view">
       <a
         class="iq-tree-view__trigger iq-owner-tree-view__row"
         ng-class="{ 'child-selected': vm.state.$current.name.endsWith('policy') }"
@@ -91,9 +74,7 @@
                             collapse: vm.policyState.isExpanded || vm.state.$current.name.endsWith('policy') }"
           ></span>
         </div>
-        <i
-          class="fa fa-university size-16px size-fw iq-owner-tree-view__icon"
-        ></i
+        <i class="fa fa-university size-16px size-fw iq-owner-tree-view__icon"></i
         ><!--
         -->Policies
       </a>
@@ -134,13 +115,9 @@
           data-tooltip-append-to-body="true"
           ng-click="vm.isGrandfatheringSupported || $event.preventDefault()"
         >
-          <i
-            class="fa fa-history size-16px size-fw iq-owner-tree-view__icon"
-          ></i
+          <i class="fa fa-history size-16px size-fw iq-owner-tree-view__icon"></i
           ><!--
-       --><span class="iq-tree-view__text"
-            >Policy Violation Grandfathering</span
-          >
+       --><span class="iq-tree-view__text">Policy Violation Grandfathering</span>
         </a>
         <a
           class="iq-tree-view__child iq-owner-tree-view__row iq-owner-tree-view__row--child"
@@ -165,19 +142,12 @@
           ui-sref=".proprietary-config-policy"
           ui-sref-active="selected"
         >
-          <img
-            class="iq-owner-tree-view__icon"
-            src="img/proprietary_component_16px.png"
-          />
+          <img class="iq-owner-tree-view__icon" src="img/proprietary_component_16px.png" />
           <span class="iq-tree-view__text">Proprietary Components</span>
         </a>
       </div>
     </div>
-    <div
-      id="label-tree-view-group"
-      ng-if="!vm.isRepositories"
-      class="iq-tree-view iq-owner-tree-view"
-    >
+    <div id="label-tree-view-group" ng-if="!vm.isRepositories" class="iq-tree-view iq-owner-tree-view">
       <a
         class="iq-tree-view__trigger iq-owner-tree-view__row"
         ng-class="{ 'child-selected': vm.state.$current.name.endsWith('label') }"
@@ -190,9 +160,7 @@
                             collapse: vm.labelState.isExpanded || vm.state.$current.name.endsWith('label') }"
           ></span>
         </div>
-        <i
-          class="fa fa-tag size-16px size-fw outline iq-owner-tree-view__icon"
-        ></i
+        <i class="fa fa-tag size-16px size-fw outline iq-owner-tree-view__icon"></i
         ><!--
      --><span class="iq-tree-view__text">Component Labels</span>
       </a>
@@ -215,9 +183,7 @@
           ui-sref=".label({ labelId: label.id })"
           ui-sref-active="selected"
         >
-          <i
-            class="fa fa-tag size-16px size-fw {{label.color}} iq-owner-tree-view__icon"
-          ></i
+          <i class="fa fa-tag size-16px size-fw {{label.color}} iq-owner-tree-view__icon"></i
           ><!--
        --><span class="iq-tree-view__text">{{ label.label }}</span>
         </a>
@@ -271,11 +237,7 @@
         </a>
       </div>
     </div>
-    <div
-      id="source-control-tree-view-group"
-      class="iq-tree-view iq-owner-tree-view"
-      ng-if="!vm.isRepositories"
-    >
+    <div id="source-control-tree-view-group" class="iq-tree-view iq-owner-tree-view" ng-if="!vm.isRepositories">
       <a
         class="iq-tree-view__trigger iq-owner-tree-view__row"
         ng-class="{ 'selected': vm.state.$current.name.endsWith('source-control') }"
@@ -336,9 +298,7 @@
           ui-sref=".edit-access({ roleId: membersByRole.roleId })"
           ui-sref-active="selected"
         >
-          <i
-            class="fa fa-puzzle-piece size-16px size-fw iq-owner-tree-view__icon"
-          ></i
+          <i class="fa fa-puzzle-piece size-16px size-fw iq-owner-tree-view__icon"></i
           ><!--
        --><span class="iq-tree-view__text">{{ membersByRole.roleName }}</span>
         </a>

@@ -10,9 +10,7 @@ describe('gettingStartedUsageTelemetryService', function () {
 
   beforeEach(
     angular.mock.module(gettingStartedModule.name, function ($provide) {
-      telemetryServiceMock = jasmine.createSpyObj('telemetryService', [
-        'submitData',
-      ]);
+      telemetryServiceMock = jasmine.createSpyObj('telemetryService', ['submitData']);
       $ngReduxMock = jasmine.createSpyObj('$ngRedux', ['getState']);
 
       $provide.service('telemetryService', function () {
@@ -26,9 +24,7 @@ describe('gettingStartedUsageTelemetryService', function () {
   );
 
   beforeEach(inject(function ($injector) {
-    gettingStartedUsageTelemetryService = $injector.get(
-      'gettingStartedUsageTelemetryService'
-    );
+    gettingStartedUsageTelemetryService = $injector.get('gettingStartedUsageTelemetryService');
   }));
 
   describe('submitData', function () {

@@ -1,9 +1,4 @@
-<div
-  class="nx-viewport-sized__container"
-  load-wrapper="error"
-  reload="doLoad()"
-  loading="!applicationComponents"
->
+<div class="nx-viewport-sized__container" load-wrapper="error" reload="doLoad()" loading="!applicationComponents">
   <root-organization-migrate></root-organization-migrate>
   <div breadcrumb></div>
   <header class="nx-page-title">
@@ -17,12 +12,8 @@
       <span id="total-risk">{{totalRisk}}</span>
     </div>
   </header>
-  <div
-    class="iq-scrollable iq-scrollable--component-details nx-viewport-sized__scrollable"
-  >
-    <table
-      class="table component-application-table clm-table-border-top clm-table-stripe"
-    >
+  <div class="iq-scrollable iq-scrollable--component-details nx-viewport-sized__scrollable">
+    <table class="table component-application-table clm-table-border-top clm-table-stripe">
       <thead>
         <tr>
           <th class="expandable-header"></th>
@@ -35,10 +26,7 @@
           <th class="risk-header">
             <div>RISK</div>
           </th>
-          <th
-            ng-repeat="stage in stageTypes"
-            class="stage-column stage-column-{{stage.stageTypeId}}"
-          >
+          <th ng-repeat="stage in stageTypes" class="stage-column stage-column-{{stage.stageTypeId}}">
             <div>{{stage.shortName | uppercase}}</div>
           </th>
         </tr>
@@ -70,8 +58,7 @@
               class="image-thumbnail"
               ng-src="{{'../rest/application/icon/' + (applicationComponent.application.publicId | EncodeURIComponent)}}"
             />
-            {{applicationComponent.application.organizationName}} :
-            {{applicationComponent.application.name}}
+            {{applicationComponent.application.organizationName}} : {{applicationComponent.application.name}}
           </td>
           <td class="share-risk-column">
             <span
@@ -84,10 +71,7 @@
             &nbsp;{{formatRiskPercent(applicationComponent.risk, totalRisk)}}
           </td>
           <td class="risk-column">{{applicationComponent.risk}}</td>
-          <td
-            ng-repeat="stageDetails in applicationComponent.stageDetails"
-            class="stage-column"
-          >
+          <td ng-repeat="stageDetails in applicationComponent.stageDetails" class="stage-column">
             <a
               title="View application report"
               ui-sref="applicationReport.policy({
@@ -117,13 +101,8 @@
                     <tr
                       ng-repeat="policyViolation in applicationComponent.policyViolations | orderBy:'threatLevel':true"
                     >
-                      <td
-                        class="clm-bar"
-                        threat-class="policyViolation.threatLevel"
-                      ></td>
-                      <td class="threat-column">
-                        {{policyViolation.threatLevel}}
-                      </td>
+                      <td class="clm-bar" threat-class="policyViolation.threatLevel"></td>
+                      <td class="threat-column">{{policyViolation.threatLevel}}</td>
                       <td>{{policyViolation.policyName}}</td>
                       <td class="share-risk-column">
                         <span
@@ -133,12 +112,9 @@
                           width="24"
                           clazz="clm-arc violation"
                         ></span>
-                        &nbsp;{{formatRiskPercent(policyViolation.threatLevel,
-                        totalRisk)}}
+                        &nbsp;{{formatRiskPercent(policyViolation.threatLevel, totalRisk)}}
                       </td>
-                      <td class="risk-column">
-                        {{policyViolation.threatLevel}}
-                      </td>
+                      <td class="risk-column">{{policyViolation.threatLevel}}</td>
                       <td
                         ng-repeat="stageDetails in policyViolation.stageDetails"
                         ng-class="{ 'latest-risk': stageDetails.time === policyViolation.time }"

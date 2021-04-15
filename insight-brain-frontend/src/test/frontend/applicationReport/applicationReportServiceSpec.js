@@ -20,11 +20,7 @@ describe('applicationReportService', function () {
             },
             hash: 'fooHash',
             displayName: {
-              parts: [
-                { field: 'a-name', value: 'foo' },
-                { value: ' : ' },
-                { field: 'version', value: '1' },
-              ],
+              parts: [{ field: 'a-name', value: 'foo' }, { value: ' : ' }, { field: 'version', value: '1' }],
             },
           },
           {
@@ -59,11 +55,7 @@ describe('applicationReportService', function () {
             // different hash from the first entry
             hash: 'fooHash2',
             displayName: {
-              parts: [
-                { field: 'a-name', value: 'foo' },
-                { value: ' : ' },
-                { field: 'version', value: '1' },
-              ],
+              parts: [{ field: 'a-name', value: 'foo' }, { value: ' : ' }, { field: 'version', value: '1' }],
             },
           },
           {
@@ -154,19 +146,11 @@ describe('applicationReportService', function () {
       };
 
     it('creates raw data appropriately', () => {
-      const result = applicationReportService.createRawDataEntries(
-        securityData,
-        licensesData,
-        bomData,
-        unknownJSData
-      );
+      const result = applicationReportService.createRawDataEntries(securityData, licensesData, bomData, unknownJSData);
 
       expect(result.length).toEqual(6);
 
-      const sortedResult = sortWith(
-        [ascend(prop('cvssScore')), ascend(prop('derivedComponentName'))],
-        result
-      );
+      const sortedResult = sortWith([ascend(prop('cvssScore')), ascend(prop('derivedComponentName'))], result);
 
       expect(sortedResult[0].license).toBe(licensesData.aaData[1]);
       expect(sortedResult[0].derivedComponentName).toBe('bargroup : bar : 2');
@@ -239,11 +223,7 @@ describe('applicationReportService', function () {
               },
             },
             displayName: {
-              parts: [
-                { field: 'a-name', value: 'foo' },
-                { value: ' : ' },
-                { field: 'version', value: '1' },
-              ],
+              parts: [{ field: 'a-name', value: 'foo' }, { value: ' : ' }, { field: 'version', value: '1' }],
             },
           },
           {
@@ -412,8 +392,7 @@ describe('applicationReportService', function () {
               version: '1',
             },
           },
-          serializedComponentIdentifier:
-            'a-name:name\u001ffoo\u001eversion\u001f1',
+          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
           derivedViolationState: 'open',
           policyName: 'Security-High',
@@ -433,8 +412,7 @@ describe('applicationReportService', function () {
               version: '1',
             },
           },
-          serializedComponentIdentifier:
-            'a-name:name\u001ffoo\u001eversion\u001f1',
+          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
           derivedViolationState: 'waived+grandfathered',
           policyName: 'License-High',
@@ -455,8 +433,7 @@ describe('applicationReportService', function () {
               version: '2',
             },
           },
-          serializedComponentIdentifier:
-            'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
+          serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
           derivedComponentName: 'bargroup : bar : 2',
           derivedViolationState: 'grandfathered',
           policyName: 'Security-High',
@@ -493,8 +470,7 @@ describe('applicationReportService', function () {
               version: '1',
             },
           },
-          serializedComponentIdentifier:
-            'a-name:name\u001ffoo\u001eversion\u001f1',
+          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
           derivedViolationState: 'open',
           policyName: 'Security-High',
@@ -515,8 +491,7 @@ describe('applicationReportService', function () {
               version: '1',
             },
           },
-          serializedComponentIdentifier:
-            'a-name:name\u001ffoo\u001eversion\u001f1',
+          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
           derivedViolationState: 'waived+grandfathered',
           policyName: 'License-High',
@@ -538,8 +513,7 @@ describe('applicationReportService', function () {
               version: '2',
             },
           },
-          serializedComponentIdentifier:
-            'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
+          serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
           derivedComponentName: 'bargroup : bar : 2',
           derivedViolationState: 'grandfathered',
           policyName: 'Security-High',
@@ -652,8 +626,7 @@ describe('applicationReportService', function () {
               version: '1',
             },
           },
-          serializedComponentIdentifier:
-            'a-name:name\u001ffoo\u001eversion\u001f1',
+          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
           derivedViolationState: 'open',
           policyName: 'Security-High',
@@ -673,8 +646,7 @@ describe('applicationReportService', function () {
               version: '1',
             },
           },
-          serializedComponentIdentifier:
-            'a-name:name\u001ffoo\u001eversion\u001f1',
+          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
           derivedViolationState: 'waived',
           policyName: 'License-High',
@@ -695,8 +667,7 @@ describe('applicationReportService', function () {
               version: '2',
             },
           },
-          serializedComponentIdentifier:
-            'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
+          serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
           derivedComponentName: 'bargroup : bar : 2',
           derivedViolationState: 'open',
           policyName: 'Security-High',
@@ -792,8 +763,7 @@ describe('applicationReportService', function () {
               version: '1',
             },
           },
-          serializedComponentIdentifier:
-            'a-name:name\u001ffoo\u001eversion\u001f1',
+          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
           derivedViolationState: 'open',
           policyName: 'Security-High',
@@ -813,8 +783,7 @@ describe('applicationReportService', function () {
               version: '1',
             },
           },
-          serializedComponentIdentifier:
-            'a-name:name\u001ffoo\u001eversion\u001f1',
+          serializedComponentIdentifier: 'a-name:name\u001ffoo\u001eversion\u001f1',
           derivedComponentName: 'foo : 1',
           derivedViolationState: 'open',
           policyName: 'License-High',
@@ -835,8 +804,7 @@ describe('applicationReportService', function () {
               version: '2',
             },
           },
-          serializedComponentIdentifier:
-            'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
+          serializedComponentIdentifier: 'maven:artifactId\u001fbar\u001egroupId\u001fbarGroup\u001eversion\u001f2',
           derivedComponentName: 'bargroup : bar : 2',
           derivedViolationState: 'open',
           policyName: 'Security-High',
@@ -911,10 +879,7 @@ describe('applicationReportService', function () {
             },
           ],
         },
-        result = applicationReportService.createReportEntries(
-          policyThreatData,
-          bomData
-        ).policies;
+        result = applicationReportService.createReportEntries(policyThreatData, bomData).policies;
 
       expect(result.length).toEqual(3);
 
@@ -978,9 +943,10 @@ describe('applicationReportService', function () {
     });
 
     it('can handle undefined values for all parameters', function () {
-      expect(
-        applicationReportService.createReportEntries(undefined, undefined)
-      ).toEqual({ policies: [], isInnerSourceEnabled: false });
+      expect(applicationReportService.createReportEntries(undefined, undefined)).toEqual({
+        policies: [],
+        isInnerSourceEnabled: false,
+      });
     });
 
     it('generates dependencyInfo for violating and non-violating entries', function () {
@@ -1175,8 +1141,7 @@ describe('applicationReportService', function () {
               innerSourceData: {
                 ownerApplicationName: 'app',
                 ownerApplicationId: '123',
-                innerSourceComponentPurl:
-                  'pkg:maven/tranGroup/tran@2.0.0?type=jar',
+                innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
               },
             },
           ],
@@ -1414,8 +1379,7 @@ describe('applicationReportService', function () {
             { field: 'Version', value: '4.3.16.RELEASE' },
           ],
         },
-        derivedComponentName:
-          'org.springframework.spring-webmvc.4.3.16.RELEASE',
+        derivedComponentName: 'org.springframework.spring-webmvc.4.3.16.RELEASE',
       },
       {
         hash: '4',
@@ -1424,8 +1388,7 @@ describe('applicationReportService', function () {
         waived: false,
         grandfathered: false,
         componentIdentifier: 'apache',
-        derivedComponentName:
-          'org.apache.tomcat.embed.tomcat-embed-core.8.5.29',
+        derivedComponentName: 'org.apache.tomcat.embed.tomcat-embed-core.8.5.29',
       },
       {
         hash: '5',
@@ -1443,8 +1406,7 @@ describe('applicationReportService', function () {
             { field: 'Version', value: '2.8.11.1' },
           ],
         },
-        derivedComponentName:
-          'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1',
+        derivedComponentName: 'com.fasterxml.jackson.core.jackson-annotations.2.8.11.1',
       },
       {
         hash: '5',
@@ -1453,8 +1415,7 @@ describe('applicationReportService', function () {
         waived: false,
         grandfathered: false,
         componentIdentifier: 'foo',
-        derivedComponentName:
-          'com.fasterxml.jackson.core.jackson-databind.2.8.11.1',
+        derivedComponentName: 'com.fasterxml.jackson.core.jackson-databind.2.8.11.1',
       },
       {
         hash: '5',
@@ -1653,21 +1614,13 @@ describe('applicationReportService', function () {
       });
 
       it('handles empty filterConfig objects', function () {
-        const result = applicationReportService.filterReportEntries(
-          {},
-          {},
-          {}
-        )(input);
+        const result = applicationReportService.filterReportEntries({}, {}, {})(input);
 
         expect(result).toEqual(input);
       });
 
       it('handles undefined filterConfig objects', function () {
-        const result = applicationReportService.filterReportEntries(
-          undefined,
-          undefined,
-          undefined
-        )(input);
+        const result = applicationReportService.filterReportEntries(undefined, undefined, undefined)(input);
 
         expect(result).toEqual(input);
       });
@@ -1676,11 +1629,7 @@ describe('applicationReportService', function () {
         const substringFilters = {
             derivedComponentName: '',
           },
-          result = applicationReportService.filterReportEntries(
-            undefined,
-            substringFilters,
-            undefined
-          )(input);
+          result = applicationReportService.filterReportEntries(undefined, substringFilters, undefined)(input);
 
         expect(result).toEqual(input);
       });
@@ -1701,11 +1650,7 @@ describe('applicationReportService', function () {
         const substringFilters = {
           securityCode: 's',
         };
-        const result = applicationReportService.filterReportEntries(
-          undefined,
-          substringFilters,
-          undefined
-        )(input);
+        const result = applicationReportService.filterReportEntries(undefined, substringFilters, undefined)(input);
         expect(result).toEqual([input[0]]);
       });
 
@@ -1727,11 +1672,7 @@ describe('applicationReportService', function () {
         const numericFilters = {
           cvssScore: [undefined, undefined],
         };
-        const result = applicationReportService.filterReportEntries(
-          undefined,
-          undefined,
-          numericFilters
-        )(input);
+        const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
         expect(result).toEqual(input);
       });
 
@@ -1753,11 +1694,7 @@ describe('applicationReportService', function () {
         const numericFilters = {
           cvssScore: ['', ''],
         };
-        const result = applicationReportService.filterReportEntries(
-          undefined,
-          undefined,
-          numericFilters
-        )(input);
+        const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
         expect(result).toEqual(input);
       });
 
@@ -1779,11 +1716,7 @@ describe('applicationReportService', function () {
         const numericFilters = {
           cvssScore: [undefined, 9],
         };
-        const result = applicationReportService.filterReportEntries(
-          undefined,
-          undefined,
-          numericFilters
-        )(input);
+        const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
         expect(result).toEqual([input[0]]);
       });
 
@@ -1805,11 +1738,7 @@ describe('applicationReportService', function () {
         const numericFilters = {
           cvssScore: [2, undefined],
         };
-        const result = applicationReportService.filterReportEntries(
-          undefined,
-          undefined,
-          numericFilters
-        )(input);
+        const result = applicationReportService.filterReportEntries(undefined, undefined, numericFilters)(input);
         expect(result).toEqual([input[0]]);
       });
 
@@ -1817,11 +1746,7 @@ describe('applicationReportService', function () {
         const exactValueFilters = {
             waived: new Set([]),
           },
-          result = applicationReportService.filterReportEntries(
-            exactValueFilters,
-            undefined,
-            undefined
-          )(input);
+          result = applicationReportService.filterReportEntries(exactValueFilters, undefined, undefined)(input);
 
         expect(result).toEqual(input);
       });
@@ -1847,9 +1772,7 @@ describe('applicationReportService', function () {
           reject(isNil, cveNumList)
         ),
         conditions = cveConditions.concat(additionalConditions),
-        constraints = (conditions.length ? [{ conditions }] : []).concat(
-          additionalConstraints
-        );
+        constraints = (conditions.length ? [{ conditions }] : []).concat(additionalConstraints);
 
       return {
         componentIdentifier: {
@@ -1863,12 +1786,7 @@ describe('applicationReportService', function () {
       };
     }
 
-    function mkRawDataEntry(
-      cveNum,
-      cvssScore = 5,
-      componentName = 'bar',
-      additionalProps = {}
-    ) {
+    function mkRawDataEntry(cveNum, cvssScore = 5, componentName = 'bar', additionalProps = {}) {
       // props that would be on any raw data entry, not just a security entry
       const baseEntry = {
         componentIdentifier: {
@@ -1931,12 +1849,7 @@ describe('applicationReportService', function () {
             mkRawDataEntry(1237, 2),
           ];
 
-        expect(
-          applicationReportService.getVulnerabilities(
-            policyEntries,
-            rawDataEntries
-          )
-        ).toEqual([
+        expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
           jasmine.objectContaining({
             foo: 'bar',
             securityCode: 'CVE-1234',
@@ -1969,18 +1882,9 @@ describe('applicationReportService', function () {
             },
           ]),
         ],
-        rawDataEntries = [
-          mkRawDataEntry(1234),
-          mkRawDataEntry(1235, null, 'baz'),
-          mkRawDataEntry(1236),
-        ];
+        rawDataEntries = [mkRawDataEntry(1234), mkRawDataEntry(1235, null, 'baz'), mkRawDataEntry(1236)];
 
-      expect(
-        applicationReportService.getVulnerabilities(
-          policyEntries,
-          rawDataEntries
-        )
-      ).toEqual([
+      expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
         jasmine.objectContaining({
           key: jasmine.stringMatching(/bar.*CVE-1234/),
         }),
@@ -2003,12 +1907,7 @@ describe('applicationReportService', function () {
         ],
         rawDataEntries = [mkRawDataEntry(1234, 5)];
 
-      expect(
-        applicationReportService.getVulnerabilities(
-          policyEntries,
-          rawDataEntries
-        )
-      ).toEqual([]);
+      expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([]);
     });
 
     describe('vulnerability aggregation', function () {
@@ -2133,12 +2032,7 @@ describe('applicationReportService', function () {
         ];
 
       it('includes the waived flag and grandfathered flags only if every matching violation is waived or grandfathered', function () {
-        expect(
-          applicationReportService.getVulnerabilities(
-            policyEntries,
-            rawDataEntries
-          )
-        ).toEqual([
+        expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
           jasmine.objectContaining({
             securityCode: 'CVE-1234',
             waived: false,
@@ -2186,12 +2080,7 @@ describe('applicationReportService', function () {
         'calculates a violationSortState that sorts open violations first, followed by non-violating, ' +
           'followed by waived, grandfathered & waived, and then finally grandfathered',
         function () {
-          expect(
-            applicationReportService.getVulnerabilities(
-              policyEntries,
-              rawDataEntries
-            )
-          ).toEqual([
+          expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
             jasmine.objectContaining({
               securityCode: 'CVE-1234',
               violationSortState: 0,
@@ -2232,12 +2121,7 @@ describe('applicationReportService', function () {
         'includes the highest matching policyThreatLevel for each vulnerability, ' +
           'treating waived and grandfathered violations as 0',
         function () {
-          expect(
-            applicationReportService.getVulnerabilities(
-              policyEntries,
-              rawDataEntries
-            )
-          ).toEqual([
+          expect(applicationReportService.getVulnerabilities(policyEntries, rawDataEntries)).toEqual([
             jasmine.objectContaining({
               securityCode: 'CVE-1234',
               policyThreatLevel: 2,
@@ -2278,9 +2162,7 @@ describe('applicationReportService', function () {
 
   function expectNoExtraMatchData(result) {
     const hashesWithMatchDetails = new Set(
-      result
-        .filter(({ matchDetails }) => matchDetails !== undefined)
-        .map(({ hash }) => hash)
+      result.filter(({ matchDetails }) => matchDetails !== undefined).map(({ hash }) => hash)
     );
 
     expect(hashesWithMatchDetails.size).toBe(1);

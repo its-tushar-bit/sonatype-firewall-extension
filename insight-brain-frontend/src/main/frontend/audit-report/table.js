@@ -39,21 +39,9 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
       message;
     if (position !== null) {
       closeMessagebox(id);
-      container.append(
-        '<div class="message" style="top:' +
-          (position.top + 70) +
-          'px">' +
-          msg +
-          '</div>'
-      );
+      container.append('<div class="message" style="top:' + (position.top + 70) + 'px">' + msg + '</div>');
       message = $('.message', container);
-      message.css(
-        'left',
-        position.left +
-          container.outerWidth() / 2 -
-          message.outerWidth() / 2 +
-          'px'
-      );
+      message.css('left', position.left + container.outerWidth() / 2 - message.outerWidth() / 2 + 'px');
     }
   }
 
@@ -91,20 +79,13 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
       if (me.destroyed) {
         return;
       }
-      me.table = new Slick.Grid(
-        '#' + id + 'Table',
-        me.dataView,
-        options.columns,
-        config
-      );
+      me.table = new Slick.Grid('#' + id + 'Table', me.dataView, options.columns, config);
 
       //make sure this is done first, so any handlers provided will be called first, and can
       //properly stop propogation
       if (options.handlers) {
         for (var i = 0; i < options.handlers.length; i++) {
-          me.table[options.handlers[i].event].subscribe(
-            options.handlers[i].handler
-          );
+          me.table[options.handlers[i].event].subscribe(options.handlers[i].handler);
         }
       }
 
@@ -117,19 +98,14 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
 
       groupMetadataProvider.init(me.table);
 
-      tableNode.css(
-        'height',
-        options.height || getHeight($('#' + id + 'Table')) + 'px'
-      );
+      tableNode.css('height', options.height || getHeight($('#' + id + 'Table')) + 'px');
       me.processData(data);
       me.initialize();
     }
 
     function getErrorFn(reloadCallback) {
       return function (resp, type, msg) {
-        var node = tableNode
-          .empty()
-          .append(Insight.templates.error.render({ message: msg }));
+        var node = tableNode.empty().append(Insight.templates.error.render({ message: msg }));
         $('button', node).click(reloadCallback);
       };
     }
@@ -231,15 +207,12 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
         if (this.options.externalFilters) {
           this.dataView.setFilter(function (item, args) {
             var valid = true;
-            $.each(
-              me.options.externalFilters,
-              function (index, externalFilter) {
-                if (!externalFilter(item, args)) {
-                  valid = false;
-                }
-                return valid;
+            $.each(me.options.externalFilters, function (index, externalFilter) {
+              if (!externalFilter(item, args)) {
+                valid = false;
               }
-            );
+              return valid;
+            });
             return valid && me.filter.getFilter()(item, args);
           });
         } else {
@@ -254,10 +227,7 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
         );
       }
       this.dataView.endUpdate();
-      if (
-        this.options.groupInfo &&
-        this.options.groupInfo.initialState === 'collapsed'
-      ) {
+      if (this.options.groupInfo && this.options.groupInfo.initialState === 'collapsed') {
         //note that we need to do a second update here to collapse the groups, as this isn't possible until the dataview
         //has been updated with the groupInfo set above
         this.dataView.beginUpdate();
@@ -273,19 +243,13 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
       openMessagebox(this.id, this.options.emptyText || 'None');
     }
     if (!this.options.disablePager) {
-      this.table.pager = new Slick.Controls.Pager(
-        this.dataView,
-        this.table,
-        $('#' + this.id + 'TablePager')
-      );
+      this.table.pager = new Slick.Controls.Pager(this.dataView, this.table, $('#' + this.id + 'TablePager'));
     }
   };
 
   Table.prototype.addMessage = function (message, type, fadeOut) {
     var me = this,
-      msgNode = $(
-        '<div class="alert"><button class="close" data-dismiss="alert">&times;</button></div>'
-      );
+      msgNode = $('<div class="alert"><button class="close" data-dismiss="alert">&times;</button></div>');
     msgNode.addClass(type);
     msgNode.append('<span></span>').text(message);
 

@@ -22,27 +22,17 @@ function applicationCountsChartController() {
 
   vm.applicationCount = applicationCountsData.activeApplications;
 
-  vm.applicationCountSecurity =
-    applicationCountsData.security.applicationsWithViolations;
-  vm.applicationCountLicense =
-    applicationCountsData.license.applicationsWithViolations;
-  vm.applicationCountQuality =
-    applicationCountsData.quality.applicationsWithViolations;
-  vm.applicationCountOther =
-    applicationCountsData.other.applicationsWithViolations;
-  vm.applicationCountTotalViolating =
-    applicationCountsData.total.applicationsWithViolations;
+  vm.applicationCountSecurity = applicationCountsData.security.applicationsWithViolations;
+  vm.applicationCountLicense = applicationCountsData.license.applicationsWithViolations;
+  vm.applicationCountQuality = applicationCountsData.quality.applicationsWithViolations;
+  vm.applicationCountOther = applicationCountsData.other.applicationsWithViolations;
+  vm.applicationCountTotalViolating = applicationCountsData.total.applicationsWithViolations;
 
-  vm.applicationCountSecurityCritical =
-    applicationCountsData.security.applicationsWithCriticalViolations;
-  vm.applicationCountLicenseCritical =
-    applicationCountsData.license.applicationsWithCriticalViolations;
-  vm.applicationCountQualityCritical =
-    applicationCountsData.quality.applicationsWithCriticalViolations;
-  vm.applicationCountOtherCritical =
-    applicationCountsData.other.applicationsWithCriticalViolations;
-  vm.applicationCountTotalViolatingCritical =
-    applicationCountsData.total.applicationsWithCriticalViolations;
+  vm.applicationCountSecurityCritical = applicationCountsData.security.applicationsWithCriticalViolations;
+  vm.applicationCountLicenseCritical = applicationCountsData.license.applicationsWithCriticalViolations;
+  vm.applicationCountQualityCritical = applicationCountsData.quality.applicationsWithCriticalViolations;
+  vm.applicationCountOtherCritical = applicationCountsData.other.applicationsWithCriticalViolations;
+  vm.applicationCountTotalViolatingCritical = applicationCountsData.total.applicationsWithCriticalViolations;
 
   vm.chart = makeChart(applicationCountsData);
 }
@@ -57,16 +47,8 @@ function makeDataset(data, valueProp, datasetClassName) {
 }
 
 function makeChart(data) {
-  var overallDataset = makeDataset(
-      data,
-      'applicationsWithViolations',
-      'iq-chart__dataset--overall'
-    ),
-    criticalDataset = makeDataset(
-      data,
-      'applicationsWithCriticalViolations',
-      'iq-chart__dataset--critical'
-    ),
+  var overallDataset = makeDataset(data, 'applicationsWithViolations', 'iq-chart__dataset--overall'),
+    criticalDataset = makeDataset(data, 'applicationsWithCriticalViolations', 'iq-chart__dataset--critical'),
     max = overallDataset
       .data()
       .map(function (d) {

@@ -49,27 +49,13 @@ describe('ComponentController tests', function () {
         { value: ':' },
         { field: 'Version', value: '1.0' },
       ];
-    beforeEach(inject(function (
-      $rootScope,
-      $controller,
-      $httpBackend,
-      $timeout,
-      $q,
-      CLMLocations,
-      StageTypeStore
-    ) {
+    beforeEach(inject(function ($rootScope, $controller, $httpBackend, $timeout, $q, CLMLocations, StageTypeStore) {
       scope = $rootScope.$new();
       var stageTypeStoreDefer = $q.defer();
-      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(
-        stageTypeStoreDefer.promise
-      );
+      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
       stageTypeStoreDefer.resolve([]);
-      $httpBackend
-        .expectGET(CLMLocations.getComponentDetailsUrl())
-        .respond(applicationComponents);
-      $httpBackend
-        .expectGET(CLMLocations.getComponentNameUrl())
-        .respond(displayName);
+      $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
+      $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond(displayName);
       $controller('componentController', { $scope: scope });
       $httpBackend.flush();
       $timeout.flush();
@@ -85,9 +71,7 @@ describe('ComponentController tests', function () {
       expect(scope.applicationComponents.length).toBe(1);
       expect(scope.applicationComponents[0].application.id).toBe('appId');
       expect(scope.applicationComponents[0].policyViolations.length).toBe(2);
-      expect(scope.applicationComponents[0].policyViolations[0].policyId).toBe(
-        'policy1Id'
-      );
+      expect(scope.applicationComponents[0].policyViolations[0].policyId).toBe('policy1Id');
     });
 
     it('calculates the total risk', function () {
@@ -130,9 +114,7 @@ describe('ComponentController tests', function () {
 
     beforeEach(inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();
-      element = angular.element(
-        '<span risk-pie risk="0.33" height="24" width="24"></span>'
-      );
+      element = angular.element('<span risk-pie risk="0.33" height="24" width="24"></span>');
       element = $compile(element)(scope);
     }));
 
@@ -147,9 +129,7 @@ describe('ComponentController tests', function () {
       var g = element.find('g');
       expect(g.attr('class')).toBeUndefined();
 
-      element = angular.element(
-        '<span risk-pie risk="0.66" height="24" width="24" clazz="foo"></span>'
-      );
+      element = angular.element('<span risk-pie risk="0.66" height="24" width="24" clazz="foo"></span>');
       element = $compile(element)(scope);
       g = element.find('g');
       expect(g.attr('class')).toBe('foo');

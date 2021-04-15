@@ -10,20 +10,14 @@ import { NxSubmitMask } from '@sonatype/react-shared-components';
 import AddWaiverPage from '../../../main/frontend/waivers/AddWaiverPage';
 
 describe('AddWaiverPage', function () {
-  let minimalProps,
-    openVulnerabilityDetailsModalMock,
-    loadAddWaiverDataSpy,
-    getShallowComponent,
-    getMountedComponent;
+  let minimalProps, openVulnerabilityDetailsModalMock, loadAddWaiverDataSpy, getShallowComponent, getMountedComponent;
 
   beforeEach(function () {
     loadAddWaiverDataSpy = jasmine.createSpy('loadAddWaiverDataSpy');
 
-    openVulnerabilityDetailsModalMock = jasmine
-      .createSpy('openVulnerabilityDetailsModal')
-      .and.returnValue({
-        type: 'OPEN_VULNERABILITY_DETAILS_MODAL',
-      });
+    openVulnerabilityDetailsModalMock = jasmine.createSpy('openVulnerabilityDetailsModal').and.returnValue({
+      type: 'OPEN_VULNERABILITY_DETAILS_MODAL',
+    });
 
     minimalProps = {
       loading: false,
@@ -42,14 +36,8 @@ describe('AddWaiverPage', function () {
       cancelAction: () => {},
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      AddWaiverPage,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      AddWaiverPage,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverPage, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(AddWaiverPage, minimalProps);
   });
 
   it('renders a component with the "nx-page-main" class', function () {
@@ -116,9 +104,7 @@ describe('AddWaiverPage', function () {
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalMock,
       applyToAllComponents: true,
       expiryTime: '7',
-      availableWaiverScopes: [
-        { id: 'id', name: 'name', label: 'Application', type: 'application' },
-      ],
+      availableWaiverScopes: [{ id: 'id', name: 'name', label: 'Application', type: 'application' }],
       selectedWaiverScope: {
         id: 'id',
         name: 'name',
@@ -138,38 +124,17 @@ describe('AddWaiverPage', function () {
     expect(addWaiverForm).toHaveProp('reasons', ['reason']);
     expect(addWaiverForm).toHaveProp('threatLevelCategory', 'severe');
     expect(addWaiverForm).toHaveProp('constraintName', 'constraint name');
-    expect(addWaiverForm).toHaveProp(
-      'availableWaiverScopes',
-      fullProps.availableWaiverScopes
-    );
-    expect(addWaiverForm).toHaveProp(
-      'selectedWaiverScope',
-      fullProps.selectedWaiverScope
-    );
-    expect(addWaiverForm).toHaveProp(
-      'setWaiverScope',
-      minimalProps.setWaiverScope
-    );
-    expect(addWaiverForm).toHaveProp(
-      'setWaiverComment',
-      minimalProps.setWaiverComment
-    );
-    expect(addWaiverForm).toHaveProp(
-      'setApplyToAllComponents',
-      minimalProps.setApplyToAllComponents
-    );
+    expect(addWaiverForm).toHaveProp('availableWaiverScopes', fullProps.availableWaiverScopes);
+    expect(addWaiverForm).toHaveProp('selectedWaiverScope', fullProps.selectedWaiverScope);
+    expect(addWaiverForm).toHaveProp('setWaiverScope', minimalProps.setWaiverScope);
+    expect(addWaiverForm).toHaveProp('setWaiverComment', minimalProps.setWaiverComment);
+    expect(addWaiverForm).toHaveProp('setApplyToAllComponents', minimalProps.setApplyToAllComponents);
     expect(addWaiverForm).toHaveProp('saveWaiver', minimalProps.saveWaiver);
-    expect(addWaiverForm).toHaveProp(
-      'openVulnerabilityDetailsModal',
-      openVulnerabilityDetailsModalMock
-    );
+    expect(addWaiverForm).toHaveProp('openVulnerabilityDetailsModal', openVulnerabilityDetailsModalMock);
     expect(addWaiverForm).toHaveProp('vulnerabilityId', 'CVE-67890');
     expect(addWaiverForm).toHaveProp('cancelAction', minimalProps.cancelAction);
     expect(addWaiverForm).toHaveProp('expiryTime', fullProps.expiryTime);
-    expect(addWaiverForm).toHaveProp(
-      'setExpiryTime',
-      minimalProps.setExpiryTime
-    );
+    expect(addWaiverForm).toHaveProp('setExpiryTime', minimalProps.setExpiryTime);
   });
 
   it('renders NxSubmitMask with success message when submitMaskState is true', function () {

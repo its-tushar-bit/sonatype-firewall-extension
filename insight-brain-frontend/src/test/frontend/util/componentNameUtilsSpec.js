@@ -3,10 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  getComponentName,
-  getArtifactName,
-} from '../../../main/frontend/util/componentNameUtils';
+import { getComponentName, getArtifactName } from '../../../main/frontend/util/componentNameUtils';
 
 describe('componentNameUtils', function () {
   describe('getComponentName', function () {

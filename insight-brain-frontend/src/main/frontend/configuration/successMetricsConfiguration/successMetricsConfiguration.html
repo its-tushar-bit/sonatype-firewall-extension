@@ -14,11 +14,7 @@
       <p id="success-metrics-explanation" class="iq-system-config-explanation">
         Here you can enable or disable Success Metrics.
       </p>
-      <form
-        name="success-metrics-editor"
-        class="iq-form iq-form--no-border iq-form--no-padding"
-        ng-submit="vm.save()"
-      >
+      <form name="success-metrics-editor" class="iq-form iq-form--no-border iq-form--no-padding" ng-submit="vm.save()">
         <div id="success-metrics-display-control-group" class="iq-form-group">
           <div class="toggle-checkbox" id="success-metrics-toggle">
             <input
@@ -40,12 +36,7 @@
           >
             Update</button
           ><!--
-       --><button
-            id="success-metrics-cancel"
-            class="iq-btn"
-            ng-disabled="!vm.isChanged()"
-            ng-click="vm.cancel()"
-          >
+       --><button id="success-metrics-cancel" class="iq-btn" ng-disabled="!vm.isChanged()" ng-click="vm.cancel()">
             Cancel
           </button>
         </div>

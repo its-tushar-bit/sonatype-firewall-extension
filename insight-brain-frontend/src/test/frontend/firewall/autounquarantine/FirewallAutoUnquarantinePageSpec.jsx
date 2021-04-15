@@ -53,10 +53,7 @@ describe('FirewallAutoUnquarantinePage', function () {
       openConfigurationModal: openConfigurationModalSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      FirewallAutoUnquarantinePage,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(FirewallAutoUnquarantinePage, minimalProps);
   });
 
   it('renders a component with the "nx-page-main" class', function () {
@@ -106,10 +103,7 @@ describe('FirewallAutoUnquarantinePage', function () {
     expect(card).toHaveProp('autoUnquarantineEnabled', false);
     expect(card).toHaveProp('enabledPolicyConditionTypesCount', 3);
     expect(card).toHaveProp('totalPolicyConditionTypesCount', 4);
-    expect(card).toHaveProp(
-      'openConfigurationModal',
-      openConfigurationModalSpy
-    );
+    expect(card).toHaveProp('openConfigurationModal', openConfigurationModalSpy);
   });
 
   it('renders a FirewallUnquarantineTable', function () {

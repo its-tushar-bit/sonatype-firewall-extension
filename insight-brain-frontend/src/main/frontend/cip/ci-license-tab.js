@@ -45,15 +45,12 @@ import cipLicenseEditorModule from './cip.license.editor/cip.license.editor.modu
         .run([
           '$rootScope',
           function ($rootScope) {
-            $rootScope.$on(
-              'clm.grid.licenses.changed',
-              function (e, component) {
-                // Update Grid
-                me.grid.getData().updateItem(component.id, component);
-                // Update Summary Page
-                Insight.updateSummary();
-              }
-            );
+            $rootScope.$on('clm.grid.licenses.changed', function (e, component) {
+              // Update Grid
+              me.grid.getData().updateItem(component.id, component);
+              // Update Summary Page
+              Insight.updateSummary();
+            });
           },
         ])
         .service('SelectedComponent', [

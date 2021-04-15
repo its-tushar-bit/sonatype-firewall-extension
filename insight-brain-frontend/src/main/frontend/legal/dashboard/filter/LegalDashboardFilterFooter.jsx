@@ -6,12 +6,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
-import {
-  NxErrorAlert,
-  NxButton,
-  NxFontAwesomeIcon,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import { faSync } from '@fortawesome/free-solid-svg-icons';
 
 export default function LegalDashboardFilterFooter(props) {
@@ -57,11 +52,7 @@ export default function LegalDashboardFilterFooter(props) {
         id="legal-dashboard-filter-save-tooltip"
         title={filtersAreDirty ? 'Please apply filter before saving' : ''}
       >
-        <NxButton
-          id="legal-dashboard-filter-save"
-          className={saveBtnClassnames}
-          onClick={handleSaveBtnClick}
-        >
+        <NxButton id="legal-dashboard-filter-save" className={saveBtnClassnames} onClick={handleSaveBtnClick}>
           Save
         </NxButton>
       </NxTooltip>
@@ -93,11 +84,7 @@ export default function LegalDashboardFilterFooter(props) {
         >
           Cancel
         </NxButton>
-        <NxButton
-          id="legal-dashboard-filter-retry-button"
-          variant="error"
-          onClick={handleApplyBtnClick}
-        >
+        <NxButton id="legal-dashboard-filter-retry-button" variant="error" onClick={handleApplyBtnClick}>
           <NxFontAwesomeIcon icon={faSync} />
           <span>Retry</span>
         </NxButton>
@@ -105,11 +92,7 @@ export default function LegalDashboardFilterFooter(props) {
     </NxErrorAlert>
   );
 
-  return (
-    <footer className="dashboard-filter-footer">
-      {applyFilterError ? footerErrorHTML : footerHTML}
-    </footer>
-  );
+  return <footer className="dashboard-filter-footer">{applyFilterError ? footerErrorHTML : footerHTML}</footer>;
 }
 LegalDashboardFilterFooter.propTypes = {
   applyFilterError: PropTypes.string,

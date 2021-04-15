@@ -12,10 +12,7 @@ import {
   save,
   load,
 } from '../../../../main/frontend/configuration/advancedSearch/advancedSearchConfigActions';
-import {
-  getAdvancedSearchConfigUrl,
-  getAdvancedSearchIndexUrl,
-} from '../../../../main/frontend/util/CLMLocation';
+import { getAdvancedSearchConfigUrl, getAdvancedSearchIndexUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('advancedSearchConfigActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
@@ -38,10 +35,7 @@ describe('advancedSearchConfigActions', function () {
     });
 
     afterEach(function () {
-      expect(axios.put).toHaveBeenCalledWith(
-        advancedSearchConfigUrl,
-        state.advancedSearchConfig.formState
-      );
+      expect(axios.put).toHaveBeenCalledWith(advancedSearchConfigUrl, state.advancedSearchConfig.formState);
     });
 
     it('immediately dispatches a ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED action', function () {
@@ -86,9 +80,7 @@ describe('advancedSearchConfigActions', function () {
           setTimeout(function () {
             actions = store.getActions();
             expect(actions.length).toBe(3);
-            expect(actions[2].type).toBe(
-              'ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE'
-            );
+            expect(actions[2].type).toBe('ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE');
 
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
@@ -160,9 +152,7 @@ describe('advancedSearchConfigActions', function () {
             expect(actions.length).toBe(2);
             expect(actions[0].type).toBe('ADVANCED_SEARCH_TRIGGER_RE_INDEX');
             expect(actions[0].payload).toBeUndefined();
-            expect(actions[1].type).toBe(
-              'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-            );
+            expect(actions[1].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
             expect(actions[1].payload).toBeTruthy();
             expect(window.setTimeout).toHaveBeenCalled();
             const setTimeoutArgs = window.setTimeout.calls.mostRecent().args;
@@ -175,9 +165,7 @@ describe('advancedSearchConfigActions', function () {
             };
             setTimeoutArgs[0]();
             expect(actions.length).toBe(3);
-            expect(actions[2].type).toBe(
-              'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-            );
+            expect(actions[2].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
             expect(actions[2].payload).toBeFalsy();
             done();
           });
@@ -243,9 +231,7 @@ describe('advancedSearchConfigActions', function () {
         store.dispatch(pollState(store.dispatch, store.getState)).then(() => {
           actions = store.getActions();
           expect(actions.length).toBe(1);
-          expect(actions[0].type).toBe(
-            'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-          );
+          expect(actions[0].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
           expect(actions[0].payload).toBeFalsy();
           done();
         });
@@ -276,9 +262,7 @@ describe('advancedSearchConfigActions', function () {
             expect(actions.length).toBe(2);
             expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_SUCCESS');
             expect(actions[0].payload).toEqual({ isFullIndexTriggered: false });
-            expect(actions[1].type).toBe(
-              'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-            );
+            expect(actions[1].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
             expect(actions[1].payload).toBeFalsy();
             done();
           });
@@ -301,39 +285,30 @@ describe('advancedSearchConfigActions', function () {
 
             spyOn(window, 'setTimeout');
 
-            store
-              .dispatch(pollState(store.dispatch, store.getState))
-              .then(() => {
-                actions = store.getActions();
-                expect(actions.length).toBe(2);
-                expect(actions[0].type).toBe(
-                  'ADVANCED_SEARCH_POLL_STATE_SUCCESS'
-                );
-                expect(actions[0].payload).toEqual({
-                  isFullIndexTriggered: true,
-                });
-                expect(actions[1].type).toBe(
-                  'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-                );
-                expect(actions[1].payload).toBeTruthy();
-                expect(window.setTimeout).toHaveBeenCalled();
-                const setTimeoutArgs = window.setTimeout.calls.mostRecent()
-                  .args;
-                expect(typeof setTimeoutArgs[0]).toBe('function');
-                expect(setTimeoutArgs[1]).toBe(2000);
-                state.router = {
-                  currentState: {
-                    name: 'notAdvancedSearchConfig',
-                  },
-                };
-                setTimeoutArgs[0]();
-                expect(actions.length).toBe(3);
-                expect(actions[2].type).toBe(
-                  'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-                );
-                expect(actions[2].payload).toBeFalsy();
-                done();
+            store.dispatch(pollState(store.dispatch, store.getState)).then(() => {
+              actions = store.getActions();
+              expect(actions.length).toBe(2);
+              expect(actions[0].type).toBe('ADVANCED_SEARCH_POLL_STATE_SUCCESS');
+              expect(actions[0].payload).toEqual({
+                isFullIndexTriggered: true,
               });
+              expect(actions[1].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+              expect(actions[1].payload).toBeTruthy();
+              expect(window.setTimeout).toHaveBeenCalled();
+              const setTimeoutArgs = window.setTimeout.calls.mostRecent().args;
+              expect(typeof setTimeoutArgs[0]).toBe('function');
+              expect(setTimeoutArgs[1]).toBe(2000);
+              state.router = {
+                currentState: {
+                  name: 'notAdvancedSearchConfig',
+                },
+              };
+              setTimeoutArgs[0]();
+              expect(actions.length).toBe(3);
+              expect(actions[2].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
+              expect(actions[2].payload).toBeFalsy();
+              done();
+            });
 
             let actions = store.getActions();
             expect(actions.length).toBe(0);
@@ -418,9 +393,7 @@ describe('advancedSearchConfigActions', function () {
           expect(actions[0].payload).toBeUndefined();
           expect(actions[1].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED');
           expect(actions[1].payload).toEqual({ isFullIndexTriggered: false });
-          expect(actions[2].type).toBe(
-            'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-          );
+          expect(actions[2].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
           expect(actions[2].payload).toBeFalsy();
           done();
         });
@@ -446,17 +419,11 @@ describe('advancedSearchConfigActions', function () {
           store.dispatch(load()).then(() => {
             actions = store.getActions();
             expect(actions.length).toBe(3);
-            expect(actions[0].type).toBe(
-              'ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED'
-            );
+            expect(actions[0].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED');
             expect(actions[0].payload).toBeUndefined();
-            expect(actions[1].type).toBe(
-              'ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED'
-            );
+            expect(actions[1].type).toBe('ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED');
             expect(actions[1].payload).toEqual({ isFullIndexTriggered: true });
-            expect(actions[2].type).toBe(
-              'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-            );
+            expect(actions[2].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
             expect(actions[2].payload).toBeTruthy();
             expect(window.setTimeout).toHaveBeenCalled();
             const setTimeoutArgs = window.setTimeout.calls.mostRecent().args;
@@ -469,9 +436,7 @@ describe('advancedSearchConfigActions', function () {
             };
             setTimeoutArgs[0]();
             expect(actions.length).toBe(4);
-            expect(actions[3].type).toBe(
-              'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING'
-            );
+            expect(actions[3].type).toBe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING');
             expect(actions[3].payload).toBeFalsy();
             done();
           });

@@ -56,14 +56,10 @@ function SourceControlTileController(
     let ownerPromise;
 
     if (vm.isApp) {
-      ownerPromise = ApplicationStore.getById(
-        CLMContextLocations.getEntityId()
-      );
+      ownerPromise = ApplicationStore.getById(CLMContextLocations.getEntityId());
       vm.ownerType = 'application';
     } else if (vm.isOrg) {
-      ownerPromise = OrganizationStore.getById(
-        CLMContextLocations.getEntityId()
-      );
+      ownerPromise = OrganizationStore.getById(CLMContextLocations.getEntityId());
       vm.ownerType = 'organization';
     }
 
@@ -72,12 +68,9 @@ function SourceControlTileController(
       $q.all(promises)
         .then(function (results) {
           vm.ownerName = results[0].name;
-          let isNotificationsSupported = ProductFeatures.isAvailable(
-            'notifications'
-          );
+          let isNotificationsSupported = ProductFeatures.isAvailable('notifications');
           vm.isAutomationSupported = ProductFeatures.isAvailable('automation');
-          vm.isSourceControlSupported =
-            isNotificationsSupported || vm.isAutomationSupported;
+          vm.isSourceControlSupported = isNotificationsSupported || vm.isAutomationSupported;
           if (vm.isSourceControlSupported) {
             return getSourceControl(results[0].id);
           }
@@ -92,12 +85,8 @@ function SourceControlTileController(
   }
 
   function getSourceControl(ownerInternalId) {
-    return SourceControlService.getCompositeSourceControlRecord(
-      vm.ownerType,
-      ownerInternalId
-    ).then(function (result) {
-      vm.sourceControl =
-        typeof result !== 'undefined' && result !== null ? result : undefined;
+    return SourceControlService.getCompositeSourceControlRecord(vm.ownerType, ownerInternalId).then(function (result) {
+      vm.sourceControl = typeof result !== 'undefined' && result !== null ? result : undefined;
       if (vm.sourceControl !== undefined) {
         vm.itemText = getItemText();
         vm.itemSubText = getItemSubText();
@@ -119,9 +108,7 @@ function SourceControlTileController(
       if (vm.isOrg) {
         text = vm.providerTypesMap[vm.sourceControl.provider];
       } else {
-        text = vm.sourceControl.repositoryUrl
-          ? vm.sourceControl.repositoryUrl
-          : 'Repository URL needed';
+        text = vm.sourceControl.repositoryUrl ? vm.sourceControl.repositoryUrl : 'Repository URL needed';
       }
     }
     return text;
@@ -143,9 +130,7 @@ function SourceControlTileController(
         text = `Inherit access token${parentValue ? ` from ${parentName}` : ''}\
 ${vm.isApp ? ` (${provider})` : ''}`;
       } else {
-        text = `Provides default access token for ${vm.ownerName}${
-          vm.isApp ? ` (${provider})` : ''
-        }`;
+        text = `Provides default access token for ${vm.ownerName}${vm.isApp ? ` (${provider})` : ''}`;
       }
     }
     return text;

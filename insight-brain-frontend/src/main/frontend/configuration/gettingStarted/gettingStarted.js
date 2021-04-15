@@ -45,9 +45,7 @@ function GettingStartedController(
           vm.shouldDisplayHdsUnreachable = !results[1].data.alive;
           vm.hdsUnreachableErrorMessage = results[1].data.errorMessage;
           vm.hdsUnreachableIncidentId = results[1].data.incidentId;
-          return isAdmin()
-            ? $http.get(CLMLocations.getLicenseSummaryUrl())
-            : null;
+          return isAdmin() ? $http.get(CLMLocations.getLicenseSummaryUrl()) : null;
         })
         .then((result) => {
           if (result) {
@@ -64,10 +62,7 @@ function GettingStartedController(
     },
 
     isDataLoaded() {
-      return (
-        vm.validPermissions !== undefined &&
-        !(isAdmin() && vm.license === undefined)
-      );
+      return vm.validPermissions !== undefined && !(isAdmin() && vm.license === undefined);
     },
 
     isAuthorizedToViewSystemSetup() {
@@ -81,10 +76,7 @@ function GettingStartedController(
 
   function loadDataForAllUsers() {
     const promises = [
-      PermissionService.getValidPermissions([
-        'CONFIGURE_SYSTEM',
-        'ADD_APPLICATION',
-      ]),
+      PermissionService.getValidPermissions(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']),
       $http.get(CLMLocations.getIsHdsReachable()),
     ];
     return $q.all(promises);

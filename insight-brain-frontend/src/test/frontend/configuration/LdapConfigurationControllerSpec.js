@@ -10,42 +10,38 @@ describe('Tests for the LdapConfigurationController', function () {
   var scope, dialogScope;
 
   beforeEach(
-    angular.mock.module(
-      ldapModule.name,
-      httpInterceptors.name,
-      function ($provide) {
-        $provide.value('Modal', {
-          open: function (config) {
-            dialogScope = scope.$new();
-            dialogScope.$close = function () {};
-            inject(function ($controller) {
-              $controller(config.controller, {
-                $scope: dialogScope,
-              });
+    angular.mock.module(ldapModule.name, httpInterceptors.name, function ($provide) {
+      $provide.value('Modal', {
+        open: function (config) {
+          dialogScope = scope.$new();
+          dialogScope.$close = function () {};
+          inject(function ($controller) {
+            $controller(config.controller, {
+              $scope: dialogScope,
             });
-            return {
-              result: {
-                then: function (success) {
-                  success();
-                },
+          });
+          return {
+            result: {
+              then: function (success) {
+                success();
               },
-            };
-          },
-        });
+            },
+          };
+        },
+      });
 
-        $provide.value('$state', {
-          go: angular.noop,
-          transitionTo: angular.noop,
-          params: {
-            ldapId: '123',
-          },
-          current: {
-            name: 'ldap',
-          },
-        });
-        SpecUtil.mockPermissionService($provide);
-      }
-    )
+      $provide.value('$state', {
+        go: angular.noop,
+        transitionTo: angular.noop,
+        params: {
+          ldapId: '123',
+        },
+        current: {
+          name: 'ldap',
+        },
+      });
+      SpecUtil.mockPermissionService($provide);
+    })
   );
 
   describe('LdapConfigurationController', function () {
@@ -62,14 +58,12 @@ describe('Tests for the LdapConfigurationController', function () {
           isAuthorized: true,
         });
 
-        $httpBackend
-          .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConfig()))
-          .respond([
-            {
-              id: '123',
-              name: 'config1',
-            },
-          ]);
+        $httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConfig())).respond([
+          {
+            id: '123',
+            name: 'config1',
+          },
+        ]);
         $httpBackend.flush();
       });
     }
@@ -90,15 +84,9 @@ describe('Tests for the LdapConfigurationController', function () {
         $save: angular.noop,
       };
 
-      httpBackend
-        .whenGET('owner.manager/state/owner.manager.view.html?')
-        .respond('<div></div>');
-      httpBackend
-        .whenGET('configuration/components/ldap.html?')
-        .respond('<div></div>');
-      httpBackend
-        .whenGET('configuration/components/ldap-connection.html?')
-        .respond('<div></div>');
+      httpBackend.whenGET('owner.manager/state/owner.manager.view.html?').respond('<div></div>');
+      httpBackend.whenGET('configuration/components/ldap.html?').respond('<div></div>');
+      httpBackend.whenGET('configuration/components/ldap-connection.html?').respond('<div></div>');
     }));
 
     afterEach(function () {
@@ -202,27 +190,17 @@ describe('Tests for the LdapConfigurationController', function () {
         '123'
       );
 
-      expect(
-        angular.element('#deleteConfigurationModal').css('display')
-      ).toBeUndefined();
+      expect(angular.element('#deleteConfigurationModal').css('display')).toBeUndefined();
 
       scope.confirmDeleteConfiguration();
 
-      expect(
-        angular.element('#deleteConfigurationModal').css('display')
-      ).not.toBe('none');
+      expect(angular.element('#deleteConfigurationModal').css('display')).not.toBe('none');
 
-      httpBackend
-        .expectDELETE(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConfig() + '/123')
-        )
-        .respond({});
+      httpBackend.expectDELETE(SpecUtil.toRegExp(CLMContextLocations.getLdapConfig() + '/123')).respond({});
       scope.deleteConfiguration();
       httpBackend.flush();
 
-      expect(
-        angular.element('#deleteConfigurationModal').css('display')
-      ).toBeUndefined();
+      expect(angular.element('#deleteConfigurationModal').css('display')).toBeUndefined();
 
       expect(scope.ldap).toBeNull();
       expect($state.transitionTo).toHaveBeenCalledWith('ldap-servers');
@@ -242,13 +220,7 @@ describe('Tests for the LdapConfigurationController', function () {
   describe('LdapConnectionController', function () {
     var httpBackend, state, CLMContextLocations;
 
-    beforeEach(inject(function (
-      $httpBackend,
-      $rootScope,
-      $controller,
-      $state,
-      _CLMContextLocations_
-    ) {
+    beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, _CLMContextLocations_) {
       httpBackend = $httpBackend;
       CLMContextLocations = _CLMContextLocations_;
 
@@ -283,13 +255,9 @@ describe('Tests for the LdapConfigurationController', function () {
       scope.$destroy();
     });
 
-    it('create/update/delete ldap connection', inject(function (
-      CLMContextLocations
-    ) {
+    it('create/update/delete ldap connection', inject(function (CLMContextLocations) {
       httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
+        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
         .respond({ serverId: scope.ldap.id });
       httpBackend.flush();
 
@@ -314,22 +282,18 @@ describe('Tests for the LdapConfigurationController', function () {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond(function () {
-          return [
-            200,
-            angular.extend(
-              {
-                id: 'id1',
-              },
-              angular.copy(scope.ldapConn)
-            ),
-            {},
-          ];
-        });
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond(function () {
+        return [
+          200,
+          angular.extend(
+            {
+              id: 'id1',
+            },
+            angular.copy(scope.ldapConn)
+          ),
+          {},
+        ];
+      });
       scope.save();
       expect(scope.saving).toBeTruthy();
       httpBackend.flush();
@@ -346,13 +310,9 @@ describe('Tests for the LdapConfigurationController', function () {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond(function () {
-          return [200, angular.copy(scope.ldapConn), {}];
-        });
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond(function () {
+        return [200, angular.copy(scope.ldapConn), {}];
+      });
       scope.save();
       expect(scope.saving).toBeTruthy();
       httpBackend.flush();
@@ -366,9 +326,7 @@ describe('Tests for the LdapConfigurationController', function () {
 
     it('displays confirmation dialog when navigating away from edited data', function () {
       httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
+        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
         .respond({ serverId: scope.ldap.id });
       httpBackend.flush();
 
@@ -393,9 +351,7 @@ describe('Tests for the LdapConfigurationController', function () {
 
     it('test connection', inject(function (CLMContextLocations) {
       httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
+        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
         .respond({ serverId: scope.ldap.id });
       httpBackend.flush();
 
@@ -407,26 +363,18 @@ describe('Tests for the LdapConfigurationController', function () {
       scope.ldapConn.password = 'anon';
 
       // configuration is good
-      httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionTest())
-        )
-        .respond(function () {
-          return [200, { status: 'OK' }, {}];
-        });
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionTest())).respond(function () {
+        return [200, { status: 'OK' }, {}];
+      });
       scope.testConnection();
       httpBackend.flush();
       expect(scope.alerts.length).toBe(1);
       expect(scope.alerts[0].type).toBe('success');
 
       // configuration is bad
-      httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionTest())
-        )
-        .respond(function () {
-          return [200, { status: 'FAILURE', message: 'foo bar' }, {}];
-        });
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionTest())).respond(function () {
+        return [200, { status: 'FAILURE', message: 'foo bar' }, {}];
+      });
       scope.testConnection();
       httpBackend.flush();
       expect(scope.alerts.length).toBe(1);
@@ -434,13 +382,9 @@ describe('Tests for the LdapConfigurationController', function () {
       expect(scope.alerts[0].msg).toBe('foo bar');
 
       // clm server misbehaves
-      httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionTest())
-        )
-        .respond(function () {
-          return [500, 'foo bar', {}];
-        });
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionTest())).respond(function () {
+        return [500, 'foo bar', {}];
+      });
       scope.testConnection();
       httpBackend.flush();
       expect(scope.alerts.length).toBe(1);
@@ -448,13 +392,9 @@ describe('Tests for the LdapConfigurationController', function () {
       expect(scope.alerts[0].msg).toBe('foo bar');
 
       // can't connect to clm server
-      httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionTest())
-        )
-        .respond(function () {
-          return [0, '', {}];
-        });
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionTest())).respond(function () {
+        return [0, '', {}];
+      });
       scope.testConnection();
       httpBackend.flush();
       expect(scope.alerts.length).toBe(1);
@@ -464,9 +404,7 @@ describe('Tests for the LdapConfigurationController', function () {
 
     it('set default protocol port', inject(function () {
       httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
+        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
         .respond({ serverId: scope.ldap.id });
       httpBackend.flush();
 
@@ -503,25 +441,19 @@ describe('Tests for the LdapConfigurationController', function () {
 
     it('does nothing to the password if the form is not ready', inject(function () {
       httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
+        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
         .respond({ serverId: scope.ldap.id });
       httpBackend.flush();
 
       scope.ldapConn = undefined;
       scope.clearOrRestorePasswordIfNeeded();
       expect(scope.ldapConn).toBeUndefined();
-      expect(
-        scope.ldapConnectionEditor['ldap-system-password'].$dirty
-      ).toBeFalsy();
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
     }));
 
     it('does nothing to the password if it is not an update', inject(function () {
       httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
+        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
         .respond({ serverId: scope.ldap.id });
       httpBackend.flush();
 
@@ -536,22 +468,16 @@ describe('Tests for the LdapConfigurationController', function () {
         port: 389,
         systemPassword: 'password',
       });
-      expect(
-        scope.ldapConnectionEditor['ldap-system-password'].$dirty
-      ).toBeFalsy();
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
     }));
 
     it('does nothing to the password if the user has updated it along with the hostname', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -565,22 +491,16 @@ describe('Tests for the LdapConfigurationController', function () {
         port: 389,
         systemPassword: 'password',
       });
-      expect(
-        scope.ldapConnectionEditor['ldap-system-password'].$dirty
-      ).toBeFalsy();
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
     }));
 
     it('does nothing to the password if the user has updated it along with the port', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -594,22 +514,16 @@ describe('Tests for the LdapConfigurationController', function () {
         port: 3891,
         systemPassword: 'password',
       });
-      expect(
-        scope.ldapConnectionEditor['ldap-system-password'].$dirty
-      ).toBeFalsy();
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
     }));
 
     it('clears the password if the user has not updated it but has updated the hostname', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -623,22 +537,16 @@ describe('Tests for the LdapConfigurationController', function () {
         port: 389,
         systemPassword: undefined,
       });
-      expect(
-        scope.ldapConnectionEditor['ldap-system-password'].$dirty
-      ).toBeTruthy();
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeTruthy();
     }));
 
     it('clears the password if the user has not updated it but has updated the port', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -652,22 +560,16 @@ describe('Tests for the LdapConfigurationController', function () {
         port: 3891,
         systemPassword: undefined,
       });
-      expect(
-        scope.ldapConnectionEditor['ldap-system-password'].$dirty
-      ).toBeTruthy();
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeTruthy();
     }));
 
     it('restores the password if it is undefined and the host and port are the same', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -682,16 +584,12 @@ describe('Tests for the LdapConfigurationController', function () {
         port: 389,
         systemPassword: '#~FAKE~PASSWORD~#',
       });
-      expect(
-        scope.ldapConnectionEditor['ldap-system-password'].$dirty
-      ).toBeFalsy();
+      expect(scope.ldapConnectionEditor['ldap-system-password'].$dirty).toBeFalsy();
     }));
 
     it('does not show the password needs entry message if the form is not ready', inject(function () {
       httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
+        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
         .respond({ serverId: scope.ldap.id });
       httpBackend.flush();
 
@@ -701,9 +599,7 @@ describe('Tests for the LdapConfigurationController', function () {
 
     it('does not show the password needs entry message if it is not an update', inject(function () {
       httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
+        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig()))
         .respond({ serverId: scope.ldap.id });
       httpBackend.flush();
 
@@ -716,16 +612,12 @@ describe('Tests for the LdapConfigurationController', function () {
     }));
 
     it('does not show the password needs entry message if the hostname and port are the same', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -737,16 +629,12 @@ describe('Tests for the LdapConfigurationController', function () {
     }));
 
     it('does not show the password needs entry message if the password and hostname are updated', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -758,16 +646,12 @@ describe('Tests for the LdapConfigurationController', function () {
     }));
 
     it('does not show the password needs entry message if the password and port are updated', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -779,16 +663,12 @@ describe('Tests for the LdapConfigurationController', function () {
     }));
 
     it('shows the password needs entry message if the hostname is updated and the password is undefined', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -800,16 +680,12 @@ describe('Tests for the LdapConfigurationController', function () {
     }));
 
     it('shows the password needs entry message if the port is updated and the password is undefined', inject(function () {
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          hostname: 'hostname',
-          port: 389,
-          systemPassword: '#~FAKE~PASSWORD~#',
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapConnectionConfig())).respond({
+        serverId: scope.ldap.id,
+        hostname: 'hostname',
+        port: 389,
+        systemPassword: '#~FAKE~PASSWORD~#',
+      });
       httpBackend.flush();
 
       scope.ldapConn = {
@@ -824,13 +700,7 @@ describe('Tests for the LdapConfigurationController', function () {
   describe('LdapUsermappingController', function () {
     var httpBackend, state;
 
-    beforeEach(inject(function (
-      $httpBackend,
-      $rootScope,
-      $controller,
-      $state,
-      CLMContextLocations
-    ) {
+    beforeEach(inject(function ($httpBackend, $rootScope, $controller, $state, CLMContextLocations) {
       httpBackend = $httpBackend;
 
       $state.current.name = 'ldap.usermapping';
@@ -840,14 +710,10 @@ describe('Tests for the LdapConfigurationController', function () {
 
       scope.ldap = { id: '123' };
 
-      httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapUserMappingConfig())
-        )
-        .respond({
-          serverId: scope.ldap.id,
-          userPasswordAttribute: null,
-        });
+      httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getLdapUserMappingConfig())).respond({
+        serverId: scope.ldap.id,
+        userPasswordAttribute: null,
+      });
 
       $controller('LdapUsermappingController', {
         $scope: scope,
@@ -863,9 +729,7 @@ describe('Tests for the LdapConfigurationController', function () {
       scope.$destroy();
     });
 
-    it('create/update/delete ldap user mapping', inject(function (
-      CLMContextLocations
-    ) {
+    it('create/update/delete ldap user mapping', inject(function (CLMContextLocations) {
       // retrieve (empty configuration)
 
       expect(scope.ldapUserMapping).not.toBeUndefined();
@@ -890,27 +754,22 @@ describe('Tests for the LdapConfigurationController', function () {
       scope.ldapUserMapping.groupIDAttribute = 'groupIDAttribute';
       scope.ldapUserMapping.groupMemberAttribute = 'groupMemberAttribute';
       scope.ldapUserMapping.groupMemberFormat = 'groupMemberFormat';
-      scope.ldapUserMapping.userMemberOfGroupAttribute =
-        'userMemberOfGroupAttribute';
+      scope.ldapUserMapping.userMemberOfGroupAttribute = 'userMemberOfGroupAttribute';
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapUserMappingConfig())
-        )
-        .respond(function () {
-          return [
-            200,
-            angular.extend(
-              {
-                id: 'id1',
-              },
-              angular.copy(scope.ldapUserMapping)
-            ),
-            {},
-          ];
-        });
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMContextLocations.getLdapUserMappingConfig())).respond(function () {
+        return [
+          200,
+          angular.extend(
+            {
+              id: 'id1',
+            },
+            angular.copy(scope.ldapUserMapping)
+          ),
+          {},
+        ];
+      });
       scope.save();
       expect(scope.saving).toBeTruthy();
       httpBackend.flush();
@@ -925,13 +784,9 @@ describe('Tests for the LdapConfigurationController', function () {
 
       expect(scope.isDirty()).toBeTruthy();
 
-      httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(CLMContextLocations.getLdapUserMappingConfig())
-        )
-        .respond(function () {
-          return [200, angular.copy(scope.ldapUserMapping), {}];
-        });
+      httpBackend.expectPUT(SpecUtil.toRegExp(CLMContextLocations.getLdapUserMappingConfig())).respond(function () {
+        return [200, angular.copy(scope.ldapUserMapping), {}];
+      });
       scope.save();
       expect(scope.saving).toBeTruthy();
       httpBackend.flush();

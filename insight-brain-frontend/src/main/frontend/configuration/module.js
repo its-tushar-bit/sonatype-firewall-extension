@@ -36,45 +36,22 @@ export default angular
     automaticSourceControlConfigurationModule.name,
     'ngRedux',
   ])
-  .component(
-    'mailConfig',
-    react2angular(
-      withStoreProvider(MailConfigContainer),
-      ['isAuthorized'],
-      ['$ngRedux']
-    )
-  )
+  .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
   .component(
     'proxyConfig',
-    react2angular(
-      withStoreProvider(ProxyConfigContainer),
-      ['isAuthorized', 'licensed'],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(ProxyConfigContainer), ['isAuthorized', 'licensed'], ['$ngRedux', '$state'])
   )
   .component(
     'advancedSearchConfig',
-    react2angular(
-      withStoreProvider(AdvancedSearchConfigContainer),
-      ['isAuthorized'],
-      ['$ngRedux']
-    )
+    react2angular(withStoreProvider(AdvancedSearchConfigContainer), ['isAuthorized'], ['$ngRedux'])
   )
   .component(
     'scmOnboarding',
-    react2angular(
-      withStoreProvider(ScmOnboardingContainer),
-      ['isAuthorized'],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(ScmOnboardingContainer), ['isAuthorized'], ['$ngRedux', '$state'])
   )
   .component(
     'labsDataInsights',
-    react2angular(
-      withStoreProvider(LabsDataInsightsContainer),
-      ['isAuthorized'],
-      ['$ngRedux']
-    )
+    react2angular(withStoreProvider(LabsDataInsightsContainer), ['isAuthorized'], ['$ngRedux'])
   )
   .factory('scmOnboardingActions', scmOnboardingActions)
   .config(routes);
@@ -142,9 +119,7 @@ function routes($stateProvider) {
         licensed: [
           'ProductLicense',
           function (ProductLicense) {
-            return ProductLicense.load()
-              .then(always(true))
-              .catch(always(false));
+            return ProductLicense.load().then(always(true)).catch(always(false));
           },
         ],
       },

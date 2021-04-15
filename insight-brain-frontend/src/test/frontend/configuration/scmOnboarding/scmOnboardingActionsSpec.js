@@ -46,10 +46,7 @@ describe('scmOnboardingActions', function () {
   }));
 
   describe('loadPage', function () {
-    const compositeSourceControlUrl = getCompositeSourceControlUrl(
-        'organization',
-        'ownerId'
-      ),
+    const compositeSourceControlUrl = getCompositeSourceControlUrl('organization', 'ownerId'),
       compositeSourceControlPayload = {
         provider: 'github',
         token: { value: 'token' },
@@ -73,18 +70,14 @@ describe('scmOnboardingActions', function () {
             [scmOnboardingConfigUrl]: Promise.resolve({
               data: scmOnboardingConfigPayload,
             }),
-            [getCompositeSourceControlUrl(
-              'organization',
-              'id1'
-            )]: Promise.resolve({ data: compositeSourceControlPayload }),
+            [getCompositeSourceControlUrl('organization', 'id1')]: Promise.resolve({
+              data: compositeSourceControlPayload,
+            }),
             [scmOrganizationsUrl]: Promise.resolve({ data: orgResults }),
             [getScmDefaultHostUrl('id1', 'github')]: Promise.resolve({
               data: scmDefaultHostPayload,
             }),
-            [getCompositeSourceControlUrl(
-              'organization',
-              'id2'
-            )]: Promise.resolve({
+            [getCompositeSourceControlUrl('organization', 'id2')]: Promise.resolve({
               data: unconfiguredCompositeSourceControlPayload,
             }),
           },
@@ -120,9 +113,7 @@ describe('scmOnboardingActions', function () {
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
           expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[1].payload.configResults).toEqual(
-            scmOnboardingConfigPayload
-          );
+          expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
           expect(actions[1].payload.compositeSourceControlResults).toBeNull();
           expect(actions[1].payload.hostUrlResult).toBeNull();
@@ -145,16 +136,10 @@ describe('scmOnboardingActions', function () {
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
           expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
-          expect(actions[1].payload.configResults).toEqual(
-            scmOnboardingConfigPayload
-          );
+          expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[1].payload.compositeSourceControlResults).toEqual(
-            compositeSourceControlPayload
-          );
-          expect(actions[1].payload.hostUrlResult).toEqual(
-            scmDefaultHostPayload
-          );
+          expect(actions[1].payload.compositeSourceControlResults).toEqual(compositeSourceControlPayload);
+          expect(actions[1].payload.hostUrlResult).toEqual(scmDefaultHostPayload);
         });
       });
 
@@ -172,13 +157,9 @@ describe('scmOnboardingActions', function () {
           expect(actions[0].payload).toEqual('id2');
 
           // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created with the expected payload
-          expect(actions[1].payload.configResults).toEqual(
-            scmOnboardingConfigPayload
-          );
+          expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
-          expect(actions[1].payload.compositeSourceControlResults).toEqual(
-            unconfiguredCompositeSourceControlPayload
-          );
+          expect(actions[1].payload.compositeSourceControlResults).toEqual(unconfiguredCompositeSourceControlPayload);
           expect(actions[1].payload.hostUrlResult).toEqual(null);
         });
       });
@@ -209,21 +190,17 @@ describe('scmOnboardingActions', function () {
         it(`fails properly when it calls ${testLabel}`, function () {
           mockAxiosCalls(responsesSupplier());
 
-          return store
-            .dispatch(scmOnboardingActions.loadPage('ownerId'))
-            .then(() => {
-              // then SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created
-              let actions = store.getActions();
-              expect(actions.length).toBe(2);
-              expect(actions[0].type).toBe(
-                'SCM_ONBOARDING_LOAD_PAGE_REQUESTED'
-              );
-              expect(actions[0].payload).toEqual('ownerId');
+          return store.dispatch(scmOnboardingActions.loadPage('ownerId')).then(() => {
+            // then SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created
+            let actions = store.getActions();
+            expect(actions.length).toBe(2);
+            expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
+            expect(actions[0].payload).toEqual('ownerId');
 
-              // and SCM_ONBOARDING_LOAD_PAGE_FAILED action is created
-              expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FAILED');
-              expect(actions[1].payload).toEqual('failed call');
-            });
+            // and SCM_ONBOARDING_LOAD_PAGE_FAILED action is created
+            expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FAILED');
+            expect(actions[1].payload).toEqual('failed call');
+          });
         });
       }
 
@@ -303,9 +280,7 @@ describe('scmOnboardingActions', function () {
       store.dispatch(scmOnboardingActions.onRepositorySelectionChanged(repo));
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toEqual(
-        'SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED'
-      );
+      expect(actions[0].type).toEqual('SCM_ONBOARDING_REPOSITORY_SELECTION_CHANGED');
     });
   });
 
@@ -323,14 +298,10 @@ describe('scmOnboardingActions', function () {
 
       store = SpecUtil.mockReduxStore(state);
 
-      store
-        .dispatch(scmOnboardingActions.loadRepositories(orgId, scmUrl))
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledWith(
-            getScmRepositoriesUrl(orgId, scmUrl)
-          );
-          done();
-        });
+      store.dispatch(scmOnboardingActions.loadRepositories(orgId, scmUrl)).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl(orgId, scmUrl));
+        done();
+      });
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0]).toEqual({
@@ -343,31 +314,21 @@ describe('scmOnboardingActions', function () {
       const scmUrl = 'http://localhost:1234';
       mockAxiosCalls({
         get: {
-          [getScmRepositoriesUrl(orgId, scmUrl)]: Promise.reject(
-            'Failed request'
-          ),
+          [getScmRepositoriesUrl(orgId, scmUrl)]: Promise.reject('Failed request'),
         },
       });
 
       store = SpecUtil.mockReduxStore(state);
 
-      store
-        .dispatch(scmOnboardingActions.loadRepositories(orgId, scmUrl))
-        .then(() => {
-          expect(axios.get).toHaveBeenCalledWith(
-            getScmRepositoriesUrl(orgId, scmUrl)
-          );
-          expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toBe(
-            'SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED'
-          );
-          expect(store.getActions()[1].payload).toBe('Failed request');
-          done();
-        });
+      store.dispatch(scmOnboardingActions.loadRepositories(orgId, scmUrl)).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl(orgId, scmUrl));
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[1].type).toBe('SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED');
+        expect(store.getActions()[1].payload).toBe('Failed request');
+        done();
+      });
       expect(store.getActions().length).toBe(1);
-      expect(axios.get).toHaveBeenCalledWith(
-        getScmRepositoriesUrl(orgId, scmUrl)
-      );
+      expect(axios.get).toHaveBeenCalledWith(getScmRepositoriesUrl(orgId, scmUrl));
     });
   });
 
@@ -415,11 +376,7 @@ describe('scmOnboardingActions', function () {
       };
 
       // no axios calls
-      expect(
-        store.dispatch(
-          scmOnboardingActions.setSelectedOrganization(selectedOrg)
-        )
-      ).toBeUndefined();
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeUndefined();
 
       const actions = store.getActions();
       expect(actions).toEqual([
@@ -442,16 +399,10 @@ describe('scmOnboardingActions', function () {
       };
 
       // triggers an attempt to get new default host URL
-      expect(
-        store.dispatch(
-          scmOnboardingActions.setSelectedOrganization(selectedOrg)
-        )
-      ).toBeDefined();
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeDefined();
 
       const actions = store.getActions();
-      expect(actions).toEqual([
-        { type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED },
-      ]);
+      expect(actions).toEqual([{ type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED }]);
     });
 
     it('dispatches loadRepositoriesRequested when the old token was overridden', function () {
@@ -462,16 +413,10 @@ describe('scmOnboardingActions', function () {
       };
 
       // attempts to check if default host URL changed
-      expect(
-        store.dispatch(
-          scmOnboardingActions.setSelectedOrganization(selectedOrg)
-        )
-      ).toBeDefined();
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeDefined();
 
       const actions = store.getActions();
-      expect(actions).toEqual([
-        { type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED },
-      ]);
+      expect(actions).toEqual([{ type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED }]);
     });
     it('dispatches loadRepositoriesRequested when the both the new & old tokens are overridden', function () {
       store = mockReduxStoreForSelectedOrg(true, prevOrg);
@@ -482,9 +427,7 @@ describe('scmOnboardingActions', function () {
 
       store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg));
       const actions = store.getActions();
-      expect(actions).toEqual([
-        { type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED },
-      ]);
+      expect(actions).toEqual([{ type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED }]);
     });
 
     it('dispatches loadRepositories and all further actions when the token is overridden', function (done) {
@@ -502,18 +445,16 @@ describe('scmOnboardingActions', function () {
         sourceControl: { token: { value: 'redacted' }, provider: 'github' },
       };
 
-      store
-        .dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))
-        .then(() => {
-          let actions = store.getActions();
-          expect(actions.map((a) => a.type)).toEqual([
-            SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
-            SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
-            SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
-            SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
-          ]);
-          done();
-        });
+      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg)).then(() => {
+        let actions = store.getActions();
+        expect(actions.map((a) => a.type)).toEqual([
+          SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
+          SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+          SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+          SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
+        ]);
+        done();
+      });
     });
 
     it('dispatches loadRepositories when prev org is undefined', function (done) {
@@ -531,18 +472,16 @@ describe('scmOnboardingActions', function () {
         sourceControl: { token: { value: null }, provider: 'github' },
       };
 
-      store
-        .dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))
-        .then(() => {
-          let actions = store.getActions();
-          expect(actions.map((a) => a.type)).toEqual([
-            SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
-            SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
-            SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
-            SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
-          ]);
-          done();
-        });
+      store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg)).then(() => {
+        let actions = store.getActions();
+        expect(actions.map((a) => a.type)).toEqual([
+          SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED,
+          SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+          SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
+          SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FAILED,
+        ]);
+        done();
+      });
     });
 
     it('does not dispatch loadRepositories when token is unchanged', function () {
@@ -553,11 +492,7 @@ describe('scmOnboardingActions', function () {
       };
 
       // undefined because it does not make any axios calls
-      expect(
-        store.dispatch(
-          scmOnboardingActions.setSelectedOrganization(selectedOrg)
-        )
-      ).toBeUndefined();
+      expect(store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg))).toBeUndefined();
 
       const actions = store.getActions();
       expect(actions).toEqual([
@@ -596,9 +531,7 @@ describe('scmOnboardingActions', function () {
 
       jasmine.clock().mockDate();
 
-      store.dispatch(
-        scmOnboardingActions.validateScmHostUrl('provider', 'http://host/')
-      );
+      store.dispatch(scmOnboardingActions.validateScmHostUrl('provider', 'http://host/'));
 
       // dispatches no actions until debounce timeout has passed
       expect(store.getActions().length).toBe(0);
@@ -610,9 +543,7 @@ describe('scmOnboardingActions', function () {
       // after the debounce timeout the request is dispatched
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(
-        'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED'
-      );
+      expect(actions[0].type).toBe('SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED');
       expect(actions[0].payload).toBeUndefined();
     });
 
@@ -627,23 +558,17 @@ describe('scmOnboardingActions', function () {
 
       it('dispatches SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED', function (done) {
         store
-          .dispatch(
-            scmOnboardingActions.validateScmHostUrl('provider', 'http://host/')
-          )
+          .dispatch(scmOnboardingActions.validateScmHostUrl('provider', 'http://host/'))
           .then(() => {
             actions = store.getActions();
             expect(actions.length).toBe(1);
-            expect(actions[0].type).toBe(
-              'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED'
-            );
+            expect(actions[0].type).toBe('SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_REQUESTED');
             done();
           })
           .then(() => {
             actions = store.getActions();
             expect(actions.length).toBe(2);
-            expect(actions[1].type).toBe(
-              'SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED'
-            );
+            expect(actions[1].type).toBe('SCM_ONBOARDING_VALIDATE_SCM_HOST_URL_FULFILLED');
             done();
           });
 
@@ -699,30 +624,22 @@ describe('scmOnboardingActions', function () {
       });
 
       it('dispatches SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED', function (done) {
-        state
-          .dispatch(scmOnboardingActions.addOrganization('My Organization'))
-          .then(() => {
-            actions = state.getActions();
-            expect(actions.length).toBe(3);
-            expect(actions[0].type).toBe(
-              'SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED'
-            );
-            expect(actions[0].payload).toEqual({
-              organization: createOrgPayload,
-              sourceControl: {
-                provider: 'configuredProvider',
-                token: { value: null, parentValue: 'redacted' },
-              },
-            });
-            // also triggers actions to set target organization
-            expect(actions[1].type).toBe(
-              'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED'
-            );
-            expect(actions[2].type).toBe(
-              'SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED'
-            );
-            done();
+        state.dispatch(scmOnboardingActions.addOrganization('My Organization')).then(() => {
+          actions = state.getActions();
+          expect(actions.length).toBe(3);
+          expect(actions[0].type).toBe('SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED');
+          expect(actions[0].payload).toEqual({
+            organization: createOrgPayload,
+            sourceControl: {
+              provider: 'configuredProvider',
+              token: { value: null, parentValue: 'redacted' },
+            },
           });
+          // also triggers actions to set target organization
+          expect(actions[1].type).toBe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED');
+          expect(actions[2].type).toBe('SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED');
+          done();
+        });
 
         let actions = state.getActions();
         expect(actions.length).toBe(0);
@@ -748,17 +665,13 @@ describe('scmOnboardingActions', function () {
             },
           },
         });
-        store
-          .dispatch(scmOnboardingActions.addOrganization('My Organization'))
-          .then(() => {
-            actions = store.getActions();
-            expect(actions.length).toBe(1);
-            expect(actions[0].type).toBe(
-              'SCM_ONBOARDING_ADD_ORGANIZATION_FAILED'
-            );
-            expect(actions[0].payload).toEqual(failureMessage);
-            done();
-          });
+        store.dispatch(scmOnboardingActions.addOrganization('My Organization')).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(1);
+          expect(actions[0].type).toBe('SCM_ONBOARDING_ADD_ORGANIZATION_FAILED');
+          expect(actions[0].payload).toEqual(failureMessage);
+          done();
+        });
 
         let actions = store.getActions();
         expect(actions.length).toBe(0);

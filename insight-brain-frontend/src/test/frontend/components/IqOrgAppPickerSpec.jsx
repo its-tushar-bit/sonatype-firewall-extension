@@ -45,14 +45,8 @@ describe('IqOrgAppPicker', function () {
       selectedApplications: mockSelectedApplications,
       onChange: onChangeSpy,
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      IqOrgAppPicker,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      IqOrgAppPicker,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(IqOrgAppPicker, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(IqOrgAppPicker, minimalProps);
     wrapper = getShallowComponent(minimalProps);
   });
 
@@ -77,12 +71,8 @@ describe('IqOrgAppPicker', function () {
       selectedOrganizations,
       selectedApplications,
     });
-    const orgMultiSelect = selectedIdsWrapper
-      .find(NxStatefulTreeViewMultiSelect)
-      .at(0);
-    const appMultiSelect = selectedIdsWrapper
-      .find(NxStatefulTreeViewMultiSelect)
-      .at(1);
+    const orgMultiSelect = selectedIdsWrapper.find(NxStatefulTreeViewMultiSelect).at(0);
+    const appMultiSelect = selectedIdsWrapper.find(NxStatefulTreeViewMultiSelect).at(1);
     expect(orgMultiSelect).toHaveProp('selectedIds', new Set(['mock']));
     expect(appMultiSelect).toHaveProp('selectedIds', new Set(['mockApp']));
   });
@@ -92,9 +82,7 @@ describe('IqOrgAppPicker', function () {
       it('selects all apps', function () {
         mountedComponent = getMountedComponent(new Set(), new Set());
 
-        const orgMultiSelect = mountedComponent
-          .find(NxStatefulTreeViewMultiSelect)
-          .at(0);
+        const orgMultiSelect = mountedComponent.find(NxStatefulTreeViewMultiSelect).at(0);
         const orgAllNone = orgMultiSelect.find('.nx-checkbox__input').at(0);
         orgAllNone.simulate('change');
 
@@ -106,21 +94,14 @@ describe('IqOrgAppPicker', function () {
 
       it('deselects all apps when you use all/none to unselect all orgs', function () {
         const selectedOrganizations = new Set(['fooOrg', 'barOrg', 'bazOrg']);
-        const selectedApplications = new Set([
-          'fooApp1',
-          'fooApp2',
-          'barApp1',
-          'barApp2',
-        ]);
+        const selectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
         mountedComponent = getMountedComponent({
           ...minimalProps,
           selectedOrganizations,
           selectedApplications,
         });
 
-        const orgMultiSelect = mountedComponent
-          .find(NxStatefulTreeViewMultiSelect)
-          .at(0);
+        const orgMultiSelect = mountedComponent.find(NxStatefulTreeViewMultiSelect).at(0);
         const orgAllNone = orgMultiSelect.find('.nx-checkbox__input').at(0);
         orgAllNone.simulate('change');
         expect(onChangeSpy).toHaveBeenCalledWith(new Set(), new Set());
@@ -138,23 +119,14 @@ describe('IqOrgAppPicker', function () {
         selectedApplications,
       });
 
-      const orgMultiSelect = mountedComponent
-        .find(NxStatefulTreeViewMultiSelect)
-        .at(0);
+      const orgMultiSelect = mountedComponent.find(NxStatefulTreeViewMultiSelect).at(0);
       const fooOrg = orgMultiSelect.find('.nx-checkbox__input').at(1);
       fooOrg.simulate('change');
 
       const newSelectedOrganizations = new Set(['fooOrg']);
-      const expectedSelectedApplications = new Set([
-        'fooApp1',
-        'fooApp2',
-        'barApp1',
-      ]);
+      const expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1']);
 
-      expect(onChangeSpy).toHaveBeenCalledWith(
-        newSelectedOrganizations,
-        expectedSelectedApplications
-      );
+      expect(onChangeSpy).toHaveBeenCalledWith(newSelectedOrganizations, expectedSelectedApplications);
     });
   });
 
@@ -169,19 +141,14 @@ describe('IqOrgAppPicker', function () {
           selectedApplications,
         });
 
-        const orgMultiSelect = mountedComponent
-          .find(NxStatefulTreeViewMultiSelect)
-          .at(0);
+        const orgMultiSelect = mountedComponent.find(NxStatefulTreeViewMultiSelect).at(0);
         const fooOrg = orgMultiSelect.find('.nx-checkbox__input').at(1);
         fooOrg.simulate('change');
 
         const newSelectedOrganizations = new Set();
         const expectedSelectedApplications = new Set(['barApp1']);
 
-        expect(onChangeSpy).toHaveBeenCalledWith(
-          newSelectedOrganizations,
-          expectedSelectedApplications
-        );
+        expect(onChangeSpy).toHaveBeenCalledWith(newSelectedOrganizations, expectedSelectedApplications);
       });
     });
   });
@@ -199,23 +166,13 @@ describe('IqOrgAppPicker', function () {
         });
 
         const newSelectedOrganizations = new Set(['barOrg']);
-        const expectedSelectedApplications = new Set([
-          'fooApp1',
-          'fooApp2',
-          'barApp1',
-          'barApp2',
-        ]);
+        const expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
 
-        const orgMultiSelect = mountedComponent
-          .find(NxStatefulTreeViewMultiSelect)
-          .at(0);
+        const orgMultiSelect = mountedComponent.find(NxStatefulTreeViewMultiSelect).at(0);
         const barOrg = orgMultiSelect.find('.nx-checkbox__input').at(2);
         barOrg.simulate('change');
 
-        expect(onChangeSpy).toHaveBeenCalledWith(
-          newSelectedOrganizations,
-          expectedSelectedApplications
-        );
+        expect(onChangeSpy).toHaveBeenCalledWith(newSelectedOrganizations, expectedSelectedApplications);
       });
     });
   });
@@ -233,25 +190,15 @@ describe('IqOrgAppPicker', function () {
       const newSelectedApplications = new Set(['fooApp1', 'fooApp2']);
       const expectedSelectedOrganizations = new Set();
 
-      const appMultiSelect = mountedComponent
-        .find(NxStatefulTreeViewMultiSelect)
-        .at(1);
+      const appMultiSelect = mountedComponent.find(NxStatefulTreeViewMultiSelect).at(1);
       const fooApp2 = appMultiSelect.find('.nx-checkbox__input').at(2);
       fooApp2.simulate('change');
 
-      expect(onChangeSpy).toHaveBeenCalledWith(
-        expectedSelectedOrganizations,
-        newSelectedApplications
-      );
+      expect(onChangeSpy).toHaveBeenCalledWith(expectedSelectedOrganizations, newSelectedApplications);
     });
 
     it('deselects an org if not all related apps are selected', function () {
-      const selectedApplications = new Set([
-        'fooApp1',
-        'fooApp2',
-        'barApp1',
-        'barApp2',
-      ]);
+      const selectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
       const selectedOrganizations = new Set(['fooOrg', 'barOrg']);
       mountedComponent = getMountedComponent({
         ...minimalProps,
@@ -259,23 +206,14 @@ describe('IqOrgAppPicker', function () {
         selectedApplications,
       });
 
-      const newSelectedApplications = new Set([
-        'fooApp1',
-        'barApp1',
-        'barApp2',
-      ]);
+      const newSelectedApplications = new Set(['fooApp1', 'barApp1', 'barApp2']);
       const expectedSelectedOrganizations = new Set(['barOrg']);
 
-      const appMultiSelect = mountedComponent
-        .find(NxStatefulTreeViewMultiSelect)
-        .at(1);
+      const appMultiSelect = mountedComponent.find(NxStatefulTreeViewMultiSelect).at(1);
       const fooApp2 = appMultiSelect.find('.nx-checkbox__input').at(2);
       fooApp2.simulate('change');
 
-      expect(onChangeSpy).toHaveBeenCalledWith(
-        expectedSelectedOrganizations,
-        newSelectedApplications
-      );
+      expect(onChangeSpy).toHaveBeenCalledWith(expectedSelectedOrganizations, newSelectedApplications);
     });
   });
 });

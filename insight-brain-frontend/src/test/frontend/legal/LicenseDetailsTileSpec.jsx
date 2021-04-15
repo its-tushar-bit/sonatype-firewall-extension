@@ -14,10 +14,7 @@ describe('LicenseDetailsTile component', function () {
   };
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LicenseDetailsTile,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LicenseDetailsTile, minimalProps);
   });
 
   it('renders a header with label `License Details`', function () {

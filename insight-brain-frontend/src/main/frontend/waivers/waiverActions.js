@@ -8,92 +8,49 @@ import { compose, path } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { capitalize, getFutureDate } from '../util/jsUtil';
-import {
-  noPayloadActionCreator,
-  payloadParamActionCreator,
-} from '../util/reduxUtil';
+import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { Messages } from '../util/CommonServices';
-import {
-  getAddPolicyViolationWaiverUrl,
-  getOwnerContextHierarchyUrl,
-  deleteWaiverUrl,
-} from '../util/CLMLocation';
+import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl, deleteWaiverUrl } from '../util/CLMLocation';
 
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { getPermissionContextTestUrl } from '../util/CLMContextLocation';
 import { getApplicationSummaryUrl } from '../util/CLMLocation';
-import {
-  fetchCrossStageViolation,
-  fetchApplicableWaivers,
-} from '../violation/violationActions';
+import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
 
-export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED =
-  'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
-export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED =
-  'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
-export const WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED =
-  'WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED';
+export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
+export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
+export const WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED';
 export const WAIVERS_SAVE_WAIVER_REQUESTED = 'WAIVERS_SAVE_WAIVER_REQUESTED';
 export const WAIVERS_SAVE_WAIVER_FULFILLED = 'WAIVERS_SAVE_WAIVER_FULFILLED';
 export const WAIVERS_SAVE_WAIVER_FAILED = 'WAIVERS_SAVE_WAIVER_FAILED';
-export const WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE =
-  'WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE';
-export const WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT =
-  'WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT';
-export const WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE =
-  'WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE';
-export const WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS =
-  'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS';
-export const WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME =
-  'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME';
-export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED =
-  'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED';
-export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED =
-  'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED';
-export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED =
-  'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED';
+export const WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE = 'WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE';
+export const WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT = 'WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT';
+export const WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE = 'WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE';
+export const WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS = 'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS';
+export const WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME = 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME';
+export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED';
+export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED';
+export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED';
 export const WAIVERS_SET_WAIVER_TO_DELETE = 'WAIVERS_SET_WAIVER_TO_DELETE';
-export const WAIVERS_HIDE_DELETE_WAIVER_MODAL =
-  'WAIVERS_HIDE_DELETE_WAIVER_MODAL';
-export const WAIVERS_DELETE_WAIVER_REQUESTED =
-  'WAIVERS_DELETE_WAIVER_REQUESTED';
-export const WAIVERS_DELETE_WAIVER_FULFILLED =
-  'WAIVERS_DELETE_WAIVER_FULFILLED';
+export const WAIVERS_HIDE_DELETE_WAIVER_MODAL = 'WAIVERS_HIDE_DELETE_WAIVER_MODAL';
+export const WAIVERS_DELETE_WAIVER_REQUESTED = 'WAIVERS_DELETE_WAIVER_REQUESTED';
+export const WAIVERS_DELETE_WAIVER_FULFILLED = 'WAIVERS_DELETE_WAIVER_FULFILLED';
 export const WAIVERS_DELETE_WAIVER_FAILED = 'WAIVERS_DELETE_WAIVER_FAILED';
 export const WAIVERS_DELETE_MASK_TIMER_DONE = 'WAIVERS_DELETE_MASK_TIMER_DONE';
 
-export const WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED =
-  'WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED';
-export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED =
-  'WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED';
-export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED =
-  'WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED';
+export const WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED';
+export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED';
+export const WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED = 'WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED';
 
-const saveWaiverRequested = noPayloadActionCreator(
-  WAIVERS_SAVE_WAIVER_REQUESTED
-);
-const saveWaiverFulfilled = noPayloadActionCreator(
-  WAIVERS_SAVE_WAIVER_FULFILLED
-);
+const saveWaiverRequested = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_REQUESTED);
+const saveWaiverFulfilled = noPayloadActionCreator(WAIVERS_SAVE_WAIVER_FULFILLED);
 const saveWaiverFailed = payloadParamActionCreator(WAIVERS_SAVE_WAIVER_FAILED);
-const loadAddWaiverDataRequested = noPayloadActionCreator(
-  WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED
-);
-const loadAddWaiverDataFailed = payloadParamActionCreator(
-  WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED
-);
-const loadAddWaiverDataFulfilled = payloadParamActionCreator(
-  WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED
-);
-const loadManageWaiversDataRequested = noPayloadActionCreator(
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED
-);
-const loadManageWaiversDataFulfilled = payloadParamActionCreator(
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED
-);
-const loadManageWaiversDataFailed = payloadParamActionCreator(
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED
-);
+const loadAddWaiverDataRequested = noPayloadActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+const loadAddWaiverDataFailed = payloadParamActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED);
+const loadAddWaiverDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED);
+const loadManageWaiversDataRequested = noPayloadActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
+const loadManageWaiversDataFulfilled = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED);
+const loadManageWaiversDataFailed = payloadParamActionCreator(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED);
 
 function startSubmitMaskTimer(dispatch) {
   setTimeout(() => {
@@ -117,22 +74,11 @@ function getExpiryTime(expiration) {
  * @param applyToAllComponents { boolean }
  * @param expiration { string }
  */
-export function saveWaiver(
-  policyViolationId,
-  waiverScope,
-  ownerId,
-  comment,
-  applyToAllComponents,
-  expiration
-) {
+export function saveWaiver(policyViolationId, waiverScope, ownerId, comment, applyToAllComponents, expiration) {
   return (dispatch) => {
     dispatch(saveWaiverRequested());
 
-    const url = getAddPolicyViolationWaiverUrl(
-        waiverScope,
-        ownerId,
-        policyViolationId
-      ),
+    const url = getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId),
       payload = {
         comment,
         applyToAllComponents,
@@ -165,15 +111,9 @@ export function loadAddWaiverData(violationId) {
           { violationDetails } = violation,
           { applicationPublicId, policyId } = violationDetails;
         // ToDo verify that ownerType is always application
-        return loadOwnerContextHierarchy(
-          ownerType,
-          applicationPublicId,
-          policyId
-        );
+        return loadOwnerContextHierarchy(ownerType, applicationPublicId, policyId);
       })
-      .then((waiverTargets) =>
-        dispatch(loadAddWaiverDataFulfilled(waiverTargets))
-      )
+      .then((waiverTargets) => dispatch(loadAddWaiverDataFulfilled(waiverTargets)))
       .catch((err) => dispatch(loadAddWaiverDataFailed(err)));
   };
 }
@@ -187,11 +127,7 @@ export function loadManageWaiversData(violationId) {
     dispatch(loadApplicableWaivers(violationId));
 
     return dispatch(fetchCrossStageViolation(violationId))
-      .then(() =>
-        loadPermissionForAppWaivers(
-          getState().violation.violationDetails.applicationPublicId
-        )
-      )
+      .then(() => loadPermissionForAppWaivers(getState().violation.violationDetails.applicationPublicId))
       .then(compose(dispatch, loadManageWaiversDataFulfilled))
       .catch(compose(dispatch, loadManageWaiversDataFailed));
   };
@@ -226,21 +162,13 @@ export function returnToAddWaiverOriginPage() {
   };
 }
 
-export const setWaiverComment = payloadParamActionCreator(
-  WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT
-);
+export const setWaiverComment = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT);
 
-export const setWaiverScope = payloadParamActionCreator(
-  WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE
-);
+export const setWaiverScope = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE);
 
-export const setApplyToAllComponents = payloadParamActionCreator(
-  WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS
-);
+export const setApplyToAllComponents = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS);
 
-export const setExpiryTime = payloadParamActionCreator(
-  WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME
-);
+export const setExpiryTime = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME);
 
 function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
   return axios
@@ -252,11 +180,7 @@ function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
 function loadPermissionForAppWaivers(applicationPublicId) {
   return axios
     .get(getApplicationSummaryUrl(applicationPublicId))
-    .then(({ data }) =>
-      axios.put(getPermissionContextTestUrl('application', data.id), [
-        'WAIVE_POLICY_VIOLATIONS',
-      ])
-    )
+    .then(({ data }) => axios.put(getPermissionContextTestUrl('application', data.id), ['WAIVE_POLICY_VIOLATIONS']))
     .then(({ data }) => data.length === 1);
 }
 
@@ -266,41 +190,24 @@ function loadPermissionForAppWaivers(applicationPublicId) {
 function processOwnerHierarchy(context) {
   // note that since the context data only includes the ancestors of the waiver, `children` should
   // never have more than one element
-  const processedChildren = context.children
-      ? processOwnerHierarchy(context.children[0])
-      : [],
+  const processedChildren = context.children ? processOwnerHierarchy(context.children[0]) : [],
     { type, id, name } = context,
     label = capitalize(type);
 
   return processedChildren.concat({ type, id, name, label });
 }
 
-export const setWaiverToDelete = payloadParamActionCreator(
-  WAIVERS_SET_WAIVER_TO_DELETE
-);
-export const hideDeleteWaiverModal = noPayloadActionCreator(
-  WAIVERS_HIDE_DELETE_WAIVER_MODAL
-);
-const deleteWaiverRequested = noPayloadActionCreator(
-  WAIVERS_DELETE_WAIVER_REQUESTED
-);
-const deleteWaiverFulfilled = noPayloadActionCreator(
-  WAIVERS_DELETE_WAIVER_FULFILLED
-);
-const deleteWaiverFailed = payloadParamActionCreator(
-  WAIVERS_DELETE_WAIVER_FAILED
-);
-const deleteWaiverMaskTimerDone = noPayloadActionCreator(
-  WAIVERS_DELETE_MASK_TIMER_DONE
-);
+export const setWaiverToDelete = payloadParamActionCreator(WAIVERS_SET_WAIVER_TO_DELETE);
+export const hideDeleteWaiverModal = noPayloadActionCreator(WAIVERS_HIDE_DELETE_WAIVER_MODAL);
+const deleteWaiverRequested = noPayloadActionCreator(WAIVERS_DELETE_WAIVER_REQUESTED);
+const deleteWaiverFulfilled = noPayloadActionCreator(WAIVERS_DELETE_WAIVER_FULFILLED);
+const deleteWaiverFailed = payloadParamActionCreator(WAIVERS_DELETE_WAIVER_FAILED);
+const deleteWaiverMaskTimerDone = noPayloadActionCreator(WAIVERS_DELETE_MASK_TIMER_DONE);
 
 export function deleteWaiver(ownerType, ownerId, waiverId) {
   return (dispatch, getState) => {
     dispatch(deleteWaiverRequested());
-    const { policyViolationId } = path(
-      ['violation', 'violationDetails'],
-      getState()
-    );
+    const { policyViolationId } = path(['violation', 'violationDetails'], getState());
     const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
 
     return axios
@@ -318,15 +225,9 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
   };
 }
 
-const loadApplicableWaiversRequested = noPayloadActionCreator(
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED
-);
-const loadApplicableWaiversFulfilled = noPayloadActionCreator(
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED
-);
-const loadApplicableWaiversFailed = payloadParamActionCreator(
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED
-);
+const loadApplicableWaiversRequested = noPayloadActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
+const loadApplicableWaiversFulfilled = noPayloadActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
+const loadApplicableWaiversFailed = payloadParamActionCreator(WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED);
 
 export function loadApplicableWaivers(policyViolationId) {
   return function (dispatch) {

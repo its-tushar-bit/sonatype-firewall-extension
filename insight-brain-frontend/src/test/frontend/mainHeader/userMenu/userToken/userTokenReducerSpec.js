@@ -108,10 +108,7 @@ describe('userTokenReducer', function () {
 
   describe('USER_TOKEN_HIDE_MODAL action', function () {
     it('sets isUserTokenModalVisible to false and restores the state to the init state', function () {
-      const reducerInitState = reducer(
-        undefined,
-        'unknownActionToReturnInitState'
-      );
+      const reducerInitState = reducer(undefined, 'unknownActionToReturnInitState');
 
       const state = {
         isUserTokenModalVisible: true,
@@ -126,10 +123,7 @@ describe('userTokenReducer', function () {
 
   describe('UI_ROUTER_ON_FINISH action', function () {
     it('resets state to initState', function () {
-      const reducerInitState = reducer(
-        undefined,
-        'unknownActionToReturnInitState'
-      );
+      const reducerInitState = reducer(undefined, 'unknownActionToReturnInitState');
 
       const state = {
         isUserTokenModalVisible: true,

@@ -12,8 +12,8 @@
         <h2>Continuous Monitoring</h2>
       </div>
       <div class="iq-tile-header__subtitle">
-        Each day the latest scan from this stage will be evaluated.
-        Notifications for new violations can be configured per policy.
+        Each day the latest scan from this stage will be evaluated. Notifications for new violations can be configured
+        per policy.
       </div>
     </header>
     <form
@@ -36,11 +36,7 @@
           {{::stage.stageName}}
         </iq-radio>
       </fieldset>
-      <footer
-        class="iq-tile-footer"
-        submit-wrapper="vm.submitError"
-        retry="vm.save()"
-      >
+      <footer class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button
           type="submit"
           class="iq-btn iq-btn--primary"
@@ -57,8 +53,7 @@
 
   <div ng-if="!vm.isMonitoringSupported">
     <div class="iq-alert iq-alert--error">
-      <i class="fa fa-warning"></i>Policy monitoring is not supported by your
-      license.
+      <i class="fa fa-warning"></i>Policy monitoring is not supported by your license.
     </div>
   </div>
 </section>

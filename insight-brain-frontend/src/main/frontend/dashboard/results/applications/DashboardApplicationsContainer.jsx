@@ -7,9 +7,7 @@ import { connect } from 'react-redux';
 
 import { loadResults, sortResults } from '../dashboardResultsActions';
 import { stateGo } from '../../../reduxUiRouter/routerActions';
-import DashboardApplications, {
-  APPLICATIONS_RESULTS_TYPE,
-} from './DashboardApplications';
+import DashboardApplications, { APPLICATIONS_RESULTS_TYPE } from './DashboardApplications';
 
 function mapStateToProps({ dashboard, dashboardFilter }) {
   const { loading, needsAcknowledgement, filtersAreDirty } = dashboardFilter;
@@ -28,8 +26,5 @@ const mapDispatchToProps = {
   stateGo,
 };
 
-const DashboardApplicationsContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(DashboardApplications);
+const DashboardApplicationsContainer = connect(mapStateToProps, mapDispatchToProps)(DashboardApplications);
 export default DashboardApplicationsContainer;

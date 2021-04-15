@@ -6,14 +6,8 @@
 
 import { connect } from 'react-redux';
 import CopyrightOverrideForm from './CopyrightOverrideForm';
-import {
-  saveCopyrightOverride,
-  setDisplayCopyrightOverrideModal,
-} from './copyrightOverrideFormActions';
-import {
-  setObligationScope,
-  setObligationStatus,
-} from '../obligation/advancedLegalObligationActions';
+import { saveCopyrightOverride, setDisplayCopyrightOverrideModal } from './copyrightOverrideFormActions';
+import { setObligationScope, setObligationStatus } from '../obligation/advancedLegalObligationActions';
 
 const mapDispatchToProps = {
   saveCopyrightOverride,
@@ -33,8 +27,5 @@ function mapStateToProps({ advancedLegal, copyrightOverrides }) {
   };
 }
 
-const CopyrightOverrideFormContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(CopyrightOverrideForm);
+const CopyrightOverrideFormContainer = connect(mapStateToProps, mapDispatchToProps)(CopyrightOverrideForm);
 export default CopyrightOverrideFormContainer;

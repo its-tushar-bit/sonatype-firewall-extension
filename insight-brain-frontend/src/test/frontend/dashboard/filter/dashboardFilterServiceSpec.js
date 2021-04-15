@@ -13,12 +13,7 @@ describe('dashboardFilterService', function () {
       policyTypes: new Set(['QUALITY', 'OTHER', 'SECURITY']),
       stages: new Set(['release', 'stage-release', 'build']),
       categories: new Set(['tagId1', 'tagId2', null]),
-      applications: new Set([
-        'applicationIdZ',
-        'applicationIdA',
-        'applicationIdQ',
-        'applicationIdR',
-      ]),
+      applications: new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR']),
       policyViolationStates: new Set(['OPEN', 'WAIVED']),
       maxDaysOld: 90,
       policyThreatLevels: [3, 6],
@@ -27,16 +22,8 @@ describe('dashboardFilterService', function () {
     it('creates proper filter json representation', function () {
       var filterJson = filterToJson(filter);
       expect(filterJson.organizationFilters).toEqual(['orgId1', 'orgId2']);
-      expect(filterJson.policyThreatCategoryFilters).toEqual([
-        'QUALITY',
-        'OTHER',
-        'SECURITY',
-      ]);
-      expect(filterJson.stageTypeFilters).toEqual([
-        'release',
-        'stage-release',
-        'build',
-      ]);
+      expect(filterJson.policyThreatCategoryFilters).toEqual(['QUALITY', 'OTHER', 'SECURITY']);
+      expect(filterJson.stageTypeFilters).toEqual(['release', 'stage-release', 'build']);
       expect(filterJson.tagFilters).toEqual(['tagId1', 'tagId2', null]);
       expect(filterJson.applicationFilters).toEqual([
         'applicationIdZ',

@@ -27,32 +27,13 @@ export default angular
     dashboardUtilsModule.name,
     dashboardResultsActionsModule.name,
   ])
-  .component(
-    'violations',
-    react2angular(
-      withStoreProvider(DashboardViolationsContainer),
-      [],
-      ['$ngRedux']
-    )
-  )
-  .component(
-    'components',
-    react2angular(
-      withStoreProvider(DashboardComponentsContainer),
-      [],
-      ['$ngRedux']
-    )
-  )
-  .component(
-    'dashboardResultsExportButton',
-    react2angular(withStoreProvider(ExportButtonContainer), [], ['$ngRedux'])
-  )
+  .component('violations', react2angular(withStoreProvider(DashboardViolationsContainer), [], ['$ngRedux']))
+  .component('components', react2angular(withStoreProvider(DashboardComponentsContainer), [], ['$ngRedux']))
+  .component('dashboardResultsExportButton', react2angular(withStoreProvider(ExportButtonContainer), [], ['$ngRedux']))
   .component(
     'applications',
     react2angular(
-      withStoreProvider(
-        withRouterStateProvider(DashboardApplicationsContainer)
-      ),
+      withStoreProvider(withRouterStateProvider(DashboardApplicationsContainer)),
       [],
       ['$ngRedux', '$state']
     )

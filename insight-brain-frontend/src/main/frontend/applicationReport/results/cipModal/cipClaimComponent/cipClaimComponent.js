@@ -19,14 +19,7 @@ export default {
   },
 };
 
-function ClaimComponentController(
-  $scope,
-  $http,
-  Dialog,
-  CLMLocations,
-  $timeout,
-  Messages
-) {
+function ClaimComponentController($scope, $http, Dialog, CLMLocations, $timeout, Messages) {
   const vm = this;
 
   Object.assign(vm, {
@@ -83,13 +76,10 @@ function ClaimComponentController(
       }
 
       // always show createDate, if available
-      const createTime = vm.serverClaimData
-        ? vm.serverClaimData.createTime
-        : vm.component.createTime;
+      const createTime = vm.serverClaimData ? vm.serverClaimData.createTime : vm.component.createTime;
       const createDate = createTime != null ? new Date(createTime) : '';
       vm.datePickerElement.datepicker('update', createDate);
-      vm.claimData.createTimeText =
-        createTime != null ? moment(createTime).format(DATE_FORMAT) : null;
+      vm.claimData.createTimeText = createTime != null ? moment(createTime).format(DATE_FORMAT) : null;
     },
 
     isClaimedComponent() {
@@ -101,12 +91,7 @@ function ClaimComponentController(
      */
     claimComponent() {
       if (vm.claimForm.$valid) {
-        return handleHttpRequest(
-          $http.post(
-            CLMLocations.getClaimComponentUrl(),
-            getClaimDataForServer()
-          )
-        );
+        return handleHttpRequest($http.post(CLMLocations.getClaimComponentUrl(), getClaimDataForServer()));
       }
     },
 
@@ -115,12 +100,7 @@ function ClaimComponentController(
      */
     updateComponent() {
       if (vm.claimForm.$valid) {
-        handleHttpRequest(
-          $http.put(
-            CLMLocations.getClaimComponentUrl(),
-            getClaimDataForServer()
-          )
-        );
+        handleHttpRequest($http.put(CLMLocations.getClaimComponentUrl(), getClaimDataForServer()));
       }
     },
 
@@ -128,9 +108,7 @@ function ClaimComponentController(
      * Remove(delete) an existing claim on a component
      */
     revokeClaim() {
-      handleHttpRequest(
-        $http.delete(CLMLocations.getClaimComponentUrl(vm.component.hash))
-      );
+      handleHttpRequest($http.delete(CLMLocations.getClaimComponentUrl(vm.component.hash)));
     },
 
     openRevokeClaimDialog() {
@@ -165,19 +143,14 @@ function ClaimComponentController(
       );
       if (claimForm.$submitted && hasRequiredError) {
         return 'Group ID, Artifact ID, Version and Extension are required';
-      } else if (
-        claimForm.createTimeText.$dirty &&
-        claimForm.createTimeText.$error.pattern
-      ) {
+      } else if (claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern) {
         return 'Date format is MM/DD/YYYY';
       }
     },
   });
 
   function fetchClaim() {
-    return handleHttpRequest(
-      $http.get(CLMLocations.getClaimComponentUrl(vm.component.hash))
-    );
+    return handleHttpRequest($http.get(CLMLocations.getClaimComponentUrl(vm.component.hash)));
   }
 
   function handleHttpRequest(promise) {
@@ -203,10 +176,7 @@ function ClaimComponentController(
 
   function getClaimDataForServer() {
     const { createTimeText } = vm.claimData;
-    const coordinates = pick(
-      ['groupId', 'artifactId', 'version', 'extension'],
-      vm.claimData
-    );
+    const coordinates = pick(['groupId', 'artifactId', 'version', 'extension'], vm.claimData);
 
     // as classifier is optional, we want to enforce an empty string when the user has not touched the field
     coordinates.classifier = vm.claimData.classifier || '';
@@ -217,19 +187,10 @@ function ClaimComponentController(
         format: 'maven',
         coordinates,
       },
-      createTime: createTimeText
-        ? moment(createTimeText, DATE_FORMAT).valueOf()
-        : null,
+      createTime: createTimeText ? moment(createTimeText, DATE_FORMAT).valueOf() : null,
       comment: vm.claimData.comment,
     };
   }
 }
 
-ClaimComponentController.$inject = [
-  '$scope',
-  '$http',
-  'Dialog',
-  'CLMLocations',
-  '$timeout',
-  'Messages',
-];
+ClaimComponentController.$inject = ['$scope', '$http', 'Dialog', 'CLMLocations', '$timeout', 'Messages'];

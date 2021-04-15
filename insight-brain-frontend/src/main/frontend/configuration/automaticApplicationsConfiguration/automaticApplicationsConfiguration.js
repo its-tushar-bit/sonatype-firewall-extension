@@ -40,21 +40,14 @@ function AutomaticApplicationsConfigurationController(
       vm.loaded = false;
 
       const organizationPromise = OrganizationStore.get().then(function (data) {
-        vm.organizationOptions = data.filter(
-          (org) => org.id !== 'ROOT_ORGANIZATION_ID'
-        );
+        vm.organizationOptions = data.filter((org) => org.id !== 'ROOT_ORGANIZATION_ID');
       });
-      const configurationPromise = automaticApplicationsConfigurationService
-        .getConfiguration()
-        .then(function (data) {
-          vm.automaticApplicationCreationEnabled = data.enabled;
-          vm.automaticApplicationCreationOrganizationId =
-            data.parentOrganizationId;
-          vm.savedAutomaticApplicationCreationEnabled =
-            vm.automaticApplicationCreationEnabled;
-          vm.savedAutomaticApplicationCreationOrganizationId =
-            vm.automaticApplicationCreationOrganizationId;
-        });
+      const configurationPromise = automaticApplicationsConfigurationService.getConfiguration().then(function (data) {
+        vm.automaticApplicationCreationEnabled = data.enabled;
+        vm.automaticApplicationCreationOrganizationId = data.parentOrganizationId;
+        vm.savedAutomaticApplicationCreationEnabled = vm.automaticApplicationCreationEnabled;
+        vm.savedAutomaticApplicationCreationOrganizationId = vm.automaticApplicationCreationOrganizationId;
+      });
 
       $q.all([organizationPromise, configurationPromise])
         .then(function () {
@@ -66,10 +59,7 @@ function AutomaticApplicationsConfigurationController(
     },
 
     save() {
-      if (
-        !vm.isChanged() ||
-        !vm.automaticApplicationsConfigurationForm.$valid
-      ) {
+      if (!vm.isChanged() || !vm.automaticApplicationsConfigurationForm.$valid) {
         return;
       }
 
@@ -80,15 +70,12 @@ function AutomaticApplicationsConfigurationController(
         parentOrganizationId: vm.automaticApplicationCreationOrganizationId,
       };
 
-      const savePromise = automaticApplicationsConfigurationService.saveConfiguration(
-        configuration
-      );
+      const savePromise = automaticApplicationsConfigurationService.saveConfiguration(configuration);
       vm.automaticApplicationsConfigurationFormMask
         .wrap(savePromise)
         .then(function (data) {
           vm.savedAutomaticApplicationCreationEnabled = data.enabled;
-          vm.savedAutomaticApplicationCreationOrganizationId =
-            data.parentOrganizationId;
+          vm.savedAutomaticApplicationCreationOrganizationId = data.parentOrganizationId;
         })
         .catch(function (error) {
           vm.error = error;
@@ -96,18 +83,14 @@ function AutomaticApplicationsConfigurationController(
     },
 
     cancel() {
-      vm.automaticApplicationCreationEnabled =
-        vm.savedAutomaticApplicationCreationEnabled;
-      vm.automaticApplicationCreationOrganizationId =
-        vm.savedAutomaticApplicationCreationOrganizationId;
+      vm.automaticApplicationCreationEnabled = vm.savedAutomaticApplicationCreationEnabled;
+      vm.automaticApplicationCreationOrganizationId = vm.savedAutomaticApplicationCreationOrganizationId;
     },
 
     isChanged() {
       return (
-        vm.savedAutomaticApplicationCreationEnabled !==
-          vm.automaticApplicationCreationEnabled ||
-        vm.savedAutomaticApplicationCreationOrganizationId !==
-          vm.automaticApplicationCreationOrganizationId
+        vm.savedAutomaticApplicationCreationEnabled !== vm.automaticApplicationCreationEnabled ||
+        vm.savedAutomaticApplicationCreationOrganizationId !== vm.automaticApplicationCreationOrganizationId
       );
     },
   });

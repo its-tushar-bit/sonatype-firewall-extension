@@ -18,12 +18,7 @@ import repoReportTemplate from './report/repository.report.html';
 var reportModule = angular
   .module(
     'Report',
-    [
-      CLMLocationModule.name,
-      'ui.router',
-      angularCommonModule.name,
-      commonServicesModule.name,
-    ],
+    [CLMLocationModule.name, 'ui.router', angularCommonModule.name, commonServicesModule.name],
     [
       '$stateProvider',
       function ($stateProvider) {
@@ -47,10 +42,7 @@ var reportModule = angular
       },
     ]
   )
-  .controller(
-    'repository.reevaluate.modal.controller',
-    RepositoryReEvaluateModalController
-  )
+  .controller('repository.reevaluate.modal.controller', RepositoryReEvaluateModalController)
   .service('ReEvaluateModal', ReEvaluateModalService)
   .controller('repository.report.controller', RepositoryReportController);
 
@@ -67,30 +59,20 @@ reportModule.controller('ReportController', [
     $scope.doLoad = function () {
       $scope.error = null;
 
-      $scope.reportUrl = clmLocations.getReportUrl(
-        $state.params.publicId,
-        $state.params.scanId
-      );
+      $scope.reportUrl = clmLocations.getReportUrl($state.params.publicId, $state.params.scanId);
       Object.assign($scope, pick(['publicId', 'scanId'], $state.params));
 
-      $http
-        .get(
-          clmLocations.getReportMetadataUrl(
-            $state.params.publicId,
-            $state.params.scanId
-          )
-        )
-        .then(
-          function (response) {
-            var metadata = response.data;
-            $scope.application = metadata.application;
-            $scope.reportTime = metadata.reportTime;
-            $scope.reportTitle = metadata.reportTitle;
-          },
-          function (error) {
-            $scope.error = error;
-          }
-        );
+      $http.get(clmLocations.getReportMetadataUrl($state.params.publicId, $state.params.scanId)).then(
+        function (response) {
+          var metadata = response.data;
+          $scope.application = metadata.application;
+          $scope.reportTime = metadata.reportTime;
+          $scope.reportTitle = metadata.reportTitle;
+        },
+        function (error) {
+          $scope.error = error;
+        }
+      );
     };
     $scope.doLoad();
   },

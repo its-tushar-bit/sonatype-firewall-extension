@@ -7,12 +7,7 @@ import successMetricsModule from '../../../../../main/frontend/labs/successMetri
 import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
 
 describe('violations-by-category-chart component', function () {
-  beforeEach(
-    angular.mock.module(
-      successMetricsModule.name,
-      legacyConfigurationModule.name
-    )
-  );
+  beforeEach(angular.mock.module(successMetricsModule.name, legacyConfigurationModule.name));
 
   let vm;
 

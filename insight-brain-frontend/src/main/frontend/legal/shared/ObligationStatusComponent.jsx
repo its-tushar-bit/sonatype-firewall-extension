@@ -4,51 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment } from 'react';
-import {
-  NxDropdown,
-  NxFontAwesomeIcon,
-  useToggle,
-} from '@sonatype/react-shared-components';
-import {
-  faCheckCircle,
-  faExclamationTriangle,
-  faMinusCircle,
-} from '@fortawesome/pro-solid-svg-icons';
-import {
-  OBLIGATION_STATUS_TO_DISPLAY,
-  OBLIGATION_STATUSES,
-} from '../advancedLegalConstants';
+import { NxDropdown, NxFontAwesomeIcon, useToggle } from '@sonatype/react-shared-components';
+import { faCheckCircle, faExclamationTriangle, faMinusCircle } from '@fortawesome/pro-solid-svg-icons';
+import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from '../advancedLegalConstants';
 import * as PropTypes from 'prop-types';
 import { licenseObligationPropType } from '../advancedLegalPropTypes';
 import classnames from 'classnames';
 
-export default function ObligationStatusComponent({
-  existingObligation,
-  onChange,
-}) {
+export default function ObligationStatusComponent({ existingObligation, onChange }) {
   const createObligationStatusIcon = (obligationStatus) => {
     switch (obligationStatus) {
       case 'FULFILLED':
-        return (
-          <NxFontAwesomeIcon
-            icon={faCheckCircle}
-            className="copyright-obligation-fulfilled-icon"
-          />
-        );
+        return <NxFontAwesomeIcon icon={faCheckCircle} className="copyright-obligation-fulfilled-icon" />;
       case 'FLAGGED':
-        return (
-          <NxFontAwesomeIcon
-            icon={faExclamationTriangle}
-            className="copyright-obligation-flagged-icon"
-          />
-        );
+        return <NxFontAwesomeIcon icon={faExclamationTriangle} className="copyright-obligation-flagged-icon" />;
       case 'IGNORED':
-        return (
-          <NxFontAwesomeIcon
-            icon={faMinusCircle}
-            className="copyright-obligation-ignored-icon"
-          />
-        );
+        return <NxFontAwesomeIcon icon={faMinusCircle} className="copyright-obligation-ignored-icon" />;
     }
   };
 
@@ -60,21 +31,14 @@ export default function ObligationStatusComponent({
   );
 
   const [isOpen, onToggleCollapse] = useToggle(false),
-    labelElement = createObligationStatusOption(
-      existingObligation ? existingObligation.status : 'OPEN'
-    );
+    labelElement = createObligationStatusOption(existingObligation ? existingObligation.status : 'OPEN');
 
   const obligationStatusDropdownOptions = () =>
-    OBLIGATION_STATUSES.filter(
-      (value) => existingObligation.status !== value
-    ).map((value) => (
+    OBLIGATION_STATUSES.filter((value) => existingObligation.status !== value).map((value) => (
       <button
         key={value + '-dropdown-option'}
         type="button"
-        className={classnames(
-          'nx-dropdown-button',
-          'edit-copyright-obligation-status-selection__option'
-        )}
+        className={classnames('nx-dropdown-button', 'edit-copyright-obligation-status-selection__option')}
         onClick={() => {
           onChange(value);
           onToggleCollapse();

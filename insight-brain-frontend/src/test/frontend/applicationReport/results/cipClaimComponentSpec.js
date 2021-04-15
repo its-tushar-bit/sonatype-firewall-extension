@@ -12,21 +12,12 @@ describe('cipClaimComponent', function () {
 
   beforeEach(angular.mock.module(cipModalModule.name));
 
-  beforeEach(inject(function (
-    $componentController,
-    $rootScope,
-    _$httpBackend_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function ($componentController, $rootScope, _$httpBackend_, _CLMLocations_) {
     $scope = $rootScope.$new();
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
     createController = (component) => {
-      const controller = $componentController(
-        'cipClaimComponent',
-        { $scope },
-        { component }
-      );
+      const controller = $componentController('cipClaimComponent', { $scope }, { component });
       controller.claimForm = {
         $setPristine: jasmine.createSpy('$setPristine'),
       };
@@ -70,9 +61,7 @@ describe('cipClaimComponent', function () {
         $httpBackend.flush();
         expect(controller.loading).toBe(false);
         expect(controller.error).toBeFalsy();
-        expect(controller.setServerData).toHaveBeenCalledWith(
-          serverResponseData
-        );
+        expect(controller.setServerData).toHaveBeenCalledWith(serverResponseData);
       });
 
       it('sets error and does not call setServerData on error other than 404', function () {
@@ -117,9 +106,7 @@ describe('cipClaimComponent', function () {
     });
 
     it('initializes datepicker', function () {
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl('foo')))
-        .respond(200, {});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl('foo'))).respond(200, {});
 
       controller.$onInit();
       $scope.$digest();
@@ -130,10 +117,7 @@ describe('cipClaimComponent', function () {
 
     testServerAction(
       () => controller,
-      () =>
-        $httpBackend.expectGET(
-          SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl('foo'))
-        ),
+      () => $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl('foo'))),
       () => {
         controller.$onInit();
         $scope.$digest();
@@ -146,9 +130,7 @@ describe('cipClaimComponent', function () {
 
     beforeEach(function () {
       controller = createController({ hash: 'foo' });
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl('foo')))
-        .respond(200, {});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl('foo'))).respond(200, {});
       controller.$onInit();
 
       $httpBackend.flush();
@@ -158,10 +140,7 @@ describe('cipClaimComponent', function () {
 
     testServerAction(
       () => controller,
-      () =>
-        $httpBackend.expectGET(
-          SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl('bar'))
-        ),
+      () => $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl('bar'))),
       () => {
         controller.component = { hash: 'bar' };
         $scope.$digest();
@@ -192,10 +171,7 @@ describe('cipClaimComponent', function () {
       let controller;
       beforeEach(function () {
         controller = createController(component);
-        controller.datePickerElement = jasmine.createSpyObj(
-          'datePickerElement',
-          ['datepicker']
-        );
+        controller.datePickerElement = jasmine.createSpyObj('datePickerElement', ['datepicker']);
       });
 
       it('resets form and populates with component info', function () {
@@ -211,10 +187,7 @@ describe('cipClaimComponent', function () {
           comment: 'testComment',
           createTimeText: '12/10/2018',
         });
-        expect(controller.datePickerElement.datepicker).toHaveBeenCalledWith(
-          'update',
-          new Date('12/10/2018')
-        );
+        expect(controller.datePickerElement.datepicker).toHaveBeenCalledWith('update', new Date('12/10/2018'));
       });
     });
 
@@ -222,10 +195,7 @@ describe('cipClaimComponent', function () {
       let controller;
       beforeEach(function () {
         controller = createController(component);
-        controller.datePickerElement = jasmine.createSpyObj(
-          'datePickerElement',
-          ['datepicker']
-        );
+        controller.datePickerElement = jasmine.createSpyObj('datePickerElement', ['datepicker']);
       });
 
       it('resets form and populates createTime from component info', function () {
@@ -235,10 +205,7 @@ describe('cipClaimComponent', function () {
         expect(controller.claimData).toEqual({
           createTimeText: '01/01/1970',
         });
-        expect(controller.datePickerElement.datepicker).toHaveBeenCalledWith(
-          'update',
-          new Date('1/1/1970')
-        );
+        expect(controller.datePickerElement.datepicker).toHaveBeenCalledWith('update', new Date('1/1/1970'));
       });
     });
 
@@ -246,10 +213,7 @@ describe('cipClaimComponent', function () {
       let controller;
       beforeEach(function () {
         controller = createController(omit(['createTime'], component));
-        controller.datePickerElement = jasmine.createSpyObj(
-          'datePickerElement',
-          ['datepicker']
-        );
+        controller.datePickerElement = jasmine.createSpyObj('datePickerElement', ['datepicker']);
       });
 
       it('resets form and sets blank createTime', function () {
@@ -259,10 +223,7 @@ describe('cipClaimComponent', function () {
         expect(controller.claimData).toEqual({
           createTimeText: null,
         });
-        expect(controller.datePickerElement.datepicker).toHaveBeenCalledWith(
-          'update',
-          ''
-        );
+        expect(controller.datePickerElement.datepicker).toHaveBeenCalledWith('update', '');
       });
     });
   });
@@ -292,9 +253,7 @@ describe('cipClaimComponent', function () {
       });
 
       controller.setServerData(serverClaimData);
-      expect(serverClaimDataWhenResetFormFromServerDataCalled).toBe(
-        serverClaimData
-      );
+      expect(serverClaimDataWhenResetFormFromServerDataCalled).toBe(serverClaimData);
     });
   });
 
@@ -350,11 +309,7 @@ describe('cipClaimComponent', function () {
 
         testServerAction(
           () => controller,
-          () =>
-            $httpBackend.expectPOST(
-              SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl()),
-              expectedPayload
-            ),
+          () => $httpBackend.expectPOST(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl()), expectedPayload),
           () => controller.claimComponent()
         );
       });
@@ -375,11 +330,7 @@ describe('cipClaimComponent', function () {
 
         testServerAction(
           () => controller,
-          () =>
-            $httpBackend.expectPUT(
-              SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl()),
-              expectedPayload
-            ),
+          () => $httpBackend.expectPUT(SpecUtil.toRegExp(CLMLocations.getClaimComponentUrl()), expectedPayload),
           () => controller.updateComponent()
         );
       });

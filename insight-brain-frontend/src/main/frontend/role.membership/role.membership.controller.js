@@ -5,12 +5,7 @@
  */
 import { omit, map } from 'ramda';
 
-export default function RoleMembershipController(
-  $scope,
-  $http,
-  CLMContextLocations,
-  Messages
-) {
+export default function RoleMembershipController($scope, $http, CLMContextLocations, Messages) {
   var vm = this;
 
   vm.accessEditor = undefined;
@@ -138,10 +133,7 @@ export default function RoleMembershipController(
   function updatePickedUsers(pickedUsers) {
     pickedUsers.forEach(function (pickedUser) {
       var replaced = vm.members.some(function (user, index) {
-        if (
-          user.internalName === pickedUser.internalName &&
-          user.type === pickedUser.type
-        ) {
+        if (user.internalName === pickedUser.internalName && user.type === pickedUser.type) {
           vm.members[index] = pickedUser;
           return true;
         }
@@ -161,10 +153,7 @@ export default function RoleMembershipController(
         .sort();
     }
 
-    return !angular.equals(
-      getSortedNames(getCurrentMembers()),
-      getSortedNames(vm.originalMembers)
-    );
+    return !angular.equals(getSortedNames(getCurrentMembers()), getSortedNames(vm.originalMembers));
   }
 
   function groupExists(groupName) {
@@ -178,15 +167,8 @@ export default function RoleMembershipController(
   }
 
   function getTooltip(item) {
-    return item.realm && item.type !== 'GROUP'
-      ? item.realm + (item.email ? '\n' + item.email : '')
-      : null;
+    return item.realm && item.type !== 'GROUP' ? item.realm + (item.email ? '\n' + item.email : '') : null;
   }
 }
 
-RoleMembershipController.$inject = [
-  '$scope',
-  '$http',
-  'CLMContextLocations',
-  'Messages',
-];
+RoleMembershipController.$inject = ['$scope', '$http', 'CLMContextLocations', 'Messages'];

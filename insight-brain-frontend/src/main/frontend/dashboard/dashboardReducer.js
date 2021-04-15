@@ -11,10 +11,7 @@ import {
   SORT_RESULTS_FULFILLED,
 } from './results/dashboardResultsActions';
 
-import {
-  APPLY_FILTER_REQUESTED,
-  LOAD_FILTER_REQUESTED,
-} from './filter/dashboardFilterActions';
+import { APPLY_FILTER_REQUESTED, LOAD_FILTER_REQUESTED } from './filter/dashboardFilterActions';
 
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 

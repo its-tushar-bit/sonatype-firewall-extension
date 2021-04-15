@@ -3,9 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reducer, {
-  initState,
-} from '../../../main/frontend/waivers/manageWaiversReducer';
+import reducer, { initState } from '../../../main/frontend/waivers/manageWaiversReducer';
 import {
   WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED,
   WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED,
@@ -84,12 +82,8 @@ describe('manageWaiversReducer', function () {
         payload: 'load manage waivers data error',
       });
 
-      expect(newState.loadingManageWaiversData).toBe(
-        initState.loadingManageWaiversData
-      );
-      expect(newState.loadManageWaiversDataError).toBe(
-        'load manage waivers data error'
-      );
+      expect(newState.loadingManageWaiversData).toBe(initState.loadingManageWaiversData);
+      expect(newState.loadManageWaiversDataError).toBe('load manage waivers data error');
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });
@@ -108,12 +102,8 @@ describe('manageWaiversReducer', function () {
         payload: true,
       });
 
-      expect(newState.loadingManageWaiversData).toBe(
-        initState.loadingManageWaiversData
-      );
-      expect(newState.loadManageWaiversDataError).toBe(
-        initState.loadManageWaiversDataError
-      );
+      expect(newState.loadingManageWaiversData).toBe(initState.loadingManageWaiversData);
+      expect(newState.loadManageWaiversDataError).toBe(initState.loadManageWaiversDataError);
       expect(newState.hasPermissionForAppWaivers).toBe(true);
       expect(newState.otherProp).toBe(state.otherProp);
     });
@@ -169,9 +159,7 @@ describe('manageWaiversReducer', function () {
       });
 
       expect(newState.loadingApplicableWaivers).toBe(false);
-      expect(newState.loadApplicableWaiversError).toBe(
-        'load applicable waivers error'
-      );
+      expect(newState.loadApplicableWaiversError).toBe('load applicable waivers error');
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });

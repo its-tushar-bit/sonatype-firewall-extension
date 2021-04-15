@@ -31,13 +31,8 @@ describe('renderCombinedTrendsChartDirective', function () {
         <render-combined-trends-chart data="data" statistics="statistics"></render-combined-trends-chart>
       </div>
     `)($rootScope);
-    expect(
-      element[0].querySelectorAll('div.component.plot.xy-plot.bar-plot').length
-    ).toBe(4);
-    expect(
-      element[0].querySelectorAll('div.component.guide-line-layer.vertical')
-        .length
-    ).toBe(1);
+    expect(element[0].querySelectorAll('div.component.plot.xy-plot.bar-plot').length).toBe(4);
+    expect(element[0].querySelectorAll('div.component.guide-line-layer.vertical').length).toBe(1);
     expect(element[0].querySelectorAll('#deltaBarTooltip').length).toBe(1);
     expect(element[0].querySelectorAll('#newBarTooltip').length).toBe(1);
     expect(element[0].querySelectorAll('#waivedBarTooltip').length).toBe(1);

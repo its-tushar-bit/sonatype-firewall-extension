@@ -33,22 +33,15 @@ describe('AppSecurityControllerSpec', function () {
       role1 = null,
       role2 = null;
 
-    beforeEach(inject(function (
-      $rootScope,
-      $httpBackend,
-      CLMContextLocations,
-      $controller
-    ) {
+    beforeEach(inject(function ($rootScope, $httpBackend, CLMContextLocations, $controller) {
       parentScope = $rootScope.$new();
       scope = parentScope.$new();
       role1 = MockData.getRoleOneData();
       role2 = MockData.getRoleTwoData();
 
-      $httpBackend
-        .expectGET(SpecUtil.toRegExp(CLMContextLocations.getRoleMappingUrl()))
-        .respond({
-          membersByRole: [role1, role2],
-        });
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMContextLocations.getRoleMappingUrl())).respond({
+        membersByRole: [role1, role2],
+      });
       $controller('AppSecurityController', {
         $scope: scope,
         isAuthorized: true,
@@ -65,27 +58,15 @@ describe('AppSecurityControllerSpec', function () {
 
     it('data is loaded into scope', function () {
       expect(scope.context.roles.length).toBe(2);
-      expect(scope.context.roles[0].roleId).toBe(
-        '1da70fae1fd54d6cb7999871ebdb9a36'
-      );
+      expect(scope.context.roles[0].roleId).toBe('1da70fae1fd54d6cb7999871ebdb9a36');
       expect(scope.context.roles[0].membersByOwner.length).toBe(2);
-      expect(scope.context.roles[0].membersByOwner[0].ownerId).toBe(
-        'bom1-12345678'
-      );
+      expect(scope.context.roles[0].membersByOwner[0].ownerId).toBe('bom1-12345678');
       expect(scope.context.roles[0].membersByOwner[0].members.length).toBe(2);
-      expect(
-        scope.context.roles[0].membersByOwner[0].members[0].internalName
-      ).toBe('admin');
+      expect(scope.context.roles[0].membersByOwner[0].members[0].internalName).toBe('admin');
     });
 
-    it('validate roleSaveComplete event is handled properly', inject(function (
-      $rootScope
-    ) {
-      $rootScope.$broadcast(
-        'roleSaveComplete',
-        role1.roleId,
-        MockData.getRoleSaveCompleteEventMemberList()
-      );
+    it('validate roleSaveComplete event is handled properly', inject(function ($rootScope) {
+      $rootScope.$broadcast('roleSaveComplete', role1.roleId, MockData.getRoleSaveCompleteEventMemberList());
 
       var found;
 
@@ -244,11 +225,7 @@ describe('AppSecurityControllerSpec', function () {
 
       scope.save();
 
-      $httpBackend
-        .expectPUT(
-          SpecUtil.toRegExp(mockCLMContextLocations.getRoleMappingUrl(role1Id))
-        )
-        .respond();
+      $httpBackend.expectPUT(SpecUtil.toRegExp(mockCLMContextLocations.getRoleMappingUrl(role1Id))).respond();
       expect(hide).not.toHaveBeenCalled();
       expect(eventSpy).not.toHaveBeenCalled();
 

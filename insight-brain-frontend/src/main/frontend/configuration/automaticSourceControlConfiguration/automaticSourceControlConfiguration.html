@@ -1,23 +1,12 @@
 <div class="nx-page-main" authorization-wrapper="vm.isAuthorized">
-  <div
-    id="automatic-source-control-configuration"
-    class="iq-tile iq-tile--sys-prefs"
-  >
+  <div id="automatic-source-control-configuration" class="iq-tile iq-tile--sys-prefs">
     <div class="iq-tile-header iq-tile-header--hrule">
       <div class="iq-tile-header__title">
         <h2>Automatic Source Control Configuration</h2>
       </div>
     </div>
-    <div
-      class="iq-tile-content"
-      load-wrapper="vm.error"
-      loading="!vm.loaded"
-      reload="vm.load()"
-    >
-      <p
-        id="automatic-source-control-explanation"
-        class="iq-system-config-explanation"
-      >
+    <div class="iq-tile-content" load-wrapper="vm.error" loading="!vm.loaded" reload="vm.load()">
+      <p id="automatic-source-control-explanation" class="iq-system-config-explanation">
         Here you can enable or disable Automatic Source Control Configuration.
       </p>
       <form
@@ -27,10 +16,7 @@
         mask-attach-to-body
         ng-submit="vm.save()"
       >
-        <div
-          id="automatic-source-control-toggle-checkbox"
-          class="toggle-checkbox"
-        >
+        <div id="automatic-source-control-toggle-checkbox" class="toggle-checkbox">
           <input
             id="automatic-source-control-toggle"
             type="checkbox"

@@ -20,10 +20,7 @@
     function init(grid) {
       _options = $.extend(true, {}, _defaults, options);
       _grid = grid;
-      _handler.subscribe(
-        _grid.onActiveCellChanged,
-        wrapHandler(handleActiveCellChange)
-      );
+      _handler.subscribe(_grid.onActiveCellChanged, wrapHandler(handleActiveCellChange));
       _handler.subscribe(_grid.onKeyDown, wrapHandler(handleKeyDown));
       _handler.subscribe(_grid.onClick, wrapHandler(handleClick));
     }
@@ -92,22 +89,13 @@
 
     function handleActiveCellChange(e, data) {
       if (_options.selectActiveRow) {
-        setSelectedRanges([
-          new Slick.Range(data.row, 0, data.row, _grid.getColumns().length - 1),
-        ]);
+        setSelectedRanges([new Slick.Range(data.row, 0, data.row, _grid.getColumns().length - 1)]);
       }
     }
 
     function handleKeyDown(e) {
       var activeRow = _grid.getActiveCell();
-      if (
-        activeRow &&
-        e.shiftKey &&
-        !e.ctrlKey &&
-        !e.altKey &&
-        !e.metaKey &&
-        (e.which == 38 || e.which == 40)
-      ) {
+      if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which == 38 || e.which == 40)) {
         var selectedRows = getSelectedRows();
         selectedRows.sort(function (x, y) {
           return x - y;

@@ -49,9 +49,7 @@ window.SpecUtil = {
 
     return new RegExp(
       url.replace('?', '\\?').replace('+', '\\+') +
-        (!addedTimestamp
-          ? (url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+'
-          : '')
+        (!addedTimestamp ? (url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+' : '')
     );
   },
 
@@ -126,24 +124,22 @@ window.SpecUtil = {
     var unsubscribeSpy = jasmine.createSpy('unsubscribe');
 
     $provide.service('$ngRedux', function () {
-      this.connect = jasmine
-        .createSpy('connect')
-        .and.callFake(function (mapStateToThis, actions) {
-          if (actions) {
-            // stub each action creator with spy
-            Object.keys(actions).forEach(function (actionCreator) {
-              // check if spy already created
-              if (actions[actionCreator].and) {
-                return;
-              }
-              spyOn(actions, actionCreator);
-            });
-          }
-          return function (vm) {
-            angular.extend(vm, actions);
-            return unsubscribeSpy;
-          };
-        });
+      this.connect = jasmine.createSpy('connect').and.callFake(function (mapStateToThis, actions) {
+        if (actions) {
+          // stub each action creator with spy
+          Object.keys(actions).forEach(function (actionCreator) {
+            // check if spy already created
+            if (actions[actionCreator].and) {
+              return;
+            }
+            spyOn(actions, actionCreator);
+          });
+        }
+        return function (vm) {
+          angular.extend(vm, actions);
+          return unsubscribeSpy;
+        };
+      });
     });
 
     return unsubscribeSpy;

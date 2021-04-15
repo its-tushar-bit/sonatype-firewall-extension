@@ -8,28 +8,18 @@
     data-tooltip-append-to-body="true"
     tooltip-class="filter-label-tooltip {{::vm.tooltipModifierClass}}"
   >
-    <div
-      class="iq-counter"
-      ng-class="{'iq-counter--active': vm.selected.size !== 0}"
-    >
-      {{vm.selected.size === 0 ? '' : vm.selected.size + ' of
-      '}}{{::vm.available.length}}
+    <div class="iq-counter" ng-class="{'iq-counter--active': vm.selected.size !== 0}">
+      {{vm.selected.size === 0 ? '' : vm.selected.size + ' of '}}{{::vm.available.length}}
     </div>
     <div class="iq-tree-view__twisty">
-      <span
-        class="iq-tree-view__twisty-icon"
-        ng-class="{ expand: !isExpanded, collapse: isExpanded }"
-      ></span>
+      <span class="iq-tree-view__twisty-icon" ng-class="{ expand: !isExpanded, collapse: isExpanded }"></span>
     </div>
     <div class="iq-tree-view__text">
       <span ng-transclude></span>
     </div>
   </a>
   <div ng-if="isExpanded" class="iq-tree-view__children">
-    <div
-      class="iq-tree-view__filter search input-prepend ng-scope"
-      ng-if="vm.showFilter()"
-    >
+    <div class="iq-tree-view__filter search input-prepend ng-scope" ng-if="vm.showFilter()">
       <span class="add-on">
         <i
           role="button"
@@ -40,12 +30,7 @@
         >
         </i>
       </span>
-      <input
-        type="text"
-        ng-model="vm.filter"
-        autocomplete="off"
-        placeholder="{{vm.filterPlaceholder}}"
-      />
+      <input type="text" ng-model="vm.filter" autocomplete="off" placeholder="{{vm.filterPlaceholder}}" />
     </div>
     <div class="iq-tree-view__child">
       <iq-checkbox

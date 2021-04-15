@@ -10,17 +10,11 @@ import ReportTitle from '../../../../main/frontend/applicationReport/react/Repor
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 
 describe('Report Page component', function () {
-  let getShallowComponent,
-    loadReportActionMock,
-    setAggregateReportEntriesSpy,
-    setExactValueFilterSpy,
-    mock$State;
+  let getShallowComponent, loadReportActionMock, setAggregateReportEntriesSpy, setExactValueFilterSpy, mock$State;
 
   beforeEach(function () {
     loadReportActionMock = jasmine.createSpy('loadReport');
-    setAggregateReportEntriesSpy = jasmine.createSpy(
-      'setAggregateReportEntries'
-    );
+    setAggregateReportEntriesSpy = jasmine.createSpy('setAggregateReportEntries');
     setExactValueFilterSpy = jasmine.createSpy('setExactValueFilter');
     mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
 
@@ -51,10 +45,7 @@ describe('Report Page component', function () {
       $state: mock$State,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ReportPage,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ReportPage, minimalProps);
   });
 
   it('renders a ReportTitle wrapped in a LoadWrapper', function () {
@@ -66,32 +57,19 @@ describe('Report Page component', function () {
 
   describe('LoadWraper', function () {
     it('has the loading flag set based on the corresponding prop', function () {
-      expect(getShallowComponent().find(LoadWrapper)).toHaveProp(
-        'loading',
-        false
-      );
-      expect(
-        getShallowComponent({ loading: true }).find(LoadWrapper)
-      ).toHaveProp('loading', true);
+      expect(getShallowComponent().find(LoadWrapper)).toHaveProp('loading', false);
+      expect(getShallowComponent({ loading: true }).find(LoadWrapper)).toHaveProp('loading', true);
     });
 
     it('has the error set to the loadError', function () {
-      expect(getShallowComponent().find(LoadWrapper)).toHaveProp(
-        'error',
-        undefined
-      );
-      expect(
-        getShallowComponent({ loadError: 'foo' }).find(LoadWrapper)
-      ).toHaveProp('error', 'foo');
+      expect(getShallowComponent().find(LoadWrapper)).toHaveProp('error', undefined);
+      expect(getShallowComponent({ loadError: 'foo' }).find(LoadWrapper)).toHaveProp('error', 'foo');
     });
 
     it('has the retryHandler set to the loadReport prop', function () {
       const loadReport = jasmine.createSpy();
 
-      expect(getShallowComponent({ loadReport }).find(LoadWrapper)).toHaveProp(
-        'retryHandler',
-        loadReport
-      );
+      expect(getShallowComponent({ loadReport }).find(LoadWrapper)).toHaveProp('retryHandler', loadReport);
     });
   });
 
@@ -140,14 +118,8 @@ describe('Report Page component', function () {
     const reportElement = component.find(ReportFilters);
     expect(reportElement).toExist();
     expect(reportElement).toHaveProp('$state', mock$State);
-    expect(reportElement).toHaveProp(
-      'setAggregateReportEntries',
-      setAggregateReportEntriesSpy
-    );
-    expect(reportElement).toHaveProp(
-      'setExactValueFilter',
-      setExactValueFilterSpy
-    );
+    expect(reportElement).toHaveProp('setAggregateReportEntries', setAggregateReportEntriesSpy);
+    expect(reportElement).toHaveProp('setExactValueFilter', setExactValueFilterSpy);
   });
 
   it('renders ReportStatusBar with props, ', function () {
@@ -174,11 +146,7 @@ describe('Report Page component', function () {
       },
       sortConfiguration: {
         key: 'policyThreatLevel',
-        sortFields: [
-          '-policyThreatLevel',
-          'policyName',
-          'derivedComponentName',
-        ],
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
         dir: 'desc',
       },
       substringFilters: {
@@ -190,14 +158,8 @@ describe('Report Page component', function () {
     const reportContent = getShallowComponent(props).find('ReportContent');
     expect(reportContent).toExist();
     expect(reportContent).toHaveProp('selectedReport', props.selectedReport);
-    expect(reportContent).toHaveProp(
-      'sortConfiguration',
-      props.sortConfiguration
-    );
-    expect(reportContent).toHaveProp(
-      'substringFilters',
-      props.substringFilters
-    );
+    expect(reportContent).toHaveProp('sortConfiguration', props.sortConfiguration);
+    expect(reportContent).toHaveProp('substringFilters', props.substringFilters);
   });
 
   it('renders a LoadWrapper', function () {

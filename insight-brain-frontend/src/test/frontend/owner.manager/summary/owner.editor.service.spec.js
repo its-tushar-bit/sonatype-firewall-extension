@@ -27,11 +27,7 @@ describe('owner.editor.service.spec.js', function () {
     OwnerEditorService.open(owner, 'organization');
     expect(Modal.open).toHaveBeenCalled();
 
-    expect(Modal.open.calls.mostRecent().args[0].resolve.owner()).toEqual(
-      owner
-    );
-    expect(Modal.open.calls.mostRecent().args[0].resolve.ownerType()).toEqual(
-      'organization'
-    );
+    expect(Modal.open.calls.mostRecent().args[0].resolve.owner()).toEqual(owner);
+    expect(Modal.open.calls.mostRecent().args[0].resolve.ownerType()).toEqual('organization');
   }));
 });

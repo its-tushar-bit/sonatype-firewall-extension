@@ -6,31 +6,17 @@
 
 import { findIndex, propEq } from 'ramda';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import {
-  faGlobe,
-  faSitemap,
-  faTerminal,
-} from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
 
-export function isScopeOverride(
-  originalOwnerId,
-  ownerId,
-  availableScopeValues
-) {
-  const originalOwnerLevel = findIndex(
-    propEq('id', originalOwnerId),
-    availableScopeValues
-  );
+export function isScopeOverride(originalOwnerId, ownerId, availableScopeValues) {
+  const originalOwnerLevel = findIndex(propEq('id', originalOwnerId), availableScopeValues);
   const newOwnerLevel = findIndex(propEq('id', ownerId), availableScopeValues);
   return originalOwnerLevel > newOwnerLevel;
 }
 
 export function createSubtitle(availableScopes) {
-  let availableScopeValuesReversed =
-    (availableScopes &&
-      availableScopes.values && [...availableScopes.values]) ||
-    [];
+  let availableScopeValuesReversed = (availableScopes && availableScopes.values && [...availableScopes.values]) || [];
   availableScopeValuesReversed.reverse();
   return (
     <div className="nx-page-title__description">

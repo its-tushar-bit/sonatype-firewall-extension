@@ -5,22 +5,12 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxFontAwesomeIcon,
-  NxStatefulTreeViewMultiSelect,
-} from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import { faSitemap, faTerminal } from '@fortawesome/pro-regular-svg-icons';
 import { areAllSelected, groupAppsByOrgId, isSelected } from './utils';
 
 export default function IqOrgAppPicker(props) {
-  const {
-    organizations,
-    applications,
-    selectedOrganizations,
-    selectedApplications,
-    onChange,
-    id,
-  } = props;
+  const { organizations, applications, selectedOrganizations, selectedApplications, onChange, id } = props;
 
   function onSelectedApplicationsChange(selectedApplications) {
     const selectedOrganizations = selectOrganizations(selectedApplications);
@@ -28,10 +18,7 @@ export default function IqOrgAppPicker(props) {
   }
 
   function onSelectedOrganizationsChange(selectedOrganizations, toggledOrg) {
-    const selectedApplications = selectApplications(
-      selectedOrganizations,
-      toggledOrg
-    );
+    const selectedApplications = selectApplications(selectedOrganizations, toggledOrg);
     onChange(selectedOrganizations, selectedApplications);
   }
 
@@ -76,15 +63,11 @@ export default function IqOrgAppPicker(props) {
    * @param selectedApps map of selected apps
    */
   const shouldOrgBeSelected = (selectedApps) => (org) => {
-    const relatedApps = applications.filter(
-      (app) => app.organizationId === org.id
-    );
+    const relatedApps = applications.filter((app) => app.organizationId === org.id);
     const hasApps = relatedApps.length !== 0;
 
     // deselect an Org only if it has apps and not all of them are selected
-    return areAllSelected(selectedApps, relatedApps) || !hasApps
-      ? selectedOrganizations.has(org.id)
-      : false;
+    return areAllSelected(selectedApps, relatedApps) || !hasApps ? selectedOrganizations.has(org.id) : false;
   };
 
   return (

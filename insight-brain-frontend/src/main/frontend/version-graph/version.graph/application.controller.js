@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ApplicationController(
-  $scope,
-  Applications,
-  OwnerContext
-) {
+export default function ApplicationController($scope, Applications, OwnerContext) {
   $scope.doLoad = function () {
     Applications.get().then(
       function (data) {

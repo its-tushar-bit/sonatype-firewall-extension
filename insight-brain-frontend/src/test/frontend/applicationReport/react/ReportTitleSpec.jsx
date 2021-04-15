@@ -5,11 +5,7 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportTitle from '../../../../main/frontend/applicationReport/react/ReportTitle';
-import {
-  NxButton,
-  NxStatefulDropdown,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxStatefulDropdown, NxTooltip } from '@sonatype/react-shared-components';
 import moment from 'moment-timezone';
 
 describe('ReportTitle component', function () {
@@ -42,10 +38,7 @@ describe('ReportTitle component', function () {
       reevaluateReport: mockedReevaluateReport,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ReportTitle,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ReportTitle, minimalProps);
   });
 
   it('renders a div a dropdown and a button', function () {
@@ -62,10 +55,7 @@ describe('ReportTitle component', function () {
     const shallowComponent = getShallowComponent();
     const tooltip = shallowComponent.find(NxTooltip);
     const link = tooltip.find('a');
-    expect(tooltip).toHaveProp(
-      'title',
-      'Reevaluate the report in order to enable Vulnerabilities view'
-    );
+    expect(tooltip).toHaveProp('title', 'Reevaluate the report in order to enable Vulnerabilities view');
     expect(link).toHaveClassName('disabled', true);
   });
 

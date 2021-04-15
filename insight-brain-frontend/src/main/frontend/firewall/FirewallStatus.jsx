@@ -17,19 +17,14 @@ export default function FirewallStatus(props) {
     <section id="firewall-status">
       <header className="nx-page-title">
         <h1 className="nx-h1">
-          <NxFontAwesomeIcon
-            icon={faShieldCheck}
-            size="sm"
-            className="iq-firewall-protected-icon"
-          />
+          <NxFontAwesomeIcon icon={faShieldCheck} size="sm" className="iq-firewall-protected-icon" />
           <span>You are protected</span>
         </h1>
 
         <div className="iq-firewall-status-description">
           <div className="iq-firewall-status-description-line"></div>
           <div>
-            Firewall is currently monitoring {totalComponentCount} components in{' '}
-            {repositoryCount} repositories
+            Firewall is currently monitoring {totalComponentCount} components in {repositoryCount} repositories
           </div>
         </div>
       </header>

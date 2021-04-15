@@ -50,10 +50,7 @@ const initialState = Object.freeze({
   currentlyPolling: false,
 });
 
-const clearedErrors = pick(
-  ['loadError', 'saveError', 'reIndexError', 'pollError'],
-  initialState.viewState
-);
+const clearedErrors = pick(['loadError', 'saveError', 'reIndexError', 'pollError'], initialState.viewState);
 
 function loadRequested(payload, state) {
   return {

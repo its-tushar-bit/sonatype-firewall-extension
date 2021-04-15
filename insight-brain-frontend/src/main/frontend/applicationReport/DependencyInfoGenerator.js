@@ -68,9 +68,7 @@ const getRootAncestorsByChildReducer = (rootAncestorId) => (acc, childKey) => {
 
 const populateDependencyNodeKeys = (node) => ({
   ...node,
-  key:
-    node.componentIdentifier &&
-    serializeComponentIdentifier(node.componentIdentifier),
+  key: node.componentIdentifier && serializeComponentIdentifier(node.componentIdentifier),
   children: node.children && map(populateDependencyNodeKeys, node.children),
 });
 
@@ -96,27 +94,14 @@ export default function DependencyInfoGenerator(dependencies) {
     indexedDependencyNodes = indexBy(getKey, dependencyNodesWithKeys),
     getAllDependencies = getAllDependenciesFromNodes(indexedDependencyNodes),
     // map rootAncestors to [componentId, childrenKeyArray] pairs
-    pairWithDependencies = map(({ componentIdentifier, key }) => [
-      componentIdentifier,
-      getAllDependencies(key),
-    ]),
+    pairWithDependencies = map(({ componentIdentifier, key }) => [componentIdentifier, getAllDependencies(key)]),
     // given list of [rootAncestorId, children] pairs, generate rootAncestorsByChild map
     // where key is child iD, and value is a Set of its unique rootAncestorIds
     mapRootAncestorsToChildren = reduce((acc, [rootAncestorId, children]) => {
-      return reduce(
-        getRootAncestorsByChildReducer(rootAncestorId),
-        acc,
-        setToArray(children)
-      );
+      return reduce(getRootAncestorsByChildReducer(rootAncestorId), acc, setToArray(children));
     }, {}),
-    rootAncestorsToArray = map((rootAncestorsSet) =>
-      setToArray(rootAncestorsSet)
-    ),
-    rootAncestorsByChild = pipe(
-      pairWithDependencies,
-      mapRootAncestorsToChildren,
-      rootAncestorsToArray
-    )(directDeps);
+    rootAncestorsToArray = map((rootAncestorsSet) => setToArray(rootAncestorsSet)),
+    rootAncestorsByChild = pipe(pairWithDependencies, mapRootAncestorsToChildren, rootAncestorsToArray)(directDeps);
 
   return {
     getDependencyInfo: ({ componentIdentifier }) => {

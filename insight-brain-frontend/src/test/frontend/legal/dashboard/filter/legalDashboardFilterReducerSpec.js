@@ -112,8 +112,7 @@ describe('legalDashboardFilterReducer', function () {
             {
               id: 'applicationIdZ',
               publicId: 'applicationPublicIdZ',
-              name:
-                'ApplicationZ <b style="woah" class=\'evenmorewoah\'>&nbsp;shouldnotbebold</b>',
+              name: 'ApplicationZ <b style="woah" class=\'evenmorewoah\'>&nbsp;shouldnotbebold</b>',
               organizationId: 'orgId1',
             },
             {
@@ -180,15 +179,9 @@ describe('legalDashboardFilterReducer', function () {
       var newState = legalDashboardFilterReducer(state, action);
       expect(newState.other).toBe(otherObject); // other properties are not modified
 
-      expect(newState.applications.length).toBe(
-        action.payload.applications.length
-      );
-      expect(newState.applications[0].id).toBe(
-        action.payload.applications[0].id
-      );
-      expect(newState.applications[1].id).toBe(
-        action.payload.applications[1].id
-      );
+      expect(newState.applications.length).toBe(action.payload.applications.length);
+      expect(newState.applications[0].id).toBe(action.payload.applications[0].id);
+      expect(newState.applications[1].id).toBe(action.payload.applications[1].id);
 
       // since we have an application but no permissions to the org add 1
       // and remove ROOT org
@@ -196,41 +189,23 @@ describe('legalDashboardFilterReducer', function () {
       expect(newState.organizations[0]).toBe(action.payload.organizations[0]);
       expect(newState.organizations[1]).toBe(action.payload.organizations[1]);
       // no permission to org scenario
-      expect(newState.organizations[2].id).toBe(
-        action.payload.applications[4].organizationId
-      );
-      expect(newState.organizations[2].name).toBe(
-        action.payload.applications[4].organizationName
-      );
+      expect(newState.organizations[2].id).toBe(action.payload.applications[4].organizationId);
+      expect(newState.organizations[2].name).toBe(action.payload.applications[4].organizationName);
 
-      expect(newState.stages.length).toBe(
-        MockData.getDashboardStageData().length
-      );
-      expect(newState.stages[0].id).toBe(
-        MockData.getDashboardStageData()[0].stageTypeId
-      );
-      expect(newState.stages[0].name).toBe(
-        MockData.getDashboardStageData()[0].stageName
-      );
-      expect(newState.stages[1].id).toBe(
-        MockData.getDashboardStageData()[1].stageTypeId
-      );
-      expect(newState.stages[1].name).toBe(
-        MockData.getDashboardStageData()[1].stageName
-      );
+      expect(newState.stages.length).toBe(MockData.getDashboardStageData().length);
+      expect(newState.stages[0].id).toBe(MockData.getDashboardStageData()[0].stageTypeId);
+      expect(newState.stages[0].name).toBe(MockData.getDashboardStageData()[0].stageName);
+      expect(newState.stages[1].id).toBe(MockData.getDashboardStageData()[1].stageTypeId);
+      expect(newState.stages[1].name).toBe(MockData.getDashboardStageData()[1].stageName);
 
       // one extra for uncategorized applications
-      expect(newState.categories.length).toBe(
-        action.payload.categories.length + 1
-      );
+      expect(newState.categories.length).toBe(action.payload.categories.length + 1);
       expect(newState.categories[0].id).toBe(null);
       expect(newState.categories[0].name).toBe('uncategorized applications');
 
       expect(newState.categories[1].id).toBe(action.payload.categories[0].id);
       // populates owner
-      expect(newState.categories[1].owner).toBe(
-        action.payload.organizations[0].name
-      );
+      expect(newState.categories[1].owner).toBe(action.payload.organizations[0].name);
     });
   });
 
@@ -250,11 +225,7 @@ describe('legalDashboardFilterReducer', function () {
         policyThreatCategoryFilters: ['QUALITY', 'OTHER', 'SECURITY'],
         stageTypeFilters: ['release', 'stage-release', 'build'],
         categoryFilters: ['tagId1', 'tagId2', null],
-        applicationFilters: [
-          'applicationIdZ',
-          'applicationIdA',
-          'applicationIdQ',
-        ],
+        applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
         progressOptionsFilters: ['NOT_REVIEWED'],
       };
       initState = {
@@ -348,26 +319,17 @@ describe('legalDashboardFilterReducer', function () {
         var state = Object.freeze(initState);
         var newState = legalDashboardFilterReducer(state, action);
         expect(newState.other).toBe(otherObject); // other properties are not modified
-        expect(newState.selected.stages).toEqual(
-          new Set(['release', 'stage-release', 'build'])
-        );
+        expect(newState.selected.stages).toEqual(new Set(['release', 'stage-release', 'build']));
 
         // skips selected category ids that do not exist in vm.categories
         expect(newState.selected.categories).toEqual(new Set(['tagId1', null]));
 
         // removes orgs that are not visible (not in state.organizations)
-        expect(newState.selected.organizations).toEqual(
-          new Set(['orgId1', 'orgId2'])
-        );
+        expect(newState.selected.organizations).toEqual(new Set(['orgId1', 'orgId2']));
 
         // adds missing applications for selected organization
         expect(newState.selected.applications).toEqual(
-          new Set([
-            'applicationIdZ',
-            'applicationIdA',
-            'applicationIdQ',
-            'applicationIdR',
-          ])
+          new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR'])
         );
 
         // sets selected to appliedFilter
@@ -469,12 +431,8 @@ describe('legalDashboardFilterReducer', function () {
         },
       };
       var newState = legalDashboardFilterReducer(state, action);
-      expect(newState.selected.organizations).toBe(
-        action.payload.selectedOrganizations
-      );
-      expect(newState.selected.applications).toBe(
-        action.payload.selectedApplications
-      );
+      expect(newState.selected.organizations).toBe(action.payload.selectedOrganizations);
+      expect(newState.selected.applications).toBe(action.payload.selectedApplications);
       expect(newState.filtersAreDirty).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });

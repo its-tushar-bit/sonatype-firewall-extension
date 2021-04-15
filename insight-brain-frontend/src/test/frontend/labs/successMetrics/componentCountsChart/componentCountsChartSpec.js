@@ -8,13 +8,7 @@ import successMetricsModule from '../../../../../main/frontend/labs/successMetri
 import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
 
 describe('componentCountsChart', function () {
-  beforeEach(
-    angular.mock.module(
-      successMetricsModule.name,
-      legacyConfigurationModule.name,
-      'Stores'
-    )
-  );
+  beforeEach(angular.mock.module(successMetricsModule.name, legacyConfigurationModule.name, 'Stores'));
 
   var getVm,
     mockComponentData = {
@@ -41,8 +35,7 @@ describe('componentCountsChart', function () {
           count: 3,
         },
         {
-          componentDisplayName:
-            'org.apache.geronimo.framework : geronimo-security : 2.1',
+          componentDisplayName: 'org.apache.geronimo.framework : geronimo-security : 2.1',
           count: 2,
         },
         {
@@ -59,11 +52,7 @@ describe('componentCountsChart', function () {
 
   beforeEach(inject(function ($componentController) {
     getVm = function (componentData) {
-      return $componentController(
-        'componentCountsChart',
-        {},
-        { componentData: componentData }
-      );
+      return $componentController('componentCountsChart', {}, { componentData: componentData });
     };
   }));
 

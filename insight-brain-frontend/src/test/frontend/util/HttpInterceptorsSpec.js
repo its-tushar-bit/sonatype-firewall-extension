@@ -71,11 +71,7 @@ describe('HttpInterceptors.js', function () {
     expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(1);
   }));
 
-  it('Validate that a GET/POST/PUT/DELETE request has a timestamp param', inject(function (
-    $q,
-    $http,
-    $httpBackend
-  ) {
+  it('Validate that a GET/POST/PUT/DELETE request has a timestamp param', inject(function ($q, $http, $httpBackend) {
     $httpBackend.expectGET(SpecUtil.toRegExp('/rest/test')).respond(200);
     $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/test')).respond(200);
     $httpBackend.expectPUT(SpecUtil.toRegExp('/rest/test')).respond(200);
@@ -229,28 +225,19 @@ describe('HttpInterceptors.js', function () {
 
     const resolvedSpy = jasmine.createSpy(),
       rejectedSpy = jasmine.createSpy();
-    $http
-      .post('test', {}, { waitForLogin: false })
-      .then(resolvedSpy, rejectedSpy);
+    $http.post('test', {}, { waitForLogin: false }).then(resolvedSpy, rejectedSpy);
 
     $httpBackend.flush();
 
     expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
-    expect(rejectedSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ status: 401 })
-    );
+    expect(rejectedSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 401 }));
     expect(resolvedSpy).not.toHaveBeenCalled();
   }));
 
   it(
     'clears the queue of retried requests if authentication is cancelled, and neither resolves nor rejects ' +
       'the promise',
-    inject(function (
-      $q,
-      $http,
-      $httpBackend,
-      UnauthenticatedRequestQueueService
-    ) {
+    inject(function ($q, $http, $httpBackend, UnauthenticatedRequestQueueService) {
       $httpBackend.expectPOST('test').respond(401);
 
       const resolvedSpy = jasmine.createSpy(),
@@ -259,18 +246,14 @@ describe('HttpInterceptors.js', function () {
 
       $httpBackend.flush();
 
-      expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(
-        1
-      );
+      expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(1);
 
       $httpBackend.expectPOST('test').respond(200);
 
       // emulate dismissal of login modal
       modalFailure();
 
-      expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(
-        0
-      );
+      expect(UnauthenticatedRequestQueueService.getRequests().length).toEqual(0);
       expect(rejectedSpy).not.toHaveBeenCalled();
       expect(resolvedSpy).not.toHaveBeenCalled();
     })

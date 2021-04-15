@@ -18,14 +18,8 @@ describe('DashboardComponentsTableRow', function () {
       stateGo: jasmine.createSpy('stateGo'),
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardComponentsTableRow,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      DashboardComponentsTableRow,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardComponentsTableRow, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(DashboardComponentsTableRow, minimalProps);
   });
 
   it('renders a clickable NxTableRow with appropriate columns', function () {

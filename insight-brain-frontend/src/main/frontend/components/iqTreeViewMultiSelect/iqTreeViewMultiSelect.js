@@ -48,10 +48,7 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
       vm.selected = new Set(selected.currentValue);
     }
 
-    if (
-      providedFilterThreshold &&
-      angular.isNumber(providedFilterThreshold.currentValue)
-    ) {
+    if (providedFilterThreshold && angular.isNumber(providedFilterThreshold.currentValue)) {
       vm.filterThreshold = providedFilterThreshold.currentValue;
     }
   };

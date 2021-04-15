@@ -12,15 +12,9 @@ import UpdateSourceControlModalService from './update.source.control.modal.servi
 import UpdateSourceControlModalController from './update.source.control.modal.controller';
 
 export default angular
-  .module('sourceControlModule', [
-    clmContextLocationModule.name,
-    utilityModule.name,
-  ])
+  .module('sourceControlModule', [clmContextLocationModule.name, utilityModule.name])
   .service('SourceControlService', SourceControlService)
   .component('sourceControlTile', sourceControlTile)
   .component('sourceControlEditor', sourceControlEditor)
-  .controller(
-    'UpdateSourceControlModalController',
-    UpdateSourceControlModalController
-  )
+  .controller('UpdateSourceControlModalController', UpdateSourceControlModalController)
   .service('UpdateSourceControlModalService', UpdateSourceControlModalService);

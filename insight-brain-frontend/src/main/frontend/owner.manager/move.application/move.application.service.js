@@ -21,19 +21,17 @@ export default function MoveApplicationService(
    * @returns promise resolving to Array of available destination or rejecting with error message
    */
   function getDestinationOrganizations(applicationId) {
-    return $http
-      .get(CLMLocations.getDestinationOrganizationsUrl(applicationId))
-      .then(
-        function (response) {
-          if (response.data && response.data.length) {
-            return response.data;
-          }
-          return $q.reject(moveApplicationMessages.ERROR_NO_DESTINATIONS);
-        },
-        function (error) {
-          return $q.reject(Messages.getHttpErrorMessage(error));
+    return $http.get(CLMLocations.getDestinationOrganizationsUrl(applicationId)).then(
+      function (response) {
+        if (response.data && response.data.length) {
+          return response.data;
         }
-      );
+        return $q.reject(moveApplicationMessages.ERROR_NO_DESTINATIONS);
+      },
+      function (error) {
+        return $q.reject(Messages.getHttpErrorMessage(error));
+      }
+    );
   }
 
   /**
@@ -55,21 +53,13 @@ export default function MoveApplicationService(
   function handleResponse(response) {
     // wait till application cache is refreshed
     return ApplicationStore.refresh().then(function () {
-      const hasWarnings =
-        response.data &&
-        response.data.warnings &&
-        response.data.warnings.length;
+      const hasWarnings = response.data && response.data.warnings && response.data.warnings.length;
       return hasWarnings ? response.data.warnings : null;
     });
   }
 
   function handleError(error) {
-    if (
-      error.status === 409 &&
-      error.data &&
-      error.data.errors &&
-      error.data.errors.length
-    ) {
+    if (error.status === 409 && error.data && error.data.errors && error.data.errors.length) {
       // this is response with array of incompatibilities
       return $q.reject({
         message: moveApplicationMessages.ERROR_INCOMPATIBLE_DESTINATION,

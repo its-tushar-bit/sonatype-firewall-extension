@@ -45,15 +45,11 @@ describe('routeStateUtilService', function () {
       });
 
       it('returns true when the passed state has a data property with no authenticationRequired property', function () {
-        expect(getService().stateRequiresAuthentication({ data: {} })).toBe(
-          true
-        );
+        expect(getService().stateRequiresAuthentication({ data: {} })).toBe(true);
 
         // current state has no effect
         mockCurrentState = { data: { authenticationRequired: false } };
-        expect(getService().stateRequiresAuthentication({ data: {} })).toBe(
-          true
-        );
+        expect(getService().stateRequiresAuthentication({ data: {} })).toBe(true);
       });
 
       it('returns true when the passed state has a data property with authenticationRequired set to true', function () {

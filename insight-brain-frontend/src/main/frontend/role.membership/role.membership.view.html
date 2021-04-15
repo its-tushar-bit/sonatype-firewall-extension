@@ -1,26 +1,15 @@
 <div class="role-membership">
-  <form
-    name="vm.accessEditorSearch"
-    class="iq-form"
-    role="form"
-    novalidate
-    ng-submit="vm.search()"
-  >
+  <form name="vm.accessEditorSearch" class="iq-form" role="form" novalidate ng-submit="vm.search()">
     <div class="iq-form-group">
       <label for="{{vm.role.roleId}}access-user-search-input" class="iq-label">
         Search Users
         <div class="iq-sub-label">
-          use &lsquo;*&rsquo; as wildcard (ex. &lsquo;Isa*&rsquo; matches
-          &lsquo;Isaac Asimov&rsquo;)
+          use &lsquo;*&rsquo; as wildcard (ex. &lsquo;Isa*&rsquo; matches &lsquo;Isaac Asimov&rsquo;)
         </div>
-        <div
-          class="iq-sub-label test-group-search-warning"
-          ng-if="!vm.groupSearchEnabled"
-        >
+        <div class="iq-sub-label test-group-search-warning" ng-if="!vm.groupSearchEnabled">
           <i class="fa fa-info-circle size-16px"></i
           ><!--
-       -->One or more LDAP servers have group search disabled, which will affect
-          your results
+       -->One or more LDAP servers have group search disabled, which will affect your results
         </div>
       </label>
       <input
@@ -60,9 +49,7 @@
     <div class="iq-form-group">
       <label for="{{vm.role.roleId}}access-add-group-input" class="iq-label">
         Associate Group
-        <div class="iq-sub-label">
-          requires an exact match of the group name
-        </div>
+        <div class="iq-sub-label">requires an exact match of the group name</div>
       </label>
       <input
         id="{{vm.role.roleId}}access-add-group-input"
@@ -84,13 +71,7 @@
     </div>
   </form>
 
-  <form
-    name="vm.accessEditor"
-    class="iq-form"
-    role="form"
-    novalidate
-    ng-submit="vm.save()"
-  >
+  <form name="vm.accessEditor" class="iq-form" role="form" novalidate ng-submit="vm.save()">
     <input type="hidden" ng-model="vm.role" required />
     <div class="iq-form-group">
       <label>Associated Users</label>

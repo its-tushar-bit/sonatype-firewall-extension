@@ -27,28 +27,20 @@ describe('policy.editor.constraints.controller.spec.js', function () {
     spyOn(constraintStoreDefer.promise, 'then').and.callThrough();
     spyOn(ConstraintStore, 'get').and.returnValue(constraintStoreDefer.promise);
 
-    vm = $controller(
-      'policy.editor.constraints.controller',
-      {},
-      { constraints: [] }
-    );
+    vm = $controller('policy.editor.constraints.controller', {}, { constraints: [] });
   }));
 
   it('Properly loads conditions', function () {
     var conditionTypeValues = {};
-    ConditionTypeValueResourceMockData.getConditionValueTypeUrl().forEach(
-      function (typeValue) {
-        conditionTypeValues[typeValue.id] = typeValue;
-      }
-    );
+    ConditionTypeValueResourceMockData.getConditionValueTypeUrl().forEach(function (typeValue) {
+      conditionTypeValues[typeValue.id] = typeValue;
+    });
 
     resolveLoadData();
 
     expect(ConstraintStore.get).toHaveBeenCalled();
     Object.keys(vm.conditionTypes).forEach(function (type) {
-      expect(vm.conditionTypes[type].valueType).toEqual(
-        conditionTypeValues[vm.conditionTypes[type].valueTypeId]
-      );
+      expect(vm.conditionTypes[type].valueType).toEqual(conditionTypeValues[vm.conditionTypes[type].valueTypeId]);
     });
   });
 

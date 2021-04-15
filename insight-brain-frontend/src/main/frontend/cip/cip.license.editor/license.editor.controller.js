@@ -5,14 +5,7 @@
  */
 /*global angular, CLM, clmEndpoint */
 
-export default function LicenseEditorController(
-  $scope,
-  $q,
-  $http,
-  Messages,
-  SelectedComponent,
-  OwnerContext
-) {
+export default function LicenseEditorController($scope, $q, $http, Messages, SelectedComponent, OwnerContext) {
   var vm = this;
 
   function getHierarchyById(id) {
@@ -44,14 +37,9 @@ export default function LicenseEditorController(
 
       updatedComponent.effectiveLicenses.forEach(function (licenseWithThreat) {
         component.effectiveLicenses.push(licenseWithThreat.license.licenseName);
-        component.effectiveLicenseThreat = Math.max(
-          licenseWithThreat.threatLevel,
-          component.effectiveLicenseThreat
-        );
+        component.effectiveLicenseThreat = Math.max(licenseWithThreat.threatLevel, component.effectiveLicenseThreat);
       });
-      component._formattedEffectiveLicenseThreat = component.effectiveLicenses.join(
-        ', '
-      );
+      component._formattedEffectiveLicenseThreat = component.effectiveLicenses.join(', ');
 
       component.overriddenLicenses = null;
       component.overriddenLicenseThreat = null;
@@ -65,10 +53,7 @@ export default function LicenseEditorController(
       if (licenseOverride) {
         component.status = getStatusName(licenseOverride.status);
 
-        if (
-          licenseOverride.status === 'SELECTED' ||
-          licenseOverride.status === 'OVERRIDDEN'
-        ) {
+        if (licenseOverride.status === 'SELECTED' || licenseOverride.status === 'OVERRIDDEN') {
           component.overriddenLicenseThreat = component.effectiveLicenseThreat;
           component.overriddenLicenses = component.effectiveLicenses;
         }
@@ -90,10 +75,7 @@ export default function LicenseEditorController(
     if (overrideScope.licenseOverride) {
       $scope.override.status = overrideScope.licenseOverride.status;
 
-      if (
-        $scope.override.status === 'OVERRIDDEN' ||
-        $scope.override.status === 'SELECTED'
-      ) {
+      if ($scope.override.status === 'OVERRIDDEN' || $scope.override.status === 'SELECTED') {
         $scope.override.licenseIds = overrideScope.licenseOverride.licenseIds;
       }
     } else {
@@ -128,9 +110,7 @@ export default function LicenseEditorController(
       '/' +
       OwnerContext.ownerId +
       '/licenses?componentIdentifier=' +
-      encodeURIComponent(
-        JSON.stringify(SelectedComponent.get().componentIdentifier)
-      );
+      encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier));
 
     if (SelectedComponent.get().identificationSource) {
       licensesUrl =
@@ -144,11 +124,7 @@ export default function LicenseEditorController(
   }
 
   $scope.canInherit = function () {
-    return (
-      $scope.override &&
-      getHierarchyIndexById($scope.override.ownerId) <
-        $scope.hierarchy.length - 1
-    );
+    return $scope.override && getHierarchyIndexById($scope.override.ownerId) < $scope.hierarchy.length - 1;
   };
 
   $scope.getInheritableStatus = function () {
@@ -182,9 +158,7 @@ export default function LicenseEditorController(
           '/' +
           OwnerContext.ownerId +
           '?componentIdentifier=' +
-          encodeURIComponent(
-            JSON.stringify(SelectedComponent.get().componentIdentifier)
-          )
+          encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
       )
     );
 
@@ -208,12 +182,9 @@ export default function LicenseEditorController(
         $scope.reset();
 
         $scope.selectableLicenses = [];
-        angular.forEach(
-          $scope.component.selectableLicenses,
-          function (license) {
-            $scope.selectableLicenses.push($scope.licenses[license.licenseId]);
-          }
-        );
+        angular.forEach($scope.component.selectableLicenses, function (license) {
+          $scope.selectableLicenses.push($scope.licenses[license.licenseId]);
+        });
       },
       function () {
         $scope.error = arguments[0];
@@ -235,10 +206,7 @@ export default function LicenseEditorController(
       owner = null;
 
     // Only set license for Override or Select states
-    if (
-      licenseOverride.status === 'OVERRIDDEN' ||
-      licenseOverride.status === 'SELECTED'
-    ) {
+    if (licenseOverride.status === 'OVERRIDDEN' || licenseOverride.status === 'SELECTED') {
       licenseOverride.licenseIds = $scope.override.licenseIds;
     }
 
@@ -277,36 +245,27 @@ export default function LicenseEditorController(
         }
       );
     } else {
-      $http
-        .post(
-          CLM.path +
-            'rest/licenseOverride/' +
-            owner.ownerType +
-            '/' +
-            owner.ownerId,
-          licenseOverride
-        )
-        .then(
-          function (response) {
-            owner.licenseOverride = response.data;
-            $scope.reset();
+      $http.post(CLM.path + 'rest/licenseOverride/' + owner.ownerType + '/' + owner.ownerId, licenseOverride).then(
+        function (response) {
+          owner.licenseOverride = response.data;
+          $scope.reset();
 
-            return createComponentRequest().then(
-              function (updatedComponent) {
-                $scope.saving = false;
-                updateTable(updatedComponent.data);
-              },
-              function (error) {
-                $scope.saving = false;
-                $scope.alert = Messages.getHttpErrorMessage(error);
-              }
-            );
-          },
-          function (error) {
-            $scope.alert = Messages.getHttpErrorMessage(error);
-            $scope.saving = false;
-          }
-        );
+          return createComponentRequest().then(
+            function (updatedComponent) {
+              $scope.saving = false;
+              updateTable(updatedComponent.data);
+            },
+            function (error) {
+              $scope.saving = false;
+              $scope.alert = Messages.getHttpErrorMessage(error);
+            }
+          );
+        },
+        function (error) {
+          $scope.alert = Messages.getHttpErrorMessage(error);
+          $scope.saving = false;
+        }
+      );
     }
   };
 
@@ -348,18 +307,13 @@ export default function LicenseEditorController(
 
   $scope.isClaimedComponent = function () {
     const selectedComponent = SelectedComponent.get();
-    return (
-      selectedComponent != null &&
-      selectedComponent.identificationSource === 'Manual'
-    );
+    return selectedComponent != null && selectedComponent.identificationSource === 'Manual';
   };
 
   $scope.isSubmitEnabled = function () {
     var validOverride =
-      !(
-        $scope.override.status === 'OVERRIDDEN' ||
-        $scope.override.status === 'SELECTED'
-      ) || $scope.override.licenseIds.length > 0;
+      !($scope.override.status === 'OVERRIDDEN' || $scope.override.status === 'SELECTED') ||
+      $scope.override.licenseIds.length > 0;
 
     return (
       vm.licenseEditorForm &&
@@ -396,11 +350,4 @@ export default function LicenseEditorController(
 
   $scope.doLoad();
 }
-LicenseEditorController.$inject = [
-  '$scope',
-  '$q',
-  '$http',
-  'Messages',
-  'SelectedComponent',
-  'OwnerContext',
-];
+LicenseEditorController.$inject = ['$scope', '$q', '$http', 'Messages', 'SelectedComponent', 'OwnerContext'];

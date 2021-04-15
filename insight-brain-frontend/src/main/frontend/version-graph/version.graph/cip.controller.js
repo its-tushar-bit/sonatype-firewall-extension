@@ -4,18 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-export default function CIPController(
-  $scope,
-  $window,
-  OwnerContext,
-  Coordinates,
-  Properties
-) {
+export default function CIPController($scope, $window, OwnerContext, Coordinates, Properties) {
   $scope.canLoad = function () {
     return !$scope.selectApplication || OwnerContext.ownerId;
   };
-  $scope.linkTarget =
-    ($window.clmEndpoint && $window.clmEndpoint.linkTarget) || '_blank';
+  $scope.linkTarget = ($window.clmEndpoint && $window.clmEndpoint.linkTarget) || '_blank';
 
   $scope.$watch(
     function () {
@@ -31,10 +24,4 @@ export default function CIPController(
   });
 }
 
-CIPController.$inject = [
-  '$scope',
-  '$window',
-  'OwnerContext',
-  'Coordinates',
-  'Properties',
-];
+CIPController.$inject = ['$scope', '$window', 'OwnerContext', 'Coordinates', 'Properties'];

@@ -17,10 +17,7 @@ export default angular
     telemetryServiceModule.name,
     permissionServiceModule.name,
   ])
-  .component(
-    'changeDefaultAdminPasswordNotice',
-    changeDefaultAdminPasswordNotice
-  )
+  .component('changeDefaultAdminPasswordNotice', changeDefaultAdminPasswordNotice)
   .factory('CurrentUser', currentUserService)
   .factory('userActions', userActions)
   .value('userReducer', userReducer);

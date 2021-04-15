@@ -9,12 +9,7 @@ describe('stageFilter.filter.spec', function () {
   beforeEach(angular.mock.module(dashboardUtilsModule.name));
 
   it('empty filter', inject(function ($filter) {
-    var stageList = [
-        { id: 'operate' },
-        { id: 'build' },
-        { id: 'release' },
-        { id: 'stage-release' },
-      ],
+    var stageList = [{ id: 'operate' }, { id: 'build' }, { id: 'release' }, { id: 'stage-release' }],
       result;
 
     // null filter
@@ -27,12 +22,7 @@ describe('stageFilter.filter.spec', function () {
   }));
 
   it('filter', inject(function ($filter) {
-    var stageList = [
-        { id: 'build' },
-        { id: 'stage-release' },
-        { id: 'release' },
-        { id: 'operate' },
-      ],
+    var stageList = [{ id: 'build' }, { id: 'stage-release' }, { id: 'release' }, { id: 'operate' }],
       result;
 
     result = $filter('stageFilter')(stageList, {

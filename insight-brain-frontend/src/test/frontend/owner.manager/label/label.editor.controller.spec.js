@@ -39,9 +39,7 @@ describe('label.editor.controller.spec.js', function () {
   }));
 
   it('Creates new on load', function () {
-    $httpBackend
-      .whenGET('/api/v2/labels/global/global/applicable')
-      .respond({ labelsByOwner: [] });
+    $httpBackend.whenGET('/api/v2/labels/global/global/applicable').respond({ labelsByOwner: [] });
     inject(function ($controller) {
       vm = $controller('label.editor.controller', { $scope: scope });
     });
@@ -67,9 +65,7 @@ describe('label.editor.controller.spec.js', function () {
   });
 
   it('Updates siblings list after creating new', function () {
-    $httpBackend
-      .whenGET('/api/v2/labels/global/global/applicable')
-      .respond({ labelsByOwner: [] });
+    $httpBackend.whenGET('/api/v2/labels/global/global/applicable').respond({ labelsByOwner: [] });
     inject(function ($controller) {
       vm = $controller('label.editor.controller', { $scope: scope });
     });
@@ -91,9 +87,7 @@ describe('label.editor.controller.spec.js', function () {
   });
 
   it('Finds match with URL parameter', function () {
-    $httpBackend
-      .whenGET('/api/v2/labels/global/global/applicable')
-      .respond({ labelsByOwner: [] });
+    $httpBackend.whenGET('/api/v2/labels/global/global/applicable').respond({ labelsByOwner: [] });
     inject(function ($controller) {
       vm = $controller('label.editor.controller', {
         $stateParams: { labelId: '456' },
@@ -109,9 +103,7 @@ describe('label.editor.controller.spec.js', function () {
   });
 
   it('Errors if no match found', function () {
-    $httpBackend
-      .whenGET('/api/v2/labels/global/global/applicable')
-      .respond({ labelsByOwner: [] });
+    $httpBackend.whenGET('/api/v2/labels/global/global/applicable').respond({ labelsByOwner: [] });
     inject(function ($controller) {
       vm = $controller('label.editor.controller', {
         $stateParams: { labelId: '789' },
@@ -126,9 +118,7 @@ describe('label.editor.controller.spec.js', function () {
   });
 
   it('Unsuccessful save sets error message', function () {
-    $httpBackend
-      .whenGET('/api/v2/labels/global/global/applicable')
-      .respond({ labelsByOwner: [] });
+    $httpBackend.whenGET('/api/v2/labels/global/global/applicable').respond({ labelsByOwner: [] });
     inject(function ($controller) {
       vm = $controller('label.editor.controller', { $scope: scope });
     });
@@ -145,9 +135,7 @@ describe('label.editor.controller.spec.js', function () {
 
   it('After delete goes to create new label', function () {
     // given
-    $httpBackend
-      .whenGET('/api/v2/labels/global/global/applicable')
-      .respond({ labelsByOwner: [] });
+    $httpBackend.whenGET('/api/v2/labels/global/global/applicable').respond({ labelsByOwner: [] });
     spyOn(SameOwnerStateNavigationService, 'goEdit');
     inject(function ($controller) {
       vm = $controller('label.editor.controller', {
@@ -166,17 +154,13 @@ describe('label.editor.controller.spec.js', function () {
     deleteServiceResourceDefer.resolve();
     $timeout.flush();
     // then
-    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith(
-      'create-label'
-    );
+    expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-label');
     expect(mockLabel.$revert).toHaveBeenCalled();
   });
 
   describe('Page Changes', function () {
     beforeEach(inject(function ($controller) {
-      $httpBackend
-        .whenGET('/api/v2/labels/global/global/applicable')
-        .respond({ labelsByOwner: [] });
+      $httpBackend.whenGET('/api/v2/labels/global/global/applicable').respond({ labelsByOwner: [] });
       vm = $controller('label.editor.controller', {
         $scope: scope,
       });

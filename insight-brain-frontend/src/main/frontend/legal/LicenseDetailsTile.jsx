@@ -19,9 +19,7 @@ export default function LicenseDetailsTile(props) {
         </div>
       </header>
       <div className="nx-tile-content">
-        <ul className="nx-list">
-          {isLicensePresent() ? licenseNames.map(createItem) : 'None found'}
-        </ul>
+        <ul className="nx-list">{isLicensePresent() ? licenseNames.map(createItem) : 'None found'}</ul>
       </div>
     </section>
   );

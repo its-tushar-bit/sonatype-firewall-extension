@@ -10,10 +10,7 @@ describe('gettingStartedDocLink', function () {
 
   beforeEach(
     angular.mock.module(gettingStartedModule.name, function ($provide) {
-      telemetryServiceMock = jasmine.createSpyObj(
-        'gettingStartedUsageTelemetryService',
-        ['submitData']
-      );
+      telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
 
       $provide.service('gettingStartedUsageTelemetryService', function () {
         return telemetryServiceMock;
@@ -36,12 +33,9 @@ describe('gettingStartedDocLink', function () {
   describe('onClick()', function () {
     it('fires "LINK_CLICKED" telemetry event', function () {
       vm.onClick();
-      expect(telemetryServiceMock.submitData).toHaveBeenCalledWith(
-        'LINK_CLICKED',
-        {
-          href: 'testLinkHref',
-        }
-      );
+      expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('LINK_CLICKED', {
+        href: 'testLinkHref',
+      });
     });
   });
 });

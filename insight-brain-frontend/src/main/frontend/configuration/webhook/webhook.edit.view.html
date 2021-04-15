@@ -2,21 +2,12 @@
   <div class="iq-sys-prefs-back-button">
     <iq-back-button state="webhooks.list"></iq-back-button>
   </div>
-  <div
-    class="iq-tile iq-tile--sys-prefs"
-    load-wrapper="vm.loadError"
-    reload="vm.doLoad()"
-    loading="!vm.dirtyWebhook"
-  >
+  <div class="iq-tile iq-tile--sys-prefs" load-wrapper="vm.loadError" reload="vm.doLoad()" loading="!vm.dirtyWebhook">
     <div ng-if="vm.isWebhooksSupported">
       <div class="iq-tile-header webhooks">
         <div class="iq-tile-header__title">
           <div class="iq-tile-header__icon">
-            <img
-              src="img/webhooks_20px.png"
-              class="pull-left webhook-icon"
-              alt="Webhooks"
-            />
+            <img src="img/webhooks_20px.png" class="pull-left webhook-icon" alt="Webhooks" />
           </div>
           <h1>{{::vm.dirtyWebhook.id ? 'Edit' : 'Create'}} Webhook</h1>
         </div>
@@ -56,9 +47,7 @@
           <div class="iq-form-group">
             <label class="iq-label" for="editor-webhook-url">
               Webhook description - optional
-              <div class="iq-sub-label">
-                a description for your webhook used in the UI
-              </div>
+              <div class="iq-sub-label">a description for your webhook used in the UI</div>
             </label>
             <input
               class="iq-text-input iq-text-input--long"
@@ -90,18 +79,15 @@
             ng-if="!vm.isWebhooksForApplicationsSupported"
             class="iq-alert iq-alert--info iq-alert--form-item"
           >
-            <i class="fa fa-info-circle"></i>Webhooks with Application
-            Evaluation event types are not supported by your license.
+            <i class="fa fa-info-circle"></i>Webhooks with Application Evaluation event types are not supported by your
+            license.
           </div>
           <div class="iq-form-group" id="event-types">
             <label class="iq-label">
               Event Types
               <div class="iq-sub-label">which trigger this Webhook</div>
             </label>
-            <div
-              ng-repeat="eventType in ::vm.webhookEventTypes"
-              id="{{::eventType.split(' ').join('-')}}"
-            >
+            <div ng-repeat="eventType in ::vm.webhookEventTypes" id="{{::eventType.split(' ').join('-')}}">
               <iq-checkbox
                 label="{{::eventType}}"
                 on-click="vm.toggleEventTypeSelected(eventType)"
@@ -125,12 +111,7 @@
             >
               {{::vm.dirtyWebhook.id ? 'Update' : 'Create'}}</button
             ><!--
-         --><button
-              class="iq-btn iq-btn--dismiss"
-              type="button"
-              ui-sref="webhooks.list"
-            >
-              Cancel</button
+         --><button class="iq-btn iq-btn--dismiss" type="button" ui-sref="webhooks.list">Cancel</button
             ><!--
          --><button
               id="delete-webhook-button"
@@ -147,8 +128,7 @@
     </div>
     <div ng-if="!vm.isWebhooksSupported">
       <div class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i>Webhooks feature is not supported by your
-        license.
+        <i class="fa fa-warning"></i>Webhooks feature is not supported by your license.
       </div>
     </div>
   </div>

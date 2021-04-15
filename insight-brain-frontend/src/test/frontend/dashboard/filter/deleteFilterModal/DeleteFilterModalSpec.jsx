@@ -4,12 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxErrorAlert,
-  NxSubmitMask,
-  NxLoadError,
-  NxModal,
-} from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxSubmitMask, NxLoadError, NxModal } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import DeleteFilterModal from '../../../../../main/frontend/dashboard/filter/deleteFilterModal/DeleteFilterModal';
@@ -61,9 +56,7 @@ describe('DeleteFilterModal', function () {
     });
 
     it('renders submit button as primary with "Continue" text', function () {
-      const submitButton = getShallowComponent().find(
-        '#delete-filter-modal-continue-button'
-      );
+      const submitButton = getShallowComponent().find('#delete-filter-modal-continue-button');
       expect(submitButton).toHaveProp('variant', 'primary');
       expect(submitButton).toHaveText('Continue');
     });
@@ -90,9 +83,7 @@ describe('DeleteFilterModal', function () {
     });
 
     it('does not render the Continue button', function () {
-      expect(
-        component.find('#delete-filter-modal-continue-button')
-      ).not.toExist();
+      expect(component.find('#delete-filter-modal-continue-button')).not.toExist();
     });
   });
 
@@ -103,9 +94,7 @@ describe('DeleteFilterModal', function () {
         deleteFilterSuccess: false,
       });
 
-      expect(component.find('form').childAt(0)).toContainReact(
-        <NxSubmitMask message="Removing…" success={false} />
-      );
+      expect(component.find('form').childAt(0)).toContainReact(<NxSubmitMask message="Removing…" success={false} />);
     });
 
     it('is rendered when deleteFilterSuccess is true', function () {
@@ -114,9 +103,7 @@ describe('DeleteFilterModal', function () {
         deleteFilterSuccess: true,
       });
 
-      expect(component.find('form').childAt(0)).toContainReact(
-        <NxSubmitMask message="Removing…" success={true} />
-      );
+      expect(component.find('form').childAt(0)).toContainReact(<NxSubmitMask message="Removing…" success={true} />);
     });
 
     it('is not rendered when both deleteFilterSaving and deleteFilterSuccess are false', function () {
@@ -142,9 +129,7 @@ describe('DeleteFilterModal', function () {
 
   describe('cancel button click handler', function () {
     it('fires hideDeleteFilterModal action', function () {
-      const cancelButton = getShallowComponent().find(
-        '#delete-filter-modal-cancel-button'
-      );
+      const cancelButton = getShallowComponent().find('#delete-filter-modal-cancel-button');
       cancelButton.simulate('click');
       expect(hideDeleteFilterModal).toHaveBeenCalled();
     });

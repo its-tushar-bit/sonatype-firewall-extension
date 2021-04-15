@@ -23,10 +23,7 @@ describe('ReportStatusBar component', function () {
       },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ReportStatusBar,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ReportStatusBar, minimalProps);
   });
 
   it('renders a tile', function () {

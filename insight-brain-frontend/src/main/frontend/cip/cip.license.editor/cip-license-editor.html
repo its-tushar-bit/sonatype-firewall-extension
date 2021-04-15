@@ -7,8 +7,7 @@
 >
   <div ng-show="alert" class="alert alert-error">
     <button type="button" class="close" ng-click="alert = null">&times;</button>
-    <strong>Error</strong> An error occurred while saving the license override.
-    ({{alert}})
+    <strong>Error</strong> An error occurred while saving the license override. ({{alert}})
   </div>
   <form name="vm.licenseEditorForm" ng-submit="save()">
     <div style="width: 199px; height: 212px; overflow: auto" class="well">
@@ -19,16 +18,12 @@
             class="license"
             ng-repeat='licenseWithThreat in component.declaredlicenses | orderBy:"license.licenseName"'
           >
-            <div
-              class="nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}"
-            >
+            <div class="nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}">
               {{licenseWithThreat.license.licenseName}}
             </div>
           </li>
         </div>
-        <li class="license" ng-show="isClaimedComponent()">
-          Unavailable, Claimed Component
-        </li>
+        <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
         <li class="divider"></li>
         <li class="nav-header">Observed Licenses</li>
         <div id="observedLicenseBlock">
@@ -36,16 +31,12 @@
             class="license"
             ng-repeat='licenseWithThreat in component.observedlicenses | orderBy:"license.licenseName"'
           >
-            <div
-              class="nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}"
-            >
+            <div class="nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}">
               {{licenseWithThreat.license.licenseName}}
             </div>
           </li>
         </div>
-        <li class="license" ng-show="isClaimedComponent()">
-          Unavailable, Claimed Component
-        </li>
+        <li class="license" ng-show="isClaimedComponent()">Unavailable, Claimed Component</li>
         <li class="divider"></li>
         <li class="nav-header">Effective License</li>
         <div id="effectiveLicenseBlock">
@@ -53,17 +44,12 @@
             class="license"
             ng-repeat='licenseWithThreat in component.effectiveLicenses | orderBy:"license.licenseName"'
           >
-            <div
-              class="nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}"
-            >
+            <div class="nx-clm-square {{getLicenseThreatClass(licenseWithThreat.threatLevel)}}">
               {{licenseWithThreat.license.licenseName}}
             </div>
           </li>
         </div>
-        <li
-          class="license"
-          ng-show="isClaimedComponent() && !component.effectiveLicenses.length"
-        >
+        <li class="license" ng-show="isClaimedComponent() && !component.effectiveLicenses.length">
           Unavailable, Claimed Component
         </li>
       </ul>
@@ -95,12 +81,7 @@
               <option value="OPEN">Open</option>
               <option value="ACKNOWLEDGED">Acknowledged</option>
               <option value="OVERRIDDEN">Overridden</option>
-              <option
-                ng-if="component.selectableLicenses.length"
-                value="SELECTED"
-              >
-                Selected
-              </option>
+              <option ng-if="component.selectableLicenses.length" value="SELECTED">Selected</option>
               <option value="CONFIRMED">Confirmed</option>
               <option ng-if="hierarchy && canInherit()" value="DELETE">
                 Inherit Status ({{ getInheritableStatus() }})
@@ -132,9 +113,7 @@
           </div>
         </div>
         <div class="control-group">
-          <label class="control-label" for="comment1376501760921"
-            >Comment</label
-          >
+          <label class="control-label" for="comment1376501760921">Comment</label>
           <div class="controls">
             <textarea
               id="license-comment"
@@ -150,12 +129,7 @@
           </div>
         </div>
         <div class="controls" style="text-align: right">
-          <button
-            id="license-update-button"
-            type="submit"
-            class="btn btn-primary"
-            ng-disabled="!isSubmitEnabled()"
-          >
+          <button id="license-update-button" type="submit" class="btn btn-primary" ng-disabled="!isSubmitEnabled()">
             Update
           </button>
         </div>

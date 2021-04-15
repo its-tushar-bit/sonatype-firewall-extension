@@ -39,10 +39,7 @@ describe('LegalDashboardFilter', function () {
         organizationName: 'Org1',
       },
     ],
-    categories: [
-      uncategorizedCategory,
-      { id: 'cat', name: 'Cat', owner: 'Org1' },
-    ],
+    categories: [uncategorizedCategory, { id: 'cat', name: 'Cat', owner: 'Org1' }],
     stages: [
       { id: 'build', name: 'Build' },
       { id: 'stage-release', name: 'Stage Release' },
@@ -105,14 +102,8 @@ describe('LegalDashboardFilter', function () {
       }
     ).default;
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LegalDashboardFilter,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      LegalDashboardFilter,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardFilter, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(LegalDashboardFilter, minimalProps);
   });
 
   it('fires the loadFilter action', function () {
@@ -127,9 +118,7 @@ describe('LegalDashboardFilter', function () {
         shallowRender = getShallowComponent(props),
         header = shallowRender.find('.dashboard-filter-header');
 
-      expect(header).toContainReact(
-        <NxErrorAlert>Failed to load filter 1234</NxErrorAlert>
-      );
+      expect(header).toContainReact(<NxErrorAlert>Failed to load filter 1234</NxErrorAlert>);
     });
 
     it('is not rendered if loadErrorFilterName is null', function () {
@@ -185,9 +174,7 @@ describe('LegalDashboardFilter', function () {
         applyFilterError: 'err',
         filtersAreDirty: true,
         needsAcknowledgement: true,
-        setDisplaySaveFilterModal: jasmine.createSpy(
-          'setDisplaySaveFilterModal'
-        ),
+        setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),
         revert: jasmine.createSpy('revert'),
         applyFilterCancelled: () => {},
       },
@@ -197,23 +184,11 @@ describe('LegalDashboardFilter', function () {
     expect(filterFooter).toExist();
     expect(filterFooter).toHaveProp('applyFilterError', props.applyFilterError);
     expect(filterFooter).toHaveProp('filtersAreDirty', props.filtersAreDirty);
-    expect(filterFooter).toHaveProp(
-      'needsAcknowledgement',
-      props.needsAcknowledgement
-    );
+    expect(filterFooter).toHaveProp('needsAcknowledgement', props.needsAcknowledgement);
     expect(filterFooter).toHaveProp('revert', props.revert);
-    expect(filterFooter).toHaveProp(
-      'setDisplaySaveFilterModal',
-      props.setDisplaySaveFilterModal
-    );
-    expect(filterFooter).toHaveProp(
-      'onApplyCurrentFilter',
-      jasmine.any(Function)
-    );
-    expect(filterFooter).toHaveProp(
-      'onCancelApplyFilter',
-      jasmine.any(Function)
-    );
+    expect(filterFooter).toHaveProp('setDisplaySaveFilterModal', props.setDisplaySaveFilterModal);
+    expect(filterFooter).toHaveProp('onApplyCurrentFilter', jasmine.any(Function));
+    expect(filterFooter).toHaveProp('onCancelApplyFilter', jasmine.any(Function));
   });
 
   describe('LegalDashboardFilter filter contents', function () {
@@ -231,78 +206,44 @@ describe('LegalDashboardFilter', function () {
         orgAppFilter = filterContent.find('#legal-org-app-filters'),
         categoryFilter = filterContent.find('#legal-category-filter'),
         stageFilter = filterContent.find('#legal-stage-filter'),
-        progressOptionsFilter = filterContent.find(
-          '#legal-progress-options-filter'
-        );
+        progressOptionsFilter = filterContent.find('#legal-progress-options-filter');
 
-      expect(orgAppFilter).toHaveProp(
-        'organizations',
-        minimalProps.organizations
-      );
-      expect(orgAppFilter).toHaveProp(
-        'applications',
-        minimalProps.applications
-      );
-      expect(orgAppFilter).toHaveProp(
-        'selectedApplications',
-        minimalProps.selected.applications
-      );
-      expect(orgAppFilter).toHaveProp(
-        'selectedOrganizations',
-        minimalProps.selected.organizations
-      );
+      expect(orgAppFilter).toHaveProp('organizations', minimalProps.organizations);
+      expect(orgAppFilter).toHaveProp('applications', minimalProps.applications);
+      expect(orgAppFilter).toHaveProp('selectedApplications', minimalProps.selected.applications);
+      expect(orgAppFilter).toHaveProp('selectedOrganizations', minimalProps.selected.organizations);
       expect(orgAppFilter).toHaveProp('onChange', toggleAppsAndOrgsSpy);
       orgAppFilter.simulate('change');
       expect(toggleAppsAndOrgsSpy).toHaveBeenCalled();
 
       expect(categoryFilter).toHaveProp('options', minimalProps.categories);
-      expect(categoryFilter).toHaveProp(
-        'selectedIds',
-        minimalProps.selected.categories
-      );
+      expect(categoryFilter).toHaveProp('selectedIds', minimalProps.selected.categories);
       expect(categoryFilter).toHaveProp('onChange');
       expect(categoryFilter).toHaveProp('optionTooltipGenerator');
       const selectedCategories = [null];
       categoryFilter.simulate('change', selectedCategories);
-      expect(toggleFilterSpy).toHaveBeenCalledWith(
-        'categories',
-        selectedCategories
-      );
+      expect(toggleFilterSpy).toHaveBeenCalledWith('categories', selectedCategories);
 
-      const noTooltipForUncategorizedApplications = categoryFilter.prop(
-        'optionTooltipGenerator'
-      )(minimalProps.categories[0]);
-      const generatedTooltip = categoryFilter.prop('optionTooltipGenerator')(
-        minimalProps.categories[1]
+      const noTooltipForUncategorizedApplications = categoryFilter.prop('optionTooltipGenerator')(
+        minimalProps.categories[0]
       );
+      const generatedTooltip = categoryFilter.prop('optionTooltipGenerator')(minimalProps.categories[1]);
       expect(noTooltipForUncategorizedApplications).toBe('');
       expect(generatedTooltip).toBe('in Org1');
 
       expect(stageFilter).toHaveProp('options', minimalProps.stages);
-      expect(stageFilter).toHaveProp(
-        'selectedIds',
-        minimalProps.selected.stages
-      );
+      expect(stageFilter).toHaveProp('selectedIds', minimalProps.selected.stages);
       expect(stageFilter).toHaveProp('onChange');
       const selectedStages = ['build'];
       stageFilter.simulate('change', selectedStages);
       expect(toggleFilterSpy).toHaveBeenCalledWith('stages', selectedStages);
 
-      expect(progressOptionsFilter).toHaveProp(
-        'options',
-        minimalProps.progressOptions
-      );
-      expect(progressOptionsFilter).toHaveProp(
-        'selectedIds',
-        minimalProps.selected.stages
-      );
+      expect(progressOptionsFilter).toHaveProp('options', minimalProps.progressOptions);
+      expect(progressOptionsFilter).toHaveProp('selectedIds', minimalProps.selected.stages);
       expect(progressOptionsFilter).toHaveProp('onChange');
       const selectedProgressOptions = ['build'];
       progressOptionsFilter.simulate('change', selectedStages);
-      expect(toggleFilterSpy).toHaveBeenCalledWith(
-        'progressOptions',
-        selectedProgressOptions
-      );
+      expect(toggleFilterSpy).toHaveBeenCalledWith('progressOptions', selectedProgressOptions);
     });
 
     it('renders a loading loadWrapper if it is loading', function () {
@@ -346,9 +287,7 @@ describe('LegalDashboardFilter', function () {
           appliedFilterName: 'foo filter',
         });
 
-      shallowRender
-        .find(LegalDashboardFilterFooter)
-        .simulate('applyCurrentFilter');
+      shallowRender.find(LegalDashboardFilterFooter).simulate('applyCurrentFilter');
       expect(applySpy).toHaveBeenCalledWith(expectedJsonFilter, 'foo filter');
     });
   });
@@ -359,9 +298,7 @@ describe('LegalDashboardFilter', function () {
         showSaveFilterModal: true,
       });
 
-      expect(shallowRender).toContainReact(
-        <SaveLegalFilterModalContainerMock />
-      );
+      expect(shallowRender).toContainReact(<SaveLegalFilterModalContainerMock />);
     });
 
     it('is not rendered when showSaveFilterModal is false', function () {
@@ -369,9 +306,7 @@ describe('LegalDashboardFilter', function () {
         showSaveFilterModal: false,
       });
 
-      expect(shallowRender).not.toContainReact(
-        <SaveLegalFilterModalContainerMock />
-      );
+      expect(shallowRender).not.toContainReact(<SaveLegalFilterModalContainerMock />);
     });
   });
 });

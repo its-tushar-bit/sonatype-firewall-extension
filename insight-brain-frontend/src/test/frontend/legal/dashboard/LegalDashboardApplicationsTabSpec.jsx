@@ -4,12 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import {
-  NxPagination,
-  NxTable,
-  NxTableCell,
-  NxTableHead,
-} from '@sonatype/react-shared-components';
+import { NxPagination, NxTable, NxTableCell, NxTableHead } from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
 import LegalDashboardApplicationRow from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationRow';
 import { DASHBOARD } from '../../../../main/frontend/legal/advancedLegalConstants';
@@ -45,10 +40,7 @@ describe('LegalDashboardApplicationsTab component', function () {
   };
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LegalDashboardApplicationsTab,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardApplicationsTab, minimalProps);
   });
 
   it('renders a table', function () {
@@ -105,10 +97,7 @@ describe('LegalDashboardApplicationsTab component', function () {
 
     spyOn(appProps, 'fetchBackendPage');
 
-    const wrapper = enzymeUtils.getShallowComponent(
-      LegalDashboardApplicationsTab,
-      appProps
-    )();
+    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardApplicationsTab, appProps)();
     let pagination = wrapper.find(NxPagination);
     expect(pagination).toExist();
 
@@ -142,26 +131,17 @@ describe('LegalDashboardApplicationsTab component', function () {
 
       onClickSort();
       let expectedResult = `${expectedResults[index]}_ASC`;
-      expect(minimalProps.changeSortField).toHaveBeenCalledWith(
-        'applications',
-        expectedResult
-      );
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
       minimalProps.applications.sortField = expectedResult;
 
       onClickSort();
       expectedResult = `${expectedResults[index]}_DESC`;
-      expect(minimalProps.changeSortField).toHaveBeenCalledWith(
-        'applications',
-        expectedResult
-      );
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
       minimalProps.applications.sortField = expectedResult;
 
       onClickSort();
       expectedResult = null;
-      expect(minimalProps.changeSortField).toHaveBeenCalledWith(
-        'applications',
-        expectedResult
-      );
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
     }
   });
 });

@@ -20,9 +20,7 @@ describe('Eclipse View Details tests', function () {
     query,
     wnd,
     data = {
-      observedLicenses: [
-        { licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' },
-      ],
+      observedLicenses: [{ licenseId: 'UNSPECIFIED', licenseName: 'Not Provided' }],
       declaredLicenses: [
         {
           licenseId: 'Apache-2.0-EPL-1.0',
@@ -35,8 +33,7 @@ describe('Eclipse View Details tests', function () {
     };
 
   beforeEach(function () {
-    viewDetailsModule = require('inject-loader!../../../main/frontend/version-graph/viewdetails')()
-      .default;
+    viewDetailsModule = require('inject-loader!../../../main/frontend/version-graph/viewdetails')().default;
 
     angular.mock.module(viewDetailsModule.name);
 
@@ -87,9 +84,7 @@ describe('Eclipse View Details tests', function () {
       });
     });
 
-    it('Exceptions after registration are logged', inject(function (
-      $exceptionHandler
-    ) {
+    it('Exceptions after registration are logged', inject(function ($exceptionHandler) {
       var spy = jasmine.createSpy('logger');
       Insight.setLogger(spy);
       $exceptionHandler(new Error('foo'));
@@ -101,9 +96,7 @@ describe('Eclipse View Details tests', function () {
 
   describe('Legacy Plugin', function () {
     beforeEach(inject(function ($httpBackend, $controller) {
-      httpBackend
-        .expectGET(new RegExp('/rest/ide/componentDetails/application/appId'))
-        .respond(angular.copy(data));
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(angular.copy(data));
       $controller('view', { $scope: scope, query: angular.copy(query) });
       httpBackend.flush();
     }));
@@ -140,10 +133,7 @@ describe('Eclipse View Details tests', function () {
       expect(scope.errorMessage).toEqual('Oops');
     }));
 
-    it('falls back to error code if no message supplied', inject(function (
-      $httpBackend,
-      $controller
-    ) {
+    it('falls back to error code if no message supplied', inject(function ($httpBackend, $controller) {
       httpBackend
         .expectGET(new RegExp('/rest/ide/componentDetails/application/appId'))
         .respond(500, '', { 'Content-Type': 'text/plain' });
@@ -161,16 +151,13 @@ describe('Eclipse View Details tests', function () {
     beforeEach(inject(function ($httpBackend, $controller) {
       angular.extend(query, { deferLoad: 'true' });
       httpBackend
-        .expectGET(
-          new RegExp('/rest/ide/componentDetails/application/appId'),
-          function (reqHeaders) {
-            var match = true;
-            angular.forEach(headers, function (value, key) {
-              match = match && reqHeaders[key] === value;
-            });
-            return match;
-          }
-        )
+        .expectGET(new RegExp('/rest/ide/componentDetails/application/appId'), function (reqHeaders) {
+          var match = true;
+          angular.forEach(headers, function (value, key) {
+            match = match && reqHeaders[key] === value;
+          });
+          return match;
+        })
         .respond(angular.copy(data));
       $controller('view', { $scope: scope, query: angular.copy(query) });
     }));
@@ -197,9 +184,7 @@ describe('Eclipse View Details tests', function () {
     });
 
     it('legacy', inject(function ($controller) {
-      httpBackend
-        .expectGET(new RegExp('/rest/ide/componentDetails/application/appId'))
-        .respond(angular.copy(data));
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(angular.copy(data));
       $controller('view', { $scope: scope, query: angular.copy(query) });
       expect(Brain.ide.getComponentUrl).toHaveBeenCalledWith(
         'application',
@@ -235,9 +220,7 @@ describe('Eclipse View Details tests', function () {
         }),
       };
 
-      httpBackend
-        .expectGET(new RegExp('/rest/ide/componentDetails/application/appId'))
-        .respond(angular.copy(data));
+      httpBackend.expectGET(new RegExp('/rest/ide/componentDetails/application/appId')).respond(angular.copy(data));
       $controller('view', { $scope: scope, query: angular.copy(query) });
       expect(Brain.ide.getComponentUrl).toHaveBeenCalledWith(
         'application',

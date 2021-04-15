@@ -9,16 +9,7 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
 (function () {
   'use strict';
 
-  function toParams(
-    componentType,
-    hash,
-    matchState,
-    proprietary,
-    coordinates,
-    pathname,
-    identificationSource,
-    scanId
-  ) {
+  function toParams(componentType, hash, matchState, proprietary, coordinates, pathname, identificationSource, scanId) {
     var params = {};
 
     if (coordinates) {
@@ -66,28 +57,12 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
       identificationSource,
       scanId
     ) {
-      var url =
-        basePath +
-        'rest/' +
-        clientType +
-        '/componentDetails/' +
-        ownerType +
-        '/' +
-        encodeURIComponent(ownerId);
+      var url = basePath + 'rest/' + clientType + '/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId);
 
       return (
         url +
         '?' +
-        toParams(
-          componentType,
-          hash,
-          matchState,
-          proprietary,
-          coordinates,
-          pathname,
-          identificationSource,
-          scanId
-        )
+        toParams(componentType, hash, matchState, proprietary, coordinates, pathname, identificationSource, scanId)
       );
     };
   }
@@ -118,16 +93,7 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
       return (
         url +
         '?' +
-        toParams(
-          componentType,
-          hash,
-          matchState,
-          proprietary,
-          coordinates,
-          pathname,
-          identificationSource,
-          scanId
-        )
+        toParams(componentType, hash, matchState, proprietary, coordinates, pathname, identificationSource, scanId)
       );
     };
   }
@@ -148,11 +114,7 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
             field;
           for (field in obj) {
             if (obj[field]) {
-              string +=
-                '&' +
-                encodeURIComponent(field) +
-                '=' +
-                encodeURIComponent(obj[field]);
+              string += '&' + encodeURIComponent(field) + '=' + encodeURIComponent(obj[field]);
             }
           }
           return string.substring(1);
@@ -168,14 +130,10 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
               index = scripts[i].src.indexOf('assets/brain.client.js');
             }
             if (index === -1) {
-              index = scripts[i].src.indexOf(
-                'assets/policy/js/brain.client.js'
-              );
+              index = scripts[i].src.indexOf('assets/policy/js/brain.client.js');
             }
             if (index === -1) {
-              index = scripts[i].src.indexOf(
-                'assets/assets/js/brain.client.js'
-              );
+              index = scripts[i].src.indexOf('assets/assets/js/brain.client.js');
             }
 
             if (index !== -1) {
@@ -239,10 +197,7 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
      */
     getCsrfHeaders: function () {
       return {
-        'X-CSRF-TOKEN': document.cookie.replace(
-          /((^|.*;\s*)CLM-CSRF-TOKEN\s*=\s*([^;]*).*)|^.*$/,
-          '$3'
-        ),
+        'X-CSRF-TOKEN': document.cookie.replace(/((^|.*;\s*)CLM-CSRF-TOKEN\s*=\s*([^;]*).*)|^.*$/, '$3'),
       };
     },
 
@@ -259,10 +214,7 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
      * @since 1.19.0
      */
     getRepositoryResultsUrl: function (repositoryId, componentKey) {
-      var path =
-        'rest/repositories/' +
-        encodeURIComponent(repositoryId) +
-        '/report/details';
+      var path = 'rest/repositories/' + encodeURIComponent(repositoryId) + '/report/details';
 
       if (componentKey) {
         path += '?' + param(componentKey);
@@ -277,11 +229,7 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
      * @since 1.66.0
      */
     getSuggestedRemediationUrlForApplication: function (internalApplicationId) {
-      return (
-        basePath +
-        'api/v2/components/remediation/application/' +
-        encodeURIComponent(internalApplicationId)
-      );
+      return basePath + 'api/v2/components/remediation/application/' + encodeURIComponent(internalApplicationId);
     },
 
     /**
@@ -290,11 +238,7 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
      * @since 1.66.0
      */
     getInternalApplicationIdUrlForApplicationId: function (applicationId) {
-      return (
-        basePath +
-        'api/v2/applications?publicId=' +
-        encodeURIComponent(applicationId)
-      );
+      return basePath + 'api/v2/applications?publicId=' + encodeURIComponent(applicationId);
     },
 
     ci: {
@@ -344,17 +288,8 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
      *
      * @since version 1.14
      */
-    getVulnerabilityDetailUrl: function (
-      source,
-      refId,
-      componentIdentifier,
-      hash
-    ) {
-      var url =
-          'rest/vulnerability/details/' +
-          encodeURIComponent(source) +
-          '/' +
-          encodeURIComponent(refId),
+    getVulnerabilityDetailUrl: function (source, refId, componentIdentifier, hash) {
+      var url = 'rest/vulnerability/details/' + encodeURIComponent(source) + '/' + encodeURIComponent(refId),
         params = {};
 
       if (componentIdentifier) {
@@ -376,9 +311,7 @@ var clmBuildTimestamp = CLM_BUILD_TIMESTAMP;
      * @since version 1.19.0
      */
     getComponentReevaluationUrl: function (owner, hash) {
-      return (
-        basePath + 'rest/repositories/' + owner.ownerId + '/evaluate/' + hash
-      );
+      return basePath + 'rest/repositories/' + owner.ownerId + '/evaluate/' + hash;
     },
 
     /**

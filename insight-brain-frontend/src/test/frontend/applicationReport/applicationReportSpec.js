@@ -61,9 +61,7 @@ describe('applicationReport component', function () {
     scope.$digest();
 
     expect(controller.formMaskController.activateMask).toHaveBeenCalled();
-    expect(
-      controller.formMaskController.showSuccessMaskBriefly
-    ).not.toHaveBeenCalled();
+    expect(controller.formMaskController.showSuccessMaskBriefly).not.toHaveBeenCalled();
     expect(controller.formMaskController.removeMask).not.toHaveBeenCalled();
   });
 
@@ -79,9 +77,7 @@ describe('applicationReport component', function () {
     scope.$digest();
 
     expect(controller.formMaskController.activateMask.calls.count()).toBe(1);
-    expect(
-      controller.formMaskController.showSuccessMaskBriefly
-    ).toHaveBeenCalled();
+    expect(controller.formMaskController.showSuccessMaskBriefly).toHaveBeenCalled();
     expect(controller.formMaskController.removeMask).not.toHaveBeenCalled();
   });
 
@@ -98,9 +94,7 @@ describe('applicationReport component', function () {
     scope.$digest();
 
     expect(controller.formMaskController.activateMask.calls.count()).toBe(1);
-    expect(
-      controller.formMaskController.showSuccessMaskBriefly
-    ).not.toHaveBeenCalled();
+    expect(controller.formMaskController.showSuccessMaskBriefly).not.toHaveBeenCalled();
     expect(controller.formMaskController.removeMask).toHaveBeenCalled();
   });
 

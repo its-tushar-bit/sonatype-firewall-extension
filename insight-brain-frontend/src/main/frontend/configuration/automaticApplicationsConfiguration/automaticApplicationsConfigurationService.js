@@ -10,29 +10,18 @@ function automaticApplicationsConfigurationService($http, $q, CLMLocations) {
   };
 
   function getConfiguration() {
-    return $http
-      .get(CLMLocations.getAutomaticApplicationsConfigurationUrl())
-      .then(function (response) {
-        return response.data;
-      });
+    return $http.get(CLMLocations.getAutomaticApplicationsConfigurationUrl()).then(function (response) {
+      return response.data;
+    });
   }
 
   function saveConfiguration(configuration) {
-    return $http
-      .put(
-        CLMLocations.getAutomaticApplicationsConfigurationUrl(),
-        configuration
-      )
-      .then(function (response) {
-        return response.data;
-      });
+    return $http.put(CLMLocations.getAutomaticApplicationsConfigurationUrl(), configuration).then(function (response) {
+      return response.data;
+    });
   }
 }
 
-automaticApplicationsConfigurationService.$inject = [
-  '$http',
-  '$q',
-  'CLMLocations',
-];
+automaticApplicationsConfigurationService.$inject = ['$http', '$q', 'CLMLocations'];
 
 export default automaticApplicationsConfigurationService;

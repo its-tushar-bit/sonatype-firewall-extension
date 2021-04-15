@@ -5,16 +5,10 @@
       ng-class="vm.selectedComponent.dependencyInfo.isDirectDependency ?
         'iq-modal-header__component-info-direct' : 'iq-modal-header__component-info-transitive'"
     >
-      <component-display
-        component="vm.selectedComponent"
-        truncate="true"
-      ></component-display>
+      <component-display component="vm.selectedComponent" truncate="true"></component-display>
     </h2>
     <h2 ng-if="!vm.selectedComponent.innerSourceTDIndicator">
-      <component-display
-        component="vm.selectedComponent"
-        truncate="true"
-      ></component-display>
+      <component-display component="vm.selectedComponent" truncate="true"></component-display>
     </h2>
     <div
       ng-if="vm.selectedComponent.innerSourceData && !vm.selectedComponent.innerSource"
@@ -54,14 +48,7 @@
   >
   </cip-tab-panel>
   <footer class="iq-modal-footer">
-    <button
-      id="cip-modal-close-button"
-      type="button"
-      class="iq-btn"
-      ng-click="vm.dismiss()"
-    >
-      Close
-    </button>
+    <button id="cip-modal-close-button" type="button" class="iq-btn" ng-click="vm.dismiss()">Close</button>
     <button
       id="cip-modal-previous-button"
       ng-if="!vm.selectedRootAncestor"

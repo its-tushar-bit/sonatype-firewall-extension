@@ -16,12 +16,7 @@
     <h4 class="iq-tile__section-header">Connection Details</h4>
     <div class="iq-form-group">
       <label class="iq-label" for="ldap-protocol">Protocol</label>
-      <dropdown-selector
-        options="ldapProtocols"
-        ng-model="ldapConn.protocol"
-        id="ldap-protocol"
-        name="ldap-protocol"
-      >
+      <dropdown-selector options="ldapProtocols" ng-model="ldapConn.protocol" id="ldap-protocol" name="ldap-protocol">
       </dropdown-selector>
     </div>
     <div class="iq-form-group">
@@ -66,17 +61,9 @@
       />
     </div>
     <div class="iq-form-group">
-      <label class="iq-label" for="ldap-ignore-referrals"
-        >Ignore Referrals</label
-      >
+      <label class="iq-label" for="ldap-ignore-referrals">Ignore Referrals</label>
       <div id="ldap-ignore-referrals" class="toggle-checkbox">
-        <input
-          type="checkbox"
-          toggle-checkbox
-          data-on="Yes"
-          data-off="No"
-          ng-model="ldapConn.referralIgnored"
-        />
+        <input type="checkbox" toggle-checkbox data-on="Yes" data-off="No" ng-model="ldapConn.referralIgnored" />
       </div>
     </div>
     <h4 class="iq-tile__section-header">Authentication</h4>
@@ -131,8 +118,7 @@
         ng-show="shouldShowPasswordNeedsEntryMessage()"
         class="iq-alert iq-alert--error"
       >
-        The password must be given when updating the hostname or port for a
-        connection that uses authentication.
+        The password must be given when updating the hostname or port for a connection that uses authentication.
       </div>
     </div>
     <h4 class="iq-tile__section-header">Timeouts</h4>
@@ -168,21 +154,10 @@
   <div clm-alerts="alerts"></div>
 </div>
 <div class="iq-tile-footer" ng-show="!saving && ldapConn">
-  <button
-    id="ldap-connection-save"
-    class="iq-btn iq-btn--primary"
-    ng-disabled="!canSaveEdit()"
-    ng-click="save()"
-  >
+  <button id="ldap-connection-save" class="iq-btn iq-btn--primary" ng-disabled="!canSaveEdit()" ng-click="save()">
     Save</button
   ><!--
---><button
-    id="ldap-connection-cancel"
-    class="iq-btn"
-    ng-disabled="!isDirty()"
-    ng-click="reset()"
-  >
-    Cancel</button
+--><button id="ldap-connection-cancel" class="iq-btn" ng-disabled="!isDirty()" ng-click="reset()">Cancel</button
   ><!--
 --><button
     id="ldap-connection-test"
@@ -193,6 +168,4 @@
     Test Connection
   </button>
 </div>
-<div ng-show="saving" class="iq-ldap-saving-message">
-  <i class="icon-time"></i> Saving
-</div>
+<div ng-show="saving" class="iq-ldap-saving-message"><i class="icon-time"></i> Saving</div>

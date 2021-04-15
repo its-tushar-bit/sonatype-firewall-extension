@@ -24,9 +24,7 @@ describe('owner.image.directive.spec.js', function () {
   }));
 
   it('Properly requests for owner image url', function () {
-    expect(CLMContextLocations.getOwnerImageUrl).toHaveBeenCalledWith(
-      ownerImageScope.owner
-    );
+    expect(CLMContextLocations.getOwnerImageUrl).toHaveBeenCalledWith(ownerImageScope.owner);
     expect(ownerImageScope.ownerUrl).toBeDefined();
   });
 
@@ -36,9 +34,7 @@ describe('owner.image.directive.spec.js', function () {
     scope.owner = { id: '111' };
     scope.$digest();
 
-    expect(CLMContextLocations.getOwnerImageUrl).toHaveBeenCalledWith(
-      ownerImageScope.owner
-    );
+    expect(CLMContextLocations.getOwnerImageUrl).toHaveBeenCalledWith(ownerImageScope.owner);
     expect(ownerImageScope.ownerUrl).not.toEqual(previousUrl);
   });
 

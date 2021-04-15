@@ -20,16 +20,11 @@
   </div>
   <div ng-if="vm.activeApplicationCount !== 0">
     <div class="iq-tile iq-tile--chart">
-      <violation-trends-chart
-        id="violation-trends-chart"
-        violation-counts="vm.violationCounts"
-      >
+      <violation-trends-chart id="violation-trends-chart" violation-counts="vm.violationCounts">
       </violation-trends-chart>
     </div>
     <div class="iq-tile iq-tile--chart">
-      <violations-by-category-chart
-        violations-by-category-data="vm.violationsByCategoryData"
-      >
+      <violations-by-category-chart violations-by-category-data="vm.violationsByCategoryData">
       </violations-by-category-chart>
     </div>
     <div class="iq-tile iq-tile--chart">
@@ -50,10 +45,7 @@
       </mttr-chart>
     </div>
     <div ng-if="!vm.isSingleApplicationReport" class="iq-tile iq-tile--chart">
-      <application-counts-chart
-        application-counts-data="vm.applicationCountsData"
-        month-count="vm.monthCount"
-      >
+      <application-counts-chart application-counts-data="vm.applicationCountsData" month-count="vm.monthCount">
       </application-counts-chart>
     </div>
     <div class="iq-tile iq-tile--chart">

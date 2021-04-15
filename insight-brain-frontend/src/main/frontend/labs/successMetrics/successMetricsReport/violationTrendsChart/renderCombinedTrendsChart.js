@@ -6,12 +6,7 @@
 import { Scales, Components, Interactions } from 'plottable';
 import $ from 'jquery';
 import TrendsTooltip from './trendsTooltip';
-import {
-  generateBarPlot,
-  generateGuidelinePlot,
-  moveBarTooltip,
-  moveGuidelineAndTooltip,
-} from './trendsChartUtils';
+import { generateBarPlot, generateGuidelinePlot, moveBarTooltip, moveGuidelineAndTooltip } from './trendsChartUtils';
 
 const CHART_HEIGHT = 31;
 const CHART_PADDING = 24;
@@ -32,45 +27,17 @@ export default function renderCombinedTrendsChartDirective() {
   };
 }
 
-function renderCombinedTrendsChart(
-  el,
-  { delta, discovered, waived, fixed },
-  statistics
-) {
+function renderCombinedTrendsChart(el, { delta, discovered, waived, fixed }, statistics) {
   const xScale = new Scales.Linear().padProportion(0);
 
-  const deltaBarClass = (d) =>
-    `iq-violation-trends__bar--delta-${d.violations > 0 ? 'up' : 'down'}`;
+  const deltaBarClass = (d) => `iq-violation-trends__bar--delta-${d.violations > 0 ? 'up' : 'down'}`;
 
-  const deltaBar = generateBarPlot(
-    xScale,
-    delta,
-    deltaBarClass,
-    statistics.deltaMax,
-    statistics.deltaMin
-  );
-  const newBar = generateBarPlot(
-    xScale,
-    discovered,
-    'iq-violation-trends__bar--discovered',
-    statistics.discoveredMax
-  );
-  const waivedBar = generateBarPlot(
-    xScale,
-    waived,
-    'iq-violation-trends__bar--waived',
-    statistics.waivedMax
-  );
-  const fixedBar = generateBarPlot(
-    xScale,
-    fixed,
-    'iq-violation-trends__bar--fixed',
-    statistics.fixedMax
-  );
+  const deltaBar = generateBarPlot(xScale, delta, deltaBarClass, statistics.deltaMax, statistics.deltaMin);
+  const newBar = generateBarPlot(xScale, discovered, 'iq-violation-trends__bar--discovered', statistics.discoveredMax);
+  const waivedBar = generateBarPlot(xScale, waived, 'iq-violation-trends__bar--waived', statistics.waivedMax);
+  const fixedBar = generateBarPlot(xScale, fixed, 'iq-violation-trends__bar--fixed', statistics.fixedMax);
   const guidelineChart = generateGuidelinePlot(xScale, discovered);
-  const guideline = new Components.GuideLineLayer(
-    Components.GuideLineLayer.ORIENTATION_VERTICAL
-  )
+  const guideline = new Components.GuideLineLayer(Components.GuideLineLayer.ORIENTATION_VERTICAL)
     .addClass('iq-violation-trends__guideline')
     .scale(xScale);
   const guidelineGroup = new Components.Group([guidelineChart, guideline]);
@@ -97,23 +64,11 @@ function renderCombinedTrendsChart(
 
   // interactions
   const violationTrendsElement = $(el).closest('#violation-trends-chart')[0];
-  const deltaBarTooltip = TrendsTooltip(
-    'deltaBarTooltip',
-    violationTrendsElement
-  );
+  const deltaBarTooltip = TrendsTooltip('deltaBarTooltip', violationTrendsElement);
   const newBarTooltip = TrendsTooltip('newBarTooltip', violationTrendsElement);
-  const waivedBarTooltip = TrendsTooltip(
-    'waivedBarTooltip',
-    violationTrendsElement
-  );
-  const fixedBarTooltip = TrendsTooltip(
-    'fixedBarTooltip',
-    violationTrendsElement
-  );
-  const guidelineTooltip = TrendsTooltip(
-    'guidelineTooltip',
-    violationTrendsElement
-  );
+  const waivedBarTooltip = TrendsTooltip('waivedBarTooltip', violationTrendsElement);
+  const fixedBarTooltip = TrendsTooltip('fixedBarTooltip', violationTrendsElement);
+  const guidelineTooltip = TrendsTooltip('guidelineTooltip', violationTrendsElement);
   let nearestEntityIndex = null;
 
   hideGuideline();
@@ -130,31 +85,10 @@ function renderCombinedTrendsChart(
 
       nearestEntityIndex = nearestEntity.index;
       moveGuidelineAndTooltip(el, nearestEntity, guideline, guidelineTooltip);
-      moveBarTooltip(
-        el,
-        deltaBar.entities()[nearestEntityIndex],
-        deltaBarTooltip,
-        0,
-        true
-      );
-      moveBarTooltip(
-        el,
-        newBar.entities()[nearestEntityIndex],
-        newBarTooltip,
-        ROW_HEIGHT
-      );
-      moveBarTooltip(
-        el,
-        waivedBar.entities()[nearestEntityIndex],
-        waivedBarTooltip,
-        ROW_HEIGHT * 2
-      );
-      moveBarTooltip(
-        el,
-        fixedBar.entities()[nearestEntityIndex],
-        fixedBarTooltip,
-        ROW_HEIGHT * 3
-      );
+      moveBarTooltip(el, deltaBar.entities()[nearestEntityIndex], deltaBarTooltip, 0, true);
+      moveBarTooltip(el, newBar.entities()[nearestEntityIndex], newBarTooltip, ROW_HEIGHT);
+      moveBarTooltip(el, waivedBar.entities()[nearestEntityIndex], waivedBarTooltip, ROW_HEIGHT * 2);
+      moveBarTooltip(el, fixedBar.entities()[nearestEntityIndex], fixedBarTooltip, ROW_HEIGHT * 3);
     })
     .onPointerExit(() => {
       hideGuideline();

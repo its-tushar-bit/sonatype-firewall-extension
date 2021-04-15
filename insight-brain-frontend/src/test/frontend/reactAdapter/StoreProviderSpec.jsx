@@ -40,9 +40,7 @@ describe('StoreProvider (higher-order component)', function () {
 
   it('passes down props to the wrapped component', function () {
     const StoreProviderHOC = withStoreProvider(TestComponent);
-    const wrapper = shallow(
-      <StoreProviderHOC $ngRedux={mockNgRedux} testProp={'test-prop'} />
-    );
+    const wrapper = shallow(<StoreProviderHOC $ngRedux={mockNgRedux} testProp={'test-prop'} />);
     expect(wrapper.find(TestComponent)).toHaveProp('testProp', 'test-prop');
   });
 
@@ -55,17 +53,13 @@ describe('StoreProvider (higher-order component)', function () {
 
   it('includes the display name of the wrapped component in its displayName', function () {
     const storeProviderHOC = withStoreProvider(TestComponent);
-    expect(storeProviderHOC.displayName).toBe(
-      'withStoreProvider(TestComponent)'
-    );
+    expect(storeProviderHOC.displayName).toBe('withStoreProvider(TestComponent)');
   });
 
   it('has a display name of "withStoreProvider(AnonymousComponent)" when wrapping an unnamed component', function () {
     const storeProviderHOC = withStoreProvider(() => {
       return <NxButton>anonymous button</NxButton>;
     });
-    expect(storeProviderHOC.displayName).toBe(
-      'withStoreProvider(AnonymousComponent)'
-    );
+    expect(storeProviderHOC.displayName).toBe('withStoreProvider(AnonymousComponent)');
   });
 });

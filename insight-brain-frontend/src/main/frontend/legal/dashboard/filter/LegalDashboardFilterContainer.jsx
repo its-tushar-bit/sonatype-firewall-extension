@@ -13,13 +13,7 @@ function mapStateToProps({ manageLegalFilters, legalDashboardFilter }) {
   return {
     ...legalDashboardFilter,
     ...pick(
-      [
-        'appliedFilterName',
-        'showDirtyAsterisk',
-        'showSaveFilterModal',
-        'savedFilters',
-        'filtersDropdownOpen',
-      ],
+      ['appliedFilterName', 'showDirtyAsterisk', 'showSaveFilterModal', 'savedFilters', 'filtersDropdownOpen'],
       manageLegalFilters
     ),
   };
@@ -30,8 +24,5 @@ const mapDispatchToProps = {
   ...legalDashboardFilterActions,
 };
 
-const LegalDashboardFilterContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LegalDashboardFilter);
+const LegalDashboardFilterContainer = connect(mapStateToProps, mapDispatchToProps)(LegalDashboardFilter);
 export default LegalDashboardFilterContainer;

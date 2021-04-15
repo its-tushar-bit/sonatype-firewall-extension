@@ -6,13 +6,7 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../react/LoadWrapper';
-import {
-  NxTable,
-  NxTableBody,
-  NxTableCell,
-  NxTableHead,
-  NxTableRow,
-} from '@sonatype/react-shared-components';
+import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 import { getLicenseLegalApplicationReportUrl } from '../util/CLMLocation';
 
 export default function AdvancedLegalApplicationsPage(props) {

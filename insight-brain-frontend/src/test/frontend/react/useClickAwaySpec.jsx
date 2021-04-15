@@ -56,10 +56,6 @@ describe('useClickAway', function () {
     spyOn(document, 'removeEventListener');
     wrapper.unmount();
     expect(document.removeEventListener).toHaveBeenCalled();
-    expect(document.removeEventListener.calls.argsFor(0)).toEqual([
-      'mousedown',
-      listener,
-      true,
-    ]);
+    expect(document.removeEventListener.calls.argsFor(0)).toEqual(['mousedown', listener, true]);
   });
 });

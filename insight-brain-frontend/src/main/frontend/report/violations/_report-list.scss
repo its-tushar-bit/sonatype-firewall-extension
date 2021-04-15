@@ -47,9 +47,7 @@
   .iq-table--fixed__header,
   .iq-table--fixed__content {
     .iq-cell--contact {
-      width: calc(
-        ((100% + #{$iq-cell-scroll-bar-width}) / 7) - #{$iq-cell-scroll-bar-width}
-      );
+      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 7) - #{$iq-cell-scroll-bar-width});
     }
 
     .iq-cell:last-child {
@@ -57,9 +55,7 @@
     }
 
     .iq-cell--header:last-child {
-      width: calc(
-        ((100% + #{$iq-cell-scroll-bar-width}) / 7) + #{$iq-spacing-xs}
-      );
+      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 7) + #{$iq-spacing-xs});
     }
   }
 }

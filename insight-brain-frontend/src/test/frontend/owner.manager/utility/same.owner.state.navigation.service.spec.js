@@ -36,17 +36,12 @@ describe('same.owner.state.navigation.service.spec.js', function () {
   it('Properly Refactoring Edit States', function () {
     var mockTo = 'create-label',
       mockParams = { labelId: 'foo' },
-      newState = SameOwnerStateNavigationService.refactorStateParams.edit(
-        mockTo
-      );
+      newState = SameOwnerStateNavigationService.refactorStateParams.edit(mockTo);
 
     expect(newState.to).toEqual('management.edit.organization.' + mockTo);
     expect(newState.params).toEqual(mockState.params);
 
-    newState = SameOwnerStateNavigationService.refactorStateParams.edit(
-      mockTo,
-      mockParams
-    );
+    newState = SameOwnerStateNavigationService.refactorStateParams.edit(mockTo, mockParams);
     expect(newState.to).toEqual('management.edit.organization.' + mockTo);
     expect(newState.params).toEqual({ organizationId: '123', labelId: 'foo' });
   });
@@ -76,23 +71,14 @@ describe('same.owner.state.navigation.service.spec.js', function () {
     var mockTo = 'create-label';
     SameOwnerStateNavigationService.goEdit(mockTo);
 
-    expect(mockState.go).toHaveBeenCalledWith(
-      'management.edit.organization.' + mockTo,
-      mockState.params
-    );
+    expect(mockState.go).toHaveBeenCalledWith('management.edit.organization.' + mockTo, mockState.params);
   });
 
   it('Properly Calling state.go with no input', function () {
     SameOwnerStateNavigationService.goEdit('');
-    expect(mockState.go).toHaveBeenCalledWith(
-      'management.edit.organization',
-      mockState.params
-    );
+    expect(mockState.go).toHaveBeenCalledWith('management.edit.organization', mockState.params);
 
     SameOwnerStateNavigationService.goEdit();
-    expect(mockState.go).toHaveBeenCalledWith(
-      'management.edit.organization',
-      mockState.params
-    );
+    expect(mockState.go).toHaveBeenCalledWith('management.edit.organization', mockState.params);
   });
 });

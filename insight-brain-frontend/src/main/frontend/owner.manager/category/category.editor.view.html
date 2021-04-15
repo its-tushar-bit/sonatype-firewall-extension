@@ -22,9 +22,7 @@
       mask-attach-to-body
     >
       <div class="iq-form-group">
-        <label for="editor-category-name" class="iq-label"
-          >Application Category Name</label
-        >
+        <label for="editor-category-name" class="iq-label">Application Category Name</label>
         <input
           type="text"
           id="editor-category-name"
@@ -44,9 +42,7 @@
         />
       </div>
       <div class="iq-form-group">
-        <label for="editor-category-description" class="iq-label"
-          >Short Description</label
-        >
+        <label for="editor-category-description" class="iq-label">Short Description</label>
         <textarea
           id="editor-category-description"
           class="iq-textarea iq-textarea--long"
@@ -61,17 +57,9 @@
       </div>
       <div class="iq-form-group">
         <label for="editor-category-color-picker" class="iq-label">Color</label>
-        <color-picker
-          id="editor-category-color-picker"
-          ng-model="vm.dirtyCategory.color"
-          required
-        ></color-picker>
+        <color-picker id="editor-category-color-picker" ng-model="vm.dirtyCategory.color" required></color-picker>
       </div>
-      <div
-        submit-wrapper="vm.submitError"
-        retry="vm.save()"
-        class="iq-tile-footer"
-      >
+      <div submit-wrapper="vm.submitError" retry="vm.save()" class="iq-tile-footer">
         <button
           type="submit"
           class="iq-btn iq-btn--primary"

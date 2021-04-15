@@ -10,11 +10,7 @@ import utilityServicesModule from '../../utility/services/utility.services.modul
 import permissionServiceModule from '../../util/PermissionService';
 
 var systemNoticeConfigurationModule = angular
-  .module('systemNoticeConfigurationModule', [
-    'ui.router',
-    utilityServicesModule.name,
-    permissionServiceModule.name,
-  ])
+  .module('systemNoticeConfigurationModule', ['ui.router', utilityServicesModule.name, permissionServiceModule.name])
   .component('systemNoticeConfiguration', systemNoticeConfiguration)
   .config([
     '$stateProvider',

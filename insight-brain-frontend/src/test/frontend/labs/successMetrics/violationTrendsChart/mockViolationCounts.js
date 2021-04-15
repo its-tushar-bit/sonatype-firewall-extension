@@ -19,12 +19,7 @@ function distributeRandom(n, numberToDistribute) {
 
 const divideByFourRandom = curry(distributeRandom)(4);
 
-export function generateWeekCounts(
-  timePeriodName,
-  discoveredCountsTotal,
-  waivedCountsTotal,
-  fixedCountsTotal
-) {
+export function generateWeekCounts(timePeriodName, discoveredCountsTotal, waivedCountsTotal, fixedCountsTotal) {
   return {
     timePeriodName,
     discoveredCounts: distributeCountsPerPolicyType(discoveredCountsTotal),

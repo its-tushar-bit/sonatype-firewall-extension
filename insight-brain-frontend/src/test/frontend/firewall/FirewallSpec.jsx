@@ -26,11 +26,9 @@ describe('Firewall', function () {
       .createSpy('FirewallConfigurationModalMock')
       .and.returnValue(<div>FirewallConfigurationModal</div>);
 
-    Firewall = require('inject-loader!../../../main/frontend/firewall/Firewall')(
-      {
-        './config/FirewallConfigurationModalContainer': FirewallConfigurationModalMock,
-      }
-    ).default;
+    Firewall = require('inject-loader!../../../main/frontend/firewall/Firewall')({
+      './config/FirewallConfigurationModalContainer': FirewallConfigurationModalMock,
+    }).default;
 
     loadDataSpy = jasmine.createSpy('loadData');
     openConfigurationModalSpy = jasmine.createSpy('openConfigurationModal');
@@ -58,10 +56,7 @@ describe('Firewall', function () {
       openConfigurationModal: openConfigurationModalSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      Firewall,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(Firewall, minimalProps);
   });
 
   it('renders a component with the "nx-page-main" class', function () {
@@ -100,10 +95,7 @@ describe('Firewall', function () {
     expect(card).toHaveProp('autoUnquarantineEnabled', false);
     expect(card).toHaveProp('enabledPolicyConditionTypesCount', 3);
     expect(card).toHaveProp('totalPolicyConditionTypesCount', 4);
-    expect(card).toHaveProp(
-      'openConfigurationModal',
-      openConfigurationModalSpy
-    );
+    expect(card).toHaveProp('openConfigurationModal', openConfigurationModalSpy);
   });
 
   it('renders a FirewallQuarantine card', function () {

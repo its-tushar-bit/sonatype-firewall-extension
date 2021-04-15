@@ -27,15 +27,9 @@ describe('ProductLogo Utils', function () {
       expect(getProductLogo('lIfEcYcLe')).toEqual('images/nexus_lifecycle.svg');
     });
     it('returns a lifecycle logo if lifecycle foundation product name is specified — regardless of case', function () {
-      expect(getProductLogo('lifecycle foundation')).toEqual(
-        'images/nexus_lifecycle.svg'
-      );
-      expect(getProductLogo('LIFECYCLE FOUNDATION')).toEqual(
-        'images/nexus_lifecycle.svg'
-      );
-      expect(getProductLogo('lIfEcYcLe FoUnDaTiOn')).toEqual(
-        'images/nexus_lifecycle.svg'
-      );
+      expect(getProductLogo('lifecycle foundation')).toEqual('images/nexus_lifecycle.svg');
+      expect(getProductLogo('LIFECYCLE FOUNDATION')).toEqual('images/nexus_lifecycle.svg');
+      expect(getProductLogo('lIfEcYcLe FoUnDaTiOn')).toEqual('images/nexus_lifecycle.svg');
     });
     it('returns an auditor logo if auditor product name is specified — regardless of case', function () {
       expect(getProductLogo('auditor')).toEqual('images/nexus_auditor.svg');

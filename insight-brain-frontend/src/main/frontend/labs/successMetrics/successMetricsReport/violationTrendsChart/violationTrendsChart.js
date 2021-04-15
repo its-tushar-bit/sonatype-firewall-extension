@@ -71,73 +71,71 @@ function getViolationTrendsData(violationCounts) {
     quality = getEmptyDataset(),
     other = getEmptyDataset();
 
-  violationCounts.forEach(
-    ({ timePeriodName, discoveredCounts, waivedCounts, fixedCounts }, i) => {
-      security.discovered.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(discoveredCounts.SECURITY),
-      });
-      security.waived.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(waivedCounts.SECURITY),
-      });
-      security.fixed.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(fixedCounts.SECURITY),
-      });
+  violationCounts.forEach(({ timePeriodName, discoveredCounts, waivedCounts, fixedCounts }, i) => {
+    security.discovered.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(discoveredCounts.SECURITY),
+    });
+    security.waived.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(waivedCounts.SECURITY),
+    });
+    security.fixed.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(fixedCounts.SECURITY),
+    });
 
-      license.discovered.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(discoveredCounts.LICENSE),
-      });
-      license.waived.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(waivedCounts.LICENSE),
-      });
-      license.fixed.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(fixedCounts.LICENSE),
-      });
+    license.discovered.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(discoveredCounts.LICENSE),
+    });
+    license.waived.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(waivedCounts.LICENSE),
+    });
+    license.fixed.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(fixedCounts.LICENSE),
+    });
 
-      quality.discovered.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(discoveredCounts.QUALITY),
-      });
-      quality.waived.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(waivedCounts.QUALITY),
-      });
-      quality.fixed.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(fixedCounts.QUALITY),
-      });
+    quality.discovered.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(discoveredCounts.QUALITY),
+    });
+    quality.waived.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(waivedCounts.QUALITY),
+    });
+    quality.fixed.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(fixedCounts.QUALITY),
+    });
 
-      other.discovered.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(discoveredCounts.OTHER),
-      });
-      other.waived.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(waivedCounts.OTHER),
-      });
-      other.fixed.push({
-        timePeriodIndex: i,
-        timePeriodName,
-        violations: sumCounts(fixedCounts.OTHER),
-      });
-    }
-  );
+    other.discovered.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(discoveredCounts.OTHER),
+    });
+    other.waived.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(waivedCounts.OTHER),
+    });
+    other.fixed.push({
+      timePeriodIndex: i,
+      timePeriodName,
+      violations: sumCounts(fixedCounts.OTHER),
+    });
+  });
 
   // calculate deltas
   security.delta = getDelta(security);
@@ -147,24 +145,9 @@ function getViolationTrendsData(violationCounts) {
 
   // all violations
   const all = {
-    discovered: getAllCounts(
-      security.discovered,
-      license.discovered,
-      quality.discovered,
-      other.discovered
-    ),
-    fixed: getAllCounts(
-      security.fixed,
-      license.fixed,
-      quality.fixed,
-      other.fixed
-    ),
-    waived: getAllCounts(
-      security.waived,
-      license.waived,
-      quality.waived,
-      other.waived
-    ),
+    discovered: getAllCounts(security.discovered, license.discovered, quality.discovered, other.discovered),
+    fixed: getAllCounts(security.fixed, license.fixed, quality.fixed, other.fixed),
+    waived: getAllCounts(security.waived, license.waived, quality.waived, other.waived),
   };
   all.delta = getDelta(all);
 
@@ -186,10 +169,7 @@ function getViolationTrendsData(violationCounts) {
   };
 }
 
-const sumCounts = compose(
-  sum,
-  props(['LOW', 'MODERATE', 'SEVERE', 'CRITICAL'])
-);
+const sumCounts = compose(sum, props(['LOW', 'MODERATE', 'SEVERE', 'CRITICAL']));
 
 const sumData = zipWith((a, b) => ({
   ...a,
@@ -206,13 +186,5 @@ function getDelta({ discovered, fixed, waived }) {
   return getAllCounts(discovered, negateData(fixed), negateData(waived));
 }
 
-const getPositiveMaxOrZero = compose(
-  apply(Math.max),
-  prepend(0),
-  map(prop('violations'))
-);
-const getNegativeMinOrZero = compose(
-  apply(Math.min),
-  prepend(0),
-  map(prop('violations'))
-);
+const getPositiveMaxOrZero = compose(apply(Math.max), prepend(0), map(prop('violations')));
+const getNegativeMinOrZero = compose(apply(Math.min), prepend(0), map(prop('violations')));

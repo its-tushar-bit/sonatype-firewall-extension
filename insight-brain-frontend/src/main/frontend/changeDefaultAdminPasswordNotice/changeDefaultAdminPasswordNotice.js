@@ -30,7 +30,4 @@ function mapStateToThis({ user }) {
   return pick(['isDefaultUser', 'shouldDisplayNotice'], user);
 }
 
-changeDefaultAdminPasswordNoticeController.$inject = [
-  '$ngRedux',
-  'userActions',
-];
+changeDefaultAdminPasswordNoticeController.$inject = ['$ngRedux', 'userActions'];

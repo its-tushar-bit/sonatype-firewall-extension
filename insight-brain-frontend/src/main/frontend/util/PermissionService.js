@@ -8,9 +8,7 @@ import axios from 'axios';
 import CLMContextLocationModule from './CLMContextLocation';
 import { getProductFeaturesUrl } from '../util/CLMLocation';
 
-var module = angular.module('PermissionServiceModule', [
-  CLMContextLocationModule.name,
-]);
+var module = angular.module('PermissionServiceModule', [CLMContextLocationModule.name]);
 export default module;
 
 module.service('PermissionService', [
@@ -22,57 +20,42 @@ module.service('PermissionService', [
       isContextAuthorized: function (permissions, ownerType, ownerId) {
         var deferred = $q.defer();
 
-        $http
-          .put(
-            CLMContextLocations.getPermissionContextTestUrl(ownerType, ownerId),
-            permissions
-          )
-          .then(
-            function (data) {
-              deferred.resolve(permissions.length === data.data.length);
-            },
-            function () {
-              deferred.reject(arguments);
-            }
-          );
+        $http.put(CLMContextLocations.getPermissionContextTestUrl(ownerType, ownerId), permissions).then(
+          function (data) {
+            deferred.resolve(permissions.length === data.data.length);
+          },
+          function () {
+            deferred.reject(arguments);
+          }
+        );
 
         return deferred.promise;
       },
       isAuthorized: function (permissions, globalContext) {
         var deferred = $q.defer();
 
-        $http
-          .put(
-            CLMContextLocations.getPermissionTestUrl(globalContext),
-            permissions
-          )
-          .then(
-            function (data) {
-              deferred.resolve(permissions.length === data.data.length);
-            },
-            function () {
-              deferred.reject(arguments);
-            }
-          );
+        $http.put(CLMContextLocations.getPermissionTestUrl(globalContext), permissions).then(
+          function (data) {
+            deferred.resolve(permissions.length === data.data.length);
+          },
+          function () {
+            deferred.reject(arguments);
+          }
+        );
 
         return deferred.promise;
       },
       getValidPermissions: function (permissions, globalContext) {
         var deferred = $q.defer();
 
-        $http
-          .put(
-            CLMContextLocations.getPermissionTestUrl(globalContext),
-            permissions
-          )
-          .then(
-            function (data) {
-              deferred.resolve(data.data);
-            },
-            function () {
-              deferred.reject(arguments);
-            }
-          );
+        $http.put(CLMContextLocations.getPermissionTestUrl(globalContext), permissions).then(
+          function (data) {
+            deferred.resolve(data.data);
+          },
+          function () {
+            deferred.reject(arguments);
+          }
+        );
 
         return deferred.promise;
       },

@@ -3,20 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  chain,
-  curry,
-  either,
-  flip,
-  isEmpty,
-  isNil,
-  lensPath,
-  lensProp,
-  map,
-  prop,
-  set,
-  transduce,
-} from 'ramda';
+import { chain, curry, either, flip, isEmpty, isNil, lensPath, lensProp, map, prop, set, transduce } from 'ramda';
 import moment from 'moment';
 
 /**
@@ -37,17 +24,13 @@ export function setToArray(set) {
  * String -> a -> b -> b
  * set the specified property
  */
-export const propSet = curry((propName, value, target) =>
-  set(lensProp(propName), value, target)
-);
+export const propSet = curry((propName, value, target) => set(lensProp(propName), value, target));
 
 /**
  * [String] -> a -> b -> b
  * Set nested property using path
  */
-export const pathSet = curry((path, value, target) =>
-  set(lensPath(path), value, target)
-);
+export const pathSet = curry((path, value, target) => set(lensPath(path), value, target));
 
 /**
  * {k: v} -> k -> v | Undefined
@@ -58,13 +41,11 @@ export const pathSet = curry((path, value, target) =>
  */
 export const lookup = flip(prop);
 
-export const getDaysFromNow = (timestamp) =>
-  Math.floor((timestamp - Date.now()) / (1000 * 60 * 60 * 24));
+export const getDaysFromNow = (timestamp) => Math.floor((timestamp - Date.now()) / (1000 * 60 * 60 * 24));
 
 export const isNilOrEmpty = either(isNil, isEmpty);
 
-export const union = (set1, set2) =>
-  new Set(setToArray(set1).concat(setToArray(set2)));
+export const union = (set1, set2) => new Set(setToArray(set1).concat(setToArray(set2)));
 
 /**
  * Like groupBy, but where the key function returns a list of strings instead of a single string, and items
@@ -106,8 +87,5 @@ export function capitalize(str) {
  * @param {String} daysToAdd number of days to add to current date
  */
 export function getFutureDate(daysToAdd = 0) {
-  return moment()
-    .add(daysToAdd, 'days')
-    .endOf('day')
-    .format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
+  return moment().add(daysToAdd, 'days').endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
 }

@@ -15,13 +15,7 @@ function getUrl(OwnerContext, component) {
   );
 }
 
-export default function ReleaseQuarantineController(
-  $scope,
-  $http,
-  Messages,
-  SelectedComponent,
-  OwnerContext
-) {
+export default function ReleaseQuarantineController($scope, $http, Messages, SelectedComponent, OwnerContext) {
   var vm = this;
 
   vm.activeRequest = false;
@@ -49,10 +43,4 @@ export default function ReleaseQuarantineController(
       });
   }
 }
-ReleaseQuarantineController.$inject = [
-  '$scope',
-  '$http',
-  'Messages',
-  'SelectedComponent',
-  'OwnerContext',
-];
+ReleaseQuarantineController.$inject = ['$scope', '$http', 'Messages', 'SelectedComponent', 'OwnerContext'];

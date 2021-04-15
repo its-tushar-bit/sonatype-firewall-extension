@@ -7,12 +7,8 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
 import LoadWrapper from '../react/LoadWrapper';
-import ViolationDetailsTile, {
-  violationDetailsPropTypes,
-} from './ViolationDetailsTile';
-import PolicyViolationConstraintInfoTile, {
-  constraintViolationsPropType,
-} from './PolicyViolationConstraintInfoTile';
+import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
+import PolicyViolationConstraintInfoTile, { constraintViolationsPropType } from './PolicyViolationConstraintInfoTile';
 import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
 
 export default function ViolationPage(props) {
@@ -34,9 +30,7 @@ export default function ViolationPage(props) {
   const { id } = $state.params,
     error = props.violationDetailsError || props.stageTypesError;
 
-  const constraintViolations = violationDetails
-    ? violationDetails.constraintViolations
-    : [];
+  const constraintViolations = violationDetails ? violationDetails.constraintViolations : [];
 
   // eslint-disable-next-line react/prop-types
   const isSecurityVulnerability =
@@ -54,17 +48,9 @@ export default function ViolationPage(props) {
 
   return (
     <div id="violation-page">
-      <LoadWrapper
-        error={error}
-        loading={loading || !(violationDetails && stageTypes)}
-        retryHandler={load}
-      >
-        <ViolationDetailsTile
-          {...{ $state, stageTypes, violationDetails, stateGo, activeWaivers }}
-        />
-        <PolicyViolationConstraintInfoTile
-          constraintViolations={constraintViolations}
-        />
+      <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)} retryHandler={load}>
+        <ViolationDetailsTile {...{ $state, stageTypes, violationDetails, stateGo, activeWaivers }} />
+        <PolicyViolationConstraintInfoTile constraintViolations={constraintViolations} />
         {isSecurityVulnerability && (
           <SecurityVulnerabilityDetailsTile
             vulnerabilityDetails={vulnerabilityDetails}

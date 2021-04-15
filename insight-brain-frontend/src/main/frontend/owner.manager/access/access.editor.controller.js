@@ -59,15 +59,12 @@ export default function AccessEditorController(
             }
           });
           if (!vm.role) {
-            vm.loadError =
-              'Could not find a role with ID: ' + $stateParams.roleId + '.';
+            vm.loadError = 'Could not find a role with ID: ' + $stateParams.roleId + '.';
             return;
           }
         }
         vm.groupSearchEnabled = roleMappings.groupSearchEnabled;
-        vm.availableRoles = LocalRoleService.getRolesWithoutLocalMembers(
-          roleMappings.membersByRole
-        );
+        vm.availableRoles = LocalRoleService.getRolesWithoutLocalMembers(roleMappings.membersByRole);
       },
       function (error) {
         vm.loadError = Messages.getHttpErrorMessage(error);
@@ -98,18 +95,11 @@ export default function AccessEditorController(
       'You are about to remove the ' +
       vm.role.roleName +
       ' role from ' +
-      (ownerType === 'repository_container'
-        ? 'all repositories'
-        : 'this ' + ownerType) +
+      (ownerType === 'repository_container' ? 'all repositories' : 'this ' + ownerType) +
       '.';
-    DeleteModalService.deleteCustom(
-      'Remove Role',
-      message + customMessage,
-      'Removing',
-      function () {
-        return RoleMappingService.put(vm.role.roleId, []);
-      }
-    ).then(function () {
+    DeleteModalService.deleteCustom('Remove Role', message + customMessage, 'Removing', function () {
+      return RoleMappingService.put(vm.role.roleId, []);
+    }).then(function () {
       isNavigatingAfterRemove = true;
       vm.availableRoles.push(vm.role);
       $rootScope.$broadcast('resource.data.modified');
@@ -125,42 +115,38 @@ export default function AccessEditorController(
       delete vm.submitError;
 
       if (currentMembers.length === 0) {
-        vm.removeRole(
-          'Next time, consider using the "Remove Role" button; it will save you some clicks!'
-        );
+        vm.removeRole('Next time, consider using the "Remove Role" button; it will save you some clicks!');
       } else {
-        vm.accessEditorMask
-          .wrap(RoleMappingService.put(vm.role.roleId, currentMembers))
-          .then(
-            function () {
-              if (vm.isNew) {
-                $rootScope.$broadcast('resource.data.modified');
-                vm.availableRoles.some(function (role, index) {
-                  if (role.roleId === vm.role.roleId) {
-                    vm.availableRoles.splice(index, 1);
-                    return true;
-                  }
-                });
-
-                if (vm.availableRoles.length === 0) {
-                  vm.isNew = false;
-                  makeEditorPristine();
-                  isNavigatingAfterSave = true;
-                  SameOwnerStateNavigationService.goEdit('edit-access', {
-                    roleId: vm.role.roleId,
-                  });
-                } else {
-                  vm.originalMembers = [];
-                  delete vm.role;
+        vm.accessEditorMask.wrap(RoleMappingService.put(vm.role.roleId, currentMembers)).then(
+          function () {
+            if (vm.isNew) {
+              $rootScope.$broadcast('resource.data.modified');
+              vm.availableRoles.some(function (role, index) {
+                if (role.roleId === vm.role.roleId) {
+                  vm.availableRoles.splice(index, 1);
+                  return true;
                 }
-              }
+              });
 
-              makeEditorPristine();
-            },
-            function (error) {
-              vm.submitError = Messages.getHttpErrorMessage(error);
+              if (vm.availableRoles.length === 0) {
+                vm.isNew = false;
+                makeEditorPristine();
+                isNavigatingAfterSave = true;
+                SameOwnerStateNavigationService.goEdit('edit-access', {
+                  roleId: vm.role.roleId,
+                });
+              } else {
+                vm.originalMembers = [];
+                delete vm.role;
+              }
             }
-          );
+
+            makeEditorPristine();
+          },
+          function (error) {
+            vm.submitError = Messages.getHttpErrorMessage(error);
+          }
+        );
       }
     }
 

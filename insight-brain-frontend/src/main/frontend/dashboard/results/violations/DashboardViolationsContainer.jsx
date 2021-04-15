@@ -10,12 +10,7 @@ import { stateGo } from '../../../reduxUiRouter/routerActions';
 import { loadResults, sortResults } from '../dashboardResultsActions';
 
 function mapStateToProps({ dashboard, dashboardFilter }) {
-  const {
-    loading,
-    needsAcknowledgement,
-    filtersAreDirty,
-    appliedFilter,
-  } = dashboardFilter;
+  const { loading, needsAcknowledgement, filtersAreDirty, appliedFilter } = dashboardFilter;
 
   return {
     results: dashboard,
@@ -32,8 +27,5 @@ const mapDispatchToProps = {
   sortResults,
 };
 
-const DashboardViolationsContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(DashboardViolations);
+const DashboardViolationsContainer = connect(mapStateToProps, mapDispatchToProps)(DashboardViolations);
 export default DashboardViolationsContainer;

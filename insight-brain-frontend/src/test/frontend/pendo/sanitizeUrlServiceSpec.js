@@ -32,8 +32,7 @@ describe('sanitizeUrlService', function () {
             url: '/sanitizeUrlServiceSpecMockRoute/{foo}',
           })
           .state('sanitizeUrlServiceSpecMockQueryParamsRoute', {
-            url:
-              '/sanitizeUrlServiceSpecMockQueryParamsRoute/{foo}?type&sidebarReference&sidebarId&bar',
+            url: '/sanitizeUrlServiceSpecMockQueryParamsRoute/{foo}?type&sidebarReference&sidebarId&bar',
           });
       }
     )
@@ -46,24 +45,17 @@ describe('sanitizeUrlService', function () {
   }));
 
   it('removes the baseUrl', function () {
-    expect(
-      sanitizeUrlService.sanitize('http://localhost:8070/assets/index.html')
-    ).toBe('/assets/index.html');
+    expect(sanitizeUrlService.sanitize('http://localhost:8070/assets/index.html')).toBe('/assets/index.html');
 
     baseUrl = 'https://foobar.com/iq';
 
-    expect(
-      sanitizeUrlService.sanitize('https://foobar.com/iq/assets/index.html')
-    ).toBe('/assets/index.html');
+    expect(sanitizeUrlService.sanitize('https://foobar.com/iq/assets/index.html')).toBe('/assets/index.html');
   });
 
   it('replaces hash-route parameter values with their SHA-256 hashed values', function () {
-    const url =
-        'http://localhost:8070/assets/index.html#/management/edit/organization/foo/licenseThreatGroup/bar',
-      expectedOrgHash =
-        '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
-      expectedLtgHash =
-        'fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9',
+    const url = 'http://localhost:8070/assets/index.html#/management/edit/organization/foo/licenseThreatGroup/bar',
+      expectedOrgHash = '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
+      expectedLtgHash = 'fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9',
       expectedUrl = `/assets/index.html#/management/edit/organization/${expectedOrgHash}/licenseThreatGroup/${expectedLtgHash}`;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
@@ -71,10 +63,8 @@ describe('sanitizeUrlService', function () {
 
   it('replaces hash-route parameter values with their SHA-256 hashed values for routes using colon-syntax', function () {
     // success metrics URL parameters happen to be declared using an alternate syntax
-    const url =
-        'http://localhost:8070/assets/index.html#/labs/successMetrics/foo',
-      expectedReportHash =
-        '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
+    const url = 'http://localhost:8070/assets/index.html#/labs/successMetrics/foo',
+      expectedReportHash = '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
       expectedUrl = `/assets/index.html#/labs/successMetrics/${expectedReportHash}`;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
@@ -84,11 +74,9 @@ describe('sanitizeUrlService', function () {
     const url =
         'http://localhost:8070/assets/index.html#/management/edit/organization/ROOT_ORGANIZATION_ID/' +
         'licenseThreatGroup/bar',
-      expectedLtgHash =
-        'fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9',
+      expectedLtgHash = 'fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9',
       expectedUrl =
-        '/assets/index.html#/management/edit/organization/ROOT_ORGANIZATION_ID/licenseThreatGroup/' +
-        expectedLtgHash;
+        '/assets/index.html#/management/edit/organization/ROOT_ORGANIZATION_ID/licenseThreatGroup/' + expectedLtgHash;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
   });
@@ -100,10 +88,8 @@ describe('sanitizeUrlService', function () {
   });
 
   it('includes valueless hash query parameters', function () {
-    const url =
-        'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockRoute/asdf?queryParam',
-      expectedHash =
-        'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
+    const url = 'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockRoute/asdf?queryParam',
+      expectedHash = 'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
       expectedUrl = `/assets/index.html#/sanitizeUrlServiceSpecMockRoute/${expectedHash}?queryParam`;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
@@ -114,10 +100,8 @@ describe('sanitizeUrlService', function () {
     const url =
         'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/' +
         'asdf?sidebarId=thisisagreatsidebar',
-      routeHash =
-        'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
-      sidebarIdHash =
-        '99c28420b8db9206bf8dcb10ff14dcbde8cc2b2160a9758b8eb9b695d05c1f50',
+      routeHash = 'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
+      sidebarIdHash = '99c28420b8db9206bf8dcb10ff14dcbde8cc2b2160a9758b8eb9b695d05c1f50',
       expectedUrl = `/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/${routeHash}?sidebarId=${sidebarIdHash}`;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
@@ -127,8 +111,7 @@ describe('sanitizeUrlService', function () {
   it("does not obfuscate query parameters that don't need to be obfuscated", function () {
     const url =
         'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/asdf?type=violation',
-      expectedHash =
-        'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
+      expectedHash = 'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
       expectedUrl = `/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/${expectedHash}?type=violation`;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
@@ -136,10 +119,8 @@ describe('sanitizeUrlService', function () {
   });
 
   it('does not obfuscate query parameters that are unknown and warns in the console', function () {
-    const url =
-        'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/asdf?bar=baz',
-      expectedHash =
-        'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
+    const url = 'http://localhost:8070/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/asdf?bar=baz',
+      expectedHash = 'f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b',
       expectedUrl = `/assets/index.html#/sanitizeUrlServiceSpecMockQueryParamsRoute/${expectedHash}?bar=baz`;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);
@@ -156,10 +137,8 @@ describe('sanitizeUrlService', function () {
 
   it('replaces hash-route parameter values in fragment-id-only URLs', function () {
     const url = '#/management/edit/organization/foo/licenseThreatGroup/bar',
-      expectedOrgHash =
-        '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
-      expectedLtgHash =
-        'fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9',
+      expectedOrgHash = '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
+      expectedLtgHash = 'fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9',
       expectedUrl = `#/management/edit/organization/${expectedOrgHash}/licenseThreatGroup/${expectedLtgHash}`;
 
     expect(sanitizeUrlService.sanitize(url)).toBe(expectedUrl);

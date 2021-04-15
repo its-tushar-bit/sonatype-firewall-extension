@@ -6,10 +6,7 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import {
-  getDashboardDeleteFilterUrl,
-  getDashboardSavedFilters,
-} from '../../../../main/frontend/util/CLMLocation';
+import { getDashboardDeleteFilterUrl, getDashboardSavedFilters } from '../../../../main/frontend/util/CLMLocation';
 import { cancelSaveFilter } from '../../../../main/frontend/dashboard/filter/manageFiltersActions';
 
 describe('manageFilterActions', function () {
@@ -20,13 +17,11 @@ describe('manageFilterActions', function () {
   const filterJsonSpy = jasmine.createSpy('filterJson');
 
   beforeEach(function () {
-    const module = require('inject-loader!../../../../main/frontend/dashboard/filter/manageFiltersActions')(
-      {
-        './dashboardFilterService': {
-          filterToJson: filterJsonSpy,
-        },
-      }
-    );
+    const module = require('inject-loader!../../../../main/frontend/dashboard/filter/manageFiltersActions')({
+      './dashboardFilterService': {
+        filterToJson: filterJsonSpy,
+      },
+    });
     deleteFilter = module.deleteFilter;
     fetchSavedFilters = module.fetchSavedFilters;
     saveFilter = module.saveFilter;
@@ -194,22 +189,17 @@ describe('manageFilterActions', function () {
         },
       });
 
-      store
-        .dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
-        .then(() => {
-          actions = store.getActions();
-          expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
-          expect(axios.put).toHaveBeenCalledWith(
-            dashboardSavedFiltersUrl,
-            expectedPUTBody
-          );
-          expect(actions.length).toBe(3);
-          expect(actions[1].type).toBe('SAVE_FILTER_FULFILLED');
-          expect(actions[1].payload).toEqual(putSavedFilterResponse);
-          expect(actions[2].type).toBe('FETCH_SAVED_FILTERS_FULFILLED');
-          expect(actions[2].payload).toEqual(getSavedFiltersResponse);
-          done();
-        });
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: false })).then(() => {
+        actions = store.getActions();
+        expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
+        expect(axios.put).toHaveBeenCalledWith(dashboardSavedFiltersUrl, expectedPUTBody);
+        expect(actions.length).toBe(3);
+        expect(actions[1].type).toBe('SAVE_FILTER_FULFILLED');
+        expect(actions[1].payload).toEqual(putSavedFilterResponse);
+        expect(actions[2].type).toBe('FETCH_SAVED_FILTERS_FULFILLED');
+        expect(actions[2].payload).toEqual(getSavedFiltersResponse);
+        done();
+      });
 
       let actions = store.getActions();
       expect(actions.length).toBe(1);
@@ -222,19 +212,14 @@ describe('manageFilterActions', function () {
         },
       });
 
-      store
-        .dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
-        .catch(() => {
-          const actions = store.getActions();
-          expect(axios.put).toHaveBeenCalledWith(
-            dashboardSavedFiltersUrl,
-            expectedPUTBody
-          );
-          expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('SAVE_FILTER_FAILED');
-          expect(actions[1].payload.status).toBe(403);
-          done();
-        });
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: false })).catch(() => {
+        const actions = store.getActions();
+        expect(axios.put).toHaveBeenCalledWith(dashboardSavedFiltersUrl, expectedPUTBody);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe('SAVE_FILTER_FAILED');
+        expect(actions[1].payload.status).toBe(403);
+        done();
+      });
 
       expect(store.getActions().length).toBe(1);
     });
@@ -253,20 +238,15 @@ describe('manageFilterActions', function () {
         },
       });
 
-      store
-        .dispatch(saveFilter({ name: 'foo', isOverwriting: false }))
-        .catch(() => {
-          const actions = store.getActions();
-          expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
-          expect(axios.put).toHaveBeenCalledWith(
-            dashboardSavedFiltersUrl,
-            expectedPUTBody
-          );
-          expect(actions.length).toBe(3);
-          expect(actions[2].type).toBe('FETCH_SAVED_FILTERS_FAILED');
-          expect(actions[2].payload.status).toBe(403);
-          done();
-        });
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: false })).catch(() => {
+        const actions = store.getActions();
+        expect(axios.get).toHaveBeenCalledWith(dashboardSavedFiltersUrl);
+        expect(axios.put).toHaveBeenCalledWith(dashboardSavedFiltersUrl, expectedPUTBody);
+        expect(actions.length).toBe(3);
+        expect(actions[2].type).toBe('FETCH_SAVED_FILTERS_FAILED');
+        expect(actions[2].payload.status).toBe(403);
+        done();
+      });
 
       expect(store.getActions().length).toBe(1);
     });
@@ -314,9 +294,7 @@ describe('manageFilterActions', function () {
     });
 
     it('dispatches SAVE_FILTER_REQUESTED if overwriting but warning is displayed', function (done) {
-      store
-        .dispatch(saveFilter({ name: 'foo', isOverwriting: true }))
-        .then(done);
+      store.dispatch(saveFilter({ name: 'foo', isOverwriting: true })).then(done);
 
       const actions = store.getActions();
       const state = store.getState();

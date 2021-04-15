@@ -34,9 +34,7 @@ describe('notification.webhook.service.spec', function () {
         url: 'url1',
       },
     ];
-    $httpBackend
-      .expectGET(CLMContextLocations.getNotificationWebhooksUrl())
-      .respond(webhooks);
+    $httpBackend.expectGET(CLMContextLocations.getNotificationWebhooksUrl()).respond(webhooks);
     notificationWebhookService.get().then((results) => {
       expect(results).toEqual(webhooks);
     });

@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  getComponentRisksExportUrl,
-  getNewestRisksExportUrl,
-  getApplicationRisksExportUrl,
-} from '../util/CLMLocation';
+import { getComponentRisksExportUrl, getNewestRisksExportUrl, getApplicationRisksExportUrl } from '../util/CLMLocation';
 import {
   translateViolationsSortFields,
   translateComponentsSortFields,
@@ -15,8 +11,7 @@ import {
 } from './services/sortFieldsUtils';
 import { createDashboardDataRequestPayload } from './utils/dashboard.utils.module';
 
-export const selectExportTitle = (state) =>
-  state.router.currentState.data.exportTitle;
+export const selectExportTitle = (state) => state.router.currentState.data.exportTitle;
 
 export const selectExportRequestData = (state) => {
   const routeStateName = state.router.currentState.name;
@@ -28,25 +23,13 @@ export const selectExportRequestData = (state) => {
 
   switch (routeStateName) {
     case 'dashboard.overview.violations':
-      return createDashboardDataRequestPayload(
-        filters,
-        null,
-        translateViolationsSortFields(violationsSortFields)
-      );
+      return createDashboardDataRequestPayload(filters, null, translateViolationsSortFields(violationsSortFields));
 
     case 'dashboard.overview.components':
-      return createDashboardDataRequestPayload(
-        filters,
-        null,
-        translateComponentsSortFields(componentsSortFields)
-      );
+      return createDashboardDataRequestPayload(filters, null, translateComponentsSortFields(componentsSortFields));
 
     case 'dashboard.overview.applications':
-      return createDashboardDataRequestPayload(
-        filters,
-        null,
-        translateApplicationsSortFields(applicationsSortFields)
-      );
+      return createDashboardDataRequestPayload(filters, null, translateApplicationsSortFields(applicationsSortFields));
 
     default:
       return {};

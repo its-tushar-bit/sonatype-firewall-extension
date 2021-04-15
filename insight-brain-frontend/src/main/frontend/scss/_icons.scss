@@ -123,11 +123,9 @@ $sonatype-glyphicon-font-name: 'Glyphicons';
 }
 
 //build out the icons
-$icon-map: (sonatype-icons, double-chevron-right, e600),
-  (sonatype-icons, double-chevron-left, e601),
-  (sonatype-icons, application, e008), (sonatype-icons, policy, e60d),
-  (sonatype-icons, policy-threat-level, e611), (sonatype-icons, tag, e60c),
-  (sonatype-glyphicons, stage-type, e083);
+$icon-map: (sonatype-icons, double-chevron-right, e600), (sonatype-icons, double-chevron-left, e601),
+  (sonatype-icons, application, e008), (sonatype-icons, policy, e60d), (sonatype-icons, policy-threat-level, e611),
+  (sonatype-icons, tag, e60c), (sonatype-glyphicons, stage-type, e083);
 
 @each $icon-type, $icon-class, $icon-color in $icon-map {
   .#{$icon-type}.#{$icon-class}:before {
@@ -226,8 +224,8 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
   &.outline {
     // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
-    text-shadow: $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px,
-      $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px;
+    text-shadow: $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px,
+      $iq-slate 0 0 1px;
   }
 
   &.fail {

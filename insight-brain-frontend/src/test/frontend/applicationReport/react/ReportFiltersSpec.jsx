@@ -6,10 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportFilters from '../../../../main/frontend/applicationReport/react/ReportFilters';
 import BackButton from '../../../../main/frontend/react/BackButton';
-import {
-  NxStatefulTreeViewMultiSelect,
-  NxRadio,
-} from '@sonatype/react-shared-components';
+import { NxStatefulTreeViewMultiSelect, NxRadio } from '@sonatype/react-shared-components';
 import IqTreeViewPolicyThreatSlider from '../../../../main/frontend/react/IqTreeViewPolicyThreatSlider';
 
 describe('ReportFilters component', function () {
@@ -56,17 +53,11 @@ describe('ReportFilters component', function () {
     },
   ];
 
-  let setAggregateReportEntriesSpy,
-    setExactValueFilterSpy,
-    getShallowComponent,
-    mock$State,
-    minimalProps;
+  let setAggregateReportEntriesSpy, setExactValueFilterSpy, getShallowComponent, mock$State, minimalProps;
 
   beforeEach(function () {
     const initSpies = () => {
-      setAggregateReportEntriesSpy = jasmine.createSpy(
-        'setAggregateReportEntries'
-      );
+      setAggregateReportEntriesSpy = jasmine.createSpy('setAggregateReportEntries');
       setExactValueFilterSpy = jasmine.createSpy('setExactValueFilter');
       mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
     };
@@ -82,10 +73,7 @@ describe('ReportFilters component', function () {
       };
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ReportFilters,
-      minimalProps()
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ReportFilters, minimalProps());
   });
 
   it('renders a BackButton with the violations state name and the provided $state object, ', function () {
@@ -111,44 +99,20 @@ describe('ReportFilters component', function () {
   });
 
   it('renders filter contents', function () {
-    const targetFilters = getShallowComponent().find(
-        NxStatefulTreeViewMultiSelect
-      ),
+    const targetFilters = getShallowComponent().find(NxStatefulTreeViewMultiSelect),
       proprietaryMultiSelect = targetFilters.at(0),
       matchSateMultiSelect = targetFilters.at(1),
       violationSateMultiSelect = targetFilters.at(2),
       dependencyTypeMultiSelect = targetFilters.at(3),
       policyTypesMultiSelect = targetFilters.at(4);
 
-    assertMultiSelectInitialState(
-      proprietaryMultiSelect,
-      proprietaryFilterOptions,
-      new Set()
-    );
-    assertMultiSelectInitialState(
-      matchSateMultiSelect,
-      matchStateFilterOptions,
-      undefined
-    );
-    assertMultiSelectInitialState(
-      violationSateMultiSelect,
-      violationStateFilterOptions,
-      new Set()
-    );
-    assertMultiSelectInitialState(
-      dependencyTypeMultiSelect,
-      dependencyTypeFilterOptions,
-      undefined
-    );
-    assertMultiSelectInitialState(
-      policyTypesMultiSelect,
-      policyTypeFilterOptions,
-      undefined
-    );
+    assertMultiSelectInitialState(proprietaryMultiSelect, proprietaryFilterOptions, new Set());
+    assertMultiSelectInitialState(matchSateMultiSelect, matchStateFilterOptions, undefined);
+    assertMultiSelectInitialState(violationSateMultiSelect, violationStateFilterOptions, new Set());
+    assertMultiSelectInitialState(dependencyTypeMultiSelect, dependencyTypeFilterOptions, undefined);
+    assertMultiSelectInitialState(policyTypesMultiSelect, policyTypeFilterOptions, undefined);
 
-    const policyThreatSlider = getShallowComponent()
-      .find(IqTreeViewPolicyThreatSlider)
-      .at(0);
+    const policyThreatSlider = getShallowComponent().find(IqTreeViewPolicyThreatSlider).at(0);
     expect(policyThreatSlider).toExist();
     expect(policyThreatSlider).toHaveProp('value', [0, 10]);
   });
@@ -166,18 +130,8 @@ describe('ReportFilters component', function () {
   });
 
   it('dispatches correct actions when selecting filters', function () {
-    assertMultiSelectActionDispatch(
-      '#proprietary-filter',
-      ['proprietary'],
-      'proprietary',
-      new Set([true])
-    );
-    assertMultiSelectActionDispatch(
-      '#proprietary-filter',
-      ['nonProprietary'],
-      'proprietary',
-      new Set([false])
-    );
+    assertMultiSelectActionDispatch('#proprietary-filter', ['proprietary'], 'proprietary', new Set([true]));
+    assertMultiSelectActionDispatch('#proprietary-filter', ['nonProprietary'], 'proprietary', new Set([false]));
     assertMultiSelectActionDispatch(
       '#proprietary-filter',
       ['proprietary', 'nonProprietary'],
@@ -185,28 +139,11 @@ describe('ReportFilters component', function () {
       new Set([true, false])
     );
 
-    assertMultiSelectActionDispatch(
-      '#match-state-filter',
-      ['exact'],
-      'matchState'
-    );
-    assertMultiSelectActionDispatch(
-      '#match-state-filter',
-      ['exact', 'similar'],
-      'matchState'
-    );
-    assertMultiSelectActionDispatch(
-      '#match-state-filter',
-      ['exact', 'similar', 'unknown'],
-      'matchState'
-    );
+    assertMultiSelectActionDispatch('#match-state-filter', ['exact'], 'matchState');
+    assertMultiSelectActionDispatch('#match-state-filter', ['exact', 'similar'], 'matchState');
+    assertMultiSelectActionDispatch('#match-state-filter', ['exact', 'similar', 'unknown'], 'matchState');
 
-    assertMultiSelectActionDispatch(
-      '#violation-state-filter',
-      ['open'],
-      'derivedViolationState',
-      new Set(['open'])
-    );
+    assertMultiSelectActionDispatch('#violation-state-filter', ['open'], 'derivedViolationState', new Set(['open']));
     assertMultiSelectActionDispatch(
       '#violation-state-filter',
       ['open', 'notViolating'],
@@ -232,32 +169,16 @@ describe('ReportFilters component', function () {
       new Set(['waived', 'grandfathered', 'waived+grandfathered'])
     );
 
-    assertMultiSelectActionDispatch(
-      '#dependency-type-filter',
-      ['direct'],
-      'derivedDependencyType'
-    );
-    assertMultiSelectActionDispatch(
-      '#dependency-type-filter',
-      ['transitive'],
-      'derivedDependencyType'
-    );
+    assertMultiSelectActionDispatch('#dependency-type-filter', ['direct'], 'derivedDependencyType');
+    assertMultiSelectActionDispatch('#dependency-type-filter', ['transitive'], 'derivedDependencyType');
     assertMultiSelectActionDispatch(
       '#dependency-type-filter',
       ['direct', 'transitive', 'unknown'],
       'derivedDependencyType'
     );
 
-    assertMultiSelectActionDispatch(
-      '#policy-type-filter',
-      ['SECURITY'],
-      'policyThreatCategory'
-    );
-    assertMultiSelectActionDispatch(
-      '#policy-type-filter',
-      ['SECURITY', 'LICENSE'],
-      'policyThreatCategory'
-    );
+    assertMultiSelectActionDispatch('#policy-type-filter', ['SECURITY'], 'policyThreatCategory');
+    assertMultiSelectActionDispatch('#policy-type-filter', ['SECURITY', 'LICENSE'], 'policyThreatCategory');
     assertMultiSelectActionDispatch(
       '#policy-type-filter',
       ['SECURITY', 'LICENSE', 'QUALITY', 'OTHER'],
@@ -270,34 +191,14 @@ describe('ReportFilters component', function () {
       'policyThreatLevel',
       new Set([1, 2, 3, 4, 5, 6, 7, 8, 9])
     );
-    assertMultiSelectActionDispatch(
-      '#threat-level-filter',
-      [5, 6],
-      'policyThreatLevel',
-      new Set([5, 6])
-    );
-    assertMultiSelectActionDispatch(
-      '#threat-level-filter',
-      [0, 10],
-      'policyThreatLevel',
-      new Set()
-    );
+    assertMultiSelectActionDispatch('#threat-level-filter', [5, 6], 'policyThreatLevel', new Set([5, 6]));
+    assertMultiSelectActionDispatch('#threat-level-filter', [0, 10], 'policyThreatLevel', new Set());
   });
 
-  const assertMultiSelectActionDispatch = (
-    elementId,
-    changeValues,
-    filterName,
-    actionPayload
-  ) => {
-    const targetFilter = enzymeUtils
-      .getShallowComponent(ReportFilters, minimalProps())()
-      .find(elementId);
+  const assertMultiSelectActionDispatch = (elementId, changeValues, filterName, actionPayload) => {
+    const targetFilter = enzymeUtils.getShallowComponent(ReportFilters, minimalProps())().find(elementId);
     targetFilter.simulate('change', changeValues);
-    expect(setExactValueFilterSpy).toHaveBeenCalledWith(
-      filterName,
-      actionPayload || new Set(changeValues)
-    );
+    expect(setExactValueFilterSpy).toHaveBeenCalledWith(filterName, actionPayload || new Set(changeValues));
   };
 
   const assertMultiSelectInitialState = (component, options, selectedIds) => {

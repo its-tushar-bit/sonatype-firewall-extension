@@ -40,10 +40,7 @@ describe('Resource', function () {
     expect(result[1].id).toEqual('bar');
   }));
 
-  it('Gets with relational collection', inject(function (
-    StoreFactory,
-    $httpBackend
-  ) {
+  it('Gets with relational collection', inject(function (StoreFactory, $httpBackend) {
     var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
@@ -63,9 +60,7 @@ describe('Resource', function () {
     $httpBackend
       .expectGET(relatedStoreUrl({ id: 'foo' }))
       .respond([{ relatedId: 'relatedFoo' }, { relatedId: 'relatedFooTwo' }]);
-    $httpBackend
-      .expectGET(relatedStoreUrl({ id: 'bar' }))
-      .respond([{ relatedId: 'relatedBar' }]);
+    $httpBackend.expectGET(relatedStoreUrl({ id: 'bar' })).respond([{ relatedId: 'relatedBar' }]);
 
     store.get().then(function () {
       expect(arguments.length).toEqual(1);
@@ -180,10 +175,7 @@ describe('Resource', function () {
     expect(spy).not.toHaveBeenCalled();
   }));
 
-  it('Refreshes and gets simultaneously', inject(function (
-    StoreFactory,
-    $httpBackend
-  ) {
+  it('Refreshes and gets simultaneously', inject(function (StoreFactory, $httpBackend) {
     var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
@@ -228,9 +220,7 @@ describe('Resource', function () {
     $httpBackend
       .expectGET(relatedStoreUrl({ id: 'foo' }))
       .respond([{ relatedId: 'relatedFoo' }, { relatedId: 'relatedFooTwo' }]);
-    $httpBackend
-      .expectGET(relatedStoreUrl({ id: 'bar' }))
-      .respond([{ relatedId: 'relatedBar' }]);
+    $httpBackend.expectGET(relatedStoreUrl({ id: 'bar' })).respond([{ relatedId: 'relatedBar' }]);
 
     store.get().then(function () {
       expect(arguments[0].length).toEqual(2);
@@ -241,9 +231,7 @@ describe('Resource', function () {
     expect(spy).not.toHaveBeenCalled();
 
     $httpBackend.expectGET(storeUrl).respond([{ id: 'foo' }]);
-    $httpBackend
-      .expectGET(relatedStoreUrl({ id: 'foo' }))
-      .respond([{ relatedId: 'relatedFoo' }]);
+    $httpBackend.expectGET(relatedStoreUrl({ id: 'foo' })).respond([{ relatedId: 'relatedFoo' }]);
     store.refresh().then(function () {
       expect(arguments[0].length).toEqual(1);
       expect(arguments[0][0].related.length).toEqual(1);
@@ -603,11 +591,7 @@ describe('Resource', function () {
       expect(contents.length).toEqual(2);
     }));
 
-    it('Delete New Object', inject(function (
-      StoreFactory,
-      $httpBackend,
-      $rootScope
-    ) {
+    it('Delete New Object', inject(function (StoreFactory, $httpBackend, $rootScope) {
       var store = StoreFactory.getStore({
           id: 'id',
           url: storeUrl,
@@ -667,26 +651,19 @@ describe('Resource', function () {
           store.getById('xxx').then(function (entity) {
             result = entity;
           });
-          $httpBackend
-            .expectGET(storeUrl)
-            .respond([{ id: 'foo' }, { id: 'bar' }, { id: 'xxx' }]);
+          $httpBackend.expectGET(storeUrl).respond([{ id: 'foo' }, { id: 'bar' }, { id: 'xxx' }]);
           $httpBackend.flush();
           $timeout.flush();
 
           expect(result.id).toEqual('xxx');
         }));
 
-        it('reloads and still missing', inject(function (
-          $httpBackend,
-          $timeout
-        ) {
+        it('reloads and still missing', inject(function ($httpBackend, $timeout) {
           var result;
           store.getById('xxx').then(angular.noop, function (error) {
             result = error;
           });
-          $httpBackend
-            .expectGET(storeUrl)
-            .respond([{ id: 'foo' }, { id: 'bar' }]);
+          $httpBackend.expectGET(storeUrl).respond([{ id: 'foo' }, { id: 'bar' }]);
           $httpBackend.flush();
           $timeout.flush();
 
@@ -729,10 +706,7 @@ describe('Resource', function () {
     });
   });
 
-  it('peek with and without store loaded', inject(function (
-    StoreFactory,
-    $httpBackend
-  ) {
+  it('peek with and without store loaded', inject(function (StoreFactory, $httpBackend) {
     var store = StoreFactory.getStore({
       id: 'id',
       url: storeUrl,
@@ -775,9 +749,7 @@ describe('Resource', function () {
         unregister = store.observe(callback);
 
         store.get();
-        $httpBackend
-          .expectGET(storeUrl)
-          .respond([{ id: 'foo' }, { id: 'bar' }]);
+        $httpBackend.expectGET(storeUrl).respond([{ id: 'foo' }, { id: 'bar' }]);
         $httpBackend.flush();
       },
     ]));
@@ -794,15 +766,10 @@ describe('Resource', function () {
       callback.calls.reset();
 
       store.refresh();
-      $httpBackend
-        .expectGET(storeUrl)
-        .respond([{ id: 'foo2' }, { id: 'bar2' }]);
+      $httpBackend.expectGET(storeUrl).respond([{ id: 'foo2' }, { id: 'bar2' }]);
       $httpBackend.flush();
 
-      assertCallbackArguments(StoreObserveTypeConstant.UPDATE, [
-        'foo2',
-        'bar2',
-      ]);
+      assertCallbackArguments(StoreObserveTypeConstant.UPDATE, ['foo2', 'bar2']);
     });
 
     it('gets called on Resource Delete', function () {
@@ -817,9 +784,7 @@ describe('Resource', function () {
       $httpBackend.expectDELETE(storeUrl + 'abc').respond([]);
       $httpBackend.flush();
 
-      expect(callback).toHaveBeenCalledWith(StoreObserveTypeConstant.DELETE, [
-        newResource,
-      ]);
+      expect(callback).toHaveBeenCalledWith(StoreObserveTypeConstant.DELETE, [newResource]);
     });
 
     it('gets called on Resource Save', function () {
@@ -830,9 +795,7 @@ describe('Resource', function () {
       $httpBackend.expectPOST(storeUrl).respond([newResource]);
       $httpBackend.flush();
 
-      expect(callback).toHaveBeenCalledWith(StoreObserveTypeConstant.UPDATE, [
-        newResource,
-      ]);
+      expect(callback).toHaveBeenCalledWith(StoreObserveTypeConstant.UPDATE, [newResource]);
     });
 
     it('unregisters properly', function () {
@@ -840,9 +803,7 @@ describe('Resource', function () {
       unregister();
 
       store.refresh();
-      $httpBackend
-        .expectGET(storeUrl)
-        .respond([{ id: 'foo2' }, { id: 'bar2' }]);
+      $httpBackend.expectGET(storeUrl).respond([{ id: 'foo2' }, { id: 'bar2' }]);
       $httpBackend.flush();
 
       expect(callback).not.toHaveBeenCalled();

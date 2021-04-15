@@ -12,10 +12,7 @@ import * as dashboardFilterActions from '../dashboardFilterActions';
 function mapStateToProps({ manageFilters, dashboardFilter }) {
   return {
     ...dashboardFilter,
-    ...pick(
-      ['appliedFilterName', 'showDirtyAsterisk', 'savedFilters'],
-      manageFilters
-    ),
+    ...pick(['appliedFilterName', 'showDirtyAsterisk', 'savedFilters'], manageFilters),
   };
 }
 
@@ -24,8 +21,5 @@ const mapDispatchToProps = {
   ...dashboardFilterActions,
 };
 
-const DashboardFilterContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(DashboardFilter);
+const DashboardFilterContainer = connect(mapStateToProps, mapDispatchToProps)(DashboardFilter);
 export default DashboardFilterContainer;

@@ -25,9 +25,7 @@ describe('LicenseTextsTileContainer', function () {
         },
       },
     };
-    setShowLicensesModalSpy = jasmine
-      .createSpy()
-      .and.returnValue({ type: 'setShowLicensesModalSpy' });
+    setShowLicensesModalSpy = jasmine.createSpy().and.returnValue({ type: 'setShowLicensesModalSpy' });
 
     LicenseTextsTileContainer = require('inject-loader!../../../../../main/frontend/legal/files/licenses/LicenseTextsTileContainer')(
       {

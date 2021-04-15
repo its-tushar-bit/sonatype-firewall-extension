@@ -3,17 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  defaultTo,
-  filter,
-  isEmpty,
-  not,
-  pipe,
-  prop,
-  props,
-  sum,
-  without,
-} from 'ramda';
+import { defaultTo, filter, isEmpty, not, pipe, prop, props, sum, without } from 'ramda';
 import { Scales, Axes } from 'plottable';
 
 import { createScatterPlotChart } from '../../chartUtils';
@@ -34,10 +24,7 @@ function ViolationsByCategoryChartController() {
   const vm = this,
     dataset = vm.violationsByCategoryData,
     notNullFilter = without([null]),
-    getNotNullValues = pipe(
-      props(['security', 'license', 'quality', 'other']),
-      notNullFilter
-    ),
+    getNotNullValues = pipe(props(['security', 'license', 'quality', 'other']), notNullFilter),
     weekCount = filter(pipe(getNotNullValues, isEmpty, not), dataset).length,
     xAccessor = prop('timePeriodName'),
     xScale = new Scales.Category(),
@@ -74,15 +61,7 @@ function ViolationsByCategoryChartController() {
         className: 'iq-chart__dataset--other',
       },
     ],
-    chart = createScatterPlotChart(
-      xAccessor,
-      xScale,
-      xAxis,
-      null,
-      yAxisLabelText,
-      lineConfigs,
-      dataset
-    );
+    chart = createScatterPlotChart(xAccessor, xScale, xAxis, null, yAxisLabelText, lineConfigs, dataset);
 
   Object.assign(vm, {
     violationsByCategoryChart: chart,

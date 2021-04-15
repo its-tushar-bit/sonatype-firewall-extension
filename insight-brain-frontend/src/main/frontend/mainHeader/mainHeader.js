@@ -64,10 +64,7 @@ function MainHeaderController(
   vm.isLabsDataInsightsEnabled = false;
 
   function getReleaseVersion() {
-    const serverVersionWithoutBuildNumber = clmServerVersion.substring(
-      0,
-      clmServerVersion.indexOf('-')
-    );
+    const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
     const serverVersionParts = serverVersionWithoutBuildNumber.split('.');
     // remove major version if present
     if (serverVersionParts.length === 3) {
@@ -96,19 +93,15 @@ function MainHeaderController(
     ];
 
     CurrentUser.waitForLogin().then(function () {
-      PermissionService.getValidPermissions(validPermissions).then(function (
-        data
-      ) {
+      PermissionService.getValidPermissions(validPermissions).then(function (data) {
         angular.forEach(data, function (permission) {
           vm.permissions[permission] = true;
         });
       });
 
-      systemConfigurationPropertyService
-        .isSuccessMetricsEnabled()
-        .then(function (data) {
-          vm.isSuccessMetricsEnabled = data;
-        });
+      systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function (data) {
+        vm.isSuccessMetricsEnabled = data;
+      });
 
       const unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
       $scope.$on('$destroy', unsubscribe);
@@ -121,16 +114,11 @@ function MainHeaderController(
           ProductFeatures.isAvailable('webhooks-for-repositories');
 
         vm.isFirewallSupported =
-          ProductFeatures.isAvailable('firewall') &&
-          ProductFeatures.isAvailable('release-integrity');
+          ProductFeatures.isAvailable('firewall') && ProductFeatures.isAvailable('release-integrity');
 
-        vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable(
-          'advanced-legal-pack'
-        );
+        vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable('advanced-legal-pack');
 
-        vm.isLabsDataInsightsEnabled = ProductFeatures.isAvailable(
-          'data-insights'
-        );
+        vm.isLabsDataInsightsEnabled = ProductFeatures.isAvailable('data-insights');
       });
     });
   }
@@ -152,18 +140,13 @@ function MainHeaderController(
   }
 
   function shouldShowLoginButton() {
-    return (
-      !routeStateUtilService.stateRequiresAuthentication() && !isLoggedIn()
-    );
+    return !routeStateUtilService.stateRequiresAuthentication() && !isLoggedIn();
   }
 }
 
 function mapStateToThis(state) {
   return {
-    isAdvancedSearchEnabled: path(
-      ['advancedSearchConfig', 'serverData', 'isEnabled'],
-      state
-    ),
+    isAdvancedSearchEnabled: path(['advancedSearchConfig', 'serverData', 'isEnabled'], state),
     isFirewallEnabled: path(['firewall', 'statusState', 'isEnabled'], state),
   };
 }

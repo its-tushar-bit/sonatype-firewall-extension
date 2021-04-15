@@ -11,10 +11,7 @@ import * as enzymeUtils from '../../enzymeUtils';
 
 describe('StatusIndicatorIcon', function () {
   const minimalProps = { status: false },
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      StatusIndicatorIcon,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(StatusIndicatorIcon, minimalProps);
 
   it('renders a non-fixed width circle NxFontAwesomeIcon', function () {
     const component = getShallowComponent();
@@ -29,16 +26,12 @@ describe('StatusIndicatorIcon', function () {
   });
 
   it('has an iq-status-indicator-icon modifier class based on the status', function () {
-    expect(getShallowComponent()).not.toHaveClassName(
-      'iq-status-indicator-icon--active'
-    );
+    expect(getShallowComponent()).not.toHaveClassName('iq-status-indicator-icon--active');
 
     expect(getShallowComponent({ status: true })).toHaveClassName(
       'iq-status-indicator-icon iq-status-indicator-icon--active'
     );
 
-    expect(getShallowComponent({ status: false })).not.toHaveClassName(
-      'iq-status-indicator-icon--active'
-    );
+    expect(getShallowComponent({ status: false })).not.toHaveClassName('iq-status-indicator-icon--active');
   });
 });

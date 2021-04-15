@@ -24,10 +24,7 @@ describe('ReportContent component', function () {
       },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ReportContent,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ReportContent, minimalProps);
   });
 
   it('renders a tile', function () {
@@ -68,11 +65,7 @@ describe('ReportContent component', function () {
       },
       sortConfiguration: {
         key: 'policyThreatLevel',
-        sortFields: [
-          '-policyThreatLevel',
-          'policyName',
-          'derivedComponentName',
-        ],
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
         dir: 'desc',
       },
     };
@@ -106,11 +99,7 @@ describe('ReportContent component', function () {
       },
       sortConfiguration: {
         key: 'policyName',
-        sortFields: [
-          'policyName',
-          '-policyThreatLevel',
-          'derivedComponentName',
-        ],
+        sortFields: ['policyName', '-policyThreatLevel', 'derivedComponentName'],
         dir: 'asc',
       },
     };
@@ -147,11 +136,7 @@ describe('ReportContent component', function () {
       },
       sortConfiguration: {
         key: 'policyThreatLevel',
-        sortFields: [
-          '-policyThreatLevel',
-          'policyName',
-          'derivedComponentName',
-        ],
+        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
         dir: 'desc',
       },
       substringFilters: {
@@ -169,21 +154,12 @@ describe('ReportContent component', function () {
 
     expect(policyNameFilter).toHaveProp('placeholder', 'policy name');
     expect(policyNameFilter).toHaveProp('value', 'policyName');
-    expect(derivedComponentNameFilter).toHaveProp(
-      'placeholder',
-      'component name'
-    );
-    expect(derivedComponentNameFilter).toHaveProp(
-      'value',
-      'derivedComponentName'
-    );
+    expect(derivedComponentNameFilter).toHaveProp('placeholder', 'component name');
+    expect(derivedComponentNameFilter).toHaveProp('value', 'derivedComponentName');
     policyNameFilter.simulate('change', 'High');
     derivedComponentNameFilter.simulate('change', 'A');
     expect(setStringFieldFilterSpy).toHaveBeenCalledWith('policyName', 'High');
-    expect(setStringFieldFilterSpy).toHaveBeenCalledWith(
-      'derivedComponentName',
-      'A'
-    );
+    expect(setStringFieldFilterSpy).toHaveBeenCalledWith('derivedComponentName', 'A');
   });
 
   it('renders a ReportTableRow for each entry', function () {
@@ -204,11 +180,7 @@ describe('ReportContent component', function () {
         },
         sortConfiguration: {
           key: 'policyThreatLevel',
-          sortFields: [
-            '-policyThreatLevel',
-            'policyName',
-            'derivedComponentName',
-          ],
+          sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
           dir: 'desc',
         },
       },
@@ -218,15 +190,9 @@ describe('ReportContent component', function () {
 
     expect(body).toExist();
     expect(tableRow).toExist();
-    expect(tableRow.at(0)).toHaveProp(
-      'component',
-      props.selectedReport.displayedEntries[0]
-    );
+    expect(tableRow.at(0)).toHaveProp('component', props.selectedReport.displayedEntries[0]);
     expect(tableRow.at(0)).toHaveProp('index', 0);
-    expect(tableRow.at(1)).toHaveProp(
-      'component',
-      props.selectedReport.displayedEntries[1]
-    );
+    expect(tableRow.at(1)).toHaveProp('component', props.selectedReport.displayedEntries[1]);
     expect(tableRow.at(1)).toHaveProp('index', 1);
   });
 });

@@ -4,19 +4,16 @@
   </div>
   <div class="modal-body" ng-if="!vm.error">
     <p>
-      This edit requires a re-evaluation of the repository. This can be a
-      time-consuming process depending on the repository size. If you are in the
-      middle of multiple component changes, it is recommended to proceed through
-      them before manually re-evaluating policy on the repository.
+      This edit requires a re-evaluation of the repository. This can be a time-consuming process depending on the
+      repository size. If you are in the middle of multiple component changes, it is recommended to proceed through them
+      before manually re-evaluating policy on the repository.
     </p>
 
     <p>
       If not you can
-      <a ng-click="vm.forceReevaluation()">re-evaluate now.</a> If you proceed,
-      the re-evaluation will run in the background and update the results as it
-      progresses. To view updated results, click the browser’s refresh button.
-      The oldest evaluation time will be updated as the re-evaluation
-      progresses.
+      <a ng-click="vm.forceReevaluation()">re-evaluate now.</a> If you proceed, the re-evaluation will run in the
+      background and update the results as it progresses. To view updated results, click the browser’s refresh button.
+      The oldest evaluation time will be updated as the re-evaluation progresses.
     </p>
   </div>
   <div ng-if="!vm.error">
@@ -25,13 +22,9 @@
     </div>
   </div>
   <div ng-if="vm.error">
-    <div class="modal-body error modal-error">
-      An error occurred reevaluating the component. ({{::vm.error}})
-    </div>
+    <div class="modal-body error modal-error">An error occurred reevaluating the component. ({{::vm.error}})</div>
     <div class="modal-footer">
-      <button class="btn btn-primary" ng-click="vm.forceReevaluation()">
-        <i class="fa fa-refresh"></i>Retry
-      </button>
+      <button class="btn btn-primary" ng-click="vm.forceReevaluation()"><i class="fa fa-refresh"></i>Retry</button>
       <button class="btn" ng-click="$dismiss()">Close</button>
     </div>
   </div>

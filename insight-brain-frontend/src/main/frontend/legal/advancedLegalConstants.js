@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export const TEXT_BASED_OBLIGATIONS = [
-  'Inclusion of Install Instructions',
-  'Must Give Credit',
-  'Must State Changes',
-];
+export const TEXT_BASED_OBLIGATIONS = ['Inclusion of Install Instructions', 'Must Give Credit', 'Must State Changes'];
 
 export const ACTIONABLE_OBLIGATIONS = [
   'Inclusion of Copyright',

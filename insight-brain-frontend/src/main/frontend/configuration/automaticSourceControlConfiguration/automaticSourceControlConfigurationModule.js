@@ -18,14 +18,8 @@ const automaticSourceControlConfigurationModule = angular
     storesModule.name,
     CLMLocationModule.name,
   ])
-  .component(
-    'automaticSourceControlConfiguration',
-    automaticSourceControlConfiguration
-  )
-  .service(
-    'automaticSourceControlConfigurationService',
-    automaticSourceControlConfigurationService
-  )
+  .component('automaticSourceControlConfiguration', automaticSourceControlConfiguration)
+  .service('automaticSourceControlConfigurationService', automaticSourceControlConfigurationService)
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -39,10 +33,7 @@ const automaticSourceControlConfigurationModule = angular
           isAuthorized: [
             'PermissionService',
             function (PermissionService) {
-              return PermissionService.isAuthorized(
-                ['MANAGE_AUTOMATIC_SCM_CONFIGURATION'],
-                true
-              );
+              return PermissionService.isAuthorized(['MANAGE_AUTOMATIC_SCM_CONFIGURATION'], true);
             },
           ],
         },

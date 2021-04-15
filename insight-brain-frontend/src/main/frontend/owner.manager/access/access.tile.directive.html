@@ -21,27 +21,15 @@
       <div class="iq-tile-header__subtitle">{{vm.ownerName}} users by role</div>
     </div>
     <div class="iq-tile-content">
-      <div
-        class="iq-list"
-        ng-repeat="memberOwner in vm.membersByRole[0].membersByOwner"
-      >
+      <div class="iq-list" ng-repeat="memberOwner in vm.membersByRole[0].membersByOwner">
         <h4 class="iq-list__title" ng-if="!memberOwner.inherited">Local</h4>
-        <h4
-          class="iq-list__title"
-          ng-if="memberOwner.inherited && memberOwner.hasMembers"
-        >
+        <h4 class="iq-list__title" ng-if="memberOwner.inherited && memberOwner.hasMembers">
           Inherited from {{memberOwner.ownerName}}
         </h4>
-        <div
-          class="iq-list__item iq-list__item--empty"
-          ng-if="!memberOwner.inherited && !memberOwner.hasMembers"
-        >
+        <div class="iq-list__item iq-list__item--empty" ng-if="!memberOwner.inherited && !memberOwner.hasMembers">
           No local access configured
         </div>
-        <table
-          class="iq-table iq-table--access-list"
-          ng-if="memberOwner.hasMembers"
-        >
+        <table class="iq-table iq-table--access-list" ng-if="memberOwner.hasMembers">
           <tr
             class="iq-table-row"
             ng-class="{'iq-clickable' : !memberOwner.inherited}"
@@ -50,9 +38,7 @@
           >
             <td class="iq-cell iq-cell--access-role">{{role.roleName}}</td>
             <td class="iq-cell iq-cell--access-members iq-read-only-data">
-              <span
-                ng-repeat="member in role.membersByOwner[$parent.$index].members"
-              >
+              <span ng-repeat="member in role.membersByOwner[$parent.$index].members">
                 <i
                   class="fa size-16px slate"
                   ng-class="{'fa-user' : member.type === 'USER', 'fa-users' : member.type === 'GROUP' }"

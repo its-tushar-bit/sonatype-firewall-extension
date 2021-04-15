@@ -8,17 +8,9 @@ import configurationModule from '../../../../main/frontend/configuration/module'
 describe('automaticApplicationsConfigurationServiceSpec.js', function () {
   beforeEach(angular.mock.module(configurationModule.name));
 
-  var automaticApplicationsConfigurationService,
-    $httpBackend,
-    successSpy,
-    failSpy,
-    CLMLocations;
+  var automaticApplicationsConfigurationService, $httpBackend, successSpy, failSpy, CLMLocations;
 
-  beforeEach(inject(function (
-    _automaticApplicationsConfigurationService_,
-    _$httpBackend_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function (_automaticApplicationsConfigurationService_, _$httpBackend_, _CLMLocations_) {
     automaticApplicationsConfigurationService = _automaticApplicationsConfigurationService_;
     $httpBackend = _$httpBackend_;
     successSpy = jasmine.createSpy('successSpy');
@@ -38,13 +30,8 @@ describe('automaticApplicationsConfigurationServiceSpec.js', function () {
         parentOrganizationId: 'organizationId',
       };
 
-      automaticApplicationsConfigurationService
-        .getConfiguration()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getAutomaticApplicationsConfigurationUrl())
-        .respond(configuration);
+      automaticApplicationsConfigurationService.getConfiguration().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getAutomaticApplicationsConfigurationUrl()).respond(configuration);
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(configuration);
@@ -52,13 +39,8 @@ describe('automaticApplicationsConfigurationServiceSpec.js', function () {
     });
 
     it('handles a failed request by rejecting the promise', function () {
-      automaticApplicationsConfigurationService
-        .getConfiguration()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getAutomaticApplicationsConfigurationUrl())
-        .respond(404, 'not found');
+      automaticApplicationsConfigurationService.getConfiguration().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getAutomaticApplicationsConfigurationUrl()).respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
@@ -75,15 +57,9 @@ describe('automaticApplicationsConfigurationServiceSpec.js', function () {
         parentOrganizationId: 'organizationId',
       };
 
-      automaticApplicationsConfigurationService
-        .saveConfiguration(configuration)
-        .then(successSpy)
-        .catch(failSpy);
+      automaticApplicationsConfigurationService.saveConfiguration(configuration).then(successSpy).catch(failSpy);
       $httpBackend
-        .expectPUT(
-          CLMLocations.getAutomaticApplicationsConfigurationUrl(),
-          configuration
-        )
+        .expectPUT(CLMLocations.getAutomaticApplicationsConfigurationUrl(), configuration)
         .respond(configuration);
       $httpBackend.flush();
 
@@ -97,15 +73,9 @@ describe('automaticApplicationsConfigurationServiceSpec.js', function () {
         parentOrganizationId: 'organizationId',
       };
 
-      automaticApplicationsConfigurationService
-        .saveConfiguration(configuration)
-        .then(successSpy)
-        .catch(failSpy);
+      automaticApplicationsConfigurationService.saveConfiguration(configuration).then(successSpy).catch(failSpy);
       $httpBackend
-        .expectPUT(
-          CLMLocations.getAutomaticApplicationsConfigurationUrl(),
-          configuration
-        )
+        .expectPUT(CLMLocations.getAutomaticApplicationsConfigurationUrl(), configuration)
         .respond(400, 'bad request');
       $httpBackend.flush();
 

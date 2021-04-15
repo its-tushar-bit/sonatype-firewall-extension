@@ -13,9 +13,7 @@ describe('copy.to.clipboard.directive.js', function () {
   beforeEach(inject(function ($rootScope, $compile, _$window_) {
     $window = _$window_;
     scope = $rootScope.$new();
-    element = $compile(
-      '<div copy-to-clipboard="vm.owner.publicId" copied-tooltip="successTooltip"></div>'
-    )(scope);
+    element = $compile('<div copy-to-clipboard="vm.owner.publicId" copied-tooltip="successTooltip"></div>')(scope);
 
     scope.vm = {
       owner: {

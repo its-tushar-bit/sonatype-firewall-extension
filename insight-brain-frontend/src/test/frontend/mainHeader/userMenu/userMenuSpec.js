@@ -24,22 +24,13 @@ describe('userMenu', function () {
       mockMaskController = {
         wrap: jasmine.createSpy(),
       };
-      mockActions = jasmine.createSpyObj('userActions', [
-        'loadUser',
-        'passwordChanged',
-      ]);
+      mockActions = jasmine.createSpyObj('userActions', ['loadUser', 'passwordChanged']);
       $provide.value('userActions', mockActions);
       SpecUtil.mockNgRedux($provide);
     })
   );
 
-  beforeEach(inject(function (
-    $q,
-    $rootScope,
-    _$componentController_,
-    _$httpBackend_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function ($q, $rootScope, _$componentController_, _$httpBackend_, _CLMLocations_) {
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
     $componentController = _$componentController_;
@@ -139,9 +130,7 @@ describe('userMenu', function () {
       var headers = { Location: 'http://localhost/logout' };
       expect(vm.logout).not.toBeUndefined();
 
-      $httpBackend
-        .expectDELETE(CLMLocations.getSessionLogoutUrl())
-        .respond(204, '', headers);
+      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204, '', headers);
 
       vm.logout();
 
@@ -207,9 +196,7 @@ describe('userMenu', function () {
     it('calls $close when the password change succeeds', function () {
       doPasswordChange('bar', 'xxx');
 
-      $httpBackend
-        .expectPUT(CLMLocations.getChangeMyPasswordUrl())
-        .respond(200);
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
       dialogScope.save();
       expect(dialogScope.submitActive).toBeTruthy();
       $httpBackend.flush();
@@ -220,9 +207,7 @@ describe('userMenu', function () {
     it('sets error and does not call $close when password change fails', function () {
       doPasswordChange('bar', 'xxx');
 
-      $httpBackend
-        .expectPUT(CLMLocations.getChangeMyPasswordUrl())
-        .respond(400, 'Super Fail');
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400, 'Super Fail');
 
       dialogScope.save();
       expect(dialogScope.submitActive).toBeTruthy();
@@ -239,9 +224,7 @@ describe('userMenu', function () {
         'and the new and old password values differ',
       function () {
         doPasswordChange('bar', 'xxx');
-        $httpBackend
-          .expectPUT(CLMLocations.getChangeMyPasswordUrl())
-          .respond(200);
+        $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
 
         dialogScope.save();
         $httpBackend.flush();
@@ -256,9 +239,7 @@ describe('userMenu', function () {
         'but the new and old password values dont differ',
       function () {
         doPasswordChange('bar', 'bar');
-        $httpBackend
-          .expectPUT(CLMLocations.getChangeMyPasswordUrl())
-          .respond(200);
+        $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(200);
 
         dialogScope.save();
         $httpBackend.flush();
@@ -271,9 +252,7 @@ describe('userMenu', function () {
     it('does not calls passwordChanged when the password change fails', function () {
       doPasswordChange('bar', 'xxx');
 
-      $httpBackend
-        .expectPUT(CLMLocations.getChangeMyPasswordUrl())
-        .respond(400, 'Super Fail');
+      $httpBackend.expectPUT(CLMLocations.getChangeMyPasswordUrl()).respond(400, 'Super Fail');
 
       dialogScope.save();
       $httpBackend.flush();

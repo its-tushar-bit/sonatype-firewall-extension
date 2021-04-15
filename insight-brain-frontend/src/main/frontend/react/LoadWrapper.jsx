@@ -16,19 +16,12 @@ import { Messages } from '../util/CommonServices';
  */
 export default function LoadWrapper({ error, ...otherProps }) {
   const errorIsReactNode = React.isValidElement(error),
-    processedError = errorIsReactNode
-      ? error
-      : Messages.getHttpErrorMessage(error);
+    processedError = errorIsReactNode ? error : Messages.getHttpErrorMessage(error);
 
   return <NxLoadWrapper {...otherProps} error={processedError} />;
 }
 
 LoadWrapper.propTypes = {
   ...NxLoadWrapper.propTypes,
-  error: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.node,
-    PropTypes.instanceOf(Error),
-    PropTypes.object,
-  ]),
+  error: PropTypes.oneOfType([PropTypes.string, PropTypes.node, PropTypes.instanceOf(Error), PropTypes.object]),
 };

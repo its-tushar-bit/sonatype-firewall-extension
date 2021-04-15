@@ -52,11 +52,7 @@ export default function AdvancedSearchForm(props) {
 
   return (
     <Fragment>
-      <form
-        className="nx-form nx-form--advanced-search"
-        id="advanced-search-form"
-        onSubmit={formOnSubmitHandler}
-      >
+      <form className="nx-form nx-form--advanced-search" id="advanced-search-form" onSubmit={formOnSubmitHandler}>
         <div className="nx-form-row">
           <div className="nx-form-group">
             <label className="nx-label">
@@ -70,12 +66,7 @@ export default function AdvancedSearchForm(props) {
             </label>
           </div>
           <div className="nx-btn-bar">
-            <NxButton
-              id="advanced-search-button"
-              inline
-              variant="primary"
-              disabled={!currentQuery}
-            >
+            <NxButton id="advanced-search-button" inline variant="primary" disabled={!currentQuery}>
               Search
             </NxButton>
           </div>
@@ -99,11 +90,7 @@ export default function AdvancedSearchForm(props) {
                 Page {page} of {numberOfPages()}
               </span>
             )}
-            <NxButton
-              id="advanced-search-previous-page-button"
-              disabled={page <= 1}
-              onClick={previousPageHandler}
-            >
+            <NxButton id="advanced-search-previous-page-button" disabled={page <= 1} onClick={previousPageHandler}>
               Previous
             </NxButton>
             <NxButton

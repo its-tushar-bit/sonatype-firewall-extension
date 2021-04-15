@@ -55,11 +55,7 @@ import {
 
 import { sortItemsByFields } from '../util/sortUtils';
 
-import {
-  aggregateReportEntries,
-  filterReportEntries,
-  getVulnerabilities,
-} from './applicationReportService';
+import { aggregateReportEntries, filterReportEntries, getVulnerabilities } from './applicationReportService';
 import { pathSet } from '../util/jsUtil';
 
 const initState = Object.freeze({
@@ -69,17 +65,8 @@ const initState = Object.freeze({
   loadError: null,
   reevaluationError: null,
   aggregate: true,
-  sortFields: Object.freeze([
-    '-policyThreatLevel',
-    'policyName',
-    'derivedComponentName',
-  ]),
-  rawDataSortFields: Object.freeze([
-    'derivedComponentName',
-    'licenseSortKey',
-    'securityCode',
-    '-cvssScore',
-  ]),
+  sortFields: Object.freeze(['-policyThreatLevel', 'policyName', 'derivedComponentName']),
+  rawDataSortFields: Object.freeze(['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore']),
 
   // map from field name to Set of allowed values
   // example: { policyThreatLevel: new Set([1, 5, 6, 7]) }
@@ -111,10 +98,7 @@ const initState = Object.freeze({
   selectedComponent: null,
 });
 
-export default function applicationReportReducer(
-  state = initState,
-  { type, payload }
-) {
+export default function applicationReportReducer(state = initState, { type, payload }) {
   switch (type) {
     case SET_REPORT_PARAMETERS:
       return setReportParameters(state, payload);
@@ -189,38 +173,28 @@ export default function applicationReportReducer(
     case SET_EXACT_VALUE_FILTER: {
       const { fieldName, allowedValues } = payload;
 
-      return updateDisplayedEntries(
-        pathSet(['exactValueFilters', fieldName], allowedValues, state)
-      );
+      return updateDisplayedEntries(pathSet(['exactValueFilters', fieldName], allowedValues, state));
     }
 
     case SET_SUBSTRING_FIELD_FILTER: {
       const { fieldName, filterString } = payload;
 
-      return updateDisplayedEntries(
-        pathSet(['substringFilters', fieldName], filterString, state)
-      );
+      return updateDisplayedEntries(pathSet(['substringFilters', fieldName], filterString, state));
     }
 
     case SET_RAW_DATA_SUBSTRING_FIELD_FILTER: {
       const { fieldName, filterString } = payload;
-      return updateRawDataDisplayedEntries(
-        pathSet(['rawDataSubstringFilters', fieldName], filterString, state)
-      );
+      return updateRawDataDisplayedEntries(pathSet(['rawDataSubstringFilters', fieldName], filterString, state));
     }
 
     case SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER: {
       const { fieldName, filterValue } = payload;
-      return updateRawDataDisplayedEntries(
-        pathSet(['rawDataNumericFilters', fieldName, 0], filterValue, state)
-      );
+      return updateRawDataDisplayedEntries(pathSet(['rawDataNumericFilters', fieldName, 0], filterValue, state));
     }
 
     case SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER: {
       const { fieldName, filterValue } = payload;
-      return updateRawDataDisplayedEntries(
-        pathSet(['rawDataNumericFilters', fieldName, 1], filterValue, state)
-      );
+      return updateRawDataDisplayedEntries(pathSet(['rawDataNumericFilters', fieldName, 1], filterValue, state));
     }
 
     case SET_SORTING:
@@ -282,9 +256,7 @@ function setSelectedReport(state, report) {
   )({
     ...state,
     policyTypeFilterEnabled: report.reportVersion && report.reportVersion >= 4,
-    vulnerabilitiesPageEnabled: !!(
-      report.reportVersion && report.reportVersion >= 5
-    ),
+    vulnerabilitiesPageEnabled: !!(report.reportVersion && report.reportVersion >= 5),
     selectedReport: {
       ...report,
       ...getViolationCountsPerThreatLevel(report.allEntries),
@@ -304,18 +276,11 @@ function setSelectedReport(state, report) {
 
   // if there is selected component, update selectedComponentIndex
   if (state.selectedReport && state.selectedComponentIndex != null) {
-    const selectedComponent =
-      state.selectedReport.displayedEntries[state.selectedComponentIndex];
+    const selectedComponent = state.selectedReport.displayedEntries[state.selectedComponentIndex];
     const findPredicate = state.aggregate
       ? propEq('hash', selectedComponent.hash)
-      : both(
-          propEq('hash', selectedComponent.hash),
-          propEq('policyName', selectedComponent.policyName)
-        );
-    const selectedComponentIndex = findIndex(
-      findPredicate,
-      newState.selectedReport.displayedEntries
-    );
+      : both(propEq('hash', selectedComponent.hash), propEq('policyName', selectedComponent.policyName));
+    const selectedComponentIndex = findIndex(findPredicate, newState.selectedReport.displayedEntries);
     if (selectedComponentIndex >= 0) {
       return { ...newState, selectedComponentIndex };
     }
@@ -348,13 +313,7 @@ function generateVulnerabilityEntries(state) {
     return {
       ...state,
       vulnerabilities: sortItemsByFields(
-        [
-          'violationSortState',
-          '-policyThreatLevel',
-          '-cvssScore',
-          'securityCode',
-          'derivedComponentName',
-        ],
+        ['violationSortState', '-policyThreatLevel', '-cvssScore', 'securityCode', 'derivedComponentName'],
         vulnerabilityEntries
       ),
     };
@@ -366,12 +325,7 @@ function generateVulnerabilityEntries(state) {
  * based on `allEntries` and the sorting passed-in, if any.
  */
 function updateRawDataDisplayedEntries(state) {
-  const {
-    reportRawData,
-    rawDataSortFields,
-    rawDataSubstringFilters,
-    rawDataNumericFilters,
-  } = state;
+  const { reportRawData, rawDataSortFields, rawDataSubstringFilters, rawDataNumericFilters } = state;
   if (reportRawData) {
     const { allEntries } = reportRawData;
     const processEntries = pipe(
@@ -380,11 +334,7 @@ function updateRawDataDisplayedEntries(state) {
     );
     const newDisplayedEntries = processEntries(allEntries);
 
-    return pathSet(
-      ['reportRawData', 'displayedEntries'],
-      newDisplayedEntries,
-      state
-    );
+    return pathSet(['reportRawData', 'displayedEntries'], newDisplayedEntries, state);
   } else {
     return state;
   }
@@ -395,13 +345,7 @@ function updateRawDataDisplayedEntries(state) {
  * based on `allEntries` and the various sorting, filtering, and aggregation settings stored in the state
  */
 function updateDisplayedEntries(state) {
-  let {
-    selectedReport,
-    sortFields,
-    aggregate,
-    exactValueFilters,
-    substringFilters,
-  } = state;
+  let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
   if (selectedReport) {
     const { allEntries } = selectedReport,
       processEntries = pipe(
@@ -411,11 +355,7 @@ function updateDisplayedEntries(state) {
       ),
       newDisplayedEntries = processEntries(allEntries);
 
-    return set(
-      lensPath(['selectedReport', 'displayedEntries']),
-      newDisplayedEntries,
-      state
-    );
+    return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, state);
   } else {
     return state;
   }
@@ -436,28 +376,20 @@ function getViolationCountsPerThreatLevel(entries) {
       ? 'moderateViolationCount'
       : undefined;
   const reduceToCountsByThreatLevel = reduceBy(inc, 0)(groupByThreatLevel);
-  const rejectIgnored = reject(
-    (v) => v.grandfathered || v.waived || v.policyThreatLevel < 2
-  );
-  const nonZeroCounts = pipe(
-    rejectIgnored,
-    reduceToCountsByThreatLevel
-  )(entries);
+  const rejectIgnored = reject((v) => v.grandfathered || v.waived || v.policyThreatLevel < 2);
+  const nonZeroCounts = pipe(rejectIgnored, reduceToCountsByThreatLevel)(entries);
   const nonLowViolationCount = sum(values(nonZeroCounts));
   return { ...zeroCounts, ...nonZeroCounts, nonLowViolationCount };
 }
 
-const mutatePendingLoads = curryN(
-  3,
-  function mutatePendingLoads(setMutator, loads, state) {
-    const { pendingLoads } = state,
-      newPendingLoads = new Set(pendingLoads);
+const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loads, state) {
+  const { pendingLoads } = state,
+    newPendingLoads = new Set(pendingLoads);
 
-    loads.forEach(setMutator(newPendingLoads));
+  loads.forEach(setMutator(newPendingLoads));
 
-    return { ...state, pendingLoads: newPendingLoads };
-  }
-);
+  return { ...state, pendingLoads: newPendingLoads };
+});
 
 const setPendingLoads = mutatePendingLoads((set) => (val) => set.add(val)),
   unsetPendingLoads = mutatePendingLoads((set) => (val) => set.delete(val));

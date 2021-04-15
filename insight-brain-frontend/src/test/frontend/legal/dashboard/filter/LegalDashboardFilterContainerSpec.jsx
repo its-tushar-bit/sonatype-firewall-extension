@@ -9,12 +9,7 @@ import configureStore from 'redux-mock-store';
 import LegalDashboardFilter from '../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilter';
 
 describe('LegalDashboardFilterContainerSpec', function () {
-  let store,
-    state,
-    vdom,
-    LegalDashboardFilterContainer,
-    loadFilterMock,
-    manageFilterActionMock;
+  let store, state, vdom, LegalDashboardFilterContainer, loadFilterMock, manageFilterActionMock;
 
   beforeEach(function () {
     state = {
@@ -30,12 +25,8 @@ describe('LegalDashboardFilterContainerSpec', function () {
       },
     };
 
-    loadFilterMock = jasmine
-      .createSpy('loadFilter')
-      .and.returnValue({ type: 'FOO' });
-    manageFilterActionMock = jasmine
-      .createSpy('manageFilterAction')
-      .and.returnValue({ type: 'FOO2' });
+    loadFilterMock = jasmine.createSpy('loadFilter').and.returnValue({ type: 'FOO' });
+    manageFilterActionMock = jasmine.createSpy('manageFilterAction').and.returnValue({ type: 'FOO2' });
     LegalDashboardFilterContainer = require('inject-loader!../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterContainer')(
       {
         './legalDashboardFilterActions': {

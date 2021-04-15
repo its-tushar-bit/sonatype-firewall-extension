@@ -10,19 +10,11 @@
     is-checked="item[vm.checkboxParam]"
     is-disabled="vm.disabled"
     ><!--
- --><hexagon
-      ng-if="vm.icon === 'hexagon'"
-      class="{{::item.color }} size-16px"
-    ></hexagon
+ --><hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon
     ><!--
- --><i
-      ng-if="vm.icon !== 'hexagon'"
-      class="fa {{::vm.icon}} {{::item.color || 'slate'}}"
-    ></i
+ --><i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i
     ><!--
- --><span class="iq-association-editor__description"
-      >{{::item[vm.description] }}</span
-    > </iq-checkbox
+ --><span class="iq-association-editor__description">{{::item[vm.description] }}</span> </iq-checkbox
   ><!--
 --><iq-radio
     ng-if="vm.isRadioButton"
@@ -31,18 +23,10 @@
     value="item"
     is-disabled="vm.disabled"
     ><!--
- --><hexagon
-      ng-if="vm.icon === 'hexagon'"
-      class="{{::item.color }} size-16px"
-    ></hexagon
+ --><hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon
     ><!--
- --><i
-      ng-if="vm.icon !== 'hexagon'"
-      class="fa {{::vm.icon}} {{::item.color || 'slate'}}"
-    ></i
+ --><i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i
     ><!--
- --><span class="iq-association-editor__description"
-      >{{::item[vm.description]}}</span
-    >
+ --><span class="iq-association-editor__description">{{::item[vm.description]}}</span>
   </iq-radio>
 </div>

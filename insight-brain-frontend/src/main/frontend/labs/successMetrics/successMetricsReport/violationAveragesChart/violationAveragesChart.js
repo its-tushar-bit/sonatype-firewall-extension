@@ -25,24 +25,16 @@ function violationAveragesChartController() {
   vm.averageEvaluationsRounded = Math.round(averagesData.evaluationCount);
 
   vm.averageDiscoveredTotal = averagesData.totalViolations.averageDiscovered;
-  vm.averageDiscoveredSecurity =
-    averagesData.securityViolations.averageDiscovered;
-  vm.averageDiscoveredLicense =
-    averagesData.licenseViolations.averageDiscovered;
-  vm.averageDiscoveredQuality =
-    averagesData.qualityViolations.averageDiscovered;
+  vm.averageDiscoveredSecurity = averagesData.securityViolations.averageDiscovered;
+  vm.averageDiscoveredLicense = averagesData.licenseViolations.averageDiscovered;
+  vm.averageDiscoveredQuality = averagesData.qualityViolations.averageDiscovered;
   vm.averageDiscoveredOther = averagesData.otherViolations.averageDiscovered;
 
-  vm.averageDiscoveredTotalCritical =
-    averagesData.totalViolations.averageDiscoveredCritical;
-  vm.averageDiscoveredSecurityCritical =
-    averagesData.securityViolations.averageDiscoveredCritical;
-  vm.averageDiscoveredLicenseCritical =
-    averagesData.licenseViolations.averageDiscoveredCritical;
-  vm.averageDiscoveredQualityCritical =
-    averagesData.qualityViolations.averageDiscoveredCritical;
-  vm.averageDiscoveredOtherCritical =
-    averagesData.otherViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredTotalCritical = averagesData.totalViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredSecurityCritical = averagesData.securityViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredLicenseCritical = averagesData.licenseViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredQualityCritical = averagesData.qualityViolations.averageDiscoveredCritical;
+  vm.averageDiscoveredOtherCritical = averagesData.otherViolations.averageDiscoveredCritical;
 
   vm.chart = makeChart(averagesData);
 }

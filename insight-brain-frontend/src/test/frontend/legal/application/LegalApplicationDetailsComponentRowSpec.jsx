@@ -5,12 +5,7 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import LegalApplicationDetailsComponentRow from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
-import {
-  NxBinaryDonutChart,
-  NxTableCell,
-  NxTableRow,
-  NxThreatIndicator,
-} from '@sonatype/react-shared-components';
+import { NxBinaryDonutChart, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
 
 describe('LegalApplicationDetailsComponentRow component', function () {
   let getShallowComponent;
@@ -30,10 +25,7 @@ describe('LegalApplicationDetailsComponentRow component', function () {
   };
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LegalApplicationDetailsComponentRow,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalApplicationDetailsComponentRow, minimalProps);
   });
 
   it('renders a NxTableRow with appropriate cells', function () {
@@ -54,14 +46,11 @@ describe('LegalApplicationDetailsComponentRow component', function () {
   it('links to the component overview page', function () {
     const tableRow = getShallowComponent().find(NxTableRow);
     tableRow.simulate('click');
-    expect(stateGoSpy).toHaveBeenCalledWith(
-      'applicationStageTypeComponentLegalOverview',
-      {
-        applicationPublicId: 'app-id',
-        stageTypeId: 'stage-id',
-        hash: 'some-hash',
-      }
-    );
+    expect(stateGoSpy).toHaveBeenCalledWith('applicationStageTypeComponentLegalOverview', {
+      applicationPublicId: 'app-id',
+      stageTypeId: 'stage-id',
+      hash: 'some-hash',
+    });
   });
 
   it('renders licenses review progress indicators for component with licenses and obligations', function () {
@@ -102,12 +91,8 @@ describe('LegalApplicationDetailsComponentRow component', function () {
     const wrapper = getShallowComponent(props);
     const tableRow = wrapper.find(NxTableRow);
     const cells = tableRow.find(NxTableCell);
-    expect(
-      cells.at(1).children().find(NxThreatIndicator).prop('policyThreatLevel')
-    ).toEqual(9);
-    expect(cells.at(1).childAt(0).childAt(1).text()).toEqual(
-      'License 1, License 2'
-    );
+    expect(cells.at(1).children().find(NxThreatIndicator).prop('policyThreatLevel')).toEqual(9);
+    expect(cells.at(1).childAt(0).childAt(1).text()).toEqual('License 1, License 2');
     const donutChart = cells.at(2).find(NxBinaryDonutChart);
     expect(donutChart).toExist();
     expect(donutChart).toHaveProp('percent', 40);
@@ -134,9 +119,7 @@ describe('LegalApplicationDetailsComponentRow component', function () {
     const wrapper = getShallowComponent(props);
     const tableRow = wrapper.find(NxTableRow);
     const cells = tableRow.find(NxTableCell);
-    expect(
-      cells.at(1).children().find(NxThreatIndicator).prop('policyThreatLevel')
-    ).toEqual(0);
+    expect(cells.at(1).children().find(NxThreatIndicator).prop('policyThreatLevel')).toEqual(0);
     expect(cells.at(1).childAt(0).childAt(1).text()).toEqual('License 1');
     const donutChart = cells.at(2).find(NxBinaryDonutChart);
     expect(donutChart).toExist();

@@ -6,10 +6,7 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import {
-  save,
-  del,
-} from '../../../../main/frontend/configuration/proxy/proxyConfigActions';
+import { save, del } from '../../../../main/frontend/configuration/proxy/proxyConfigActions';
 import { getProxyConfigUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('proxyConfigActions', function () {

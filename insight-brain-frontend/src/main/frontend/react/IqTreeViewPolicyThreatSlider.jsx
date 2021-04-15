@@ -6,11 +6,7 @@
 import React, { useState, Fragment } from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
-import {
-  NxTreeView,
-  NxTreeViewChild,
-  NxPolicyThreatSlider,
-} from '@sonatype/react-shared-components';
+import { NxTreeView, NxTreeViewChild, NxPolicyThreatSlider } from '@sonatype/react-shared-components';
 import { ensureElement } from '@sonatype/react-shared-components/util/reactUtil';
 
 export default function IqTreeViewPolicyThreatSlider(props) {
@@ -22,11 +18,7 @@ export default function IqTreeViewPolicyThreatSlider(props) {
     };
 
   const wrappedTriggerContent = ensureElement(children),
-    counterClasses = classnames(
-      'nx-counter',
-      { 'nx-counter--active': !disabled },
-      className
-    );
+    counterClasses = classnames('nx-counter', { 'nx-counter--active': !disabled }, className);
 
   const triggerWithCounter = (
     <Fragment>

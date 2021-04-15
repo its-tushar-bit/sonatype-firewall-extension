@@ -44,18 +44,13 @@ import proprietaryMatchersModule from './proprietary.matchers.modal/proprietary.
             ComponentUtil.enhanceWithComponentIdentifier(component);
 
             Properties.setHash(component.hash);
-            Properties.setFilename(
-              component.matchState === 'unknown' ? component.coordinates : null
-            );
+            Properties.setFilename(component.matchState === 'unknown' ? component.coordinates : null);
             Properties.setProprietary(component.proprietary || false);
             Properties.setMatchState(component.matchState);
             Coordinates.setIdentificationSource(component.identificationSource);
 
             if (component.componentIdentifier) {
-              Coordinates.set(
-                component.componentIdentifier.format,
-                component.componentIdentifier.coordinates
-              ); //coordinates may be null for unknown
+              Coordinates.set(component.componentIdentifier.format, component.componentIdentifier.coordinates); //coordinates may be null for unknown
             } else {
               Coordinates.set(null, {}); // unknown
             }

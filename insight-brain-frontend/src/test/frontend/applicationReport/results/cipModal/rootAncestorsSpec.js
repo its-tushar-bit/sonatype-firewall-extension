@@ -416,9 +416,7 @@ describe('rootAncestorsComponent', function () {
       };
 
       const output = mapStateToThis(state);
-      expect(output.selectedReport).toBe(
-        state.applicationReport.selectedReport
-      );
+      expect(output.selectedReport).toBe(state.applicationReport.selectedReport);
     });
 
     describe('when selectedRootAncestor is not set', function () {

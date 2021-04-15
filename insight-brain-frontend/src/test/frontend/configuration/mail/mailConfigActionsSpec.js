@@ -6,15 +6,8 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import {
-  save,
-  del,
-  sendTestEmail,
-} from '../../../../main/frontend/configuration/mail/mailConfigActions';
-import {
-  getMailConfigUrl,
-  getTestMailUrl,
-} from '../../../../main/frontend/util/CLMLocation';
+import { save, del, sendTestEmail } from '../../../../main/frontend/configuration/mail/mailConfigActions';
+import { getMailConfigUrl, getTestMailUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('mailConfigActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),

@@ -59,27 +59,13 @@ export default function ListWaiversTable(props) {
     const key = waiver.policyWaiverId;
     return (
       <NxTableRow className={rowClass} key={key}>
-        <NxTableCell className="visual-testing-ignore">
-          {moment(waiver.createTime).format('MM/DD/YYYY')}
-        </NxTableCell>
-        <NxTableCell className="iq-waivers-table--scope">
-          {displayWaiverScope(waiver)}
-        </NxTableCell>
+        <NxTableCell className="visual-testing-ignore">{moment(waiver.createTime).format('MM/DD/YYYY')}</NxTableCell>
+        <NxTableCell className="iq-waivers-table--scope">{displayWaiverScope(waiver)}</NxTableCell>
         <NxTableCell className="iq-waivers-table--component-name">
-          {waiver.hash ? (
-            <ComponentDisplay component={violationDetails} truncate={true} />
-          ) : (
-            'All'
-          )}
+          {waiver.hash ? <ComponentDisplay component={violationDetails} truncate={true} /> : 'All'}
         </NxTableCell>
-        <NxTableCell>
-          {waiver.expiryTime
-            ? moment(waiver.expiryTime).fromNow()
-            : 'Does not expire'}
-        </NxTableCell>
-        <NxTableCell className="iq-waivers-table--comments">
-          {waiver.comment || '- -'}
-        </NxTableCell>
+        <NxTableCell>{waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire'}</NxTableCell>
+        <NxTableCell className="iq-waivers-table--comments">{waiver.comment || '- -'}</NxTableCell>
         <NxTableCell>
           <NxButton
             variant="icon-only"
@@ -96,8 +82,7 @@ export default function ListWaiversTable(props) {
 
   const emptyMessage = (
     <span>
-      You don&apos;t have any waivers: to learn more about waivers you can check
-      our{' '}
+      You don&apos;t have any waivers: to learn more about waivers you can check our{' '}
       <NxExternalLink href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers">
         help documentation.
       </NxExternalLink>
@@ -122,16 +107,8 @@ export default function ListWaiversTable(props) {
         error={Messages.getHttpErrorMessage(loadApplicableWaiversError)}
         retryHandler={reloadApplicableWaivers}
       >
-        {activeWaivers &&
-          map(
-            displayWaiverInTableRow(false),
-            sort(descend(prop('createTime')), activeWaivers)
-          )}
-        {expiredWaivers &&
-          map(
-            displayWaiverInTableRow(true),
-            sort(descend(prop('createTime')), expiredWaivers)
-          )}
+        {activeWaivers && map(displayWaiverInTableRow(false), sort(descend(prop('createTime')), activeWaivers))}
+        {expiredWaivers && map(displayWaiverInTableRow(true), sort(descend(prop('createTime')), expiredWaivers))}
       </NxTableBody>
     </NxTable>
   );
@@ -162,10 +139,6 @@ ListWaiversTable.propTypes = {
     filename: PropTypes.string,
     policyViolationId: PropTypes.string.isRequired,
   }),
-  loadApplicableWaiversError: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.instanceOf(Error),
-    PropTypes.object,
-  ]),
+  loadApplicableWaiversError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
   loadingApplicableWaivers: PropTypes.bool,
 };

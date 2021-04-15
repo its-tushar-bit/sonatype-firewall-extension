@@ -28,12 +28,7 @@ describe('pendoService', function () {
     })
   );
 
-  beforeEach(inject(function (
-    _$httpBackend_,
-    _CLMLocations_,
-    _$window_,
-    _pendoService_
-  ) {
+  beforeEach(inject(function (_$httpBackend_, _CLMLocations_, _$window_, _pendoService_) {
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
     $window = _$window_;
@@ -50,9 +45,7 @@ describe('pendoService', function () {
   }));
 
   it('initializes pendo when start is called', function () {
-    $httpBackend
-      .expectGET(CLMLocations.getUserTelemetryConfig())
-      .respond({ visitors: {}, account: {} });
+    $httpBackend.expectGET(CLMLocations.getUserTelemetryConfig()).respond({ visitors: {}, account: {} });
 
     pendoService.start();
 
@@ -76,9 +69,7 @@ describe('pendoService', function () {
     it('calls pendo.flushNow if it is defined', function () {
       var flushRetval = {};
 
-      $window.pendo.flushNow = jasmine
-        .createSpy('flushNow')
-        .and.returnValue(flushRetval);
+      $window.pendo.flushNow = jasmine.createSpy('flushNow').and.returnValue(flushRetval);
 
       var retval = pendoService.flush();
 
@@ -86,9 +77,7 @@ describe('pendoService', function () {
       expect(retval).toBe(flushRetval);
     });
 
-    it('returns a resolved promise if pendo.flushNow is not defined', inject(function (
-      $rootScope
-    ) {
+    it('returns a resolved promise if pendo.flushNow is not defined', inject(function ($rootScope) {
       var resolved = false;
       pendoService.flush().then(function () {
         resolved = true;

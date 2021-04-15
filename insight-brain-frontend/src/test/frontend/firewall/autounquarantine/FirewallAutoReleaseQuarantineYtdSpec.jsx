@@ -16,10 +16,7 @@ describe('FirewallAutoReleaseQuarantineYtd', function () {
       autoReleaseQuarantineCountYTD: 2,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      FirewallAutoReleaseQuarantineYtd,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(FirewallAutoReleaseQuarantineYtd, minimalProps);
   });
 
   it('renders a component with the "nx-card" class', function () {
@@ -28,9 +25,7 @@ describe('FirewallAutoReleaseQuarantineYtd', function () {
 
   it('renders a card header', function () {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText(
-      'Auto Released (Year to Date)'
-    );
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Auto Released (Year to Date)');
   });
 
   it('renders card content', function () {

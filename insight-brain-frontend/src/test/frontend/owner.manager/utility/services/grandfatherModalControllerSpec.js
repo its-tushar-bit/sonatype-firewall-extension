@@ -10,13 +10,7 @@ describe('GrandfatherModalController', function () {
 
   beforeEach(angular.mock.module(ownerManagerModule.name));
 
-  beforeEach(inject(function (
-    $rootScope,
-    $controller,
-    _$httpBackend_,
-    _CLMLocations_,
-    _$q_
-  ) {
+  beforeEach(inject(function ($rootScope, $controller, _$httpBackend_, _CLMLocations_, _$q_) {
     scope = $rootScope.$new();
     scope.$dismiss = jasmine.createSpy('$dismiss').and.returnValue(undefined);
 
@@ -42,11 +36,7 @@ describe('GrandfatherModalController', function () {
   });
 
   it('calls scope.$dismiss when the server responds with success', function () {
-    $httpBackend
-      .expectPUT(
-        CLMLocations.getGrandfatherUrl(mockSelectedApplication.publicId)
-      )
-      .respond(200);
+    $httpBackend.expectPUT(CLMLocations.getGrandfatherUrl(mockSelectedApplication.publicId)).respond(200);
 
     vm.grandfather();
 
@@ -57,9 +47,7 @@ describe('GrandfatherModalController', function () {
 
   it('sets vm.error when the server responds with error', function () {
     $httpBackend
-      .expectPUT(
-        CLMLocations.getGrandfatherUrl(mockSelectedApplication.publicId)
-      )
+      .expectPUT(CLMLocations.getGrandfatherUrl(mockSelectedApplication.publicId))
       .respond(500, 'Some failure');
 
     vm.grandfather();

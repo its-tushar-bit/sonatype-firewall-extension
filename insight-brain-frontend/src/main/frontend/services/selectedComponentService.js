@@ -19,6 +19,4 @@ function SelectedComponent() {
   };
 }
 
-export default angular
-  .module('selectedComponentService', [])
-  .service('SelectedComponent', SelectedComponent);
+export default angular.module('selectedComponentService', []).service('SelectedComponent', SelectedComponent);

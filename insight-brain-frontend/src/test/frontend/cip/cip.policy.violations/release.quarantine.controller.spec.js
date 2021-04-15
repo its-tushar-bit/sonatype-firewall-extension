@@ -47,11 +47,7 @@ describe('release.quarantine.controller', function () {
 
   it('error to success', inject(function ($httpBackend) {
     $httpBackend
-      .expectPOST(
-        SpecUtil.toRegExp(
-          '../brain/rest/repositories/some-repo-id/unquarantine/foo/1.0/bar.jar'
-        )
-      )
+      .expectPOST(SpecUtil.toRegExp('../brain/rest/repositories/some-repo-id/unquarantine/foo/1.0/bar.jar'))
       .respond(500, 'random error');
     scope.vm.release();
 
@@ -62,11 +58,7 @@ describe('release.quarantine.controller', function () {
     expect(scope.vm.error).toEqual('random error');
 
     $httpBackend
-      .expectPOST(
-        SpecUtil.toRegExp(
-          '../brain/rest/repositories/some-repo-id/unquarantine/foo/1.0/bar.jar'
-        )
-      )
+      .expectPOST(SpecUtil.toRegExp('../brain/rest/repositories/some-repo-id/unquarantine/foo/1.0/bar.jar'))
       .respond(204);
     scope.vm.release();
 

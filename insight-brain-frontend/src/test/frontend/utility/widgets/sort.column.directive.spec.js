@@ -44,8 +44,7 @@ describe('sort.column.directive.spec.js', function () {
   it('Test initial sort with default', function () {
     scope.currentSortFields = ['foo'];
     element = $compile(
-      '<table sort="currentSortFields"><tr>' +
-        '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>'
+      '<table sort="currentSortFields"><tr>' + '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>'
     )(scope).find('th');
 
     isolatedScope = element.isolateScope();

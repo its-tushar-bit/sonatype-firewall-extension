@@ -59,8 +59,7 @@ export default function ProxyConfig(props) {
       licensed,
       $state,
     } = props,
-    isSubmitEnabled =
-      hasAllRequiredData && isDirty && isValid && !mustReenterPassword,
+    isSubmitEnabled = hasAllRequiredData && isDirty && isValid && !mustReenterPassword,
     productLicenseUrl = $state.href($state.get('productlicense')),
     loadError = isAuthorized ? loadErrorProp : authErrorMessage;
 
@@ -79,15 +78,7 @@ export default function ProxyConfig(props) {
     }
   }
 
-  function field(
-    fieldState,
-    onChange,
-    placeholder,
-    id,
-    label,
-    optional = false,
-    validatable = true
-  ) {
+  function field(fieldState, onChange, placeholder, id, label, optional = false, validatable = true) {
     const labelClasses = classnames('nx-label', {
       'nx-label--optional': optional,
     });
@@ -110,10 +101,7 @@ export default function ProxyConfig(props) {
   }
 
   const deleteModal = (
-    <NxModal
-      id="proxy-config-delete-modal"
-      onClose={() => setShowDeleteModal(false)}
-    >
+    <NxModal id="proxy-config-delete-modal" onClose={() => setShowDeleteModal(false)}>
       <header className="nx-modal-header">
         <h2 className="nx-h2">Delete Proxy Configuration?</h2>
       </header>
@@ -130,12 +118,7 @@ export default function ProxyConfig(props) {
           >
             Cancel
           </NxButton>
-          <NxButton
-            type="button"
-            id="proxy-config-delete-ok"
-            onClick={del}
-            className="nx-btn nx-btn--primary"
-          >
+          <NxButton type="button" id="proxy-config-delete-ok" onClick={del} className="nx-btn nx-btn--primary">
             OK
           </NxButton>
         </div>
@@ -153,30 +136,14 @@ export default function ProxyConfig(props) {
   const form = (
     <Fragment>
       {/* Input Fields */}
-      {field(
-        hostnameState,
-        setHostname,
-        'proxy.server',
-        'proxy-config-hostname',
-        'Hostname'
-      )}
+      {field(hostnameState, setHostname, 'proxy.server', 'proxy-config-hostname', 'Hostname')}
       {field(portState, setPort, '8080', 'proxy-config-port', 'Port')}
-      {field(
-        usernameState,
-        setUsername,
-        'admin',
-        'proxy-config-username',
-        'Username',
-        true,
-        false
-      )}
+      {field(usernameState, setUsername, 'admin', 'proxy-config-username', 'Username', true, false)}
       <div className="nx-form-group">
         <label className="nx-label nx-label--optional">
           <span className="nx-label__text">Password</span>
           {hasAllRequiredData && mustReenterPassword && (
-            <span className="nx-sub-label">
-              Must be re-entered when Hostname or Port is modified.
-            </span>
+            <span className="nx-sub-label">Must be re-entered when Hostname or Port is modified.</span>
           )}
           <NxTextInput
             {...passwordState}
@@ -230,12 +197,7 @@ export default function ProxyConfig(props) {
             <NxFontAwesomeIcon icon={faTrashAlt} />
             <span>Delete Configuration</span>
           </NxButton>
-          <NxButton
-            type="button"
-            id="proxy-config-cancel"
-            onClick={resetForm}
-            disabled={!isDirty}
-          >
+          <NxButton type="button" id="proxy-config-cancel" onClick={resetForm} disabled={!isDirty}>
             Cancel
           </NxButton>
           <NxTooltip id="save-button-tooltip" title={tooltipText}>
@@ -265,27 +227,16 @@ export default function ProxyConfig(props) {
               </div>
             </header>
             <div className="nx-tile-content">
-              <p className="nx-p">
-                To use a Proxy Server for outbound requests, configure it here.
-              </p>
+              <p className="nx-p">To use a Proxy Server for outbound requests, configure it here.</p>
               {/* This page is accessible without a license, so that users can configure their Proxy Servers */}
               {/* before attempting to install a license. If they are accessing this page without a license */}
               {/* most likely they want to navigate to license install page next. */}
               {!licensed && (
-                <p
-                  id="proxy-config-product-license-navigation"
-                  className="nx-p"
-                >
-                  Continue installing your license{' '}
-                  <a href={productLicenseUrl}>here.</a>
+                <p id="proxy-config-product-license-navigation" className="nx-p">
+                  Continue installing your license <a href={productLicenseUrl}>here.</a>
                 </p>
               )}
-              {submitMaskState !== null && (
-                <NxSubmitMask
-                  success={submitMaskState}
-                  message={submitMaskMessage}
-                />
-              )}
+              {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
               {form}
             </div>
           </section>
@@ -295,9 +246,7 @@ export default function ProxyConfig(props) {
   );
 }
 
-const textInputPropType = PropTypes.shape(
-  pick(['value', 'isPristine', 'validationErrors'], NxTextInput.propTypes)
-);
+const textInputPropType = PropTypes.shape(pick(['value', 'isPristine', 'validationErrors'], NxTextInput.propTypes));
 
 ProxyConfig.propTypes = {
   load: PropTypes.func.isRequired,

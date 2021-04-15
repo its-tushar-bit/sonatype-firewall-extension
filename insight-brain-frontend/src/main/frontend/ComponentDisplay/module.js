@@ -5,6 +5,4 @@
  */
 import componentDisplay from './componentDisplay';
 
-export default angular
-  .module('ComponentDisplay', ['ui.router'])
-  .component('componentDisplay', componentDisplay);
+export default angular.module('ComponentDisplay', ['ui.router']).component('componentDisplay', componentDisplay);

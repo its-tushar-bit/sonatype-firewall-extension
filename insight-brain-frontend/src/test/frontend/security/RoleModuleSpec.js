@@ -61,17 +61,12 @@ describe('RoleModuleSpec.js', function () {
       });
     }
 
-    it('initializes scope with role list if authorized (read+write)', inject(function (
-      $httpBackend,
-      CLMLocations
-    ) {
+    it('initializes scope with role list if authorized (read+write)', inject(function ($httpBackend, CLMLocations) {
       createController({
         editRoles: true,
         viewRoles: true,
       });
-      $httpBackend
-        .expectGET(CLMLocations.getRoleListUrl())
-        .respond(roleSummaries);
+      $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
       $httpBackend.flush();
 
       expect(scope.isAuthorized).toBeTruthy();
@@ -81,17 +76,12 @@ describe('RoleModuleSpec.js', function () {
       expect(scope.error).toBeNull();
     }));
 
-    it('initializes scope with role list if authorized (read-only)', inject(function (
-      $httpBackend,
-      CLMLocations
-    ) {
+    it('initializes scope with role list if authorized (read-only)', inject(function ($httpBackend, CLMLocations) {
       createController({
         editRoles: false,
         viewRoles: true,
       });
-      $httpBackend
-        .expectGET(CLMLocations.getRoleListUrl())
-        .respond(roleSummaries);
+      $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
       $httpBackend.flush();
 
       expect(scope.isAuthorized).toBeTruthy();
@@ -142,10 +132,7 @@ describe('RoleModuleSpec.js', function () {
         });
       }
 
-      it('built-in role treated as read-only', inject(function (
-        $httpBackend,
-        CLMLocations
-      ) {
+      it('built-in role treated as read-only', inject(function ($httpBackend, CLMLocations) {
         createController({
           editRoles: true,
           viewRoles: true,
@@ -159,10 +146,7 @@ describe('RoleModuleSpec.js', function () {
         expect(scope.readOnly).toBeFalsy();
       }));
 
-      it('non built-in role treated as read-only without perms', inject(function (
-        $httpBackend,
-        CLMLocations
-      ) {
+      it('non built-in role treated as read-only without perms', inject(function ($httpBackend, CLMLocations) {
         createController({
           editRoles: false,
           viewRoles: true,
@@ -179,12 +163,7 @@ describe('RoleModuleSpec.js', function () {
     });
 
     describe('Existing Role', function () {
-      beforeEach(inject(function (
-        $controller,
-        $rootScope,
-        $httpBackend,
-        CLMLocations
-      ) {
+      beforeEach(inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
         scope = $rootScope.$new();
         $controller('RoleEditorController', {
           $scope: scope,
@@ -198,9 +177,7 @@ describe('RoleModuleSpec.js', function () {
           'role.mapping.service': roleMappingService,
         });
 
-        $httpBackend
-          .expectGET(CLMLocations.getRoleByIdUrl(roleOne.id))
-          .respond(roleOne);
+        $httpBackend.expectGET(CLMLocations.getRoleByIdUrl(roleOne.id)).respond(roleOne);
         $httpBackend.flush();
       }));
 
@@ -208,18 +185,14 @@ describe('RoleModuleSpec.js', function () {
         expect(scope.role).toBeDefined();
         expect(scope.role.name).toBe(roleOne.name);
         expect(scope.role.permissionCategories).toBeDefined();
-        expect(scope.role.permissionCategories.length).toBe(
-          roleOne.permissionCategories.length
-        );
-        expect(scope.role.permissionCategories[0].displayName).toBe(
-          roleOne.permissionCategories[0].displayName
-        );
+        expect(scope.role.permissionCategories.length).toBe(roleOne.permissionCategories.length);
+        expect(scope.role.permissionCategories[0].displayName).toBe(roleOne.permissionCategories[0].displayName);
         expect(scope.role.permissionCategories[0].permissions.length).toBe(
           roleOne.permissionCategories[0].permissions.length
         );
-        expect(
-          scope.role.permissionCategories[0].permissions[0].displayName
-        ).toBe(roleOne.permissionCategories[0].permissions[0].displayName);
+        expect(scope.role.permissionCategories[0].permissions[0].displayName).toBe(
+          roleOne.permissionCategories[0].permissions[0].displayName
+        );
       });
 
       it('dirty editor triggers preventing the pageChangeStart event', inject(function () {
@@ -242,9 +215,7 @@ describe('RoleModuleSpec.js', function () {
         $httpBackend.expectPUT(CLMLocations.getRoleListUrl()).respond(roleOne);
         scope.save();
         expect(scope.submitActive).toBeTruthy();
-        $httpBackend
-          .expectGET(CLMLocations.getRoleListUrl())
-          .respond(roleSummaries);
+        $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
         $httpBackend.flush();
         expect($state.go).toHaveBeenCalledWith('roles');
         expect(roleMappingService.refresh).toHaveBeenCalled();
@@ -270,12 +241,7 @@ describe('RoleModuleSpec.js', function () {
           });
         }));
 
-        it('delete', inject(function (
-          $httpBackend,
-          CLMLocations,
-          $state,
-          Dialog
-        ) {
+        it('delete', inject(function ($httpBackend, CLMLocations, $state, Dialog) {
           spyOn($state, 'go');
           spyOn(roleMappingService, 'refresh');
 
@@ -284,12 +250,8 @@ describe('RoleModuleSpec.js', function () {
           dialogPromise.calls.mostRecent().args[0]();
 
           // In real-world usage this GET would have already occured in another controller
-          $httpBackend
-            .expectGET(CLMLocations.getRoleListUrl())
-            .respond(roleSummaries);
-          $httpBackend
-            .expectDELETE(CLMLocations.getRoleByIdUrl(roleOne.id))
-            .respond(204);
+          $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
+          $httpBackend.expectDELETE(CLMLocations.getRoleByIdUrl(roleOne.id)).respond(204);
           $httpBackend.flush();
           expect($state.go).toHaveBeenCalledWith('roles');
           expect(roleMappingService.refresh).toHaveBeenCalled();
@@ -298,12 +260,7 @@ describe('RoleModuleSpec.js', function () {
     });
 
     describe('New Role', function () {
-      beforeEach(inject(function (
-        $controller,
-        $rootScope,
-        $httpBackend,
-        CLMLocations
-      ) {
+      beforeEach(inject(function ($controller, $rootScope, $httpBackend, CLMLocations) {
         scope = $rootScope.$new();
         $controller('RoleEditorController', {
           $scope: scope,
@@ -340,9 +297,7 @@ describe('RoleModuleSpec.js', function () {
         });
 
         $httpBackend.expectPOST(CLMLocations.getRoleListUrl()).respond(roleOne);
-        $httpBackend
-          .expectGET(CLMLocations.getRoleListUrl())
-          .respond(roleSummaries);
+        $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
         scope.save();
         expect(scope.submitActive).toBeTruthy();
         $httpBackend.flush();

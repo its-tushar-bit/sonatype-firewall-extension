@@ -18,13 +18,7 @@ function dateToString(date) {
     return null;
   }
 
-  return (
-    pad(date.getMonth() + 1) +
-    '/' +
-    pad(date.getDate()) +
-    '/' +
-    date.getFullYear()
-  );
+  return pad(date.getMonth() + 1) + '/' + pad(date.getDate()) + '/' + date.getFullYear();
 }
 
 function stringToDate(str) {
@@ -58,18 +52,14 @@ $.extend(true, window, {
       node.empty();
       container.appendTo(node);
 
-      angular
-        .module('claimComponent' + timestamp, [])
-        .service('CurrentData', function () {
-          return angular.extend(
-            {
-              createTime: component.lastModifiedEntryTime
-                ? component.lastModifiedEntryTime
-                : component.lastModifiedTime,
-            },
-            component
-          );
-        });
+      angular.module('claimComponent' + timestamp, []).service('CurrentData', function () {
+        return angular.extend(
+          {
+            createTime: component.lastModifiedEntryTime ? component.lastModifiedEntryTime : component.lastModifiedTime,
+          },
+          component
+        );
+      });
       angular.bootstrap(container[0], [
         'ClaimComponent',
         'claimComponent' + timestamp,
@@ -97,9 +87,7 @@ claimApp.controller('ClaimComponentController', [
   function ($http, $scope, CurrentData, Dialog, ComponentUtil) {
     $scope.resetClaimData = function () {
       $scope.claimData = {};
-      $scope.claimData.createTimeText = CurrentData.createTime
-        ? dateToString(new Date(CurrentData.createTime))
-        : null;
+      $scope.claimData.createTimeText = CurrentData.createTime ? dateToString(new Date(CurrentData.createTime)) : null;
       $scope.submitted = false;
       $scope.disableSubmit = false;
 
@@ -118,10 +106,7 @@ claimApp.controller('ClaimComponentController', [
 
     var errorHandler = function (errorResponse) {
       var header = errorResponse.headers();
-      if (
-        header['content-type'] &&
-        header['content-type'].indexOf('text/html') === 0
-      ) {
+      if (header['content-type'] && header['content-type'].indexOf('text/html') === 0) {
         $scope.createError = 'Server Error';
       } else if (status === 0) {
         $scope.createError = 'Unable to connect to IQ Server';
@@ -188,11 +173,7 @@ claimApp.controller('ClaimComponentController', [
      * @returns {number}
      */
     function establishAge(createTime) {
-      return createTime
-        ? Math.floor(
-            (new Date().getTime() - createTime) / (1000 * 60 * 60 * 24)
-          )
-        : null;
+      return createTime ? Math.floor((new Date().getTime() - createTime) / (1000 * 60 * 60 * 24)) : null;
     }
 
     /**
@@ -219,17 +200,13 @@ claimApp.controller('ClaimComponentController', [
             version: $scope.claimData.version,
             // as classifier is optional, we want to enforce an empty string when the user has not
             // touched the field
-            classifier: $scope.claimData.classifier
-              ? $scope.claimData.classifier
-              : '',
+            classifier: $scope.claimData.classifier ? $scope.claimData.classifier : '',
             extension: $scope.claimData.extension,
           },
         },
       });
       if ($scope.claimData.createTimeText) {
-        $scope.claimData.createTime = stringToDate(
-          $scope.claimData.createTimeText
-        ).getTime();
+        $scope.claimData.createTime = stringToDate($scope.claimData.createTimeText).getTime();
       }
     }
 
@@ -237,10 +214,7 @@ claimApp.controller('ClaimComponentController', [
      * filter out transient properties from the claimData to make it acceptable for a REST body
      */
     function getClaimDataForServer() {
-      return pick(
-        ['createTime', 'id', 'componentIdentifier', 'comment', 'hash'],
-        $scope.claimData
-      );
+      return pick(['createTime', 'id', 'componentIdentifier', 'comment', 'hash'], $scope.claimData);
     }
 
     /**
@@ -250,11 +224,9 @@ claimApp.controller('ClaimComponentController', [
       updateStateForSubmit();
       if ($scope.claimForm.$valid) {
         prepareForSubmit();
-        $http
-          .post(servicePath, getClaimDataForServer())
-          .then(function (response) {
-            updateView(response.data);
-          }, errorHandler);
+        $http.post(servicePath, getClaimDataForServer()).then(function (response) {
+          updateView(response.data);
+        }, errorHandler);
       }
     };
 
@@ -265,11 +237,9 @@ claimApp.controller('ClaimComponentController', [
       updateStateForSubmit();
       if ($scope.claimForm.$valid) {
         prepareForSubmit();
-        $http
-          .put(servicePath, getClaimDataForServer())
-          .then(function (response) {
-            updateView(response.data);
-          }, errorHandler);
+        $http.put(servicePath, getClaimDataForServer()).then(function (response) {
+          updateView(response.data);
+        }, errorHandler);
       }
     };
 
@@ -355,10 +325,7 @@ claimApp.controller('ClaimComponentController', [
           claimForm.extension.$error.required)
       ) {
         return 'Group ID, Artifact ID, Version and Extension are required';
-      } else if (
-        claimForm.createTimeText.$dirty &&
-        claimForm.createTimeText.$error.pattern
-      ) {
+      } else if (claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern) {
         return 'Date format is MM/DD/YYYY';
       }
     };
@@ -413,10 +380,7 @@ claimApp.directive('clmDatepicker', function () {
     });
 
     ClaimComponentTab.prototype.isVisible = function () {
-      return (
-        this.gav.matchState !== 'exact' ||
-        this.gav.identificationSource === 'Manual'
-      );
+      return this.gav.matchState !== 'exact' || this.gav.identificationSource === 'Manual';
     };
 
     ClaimComponentTab.prototype.create = function () {

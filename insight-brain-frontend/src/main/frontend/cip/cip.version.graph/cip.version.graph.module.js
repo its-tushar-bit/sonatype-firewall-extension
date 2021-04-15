@@ -22,10 +22,7 @@ function run($rootScope, SelectedComponent, Coordinates, Properties) {
     function (newComponent) {
       if (newComponent) {
         if (newComponent.componentIdentifier) {
-          Coordinates.set(
-            newComponent.componentIdentifier.format,
-            newComponent.componentIdentifier.coordinates
-          );
+          Coordinates.set(newComponent.componentIdentifier.format, newComponent.componentIdentifier.coordinates);
         } else if (newComponent.groupId) {
           Coordinates.set('maven', {
             groupId: newComponent.groupId,
@@ -49,6 +46,4 @@ function run($rootScope, SelectedComponent, Coordinates, Properties) {
 }
 run.$inject = ['$rootScope', 'SelectedComponent', 'Coordinates', 'Properties'];
 
-export default angular
-  .module('cip.version.graph', [versionGraphModule.name])
-  .run(run);
+export default angular.module('cip.version.graph', [versionGraphModule.name]).run(run);

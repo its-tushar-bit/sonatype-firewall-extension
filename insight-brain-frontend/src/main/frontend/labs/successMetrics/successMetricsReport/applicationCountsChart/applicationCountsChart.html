@@ -1,11 +1,8 @@
 <h3 class="iq-chart-title">Applications with Violations by Policy Type</h3>
 <div class="application-counts">
   <p class="iq-chart__averages">
-    Over the past {{::vm.monthCount}} {{::(vm.monthCount === 1 ? 'month' :
-    'months')}},
-    <span class="iq-chart__display-number" id="num-violating-total"
-      >{{::vm.applicationCountTotalViolating}}</span
-    >
+    Over the past {{::vm.monthCount}} {{::(vm.monthCount === 1 ? 'month' : 'months')}},
+    <span class="iq-chart__display-number" id="num-violating-total">{{::vm.applicationCountTotalViolating}}</span>
     out of
     <span id="application-counts-num-active">{{::vm.applicationCount}}</span>
     applications contained violations, and
@@ -18,51 +15,25 @@
     <div class="iq-chart__labels--horizontal-bar">
       <div class="iq-chart__bar-label">
         <span>
-          <strong class="iq-chart__highlight"
-            >{{::vm.applicationCountSecurity}}</strong
-          >With Security Violations
+          <strong class="iq-chart__highlight">{{::vm.applicationCountSecurity}}</strong>With Security Violations
         </span>
-        <span>
-          <strong class="iq-chart__highlight"
-            >{{::vm.applicationCountSecurityCritical}}</strong
-          >Critical
-        </span>
+        <span> <strong class="iq-chart__highlight">{{::vm.applicationCountSecurityCritical}}</strong>Critical </span>
       </div>
       <div class="iq-chart__bar-label">
         <span>
-          <strong class="iq-chart__highlight"
-            >{{::vm.applicationCountLicense}}</strong
-          >With License Violations
+          <strong class="iq-chart__highlight">{{::vm.applicationCountLicense}}</strong>With License Violations
         </span>
-        <span>
-          <strong class="iq-chart__highlight"
-            >{{::vm.applicationCountLicenseCritical}}</strong
-          >Critical
-        </span>
+        <span> <strong class="iq-chart__highlight">{{::vm.applicationCountLicenseCritical}}</strong>Critical </span>
       </div>
       <div class="iq-chart__bar-label">
         <span>
-          <strong class="iq-chart__highlight"
-            >{{::vm.applicationCountQuality}}</strong
-          >With Quality Violations
+          <strong class="iq-chart__highlight">{{::vm.applicationCountQuality}}</strong>With Quality Violations
         </span>
-        <span>
-          <strong class="iq-chart__highlight"
-            >{{::vm.applicationCountQualityCritical}}</strong
-          >Critical
-        </span>
+        <span> <strong class="iq-chart__highlight">{{::vm.applicationCountQualityCritical}}</strong>Critical </span>
       </div>
       <div class="iq-chart__bar-label">
-        <span>
-          <strong class="iq-chart__highlight"
-            >{{::vm.applicationCountOther}}</strong
-          >With Other Violations
-        </span>
-        <span>
-          <strong class="iq-chart__highlight"
-            >{{::vm.applicationCountOtherCritical}}</strong
-          >Critical
-        </span>
+        <span> <strong class="iq-chart__highlight">{{::vm.applicationCountOther}}</strong>With Other Violations </span>
+        <span> <strong class="iq-chart__highlight">{{::vm.applicationCountOtherCritical}}</strong>Critical </span>
       </div>
     </div>
     <iq-render-plottable chart="vm.chart"></iq-render-plottable>

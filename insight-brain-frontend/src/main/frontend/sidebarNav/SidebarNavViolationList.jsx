@@ -37,8 +37,7 @@ export default function SidebarNavViolationList(props) {
     }
   });
 
-  const isItemSelected = (item) =>
-    item.policyViolationId === currentViolationId;
+  const isItemSelected = (item) => item.policyViolationId === currentViolationId;
 
   const listClass = (item) =>
     classnames('nx-list__item', {
@@ -54,9 +53,7 @@ export default function SidebarNavViolationList(props) {
       className={listClass(item)}
       ref={isItemSelected(item) ? selectedElementRef : null}
     >
-      <NxThreatIndicator
-        policyThreatLevel={item.threatLevel}
-      ></NxThreatIndicator>
+      <NxThreatIndicator policyThreatLevel={item.threatLevel}></NxThreatIndicator>
       <span className="nx-list__text">{getFullPolicyName(item)}</span>
       <div className="nx-list__subtext">{getArtifactName(item)}</div>
     </li>

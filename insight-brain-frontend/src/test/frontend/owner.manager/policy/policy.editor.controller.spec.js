@@ -14,25 +14,21 @@ describe('policy.editor.controller.spec.js', function () {
   var $state;
 
   beforeEach(
-    angular.mock.module(
-      ownerManagerModule.name,
-      legacyConfigurationModule.name,
-      function ($provide) {
-        $provide.value('$cookies', {
-          get: angular.noop,
-        });
+    angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
 
-        $state = {
-          current: {
-            name: '',
-          },
-          params: {},
-          reload: angular.noop,
-        };
-        $provide.value('$state', $state);
-        $provide.value('$stateParams', $state.params);
-      }
-    )
+      $state = {
+        current: {
+          name: '',
+        },
+        params: {},
+        reload: angular.noop,
+      };
+      $provide.value('$state', $state);
+      $provide.value('$stateParams', $state.params);
+    })
   );
 
   function createTests(type, storeName, owner) {
@@ -52,23 +48,12 @@ describe('policy.editor.controller.spec.js', function () {
       },
       mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
       mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(
-        PolicyResourceMockData.getApplicablePolicies(
-          type,
-          owner.id,
-          owner.name
-        ),
+        PolicyResourceMockData.getApplicablePolicies(type, owner.id, owner.name),
         'policiesByOwner'
       ),
       mockPolicy = ResourceUtils().createMockResource();
 
-    beforeEach(inject(function (
-      $rootScope,
-      _$q_,
-      _$timeout_,
-      _$httpBackend_,
-      _CLMContextLocations_,
-      CLMLocations
-    ) {
+    beforeEach(inject(function ($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMContextLocations_, CLMLocations) {
       scope = $rootScope.$new();
       $q = _$q_;
       $timeout = _$timeout_;
@@ -83,15 +68,10 @@ describe('policy.editor.controller.spec.js', function () {
         },
       };
 
-      mockCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl(
-        type,
-        owner.id
-      );
+      mockCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl(type, owner.id);
       mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
-      spyOn(CLMContextLocations, 'getEntityId').and.returnValue(
-        isApp ? owner.publicId : owner.id
-      );
+      spyOn(CLMContextLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
 
       $state.current.name = type;
@@ -124,9 +104,7 @@ describe('policy.editor.controller.spec.js', function () {
       expect(vm.siblings).toContain(mockPolicyStoreData[0].policies[0]);
     }));
 
-    it('Updates siblings list after creating new', inject(function (
-      $controller
-    ) {
+    it('Updates siblings list after creating new', inject(function ($controller) {
       vm = $controller('policy.editor.controller', { $scope: scope });
 
       resolveLoadData(mockPolicyStoreData, undefined);
@@ -150,9 +128,7 @@ describe('policy.editor.controller.spec.js', function () {
       expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
     }));
 
-    it('$state.reload called after creating new', inject(function (
-      $controller
-    ) {
+    it('$state.reload called after creating new', inject(function ($controller) {
       vm = $controller('policy.editor.controller', { $scope: scope });
 
       resolveLoadData(mockPolicyStoreData, undefined);
@@ -274,9 +250,7 @@ describe('policy.editor.controller.spec.js', function () {
       deleteServiceResourceDefer.resolve();
       $timeout.flush();
 
-      expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith(
-        'create-policy'
-      );
+      expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-policy');
       expect(mockPolicy.$revert).toHaveBeenCalled();
     }));
 
@@ -303,12 +277,8 @@ describe('policy.editor.controller.spec.js', function () {
       if (!isApp) {
         expect(vm.owner.name).toEqual(owner.name);
         expect(vm.categories.length).toBe(3);
-        var mockOrgCategories =
-          mockCategoryOwners.applicationCategoriesByOwner[0]
-            .applicationCategories;
-        var mockRootCategories =
-          mockCategoryOwners.applicationCategoriesByOwner[1]
-            .applicationCategories;
+        var mockOrgCategories = mockCategoryOwners.applicationCategoriesByOwner[0].applicationCategories;
+        var mockRootCategories = mockCategoryOwners.applicationCategoriesByOwner[1].applicationCategories;
 
         mockOrgCategories.forEach(function (category, index) {
           expect(vm.categories[index].name).toEqual(category.name);
@@ -375,9 +345,7 @@ describe('policy.editor.controller.spec.js', function () {
     });
 
     if (!isApp) {
-      it('Proper ownerName and ownerType get set loading heirarchy', inject(function (
-        $controller
-      ) {
+      it('Proper ownerName and ownerType get set loading heirarchy', inject(function ($controller) {
         $state.params.policyId = '456';
 
         vm = $controller('policy.editor.controller', { $scope: scope });
@@ -438,20 +406,14 @@ describe('policy.editor.controller.spec.js', function () {
 
       const respondWithCategories =
         !expectError &&
-        (!isApp ||
-          (policyStoreData.length > 1 &&
-            any(propEq('id', policyId), policyStoreData[1].policies)));
+        (!isApp || (policyStoreData.length > 1 && any(propEq('id', policyId), policyStoreData[1].policies)));
       if (respondWithCategories) {
         $httpBackend
-          .expectGET(
-            CLMContextLocations.getCategoriesUrl() + isApp ? '' : '/applicable'
-          )
+          .expectGET(CLMContextLocations.getCategoriesUrl() + isApp ? '' : '/applicable')
           .respond(mockCategoryOwners);
 
         if (policyId) {
-          $httpBackend
-            .expectGET(CLMContextLocations.getPolicyTagUrl(mockPolicy.id))
-            .respond(mockPolicyTags);
+          $httpBackend.expectGET(CLMContextLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
         }
       }
       $timeout.flush();
@@ -461,9 +423,7 @@ describe('policy.editor.controller.spec.js', function () {
     function resolveSaveData(policyId) {
       mockPolicy.resolveSave();
       if (!isApp) {
-        $httpBackend
-          .expectPUT(CLMContextLocations.getPolicyTagUrl(policyId))
-          .respond(mockPolicyTags);
+        $httpBackend.expectPUT(CLMContextLocations.getPolicyTagUrl(policyId)).respond(mockPolicyTags);
       }
       $timeout.flush();
       if (!isApp) {

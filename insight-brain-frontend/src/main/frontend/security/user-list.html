@@ -60,19 +60,10 @@
     </div>
   </script>
   <div load-wrapper="error" reload="doLoad()">
-    <div
-      ng-if="$state.is('users')"
-      authorization-wrapper="isAuthorized"
-      class="iq-tile iq-tile--sys-prefs"
-    >
+    <div ng-if="$state.is('users')" authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
       <div expand-user-on-event="userEditClick"></div>
       <div class="iq-tile__actions">
-        <button
-          id="user-new"
-          type="button"
-          class="iq-btn iq-pull-right"
-          ng-click="newUserClick()"
-        >
+        <button id="user-new" type="button" class="iq-btn iq-pull-right" ng-click="newUserClick()">
           <i class="fa fa-plus"></i>Create User
         </button>
       </div>
@@ -85,10 +76,7 @@
         <h5 ng-hide="context.users"><i class="icon-time"></i>Loading...</h5>
         <div class="iq-list iq-list--clickable accordion">
           <ul>
-            <li
-              class="iq-list__item iq-list__item--expanding accordion-heading"
-              ng-repeat="user in context.users"
-            >
+            <li class="iq-list__item iq-list__item--expanding accordion-heading" ng-repeat="user in context.users">
               <div class="iq-btn-group iq-pull-right">
                 <button
                   type="button"
@@ -126,41 +114,27 @@
                 <label class="iq-label iq-label--inline">
                   {{user.username}} ({{user.firstName}} {{user.lastName}})
                 </label>
-                <span ng-if="isCurrentUser(user)" class="iq-current-user">
-                  Current User
-                </span>
+                <span ng-if="isCurrentUser(user)" class="iq-current-user"> Current User </span>
               </a>
 
               <div id="collapse{{user.id}}" class="accordion-body collapse">
-                <div
-                  class="accordion-inner iq-user-details"
-                  ng-if="!context.userEditMap[user.id]"
-                >
+                <div class="accordion-inner iq-user-details" ng-if="!context.userEditMap[user.id]">
                   <dl class="iq-read-only iq-read-only--user-details">
                     <dt>First Name:</dt>
                     <!--
                  -->
-                    <dd class="iq-read-only-data test-user-first-name">
-                      {{user.firstName}}
-                    </dd>
+                    <dd class="iq-read-only-data test-user-first-name">{{user.firstName}}</dd>
                     <dt>Last Name:</dt>
                     <!--
                  -->
-                    <dd class="iq-read-only-data test-user-last-name">
-                      {{user.lastName}}
-                    </dd>
+                    <dd class="iq-read-only-data test-user-last-name">{{user.lastName}}</dd>
                     <dt>E-mail Address:</dt>
                     <!--
                  -->
-                    <dd class="iq-read-only-data test-user-email">
-                      {{user.email}}
-                    </dd>
+                    <dd class="iq-read-only-data test-user-email">{{user.email}}</dd>
                   </dl>
                 </div>
-                <div
-                  class="accordion-inner"
-                  ng-if="context.userEditMap[user.id]"
-                >
+                <div class="accordion-inner" ng-if="context.userEditMap[user.id]">
                   <user-form
                     user="user"
                     existing-users="context.users"

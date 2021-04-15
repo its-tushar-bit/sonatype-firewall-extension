@@ -17,8 +17,7 @@ function FuseFilter(input, term, searchField, resultField) {
   });
   // If provided, we need to extract `resultField` from the filtered items
   // fuse.js used to do this in older versions via its `id` config option but not anymore.
-  const selectorFn = ({ item }) =>
-    resultField ? prop(resultField, item) : item;
+  const selectorFn = ({ item }) => (resultField ? prop(resultField, item) : item);
   return map(selectorFn, fuse.search(term));
 }
 

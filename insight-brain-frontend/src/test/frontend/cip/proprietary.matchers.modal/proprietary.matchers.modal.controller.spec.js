@@ -12,13 +12,8 @@ describe('proprietary.matchers.modal.controller.spec', function () {
     $q = _$q_;
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy('$close');
-    proprietaryMatchersService = jasmine.createSpyObj('service', [
-      'addComponentMatchers',
-      'getApplicationInfo',
-    ]);
-    proprietaryMatchersService.getApplicationInfo.and.returnValue(
-      $q.resolve({ name: 'test application' })
-    );
+    proprietaryMatchersService = jasmine.createSpyObj('service', ['addComponentMatchers', 'getApplicationInfo']);
+    proprietaryMatchersService.getApplicationInfo.and.returnValue($q.resolve({ name: 'test application' }));
 
     window.CLM = {
       path: '../brain/',
@@ -62,9 +57,7 @@ describe('proprietary.matchers.modal.controller.spec', function () {
     });
 
     it('when getApplicationInfo() fails - uses app id', function () {
-      proprietaryMatchersService.getApplicationInfo.and.returnValue(
-        $q.reject('error')
-      );
+      proprietaryMatchersService.getApplicationInfo.and.returnValue($q.reject('error'));
       var vm = initController();
       expect(vm.applicationName).toBeUndefined();
       expect(vm.isLoading()).toBe(true);
@@ -126,25 +119,19 @@ describe('proprietary.matchers.modal.controller.spec', function () {
       };
       vm.selectedPathNames = ['bar', 'baz'];
       vm.regex = '(regex)';
-      proprietaryMatchersService.addComponentMatchers.and.returnValue(
-        $q.resolve()
-      );
+      proprietaryMatchersService.addComponentMatchers.and.returnValue($q.resolve());
     });
 
     it('aborts if form is invalid', function () {
       vm.selectedPathNames = [];
       vm.regex = undefined;
       vm.save();
-      expect(
-        proprietaryMatchersService.addComponentMatchers
-      ).not.toHaveBeenCalled();
+      expect(proprietaryMatchersService.addComponentMatchers).not.toHaveBeenCalled();
     });
 
     it('submits selectedPathNames and regex', function () {
       vm.save();
-      expect(
-        proprietaryMatchersService.addComponentMatchers
-      ).toHaveBeenCalledWith(
+      expect(proprietaryMatchersService.addComponentMatchers).toHaveBeenCalledWith(
         'testApplication123',
         vm.selectedPathNames,
         '(regex)'
@@ -160,9 +147,7 @@ describe('proprietary.matchers.modal.controller.spec', function () {
     });
 
     it('on failure sets error', function () {
-      proprietaryMatchersService.addComponentMatchers.and.returnValue(
-        $q.reject('test error message')
-      );
+      proprietaryMatchersService.addComponentMatchers.and.returnValue($q.reject('test error message'));
       delete vm.error;
       vm.save();
       scope.$apply(); // resolve promises

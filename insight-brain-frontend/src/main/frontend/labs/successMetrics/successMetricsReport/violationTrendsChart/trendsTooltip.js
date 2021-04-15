@@ -8,8 +8,7 @@
  * @param container - container element to which tooltip is appended.
  */
 export default function TrendsTooltip(id, container) {
-  const tooltipElement =
-    document.getElementById(id) || createTooltipElement(id, container);
+  const tooltipElement = document.getElementById(id) || createTooltipElement(id, container);
   return {
     setContent(content) {
       tooltipElement.innerHTML = content;

@@ -55,10 +55,7 @@ describe('LegalApplicationDetailsPage', function () {
       $state: stateSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LegalApplicationDetailsPage,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalApplicationDetailsPage, minimalProps);
   });
 
   it('is wrapped by a LoadWrapper with appropriate parameters', function () {
@@ -120,14 +117,10 @@ describe('LegalApplicationDetailsPage', function () {
   });
 
   it('renders the page title and subtitle', function () {
-    const pageTitle = getShallowComponent().find(
-      'main.nx-page-main .nx-page-title'
-    );
+    const pageTitle = getShallowComponent().find('main.nx-page-main .nx-page-title');
     expect(pageTitle).toExist();
     expect(pageTitle.find('h1').text()).toEqual('app-name Obligations');
-    expect(pageTitle.find('.nx-tile-header__subtitle').text()).toEqual(
-      'stage name Stage'
-    );
+    expect(pageTitle.find('.nx-tile-header__subtitle').text()).toEqual('stage name Stage');
   });
 
   it('renders a table', function () {

@@ -30,9 +30,7 @@ $iq-modal-bottom-spacing: 8px;
   border-radius: 0;
   box-shadow: -8px 8px 12px $iq-slate;
   height: auto;
-  max-height: calc(
-    100vh - #{$iq-modal-top-spacing} - #{$iq-modal-bottom-spacing}
-  );
+  max-height: calc(100vh - #{$iq-modal-top-spacing} - #{$iq-modal-bottom-spacing});
   margin: 0; // override bootstrap .modal style
   outline: none;
   position: fixed;

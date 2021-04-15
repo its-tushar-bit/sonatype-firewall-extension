@@ -14,9 +14,7 @@ describe('DashboardApplicationsTableRow', function () {
   let getShallowComponent;
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardApplicationsTableRow
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardApplicationsTableRow);
   });
 
   it('renders an NxTableRow for the app information and an NxTableRow for each stage risk', function () {

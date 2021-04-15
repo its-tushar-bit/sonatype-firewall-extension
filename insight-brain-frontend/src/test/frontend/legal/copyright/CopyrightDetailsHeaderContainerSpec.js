@@ -12,11 +12,7 @@ import CopyrightDetailsHeader from '../../../../main/frontend/legal/copyright/Co
 import { copyrightDetailsStateName } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
 
 describe('CopyrightDetailsHeader', function () {
-  let store,
-    state,
-    vdom,
-    CopyrightDetailsHeaderContainer,
-    loadComponentAndCopyrightDetailsMock;
+  let store, state, vdom, CopyrightDetailsHeaderContainer, loadComponentAndCopyrightDetailsMock;
 
   beforeEach(function () {
     state = copyrightState;
@@ -47,13 +43,9 @@ describe('CopyrightDetailsHeader', function () {
 
   it('correctly maps the action creators to the CopyrightDetailsHeaderContainer props', function () {
     const wrapper = shallow(vdom).dive();
-    const loadComponentAndCopyrightDetailsCreator = wrapper.prop(
-      'loadComponentAndCopyrightDetails'
-    );
+    const loadComponentAndCopyrightDetailsCreator = wrapper.prop('loadComponentAndCopyrightDetails');
 
-    expect(loadComponentAndCopyrightDetailsCreator).toEqual(
-      jasmine.any(Function)
-    );
+    expect(loadComponentAndCopyrightDetailsCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
     loadComponentAndCopyrightDetailsCreator('test');

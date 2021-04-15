@@ -45,20 +45,14 @@
         "<span class='" +
         options.toggleCssClass +
         ' ' +
-        (item.collapsed
-          ? options.toggleCollapsedCssClass
-          : options.toggleExpandedCssClass) +
+        (item.collapsed ? options.toggleCollapsedCssClass : options.toggleExpandedCssClass) +
         "'></span>" +
         item.title
       );
     }
 
     function defaultTotalsCellFormatter(row, cell, value, columnDef, item) {
-      return (
-        (columnDef.groupTotalsFormatter &&
-          columnDef.groupTotalsFormatter(item, columnDef)) ||
-        ''
-      );
+      return (columnDef.groupTotalsFormatter && columnDef.groupTotalsFormatter(item, columnDef)) || '';
     }
 
     function init(grid) {
@@ -76,11 +70,7 @@
 
     function handleGridClick(e, args) {
       var item = this.getDataItem(args.row);
-      if (
-        item &&
-        item instanceof Slick.Group &&
-        $(e.target).hasClass(options.toggleCssClass)
-      ) {
+      if (item && item instanceof Slick.Group && $(e.target).hasClass(options.toggleCssClass)) {
         if (item.collapsed) {
           this.getData().expandGroup(item.value);
         } else {

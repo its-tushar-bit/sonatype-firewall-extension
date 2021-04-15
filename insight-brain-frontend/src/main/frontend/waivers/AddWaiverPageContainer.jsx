@@ -38,8 +38,5 @@ const mapDispatchToProps = {
   cancelAction: returnToAddWaiverOriginPage,
 };
 
-const AddWaiverPageContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(AddWaiverPage);
+const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);
 export default AddWaiverPageContainer;

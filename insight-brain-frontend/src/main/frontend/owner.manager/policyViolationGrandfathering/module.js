@@ -15,11 +15,5 @@ export default angular
     commonServicesModule.name,
     ProductFeaturesModule.name,
   ])
-  .service(
-    'policyViolationGrandfatheringService',
-    PolicyViolationGrandfatheringService
-  )
-  .component(
-    'policyViolationGrandfatheringEditor',
-    PolicyViolationGrandfatheringEditor
-  );
+  .service('policyViolationGrandfatheringService', PolicyViolationGrandfatheringService)
+  .component('policyViolationGrandfatheringEditor', PolicyViolationGrandfatheringEditor);

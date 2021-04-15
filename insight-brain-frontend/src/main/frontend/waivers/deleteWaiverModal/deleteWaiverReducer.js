@@ -49,8 +49,5 @@ const reducerActionMap = {
   [WAIVERS_DELETE_MASK_TIMER_DONE]: always(initState),
 };
 
-const deleteWaiverReducer = createReducerFromActionMap(
-  reducerActionMap,
-  initState
-);
+const deleteWaiverReducer = createReducerFromActionMap(reducerActionMap, initState);
 export default deleteWaiverReducer;

@@ -27,25 +27,17 @@ export default function SortColumn() {
       var isInverted = scope.vm.inverted === 'true';
 
       scope.vm.isUp = function () {
-        var sortColumn = sortController.extractSortField(
-          sortController.sortFields[0]
-        );
+        var sortColumn = sortController.extractSortField(sortController.sortFields[0]);
         var reversed = sortColumn !== sortController.sortFields[0];
         var currentColumn = sortController.extractSortField(mainSort);
-        return (
-          sortColumn === currentColumn && (isInverted ? reversed : !reversed)
-        );
+        return sortColumn === currentColumn && (isInverted ? reversed : !reversed);
       };
 
       scope.vm.isDown = function () {
-        var sortColumn = sortController.extractSortField(
-          sortController.sortFields[0]
-        );
+        var sortColumn = sortController.extractSortField(sortController.sortFields[0]);
         var reversed = sortColumn !== sortController.sortFields[0];
         var currentColumn = sortController.extractSortField(mainSort);
-        return (
-          sortColumn === currentColumn && (!isInverted ? reversed : !reversed)
-        );
+        return sortColumn === currentColumn && (!isInverted ? reversed : !reversed);
       };
 
       scope.vm.updateHeader = function () {

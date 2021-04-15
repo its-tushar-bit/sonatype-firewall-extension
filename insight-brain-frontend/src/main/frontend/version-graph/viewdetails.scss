@@ -36,14 +36,7 @@ table.table th {
   border-top: 1px solid #cfd0d2;
   background-color: #e6e6e6;
   background-repeat: no-repeat;
-  background-image: -webkit-gradient(
-    linear,
-    0 0,
-    0 100%,
-    from(#fafafc),
-    color-stop(25%, #fafafc),
-    to(#cfd0d2)
-  );
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fafafc), color-stop(25%, #fafafc), to(#cfd0d2));
   background-image: -webkit-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
   background-image: -moz-linear-gradient(top, #fafafc, #fafafc 25%, #cfd0d2);
   background-image: -ms-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);

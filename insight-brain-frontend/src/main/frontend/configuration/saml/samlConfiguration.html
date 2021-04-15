@@ -31,26 +31,16 @@
         is {{vm.isUpdating ? '' : 'not'}} configured
       </div>
     </div>
-    <div
-      class="iq-tile-content"
-      load-wrapper="vm.loadError"
-      loading="!vm.saml"
-      reload="vm.load()"
-    >
+    <div class="iq-tile-content" load-wrapper="vm.loadError" loading="!vm.saml" reload="vm.load()">
       <p id="saml-explanation" class="iq-system-config-explanation">
         Here you can
-        <a
-          target="_blank"
-          rel="noreferrer"
-          href="http://links.sonatype.com/products/nxiq/doc/saml-integration"
-        >
+        <a target="_blank" rel="noreferrer" href="http://links.sonatype.com/products/nxiq/doc/saml-integration">
           configure SAML integration
         </a>
         between IQ Server and your identity provider.
       </p>
       <p class="iq-system-config-explanation">
-        Once configured this will become the default way to sign in to IQ
-        Server.
+        Once configured this will become the default way to sign in to IQ Server.
       </p>
       <p class="iq-system-config-explanation">
         <a
@@ -62,18 +52,9 @@
           Feedback is welcome.
         </a>
       </p>
-      <form
-        name="saml-configurator"
-        class="iq-form iq-form--no-padding iq-form--no-border"
-        ng-submit="vm.save()"
-      >
-        <div
-          id="saml-identity-provider-name-control-group"
-          class="iq-form-group"
-        >
-          <label class="iq-label" for="saml-identity-provider-name"
-            >Identity Provider Name - Displayed at Login</label
-          >
+      <form name="saml-configurator" class="iq-form iq-form--no-padding iq-form--no-border" ng-submit="vm.save()">
+        <div id="saml-identity-provider-name-control-group" class="iq-form-group">
+          <label class="iq-label" for="saml-identity-provider-name">Identity Provider Name - Displayed at Login</label>
           <input
             clm-input
             iq-tooltip
@@ -87,16 +68,9 @@
             type="text"
           />
         </div>
-        <div
-          id="saml-identity-provider-metadata-xml-control-group"
-          class="iq-form-group"
-        >
-          <label class="iq-label" for="saml-identity-provider-metadata-xml"
-            >Identity Provider Metadata XML</label
-          >
-          <label for="saml-identity-provider-metadata-xml-load" class="iq-btn"
-            >Load XML File</label
-          >
+        <div id="saml-identity-provider-metadata-xml-control-group" class="iq-form-group">
+          <label class="iq-label" for="saml-identity-provider-metadata-xml">Identity Provider Metadata XML</label>
+          <label for="saml-identity-provider-metadata-xml-load" class="iq-btn">Load XML File</label>
           <input
             class="iq-input-file--hidden"
             type="file"
@@ -121,17 +95,11 @@
           </textarea>
         </div>
         <div class="iq-alert iq-alert--info">
-          <i class="fa fa-info-circle"></i>Your identity provider metadata XML
-          must contain a signing key to use validation. Validation set to
-          Default will validate if a signing key is present.
+          <i class="fa fa-info-circle"></i>Your identity provider metadata XML must contain a signing key to use
+          validation. Validation set to Default will validate if a signing key is present.
         </div>
-        <div
-          id="saml-validate-response-signature-control-group"
-          class="iq-form-group"
-        >
-          <label class="iq-label" for="select-validate-response-signature"
-            >Validate Response Signature</label
-          >
+        <div id="saml-validate-response-signature-control-group" class="iq-form-group">
+          <label class="iq-label" for="select-validate-response-signature">Validate Response Signature</label>
           <dropdown-selector
             id="select-validate-response-signature"
             class="iq-dropdown-selector--long"
@@ -144,13 +112,8 @@
           >
           </dropdown-selector>
         </div>
-        <div
-          id="saml-validate-assertion-signature-control-group"
-          class="iq-form-group"
-        >
-          <label class="iq-label" for="select-validate-assertion-signature"
-            >Validate Assertion Signature</label
-          >
+        <div id="saml-validate-assertion-signature-control-group" class="iq-form-group">
+          <label class="iq-label" for="select-validate-assertion-signature">Validate Assertion Signature</label>
           <dropdown-selector
             id="select-validate-assertion-signature"
             class="iq-dropdown-selector--long"
@@ -177,13 +140,8 @@
             type="text"
           />
         </div>
-        <div
-          id="saml-username-attribute-name-control-group"
-          class="iq-form-group"
-        >
-          <label class="iq-label" for="saml-username-attribute-name"
-            >Username Attribute</label
-          >
+        <div id="saml-username-attribute-name-control-group" class="iq-form-group">
+          <label class="iq-label" for="saml-username-attribute-name">Username Attribute</label>
           <input
             clm-input
             iq-tooltip
@@ -196,13 +154,8 @@
             type="text"
           />
         </div>
-        <div
-          id="saml-first-name-attribute-name-control-group"
-          class="iq-form-group"
-        >
-          <label class="iq-label" for="saml-first-name-attribute-name"
-            >First Name Attribute</label
-          >
+        <div id="saml-first-name-attribute-name-control-group" class="iq-form-group">
+          <label class="iq-label" for="saml-first-name-attribute-name">First Name Attribute</label>
           <input
             clm-input
             iq-tooltip
@@ -215,13 +168,8 @@
             type="text"
           />
         </div>
-        <div
-          id="saml-last-name-attribute-name-control-group"
-          class="iq-form-group"
-        >
-          <label class="iq-label" for="saml-last-name-attribute-name"
-            >Last Name Attribute</label
-          >
+        <div id="saml-last-name-attribute-name-control-group" class="iq-form-group">
+          <label class="iq-label" for="saml-last-name-attribute-name">Last Name Attribute</label>
           <input
             clm-input
             iq-tooltip
@@ -235,9 +183,7 @@
           />
         </div>
         <div id="saml-email-attribute-name-control-group" class="iq-form-group">
-          <label class="iq-label" for="saml-email-attribute-name"
-            >Email Attribute</label
-          >
+          <label class="iq-label" for="saml-email-attribute-name">Email Attribute</label>
           <input
             clm-input
             iq-tooltip
@@ -250,13 +196,8 @@
             type="text"
           />
         </div>
-        <div
-          id="saml-groups-attribute-name-control-group"
-          class="iq-form-group"
-        >
-          <label class="iq-label" for="saml-groups-attribute-name"
-            >Groups Attribute</label
-          >
+        <div id="saml-groups-attribute-name-control-group" class="iq-form-group">
+          <label class="iq-label" for="saml-groups-attribute-name">Groups Attribute</label>
           <input
             clm-input
             iq-tooltip
@@ -270,11 +211,7 @@
           />
         </div>
         <div class="iq-tile-footer">
-          <div
-            ng-cloak
-            ng-if="vm.saveOrDeleteError"
-            class="iq-alert iq-alert--error"
-          >
+          <div ng-cloak ng-if="vm.saveOrDeleteError" class="iq-alert iq-alert--error">
             <i class="fa fa-warning"></i>{{vm.saveOrDeleteError}}
           </div>
           <button
@@ -287,22 +224,10 @@
           >
             {{vm.isUpdating ? 'Update' : 'Save'}}
           </button>
-          <button
-            id="saml-cancel"
-            type="button"
-            class="iq-btn"
-            ng-disabled="!vm.isChanged()"
-            ng-click="vm.cancel()"
-          >
+          <button id="saml-cancel" type="button" class="iq-btn" ng-disabled="!vm.isChanged()" ng-click="vm.cancel()">
             Cancel
           </button>
-          <button
-            id="saml-delete"
-            type="button"
-            class="iq-btn"
-            ng-disabled="!vm.isUpdating"
-            ng-click="vm.delete()"
-          >
+          <button id="saml-delete" type="button" class="iq-btn" ng-disabled="!vm.isUpdating" ng-click="vm.delete()">
             <i class="fa fa-trash"></i>Delete Configuration
           </button>
         </div>
@@ -310,12 +235,7 @@
     </div>
     <div class="iq-tile-footer" ng-if="vm.loadError">
       <!-- Should never be present with the other delete button and so can have the same id -->
-      <button
-        id="saml-delete"
-        type="button"
-        class="iq-btn"
-        ng-click="vm.delete()"
-      >
+      <button id="saml-delete" type="button" class="iq-btn" ng-click="vm.delete()">
         <i class="fa fa-trash"></i>Delete Configuration
       </button>
     </div>

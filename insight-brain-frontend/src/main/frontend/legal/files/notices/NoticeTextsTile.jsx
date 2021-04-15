@@ -16,9 +16,7 @@ export default function NoticeTextsTile(props) {
 
   const isNoticePresent = () => noticeFiles.length > 0;
 
-  const enabledNotices = noticeFiles.filter(
-    (noticeFile) => noticeFile.originalStatus === 'enabled'
-  );
+  const enabledNotices = noticeFiles.filter((noticeFile) => noticeFile.originalStatus === 'enabled');
 
   const classes = classnames('nx-tile-content', {
     'license-no-legal-elements-text': !isNoticePresent(),
@@ -31,32 +29,20 @@ export default function NoticeTextsTile(props) {
           <h2 className="nx-h2">Notice Texts</h2>
         </div>
         <div className="nx-tile__actions">
-          <NxButton
-            id="edit-notices"
-            variant="tertiary"
-            onClick={() => setShowNoticesModal(true)}
-          >
+          <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>
             <NxFontAwesomeIcon icon={isNoticePresent() ? faPen : faPlus} />
             <span>{isNoticePresent() ? 'Edit' : 'Add'}</span>
           </NxButton>
         </div>
         {showNoticesModal && <NoticesModalContainer />}
       </header>
-      <div className={classes}>
-        {enabledNotices.length > 0
-          ? enabledNotices.map(createItem)
-          : 'None found'}
-      </div>
+      <div className={classes}>{enabledNotices.length > 0 ? enabledNotices.map(createItem) : 'None found'}</div>
     </section>
   );
 }
 
 const createItem = (notice, index) => (
-  <section
-    id={'notice-section-' + index}
-    key={index}
-    className="nx-tile-subsection legal-file"
-  >
+  <section id={'notice-section-' + index} key={index} className="nx-tile-subsection legal-file">
     <div className="legal-file-section-header">
       <span className="legal-file-path">{notice.relPath}</span>
     </div>

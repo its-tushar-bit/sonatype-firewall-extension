@@ -10,10 +10,8 @@ import LicensesTextsTile from './LicenseTextsTile';
 
 function mapStateToProps({ advancedLegal }) {
   return {
-    licenseFiles:
-      advancedLegal.component.component.licenseLegalData.licenseFiles,
-    showLicensesModal:
-      advancedLegal.component.component.licenseLegalData.showLicensesModal,
+    licenseFiles: advancedLegal.component.component.licenseLegalData.licenseFiles,
+    showLicensesModal: advancedLegal.component.component.licenseLegalData.showLicensesModal,
   };
 }
 

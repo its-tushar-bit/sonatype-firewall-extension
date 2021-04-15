@@ -16,11 +16,7 @@ import { mount } from 'enzyme/build';
 import LicenseObligationsTileContainer from '../../../main/frontend/legal/obligation/LicenseObligationsTileContainer';
 
 describe('ComponentLegalOverviewPage', function () {
-  let minimalProps,
-    loadComponentSpy,
-    loadAvailableScopesSpy,
-    getShallowComponent,
-    spy$State;
+  let minimalProps, loadComponentSpy, loadAvailableScopesSpy, getShallowComponent, spy$State;
 
   beforeEach(function () {
     loadComponentSpy = jasmine.createSpy('loadComponent');
@@ -112,70 +108,37 @@ describe('ComponentLegalOverviewPage', function () {
       hash: '1e48256a2341047e7d72',
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ComponentLegalOverviewPage,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ComponentLegalOverviewPage, minimalProps);
   });
 
   it('loads the expected data using the root organization id', function () {
-    const component = mount(
-      <ComponentLegalOverviewPage {...minimalProps} loading={true} />
-    );
-    expect(loadComponentSpy).toHaveBeenCalledWith(
-      'organization',
-      'ROOT_ORGANIZATION_ID',
-      '1e48256a2341047e7d72'
-    );
-    expect(loadAvailableScopesSpy).toHaveBeenCalledWith(
-      'organization',
-      'ROOT_ORGANIZATION_ID'
-    );
+    const component = mount(<ComponentLegalOverviewPage {...minimalProps} loading={true} />);
+    expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID', '1e48256a2341047e7d72');
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID');
     component.unmount();
   });
 
   it('loads the expected data using the organization id', function () {
     const component = mount(
-      <ComponentLegalOverviewPage
-        {...{ ...minimalProps, organizationId: 'orgId' }}
-        loading={true}
-      />
+      <ComponentLegalOverviewPage {...{ ...minimalProps, organizationId: 'orgId' }} loading={true} />
     );
-    expect(loadComponentSpy).toHaveBeenCalledWith(
-      'organization',
-      'orgId',
-      '1e48256a2341047e7d72'
-    );
-    expect(loadAvailableScopesSpy).toHaveBeenCalledWith(
-      'organization',
-      'orgId'
-    );
+    expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'orgId', '1e48256a2341047e7d72');
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('organization', 'orgId');
     component.unmount();
   });
 
   it('loads the expected data using the application public id', function () {
     const component = mount(
-      <ComponentLegalOverviewPage
-        {...{ ...minimalProps, applicationPublicId: 'appId' }}
-        loading={true}
-      />
+      <ComponentLegalOverviewPage {...{ ...minimalProps, applicationPublicId: 'appId' }} loading={true} />
     );
-    expect(loadComponentSpy).toHaveBeenCalledWith(
-      'application',
-      'appId',
-      '1e48256a2341047e7d72'
-    );
+    expect(loadComponentSpy).toHaveBeenCalledWith('application', 'appId', '1e48256a2341047e7d72');
     expect(loadAvailableScopesSpy).toHaveBeenCalledWith('application', 'appId');
     component.unmount();
   });
 
   it('does not load the data if there is no hash', function () {
     const component = mount(
-      <ComponentLegalOverviewPage
-        loadComponent={loadComponentSpy}
-        loading={true}
-        $state={spy$State}
-      />
+      <ComponentLegalOverviewPage loadComponent={loadComponentSpy} loading={true} $state={spy$State} />
     );
     expect(loadComponentSpy).not.toHaveBeenCalled();
     expect(loadAvailableScopesSpy).not.toHaveBeenCalled();

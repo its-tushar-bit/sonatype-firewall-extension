@@ -10,14 +10,12 @@ describe('CLMLocation.js', function () {
   let CLMLocation, CLMLocationsService, $window;
 
   beforeEach(function () {
-    CLMLocation = require('inject-loader!../../../main/frontend/util/CLMLocation')(
-      {
-        './urlUtil': {
-          ...urlUtil,
-          getBaseUrl: () => 'http://localhost',
-        },
-      }
-    );
+    CLMLocation = require('inject-loader!../../../main/frontend/util/CLMLocation')({
+      './urlUtil': {
+        ...urlUtil,
+        getBaseUrl: () => 'http://localhost',
+      },
+    });
 
     angular.mock.module(CLMLocation.default.name);
   });
@@ -86,9 +84,7 @@ describe('CLMLocation.js', function () {
     });
 
     it('should return the correct URL for the report metadata URL', () => {
-      expect(clmLocation.getReportMetadataUrl('foo', 'bar')).toBe(
-        'http://localhost/rest/report/foo/bar/metadata'
-      );
+      expect(clmLocation.getReportMetadataUrl('foo', 'bar')).toBe('http://localhost/rest/report/foo/bar/metadata');
     });
 
     it('should return the correct URL for the expanded coverage embeddable URL', () => {
@@ -113,13 +109,9 @@ describe('CLMLocation.js', function () {
   it('Test noFormData added to license upload', function () {
     var formData = $window.FormData || 'mock';
     $window.FormData = null;
-    expect(CLMLocationsService.getLicenseUploadUrl()).toMatch(
-      /.*noFormData=true/
-    );
+    expect(CLMLocationsService.getLicenseUploadUrl()).toMatch(/.*noFormData=true/);
     $window.FormData = formData;
-    expect(CLMLocationsService.getLicenseUploadUrl()).not.toMatch(
-      /.*noFormData=true/
-    );
+    expect(CLMLocationsService.getLicenseUploadUrl()).not.toMatch(/.*noFormData=true/);
   });
 
   // map of user-telemetry method names and their respective unique postfixes
@@ -138,17 +130,13 @@ describe('CLMLocation.js', function () {
       }));
 
       it('returns the expected path', function () {
-        expect(CLMLocationsService[methodName]()).toBe(
-          'http://localhost/rest/user-telemetry/' + postfix
-        );
+        expect(CLMLocationsService[methodName]()).toBe('http://localhost/rest/user-telemetry/' + postfix);
       });
 
       it('returns the expected rm path when clmEndpoint.type is "rm"', function () {
         $window.clmEndpoint = { type: 'rm' };
 
-        expect(CLMLocationsService[methodName]()).toBe(
-          'http://localhost/rest/rm/user-telemetry/' + postfix
-        );
+        expect(CLMLocationsService[methodName]()).toBe('http://localhost/rest/rm/user-telemetry/' + postfix);
       });
     });
   }
@@ -183,10 +171,7 @@ describe('CLMLocation.js', function () {
       const expectedUrl =
         'http://localhost/api/v2/vulnerabilities/refId' +
         '?componentIdentifier=%7B%22coordinates%22%3A%22a-coordinate%22%7D';
-      const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(
-        mockRefId,
-        mockComponentIdentifier
-      );
+      const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(mockRefId, mockComponentIdentifier);
 
       expect(actualUrl).toEqual(expectedUrl);
     });
@@ -205,15 +190,10 @@ describe('CLMLocation.js', function () {
     });
 
     it('returns URL to get the vulnerability details when only one third party query param is passed', function () {
-      const expectedUrl =
-        'http://localhost/api/v2/vulnerabilities/refId?scanId=scanId';
-      const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(
-        mockRefId,
-        null,
-        {
-          scanId: 'scanId',
-        }
-      );
+      const expectedUrl = 'http://localhost/api/v2/vulnerabilities/refId?scanId=scanId';
+      const actualUrl = CLMLocation.getVulnerabilityJsonDetailUrl(mockRefId, null, {
+        scanId: 'scanId',
+      });
       expect(actualUrl).toEqual(expectedUrl);
     });
   });
@@ -224,9 +204,7 @@ describe('CLMLocation.js', function () {
     }));
 
     it('returns the base claim URL when called with no argument', function () {
-      expect(CLMLocationsService.getClaimComponentUrl()).toBe(
-        'http://localhost/rest/component/identified'
-      );
+      expect(CLMLocationsService.getClaimComponentUrl()).toBe('http://localhost/rest/component/identified');
     });
 
     it('returns the claim URL of the hash specified via an argument', function () {
@@ -237,20 +215,14 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the delete url for waivers', function () {
-    expect(
-      CLMLocation.deleteWaiverUrl('organization', 'orgId', 'waiverId')
-    ).toBe('/api/v2/policyWaivers/organization/orgId/waiverId/');
+    expect(CLMLocation.deleteWaiverUrl('organization', 'orgId', 'waiverId')).toBe(
+      '/api/v2/policyWaivers/organization/orgId/waiverId/'
+    );
   });
 
   it('should return the scm repositories url', function () {
-    expect(
-      CLMLocation.getScmRepositoriesUrl(
-        'organizationId',
-        'http://localhost:1234'
-      )
-    ).toBe(
-      '/rest/onboarding/loadRepositories?orgId=organizationId' +
-        '&defaultHostUrl=http%3A%2F%2Flocalhost%3A1234'
+    expect(CLMLocation.getScmRepositoriesUrl('organizationId', 'http://localhost:1234')).toBe(
+      '/rest/onboarding/loadRepositories?orgId=organizationId' + '&defaultHostUrl=http%3A%2F%2Flocalhost%3A1234'
     );
   });
 
@@ -261,9 +233,9 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the license legal component url for the application', function () {
-    expect(
-      CLMLocation.getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')
-    ).toBe('/api/v2/licenseLegalMetadata/orgOrApp/ownerId/component?hash=hash');
+    expect(CLMLocation.getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')).toBe(
+      '/api/v2/licenseLegalMetadata/orgOrApp/ownerId/component?hash=hash'
+    );
   });
 
   it('should return the legal dashboard applicationsUrl url', function () {
@@ -273,9 +245,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the legal dashboard get filters url', function () {
-    expect(CLMLocation.getLegalDashboardFilters()).toBe(
-      '/rest/userFilter/active?type=ADVANCED_LEGAL_PACK_DASHBOARD'
-    );
+    expect(CLMLocation.getLegalDashboardFilters()).toBe('/rest/userFilter/active?type=ADVANCED_LEGAL_PACK_DASHBOARD');
   });
 
   it('should return the legal dashboard saved filters url', function () {
@@ -291,9 +261,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the application save component copyright override url', function () {
-    expect(
-      CLMLocation.getSaveComponentCopyrightOverrideUrl('application', 'appId')
-    ).toBe(
+    expect(CLMLocation.getSaveComponentCopyrightOverrideUrl('application', 'appId')).toBe(
       '/api/experimental/licenseLegalMetadata/application/appId/component/copyright'
     );
   });
@@ -309,13 +277,7 @@ describe('CLMLocation.js', function () {
         version: '0.6',
       },
     };
-    expect(
-      CLMLocation.getComponentCopyrightOverrideUrl(
-        'application',
-        'appId',
-        compIdentifier
-      )
-    ).toBe(
+    expect(CLMLocation.getComponentCopyrightOverrideUrl('application', 'appId', compIdentifier)).toBe(
       '/api/experimental/licenseLegalMetadata/application/appId/component/copyright?componentIdentifier=' +
         '%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22logback-access%22%2C%22' +
         'classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22ch.qos.logback%22%2C%22' +
@@ -324,18 +286,11 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the owner hierarchy url', function () {
-    expect(CLMLocation.getOwnerHierarchyUrl('ownerType', 'ownerId')).toBe(
-      '/rest/owner/ownerType/ownerId/hierarchy'
-    );
+    expect(CLMLocation.getOwnerHierarchyUrl('ownerType', 'ownerId')).toBe('/rest/owner/ownerType/ownerId/hierarchy');
   });
 
   it('should return the save component obligation attribution url', function () {
-    expect(
-      CLMLocation.getSaveComponentObligationAttributionUrl(
-        'ownerType',
-        'ownerId'
-      )
-    ).toBe(
+    expect(CLMLocation.getSaveComponentObligationAttributionUrl('ownerType', 'ownerId')).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution'
     );
   });
@@ -352,12 +307,7 @@ describe('CLMLocation.js', function () {
       },
     };
     expect(
-      CLMLocation.getComponentObligationAttributionUrl(
-        'ownerType',
-        'ownerId',
-        compIdentifier,
-        'obligationName'
-      )
+      CLMLocation.getComponentObligationAttributionUrl('ownerType', 'ownerId', compIdentifier, 'obligationName')
     ).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution?' +
         'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
@@ -377,14 +327,7 @@ describe('CLMLocation.js', function () {
         version: '0.6',
       },
     };
-    expect(
-      CLMLocation.getComponentObligationAttributionUrl(
-        'ownerType',
-        'ownerId',
-        compIdentifier,
-        null
-      )
-    ).toBe(
+    expect(CLMLocation.getComponentObligationAttributionUrl('ownerType', 'ownerId', compIdentifier, null)).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution?' +
         'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
         'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
@@ -393,17 +336,13 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the delete component obligation attribution url', function () {
-    expect(
-      CLMLocation.getDeleteComponentObligationAttributionUrl('attributionId')
-    ).toBe(
+    expect(CLMLocation.getDeleteComponentObligationAttributionUrl('attributionId')).toBe(
       '/api/experimental/licenseLegalMetadata/component/obligation/attribution/attributionId'
     );
   });
 
   it('should return the save component obligation url', function () {
-    expect(
-      CLMLocation.getSaveComponentObligationUrl('ownerType', 'ownerId')
-    ).toBe(
+    expect(CLMLocation.getSaveComponentObligationUrl('ownerType', 'ownerId')).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation'
     );
   });
@@ -419,14 +358,7 @@ describe('CLMLocation.js', function () {
         version: '0.6',
       },
     };
-    expect(
-      CLMLocation.getComponentObligationUrl(
-        'ownerType',
-        'ownerId',
-        componentIdentifier,
-        'obligationName'
-      )
-    ).toBe(
+    expect(CLMLocation.getComponentObligationUrl('ownerType', 'ownerId', componentIdentifier, 'obligationName')).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation?' +
         'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
         'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
@@ -435,12 +367,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the delete component obligation url', function () {
-    expect(
-      CLMLocation.getDeleteComponentObligationsUrl([
-        'obligationIdOne',
-        'obligationIdTwo',
-      ])
-    ).toBe(
+    expect(CLMLocation.getDeleteComponentObligationsUrl(['obligationIdOne', 'obligationIdTwo'])).toBe(
       '/api/experimental/licenseLegalMetadata/component/obligation' +
         '?componentObligationId=obligationIdOne&componentObligationId=obligationIdTwo'
     );
@@ -463,14 +390,7 @@ describe('CLMLocation.js', function () {
         version: '0.6',
       },
     };
-    expect(
-      CLMLocation.getLegalFileUrl(
-        'ownerType',
-        'ownerId',
-        componentIdentifier,
-        'type'
-      )
-    ).toBe(
+    expect(CLMLocation.getLegalFileUrl('ownerType', 'ownerId', componentIdentifier, 'type')).toBe(
       '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/legalFile?' +
         'componentIdentifier=%7B%22format%22%3A%22maven%22%2C%22coordinates%22%3A%7B%22artifactId%22%3A%22' +
         'logback-access%22%2C%22classifier%22%3A%22%22%2C%22extension%22%3A%22jar%22%2C%22groupId%22%3A%22' +
@@ -479,9 +399,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the application details url', function () {
-    expect(CLMLocation.getApplicationUrl('application-id')).toBe(
-      '/rest/application/application-id'
-    );
+    expect(CLMLocation.getApplicationUrl('application-id')).toBe('/rest/application/application-id');
   });
 
   it('should return the legal application details url', function () {
@@ -491,8 +409,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the firewall release quarantine url with params', function () {
-    let urlStart =
-        '/api/experimental/firewall/components/autoReleasedFromQuarantine?',
+    let urlStart = '/api/experimental/firewall/components/autoReleasedFromQuarantine?',
       page = 1,
       pageSize = 12,
       sortBy = 'quarantineTime',
@@ -500,37 +417,20 @@ describe('CLMLocation.js', function () {
       policyId = 'testId';
 
     // Test required params
-    expect(
-      CLMLocation.getFirewallReleaseQuarantineListUrl(page, pageSize)
-    ).toBe(urlStart + `page=${page}&pageSize=${pageSize}`);
+    expect(CLMLocation.getFirewallReleaseQuarantineListUrl(page, pageSize)).toBe(
+      urlStart + `page=${page}&pageSize=${pageSize}`
+    );
 
     // Test optional params
-    expect(
-      CLMLocation.getFirewallReleaseQuarantineListUrl(
-        page,
-        pageSize,
-        sortBy,
-        sortAsc,
-        policyId
-      )
-    ).toBe(
-      urlStart +
-        `page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&asc=${sortAsc}&policyId=${policyId}`
+    expect(CLMLocation.getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId)).toBe(
+      urlStart + `page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&asc=${sortAsc}&policyId=${policyId}`
     );
   });
 
   describe('ComponentCopyrightDetails', function () {
     it('getCopyrightFilePathsUrl should return the URL for copyright file paths', function () {
       expect(
-        CLMLocation.getCopyrightFilePathsUrl(
-          'organization',
-          'org',
-          'hash',
-          'identifier',
-          'copyrightHash',
-          10,
-          15
-        )
+        CLMLocation.getCopyrightFilePathsUrl('organization', 'org', 'hash', 'identifier', 'copyrightHash', 10, 15)
       ).toBe(
         '/api/experimental/licenseLegalMetadata/organization/org/' +
           'component/hash/copyright/copyrightHash/filePaths' +
@@ -540,14 +440,7 @@ describe('CLMLocation.js', function () {
 
     it('getCopyrightContextUrl should return the URL for copyright context', function () {
       expect(
-        CLMLocation.getCopyrightContextUrl(
-          'organization',
-          'org',
-          'hash',
-          'identifier',
-          'copyrightHash',
-          'path/file'
-        )
+        CLMLocation.getCopyrightContextUrl('organization', 'org', 'hash', 'identifier', 'copyrightHash', 'path/file')
       ).toBe(
         '/api/experimental/licenseLegalMetadata/organization/org/' +
           'component/hash/copyright/copyrightHash/context' +
@@ -556,14 +449,7 @@ describe('CLMLocation.js', function () {
     });
 
     it('getCopyrightFileCountUrl should return the URL for copyright file count', function () {
-      expect(
-        CLMLocation.getCopyrightFileCountUrl(
-          'organization',
-          'org',
-          'hash',
-          'identifier'
-        )
-      ).toBe(
+      expect(CLMLocation.getCopyrightFileCountUrl('organization', 'org', 'hash', 'identifier')).toBe(
         '/api/experimental/licenseLegalMetadata/organization/org/' +
           'component/hash/copyright/fileCount?componentIdentifier=%22identifier%22'
       );

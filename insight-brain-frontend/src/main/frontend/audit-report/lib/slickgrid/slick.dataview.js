@@ -126,17 +126,11 @@
     function setPagingOptions(args) {
       if (args.pageSize != undefined) {
         pagesize = args.pageSize;
-        pagenum = Math.min(
-          pagenum,
-          Math.max(0, Math.ceil(totalRows / pagesize) - 1)
-        );
+        pagenum = Math.min(pagenum, Math.max(0, Math.ceil(totalRows / pagesize) - 1));
       }
 
       if (args.pageNum != undefined) {
-        pagenum = Math.min(
-          args.pageNum,
-          Math.max(0, Math.ceil(totalRows / pagesize) - 1)
-        );
+        pagenum = Math.min(args.pageNum, Math.max(0, Math.ceil(totalRows / pagesize) - 1));
       }
 
       onPagingInfoChanged.notify(getPagingInfo(), null, self);
@@ -228,8 +222,7 @@
 
     function setAggregators(groupAggregators, includeCollapsed) {
       aggregators = groupAggregators;
-      aggregateCollapsed =
-        includeCollapsed !== undefined ? includeCollapsed : aggregateCollapsed;
+      aggregateCollapsed = includeCollapsed !== undefined ? includeCollapsed : aggregateCollapsed;
 
       // pre-compile accumulator loops
       compiledAccumulators = [];
@@ -480,14 +473,8 @@
 
       var filterBody = filterInfo.body
         .replace(/return false[;}]/gi, '{ continue _coreloop; }')
-        .replace(
-          /return true[;}]/gi,
-          '{ _retval[_idx++] = $item$; continue _coreloop; }'
-        )
-        .replace(
-          /return ([^;}]+?);/gi,
-          '{ if ($1) { _retval[_idx++] = $item$; }; continue _coreloop; }'
-        );
+        .replace(/return true[;}]/gi, '{ _retval[_idx++] = $item$; continue _coreloop; }')
+        .replace(/return ([^;}]+?);/gi, '{ if ($1) { _retval[_idx++] = $item$; }; continue _coreloop; }');
 
       // This preserves the function template code after JS compression,
       // so that replace() commands still work as expected.
@@ -517,10 +504,7 @@
 
       var filterBody = filterInfo.body
         .replace(/return false[;}]/gi, '{ continue _coreloop; }')
-        .replace(
-          /return true[;}]/gi,
-          '{ _cache[_i] = true;_retval[_idx++] = $item$; continue _coreloop; }'
-        )
+        .replace(/return true[;}]/gi, '{ _cache[_i] = true;_retval[_idx++] = $item$; continue _coreloop; }')
         .replace(
           /return ([^;}]+?);/gi,
           '{ if ((_cache[_i] = $1)) { _retval[_idx++] = $item$; }; continue _coreloop; }'
@@ -586,21 +570,13 @@
 
     function getFilteredAndPagedItems(items) {
       if (filter) {
-        var batchFilter = options.inlineFilters
-          ? compiledFilter
-          : uncompiledFilter;
-        var batchFilterWithCaching = options.inlineFilters
-          ? compiledFilterWithCaching
-          : uncompiledFilterWithCaching;
+        var batchFilter = options.inlineFilters ? compiledFilter : uncompiledFilter;
+        var batchFilterWithCaching = options.inlineFilters ? compiledFilterWithCaching : uncompiledFilterWithCaching;
 
         if (refreshHints.isFilterNarrowing) {
           filteredItems = batchFilter(filteredItems, filterArgs);
         } else if (refreshHints.isFilterExpanding) {
-          filteredItems = batchFilterWithCaching(
-            items,
-            filterArgs,
-            filterCache
-          );
+          filteredItems = batchFilterWithCaching(items, filterArgs, filterCache);
         } else if (!refreshHints.isFilterUnchanged) {
           filteredItems = batchFilter(items, filterArgs);
         }
@@ -617,10 +593,7 @@
         if (filteredItems.length < pagenum * pagesize) {
           pagenum = Math.floor(filteredItems.length / pagesize);
         }
-        paged = filteredItems.slice(
-          pagesize * pagenum,
-          pagesize * pagenum + pagesize
-        );
+        paged = filteredItems.slice(pagesize * pagenum, pagesize * pagenum + pagesize);
       } else {
         paged = filteredItems;
       }
@@ -637,17 +610,11 @@
         to = newRows.length;
 
       if (refreshHints && refreshHints.ignoreDiffsBefore) {
-        from = Math.max(
-          0,
-          Math.min(newRows.length, refreshHints.ignoreDiffsBefore)
-        );
+        from = Math.max(0, Math.min(newRows.length, refreshHints.ignoreDiffsBefore));
       }
 
       if (refreshHints && refreshHints.ignoreDiffsAfter) {
-        to = Math.min(
-          newRows.length,
-          Math.max(0, refreshHints.ignoreDiffsAfter)
-        );
+        to = Math.min(newRows.length, Math.max(0, refreshHints.ignoreDiffsAfter));
       }
 
       for (var i = from, rl = rows.length; i < to; i++) {
@@ -658,9 +625,7 @@
           r = rows[i];
 
           if (
-            (groupingGetter &&
-              (eitherIsNonData = item.__nonDataRow || r.__nonDataRow) &&
-              item.__group !== r.__group) ||
+            (groupingGetter && (eitherIsNonData = item.__nonDataRow || r.__nonDataRow) && item.__group !== r.__group) ||
             item.__updated ||
             (item.__group && !item.equals(r)) ||
             (aggregators &&
@@ -742,11 +707,7 @@
         onPagingInfoChanged.notify(getPagingInfo(), null, self);
       }
       if (countBefore != rows.length) {
-        onRowCountChanged.notify(
-          { previous: countBefore, current: rows.length },
-          null,
-          self
-        );
+        onRowCountChanged.notify({ previous: countBefore, current: rows.length }, null, self);
       }
       if (diff.length > 0) {
         onRowsChanged.notify({ rows: diff }, null, self);

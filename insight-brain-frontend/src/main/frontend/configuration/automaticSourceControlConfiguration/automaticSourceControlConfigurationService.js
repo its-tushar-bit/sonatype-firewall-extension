@@ -10,22 +10,15 @@ function automaticSourceControlConfigurationService($http, CLMLocations) {
   };
 
   function getConfiguration() {
-    return $http
-      .get(CLMLocations.getAutomaticSourceControlConfigurationUrl())
-      .then(function (response) {
-        return response.data;
-      });
+    return $http.get(CLMLocations.getAutomaticSourceControlConfigurationUrl()).then(function (response) {
+      return response.data;
+    });
   }
 
   function saveConfiguration(configuration) {
-    return $http
-      .put(
-        CLMLocations.getAutomaticSourceControlConfigurationUrl(),
-        configuration
-      )
-      .then(function (response) {
-        return response.data;
-      });
+    return $http.put(CLMLocations.getAutomaticSourceControlConfigurationUrl(), configuration).then(function (response) {
+      return response.data;
+    });
   }
 }
 

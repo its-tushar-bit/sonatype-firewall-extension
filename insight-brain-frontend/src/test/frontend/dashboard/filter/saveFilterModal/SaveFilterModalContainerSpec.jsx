@@ -23,9 +23,7 @@ describe('SaveFilterModalContainer', function () {
   const mockErrorMessage = 'mockErrorMessage';
 
   beforeEach(function () {
-    const mockDisplaySaveFilterModal = jasmine.createSpy(
-      'setDisplaySaveFilterModal'
-    );
+    const mockDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal');
 
     MockSaveFilterModalContent = jasmine
       .createSpy('mockSaveFilterModalContentPage')
@@ -39,9 +37,7 @@ describe('SaveFilterModalContainer', function () {
       saveFilter: jasmine.createSpy('saveFilter'),
     };
     mockMessages = {
-      getHttpErrorMessage: jasmine
-        .createSpy('getHttpErrorMessage')
-        .and.returnValue(mockErrorMessage),
+      getHttpErrorMessage: jasmine.createSpy('getHttpErrorMessage').and.returnValue(mockErrorMessage),
     };
 
     SaveFilterModalContainer = require('inject-loader!../../../../../main/frontend/dashboard/' +
@@ -81,8 +77,6 @@ describe('SaveFilterModalContainer', function () {
     expect(modalContent.saveFilter).toEqual(jasmine.any(Function));
     expect(modalContent.saveError).toEqual(mockErrorMessage);
     expect(modalContent.saveFilterWarning).toEqual(mockSaveFilterWarning);
-    expect(mockMessages.getHttpErrorMessage).toHaveBeenCalledWith(
-      mockSaveFilterError
-    );
+    expect(mockMessages.getHttpErrorMessage).toHaveBeenCalledWith(mockSaveFilterError);
   });
 });

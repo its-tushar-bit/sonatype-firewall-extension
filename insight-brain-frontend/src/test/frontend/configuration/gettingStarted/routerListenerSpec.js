@@ -9,31 +9,20 @@ describe('gettingStarted routerListener', function () {
   var telemetryServiceMock, $state, $rootScope;
 
   beforeEach(
-    angular.mock.module(
-      gettingStartedModule.name,
-      function ($provide, $stateProvider) {
-        telemetryServiceMock = jasmine.createSpyObj(
-          'gettingStartedUsageTelemetryService',
-          ['submitData']
-        );
+    angular.mock.module(gettingStartedModule.name, function ($provide, $stateProvider) {
+      telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
 
-        $provide.service('gettingStartedUsageTelemetryService', function () {
-          return telemetryServiceMock;
-        });
+      $provide.service('gettingStartedUsageTelemetryService', function () {
+        return telemetryServiceMock;
+      });
 
-        $stateProvider.state('someOtherState', {
-          url: '/someOtherState',
-        });
-      }
-    )
+      $stateProvider.state('someOtherState', {
+        url: '/someOtherState',
+      });
+    })
   );
 
-  beforeEach(inject(function (
-    _$state_,
-    $transitions,
-    routerListener,
-    _$rootScope_
-  ) {
+  beforeEach(inject(function (_$state_, $transitions, routerListener, _$rootScope_) {
     $state = _$state_;
     $rootScope = _$rootScope_;
     routerListener($transitions, telemetryServiceMock);

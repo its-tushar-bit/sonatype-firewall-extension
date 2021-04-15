@@ -21,19 +21,15 @@ describe('version-graph sanitizeUrlService', function () {
   }));
 
   it('removes the baseUrl', function () {
-    expect(
-      sanitizeUrlService.sanitize(
-        'http://localhost:8070/assets/version-graph/index.html'
-      )
-    ).toBe('/assets/version-graph/index.html');
+    expect(sanitizeUrlService.sanitize('http://localhost:8070/assets/version-graph/index.html')).toBe(
+      '/assets/version-graph/index.html'
+    );
 
     baseUrl = 'https://foobar.com/iq';
 
-    expect(
-      sanitizeUrlService.sanitize(
-        'https://foobar.com/iq/assets/version-graph/index.html'
-      )
-    ).toBe('/assets/version-graph/index.html');
+    expect(sanitizeUrlService.sanitize('https://foobar.com/iq/assets/version-graph/index.html')).toBe(
+      '/assets/version-graph/index.html'
+    );
   });
 
   it("doesn't crash on an unexpected URL", function () {

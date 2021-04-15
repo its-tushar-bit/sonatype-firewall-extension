@@ -22,21 +22,12 @@ describe('mainHeaderSpec', function () {
     clmServerVersion;
 
   beforeEach(
-    angular.mock.module(
-      mainHeaderModule.name,
-      legacyConfigurationModule.name,
-      function ($provide) {
-        unsubscribeSpy = SpecUtil.mockNgRedux($provide);
-      }
-    )
+    angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name, function ($provide) {
+      unsubscribeSpy = SpecUtil.mockNgRedux($provide);
+    })
   );
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    $q,
-    $componentController,
-    _$ngRedux_
-  ) {
+  beforeEach(inject(function (_$rootScope_, $q, $componentController, _$ngRedux_) {
     clmServerVersion = window.clmServerVersion;
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
@@ -45,26 +36,19 @@ describe('mainHeaderSpec', function () {
     loginDeferred = $q.defer();
     productFeaturesDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
-      isSuccessMetricsEnabled: jasmine
-        .createSpy()
-        .and.returnValue(isSuccessMetricsEnabledDeferred.promise),
+      isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
     };
 
     mockCurrentUser = {
       fetch: jasmine.createSpy('fetch'),
-      waitForLogin: jasmine
-        .createSpy('waitForLogin')
-        .and.returnValue(loginDeferred.promise),
+      waitForLogin: jasmine.createSpy('waitForLogin').and.returnValue(loginDeferred.promise),
     };
 
     mockPermissionService = {
       getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve()),
     };
 
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', [
-      'isAvailable',
-      'load',
-    ]);
+    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
     mockProductFeatures.load.and.returnValue(productFeaturesDeferred.promise);
     mockProductFeatures.isAvailable.and.callFake(function () {
       return false;
@@ -171,9 +155,7 @@ describe('mainHeaderSpec', function () {
     vm.$onInit();
 
     isSuccessMetricsEnabledDeferred.reject('disabled');
-    expect(
-      mockSystemConfigurationPropertyService.isSuccessMetricsEnabled
-    ).not.toHaveBeenCalled();
+    expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).not.toHaveBeenCalled();
     expect($ngRedux.dispatch).not.toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).not.toHaveBeenCalled();
     expect(mockProductFeatures.load).not.toHaveBeenCalled();
@@ -181,9 +163,7 @@ describe('mainHeaderSpec', function () {
     loginDeferred.resolve();
     $scope.$digest();
 
-    expect(
-      mockSystemConfigurationPropertyService.isSuccessMetricsEnabled
-    ).toHaveBeenCalled();
+    expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
     expect($ngRedux.dispatch).toHaveBeenCalledTimes(2);
     expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
     expect(mockProductFeatures.load).toHaveBeenCalled();
@@ -206,9 +186,7 @@ describe('mainHeaderSpec', function () {
         },
       };
 
-      expect(
-        mapStateToThis(mockStateNoServerData).isAdvancedSearchEnabled
-      ).toBeFalsy();
+      expect(mapStateToThis(mockStateNoServerData).isAdvancedSearchEnabled).toBeFalsy();
     });
 
     it('returns an object with isAdvancedSearchEnabled set to true given a state with server data and isEnabled true', function () {
@@ -220,10 +198,7 @@ describe('mainHeaderSpec', function () {
         },
       };
 
-      expect(
-        mapStateToThis(mockStateWithServerDataAndIsEnabledTrue)
-          .isAdvancedSearchEnabled
-      ).toBe(true);
+      expect(mapStateToThis(mockStateWithServerDataAndIsEnabledTrue).isAdvancedSearchEnabled).toBe(true);
     });
 
     it('returns an object with isAdvancedSearchEnabled set to false given a state with server data and isEnabled false', function () {
@@ -235,10 +210,7 @@ describe('mainHeaderSpec', function () {
         },
       };
 
-      expect(
-        mapStateToThis(mockStateWithServerDataAndIsEnabledFalse)
-          .isAdvancedSearchEnabled
-      ).toBe(false);
+      expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse).isAdvancedSearchEnabled).toBe(false);
     });
 
     it('returns an object with isFirewallEnabled set to false given a state with no firewall state statusState', function () {
@@ -246,9 +218,7 @@ describe('mainHeaderSpec', function () {
         firewall: {},
       };
 
-      expect(
-        mapStateToThis(mockStateNoFirewallStatusState).isFirewallEnabled
-      ).toBeFalsy();
+      expect(mapStateToThis(mockStateNoFirewallStatusState).isFirewallEnabled).toBeFalsy();
     });
 
     it('returns an object with isFirewallEnabled true given state with firewall statusState and isEnabled true', function () {
@@ -260,9 +230,7 @@ describe('mainHeaderSpec', function () {
         },
       };
 
-      expect(mapStateToThis(mockStateWithIsEnabledTrue).isFirewallEnabled).toBe(
-        true
-      );
+      expect(mapStateToThis(mockStateWithIsEnabledTrue).isFirewallEnabled).toBe(true);
     });
 
     it('returns object with isFirewallEnabled false given state with firewall statusState and isEnabled false', function () {
@@ -274,9 +242,7 @@ describe('mainHeaderSpec', function () {
         },
       };
 
-      expect(
-        mapStateToThis(mockStateWithIsEnabledFalse).isFirewallEnabled
-      ).toBe(false);
+      expect(mapStateToThis(mockStateWithIsEnabledFalse).isFirewallEnabled).toBe(false);
     });
   });
 
@@ -386,10 +352,7 @@ describe('mainHeaderSpec', function () {
       vm.$onInit();
       $rootScope.username = 'user';
       $scope.$digest();
-      spyOn(
-        routeStateUtilService,
-        'stateRequiresAuthentication'
-      ).and.returnValue(true);
+      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(true);
 
       expect(vm.shouldShowLoginButton()).toBe(false);
 
@@ -400,20 +363,14 @@ describe('mainHeaderSpec', function () {
 
     it('returns false if the user is not logged in but the current page requires authentication', function () {
       vm.$onInit();
-      spyOn(
-        routeStateUtilService,
-        'stateRequiresAuthentication'
-      ).and.returnValue(true);
+      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(true);
 
       expect(vm.shouldShowLoginButton()).toBe(false);
     });
 
     it('returns true if the user is not logged in and the current page does not require authentication', function () {
       vm.$onInit();
-      spyOn(
-        routeStateUtilService,
-        'stateRequiresAuthentication'
-      ).and.returnValue(false);
+      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(false);
 
       expect(vm.shouldShowLoginButton()).toBe(true);
     });

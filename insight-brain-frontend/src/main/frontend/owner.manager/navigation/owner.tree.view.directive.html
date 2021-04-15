@@ -10,22 +10,12 @@
           ng-click="vm.filter.value = ''"
         ></i>
       </span>
-      <input
-        type="text"
-        ng-model="vm.filter.value"
-        autocomplete="off"
-        placeholder="App or Org Name"
-      />
+      <input type="text" ng-model="vm.filter.value" autocomplete="off" placeholder="App or Org Name" />
     </div>
-    <p
-      class="iq-owner-tree-view__min-filter-message"
-      ng-if="vm.filter.value && vm.filter.value.length < 3"
-    >
+    <p class="iq-owner-tree-view__min-filter-message" ng-if="vm.filter.value && vm.filter.value.length < 3">
       Enter at least three characters to begin filtering
     </p>
-    <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">
-      Filter Results
-    </h4>
+    <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">Filter Results</h4>
     <a
       id="owner-tree-view-root-org-row"
       class="iq-tree-view__trigger iq-owner-tree-view__row"
@@ -41,10 +31,7 @@
       class="iq-owner-tree-view__new-organization"
       ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
     >
-      <button
-        class="iq-btn iq-btn--text-only"
-        ng-click="vm.createOrganization()"
-      >
+      <button class="iq-btn iq-btn--text-only" ng-click="vm.createOrganization()">
         <i class="fa fa-plus"></i>Add New Org
       </button>
     </div>
@@ -60,9 +47,7 @@
           <span class="iq-tree-view__twisty-icon empty"></span>
         </div>
         <!--
-     --><i
-          class="fa fa-database iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"
-        ></i
+     --><i class="fa fa-database iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"></i
         ><!--
      --><span class="iq-tree-view__text">Repositories</span>
       </a>
@@ -84,10 +69,7 @@
           tooltip-class="entity-item-tooltip"
           tooltip-only-on-overflow="{{!organization.synthetic}}"
         >
-          <div
-            class="iq-tree-view__twisty"
-            ng-click="vm.handleOrganizationTwistyClick($event, organization)"
-          >
+          <div class="iq-tree-view__twisty" ng-click="vm.handleOrganizationTwistyClick($event, organization)">
             <span
               class="iq-tree-view__twisty-icon"
               ng-class="{ empty: organization.applications.length == 0,
@@ -96,9 +78,7 @@
             ></span>
           </div>
           <!--
-       --><i
-            class="fa fa-sitemap iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"
-          ></i
+       --><i class="fa fa-sitemap iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"></i
           ><!--
        --><span class="iq-tree-view__text"
             ><!--
@@ -121,10 +101,7 @@
           class="iq-owner-tree-view__import-applications"
           ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }"
         >
-          <a
-            class="iq-link__import-applications"
-            ui-sref="scmOnboardingOrg({ organizationId: organization.id })"
-          >
+          <a class="iq-link__import-applications" ui-sref="scmOnboardingOrg({ organizationId: organization.id })">
             <i class="fa fa-cloud-download"></i> Import Applications
           </a>
         </div>
@@ -141,9 +118,7 @@
             tooltip-class="entity-item-tooltip"
             tooltip-only-on-overflow="true"
           >
-            <i
-              class="fa fa-terminal iq-owner-tree-view__icon iq-owner-tree-view__icon--12px fa-border"
-            ></i
+            <i class="fa fa-terminal iq-owner-tree-view__icon iq-owner-tree-view__icon--12px fa-border"></i
             ><!--
          --><span class="iq-tree-view__text"
               ><!--

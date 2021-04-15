@@ -35,9 +35,7 @@ describe('useEscapeKeyStack', function () {
   it('adds keydown listener for event bubbling phase', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
-    const [eventType, , useCapture] = document.addEventListener.calls.argsFor(
-      0
-    );
+    const [eventType, , useCapture] = document.addEventListener.calls.argsFor(0);
     expect(eventType).toBe('keydown');
     expect(useCapture).toBeUndefined();
     wrapper.unmount();
@@ -49,10 +47,7 @@ describe('useEscapeKeyStack', function () {
     const listener = document.addEventListener.calls.argsFor(0)[1];
     wrapper.unmount();
     expect(document.removeEventListener).toHaveBeenCalled();
-    expect(document.removeEventListener.calls.argsFor(0)).toEqual([
-      'keydown',
-      listener,
-    ]);
+    expect(document.removeEventListener.calls.argsFor(0)).toEqual(['keydown', listener]);
   });
 
   it('invokes callback on Escape keydown event', function () {

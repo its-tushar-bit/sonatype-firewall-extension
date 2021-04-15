@@ -3,12 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  NxButton,
-  NxModal,
-  NxSubmitMask,
-  NxWarningAlert,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxModal, NxSubmitMask, NxWarningAlert } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import LoadError from '../../../../../main/frontend/react/LoadError';
@@ -35,14 +30,8 @@ describe('UserTokenModal', function () {
       checkUserTokenExistence: jasmine.createSpy('checkUserTokenExistence'),
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      UserTokenModal,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      UserTokenModal,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(UserTokenModal, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(UserTokenModal, minimalProps);
   });
 
   it('renders a narrow NxModal', function () {
@@ -149,10 +138,7 @@ describe('UserTokenModal', function () {
 
       expect(loadWrapper).toHaveProp('loading', false);
       expect(loadWrapper).toHaveProp('error', 'Error when loading token');
-      expect(loadWrapper).toHaveProp(
-        'retryHandler',
-        additionalProps.checkUserTokenExistence
-      );
+      expect(loadWrapper).toHaveProp('retryHandler', additionalProps.checkUserTokenExistence);
     });
 
     it('renders an explanation of the usage for the user token', function () {
@@ -179,10 +165,7 @@ describe('UserTokenModal', function () {
         'href',
         'https://help.sonatype.com/iqserver/managing/user-management/user-tokens'
       );
-      expect(externalDocumentationLink).toHaveProp(
-        'children',
-        'help documentation.'
-      );
+      expect(externalDocumentationLink).toHaveProp('children', 'help documentation.');
     });
 
     it('renders a warning when the userToken already exists and does not show the UserTokenDisplay', function () {
@@ -218,10 +201,7 @@ describe('UserTokenModal', function () {
 
       expect(warning).not.toExist();
       expect(userTokenDisplay).toExist();
-      expect(userTokenDisplay).toHaveProp(
-        'userToken',
-        additionalProps.userToken
-      );
+      expect(userTokenDisplay).toHaveProp('userToken', additionalProps.userToken);
     });
   });
 
@@ -235,14 +215,8 @@ describe('UserTokenModal', function () {
         deleteLoadError = footer.find(LoadError);
 
       expect(deleteLoadError).toHaveProp('error', 'Error on Delete');
-      expect(deleteLoadError).toHaveProp(
-        'retryHandler',
-        minimalProps.deleteUserToken
-      );
-      expect(deleteLoadError).toHaveProp(
-        'titleMessage',
-        'An error occurred deleting the token.'
-      );
+      expect(deleteLoadError).toHaveProp('retryHandler', minimalProps.deleteUserToken);
+      expect(deleteLoadError).toHaveProp('titleMessage', 'An error occurred deleting the token.');
     });
 
     it('renders a LoadError when the generate token operation fails with appropriate props', function () {
@@ -254,14 +228,8 @@ describe('UserTokenModal', function () {
         deleteLoadError = footer.find(LoadError);
 
       expect(deleteLoadError).toHaveProp('error', 'Error on Generate Token');
-      expect(deleteLoadError).toHaveProp(
-        'retryHandler',
-        minimalProps.generateUserToken
-      );
-      expect(deleteLoadError).toHaveProp(
-        'titleMessage',
-        'An error occurred generating the token.'
-      );
+      expect(deleteLoadError).toHaveProp('retryHandler', minimalProps.generateUserToken);
+      expect(deleteLoadError).toHaveProp('titleMessage', 'An error occurred generating the token.');
     });
 
     describe('primary action button', function () {
@@ -306,10 +274,7 @@ describe('UserTokenModal', function () {
           closeButton = footer.find(NxButton);
 
         expect(closeButton).toHaveText('Close');
-        expect(closeButton).toHaveProp(
-          'onClick',
-          minimalProps.hideUserTokenModal
-        );
+        expect(closeButton).toHaveProp('onClick', minimalProps.hideUserTokenModal);
         expect(closeButton).toHaveProp('variant', 'tertiary');
       });
 
@@ -323,10 +288,7 @@ describe('UserTokenModal', function () {
           closeButton = footer.find(NxButton).at(1);
 
         expect(closeButton).toHaveText('Close');
-        expect(closeButton).toHaveProp(
-          'onClick',
-          minimalProps.hideUserTokenModal
-        );
+        expect(closeButton).toHaveProp('onClick', minimalProps.hideUserTokenModal);
         expect(closeButton).toHaveProp('variant', 'tertiary');
       });
 

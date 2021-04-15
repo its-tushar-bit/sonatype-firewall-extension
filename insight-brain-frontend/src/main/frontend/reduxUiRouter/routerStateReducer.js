@@ -12,10 +12,7 @@ const initState = {
   prevParams: {},
 };
 
-export default function routerStateReducer(
-  state = initState,
-  { type, payload }
-) {
+export default function routerStateReducer(state = initState, { type, payload }) {
   switch (type) {
     case UI_ROUTER_ON_FINISH: {
       const { fromState, fromParams, toState, toParams } = payload;

@@ -160,12 +160,10 @@ describe('Stores', function () {
             );
 
             let subscription;
-            $ngRedux.subscribe = jasmine
-              .createSpy('subscribe')
-              .and.callFake(function (fn) {
-                subscription = fn;
-                return unsubscribeSpy;
-              });
+            $ngRedux.subscribe = jasmine.createSpy('subscribe').and.callFake(function (fn) {
+              subscription = fn;
+              return unsubscribeSpy;
+            });
 
             StageTypeStore[storeMethod]().then(function (result) {
               expect(unsubscribeSpy).toHaveBeenCalled();
@@ -222,12 +220,10 @@ describe('Stores', function () {
             );
 
             let subscription;
-            $ngRedux.subscribe = jasmine
-              .createSpy('subscribe')
-              .and.callFake(function (fn) {
-                subscription = fn;
-                return unsubscribeSpy;
-              });
+            $ngRedux.subscribe = jasmine.createSpy('subscribe').and.callFake(function (fn) {
+              subscription = fn;
+              return unsubscribeSpy;
+            });
 
             StageTypeStore[storeMethod]().then(function (result) {
               expect(result).not.toBe(stageInfo);
@@ -270,12 +266,10 @@ describe('Stores', function () {
             );
 
             let subscription;
-            $ngRedux.subscribe = jasmine
-              .createSpy('subscribe')
-              .and.callFake(function (fn) {
-                subscription = fn;
-                return unsubscribeSpy;
-              });
+            $ngRedux.subscribe = jasmine.createSpy('subscribe').and.callFake(function (fn) {
+              subscription = fn;
+              return unsubscribeSpy;
+            });
 
             StageTypeStore[storeMethod]().then(
               () => {},

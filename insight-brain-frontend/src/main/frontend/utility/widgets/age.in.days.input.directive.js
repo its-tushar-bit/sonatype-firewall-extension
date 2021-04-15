@@ -50,23 +50,12 @@ function AgeInDaysInputController($scope) {
 
   $scope.$watch('vm.modifier', function (newModifier, oldModifier) {
     if (vm.ageInDaysModel) {
-      vm.ageInDaysModel = (
-        (vm.ageInDaysModel / oldModifier) *
-        newModifier
-      ).toString();
+      vm.ageInDaysModel = ((vm.ageInDaysModel / oldModifier) * newModifier).toString();
     }
   });
 
   function getInitialModifier(days) {
-    return days
-      ? days % 365 === 0
-        ? 365
-        : days % 30 === 0
-        ? 30
-        : days % 7 === 0
-        ? 7
-        : 1
-      : 365;
+    return days ? (days % 365 === 0 ? 365 : days % 30 === 0 ? 30 : days % 7 === 0 ? 7 : 1) : 365;
   }
 
   function formatDaysToAge(days) {
@@ -74,9 +63,7 @@ function AgeInDaysInputController($scope) {
   }
 
   function parseAgeToDays(age) {
-    return Number.isInteger(age)
-      ? (parseInt(age) * vm.modifier).toString()
-      : null;
+    return Number.isInteger(age) ? (parseInt(age) * vm.modifier).toString() : null;
   }
 
   function isRequired() {

@@ -57,11 +57,8 @@ function IqSidebarNav(props) {
     return uiRouterState.includes(entryName);
   };
 
-  const isVulnerabilitySearchSelected =
-    isSelected('vulnerabilitySearch') ||
-    isSelected('vulnerabilitySearchDetail');
-  const isFirewallSelected =
-    isSelected('firewall') || isSelected('firewallAutoUnquarantine');
+  const isVulnerabilitySearchSelected = isSelected('vulnerabilitySearch') || isSelected('vulnerabilitySearchDetail');
+  const isFirewallSelected = isSelected('firewall') || isSelected('firewallAutoUnquarantine');
 
   return (
     <NxStatefulGlobalSidebar
@@ -150,10 +147,7 @@ function IqSidebarNav(props) {
         </NxGlobalSidebarNavigation>
       )}
       {productEdition && releaseVersion && (
-        <IqSidebarNavFooter
-          productName={productEdition}
-          releaseNumber={releaseVersion}
-        />
+        <IqSidebarNavFooter productName={productEdition} releaseNumber={releaseVersion} />
       )}
     </NxStatefulGlobalSidebar>
   );

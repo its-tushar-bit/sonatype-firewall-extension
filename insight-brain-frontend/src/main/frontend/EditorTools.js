@@ -46,10 +46,7 @@ module.directive('clmEditable', [
   '$parse',
   'regexFactory',
   function ($parse, regexFactory) {
-    var invalidCharsRegex = new RegExp(
-      '[^-\\. _' + regexFactory.allLetters().source + '0-9]',
-      'i'
-    );
+    var invalidCharsRegex = new RegExp('[^-\\. _' + regexFactory.allLetters().source + '0-9]', 'i');
     var spaceRegex = new RegExp('\\s', 'i');
     return {
       template:
@@ -108,10 +105,8 @@ module.directive('clmEditable', [
 
             angular.forEach(scope.duplicateArray, function (candidate) {
               if (
-                candidate[scope.duplicateIdField] !==
-                  scope.model[scope.duplicateIdField] &&
-                (candidate[scope.modelField] || '').toLowerCase() ===
-                  lowercaseVal
+                candidate[scope.duplicateIdField] !== scope.model[scope.duplicateIdField] &&
+                (candidate[scope.modelField] || '').toLowerCase() === lowercaseVal
               ) {
                 duplicate = true;
               }

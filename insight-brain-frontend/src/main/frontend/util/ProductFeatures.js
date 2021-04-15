@@ -6,9 +6,7 @@
 /* global angular */
 import CLMLocationModule from '../util/CLMLocation';
 
-var productFeatureModule = angular.module('ProductFeaturesModule', [
-  CLMLocationModule.name,
-]);
+var productFeatureModule = angular.module('ProductFeaturesModule', [CLMLocationModule.name]);
 export default productFeatureModule;
 
 productFeatureModule.service('ProductFeatures', [
@@ -22,14 +20,12 @@ productFeatureModule.service('ProductFeatures', [
         return promise;
       }
 
-      promise = $http
-        .get(CLMLocations.getProductFeaturesUrl())
-        .then(function (response) {
-          productFeatures = {};
-          angular.forEach(response.data, function (feature) {
-            productFeatures[feature] = true;
-          });
+      promise = $http.get(CLMLocations.getProductFeaturesUrl()).then(function (response) {
+        productFeatures = {};
+        angular.forEach(response.data, function (feature) {
+          productFeatures[feature] = true;
         });
+      });
 
       return promise;
     }
@@ -47,16 +43,11 @@ productFeatureModule.service('ProductFeatures', [
     }
 
     function isEnforcementSupportedForStage(stage) {
-      return (
-        (available('firewall') && stage === 'proxy') || available('enforcement')
-      );
+      return (available('firewall') && stage === 'proxy') || available('enforcement');
     }
 
     function isNotificationsSupportedForStage(stage) {
-      return (
-        (available('firewall') && stage === 'proxy') ||
-        available('notifications')
-      );
+      return (available('firewall') && stage === 'proxy') || available('notifications');
     }
 
     function isNotificationsSupportedForAnyStage() {

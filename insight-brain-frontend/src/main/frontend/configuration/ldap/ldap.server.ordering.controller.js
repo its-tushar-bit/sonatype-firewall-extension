@@ -6,13 +6,7 @@
 import template from './ldap.server.ordering.modal.html';
 
 /*global angular*/
-export function LdapServerOrderingController(
-  $scope,
-  $http,
-  LdapConfigurationStore,
-  CLMLocation,
-  Messages
-) {
+export function LdapServerOrderingController($scope, $http, LdapConfigurationStore, CLMLocation, Messages) {
   var vm = this,
     originalStoreOrder;
 
@@ -84,30 +78,25 @@ export function LdapServerOrderingController(
       return server.id;
     });
 
-    vm.ldapOrderForm
-      .wrap($http.put(CLMLocation.getLdapPriority(), serverIds))
-      .then(
-        function () {
-          $scope.$close();
-        },
-        function (error) {
-          vm.error = Messages.getHttpErrorMessage(error);
-        }
-      );
+    vm.ldapOrderForm.wrap($http.put(CLMLocation.getLdapPriority(), serverIds)).then(
+      function () {
+        $scope.$close();
+      },
+      function (error) {
+        vm.error = Messages.getHttpErrorMessage(error);
+      }
+    );
   }
 
   function scroll(ldapServer) {
     var container = angular.element('#ldap-server-ordering-modal .simple-list'),
       containerOffset = container.offset(),
-      element = container.find(
-        'li:nth-child(' + (vm.store.indexOf(ldapServer) + 1) + ')'
-      ),
+      element = container.find('li:nth-child(' + (vm.store.indexOf(ldapServer) + 1) + ')'),
       elementOffset = element.offset();
 
     if (
       elementOffset.top < containerOffset.top ||
-      elementOffset.top + element.outerHeight() >
-        containerOffset.top + container.outerHeight()
+      elementOffset.top + element.outerHeight() > containerOffset.top + container.outerHeight()
     ) {
       element[0].scrollIntoView();
     }
@@ -133,13 +122,7 @@ export function LdapServerOrderingController(
   }
 }
 
-LdapServerOrderingController.$inject = [
-  '$scope',
-  '$http',
-  'LdapConfigurationStore',
-  'CLMLocations',
-  'Messages',
-];
+LdapServerOrderingController.$inject = ['$scope', '$http', 'LdapConfigurationStore', 'CLMLocations', 'Messages'];
 
 export function LdapServerOrderingModal(Modal) {
   return {

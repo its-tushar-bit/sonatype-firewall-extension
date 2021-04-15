@@ -55,15 +55,9 @@ export default angular
   .controller('audit.summary.controller', auditSummaryController)
   .directive('auditThreat', auditThreatDirective)
   .service('OwnerContext', ownerContextService)
-  .directive(
-    'repositoryViolationTableFilter',
-    repositoryViolationTableFilterDirective
-  )
+  .directive('repositoryViolationTableFilter', repositoryViolationTableFilterDirective)
   .controller('component.update.controller', componentUpdateController)
-  .controller(
-    'component.update.optional.controller',
-    componentUpdateOptionalController
-  )
+  .controller('component.update.optional.controller', componentUpdateOptionalController)
   .service('component.update.service', componentUpdateService)
   .run(init)
   .config(config);

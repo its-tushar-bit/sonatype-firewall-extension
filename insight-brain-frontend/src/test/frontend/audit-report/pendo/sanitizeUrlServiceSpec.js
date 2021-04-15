@@ -21,28 +21,21 @@ describe('audit-report sanitizeUrlService', function () {
   }));
 
   it('removes the baseUrl', function () {
-    expect(
-      sanitizeUrlService.sanitize(
-        'http://localhost:8070/assets/audit-report/index.html'
-      )
-    ).toBe('/assets/audit-report/index.html');
+    expect(sanitizeUrlService.sanitize('http://localhost:8070/assets/audit-report/index.html')).toBe(
+      '/assets/audit-report/index.html'
+    );
 
     baseUrl = 'https://foobar.com/iq';
 
-    expect(
-      sanitizeUrlService.sanitize(
-        'https://foobar.com/iq/assets/audit-report/index.html'
-      )
-    ).toBe('/assets/audit-report/index.html');
+    expect(sanitizeUrlService.sanitize('https://foobar.com/iq/assets/audit-report/index.html')).toBe(
+      '/assets/audit-report/index.html'
+    );
   });
 
   it('removes the query parameter', function () {
-    const url =
-      'http://localhost:8070/assets/audit-report/index.html?repositoryId=12345';
+    const url = 'http://localhost:8070/assets/audit-report/index.html?repositoryId=12345';
 
-    expect(sanitizeUrlService.sanitize(url)).toBe(
-      '/assets/audit-report/index.html'
-    );
+    expect(sanitizeUrlService.sanitize(url)).toBe('/assets/audit-report/index.html');
   });
 
   it("doesn't crash on an unexpected URL", function () {

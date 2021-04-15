@@ -6,9 +6,7 @@
 
 import successMetricsModule from './successMetrics/module';
 
-export default angular
-  .module('labsModule', [successMetricsModule.name])
-  .config(configureRoutes);
+export default angular.module('labsModule', [successMetricsModule.name]).config(configureRoutes);
 
 function configureRoutes($stateProvider) {
   $stateProvider

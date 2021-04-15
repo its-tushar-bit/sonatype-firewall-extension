@@ -14,16 +14,10 @@ import {
   NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 
-import DashboardComponentsTableRow, {
-  componentPropTypes,
-} from './DashboardComponentsTableRow';
+import DashboardComponentsTableRow, { componentPropTypes } from './DashboardComponentsTableRow';
 import { Messages } from '../../../util/CommonServices';
 import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
-import {
-  extractSortFieldName,
-  getColumnDirection,
-  sortColumn,
-} from '../../../util/sortUtils';
+import { extractSortFieldName, getColumnDirection, sortColumn } from '../../../util/sortUtils';
 import MaxResultsInfoRow from '../MaxResultsInfoRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 import { isNilOrEmpty } from '../../../util/jsUtil';
@@ -41,23 +35,10 @@ export default function DashboardComponentsTable(props) {
     isLoading = !error && !results && !needsAcknowledgement,
     currentSortedColumnName = sortFields && extractSortFieldName(sortFields[0]),
     isCurrentColumnSortDescending = sortFields && sortFields[0].includes('-'),
-    sort = (colName) =>
-      sortColumn(
-        sortComponents,
-        currentSortedColumnName,
-        isCurrentColumnSortDescending,
-        colName
-      ),
+    sort = (colName) => sortColumn(sortComponents, currentSortedColumnName, isCurrentColumnSortDescending, colName),
     sortDir = (colName) =>
-      !error &&
-      results &&
-      getColumnDirection(
-        currentSortedColumnName,
-        isCurrentColumnSortDescending,
-        colName
-      ),
-    emptyTableMessage =
-      'No data available given the applied filters and permissions.',
+      !error && results && getColumnDirection(currentSortedColumnName, isCurrentColumnSortDescending, colName),
+    emptyTableMessage = 'No data available given the applied filters and permissions.',
     colSpan = 8;
 
   const generateTableBodyRows = () => {
@@ -75,9 +56,7 @@ export default function DashboardComponentsTable(props) {
             colorStyler={colorStyler}
           />
         ))}
-        {numResults > MAX_RESULTS && (
-          <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} />
-        )}
+        {numResults > MAX_RESULTS && <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} />}
       </Fragment>
     );
   };
@@ -155,11 +134,7 @@ export default function DashboardComponentsTable(props) {
           retryHandler={reload}
           emptyMessage={emptyTableMessage}
         >
-          {needsAcknowledgement ? (
-            <NeedsAcknowledgementInfoRow colSpan={colSpan} />
-          ) : (
-            generateTableBodyRows()
-          )}
+          {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : generateTableBodyRows()}
         </NxTableBody>
       </NxTable>
     </div>
@@ -171,11 +146,7 @@ DashboardComponentsTable.propTypes = {
     results: PropTypes.arrayOf(componentPropTypes),
     numResults: PropTypes.number,
     sortFields: PropTypes.arrayOf(PropTypes.string),
-    error: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.instanceOf(Error),
-      PropTypes.object,
-    ]),
+    error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
   }),
   colorStyler: heatMapColorStylerPropTypes,
   needsAcknowledgement: PropTypes.bool,

@@ -21,9 +21,7 @@ function LoginModalController(
   vm.error = undefined;
   vm.loginMask = undefined;
   vm.showSamlSso = showSamlSso;
-  vm.identityProviderName = identityProviderName
-    ? identityProviderName
-    : 'identity provider';
+  vm.identityProviderName = identityProviderName ? identityProviderName : 'identity provider';
 
   $scope.$watchGroup(
     [
@@ -56,8 +54,7 @@ function LoginModalController(
             // modal should handle
             waitForLogin: false,
             headers: {
-              Authorization:
-                'Basic ' + Base64.encode(vm.username + ':' + vm.password),
+              Authorization: 'Basic ' + Base64.encode(vm.username + ':' + vm.password),
             },
           }
         )

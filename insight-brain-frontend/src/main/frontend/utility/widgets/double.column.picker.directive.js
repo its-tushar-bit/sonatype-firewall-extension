@@ -85,9 +85,7 @@ function DoubleColumnPickerController($filter) {
     var filteredList = $filter('filter')(vm.list, vm.search);
 
     return function (item) {
-      return (
-        Boolean(item.picked) === isPickedList && filteredList.indexOf(item) > -1
-      );
+      return Boolean(item.picked) === isPickedList && filteredList.indexOf(item) > -1;
     };
   }
 

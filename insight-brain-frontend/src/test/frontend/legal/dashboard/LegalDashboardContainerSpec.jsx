@@ -24,9 +24,7 @@ describe('LegalDashboardContainerSpec', function () {
       },
     };
 
-    loadResultsMock = jasmine
-      .createSpy('loadResults')
-      .and.returnValue({ type: 'FOO' });
+    loadResultsMock = jasmine.createSpy('loadResults').and.returnValue({ type: 'FOO' });
     stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'BAR' });
 
     LegalDashboardContainer = require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardContainer')(

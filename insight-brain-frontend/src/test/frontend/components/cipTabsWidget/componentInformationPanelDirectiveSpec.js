@@ -32,9 +32,7 @@ describe('componentInformationPanelDirective', function () {
       },
     ];
 
-    const el = angular.element(
-      '<component-information-panel tabs="tabs"></component-information-panel>'
-    );
+    const el = angular.element('<component-information-panel tabs="tabs"></component-information-panel>');
     $compile(el)(scope);
     vm = el.isolateScope().vm;
   }));

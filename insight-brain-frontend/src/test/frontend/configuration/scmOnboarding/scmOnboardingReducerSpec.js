@@ -40,9 +40,7 @@ describe('scmOnboardingReducer', function () {
   });
 
   describe('SCM_ONBOARDING_LOAD_PAGE', function () {
-    let previousState,
-      defaultOrganizationsPayloadWithoutRoot,
-      defaultOrganizationsPayload;
+    let previousState, defaultOrganizationsPayloadWithoutRoot, defaultOrganizationsPayload;
     const rootOrgPayload = {
       organization: {
         name: 'Root Organization',
@@ -91,10 +89,7 @@ describe('scmOnboardingReducer', function () {
           },
         },
       ];
-      defaultOrganizationsPayload = [
-        ...defaultOrganizationsPayloadWithoutRoot,
-        rootOrgPayload,
-      ];
+      defaultOrganizationsPayload = [...defaultOrganizationsPayloadWithoutRoot, rootOrgPayload];
     });
 
     describe('FULFILLED', function () {
@@ -390,12 +385,8 @@ describe('scmOnboardingReducer', function () {
       });
 
       // then state is updated
-      expect(newState.formState.repositories).toEqual(
-        repositoriesPayload.availableRepositories
-      );
-      expect(newState.formState.totalRepositories).toEqual(
-        repositoriesPayload.totalRepositories
-      );
+      expect(newState.formState.repositories).toEqual(repositoriesPayload.availableRepositories);
+      expect(newState.formState.totalRepositories).toEqual(repositoriesPayload.totalRepositories);
       expect(newState.viewState.loadingRepositories).toBe(false);
 
       // and other properties are not modified
@@ -480,9 +471,7 @@ describe('scmOnboardingReducer', function () {
           namespace: 'b',
         },
       ]);
-      expect(newState.formState.totalRepositories).toEqual(
-        repositoriesPayload.totalRepositories
-      );
+      expect(newState.formState.totalRepositories).toEqual(repositoriesPayload.totalRepositories);
       expect(newState.viewState.loadingRepositories).toBe(false);
 
       // and other properties are not modified
@@ -595,9 +584,7 @@ describe('scmOnboardingReducer', function () {
         });
 
         // then state is updated
-        expect(newState.formState.selectedOrganization).toBe(
-          selectedOrganization
-        );
+        expect(newState.formState.selectedOrganization).toBe(selectedOrganization);
         expect(newState.configState.isScmTokenOverridden).toBe(true);
 
         // and other properties are not modified
@@ -607,8 +594,7 @@ describe('scmOnboardingReducer', function () {
       describe('sets the show dialog state: ', () => {
         const testData = [
           {
-            description:
-              'org is defined and overrides scm token, no default host => show dialog',
+            description: 'org is defined and overrides scm token, no default host => show dialog',
             prevState: {
               configState: {},
               formState: {},
@@ -630,8 +616,7 @@ describe('scmOnboardingReducer', function () {
             expectedValue: true,
           },
           {
-            description:
-              'org is defined with no custom token, but prev state had a custom token => show dialog',
+            description: 'org is defined with no custom token, but prev state had a custom token => show dialog',
             prevState: {
               configState: {
                 isScmTokenOverridden: true,
@@ -664,16 +649,13 @@ describe('scmOnboardingReducer', function () {
             const newState = reduce(currTest.prevState, {
               type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
               payload: {
-                selectedOrganization:
-                  currTest.newState.formState.selectedOrganization,
+                selectedOrganization: currTest.newState.formState.selectedOrganization,
                 defaultHostUrl: currTest.newState.viewState.defaultHostUrl,
               },
             });
 
             // then state is updated
-            expect(newState.formState).toEqual(
-              jasmine.objectContaining(currTest.newState.formState)
-            );
+            expect(newState.formState).toEqual(jasmine.objectContaining(currTest.newState.formState));
             expect(newState.viewState).toEqual(
               jasmine.objectContaining({
                 isGitHostNeeded: currTest.expectedValue,
@@ -691,54 +673,48 @@ describe('scmOnboardingReducer', function () {
           { provider: 'bitbucket', url: 'https://bitbucket.org/' },
         ];
         for (let testData of providerData) {
-          it(
-            'defaults to ' +
-              testData.url +
-              ' when provider is ' +
-              testData.provider,
-            function () {
-              // given empty repositories list
-              const state = Object.freeze({
-                other: otherObject,
-                configState: {
-                  scmProvider: testData.provider,
-                },
-                viewState: {
-                  isSelectingOrganization: true,
-                },
-                formState: {},
-              });
+          it('defaults to ' + testData.url + ' when provider is ' + testData.provider, function () {
+            // given empty repositories list
+            const state = Object.freeze({
+              other: otherObject,
+              configState: {
+                scmProvider: testData.provider,
+              },
+              viewState: {
+                isSelectingOrganization: true,
+              },
+              formState: {},
+            });
 
-              // when reduce is invoked without an identified URL
-              const selectedOrganization = {
-                sourceControl: {
-                  token: { value: null, parentValue: 'redacted' },
-                },
-              };
-              const newState = reduce(state, {
-                type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
-                payload: {
-                  selectedOrganization: selectedOrganization,
-                  defaultHostUrl: '',
-                },
-              });
-
-              // then current host URL state is updated to the provider defaults
-              expect(newState.formState).toEqual({
-                defaultHostUrl: '',
-                currentHostUrlState: initialState(testData.url),
+            // when reduce is invoked without an identified URL
+            const selectedOrganization = {
+              sourceControl: {
+                token: { value: null, parentValue: 'redacted' },
+              },
+            };
+            const newState = reduce(state, {
+              type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
+              payload: {
                 selectedOrganization: selectedOrganization,
-              });
-              expect(newState.viewState).toEqual({
-                isSelectingOrganization: false,
-                isGitHostNeeded: true,
-                isGitHostDialogVisible: true,
-              });
+                defaultHostUrl: '',
+              },
+            });
 
-              // and other properties are not modified
-              expect(newState.other).toEqual(otherObject);
-            }
-          );
+            // then current host URL state is updated to the provider defaults
+            expect(newState.formState).toEqual({
+              defaultHostUrl: '',
+              currentHostUrlState: initialState(testData.url),
+              selectedOrganization: selectedOrganization,
+            });
+            expect(newState.viewState).toEqual({
+              isSelectingOrganization: false,
+              isGitHostNeeded: true,
+              isGitHostDialogVisible: true,
+            });
+
+            // and other properties are not modified
+            expect(newState.other).toEqual(otherObject);
+          });
         }
       });
     });
@@ -881,14 +857,10 @@ describe('scmOnboardingReducer', function () {
           });
 
           // then state is updated
-          expect(newState.formState.currentHostUrlState.value).toEqual(
-            testData.payload
-          );
+          expect(newState.formState.currentHostUrlState.value).toEqual(testData.payload);
 
           // and no validation errors are displayed
-          expect(
-            newState.formState.currentHostUrlState.validationErrors
-          ).toEqual(testData.expectedValidationErrors);
+          expect(newState.formState.currentHostUrlState.validationErrors).toEqual(testData.expectedValidationErrors);
 
           // and other properties are not modified
           expect(newState.other).toBe(otherObject);
@@ -955,10 +927,7 @@ describe('scmOnboardingReducer', function () {
         });
 
         // when reduce is invoked
-        let importedRepos = [
-          { httpCloneUrl: 'http://host/prj/a' },
-          { httpCloneUrl: 'http://host/prj/b' },
-        ];
+        let importedRepos = [{ httpCloneUrl: 'http://host/prj/a' }, { httpCloneUrl: 'http://host/prj/b' }];
         const newState = reduce(state, {
           type: 'SCM_ONBOARDING_IMPORT_REPOS_FULFILLED',
           payload: {
@@ -1038,9 +1007,7 @@ describe('scmOnboardingReducer', function () {
         });
 
         // then validation errors are clear
-        expect(
-          newState.formState.currentHostUrlState.validationErrors
-        ).toBeNull();
+        expect(newState.formState.currentHostUrlState.validationErrors).toBeNull();
 
         // and other objects unchanged
         expect(newState.other).toBe(otherObject);
@@ -1067,9 +1034,7 @@ describe('scmOnboardingReducer', function () {
         });
 
         // then validation errors is populated with error message
-        expect(newState.formState.currentHostUrlState.validationErrors).toEqual(
-          'CRASH'
-        );
+        expect(newState.formState.currentHostUrlState.validationErrors).toEqual('CRASH');
 
         // and other objects unchanged
         expect(newState.other).toBe(otherObject);
@@ -1348,10 +1313,7 @@ describe('scmOnboardingReducer', function () {
       });
 
       // then the list of orgs is updated
-      expect(newState.formState.organizations).toEqual([
-        ...existingOrganizations,
-        createOrgPayload,
-      ]);
+      expect(newState.formState.organizations).toEqual([...existingOrganizations, createOrgPayload]);
       // and error message is reset
       expect(newState.viewState.addOrganizationError).toBeNull();
       // and the modal dialog is closed

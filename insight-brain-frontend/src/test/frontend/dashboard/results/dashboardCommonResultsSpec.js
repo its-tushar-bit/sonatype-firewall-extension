@@ -8,11 +8,7 @@ import dashboardModule from '../../../../main/frontend/dashboard/dashboard.modul
 import dashboardUtilsModule from '../../../../main/frontend/dashboard/utils/dashboard.utils.module';
 
 describe('dashboardCommonResultsSpec', function () {
-  var vm,
-    dialogMock,
-    applicationStoreMock,
-    $ngRedux,
-    dashboardFilterActionsMock;
+  var vm, dialogMock, applicationStoreMock, $ngRedux, dashboardFilterActionsMock;
 
   beforeEach(
     angular.mock.module(
@@ -30,13 +26,8 @@ describe('dashboardCommonResultsSpec', function () {
   beforeEach(inject(function ($componentController, _$ngRedux_) {
     $ngRedux = _$ngRedux_;
     dialogMock = jasmine.createSpyObj('Dialog', ['open']);
-    applicationStoreMock = jasmine.createSpyObj('ApplicationStore', [
-      'refresh',
-    ]);
-    dashboardFilterActionsMock = jasmine.createSpyObj(
-      'dashboardFilterActions',
-      ['loadFilter']
-    );
+    applicationStoreMock = jasmine.createSpyObj('ApplicationStore', ['refresh']);
+    dashboardFilterActionsMock = jasmine.createSpyObj('dashboardFilterActions', ['loadFilter']);
     vm = $componentController('dashboardCommonResults', {
       Dialog: dialogMock,
       ApplicationStore: applicationStoreMock,
@@ -107,9 +98,7 @@ describe('dashboardCommonResultsSpec', function () {
         expect(dialogMock.open).toHaveBeenCalled();
         expect(dialogMock.open.calls.count()).toEqual(1);
         var dialogConfig = dialogMock.open.calls.argsFor(0)[0];
-        dashboardFilterActionsMock.loadFilter.and.returnValue(
-          'load filter action'
-        );
+        dashboardFilterActionsMock.loadFilter.and.returnValue('load filter action');
         // click OK button in the dialog
         dialogConfig.buttons[0].click();
         expect(applicationStoreMock.refresh).toHaveBeenCalled();

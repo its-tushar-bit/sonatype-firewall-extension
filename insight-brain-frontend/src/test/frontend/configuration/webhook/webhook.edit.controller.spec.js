@@ -23,13 +23,7 @@ describe('webhook.edit.controller.spec.js', function () {
     mockDeleteService,
     mockWebhookStore = StoreUtils().createMockStore('WebhookStore');
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    _$q_,
-    $controller,
-    _$httpBackend_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function (_$rootScope_, _$q_, $controller, _$httpBackend_, _CLMLocations_) {
     $rootScope = _$rootScope_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
@@ -49,17 +43,13 @@ describe('webhook.edit.controller.spec.js', function () {
         DeleteModalService: mockDeleteService,
       });
 
-      $httpBackend
-        .expectGET(CLMLocations.getWebhookEventTypesUrl())
-        .respond(webhookMockData.getWebhookEventTypes());
+      $httpBackend.expectGET(CLMLocations.getWebhookEventTypesUrl()).respond(webhookMockData.getWebhookEventTypes());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       $httpBackend.flush();
     }));
 
     it('Fetches the Webhook Event types', function () {
-      expect(vm.webhookEventTypes).toEqual(
-        webhookMockData.getWebhookEventTypes()
-      );
+      expect(vm.webhookEventTypes).toEqual(webhookMockData.getWebhookEventTypes());
     });
 
     it('Creates a new Webhook from the WebhookStore', function () {
@@ -81,9 +71,7 @@ describe('webhook.edit.controller.spec.js', function () {
 
       mockWebhookStore.rejectGetById('invalid');
 
-      $httpBackend
-        .expectGET(CLMLocations.getWebhookEventTypesUrl())
-        .respond(webhookMockData.getWebhookEventTypes());
+      $httpBackend.expectGET(CLMLocations.getWebhookEventTypesUrl()).respond(webhookMockData.getWebhookEventTypes());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       $httpBackend.flush();
     }));
@@ -122,18 +110,14 @@ describe('webhook.edit.controller.spec.js', function () {
       mockWebhookStore.resolveGetById(mockWebhook);
 
       vm.webhookEditorMask = { wrap: SpecUtil.promiseWrapper(_$q_) };
-      $httpBackend
-        .expectGET(CLMLocations.getWebhookEventTypesUrl())
-        .respond(webhookMockData.getWebhookEventTypes());
+      $httpBackend.expectGET(CLMLocations.getWebhookEventTypesUrl()).respond(webhookMockData.getWebhookEventTypes());
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
       $httpBackend.flush();
       $timeout.flush();
     }));
 
     it('Fetches the Webhook Event types', function () {
-      expect(vm.webhookEventTypes).toEqual(
-        webhookMockData.getWebhookEventTypes()
-      );
+      expect(vm.webhookEventTypes).toEqual(webhookMockData.getWebhookEventTypes());
     });
 
     it('Creates a dirtyWebhook', function () {
@@ -177,9 +161,7 @@ describe('webhook.edit.controller.spec.js', function () {
       }));
 
       it('Navigates back to list view after delete', function () {
-        $httpBackend
-          .expectGET(CLMLocations.getWebhookEventTypesUrl())
-          .respond(webhookMockData.getWebhookEventTypes());
+        $httpBackend.expectGET(CLMLocations.getWebhookEventTypesUrl()).respond(webhookMockData.getWebhookEventTypes());
         $httpBackend.flush();
 
         spyOn(state, 'go');

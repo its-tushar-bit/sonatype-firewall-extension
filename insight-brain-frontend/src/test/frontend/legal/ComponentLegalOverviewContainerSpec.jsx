@@ -9,12 +9,7 @@ import configureStore from 'redux-mock-store';
 import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
 
 describe('ComponentLegalOverviewContainer', function () {
-  let store,
-    state,
-    vdom,
-    ComponentLegalOverviewContainer,
-    loadComponentActionMock,
-    loadAvailableScopesActionMock;
+  let store, state, vdom, ComponentLegalOverviewContainer, loadComponentActionMock, loadAvailableScopesActionMock;
 
   beforeEach(function () {
     state = {
@@ -48,12 +43,8 @@ describe('ComponentLegalOverviewContainer', function () {
       },
     };
 
-    loadComponentActionMock = jasmine
-      .createSpy('loadComponent')
-      .and.returnValue({ type: 'FOO' });
-    loadAvailableScopesActionMock = jasmine
-      .createSpy('loadAvailableScopes')
-      .and.returnValue({ type: 'BAR' });
+    loadComponentActionMock = jasmine.createSpy('loadComponent').and.returnValue({ type: 'FOO' });
+    loadAvailableScopesActionMock = jasmine.createSpy('loadAvailableScopes').and.returnValue({ type: 'BAR' });
     ComponentLegalOverviewContainer = require('inject-loader!../../../main/frontend/legal/ComponentLegalOverviewContainer')(
       {
         '../advancedLegal/advancedLegalActions': {
@@ -92,9 +83,7 @@ describe('ComponentLegalOverviewContainer', function () {
   it('correctly maps the action creators to the ComponentLegalOverviewContainer props', function () {
     const wrapper = shallow(vdom).dive();
     const loadComponentActionCreator = wrapper.prop('loadComponent');
-    const loadAvailableScopesActionCreator = wrapper.prop(
-      'loadAvailableScopes'
-    );
+    const loadAvailableScopesActionCreator = wrapper.prop('loadAvailableScopes');
     expect(loadComponentActionCreator).toEqual(jasmine.any(Function));
     expect(loadAvailableScopesActionCreator).toEqual(jasmine.any(Function));
 
@@ -106,9 +95,7 @@ describe('ComponentLegalOverviewContainer', function () {
   });
 
   it('renders ComponentLegalOverviewPage component', function () {
-    const componentLegalOverviewPage = shallow(vdom).find(
-      ComponentLegalOverviewPage
-    );
+    const componentLegalOverviewPage = shallow(vdom).find(ComponentLegalOverviewPage);
     expect(componentLegalOverviewPage).toExist();
   });
 });

@@ -9,11 +9,7 @@ import React, { Fragment, useState } from 'react';
 import * as PropTypes from 'prop-types';
 import { organizationPropType, repositoryPropType } from '../ScmOnboarding';
 import NxButton from '@sonatype/react-shared-components/components/NxButton/NxButton';
-import {
-  NxFontAwesomeIcon,
-  NxTooltip,
-  NxSubmitMask,
-} from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTooltip, NxSubmitMask } from '@sonatype/react-shared-components';
 import { faPlus, faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
 import ResultsTable from './ResultsTable';
 import TargetOrganizationDropdown from './TargetOrganizationDropdown';
@@ -69,10 +65,9 @@ export default function RepositoryPane(props) {
     : $state.href($state.get('management.view.organization'), {
         organizationId: selectedOrganization.organization.id,
       });
-  const orgsAndPoliciesRootOrgHref = $state.href(
-    $state.get('management.view.organization'),
-    { organizationId: ownerConstant.ROOT_ORGANIZATION_ID }
-  );
+  const orgsAndPoliciesRootOrgHref = $state.href($state.get('management.view.organization'), {
+    organizationId: ownerConstant.ROOT_ORGANIZATION_ID,
+  });
 
   const tokenNotConfiguredMessage = () => {
     if (!selectedOrganization) {
@@ -80,13 +75,9 @@ export default function RepositoryPane(props) {
     }
     return (
       <span>
-        We could not find a token. You can configure a token to be shared across
-        organizations in the Root Organization&apos;s{' '}
-        <a href={orgsAndPoliciesRootOrgHref}>Source Control Configuration</a>{' '}
-        page, or you can provide a custom token for the{' '}
-        <a href={orgsAndPoliciesHref}>
-          {selectedOrganization.organization.name}
-        </a>{' '}
+        We could not find a token. You can configure a token to be shared across organizations in the Root
+        Organization&apos;s <a href={orgsAndPoliciesRootOrgHref}>Source Control Configuration</a> page, or you can
+        provide a custom token for the <a href={orgsAndPoliciesHref}>{selectedOrganization.organization.name}</a>{' '}
         Organization.
       </span>
     );
@@ -94,13 +85,10 @@ export default function RepositoryPane(props) {
   const gitHostUrlMessage = (addModalLink = false) => {
     return (
       <div>
-        {loadRepositoriesErrorCode && (
-          <p>{scmAuthenticationErrorFragment(loadRepositoriesErrorCode)}</p>
-        )}
+        {loadRepositoriesErrorCode && <p>{scmAuthenticationErrorFragment(loadRepositoriesErrorCode)}</p>}
         {!defaultHostUrl && !loadRepositoriesErrorCode && (
           <p>
-            IQ Server was unable to identify the URL for your{' '}
-            {displayName(scmProvider)} host. You need to{' '}
+            IQ Server was unable to identify the URL for your {displayName(scmProvider)} host. You need to{' '}
             {scmUrlLink(addModalLink)} in order to proceed.
           </p>
         )}
@@ -118,27 +106,20 @@ export default function RepositoryPane(props) {
   };
 
   const updateScmConfigMessage = () => {
-    if (
-      selectedOrganization &&
-      selectedOrganization.organization &&
-      selectedOrganization.name
-    ) {
+    if (selectedOrganization && selectedOrganization.organization && selectedOrganization.name) {
       return (
         <p>
-          IQ Server was unable to connect to {defaultHostUrl} using the
-          credentials associated with the{' '}
-          {selectedOrganization.organization.name} Organization. You may try a
-          different host URL or manage your SCM configuration in the{' '}
-          <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.
+          IQ Server was unable to connect to {defaultHostUrl} using the credentials associated with the{' '}
+          {selectedOrganization.organization.name} Organization. You may try a different host URL or manage your SCM
+          configuration in the <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.
         </p>
       );
     }
     if (defaultHostUrl) {
       return (
         <span>
-          IQ Server was unable to connect to {defaultHostUrl}. You may try a
-          different host URL or manage your SCM configuration in the{' '}
-          <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.
+          IQ Server was unable to connect to {defaultHostUrl}. You may try a different host URL or manage your SCM
+          configuration in the <a href={orgsAndPoliciesHref}>Orgs & Policies</a> page.
         </span>
       );
     }
@@ -150,8 +131,7 @@ export default function RepositoryPane(props) {
         <Fragment>
           {errorText}
           <p>
-            <a onClick={() => setShowHostDialog(true)}>Click here</a> to change
-            the git host URL.
+            <a onClick={() => setShowHostDialog(true)}>Click here</a> to change the git host URL.
           </p>
         </Fragment>
       );
@@ -187,12 +167,7 @@ export default function RepositoryPane(props) {
   function handleImportSelectedRepositories() {
     const prevImportedCount = totalRepositories - repositories.length;
     const orgId = selectedOrganization.organization.id;
-    importSelectedRepositories(
-      orgId,
-      totalRepositories,
-      prevImportedCount,
-      selectedRepositories
-    );
+    importSelectedRepositories(orgId, totalRepositories, prevImportedCount, selectedRepositories);
     setSelectedRepositories([]);
     setIsAllChecked(false);
   }
@@ -201,10 +176,7 @@ export default function RepositoryPane(props) {
     if (isGitHostNeeded) {
       setShowHostDialog(true);
     } else {
-      loadRepositories(
-        selectedOrganization.organization.id,
-        currentHostUrlState.value
-      );
+      loadRepositories(selectedOrganization.organization.id, currentHostUrlState.value);
     }
   };
 
@@ -241,18 +213,13 @@ export default function RepositoryPane(props) {
               $state,
             }}
           />
-          <NxButton
-            onClick={() => setIsNewOrganizationModalVisible(true)}
-            id="repository-pane-add-org"
-          >
+          <NxButton onClick={() => setIsNewOrganizationModalVisible(true)} id="repository-pane-add-org">
             <NxFontAwesomeIcon icon={faPlus} /> New Organization
           </NxButton>
           {isNewOrganizationModalVisible && (
             <NewOrganizationModal
               addOrganization={addOrganization}
-              setIsNewOrganizationModalVisible={
-                setIsNewOrganizationModalVisible
-              }
+              setIsNewOrganizationModalVisible={setIsNewOrganizationModalVisible}
               addOrganizationError={addOrganizationError}
             />
           )}
@@ -310,8 +277,7 @@ export default function RepositoryPane(props) {
 RepositoryPane.propTypes = {
   loadingRepositories: PropTypes.bool.isRequired,
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
-  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType))
-    .isRequired,
+  organizations: PropTypes.arrayOf(PropTypes.shape(organizationPropType)).isRequired,
   totalRepositories: PropTypes.number,
   selectedRepositoryCount: PropTypes.number.isRequired,
   importedRepositoryCount: PropTypes.number,
@@ -323,10 +289,7 @@ RepositoryPane.propTypes = {
   scmConfigurationHref: PropTypes.string,
   scmProvider: PropTypes.string,
   // textInputPropType is implied required, but this val is optional
-  currentHostUrlState: PropTypes.oneOfType(
-    PropTypes.object,
-    PropTypes.shape(textInputPropType)
-  ),
+  currentHostUrlState: PropTypes.oneOfType(PropTypes.object, PropTypes.shape(textInputPropType)),
   defaultHostUrl: PropTypes.string,
   isGitHostNeeded: PropTypes.bool,
   isSelectingOrganization: PropTypes.bool,

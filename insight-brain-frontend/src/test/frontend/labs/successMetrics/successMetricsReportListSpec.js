@@ -14,8 +14,7 @@ describe('successMetricsReportList component', function () {
     $q,
     mockSystemConfigurationPropertyService = {
       checkSuccessMetricsEnabled: undefined,
-      SUCCESS_METRICS_DISABLED_MESSAGE:
-        'Success metrics have been disabled by your system administrator.',
+      SUCCESS_METRICS_DISABLED_MESSAGE: 'Success metrics have been disabled by your system administrator.',
     },
     mockSuccessMetricsDataService = {
       getSuccessMetricsReportsForCurrentUser: undefined,
@@ -25,12 +24,7 @@ describe('successMetricsReportList component', function () {
     resetCheckSuccessMetricsEnabledPromise,
     resetGetSuccessMetricsReportsForCurrentUserPromise;
 
-  beforeEach(inject(function (
-    _$state_,
-    _$q_,
-    _$rootScope_,
-    $componentController
-  ) {
+  beforeEach(inject(function (_$state_, _$q_, _$rootScope_, $componentController) {
     $scope = _$rootScope_.$new();
     $state = _$state_;
     $q = _$q_;
@@ -46,9 +40,7 @@ describe('successMetricsReportList component', function () {
       getSuccessMetricsReportsForCurrentUserDeferred = $q.defer();
       mockSuccessMetricsDataService.getSuccessMetricsReportsForCurrentUser = jasmine
         .createSpy()
-        .and.returnValue(
-          getSuccessMetricsReportsForCurrentUserDeferred.promise
-        );
+        .and.returnValue(getSuccessMetricsReportsForCurrentUserDeferred.promise);
     };
 
     resetCheckSuccessMetricsEnabledPromise();
@@ -85,9 +77,7 @@ describe('successMetricsReportList component', function () {
       $scope.$digest();
 
       expect(vm.loaded).toBeTruthy();
-      expect(vm.error).toBe(
-        mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE
-      );
+      expect(vm.error).toBe(mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
       expect(vm.hasDisabledError()).toBe(true);
     });
 
@@ -112,9 +102,7 @@ describe('successMetricsReportList component', function () {
 
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsReportsForCurrentUserDeferred.resolve(
-        successMetricsReports
-      );
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve(successMetricsReports);
       $scope.$digest();
 
       expect(vm.successMetricsReports).toBe(successMetricsReports);
@@ -154,9 +142,7 @@ describe('successMetricsReportList component', function () {
   });
 
   describe('openAddSuccessMetricsModal', function () {
-    it('opens a modal and then adds its result onto the end of the successMetricsReports', inject(function (
-      Modal
-    ) {
+    it('opens a modal and then adds its result onto the end of the successMetricsReports', inject(function (Modal) {
       const successMetricsReports = {
           name: 'Empty',
           scope: {},
@@ -169,9 +155,7 @@ describe('successMetricsReportList component', function () {
 
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsReportsForCurrentUserDeferred.resolve([
-        successMetricsReports,
-      ]);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve([successMetricsReports]);
       $scope.$digest();
 
       vm.openAddSuccessMetricsReportModal();

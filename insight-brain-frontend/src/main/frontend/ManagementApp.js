@@ -50,29 +50,11 @@ export default angular
     reportModule.name,
     advancedLegalModule.name,
   ])
-  .component(
-    'advancedSearch',
-    react2angular(
-      withStoreProvider(AdvancedSearchContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
-  )
-  .component(
-    'firewall',
-    react2angular(
-      withStoreProvider(FirewallContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
-  )
+  .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
+  .component('firewall', react2angular(withStoreProvider(FirewallContainer), [], ['$ngRedux', '$state']))
   .component(
     'firewallAutoUnquarantine',
-    react2angular(
-      withStoreProvider(FirewallAutoUnquarantinePageContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(FirewallAutoUnquarantinePageContainer), [], ['$ngRedux', '$state'])
   )
   .config(routes);
 

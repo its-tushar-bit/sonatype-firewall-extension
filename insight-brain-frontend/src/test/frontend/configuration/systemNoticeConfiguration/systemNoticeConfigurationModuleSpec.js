@@ -7,15 +7,11 @@ import systemNoticeConfigurationModule from '../../../../main/frontend/configura
 
 describe('systemNoticeConfigurationModuleSpec.js', function () {
   beforeEach(
-    angular.mock.module(
-      'ui.router',
-      systemNoticeConfigurationModule.name,
-      function ($provide) {
-        $provide.value('$cookies', {
-          get: angular.noop,
-        });
-      }
-    )
+    angular.mock.module('ui.router', systemNoticeConfigurationModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
+    })
   );
 
   var $state;
@@ -25,25 +21,15 @@ describe('systemNoticeConfigurationModuleSpec.js', function () {
   }));
 
   it('sets up the ui router state', function () {
-    expect($state.get('systemNoticeConfiguration').url).toEqual(
-      '/systemNoticeConfiguration'
-    );
-    expect($state.get('systemNoticeConfiguration').data.title).toEqual(
-      'System Notice'
-    );
-    expect(
-      $state.get('systemNoticeConfiguration').resolve.isAuthorized[0]
-    ).toEqual('PermissionService');
-    var permissionServiceFunction = $state.get('systemNoticeConfiguration')
-      .resolve.isAuthorized[1];
+    expect($state.get('systemNoticeConfiguration').url).toEqual('/systemNoticeConfiguration');
+    expect($state.get('systemNoticeConfiguration').data.title).toEqual('System Notice');
+    expect($state.get('systemNoticeConfiguration').resolve.isAuthorized[0]).toEqual('PermissionService');
+    var permissionServiceFunction = $state.get('systemNoticeConfiguration').resolve.isAuthorized[1];
     var permissionServiceMock = {
       isAuthorized: function () {},
     };
     spyOn(permissionServiceMock, 'isAuthorized');
     permissionServiceFunction(permissionServiceMock);
-    expect(permissionServiceMock.isAuthorized).toHaveBeenCalledWith(
-      ['CONFIGURE_SYSTEM'],
-      true
-    );
+    expect(permissionServiceMock.isAuthorized).toHaveBeenCalledWith(['CONFIGURE_SYSTEM'], true);
   });
 });

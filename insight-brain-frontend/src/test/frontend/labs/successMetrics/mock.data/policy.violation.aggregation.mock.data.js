@@ -173,8 +173,7 @@ var PolicyViolationAggregationResourceMockData = {
           count: 1,
         },
         {
-          componentDisplayName:
-            'org.apache.geronimo.framework : geronimo-security : 2.1',
+          componentDisplayName: 'org.apache.geronimo.framework : geronimo-security : 2.1',
           count: 1,
         },
         {
@@ -209,8 +208,7 @@ var PolicyViolationAggregationResourceMockData = {
           count: 1,
         },
         {
-          componentDisplayName:
-            'org.apache.geronimo.framework : geronimo-security : 2.1',
+          componentDisplayName: 'org.apache.geronimo.framework : geronimo-security : 2.1',
           count: 1,
         },
         {

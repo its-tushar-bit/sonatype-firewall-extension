@@ -22,10 +22,7 @@ describe('IqToggle (React)', function () {
       onChange: onChangeSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      IqToggle,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(IqToggle, minimalProps);
   });
 
   it('renders an NxToggle within an NxTooltip with the supplied props', function () {

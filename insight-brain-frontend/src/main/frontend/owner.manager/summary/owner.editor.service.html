@@ -9,43 +9,17 @@
       {{vm.dirtyOwner.id ? 'Edit' : 'New'}} {{:: vm.getTypeName()}}
     </h2>
   </div>
-  <form
-    name="customIconForm"
-    id="custom-icon-form"
-    ng-upload="vm.fileUploadComplete(content)"
-    class="hide"
-  >
-    <input
-      id="icon-file"
-      type="file"
-      name="file"
-      accept="image/*"
-      file-model="vm.icon.source"
-      required
-    />
-    <input
-      name="hasRobotSource"
-      ng-model="vm.icon.hasRobotSource"
-      type="text"
-    />
+  <form name="customIconForm" id="custom-icon-form" ng-upload="vm.fileUploadComplete(content)" class="hide">
+    <input id="icon-file" type="file" name="file" accept="image/*" file-model="vm.icon.source" required />
+    <input name="hasRobotSource" ng-model="vm.icon.hasRobotSource" type="text" />
     <input name="hashcode" ng-model="vm.icon.robotHash" type="text" />
-    <input
-      name="{{::vm.csrfTokenName}}"
-      value="{{::vm.csrfTokenValue}}"
-      type="text"
-    />
+    <input name="{{::vm.csrfTokenName}}" value="{{::vm.csrfTokenValue}}" type="text" />
   </form>
-  <form
-    name="vm.ownerEditor"
-    role="form"
-    ng-submit="vm.save()"
-    form-mask="vm.ownerEditorMask"
-  >
+  <form name="vm.ownerEditor" role="form" ng-submit="vm.save()" form-mask="vm.ownerEditorMask">
     <div ng-if="vm.iconWarning" class="iq-modal-content">
       <div class="iq-alert">
-        <i class="fa fa-warning"></i>The {{::vm.getTypeName()}}
-        {{vm.dirtyOwner.name}} was successfully saved, but the icon upload
-        failed. Reason: {{::vm.iconWarning}}
+        <i class="fa fa-warning"></i>The {{::vm.getTypeName()}} {{vm.dirtyOwner.name}} was successfully saved, but the
+        icon upload failed. Reason: {{::vm.iconWarning}}
       </div>
     </div>
     <div class="iq-modal-content">
@@ -70,10 +44,7 @@
           clm-input
         />
       </div>
-      <div
-        ng-if="vm.ownerType === 'application' && !(vm.dirtyOwner.id)"
-        class="iq-form-group"
-      >
+      <div ng-if="vm.ownerType === 'application' && !(vm.dirtyOwner.id)" class="iq-form-group">
         <label for="editor-owner-public-id">Application Id</label>
         <input
           type="text"
@@ -100,41 +71,26 @@
             ><!--
          -->Use a default icon
           </iq-radio>
-          <iq-radio
-            id="owner-editor-icon-custom"
-            model="vm.icon.type"
-            value="'custom'"
+          <iq-radio id="owner-editor-icon-custom" model="vm.icon.type" value="'custom'"
             ><!--
          -->Upload a custom icon
           </iq-radio>
-          <iq-radio
-            id="owner-editor-icon-robot"
-            model="vm.icon.type"
-            value="'robot'"
+          <iq-radio id="owner-editor-icon-robot" model="vm.icon.type" value="'robot'"
             ><!--
          -->Get a robot
           </iq-radio>
         </fieldset>
         <div class="iq-form-group">
           <div ng-show="vm.icon.type === 'custom'" id="custom-icon-selector">
-            <label for="icon-file" class="iq-btn">
-              <i class="fa fa-upload"></i> Upload Icon Image
-            </label>
+            <label for="icon-file" class="iq-btn"> <i class="fa fa-upload"></i> Upload Icon Image </label>
             <div ng-if="vm.userIconPreview" class="iq-owner-icon-preview">
-              <img
-                ng-src="{{vm.userIconPreview}}"
-                class="iq-owner-icon-large"
-              />
+              <img ng-src="{{vm.userIconPreview}}" class="iq-owner-icon-large" />
               <img ng-src="{{vm.userIconPreview}}" class="iq-owner-icon" />
               <img ng-src="{{vm.userIconPreview}}" class="iq-owner-icon-tiny" />
             </div>
           </div>
           <div ng-if="vm.icon.type === 'robot'" id="robot-icon-selector">
-            <button
-              class="iq-btn"
-              type="button"
-              ng-click="vm.robot(vm.dirtyOwner.name)"
-            >
+            <button class="iq-btn" type="button" ng-click="vm.robot(vm.dirtyOwner.name)">
               <i class="fa fa-refresh"></i> Get Another Robot
             </button>
             <div class="iq-owner-icon-preview">
@@ -147,32 +103,14 @@
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{ error : vm.error }">
-      <div ng-if="vm.error" class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i> {{vm.error}}
-      </div>
-      <button
-        ng-if="!vm.error"
-        class="iq-btn iq-btn--primary"
-        type="submit"
-        ng-disabled="vm.ownerEditor.$invalid"
-      >
+      <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i> {{vm.error}}</div>
+      <button ng-if="!vm.error" class="iq-btn iq-btn--primary" type="submit" ng-disabled="vm.ownerEditor.$invalid">
         {{vm.dirtyOwner.id ? 'Update' : 'Create'}}
       </button>
-      <button
-        ng-if="vm.error"
-        class="iq-btn iq-btn--error"
-        type="submit"
-        ng-disabled="vm.ownerEditor.$invalid"
-      >
+      <button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" ng-disabled="vm.ownerEditor.$invalid">
         <i class="fa fa-refresh"></i>Retry
       </button>
-      <button
-        class="iq-btn iq-btn--dismiss"
-        type="button"
-        ng-click="$dismiss()"
-      >
-        Cancel
-      </button>
+      <button class="iq-btn iq-btn--dismiss" type="button" ng-click="$dismiss()">Cancel</button>
     </div>
   </form>
 </div>

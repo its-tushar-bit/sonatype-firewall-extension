@@ -19,13 +19,7 @@ describe('reportApp', function () {
     })
   );
 
-  beforeEach(inject(function (
-    $rootScope,
-    $state,
-    _$controller_,
-    _$httpBackend_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function ($rootScope, $state, _$controller_, _$httpBackend_, _CLMLocations_) {
     $rootScope.licensed = true;
     scope = $rootScope.$new();
     state = $state;
@@ -43,14 +37,8 @@ describe('reportApp', function () {
   describe('doLoad tries to get page 1 with 50 results', function () {
     it('handles no reports', function () {
       var mockStageData = MockData.getActionStageData();
-      $httpBackend
-        .expectGET(CLMLocations.getActionStageUrl())
-        .respond(mockStageData);
-      $httpBackend
-        .expectGET(
-          '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-        )
-        .respond([]);
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(mockStageData);
+      $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
       const vm = $controller('ReportViolationsController', {
         $scope: scope,
         $state: state,
@@ -66,9 +54,7 @@ describe('reportApp', function () {
       expect(vm.stages).toBeDefined();
       expect(vm.stages.length).toEqual(mockStageData.length);
       expect(vm.stages[0].id).toEqual(mockStageData[0].id);
-      expect(vm.stages[vm.stages.length - 1].name).toEqual(
-        mockStageData[mockStageData.length - 1].name
-      );
+      expect(vm.stages[vm.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
 
       expect(vm.applications).toBeDefined();
       expect(vm.applications.length).toBe(0);
@@ -79,13 +65,9 @@ describe('reportApp', function () {
     it('loads reports', function () {
       var mockStageData = MockData.getActionStageData();
       var mockApplicationSummaryData = applicationMockData.getApplicationSummaryData();
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(mockStageData);
       $httpBackend
-        .expectGET(CLMLocations.getActionStageUrl())
-        .respond(mockStageData);
-      $httpBackend
-        .expectGET(
-          '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-        )
+        .expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
         .respond(mockApplicationSummaryData);
       const vm = $controller('ReportViolationsController', {
         $scope: scope,
@@ -102,9 +84,7 @@ describe('reportApp', function () {
       expect(vm.stages).toBeDefined();
       expect(vm.stages.length).toEqual(mockStageData.length);
       expect(vm.stages[0].id).toEqual(mockStageData[0].id);
-      expect(vm.stages[vm.stages.length - 1].name).toEqual(
-        mockStageData[mockStageData.length - 1].name
-      );
+      expect(vm.stages[vm.stages.length - 1].name).toEqual(mockStageData[mockStageData.length - 1].name);
 
       expect(vm.applications).toBeDefined();
       expect(vm.applications.length).toBe(mockApplicationSummaryData.length);
@@ -118,13 +98,9 @@ describe('reportApp', function () {
     let vm;
 
     beforeEach(function () {
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
       $httpBackend
-        .expectGET(CLMLocations.getActionStageUrl())
-        .respond(MockData.getActionStageData());
-      $httpBackend
-        .expectGET(
-          '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-        )
+        .expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
         .respond(applicationMockData.getApplicationSummaryData());
       vm = $controller('ReportViolationsController', {
         $scope: scope,
@@ -139,9 +115,7 @@ describe('reportApp', function () {
         vm.appFilter = 'appl';
         vm.sortAndFilter();
         $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?nameFilter=appl&order=APP_NAME_ASC&page=1&pageSize=50'
-          )
+          .expectGET('/rest/application/services/summary?nameFilter=appl&order=APP_NAME_ASC&page=1&pageSize=50')
           .respond([]);
         $httpBackend.flush();
         expect(vm.applications).toEqual([]);
@@ -150,11 +124,7 @@ describe('reportApp', function () {
       it('does not filter if app filter is Null', function () {
         vm.appFilter = null;
         vm.sortAndFilter();
-        $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-          )
-          .respond([]);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
         $httpBackend.flush();
         expect(vm.applications).toEqual([]);
       });
@@ -162,11 +132,7 @@ describe('reportApp', function () {
       it('does not filter if app filter is Empty', function () {
         vm.appFilter = '';
         vm.sortAndFilter();
-        $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-          )
-          .respond([]);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
         $httpBackend.flush();
         expect(vm.applications).toEqual([]);
       });
@@ -176,36 +142,28 @@ describe('reportApp', function () {
       it('sorts', function () {
         vm.sortChange(['name']);
         $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-          )
+          .expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
           .respond(['app1']);
         $httpBackend.flush();
         expect(vm.applications).toEqual(['app1']);
 
         vm.sortChange(['-name']);
         $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_DESC&page=1&pageSize=50'
-          )
+          .expectGET('/rest/application/services/summary?order=APP_NAME_DESC&page=1&pageSize=50')
           .respond(['app2']);
         $httpBackend.flush();
         expect(vm.applications).toEqual(['app2']);
 
         vm.sortChange(['organizationName']);
         $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=ORG_NAME_ASC&page=1&pageSize=50'
-          )
+          .expectGET('/rest/application/services/summary?order=ORG_NAME_ASC&page=1&pageSize=50')
           .respond(['app3']);
         $httpBackend.flush();
         expect(vm.applications).toEqual(['app3']);
 
         vm.sortChange(['-organizationName']);
         $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=ORG_NAME_DESC&page=1&pageSize=50'
-          )
+          .expectGET('/rest/application/services/summary?order=ORG_NAME_DESC&page=1&pageSize=50')
           .respond(['app4']);
         $httpBackend.flush();
         expect(vm.applications).toEqual(['app4']);
@@ -217,9 +175,7 @@ describe('reportApp', function () {
     let vm;
 
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMLocations.getActionStageUrl())
-        .respond(MockData.getActionStageData());
+      $httpBackend.expectGET(CLMLocations.getActionStageUrl()).respond(MockData.getActionStageData());
       vm = $controller('ReportViolationsController', {
         $scope: scope,
         $state: state,
@@ -228,59 +184,35 @@ describe('reportApp', function () {
     });
 
     it('has an initial size of 50', function () {
-      $httpBackend
-        .expectGET(
-          '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-        )
-        .respond([]);
+      $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
       expect($httpBackend.flush).not.toThrow();
     });
 
     describe('when load more results is pressed', function () {
       it('increases the pages', function () {
-        $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-          )
-          .respond([]);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
         expect($httpBackend.flush).not.toThrow();
 
         vm.loadMoreResults();
 
-        $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=2&pageSize=50'
-          )
-          .respond([]);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=2&pageSize=50').respond([]);
         expect($httpBackend.flush).not.toThrow();
       });
     });
 
     describe('when sorting or filtering', function () {
       it('resets the pages to 1', function () {
-        $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-          )
-          .respond([]);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
         expect($httpBackend.flush).not.toThrow();
 
         vm.loadMoreResults();
 
-        $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=2&pageSize=50'
-          )
-          .respond([]);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=2&pageSize=50').respond([]);
         expect($httpBackend.flush).not.toThrow();
 
         vm.sortAndFilter();
 
-        $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-          )
-          .respond([]);
+        $httpBackend.expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50').respond([]);
         expect($httpBackend.flush).not.toThrow();
       });
     });
@@ -288,9 +220,7 @@ describe('reportApp', function () {
     describe('has more results', function () {
       it('is set to true if a full page of results was last returned', function () {
         $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-          )
+          .expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
           .respond(applicationMockData.getApplicationSummaryData(50));
         $httpBackend.flush();
 
@@ -299,9 +229,7 @@ describe('reportApp', function () {
 
       it('is set to false if a partial page of results was last returned', function () {
         $httpBackend
-          .expectGET(
-            '/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50'
-          )
+          .expectGET('/rest/application/services/summary?order=APP_NAME_ASC&page=1&pageSize=50')
           .respond(applicationMockData.getApplicationSummaryData(49));
         $httpBackend.flush();
 

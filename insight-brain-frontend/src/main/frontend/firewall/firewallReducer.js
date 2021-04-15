@@ -206,9 +206,7 @@ const loadPoliciesFulfilled = (payload, state) =>
     lensPath(['autoUnquarantineState', 'autoUnquarantineGridState']),
     merge(__, {
       loadedPolicies: true,
-      policies: payload.policies.filter(
-        (policy) => policy.ownerId === 'ROOT_ORGANIZATION_ID'
-      ),
+      policies: payload.policies.filter((policy) => policy.ownerId === 'ROOT_ORGANIZATION_ID'),
     }),
     state
   );
@@ -267,15 +265,12 @@ const saveConfigurationFulfilled = (payload, state) => ({
     ...state.autoUnquarantineState,
     viewState: {
       ...state.autoUnquarantineState.viewState,
-      enabledPolicyConditionTypesCount: numberOfEnabledPolicyConditionTypesCount(
-        payload
-      ),
+      enabledPolicyConditionTypesCount: numberOfEnabledPolicyConditionTypesCount(payload),
       totalPolicyConditionTypesCount: payload.length,
     },
   },
   configurationState: {
-    autoUnquarantineEnabled:
-      numberOfEnabledPolicyConditionTypesCount(payload) > 0,
+    autoUnquarantineEnabled: numberOfEnabledPolicyConditionTypesCount(payload) > 0,
   },
 });
 
@@ -297,15 +292,12 @@ const loadConfigurationFulfilled = (payload, state) => ({
       ...state.autoUnquarantineState.viewState,
       loadedConfiguration: true,
       loadConfigurationError: null,
-      enabledPolicyConditionTypesCount: numberOfEnabledPolicyConditionTypesCount(
-        payload
-      ),
+      enabledPolicyConditionTypesCount: numberOfEnabledPolicyConditionTypesCount(payload),
       totalPolicyConditionTypesCount: payload.length,
     },
   },
   configurationState: {
-    autoUnquarantineEnabled:
-      numberOfEnabledPolicyConditionTypesCount(payload) > 0,
+    autoUnquarantineEnabled: numberOfEnabledPolicyConditionTypesCount(payload) > 0,
   },
 });
 
@@ -318,11 +310,7 @@ const loadConfigurationFailed = (payload, state) => {
     }),
     state
   );
-  return pathSet(
-    ['viewState', 'loadError'],
-    newState.viewState.loadError || payload,
-    newState
-  );
+  return pathSet(['viewState', 'loadError'], newState.viewState.loadError || payload, newState);
 };
 
 function numberOfEnabledPolicyConditionTypesCount(payload) {
@@ -351,8 +339,7 @@ const quarantineSummaryFulfilled = (payload, state) => ({
       ...state.quarantineSummaryState.viewState,
       loadedQuarantineSummary: true,
       quarantineEnabled: payload.quarantineEnabled,
-      quarantineEnabledRepositoryCount:
-        payload.quarantineEnabledRepositoryCount,
+      quarantineEnabledRepositoryCount: payload.quarantineEnabledRepositoryCount,
       repositoryCount: payload.repositoryCount,
       totalComponentCount: payload.totalComponentCount,
       quarantinedComponentCount: payload.quarantinedComponentCount,

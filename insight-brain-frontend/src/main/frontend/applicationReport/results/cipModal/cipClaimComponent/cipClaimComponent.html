@@ -6,11 +6,7 @@
     <h4>Error</h4>
     <p>{{vm.error}}</p>
     <p>
-      <button
-        type="button"
-        class="btn btn-danger btn-error"
-        ng-click="vm.error = null"
-      >
+      <button type="button" class="btn btn-danger btn-error" ng-click="vm.error = null">
         <i class="icon-white icon-arrow-left"></i> Back
       </button>
     </p>
@@ -28,13 +24,7 @@
               >
                 <label class="control-label">Group ID</label>
                 <div class="controls">
-                  <input
-                    name="groupId"
-                    class="input-xlarge"
-                    type="text"
-                    ng-model="vm.claimData.groupId"
-                    required
-                  />
+                  <input name="groupId" class="input-xlarge" type="text" ng-model="vm.claimData.groupId" required />
                 </div>
               </div>
               <div
@@ -60,25 +50,14 @@
               >
                 <label class="control-label">Version</label>
                 <div class="controls">
-                  <input
-                    name="version"
-                    class="input-xlarge"
-                    type="text"
-                    ng-model="vm.claimData.version"
-                    required
-                  />
+                  <input name="version" class="input-xlarge" type="text" ng-model="vm.claimData.version" required />
                 </div>
               </div>
               <div id="cip-claim-classifier" class="control-group">
                 <label class="control-label">Classifier</label>
 
                 <div class="controls">
-                  <input
-                    name="classifier"
-                    class="input-xlarge"
-                    type="text"
-                    ng-model="vm.claimData.classifier"
-                  />
+                  <input name="classifier" class="input-xlarge" type="text" ng-model="vm.claimData.classifier" />
                 </div>
               </div>
             </div>
@@ -92,13 +71,7 @@
               >
                 <label class="control-label">Extension</label>
                 <div class="controls">
-                  <input
-                    name="extension"
-                    class="input-xlarge"
-                    type="text"
-                    ng-model="vm.claimData.extension"
-                    required
-                  />
+                  <input name="extension" class="input-xlarge" type="text" ng-model="vm.claimData.extension" required />
                 </div>
               </div>
               <div
@@ -122,21 +95,14 @@
               <div id="cip-claim-comment" class="control-group">
                 <label class="control-label">Comment</label>
                 <div class="controls">
-                  <textarea
-                    name="comment"
-                    class="input-xlarge"
-                    ng-model="vm.claimData.comment"
-                  >
-                  </textarea>
+                  <textarea name="comment" class="input-xlarge" ng-model="vm.claimData.comment"> </textarea>
                 </div>
               </div>
             </div>
           </td>
         </tr>
         <tr>
-          <td id="validation-error-messages" class="validation-error">
-            {{vm.getValidationMessage()}}
-          </td>
+          <td id="validation-error-messages" class="validation-error">{{vm.getValidationMessage()}}</td>
           <td>
             <div class="controls" style="text-align: right">
               <button

@@ -39,41 +39,26 @@ export default function LegalApplicationDetailsPage(props) {
   const reportUrl = `/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
 
   return (
-    <main
-      id="legal-application-details-container"
-      className="nx-page-main nx-viewport-sized"
-    >
+    <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
       <LoadWrapper
         loading={application.loading || stageType.loading}
         error={application.error || stageType.error}
         retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
       >
-        <BackButton
-          stateName="legalDashboard"
-          $state={$state}
-          text="Back to Dashboard"
-        />
+        <BackButton stateName="legalDashboard" $state={$state} text="Back to Dashboard" />
         <div className="nx-page-title">
           <h1 className="nx-h1">{application.name} Obligations</h1>
           <div className="nx-btn-bar">
-            <NxButton
-              variant="primary"
-              onClick={() => window.open(reportUrl, '_blank')}
-            >
+            <NxButton variant="primary" onClick={() => window.open(reportUrl, '_blank')}>
               Create Attribution Report
             </NxButton>
           </div>
           <div className="nx-page-title__description">
-            <div className="nx-tile-header__subtitle">
-              {stageType.name} Stage
-            </div>
+            <div className="nx-tile-header__subtitle">{stageType.name} Stage</div>
           </div>
         </div>
         <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-          <NxTable
-            id="legal-application-details-table"
-            className="legal-dashboard-table"
-          >
+          <NxTable id="legal-application-details-table" className="legal-dashboard-table">
             <NxTableHead>
               <NxTableRow>
                 <NxTableCell>Component</NxTableCell>
@@ -81,9 +66,7 @@ export default function LegalApplicationDetailsPage(props) {
                 <NxTableCell className="legal-application-details-table-review-progress">
                   Completed Obligations
                 </NxTableCell>
-                <NxTableCell className="legal-application-details-table-review-status">
-                  Review Status
-                </NxTableCell>
+                <NxTableCell className="legal-application-details-table-review-status">Review Status</NxTableCell>
               </NxTableRow>
             </NxTableHead>
             <NxTableBody
@@ -122,9 +105,7 @@ LegalApplicationDetailsPage.propTypes = {
     error: LoadWrapper.propTypes.error,
   }),
   components: PropTypes.shape({
-    results: PropTypes.arrayOf(
-      LegalApplicationDetailsComponentRow.propTypes.row
-    ),
+    results: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
     loading: PropTypes.bool,
     error: LoadWrapper.propTypes.error,
   }),

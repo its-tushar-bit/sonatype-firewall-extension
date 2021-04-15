@@ -9,10 +9,7 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import LegalDashboardFilterFooter from '../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterFooter';
 
 describe('LegalDashboardFilterFooter', function () {
-  const getShallowComponent = enzymeUtils.getShallowComponent(
-    LegalDashboardFilterFooter,
-    {}
-  );
+  const getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardFilterFooter, {});
 
   it('renders a section with the footer classes', function () {
     const fullFilter = getShallowComponent(),
@@ -75,16 +72,11 @@ describe('LegalDashboardFilterFooter', function () {
 
   it('adds a tooltip to the apply btn if it is disabled', function () {
     const fullFilter = getShallowComponent({ filtersAreDirty: false }),
-      applyBtnTooltip = fullFilter.find(
-        '#legal-dashboard-filter-apply-tooltip'
-      ),
+      applyBtnTooltip = fullFilter.find('#legal-dashboard-filter-apply-tooltip'),
       applyBtn = applyBtnTooltip.find(NxButton);
 
     expect(applyBtnTooltip).toHaveTagName('NxTooltip');
-    expect(applyBtnTooltip).toHaveProp(
-      'title',
-      'There are no changes to update.'
-    );
+    expect(applyBtnTooltip).toHaveProp('title', 'There are no changes to update.');
     expect(applyBtn).toHaveClassName('disabled');
   });
 
@@ -176,9 +168,7 @@ describe('LegalDashboardFilterFooter', function () {
 
       expect(errorFooter).toExist();
       expect(noErrorSaveButton).not.toExist();
-      const errorButton = errorFooter.find(
-        '#legal-dashboard-filter-retry-button'
-      );
+      const errorButton = errorFooter.find('#legal-dashboard-filter-retry-button');
       expect(onApplyCurrentFilter).not.toHaveBeenCalled();
       errorButton.simulate('click');
       expect(onApplyCurrentFilter).toHaveBeenCalled();
@@ -200,9 +190,7 @@ describe('LegalDashboardFilterFooter', function () {
 
       expect(errorFooter).toExist();
       expect(noErrorSaveButton).not.toExist();
-      const cancelButton = errorFooter.find(
-        '#legal-dashboard-filter-cancel-button'
-      );
+      const cancelButton = errorFooter.find('#legal-dashboard-filter-cancel-button');
       expect(onApplyCancelSpy).not.toHaveBeenCalled();
       cancelButton.simulate('click');
       expect(onApplyCancelSpy).toHaveBeenCalled();
@@ -236,9 +224,7 @@ describe('LegalDashboardFilterFooter', function () {
   describe('Save button onClick handler', function () {
     let setDisplaySaveFilterModal;
     beforeEach(function () {
-      setDisplaySaveFilterModal = jasmine.createSpy(
-        'setDisplaySaveFilterModal'
-      );
+      setDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal');
     });
 
     it('calls setDisplaySaveFilterModal callback if filters are not dirty', function () {
@@ -265,24 +251,17 @@ describe('LegalDashboardFilterFooter', function () {
   describe('Save button', function () {
     it('is disabled with tooltip when filters are dirty', function () {
       const shallowRender = getShallowComponent({ filtersAreDirty: true }),
-        saveBtnTooltip = shallowRender.find(
-          '#legal-dashboard-filter-save-tooltip'
-        ),
+        saveBtnTooltip = shallowRender.find('#legal-dashboard-filter-save-tooltip'),
         saveBtn = saveBtnTooltip.find(NxButton);
 
       expect(saveBtnTooltip).toHaveTagName('NxTooltip');
-      expect(saveBtnTooltip).toHaveProp(
-        'title',
-        'Please apply filter before saving'
-      );
+      expect(saveBtnTooltip).toHaveProp('title', 'Please apply filter before saving');
       expect(saveBtn).toHaveClassName('disabled');
     });
 
     it('is enabled with no tooltip when filters are not dirty', function () {
       const shallowRender = getShallowComponent({ filtersAreDirty: false }),
-        saveBtnTooltip = shallowRender.find(
-          '#legal-dashboard-filter-save-tooltip'
-        ),
+        saveBtnTooltip = shallowRender.find('#legal-dashboard-filter-save-tooltip'),
         saveBtn = saveBtnTooltip.find(NxButton);
 
       expect(saveBtnTooltip).toHaveTagName('NxTooltip');

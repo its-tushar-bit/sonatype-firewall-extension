@@ -333,9 +333,7 @@ describe('firewallActions', function () {
           setTimeout(function () {
             actions = store.getActions();
             expect(actions.length).toBe(4);
-            expect(actions[2].type).toBe(
-              FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE
-            );
+            expect(actions[2].type).toBe(FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE);
             expect(actions[3].type).toBe(FIREWALL_SET_SHOW_CONFIGURATION_MODAL);
             expect(actions[3].payload).toBe(false);
             done();
@@ -408,9 +406,7 @@ describe('firewallActions', function () {
 
   describe('loadReleaseQuarantineSummary', function () {
     afterEach(function () {
-      expect(axios.get).toHaveBeenCalledWith(
-        firewallReleaseQuarantineSummaryUrl
-      );
+      expect(axios.get).toHaveBeenCalledWith(firewallReleaseQuarantineSummaryUrl);
     });
 
     it('immediately dispatches a FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED action', function () {
@@ -426,9 +422,7 @@ describe('firewallActions', function () {
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(
-        FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED
-      );
+      expect(actions[0].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
       expect(actions[0].payload).toBeUndefined();
     });
 
@@ -445,13 +439,9 @@ describe('firewallActions', function () {
         store.dispatch(loadReleaseQuarantineSummary()).then(() => {
           actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe(
-            FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED
-          );
+          expect(actions[0].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
           expect(actions[0].payload).toBeUndefined();
-          expect(actions[1].type).toBe(
-            FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED
-          );
+          expect(actions[1].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED);
           expect(actions[1].payload).toEqual({
             autoReleaseQuarantineCountMTD: 3,
           });
@@ -467,17 +457,14 @@ describe('firewallActions', function () {
       it('dispatches an FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [firewallReleaseQuarantineSummaryUrl]: () =>
-              Promise.reject('error!'),
+            [firewallReleaseQuarantineSummaryUrl]: () => Promise.reject('error!'),
           },
         });
 
         store.dispatch(loadReleaseQuarantineSummary()).then(() => {
           actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe(
-            FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED
-          );
+          expect(actions[1].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED);
           expect(actions[1].payload).toBe('error!');
           done();
         });
@@ -496,17 +483,13 @@ describe('firewallActions', function () {
       defaultParams = '?page=1&pageSize=12';
 
     afterEach(function () {
-      expect(axios.get).toHaveBeenCalledWith(
-        firewallReleaseQuarantineListUrl + defaultParams
-      );
+      expect(axios.get).toHaveBeenCalledWith(firewallReleaseQuarantineListUrl + defaultParams);
     });
 
     it('immediately dispatches a FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED action', function () {
       mockAxiosCalls({
         get: {
-          [firewallReleaseQuarantineListUrl + defaultParams]: Promise.resolve(
-            payload
-          ),
+          [firewallReleaseQuarantineListUrl + defaultParams]: Promise.resolve(payload),
         },
       });
 
@@ -524,21 +507,16 @@ describe('firewallActions', function () {
       it('dispatches FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED action', function (done) {
         mockAxiosCalls({
           get: {
-            [firewallReleaseQuarantineListUrl +
-            defaultParams]: Promise.resolve({ data: payload }),
+            [firewallReleaseQuarantineListUrl + defaultParams]: Promise.resolve({ data: payload }),
           },
         });
 
         store.dispatch(loadReleaseQuarantineList()).then(() => {
           actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe(
-            FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED
-          );
+          expect(actions[0].type).toBe(FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED);
           expect(actions[0].payload).toBeUndefined();
-          expect(actions[1].type).toBe(
-            FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED
-          );
+          expect(actions[1].type).toBe(FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED);
           expect(actions[1].payload).toEqual(payload);
           done();
         });
@@ -554,8 +532,7 @@ describe('firewallActions', function () {
       it('dispatches an FIREWALL_RELEASE_QUARANTINE_LIST_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [firewallReleaseQuarantineListUrl + defaultParams]: () =>
-              Promise.reject('error!'),
+            [firewallReleaseQuarantineListUrl + defaultParams]: () => Promise.reject('error!'),
           },
         });
 
@@ -781,9 +758,7 @@ describe('firewallActions', function () {
       expect(actions[1].payload).toBeUndefined();
       expect(actions[2].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
       expect(actions[2].payload).toBeUndefined();
-      expect(actions[3].type).toBe(
-        FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED
-      );
+      expect(actions[3].type).toBe(FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED);
       expect(actions[3].payload).toBeUndefined();
       expect(actions[4].type).toBe(FIREWALL_QUARANTINE_SUMMARY_REQUESTED);
       expect(actions[4].payload).toBeUndefined();

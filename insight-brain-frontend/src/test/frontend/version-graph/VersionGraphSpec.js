@@ -22,11 +22,7 @@ var clmEndpointTemplate = {
     },
   });
 
-  const getVersionChangeData = (
-    remediationType,
-    componentIdentifier,
-    thirdParty
-  ) => ({
+  const getVersionChangeData = (remediationType, componentIdentifier, thirdParty) => ({
     type: remediationType,
     data: {
       component: {
@@ -40,10 +36,7 @@ var clmEndpointTemplate = {
     let versionGraphModule, versionGraphAppModule, versionGraphMock;
 
     beforeEach(function () {
-      versionGraphMock = jasmine.createSpyObj('versionGraph', [
-        'renderVersionGraph',
-        'selectVersion',
-      ]);
+      versionGraphMock = jasmine.createSpyObj('versionGraph', ['renderVersionGraph', 'selectVersion']);
 
       // re-import for each test to ensure globals (ie Insight) are set up correctly
       const exceptionHandler = require('inject-loader!../../../main/frontend/version-graph/app/exception.handler.factory')();
@@ -67,11 +60,9 @@ var clmEndpointTemplate = {
         }
       ).default;
 
-      versionGraphAppModule = require('inject-loader!../../../main/frontend/version-graph/app/version.graph.app')(
-        {
-          './exception.handler.factory': exceptionHandler,
-        }
-      ).default;
+      versionGraphAppModule = require('inject-loader!../../../main/frontend/version-graph/app/version.graph.app')({
+        './exception.handler.factory': exceptionHandler,
+      }).default;
 
       angular.mock.module(versionGraphAppModule.name, function ($provide) {
         $provide.service('pendoService', function () {
@@ -132,11 +123,7 @@ var clmEndpointTemplate = {
       function checkObjectAndSubObjectsForEnoughBacon(o) {
         for (var f in o) {
           if (o.hasOwnProperty(f)) {
-            if (
-              f.match(/^get.*Url$/) &&
-              f !== 'getCurrentReportReevaluateUrl' &&
-              typeof o[f] === 'function'
-            ) {
+            if (f.match(/^get.*Url$/) && f !== 'getCurrentReportReevaluateUrl' && typeof o[f] === 'function') {
               shouldStartWithBacon(o[f]);
             } else if (typeof o[f] === 'object') {
               checkObjectAndSubObjectsForEnoughBacon(o[f]);
@@ -173,9 +160,7 @@ var clmEndpointTemplate = {
         });
       });
 
-      it('Exceptions after registration are logged', inject(function (
-        $exceptionHandler
-      ) {
+      it('Exceptions after registration are logged', inject(function ($exceptionHandler) {
         var spy = jasmine.createSpy('logger');
         Insight.setLogger(spy);
         $exceptionHandler(new Error('foo'));
@@ -220,10 +205,7 @@ var clmEndpointTemplate = {
         expect(Properties.getHash()).toEqual('abc123');
       }));
 
-      it('Insight.setCoordinates with unknown', inject(function (
-        Coordinates,
-        Properties
-      ) {
+      it('Insight.setCoordinates with unknown', inject(function (Coordinates, Properties) {
         Insight.setCoordinates(null, null, {
           matchState: 'unknown',
           proprietary: false,
@@ -258,9 +240,7 @@ var clmEndpointTemplate = {
         expect(Coordinates.get()).toEqual(gav);
         expect(Coordinates.getSelected()).toEqual(sel);
 
-        Coordinates.setSelected(
-          angular.extend({}, sel, { version: gav.version })
-        );
+        Coordinates.setSelected(angular.extend({}, sel, { version: gav.version }));
         expect(Coordinates.getSelected()).toEqual(gav);
         expect(Coordinates.getFormat()).toEqual('maven');
       }));
@@ -357,31 +337,17 @@ var clmEndpointTemplate = {
       }
 
       function setupLoginExpectations($httpBackend, CLMLocations) {
-        $httpBackend
-          .expectDELETE(CLMLocations.getSessionLogoutUrl())
-          .respond(204);
-        $httpBackend
-          .expectPOST(
-            CLMLocations.getSessionUrl(),
-            undefined,
-            headerExpectation
-          )
-          .respond(200);
+        $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
+        $httpBackend.expectPOST(CLMLocations.getSessionUrl(), undefined, headerExpectation).respond(200);
       }
 
-      beforeEach(inject(function (
-        _pendoService_,
-        _$httpBackend_,
-        _CLMLocations_
-      ) {
+      beforeEach(inject(function (_pendoService_, _$httpBackend_, _CLMLocations_) {
         pendoService = _pendoService_;
         $httpBackend = _$httpBackend_;
         CLMLocations = _CLMLocations_;
       }));
 
-      it('adds the specified headers to $http.defaults.headers.common', inject(function (
-        $http
-      ) {
+      it('adds the specified headers to $http.defaults.headers.common', inject(function ($http) {
         setupLoginExpectations($httpBackend, CLMLocations);
 
         // set up some pre-existing values
@@ -531,27 +497,21 @@ var clmEndpointTemplate = {
             clmEndpoint.type = type;
           });
 
-          it('Success', inject(function (
-            Applications,
-            $httpBackend,
-            $rootScope
-          ) {
+          it('Success', inject(function (Applications, $httpBackend, $rootScope) {
             var applications = null;
 
             Applications.get().then(function (data) {
               applications = data;
             });
 
-            $httpBackend
-              .expectGET(Brain.getIntegratorApplicationListUrl())
-              .respond(200, {
-                applicationSummaries: [
-                  {
-                    publicId: 'myAppId',
-                    name: 'My First App',
-                  },
-                ],
-              });
+            $httpBackend.expectGET(Brain.getIntegratorApplicationListUrl()).respond(200, {
+              applicationSummaries: [
+                {
+                  publicId: 'myAppId',
+                  name: 'My First App',
+                },
+              ],
+            });
             $httpBackend.flush();
             $rootScope.$apply();
             expect(applications).toEqual([
@@ -600,10 +560,7 @@ var clmEndpointTemplate = {
           });
         }));
 
-        it('sets componentDetailsList', inject(function (
-          $httpBackend,
-          $rootScope
-        ) {
+        it('sets componentDetailsList', inject(function ($httpBackend, $rootScope) {
           var gav = {
             groupId: 'foo',
             artifactId: 'bar',
@@ -621,9 +578,7 @@ var clmEndpointTemplate = {
           });
           $httpBackend.verifyNoOutstandingRequest();
 
-          spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue(
-            'foo'
-          );
+          spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
           $httpBackend.expectGET('foo').respond([{}]);
           Insight.setGav(gav);
           $httpBackend.flush();
@@ -642,45 +597,17 @@ var clmEndpointTemplate = {
               version: '1',
               proprietary: true,
             };
-            const fooComponentIdentifierV2 = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '2'
-            );
-            const fooComponentIdentifierV3 = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '3'
-            );
-            const fooComponentIdentifierV4 = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '4'
-            );
-            const fooComponentIdentifierV5 = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '5'
-            );
+            const fooComponentIdentifierV2 = returnComponentIdentifier('foo', 'bar', '2');
+            const fooComponentIdentifierV3 = returnComponentIdentifier('foo', 'bar', '3');
+            const fooComponentIdentifierV4 = returnComponentIdentifier('foo', 'bar', '4');
+            const fooComponentIdentifierV5 = returnComponentIdentifier('foo', 'bar', '5');
             const remediationData = {
               remediation: {
                 versionChanges: [
-                  getVersionChangeData(
-                    'next-non-failing',
-                    fooComponentIdentifierV2
-                  ),
-                  getVersionChangeData(
-                    'next-no-violations',
-                    fooComponentIdentifierV3
-                  ),
-                  getVersionChangeData(
-                    'next-non-failing-with-dependencies',
-                    fooComponentIdentifierV4
-                  ),
-                  getVersionChangeData(
-                    'next-no-violations-with-dependencies',
-                    fooComponentIdentifierV5
-                  ),
+                  getVersionChangeData('next-non-failing', fooComponentIdentifierV2),
+                  getVersionChangeData('next-no-violations', fooComponentIdentifierV3),
+                  getVersionChangeData('next-non-failing-with-dependencies', fooComponentIdentifierV4),
+                  getVersionChangeData('next-no-violations-with-dependencies', fooComponentIdentifierV5),
                 ],
               },
             };
@@ -690,10 +617,7 @@ var clmEndpointTemplate = {
             });
             $httpBackend.verifyNoOutstandingRequest();
 
-            spyOn(
-              Brain[clmEndpoint.type],
-              'getComponentListUrl'
-            ).and.returnValue('foo');
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
             $httpBackend.expectGET('foo').respond(remediationData);
             Insight.setGav(gav);
             $httpBackend.flush();
@@ -708,8 +632,7 @@ var clmEndpointTemplate = {
             });
             expect(scope.suggestedRemediations[1]).toEqual({
               id: 'next-no-violation-dependencies-version-link',
-              text:
-                ': Next version with no policy violations for this component and its dependencies',
+              text: ': Next version with no policy violations for this component and its dependencies',
               type: 'next-no-violations-with-dependencies',
               linkId: 'select-no-violation-dependencies',
               linkText: '5',
@@ -725,8 +648,7 @@ var clmEndpointTemplate = {
             });
             expect(scope.suggestedRemediations[3]).toEqual({
               id: 'next-no-fail-dependencies-version-link',
-              text:
-                ': Next version with no Build failure for this component and its dependencies',
+              text: ': Next version with no Build failure for this component and its dependencies',
               type: 'next-non-failing-with-dependencies',
               linkId: 'select-no-fail-dependencies',
               linkText: '4',
@@ -753,18 +675,14 @@ var clmEndpointTemplate = {
             });
             $httpBackend.verifyNoOutstandingRequest();
 
-            spyOn(
-              Brain[clmEndpoint.type],
-              'getComponentListUrl'
-            ).and.returnValue('foo');
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
             $httpBackend.expectGET('foo').respond(remediationData);
             Insight.setGav(gav);
             $httpBackend.flush();
             expect(scope.suggestedRemediations.length).toEqual(1);
             expect(scope.suggestedRemediations[0]).toEqual({
               id: 'no-versions-available',
-              text:
-                'No recommended versions are available for the current component',
+              text: 'No recommended versions are available for the current component',
             });
           }));
 
@@ -778,22 +696,12 @@ var clmEndpointTemplate = {
               version: '1',
               proprietary: true,
             };
-            const fooComponentIdentifier = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '1'
-            );
+            const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '1');
             const remediationData = {
               remediation: {
                 versionChanges: [
-                  getVersionChangeData(
-                    'next-no-violations',
-                    fooComponentIdentifier
-                  ),
-                  getVersionChangeData(
-                    'next-non-failing',
-                    fooComponentIdentifier
-                  ),
+                  getVersionChangeData('next-no-violations', fooComponentIdentifier),
+                  getVersionChangeData('next-non-failing', fooComponentIdentifier),
                 ],
               },
             };
@@ -803,10 +711,7 @@ var clmEndpointTemplate = {
             });
             $httpBackend.verifyNoOutstandingRequest();
 
-            spyOn(
-              Brain[clmEndpoint.type],
-              'getComponentListUrl'
-            ).and.returnValue('foo');
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
             $httpBackend.expectGET('foo').respond(remediationData);
             Insight.setGav(gav);
             $httpBackend.flush();
@@ -835,22 +740,12 @@ var clmEndpointTemplate = {
               version: '1',
               proprietary: true,
             };
-            const fooComponentIdentifier = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '1'
-            );
+            const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '1');
             const remediationData = {
               remediation: {
                 versionChanges: [
-                  getVersionChangeData(
-                    'next-no-violations',
-                    fooComponentIdentifier
-                  ),
-                  getVersionChangeData(
-                    'next-no-violations-with-dependencies',
-                    fooComponentIdentifier
-                  ),
+                  getVersionChangeData('next-no-violations', fooComponentIdentifier),
+                  getVersionChangeData('next-no-violations-with-dependencies', fooComponentIdentifier),
                 ],
               },
             };
@@ -860,18 +755,14 @@ var clmEndpointTemplate = {
             });
             $httpBackend.verifyNoOutstandingRequest();
 
-            spyOn(
-              Brain[clmEndpoint.type],
-              'getComponentListUrl'
-            ).and.returnValue('foo');
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
             $httpBackend.expectGET('foo').respond(remediationData);
             Insight.setGav(gav);
             $httpBackend.flush();
             expect(scope.suggestedRemediations.length).toEqual(1);
             expect(scope.suggestedRemediations[0]).toEqual({
               id: 'next-no-violation-dependencies-version',
-              text:
-                'The current version has no policy violations for this component and its dependencies',
+              text: 'The current version has no policy violations for this component and its dependencies',
               type: 'next-no-violations-with-dependencies',
               version: '1',
             });
@@ -887,22 +778,12 @@ var clmEndpointTemplate = {
               version: '1',
               proprietary: true,
             };
-            const fooComponentIdentifier = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '1'
-            );
+            const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '1');
             const remediationData = {
               remediation: {
                 versionChanges: [
-                  getVersionChangeData(
-                    'next-non-failing',
-                    fooComponentIdentifier
-                  ),
-                  getVersionChangeData(
-                    'next-non-failing-with-dependencies',
-                    fooComponentIdentifier
-                  ),
+                  getVersionChangeData('next-non-failing', fooComponentIdentifier),
+                  getVersionChangeData('next-non-failing-with-dependencies', fooComponentIdentifier),
                 ],
               },
             };
@@ -912,18 +793,14 @@ var clmEndpointTemplate = {
             });
             $httpBackend.verifyNoOutstandingRequest();
 
-            spyOn(
-              Brain[clmEndpoint.type],
-              'getComponentListUrl'
-            ).and.returnValue('foo');
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
             $httpBackend.expectGET('foo').respond(remediationData);
             Insight.setGav(gav);
             $httpBackend.flush();
             expect(scope.suggestedRemediations.length).toEqual(1);
             expect(scope.suggestedRemediations[0]).toEqual({
               id: 'next-no-fail-dependencies-version',
-              text:
-                "The current version doesn't cause Build failure for this component and its dependencies",
+              text: "The current version doesn't cause Build failure for this component and its dependencies",
               type: 'next-non-failing-with-dependencies',
               version: '1',
             });
@@ -939,19 +816,10 @@ var clmEndpointTemplate = {
               version: '1',
               proprietary: true,
             };
-            const fooComponentIdentifierV2 = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '2'
-            );
+            const fooComponentIdentifierV2 = returnComponentIdentifier('foo', 'bar', '2');
             const remediationData = {
               remediation: {
-                versionChanges: [
-                  getVersionChangeData(
-                    'next-non-failing',
-                    fooComponentIdentifierV2
-                  ),
-                ],
+                versionChanges: [getVersionChangeData('next-non-failing', fooComponentIdentifierV2)],
               },
             };
 
@@ -960,10 +828,7 @@ var clmEndpointTemplate = {
             });
             $httpBackend.verifyNoOutstandingRequest();
 
-            spyOn(
-              Brain[clmEndpoint.type],
-              'getComponentListUrl'
-            ).and.returnValue('foo');
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
             $httpBackend.expectGET('foo').respond(remediationData);
             Insight.setGav(gav);
             $httpBackend.flush();
@@ -988,22 +853,12 @@ var clmEndpointTemplate = {
               version: '1',
               proprietary: true,
             };
-            const fooComponentIdentifier = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '2'
-            );
+            const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '2');
             const remediationData = {
               remediation: {
                 versionChanges: [
-                  getVersionChangeData(
-                    'next-non-failing',
-                    fooComponentIdentifier
-                  ),
-                  getVersionChangeData(
-                    'next-non-failing-with-dependencies',
-                    fooComponentIdentifier
-                  ),
+                  getVersionChangeData('next-non-failing', fooComponentIdentifier),
+                  getVersionChangeData('next-non-failing-with-dependencies', fooComponentIdentifier),
                 ],
               },
             };
@@ -1013,10 +868,7 @@ var clmEndpointTemplate = {
             });
             $httpBackend.verifyNoOutstandingRequest();
 
-            spyOn(
-              Brain[clmEndpoint.type],
-              'getComponentListUrl'
-            ).and.returnValue('foo');
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
             $httpBackend.expectGET('foo').respond(remediationData);
             Insight.setGav(gav);
             $httpBackend.flush();
@@ -1031,8 +883,7 @@ var clmEndpointTemplate = {
             });
             expect(scope.suggestedRemediations[1]).toEqual({
               id: 'next-no-fail-dependencies-version-link',
-              text:
-                ': Next version with no Build failure for this component and its dependencies',
+              text: ': Next version with no Build failure for this component and its dependencies',
               type: 'next-non-failing-with-dependencies',
               linkId: 'select-no-fail-dependencies',
               linkText: '2',
@@ -1040,30 +891,17 @@ var clmEndpointTemplate = {
             });
           }));
 
-          it('correctly handles third party remediation data', inject(function (
-            $httpBackend,
-            $rootScope
-          ) {
+          it('correctly handles third party remediation data', inject(function ($httpBackend, $rootScope) {
             const gav = {
               groupId: 'foo',
               artifactId: 'bar',
               version: '1',
               proprietary: true,
             };
-            const fooComponentIdentifier = returnComponentIdentifier(
-              'foo',
-              'bar',
-              '2'
-            );
+            const fooComponentIdentifier = returnComponentIdentifier('foo', 'bar', '2');
             const remediationData = {
               remediation: {
-                versionChanges: [
-                  getVersionChangeData(
-                    'next-no-violations',
-                    fooComponentIdentifier,
-                    true
-                  ),
-                ],
+                versionChanges: [getVersionChangeData('next-no-violations', fooComponentIdentifier, true)],
               },
             };
 
@@ -1072,10 +910,7 @@ var clmEndpointTemplate = {
             });
             $httpBackend.verifyNoOutstandingRequest();
 
-            spyOn(
-              Brain[clmEndpoint.type],
-              'getComponentListUrl'
-            ).and.returnValue('foo');
+            spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
             $httpBackend.expectGET('foo').respond(remediationData);
             Insight.setGav(gav);
             $httpBackend.flush();
@@ -1097,9 +932,7 @@ var clmEndpointTemplate = {
         beforeEach(function () {
           clmEndpoint.selectApplication = true;
           proprietaryModal = jasmine.createSpyObj('proprietaryModal', ['open']);
-          selectedComponent = jasmine.createSpyObj('selectedComponent', [
-            'get',
-          ]);
+          selectedComponent = jasmine.createSpyObj('selectedComponent', ['get']);
 
           angular.mock.module(versionGraphModule.name, function ($provide) {
             $provide.value('proprietary.matchers.modal', proprietaryModal);
@@ -1164,11 +997,7 @@ var clmEndpointTemplate = {
             beforeEach(function () {
               // mock selected component with non maven pathnames present
               selectedComponent.get.and.returnValue({
-                pathnames: [
-                  'dependency:/foo',
-                  'dependency:/baz',
-                  'dependency:/bar',
-                ],
+                pathnames: ['dependency:/foo', 'dependency:/baz', 'dependency:/bar'],
               });
             });
 
@@ -1214,9 +1043,7 @@ var clmEndpointTemplate = {
             });
 
             scope.showAddProprietary();
-            expect(
-              proprietaryModal.open
-            ).toHaveBeenCalledWith('testParentApplication', ['foo', 'bar']);
+            expect(proprietaryModal.open).toHaveBeenCalledWith('testParentApplication', ['foo', 'bar']);
           });
         });
       });
@@ -1255,35 +1082,20 @@ var clmEndpointTemplate = {
           identificationSource: 'Sonatype',
         };
 
-        it('retrieves the application internal ID', inject(function (
-          $httpBackend
-        ) {
+        it('retrieves the application internal ID', inject(function ($httpBackend) {
           $httpBackend.verifyNoOutstandingRequest();
-          spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue(
-            'foo'
-          );
-          const fooComponentIdentifierV3 = returnComponentIdentifier(
-            'foo',
-            'bar',
-            '3'
-          );
+          spyOn(Brain[clmEndpoint.type], 'getComponentListUrl').and.returnValue('foo');
+          const fooComponentIdentifierV3 = returnComponentIdentifier('foo', 'bar', '3');
           const remediationData = {
             remediation: {
-              versionChanges: [
-                getVersionChangeData(
-                  'next-no-violations',
-                  fooComponentIdentifierV3
-                ),
-              ],
+              versionChanges: [getVersionChangeData('next-no-violations', fooComponentIdentifierV3)],
             },
           };
           $httpBackend.expectGET('foo').respond(remediationData);
 
           Insight.setCoordinates('maven', coords, properties);
           $httpBackend.flush();
-          expect(
-            Brain[clmEndpoint.type].getComponentListUrl
-          ).toHaveBeenCalled();
+          expect(Brain[clmEndpoint.type].getComponentListUrl).toHaveBeenCalled();
         }));
       });
 
@@ -1388,9 +1200,7 @@ var clmEndpointTemplate = {
                 scope.markSelection({ type: 'next-non-failing' });
               });
 
-              it('does not not update coordinates', inject(function (
-                Coordinates
-              ) {
+              it('does not not update coordinates', inject(function (Coordinates) {
                 expect(Coordinates.getSelected().version).toEqual('1');
               }));
 
@@ -1418,12 +1228,7 @@ var clmEndpointTemplate = {
         scope.$destroy();
       });
 
-      it('Http Requests', inject(function (
-        $httpBackend,
-        OwnerContext,
-        Coordinates,
-        Properties
-      ) {
+      it('Http Requests', inject(function ($httpBackend, OwnerContext, Coordinates, Properties) {
         var gav = {
           groupId: 'foo',
           artifactId: 'bar',
@@ -1443,12 +1248,8 @@ var clmEndpointTemplate = {
         });
         $httpBackend.verifyNoOutstandingRequest();
 
-        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue(
-          'foo'
-        );
-        $httpBackend
-          .expectGET('foo')
-          .respond({ securityVulnerabilities: [], policyAlerts: [] });
+        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue('foo');
+        $httpBackend.expectGET('foo').respond({ securityVulnerabilities: [], policyAlerts: [] });
         Insight.setGav(angular.extend({ matchState: 'similar' }, gav));
         $httpBackend.flush();
         expect(Brain[clmEndpoint.type].getComponentUrl).toHaveBeenCalledWith(
@@ -1548,11 +1349,7 @@ var clmEndpointTemplate = {
         expect(scope.canMigrate()).toBeTruthy();
       }));
 
-      it('getMaximumSeverity', inject(function (
-        $httpBackend,
-        Coordinates,
-        OwnerContext
-      ) {
+      it('getMaximumSeverity', inject(function ($httpBackend, Coordinates, OwnerContext) {
         scope.componentDetails = {
           securityVulnerabilities: [],
         };
@@ -1569,16 +1366,9 @@ var clmEndpointTemplate = {
           version: 'version',
         };
 
-        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue(
-          'foo'
-        );
+        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue('foo');
         $httpBackend.expectGET('foo').respond({
-          securityVulnerabilities: [
-            { severity: null },
-            { severity: 2 },
-            { severity: 9 },
-            { severity: 8 },
-          ],
+          securityVulnerabilities: [{ severity: null }, { severity: 2 }, { severity: 9 }, { severity: 8 }],
           policyAlerts: [],
         });
 
@@ -1591,11 +1381,7 @@ var clmEndpointTemplate = {
         expect(scope.getMaximumSeverity()).toEqual(9);
       }));
 
-      it('calculates highestPolicyThreat', inject(function (
-        $httpBackend,
-        Coordinates,
-        OwnerContext
-      ) {
+      it('calculates highestPolicyThreat', inject(function ($httpBackend, Coordinates, OwnerContext) {
         var gav = {
           groupId: 'groupId',
           artifactId: 'artifactId',
@@ -1603,9 +1389,7 @@ var clmEndpointTemplate = {
         };
         expect(scope.highestPolicyThreat).toBeFalsy();
 
-        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue(
-          'foo'
-        );
+        spyOn(Brain[clmEndpoint.type], 'getComponentUrl').and.returnValue('foo');
         $httpBackend.expectGET('foo').respond({
           securityVulnerabilities: [],
           policyAlerts: [
@@ -1804,11 +1588,7 @@ var clmEndpointTemplate = {
             Coordinates.set('nuget', coordinates);
             Coordinates.setSelected(selected);
             $rootScope.$emit('markUpgrade', Coordinates.getSelected());
-            expect(listener).toHaveBeenCalledWith(
-              'nuget',
-              selected,
-              coordinates
-            );
+            expect(listener).toHaveBeenCalledWith('nuget', selected, coordinates);
 
             done();
           }, 10);
@@ -2011,14 +1791,10 @@ var clmEndpointTemplate = {
       });
 
       it('Version Click', inject(function (Coordinates) {
-        versionGraphMock.renderVersionGraph.calls
-          .mostRecent()
-          .args[0].versionClick('5.5.23');
+        versionGraphMock.renderVersionGraph.calls.mostRecent().args[0].versionClick('5.5.23');
         expect(Coordinates.getSelected()).toEqual({ version: '5.5.23' });
 
-        versionGraphMock.renderVersionGraph.calls
-          .mostRecent()
-          .args[0].versionClick('5.0.28');
+        versionGraphMock.renderVersionGraph.calls.mostRecent().args[0].versionClick('5.0.28');
         expect(Coordinates.getSelected()).toEqual({ version: '5.0.28' });
       }));
 
@@ -2028,9 +1804,7 @@ var clmEndpointTemplate = {
         parentScope.$on('viewDetails', function (event, v) {
           version = v;
         });
-        versionGraphMock.renderVersionGraph.calls
-          .mostRecent()
-          .args[0].versionDblClick('5.5.23');
+        versionGraphMock.renderVersionGraph.calls.mostRecent().args[0].versionDblClick('5.5.23');
         expect(version).toEqual(null);
       }));
 
@@ -2040,9 +1814,7 @@ var clmEndpointTemplate = {
         parentScope.$on('viewDetails', function (event, v) {
           version = v;
         });
-        versionGraphMock.renderVersionGraph.calls
-          .mostRecent()
-          .args[0].versionDblClick('5.5.23');
+        versionGraphMock.renderVersionGraph.calls.mostRecent().args[0].versionDblClick('5.5.23');
         expect(version).toEqual('5.5.23');
       }));
     });
@@ -2081,65 +1853,49 @@ var clmEndpointTemplate = {
         scope.viewDetailsSupported = clmEndpoint.viewDetails;
       }));
 
-      it('overwrites capabilities when called without quotes', inject(function (
-        $rootScope
-      ) {
+      it('overwrites capabilities when called without quotes', inject(function ($rootScope) {
         Insight.setCapabilities({ viewDetails: false, migrate: false });
         expect($rootScope.viewDetailsSupported).toEqual(false);
         expect($rootScope.migrateSupported).toEqual(false);
       }));
 
-      it('does not overwrite capabilities when called with null', inject(function (
-        $rootScope
-      ) {
+      it('does not overwrite capabilities when called with null', inject(function ($rootScope) {
         Insight.setCapabilities({ viewDetails: false, migrate: null });
         expect($rootScope.viewDetailsSupported).toEqual(false);
         expect($rootScope.migrateSupported).toEqual(true);
       }));
 
-      it('does not overwrite capabilities when called with missing value', inject(function (
-        $rootScope
-      ) {
+      it('does not overwrite capabilities when called with missing value', inject(function ($rootScope) {
         Insight.setCapabilities({ migrate: false });
         expect($rootScope.viewDetailsSupported).toEqual(true);
         expect($rootScope.migrateSupported).toEqual(false);
       }));
 
-      it('overwrites capabilities when called with quotes', inject(function (
-        $rootScope
-      ) {
+      it('overwrites capabilities when called with quotes', inject(function ($rootScope) {
         Insight.setCapabilities({ viewDetails: false, migrate: false });
         expect($rootScope.viewDetailsSupported).toEqual(false);
         expect($rootScope.migrateSupported).toEqual(false);
       }));
 
-      it('does not overwrite capabilities when called with quotes and null', inject(function (
-        $rootScope
-      ) {
+      it('does not overwrite capabilities when called with quotes and null', inject(function ($rootScope) {
         Insight.setCapabilities({ viewDetails: false, migrate: null });
         expect($rootScope.viewDetailsSupported).toEqual(false);
         expect($rootScope.migrateSupported).toEqual(true);
       }));
 
-      it('does not overwrite capabilities when called with quotes and missing value', inject(function (
-        $rootScope
-      ) {
+      it('does not overwrite capabilities when called with quotes and missing value', inject(function ($rootScope) {
         Insight.setCapabilities({ migrate: false });
         expect($rootScope.viewDetailsSupported).toEqual(true);
         expect($rootScope.migrateSupported).toEqual(false);
       }));
 
-      it('overwrites capabilities when called without double quotes', inject(function (
-        $rootScope
-      ) {
+      it('overwrites capabilities when called without double quotes', inject(function ($rootScope) {
         Insight.setCapabilities({ viewDetails: false, migrate: false });
         expect($rootScope.viewDetailsSupported).toEqual(false);
         expect($rootScope.migrateSupported).toEqual(false);
       }));
 
-      it('does not overwrite capabilities when called with double quotes and null', inject(function (
-        $rootScope
-      ) {
+      it('does not overwrite capabilities when called with double quotes and null', inject(function ($rootScope) {
         Insight.setCapabilities({ viewDetails: false, migrate: null });
         expect($rootScope.viewDetailsSupported).toEqual(false);
         expect($rootScope.migrateSupported).toEqual(true);

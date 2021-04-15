@@ -93,14 +93,7 @@ div.nopad {
   border-top: 1px solid #cfd0d2;
   background-color: #e6e6e6;
   background-repeat: no-repeat;
-  background-image: -webkit-gradient(
-    linear,
-    0 0,
-    0 100%,
-    from(#fafafc),
-    color-stop(25%, #fafafc),
-    to(#cfd0d2)
-  );
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fafafc), color-stop(25%, #fafafc), to(#cfd0d2));
   background-image: -webkit-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
   background-image: -moz-linear-gradient(top, #fafafc, #fafafc 25%, #cfd0d2);
   background-image: -ms-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
@@ -161,14 +154,7 @@ div.slick-header-column-sorted {
   border-bottom: 1px solid #b5c6e0 !important;
   background-color: #e7eefe;
   background-repeat: no-repeat;
-  background-image: -webkit-gradient(
-    linear,
-    0 0,
-    0 100%,
-    from(#f5f9fa),
-    color-stop(25%, #f5f9fa),
-    to(#b5c6e0)
-  );
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f5f9fa), color-stop(25%, #f5f9fa), to(#b5c6e0));
   background-image: -webkit-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
   background-image: -moz-linear-gradient(top, #f5f9fa, #f5f9fa 25%, #b5c6e0);
   background-image: -ms-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);

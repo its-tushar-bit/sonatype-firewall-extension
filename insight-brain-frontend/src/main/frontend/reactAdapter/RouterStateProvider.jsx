@@ -5,9 +5,7 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import RouterStateContext, {
-  routerPropType,
-} from '../react/RouterStateContext';
+import RouterStateContext, { routerPropType } from '../react/RouterStateContext';
 
 export default function withRouterStateProvider(WrappedComponent) {
   function RouterStateProvider({ $state, ...props }) {
@@ -18,9 +16,7 @@ export default function withRouterStateProvider(WrappedComponent) {
     );
   }
 
-  RouterStateProvider.displayName = `withRouterStateProvider(${getDisplayName(
-    WrappedComponent
-  )})`;
+  RouterStateProvider.displayName = `withRouterStateProvider(${getDisplayName(WrappedComponent)})`;
   RouterStateProvider.propTypes = {
     $state: routerPropType,
   };
@@ -32,9 +28,5 @@ withRouterStateProvider.propTypes = {
 };
 
 function getDisplayName(WrappedComponent) {
-  return (
-    WrappedComponent.displayName ||
-    WrappedComponent.name ||
-    'AnonymousComponent'
-  );
+  return WrappedComponent.displayName || WrappedComponent.name || 'AnonymousComponent';
 }

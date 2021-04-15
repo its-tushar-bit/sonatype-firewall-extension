@@ -4,10 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './rawLicenseDisplay.html';
-import {
-  getDeclaredLicensesDisplay,
-  getObservedLicensesDisplay,
-} from '../../licenseDisplayUtils';
+import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from '../../licenseDisplayUtils';
 
 export default {
   template,

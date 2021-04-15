@@ -3,21 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  NxSubmitMask,
-  NxButton,
-  NxModal,
-  NxLoadError,
-} from '@sonatype/react-shared-components';
+import { NxSubmitMask, NxButton, NxModal, NxLoadError } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 import DeleteWaiverModal from '../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModal';
 
 describe('DeleteWaiverModal', function () {
-  let minimalProps,
-    deleteWaiverSpy,
-    hideDeleteWaiverModalSpy,
-    getShallowComponent,
-    getMountedComponent;
+  let minimalProps, deleteWaiverSpy, hideDeleteWaiverModalSpy, getShallowComponent, getMountedComponent;
 
   beforeEach(function () {
     deleteWaiverSpy = jasmine.createSpy('deleteWaiver');
@@ -33,14 +24,8 @@ describe('DeleteWaiverModal', function () {
       hideDeleteWaiverModal: hideDeleteWaiverModalSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DeleteWaiverModal,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      DeleteWaiverModal,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DeleteWaiverModal, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(DeleteWaiverModal, minimalProps);
   });
 
   it('renders an NxModal', function () {
@@ -57,9 +42,7 @@ describe('DeleteWaiverModal', function () {
 
     const modalContent = component.find('.nx-modal-content');
     expect(modalContent).toExist();
-    expect(modalContent).toHaveText(
-      'Are you sure you want to delete this waiver?'
-    );
+    expect(modalContent).toHaveText('Are you sure you want to delete this waiver?');
 
     const modalFooter = component.find('.nx-footer');
     expect(modalFooter).toExist();
@@ -88,11 +71,7 @@ describe('DeleteWaiverModal', function () {
       yesButton = component.find('#delete-waiver-modal-continue-button');
 
     yesButton.simulate('click');
-    expect(deleteWaiverSpy).toHaveBeenCalledWith(
-      'application',
-      'App-name',
-      'waiver-id'
-    );
+    expect(deleteWaiverSpy).toHaveBeenCalledWith('application', 'App-name', 'waiver-id');
   });
 
   it('correctly handles the root org scenario when clicking Yes to delete the waiver', function () {
@@ -131,10 +110,7 @@ describe('DeleteWaiverModal', function () {
 
     expect(err).toExist();
     expect(err).toHaveProp('error', 'err!');
-    expect(err).toHaveProp(
-      'titleMessage',
-      'An error occurred deleting the waiver.'
-    );
+    expect(err).toHaveProp('titleMessage', 'An error occurred deleting the waiver.');
     expect(err).toHaveProp('retryHandler');
 
     const yesButton = component.find('#delete-waiver-modal-continue-button');

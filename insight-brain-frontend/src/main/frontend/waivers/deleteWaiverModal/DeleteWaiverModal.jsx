@@ -5,51 +5,32 @@
  */
 import React from 'react';
 
-import {
-  NxButton,
-  NxFontAwesomeIcon,
-  NxLoadError,
-  NxModal,
-  NxSubmitMask,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxLoadError, NxModal, NxSubmitMask } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 import { waiverType } from '../ListWaiversTable';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 export default function DeleteWaiverModal(props) {
-  const {
-    waiverToDelete,
-    deleteWaiver,
-    hideDeleteWaiverModal,
-    deleteWaiverError,
-    deleteWaiverSaving,
-  } = props;
+  const { waiverToDelete, deleteWaiver, hideDeleteWaiverModal, deleteWaiverError, deleteWaiverSaving } = props;
 
   const handleDeleteWaiver = () => {
     const { scopeOwnerId, scopeOwnerType, policyWaiverId } = waiverToDelete,
-      ownerType =
-        scopeOwnerType === 'root_organization'
-          ? 'organization'
-          : scopeOwnerType;
+      ownerType = scopeOwnerType === 'root_organization' ? 'organization' : scopeOwnerType;
 
     deleteWaiver(ownerType, scopeOwnerId, policyWaiverId);
   };
 
   return (
     <NxModal id="delete-waiver-modal" onClose={hideDeleteWaiverModal}>
-      {deleteWaiverSaving != null && (
-        <NxSubmitMask message="Removing…" success={deleteWaiverSaving} />
-      )}
+      {deleteWaiverSaving != null && <NxSubmitMask message="Removing…" success={deleteWaiverSaving} />}
       <header className="nx-modal-header">
         <h2 className="nx-h2">
           <NxFontAwesomeIcon icon={faTrashAlt} />
           <span>Delete Waiver</span>
         </h2>
       </header>
-      <div className="nx-modal-content">
-        Are you sure you want to delete this waiver?
-      </div>
+      <div className="nx-modal-content">Are you sure you want to delete this waiver?</div>
       <footer className="nx-footer">
         {deleteWaiverError && (
           <NxLoadError
@@ -59,19 +40,11 @@ export default function DeleteWaiverModal(props) {
           />
         )}
         <div className="nx-btn-bar">
-          <NxButton
-            id="delete-waiver-modal-cancel-button"
-            type="button"
-            onClick={hideDeleteWaiverModal}
-          >
+          <NxButton id="delete-waiver-modal-cancel-button" type="button" onClick={hideDeleteWaiverModal}>
             Cancel
           </NxButton>
           {!deleteWaiverError && (
-            <NxButton
-              variant="primary"
-              id="delete-waiver-modal-continue-button"
-              onClick={handleDeleteWaiver}
-            >
+            <NxButton variant="primary" id="delete-waiver-modal-continue-button" onClick={handleDeleteWaiver}>
               Delete Waiver
             </NxButton>
           )}

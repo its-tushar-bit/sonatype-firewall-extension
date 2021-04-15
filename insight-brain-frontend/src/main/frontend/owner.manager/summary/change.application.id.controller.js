@@ -25,8 +25,7 @@ export default function ChangeApplicationIdController(
   vm.applicationIdEditorMask = undefined;
   vm.unsavedModalVisible = false;
   // Override messages to be used in the field validation popover
-  const invalidCharactersMessage =
-    'Use valid characters: alphanumeric, "_", "." or "-"';
+  const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
   vm.formMessages = {
     duplicate: 'ID is already in use',
     validNameCharacters: invalidCharactersMessage,
@@ -74,10 +73,7 @@ export default function ChangeApplicationIdController(
   }
 
   function isDirty() {
-    return (
-      vm.dirtyApp.publicId !== null &&
-      vm.dirtyApp.publicId !== vm.originalApp.publicId
-    );
+    return vm.dirtyApp.publicId !== null && vm.dirtyApp.publicId !== vm.originalApp.publicId;
   }
 }
 

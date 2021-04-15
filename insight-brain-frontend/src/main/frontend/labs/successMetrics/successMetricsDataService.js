@@ -3,42 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  complement,
-  concat,
-  drop,
-  dropWhile,
-  equals,
-  map,
-  objOf,
-  takeWhile,
-} from 'ramda';
+import { complement, concat, drop, dropWhile, equals, map, objOf, takeWhile } from 'ramda';
 
 const EMPTY_PREFIX = '~empty~';
 
 const getData = ({ data }) => data;
 
-const MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export default function successMetricsDataService(
-  $q,
-  $http,
-  CLMLocations,
-  ApplicationStore
-) {
+export default function successMetricsDataService($q, $http, CLMLocations, ApplicationStore) {
   return {
     getChartData: getChartData,
     getComponentCountsData: getComponentCountsData,
@@ -50,9 +23,7 @@ export default function successMetricsDataService(
   };
 
   function getChartData(successMetricsReport) {
-    const url = CLMLocations.getSuccessMetricsChartDataUrl(
-      successMetricsReport.id
-    );
+    const url = CLMLocations.getSuccessMetricsChartDataUrl(successMetricsReport.id);
 
     return $http.get(url).then(function ({ data }) {
       return {
@@ -80,14 +51,8 @@ export default function successMetricsDataService(
           // previous months that come before firstMonthName in the year
           previousMonthsInYear = takeWhile(isNotFirstMonthOfData, MONTHS),
           // additional months from the previous year for a total of a full year
-          additionalMonthsInPreviousYear = dropWhile(
-            isNotFirstMonthOfData,
-            MONTHS
-          ),
-          yearOfMonthsBeforeData = concat(
-            additionalMonthsInPreviousYear,
-            previousMonthsInYear
-          ),
+          additionalMonthsInPreviousYear = dropWhile(isNotFirstMonthOfData, MONTHS),
+          yearOfMonthsBeforeData = concat(additionalMonthsInPreviousYear, previousMonthsInYear),
           // months that we need to add to the data to get a year overall
           missingMonths = drop(monthsOfMttr, yearOfMonthsBeforeData),
           missingRecords = map(objOf('timePeriodName'), missingMonths);
@@ -100,24 +65,15 @@ export default function successMetricsDataService(
 
   function getComponentCountsData(successMetricsReport) {
     return $http
-      .get(
-        CLMLocations.getSuccessMetricsComponentCountsUrl(
-          successMetricsReport.id
-        )
-      )
+      .get(CLMLocations.getSuccessMetricsComponentCountsUrl(successMetricsReport.id))
       .then(function ({ data }) {
-        var componentCountMostApplications =
-          data.componentsInTheMostApplications.length;
-        if (
-          componentCountMostApplications > 0 &&
-          componentCountMostApplications < 5
-        ) {
+        var componentCountMostApplications = data.componentsInTheMostApplications.length;
+        if (componentCountMostApplications > 0 && componentCountMostApplications < 5) {
           data.componentsInTheMostApplications = data.componentsInTheMostApplications.concat(
             padMissingComponents(componentCountMostApplications)
           );
         }
-        var componentCountViolations =
-          data.componentsWithTheMostViolations.length;
+        var componentCountViolations = data.componentsWithTheMostViolations.length;
         if (componentCountViolations > 0 && componentCountViolations < 5) {
           data.componentsWithTheMostViolations = data.componentsWithTheMostViolations.concat(
             padMissingComponents(componentCountViolations)
@@ -146,21 +102,12 @@ export default function successMetricsDataService(
     return $http.get(CLMLocations.getSuccessMetricsReportsUrl()).then(getData);
   }
 
-  function createSuccessMetricsReportForCurrentUser(
-    successMetricConfiguration
-  ) {
-    return $http
-      .post(
-        CLMLocations.getSuccessMetricsReportsUrl(),
-        successMetricConfiguration
-      )
-      .then(getData);
+  function createSuccessMetricsReportForCurrentUser(successMetricConfiguration) {
+    return $http.post(CLMLocations.getSuccessMetricsReportsUrl(), successMetricConfiguration).then(getData);
   }
 
   function deleteSuccessMetricsReport(successMetricsReportId) {
-    return $http.delete(
-      CLMLocations.getSuccessMetricsReportUrl(successMetricsReportId)
-    );
+    return $http.delete(CLMLocations.getSuccessMetricsReportUrl(successMetricsReportId));
   }
 
   // ApplicationStore is configured to lookup by public id not internal id
@@ -182,9 +129,4 @@ export default function successMetricsDataService(
   }
 }
 
-successMetricsDataService.$inject = [
-  '$q',
-  '$http',
-  'CLMLocations',
-  'ApplicationStore',
-];
+successMetricsDataService.$inject = ['$q', '$http', 'CLMLocations', 'ApplicationStore'];

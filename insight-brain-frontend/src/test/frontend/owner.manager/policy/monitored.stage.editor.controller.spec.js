@@ -18,27 +18,16 @@ describe('monitored.stage.editor.controller.spec.js', function () {
     $timeout,
     $httpBackend,
     mockStageTypeStore = StoreUtils().createMockStore('StageTypeStore'),
-    mockPolicyMonitoringStore = StoreUtils().createMockStore(
-      'PolicyMonitoringStore'
-    ),
+    mockPolicyMonitoringStore = StoreUtils().createMockStore('PolicyMonitoringStore'),
     mockMonitoredStageService,
     CLMLocations;
 
-  beforeEach(inject(function (
-    $rootScope,
-    $q,
-    _$timeout_,
-    _$httpBackend_,
-    $controller,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function ($rootScope, $q, _$timeout_, _$httpBackend_, $controller, _CLMLocations_) {
     scope = $rootScope.$new();
     $timeout = _$timeout_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
-    $httpBackend
-      .expectGET(CLMLocations.getProductFeaturesUrl())
-      .respond(['policy-monitoring']);
+    $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['policy-monitoring']);
     mockMonitoredStageService = {
       createInheritOrNoMonitorOption: function () {
         return { stageName: 'Inherit from parent (Do not monitor)' };
@@ -56,12 +45,8 @@ describe('monitored.stage.editor.controller.spec.js', function () {
   }));
 
   it('Sets state correctly on load', function () {
-    mockStageTypeStore.resolveGet([
-      { stageName: 'release', stageTypeId: 'foo_id' },
-    ]);
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
+    mockStageTypeStore.resolveGet([{ stageName: 'release', stageTypeId: 'foo_id' }]);
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     $timeout.flush();
     $httpBackend.flush();
 
@@ -73,9 +58,7 @@ describe('monitored.stage.editor.controller.spec.js', function () {
 
   it('Saves selected stage', function () {
     mockStageTypeStore.resolveGet([]);
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     $timeout.flush();
     $httpBackend.flush();
     vm.monitoredStage = { stageTypeId: 'Deploy' };
@@ -86,9 +69,7 @@ describe('monitored.stage.editor.controller.spec.js', function () {
 
   it('Removes stage if not selected', function () {
     mockStageTypeStore.resolveGet([]);
-    mockPolicyMonitoringStore.resolveGetApplicable(
-      PolicyTileMockData.getPolicyMonitoring()
-    );
+    mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
     $timeout.flush();
     $httpBackend.flush();
     vm.monitoredStage = { stageTypeName: 'Do not monitor' };
@@ -100,9 +81,7 @@ describe('monitored.stage.editor.controller.spec.js', function () {
   describe('Page Changes', function () {
     beforeEach(function () {
       mockStageTypeStore.resolveGet([]);
-      mockPolicyMonitoringStore.resolveGetApplicable(
-        PolicyTileMockData.getPolicyMonitoring()
-      );
+      mockPolicyMonitoringStore.resolveGetApplicable(PolicyTileMockData.getPolicyMonitoring());
       $timeout.flush();
       $httpBackend.flush();
     });

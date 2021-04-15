@@ -8,9 +8,7 @@ import $ from 'jquery';
 // NOTE: originally copied from slick.grid.tipsy.js and then modified to use bootstrap instead of tipsy
 export default function SlickGridTooltip(options) {
   if (!jQuery.fn.tooltip) {
-    throw new Error(
-      'SlickGrid Tooltip plugin requires bootstrap-tooltip module to be loaded'
-    );
+    throw new Error('SlickGrid Tooltip plugin requires bootstrap-tooltip module to be loaded');
   }
 
   let _grid, _headerTimer, _cellTimer;
@@ -80,11 +78,7 @@ export default function SlickGridTooltip(options) {
           var index = i;
           var toolTipFn = columns[i].toolTipFn;
           var toolTipGravity = columns[i].toolTipGravity;
-          _addTooltipToCellNodes(
-            index,
-            toolTipFn,
-            getPlacement(toolTipGravity)
-          );
+          _addTooltipToCellNodes(index, toolTipFn, getPlacement(toolTipGravity));
         }
       }
     }, 500);
@@ -121,9 +115,7 @@ export default function SlickGridTooltip(options) {
           const slickGridContainer = $(_grid.getHeaderRow()).parent().parent(),
             headerIndex = _grid.getColumnIndex(column.id),
             header = slickGridContainer.find(
-              `> .slick-header > .slick-header-columns > .slick-header-column:nth-child(${
-                headerIndex + 1
-              })`
+              `> .slick-header > .slick-header-columns > .slick-header-column:nth-child(${headerIndex + 1})`
             );
 
           if (column.toolTip) {
@@ -155,10 +147,7 @@ export default function SlickGridTooltip(options) {
           if (cellNode) {
             if (node.innerWidth() < cellNode.scrollWidth) {
               var text = $.trim(node.text());
-              if (
-                options.maxToolTipLength &&
-                text.length > options.maxToolTipLength
-              ) {
+              if (options.maxToolTipLength && text.length > options.maxToolTipLength) {
                 text = text.substr(0, options.maxToolTipLength - 3) + '...';
               }
 

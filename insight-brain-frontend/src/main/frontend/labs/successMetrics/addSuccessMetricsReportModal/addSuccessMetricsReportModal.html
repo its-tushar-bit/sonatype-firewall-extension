@@ -8,16 +8,9 @@
     novalidate
     ng-submit="vm.onSubmit()"
   >
-    <div
-      class="iq-modal-content iq-scrollable"
-      load-wrapper
-      loading="!vm.loaded"
-      reload="vm.$onInit"
-    >
+    <div class="iq-modal-content iq-scrollable" load-wrapper loading="!vm.loaded" reload="vm.$onInit">
       <div class="iq-form-group">
-        <label class="iq-label" for="add-success-metrics-report-name"
-          >Name</label
-        >
+        <label class="iq-label" for="add-success-metrics-report-name">Name</label>
         <input
           id="add-success-metrics-report-name"
           class="iq-text-input"
@@ -38,46 +31,25 @@
       </div>
       <fieldset class="iq-radio-group iq-form-group">
         <legend class="iq-label">Aggregation data</legend>
-        <iq-radio
-          id="add-success-metrics-monthly"
-          model="vm.includeLatestData"
-          value="false"
-        >
+        <iq-radio id="add-success-metrics-monthly" model="vm.includeLatestData" value="false">
           only full calendar weeks and months
         </iq-radio>
-        <iq-radio
-          id="add-success-metrics-latest"
-          model="vm.includeLatestData"
-          value="true"
-        >
+        <iq-radio id="add-success-metrics-latest" model="vm.includeLatestData" value="true">
           including most recent evaluations
         </iq-radio>
-        <div
-          class="iq-alert"
-          id="add-success-metrics-perf-warning"
-          ng-if="vm.includeLatestData"
-        >
+        <div class="iq-alert" id="add-success-metrics-perf-warning" ng-if="vm.includeLatestData">
           <i class="fa fa-warning"></i
           ><!--
-         -->Data for incomplete months and weeks will skew averages. May be slow
-          for large data sets.
+         -->Data for incomplete months and weeks will skew averages. May be slow for large data sets.
         </div>
       </fieldset>
       <fieldset class="iq-radio-group iq-form-group">
         <legend class="iq-label">Scope</legend>
-        <iq-radio
-          id="add-success-metrics-report-all-applications"
-          model="vm.isAllApplications"
-          value="true"
+        <iq-radio id="add-success-metrics-report-all-applications" model="vm.isAllApplications" value="true"
           ><!--
          --><i class="fa fa-globe"></i> all applications
         </iq-radio>
-        <iq-radio
-          id="add-success-metrics-report-custom"
-          model="vm.isAllApplications"
-          value="false"
-          >custom</iq-radio
-        >
+        <iq-radio id="add-success-metrics-report-custom" model="vm.isAllApplications" value="false">custom</iq-radio>
         <iq-org-app-picker-angular
           ng-if="!vm.isAllApplications"
           organizations="vm.organizations"
@@ -103,16 +75,9 @@
         submit-dirty="vm.isCreateEnabled()"
       >
         <span ng-if="!vm.error"> Create </span>
-        <span ng-if="vm.error">
-          <i class="fa fa-refresh"></i>Retry
-        </span></button
+        <span ng-if="vm.error"> <i class="fa fa-refresh"></i>Retry </span></button
       ><!--
-   --><button
-        type="button"
-        id="add-success-metrics-report-cancel-btn"
-        class="iq-btn"
-        ng-click="vm.dismiss()"
-      >
+   --><button type="button" id="add-success-metrics-report-cancel-btn" class="iq-btn" ng-click="vm.dismiss()">
         Cancel
       </button>
     </footer>

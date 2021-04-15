@@ -9,9 +9,7 @@ import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigura
 describe('dropdown.selector.directive.spec.js', function () {
   var element;
 
-  beforeEach(
-    angular.mock.module(utilityModule.name, legacyConfigurationModule.name)
-  );
+  beforeEach(angular.mock.module(utilityModule.name, legacyConfigurationModule.name));
 
   describe('with Object Options', function () {
     beforeEach(inject(function ($compile, $rootScope) {
@@ -21,11 +19,7 @@ describe('dropdown.selector.directive.spec.js', function () {
         form: null,
         testModel: null,
         optionNameParam: 'name',
-        options: [
-          { name: 'cherry' },
-          { name: 'orange' },
-          { name: 'raspberry' },
-        ],
+        options: [{ name: 'cherry' }, { name: 'orange' }, { name: 'raspberry' }],
         emptyOptionString: 'Nothing is Selected',
         noOptionsString: 'No Berries Available',
         onSelect: jasmine.createSpy(),
@@ -46,13 +40,9 @@ describe('dropdown.selector.directive.spec.js', function () {
     it('Directive creates full list of options', function () {
       var scope = element.scope();
 
-      expect(element.find('.iq-form-select__item').text()).toEqual(
-        'Nothing is Selected'
-      );
+      expect(element.find('.iq-form-select__item').text()).toEqual('Nothing is Selected');
 
-      expect(element.find('.dropdown-menu li').length).toBe(
-        scope.options.length
-      );
+      expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
       element.find('.dropdown-menu li a').each(function (index) {
         expect(this.text).toEqual(scope.options[index].name);
       });
@@ -67,9 +57,7 @@ describe('dropdown.selector.directive.spec.js', function () {
         vm.selectItem(vm.options[i]);
         isolatedScope.$apply();
 
-        expect(element.find('.iq-form-select__item').text()).toEqual(
-          vm.options[i].name
-        );
+        expect(element.find('.iq-form-select__item').text()).toEqual(vm.options[i].name);
         expect(scope.onSelect).toHaveBeenCalledWith(vm.options[i]);
       }
     });
@@ -81,9 +69,7 @@ describe('dropdown.selector.directive.spec.js', function () {
       expect(vm.optionViewMap['testOption']).toBeUndefined();
       scope.options.push({ name: 'testOption' });
       scope.$digest();
-      expect(
-        angular.equals(vm.optionViewMap['testOption'], { name: 'testOption' })
-      ).toBeTruthy();
+      expect(angular.equals(vm.optionViewMap['testOption'], { name: 'testOption' })).toBeTruthy();
     });
 
     it('Directive properly adds no-options class', function () {
@@ -111,9 +97,7 @@ describe('dropdown.selector.directive.spec.js', function () {
       scope.options = undefined;
       scope.$digest();
 
-      expect(element.find('.iq-form-select__item').text().trim()).toBe(
-        'No Options Set'
-      );
+      expect(element.find('.iq-form-select__item').text().trim()).toBe('No Options Set');
       expect(element.attr('class').split(' ')).toContain('disabled');
     });
 
@@ -142,8 +126,7 @@ describe('dropdown.selector.directive.spec.js', function () {
       });
 
       element = $compile(
-        '<form><dropdown-selector ng-model="testModel" options="options"></dropdown-selector>' +
-          '</form>'
+        '<form><dropdown-selector ng-model="testModel" options="options"></dropdown-selector>' + '</form>'
       )(scope).children();
 
       scope.$digest();
@@ -152,13 +135,9 @@ describe('dropdown.selector.directive.spec.js', function () {
     it('Directive creates full list of string options', function () {
       var scope = element.scope();
 
-      expect(element.find('.iq-form-select__item').text()).toEqual(
-        'None Selected'
-      );
+      expect(element.find('.iq-form-select__item').text()).toEqual('None Selected');
 
-      expect(element.find('.dropdown-menu li').length).toBe(
-        scope.options.length
-      );
+      expect(element.find('.dropdown-menu li').length).toBe(scope.options.length);
       element.find('.dropdown-menu li a').each(function (index) {
         expect(this.text).toEqual(scope.options[index]);
       });
@@ -174,9 +153,7 @@ describe('dropdown.selector.directive.spec.js', function () {
         vm.selectItem(vm.options[i]);
         isolatedScope.$apply();
 
-        expect(element.find('.iq-form-select__item').text()).toEqual(
-          vm.options[i]
-        );
+        expect(element.find('.iq-form-select__item').text()).toEqual(vm.options[i]);
       }
     });
   });
@@ -216,9 +193,7 @@ describe('dropdown.selector.directive.spec.js', function () {
         vm.selectItem(vm.options[i]);
         isolatedScope.$apply();
 
-        expect(element.find('.iq-form-select__item').text()).toEqual(
-          vm.options[i].name
-        );
+        expect(element.find('.iq-form-select__item').text()).toEqual(vm.options[i].name);
         expect(scope.testModel).toEqual(vm.options[i].id);
       }
     });

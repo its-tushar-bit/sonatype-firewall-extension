@@ -13,11 +13,7 @@ import ownerConstant from '../utility/services/owner.constant';
 // should be included in queryParamsToObfuscate. Any query parameters that are enums or contain generic information
 // should be added to queryParamsToShowInPlaintext
 const queryParamsToObfuscate = ['sidebarId'];
-const queryParamsToShowInPlaintext = [
-  'type',
-  'sidebarReference',
-  'policyViolationId',
-];
+const queryParamsToShowInPlaintext = ['type', 'sidebarReference', 'policyViolationId'];
 
 /**
  * Provides a `sanitize` function that removes the baseUrl and any dynamic route parameters from URLs within the
@@ -47,9 +43,7 @@ function sanitizeUrlService($urlService, baseUrlService) {
 
   // detect both of ui-router's parameter syntax styles: brace-enclosed and leading colon
   function isUrlParameter(part) {
-    return (
-      (part[0] === '{' && part[part.length - 1] === '}') || part[0] === ':'
-    );
+    return (part[0] === '{' && part[part.length - 1] === '}') || part[0] === ':';
   }
 
   /**
@@ -63,14 +57,10 @@ function sanitizeUrlService($urlService, baseUrlService) {
       return realPart;
     } else if (isUrlParameter(parameterizedPart)) {
       // we specifically want to exclude ROOT_ORGANIZATION_ID from obfuscation
-      return realPart === ownerConstant.ROOT_ORGANIZATION_ID
-        ? realPart
-        : hash(realPart);
+      return realPart === ownerConstant.ROOT_ORGANIZATION_ID ? realPart : hash(realPart);
     } else {
       // sanity check
-      throw new Error(
-        `Unexpected URL parts. Real: ${realPart}; parameterized: ${parameterizedPart}`
-      );
+      throw new Error(`Unexpected URL parts. Real: ${realPart}; parameterized: ${parameterizedPart}`);
     }
   }
 
@@ -86,15 +76,11 @@ function sanitizeUrlService($urlService, baseUrlService) {
       if (contains(key, queryParamsToObfuscate)) {
         return hash(val);
       }
-      console.warn(
-        `Possible unobfuscated query param ${key}=${val} detected in sanitizeUrlService`
-      );
+      console.warn(`Possible unobfuscated query param ${key}=${val} detected in sanitizeUrlService`);
       return val;
     };
 
-    return stringify(
-      mapObjIndexed(obfuscateQueryValueIfNeeded, parse(hashQuery))
-    );
+    return stringify(mapObjIndexed(obfuscateQueryValueIfNeeded, parse(hashQuery)));
   }
 
   return {
@@ -106,39 +92,20 @@ function sanitizeUrlService($urlService, baseUrlService) {
       if (isExternal) {
         return url;
       } else {
-        const [
-            ,
-            beforeHash,
-            ,
-            ,
-            hash,
-            ,
-            hashQuery,
-          ] = /^([^#]*)?(#(([^?]*)(\?(.*))?))?/.exec(url),
+        const [, beforeHash, , , hash, , hashQuery] = /^([^#]*)?(#(([^?]*)(\?(.*))?))?/.exec(url),
           baseUrlEndIndex = indexOfBaseUrl + baseUrl.length,
-          urlAfterBaseUrl = beforeHash
-            ? beforeHash.substring(baseUrlEndIndex)
-            : '';
+          urlAfterBaseUrl = beforeHash ? beforeHash.substring(baseUrlEndIndex) : '';
 
         if (hash) {
           const routerMatch = $urlService.match({ path: hash }),
             state = routerMatch && routerMatch.rule.state,
-            parameterizedHash = state
-              ? getParameterizedPathFromState(state, '', [])
-              : hash,
+            parameterizedHash = state ? getParameterizedPathFromState(state, '', []) : hash,
             parameterizedHashParts = parameterizedHash.split('/'),
             hashParts = hash.split('/'),
-            obfuscatedParts = zipWith(
-              maybeObfuscateUrlPart,
-              hashParts,
-              parameterizedHashParts
-            ),
+            obfuscatedParts = zipWith(maybeObfuscateUrlPart, hashParts, parameterizedHashParts),
             obfuscatedHash = obfuscatedParts.join('/'),
-            obfuscatedHashQuery =
-              hashQuery && returnHashQueryWithObfuscation(hashQuery),
-            obfuscatedHashWithQuery = obfuscatedHashQuery
-              ? `${obfuscatedHash}?${obfuscatedHashQuery}`
-              : obfuscatedHash;
+            obfuscatedHashQuery = hashQuery && returnHashQueryWithObfuscation(hashQuery),
+            obfuscatedHashWithQuery = obfuscatedHashQuery ? `${obfuscatedHash}?${obfuscatedHashQuery}` : obfuscatedHash;
 
           return `${urlAfterBaseUrl}#${obfuscatedHashWithQuery}`;
         } else {

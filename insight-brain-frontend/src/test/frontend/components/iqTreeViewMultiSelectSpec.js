@@ -29,11 +29,7 @@ describe('iqTreeViewMultiSelect', function () {
 
   describe('initialization', function () {
     it('sets selected to empty Set', inject(function ($componentController) {
-      var vmWithNoBindings = $componentController(
-        'iqTreeViewMultiSelect',
-        null,
-        null
-      );
+      var vmWithNoBindings = $componentController('iqTreeViewMultiSelect', null, null);
       expect(vmWithNoBindings.selected instanceof Set).toBe(true);
       expect(vmWithNoBindings.selected.size).toBe(0);
     }));
@@ -111,9 +107,7 @@ describe('iqTreeViewMultiSelect', function () {
 
   describe('generateCheckboxId()', function () {
     it('returns generated string', function () {
-      expect(vm.generateCheckboxId('Parent', 'child 2')).toBe(
-        'iq-tree-view-checkbox-parent-child-2'
-      );
+      expect(vm.generateCheckboxId('Parent', 'child 2')).toBe('iq-tree-view-checkbox-parent-child-2');
     });
   });
 

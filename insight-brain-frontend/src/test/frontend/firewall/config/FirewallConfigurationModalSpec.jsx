@@ -3,13 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  NxForm,
-  NxLoadError,
-  NxModal,
-  NxSubmitMask,
-  NxToggle,
-} from '@sonatype/react-shared-components';
+import { NxForm, NxLoadError, NxModal, NxSubmitMask, NxToggle } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 import FirewallConfigurationModal from '../../../../main/frontend/firewall/config/FirewallConfigurationModal';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
@@ -25,15 +19,11 @@ describe('FirewallConfigurationModal', function () {
     getMountedComponent;
 
   beforeEach(function () {
-    toggleAutoUnquarantineEnabledSpy = jasmine.createSpy(
-      'toggleAutoUnquarantineEnabled'
-    );
+    toggleAutoUnquarantineEnabledSpy = jasmine.createSpy('toggleAutoUnquarantineEnabled');
     saveConfigurationSpy = jasmine.createSpy('saveConfiguration');
     loadConfigurationSpy = jasmine.createSpy('loadConfiguration');
     closeConfigurationModalSpy = jasmine.createSpy('closeConfigurationModal');
-    toggleAutoUnquarantineAllSpy = jasmine.createSpy(
-      'toggleAutoUnquarantineAll'
-    );
+    toggleAutoUnquarantineAllSpy = jasmine.createSpy('toggleAutoUnquarantineAll');
 
     minimalProps = {
       loadedConfiguration: true,
@@ -65,14 +55,8 @@ describe('FirewallConfigurationModal', function () {
       toggleAutoUnquarantineAll: toggleAutoUnquarantineAllSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      FirewallConfigurationModal,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      FirewallConfigurationModal,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(FirewallConfigurationModal, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(FirewallConfigurationModal, minimalProps);
   });
 
   it('renders an NxModal', function () {
@@ -92,33 +76,22 @@ describe('FirewallConfigurationModal', function () {
     expect(form).toHaveProp('submitError', null);
     expect(form).toHaveProp('submitMaskState', null);
     expect(form).toHaveProp('submitBtnText', 'Save Changes');
-    expect(form).toHaveProp(
-      'validationErrors',
-      'There are no changes to save.'
-    );
+    expect(form).toHaveProp('validationErrors', 'There are no changes to save.');
     expect(form).toHaveProp('onCancel', closeConfigurationModalSpy);
 
     const modalTitle = component.find('.nx-modal-header');
     expect(modalTitle).toExist();
-    expect(modalTitle).toIncludeText(
-      'Auto Release From Quarantine Configuration'
-    );
+    expect(modalTitle).toIncludeText('Auto Release From Quarantine Configuration');
 
     const modalContent = component.find('.nx-modal-content');
     expect(modalContent).toExist();
 
-    const integrityRatingToggle = modalContent.find(
-      '#auto-unquarantine-toggle-integrity-rating'
-    );
+    const integrityRatingToggle = modalContent.find('#auto-unquarantine-toggle-integrity-rating');
     expect(integrityRatingToggle).toExist();
     expect(integrityRatingToggle).toHaveProp('isChecked', false);
-    expect(integrityRatingToggle).toHaveText(
-      'Integrity Rating policy condition type'
-    );
+    expect(integrityRatingToggle).toHaveText('Integrity Rating policy condition type');
 
-    const toggles = modalContent
-      .find('#auto-release-condition-toggles')
-      .find(NxToggle);
+    const toggles = modalContent.find('#auto-release-condition-toggles').find(NxToggle);
     expect(toggles.at(0)).toExist();
     expect(toggles.at(0)).toHaveProp('isChecked', true);
     expect(toggles.at(0)).toHaveText('Test Condition Type');
@@ -140,13 +113,9 @@ describe('FirewallConfigurationModal', function () {
     const component = getShallowComponent(),
       form = component.find(NxForm);
 
-    const releaseIntegrityToggle = component.find(
-      '#auto-unquarantine-toggle-integrity-rating'
-    );
+    const releaseIntegrityToggle = component.find('#auto-unquarantine-toggle-integrity-rating');
     releaseIntegrityToggle.simulate('change');
-    expect(toggleAutoUnquarantineEnabledSpy).toHaveBeenCalledWith(
-      'IntegrityRating'
-    );
+    expect(toggleAutoUnquarantineEnabledSpy).toHaveBeenCalledWith('IntegrityRating');
 
     form.simulate('submit');
     expect(saveConfigurationSpy).toHaveBeenCalled();
@@ -154,22 +123,15 @@ describe('FirewallConfigurationModal', function () {
 
   it('calls toggleAutoUnquarantineEnabled when integrity rating toggle is changed', function () {
     const component = getShallowComponent(),
-      releaseIntegrityToggle = component.find(
-        '#auto-unquarantine-toggle-integrity-rating'
-      );
+      releaseIntegrityToggle = component.find('#auto-unquarantine-toggle-integrity-rating');
 
     releaseIntegrityToggle.simulate('change');
-    expect(toggleAutoUnquarantineEnabledSpy).toHaveBeenCalledWith(
-      'IntegrityRating'
-    );
+    expect(toggleAutoUnquarantineEnabledSpy).toHaveBeenCalledWith('IntegrityRating');
   });
 
   it('calls toggleAutoUnquarantineEnabled when other toggle is changed', function () {
     const component = getShallowComponent(),
-      testToggle = component
-        .find('#auto-release-condition-toggles')
-        .find(NxToggle)
-        .at(0);
+      testToggle = component.find('#auto-release-condition-toggles').find(NxToggle).at(0);
 
     testToggle.simulate('change');
     expect(toggleAutoUnquarantineEnabledSpy).toHaveBeenCalledWith('testId');

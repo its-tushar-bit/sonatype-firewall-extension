@@ -31,10 +31,7 @@ function controller($state) {
       vm.linkText = 'Back';
     }
   } else {
-    throw new Error(
-      'Failed to display iq-back-button, provided state does not exist: ' +
-        this.stateName
-    );
+    throw new Error('Failed to display iq-back-button, provided state does not exist: ' + this.stateName);
   }
 }
 

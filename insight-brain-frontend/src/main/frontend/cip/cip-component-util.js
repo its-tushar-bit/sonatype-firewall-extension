@@ -25,10 +25,7 @@ export default angular.module('ComponentUtils', []).service('ComponentUtil', [
           }
         }
       } else {
-        dataItem.displayName.parts = [
-          { value: '(Anonymized Path) SHA1: ' },
-          { field: 'Hash', value: dataItem.hash },
-        ];
+        dataItem.displayName.parts = [{ value: '(Anonymized Path) SHA1: ' }, { field: 'Hash', value: dataItem.hash }];
       }
       // Set coordinates value for filtering and sorting
       dataItem.coordinates = $.map(dataItem.displayName.parts, function (p) {

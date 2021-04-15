@@ -13,25 +13,16 @@ describe('ComponentDisplay (React)', function () {
     component: {},
   };
 
-  const getShallowComponent = enzymeUtils.getShallowComponent(
-    ComponentDisplay,
-    minimalProps
-  );
+  const getShallowComponent = enzymeUtils.getShallowComponent(ComponentDisplay, minimalProps);
 
   it('renders a Tooltip on the component', function () {
     expect(getShallowComponent()).toMatchSelector(NxOverflowTooltip);
   });
 
   it('adds the truncate-ellipsis class to the div iff the truncate prop is set', function () {
-    expect(getShallowComponent().find('div')).not.toHaveClassName(
-      'truncate-ellipsis'
-    );
-    expect(
-      getShallowComponent({ truncate: false }).find('div')
-    ).not.toHaveClassName('truncate-ellipsis');
-    expect(getShallowComponent({ truncate: true }).find('div')).toHaveClassName(
-      'truncate-ellipsis'
-    );
+    expect(getShallowComponent().find('div')).not.toHaveClassName('truncate-ellipsis');
+    expect(getShallowComponent({ truncate: false }).find('div')).not.toHaveClassName('truncate-ellipsis');
+    expect(getShallowComponent({ truncate: true }).find('div')).toHaveClassName('truncate-ellipsis');
   });
 
   it('renders an em child with "Unknown" if no displayName or filename is set', function () {
@@ -53,12 +44,8 @@ describe('ComponentDisplay (React)', function () {
   it('renders an em child with text derived from the filenames if they are present', function () {
     const componentWithFilenames = { filenames: ['foo.js', 'bar/baz.js'] };
 
-    expect(
-      getShallowComponent({ component: componentWithFilenames }).find('em')
-    ).toHaveText('foo.js, bar/baz.js');
-    expect(
-      getShallowComponent({ component: componentWithFilenames }).find('span')
-    ).not.toExist();
+    expect(getShallowComponent({ component: componentWithFilenames }).find('em')).toHaveText('foo.js, bar/baz.js');
+    expect(getShallowComponent({ component: componentWithFilenames }).find('span')).not.toExist();
   });
 
   it('renders an em child with text derived from the filename (singular) if it is present', function () {
@@ -68,14 +55,10 @@ describe('ComponentDisplay (React)', function () {
         filenames: ['foo.js', 'bar/baz.js'],
       };
 
-    [componentWithFilename, componentWithFilenameAndFilenames].map(
-      (component) => {
-        expect(getShallowComponent({ component }).find('em')).toHaveText(
-          'asdf.js'
-        );
-        expect(getShallowComponent({ component }).find('span')).not.toExist();
-      }
-    );
+    [componentWithFilename, componentWithFilenameAndFilenames].map((component) => {
+      expect(getShallowComponent({ component }).find('em')).toHaveText('asdf.js');
+      expect(getShallowComponent({ component }).find('span')).not.toExist();
+    });
   });
 
   it('renders an em child with text derived from a displayName consisting only of a Filename part', function () {
@@ -96,9 +79,7 @@ describe('ComponentDisplay (React)', function () {
       componentWithDisplayNameAndFilename,
       componentWithDisplaynameAndFilenameAndFilenames,
     ].map((component) => {
-      expect(getShallowComponent({ component }).find('em')).toHaveText(
-        'display.js'
-      );
+      expect(getShallowComponent({ component }).find('em')).toHaveText('display.js');
       expect(getShallowComponent({ component }).find('span')).not.toExist();
     });
   });
@@ -129,9 +110,7 @@ describe('ComponentDisplay (React)', function () {
       componentWithDisplayNameAndFilename,
       componentWithDisplaynameAndFilenameAndFilenames,
     ].map((component) => {
-      expect(getShallowComponent({ component }).find('span')).toHaveText(
-        'org.slf4j : slf4j-log4j12 ~ 1'
-      );
+      expect(getShallowComponent({ component }).find('span')).toHaveText('org.slf4j : slf4j-log4j12 ~ 1');
       expect(getShallowComponent({ component }).find('em')).not.toExist();
     });
   });

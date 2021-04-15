@@ -54,14 +54,7 @@ export default function LabelsController(
       )
     );
     promises.push(
-      $http.get(
-        CLM.path +
-          'api/v2/labels/' +
-          OwnerContext.ownerType +
-          '/' +
-          OwnerContext.ownerId +
-          '/applicable'
-      )
+      $http.get(CLM.path + 'api/v2/labels/' + OwnerContext.ownerType + '/' + OwnerContext.ownerId + '/applicable')
     );
 
     $q.all(promises).then(

@@ -27,9 +27,7 @@ export default function FirewallQuarantineTable() {
     <section id="firewall-quarantine-table">
       <header className="iq-firewall-table-header nx-page-title">
         <h2 className="nx-h2 iq-firewall-table-label">Quarantine</h2>
-        <div className="iq-firewall-table__time">
-          Updated 2:42 PM 2021-01-11
-        </div>
+        <div className="iq-firewall-table__time">Updated 2:42 PM 2021-01-11</div>
         <div className="nx-btn-bar">
           <NxButton variant="tertiary">
             <NxFontAwesomeIcon icon={faSync} />
@@ -60,10 +58,7 @@ export default function FirewallQuarantineTable() {
               <NxTableCell />
               <NxTableCell />
               <NxTableCell>
-                <NxStatefulCheckbox
-                  checkboxId="subscribe-check"
-                  defaultChecked={false}
-                >
+                <NxStatefulCheckbox checkboxId="subscribe-check" defaultChecked={false}>
                   all
                 </NxStatefulCheckbox>
               </NxTableCell>
@@ -79,10 +74,7 @@ export default function FirewallQuarantineTable() {
             {...{ pageCount, currentPage }}
             onChange={setPage}
           />
-          <NxButton
-            className="iq-firewall-table__release_btn"
-            variant="primary"
-          >
+          <NxButton className="iq-firewall-table__release_btn" variant="primary">
             Release
           </NxButton>
         </div>

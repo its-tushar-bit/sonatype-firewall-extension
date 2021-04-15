@@ -17,14 +17,8 @@ describe('DashboardApplications', function () {
       sortResults: jasmine.createSpy('sortResults'),
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardApplications,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      DashboardApplications,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardApplications, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(DashboardApplications, minimalProps);
   });
 
   it('renders a DashboardApplicationsTable with the appropriate props', function () {
@@ -39,9 +33,7 @@ describe('DashboardApplications', function () {
       needsAcknowledgement: true,
     };
 
-    const dashBoardApplications = getShallowComponent(
-        dashboardApplicationsProps
-      ),
+    const dashBoardApplications = getShallowComponent(dashboardApplicationsProps),
       table = dashBoardApplications.find(DashboardApplicationsTable);
 
     expect(table).toExist();
@@ -69,9 +61,7 @@ describe('DashboardApplications', function () {
       filtersAreDirty: true,
     };
 
-    const dashBoardApplications = getShallowComponent(
-        dashboardApplicationsProps
-      ),
+    const dashBoardApplications = getShallowComponent(dashboardApplicationsProps),
       mask = dashBoardApplications.find(DashboardMask);
     expect(mask).toExist();
   });

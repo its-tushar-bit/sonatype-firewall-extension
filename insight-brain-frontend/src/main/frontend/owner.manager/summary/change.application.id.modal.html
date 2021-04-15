@@ -10,8 +10,8 @@
   >
     <div class="iq-modal-content">
       <div class="iq-alert">
-        <i class="fa fa-warning size-18px"></i>Changing the Application ID will
-        break existing integration points. They will have to be re-configured.
+        <i class="fa fa-warning size-18px"></i>Changing the Application ID will break existing integration points. They
+        will have to be re-configured.
       </div>
     </div>
     <div class="iq-modal-content">
@@ -42,9 +42,7 @@
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{error : vm.error}">
-      <div ng-if="vm.error" class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i> {{vm.error}}
-      </div>
+      <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i> {{vm.error}}</div>
       <button
         ng-if="!vm.error"
         class="iq-btn iq-btn--primary"
@@ -53,12 +51,7 @@
       >
         Change
       </button>
-      <button
-        ng-if="vm.error"
-        class="iq-btn iq-btn--error"
-        type="submit"
-        ng-disabled="vm.applicationIdEditor.$invalid"
-      >
+      <button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" ng-disabled="vm.applicationIdEditor.$invalid">
         <i class="fa fa-refresh"></i>Retry
       </button>
       <button class="iq-btn" type="button" ng-click="$dismiss()">Cancel</button>

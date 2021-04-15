@@ -10,19 +10,15 @@ describe('scrollspy.directive.spec.js', function () {
   var spy, controllerScope;
 
   beforeEach(
-    angular.mock.module(
-      utilityModule.name,
-      utilityServicesModule.name,
-      function ($provide) {
-        $provide.service('stable.body.service', function () {
-          return {
-            whenStable: function (f) {
-              f();
-            },
-          };
-        });
-      }
-    )
+    angular.mock.module(utilityModule.name, utilityServicesModule.name, function ($provide) {
+      $provide.service('stable.body.service', function () {
+        return {
+          whenStable: function (f) {
+            f();
+          },
+        };
+      });
+    })
   );
 
   function getFullElement() {
@@ -36,9 +32,7 @@ describe('scrollspy.directive.spec.js', function () {
   }
 
   function getPartialElement() {
-    var el = angular.element(
-      '<div id="toRemove"><div id="scroller" scrollspy="#pills"><div id="pill1"></div></div>'
-    );
+    var el = angular.element('<div id="toRemove"><div id="scroller" scrollspy="#pills"><div id="pill1"></div></div>');
     angular.element('body').append(el);
     return el;
   }
@@ -52,10 +46,7 @@ describe('scrollspy.directive.spec.js', function () {
     angular.element('#toRemove').remove();
   });
 
-  it('Validate scrollspy is initialized properly', inject(function (
-    $compile,
-    $timeout
-  ) {
+  it('Validate scrollspy is initialized properly', inject(function ($compile, $timeout) {
     spy = spyOn($.fn.scrollspy, 'Constructor');
     expect(spy).not.toHaveBeenCalled();
     $compile(getFullElement())(controllerScope);
@@ -82,10 +73,7 @@ describe('scrollspy.directive.spec.js', function () {
     );
   }));
 
-  it('Validate scrollspy applied when dom inserted after initialization', inject(function (
-    $compile,
-    $timeout
-  ) {
+  it('Validate scrollspy applied when dom inserted after initialization', inject(function ($compile, $timeout) {
     spy = spyOn($.fn.scrollspy, 'Constructor');
     var element = getPartialElement();
     expect(spy).not.toHaveBeenCalled();

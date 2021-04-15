@@ -30,22 +30,10 @@
       }
 
       return {
-        canGotoFirst:
-          !cannotLeaveEditMode &&
-          pagingInfo.pageSize != 0 &&
-          pagingInfo.pageNum > 0,
-        canGotoLast:
-          !cannotLeaveEditMode &&
-          pagingInfo.pageSize != 0 &&
-          pagingInfo.pageNum != lastPage,
-        canGotoPrev:
-          !cannotLeaveEditMode &&
-          pagingInfo.pageSize != 0 &&
-          pagingInfo.pageNum > 0,
-        canGotoNext:
-          !cannotLeaveEditMode &&
-          pagingInfo.pageSize != 0 &&
-          pagingInfo.pageNum < lastPage,
+        canGotoFirst: !cannotLeaveEditMode && pagingInfo.pageSize != 0 && pagingInfo.pageNum > 0,
+        canGotoLast: !cannotLeaveEditMode && pagingInfo.pageSize != 0 && pagingInfo.pageNum != lastPage,
+        canGotoPrev: !cannotLeaveEditMode && pagingInfo.pageSize != 0 && pagingInfo.pageNum > 0,
+        canGotoNext: !cannotLeaveEditMode && pagingInfo.pageSize != 0 && pagingInfo.pageNum < lastPage,
         pagingInfo: pagingInfo,
         lastPage: lastPage,
       };
@@ -92,15 +80,9 @@
     function constructPagerUI() {
       $container.empty();
 
-      var $nav = $("<span class='slick-pager-nav'></span>").appendTo(
-        $container
-      );
-      var $settings = $("<span class='slick-pager-settings'></span>").appendTo(
-        $container
-      );
-      $status = $("<span class='slick-pager-status'></span>").appendTo(
-        $container
-      );
+      var $nav = $("<span class='slick-pager-nav'></span>").appendTo($container);
+      var $settings = $("<span class='slick-pager-settings'></span>").appendTo($container);
+      $status = $("<span class='slick-pager-status'></span>").appendTo($container);
 
       $settings.append(
         "<span class='slick-pager-settings-expanded' style='display:none'>Show: <a data=0>All</a><a data='-1'>Auto</a><a data=25>25</a><a data=50>50</a><a data=100>100</a></span>"
@@ -118,8 +100,7 @@
         }
       });
 
-      var icon_prefix =
-        "<span class='ui-state-default ui-corner-all ui-icon-container'><span class='ui-icon ";
+      var icon_prefix = "<span class='ui-state-default ui-corner-all ui-icon-container'><span class='ui-icon ";
       var icon_suffix = "'></span></span>";
 
       $(icon_prefix + 'ui-icon-lightbulb' + icon_suffix)
@@ -171,12 +152,7 @@
       if (pagingInfo.pageSize == 0) {
         $status.text('Showing all ' + pagingInfo.totalRows + ' rows');
       } else {
-        $status.text(
-          'Showing page ' +
-            (pagingInfo.pageNum + 1) +
-            ' of ' +
-            (state.lastPage + 1)
-        );
+        $status.text('Showing page ' + (pagingInfo.pageNum + 1) + ' of ' + (state.lastPage + 1));
       }
     }
 

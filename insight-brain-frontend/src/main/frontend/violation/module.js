@@ -12,22 +12,8 @@ import withStoreProvider from '../reactAdapter/StoreProvider';
 export default angular
   .module('violationPage', [])
   .component('sidebarView', sidebarView)
-  .component(
-    'sidebarNavList',
-    react2angular(
-      withStoreProvider(SidebarNavListContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
-  )
-  .component(
-    'violationPage',
-    react2angular(
-      withStoreProvider(ViolationPageContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
-  )
+  .component('sidebarNavList', react2angular(withStoreProvider(SidebarNavListContainer), [], ['$ngRedux', '$state']))
+  .component('violationPage', react2angular(withStoreProvider(ViolationPageContainer), [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {

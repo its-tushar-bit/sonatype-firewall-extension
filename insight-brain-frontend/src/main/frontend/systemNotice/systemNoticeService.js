@@ -16,11 +16,9 @@ export default function systemNoticeService($http, $q, CLMLocations) {
   };
 
   function getSystemNotice() {
-    return $http
-      .get(CLMLocations.getSystemNoticeFetchUrl())
-      .then(function (response) {
-        return response.data;
-      });
+    return $http.get(CLMLocations.getSystemNoticeFetchUrl()).then(function (response) {
+      return response.data;
+    });
   }
 
   function getDefaultSystemNotice() {
@@ -28,11 +26,9 @@ export default function systemNoticeService($http, $q, CLMLocations) {
   }
 
   function saveSystemNotice(systemNotice) {
-    return $http
-      .put(CLMLocations.getSystemNoticeUrl(), systemNotice)
-      .then(function (response) {
-        return response.data;
-      });
+    return $http.put(CLMLocations.getSystemNoticeUrl(), systemNotice).then(function (response) {
+      return response.data;
+    });
   }
 }
 

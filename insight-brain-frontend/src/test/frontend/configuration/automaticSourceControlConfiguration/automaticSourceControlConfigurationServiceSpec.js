@@ -8,17 +8,9 @@ import configurationModule from '../../../../main/frontend/configuration/module'
 describe('automaticSourceControlConfigurationServiceSpec.js', function () {
   beforeEach(angular.mock.module(configurationModule.name));
 
-  var automaticSourceControlConfigurationService,
-    $httpBackend,
-    successSpy,
-    failSpy,
-    CLMLocations;
+  var automaticSourceControlConfigurationService, $httpBackend, successSpy, failSpy, CLMLocations;
 
-  beforeEach(inject(function (
-    _automaticSourceControlConfigurationService_,
-    _$httpBackend_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function (_automaticSourceControlConfigurationService_, _$httpBackend_, _CLMLocations_) {
     automaticSourceControlConfigurationService = _automaticSourceControlConfigurationService_;
     $httpBackend = _$httpBackend_;
     successSpy = jasmine.createSpy('successSpy');
@@ -37,13 +29,8 @@ describe('automaticSourceControlConfigurationServiceSpec.js', function () {
         enabled: true,
       };
 
-      automaticSourceControlConfigurationService
-        .getConfiguration()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getAutomaticSourceControlConfigurationUrl())
-        .respond(configuration);
+      automaticSourceControlConfigurationService.getConfiguration().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getAutomaticSourceControlConfigurationUrl()).respond(configuration);
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(configuration);
@@ -51,13 +38,8 @@ describe('automaticSourceControlConfigurationServiceSpec.js', function () {
     });
 
     it('handles a failed request by rejecting the promise', function () {
-      automaticSourceControlConfigurationService
-        .getConfiguration()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getAutomaticSourceControlConfigurationUrl())
-        .respond(404, 'not found');
+      automaticSourceControlConfigurationService.getConfiguration().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getAutomaticSourceControlConfigurationUrl()).respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
@@ -73,15 +55,9 @@ describe('automaticSourceControlConfigurationServiceSpec.js', function () {
         enabled: true,
       };
 
-      automaticSourceControlConfigurationService
-        .saveConfiguration(configuration)
-        .then(successSpy)
-        .catch(failSpy);
+      automaticSourceControlConfigurationService.saveConfiguration(configuration).then(successSpy).catch(failSpy);
       $httpBackend
-        .expectPUT(
-          CLMLocations.getAutomaticSourceControlConfigurationUrl(),
-          configuration
-        )
+        .expectPUT(CLMLocations.getAutomaticSourceControlConfigurationUrl(), configuration)
         .respond(configuration);
       $httpBackend.flush();
 
@@ -95,15 +71,9 @@ describe('automaticSourceControlConfigurationServiceSpec.js', function () {
         parentOrganizationId: 'organizationId',
       };
 
-      automaticSourceControlConfigurationService
-        .saveConfiguration(configuration)
-        .then(successSpy)
-        .catch(failSpy);
+      automaticSourceControlConfigurationService.saveConfiguration(configuration).then(successSpy).catch(failSpy);
       $httpBackend
-        .expectPUT(
-          CLMLocations.getAutomaticSourceControlConfigurationUrl(),
-          configuration
-        )
+        .expectPUT(CLMLocations.getAutomaticSourceControlConfigurationUrl(), configuration)
         .respond(400, 'bad request');
       $httpBackend.flush();
 

@@ -73,9 +73,7 @@
       },
     ];
 
-    this.node = this.compile(
-      '<div component-information-panel tabs="tabs"></div>'
-    )(cipScope);
+    this.node = this.compile('<div component-information-panel tabs="tabs"></div>')(cipScope);
     this.node.appendTo(grid.getCanvasNode());
   };
 
@@ -96,12 +94,7 @@
 
     // The row selection & content may not actually have changed...
     if (args.rows.length === 1 && args.rows[0] === me.currentRow) {
-      if (
-        angular.equals(
-          me.grid.getDataItem(args.rows[0]),
-          me.selectedComponent.get()
-        )
-      ) {
+      if (angular.equals(me.grid.getDataItem(args.rows[0]), me.selectedComponent.get())) {
         return;
       }
     }
@@ -136,17 +129,13 @@
     //scroll the div if necessary
     if (infopanelBottom > viewportBottom || infopanelTop < viewportTop) {
       viewport.scrollTop(
-        viewport.scrollTop() +
-          (node.offset().top - cellNode.offsetParent.clientHeight) -
-          viewport.offset().top
+        viewport.scrollTop() + (node.offset().top - cellNode.offsetParent.clientHeight) - viewport.offset().top
       );
     }
     node.css(
       'width',
       viewport.width() -
-        (viewport.get(0).scrollHeight > viewport.height()
-          ? this.grid.getScrollbarDimensions().width
-          : 0) /*border*/ -
+        (viewport.get(0).scrollHeight > viewport.height() ? this.grid.getScrollbarDimensions().width : 0) /*border*/ -
         2 +
         'px'
     );
@@ -166,10 +155,7 @@
     }
 
     //put on bottom of selected row
-    node.css(
-      'top',
-      cellNode.offsetParent.offsetTop + cellNode.offsetParent.clientHeight
-    );
+    node.css('top', cellNode.offsetParent.offsetTop + cellNode.offsetParent.clientHeight);
     node.addClass('shadowBottom');
     node.removeClass('shadowTop');
 

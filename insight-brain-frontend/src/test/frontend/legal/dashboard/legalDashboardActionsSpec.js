@@ -13,9 +13,7 @@ import { getLegalDashboardApplicationsUrl } from '../../../../main/frontend/util
 
 describe('legalDashboardActions', function () {
   describe('loadResults', function () {
-    const legalDashboardApplicationsUrlSpy = jasmine.createSpy(
-      'getLegalDashboardApplicationsUrl'
-    );
+    const legalDashboardApplicationsUrlSpy = jasmine.createSpy('getLegalDashboardApplicationsUrl');
     const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
     const tabs = [
       {
@@ -151,37 +149,35 @@ describe('legalDashboardActions', function () {
             },
           });
 
-          store
-            .dispatch(changeSortField(tab.resultsType, 'TAG_NAMES_ASC'))
-            .then(() => {
-              expect(store.getActions().length).toBe(4);
-              expect(store.getActions()[0]).toEqual({
-                type: 'LEGAL_DASHBOARD_CHANGE_SORT_FIELD',
-                payload: {
-                  resultsType: tab.resultsType,
-                  sortField: 'TAG_NAMES_ASC',
-                },
-              });
-              expect(store.getActions()[1]).toEqual({
-                type: 'LEGAL_DASHBOARD_FETCH_BACKEND_PAGE',
-                payload: {
-                  resultsType: tab.resultsType,
-                  page: 1,
-                },
-              });
-              expect(store.getActions()[2]).toEqual({
-                type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
-                payload: 'applications',
-              });
-              expect(store.getActions()[3]).toEqual({
-                type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
-                payload: {
-                  resultsType: tab.resultsType,
-                  results: 'results',
-                },
-              });
-              done();
+          store.dispatch(changeSortField(tab.resultsType, 'TAG_NAMES_ASC')).then(() => {
+            expect(store.getActions().length).toBe(4);
+            expect(store.getActions()[0]).toEqual({
+              type: 'LEGAL_DASHBOARD_CHANGE_SORT_FIELD',
+              payload: {
+                resultsType: tab.resultsType,
+                sortField: 'TAG_NAMES_ASC',
+              },
             });
+            expect(store.getActions()[1]).toEqual({
+              type: 'LEGAL_DASHBOARD_FETCH_BACKEND_PAGE',
+              payload: {
+                resultsType: tab.resultsType,
+                page: 1,
+              },
+            });
+            expect(store.getActions()[2]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_REQUESTED',
+              payload: 'applications',
+            });
+            expect(store.getActions()[3]).toEqual({
+              type: 'LEGAL_DASHBOARD_LOAD_RESULTS_FULFILLED',
+              payload: {
+                resultsType: tab.resultsType,
+                results: 'results',
+              },
+            });
+            done();
+          });
         });
       });
     }

@@ -16,44 +16,21 @@ export default angular
   .module('legalModule', [])
   .component(
     'componentLegalOverview',
-    react2angular(
-      withStoreProvider(ComponentLegalOverviewContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(ComponentLegalOverviewContainer), [], ['$ngRedux', '$state'])
   )
   .component(
     'legalApplicationDetails',
-    react2angular(
-      withStoreProvider(LegalApplicationDetailsContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(LegalApplicationDetailsContainer), [], ['$ngRedux', '$state'])
   )
   .component('componentCopyrightDetails', componentCopyrightDetails)
   .component(
     'copyrightDetailsHeader',
-    react2angular(
-      withStoreProvider(CopyrightDetailsHeaderContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(CopyrightDetailsHeaderContainer), [], ['$ngRedux', '$state'])
   )
-  .component(
-    'copyrightList',
-    react2angular(
-      withStoreProvider(CopyrightListContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
-  )
+  .component('copyrightList', react2angular(withStoreProvider(CopyrightListContainer), [], ['$ngRedux', '$state']))
   .component(
     'copyrightDetailsContents',
-    react2angular(
-      withStoreProvider(CopyrightDetailsContentsContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(CopyrightDetailsContentsContainer), [], ['$ngRedux', '$state'])
   )
   .config(routes);
 
@@ -81,8 +58,7 @@ function routes($stateProvider) {
       },
     })
     .state('applicationStageTypeComponentLegalOverview', {
-      url:
-        '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/{hash}',
+      url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/{hash}',
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',

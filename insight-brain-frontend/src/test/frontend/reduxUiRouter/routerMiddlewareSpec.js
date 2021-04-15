@@ -40,11 +40,7 @@ describe('routerMiddleware', function () {
     });
 
     routerMiddleware(next)(action);
-    expect($state.go).toHaveBeenCalledWith(
-      'toState',
-      'testParams',
-      'testOptions'
-    );
+    expect($state.go).toHaveBeenCalledWith('toState', 'testParams', 'testOptions');
     expect(successSpy).toHaveBeenCalledWith('nextReturnValue');
     expect(next).toHaveBeenCalledWith(action);
   });
@@ -80,11 +76,7 @@ describe('routerMiddleware', function () {
     });
 
     routerMiddleware(next)(action);
-    expect($state.transitionTo).toHaveBeenCalledWith(
-      'toState',
-      'testParams',
-      'testOptions'
-    );
+    expect($state.transitionTo).toHaveBeenCalledWith('toState', 'testParams', 'testOptions');
     expect(successSpy).toHaveBeenCalledWith('nextReturnValue');
     expect(next).toHaveBeenCalledWith(action);
   });

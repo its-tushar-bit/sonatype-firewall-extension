@@ -41,10 +41,7 @@ describe('CopyrightStatementsTile component', function () {
   };
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      CopyrightStatementsTile,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(CopyrightStatementsTile, minimalProps);
   });
 
   it('renders a header with label `Copyright Statements`', function () {

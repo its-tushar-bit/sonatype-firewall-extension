@@ -6,14 +6,7 @@
 /*global angular, CLM */
 import getThreatColor from './threatColorUtil';
 
-export default function AddWaiverController(
-  $http,
-  $scope,
-  OwnerContext,
-  SelectedComponent,
-  messages,
-  policy
-) {
+export default function AddWaiverController($http, $scope, OwnerContext, SelectedComponent, messages, policy) {
   $scope.getThreatColor = getThreatColor;
 
   $scope.reset = function () {
@@ -32,11 +25,7 @@ export default function AddWaiverController(
     // Prior to IQ Brain 1.53 policy violations stored in the report did not include constraint facts
     $scope.legacyReport = !policy.constraintFactsJson;
 
-    if (
-      !$scope.component.componentDisplayText &&
-      $scope.component.displayName &&
-      $scope.component.displayName.parts
-    ) {
+    if (!$scope.component.componentDisplayText && $scope.component.displayName && $scope.component.displayName.parts) {
       $scope.component.componentDisplayText = '';
       $scope.component.displayName.parts.forEach(function (part) {
         $scope.component.componentDisplayText += part.value;
@@ -69,10 +58,7 @@ export default function AddWaiverController(
               id: context.id,
               name: context.name,
               type: type,
-              label:
-                type === 'repository_container'
-                  ? ''
-                  : type.charAt(0).toUpperCase() + type.slice(1),
+              label: type === 'repository_container' ? '' : type.charAt(0).toUpperCase() + type.slice(1),
             });
           }
 
@@ -107,36 +93,17 @@ export default function AddWaiverController(
     $scope.waiverSaving = true;
     $scope.waiveAssignError = null;
 
-    $http
-      .post(
-        CLM.path +
-          'rest/policyWaiver/' +
-          $scope.owner.type +
-          '/' +
-          $scope.waiver.ownerId,
-        $scope.waiver
-      )
-      .then(
-        function () {
-          $scope.waiverSaving = false;
-          $scope.$emit(
-            'reevaluate.component',
-            $scope.waiver.hash ? { hash: $scope.waiver.hash } : null
-          );
-          $scope.$close();
-        },
-        function (error) {
-          $scope.waiverSaving = false;
-          $scope.waiveAssignError = messages.getHttpErrorMessage(error);
-        }
-      );
+    $http.post(CLM.path + 'rest/policyWaiver/' + $scope.owner.type + '/' + $scope.waiver.ownerId, $scope.waiver).then(
+      function () {
+        $scope.waiverSaving = false;
+        $scope.$emit('reevaluate.component', $scope.waiver.hash ? { hash: $scope.waiver.hash } : null);
+        $scope.$close();
+      },
+      function (error) {
+        $scope.waiverSaving = false;
+        $scope.waiveAssignError = messages.getHttpErrorMessage(error);
+      }
+    );
   };
 }
-AddWaiverController.$inject = [
-  '$http',
-  '$scope',
-  'OwnerContext',
-  'SelectedComponent',
-  'Messages',
-  'policy',
-];
+AddWaiverController.$inject = ['$http', '$scope', 'OwnerContext', 'SelectedComponent', 'Messages', 'policy'];

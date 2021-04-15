@@ -9,34 +9,23 @@ import configureStore from 'redux-mock-store';
 import ListWaiversPage from '../../../main/frontend/waivers/ListWaiversPage';
 
 describe('ListWaiversPageContainer', function () {
-  let ListWaiversPageContainer,
-    loadManageWaiversDataMock,
-    setWaiverToDeleteMock,
-    store,
-    state,
-    vdom;
+  let ListWaiversPageContainer, loadManageWaiversDataMock, setWaiverToDeleteMock, store, state, vdom;
 
   beforeEach(function () {
-    loadManageWaiversDataMock = jasmine
-      .createSpy('loadManageWaiversData')
-      .and.returnValue({
-        type: 'LOAD_MANAGE_WAIVERS_DATA',
-      });
+    loadManageWaiversDataMock = jasmine.createSpy('loadManageWaiversData').and.returnValue({
+      type: 'LOAD_MANAGE_WAIVERS_DATA',
+    });
 
-    setWaiverToDeleteMock = jasmine
-      .createSpy('setWaiverToDelete')
-      .and.returnValue({
-        type: 'SET_WAIVER_TO_DELETE',
-      });
+    setWaiverToDeleteMock = jasmine.createSpy('setWaiverToDelete').and.returnValue({
+      type: 'SET_WAIVER_TO_DELETE',
+    });
 
-    ListWaiversPageContainer = require('inject-loader!../../../main/frontend/waivers/ListWaiversPageContainer')(
-      {
-        './waiverActions': {
-          loadManageWaiversData: loadManageWaiversDataMock,
-          setWaiverToDelete: setWaiverToDeleteMock,
-        },
-      }
-    ).default;
+    ListWaiversPageContainer = require('inject-loader!../../../main/frontend/waivers/ListWaiversPageContainer')({
+      './waiverActions': {
+        loadManageWaiversData: loadManageWaiversDataMock,
+        setWaiverToDelete: setWaiverToDeleteMock,
+      },
+    }).default;
 
     state = {
       violation: {
@@ -96,9 +85,7 @@ describe('ListWaiversPageContainer', function () {
 
   it('maps action creators to props', function () {
     const wrapper = shallow(vdom).dive();
-    const loadMAnageWaiversDataActionCreator = wrapper.prop(
-      'loadManageWaiversData'
-    );
+    const loadMAnageWaiversDataActionCreator = wrapper.prop('loadManageWaiversData');
     const setWaiverToDeleteActionCreator = wrapper.prop('setWaiverToDelete');
 
     expect(loadMAnageWaiversDataActionCreator).toEqual(jasmine.any(Function));
@@ -110,10 +97,7 @@ describe('ListWaiversPageContainer', function () {
     expect(store.getActions()).toEqual([{ type: 'LOAD_MANAGE_WAIVERS_DATA' }]);
 
     setWaiverToDeleteActionCreator();
-    expect(store.getActions()).toEqual([
-      { type: 'LOAD_MANAGE_WAIVERS_DATA' },
-      { type: 'SET_WAIVER_TO_DELETE' },
-    ]);
+    expect(store.getActions()).toEqual([{ type: 'LOAD_MANAGE_WAIVERS_DATA' }, { type: 'SET_WAIVER_TO_DELETE' }]);
   });
 
   it('renders ListWaiversPage component', function () {

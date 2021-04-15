@@ -50,9 +50,7 @@ export default function SidebarNavList(props) {
 
   return (
     <aside id="sidebar-nav-list" className="nx-viewport-sized__container">
-      {backButtonStateName && (
-        <BackButton $state={$state} stateName={backButtonStateName} />
-      )}
+      {backButtonStateName && <BackButton $state={$state} stateName={backButtonStateName} />}
       <LoadWrapper error={error} loading={loading} retryHandler={load}>
         <h4 className="nx-h4">{contentType}</h4>
         <div className="nx-scrollable nx-scrollable--nav-list nx-viewport-sized__scrollable">

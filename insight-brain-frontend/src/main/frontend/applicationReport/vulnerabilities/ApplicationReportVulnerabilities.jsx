@@ -12,24 +12,14 @@ import ApplicationReportVulnerabilitiesPage from './ApplicationReportVulnerabili
 
 function mapStateToProps({ applicationReport }) {
   return {
-    ...pick(
-      ['metadata', 'loadError', 'vulnerabilitiesPageEnabled'],
-      applicationReport
-    ),
+    ...pick(['metadata', 'loadError', 'vulnerabilitiesPageEnabled'], applicationReport),
     vulnerabilities: applicationReport.vulnerabilities || [],
     loading: !!applicationReport.pendingLoads.size,
   };
 }
 
-export default function ApplicationReportVulnerabilities({
-  $ngRedux,
-  $state,
-  applicationReportActions,
-}) {
-  const mapDispatchToProps = pick(
-    ['loadReportAllData'],
-    applicationReportActions
-  );
+export default function ApplicationReportVulnerabilities({ $ngRedux, $state, applicationReportActions }) {
+  const mapDispatchToProps = pick(['loadReportAllData'], applicationReportActions);
 
   const ConnectedApplicationReportVulnerabilitiesPage = connect(
     mapStateToProps,

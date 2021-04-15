@@ -45,12 +45,7 @@ function successMetricsReportController(
     ])
       .then(function ([, successMetricsReports]) {
         // this would be nicer if Array.prototype.find was available in all browsers
-        for (
-          let i = 0;
-          i < successMetricsReports.length &&
-          vm.successMetricsReport === undefined;
-          i++
-        ) {
+        for (let i = 0; i < successMetricsReports.length && vm.successMetricsReport === undefined; i++) {
           if (successMetricsReports[i].id === successMetricsReportId) {
             vm.successMetricsReport = successMetricsReports[i];
           }
@@ -59,14 +54,10 @@ function successMetricsReportController(
         if (vm.successMetricsReport) {
           return $q.all([
             successMetricsDataService.getChartData(vm.successMetricsReport),
-            successMetricsDataService.getComponentCountsData(
-              vm.successMetricsReport
-            ),
+            successMetricsDataService.getComponentCountsData(vm.successMetricsReport),
           ]);
         } else {
-          return $q.reject(
-            `Could not find report with id ${successMetricsReportId}`
-          );
+          return $q.reject(`Could not find report with id ${successMetricsReportId}`);
         }
       })
       .then(function ([chartData, componentCountsData]) {
@@ -102,9 +93,7 @@ function successMetricsReportController(
             vm.successMetricsReport.scope.organizationIds.length === 0);
         if (vm.isSingleApplicationReport && vm.activeApplicationCount > 0) {
           return successMetricsDataService
-            .getApplicationByInternalId(
-              vm.successMetricsReport.scope.applicationIds[0]
-            )
+            .getApplicationByInternalId(vm.successMetricsReport.scope.applicationIds[0])
             .then(function (owner) {
               vm.singleApplicationName = owner.name;
             });
@@ -127,10 +116,7 @@ function successMetricsReportController(
   }
 
   function hasDisabledError() {
-    return (
-      vm.error ===
-      systemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE
-    );
+    return vm.error === systemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE;
   }
 
   doLoad();

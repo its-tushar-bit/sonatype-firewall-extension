@@ -52,9 +52,7 @@ export default function AdvancedLegalApplicationPage(props) {
                             <h4 className="nx-h4">Licensed Under</h4>
                           </div>
                         </header>
-                        <div className="nx-tile-content">
-                          {licenseLegalData.effectiveLicenses.join(', ')}
-                        </div>
+                        <div className="nx-tile-content">{licenseLegalData.effectiveLicenses.join(', ')}</div>
                       </section>
                     )}
 
@@ -66,11 +64,9 @@ export default function AdvancedLegalApplicationPage(props) {
                           </div>
                         </header>
                         <div className="nx-tile-content">
-                          {licenseLegalData.copyrights.map(
-                            (copyright, index) => (
-                              <p key={index}>{copyright.content}</p>
-                            )
-                          )}
+                          {licenseLegalData.copyrights.map((copyright, index) => (
+                            <p key={index}>{copyright.content}</p>
+                          ))}
                         </div>
                       </section>
                     )}
@@ -83,11 +79,9 @@ export default function AdvancedLegalApplicationPage(props) {
                           </div>
                         </header>
                         <div className="nx-tile-content">
-                          {licenseLegalData.noticeFiles.map(
-                            (noticeFile, index) => (
-                              <pre key={index}>{noticeFile.content}</pre>
-                            )
-                          )}
+                          {licenseLegalData.noticeFiles.map((noticeFile, index) => (
+                            <pre key={index}>{noticeFile.content}</pre>
+                          ))}
                         </div>
                       </section>
                     )}
@@ -100,42 +94,33 @@ export default function AdvancedLegalApplicationPage(props) {
                           </div>
                         </header>
                         <div className="nx-tile-content">
-                          {licenseLegalData.licenseFiles.map(
-                            (licenseFile, index) => (
-                              <pre key={index}>{licenseFile.content}</pre>
-                            )
-                          )}
+                          {licenseLegalData.licenseFiles.map((licenseFile, index) => (
+                            <pre key={index}>{licenseFile.content}</pre>
+                          ))}
                         </div>
                       </section>
                     )}
 
-                    {isNilOrEmpty(licenseLegalData.licenseFiles) &&
-                      !isNilOrEmpty(licenseLegalData.effectiveLicenses) && (
-                        <section className="nx-tile">
-                          <header className="nx-tile-header">
-                            <div className="nx-tile-header__title">
-                              <h4 className="nx-h4">Standard License Text</h4>
-                            </div>
-                          </header>
-                          <div className="nx-tile-content">
-                            {licenseLegalData.effectiveLicenses.map(
-                              (effectiveLicense, index) => {
-                                const license = applicationReport.licenseLegalMetadata.find(
-                                  (licenseMetadata) =>
-                                    licenseMetadata.licenseId ===
-                                    effectiveLicense
-                                );
-
-                                if (license && license.licenseText) {
-                                  return (
-                                    <pre key={index}>{license.licenseText}</pre>
-                                  );
-                                }
-                              }
-                            )}
+                    {isNilOrEmpty(licenseLegalData.licenseFiles) && !isNilOrEmpty(licenseLegalData.effectiveLicenses) && (
+                      <section className="nx-tile">
+                        <header className="nx-tile-header">
+                          <div className="nx-tile-header__title">
+                            <h4 className="nx-h4">Standard License Text</h4>
                           </div>
-                        </section>
-                      )}
+                        </header>
+                        <div className="nx-tile-content">
+                          {licenseLegalData.effectiveLicenses.map((effectiveLicense, index) => {
+                            const license = applicationReport.licenseLegalMetadata.find(
+                              (licenseMetadata) => licenseMetadata.licenseId === effectiveLicense
+                            );
+
+                            if (license && license.licenseText) {
+                              return <pre key={index}>{license.licenseText}</pre>;
+                            }
+                          })}
+                        </div>
+                      </section>
+                    )}
                   </div>
                 )}
               </section>

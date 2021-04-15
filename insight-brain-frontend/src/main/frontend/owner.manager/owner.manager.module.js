@@ -115,29 +115,14 @@ export default angular
   .controller('access.editor.controller', AccessEditorController)
   .controller('AccessTileController', AccessTileController)
   .directive('accessTile', AccessTile)
-  .controller(
-    'application.category.editor.controller',
-    ApplicationCategoryEditorController
-  )
-  .controller(
-    'ApplicationCategoryTileControllerApp',
-    ApplicationCategoryTileControllerApp
-  )
-  .controller(
-    'ApplicationCategoryTileControllerOrg',
-    ApplicationCategoryTileControllerOrg
-  )
+  .controller('application.category.editor.controller', ApplicationCategoryEditorController)
+  .controller('ApplicationCategoryTileControllerApp', ApplicationCategoryTileControllerApp)
+  .controller('ApplicationCategoryTileControllerOrg', ApplicationCategoryTileControllerOrg)
   .controller('category.editor.controller', CategoryEditorController)
   .controller('label.editor.controller', LabelEditorController)
   .controller('LabelTileController', LabelTileController)
-  .controller(
-    'license.threat.group.editor.controller',
-    LicenseThreatGroupEditorController
-  )
-  .controller(
-    'LicenseThreatGroupTileController',
-    LicenseThreatGroupTileController
-  )
+  .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
+  .controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController)
   .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController)
   .directive('ownerDetailTreeView', OwnerDetailTreeViewDirective)
   .directive('ownerTreeView', ownerTreeView)
@@ -145,15 +130,9 @@ export default angular
   .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
   .service('role.mapping.service', RoleMappingService)
   .directive('coordinatesInput', CoordinatesInput)
-  .controller(
-    'monitored.stage.editor.controller',
-    MonitoredStageEditorController
-  )
+  .controller('monitored.stage.editor.controller', MonitoredStageEditorController)
   .controller('policy.editor.actions.controller', PolicyEditorActionsController)
-  .controller(
-    'policy.editor.constraints.controller',
-    PolicyEditorConstraintsController
-  )
+  .controller('policy.editor.constraints.controller', PolicyEditorConstraintsController)
   .controller('policy.editor.controller', PolicyEditorController)
   .controller('policy.tile.controller', PolicyTileController)
   .directive('policyEditorActions', PolicyEditorActionsDirective)
@@ -161,44 +140,23 @@ export default angular
   .directive('policyEditorConstraints', PolicyEditorConstraintsDirective)
   .service('monitored.stage.service', MonitoredStageService)
   .service('notification.webhook.service', NotificationWebhookService)
-  .controller(
-    'proprietary.config.editor.controller',
-    ProprietaryConfigEditorController
-  )
-  .controller(
-    'policy.editor.notifications.controller',
-    PolicyEditorNotificationsController
-  )
-  .controller(
-    'repositories.configuration.tile.controller',
-    ConfigurationTileController
-  )
+  .controller('proprietary.config.editor.controller', ProprietaryConfigEditorController)
+  .controller('policy.editor.notifications.controller', PolicyEditorNotificationsController)
+  .controller('repositories.configuration.tile.controller', ConfigurationTileController)
   .controller('change.application.id.controller', ChangeApplicationIdController)
   .controller('owner.editor.controller', OwnerEditorController)
   .service('OwnerEditorService', OwnerEditorService)
   .directive('ownerImage', OwnerImageDirective)
   .service('SelectApplicationContactService', SelectApplicationContactService)
   .controller('OwnerSummaryController', OwnerSummaryController)
-  .service(
-    'evaluate.application.modal.service',
-    EvaluateApplicationModalService
-  )
+  .service('evaluate.application.modal.service', EvaluateApplicationModalService)
   .service('RevokeGrandfatheringModalService', RevokeGrandfatheringModalService)
   .service('GrandfatherModalService', GrandfatherModalService)
   .service('import.policy.modal.service', ImportPolicyModalService)
-  .controller(
-    'select.application.contact.controller',
-    SelectApplicationContactController
-  )
+  .controller('select.application.contact.controller', SelectApplicationContactController)
   .service('change.application.id.service', ChangeApplicationIdService)
-  .controller(
-    'evaluate.application.modal.controller',
-    EvaluateApplicationModalController
-  )
-  .controller(
-    'RevokeGrandfatheringModalController',
-    RevokeGrandfatheringModalController
-  )
+  .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
+  .controller('RevokeGrandfatheringModalController', RevokeGrandfatheringModalController)
   .controller('GrandfatherModalController', GrandfatherModalController)
   .controller('import.policy.modal.controller', ImportPolicyModalController)
   .directive('numberInputWithStringValue', NumberInputWithStringValue)
@@ -389,22 +347,17 @@ export default angular
               },
             },
           })
-          .state(
-            'management.edit.' +
-              ownerType.type +
-              '.violation-grandfathering-policy',
-            {
-              url: '/grandfathering',
-              data: {
-                title: ownerType.name + ' Violation Grandfathering',
+          .state('management.edit.' + ownerType.type + '.violation-grandfathering-policy', {
+            url: '/grandfathering',
+            data: {
+              title: ownerType.name + ' Violation Grandfathering',
+            },
+            views: {
+              '@management.edit': {
+                component: 'policyViolationGrandfatheringEditor',
               },
-              views: {
-                '@management.edit': {
-                  component: 'policyViolationGrandfatheringEditor',
-                },
-              },
-            }
-          )
+            },
+          })
           .state('management.edit.' + ownerType.type + '.monitor-policy', {
             url: '/monitoring',
             data: {
@@ -418,39 +371,33 @@ export default angular
               },
             },
           })
-          .state(
-            'management.edit.' + ownerType.type + '.proprietary-config-policy',
-            {
-              url: '/proprietary',
-              data: {
-                title: ownerType.name + ' Proprietary Components',
+          .state('management.edit.' + ownerType.type + '.proprietary-config-policy', {
+            url: '/proprietary',
+            data: {
+              title: ownerType.name + ' Proprietary Components',
+            },
+            views: {
+              '@management.edit': {
+                controller: 'proprietary.config.editor.controller',
+                controllerAs: 'vm',
+                template: proprietaryEditorTemplate,
               },
-              views: {
-                '@management.edit': {
-                  controller: 'proprietary.config.editor.controller',
-                  controllerAs: 'vm',
-                  template: proprietaryEditorTemplate,
-                },
+            },
+          })
+          .state('management.edit.' + ownerType.type + '.edit-license-threat-group', {
+            url: '/licenseThreatGroup/{licenseThreatGroupId}',
+            data: {
+              title: ownerType.name + ' License Threat Groups',
+            },
+            views: {
+              '@management.edit': {
+                controller: 'license.threat.group.editor.controller',
+                controllerAs: 'vm',
+                template: ltgEditorTemplate,
+                clmBuildTimestamp,
               },
-            }
-          )
-          .state(
-            'management.edit.' + ownerType.type + '.edit-license-threat-group',
-            {
-              url: '/licenseThreatGroup/{licenseThreatGroupId}',
-              data: {
-                title: ownerType.name + ' License Threat Groups',
-              },
-              views: {
-                '@management.edit': {
-                  controller: 'license.threat.group.editor.controller',
-                  controllerAs: 'vm',
-                  template: ltgEditorTemplate,
-                  clmBuildTimestamp,
-                },
-              },
-            }
-          )
+            },
+          })
           .state('management.edit.' + ownerType.type + '.edit-source-control', {
             url: '/source-control',
             data: {

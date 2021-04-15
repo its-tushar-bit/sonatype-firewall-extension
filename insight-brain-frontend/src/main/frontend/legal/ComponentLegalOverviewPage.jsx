@@ -63,34 +63,19 @@ export default function ComponentLegalOverviewPage(props) {
   useEffect(load, [hash]);
 
   const ownerType = applicationPublicId ? 'application' : 'organization';
-  const ownerId =
-    applicationPublicId || organizationId || 'ROOT_ORGANIZATION_ID';
+  const ownerId = applicationPublicId || organizationId || 'ROOT_ORGANIZATION_ID';
 
   const getLicenseNames = (effectiveLicenses) =>
-    map(
-      pipe(
-        propEq('licenseId'),
-        flip(find)(licenseLegalMetadata),
-        prop('licenseName')
-      ),
-      effectiveLicenses
-    );
+    map(pipe(propEq('licenseId'), flip(find)(licenseLegalMetadata), prop('licenseName')), effectiveLicenses);
 
-  const licenseNames =
-    component && getLicenseNames(component.licenseLegalData.effectiveLicenses);
+  const licenseNames = component && getLicenseNames(component.licenseLegalData.effectiveLicenses);
 
   const isTextBasedObligation = (licenseObligation) => {
     return TEXT_BASED_OBLIGATIONS.indexOf(licenseObligation.name) >= 0;
   };
 
-  const createLicenseObligationAttributionTileContainer = (
-    licenseObligation,
-    index
-  ) => (
-    <LicenseObligationAttributionTileContainer
-      key={index}
-      name={licenseObligation.name}
-    />
+  const createLicenseObligationAttributionTileContainer = (licenseObligation, index) => (
+    <LicenseObligationAttributionTileContainer key={index} name={licenseObligation.name} />
   );
 
   const backHref =
@@ -130,15 +115,11 @@ export default function ComponentLegalOverviewPage(props) {
                 hash={hash}
                 $state={$state}
                 showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
-                setDisplayCopyrightOverrideModal={
-                  setDisplayCopyrightOverrideModal
-                }
+                setDisplayCopyrightOverrideModal={setDisplayCopyrightOverrideModal}
               />
               <NoticeTextsTileContainer />
               <LicenseTextsTileContainer />
-              {obligations
-                .filter(isTextBasedObligation)
-                .map(createLicenseObligationAttributionTileContainer)}
+              {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}
               <LicenseObligationAttributionTileContainer name={null} />
             </div>
           </div>

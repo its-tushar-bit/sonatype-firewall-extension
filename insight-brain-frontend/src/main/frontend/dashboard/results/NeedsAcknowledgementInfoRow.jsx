@@ -4,11 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxInfoAlert,
-  NxTableCell,
-  NxTableRow,
-} from '@sonatype/react-shared-components';
+import { NxInfoAlert, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 export default function NeedsAcknowledgementInfoRow({ colSpan }) {

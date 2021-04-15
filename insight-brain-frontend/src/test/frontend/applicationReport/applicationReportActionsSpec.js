@@ -8,13 +8,7 @@ import applicationReportModule from '../../../main/frontend/applicationReport/mo
 import { serializeComponentIdentifier } from '../../../main/frontend/util/componentIdentifierUtils';
 import * as CLMLocation from '../../../main/frontend/util/CLMLocation';
 
-const createMockState = (
-  isUnknownJs,
-  bomData,
-  unknownJsData,
-  metadata,
-  embeddable
-) => ({
+const createMockState = (isUnknownJs, bomData, unknownJsData, metadata, embeddable) => ({
   applicationReport: {
     reportParameters: {
       appId: 'appId',
@@ -63,15 +57,7 @@ describe('applicationReportActions', function () {
   describe('setReportParameters', () => {
     it('dispatches SET_REPORT_PARAMETERS action', () => {
       const store = SpecUtil.mockReduxStore({});
-      store.dispatch(
-        applicationReportActions.setReportParameters(
-          'appId',
-          'scanId',
-          true,
-          false,
-          'policyViolationId'
-        )
-      );
+      store.dispatch(applicationReportActions.setReportParameters('appId', 'scanId', true, false, 'policyViolationId'));
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({
@@ -85,14 +71,7 @@ describe('applicationReportActions', function () {
         },
       });
 
-      store.dispatch(
-        applicationReportActions.setReportParameters(
-          'appId',
-          'scanId',
-          true,
-          false
-        )
-      );
+      store.dispatch(applicationReportActions.setReportParameters('appId', 'scanId', true, false));
       expect(store.getActions().length).toBe(2);
       expect(store.getActions()[1]).toEqual({
         type: 'SET_REPORT_PARAMETERS',
@@ -117,9 +96,7 @@ describe('applicationReportActions', function () {
    */
   function testCommonDataLoading(actionCreatorName, expectAdditionalCalls) {
     it('fetches common data if bomData is not on the state', (done) => {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(true, undefined, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
 
       expectCommonDataCalls(true, expectAdditionalCalls);
 
@@ -139,9 +116,7 @@ describe('applicationReportActions', function () {
     });
 
     it('fetches common data if metadata is not on the state', (done) => {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(true, mockBomData, mockUnknownJsData, undefined)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, mockUnknownJsData, undefined));
 
       expectCommonDataCalls(true, expectAdditionalCalls);
 
@@ -159,9 +134,7 @@ describe('applicationReportActions', function () {
     });
 
     it('fetches common data if unknownJs is on and unknownJsData is not on the state', (done) => {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(true, mockBomData, undefined, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, undefined, mockMetadata));
 
       expectCommonDataCalls(true, expectAdditionalCalls);
 
@@ -179,9 +152,7 @@ describe('applicationReportActions', function () {
     });
 
     it('does not fetch unknownJsData if unknownJs is off', (done) => {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, undefined, undefined, undefined)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined));
 
       expectCommonDataCalls(true, expectAdditionalCalls);
 
@@ -199,9 +170,7 @@ describe('applicationReportActions', function () {
     });
 
     it('does not fetch common data if bomData, metadata are set on the state and unknownJs is false', (done) => {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
 
       expectCommonDataCalls(false, expectAdditionalCalls);
 
@@ -214,9 +183,7 @@ describe('applicationReportActions', function () {
     });
 
     it('does not fetch common data if bomData, metadata and unknownJsData are all on the state', (done) => {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(true, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, mockUnknownJsData, mockMetadata));
 
       expectCommonDataCalls(false, expectAdditionalCalls);
 
@@ -229,9 +196,7 @@ describe('applicationReportActions', function () {
     });
 
     it('fires LOAD_COMMON_DATA_FAILED action and no further actions if the common data request fails', (done) => {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(true, undefined, undefined, undefined)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(true, undefined, undefined, undefined));
 
       expectCommonDataCalls(false, expectAdditionalCalls);
 
@@ -248,9 +213,7 @@ describe('applicationReportActions', function () {
 
   describe('loadReport', function () {
     it('dispatches a LOAD_REPORT_REQUESTED action', function () {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
       store.dispatch(applicationReportActions.loadReport());
 
       expect(store.getActions().length).toBe(2);
@@ -262,9 +225,7 @@ describe('applicationReportActions', function () {
     testCommonDataLoading('loadReport', expectReportDataCalls(true));
 
     it('loads report information if forceCache is true, even if it is already on the state', (done) => {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(true, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(true, mockBomData, mockUnknownJsData, mockMetadata));
 
       expectCommonDataCalls(true, expectReportDataCalls(true));
 
@@ -276,9 +237,7 @@ describe('applicationReportActions', function () {
     });
 
     it('fires LOAD_REPORT_FAILED action if report request fails', function (done) {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(true, undefined, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
 
       expectCommonDataCalls(true, expectReportDataCalls(false));
 
@@ -308,9 +267,7 @@ describe('applicationReportActions', function () {
           },
         ],
       };
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, bomData, undefined, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, bomData, undefined, mockMetadata));
 
       expectCommonDataCalls(true, expectReportDataCalls(true));
 
@@ -335,9 +292,7 @@ describe('applicationReportActions', function () {
                     version: '0.6',
                   },
                 },
-                serializedComponentIdentifier: serializeComponentIdentifier(
-                  componentIdentifier
-                ),
+                serializedComponentIdentifier: serializeComponentIdentifier(componentIdentifier),
                 policyThreatLevel: 0,
                 policyName: 'None',
                 waived: false,
@@ -360,12 +315,7 @@ describe('applicationReportActions', function () {
 
   describe('selectComponent', function () {
     it('set the selected component with InnerSource', function (done) {
-      const state = createMockState(
-        false,
-        mockBomData,
-        mockUnknownJsData,
-        mockMetadata
-      );
+      const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
 
       state.applicationReport.selectedReport = {
         displayedEntries: [
@@ -408,12 +358,7 @@ describe('applicationReportActions', function () {
     });
 
     it('request and set the selected component without InnerSource', function (done) {
-      const state = createMockState(
-        false,
-        mockBomData,
-        mockUnknownJsData,
-        mockMetadata
-      );
+      const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
 
       state.applicationReport.selectedReport = {
         displayedEntries: [
@@ -432,27 +377,23 @@ describe('applicationReportActions', function () {
         componentName: 'b',
       };
 
-      store
-        .dispatch(applicationReportActions.selectComponent(1))
-        .then(function () {
-          expect(store.getActions().length).toBe(1);
-          expect(store.getActions()[0]).toEqual({
-            type: 'SELECT_COMPONENT',
-            payload: {
-              component: selectedComponent,
-              componentIndex: 1,
-            },
-          });
-          done();
+      store.dispatch(applicationReportActions.selectComponent(1)).then(function () {
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()[0]).toEqual({
+          type: 'SELECT_COMPONENT',
+          payload: {
+            component: selectedComponent,
+            componentIndex: 1,
+          },
         });
+        done();
+      });
     });
   });
 
   describe('loadReportRawData', function () {
     it('dispatches a LOAD_REPORT_RAW_DATA_REQUESTED action', function () {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
       store.dispatch(applicationReportActions.loadReportRawData());
 
       expect(store.getActions().length).toBe(2);
@@ -464,26 +405,20 @@ describe('applicationReportActions', function () {
     testCommonDataLoading('loadReportRawData', expectReportRawDataCalls(true));
 
     it('fires LOAD_REPORT_RAW_DATA_FAILED action if report request fails', function (done) {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(true, undefined, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(true, undefined, mockUnknownJsData, mockMetadata));
 
       expectCommonDataCalls(true, expectReportRawDataCalls(false));
 
       store.dispatch(applicationReportActions.loadReportRawData()).then(() => {
         expect(store.getActions().length).toBe(3);
-        expect(store.getActions()[2].type).toEqual(
-          'LOAD_REPORT_RAW_DATA_FAILED'
-        );
+        expect(store.getActions()[2].type).toEqual('LOAD_REPORT_RAW_DATA_FAILED');
         done();
       });
     });
 
     it('fires LOAD_REPORT_RAW_DATA_FULFILLED action if report request succeeds', function (done) {
       const bomData = { aaData: [{ foo: 'bar' }] };
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, bomData, undefined, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, bomData, undefined, mockMetadata));
       expectCommonDataCalls(true, expectReportRawDataCalls(true));
 
       store.dispatch(applicationReportActions.loadReportRawData()).then(() => {
@@ -533,10 +468,7 @@ describe('applicationReportActions', function () {
   describe('setExactValueFilter', function () {
     it('returns a SET_EXACT_VALUE_FILTER action with payload having the specified fieldName and allowedValues', function () {
       const allowedValues = new Set(['foo', 'bar']),
-        action = applicationReportActions.setExactValueFilter(
-          'fooField',
-          allowedValues
-        );
+        action = applicationReportActions.setExactValueFilter('fooField', allowedValues);
 
       expect(action.type).toBe('SET_EXACT_VALUE_FILTER');
       expect(action.payload).toEqual({
@@ -548,10 +480,7 @@ describe('applicationReportActions', function () {
 
   describe('setStringFieldFilter', function () {
     it('returns a SET_SUBSTRING_FIELD_FILTER action with payload having the specified fieldName and filterString', function () {
-      const action = applicationReportActions.setStringFieldFilter(
-        'fooField',
-        'bar'
-      );
+      const action = applicationReportActions.setStringFieldFilter('fooField', 'bar');
 
       expect(action.type).toBe('SET_SUBSTRING_FIELD_FILTER');
       expect(action.payload).toEqual({
@@ -563,10 +492,7 @@ describe('applicationReportActions', function () {
 
   describe('setRawDataStringFieldFilter', function () {
     it('returns a SET_RAW_DATA_SUBSTRING_FIELD_FILTER action with payload of specified fieldName and filterString', function () {
-      const action = applicationReportActions.setRawDataStringFieldFilter(
-        'fooField',
-        'bar'
-      );
+      const action = applicationReportActions.setRawDataStringFieldFilter('fooField', 'bar');
 
       expect(action.type).toBe('SET_RAW_DATA_SUBSTRING_FIELD_FILTER');
       expect(action.payload).toEqual({
@@ -578,10 +504,7 @@ describe('applicationReportActions', function () {
 
   describe('setRawDataNumericMaxFilter', function () {
     it('returns a SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER action with correct payload', function () {
-      const action = applicationReportActions.setRawDataNumericMaxFilter(
-        'fooField',
-        'bar'
-      );
+      const action = applicationReportActions.setRawDataNumericMaxFilter('fooField', 'bar');
 
       expect(action.type).toBe('SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER');
       expect(action.payload).toEqual({
@@ -593,10 +516,7 @@ describe('applicationReportActions', function () {
 
   describe('setRawDataNumericMinFilter', function () {
     it('returns a SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER action with correct payload', function () {
-      const action = applicationReportActions.setRawDataNumericMinFilter(
-        'fooField',
-        'bar'
-      );
+      const action = applicationReportActions.setRawDataNumericMinFilter('fooField', 'bar');
 
       expect(action.type).toBe('SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER');
       expect(action.payload).toEqual({
@@ -631,16 +551,11 @@ describe('applicationReportActions', function () {
     });
 
     it('loads the report after reevaluation', function (done) {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
 
       mockAxiosCalls({
         post: {
-          [CLMLocation.getReportReevaluateUrl(
-            'appId',
-            'scanId'
-          )]: Promise.resolve({ data: '' }),
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: Promise.resolve({ data: '' }),
         },
       });
 
@@ -693,16 +608,11 @@ describe('applicationReportActions', function () {
     });
 
     it('does not fire REEVALUATE_REPORT_FAILED if the load afterwards fails', function (done) {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
 
       mockAxiosCalls({
         post: {
-          [CLMLocation.getReportReevaluateUrl(
-            'appId',
-            'scanId'
-          )]: Promise.resolve({ data: '' }),
+          [CLMLocation.getReportReevaluateUrl('appId', 'scanId')]: Promise.resolve({ data: '' }),
         },
       });
 
@@ -749,9 +659,7 @@ describe('applicationReportActions', function () {
 
   describe('loadReportAllData', function () {
     it('dispatches a LOAD_REPORT_ALL_DATA_REQUESTED action', function () {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
       store.dispatch(applicationReportActions.loadReportAllData());
 
       expect(store.getActions().length).toBe(2);
@@ -766,32 +674,20 @@ describe('applicationReportActions', function () {
     });
 
     it('does not load the raw data if it is already loaded', function (done) {
-      const state = createMockState(
-        false,
-        mockBomData,
-        mockUnknownJsData,
-        mockMetadata
-      );
+      const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
 
       state.applicationReport.reportRawData = [];
 
       const store = SpecUtil.mockReduxStore(state);
 
       store.dispatch(applicationReportActions.loadReportAllData()).then(() => {
-        expect(store.getActions()[2].type).toEqual(
-          'LOAD_REPORT_RAW_DATA_UNNECESSARY'
-        );
+        expect(store.getActions()[2].type).toEqual('LOAD_REPORT_RAW_DATA_UNNECESSARY');
         done();
       });
     });
 
     it('does not load the policy data if it is already loaded', function (done) {
-      const state = createMockState(
-        false,
-        mockBomData,
-        mockUnknownJsData,
-        mockMetadata
-      );
+      const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
 
       state.applicationReport.selectedReport = {};
 
@@ -805,9 +701,7 @@ describe('applicationReportActions', function () {
     });
 
     it('dispatches GENERATE_VULNERABILITY_ENTRIES after all data is loaded', function (done) {
-      const store = SpecUtil.mockReduxStore(
-        createMockState(false, mockBomData, mockUnknownJsData, mockMetadata)
-      );
+      const store = SpecUtil.mockReduxStore(createMockState(false, mockBomData, mockUnknownJsData, mockMetadata));
 
       expectCommonDataCalls(true, {
         ...expectReportDataCalls(true),
@@ -847,9 +741,7 @@ describe('applicationReportActions', function () {
   describe('setSortingParameters', () => {
     it('dispatches SET_SORTING_PARAMETERS action', () => {
       const store = SpecUtil.mockReduxStore({});
-      store.dispatch(
-        applicationReportActions.setSortingParameters('key', ['a', 'b'], 'dir')
-      );
+      store.dispatch(applicationReportActions.setSortingParameters('key', ['a', 'b'], 'dir'));
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({

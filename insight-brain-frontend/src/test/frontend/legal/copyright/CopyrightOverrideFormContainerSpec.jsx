@@ -19,9 +19,7 @@ describe('CopyrightOverrideFormContainer', function () {
     setDisplayCopyrightOverrideModalMock;
 
   beforeEach(function () {
-    saveCopyrightOverrideMock = jasmine
-      .createSpy('saveCopyrightOverride')
-      .and.returnValue({ type: 'FOO' });
+    saveCopyrightOverrideMock = jasmine.createSpy('saveCopyrightOverride').and.returnValue({ type: 'FOO' });
     setDisplayCopyrightOverrideModalMock = jasmine
       .createSpy('setDisplayCopyrightOverrideModal')
       .and.returnValue({ type: 'BAR' });
@@ -91,9 +89,7 @@ describe('CopyrightOverrideFormContainer', function () {
   it('correctly maps actions', () => {
     const wrapper = shallow(vdom).dive();
     const saveCopyrightOverride = wrapper.prop('saveCopyrightOverride');
-    const setDisplayCopyrightOverrideModal = wrapper.prop(
-      'setDisplayCopyrightOverrideModal'
-    );
+    const setDisplayCopyrightOverrideModal = wrapper.prop('setDisplayCopyrightOverrideModal');
 
     expect(store.getActions()).toEqual([]);
     saveCopyrightOverride('test', 'test');

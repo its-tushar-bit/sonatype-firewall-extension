@@ -63,10 +63,7 @@ export default function SubmitValidation() {
         if (submitType === 'update' && !isSubmissionDirty) {
           title = 'There are no changes to update.';
         } else {
-          title =
-            'Unable to ' +
-            (submitType ? submitType : 'save') +
-            ': fields with invalid or missing data.';
+          title = 'Unable to ' + (submitType ? submitType : 'save') + ': fields with invalid or missing data.';
         }
 
         var options = {};

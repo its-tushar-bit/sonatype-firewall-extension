@@ -16,8 +16,5 @@ function mapStateToProps({ advancedLegal }) {
 
 const mapDispatchToProps = { ...advancedLegalActions };
 
-const AdvancedLegalApplicationsContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(AdvancedLegalApplicationsPage);
+const AdvancedLegalApplicationsContainer = connect(mapStateToProps, mapDispatchToProps)(AdvancedLegalApplicationsPage);
 export default AdvancedLegalApplicationsContainer;

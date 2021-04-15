@@ -27,16 +27,14 @@ describe('dashboardResultsActions', function () {
   ];
 
   beforeEach(function () {
-    const module = require('inject-loader!../../../../main/frontend/dashboard/results/dashboardResultsActions')(
-      {
-        '../services/dashboard.data.service': {
-          getNewestRisks: newRisksSpy,
-          getApplicationRisks: applicationsRiskSpy,
-          getComponentRisks: componentRisksSpy,
-          MAX_RESULTS: 100,
-        },
-      }
-    );
+    const module = require('inject-loader!../../../../main/frontend/dashboard/results/dashboardResultsActions')({
+      '../services/dashboard.data.service': {
+        getNewestRisks: newRisksSpy,
+        getApplicationRisks: applicationsRiskSpy,
+        getComponentRisks: componentRisksSpy,
+        MAX_RESULTS: 100,
+      },
+    });
     loadResults = module.loadResults;
     sortResults = module.sortResults;
   });
@@ -193,27 +191,20 @@ describe('dashboardResultsActions', function () {
       );
 
       const store = SpecUtil.mockReduxStore(initialState);
-      store
-        .dispatch(
-          sortResults('components', initialState.dashboard.components.results)
-        )
-        .then(() => {
-          expect(componentRisksSpy).toHaveBeenCalledWith(
-            'current filters',
-            expectedSortFields
-          );
-          expect(store.getActions().length).toBe(3);
-          expect(store.getActions()[2]).toEqual({
-            type: 'LOAD_RESULTS_FULFILLED',
-            payload: {
-              resultsType: 'components',
-              results: 'sorted results',
-              numResults: 3,
-              classyBrew: 'classyBrew',
-            },
-          });
-          done();
+      store.dispatch(sortResults('components', initialState.dashboard.components.results)).then(() => {
+        expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
+        expect(store.getActions().length).toBe(3);
+        expect(store.getActions()[2]).toEqual({
+          type: 'LOAD_RESULTS_FULFILLED',
+          payload: {
+            resultsType: 'components',
+            results: 'sorted results',
+            numResults: 3,
+            classyBrew: 'classyBrew',
+          },
         });
+        done();
+      });
 
       // this action will update sortFields in the state
       expect(store.getActions()[0]).toEqual({
@@ -244,10 +235,7 @@ describe('dashboardResultsActions', function () {
 
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(sortResults('components', ['-foo', 'bar'])).then(() => {
-        expect(componentRisksSpy).toHaveBeenCalledWith(
-          'current filters',
-          expectedSortFields
-        );
+        expect(componentRisksSpy).toHaveBeenCalledWith('current filters', expectedSortFields);
         expect(store.getActions().length).toBe(3);
         expect(store.getActions()[2]).toEqual({
           type: 'LOAD_RESULTS_FULFILLED',

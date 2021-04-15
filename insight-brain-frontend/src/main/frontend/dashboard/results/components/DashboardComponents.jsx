@@ -13,15 +13,7 @@ import DashboardMask from '../dashboardMask/DashboardMask';
 
 export default function DashboardComponents(props) {
   const COMPONENTS_RESULTS_TYPE = 'components';
-  const {
-      results,
-      filterLoading,
-      needsAcknowledgement,
-      filtersAreDirty,
-      loadResults,
-      sortResults,
-      stateGo,
-    } = props,
+  const { results, filterLoading, needsAcknowledgement, filtersAreDirty, loadResults, sortResults, stateGo } = props,
     componentResults = results && results[COMPONENTS_RESULTS_TYPE],
     sortComponents = partial(sortResults, [COMPONENTS_RESULTS_TYPE]);
 
@@ -45,10 +37,7 @@ export default function DashboardComponents(props) {
   };
 
   return (
-    <div
-      id="dashboard-components"
-      className="iq-dashboard-components nx-viewport-sized__container"
-    >
+    <div id="dashboard-components" className="iq-dashboard-components nx-viewport-sized__container">
       {filtersAreDirty && <DashboardMask />}
       <DashboardComponentsTable {...tableProps} />
     </div>

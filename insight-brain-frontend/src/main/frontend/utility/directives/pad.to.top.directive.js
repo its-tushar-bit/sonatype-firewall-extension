@@ -17,10 +17,7 @@ export default function PadToTop($interval) {
       originalBottomMargin = element.css('margin-bottom'),
       currentBottomMargin = originalBottomMargin;
 
-    var waitUntilElementReadyInterval = $interval(
-      initializeAfterTopTargetReady,
-      200
-    );
+    var waitUntilElementReadyInterval = $interval(initializeAfterTopTargetReady, 200);
 
     scope.$on('$destroy', function () {
       if (refreshPadToTopInterval) {

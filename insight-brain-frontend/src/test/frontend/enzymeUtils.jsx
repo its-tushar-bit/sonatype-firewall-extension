@@ -17,10 +17,6 @@ export const getMountedComponent = (Component, minimalProps) =>
     return mount(<Component {...minimalProps} {...additionalProps} />);
   };
 
-export const getLoadWrapperChildren = function getLoadWrapperChildren(
-  pageShallowWrapper
-) {
-  return shallow(
-    React.createElement(pageShallowWrapper.find(LoadWrapper).prop('children'))
-  );
+export const getLoadWrapperChildren = function getLoadWrapperChildren(pageShallowWrapper) {
+  return shallow(React.createElement(pageShallowWrapper.find(LoadWrapper).prop('children')));
 };

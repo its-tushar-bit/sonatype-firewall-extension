@@ -40,9 +40,7 @@ export default function ComponentInformationPanel() {
         }
 
         function tabShown(tab) {
-          var isUnknown =
-            selectedComponent.get() &&
-            selectedComponent.get().matchState === 'unknown';
+          var isUnknown = selectedComponent.get() && selectedComponent.get().matchState === 'unknown';
           if (isUnknown) {
             return !tab.matchedOnly;
           }
@@ -54,8 +52,7 @@ export default function ComponentInformationPanel() {
             return (
               selectedComponent.get() && {
                 hash: selectedComponent.get().hash,
-                componentIdentifier: selectedComponent.get()
-                  .componentIdentifier,
+                componentIdentifier: selectedComponent.get().componentIdentifier,
               }
             );
           },

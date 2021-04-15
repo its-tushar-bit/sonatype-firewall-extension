@@ -17,21 +17,12 @@ import routeStateUtilService from './routeStateUtilService';
 import ProductLicense from './ProductLicense';
 
 export default angular
-  .module('utility.services', [
-    utilityDirectivesModule.name,
-    CLMLocationModule.name,
-  ])
-  .service(
-    'systemConfigurationPropertyService',
-    systemConfigurationPropertyService
-  )
+  .module('utility.services', [utilityDirectivesModule.name, CLMLocationModule.name])
+  .service('systemConfigurationPropertyService', systemConfigurationPropertyService)
   .service('jira.service', JiraService)
   .controller('login.modal.controller', LoginModalController)
   .service('LoginModalService', LoginModalService)
   .service('state.history.service', StateHistoryService)
-  .service(
-    'UnauthenticatedRequestQueueService',
-    UnauthenticatedRequestQueueService
-  )
+  .service('UnauthenticatedRequestQueueService', UnauthenticatedRequestQueueService)
   .service('routeStateUtilService', routeStateUtilService)
   .service('ProductLicense', ProductLicense);

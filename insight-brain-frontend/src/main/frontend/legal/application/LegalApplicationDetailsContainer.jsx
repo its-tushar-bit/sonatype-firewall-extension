@@ -12,10 +12,7 @@ import * as legalApplicationDetailsActions from './legalApplicationDetailsAction
 
 function mapStateToProps({ legalApplicationDetails, router }) {
   return {
-    ...pick(
-      ['application', 'stageType', 'components'],
-      legalApplicationDetails
-    ),
+    ...pick(['application', 'stageType', 'components'], legalApplicationDetails),
     ...pick(['applicationPublicId', 'stageTypeId'], router.currentParams),
   };
 }
@@ -25,8 +22,5 @@ const mapDispatchToProps = {
   stateGo,
 };
 
-const LegalApplicationDetailsContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LegalApplicationDetailsPage);
+const LegalApplicationDetailsContainer = connect(mapStateToProps, mapDispatchToProps)(LegalApplicationDetailsPage);
 export default LegalApplicationDetailsContainer;

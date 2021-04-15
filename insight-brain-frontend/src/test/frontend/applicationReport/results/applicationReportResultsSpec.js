@@ -19,12 +19,7 @@ describe('applicationReportResults', function () {
     })
   );
 
-  beforeEach(inject(function (
-    _$componentController_,
-    $rootScope,
-    _OwnerContext_,
-    _$q_
-  ) {
+  beforeEach(inject(function (_$componentController_, $rootScope, _OwnerContext_, _$q_) {
     OwnerContext = _OwnerContext_;
     scope = $rootScope.$new();
     $q = _$q_;
@@ -54,12 +49,8 @@ describe('applicationReportResults', function () {
         scanId: 'test-scan-23424iufg',
       };
       scope.$digest();
-      expect(OwnerContext.setOwnerId).toHaveBeenCalledWith(
-        'test-application-23424iufg'
-      );
-      expect(OwnerContext.setScanId).toHaveBeenCalledWith(
-        'test-scan-23424iufg'
-      );
+      expect(OwnerContext.setOwnerId).toHaveBeenCalledWith('test-application-23424iufg');
+      expect(OwnerContext.setScanId).toHaveBeenCalledWith('test-scan-23424iufg');
     });
 
     it('watches vm.reportParameters and handles null value', function () {
@@ -82,9 +73,7 @@ describe('applicationReportResults', function () {
       vm.reportParameters = {
         scanId: 'scanId',
       };
-      expect(vm.getReportPdfDownloadUrl()).toEqual(
-        '/rest/report/appId/scanId/printReport'
-      );
+      expect(vm.getReportPdfDownloadUrl()).toEqual('/rest/report/appId/scanId/printReport');
     });
   });
 
@@ -161,9 +150,7 @@ describe('applicationReportResults', function () {
     });
 
     it('opens CIP when rendering and the appropiate index for the policvyViolationId is found', function () {
-      vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy(
-        'refreshReportUrlRemovePolicyViolationId'
-      );
+      vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy('refreshReportUrlRemovePolicyViolationId');
       vm.openCipModal = jasmine.createSpy('openCipModal');
 
       // Ensure the previous displayed entries are not defined (opening the report for the first time)
@@ -190,9 +177,7 @@ describe('applicationReportResults', function () {
       'opens CIP when rendering and the violation is not found in displayedEntries but exists in allEntries ' +
         'with a matching component hash',
       function () {
-        vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy(
-          'refreshReportUrlRemovePolicyViolationId'
-        );
+        vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy('refreshReportUrlRemovePolicyViolationId');
         vm.openCipModal = jasmine.createSpy('openCipModal');
 
         // Ensure the previous displayed entries are not defined (opening the report for the first time)
@@ -217,9 +202,7 @@ describe('applicationReportResults', function () {
         };
 
         vm.selectedReport = {
-          displayedEntries: range(0, 100).map(
-            numberToHashedComponentFunctionForDisplayed
-          ),
+          displayedEntries: range(0, 100).map(numberToHashedComponentFunctionForDisplayed),
           allEntries: range(0, 200).map(numberToHashedComponentFunction),
         };
         scope.$digest();
@@ -256,9 +239,7 @@ describe('applicationReportResults', function () {
         };
 
         vm.selectedReport = {
-          displayedEntries: range(0, 20).map(
-            numberToHashedComponentFunctionForDisplayed
-          ),
+          displayedEntries: range(0, 20).map(numberToHashedComponentFunctionForDisplayed),
           allEntries: range(0, 200).map(numberToHashedComponentFunction),
         };
         scope.$digest();
@@ -267,9 +248,7 @@ describe('applicationReportResults', function () {
     );
 
     it('does not open CIP when rendering and there is a selected index already in place (reevaluation)', function () {
-      vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy(
-        'refreshReportUrlRemovePolicyViolationId'
-      );
+      vm.refreshReportUrlRemovePolicyViolationId = jasmine.createSpy('refreshReportUrlRemovePolicyViolationId');
       vm.openCipModal = jasmine.createSpy('openCipModal');
 
       // Ensure the previous displayed entries are not defined (report reevaluation)
@@ -304,11 +283,7 @@ describe('applicationReportResults', function () {
   describe('reload', function () {
     it('calls loadReport action with proper params', function () {
       vm.reload();
-      expect(vm.loadReport).toHaveBeenCalledWith(
-        'testApp',
-        'testReport',
-        false
-      );
+      expect(vm.loadReport).toHaveBeenCalledWith('testApp', 'testReport', false);
     });
   });
 

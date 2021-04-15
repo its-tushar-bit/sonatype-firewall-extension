@@ -12,23 +12,15 @@ describe('automaticSourceControlConfigurationControllerSpec.js', function () {
     })
   );
 
-  var $scope,
-    getConfigurationDeferred,
-    saveConfigurationDeferred,
-    mockAutomaticSourceControlConfigurationService,
-    vm;
+  var $scope, getConfigurationDeferred, saveConfigurationDeferred, mockAutomaticSourceControlConfigurationService, vm;
 
   beforeEach(inject(function (_$rootScope_, $q, $componentController) {
     $scope = _$rootScope_.$new();
     getConfigurationDeferred = $q.defer();
     saveConfigurationDeferred = $q.defer();
     mockAutomaticSourceControlConfigurationService = {
-      getConfiguration: jasmine
-        .createSpy()
-        .and.returnValue(getConfigurationDeferred.promise),
-      saveConfiguration: jasmine
-        .createSpy()
-        .and.returnValue(saveConfigurationDeferred.promise),
+      getConfiguration: jasmine.createSpy().and.returnValue(getConfigurationDeferred.promise),
+      saveConfiguration: jasmine.createSpy().and.returnValue(saveConfigurationDeferred.promise),
     };
     vm = $componentController('automaticSourceControlConfiguration', {
       automaticSourceControlConfigurationService: mockAutomaticSourceControlConfigurationService,
@@ -49,9 +41,7 @@ describe('automaticSourceControlConfigurationControllerSpec.js', function () {
       });
       $scope.$digest();
 
-      expect(
-        mockAutomaticSourceControlConfigurationService.getConfiguration
-      ).toHaveBeenCalled();
+      expect(mockAutomaticSourceControlConfigurationService.getConfiguration).toHaveBeenCalled();
       expect(vm.automaticSourceControlEnabled).toEqual(true);
       expect(vm.savedAutomaticSourceControlEnabled).toEqual(true);
       expect(vm.loaded).toEqual(true);
@@ -62,9 +52,7 @@ describe('automaticSourceControlConfigurationControllerSpec.js', function () {
       getConfigurationDeferred.reject({ status: 404, data: 'not found' });
       $scope.$digest();
 
-      expect(
-        mockAutomaticSourceControlConfigurationService.getConfiguration
-      ).toHaveBeenCalled();
+      expect(mockAutomaticSourceControlConfigurationService.getConfiguration).toHaveBeenCalled();
       expect(vm.automaticSourceControlEnabled).toBe(undefined);
       expect(vm.savedAutomaticSourceControlEnabled).toBe(undefined);
       expect(vm.error.status).toEqual(404);
@@ -95,9 +83,7 @@ describe('automaticSourceControlConfigurationControllerSpec.js', function () {
       saveConfigurationDeferred.resolve(configuration);
       $scope.$digest();
 
-      expect(
-        mockAutomaticSourceControlConfigurationService.saveConfiguration
-      ).toHaveBeenCalledWith(configuration);
+      expect(mockAutomaticSourceControlConfigurationService.saveConfiguration).toHaveBeenCalledWith(configuration);
       expect(vm.savedAutomaticSourceControlEnabled).toEqual(true);
     });
 
@@ -111,9 +97,7 @@ describe('automaticSourceControlConfigurationControllerSpec.js', function () {
       saveConfigurationDeferred.reject({ status: 400, data: 'bad request' });
       $scope.$digest();
 
-      expect(
-        mockAutomaticSourceControlConfigurationService.saveConfiguration
-      ).toHaveBeenCalledWith(configuration);
+      expect(mockAutomaticSourceControlConfigurationService.saveConfiguration).toHaveBeenCalledWith(configuration);
       expect(vm.savedAutomaticSourceControlEnabled).toEqual(undefined);
       expect(vm.error.status).toEqual(400);
       expect(vm.error.data).toEqual('bad request');
@@ -137,9 +121,7 @@ describe('automaticSourceControlConfigurationControllerSpec.js', function () {
       vm.automaticSourceControlConfigurationForm.$valid = false;
       vm.save();
 
-      expect(
-        mockAutomaticSourceControlConfigurationService.saveConfiguration
-      ).not.toHaveBeenCalled();
+      expect(mockAutomaticSourceControlConfigurationService.saveConfiguration).not.toHaveBeenCalled();
     });
 
     it('does not save if the form is unchanged', function () {
@@ -151,9 +133,7 @@ describe('automaticSourceControlConfigurationControllerSpec.js', function () {
       vm.savedAutomaticSourceControlEnabled = false;
       vm.save();
 
-      expect(
-        mockAutomaticSourceControlConfigurationService.saveConfiguration
-      ).not.toHaveBeenCalled();
+      expect(mockAutomaticSourceControlConfigurationService.saveConfiguration).not.toHaveBeenCalled();
     });
   });
 

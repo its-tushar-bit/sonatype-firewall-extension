@@ -9,11 +9,7 @@ import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashb
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 
 describe('LegalDashboardPage', function () {
-  let minimalProps,
-    LegalDashboardPage,
-    LegalDashboardFilterContainerMock,
-    loadResultsSpy,
-    getShallowComponent;
+  let minimalProps, LegalDashboardPage, LegalDashboardFilterContainerMock, loadResultsSpy, getShallowComponent;
   const mockApplications = {
     results: [],
   };
@@ -23,11 +19,9 @@ describe('LegalDashboardPage', function () {
       .createSpy('MaximizedContainerMock')
       .and.returnValue(<div>LegalDashboardFilterContainer</div>);
 
-    LegalDashboardPage = require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardPage')(
-      {
-        './filter/LegalDashboardFilterContainer': LegalDashboardFilterContainerMock,
-      }
-    ).default;
+    LegalDashboardPage = require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardPage')({
+      './filter/LegalDashboardFilterContainer': LegalDashboardFilterContainerMock,
+    }).default;
 
     loadResultsSpy = jasmine.createSpy('loadResults');
     minimalProps = {
@@ -40,10 +34,7 @@ describe('LegalDashboardPage', function () {
       filtersAreDirty: 'filtersAreDirty',
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      LegalDashboardPage,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalProps);
   });
 
   it('is wrapped by a LoadWrapper with appropriate parameters', function () {

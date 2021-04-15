@@ -93,24 +93,18 @@ export default function CategoryEditorController(
           vm.dirtyCategory = results[5].$clone();
 
           // gather the names of associated applications
-          results[1].data.applicationTagsByOwner[0].applicationTags.forEach(
-            function (applicationTag) {
-              if (applicationTag.tagId === vm.dirtyCategory.id) {
-                results[2].forEach(function (application) {
-                  if (application.id === applicationTag.applicationId) {
-                    associatedAppNames.push(application.name);
-                  }
-                });
-              }
+          results[1].data.applicationTagsByOwner[0].applicationTags.forEach(function (applicationTag) {
+            if (applicationTag.tagId === vm.dirtyCategory.id) {
+              results[2].forEach(function (application) {
+                if (application.id === applicationTag.applicationId) {
+                  associatedAppNames.push(application.name);
+                }
+              });
             }
-          );
-          warningMessage =
-            'Are you sure you want to delete this application category?';
+          });
+          warningMessage = 'Are you sure you want to delete this application category?';
           if (associatedAppNames.length > 0) {
-            warningMessage +=
-              ' It is in use by the following applications: ' +
-              associatedAppNames.join(', ') +
-              '.';
+            warningMessage += ' It is in use by the following applications: ' + associatedAppNames.join(', ') + '.';
           }
           //gather a map of policy id/names
           results[3].forEach(function (owner) {

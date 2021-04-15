@@ -8,10 +8,7 @@ import { map, pick } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { getProxyConfigUrl } from '../../util/CLMLocation';
-import {
-  noPayloadActionCreator,
-  payloadParamActionCreator,
-} from '../../util/reduxUtil';
+import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { FAKE_PASSWORD } from './proxyConfigReducer';
 
 export const PROXY_CONFIG_LOAD_REQUESTED = 'PROXY_CONFIG_LOAD_REQUESTED';
@@ -34,11 +31,9 @@ export const PROXY_CONFIG_SET_USERNAME = 'PROXY_CONFIG_SET_USERNAME';
 export const PROXY_CONFIG_SET_PASSWORD = 'PROXY_CONFIG_SET_PASSWORD';
 export const PROXY_CONFIG_SET_EXCLUDE_HOSTS = 'PROXY_CONFIG_SET_EXCLUDE_HOSTS';
 
-export const PROXY_CONFIG_SET_SHOW_DELETE_MODAL =
-  'PROXY_CONFIG_SET_SHOW_DELETE_MODAL';
+export const PROXY_CONFIG_SET_SHOW_DELETE_MODAL = 'PROXY_CONFIG_SET_SHOW_DELETE_MODAL';
 
-export const PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE =
-  'PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE';
+export const PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE = 'PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE';
 
 function toServerData(formState) {
   // pull the trimmedValue out of the input state object and convert empty strings to null
@@ -50,9 +45,7 @@ function toServerData(formState) {
     password: formState.password.value || null,
     passwordIsIncluded: formState.password.value !== FAKE_PASSWORD,
     excludeHosts:
-      formState.excludeHosts.trimmedValue !== ''
-        ? formState.excludeHosts.value.replace(/\s/g, '').split(',')
-        : null,
+      formState.excludeHosts.trimmedValue !== '' ? formState.excludeHosts.value.replace(/\s/g, '').split(',') : null,
   };
 }
 
@@ -121,9 +114,7 @@ const saveFulfilled = payloadParamActionCreator(PROXY_CONFIG_SAVE_FULFILLED);
 const saveFailed = payloadParamActionCreator(PROXY_CONFIG_SAVE_FAILED);
 
 const deleteRequested = noPayloadActionCreator(PROXY_CONFIG_DELETE_REQUESTED);
-const deleteFulfilled = payloadParamActionCreator(
-  PROXY_CONFIG_DELETE_FULFILLED
-);
+const deleteFulfilled = payloadParamActionCreator(PROXY_CONFIG_DELETE_FULFILLED);
 const deleteFailed = payloadParamActionCreator(PROXY_CONFIG_DELETE_FAILED);
 
 export const resetForm = noPayloadActionCreator(PROXY_CONFIG_RESET_FORM);
@@ -132,9 +123,5 @@ export const setHostname = payloadParamActionCreator(PROXY_CONFIG_SET_HOSTNAME);
 export const setPort = payloadParamActionCreator(PROXY_CONFIG_SET_PORT);
 export const setUsername = payloadParamActionCreator(PROXY_CONFIG_SET_USERNAME);
 export const setPassword = payloadParamActionCreator(PROXY_CONFIG_SET_PASSWORD);
-export const setExcludeHosts = payloadParamActionCreator(
-  PROXY_CONFIG_SET_EXCLUDE_HOSTS
-);
-export const setShowDeleteModal = payloadParamActionCreator(
-  PROXY_CONFIG_SET_SHOW_DELETE_MODAL
-);
+export const setExcludeHosts = payloadParamActionCreator(PROXY_CONFIG_SET_EXCLUDE_HOSTS);
+export const setShowDeleteModal = payloadParamActionCreator(PROXY_CONFIG_SET_SHOW_DELETE_MODAL);

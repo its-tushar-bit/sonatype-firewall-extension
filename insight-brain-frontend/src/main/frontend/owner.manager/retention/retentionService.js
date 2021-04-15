@@ -13,29 +13,16 @@ export default function retentionService($http, CLMContextLocations) {
   };
 
   function getRootOrganizationRetentionPolicies() {
-    return $http
-      .get(CLMContextLocations.getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID'))
-      .then(prop('data'));
+    return $http.get(CLMContextLocations.getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID')).then(prop('data'));
   }
 
   function getRetentionPolicies() {
-    return $http
-      .get(
-        CLMContextLocations.getRetentionPoliciesUrl(
-          CLMContextLocations.getEntityId()
-        )
-      )
-      .then(prop('data'));
+    return $http.get(CLMContextLocations.getRetentionPoliciesUrl(CLMContextLocations.getEntityId())).then(prop('data'));
   }
 
   function setRetentionPolicies(retentionPolicies) {
     return $http
-      .put(
-        CLMContextLocations.getRetentionPoliciesUrl(
-          CLMContextLocations.getEntityId()
-        ),
-        retentionPolicies
-      )
+      .put(CLMContextLocations.getRetentionPoliciesUrl(CLMContextLocations.getEntityId()), retentionPolicies)
       .then(prop('data'));
   }
 }

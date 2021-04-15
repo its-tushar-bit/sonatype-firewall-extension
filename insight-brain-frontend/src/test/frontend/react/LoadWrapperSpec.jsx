@@ -15,11 +15,9 @@ describe('LoadWrapper', function () {
   beforeEach(function () {
     mockMessages = jasmine.createSpyObj('Messages', ['getHttpErrorMessage']);
 
-    LoadWrapper = require('inject-loader!../../../main/frontend/react/LoadWrapper')(
-      {
-        '../util/CommonServices': { Messages: mockMessages },
-      }
-    ).default;
+    LoadWrapper = require('inject-loader!../../../main/frontend/react/LoadWrapper')({
+      '../util/CommonServices': { Messages: mockMessages },
+    }).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(LoadWrapper, {});
   });
@@ -40,10 +38,7 @@ describe('LoadWrapper', function () {
   it('passes the error through Messages.getHttpErrorMessage before passing it to the NxLoadWrapper', function () {
     mockMessages.getHttpErrorMessage.and.returnValue('FOOO');
 
-    expect(getShallowComponent({ error: 'foo', bar: 'baz' })).toHaveProp(
-      'error',
-      'FOOO'
-    );
+    expect(getShallowComponent({ error: 'foo', bar: 'baz' })).toHaveProp('error', 'FOOO');
     expect(mockMessages.getHttpErrorMessage).toHaveBeenCalledWith('foo');
   });
 

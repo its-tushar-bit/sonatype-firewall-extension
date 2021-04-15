@@ -122,12 +122,7 @@
       scope = scope || this;
 
       var returnValue;
-      for (
-        var i = 0;
-        i < handlers.length &&
-        !(e.isPropagationStopped() || e.isImmediatePropagationStopped());
-        i++
-      ) {
+      for (var i = 0; i < handlers.length && !(e.isPropagationStopped() || e.isImmediatePropagationStopped()); i++) {
         returnValue = handlers[i].call(scope, e, args);
       }
 
@@ -231,12 +226,7 @@
      * @return {Boolean}
      */
     this.contains = function (row, cell) {
-      return (
-        row >= this.fromRow &&
-        row <= this.toRow &&
-        cell >= this.fromCell &&
-        cell <= this.toCell
-      );
+      return row >= this.fromRow && row <= this.toRow && cell >= this.fromCell && cell <= this.toCell;
     };
 
     /***
@@ -248,17 +238,7 @@
       if (this.isSingleCell()) {
         return '(' + this.fromRow + ':' + this.fromCell + ')';
       } else {
-        return (
-          '(' +
-          this.fromRow +
-          ':' +
-          this.fromCell +
-          ' - ' +
-          this.toRow +
-          ':' +
-          this.toCell +
-          ')'
-        );
+        return '(' + this.fromRow + ':' + this.fromCell + ' - ' + this.toRow + ':' + this.toCell + ')';
       }
     };
   }
@@ -327,11 +307,7 @@
    * @param group {Group} Group instance to compare to.
    */
   Group.prototype.equals = function (group) {
-    return (
-      this.value === group.value &&
-      this.count === group.count &&
-      this.collapsed === group.collapsed
-    );
+    return this.value === group.value && this.count === group.count && this.collapsed === group.collapsed;
   };
 
   /***
@@ -375,9 +351,7 @@
      * @return {Boolean}
      */
     this.isActive = function (editController) {
-      return editController
-        ? activeEditController === editController
-        : activeEditController !== null;
+      return editController ? activeEditController === editController : activeEditController !== null;
     };
 
     /***
@@ -425,9 +399,7 @@
      * @return {Boolean}
      */
     this.commitCurrentEdit = function () {
-      return activeEditController
-        ? activeEditController.commitCurrentEdit()
-        : true;
+      return activeEditController ? activeEditController.commitCurrentEdit() : true;
     };
 
     /***
@@ -438,9 +410,7 @@
      * @return {Boolean}
      */
     this.cancelCurrentEdit = function cancelCurrentEdit() {
-      return activeEditController
-        ? activeEditController.cancelCurrentEdit()
-        : true;
+      return activeEditController ? activeEditController.cancelCurrentEdit() : true;
     };
   }
 })(jQuery);

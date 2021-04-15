@@ -23,12 +23,7 @@ import administratorsTemplate from '../policy/components/app-security/app-securi
 
 export const SecurityModule = angular.module(
   'SecurityModule',
-  [
-    'ui.router',
-    angularCommonModule.name,
-    ApplicationSecurityModule.name,
-    permissionServiceModule.name,
-  ],
+  ['ui.router', angularCommonModule.name, ApplicationSecurityModule.name, permissionServiceModule.name],
   [
     '$stateProvider',
     function ($stateProvider) {
@@ -80,10 +75,7 @@ export const UserModule = angular
               isAuthorized: [
                 'PermissionService',
                 function (PermissionService) {
-                  return PermissionService.isAuthorized(
-                    ['CONFIGURE_SYSTEM'],
-                    true
-                  );
+                  return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
                 },
               ],
             },

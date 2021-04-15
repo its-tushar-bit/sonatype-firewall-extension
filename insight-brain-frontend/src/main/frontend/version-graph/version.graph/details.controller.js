@@ -5,13 +5,7 @@
  */
 /*global angular, Brain, clmEndpoint */
 
-export default function DetailsController(
-  $scope,
-  $http,
-  OwnerContext,
-  Coordinates,
-  Properties
-) {
+export default function DetailsController($scope, $http, OwnerContext, Coordinates, Properties) {
   function coordinatesChanged() {
     var coordinates = Coordinates.getSelected()
       ? {
@@ -27,9 +21,7 @@ export default function DetailsController(
 
       if (coordinates && coordinates.appId && !Properties.isUnknown()) {
         // only pass the hash if current version
-        const hash = Coordinates.isOriginalVersion()
-          ? Properties.getHash()
-          : null;
+        const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
         $http
           .get(
             Brain[clmEndpoint.type].getComponentUrl(
@@ -56,26 +48,15 @@ export default function DetailsController(
                 $scope.componentDetails.proprietary = Coordinates.getSelected().proprietary;
 
                 var i = 0;
-                while (
-                  i < $scope.componentDetails.securityVulnerabilities.length
-                ) {
-                  if (
-                    $scope.componentDetails.securityVulnerabilities[i]
-                      .status === 'Not Applicable'
-                  ) {
-                    $scope.componentDetails.securityVulnerabilities.splice(
-                      i,
-                      1
-                    );
+                while (i < $scope.componentDetails.securityVulnerabilities.length) {
+                  if ($scope.componentDetails.securityVulnerabilities[i].status === 'Not Applicable') {
+                    $scope.componentDetails.securityVulnerabilities.splice(i, 1);
                   } else {
                     i++;
                   }
                 }
 
-                $scope.componentDetails.securityVulnerabilities.sort(function (
-                  a,
-                  b
-                ) {
+                $scope.componentDetails.securityVulnerabilities.sort(function (a, b) {
                   if (a.severity === b.severity) {
                     return 0;
                   } else if (a.severity === null) {
@@ -86,19 +67,13 @@ export default function DetailsController(
                   return b.severity - a.severity;
                 });
 
-                $scope.componentDetails.policyAlerts.sort(function (
-                  alertA,
-                  alertB
-                ) {
-                  return (
-                    alertB.trigger.threatLevel - alertA.trigger.threatLevel
-                  );
+                $scope.componentDetails.policyAlerts.sort(function (alertA, alertB) {
+                  return alertB.trigger.threatLevel - alertA.trigger.threatLevel;
                 });
                 $scope.highestPolicyThreat = {
                   level:
                     $scope.componentDetails.policyAlerts.length > 0
-                      ? $scope.componentDetails.policyAlerts[0].trigger
-                          .threatLevel
+                      ? $scope.componentDetails.policyAlerts[0].trigger.threatLevel
                       : null,
                   violatedPolicies: $scope.componentDetails.policyAlerts.length,
                 };
@@ -115,10 +90,7 @@ export default function DetailsController(
   var last = {};
 
   $scope.isManual = function () {
-    return (
-      $scope.componentDetails &&
-      $scope.componentDetails.identificationSource === 'Manual'
-    );
+    return $scope.componentDetails && $scope.componentDetails.identificationSource === 'Manual';
   };
 
   $scope.canMigrate = function () {
@@ -132,9 +104,7 @@ export default function DetailsController(
     if ($scope.componentDetails) {
       if ($scope.componentDetails.securityVulnerabilities.length === 0) {
         return 'NA';
-      } else if (
-        $scope.componentDetails.securityVulnerabilities[0].severity === null
-      ) {
+      } else if ($scope.componentDetails.securityVulnerabilities[0].severity === null) {
         return 'Unscored';
       } else {
         return $scope.componentDetails.securityVulnerabilities[0].severity;
@@ -164,10 +134,4 @@ export default function DetailsController(
   }, coordinatesChanged);
 }
 
-DetailsController.$inject = [
-  '$scope',
-  '$http',
-  'OwnerContext',
-  'Coordinates',
-  'Properties',
-];
+DetailsController.$inject = ['$scope', '$http', 'OwnerContext', 'Coordinates', 'Properties'];

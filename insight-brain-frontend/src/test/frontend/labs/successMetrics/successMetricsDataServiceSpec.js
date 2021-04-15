@@ -28,13 +28,7 @@ describe('successMetricsDataService', function () {
     })
   );
 
-  beforeEach(inject(function (
-    _$q_,
-    _$timeout_,
-    _$httpBackend_,
-    _successMetricsDataService_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function (_$q_, _$timeout_, _$httpBackend_, _successMetricsDataService_, _CLMLocations_) {
     $httpBackend = _$httpBackend_;
     successMetricsDataService = _successMetricsDataService_;
     CLMLocations = _CLMLocations_;
@@ -57,12 +51,7 @@ describe('successMetricsDataService', function () {
         serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getSuccessMetricsChartDataUrl(
-            reportId,
-            includeLatestData
-          )
-        )
+        .expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData))
         .respond(PolicyViolationAggregationResourceMockData.getFullChartData());
 
       successMetricsDataService.getChartData(serviceParams).then(function (o) {
@@ -82,14 +71,7 @@ describe('successMetricsDataService', function () {
         serviceParams = { id: reportId, includeLatestData: includeLatestData },
         mockData = PolicyViolationAggregationResourceMockData.getFullChartData();
 
-      $httpBackend
-        .expectGET(
-          CLMLocations.getSuccessMetricsChartDataUrl(
-            reportId,
-            includeLatestData
-          )
-        )
-        .respond(mockData);
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond(mockData);
 
       successMetricsDataService.getChartData(serviceParams).then(function (o) {
         output = o.averagesData;
@@ -130,18 +112,11 @@ describe('successMetricsDataService', function () {
           },
         };
 
-      $httpBackend
-        .expectGET(
-          CLMLocations.getSuccessMetricsChartDataUrl(
-            reportId,
-            includeLatestData
-          )
-        )
-        .respond({
-          mttrs: [],
-          averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
-          applicationCounts: response,
-        });
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond({
+        mttrs: [],
+        averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
+        applicationCounts: response,
+      });
 
       successMetricsDataService.getChartData(serviceParams).then(function (o) {
         output = o.applicationCountsData;
@@ -159,12 +134,7 @@ describe('successMetricsDataService', function () {
         serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getSuccessMetricsChartDataUrl(
-            reportId,
-            includeLatestData
-          )
-        )
+        .expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData))
         .respond(PolicyViolationAggregationResourceMockData.getFullChartData());
 
       successMetricsDataService.getChartData(serviceParams).then(function (o) {
@@ -174,9 +144,7 @@ describe('successMetricsDataService', function () {
       $httpBackend.flush();
 
       expect(output).toBeDefined();
-      expect(output).toEqual(
-        PolicyViolationAggregationResourceMockData.getMttrData()
-      );
+      expect(output).toEqual(PolicyViolationAggregationResourceMockData.getMttrData());
     });
 
     it('fetches mttr data and properly pads missing results', function () {
@@ -186,15 +154,8 @@ describe('successMetricsDataService', function () {
         serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getSuccessMetricsChartDataUrl(
-            reportId,
-            includeLatestData
-          )
-        )
-        .respond(
-          PolicyViolationAggregationResourceMockData.getPartialChartData()
-        );
+        .expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData))
+        .respond(PolicyViolationAggregationResourceMockData.getPartialChartData());
 
       successMetricsDataService.getChartData(serviceParams).then(function (o) {
         output = o.mttrData;
@@ -225,17 +186,10 @@ describe('successMetricsDataService', function () {
         includeLatestData = true,
         serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
-      $httpBackend
-        .expectGET(
-          CLMLocations.getSuccessMetricsChartDataUrl(
-            reportId,
-            includeLatestData
-          )
-        )
-        .respond({
-          averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
-          mttrs: [],
-        });
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData)).respond({
+        averages: PolicyViolationAggregationResourceMockData.getEmptyAverages(),
+        mttrs: [],
+      });
 
       successMetricsDataService.getChartData(serviceParams).then(function (o) {
         output = o.mttrData;
@@ -256,12 +210,7 @@ describe('successMetricsDataService', function () {
         serviceParams = { id: reportId, includeLatestData: includeLatestData };
 
       $httpBackend
-        .expectGET(
-          CLMLocations.getSuccessMetricsChartDataUrl(
-            reportId,
-            includeLatestData
-          )
-        )
+        .expectGET(CLMLocations.getSuccessMetricsChartDataUrl(reportId, includeLatestData))
         .respond(403, 'Forbidden');
 
       successMetricsDataService.getChartData(serviceParams).catch(function (e) {
@@ -275,12 +224,7 @@ describe('successMetricsDataService', function () {
       expect(caughtError.status).toBe(403);
     });
 
-    function assertMttrData(
-      mttr,
-      expectedMonth,
-      expectedMttrInSeconds,
-      expectedCriticalMttrInSeconds
-    ) {
+    function assertMttrData(mttr, expectedMonth, expectedMttrInSeconds, expectedCriticalMttrInSeconds) {
       expect(mttr.timePeriodName).toBe(expectedMonth);
       expect(mttr.mttrInSeconds).toBe(expectedMttrInSeconds);
       expect(mttr.criticalMttrInSeconds).toBe(expectedCriticalMttrInSeconds);
@@ -295,22 +239,16 @@ describe('successMetricsDataService', function () {
 
       $httpBackend
         .expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId))
-        .respond(
-          PolicyViolationAggregationResourceMockData.getComponentCountsData()
-        );
+        .respond(PolicyViolationAggregationResourceMockData.getComponentCountsData());
 
-      successMetricsDataService
-        .getComponentCountsData(serviceParams)
-        .then(function (o) {
-          output = o;
-        });
+      successMetricsDataService.getComponentCountsData(serviceParams).then(function (o) {
+        output = o;
+      });
 
       $httpBackend.flush();
 
       expect(output).toBeDefined();
-      expect(output).toEqual(
-        PolicyViolationAggregationResourceMockData.getComponentCountsData()
-      );
+      expect(output).toEqual(PolicyViolationAggregationResourceMockData.getComponentCountsData());
     });
 
     it('fetches component counts data and properly pads missing results', function () {
@@ -320,15 +258,11 @@ describe('successMetricsDataService', function () {
 
       $httpBackend
         .expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId))
-        .respond(
-          PolicyViolationAggregationResourceMockData.getPartialComponentCountsData()
-        );
+        .respond(PolicyViolationAggregationResourceMockData.getPartialComponentCountsData());
 
-      successMetricsDataService
-        .getComponentCountsData(serviceParams)
-        .then(function (o) {
-          output = o;
-        });
+      successMetricsDataService.getComponentCountsData(serviceParams).then(function (o) {
+        output = o;
+      });
 
       $httpBackend.flush();
 
@@ -356,19 +290,15 @@ describe('successMetricsDataService', function () {
         reportId = '1234',
         serviceParams = { id: reportId };
 
-      $httpBackend
-        .expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId))
-        .respond({
-          componentsPerApplication: 0,
-          componentsInTheMostApplications: [],
-          componentsWithTheMostViolations: [],
-        });
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId)).respond({
+        componentsPerApplication: 0,
+        componentsInTheMostApplications: [],
+        componentsWithTheMostViolations: [],
+      });
 
-      successMetricsDataService
-        .getComponentCountsData(serviceParams)
-        .then(function (o) {
-          output = o;
-        });
+      successMetricsDataService.getComponentCountsData(serviceParams).then(function (o) {
+        output = o;
+      });
 
       $httpBackend.flush();
 
@@ -383,15 +313,11 @@ describe('successMetricsDataService', function () {
         reportId = '1234',
         serviceParams = { id: reportId };
 
-      $httpBackend
-        .expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId))
-        .respond(403, 'Forbidden');
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsComponentCountsUrl(reportId)).respond(403, 'Forbidden');
 
-      successMetricsDataService
-        .getComponentCountsData(serviceParams)
-        .catch(function (e) {
-          caughtError = e;
-        });
+      successMetricsDataService.getComponentCountsData(serviceParams).catch(function (e) {
+        caughtError = e;
+      });
 
       $httpBackend.flush();
 
@@ -414,11 +340,9 @@ describe('successMetricsDataService', function () {
       ];
 
       applicationStoreDeferred.resolve(applications);
-      successMetricsDataService
-        .getApplicationByInternalId('app1')
-        .then(function (result) {
-          output = result;
-        });
+      successMetricsDataService.getApplicationByInternalId('app1').then(function (result) {
+        output = result;
+      });
 
       $timeout.flush();
 
@@ -432,18 +356,14 @@ describe('successMetricsDataService', function () {
       var applications = [{ id: 'app2', name: 'app 2' }];
 
       applicationStoreDeferred.resolve(applications);
-      successMetricsDataService
-        .getApplicationByInternalId('app1')
-        .catch(function (e) {
-          caughtError = e;
-        });
+      successMetricsDataService.getApplicationByInternalId('app1').catch(function (e) {
+        caughtError = e;
+      });
 
       $timeout.flush();
 
       expect(caughtError).toBeDefined();
-      expect(caughtError).toBe(
-        'Could not find Application with internal id app1'
-      );
+      expect(caughtError).toBe('Could not find Application with internal id app1');
     });
   });
 });

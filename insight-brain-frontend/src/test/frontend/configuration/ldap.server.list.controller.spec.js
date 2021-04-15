@@ -7,17 +7,11 @@ import ldapModule from '../../../main/frontend/configuration/ldap/ldap.module';
 import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
 
 describe('ldap.server.list.controller.spec.js', function () {
-  beforeEach(
-    angular.mock.module(ldapModule.name, legacyConfigurationModule.name)
-  );
+  beforeEach(angular.mock.module(ldapModule.name, legacyConfigurationModule.name));
 
   var vm, $httpBackend, CLMContextLocations;
 
-  beforeEach(inject(function (
-    _$httpBackend_,
-    $controller,
-    _CLMContextLocations_
-  ) {
+  beforeEach(inject(function (_$httpBackend_, $controller, _CLMContextLocations_) {
     $httpBackend = _$httpBackend_;
     CLMContextLocations = _CLMContextLocations_;
   }));
@@ -60,9 +54,7 @@ describe('ldap.server.list.controller.spec.js', function () {
     });
 
     it('fails to load ldap server data', function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getLdapConfig())
-        .respond(500, 'foo');
+      $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond(500, 'foo');
       $httpBackend.flush();
       expect(vm.error.data).toEqual('foo');
 
@@ -73,18 +65,11 @@ describe('ldap.server.list.controller.spec.js', function () {
       expect(vm.error).toBeFalsy();
     });
 
-    it('Refresh after reorder', inject(function (
-      LdapConfigurationStore,
-      LdapServerOrderingModal,
-      $q,
-      $timeout
-    ) {
+    it('Refresh after reorder', inject(function (LdapConfigurationStore, LdapServerOrderingModal, $q, $timeout) {
       $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([]);
       $httpBackend.flush();
       spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.resolve());
-      spyOn(LdapConfigurationStore, 'refresh').and.returnValue(
-        $q.defer().promise
-      );
+      spyOn(LdapConfigurationStore, 'refresh').and.returnValue($q.defer().promise);
 
       vm.reorder();
       $timeout.flush();
@@ -102,9 +87,7 @@ describe('ldap.server.list.controller.spec.js', function () {
       $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([]);
       $httpBackend.flush();
       spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.reject());
-      spyOn(LdapConfigurationStore, 'refresh').and.returnValue(
-        $q.defer().promise
-      );
+      spyOn(LdapConfigurationStore, 'refresh').and.returnValue($q.defer().promise);
 
       vm.reorder();
       $timeout.flush();

@@ -1,7 +1,6 @@
 <h3 class="iq-chart-title">12 Week Policy Violation Activity</h3>
 <p class="iq-chart__averages">
-  Violations and remediation over the past {{::vm.weekCount}}
-  week{{::(vm.weekCount === 1 ? '' : 's')}}.
+  Violations and remediation over the past {{::vm.weekCount}} week{{::(vm.weekCount === 1 ? '' : 's')}}.
 </p>
 
 <table class="iq-table iq-table--violation-trends-chart-table">
@@ -33,17 +32,11 @@
           >
           </i>
         </div>
-        <div class="iq-cell--violation-trends-chart-total-number">
-          {{::vm.totals.totalDelta | abs}}
-        </div>
+        <div class="iq-cell--violation-trends-chart-total-number">{{::vm.totals.totalDelta | abs}}</div>
       </td>
       <td class="iq-cell iq-cell--violation-trends-chart" rowspan="4">
         <div class="iq-violation-trends__chart">
-          <render-combined-trends-chart
-            id="iq-violation-trends-all"
-            data="vm.data.all"
-            statistics="vm.data.statistics"
-          >
+          <render-combined-trends-chart id="iq-violation-trends-all" data="vm.data.all" statistics="vm.data.statistics">
           </render-combined-trends-chart>
         </div>
       </td>
@@ -92,9 +85,7 @@
     <tr class="iq-table-row iq-table-row--violation-trends-chart-new">
       <td class="iq-cell iq-cell--violation-trends-row-label"><h4>New</h4></td>
       <td class="iq-cell iq-cell--violation-trends-chart-total">
-        <div class="iq-cell--violation-trends-chart-total-number">
-          {{::vm.totals.totalDiscovered}}
-        </div>
+        <div class="iq-cell--violation-trends-chart-total-number">{{::vm.totals.totalDiscovered}}</div>
       </td>
     </tr>
     <tr class="iq-table-row iq-table-row--violation-trends-chart-waived">
@@ -102,9 +93,7 @@
         <h4>Waived</h4>
       </td>
       <td class="iq-cell iq-cell--violation-trends-chart-total">
-        <div class="iq-cell--violation-trends-chart-total-number">
-          {{::vm.totals.totalWaived}}
-        </div>
+        <div class="iq-cell--violation-trends-chart-total-number">{{::vm.totals.totalWaived}}</div>
       </td>
     </tr>
     <tr class="iq-table-row iq-table-row--violation-trends-chart-fixed">
@@ -112,9 +101,7 @@
         <h4>Fixed</h4>
       </td>
       <td class="iq-cell iq-cell--violation-trends-chart-total">
-        <div class="iq-cell--violation-trends-chart-total-number">
-          {{::vm.totals.totalFixed}}
-        </div>
+        <div class="iq-cell--violation-trends-chart-total-number">{{::vm.totals.totalFixed}}</div>
       </td>
     </tr>
   </tbody>

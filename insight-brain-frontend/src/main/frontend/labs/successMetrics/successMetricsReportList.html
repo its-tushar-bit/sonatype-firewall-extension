@@ -23,16 +23,13 @@
       </button>
     </div>
     <div class="nx-page-title__description">
-      Success Metrics is an experimental feature providing high-level statistics
-      on the past performance of Nexus Lifecycle. If you want to take action on
-      your current policy violations, start with the
+      Success Metrics is an experimental feature providing high-level statistics on the past performance of Nexus
+      Lifecycle. If you want to take action on your current policy violations, start with the
       <a ui-sref="dashboard.overview.violations">Dashboard</a>.
     </div>
   </div>
 
-  <div
-    class="iq-tile-scroll-container iq-tile-scroll-container--success-metrics"
-  >
+  <div class="iq-tile-scroll-container iq-tile-scroll-container--success-metrics">
     <div class="iq-tile">
       <div class="iq-tile-header">
         <div class="iq-tile-header__title">
@@ -52,10 +49,7 @@
         </p>
         <div class="iq-list iq-list--clickable">
           <ul>
-            <li
-              class="iq-list__item iq-list__item--empty"
-              ng-if="vm.successMetricsReports.length <= 0"
-            >
+            <li class="iq-list__item iq-list__item--empty" ng-if="vm.successMetricsReports.length <= 0">
               No reports have been created.
             </li>
             <li

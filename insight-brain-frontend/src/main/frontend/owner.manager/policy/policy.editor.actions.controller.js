@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function PolicyEditorActionsController(
-  $q,
-  StageTypeStore,
-  ProductFeatures
-) {
+export default function PolicyEditorActionsController($q, StageTypeStore, ProductFeatures) {
   var vm = this;
 
   vm.doLoad = doLoad;
@@ -15,8 +11,7 @@ export default function PolicyEditorActionsController(
   vm.loadError = undefined;
   vm.isEnforcementSupported = undefined;
   vm.isFirewallSupported = undefined;
-  vm.isEnforcementSupportedForStage =
-    ProductFeatures.isEnforcementSupportedForStage;
+  vm.isEnforcementSupportedForStage = ProductFeatures.isEnforcementSupportedForStage;
 
   vm.doLoad();
 
@@ -39,8 +34,4 @@ export default function PolicyEditorActionsController(
   }
 }
 
-PolicyEditorActionsController.$inject = [
-  '$q',
-  'StageTypeStore',
-  'ProductFeatures',
-];
+PolicyEditorActionsController.$inject = ['$q', 'StageTypeStore', 'ProductFeatures'];

@@ -14,12 +14,7 @@ export default {
   controller: ApplicationReportRawController,
 };
 
-function ApplicationReportRawController(
-  $ngRedux,
-  applicationReportActions,
-  SelectedComponent,
-  OwnerContext
-) {
+function ApplicationReportRawController($ngRedux, applicationReportActions, SelectedComponent, OwnerContext) {
   const vm = this;
 
   Object.assign(vm, {
@@ -50,24 +45,15 @@ function ApplicationReportRawController(
     },
 
     onRawDataComponentNameFilterChange() {
-      vm.setRawDataStringFieldFilter(
-        'derivedComponentName',
-        vm.derivedComponentNameSubstringFilter
-      );
+      vm.setRawDataStringFieldFilter('derivedComponentName', vm.derivedComponentNameSubstringFilter);
     },
 
     onRawDataLicenseFilterChange() {
-      vm.setRawDataStringFieldFilter(
-        'licenseSortKey',
-        vm.licenseSortKeySubstringFilter
-      );
+      vm.setRawDataStringFieldFilter('licenseSortKey', vm.licenseSortKeySubstringFilter);
     },
 
     onRawDataSecurityCodeFilterChange() {
-      vm.setRawDataStringFieldFilter(
-        'securityCode',
-        vm.securityCodeSubstringFilter
-      );
+      vm.setRawDataStringFieldFilter('securityCode', vm.securityCodeSubstringFilter);
     },
 
     onRawDataCVSSMinFilterChange() {
@@ -111,15 +97,8 @@ function ApplicationReportRawController(
   });
 }
 
-export function mapStateToThis({
-  applicationReport,
-  vulnerabilityDetailsModal,
-}) {
-  const {
-    derivedComponentName,
-    licenseSortKey,
-    securityCode,
-  } = applicationReport.rawDataSubstringFilters;
+export function mapStateToThis({ applicationReport, vulnerabilityDetailsModal }) {
+  const { derivedComponentName, licenseSortKey, securityCode } = applicationReport.rawDataSubstringFilters;
   const { cvssScore } = applicationReport.rawDataNumericFilters;
   let cvssScoreMin, cvssScoreMax;
 
@@ -140,9 +119,4 @@ export function mapStateToThis({
   };
 }
 
-ApplicationReportRawController.$inject = [
-  '$ngRedux',
-  'applicationReportActions',
-  'SelectedComponent',
-  'OwnerContext',
-];
+ApplicationReportRawController.$inject = ['$ngRedux', 'applicationReportActions', 'SelectedComponent', 'OwnerContext'];

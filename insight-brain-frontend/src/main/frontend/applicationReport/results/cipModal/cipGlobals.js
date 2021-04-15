@@ -40,12 +40,7 @@ window.Brain = {
       dependencyType
     ) {
       const url =
-        window.CLM.path +
-        'rest/ci/componentDetails/' +
-        ownerType +
-        '/' +
-        encodeURIComponent(ownerId) +
-        '/allVersions';
+        window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId) + '/allVersions';
       return (
         url +
         '?' +
@@ -76,12 +71,7 @@ window.Brain = {
       scanId,
       dependencyType
     ) {
-      const url =
-        window.CLM.path +
-        'rest/ci/componentDetails/' +
-        ownerType +
-        '/' +
-        encodeURIComponent(ownerId);
+      const url = window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId);
       return (
         url +
         '?' +
@@ -106,15 +96,9 @@ window.Brain = {
    *
    * @since 1.66.0
    */
-  getSuggestedRemediationUrlForApplication: function (
-    internalApplicationId,
-    identificationSource,
-    scanId
-  ) {
+  getSuggestedRemediationUrlForApplication: function (internalApplicationId, identificationSource, scanId) {
     let url =
-      window.CLM.path +
-      'api/v2/components/remediation/application/' +
-      encodeURIComponent(internalApplicationId);
+      window.CLM.path + 'api/v2/components/remediation/application/' + encodeURIComponent(internalApplicationId);
     return (
       url +
       '?' +
@@ -131,11 +115,7 @@ window.Brain = {
    * @since 1.66.0
    */
   getInternalApplicationIdUrlForApplicationId: function (applicationId) {
-    return (
-      window.CLM.path +
-      'api/v2/applications?publicId=' +
-      encodeURIComponent(applicationId)
-    );
+    return window.CLM.path + 'api/v2/applications?publicId=' + encodeURIComponent(applicationId);
   },
 };
 
@@ -151,8 +131,7 @@ function toParams(
   stageId,
   dependencyType
 ) {
-  const componentIdentifier =
-    coordinates && JSON.stringify({ format: componentType, coordinates });
+  const componentIdentifier = coordinates && JSON.stringify({ format: componentType, coordinates });
   return toURIParams({
     componentIdentifier,
     hash,

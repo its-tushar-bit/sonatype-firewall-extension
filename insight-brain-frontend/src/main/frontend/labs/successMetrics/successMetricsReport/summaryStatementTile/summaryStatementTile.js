@@ -19,10 +19,7 @@ export default {
   },
 };
 
-function summaryStatementTileController(
-  DeleteModalService,
-  successMetricsDataService
-) {
+function summaryStatementTileController(DeleteModalService, successMetricsDataService) {
   const vm = this;
 
   vm.showNoDataMessage = undefined;
@@ -31,9 +28,7 @@ function summaryStatementTileController(
 
   vm.$onInit = function () {
     vm.showNoDataMessage = vm.activeApplicationCount === 0;
-    vm.dateFormat = vm.successMetricsReport.includeLatestData
-      ? 'medium'
-      : 'mediumDate';
+    vm.dateFormat = vm.successMetricsReport.includeLatestData ? 'medium' : 'mediumDate';
   };
 
   function deleteSuccessMetrics() {
@@ -42,9 +37,7 @@ function summaryStatementTileController(
       `You are about to delete ${vm.successMetricsReport.name}. This action cannot be undone.`,
       'Deleting',
       function () {
-        return successMetricsDataService.deleteSuccessMetricsReport(
-          vm.successMetricsReport.id
-        );
+        return successMetricsDataService.deleteSuccessMetricsReport(vm.successMetricsReport.id);
       }
     ).then(function () {
       vm.onDelete();
@@ -52,7 +45,4 @@ function summaryStatementTileController(
   }
 }
 
-summaryStatementTileController.$inject = [
-  'DeleteModalService',
-  'successMetricsDataService',
-];
+summaryStatementTileController.$inject = ['DeleteModalService', 'successMetricsDataService'];

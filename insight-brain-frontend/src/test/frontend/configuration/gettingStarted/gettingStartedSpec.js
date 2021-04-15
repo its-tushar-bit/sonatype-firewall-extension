@@ -6,21 +6,11 @@
 import gettingStartedModule from '../../../../main/frontend/configuration/gettingStarted/module';
 
 describe('gettingStarted component', function () {
-  var vm,
-    $q,
-    $scope,
-    CLMLocations,
-    $httpBackend,
-    $rootScope,
-    permissionServiceMock,
-    telemetryServiceMock;
+  var vm, $q, $scope, CLMLocations, $httpBackend, $rootScope, permissionServiceMock, telemetryServiceMock;
 
   beforeEach(
     angular.mock.module(gettingStartedModule.name, function ($provide) {
-      telemetryServiceMock = jasmine.createSpyObj(
-        'gettingStartedUsageTelemetryService',
-        ['submitData']
-      );
+      telemetryServiceMock = jasmine.createSpyObj('gettingStartedUsageTelemetryService', ['submitData']);
 
       $provide.service('gettingStartedUsageTelemetryService', function () {
         return telemetryServiceMock;
@@ -28,21 +18,13 @@ describe('gettingStarted component', function () {
     })
   );
 
-  beforeEach(inject(function (
-    _$q_,
-    _$httpBackend_,
-    _$rootScope_,
-    $componentController,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function (_$q_, _$httpBackend_, _$rootScope_, $componentController, _CLMLocations_) {
     $q = _$q_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
     $rootScope = _$rootScope_;
     $scope = _$rootScope_.$new();
-    permissionServiceMock = jasmine.createSpyObj('permissionServiceMock', [
-      'getValidPermissions',
-    ]);
+    permissionServiceMock = jasmine.createSpyObj('permissionServiceMock', ['getValidPermissions']);
 
     vm = $componentController('gettingStarted', {
       $rootScope: $rootScope,
@@ -71,19 +53,11 @@ describe('gettingStarted component', function () {
       $rootScope.licensed = true;
 
       var permissionsDeferred = $q.defer();
-      permissionServiceMock.getValidPermissions.and.returnValue(
-        permissionsDeferred.promise
-      );
+      permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
 
-      $httpBackend
-        .whenGET(CLMLocations.getLicenseSummaryUrl())
-        .respond('license value');
-      $httpBackend
-        .whenGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
-        .respond('false');
-      $httpBackend
-        .whenGET(CLMLocations.getIsHdsReachable())
-        .respond({ alive: true });
+      $httpBackend.whenGET(CLMLocations.getLicenseSummaryUrl()).respond('license value');
+      $httpBackend.whenGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('false');
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: true });
 
       vm.$onInit();
 
@@ -92,10 +66,7 @@ describe('gettingStarted component', function () {
       $httpBackend.flush();
 
       expect(vm.error).toBeUndefined();
-      expect(vm.validPermissions).toEqual([
-        'CONFIGURE_SYSTEM',
-        'ADD_APPLICATION',
-      ]);
+      expect(vm.validPermissions).toEqual(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']);
       expect(vm.shouldDisplayHdsUnreachable).toBe(false);
       expect(vm.hdsUnreachableErrorMessage).toBeUndefined();
       expect(vm.hdsUnreachableIncidentId).toBeUndefined();
@@ -109,9 +80,7 @@ describe('gettingStarted component', function () {
         $rootScope.licensed = true;
 
         var permissionsDeferred = $q.defer();
-        permissionServiceMock.getValidPermissions.and.returnValue(
-          permissionsDeferred.promise
-        );
+        permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
         $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({
           alive: false,
           errorMessage: 'foo',
@@ -137,12 +106,8 @@ describe('gettingStarted component', function () {
       vm.error = 'Error';
 
       var permissionsDeferred = $q.defer();
-      permissionServiceMock.getValidPermissions.and.returnValue(
-        permissionsDeferred.promise
-      );
-      $httpBackend
-        .whenGET(CLMLocations.getIsHdsReachable())
-        .respond({ alive: true });
+      permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: true });
 
       vm.$onInit();
 
@@ -157,12 +122,8 @@ describe('gettingStarted component', function () {
       $rootScope.licensed = true;
 
       var permissionsDeferred = $q.defer();
-      permissionServiceMock.getValidPermissions.and.returnValue(
-        permissionsDeferred.promise
-      );
-      $httpBackend
-        .whenGET(CLMLocations.getIsHdsReachable())
-        .respond({ alive: true });
+      permissionServiceMock.getValidPermissions.and.returnValue(permissionsDeferred.promise);
+      $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: true });
 
       vm.$onInit();
       permissionsDeferred.reject('get Permissions Error');
@@ -181,12 +142,8 @@ describe('gettingStarted component', function () {
 
       it('is fired before data is loaded if application is licensed', function () {
         $rootScope.licensed = true;
-        permissionServiceMock.getValidPermissions.and.returnValue(
-          $q.defer().promise
-        );
-        $httpBackend
-          .whenGET(CLMLocations.getIsHdsReachable())
-          .respond({ alive: true });
+        permissionServiceMock.getValidPermissions.and.returnValue($q.defer().promise);
+        $httpBackend.whenGET(CLMLocations.getIsHdsReachable()).respond({ alive: true });
         vm.$onInit();
         // fired before getValidPermissions result is resolved
         expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('VISITED');

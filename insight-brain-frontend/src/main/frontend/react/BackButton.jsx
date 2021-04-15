@@ -10,13 +10,7 @@ import { NxBackButton } from '@sonatype/react-shared-components';
 export default function BackButton({ stateName, text, $state }) {
   const state = $state.get(stateName);
 
-  return (
-    <NxBackButton
-      href={$state.href(state)}
-      text={text}
-      targetPageTitle={state.data.title}
-    />
-  );
+  return <NxBackButton href={$state.href(state)} text={text} targetPageTitle={state.data.title} />;
 }
 
 BackButton.propTypes = {

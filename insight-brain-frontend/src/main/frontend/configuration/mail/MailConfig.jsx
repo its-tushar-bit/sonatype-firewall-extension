@@ -70,8 +70,7 @@ export default function MailConfig(props) {
       testEmailSent,
       isAuthorized,
     } = props,
-    isSubmitEnabled =
-      hasAllRequiredData && isDirty && isValid && !mustReenterPassword,
+    isSubmitEnabled = hasAllRequiredData && isDirty && isValid && !mustReenterPassword,
     loadError = isAuthorized ? loadErrorProp : authErrorMessage;
 
   // Fetch Email Configuration when page is opened
@@ -87,15 +86,7 @@ export default function MailConfig(props) {
     }
   }
 
-  function field(
-    fieldState,
-    onChange,
-    placeholder,
-    id,
-    label,
-    optional = false,
-    validatable = true
-  ) {
+  function field(fieldState, onChange, placeholder, id, label, optional = false, validatable = true) {
     const labelClasses = classnames('nx-label', {
       'nx-label--optional': optional,
     });
@@ -138,10 +129,7 @@ export default function MailConfig(props) {
   );
 
   const modal = (
-    <NxModal
-      id="mail-config-delete-modal"
-      onClose={() => setShowDeleteModal(false)}
-    >
+    <NxModal id="mail-config-delete-modal" onClose={() => setShowDeleteModal(false)}>
       <header className="nx-modal-header">
         <h2 className="nx-h2">Delete Email Configuration?</h2>
       </header>
@@ -160,12 +148,7 @@ export default function MailConfig(props) {
           >
             Cancel
           </NxButton>
-          <NxButton
-            type="button"
-            id="mail-config-delete-ok"
-            onClick={del}
-            className="nx-btn nx-btn--primary"
-          >
+          <NxButton type="button" id="mail-config-delete-ok" onClick={del} className="nx-btn nx-btn--primary">
             OK
           </NxButton>
         </div>
@@ -193,43 +176,22 @@ export default function MailConfig(props) {
   }
 
   function isSendTestEmailEnabled() {
-    return (
-      hasAllRequiredData &&
-      isValid &&
-      testEmailState.trimmedValue &&
-      !mustReenterPassword
-    );
+    return hasAllRequiredData && isValid && testEmailState.trimmedValue && !mustReenterPassword;
   }
 
   const isSaveTooltipHidden = !isDirty || isSubmitEnabled;
   const form = (
     <Fragment>
       {/* Input Fields */}
-      {field(
-        hostnameState,
-        setHostname,
-        'smtp.server.com',
-        'email-config-hostname',
-        'Hostname'
-      )}
+      {field(hostnameState, setHostname, 'smtp.server.com', 'email-config-hostname', 'Hostname')}
       {field(portState, setPort, '465', 'email-config-port', 'Port')}
-      {field(
-        usernameState,
-        setUsername,
-        'admin',
-        'email-config-username',
-        'Username',
-        true,
-        false
-      )}
+      {field(usernameState, setUsername, 'admin', 'email-config-username', 'Username', true, false)}
 
       <div className="nx-form-group">
         <label className="nx-label nx-label--optional">
           <span className="nx-label__text">Password</span>
           {hasAllRequiredData && mustReenterPassword && (
-            <span className="nx-sub-label">
-              Must be re-entered when Hostname or Port is modified.
-            </span>
+            <span className="nx-sub-label">Must be re-entered when Hostname or Port is modified.</span>
           )}
           <NxTextInput
             {...passwordState}
@@ -245,13 +207,7 @@ export default function MailConfig(props) {
         </label>
       </div>
 
-      {field(
-        systemEmailState,
-        setSystemEmail,
-        'nexus@iqserver',
-        'email-config-systemEmail',
-        'System Email'
-      )}
+      {field(systemEmailState, setSystemEmail, 'nexus@iqserver', 'email-config-systemEmail', 'System Email')}
       <NxFieldset label="Security Options">
         {sslInput}
         {tlsInput}
@@ -262,9 +218,7 @@ export default function MailConfig(props) {
           <div className="nx-form-group">
             <label className="nx-label">
               <span className="nx-label__text">Test Configuration</span>
-              <span className="nx-sub-label">
-                Send a test email to verify the configuration.
-              </span>
+              <span className="nx-sub-label">Send a test email to verify the configuration.</span>
               <NxTextInput
                 {...testEmailState}
                 id="email-config-test-email-recipient"
@@ -291,17 +245,9 @@ export default function MailConfig(props) {
           </div>
         </div>
 
-        {testEmailSent && (
-          <NxInfoAlert>
-            A test email has been sent. Please check your mailbox.
-          </NxInfoAlert>
-        )}
+        {testEmailSent && <NxInfoAlert>A test email has been sent. Please check your mailbox.</NxInfoAlert>}
         {testEmailError && (
-          <LoadError
-            titleMessage="Unabled to send test email."
-            error={testEmailError}
-            retryHandler={sendTestEmail}
-          />
+          <LoadError titleMessage="Unabled to send test email." error={testEmailError} retryHandler={sendTestEmail} />
         )}
       </section>
 
@@ -331,12 +277,7 @@ export default function MailConfig(props) {
             <NxFontAwesomeIcon icon={faTrashAlt} />
             <span>Delete Configuration</span>
           </NxButton>
-          <NxButton
-            type="button"
-            id="email-config-cancel"
-            onClick={resetForm}
-            disabled={!isDirty}
-          >
+          <NxButton type="button" id="email-config-cancel" onClick={resetForm} disabled={!isDirty}>
             Cancel
           </NxButton>
           <NxTooltip title={isSaveTooltipHidden ? '' : saveButtonTooltipText}>
@@ -367,19 +308,14 @@ export default function MailConfig(props) {
             </header>
             <div className="nx-tile-content">
               <p className="nx-p">
-                To receive email notifications for events enter the details of
-                your SMTP Server here. For further details see the{' '}
+                To receive email notifications for events enter the details of your SMTP Server here. For further
+                details see the{' '}
                 <NxExternalLink href="http://links.sonatype.com/products/nxiq/doc/email-configuration">
                   documentation
                 </NxExternalLink>
                 .
               </p>
-              {submitMaskState !== null && (
-                <NxSubmitMask
-                  success={submitMaskState}
-                  message={submitMaskMessage}
-                />
-              )}
+              {submitMaskState !== null && <NxSubmitMask success={submitMaskState} message={submitMaskMessage} />}
               {form}
             </div>
           </form>
@@ -393,10 +329,7 @@ const textInputPropType = PropTypes.shape({
   value: PropTypes.string.isRequired,
   trimmedValue: PropTypes.string.isRequired,
   isPristine: PropTypes.bool.isRequired,
-  validationErrors: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.string.isRequired),
-    PropTypes.string,
-  ]),
+  validationErrors: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string.isRequired), PropTypes.string]),
 });
 
 MailConfig.propTypes = {

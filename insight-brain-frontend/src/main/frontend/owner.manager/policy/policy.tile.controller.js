@@ -18,8 +18,7 @@ export default function PolicyTileController(
   PolicyViolationGrandfatheringService
 ) {
   var vm = this;
-  vm.isAppOrOrg =
-    CLMContextLocations.isApplication() || CLMContextLocations.isOrganization();
+  vm.isAppOrOrg = CLMContextLocations.isApplication() || CLMContextLocations.isOrganization();
   vm.ownerName = undefined;
   vm.policiesByOwner = undefined;
   vm.error = undefined;
@@ -31,8 +30,7 @@ export default function PolicyTileController(
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isMonitoringSupported = undefined;
   vm.isGrandfatheringSupported = undefined;
-  vm.isEnforcementSupportedForStage =
-    ProductFeatures.isEnforcementSupportedForStage;
+  vm.isEnforcementSupportedForStage = ProductFeatures.isEnforcementSupportedForStage;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
 
@@ -67,8 +65,7 @@ export default function PolicyTileController(
             policy.enforcementAction = {};
             vm.actionStages.forEach(function (actionStage) {
               if (policy.actions[actionStage.stageTypeId]) {
-                policy.enforcementAction[actionStage.stageTypeId] =
-                  policy.actions[actionStage.stageTypeId];
+                policy.enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
               }
             });
           });
@@ -99,17 +96,11 @@ export default function PolicyTileController(
           }
         });
 
-        vm.isMonitoringSupported = ProductFeatures.isAvailable(
-          'policy-monitoring'
-        );
-        vm.isGrandfatheringSupported = ProductFeatures.isAvailable(
-          'policy-grandfathering'
-        );
+        vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
+        vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
 
         if (vm.isAppOrOrg) {
-          vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(
-            results[5]
-          );
+          vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[5]);
         }
       },
       function (error) {

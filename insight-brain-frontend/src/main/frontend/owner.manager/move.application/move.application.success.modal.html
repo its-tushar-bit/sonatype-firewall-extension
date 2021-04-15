@@ -6,8 +6,7 @@
     <div class="iq-alert iq-alert--info">
       <p>
         <i class="fa size-16px fa-info-circle"></i>
-        Please check the following configurations to ensure they do what you
-        expect:
+        Please check the following configurations to ensure they do what you expect:
       </p>
       <div class="iq-list iq-list--bulleted">
         <ul>
@@ -17,13 +16,10 @@
       </div>
     </div>
     <div ng-if="messages" class="iq-alert iq-scrollable">
-      <i class="fa size-16px fa-warning"></i>Policy configurations that differ
-      between the old and new parent:
+      <i class="fa size-16px fa-warning"></i>Policy configurations that differ between the old and new parent:
       <div class="iq-list iq-list--bulleted">
         <ul>
-          <li ng-repeat="message in ::messages" class="iq-list__item">
-            {{::message}}
-          </li>
+          <li ng-repeat="message in ::messages" class="iq-list__item">{{::message}}</li>
         </ul>
       </div>
     </div>

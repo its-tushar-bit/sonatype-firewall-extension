@@ -22,9 +22,7 @@
       mask-attach-to-body
     >
       <div class="iq-form-group">
-        <label for="editor-label-name" class="iq-label"
-          >Component Label Name</label
-        >
+        <label for="editor-label-name" class="iq-label">Component Label Name</label>
         <input
           id="editor-label-name"
           class="iq-text-input"
@@ -59,17 +57,9 @@
       </div>
       <div class="iq-form-group">
         <label for="editor-label-color-picker" class="iq-label">Color</label>
-        <color-picker
-          id="editor-label-color-picker"
-          ng-model="vm.dirtyLabel.color"
-          required
-        ></color-picker>
+        <color-picker id="editor-label-color-picker" ng-model="vm.dirtyLabel.color" required></color-picker>
       </div>
-      <div
-        class="iq-tile-footer"
-        submit-wrapper="vm.submitError"
-        retry="vm.save()"
-      >
+      <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
         <button
           type="submit"
           class="iq-btn iq-btn--primary"

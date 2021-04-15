@@ -100,11 +100,7 @@ describe('cipAudit', function () {
 
   beforeEach(angular.mock.module(cipModalModule.name));
 
-  beforeEach(inject(function (
-    $componentController,
-    _$httpBackend_,
-    $rootScope
-  ) {
+  beforeEach(inject(function ($componentController, _$httpBackend_, $rootScope) {
     $httpBackend = _$httpBackend_;
     createController = function (scanId, applicationPublicId, component) {
       return $componentController(
@@ -272,9 +268,7 @@ describe('cipAudit', function () {
     });
   });
 
-  it('updates vm.auditRecords in response to changes to vm.applicationPublicId', inject(function (
-    $rootScope
-  ) {
+  it('updates vm.auditRecords in response to changes to vm.applicationPublicId', inject(function ($rootScope) {
     const controller = initControllerWithData();
 
     expect(controller.auditRecords).not.toEqual([]);
@@ -303,9 +297,7 @@ describe('cipAudit', function () {
     expect(controller.error).not.toBeDefined();
   }));
 
-  it('updates vm.auditRecords in response to changes to vm.scanId', inject(function (
-    $rootScope
-  ) {
+  it('updates vm.auditRecords in response to changes to vm.scanId', inject(function ($rootScope) {
     const controller = initControllerWithData();
 
     expect(controller.auditRecords).not.toEqual([]);
@@ -334,9 +326,7 @@ describe('cipAudit', function () {
     expect(controller.error).not.toBeDefined();
   }));
 
-  it('updates vm.auditRecords in response to changes to vm.component', inject(function (
-    $rootScope
-  ) {
+  it('updates vm.auditRecords in response to changes to vm.component', inject(function ($rootScope) {
     const controller = initControllerWithData();
 
     expect(controller.auditRecords).not.toEqual([]);
@@ -377,9 +367,7 @@ describe('cipAudit', function () {
     expect(controller.error).not.toBeDefined();
   }));
 
-  it('sets vm.error and empties vm.auditRecords when the backend returns an error', inject(function (
-    $rootScope
-  ) {
+  it('sets vm.error and empties vm.auditRecords when the backend returns an error', inject(function ($rootScope) {
     const controller = initControllerWithData();
 
     expect(controller.auditRecords).not.toEqual([]);

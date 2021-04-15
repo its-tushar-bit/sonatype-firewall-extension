@@ -31,20 +31,18 @@ export default function DeleteModalController(
   });
 
   function deleteResource() {
-    vm.deleteResourceMask
-      .wrap(continueAction ? continueAction() : resource.$delete())
-      .then(
-        function () {
-          $scope.$close();
-        },
-        function (error) {
-          if (dismissOnError === true) {
-            $scope.$dismiss(error);
-          } else {
-            vm.error = Messages.getHttpErrorMessage(error);
-          }
+    vm.deleteResourceMask.wrap(continueAction ? continueAction() : resource.$delete()).then(
+      function () {
+        $scope.$close();
+      },
+      function (error) {
+        if (dismissOnError === true) {
+          $scope.$dismiss(error);
+        } else {
+          vm.error = Messages.getHttpErrorMessage(error);
         }
-      );
+      }
+    );
   }
 }
 

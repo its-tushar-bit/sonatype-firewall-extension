@@ -7,11 +7,7 @@
 // Copied from our AngularCommon library
 export default function agoLastDayFilter() {
   return function (agoString) {
-    if (
-      agoString.indexOf('seconds ago') > -1 ||
-      agoString.indexOf('minute') > -1 ||
-      agoString.indexOf('hour') > -1
-    ) {
+    if (agoString.indexOf('seconds ago') > -1 || agoString.indexOf('minute') > -1 || agoString.indexOf('hour') > -1) {
       return 'Less than a day ago';
     }
     return agoString;

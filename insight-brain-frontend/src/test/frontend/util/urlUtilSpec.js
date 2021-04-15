@@ -20,9 +20,7 @@ describe('urlUtil', function () {
         baz: undefined,
         bar: '?x=test',
       };
-      expect(toURIParams(params)).toEqual(
-        'f%20o%20o=%3Fx%3D%D1%88%D0%B5%D0%BB%D0%BB%D1%8B&bar=%3Fx%3Dtest'
-      );
+      expect(toURIParams(params)).toEqual('f%20o%20o=%3Fx%3D%D1%88%D0%B5%D0%BB%D0%BB%D1%8B&bar=%3Fx%3Dtest');
     });
     it('handles empty object', function () {
       expect(toURIParams({})).toEqual('');
@@ -36,9 +34,7 @@ describe('urlUtil', function () {
 
     it("returns the portion of the url before the '/rest/report/' token iff '/assets/' token is not present", function () {
       expect(getBaseUrl('foo/bar/rest/report/')).toBe('foo/bar');
-      expect(getBaseUrl('foo/bar/rest/report/assets/')).toBe(
-        'foo/bar/rest/report'
-      );
+      expect(getBaseUrl('foo/bar/rest/report/assets/')).toBe('foo/bar/rest/report');
       expect(getBaseUrl('foo/bar/assets/rest/report')).toBe('foo/bar');
     });
 
@@ -85,9 +81,7 @@ describe('urlUtil', function () {
             ?baz=	${baz} 
           `;
 
-      expect(result).toBe(
-        'http://test-host:8888/api/myApi/FOOPARAM/asdfaasdfdfhefgd/?baz=BAZPARAM'
-      );
+      expect(result).toBe('http://test-host:8888/api/myApi/FOOPARAM/asdfaasdfdfhefgd/?baz=BAZPARAM');
     });
   });
 });

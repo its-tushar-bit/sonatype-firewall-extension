@@ -10,22 +10,15 @@ import configureStore from 'redux-mock-store';
 import DeleteWaiverModal from '../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModal';
 
 describe('DeleteWaiverModalContainer', function () {
-  let DeleteWaiverModalContainer,
-    deleteWaiverMock,
-    hideDeleteWaiverModalMock,
-    state,
-    store,
-    vdom;
+  let DeleteWaiverModalContainer, deleteWaiverMock, hideDeleteWaiverModalMock, state, store, vdom;
 
   beforeEach(function () {
     deleteWaiverMock = jasmine.createSpy('deleteWaiver').and.returnValue({
       type: 'DELETE_WAIVER',
     });
-    hideDeleteWaiverModalMock = jasmine
-      .createSpy('hideDeleteWaiverModal')
-      .and.returnValue({
-        type: 'HIDE_DELETE_WAIVER_MODAL',
-      });
+    hideDeleteWaiverModalMock = jasmine.createSpy('hideDeleteWaiverModal').and.returnValue({
+      type: 'HIDE_DELETE_WAIVER_MODAL',
+    });
 
     DeleteWaiverModalContainer = require('inject-loader!../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModalContainer')(
       {
@@ -59,9 +52,7 @@ describe('DeleteWaiverModalContainer', function () {
   it('maps action creators to props', function () {
     const wrapper = shallow(vdom).dive(),
       deleteWaiverActionCreator = wrapper.prop('deleteWaiver'),
-      hideDeleteWaiverModalActionCreator = wrapper.prop(
-        'hideDeleteWaiverModal'
-      );
+      hideDeleteWaiverModalActionCreator = wrapper.prop('hideDeleteWaiverModal');
 
     expect(deleteWaiverActionCreator).toEqual(jasmine.any(Function));
     expect(hideDeleteWaiverModalActionCreator).toEqual(jasmine.any(Function));
@@ -71,10 +62,7 @@ describe('DeleteWaiverModalContainer', function () {
     expect(store.getActions()).toEqual([{ type: 'DELETE_WAIVER' }]);
 
     hideDeleteWaiverModalActionCreator();
-    expect(store.getActions()).toEqual([
-      { type: 'DELETE_WAIVER' },
-      { type: 'HIDE_DELETE_WAIVER_MODAL' },
-    ]);
+    expect(store.getActions()).toEqual([{ type: 'DELETE_WAIVER' }, { type: 'HIDE_DELETE_WAIVER_MODAL' }]);
   });
 
   it('renders DeleteWaiverModal component', function () {

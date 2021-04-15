@@ -3,18 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  compose,
-  into,
-  indexBy,
-  isNil,
-  map,
-  pipe,
-  prop,
-  pick,
-  reject,
-  take,
-} from 'ramda';
+import { compose, into, indexBy, isNil, map, pipe, prop, pick, reject, take } from 'ramda';
 
 import { lookup, isNilOrEmpty } from '../../../../util/jsUtil';
 import { serializeComponentIdentifier } from '../../../../util/componentIdentifierUtils';
@@ -41,12 +30,8 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
 
       $scope.$watch('vm.selectedComponent', (selectedComponent) => {
         if (selectedComponent) {
-          vm.rootAncestors = findRootAncestors(
-            selectedComponent.dependencyInfo,
-            vm.selectedReport.allEntries
-          );
-          vm.isShowMoreLinkDisplayed =
-            vm.rootAncestors.length > SHOWN_ENTRIES_LIMIT;
+          vm.rootAncestors = findRootAncestors(selectedComponent.dependencyInfo, vm.selectedReport.allEntries);
+          vm.isShowMoreLinkDisplayed = vm.rootAncestors.length > SHOWN_ENTRIES_LIMIT;
         }
       });
     },
@@ -60,9 +45,7 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
     },
 
     getDisplayedRootAncestors() {
-      return vm.showAll
-        ? vm.rootAncestors
-        : take(SHOWN_ENTRIES_LIMIT, vm.rootAncestors);
+      return vm.showAll ? vm.rootAncestors : take(SHOWN_ENTRIES_LIMIT, vm.rootAncestors);
     },
 
     isRootAncestorsSectionDisplayed() {
@@ -71,21 +54,11 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
   });
 }
 
-RootAncestorsController.$inject = [
-  '$scope',
-  '$ngRedux',
-  'applicationReportActions',
-];
+RootAncestorsController.$inject = ['$scope', '$ngRedux', 'applicationReportActions'];
 
 export function mapStateToThis({ applicationReport }) {
-  const {
-    selectedReport,
-    selectedComponentIndex,
-    selectedRootAncestor,
-  } = applicationReport;
-  const selectedComponent =
-    selectedRootAncestor ||
-    selectedReport.displayedEntries[selectedComponentIndex];
+  const { selectedReport, selectedComponentIndex, selectedRootAncestor } = applicationReport;
+  const selectedComponent = selectedRootAncestor || selectedReport.displayedEntries[selectedComponentIndex];
 
   return {
     selectedReport,
@@ -96,30 +69,18 @@ export function mapStateToThis({ applicationReport }) {
 // For each componentId in dependencyInfo.rootAncestors, find last matching component in allEntries.
 // Note, allEntries represent non-aggregated list so there could be multiple entries with the same componentId.
 function findRootAncestors(dependencyInfo, allEntries) {
-  if (
-    !dependencyInfo ||
-    dependencyInfo.isDirectDependency ||
-    isNilOrEmpty(dependencyInfo.rootAncestors)
-  ) {
+  if (!dependencyInfo || dependencyInfo.isDirectDependency || isNilOrEmpty(dependencyInfo.rootAncestors)) {
     return [];
   }
 
   const allEntriesBySerializedComponentId = into(
     {},
-    compose(
-      reject(pipe(prop('serializedComponentIdentifier'), isNil)),
-      indexBy(prop('serializedComponentIdentifier'))
-    ),
+    compose(reject(pipe(prop('serializedComponentIdentifier'), isNil)), indexBy(prop('serializedComponentIdentifier'))),
     allEntries
   );
 
   const getRootAncestorsFromAllEntries = pipe(
-    map(
-      pipe(
-        serializeComponentIdentifier,
-        lookup(allEntriesBySerializedComponentId)
-      )
-    ),
+    map(pipe(serializeComponentIdentifier, lookup(allEntriesBySerializedComponentId))),
     reject(isNil)
   );
 

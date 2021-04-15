@@ -27,9 +27,7 @@
         id="retention-editor-{{::stage}}"
       >
         <fieldset class="iq-form-group iq-radio-group">
-          <legend class="iq-label" for="retention-editor-inherit-{{::stage}}">
-            {{::vm.titleCase(stage)}}
-          </legend>
+          <legend class="iq-label" for="retention-editor-inherit-{{::stage}}">{{::vm.titleCase(stage)}}</legend>
           <iq-radio
             id="retention-editor-inherit-{{::stage}}"
             ng-if="!vm.isRootOrganization"
@@ -39,18 +37,12 @@
          -->Inherit ({{::vm.getParentMaxReportsAndMaxAge(stage)}})<!--
        --></iq-radio
           >
-          <iq-radio
-            id="retention-editor-disable-{{::stage}}"
-            model="retention.formValue"
-            value="'dontPurge'"
+          <iq-radio id="retention-editor-disable-{{::stage}}" model="retention.formValue" value="'dontPurge'"
             ><!--
          -->Don't Purge<!--
        --></iq-radio
           >
-          <iq-radio
-            id="retention-editor-custom-{{::stage}}"
-            model="retention.formValue"
-            value="'custom'"
+          <iq-radio id="retention-editor-custom-{{::stage}}" model="retention.formValue" value="'custom'"
             ><!--
          -->Custom<!--
        --></iq-radio
@@ -74,9 +66,7 @@
             <label class="iq-label">or</label>
           </div>
           <div class="iq-form-group">
-            <label class="iq-label" for="{{::(stage + '-max-number-input')}}"
-              >Max Number of Reports</label
-            >
+            <label class="iq-label" for="{{::(stage + '-max-number-input')}}">Max Number of Reports</label>
             <input
               id="{{::(stage + '-max-number-input')}}"
               name="{{::(stage + '-count-input')}}"
@@ -119,14 +109,9 @@
          -->Custom<!--
        --></iq-radio
           >
-          <div
-            class="iq-form-row"
-            ng-if="vm.retention.successMetrics.formValue === 'custom'"
-          >
+          <div class="iq-form-row" ng-if="vm.retention.successMetrics.formValue === 'custom'">
             <div class="iq-form-group">
-              <label class="iq-label" for="success-metrics-max-age-input"
-                >Max Age in Years</label
-              >
+              <label class="iq-label" for="success-metrics-max-age-input">Max Age in Years</label>
               <input
                 id="success-metrics-max-age-input"
                 name="success-metrics-age-input"
@@ -143,11 +128,7 @@
         </fieldset>
       </div>
     </div>
-    <div
-      class="iq-tile-footer"
-      submit-wrapper="vm.submitError"
-      retry="vm.save()"
-    >
+    <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
       <button
         id="save-retention-button"
         class="iq-btn iq-btn--primary"

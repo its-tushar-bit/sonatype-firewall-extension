@@ -34,8 +34,5 @@ const mapDispatchToProps = {
   loadApplicableWaivers,
 };
 
-const ListWaiversPageContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ListWaiversPage);
+const ListWaiversPageContainer = connect(mapStateToProps, mapDispatchToProps)(ListWaiversPage);
 export default ListWaiversPageContainer;

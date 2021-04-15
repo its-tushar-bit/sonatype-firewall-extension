@@ -76,12 +76,7 @@ describe('iqOrgAppPickerAngular', function () {
         // selects all Orgs
         var newSelectedOrganizations = new Set(['fooOrg', 'barOrg', 'bazOrg']);
         //expect all Apps to be selected.
-        var expectedSelectedApplications = new Set([
-          'fooApp1',
-          'fooApp2',
-          'barApp1',
-          'barApp2',
-        ]);
+        var expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
 
         vm.onSelectedOrganizationsChange(newSelectedOrganizations);
         expect(onChange).toHaveBeenCalledWith({
@@ -94,12 +89,7 @@ describe('iqOrgAppPickerAngular', function () {
     describe('when all orgs are deselected (none)', function () {
       it('deselects all apps', function () {
         var selectedOrganizations = new Set(['fooOrg', 'barOrg', 'bazOrg']);
-        var selectedApplications = new Set([
-          'fooApp1',
-          'fooApp2',
-          'barApp1',
-          'barApp2',
-        ]);
+        var selectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
 
         var vm = getVm(selectedOrganizations, selectedApplications);
         var newSelectedOrganizations = new Set();
@@ -121,11 +111,7 @@ describe('iqOrgAppPickerAngular', function () {
         var vm = getVm(selectedOrganizations, selectedApplications);
 
         var newSelectedOrganizations = new Set(['fooOrg']);
-        var expectedSelectedApplications = new Set([
-          'fooApp1',
-          'fooApp2',
-          'barApp1',
-        ]);
+        var expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1']);
 
         vm.onSelectedOrganizationsChange(newSelectedOrganizations);
         expect(onChange).toHaveBeenCalledWith({
@@ -164,11 +150,7 @@ describe('iqOrgAppPickerAngular', function () {
           var vm = getVm(selectedOrganizations, selectedApplications);
 
           var newSelectedOrganizations = new Set(['barOrg']);
-          var expectedSelectedApplications = new Set([
-            'fooApp1',
-            'barApp1',
-            'barApp2',
-          ]);
+          var expectedSelectedApplications = new Set(['fooApp1', 'barApp1', 'barApp2']);
 
           vm.onSelectedOrganizationsChange(newSelectedOrganizations, 'barOrg');
           expect(onChange).toHaveBeenCalledWith({
@@ -185,12 +167,7 @@ describe('iqOrgAppPickerAngular', function () {
           var vm = getVm(new Set(), selectedApplications);
 
           var newSelectedOrganizations = new Set(['barOrg']);
-          var expectedSelectedApplications = new Set([
-            'fooApp1',
-            'fooApp2',
-            'barApp1',
-            'barApp2',
-          ]);
+          var expectedSelectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
 
           vm.onSelectedOrganizationsChange(newSelectedOrganizations, 'barOrg');
           expect(onChange).toHaveBeenCalledWith({
@@ -220,12 +197,7 @@ describe('iqOrgAppPickerAngular', function () {
     });
 
     it('deselects an org if not all related apps are selected', function () {
-      var selectedApplications = new Set([
-        'fooApp1',
-        'fooApp2',
-        'barApp1',
-        'barApp2',
-      ]);
+      var selectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
       var selectedOrganizations = new Set(['fooOrg', 'barOrg']);
 
       var vm = getVm(selectedOrganizations, selectedApplications);
@@ -241,12 +213,7 @@ describe('iqOrgAppPickerAngular', function () {
     });
 
     it('deselects an org if all related apps are deselected', function () {
-      var selectedApplications = new Set([
-        'fooApp1',
-        'fooApp2',
-        'barApp1',
-        'barApp2',
-      ]);
+      var selectedApplications = new Set(['fooApp1', 'fooApp2', 'barApp1', 'barApp2']);
       var selectedOrganizations = new Set(['fooOrg', 'barOrg']);
 
       var vm = getVm(selectedOrganizations, selectedApplications);

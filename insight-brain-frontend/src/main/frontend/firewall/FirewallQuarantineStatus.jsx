@@ -10,17 +10,10 @@ import * as PropTypes from 'prop-types';
 
 export default function FirewallQuarantineStatus(props) {
   //viewState
-  const {
-    quarantineEnabled,
-    quarantineEnabledRepositoryCount,
-    repositoryCount,
-  } = props;
+  const { quarantineEnabled, quarantineEnabledRepositoryCount, repositoryCount } = props;
 
   return (
-    <section
-      id="firewall-quarantine-status"
-      className="nx-card iq-firewall-quarantine-status-card"
-    >
+    <section id="firewall-quarantine-status" className="nx-card iq-firewall-quarantine-status-card">
       <header className="nx-card__header">
         <h3 className="nx-h3">Quarantine Status</h3>
       </header>
@@ -30,8 +23,7 @@ export default function FirewallQuarantineStatus(props) {
           <span>{quarantineEnabled ? 'Active' : 'Inactive'}</span>
         </div>
         <div className="nx-card__text">
-          on {quarantineEnabledRepositoryCount} of {repositoryCount}{' '}
-          repositories
+          on {quarantineEnabledRepositoryCount} of {repositoryCount} repositories
         </div>
       </div>
     </section>

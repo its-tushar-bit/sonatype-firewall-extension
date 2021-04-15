@@ -7,10 +7,7 @@
 import CLMContextLocationModule from '../util/CLMContextLocation';
 import storesModule from '../util/Stores';
 
-var licenseGroupModule = angular.module('LicenseThreatGroup', [
-  storesModule.name,
-  CLMContextLocationModule.name,
-]);
+var licenseGroupModule = angular.module('LicenseThreatGroup', [storesModule.name, CLMContextLocationModule.name]);
 
 licenseGroupModule.service('licenseGroupStore', [
   'CLMContextLocations',

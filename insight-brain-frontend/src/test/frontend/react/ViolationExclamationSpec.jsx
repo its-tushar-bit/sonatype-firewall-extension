@@ -11,10 +11,7 @@ import * as enzymeUtils from '../enzymeUtils';
 
 describe('ViolationExclamation', function () {
   const minimalProps = { threatLevelCategory: 'unspecified' },
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ViolationExclamation,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ViolationExclamation, minimalProps);
 
   it('renders a non-fixed width exclamation NxFontAwesomeIcon', function () {
     const component = getShallowComponent();
@@ -29,29 +26,21 @@ describe('ViolationExclamation', function () {
   });
 
   it('has an iq-violation-exclamation modifier class based on the threatLevelCategory', function () {
-    expect(getShallowComponent()).toHaveClassName(
-      'iq-violation-exclamation--unspecified'
+    expect(getShallowComponent()).toHaveClassName('iq-violation-exclamation--unspecified');
+    expect(getShallowComponent({ threatLevelCategory: 'none' })).toHaveClassName('iq-violation-exclamation--none');
+    expect(getShallowComponent({ threatLevelCategory: 'low' })).toHaveClassName('iq-violation-exclamation--low');
+    expect(getShallowComponent({ threatLevelCategory: 'moderate' })).toHaveClassName(
+      'iq-violation-exclamation--moderate'
     );
-    expect(
-      getShallowComponent({ threatLevelCategory: 'none' })
-    ).toHaveClassName('iq-violation-exclamation--none');
-    expect(getShallowComponent({ threatLevelCategory: 'low' })).toHaveClassName(
-      'iq-violation-exclamation--low'
+    expect(getShallowComponent({ threatLevelCategory: 'severe' })).toHaveClassName('iq-violation-exclamation--severe');
+    expect(getShallowComponent({ threatLevelCategory: 'critical' })).toHaveClassName(
+      'iq-violation-exclamation--critical'
     );
-    expect(
-      getShallowComponent({ threatLevelCategory: 'moderate' })
-    ).toHaveClassName('iq-violation-exclamation--moderate');
-    expect(
-      getShallowComponent({ threatLevelCategory: 'severe' })
-    ).toHaveClassName('iq-violation-exclamation--severe');
-    expect(
-      getShallowComponent({ threatLevelCategory: 'critical' })
-    ).toHaveClassName('iq-violation-exclamation--critical');
   });
 
   it('has an iq-violation-exclamation--disabled modifier class threatLevelCategory is disabled', function () {
-    expect(
-      getShallowComponent({ threatLevelCategory: 'disabled' })
-    ).toHaveClassName('iq-violation-exclamation--disabled');
+    expect(getShallowComponent({ threatLevelCategory: 'disabled' })).toHaveClassName(
+      'iq-violation-exclamation--disabled'
+    );
   });
 });

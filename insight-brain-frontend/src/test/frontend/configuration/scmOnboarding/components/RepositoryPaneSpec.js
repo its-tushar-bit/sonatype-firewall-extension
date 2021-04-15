@@ -23,10 +23,7 @@ describe('RepositoryPane', function () {
 
     minimalProps = { $state: mock$State };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      RepositoryPane,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(RepositoryPane, minimalProps);
   });
 
   it('displays add org button', () => {
@@ -39,9 +36,7 @@ describe('RepositoryPane', function () {
   describe('new organization modal', () => {
     it('shows modal when clicking add org button', () => {
       const props = {
-        setIsNewOrganizationModalVisible: jasmine.createSpy(
-          'setIsNewOrganizationModalVisible'
-        ),
+        setIsNewOrganizationModalVisible: jasmine.createSpy('setIsNewOrganizationModalVisible'),
         isNewOrganizationModalVisible: false,
       };
       const component = getShallowComponent(props),
@@ -85,27 +80,18 @@ describe('RepositoryPane', function () {
   });
 
   describe('load wrapper flags are propagated correctly', () => {
-    const propsData = [
-      { loadingRepositories: true },
-      { loadingRepositories: false, isSelectingOrganization: true },
-    ];
+    const propsData = [{ loadingRepositories: true }, { loadingRepositories: false, isSelectingOrganization: true }];
 
     propsData.forEach((props) => {
-      it(
-        'shows load wrapper when loadingRepositories: ' +
-          props.loadingRepositories,
-        () => {
-          const component = getShallowComponent(props),
-            loadWrapper = component.find('#scm-repo-table').find(LoadWrapper),
-            resultsTable = component.find(ResultsTable);
+      it('shows load wrapper when loadingRepositories: ' + props.loadingRepositories, () => {
+        const component = getShallowComponent(props),
+          loadWrapper = component.find('#scm-repo-table').find(LoadWrapper),
+          resultsTable = component.find(ResultsTable);
 
-          // then loading flags are propagated correctly
-          expect(loadWrapper.props().loading).toEqual(true);
-          expect(resultsTable.props().loadingRepositories).toEqual(
-            props.loadingRepositories
-          );
-        }
-      );
+        // then loading flags are propagated correctly
+        expect(loadWrapper.props().loading).toEqual(true);
+        expect(resultsTable.props().loadingRepositories).toEqual(props.loadingRepositories);
+      });
     });
 
     it('displays error message with correct links', () => {
@@ -137,9 +123,7 @@ describe('RepositoryPane', function () {
   });
 
   describe('footer', () => {
-    const repositories = ['aaaa', 'bbbb', 'aabb'].map((prefix) =>
-      createRepo(prefix)
-    );
+    const repositories = ['aaaa', 'bbbb', 'aabb'].map((prefix) => createRepo(prefix));
 
     it('hides when repositories empty', () => {
       const props = {
@@ -183,9 +167,7 @@ describe('RepositoryPane', function () {
 
       // then repository count is updated
       expect(footer).toExist();
-      expect(component.find('#scm-repo-to-import-count').text()).toEqual(
-        '1 of 3 repositories'
-      );
+      expect(component.find('#scm-repo-to-import-count').text()).toEqual('1 of 3 repositories');
     });
   });
 

@@ -25,9 +25,7 @@ export default function ComponentController(
   $injector
 ) {
   function coordinatesChanged() {
-    var coordinates = Coordinates.get()
-      ? { coordinates: Coordinates.get(), appId: OwnerContext.ownerId }
-      : null;
+    var coordinates = Coordinates.get() ? { coordinates: Coordinates.get(), appId: OwnerContext.ownerId } : null;
 
     $scope.errorMessage = null;
 
@@ -38,9 +36,7 @@ export default function ComponentController(
 
       if (coordinates && coordinates.appId && !Properties.isUnknown()) {
         // only pass the hash if current version
-        const hash = Coordinates.isOriginalVersion()
-          ? Properties.getHash()
-          : null;
+        const hash = Coordinates.isOriginalVersion() ? Properties.getHash() : null;
         $http
           .get(
             Brain[clmEndpoint.type].getComponentListUrl(
@@ -60,14 +56,9 @@ export default function ComponentController(
           )
           .then(
             function (response) {
-              $scope.componentDetailsList =
-                response.data.allVersions ||
-                response.data.list ||
-                response.data;
+              $scope.componentDetailsList = response.data.allVersions || response.data.list || response.data;
               for (var i = 0; i < $scope.componentDetailsList.length; i++) {
-                $scope.componentDetailsList[
-                  i
-                ].proprietary = Coordinates.get().proprietary;
+                $scope.componentDetailsList[i].proprietary = Coordinates.get().proprietary;
               }
               $scope.loaded = true;
 
@@ -81,10 +72,7 @@ export default function ComponentController(
     }
   }
 
-  function createSuggestedRemediationWithRecommendedVersion(
-    item,
-    remediationVersion
-  ) {
+  function createSuggestedRemediationWithRecommendedVersion(item, remediationVersion) {
     switch (item.type) {
       case NEXT_NO_VIOLATIONS:
         return {
@@ -98,9 +86,7 @@ export default function ComponentController(
       case NEXT_NON_FAILING:
         return {
           id: 'next-no-fail-version-link',
-          text: `: Next version with no ${capitalize(
-            Properties.getStageId()
-          )} failure`,
+          text: `: Next version with no ${capitalize(Properties.getStageId())} failure`,
           type: NEXT_NON_FAILING,
           linkId: 'select-no-fail',
           linkText: remediationVersion,
@@ -110,9 +96,8 @@ export default function ComponentController(
         return {
           id: 'next-no-fail-dependencies-version-link',
           text:
-            `: Next version with no ${capitalize(
-              Properties.getStageId()
-            )} failure ` + 'for this component and its dependencies',
+            `: Next version with no ${capitalize(Properties.getStageId())} failure ` +
+            'for this component and its dependencies',
           type: NEXT_NON_FAILING_DEPENDENCIES,
           linkId: 'select-no-fail-dependencies',
           linkText: remediationVersion,
@@ -121,8 +106,7 @@ export default function ComponentController(
       case NEXT_NO_VIOLATIONS_DEPENDENCIES:
         return {
           id: 'next-no-violation-dependencies-version-link',
-          text:
-            ': Next version with no policy violations for this component and its dependencies',
+          text: ': Next version with no policy violations for this component and its dependencies',
           type: NEXT_NO_VIOLATIONS_DEPENDENCIES,
           linkId: 'select-no-violation-dependencies',
           linkText: remediationVersion,
@@ -131,16 +115,12 @@ export default function ComponentController(
     }
   }
 
-  function createSuggestedRemediationWithCurrentVersion(
-    item,
-    remediationVersion
-  ) {
+  function createSuggestedRemediationWithCurrentVersion(item, remediationVersion) {
     switch (item.type) {
       case NEXT_NO_VIOLATIONS_DEPENDENCIES:
         return {
           id: 'next-no-violation-dependencies-version',
-          text:
-            'The current version has no policy violations for this component and its dependencies',
+          text: 'The current version has no policy violations for this component and its dependencies',
           type: NEXT_NO_VIOLATIONS_DEPENDENCIES,
           version: remediationVersion,
         };
@@ -155,18 +135,15 @@ export default function ComponentController(
         return {
           id: 'next-no-fail-dependencies-version',
           text:
-            `The current version doesn't cause ${capitalize(
-              Properties.getStageId()
-            )} failure ` + 'for this component and its dependencies',
+            `The current version doesn't cause ${capitalize(Properties.getStageId())} failure ` +
+            'for this component and its dependencies',
           type: NEXT_NON_FAILING_DEPENDENCIES,
           version: remediationVersion,
         };
       case NEXT_NON_FAILING:
         return {
           id: 'next-no-fail-version',
-          text: `The current version doesn't cause ${capitalize(
-            Properties.getStageId()
-          )} failure`,
+          text: `The current version doesn't cause ${capitalize(Properties.getStageId())} failure`,
           type: NEXT_NON_FAILING,
           version: remediationVersion,
         };
@@ -175,8 +152,7 @@ export default function ComponentController(
 
   function createSuggestedRemediation(item) {
     const applicationVersion = $scope.coordinates.coordinates.version;
-    const remediationVersion =
-      item.data.component.componentIdentifier.coordinates.version;
+    const remediationVersion = item.data.component.componentIdentifier.coordinates.version;
 
     if (item.data.component.thirdParty) {
       return {
@@ -184,39 +160,24 @@ export default function ComponentController(
         text: `Next version: ${remediationVersion}`,
       };
     } else if (remediationVersion !== applicationVersion) {
-      return createSuggestedRemediationWithRecommendedVersion(
-        item,
-        remediationVersion
-      );
+      return createSuggestedRemediationWithRecommendedVersion(item, remediationVersion);
     } else {
-      return createSuggestedRemediationWithCurrentVersion(
-        item,
-        remediationVersion
-      );
+      return createSuggestedRemediationWithCurrentVersion(item, remediationVersion);
     }
   }
 
-  function shouldDisplayWithoutDependenciesRemediation(
-    withDependenciesSuggestion,
-    withoutDependenciesSuggestion
-  ) {
+  function shouldDisplayWithoutDependenciesRemediation(withDependenciesSuggestion, withoutDependenciesSuggestion) {
     if (!withoutDependenciesSuggestion) {
       return false;
     }
     if (!withDependenciesSuggestion) {
       return true;
     }
-    const withDependenciesVersion =
-      withDependenciesSuggestion.data.component.componentIdentifier.coordinates
-        .version;
+    const withDependenciesVersion = withDependenciesSuggestion.data.component.componentIdentifier.coordinates.version;
     const withoutDependenciesVersion =
-      withoutDependenciesSuggestion.data.component.componentIdentifier
-        .coordinates.version;
+      withoutDependenciesSuggestion.data.component.componentIdentifier.coordinates.version;
     const currentVersion = $scope.coordinates.coordinates.version;
-    return (
-      withoutDependenciesVersion !== currentVersion ||
-      withDependenciesVersion !== currentVersion
-    );
+    return withoutDependenciesVersion !== currentVersion || withDependenciesVersion !== currentVersion;
   }
 
   function setRemediations({ remediation }) {
@@ -227,51 +188,27 @@ export default function ComponentController(
         propEq('type', NEXT_NO_VIOLATIONS_DEPENDENCIES),
         remediation.versionChanges
       );
-      const nonViolatingSuggestion = find(
-        propEq('type', NEXT_NO_VIOLATIONS),
-        remediation.versionChanges
-      );
+      const nonViolatingSuggestion = find(propEq('type', NEXT_NO_VIOLATIONS), remediation.versionChanges);
       const nonFailingDependencySuggestion = find(
         propEq('type', NEXT_NON_FAILING_DEPENDENCIES),
         remediation.versionChanges
       );
-      const nonFailingSuggestion = find(
-        propEq('type', NEXT_NON_FAILING),
-        remediation.versionChanges
-      );
+      const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), remediation.versionChanges);
 
-      if (
-        shouldDisplayWithoutDependenciesRemediation(
-          nonViolatingDependencySuggestion,
-          nonViolatingSuggestion
-        )
-      ) {
-        $scope.suggestedRemediations.push(
-          createSuggestedRemediation(nonViolatingSuggestion)
-        );
+      if (shouldDisplayWithoutDependenciesRemediation(nonViolatingDependencySuggestion, nonViolatingSuggestion)) {
+        $scope.suggestedRemediations.push(createSuggestedRemediation(nonViolatingSuggestion));
       }
 
       if (nonViolatingDependencySuggestion) {
-        $scope.suggestedRemediations.push(
-          createSuggestedRemediation(nonViolatingDependencySuggestion)
-        );
+        $scope.suggestedRemediations.push(createSuggestedRemediation(nonViolatingDependencySuggestion));
       }
 
-      if (
-        shouldDisplayWithoutDependenciesRemediation(
-          nonFailingDependencySuggestion,
-          nonFailingSuggestion
-        )
-      ) {
-        $scope.suggestedRemediations.push(
-          createSuggestedRemediation(nonFailingSuggestion)
-        );
+      if (shouldDisplayWithoutDependenciesRemediation(nonFailingDependencySuggestion, nonFailingSuggestion)) {
+        $scope.suggestedRemediations.push(createSuggestedRemediation(nonFailingSuggestion));
       }
 
       if (nonFailingDependencySuggestion) {
-        $scope.suggestedRemediations.push(
-          createSuggestedRemediation(nonFailingDependencySuggestion)
-        );
+        $scope.suggestedRemediations.push(createSuggestedRemediation(nonFailingDependencySuggestion));
       }
     }
 
@@ -359,15 +296,9 @@ export default function ComponentController(
   };
 
   function changeSelectedVersionToSuggestedRemediation(type) {
-    let suggestedRemediationVersion = find(
-      propEq('type', type),
-      $scope.suggestedRemediations
-    ).version;
+    let suggestedRemediationVersion = find(propEq('type', type), $scope.suggestedRemediations).version;
     $.each($scope.componentDetailsList, function (index, item) {
-      if (
-        item.componentIdentifier.coordinates.version ===
-        suggestedRemediationVersion
-      ) {
+      if (item.componentIdentifier.coordinates.version === suggestedRemediationVersion) {
         Coordinates.setSelected(item.componentIdentifier.coordinates);
         Properties.setHash(item.hash);
         selectVersion(index);

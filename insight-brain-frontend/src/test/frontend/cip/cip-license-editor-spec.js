@@ -10,12 +10,7 @@ import cipLicenseEditorModule from '../../../main/frontend/cip/cip.license.edito
 
 /*global CLM, InsightDatatable, Insight */
 SpecUtil.setupProviders('bom1-12345678', 'org1');
-function getAppliedLicenseOverrides(
-  appStatus,
-  appLicense,
-  orgStatus,
-  orgLicense
-) {
+function getAppliedLicenseOverrides(appStatus, appLicense, orgStatus, orgLicense) {
   var overrides = {
     licenseOverridesByOwner: [
       {
@@ -88,9 +83,7 @@ function getLicenseWithThreats(declared, observed, selected, effective) {
     declaredlicenses: [],
     observedlicenses: [],
     effectiveLicenses: [],
-    selectableLicenses: selected
-      ? selected
-      : [{ licenseId: 'AFL-1.2', licenseName: 'AFL-1.2' }],
+    selectableLicenses: selected ? selected : [{ licenseId: 'AFL-1.2', licenseName: 'AFL-1.2' }],
   };
   x.declaredlicenses.push({
     threat: 4,
@@ -98,9 +91,7 @@ function getLicenseWithThreats(declared, observed, selected, effective) {
   });
   x.observedlicenses.push({
     threat: 9,
-    license: observed
-      ? observed
-      : { licenseId: 'AFL-UNSPECIFIED', licenseName: 'AFL' },
+    license: observed ? observed : { licenseId: 'AFL-UNSPECIFIED', licenseName: 'AFL' },
   });
   x.effectiveLicenses.push({
     threat: 9,
@@ -110,12 +101,7 @@ function getLicenseWithThreats(declared, observed, selected, effective) {
 }
 
 describe('CIP License Editor', function () {
-  beforeEach(
-    angular.mock.module(
-      cipLicenseEditorModule.name,
-      testComponentProviderModule.name
-    )
-  );
+  beforeEach(angular.mock.module(cipLicenseEditorModule.name, testComponentProviderModule.name));
 
   var scope;
 
@@ -148,9 +134,7 @@ describe('CIP License Editor', function () {
   describe('App+Org with Overrides', function () {
     beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-        )
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
         .respond(LicenseGroupMockData.getLicensesData());
 
       $httpBackend
@@ -158,9 +142,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getLicenseWithThreats());
@@ -170,19 +152,10 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
-        .respond(
-          getAppliedLicenseOverrides(
-            'ACKNOWLEDGED',
-            null,
-            'OVERRIDDEN',
-            'AFL-1.2'
-          )
-        );
+        .respond(getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', 'AFL-1.2'));
 
       $controller('LicenseEditorController as vm', {
         $scope: scope,
@@ -222,21 +195,14 @@ describe('CIP License Editor', function () {
 
     it('Delete', inject(function ($httpBackend, SelectedComponent) {
       $httpBackend
-        .expectDELETE(
-          SpecUtil.toRegExp(
-            CLM.path +
-              'rest/licenseOverride/application/bom1-12345678/app1override'
-          )
-        )
+        .expectDELETE(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678/app1override'))
         .respond(204);
       $httpBackend
         .expectGET(
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(200, getLicenseWithThreats());
@@ -286,9 +252,7 @@ describe('CIP License Editor', function () {
   describe('No Overrides', function () {
     beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-        )
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
         .respond(LicenseGroupMockData.getLicensesData());
 
       $httpBackend
@@ -296,9 +260,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getLicenseWithThreats());
@@ -308,9 +270,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getAppliedLicenseOverrides(null, null, null, null));
@@ -332,9 +292,7 @@ describe('CIP License Editor', function () {
 
     it('Add Org', inject(function ($httpBackend, SelectedComponent) {
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/organization/org1')
-        )
+        .expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/organization/org1'))
         .respond(function (method, url, data, headers) {
           var post = angular.fromJson(data);
           expect(post).toEqual({
@@ -354,9 +312,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(200, getLicenseWithThreats());
@@ -373,11 +329,7 @@ describe('CIP License Editor', function () {
 
     it('Add App', inject(function ($httpBackend, SelectedComponent) {
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(
-            CLM.path + 'rest/licenseOverride/application/bom1-12345678'
-          )
-        )
+        .expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678'))
         .respond(function (method, url, data, headers) {
           var post = angular.fromJson(data);
           expect(post).toEqual({
@@ -397,9 +349,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(200, getLicenseWithThreats());
@@ -427,9 +377,7 @@ describe('CIP License Editor', function () {
   describe('Effective license updated', function () {
     beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-        )
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
         .respond(LicenseGroupMockData.getLicensesData());
 
       $httpBackend
@@ -437,9 +385,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getLicenseWithThreats());
@@ -449,9 +395,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getAppliedLicenseOverrides(null, null, null, null));
@@ -481,9 +425,7 @@ describe('CIP License Editor', function () {
 
     it('Add Org', inject(function ($httpBackend, SelectedComponent) {
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/organization/org1')
-        )
+        .expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/organization/org1'))
         .respond(function (method, url, data, headers) {
           var post = angular.fromJson(data);
           expect(post).toEqual({
@@ -503,9 +445,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(200, getLicenseWithThreats());
@@ -517,11 +457,7 @@ describe('CIP License Editor', function () {
 
     it('Add App', inject(function ($httpBackend, SelectedComponent) {
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(
-            CLM.path + 'rest/licenseOverride/application/bom1-12345678'
-          )
-        )
+        .expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678'))
         .respond(function (method, url, data, headers) {
           var post = angular.fromJson(data);
           expect(post).toEqual({
@@ -541,9 +477,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(200, getLicenseWithThreats());
@@ -557,15 +491,12 @@ describe('CIP License Editor', function () {
   describe('Root Overrides', function () {
     beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-        )
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
         .respond(LicenseGroupMockData.getLicensesData());
 
       var applied = getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', 'AFL'),
         licenseOverridesByOwner = applied.licenseOverridesByOwner;
-      licenseOverridesByOwner[2].licenseOverride =
-        licenseOverridesByOwner[1].licenseOverride;
+      licenseOverridesByOwner[2].licenseOverride = licenseOverridesByOwner[1].licenseOverride;
       licenseOverridesByOwner[1].licenseOverride = licenseOverridesByOwner[0].licenseOverride = null;
 
       $httpBackend
@@ -573,9 +504,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getLicenseWithThreats());
@@ -585,9 +514,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(applied);
@@ -607,9 +534,7 @@ describe('CIP License Editor', function () {
   describe('Org Overridden', function () {
     beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-        )
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
         .respond(LicenseGroupMockData.getLicensesData());
 
       $httpBackend
@@ -617,9 +542,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getLicenseWithThreats());
@@ -629,9 +552,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getAppliedLicenseOverrides(null, null, 'OVERRIDDEN', 'AFL'));
@@ -668,11 +589,7 @@ describe('CIP License Editor', function () {
       });
 
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(
-            CLM.path + 'rest/licenseOverride/application/bom1-12345678'
-          )
-        )
+        .expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678'))
         .respond(function (method, url, data, headers) {
           var posted = angular.fromJson(data);
           expect(posted).toEqual({
@@ -692,9 +609,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(200, getLicenseWithThreats());
@@ -714,9 +629,7 @@ describe('CIP License Editor', function () {
   describe('App Overridden', function () {
     beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-        )
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
         .respond(LicenseGroupMockData.getLicensesData());
 
       $httpBackend
@@ -724,9 +637,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getLicenseWithThreats());
@@ -736,14 +647,10 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
-        .respond(
-          getAppliedLicenseOverrides('OVERRIDDEN', 'AFL-1.2', null, null)
-        );
+        .respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL-1.2', null, null));
 
       $controller('LicenseEditorController', {
         $scope: scope,
@@ -761,10 +668,7 @@ describe('CIP License Editor', function () {
       expect(scope.getInheritableStatus()).toEqual('Open');
     });
 
-    it('Add Organization Override', inject(function (
-      $httpBackend,
-      SelectedComponent
-    ) {
+    it('Add Organization Override', inject(function ($httpBackend, SelectedComponent) {
       scope.$apply(function () {
         scope.override.ownerId = 'org1';
       });
@@ -781,9 +685,7 @@ describe('CIP License Editor', function () {
       });
 
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/organization/org1')
-        )
+        .expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/organization/org1'))
         .respond(function (method, url, data, headers) {
           var posted = angular.fromJson(data);
           expect(posted).toEqual({
@@ -803,9 +705,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(200, getLicenseWithThreats());
@@ -828,9 +728,7 @@ describe('CIP License Editor', function () {
   describe('No Organization - App Overridden', function () {
     beforeEach(inject(function ($controller, $httpBackend, SelectedComponent) {
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-        )
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
         .respond(LicenseGroupMockData.getLicensesData());
 
       $httpBackend
@@ -838,9 +736,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getLicenseWithThreats());
@@ -850,9 +746,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
@@ -879,11 +773,7 @@ describe('CIP License Editor', function () {
       scope.override.licenseIds = [];
 
       $httpBackend
-        .expectPOST(
-          SpecUtil.toRegExp(
-            CLM.path + 'rest/licenseOverride/application/bom1-12345678'
-          )
-        )
+        .expectPOST(SpecUtil.toRegExp(CLM.path + 'rest/licenseOverride/application/bom1-12345678'))
         .respond(function (method, url, data, headers) {
           var posted = angular.fromJson(data);
           expect(posted).toEqual({
@@ -903,9 +793,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(200, getLicenseWithThreats());
@@ -925,9 +813,7 @@ describe('CIP License Editor', function () {
     function setup(declared, observed, selected) {
       inject(function ($controller, $httpBackend, SelectedComponent) {
         $httpBackend
-          .expectGET(
-            SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-          )
+          .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
           .respond(LicenseGroupMockData.getLicensesData());
 
         $httpBackend
@@ -935,9 +821,7 @@ describe('CIP License Editor', function () {
             SpecUtil.toRegExp(
               CLM.path +
                 'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-                encodeURIComponent(
-                  JSON.stringify(SelectedComponent.get().componentIdentifier)
-                )
+                encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
             )
           )
           .respond(getLicenseWithThreats(declared, observed, selected));
@@ -947,9 +831,7 @@ describe('CIP License Editor', function () {
             SpecUtil.toRegExp(
               CLM.path +
                 'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-                encodeURIComponent(
-                  JSON.stringify(SelectedComponent.get().componentIdentifier)
-                )
+                encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
             )
           )
           .respond(getAppliedLicenseOverrides('OVERRIDDEN', 'AFL'));
@@ -963,9 +845,7 @@ describe('CIP License Editor', function () {
 
     describe('Selected', function () {
       it('Synthetic Ignored', function () {
-        setup({ licenseId: 'AFL-1.2' }, { licenseId: 'No-Sources' }, [
-          { licenseId: 'AFL-1.2' },
-        ]);
+        setup({ licenseId: 'AFL-1.2' }, { licenseId: 'No-Sources' }, [{ licenseId: 'AFL-1.2' }]);
         var license = LicenseGroupMockData.getLicensesData()[1];
         license.name = 'AFL-1.2';
         expect(scope.selectableLicenses).toEqual([license]);
@@ -976,18 +856,12 @@ describe('CIP License Editor', function () {
   describe('SelectedComponent watcher', function () {
     var SelectedComponent;
 
-    beforeEach(inject(function (
-      $controller,
-      _SelectedComponent_,
-      $httpBackend
-    ) {
+    beforeEach(inject(function ($controller, _SelectedComponent_, $httpBackend) {
       SelectedComponent = _SelectedComponent_;
       $controller('LicenseEditorController', { $scope: scope });
 
       $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true')
-        )
+        .expectGET(SpecUtil.toRegExp(CLM.path + 'rest/license?filterSynthetic=true'))
         .respond(LicenseGroupMockData.getLicensesData());
 
       $httpBackend
@@ -995,9 +869,7 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/ci/componentDetails/application/bom1-12345678/licenses?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
         .respond(getLicenseWithThreats());
@@ -1007,19 +879,10 @@ describe('CIP License Editor', function () {
           SpecUtil.toRegExp(
             CLM.path +
               'rest/licenseOverride/application/bom1-12345678?componentIdentifier=' +
-              encodeURIComponent(
-                JSON.stringify(SelectedComponent.get().componentIdentifier)
-              )
+              encodeURIComponent(JSON.stringify(SelectedComponent.get().componentIdentifier))
           )
         )
-        .respond(
-          getAppliedLicenseOverrides(
-            'ACKNOWLEDGED',
-            null,
-            'OVERRIDDEN',
-            'AFL-1.2'
-          )
-        );
+        .respond(getAppliedLicenseOverrides('ACKNOWLEDGED', null, 'OVERRIDDEN', 'AFL-1.2'));
 
       $httpBackend.flush();
       spyOn(scope, 'doLoad');

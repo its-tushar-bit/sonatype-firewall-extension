@@ -10,12 +10,7 @@ import { faExternalLink } from '@fortawesome/pro-regular-svg-icons';
 
 export default function NxExternalLink({ href, children }) {
   return (
-    <a
-      className="iq-external-link"
-      target="_blank"
-      rel="noopener noreferrer"
-      href={href}
-    >
+    <a className="iq-external-link" target="_blank" rel="noopener noreferrer" href={href}>
       {children}&nbsp;
       <NxFontAwesomeIcon icon={faExternalLink} />
     </a>

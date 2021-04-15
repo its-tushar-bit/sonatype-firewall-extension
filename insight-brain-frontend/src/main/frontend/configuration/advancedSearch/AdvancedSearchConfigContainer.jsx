@@ -15,7 +15,4 @@ function mapStateToProps({ advancedSearchConfig }) {
   };
 }
 
-export default connect(
-  mapStateToProps,
-  advancedSearchConfigActions
-)(AdvancedSearchConfig);
+export default connect(mapStateToProps, advancedSearchConfigActions)(AdvancedSearchConfig);

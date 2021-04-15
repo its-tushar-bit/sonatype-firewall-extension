@@ -56,19 +56,13 @@ export default function ScmOnboarding(props) {
         targetPageTitle={$state.get('management.view.organization').data.title}
       />
       {
-        <LoadWrapper
-          loading={loadingPage}
-          error={pageError}
-          retryHandler={load}
-        >
+        <LoadWrapper loading={loadingPage} error={pageError} retryHandler={load}>
           <ImportStatusModal {...props} />
           <div className="nx-page-title iq-scmonboarding-title">
             {scmProvider && (
               <Fragment>
                 <h1 className="nx-h1">
-                  <span>
-                    Import Applications from {displayName(scmProvider)}
-                  </span>
+                  <span>Import Applications from {displayName(scmProvider)}</span>
                 </h1>
                 {alreadyImportedCount > 0 && (
                   <div className="nx-btn-bar">

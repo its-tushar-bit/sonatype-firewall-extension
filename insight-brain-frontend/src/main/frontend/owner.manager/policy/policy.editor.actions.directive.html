@@ -1,17 +1,11 @@
-<div
-  load-wrapper="vm.loadError"
-  loading="!vm.actionStages"
-  reload="vm.doLoad()"
->
+<div load-wrapper="vm.loadError" loading="!vm.actionStages" reload="vm.doLoad()">
   <div
     id="actions-disabled-message"
     ng-if="!vm.isEnforcementSupported"
     class="iq-alert iq-alert--info iq-alert--form-item"
   >
     <i class="fa fa-info-circle"></i>Actions are not supported by your license.
-    <span ng-if="vm.isFirewallSupported"
-      >(Exclusions apply for firewall supported licenses)</span
-    >
+    <span ng-if="vm.isFirewallSupported">(Exclusions apply for firewall supported licenses)</span>
   </div>
   <table id="edit-policy-actions-table" class="iq-table">
     <thead>
@@ -49,9 +43,7 @@
         <td class="iq-cell"></td>
       </tr>
       <tr class="iq-table-row tm-row-warn">
-        <td class="iq-cell iq-cell--action-name">
-          <i class="fa fa-exclamation-triangle warn size-16px"></i>Warn
-        </td>
+        <td class="iq-cell iq-cell--action-name"><i class="fa fa-exclamation-triangle warn size-16px"></i>Warn</td>
         <td
           ng-repeat="actionStage in vm.actionStages"
           class="iq-cell iq-cell--action {{::actionStage.shortName | lowercase}}"
@@ -65,10 +57,7 @@
             tooltip="{{ !vm.isEnforcementSupportedForStage(actionStage.stageTypeId) ? 'Actions are not supported by your license' : '' }}"
             value="'warn'"
             ><!--
-         --><i
-              class="fa fa-exclamation-triangle warn size-16px"
-              ng-if="vm.actions[actionStage.stageTypeId] === 'warn'"
-            >
+         --><i class="fa fa-exclamation-triangle warn size-16px" ng-if="vm.actions[actionStage.stageTypeId] === 'warn'">
             </i>
           </iq-radio>
         </td>
@@ -76,9 +65,7 @@
         <td class="iq-cell"></td>
       </tr>
       <tr class="iq-table-row tm-fail-row">
-        <td class="iq-cell iq-cell--action-name">
-          <i class="fa fa-exclamation-circle fail size-16px"></i>Fail
-        </td>
+        <td class="iq-cell iq-cell--action-name"><i class="fa fa-exclamation-circle fail size-16px"></i>Fail</td>
         <td
           ng-repeat="actionStage in vm.actionStages"
           class="iq-cell iq-cell--action {{::actionStage.shortName | lowercase}}"
@@ -92,10 +79,7 @@
             tooltip="{{ !vm.isEnforcementSupportedForStage(actionStage.stageTypeId) ? 'Actions are not supported by your license' : '' }}"
             value="'fail'"
             ><!--
-         --><i
-              class="fa fa-exclamation-circle fail size-16px"
-              ng-if="vm.actions[actionStage.stageTypeId] === 'fail'"
-            >
+         --><i class="fa fa-exclamation-circle fail size-16px" ng-if="vm.actions[actionStage.stageTypeId] === 'fail'">
             </i>
           </iq-radio>
         </td>

@@ -5,12 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxModal,
-  NxErrorAlert,
-  NxSuccessAlert,
-  NxButton,
-} from '@sonatype/react-shared-components';
+import { NxModal, NxErrorAlert, NxSuccessAlert, NxButton } from '@sonatype/react-shared-components';
 import { organizationPropType, repositoryPropType } from '../ScmOnboarding';
 import ReportsCta from './ReportsCta';
 /*
@@ -31,24 +26,21 @@ export default function ImportStatusModal(props) {
     setIsImportStatusDialogVisible(false);
   };
 
-  const repositoryPluralized = (count) =>
-    count > 1 ? 'repositories' : 'repository';
+  const repositoryPluralized = (count) => (count > 1 ? 'repositories' : 'repository');
   const wasPlural = (count) => (count > 1 ? 'were' : 'was');
 
   const statusMessage = () => {
     if (failedImportCount > 0) {
       return (
         <NxErrorAlert>
-          {failedImportCount} {repositoryPluralized(failedImportCount)} had an
-          error. See details below.
+          {failedImportCount} {repositoryPluralized(failedImportCount)} had an error. See details below.
         </NxErrorAlert>
       );
     }
     if (newlyImportedRepos && newlyImportedRepos.length > 0) {
       return (
         <NxSuccessAlert>
-          <strong>All repositories</strong> were successfully imported. See
-          details below.
+          <strong>All repositories</strong> were successfully imported. See details below.
         </NxSuccessAlert>
       );
     }
@@ -61,11 +53,9 @@ export default function ImportStatusModal(props) {
       return (
         <li className="scm-import-detail-success">
           <strong>
-            {newlyImportedRepos.length}{' '}
-            {repositoryPluralized(newlyImportedRepos.length)}
+            {newlyImportedRepos.length} {repositoryPluralized(newlyImportedRepos.length)}
           </strong>{' '}
-          {wasPlural(newlyImportedRepos.length)} successfully imported to IQ
-          Server as applications under the{' '}
+          {wasPlural(newlyImportedRepos.length)} successfully imported to IQ Server as applications under the{' '}
           {selectedOrganization.organization.name} Organization.
         </li>
       );
@@ -86,10 +76,7 @@ export default function ImportStatusModal(props) {
         had an error
         <ul className="scm-import-error-detail-list">
           {failedRepos.map(({ repository, errorMessage }) => (
-            <li
-              key={repository.httpCloneUrl}
-              className="scm-import-error-detail-item"
-            >
+            <li key={repository.httpCloneUrl} className="scm-import-error-detail-item">
               <strong>
                 {repository.namespace}/{repository.project}
               </strong>
@@ -118,18 +105,13 @@ export default function ImportStatusModal(props) {
               {errorDetails()}
             </ul>
             <p className="nx-p">
-              You may continue the importing process or view the applications
-              you just created on the reports page.
+              You may continue the importing process or view the applications you just created on the reports page.
             </p>
           </div>
           <footer className="nx-footer">
             <div className="nx-btn-bar">
               <ReportsCta {...props} id="scm-success-gotoreports" />
-              <NxButton
-                id="scm-continue-importing"
-                onClick={onCloseClicked}
-                variant="primary"
-              >
+              <NxButton id="scm-continue-importing" onClick={onCloseClicked} variant="primary">
                 Continue Importing
               </NxButton>
             </div>
@@ -142,8 +124,7 @@ export default function ImportStatusModal(props) {
 
 ImportStatusModal.propTypes = {
   isImportStatusDialogVisible: PropTypes.bool,
-  newlyImportedRepos: PropTypes.arrayOf(PropTypes.shape(repositoryPropType))
-    .isRequired,
+  newlyImportedRepos: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)).isRequired,
   failedImportCount: PropTypes.number,
   failedRepos: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
   selectedOrganization: PropTypes.shape(organizationPropType),

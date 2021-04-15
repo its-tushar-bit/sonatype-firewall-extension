@@ -35,12 +35,7 @@ describe('application.category.tile.controller.org.spec.js', function () {
       EventNameConstant,
       isOrg = type === 'organization';
 
-    beforeEach(inject(function (
-      _$rootScope_,
-      $controller,
-      $injector,
-      _$httpBackend_
-    ) {
+    beforeEach(inject(function (_$rootScope_, $controller, $injector, _$httpBackend_) {
       $rootScope = _$rootScope_;
       scope = $rootScope.$new();
       $httpBackend = _$httpBackend_;
@@ -64,30 +59,21 @@ describe('application.category.tile.controller.org.spec.js', function () {
     });
 
     if (isOrg) {
-      it('Properly Loading Applicable Categories and Org Name', inject(function (
-        CLMContextLocations
-      ) {
+      it('Properly Loading Applicable Categories and Org Name', inject(function (CLMContextLocations) {
         var mockAppCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl();
 
         $httpBackend
-          .expectGET(
-            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
-          )
+          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
           .respond(mockAppCategoryOwners);
         $httpBackend.flush();
 
-        expect(vm.ownerName).toEqual(
-          mockAppCategoryOwners.applicationCategoriesByOwner[0].ownerName
-        );
-        expect(vm.appCategoryOwners.length).toEqual(
-          mockAppCategoryOwners.applicationCategoriesByOwner.length
-        );
+        expect(vm.ownerName).toEqual(mockAppCategoryOwners.applicationCategoriesByOwner[0].ownerName);
+        expect(vm.appCategoryOwners.length).toEqual(mockAppCategoryOwners.applicationCategoriesByOwner.length);
         vm.appCategoryOwners.forEach(function (owner, index) {
           expect(
             angular.equals(
               owner.applicationCategories,
-              mockAppCategoryOwners.applicationCategoriesByOwner[index]
-                .applicationCategories
+              mockAppCategoryOwners.applicationCategoriesByOwner[index].applicationCategories
             )
           ).toBeTruthy();
         });
@@ -95,9 +81,7 @@ describe('application.category.tile.controller.org.spec.js', function () {
 
       it('Missing Categories', inject(function (CLMContextLocations) {
         $httpBackend
-          .expectGET(
-            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
-          )
+          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
           .respond(400, 'Bad Request');
         $httpBackend.flush();
 
@@ -106,33 +90,23 @@ describe('application.category.tile.controller.org.spec.js', function () {
         expect(vm.appCategoryOwners).toEqual([]);
       }));
 
-      it('Reloads on broadcasted owner summary reload event', inject(function (
-        CLMContextLocations
-      ) {
+      it('Reloads on broadcasted owner summary reload event', inject(function (CLMContextLocations) {
         $httpBackend
-          .expectGET(
-            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
-          )
+          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
           .respond(TagResourceMockData.getApplicationCategoriesUrl());
         expect($httpBackend.flush).not.toThrow();
 
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
         $httpBackend
-          .expectGET(
-            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
-          )
+          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
           .respond(TagResourceMockData.getApplicationCategoriesUrl());
         expect($httpBackend.flush).not.toThrow();
       }));
 
-      it('Updates Owner name on broadcasted updated owner event', inject(function (
-        CLMContextLocations
-      ) {
+      it('Updates Owner name on broadcasted updated owner event', inject(function (CLMContextLocations) {
         $httpBackend
-          .expectGET(
-            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
-          )
+          .expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable')
           .respond(TagResourceMockData.getApplicationCategoriesUrl());
         $httpBackend.flush();
 

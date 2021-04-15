@@ -241,13 +241,9 @@ describe('firewallConfigurationModalReducer', function () {
       //viewState
       expect(newState.viewState.isDirty).toBe(false);
       //serverState
-      expect(
-        newState.serverState.conditionTypes[0].autoReleaseQuarantineEnabled
-      ).toBe(true);
+      expect(newState.serverState.conditionTypes[0].autoReleaseQuarantineEnabled).toBe(true);
       //formState
-      expect(
-        newState.formState.conditionTypes[0].autoReleaseQuarantineEnabled
-      ).toBe(true);
+      expect(newState.formState.conditionTypes[0].autoReleaseQuarantineEnabled).toBe(true);
       // other properties are not modified for state and viewState
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);

@@ -39,10 +39,9 @@ const module = angular.module(
             rolePermissions: [
               'PermissionService',
               function (PermissionService) {
-                return PermissionService.getValidPermissions(
-                  ['VIEW_ROLES', 'EDIT_ROLES'],
-                  true
-                ).then(function (validPermissions) {
+                return PermissionService.getValidPermissions(['VIEW_ROLES', 'EDIT_ROLES'], true).then(function (
+                  validPermissions
+                ) {
                   return {
                     viewRoles: validPermissions.indexOf('VIEW_ROLES') >= 0,
                     editRoles: validPermissions.indexOf('EDIT_ROLES') >= 0,
@@ -144,10 +143,7 @@ module.controller('RoleEditorController', [
       $scope.editorAlerts = [
         {
           type: 'error',
-          msg:
-            'An error occurred while saving the Role. (' +
-            Messages.getHttpErrorMessage(error) +
-            ')',
+          msg: 'An error occurred while saving the Role. (' + Messages.getHttpErrorMessage(error) + ')',
         },
       ];
     };
@@ -183,10 +179,7 @@ module.controller('RoleEditorController', [
     $scope.save = function () {
       $scope.submitActive = true;
 
-      $http[$scope.role.id ? 'put' : 'post'](
-        CLMLocations.getRoleListUrl(),
-        $scope.dirtyRole
-      ).then(
+      $http[$scope.role.id ? 'put' : 'post'](CLMLocations.getRoleListUrl(), $scope.dirtyRole).then(
         function () {
           RoleStore.refresh();
           RoleMappingService.refresh();
@@ -204,9 +197,7 @@ module.controller('RoleEditorController', [
     };
 
     $scope.isDirty = function () {
-      return $scope.dirtyRole
-        ? !angular.equals($scope.dirtyRole, $scope.role)
-        : false;
+      return $scope.dirtyRole ? !angular.equals($scope.dirtyRole, $scope.role) : false;
     };
 
     $scope.$on('pageChangeStarted', function (e) {
@@ -227,15 +218,7 @@ module.controller('DeleteRoleController', [
   'Dialog',
   'Messages',
   'role.mapping.service',
-  function (
-    $scope,
-    $state,
-    $stateParams,
-    RoleStore,
-    Dialog,
-    Messages,
-    RoleMappingService
-  ) {
+  function ($scope, $state, $stateParams, RoleStore, Dialog, Messages, RoleMappingService) {
     function error() {
       Dialog.open({
         title: 'Failed to Delete',
@@ -252,10 +235,7 @@ module.controller('DeleteRoleController', [
     $scope.deleteRole = function () {
       Dialog.open({
         title: 'Delete Role',
-        body:
-          'Are you sure you want to delete the Role <strong>' +
-          escapeHtmlString($scope.role.name) +
-          '</strong>?',
+        body: 'Are you sure you want to delete the Role <strong>' + escapeHtmlString($scope.role.name) + '</strong>?',
         buttons: [
           {
             name: 'Delete',

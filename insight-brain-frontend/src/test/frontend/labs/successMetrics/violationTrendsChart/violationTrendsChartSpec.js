@@ -60,15 +60,9 @@ describe('violationTrendsChart component', function () {
       const vm = getVm(mockCounts);
       vm.$onInit();
 
-      expect(vm.data.security).toEqual(
-        getExpectedDataset(mockCounts, 'SECURITY')
-      );
-      expect(vm.data.quality).toEqual(
-        getExpectedDataset(mockCounts, 'QUALITY')
-      );
-      expect(vm.data.license).toEqual(
-        getExpectedDataset(mockCounts, 'LICENSE')
-      );
+      expect(vm.data.security).toEqual(getExpectedDataset(mockCounts, 'SECURITY'));
+      expect(vm.data.quality).toEqual(getExpectedDataset(mockCounts, 'QUALITY'));
+      expect(vm.data.license).toEqual(getExpectedDataset(mockCounts, 'LICENSE'));
       expect(vm.data.other).toEqual(getExpectedDataset(mockCounts, 'OTHER'));
     });
 
@@ -216,15 +210,9 @@ describe('violationTrendsChart component', function () {
 const sumValues = compose(sum, values);
 
 function getExpectedDataset(violationCounts, policyType) {
-  const week0Discovered = sumValues(
-    violationCounts[0].discoveredCounts[policyType]
-  );
-  const week1Discovered = sumValues(
-    violationCounts[1].discoveredCounts[policyType]
-  );
-  const week2Discovered = sumValues(
-    violationCounts[2].discoveredCounts[policyType]
-  );
+  const week0Discovered = sumValues(violationCounts[0].discoveredCounts[policyType]);
+  const week1Discovered = sumValues(violationCounts[1].discoveredCounts[policyType]);
+  const week2Discovered = sumValues(violationCounts[2].discoveredCounts[policyType]);
 
   const week0Waived = sumValues(violationCounts[0].waivedCounts[policyType]);
   const week1Waived = sumValues(violationCounts[1].waivedCounts[policyType]);

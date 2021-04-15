@@ -72,8 +72,7 @@ describe('legalDashboardFilterActions', function () {
     tagIds: [],
     reviewStatus: [],
     page: 1,
-    pageSize:
-      DASHBOARD.applications.itemsPerPage * DASHBOARD.applications.pagesToFill,
+    pageSize: DASHBOARD.applications.itemsPerPage * DASHBOARD.applications.pagesToFill,
     order: null,
   };
 
@@ -83,9 +82,7 @@ describe('legalDashboardFilterActions', function () {
         mockAxiosCalls({
           get: {
             ...mockGetData,
-            [getApplicationsUrl()]: Promise.reject(
-              'failed to get applications data'
-            ),
+            [getApplicationsUrl()]: Promise.reject('failed to get applications data'),
           },
         });
 
@@ -126,22 +123,9 @@ describe('legalDashboardFilterActions', function () {
 
     const action = applyFilter('test filters', 'test filter name');
 
-    testSuccessfullyUpdatesFiltersAndLoadsResults(
-      action,
-      'test filters',
-      'test filter name'
-    );
-    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(
-      action,
-      'test filters',
-      'test filter name'
-    );
-    testFailedToUpdateFilter(
-      action,
-      'test filters',
-      'test filter name',
-      expectedFailAction
-    );
+    testSuccessfullyUpdatesFiltersAndLoadsResults(action, 'test filters', 'test filter name');
+    testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, 'test filters', 'test filter name');
+    testFailedToUpdateFilter(action, 'test filters', 'test filter name', expectedFailAction);
   });
 
   describe('applyDefaultFilter', function () {
@@ -171,12 +155,7 @@ describe('legalDashboardFilterActions', function () {
     });
   });
 
-  function testFailedToUpdateFilter(
-    action,
-    expectedFilter,
-    expectedFilterName,
-    expectedFailAction
-  ) {
+  function testFailedToUpdateFilter(action, expectedFilter, expectedFilterName, expectedFailAction) {
     it(`dispatches ${expectedFailAction.type} if failed to update filters`, function (done) {
       mockAxiosCalls({
         put: {
@@ -197,9 +176,7 @@ describe('legalDashboardFilterActions', function () {
           basedOnFilterName: expectedFilterName,
           type: 'ADVANCED_LEGAL_PACK_DASHBOARD',
         });
-        expect(axios.post).not.toHaveBeenCalledWith(
-          getLegalDashboardApplicationsUrl()
-        );
+        expect(axios.post).not.toHaveBeenCalledWith(getLegalDashboardApplicationsUrl());
 
         expect(store.getActions().length).toBe(2);
 
@@ -215,11 +192,7 @@ describe('legalDashboardFilterActions', function () {
     });
   }
 
-  function testSuccessfullyUpdatesFiltersAndLoadsResults(
-    action,
-    expectedFilter,
-    expectedFilterName
-  ) {
+  function testSuccessfullyUpdatesFiltersAndLoadsResults(action, expectedFilter, expectedFilterName) {
     it('updates filters and loads results', function (done) {
       mockAxiosCalls({
         put: {
@@ -237,10 +210,7 @@ describe('legalDashboardFilterActions', function () {
       store = SpecUtil.mockReduxStore(initialState);
 
       store.dispatch(action).then(() => {
-        expect(axios.post).toHaveBeenCalledWith(
-          getLegalDashboardApplicationsUrl(),
-          applicationsPayload
-        );
+        expect(axios.post).toHaveBeenCalledWith(getLegalDashboardApplicationsUrl(), applicationsPayload);
         expect(axios.put).toHaveBeenCalledWith(getLegalDashboardFilters(), {
           filter: expectedFilter,
           basedOnFilterName: expectedFilterName,
@@ -279,11 +249,7 @@ describe('legalDashboardFilterActions', function () {
     });
   }
 
-  function testSuccessfullyUpdatesFiltersButFailsToLoadsResults(
-    action,
-    expectedFilter,
-    expectedFilterName
-  ) {
+  function testSuccessfullyUpdatesFiltersButFailsToLoadsResults(action, expectedFilter, expectedFilterName) {
     it('returns rejected promise and does not dispatch apply filter failed action if failed to load results', function (done) {
       mockAxiosCalls({
         put: {
@@ -292,19 +258,14 @@ describe('legalDashboardFilterActions', function () {
           }),
         },
         post: {
-          [getLegalDashboardApplicationsUrl()]: Promise.reject(
-            'load results error'
-          ),
+          [getLegalDashboardApplicationsUrl()]: Promise.reject('load results error'),
         },
       });
 
       store = SpecUtil.mockReduxStore(initialState);
 
       store.dispatch(action).catch(() => {
-        expect(axios.post).toHaveBeenCalledWith(
-          getLegalDashboardApplicationsUrl(),
-          applicationsPayload
-        );
+        expect(axios.post).toHaveBeenCalledWith(getLegalDashboardApplicationsUrl(), applicationsPayload);
         expect(axios.put).toHaveBeenCalledWith(getLegalDashboardFilters(), {
           filter: expectedFilter,
           basedOnFilterName: expectedFilterName,

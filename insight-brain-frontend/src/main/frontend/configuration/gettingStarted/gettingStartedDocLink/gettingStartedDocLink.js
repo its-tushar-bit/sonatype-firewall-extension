@@ -28,6 +28,4 @@ function GettingStartedDocLinkController(gettingStartedUsageTelemetryService) {
   });
 }
 
-GettingStartedDocLinkController.$inject = [
-  'gettingStartedUsageTelemetryService',
-];
+GettingStartedDocLinkController.$inject = ['gettingStartedUsageTelemetryService'];

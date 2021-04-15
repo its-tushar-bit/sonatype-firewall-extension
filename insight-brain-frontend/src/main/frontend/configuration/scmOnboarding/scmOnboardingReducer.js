@@ -89,10 +89,7 @@ const initialState = {
  */
 function onRouterFinish(payload, state) {
   // retain state if navigating using router within the same page
-  if (
-    payload.toState.name === 'scmOnboardingOrg' &&
-    payload.fromState.name === 'scmOnboardingOrg'
-  ) {
+  if (payload.toState.name === 'scmOnboardingOrg' && payload.fromState.name === 'scmOnboardingOrg') {
     return state;
   }
 
@@ -161,9 +158,7 @@ function loadPageFulfilled(payload, state) {
     (org) => org.organization.id === state.formState.preselectedOrganizationId
   );
   const hasToken =
-    (selectedOrganization &&
-      !!selectedOrganization.sourceControl.token.value) ||
-    !!rootOrg.sourceControl.token.value;
+    (selectedOrganization && !!selectedOrganization.sourceControl.token.value) || !!rootOrg.sourceControl.token.value;
   let newState = {
     ...state,
     viewState: {
@@ -172,8 +167,7 @@ function loadPageFulfilled(payload, state) {
     },
     configState: {
       ...state.configState,
-      isScmOnboardingFeatureEnabled:
-        payload.configResults.scmOnboardingFeatureEnabled,
+      isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
       isScmTokenConfigured: hasToken,
       scmProvider: rootOrg !== null ? rootOrg.sourceControl.provider : null,
       rootOrgHasToken: rootOrg !== null,
@@ -190,9 +184,7 @@ function loadPageFulfilled(payload, state) {
   }
   return setTargetOrgFulfilled(
     {
-      defaultHostUrl: payload.hostUrlResult
-        ? payload.hostUrlResult.defaultHostUrl
-        : null,
+      defaultHostUrl: payload.hostUrlResult ? payload.hostUrlResult.defaultHostUrl : null,
       selectedOrganization: selectedOrganization,
     },
     newState
@@ -249,22 +241,16 @@ function setTargetOrgFailed(payload, state) {
     },
   };
 }
-function setTargetOrgFulfilled(
-  { selectedOrganization, defaultHostUrl },
-  state
-) {
+function setTargetOrgFulfilled({ selectedOrganization, defaultHostUrl }, state) {
   const prevOrg = state.formState.selectedOrganization;
   const prevTokenOverridden = state.configState.isScmTokenOverridden;
 
   const currOrg = selectedOrganization;
   const currTokenOverridden =
-    !!selectedOrganization &&
-    !!selectedOrganization.sourceControl &&
-    !!selectedOrganization.sourceControl.token.value;
+    !!selectedOrganization && !!selectedOrganization.sourceControl && !!selectedOrganization.sourceControl.token.value;
   const hasToken =
     selectedOrganization &&
-    (!!selectedOrganization.sourceControl.token.value ||
-      !!selectedOrganization.sourceControl.token.parentValue);
+    (!!selectedOrganization.sourceControl.token.value || !!selectedOrganization.sourceControl.token.parentValue);
 
   const isAuthFailure = !!state.viewState.loadRepositoriesErrorCode;
 
@@ -280,12 +266,7 @@ function setTargetOrgFulfilled(
   const showHostDialog =
     hasToken &&
     (isAuthFailure ||
-      (!defaultHostUrl &&
-        !!currOrg &&
-        (currTokenOverridden ||
-          prevTokenOverridden ||
-          !prevOrg ||
-          prevGitHostNeeded)));
+      (!defaultHostUrl && !!currOrg && (currTokenOverridden || prevTokenOverridden || !prevOrg || prevGitHostNeeded)));
 
   // we will set the current host URL to a default cloud value if the current host URL is empty
   const overrideCurrentHostUrl = !defaultHostUrl;
@@ -386,10 +367,7 @@ function loadRepositoriesRequested(payload, state) {
 
 function loadRepositoriesFulfilled(payload, state) {
   const repos = payload.availableRepositories
-    ? sortItemsByFields(
-        state.sortConfiguration.sortingOrder,
-        payload.availableRepositories
-      )
+    ? sortItemsByFields(state.sortConfiguration.sortingOrder, payload.availableRepositories)
     : [];
   return payload.status === 'SUCCESS'
     ? {
@@ -404,31 +382,22 @@ function loadRepositoriesFulfilled(payload, state) {
           totalRepositories: payload.totalRepositories,
         },
       }
-    : handleLoadRepositoriesFailed(
-        { loadRepositoriesErrorCode: payload.status },
-        state
-      );
+    : handleLoadRepositoriesFailed({ loadRepositoriesErrorCode: payload.status }, state);
 }
 
 function loadRepositoriesFailed(payload, state) {
   return handleLoadRepositoriesFailed({ generalError: payload }, state);
 }
 
-function handleLoadRepositoriesFailed(
-  { generalError, loadRepositoriesErrorCode },
-  state
-) {
+function handleLoadRepositoriesFailed({ generalError, loadRepositoriesErrorCode }, state) {
   return {
     ...state,
     viewState: {
       ...state.viewState,
       loadingRepositories: false,
       generalError: generalError ? generalError : null,
-      loadRepositoriesErrorCode: loadRepositoriesErrorCode
-        ? loadRepositoriesErrorCode
-        : null,
-      isGitHostDialogVisible:
-        state.viewState.isGitHostNeeded || !!loadRepositoriesErrorCode,
+      loadRepositoriesErrorCode: loadRepositoriesErrorCode ? loadRepositoriesErrorCode : null,
+      isGitHostDialogVisible: state.viewState.isGitHostNeeded || !!loadRepositoriesErrorCode,
     },
     formState: {
       ...state.formState,
@@ -456,17 +425,14 @@ function importRepositoriesRequested(payload, state) {
 function importRepositoriesFulfilled(payload, state) {
   let importedRepos = payload.importedRepositories;
   let newRepositoryList = state.formState.repositories.filter(function (repo) {
-    return !importedRepos.some(
-      (imported) => imported.httpCloneUrl === repo.httpCloneUrl
-    );
+    return !importedRepos.some((imported) => imported.httpCloneUrl === repo.httpCloneUrl);
   });
   return {
     ...state,
     formState: {
       ...state.formState,
       repositories: newRepositoryList,
-      importedRepositoryCount:
-        state.formState.importedRepositoryCount + importedRepos.length,
+      importedRepositoryCount: state.formState.importedRepositoryCount + importedRepos.length,
       selectedRepositoryCount: 0,
       newlyImportedRepos: importedRepos,
       failedImportCount: payload.failedImportCount,
@@ -548,9 +514,7 @@ function setCurrentHostUrl(payload, state) {
   let currentErrors = validateHostUrl(payload);
   let previousErrors = state.formState.currentHostUrlState.validationErrors;
   let validator =
-    payload &&
-    hasValidationErrors(previousErrors) &&
-    !hasValidationErrors(currentErrors)
+    payload && hasValidationErrors(previousErrors) && !hasValidationErrors(currentErrors)
       ? () => previousErrors
       : validateHostUrl;
 

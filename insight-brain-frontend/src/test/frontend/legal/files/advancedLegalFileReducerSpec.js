@@ -41,9 +41,7 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL,
         payload: true,
       });
-      expect(
-        newState.component.component.licenseLegalData.showNoticesModal
-      ).toBeTruthy();
+      expect(newState.component.component.licenseLegalData.showNoticesModal).toBeTruthy();
     });
   });
 
@@ -138,11 +136,7 @@ describe('advancedLegalFileReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              noticeFiles: [
-                { content: 'content1' },
-                { content: 'content2' },
-                { content: 'content3' },
-              ],
+              noticeFiles: [{ content: 'content1' }, { content: 'content2' }, { content: 'content3' }],
             },
           },
         },
@@ -151,9 +145,7 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SET_NOTICE_CONTENT,
         payload: { index: 1, value: 'updatedContent2' },
       });
-      expect(
-        newState.component.component.licenseLegalData.noticeFiles
-      ).toEqual([
+      expect(newState.component.component.licenseLegalData.noticeFiles).toEqual([
         { content: 'content1' },
         { content: 'updatedContent2', isPristine: false },
         { content: 'content3' },
@@ -167,11 +159,7 @@ describe('advancedLegalFileReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              noticeFiles: [
-                { status: 'enabled' },
-                { status: 'enabled' },
-                { status: 'enabled' },
-              ],
+              noticeFiles: [{ status: 'enabled' }, { status: 'enabled' }, { status: 'enabled' }],
             },
           },
         },
@@ -180,9 +168,7 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SET_NOTICE_STATUS,
         payload: { index: 1, value: 'disabled' },
       });
-      expect(
-        newState.component.component.licenseLegalData.noticeFiles
-      ).toEqual([
+      expect(newState.component.component.licenseLegalData.noticeFiles).toEqual([
         { status: 'enabled' },
         { status: 'disabled' },
         { status: 'enabled' },
@@ -204,21 +190,19 @@ describe('advancedLegalFileReducer', function () {
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_ADD_NOTICE,
       });
-      expect(newState.component.component.licenseLegalData.noticeFiles).toEqual(
-        [
-          {},
-          {},
-          {},
-          {
-            id: null,
-            originalContentHash: null,
-            relPath: null,
-            content: '',
-            status: 'enabled',
-            isPristine: true,
-          },
-        ]
-      );
+      expect(newState.component.component.licenseLegalData.noticeFiles).toEqual([
+        {},
+        {},
+        {},
+        {
+          id: null,
+          originalContentHash: null,
+          relPath: null,
+          content: '',
+          status: 'enabled',
+          isPristine: true,
+        },
+      ]);
     });
   });
 
@@ -237,10 +221,7 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SET_NOTICES_SCOPE,
         payload: 'appId',
       });
-      expect(
-        newState.component.component.licenseLegalData
-          .componentNoticesScopeOwnerId
-      ).toBe('appId');
+      expect(newState.component.component.licenseLegalData.componentNoticesScopeOwnerId).toBe('appId');
     });
   });
 
@@ -259,12 +240,8 @@ describe('advancedLegalFileReducer', function () {
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
       });
-      expect(
-        newState.component.component.licenseLegalData.noticesError
-      ).toBeNull();
-      expect(
-        newState.component.component.licenseLegalData.saveNoticesSubmitMask
-      ).toBeFalsy();
+      expect(newState.component.component.licenseLegalData.noticesError).toBeNull();
+      expect(newState.component.component.licenseLegalData.saveNoticesSubmitMask).toBeFalsy();
     });
   });
 
@@ -384,12 +361,8 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
         payload: 'error',
       });
-      expect(newState.component.component.licenseLegalData.noticesError).toBe(
-        'error'
-      );
-      expect(
-        newState.component.component.licenseLegalData.saveNoticesSubmitMask
-      ).toBeNull();
+      expect(newState.component.component.licenseLegalData.noticesError).toBe('error');
+      expect(newState.component.component.licenseLegalData.saveNoticesSubmitMask).toBeNull();
     });
   });
 
@@ -409,12 +382,8 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
         payload: 'error',
       });
-      expect(
-        newState.component.component.licenseLegalData.saveNoticesSubmitMask
-      ).toBeNull();
-      expect(
-        newState.component.component.licenseLegalData.showNoticesModal
-      ).toBeFalsy();
+      expect(newState.component.component.licenseLegalData.saveNoticesSubmitMask).toBeNull();
+      expect(newState.component.component.licenseLegalData.showNoticesModal).toBeFalsy();
     });
   });
 
@@ -431,9 +400,7 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL,
         payload: true,
       });
-      expect(
-        newState.component.component.licenseLegalData.showLicensesModal
-      ).toBeTruthy();
+      expect(newState.component.component.licenseLegalData.showLicensesModal).toBeTruthy();
     });
   });
 
@@ -528,11 +495,7 @@ describe('advancedLegalFileReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              licenseFiles: [
-                { content: 'content1' },
-                { content: 'content2' },
-                { content: 'content3' },
-              ],
+              licenseFiles: [{ content: 'content1' }, { content: 'content2' }, { content: 'content3' }],
             },
           },
         },
@@ -541,9 +504,7 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SET_LICENSE_CONTENT,
         payload: { index: 1, value: 'updatedContent2' },
       });
-      expect(
-        newState.component.component.licenseLegalData.licenseFiles
-      ).toEqual([
+      expect(newState.component.component.licenseLegalData.licenseFiles).toEqual([
         { content: 'content1' },
         { content: 'updatedContent2', isPristine: false },
         { content: 'content3' },
@@ -557,11 +518,7 @@ describe('advancedLegalFileReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              licenseFiles: [
-                { status: 'enabled' },
-                { status: 'enabled' },
-                { status: 'enabled' },
-              ],
+              licenseFiles: [{ status: 'enabled' }, { status: 'enabled' }, { status: 'enabled' }],
             },
           },
         },
@@ -570,9 +527,7 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SET_LICENSE_STATUS,
         payload: { index: 1, value: 'disabled' },
       });
-      expect(
-        newState.component.component.licenseLegalData.licenseFiles
-      ).toEqual([
+      expect(newState.component.component.licenseLegalData.licenseFiles).toEqual([
         { status: 'enabled' },
         { status: 'disabled' },
         { status: 'enabled' },
@@ -594,9 +549,7 @@ describe('advancedLegalFileReducer', function () {
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_ADD_LICENSE,
       });
-      expect(
-        newState.component.component.licenseLegalData.licenseFiles
-      ).toEqual([
+      expect(newState.component.component.licenseLegalData.licenseFiles).toEqual([
         {},
         {},
         {},
@@ -627,10 +580,7 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SET_LICENSES_SCOPE,
         payload: 'appId',
       });
-      expect(
-        newState.component.component.licenseLegalData
-          .componentLicensesScopeOwnerId
-      ).toBe('appId');
+      expect(newState.component.component.licenseLegalData.componentLicensesScopeOwnerId).toBe('appId');
     });
   });
 
@@ -649,12 +599,8 @@ describe('advancedLegalFileReducer', function () {
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
       });
-      expect(
-        newState.component.component.licenseLegalData.licensesError
-      ).toBeNull();
-      expect(
-        newState.component.component.licenseLegalData.saveLicensesSubmitMask
-      ).toBeFalsy();
+      expect(newState.component.component.licenseLegalData.licensesError).toBeNull();
+      expect(newState.component.component.licenseLegalData.saveLicensesSubmitMask).toBeFalsy();
     });
   });
 
@@ -774,12 +720,8 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
         payload: 'error',
       });
-      expect(newState.component.component.licenseLegalData.licensesError).toBe(
-        'error'
-      );
-      expect(
-        newState.component.component.licenseLegalData.saveLicensesSubmitMask
-      ).toBeNull();
+      expect(newState.component.component.licenseLegalData.licensesError).toBe('error');
+      expect(newState.component.component.licenseLegalData.saveLicensesSubmitMask).toBeNull();
     });
   });
 
@@ -799,12 +741,8 @@ describe('advancedLegalFileReducer', function () {
         type: ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
         payload: 'error',
       });
-      expect(
-        newState.component.component.licenseLegalData.saveLicensesSubmitMask
-      ).toBeNull();
-      expect(
-        newState.component.component.licenseLegalData.showLicensesModal
-      ).toBeFalsy();
+      expect(newState.component.component.licenseLegalData.saveLicensesSubmitMask).toBeNull();
+      expect(newState.component.component.licenseLegalData.showLicensesModal).toBeFalsy();
     });
   });
 });

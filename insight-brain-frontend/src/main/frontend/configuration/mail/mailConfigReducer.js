@@ -4,19 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
-import {
-  __,
-  any,
-  complement,
-  compose,
-  curryN,
-  eqProps,
-  map,
-  pick,
-  prop,
-  propEq,
-  values,
-} from 'ramda';
+import { __, any, complement, compose, curryN, eqProps, map, pick, prop, propEq, values } from 'ramda';
 
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import { pathSet, propSet } from '../../util/jsUtil';
@@ -89,15 +77,9 @@ const initialState = {
 const textProps = ['hostname', 'port', 'username', 'password', 'systemEmail'],
   booleanProps = ['startTlsEnabled', 'sslEnabled'];
 
-const portValidator = combineValidators([
-  validateNonEmpty,
-  validatePatternMatch(/^\d+$/, 'Must be a number'),
-]);
+const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
 
-const clearedErrors = pick(
-  ['loadError', 'saveError', 'deleteError', 'testEmailError'],
-  initialState
-);
+const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'testEmailError'], initialState);
 
 function setFormStateFromServerData(state) {
   const { serverData } = state,
@@ -128,30 +110,18 @@ function computeIsDirty(state) {
   const { formState, serverData } = state;
 
   if (serverData) {
-    const isTextPropDirty = (prop) =>
-        formState[prop].trimmedValue !== (serverData[prop] || ''),
-      textPropsDirty = any(isTextPropDirty, [
-        'hostname',
-        'username',
-        'systemEmail',
-      ]),
-      booleanPropsDirty = any(
-        complement(eqProps(__, formState, serverData)),
-        booleanProps
-      ),
+    const isTextPropDirty = (prop) => formState[prop].trimmedValue !== (serverData[prop] || ''),
+      textPropsDirty = any(isTextPropDirty, ['hostname', 'username', 'systemEmail']),
+      booleanPropsDirty = any(complement(eqProps(__, formState, serverData)), booleanProps),
       portDirty = serverData.port.toString() !== formState.port.value,
       passwordDirty = formState.password.value !== FAKE_PASSWORD;
 
     return {
       ...state,
-      isDirty:
-        textPropsDirty || booleanPropsDirty || portDirty || passwordDirty,
+      isDirty: textPropsDirty || booleanPropsDirty || portDirty || passwordDirty,
     };
   } else {
-    const textPropsDirty = any(
-        (prop) => formState[prop].trimmedValue !== '',
-        textProps
-      ),
+    const textPropsDirty = any((prop) => formState[prop].trimmedValue !== '', textProps),
       booleanPropsDirty = any(propEq(__, true, formState), booleanProps);
 
     return { ...state, isDirty: textPropsDirty || booleanPropsDirty };
@@ -160,10 +130,7 @@ function computeIsDirty(state) {
 
 function computeIsValid(state) {
   const { formState } = state,
-    validationErrorsByProp = map(
-      prop('validationErrors'),
-      pick(textProps, formState)
-    ),
+    validationErrorsByProp = map(prop('validationErrors'), pick(textProps, formState)),
     isValid = !any(hasValidationErrors, values(validationErrorsByProp));
 
   return { ...state, isValid };
@@ -185,9 +152,7 @@ function computeMustReenterPassword(state) {
 
   return {
     ...state,
-    mustReenterPassword:
-      (hostname !== serverHostname || port !== serverPort) &&
-      password === FAKE_PASSWORD,
+    mustReenterPassword: (hostname !== serverHostname || port !== serverPort) && password === FAKE_PASSWORD,
   };
 }
 
@@ -219,13 +184,11 @@ function loadFulfilled(payload, state) {
   });
 }
 
-const resetForm = (_, state) =>
-  state.serverData ? loadFulfilled(state.serverData, state) : initialState;
+const resetForm = (_, state) => (state.serverData ? loadFulfilled(state.serverData, state) : initialState);
 
 function loadFailed(payload) {
   // 404 is fine, it just means there is no configuration
-  const error =
-    payload.response && payload.response.status === 404 ? null : payload;
+  const error = payload.response && payload.response.status === 404 ? null : payload;
 
   return {
     ...initialState,
@@ -316,25 +279,18 @@ function deleteFailed(payload, state) {
   };
 }
 
-const setTextInput = curryN(
-  4,
-  function setTextInput(fieldName, validator, payload, state) {
-    const stateWithUpdatedValue = pathSet(
-      ['formState', fieldName],
-      textInputStateHelpers.userInput(validator, payload),
-      state
-    );
-
-    return updatedComputedProps(stateWithUpdatedValue);
-  }
-);
-
-const setCheckbox = curryN(3, function setCheckbox(fieldName, payload, state) {
+const setTextInput = curryN(4, function setTextInput(fieldName, validator, payload, state) {
   const stateWithUpdatedValue = pathSet(
     ['formState', fieldName],
-    payload,
+    textInputStateHelpers.userInput(validator, payload),
     state
   );
+
+  return updatedComputedProps(stateWithUpdatedValue);
+});
+
+const setCheckbox = curryN(3, function setCheckbox(fieldName, payload, state) {
+  const stateWithUpdatedValue = pathSet(['formState', fieldName], payload, state);
 
   return updatedComputedProps(stateWithUpdatedValue);
 });

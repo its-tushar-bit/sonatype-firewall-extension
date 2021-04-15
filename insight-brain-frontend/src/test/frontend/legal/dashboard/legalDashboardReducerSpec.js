@@ -93,12 +93,8 @@ describe('legalDashboardReducer', function () {
         },
       };
       const newState = legalDashboardReducer(state, action);
-      expect(newState.applications.results).toBe(
-        action.payload.results.results
-      );
-      expect(newState.applications.totalResultsCount).toBe(
-        action.payload.results.totalResultsCount
-      );
+      expect(newState.applications.results).toBe(action.payload.results.results);
+      expect(newState.applications.totalResultsCount).toBe(action.payload.results.totalResultsCount);
       expect(newState.applications.loading).toBeFalsy();
       expect(newState.components).toBe(state.components);
       expect(newState.other).toBe(otherObject); // other properties are not modified

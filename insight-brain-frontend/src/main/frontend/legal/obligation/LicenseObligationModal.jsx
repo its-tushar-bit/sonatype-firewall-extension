@@ -12,15 +12,9 @@ import {
   NxTextInput,
   nxTextInputStateHelpers,
 } from '@sonatype/react-shared-components';
-import {
-  OBLIGATION_STATUS_TO_DISPLAY,
-  OBLIGATION_STATUSES,
-} from '../advancedLegalConstants';
+import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from '../advancedLegalConstants';
 import * as PropTypes from 'prop-types';
-import {
-  availableScopesPropType,
-  licenseObligationPropType,
-} from '../advancedLegalPropTypes';
+import { availableScopesPropType, licenseObligationPropType } from '../advancedLegalPropTypes';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -43,8 +37,7 @@ export default function LicenseObligationModal(props) {
     licenseObligation.status !== licenseObligation.originalStatus ||
     licenseObligation.ownerId !== licenseObligation.originalOwnerId;
 
-  const validationErrorMessage =
-    'Must change obligation status, or comments, or scope.';
+  const validationErrorMessage = 'Must change obligation status, or comments, or scope.';
 
   const createStatusDropdownLabel = () => {
     return (
@@ -58,32 +51,30 @@ export default function LicenseObligationModal(props) {
   const [isStatusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
   const createModalDropdownOptions = () => {
-    return OBLIGATION_STATUSES.filter(
-      (obligationStatus) => obligationStatus !== licenseObligation.status
-    ).map((obligationStatus) => {
-      return (
-        <button
-          key={obligationStatus + '-dropdown-option'}
-          type="button"
-          className="nx-dropdown-button"
-          onClick={() => {
-            setStatusDropdownOpen(false);
-            setObligationStatus({
-              name: licenseObligation.name,
-              value: obligationStatus,
-            });
-          }}
-        >
-          {createObligationStatusIcon(obligationStatus)}
-          <span>{OBLIGATION_STATUS_TO_DISPLAY[obligationStatus]}</span>
-        </button>
-      );
-    });
+    return OBLIGATION_STATUSES.filter((obligationStatus) => obligationStatus !== licenseObligation.status).map(
+      (obligationStatus) => {
+        return (
+          <button
+            key={obligationStatus + '-dropdown-option'}
+            type="button"
+            className="nx-dropdown-button"
+            onClick={() => {
+              setStatusDropdownOpen(false);
+              setObligationStatus({
+                name: licenseObligation.name,
+                value: obligationStatus,
+              });
+            }}
+          >
+            {createObligationStatusIcon(obligationStatus)}
+            <span>{OBLIGATION_STATUS_TO_DISPLAY[obligationStatus]}</span>
+          </button>
+        );
+      }
+    );
   };
 
-  const [commentTextInput, setCommentTextInput] = useState(
-    initialState(licenseObligation.comment)
-  );
+  const [commentTextInput, setCommentTextInput] = useState(initialState(licenseObligation.comment));
 
   const createScopeOption = (value) => {
     return (
@@ -94,10 +85,7 @@ export default function LicenseObligationModal(props) {
   };
 
   return (
-    <NxModal
-      key={licenseObligation.name}
-      onClose={() => cancelObligationModal({ name: licenseObligation.name })}
-    >
+    <NxModal key={licenseObligation.name} onClose={() => cancelObligationModal({ name: licenseObligation.name })}>
       <NxForm
         onCancel={() => cancelObligationModal({ name: licenseObligation.name })}
         submitBtnText="Submit"
@@ -114,9 +102,7 @@ export default function LicenseObligationModal(props) {
             <NxDropdown
               label={createStatusDropdownLabel()}
               isOpen={isStatusDropdownOpen}
-              onToggleCollapse={() =>
-                setStatusDropdownOpen(!isStatusDropdownOpen)
-              }
+              onToggleCollapse={() => setStatusDropdownOpen(!isStatusDropdownOpen)}
             >
               {createModalDropdownOptions()}
             </NxDropdown>

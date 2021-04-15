@@ -16,11 +16,7 @@ var tagTemplate = {
   color: null,
 };
 
-var tagModule = angular.module('Tags', [
-  CLMContextLocationModule.name,
-  CLMLocationModule.name,
-  storesModule.name,
-]);
+var tagModule = angular.module('Tags', [CLMContextLocationModule.name, CLMLocationModule.name, storesModule.name]);
 
 tagModule.service('TagStore', [
   'CachedHierarchyStore',
@@ -40,11 +36,7 @@ tagModule.service('TagStore', [
 
     return angular.extend(tagStores, {
       getApplied: function () {
-        return $http.get(
-          CLMLocations.getOrganizationAppliedTagUrl(
-            CLMContextLocations.getEntityId()
-          )
-        );
+        return $http.get(CLMLocations.getOrganizationAppliedTagUrl(CLMContextLocations.getEntityId()));
       },
     });
   },
@@ -73,11 +65,7 @@ tagModule.service('PolicyTagStore', [
         return store;
       },
       getApplied: function () {
-        return $http.get(
-          CLMLocations.getOrganizationPolicyTagUrl(
-            CLMContextLocations.getEntityId()
-          )
-        );
+        return $http.get(CLMLocations.getOrganizationPolicyTagUrl(CLMContextLocations.getEntityId()));
       },
     };
   },

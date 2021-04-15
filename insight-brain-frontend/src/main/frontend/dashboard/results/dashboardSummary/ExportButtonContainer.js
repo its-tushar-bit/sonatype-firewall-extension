@@ -4,11 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import {
-  selectExportTitle,
-  selectExportRequestData,
-  selectExportUrl,
-} from '../../dashboardSelectors';
+import { selectExportTitle, selectExportRequestData, selectExportUrl } from '../../dashboardSelectors';
 import ExportButton from './ExportButton/ExportButton';
 
 function mapStateToProps(state) {

@@ -20,13 +20,7 @@ describe('license.threat.group.tile.controller.js', function () {
     })
   );
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    $injector,
-    $controller,
-    _$httpBackend_,
-    _CLMContextLocations_
-  ) {
+  beforeEach(inject(function (_$rootScope_, $injector, $controller, _$httpBackend_, _CLMContextLocations_) {
     $rootScope = _$rootScope_;
     $httpBackend = _$httpBackend_;
     CLMContextLocations = _CLMContextLocations_;
@@ -43,23 +37,17 @@ describe('license.threat.group.tile.controller.js', function () {
   });
 
   it('Reloads on broadcasted owner summary reload event', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-      .respond(responseMock);
+    $httpBackend.expectGET(CLMContextLocations.getApplicableLicenseGroupsUrl()).respond(responseMock);
     expect($httpBackend.flush).not.toThrow();
 
     $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-    $httpBackend
-      .expectGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-      .respond(responseMock);
+    $httpBackend.expectGET(CLMContextLocations.getApplicableLicenseGroupsUrl()).respond(responseMock);
     expect($httpBackend.flush).not.toThrow();
   });
 
   it('Updates Owner name on broadcasted updated owner event', function () {
-    $httpBackend
-      .expectGET(CLMContextLocations.getApplicableLicenseGroupsUrl())
-      .respond(responseMock);
+    $httpBackend.expectGET(CLMContextLocations.getApplicableLicenseGroupsUrl()).respond(responseMock);
     $httpBackend.flush();
 
     expect(vm.ownerName).not.toEqual('Bob');

@@ -46,8 +46,7 @@ var module = angular
         } else if (error.spaces) {
           message = 'No leading, trailing or double spaces or tabs';
         } else if (error.validNameCharacters) {
-          message =
-            'Use valid characters: alphanumeric, "_", ".", "-", or spaces';
+          message = 'Use valid characters: alphanumeric, "_", ".", "-", or spaces';
         } else if (error.number) {
           message = 'Please enter a valid number';
         } else if (error.minlength) {
@@ -81,9 +80,7 @@ var module = angular
           if (attrs.messages) {
             messages = scope.$eval(attrs.messages);
             if (typeof messages !== 'object') {
-              throw new Error(
-                'Messages provided to the input must be an Object!'
-              );
+              throw new Error('Messages provided to the input must be an Object!');
             }
           }
 
@@ -98,11 +95,7 @@ var module = angular
           function updateValidationMessages(myElem, myAttrs, myCtrl) {
             var currentPopover = myElem.data('popover');
             if (myCtrl.$invalid) {
-              var errorMessage = determineErrorMessage(
-                myCtrl.$error,
-                myAttrs,
-                messages
-              );
+              var errorMessage = determineErrorMessage(myCtrl.$error, myAttrs, messages);
               if (currentPopover) {
                 if (currentPopover.options.content !== errorMessage) {
                   currentPopover.options.content = errorMessage;
@@ -133,10 +126,7 @@ var module = angular
                 popover.getPosition = function () {
                   var position = this.getOriginalPosition();
                   var newPosition = {
-                    left:
-                      myElem[0].getBoundingClientRect().left +
-                      myElem[0].offsetWidth -
-                      popover.tip()[0].offsetWidth,
+                    left: myElem[0].getBoundingClientRect().left + myElem[0].offsetWidth - popover.tip()[0].offsetWidth,
                     top: position.top + 5,
                     width: popover.tip()[0].offsetWidth,
                   };

@@ -10,10 +10,7 @@ function ErrorMessage(error) {
 
   if (status === 0 || status >= 1000) {
     return 'Network error while contacting server';
-  } else if (
-    responseText &&
-    (headers('Content-Type') || '').indexOf('text/plain') >= 0
-  ) {
+  } else if (responseText && (headers('Content-Type') || '').indexOf('text/plain') >= 0) {
     return responseText;
   } else {
     return 'Error ' + status;

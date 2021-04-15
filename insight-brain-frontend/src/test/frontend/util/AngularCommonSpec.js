@@ -10,40 +10,31 @@ describe('AngularCommon', function () {
   var scope, compile, httpBackend, regex;
 
   beforeEach(
-    angular.mock.module(
-      angularCommonModule.name,
-      utilityServicesModule.name,
-      function ($provide) {
-        var $state = {
-          current: {
-            name: 'dashboard.component',
-            data: {
-              crumb: 'Component Details',
-            },
+    angular.mock.module(angularCommonModule.name, utilityServicesModule.name, function ($provide) {
+      var $state = {
+        current: {
+          name: 'dashboard.component',
+          data: {
+            crumb: 'Component Details',
           },
-          get: function (name) {
-            if (name === 'dashboard') {
-              return {
-                name: 'dashboard',
-                data: {
-                  crumb: 'Dashboard',
-                },
-              };
-            }
-          },
-          href: angular.noop,
-        };
-        $provide.value('$state', $state);
-      }
-    )
+        },
+        get: function (name) {
+          if (name === 'dashboard') {
+            return {
+              name: 'dashboard',
+              data: {
+                crumb: 'Dashboard',
+              },
+            };
+          }
+        },
+        href: angular.noop,
+      };
+      $provide.value('$state', $state);
+    })
   );
 
-  beforeEach(inject(function (
-    $httpBackend,
-    $rootScope,
-    $compile,
-    regexFactory
-  ) {
+  beforeEach(inject(function ($httpBackend, $rootScope, $compile, regexFactory) {
     scope = $rootScope.$new();
     compile = $compile;
     httpBackend = $httpBackend;
@@ -129,35 +120,21 @@ describe('AngularCommon', function () {
       {
         input: function () {
           var today = new Date();
-          return new Date(
-            today.getFullYear() - 2,
-            today.getMonth(),
-            today.getDate()
-          );
+          return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
         },
         expected: '2 years ago',
       },
       {
         input: function () {
           var today = new Date();
-          return new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - 3 * 30,
-            today.getHours() - 6
-          );
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30, today.getHours() - 6);
         },
         expected: '3 months ago',
       },
       {
         input: function () {
           var today = new Date();
-          return new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - 10,
-            today.getHours() - 6
-          );
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, today.getHours() - 6);
         },
         expected: '10 days ago',
       },
@@ -197,11 +174,7 @@ describe('AngularCommon', function () {
       {
         input: function () {
           var today = new Date();
-          return new Date(
-            today.getFullYear() + 100,
-            today.getMonth(),
-            today.getDate()
-          );
+          return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
         },
         expected: 'seconds ago',
       },
@@ -256,35 +229,21 @@ describe('AngularCommon', function () {
       {
         input: function () {
           var today = new Date();
-          return new Date(
-            today.getFullYear() - 2,
-            today.getMonth(),
-            today.getDate()
-          );
+          return new Date(today.getFullYear() - 2, today.getMonth(), today.getDate());
         },
         expected: '2y',
       },
       {
         input: function () {
           var today = new Date();
-          return new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - 3 * 30,
-            today.getHours() - 6
-          );
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3 * 30, today.getHours() - 6);
         },
         expected: '3m',
       },
       {
         input: function () {
           var today = new Date();
-          return new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - 10,
-            today.getHours() - 6
-          );
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 10, today.getHours() - 6);
         },
         expected: '10d',
       },
@@ -324,11 +283,7 @@ describe('AngularCommon', function () {
       {
         input: function () {
           var today = new Date();
-          return new Date(
-            today.getFullYear() + 100,
-            today.getMonth(),
-            today.getDate()
-          );
+          return new Date(today.getFullYear() + 100, today.getMonth(), today.getDate());
         },
         expected: '1min',
       },
@@ -395,9 +350,7 @@ describe('AngularCommon', function () {
     });
 
     it('should show all defined chiclets with a default margin', function () {
-      chicletElement = compileElement(
-        '<div chiclets critical="1" severe="1" moderate="1" none="1"></div>'
-      );
+      chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1"></div>');
       expect(chicletElement.scope().$$childTail.style.margin).toBe('1px');
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
@@ -407,9 +360,7 @@ describe('AngularCommon', function () {
       });
     });
     it('should show all chiclets even if not set when "alwaysShow" specified', function () {
-      chicletElement = compileElement(
-        '<div chiclets always-show="true"></div>'
-      );
+      chicletElement = compileElement('<div chiclets always-show="true"></div>');
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
       angular.forEach(chiclets, function (chiclet) {
@@ -426,9 +377,7 @@ describe('AngularCommon', function () {
       });
     });
     it('should set a default margin if one is not specified', function () {
-      chicletElement = compileElement(
-        '<div chiclets critical="1" severe="1" moderate="1" none="1"></div>'
-      );
+      chicletElement = compileElement('<div chiclets critical="1" severe="1" moderate="1" none="1"></div>');
       var chiclets = chicletElement.find('span');
       expect(chiclets.length).toBe(4);
       angular.forEach(chiclets, function (chiclet) {
@@ -437,8 +386,7 @@ describe('AngularCommon', function () {
     });
     it('should respect a provided margin', function () {
       chicletElement = compileElement(
-        '<div chiclets critical="1" severe="1" moderate="1" none="1" margin="5cm">' +
-          '</div>'
+        '<div chiclets critical="1" severe="1" moderate="1" none="1" margin="5cm">' + '</div>'
       );
       expect(chicletElement.scope().$$childTail.style.margin).toBe('5cm');
     });
@@ -468,9 +416,7 @@ describe('AngularCommon', function () {
 
   describe('multiSelect vs-repeat', function () {
     it('supports vs-repeat', inject(function ($compile) {
-      var element = angular.element(
-        '<div multi-select use-vs-repeat items="tags" selected-ids="appliedTagIds"></div>'
-      );
+      var element = angular.element('<div multi-select use-vs-repeat items="tags" selected-ids="appliedTagIds"></div>');
       $compile(element)(scope);
       scope.$digest();
 
@@ -484,9 +430,7 @@ describe('AngularCommon', function () {
     var directiveScope = null;
 
     beforeEach(inject(function ($compile) {
-      var element = angular.element(
-        '<div  multi-select items="tags" selected-ids="appliedTagIds"></div>'
-      );
+      var element = angular.element('<div  multi-select items="tags" selected-ids="appliedTagIds"></div>');
       scope.tags = [
         { id: 'foo', name: 'Foo' },
         { id: 'bar', name: 'Bar' },
@@ -590,9 +534,7 @@ describe('AngularCommon', function () {
       angular.forEach(expectedResults, function (result) {
         angular.forEach(result.threatLevels, function (threatLevel) {
           scope.threatLevel = threatLevel;
-          var element = angular.element(
-            '<div threat-class="threatLevel"></div>'
-          );
+          var element = angular.element('<div threat-class="threatLevel"></div>');
           element = $compile(element)(scope);
           scope.$digest();
 
@@ -674,9 +616,7 @@ describe('AngularCommon', function () {
     });
 
     it('hides the "close" button if configured to', function () {
-      element = angular.element(
-        '<div clm-alerts="errors" no-close="true"></div>'
-      );
+      element = angular.element('<div clm-alerts="errors" no-close="true"></div>');
       element = compile(element)(scope);
       scope.$apply(function () {
         scope.errors = [{ msg: 'Foo' }];
@@ -792,12 +732,7 @@ describe('AngularCommon', function () {
     }));
 
     it('builds list of parent states', function () {
-      $rootScope.$broadcast(
-        '$stateChangeSuccess',
-        { name: 'dashboard.component' },
-        undefined,
-        { name: '' }
-      );
+      $rootScope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, { name: '' });
 
       expect(scope.states.length).toBe(2);
       expect(scope.states[0].state).toBe('dashboard.overview.violations');
@@ -805,12 +740,9 @@ describe('AngularCommon', function () {
     });
 
     it('maintains previous parent states when navigating away', function () {
-      $rootScope.$broadcast(
-        '$stateChangeSuccess',
-        { name: 'dashboard.component' },
-        undefined,
-        { name: 'dashboard.overview.components' }
-      );
+      $rootScope.$broadcast('$stateChangeSuccess', { name: 'dashboard.component' }, undefined, {
+        name: 'dashboard.overview.components',
+      });
 
       expect(scope.states.length).toBe(2);
       expect(scope.states[0].state).toBe('dashboard.overview.components');

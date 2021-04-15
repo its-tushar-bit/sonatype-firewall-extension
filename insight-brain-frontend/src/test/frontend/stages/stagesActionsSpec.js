@@ -5,11 +5,7 @@
  */
 import axios from 'axios';
 
-import {
-  getDashboardStageUrl,
-  getCliStageUrl,
-  getActionStageUrl,
-} from '../../../main/frontend/util/CLMLocation';
+import { getDashboardStageUrl, getCliStageUrl, getActionStageUrl } from '../../../main/frontend/util/CLMLocation';
 import {
   validPurposes,
   fetchStageTypes,
@@ -95,15 +91,11 @@ describe('stagesActions', function () {
           responseData = [1, 2, 3],
           store = SpecUtil.mockReduxStore(mockState);
 
-        spyOn(axios, 'get').and.returnValue(
-          Promise.resolve({ data: responseData })
-        );
+        spyOn(axios, 'get').and.returnValue(Promise.resolve({ data: responseData }));
 
         store.dispatch(fetchStageTypes('dashboard')).then(() => {
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toEqual(
-            FETCH_STAGE_TYPES_FULFILLED
-          );
+          expect(store.getActions()[1].type).toEqual(FETCH_STAGE_TYPES_FULFILLED);
           expect(store.getActions()[1].payload).toEqual({
             purpose: 'dashboard',
             data: [1, 2, 3],

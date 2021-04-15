@@ -34,10 +34,7 @@ const reducerActionMap = {
   [VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED]: fetchApplicableWaiversFulfilled,
   [VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED]: loadViolationFulfilled,
   [VIOLATION_LOAD_VIOLATION_DETAILS_FAILED]: loadViolationFailed,
-  [VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst(
-    'vulnerabilityDetailsLoading',
-    true
-  ),
+  [VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst('vulnerabilityDetailsLoading', true),
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED]: loadVulnerabilityDetailsFulfilled,
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED]: loadVulnerabilityDetailsFailed,
   [UI_ROUTER_ON_FINISH]: propSetConst('loading', true),
@@ -50,10 +47,7 @@ function loadViolationRequested() {
   };
 }
 
-function fetchCrossStageViolationFulfilled(
-  { violationDetails, selectedViolationId },
-  state
-) {
+function fetchCrossStageViolationFulfilled({ violationDetails, selectedViolationId }, state) {
   return {
     ...state,
     violationDetails,
@@ -69,10 +63,7 @@ function loadViolationFulfilled(payload, state) {
   };
 }
 
-function fetchApplicableWaiversFulfilled(
-  { activeWaivers, expiredWaivers },
-  state
-) {
+function fetchApplicableWaiversFulfilled({ activeWaivers, expiredWaivers }, state) {
   return {
     ...state,
     activeWaivers,

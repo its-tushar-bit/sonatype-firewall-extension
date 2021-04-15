@@ -11,18 +11,14 @@ describe('licenseDisplayUtils', function () {
       const licenseObj = {
         declaredLicenses: [],
       };
-      expect(licenseDisplayUtils.getDeclaredLicensesDisplay(licenseObj)).toBe(
-        'Not Declared'
-      );
+      expect(licenseDisplayUtils.getDeclaredLicensesDisplay(licenseObj)).toBe('Not Declared');
     });
 
     it('returns declared licenses if they are passed in on the object', () => {
       const licenseObj = {
         declaredLicenses: ['foo', 'bar', 'baz'],
       };
-      expect(licenseDisplayUtils.getDeclaredLicensesDisplay(licenseObj)).toBe(
-        'foo, bar, baz'
-      );
+      expect(licenseDisplayUtils.getDeclaredLicensesDisplay(licenseObj)).toBe('foo, bar, baz');
     });
 
     it('it includes licenses that are in both declared and observed licenses in declared licenses', () => {
@@ -30,9 +26,7 @@ describe('licenseDisplayUtils', function () {
         declaredLicenses: ['bar'],
         observedLicenses: ['foo', 'bar', 'baz'],
       };
-      expect(licenseDisplayUtils.getDeclaredLicensesDisplay(licenseObj)).toBe(
-        'bar'
-      );
+      expect(licenseDisplayUtils.getDeclaredLicensesDisplay(licenseObj)).toBe('bar');
     });
   });
 
@@ -42,9 +36,7 @@ describe('licenseDisplayUtils', function () {
         declaredLicenses: [],
         observedLicenses: ['foo', 'bar', 'baz'],
       };
-      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(
-        'foo, bar, baz'
-      );
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe('foo, bar, baz');
     });
 
     it('dedups to not include licenses that are already in declaredLicenses', () => {
@@ -52,9 +44,7 @@ describe('licenseDisplayUtils', function () {
         declaredLicenses: ['bar'],
         observedLicenses: ['foo', 'bar', 'baz'],
       };
-      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(
-        'foo, baz'
-      );
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe('foo, baz');
     });
 
     it('does not dedupe "Not Provided" value', () => {
@@ -63,9 +53,7 @@ describe('licenseDisplayUtils', function () {
         observedLicenses: ['Not Provided'],
       };
 
-      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(
-        'Not Provided'
-      );
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe('Not Provided');
     });
 
     it('returns null when no observed licenses are passed as argument', () => {
@@ -74,9 +62,7 @@ describe('licenseDisplayUtils', function () {
         observedLicenses: undefined,
       };
 
-      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(
-        null
-      );
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(null);
     });
 
     it('returns null when null is passed as observed licenses array', () => {
@@ -85,9 +71,7 @@ describe('licenseDisplayUtils', function () {
         observedLicenses: null,
       };
 
-      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(
-        null
-      );
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(null);
     });
 
     it('returns observed licenses if no declared licenses are passed on', () => {
@@ -96,9 +80,7 @@ describe('licenseDisplayUtils', function () {
         observedLicenses: ['foo', 'bar', 'baz'],
       };
 
-      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(
-        'foo, bar, baz'
-      );
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe('foo, bar, baz');
     });
 
     it('returns observed licenses if null is passes as declared licenses array', () => {
@@ -107,9 +89,7 @@ describe('licenseDisplayUtils', function () {
         observedLicenses: ['foo', 'bar', 'baz'],
       };
 
-      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe(
-        'foo, bar, baz'
-      );
+      expect(licenseDisplayUtils.getObservedLicensesDisplay(licenseObj)).toBe('foo, bar, baz');
     });
   });
 });

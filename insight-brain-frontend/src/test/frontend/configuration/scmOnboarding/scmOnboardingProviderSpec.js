@@ -17,11 +17,8 @@ describe('scmOnboardingProviders', function () {
   ];
 
   for (let currTest of testData) {
-    it(
-      'Describes provider ' + currTest.scmProvider + ' as ' + currTest.expected,
-      () => {
-        expect(displayName(currTest.scmProvider)).toEqual(currTest.expected);
-      }
-    );
+    it('Describes provider ' + currTest.scmProvider + ' as ' + currTest.expected, () => {
+      expect(displayName(currTest.scmProvider)).toEqual(currTest.expected);
+    });
   }
 });

@@ -94,10 +94,7 @@ tbody .iq-cell--application-report-policy-threat-level {
 }
 
 .iq-cell--application-report-component-display {
-  width: calc(
-    100% - #{$iq-application-report-policy-threat-level-width +
-      $iq-application-report-policy-name-width}
-  );
+  width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
   min-width: 0;
 }
 
@@ -118,10 +115,7 @@ tbody .iq-cell--application-report-component-display {
 }
 
 .iq-cell--application-report-component-name-filter {
-  width: calc(
-    100% - #{$iq-application-report-policy-threat-level-width +
-      $iq-application-report-policy-name-width}
-  );
+  width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
 }
 
 #application-report-vulnerabilities {

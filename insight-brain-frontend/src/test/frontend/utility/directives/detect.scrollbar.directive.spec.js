@@ -44,9 +44,7 @@ describe('detect.scrollbar.directive.js', function () {
   });
 
   it('does not add a class to the element if there is not a scrollbar', function () {
-    const elementTemplate = angular.element(
-      `<div ${styleString} detect-scrollbar=""></div>`
-    );
+    const elementTemplate = angular.element(`<div ${styleString} detect-scrollbar=""></div>`);
     element = compile(elementTemplate)(scope, function (elementInstance) {
       document.body.appendChild(elementInstance[0]);
     });

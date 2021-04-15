@@ -11,11 +11,7 @@ export default angular
   .module('legalDashboardModule', [])
   .component(
     'legalDashboard',
-    react2angular(
-      withStoreProvider(LegalDashboardContainer),
-      ['isAuthorized'],
-      ['$ngRedux']
-    )
+    react2angular(withStoreProvider(LegalDashboardContainer), ['isAuthorized'], ['$ngRedux'])
   )
   .config(routes);
 

@@ -5,32 +5,19 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import NewOrganizationModal from '../../../../../main/frontend/configuration/scmOnboarding/components/NewOrganizationModal';
-import {
-  NxButton,
-  NxForm,
-  NxModal,
-  NxTextInput,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxForm, NxModal, NxTextInput } from '@sonatype/react-shared-components';
 
 describe('NewOrganizationModal', function () {
   let minimalProps, getShallowComponent, getMountedComponent;
 
   beforeEach(() => {
     minimalProps = {
-      setIsNewOrganizationModalVisible: jasmine.createSpy(
-        'setIsNewOrganizationModalVisible'
-      ),
+      setIsNewOrganizationModalVisible: jasmine.createSpy('setIsNewOrganizationModalVisible'),
       addOrganization: jasmine.createSpy('addOrganization'),
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      NewOrganizationModal,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      NewOrganizationModal,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(NewOrganizationModal, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(NewOrganizationModal, minimalProps);
   });
 
   it('renders a narrow NxModal', () => {
@@ -94,9 +81,7 @@ describe('NewOrganizationModal', function () {
     newOrgInput.simulate('change', '');
 
     // then a validation error is generated
-    expect(component.find(NxForm).prop('validationErrors')).toEqual([
-      'Must be non-empty',
-    ]);
+    expect(component.find(NxForm).prop('validationErrors')).toEqual(['Must be non-empty']);
   });
 
   it('trims leading and trailing whitespace', () => {

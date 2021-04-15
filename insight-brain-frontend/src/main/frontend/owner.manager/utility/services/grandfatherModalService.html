@@ -11,20 +11,12 @@
     <div class="iq-modal-content">
       <div ng-if="!vm.error" class="iq-alert">
         <i class="fa fa-warning"></i>
-        Policy violations for the application will be grandfathered without
-        performing an evaluation.
+        Policy violations for the application will be grandfathered without performing an evaluation.
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{ error : vm.error }">
-      <div ng-if="vm.error" class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i>{{ vm.error }}
-      </div>
-      <button
-        ng-if="!vm.error"
-        class="iq-btn iq-btn--primary"
-        id="policy-violation-grandfather-button"
-        type="submit"
-      >
+      <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{ vm.error }}</div>
+      <button ng-if="!vm.error" class="iq-btn iq-btn--primary" id="policy-violation-grandfather-button" type="submit">
         Grandfather
       </button>
       <button

@@ -4,10 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment, useEffect } from 'react';
-import {
-  NxErrorAlert,
-  NxStatefulTreeViewMultiSelect,
-} from '@sonatype/react-shared-components';
+import { NxErrorAlert, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../react/LoadWrapper';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import Hexagon from '../../../react/Hexagon';
@@ -67,8 +64,7 @@ export default function LegalDashboardFilter(props) {
   const onStagesChange = curriedToggleFilter('stages');
   const onProgressOptionsChange = curriedToggleFilter('progressOptions');
 
-  const applicationCategoryTooltip = (prop) =>
-    (prop && prop.owner && `in ${prop.owner}`) || '';
+  const applicationCategoryTooltip = (prop) => (prop && prop.owner && `in ${prop.owner}`) || '';
 
   return (
     <Fragment>
@@ -91,16 +87,10 @@ export default function LegalDashboardFilter(props) {
             }}
           />
         )}
-        {loadErrorFilterName && (
-          <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>
-        )}
+        {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
       </header>
       <div className="dashboard-filter nx-viewport-sized__scrollable">
-        <LoadWrapper
-          loading={loading}
-          error={loadError}
-          retryHandler={loadFilter}
-        >
+        <LoadWrapper loading={loading} error={loadError} retryHandler={loadFilter}>
           {() => (
             <Fragment>
               <IqOrgAppPicker
@@ -155,8 +145,7 @@ export default function LegalDashboardFilter(props) {
           needsAcknowledgement,
           setDisplaySaveFilterModal,
           revert,
-          onApplyCurrentFilter: () =>
-            applyFilter(filterToJson(selected), appliedFilterName),
+          onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
           onCancelApplyFilter: applyFilterCancelled,
         }}
       />

@@ -3,10 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  selectExportRequestData,
-  selectExportUrl,
-} from '../../../main/frontend/dashboard/dashboardSelectors';
+import { selectExportRequestData, selectExportUrl } from '../../../main/frontend/dashboard/dashboardSelectors';
 import * as CLMLocations from '../../../main/frontend/util/CLMLocation';
 
 describe('dashboardSelectors', function () {
@@ -57,10 +54,7 @@ describe('dashboardSelectors', function () {
 
     it('converts filters to json string with default violations sortFields', function () {
       state.router.currentState.name = 'dashboard.overview.violations';
-      state.dashboard.violations.sortFields = [
-        '-firstOccurrenceTime',
-        '-threatLevel',
-      ];
+      state.dashboard.violations.sortFields = ['-firstOccurrenceTime', '-threatLevel'];
 
       const expected = {
         applicationIds: [],
@@ -99,9 +93,7 @@ describe('dashboardSelectors', function () {
 
     it('converts filters to json string with default applications sortFields', function () {
       state.router.currentState.name = 'dashboard.overview.applications';
-      state.dashboard.applications.sortFields = [
-        '-totalApplicationRisk.totalRisk',
-      ];
+      state.dashboard.applications.sortFields = ['-totalApplicationRisk.totalRisk'];
 
       const expected = {
         applicationIds: [],

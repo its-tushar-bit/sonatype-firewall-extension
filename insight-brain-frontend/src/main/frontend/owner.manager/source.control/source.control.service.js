@@ -22,15 +22,11 @@ export default function SourceControlService($http, CLMLocations) {
    * @returns source control record with inherited fields
    */
   function getCompositeSourceControlRecord(ownerType, ownerId) {
-    return $http
-      .get(CLMLocations.getCompositeSourceControlUrl(ownerType, ownerId))
-      .then(prop('data'));
+    return $http.get(CLMLocations.getCompositeSourceControlUrl(ownerType, ownerId)).then(prop('data'));
   }
 
   function validateCompositeSCMConfig(ownerType, ownerId) {
-    return $http
-      .get(CLMLocations.getValidateScmConfigUrl(ownerType, ownerId))
-      .then(prop('data'));
+    return $http.get(CLMLocations.getValidateScmConfigUrl(ownerType, ownerId)).then(prop('data'));
   }
 
   /**
@@ -39,9 +35,7 @@ export default function SourceControlService($http, CLMLocations) {
    * @returns source control metrics associated with application
    */
   function getSourceControlMetrics(ownerType, ownerId) {
-    return $http
-      .get(CLMLocations.getSourceControlMetricsUrl(ownerType, ownerId))
-      .then(prop('data'));
+    return $http.get(CLMLocations.getSourceControlMetricsUrl(ownerType, ownerId)).then(prop('data'));
   }
 
   /**
@@ -77,9 +71,7 @@ export default function SourceControlService($http, CLMLocations) {
    * @returns 204 on success
    */
   function deleteSourceControlRecord(ownerType, ownerId) {
-    return $http
-      .delete(CLMLocations.getSourceControlUrl(ownerType, ownerId))
-      .then(prop('data'));
+    return $http.delete(CLMLocations.getSourceControlUrl(ownerType, ownerId)).then(prop('data'));
   }
 
   function getProviderTypesMap() {

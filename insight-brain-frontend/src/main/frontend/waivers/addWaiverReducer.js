@@ -3,10 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  initialState,
-  userInput,
-} from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { always, equals } from 'ramda';
 
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
@@ -46,13 +43,7 @@ const initState = Object.freeze({
  * @param {State} state the state to check if it's dirty
  */
 const isFormDirty = (state) => {
-  const {
-    selectedWaiverScope,
-    applyToAllComponents,
-    expiryTime,
-    waiverComments,
-    fieldsPristineState,
-  } = state;
+  const { selectedWaiverScope, applyToAllComponents, expiryTime, waiverComments, fieldsPristineState } = state;
 
   const currentFields = {
     selectedWaiverScope,
@@ -143,10 +134,7 @@ const reducerActionMap = {
   [WAIVERS_SAVE_WAIVER_REQUESTED]: saveWaiverRequested,
   [WAIVERS_SAVE_WAIVER_FULFILLED]: saveWaiverFulfilled,
   [WAIVERS_SAVE_WAIVER_FAILED]: saveWaiverFailed,
-  [WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst(
-    'submitMaskState',
-    null
-  ),
+  [WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
   [WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT]: setWaiverComment,
   [WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE]: setSelectedWaiverScope,
   [WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: setApplyToAllComponents,
@@ -154,8 +142,5 @@ const reducerActionMap = {
   [UI_ROUTER_ON_FINISH]: always(initState),
 };
 
-const addWaiverReducer = createReducerFromActionMap(
-  reducerActionMap,
-  initState
-);
+const addWaiverReducer = createReducerFromActionMap(reducerActionMap, initState);
 export default addWaiverReducer;

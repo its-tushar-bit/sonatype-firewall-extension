@@ -29,10 +29,7 @@ function sanitizeUrlService(baseUrlService) {
           const [, applicationId, reportId] = regexResult,
             hashedAppId = hash(applicationId),
             hashedReportId = hash(reportId),
-            obfuscatedUrl = urlWithoutBase.replace(
-              urlParametersRegex,
-              `/rest/report/${hashedAppId}/${hashedReportId}`
-            );
+            obfuscatedUrl = urlWithoutBase.replace(urlParametersRegex, `/rest/report/${hashedAppId}/${hashedReportId}`);
 
           return obfuscatedUrl;
         } else {

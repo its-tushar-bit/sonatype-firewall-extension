@@ -20,11 +20,7 @@ import ManageFiltersDropdown from '../../../../../main/frontend/dashboard/filter
 import DeleteFilterModalContainer from '../../../../../main/frontend/dashboard/filter/deleteFilterModal/DeleteFilterModalContainer';
 
 describe('DashboardFilter', function () {
-  let getShallowComponent,
-    loadFilterSpy,
-    minimalProps,
-    SaveFilterModalContainerMock,
-    DashboardFilter;
+  let getShallowComponent, loadFilterSpy, minimalProps, SaveFilterModalContainerMock, DashboardFilter;
 
   const filterData = {
     organizations: [
@@ -44,10 +40,7 @@ describe('DashboardFilter', function () {
         organizationName: 'Org1',
       },
     ],
-    categories: [
-      uncategorizedCategory,
-      { id: 'cat', name: 'Cat', owner: 'Org1' },
-    ],
+    categories: [uncategorizedCategory, { id: 'cat', name: 'Cat', owner: 'Org1' }],
     stages: [
       { id: 'build', name: 'Build' },
       { id: 'stage-release', name: 'Stage Release' },
@@ -98,10 +91,7 @@ describe('DashboardFilter', function () {
       }
     ).default;
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardFilter,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardFilter, minimalProps);
   });
 
   describe('apply named filter error', function () {
@@ -110,9 +100,7 @@ describe('DashboardFilter', function () {
         shallowRender = getShallowComponent(props),
         header = shallowRender.find('.dashboard-filter-header');
 
-      expect(header).toContainReact(
-        <NxErrorAlert>Failed to load filter 1234</NxErrorAlert>
-      );
+      expect(header).toContainReact(<NxErrorAlert>Failed to load filter 1234</NxErrorAlert>);
     });
 
     it('is not rendered if loadErrorFilterName is null', function () {
@@ -132,9 +120,7 @@ describe('DashboardFilter', function () {
         shallowRender = getShallowComponent(props),
         header = shallowRender.find('.dashboard-filter-header');
 
-      expect(
-        header.childAt(0).find('.dashboard-filter-header__title-text')
-      ).toHaveText('Filter');
+      expect(header.childAt(0).find('.dashboard-filter-header__title-text')).toHaveText('Filter');
 
       expect(header.childAt(1)).toContainReact(
         <ManageFiltersDropdown
@@ -178,9 +164,7 @@ describe('DashboardFilter', function () {
         applyFilterError: 'err',
         filtersAreDirty: true,
         needsAcknowledgement: true,
-        setDisplaySaveFilterModal: jasmine.createSpy(
-          'setDisplaySaveFilterModal'
-        ),
+        setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),
         revert: jasmine.createSpy('revert'),
         applyFilterCancelled: () => {},
       },
@@ -190,23 +174,11 @@ describe('DashboardFilter', function () {
     expect(filterFooter).toExist();
     expect(filterFooter).toHaveProp('applyFilterError', props.applyFilterError);
     expect(filterFooter).toHaveProp('filtersAreDirty', props.filtersAreDirty);
-    expect(filterFooter).toHaveProp(
-      'needsAcknowledgement',
-      props.needsAcknowledgement
-    );
+    expect(filterFooter).toHaveProp('needsAcknowledgement', props.needsAcknowledgement);
     expect(filterFooter).toHaveProp('revert', props.revert);
-    expect(filterFooter).toHaveProp(
-      'setDisplaySaveFilterModal',
-      props.setDisplaySaveFilterModal
-    );
-    expect(filterFooter).toHaveProp(
-      'onApplyCurrentFilter',
-      jasmine.any(Function)
-    );
-    expect(filterFooter).toHaveProp(
-      'onCancelApplyFilter',
-      jasmine.any(Function)
-    );
+    expect(filterFooter).toHaveProp('setDisplaySaveFilterModal', props.setDisplaySaveFilterModal);
+    expect(filterFooter).toHaveProp('onApplyCurrentFilter', jasmine.any(Function));
+    expect(filterFooter).toHaveProp('onCancelApplyFilter', jasmine.any(Function));
   });
 
   describe('DashboardFilter filter contents', function () {
@@ -225,107 +197,58 @@ describe('DashboardFilter', function () {
         categoryFilter = filterContent.find('#category-filter'),
         stageFilter = filterContent.find('#stage-filter'),
         policyTypeFilter = filterContent.find('#policy-type-filter'),
-        policyViolationStateFilter = filterContent.find(
-          '#policy-violation-state-filter'
-        ),
+        policyViolationStateFilter = filterContent.find('#policy-violation-state-filter'),
         threatLevelFiler = filterContent.find('#threat-level-filter');
 
-      expect(orgAppFilter).toHaveProp(
-        'organizations',
-        minimalProps.organizations
-      );
-      expect(orgAppFilter).toHaveProp(
-        'applications',
-        minimalProps.applications
-      );
-      expect(orgAppFilter).toHaveProp(
-        'selectedApplications',
-        minimalProps.selected.applications
-      );
-      expect(orgAppFilter).toHaveProp(
-        'selectedOrganizations',
-        minimalProps.selected.organizations
-      );
+      expect(orgAppFilter).toHaveProp('organizations', minimalProps.organizations);
+      expect(orgAppFilter).toHaveProp('applications', minimalProps.applications);
+      expect(orgAppFilter).toHaveProp('selectedApplications', minimalProps.selected.applications);
+      expect(orgAppFilter).toHaveProp('selectedOrganizations', minimalProps.selected.organizations);
       expect(orgAppFilter).toHaveProp('onChange', toggleAppsAndOrgsSpy);
       orgAppFilter.simulate('change');
       expect(toggleAppsAndOrgsSpy).toHaveBeenCalled();
 
       expect(categoryFilter).toHaveProp('options', minimalProps.categories);
-      expect(categoryFilter).toHaveProp(
-        'selectedIds',
-        minimalProps.selected.categories
-      );
+      expect(categoryFilter).toHaveProp('selectedIds', minimalProps.selected.categories);
       expect(categoryFilter).toHaveProp('onChange');
       expect(categoryFilter).toHaveProp('optionTooltipGenerator');
       const selectedCategories = [null];
       categoryFilter.simulate('change', selectedCategories);
-      expect(toggleFilterSpy).toHaveBeenCalledWith(
-        'categories',
-        selectedCategories
-      );
+      expect(toggleFilterSpy).toHaveBeenCalledWith('categories', selectedCategories);
 
-      const noTooltipForUncategorizedApplications = categoryFilter.prop(
-        'optionTooltipGenerator'
-      )(minimalProps.categories[0]);
-      const generatedTooltip = categoryFilter.prop('optionTooltipGenerator')(
-        minimalProps.categories[1]
+      const noTooltipForUncategorizedApplications = categoryFilter.prop('optionTooltipGenerator')(
+        minimalProps.categories[0]
       );
+      const generatedTooltip = categoryFilter.prop('optionTooltipGenerator')(minimalProps.categories[1]);
       expect(noTooltipForUncategorizedApplications).toBe('');
       expect(generatedTooltip).toBe('in Org1');
 
       expect(stageFilter).toHaveProp('options', minimalProps.stages);
-      expect(stageFilter).toHaveProp(
-        'selectedIds',
-        minimalProps.selected.stages
-      );
+      expect(stageFilter).toHaveProp('selectedIds', minimalProps.selected.stages);
       expect(stageFilter).toHaveProp('onChange');
       const selectedStages = ['build'];
       stageFilter.simulate('change', selectedStages);
       expect(toggleFilterSpy).toHaveBeenCalledWith('stages', selectedStages);
 
       expect(policyTypeFilter).toHaveProp('options', minimalProps.policyTypes);
-      expect(policyTypeFilter).toHaveProp(
-        'selectedIds',
-        minimalProps.selected.policyTypes
-      );
+      expect(policyTypeFilter).toHaveProp('selectedIds', minimalProps.selected.policyTypes);
       expect(policyTypeFilter).toHaveProp('onChange');
       const selectedPolicyTypes = ['SECURITY'];
       policyTypeFilter.simulate('change', selectedPolicyTypes);
-      expect(toggleFilterSpy).toHaveBeenCalledWith(
-        'policyTypes',
-        selectedPolicyTypes
-      );
+      expect(toggleFilterSpy).toHaveBeenCalledWith('policyTypes', selectedPolicyTypes);
 
-      expect(policyViolationStateFilter).toHaveProp(
-        'options',
-        minimalProps.policyViolationStates
-      );
-      expect(policyViolationStateFilter).toHaveProp(
-        'selectedIds',
-        minimalProps.selected.policyViolationStates
-      );
+      expect(policyViolationStateFilter).toHaveProp('options', minimalProps.policyViolationStates);
+      expect(policyViolationStateFilter).toHaveProp('selectedIds', minimalProps.selected.policyViolationStates);
       expect(policyViolationStateFilter).toHaveProp('onChange');
       const selectedPolicyViolationStates = ['OPEN', 'WAIVED'];
-      policyViolationStateFilter.simulate(
-        'change',
-        selectedPolicyViolationStates
-      );
-      expect(toggleFilterSpy).toHaveBeenCalledWith(
-        'policyViolationStates',
-        selectedPolicyViolationStates
-      );
+      policyViolationStateFilter.simulate('change', selectedPolicyViolationStates);
+      expect(toggleFilterSpy).toHaveBeenCalledWith('policyViolationStates', selectedPolicyViolationStates);
 
-      expect(threatLevelFiler).toHaveProp(
-        'value',
-        minimalProps.selected.policyThreatLevels
-      );
+      expect(threatLevelFiler).toHaveProp('value', minimalProps.selected.policyThreatLevels);
       expect(threatLevelFiler).toHaveProp('onChange');
       const selectedThreatLevels = [5, 8];
       threatLevelFiler.simulate('change', selectedThreatLevels);
-      expect(toggleFilterSpy).toHaveBeenCalledWith(
-        'policyThreatLevels',
-        selectedThreatLevels
-      );
+      expect(toggleFilterSpy).toHaveBeenCalledWith('policyThreatLevels', selectedThreatLevels);
     });
 
     it('renders a loading loadWrapper if it is loading', function () {
@@ -415,9 +338,7 @@ describe('DashboardFilter', function () {
         showSaveFilterModal: false,
       });
 
-      expect(shallowRender).not.toContainReact(
-        <SaveFilterModalContainerMock />
-      );
+      expect(shallowRender).not.toContainReact(<SaveFilterModalContainerMock />);
     });
   });
 
@@ -461,13 +382,8 @@ describe('DashboardFilter', function () {
           filtersAreDirty: true,
         });
 
-        const tooltip = shallowRender.find(
-          '#dashboard-filter-close-btn-tooltip'
-        );
-        expect(tooltip.childAt(0)).toHaveProp(
-          'id',
-          'dashboard-filter-close-btn'
-        );
+        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
+        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
         expect(tooltip).toHaveProp('title', 'Please apply or revert filter');
       });
     });
@@ -491,13 +407,8 @@ describe('DashboardFilter', function () {
           needsAcknowledgement: true,
         });
 
-        const tooltip = shallowRender.find(
-          '#dashboard-filter-close-btn-tooltip'
-        );
-        expect(tooltip.childAt(0)).toHaveProp(
-          'id',
-          'dashboard-filter-close-btn'
-        );
+        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
+        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
         expect(tooltip).toHaveProp('title', 'Please apply a filter');
       });
     });
@@ -509,13 +420,8 @@ describe('DashboardFilter', function () {
           filtersAreDirty: true,
         });
 
-        const tooltip = shallowRender.find(
-          '#dashboard-filter-close-btn-tooltip'
-        );
-        expect(tooltip.childAt(0)).toHaveProp(
-          'id',
-          'dashboard-filter-close-btn'
-        );
+        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
+        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
         expect(tooltip).toHaveProp('title', 'Please apply a filter');
       });
     });

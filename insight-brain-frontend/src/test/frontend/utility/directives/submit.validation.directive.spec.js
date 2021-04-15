@@ -17,8 +17,7 @@ describe('submit.validation.directive.spec.js', function () {
 
   it('is disabled when not dirty and displays correct submit message', function () {
     var element = $compile(
-      '<form name="form"><button submit-validation submit-dirty="dirty" ' +
-        'submit-type="submit"></button></form>'
+      '<form name="form"><button submit-validation submit-dirty="dirty" ' + 'submit-type="submit"></button></form>'
     )(scope).children(0);
     spyOn($.fn, 'tooltip').and.returnValue(element);
 
@@ -26,15 +25,12 @@ describe('submit.validation.directive.spec.js', function () {
     scope.$digest();
 
     expect(element.hasClass('disabled')).toBeTruthy();
-    expect(element.attr('title')).toEqual(
-      'Unable to submit: fields with invalid or missing data.'
-    );
+    expect(element.attr('title')).toEqual('Unable to submit: fields with invalid or missing data.');
   });
 
   it('is disabled when not valid and displays correct update message', function () {
     var element = $compile(
-      '<form name="form"><button submit-validation submit-dirty="dirty" ' +
-        'submit-type="update"></button></form>'
+      '<form name="form"><button submit-validation submit-dirty="dirty" ' + 'submit-type="update"></button></form>'
     )(scope).children(0);
     spyOn($.fn, 'tooltip').and.returnValue(element);
 
@@ -47,15 +43,12 @@ describe('submit.validation.directive.spec.js', function () {
     scope.dirty = true;
     scope.form.$setValidity(false);
     scope.$digest();
-    expect(element.attr('title')).toEqual(
-      'Unable to update: fields with invalid or missing data.'
-    );
+    expect(element.attr('title')).toEqual('Unable to update: fields with invalid or missing data.');
   });
 
   it('is enabled when valid and dirty', function () {
     var element = $compile(
-      '<form name="form"><button submit-validation submit-dirty="dirty" ' +
-        'submit-type="submit"></button></form>'
+      '<form name="form"><button submit-validation submit-dirty="dirty" ' + 'submit-type="submit"></button></form>'
     )(scope).children(0);
     spyOn($.fn, 'tooltip').and.returnValue(element);
 

@@ -51,8 +51,7 @@ export default function DeleteFilterModal(props) {
         </header>
         <div className="nx-modal-content">
           <NxWarningAlert id="delete-filter-confirmation">
-            You are about to delete &quot;{filterToDelete}&quot; filter. This
-            action can not be undone.
+            You are about to delete &quot;{filterToDelete}&quot; filter. This action can not be undone.
           </NxWarningAlert>
         </div>
         <footer className="nx-footer">
@@ -64,19 +63,11 @@ export default function DeleteFilterModal(props) {
             />
           )}
           <div className="nx-btn-bar">
-            <NxButton
-              id="delete-filter-modal-cancel-button"
-              type="button"
-              onClick={hideDeleteFilterModal}
-            >
+            <NxButton id="delete-filter-modal-cancel-button" type="button" onClick={hideDeleteFilterModal}>
               Cancel
             </NxButton>
             {!deleteFilterError && (
-              <NxButton
-                variant="primary"
-                id="delete-filter-modal-continue-button"
-                type="submit"
-              >
+              <NxButton variant="primary" id="delete-filter-modal-continue-button" type="submit">
                 Continue
               </NxButton>
             )}

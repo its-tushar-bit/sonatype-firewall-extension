@@ -56,10 +56,7 @@ const loadApplicableWaiversFailed = (payload, state) => ({
 });
 
 const reducerActionMap = {
-  [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED]: propSetConst(
-    'loadingManageWaiversData',
-    true
-  ),
+  [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED]: propSetConst('loadingManageWaiversData', true),
   [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED]: setLoadError,
   [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED]: setData,
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED]: loadApplicableWaiversRequested,
@@ -68,8 +65,5 @@ const reducerActionMap = {
   [UI_ROUTER_ON_FINISH]: always(initState),
 };
 
-const manageWaiversReducer = createReducerFromActionMap(
-  reducerActionMap,
-  initState
-);
+const manageWaiversReducer = createReducerFromActionMap(reducerActionMap, initState);
 export default manageWaiversReducer;

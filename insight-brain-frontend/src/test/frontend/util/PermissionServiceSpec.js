@@ -22,75 +22,35 @@ describe('PermissionService.js', function () {
   }));
 
   describe('isAuthorized', function () {
-    it('Single Perm, Allowed', inject(function (
-      PermissionService,
-      CLMContextLocations,
-      $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['ADMIN'])
-        .respond(['ADMIN']);
-      PermissionService.isAuthorized(['ADMIN'], true).then(
-        successSpy,
-        errorSpy
-      );
+    it('Single Perm, Allowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['ADMIN']).respond(['ADMIN']);
+      PermissionService.isAuthorized(['ADMIN'], true).then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(true);
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Single Perm, Disallowed', inject(function (
-      PermissionService,
-      CLMContextLocations,
-      $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['ADMIN'])
-        .respond([]);
-      PermissionService.isAuthorized(['ADMIN'], true).then(
-        successSpy,
-        errorSpy
-      );
+    it('Single Perm, Disallowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['ADMIN']).respond([]);
+      PermissionService.isAuthorized(['ADMIN'], true).then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(false);
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Multiple Perms, Allowed', inject(function (
-      PermissionService,
-      CLMContextLocations,
+    it('Multiple Perms, Allowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), [
-          'ADMIN',
-          'ADMIN2',
-        ])
+        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2'])
         .respond(['ADMIN', 'ADMIN2']);
-      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(
-        successSpy,
-        errorSpy
-      );
+      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(true);
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Multiple Perms, Disallowed', inject(function (
-      PermissionService,
-      CLMContextLocations,
-      $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), [
-          'ADMIN',
-          'ADMIN2',
-        ])
-        .respond(['ADMIN2']);
-      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(
-        successSpy,
-        errorSpy
-      );
+    it('Multiple Perms, Disallowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2']).respond(['ADMIN2']);
+      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(false);
       expect(errorSpy).not.toHaveBeenCalled();
@@ -102,35 +62,17 @@ describe('PermissionService.js', function () {
       $httpBackend
     ) {
       $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), [
-          'ADMIN',
-          'ADMIN2',
-        ])
+        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2'])
         .respond(['ADMIN2', 'ADMIN']);
-      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(
-        successSpy,
-        errorSpy
-      );
+      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(true);
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Server Error', inject(function (
-      PermissionService,
-      CLMContextLocations,
-      $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), [
-          'ADMIN',
-          'ADMIN2',
-        ])
-        .respond(500, 'foo');
-      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(
-        successSpy,
-        errorSpy
-      );
+    it('Server Error', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['ADMIN', 'ADMIN2']).respond(500, 'foo');
+      PermissionService.isAuthorized(['ADMIN', 'ADMIN2'], true).then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).not.toHaveBeenCalled();
       var response = errorSpy.calls.first().args[0][0];
@@ -141,89 +83,41 @@ describe('PermissionService.js', function () {
   });
 
   describe('isContextAuthorized', function () {
-    it('Single Perm, Allowed', inject(function (
-      PermissionService,
-      CLMContextLocations,
+    it('Single Perm, Allowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(
-          CLMContextLocations.getPermissionContextTestUrl(
-            'repository_container'
-          ),
-          ['ADMIN']
-        )
+        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN'])
         .respond(['ADMIN']);
-      PermissionService.isContextAuthorized(
-        ['ADMIN'],
-        'repository_container'
-      ).then(successSpy, errorSpy);
+      PermissionService.isContextAuthorized(['ADMIN'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(true);
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Single Perm, Disallowed', inject(function (
-      PermissionService,
-      CLMContextLocations,
+    it('Single Perm, Disallowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(
-          CLMContextLocations.getPermissionContextTestUrl(
-            'repository_container'
-          ),
-          ['ADMIN']
-        )
+        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN'])
         .respond([]);
-      PermissionService.isContextAuthorized(
-        ['ADMIN'],
-        'repository_container'
-      ).then(successSpy, errorSpy);
+      PermissionService.isContextAuthorized(['ADMIN'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(false);
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Multiple Perms, Allowed', inject(function (
-      PermissionService,
-      CLMContextLocations,
+    it('Multiple Perms, Allowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(
-          CLMContextLocations.getPermissionContextTestUrl(
-            'repository_container'
-          ),
-          ['ADMIN', 'ADMIN2']
-        )
+        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
         .respond(['ADMIN', 'ADMIN2']);
-      PermissionService.isContextAuthorized(
-        ['ADMIN', 'ADMIN2'],
-        'repository_container'
-      ).then(successSpy, errorSpy);
+      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(true);
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Multiple Perms, Disallowed', inject(function (
-      PermissionService,
-      CLMContextLocations,
+    it('Multiple Perms, Disallowed', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(
-          CLMContextLocations.getPermissionContextTestUrl(
-            'repository_container'
-          ),
-          ['ADMIN', 'ADMIN2']
-        )
+        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
         .respond(['ADMIN2']);
-      PermissionService.isContextAuthorized(
-        ['ADMIN', 'ADMIN2'],
-        'repository_container'
-      ).then(successSpy, errorSpy);
+      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(false);
       expect(errorSpy).not.toHaveBeenCalled();
@@ -235,39 +129,19 @@ describe('PermissionService.js', function () {
       $httpBackend
     ) {
       $httpBackend
-        .expectPUT(
-          CLMContextLocations.getPermissionContextTestUrl(
-            'repository_container'
-          ),
-          ['ADMIN', 'ADMIN2']
-        )
+        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
         .respond(['ADMIN2', 'ADMIN']);
-      PermissionService.isContextAuthorized(
-        ['ADMIN', 'ADMIN2'],
-        'repository_container'
-      ).then(successSpy, errorSpy);
+      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).toHaveBeenCalledWith(true);
       expect(errorSpy).not.toHaveBeenCalled();
     }));
 
-    it('Server Error', inject(function (
-      PermissionService,
-      CLMContextLocations,
+    it('Server Error', inject(function (PermissionService, CLMContextLocations, $httpBackend) {
       $httpBackend
-    ) {
-      $httpBackend
-        .expectPUT(
-          CLMContextLocations.getPermissionContextTestUrl(
-            'repository_container'
-          ),
-          ['ADMIN', 'ADMIN2']
-        )
+        .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'), ['ADMIN', 'ADMIN2'])
         .respond(500, 'foo');
-      PermissionService.isContextAuthorized(
-        ['ADMIN', 'ADMIN2'],
-        'repository_container'
-      ).then(successSpy, errorSpy);
+      PermissionService.isContextAuthorized(['ADMIN', 'ADMIN2'], 'repository_container').then(successSpy, errorSpy);
       $httpBackend.flush();
       expect(successSpy).not.toHaveBeenCalled();
 

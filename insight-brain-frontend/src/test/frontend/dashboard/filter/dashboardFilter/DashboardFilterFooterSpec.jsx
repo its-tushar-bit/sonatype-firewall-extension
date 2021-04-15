@@ -10,10 +10,7 @@ import DashboardFilterFooter from '../../../../../main/frontend/dashboard/filter
 import * as enzymeUtils from '../../../enzymeUtils';
 
 describe('DashboardFilter footer', function () {
-  const getShallowComponent = enzymeUtils.getShallowComponent(
-    DashboardFilterFooter,
-    {}
-  );
+  const getShallowComponent = enzymeUtils.getShallowComponent(DashboardFilterFooter, {});
 
   it('renders a section with the footer classes', function () {
     const fullFilter = getShallowComponent(),
@@ -80,10 +77,7 @@ describe('DashboardFilter footer', function () {
       applyBtn = applyBtnTooltip.find(NxButton);
 
     expect(applyBtnTooltip).toHaveTagName('NxTooltip');
-    expect(applyBtnTooltip).toHaveProp(
-      'title',
-      'There are no changes to update.'
-    );
+    expect(applyBtnTooltip).toHaveProp('title', 'There are no changes to update.');
     expect(applyBtn).toHaveClassName('disabled');
   });
 
@@ -249,9 +243,7 @@ describe('DashboardFilter footer', function () {
   describe('Save button onClick handler', function () {
     let setDisplaySaveFilterModal;
     beforeEach(function () {
-      setDisplaySaveFilterModal = jasmine.createSpy(
-        'setDisplaySaveFilterModal'
-      );
+      setDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal');
     });
 
     it('calls setDisplaySaveFilterModal callback if filters are not dirty', function () {
@@ -282,10 +274,7 @@ describe('DashboardFilter footer', function () {
         saveBtn = saveBtnTooltip.find(NxButton);
 
       expect(saveBtnTooltip).toHaveTagName('NxTooltip');
-      expect(saveBtnTooltip).toHaveProp(
-        'title',
-        'Please apply filter before saving'
-      );
+      expect(saveBtnTooltip).toHaveProp('title', 'Please apply filter before saving');
       expect(saveBtn).toHaveClassName('disabled');
     });
 

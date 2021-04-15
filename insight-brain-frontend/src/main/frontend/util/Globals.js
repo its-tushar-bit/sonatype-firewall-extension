@@ -55,11 +55,7 @@ window.AngularUtils = {
    * @since 1.12
    */
   toAlert: function (msg, type) {
-    return angular.extend(
-      {},
-      window.messageTemplate,
-      type ? { type: type, msg: msg } : { msg: msg }
-    );
+    return angular.extend({}, window.messageTemplate, type ? { type: type, msg: msg } : { msg: msg });
   },
 };
 
@@ -80,10 +76,7 @@ window.AngularStateUtils = {
     //if user clicks new while the new state is already active
     //(or multiple events are fired causing this method to be called multiple times)
     //it will now only act once, rather than generating multiple .new suffixes
-    if (
-      scope.$state.current.name &&
-      !window.AngularUtils.endsWith(scope.$state.current.name, '.new')
-    ) {
+    if (scope.$state.current.name && !window.AngularUtils.endsWith(scope.$state.current.name, '.new')) {
       scope.$state.go(scope.$state.current.name + '.new');
     }
   },

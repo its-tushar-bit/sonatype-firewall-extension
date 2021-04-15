@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  faExclamationCircle,
-  faExclamationTriangle,
-  faSquare,
-} from '@fortawesome/free-solid-svg-icons';
+import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 
@@ -37,22 +33,15 @@ describe('StageDisplay', function () {
       applicationPublicId: 'app1',
     };
 
-    StageDisplay = require('inject-loader!../../../main/frontend/violation/StageDisplay')(
-      {
-        '../util/CommonServices': { terseAgo: terseAgoMock },
-      }
-    ).default;
+    StageDisplay = require('inject-loader!../../../main/frontend/violation/StageDisplay')({
+      '../util/CommonServices': { terseAgo: terseAgoMock },
+    }).default;
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      StageDisplay,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(StageDisplay, minimalProps);
   });
 
   it('renders a span with the iq-violation-details__stage class', function () {
-    expect(getShallowComponent()).toMatchSelector(
-      'span.iq-violation-details__stage'
-    );
+    expect(getShallowComponent()).toMatchSelector('span.iq-violation-details__stage');
     expect(
       getShallowComponent({
         stageData: {
@@ -66,9 +55,7 @@ describe('StageDisplay', function () {
 
   describe('when stageData is not provided', function () {
     it('adds the iq-violation-details__stage--unused class', function () {
-      expect(getShallowComponent()).toHaveClassName(
-        'iq-violation-details__stage--unused'
-      );
+      expect(getShallowComponent()).toHaveClassName('iq-violation-details__stage--unused');
     });
 
     it('renders a square icon followed by the stage shortName', function () {
@@ -93,9 +80,7 @@ describe('StageDisplay', function () {
       });
 
     it('does not set the iq-violation-details__stage--unused class', function () {
-      expect(getComponentWithData()).not.toHaveClassName(
-        'iq-violation-details__stage--unused'
-      );
+      expect(getComponentWithData()).not.toHaveClassName('iq-violation-details__stage--unused');
     });
 
     it('renders a link computed via $state showing the stage shortName and how long ago it was', function () {
@@ -122,37 +107,33 @@ describe('StageDisplay', function () {
 
     describe('when the actionTypeId is warn', function () {
       it('renders an exclamation triangle icon', function () {
-        expect(
-          getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)
-        ).toHaveProp('icon', faExclamationTriangle);
+        expect(getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)).toHaveProp('icon', faExclamationTriangle);
       });
 
       it('sets the iq-violation-details__stage-action and iq-violation-details__stage-action--warn classes on the icon', function () {
-        expect(
-          getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)
-        ).toHaveClassName('iq-violation-details__stage-action');
+        expect(getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)).toHaveClassName(
+          'iq-violation-details__stage-action'
+        );
 
-        expect(
-          getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)
-        ).toHaveClassName('iq-violation-details__stage-action--warn');
+        expect(getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)).toHaveClassName(
+          'iq-violation-details__stage-action--warn'
+        );
       });
     });
 
     describe('when the actionTypeId is fail', function () {
       it('renders an exclamation circle icon', function () {
-        expect(
-          getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)
-        ).toHaveProp('icon', faExclamationCircle);
+        expect(getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)).toHaveProp('icon', faExclamationCircle);
       });
 
       it('sets the iq-violation-details__stage-action and iq-violation-details__stage-action--fail classes on the icon', function () {
-        expect(
-          getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)
-        ).toHaveClassName('iq-violation-details__stage-action');
+        expect(getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)).toHaveClassName(
+          'iq-violation-details__stage-action'
+        );
 
-        expect(
-          getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)
-        ).toHaveClassName('iq-violation-details__stage-action--fail');
+        expect(getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)).toHaveClassName(
+          'iq-violation-details__stage-action--fail'
+        );
       });
     });
   });

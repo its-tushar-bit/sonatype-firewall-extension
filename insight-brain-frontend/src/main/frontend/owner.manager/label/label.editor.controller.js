@@ -34,11 +34,7 @@ export default function LabelEditorController(
   });
 
   function deleteLabel() {
-    DeleteModalService.deleteResource(
-      'Label',
-      vm.dirtyLabel.label,
-      vm.dirtyLabel
-    ).then(function () {
+    DeleteModalService.deleteResource('Label', vm.dirtyLabel.label, vm.dirtyLabel).then(function () {
       // Model needs to be clean in order to navigate
       vm.dirtyLabel.$revert();
       SameOwnerStateNavigationService.goEdit('create-label');
@@ -46,13 +42,8 @@ export default function LabelEditorController(
   }
 
   function doLoad() {
-    const applicableLabelsUrl = CLMContextLocations.getApplicableLabelsUrl(
-      CLMContextLocations.getEntityId()
-    );
-    $q.all([
-      LabelStore[vm.loadError ? 'refresh' : 'get'](),
-      $http.get(applicableLabelsUrl),
-    ]).then(
+    const applicableLabelsUrl = CLMContextLocations.getApplicableLabelsUrl(CLMContextLocations.getEntityId());
+    $q.all([LabelStore[vm.loadError ? 'refresh' : 'get'](), $http.get(applicableLabelsUrl)]).then(
       function (results) {
         results[1].data.labelsByOwner.forEach(function (owner) {
           vm.siblings = vm.siblings.concat(owner.labels);

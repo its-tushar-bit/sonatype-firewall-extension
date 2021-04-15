@@ -26,8 +26,7 @@
     function init(grid) {
       _grid = grid;
       var columns = _grid.getSortColumns();
-      _shouldGroup =
-        columns.length > 0 && columns[0].columnId === options.columnId;
+      _shouldGroup = columns.length > 0 && columns[0].columnId === options.columnId;
       _grid.onSort.subscribe(handleSort);
     }
 
@@ -40,18 +39,13 @@
       if (!columns) {
         columns = [{ sortCol: args.sortCol }];
       }
-      _shouldGroup =
-        columns.length > 0 && columns[0].sortCol.id === options.columnId;
+      _shouldGroup = columns.length > 0 && columns[0].sortCol.id === options.columnId;
     }
 
     function getCellRenderer() {
       return function (row, cell, value, columnDef) {
         var prevRowItem = _grid.getDataItem(row - 1);
-        return !_shouldGroup ||
-          !prevRowItem ||
-          prevRowItem[columnDef.id] !== value
-          ? value
-          : '';
+        return !_shouldGroup || !prevRowItem || prevRowItem[columnDef.id] !== value ? value : '';
       };
     }
 

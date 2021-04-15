@@ -4,10 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import retentionModule from '../../../../main/frontend/owner.manager/retention/module';
-import {
-  disabledRetentionPolicies,
-  inheritedRetentionPolicies,
-} from './retentionMockData';
+import { disabledRetentionPolicies, inheritedRetentionPolicies } from './retentionMockData';
 import utilityModule from '../../../../main/frontend/utility/utility.module';
 
 describe('retentionTile', function () {
@@ -27,21 +24,13 @@ describe('retentionTile', function () {
 
   beforeEach(angular.mock.module(retentionModule.name, utilityModule.name));
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    $injector,
-    _$q_,
-    _$componentController_
-  ) {
+  beforeEach(inject(function (_$rootScope_, $injector, _$q_, _$componentController_) {
     $rootScope = _$rootScope_;
     $scope = $rootScope.$new();
     EventNameConstant = $injector.get('event.name.constant');
     $q = _$q_;
     $componentController = _$componentController_;
-    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', [
-      'isOrganization',
-      'getEntityId',
-    ]);
+    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', ['isOrganization', 'getEntityId']);
     mockCLMContextLocations.isOrganization.and.returnValue(true);
     mockCLMContextLocations.getEntityId.and.returnValue(ORGANIZATION_ID);
     getByIdDeferred = $q.defer();
@@ -51,9 +40,7 @@ describe('retentionTile', function () {
         return getRetentionPoliciesDeferred.promise;
       }),
     };
-    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', [
-      'getById',
-    ]);
+    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
     mockOrganizationStore.getById.and.callFake(function (id) {
       return id === 'organizationId' ? getByIdDeferred.promise : null;
     });
@@ -89,16 +76,10 @@ describe('retentionTile', function () {
       $scope.$digest();
 
       expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(
-        ORGANIZATION_ID
-      );
+      expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ORGANIZATION_ID);
       expect(vm.ownerName).toBe('organizationName');
-      expect(vm.applicationReports).toEqual(
-        inheritedRetentionPolicies.applicationReports
-      );
-      expect(vm.successMetrics).toEqual(
-        inheritedRetentionPolicies.successMetrics
-      );
+      expect(vm.applicationReports).toEqual(inheritedRetentionPolicies.applicationReports);
+      expect(vm.successMetrics).toEqual(inheritedRetentionPolicies.successMetrics);
       expect(vm.error).toBeUndefined();
     });
 
@@ -129,9 +110,7 @@ describe('retentionTile', function () {
       $scope.$digest();
 
       expect(vm.ownerName).toBe('organizationNameUpdated');
-      expect(vm.applicationReports).toEqual(
-        disabledRetentionPolicies.applicationReports
-      );
+      expect(vm.applicationReports).toEqual(disabledRetentionPolicies.applicationReports);
       expect(vm.error).toBeUndefined();
     });
   });

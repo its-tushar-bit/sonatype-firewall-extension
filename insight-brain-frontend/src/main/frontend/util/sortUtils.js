@@ -10,10 +10,7 @@ import { isNilOrEmpty } from './jsUtil';
 /**
  * Return a list of the given items sorted by the specified properties, optionally in reverse
  */
-export const sortItemsByFields = curry(function sortItemsByFields(
-  sortFields,
-  entries
-) {
+export const sortItemsByFields = curry(function sortItemsByFields(sortFields, entries) {
   if (!isNilOrEmpty(sortFields)) {
     const sorters = sortFields.map((f) => {
       const reverse = f.indexOf('-') === 0,
@@ -63,25 +60,15 @@ export const sortColumn = (
   isCurrentColumnSortDescending,
   columnNameWithDefaultSortDirection
 ) => {
-  const columnNameAscending = extractSortFieldName(
-    columnNameWithDefaultSortDirection
-  );
+  const columnNameAscending = extractSortFieldName(columnNameWithDefaultSortDirection);
   if (currentSortedColumnName === columnNameAscending) {
-    sortFunction(
-      isCurrentColumnSortDescending
-        ? [columnNameAscending]
-        : [`-${columnNameAscending}`]
-    );
+    sortFunction(isCurrentColumnSortDescending ? [columnNameAscending] : [`-${columnNameAscending}`]);
   } else {
     sortFunction([columnNameWithDefaultSortDirection]);
   }
 };
 
-export const getColumnDirection = (
-  currentSortedColumnName,
-  isCurrentColumnSortDescending,
-  columnName
-) => {
+export const getColumnDirection = (currentSortedColumnName, isCurrentColumnSortDescending, columnName) => {
   const isThisColumnSorted = currentSortedColumnName === columnName,
     isAscending = isThisColumnSorted && !isCurrentColumnSortDescending,
     isDescending = isThisColumnSorted && isCurrentColumnSortDescending;

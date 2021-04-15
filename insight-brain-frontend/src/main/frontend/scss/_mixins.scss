@@ -66,10 +66,7 @@
 
       // fixes problem in IE11 where the last column wraps when all of the columns are exactly equal
       .iq-cell:last-child {
-        width: calc(
-          ((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - #{$iq-scrollbar-width} -
-            1px
-        );
+        width: calc(((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - #{$iq-scrollbar-width} - 1px);
       }
     }
   }

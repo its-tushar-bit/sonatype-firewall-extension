@@ -33,8 +33,7 @@ function SessionSecurityService($cookies, $window) {
   function checkSessionExpired() {
     // get the timestamp from the cookie and adjust it to compensate for clock differences between
     // the client and server.
-    var sessionExpirationTimestamp =
-      getSessionExpirationTimestamp() + serverDateDifference;
+    var sessionExpirationTimestamp = getSessionExpirationTimestamp() + serverDateDifference;
 
     if (new Date() > sessionExpirationTimestamp) {
       sessionExpired();
@@ -66,10 +65,7 @@ function SessionSecurityService($cookies, $window) {
       // Cleanup of the StableBodyService is in https://issues.sonatype.org/browse/CLM-7840
       setTimeout(checkSessionExpired, sessionTimeoutMillis);
     } else {
-      console.warn(
-        COOKIE_NAME +
-          ' cookie is missing. Session timeout detection will be disabled'
-      );
+      console.warn(COOKIE_NAME + ' cookie is missing. Session timeout detection will be disabled');
     }
   }
 

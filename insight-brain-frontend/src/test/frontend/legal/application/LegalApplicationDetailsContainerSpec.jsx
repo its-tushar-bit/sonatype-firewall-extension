@@ -9,12 +9,7 @@ import configureStore from 'redux-mock-store';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
 
 describe('LegalApplicationDetailsContainer', function () {
-  let store,
-    state,
-    vdom,
-    LegalApplicationDetailsContainer,
-    loadApplicationMock,
-    stateGoMock;
+  let store, state, vdom, LegalApplicationDetailsContainer, loadApplicationMock, stateGoMock;
 
   beforeEach(function () {
     state = {
@@ -31,9 +26,7 @@ describe('LegalApplicationDetailsContainer', function () {
       },
     };
 
-    loadApplicationMock = jasmine
-      .createSpy('loadApplication')
-      .and.returnValue({ type: 'FOO' });
+    loadApplicationMock = jasmine.createSpy('loadApplication').and.returnValue({ type: 'FOO' });
     stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'BAR' });
 
     LegalApplicationDetailsContainer = require('inject-loader!../../../../main/frontend/legal/application/LegalApplicationDetailsContainer')(
@@ -76,9 +69,7 @@ describe('LegalApplicationDetailsContainer', function () {
   });
 
   it('renders LegalApplicationDetailsPage component', function () {
-    const legalApplicationDetailsPage = shallow(vdom).find(
-      LegalApplicationDetailsPage
-    );
+    const legalApplicationDetailsPage = shallow(vdom).find(LegalApplicationDetailsPage);
     expect(legalApplicationDetailsPage).toExist();
   });
 });

@@ -55,9 +55,7 @@ function createTable(data, $scope) {
         sortable: true,
         width: 215,
         styleFn: function (row, cell, value, columnDef, dataContext) {
-          return (
-            'nopad ' + scoreStyler(row, cell, value, columnDef, dataContext)
-          );
+          return 'nopad ' + scoreStyler(row, cell, value, columnDef, dataContext);
         },
         sortFn: function (dataRow1, dataRow2) {
           var levelA = dataRow1.threatLevel,
@@ -96,9 +94,7 @@ function createTable(data, $scope) {
             '<div class="' +
             colorCls +
             '">' +
-            (cellFormatter(row, cell, value, columnDef, dataContext).length > 0
-              ? encodeHtml(value)
-              : '') +
+            (cellFormatter(row, cell, value, columnDef, dataContext).length > 0 ? encodeHtml(value) : '') +
             '</div>'
           );
         },
@@ -112,10 +108,7 @@ function createTable(data, $scope) {
         width: 295,
         toolTipGravity: 'se',
         styleFn: function (row, cell, value, columnDef, dataContext) {
-          return dataContext.modified ||
-            dataContext.identificationSource === 'Manual'
-            ? 'modified'
-            : '';
+          return dataContext.modified || dataContext.identificationSource === 'Manual' ? 'modified' : '';
         },
         toolTipFn: function (row) {
           var tip = '';
@@ -141,10 +134,7 @@ function createTable(data, $scope) {
 
           var icon;
           if (dataContext.componentIdentifier) {
-            icon =
-              '<i class="known-format" title="' +
-              dataContext.componentIdentifier.format +
-              '"></i> ';
+            icon = '<i class="known-format" title="' + dataContext.componentIdentifier.format + '"></i> ';
           } else {
             icon = '<i class="unknown-format" title="Unknown"></i> ';
           }
@@ -251,86 +241,68 @@ export default function auditThreat() {
           }
         });
 
-        $scope.$on(
-          'component.evaluation.updated',
-          function (event, componentKey, promises) {
-            function matches(component) {
-              return !Object.keys(componentKey).some(function (key) {
-                return component[key] !== componentKey[key];
-              });
-            }
-
-            promises.push(
-              $http
-                .get(
-                  Brain.getRepositoryResultsUrl(
-                    OwnerContext.ownerId,
-                    componentKey
-                  )
-                )
-                .then(function (response) {
-                  var data = response.data,
-                    dataView = vm.grid.dataView,
-                    maxId = -1,
-                    idsToRemove = [],
-                    newItemMap = {},
-                    updatedItemMap = {};
-
-                  processData(data, 0);
-
-                  data.forEach(function (item) {
-                    (newItemMap[item.pathname] =
-                      newItemMap[item.pathname] || {})[item.policyName] = item;
-                    updatedItemMap[item.pathname] =
-                      updatedItemMap[item.pathname] || {};
-                  });
-
-                  dataView.beginUpdate();
-                  // update existing rows
-                  dataView.getItems().forEach(function (item) {
-                    maxId = Math.max(maxId, item.id);
-
-                    if (matches(item)) {
-                      if (
-                        newItemMap[item.pathname] &&
-                        newItemMap[item.pathname][item.policyName]
-                      ) {
-                        // update id
-                        newItemMap[item.pathname][item.policyName].id = item.id;
-                        // update entry
-                        dataView.updateItem(
-                          item.id,
-                          newItemMap[item.pathname][item.policyName]
-                        );
-                        // don't need to add this one
-                        updatedItemMap[item.pathname][item.policyName] = true;
-                      } else {
-                        // can't delete during iteration, collect for later
-                        idsToRemove.push(item.id);
-                      }
-                    }
-                  });
-
-                  idsToRemove.forEach(function (id) {
-                    dataView.deleteItem(parseInt(id, 10));
-                  });
-
-                  // reduce to the new entries
-                  data = data.filter(function (item) {
-                    return !updatedItemMap[item.pathname][item.policyName];
-                  });
-
-                  //add new entries
-                  data.forEach(function (newItem) {
-                    newItem.id = ++maxId;
-                    dataView.addItem(newItem);
-                  });
-
-                  dataView.endUpdate();
-                })
-            );
+        $scope.$on('component.evaluation.updated', function (event, componentKey, promises) {
+          function matches(component) {
+            return !Object.keys(componentKey).some(function (key) {
+              return component[key] !== componentKey[key];
+            });
           }
-        );
+
+          promises.push(
+            $http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId, componentKey)).then(function (response) {
+              var data = response.data,
+                dataView = vm.grid.dataView,
+                maxId = -1,
+                idsToRemove = [],
+                newItemMap = {},
+                updatedItemMap = {};
+
+              processData(data, 0);
+
+              data.forEach(function (item) {
+                (newItemMap[item.pathname] = newItemMap[item.pathname] || {})[item.policyName] = item;
+                updatedItemMap[item.pathname] = updatedItemMap[item.pathname] || {};
+              });
+
+              dataView.beginUpdate();
+              // update existing rows
+              dataView.getItems().forEach(function (item) {
+                maxId = Math.max(maxId, item.id);
+
+                if (matches(item)) {
+                  if (newItemMap[item.pathname] && newItemMap[item.pathname][item.policyName]) {
+                    // update id
+                    newItemMap[item.pathname][item.policyName].id = item.id;
+                    // update entry
+                    dataView.updateItem(item.id, newItemMap[item.pathname][item.policyName]);
+                    // don't need to add this one
+                    updatedItemMap[item.pathname][item.policyName] = true;
+                  } else {
+                    // can't delete during iteration, collect for later
+                    idsToRemove.push(item.id);
+                  }
+                }
+              });
+
+              idsToRemove.forEach(function (id) {
+                dataView.deleteItem(parseInt(id, 10));
+              });
+
+              // reduce to the new entries
+              data = data.filter(function (item) {
+                return !updatedItemMap[item.pathname][item.policyName];
+              });
+
+              //add new entries
+              data.forEach(function (newItem) {
+                newItem.id = ++maxId;
+                dataView.addItem(newItem);
+              });
+
+              dataView.endUpdate();
+            })
+          );
+        });
       },
     ],
   };

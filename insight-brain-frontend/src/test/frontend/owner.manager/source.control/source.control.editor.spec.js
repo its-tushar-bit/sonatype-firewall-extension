@@ -57,13 +57,7 @@ describe('source.control.editor.spec', function () {
 
   beforeEach(angular.mock.module(sourceControlModule.name, utilityModule.name));
 
-  beforeEach(inject(function (
-    _$rootScope_,
-    $injector,
-    _$componentController_,
-    _$q_,
-    _$timeout_
-  ) {
+  beforeEach(inject(function (_$rootScope_, $injector, _$componentController_, _$q_, _$timeout_) {
     $rootScope = _$rootScope_;
     $scope = $rootScope.$new();
 
@@ -73,24 +67,17 @@ describe('source.control.editor.spec', function () {
       'isApplication',
       'isRootOrg',
     ]);
-    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', [
-      'getById',
+    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
+    mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', ['getById']);
+    mockSourceControlService = jasmine.createSpyObj('mockSourceControlService', [
+      'getCompositeSourceControlRecord',
+      'getProviderTypes',
+      'deleteSourceControlRecord',
+      'addSourceControlRecord',
+      'updateSourceControlRecord',
+      'getProviderTypesMap',
+      'getSourceControlMetrics',
     ]);
-    mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', [
-      'getById',
-    ]);
-    mockSourceControlService = jasmine.createSpyObj(
-      'mockSourceControlService',
-      [
-        'getCompositeSourceControlRecord',
-        'getProviderTypes',
-        'deleteSourceControlRecord',
-        'addSourceControlRecord',
-        'updateSourceControlRecord',
-        'getProviderTypesMap',
-        'getSourceControlMetrics',
-      ]
-    );
     $componentController = _$componentController_;
     $q = _$q_;
     getByIdDeferred = $q.defer();
@@ -100,10 +87,7 @@ describe('source.control.editor.spec', function () {
     saveResourceDefer = $q.defer();
     loadProductFeaturesDefer = $q.defer();
     $timeout = _$timeout_;
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', [
-      'isAvailable',
-      'load',
-    ]);
+    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
     mockProductFeatures.load.and.returnValue(loadProductFeaturesDefer.promise);
     mockProductFeatures.isAvailable.and.callFake(function (feature) {
       return feature === 'notifications' || feature === 'automation';
@@ -173,12 +157,8 @@ describe('source.control.editor.spec', function () {
       mockCLMContextLocations.isRootOrg.and.returnValue(true);
       mockCLMContextLocations.isApplication.and.returnValue(false);
       mockCLMContextLocations.getEntityId.and.returnValue(ROOT_ORGANIZATION_ID);
-      mockSourceControlService.updateSourceControlRecord.and.returnValue(
-        saveResourceDefer.promise
-      );
-      mockSourceControlService.addSourceControlRecord.and.returnValue(
-        saveResourceDefer.promise
-      );
+      mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
+      mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockSourceControlService.getProviderTypesMap.and.returnValue({
         github: 'GitHub',
         gitlab: 'GitLab',
@@ -187,18 +167,12 @@ describe('source.control.editor.spec', function () {
       mockOrganizationStore.getById.and.callFake(function (id) {
         return id === ROOT_ORGANIZATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
-        function (ownerType, id) {
-          return ownerType === 'organization' && id === ROOT_ORGANIZATION_ID
-            ? getSourceControlDeferred.promise
-            : null;
-        }
-      );
-      mockSourceControlService.getSourceControlMetrics.and.callFake(
-        function () {
-          return { results: [] };
-        }
-      );
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
+        return ownerType === 'organization' && id === ROOT_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
+      });
+      mockSourceControlService.getSourceControlMetrics.and.callFake(function () {
+        return { results: [] };
+      });
 
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
@@ -249,9 +223,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(
-          ROOT_ORGANIZATION_ID
-        );
+        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ROOT_ORGANIZATION_ID);
         expect(vm.ownerName).toBe('rootOrganizationName');
         expect(vm.loadError).toBeUndefined();
       });
@@ -337,16 +309,15 @@ describe('source.control.editor.spec', function () {
         // when
         vm.deleteSourceControl();
         deleteServiceResourceDefer.resolve();
-        expect(
-          mockSourceControlService.deleteSourceControlRecord
-        ).toHaveBeenCalledWith('organization', ROOT_ORGANIZATION_ID);
+        expect(mockSourceControlService.deleteSourceControlRecord).toHaveBeenCalledWith(
+          'organization',
+          ROOT_ORGANIZATION_ID
+        );
 
         $scope.$digest();
 
         // then
-        expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith(
-          'edit-source-control'
-        );
+        expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('edit-source-control');
         expect(vm.loadError).toBeUndefined();
       });
     });
@@ -395,9 +366,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.addSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.addSourceControlRecord).toHaveBeenCalledWith(
           'organization',
           ROOT_ORGANIZATION_ID,
           expectedSourceControlForSave
@@ -453,9 +422,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'organization',
           ROOT_ORGANIZATION_ID,
           expectedSourceControlForSave
@@ -503,9 +470,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'organization',
           ROOT_ORGANIZATION_ID,
           expectedSourceControlForSave
@@ -835,14 +800,10 @@ describe('source.control.editor.spec', function () {
         });
 
         $scope.$digest();
-        expect(vm.getPullRequestsNotAvailableMessage()).toEqual(
-          'This feature is not supported by your licence'
-        );
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your licence');
 
         vm.dirtySourceControl.provider = 'gitlab';
-        expect(vm.getPullRequestsNotAvailableMessage()).toEqual(
-          'This feature is not supported by your licence'
-        );
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your licence');
       });
     });
 
@@ -1100,22 +1061,14 @@ describe('source.control.editor.spec', function () {
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(false);
       mockCLMContextLocations.getEntityId.and.returnValue(SUB_ORGANIZATION_ID);
-      mockSourceControlService.updateSourceControlRecord.and.returnValue(
-        saveResourceDefer.promise
-      );
-      mockSourceControlService.addSourceControlRecord.and.returnValue(
-        saveResourceDefer.promise
-      );
+      mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
+      mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockOrganizationStore.getById.and.callFake(function (id) {
         return id === SUB_ORGANIZATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
-        function (ownerType, id) {
-          return ownerType === 'organization' && id === SUB_ORGANIZATION_ID
-            ? getSourceControlDeferred.promise
-            : null;
-        }
-      );
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
+        return ownerType === 'organization' && id === SUB_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
+      });
 
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
@@ -1167,9 +1120,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(
-          SUB_ORGANIZATION_ID
-        );
+        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(SUB_ORGANIZATION_ID);
         expect(vm.ownerName).toBe('subOrganizationName');
         expect(vm.loadError).toBeUndefined();
       });
@@ -1337,9 +1288,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.addSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.addSourceControlRecord).toHaveBeenCalledWith(
           'organization',
           SUB_ORGANIZATION_ID,
           savedSourceControl
@@ -1394,9 +1343,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'organization',
           SUB_ORGANIZATION_ID,
           savedSourceControl
@@ -1443,9 +1390,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'organization',
           SUB_ORGANIZATION_ID,
           savedSourceControl
@@ -1744,9 +1689,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.statusChecksInheritText).toEqual(
-          'Inherit from Org (Enabled)'
-        );
+        expect(vm.statusChecksInheritText).toEqual('Inherit from Org (Enabled)');
       });
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
@@ -1762,9 +1705,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.statusChecksInheritText).toEqual(
-          'Inherit from Org (Disabled)'
-        );
+        expect(vm.statusChecksInheritText).toEqual('Inherit from Org (Disabled)');
       });
     });
 
@@ -1798,9 +1739,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual(
-          'Inherit from Org (Enabled)'
-        );
+        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
       });
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
@@ -1816,9 +1755,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual(
-          'Inherit from Org (Disabled)'
-        );
+        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
       });
     });
 
@@ -1936,22 +1873,14 @@ describe('source.control.editor.spec', function () {
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
       mockCLMContextLocations.getEntityId.and.returnValue(APPLICATION_ID);
-      mockSourceControlService.updateSourceControlRecord.and.returnValue(
-        saveResourceDefer.promise
-      );
-      mockSourceControlService.addSourceControlRecord.and.returnValue(
-        saveResourceDefer.promise
-      );
+      mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
+      mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
       mockApplicationStore.getById.and.callFake(function (id) {
         return id === APPLICATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
-        function (ownerType, id) {
-          return ownerType === 'application' && id === APPLICATION_ID
-            ? getSourceControlDeferred.promise
-            : null;
-        }
-      );
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function (ownerType, id) {
+        return ownerType === 'application' && id === APPLICATION_ID ? getSourceControlDeferred.promise : null;
+      });
 
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
@@ -2004,9 +1933,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockApplicationStore.getById).toHaveBeenCalledWith(
-          APPLICATION_ID
-        );
+        expect(mockApplicationStore.getById).toHaveBeenCalledWith(APPLICATION_ID);
         expect(vm.ownerName).toBe('applicationName');
         expect(vm.loadError).toBeUndefined();
       });
@@ -2176,9 +2103,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.addSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.addSourceControlRecord).toHaveBeenCalledWith(
           'application',
           APPLICATION_ID,
           savedSourceControl
@@ -2237,9 +2162,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'application',
           APPLICATION_ID,
           savedSourceControl
@@ -2298,9 +2221,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'application',
           APPLICATION_ID,
           saveSourceControl
@@ -2348,9 +2269,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'application',
           APPLICATION_ID,
           savedSourceControl
@@ -2426,9 +2345,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'application',
           APPLICATION_ID,
           savedSourceControl
@@ -2487,9 +2404,7 @@ describe('source.control.editor.spec', function () {
         $scope.$digest();
 
         // then
-        expect(
-          mockSourceControlService.updateSourceControlRecord
-        ).toHaveBeenCalledWith(
+        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith(
           'application',
           APPLICATION_ID,
           savedSourceControl
@@ -3262,9 +3177,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.statusChecksInheritText).toEqual(
-          'Inherit from Org (Enabled)'
-        );
+        expect(vm.statusChecksInheritText).toEqual('Inherit from Org (Enabled)');
       });
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
@@ -3280,9 +3193,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.statusChecksInheritText).toEqual(
-          'Inherit from Org (Disabled)'
-        );
+        expect(vm.statusChecksInheritText).toEqual('Inherit from Org (Disabled)');
       });
     });
 
@@ -3316,9 +3227,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual(
-          'Inherit from Org (Enabled)'
-        );
+        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
       });
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
@@ -3334,9 +3243,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual(
-          'Inherit from Org (Disabled)'
-        );
+        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
       });
     });
 
@@ -3385,8 +3292,7 @@ describe('source.control.editor.spec', function () {
 
         $scope.$digest();
 
-        vm.dirtySourceControl.repositoryUrl =
-          'ssh://git@github.com/owner/repo.git';
+        vm.dirtySourceControl.repositoryUrl = 'ssh://git@github.com/owner/repo.git';
         expect(vm.isSshUrl()).toBeTruthy();
 
         vm.dirtySourceControl.repositoryUrl = 'ssh://github.com/owner/repo.git';
@@ -3406,8 +3312,7 @@ describe('source.control.editor.spec', function () {
 
         $scope.$digest();
 
-        vm.dirtySourceControl.repositoryUrl =
-          'http://github.com/owner/repo.git';
+        vm.dirtySourceControl.repositoryUrl = 'http://github.com/owner/repo.git';
         expect(vm.isSshUrl()).toBeFalsy();
 
         vm.dirtySourceControl.repositoryUrl = 'ss://github.com/owner/repo.git';
@@ -3434,15 +3339,9 @@ describe('source.control.editor.spec', function () {
       it('matches when a valid HTTP(S) or SSH URL is provided', function () {
         let pattern = vm.httpAndSshUrlPattern;
         expect('https://github.com/owner/repo.git'.match(pattern)).toBeTruthy();
-        expect(
-          'http://git@github.com/owner/repo.git'.match(pattern)
-        ).toBeTruthy();
-        expect(
-          'https://git@github.com/owner/repo.git'.match(pattern)
-        ).toBeTruthy();
-        expect(
-          'ssh://git@github.com/owner/repo.git'.match(pattern)
-        ).toBeTruthy();
+        expect('http://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
+        expect('https://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
+        expect('ssh://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
         expect('git@github.com:owner/repo.git'.match(pattern)).toBeTruthy();
       });
 

@@ -1,10 +1,7 @@
 <div class="iq-list">
   <h4 class="iq-list__title" ng-if="!vm.ownerPolicyList.inherited">Local</h4>
 
-  <h4
-    class="iq-list__title"
-    ng-if="vm.ownerPolicyList.inherited && vm.ownerPolicyList.policies.length > 0"
-  >
+  <h4 class="iq-list__title" ng-if="vm.ownerPolicyList.inherited && vm.ownerPolicyList.policies.length > 0">
     Inherited from {{vm.ownerPolicyList.ownerName}}
   </h4>
 
@@ -23,18 +20,8 @@
   >
     <thead>
       <tr class="iq-table-row" ng-if="vm.ownerPolicyList.policies.length > 0">
-        <th
-          class="iq-cell iq-cell--header policy-list__threat-column"
-          sort-column="-threatLevel"
-        >
-          THREAT
-        </th>
-        <th
-          sort-column="name, -threatLevel"
-          class="iq-cell iq-cell--header policy-list__name-column"
-        >
-          NAME
-        </th>
+        <th class="iq-cell iq-cell--header policy-list__threat-column" sort-column="-threatLevel">THREAT</th>
+        <th sort-column="name, -threatLevel" class="iq-cell iq-cell--header policy-list__name-column">NAME</th>
         <th
           class="iq-cell iq-cell--header policy-list__stage-column tm-stage-{{::stage.stageTypeId}}"
           sort-column="enforcementAction['{{::stage.stageTypeId}}'], -threatLevel"
@@ -53,9 +40,7 @@
         ng-click="vm.onPolicyClick({policyId: policy.id})"
       >
         <td class="iq-cell iq-cell--policy-list-name" colspan="2">
-          <span
-            class="iq-threat-bar iq-threat-bar--policy-level-{{policy.threatLevel}}"
-          ></span>
+          <span class="iq-threat-bar iq-threat-bar--policy-level-{{policy.threatLevel}}"></span>
           <span class="iq-policy-name">{{policy.name}}</span>
         </td>
         <td

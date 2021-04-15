@@ -35,11 +35,7 @@ export default function ComponentUpdateController(
 
     // emit an event
     var promises = [];
-    $rootScope.$broadcast(
-      'component.evaluation.updated',
-      componentKey,
-      promises
-    );
+    $rootScope.$broadcast('component.evaluation.updated', componentKey, promises);
     $q.all(promises).then(
       function () {
         $scope.$dismiss();
@@ -53,17 +49,15 @@ export default function ComponentUpdateController(
   function doReevaluate() {
     delete vm.error;
 
-    $http
-      .post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash))
-      .then(
-        function () {
-          vm.reevaluated = true;
-          updateComponent();
-        },
-        function (error) {
-          vm.error = Messages.getHttpErrorMessage(error);
-        }
-      );
+    $http.post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash)).then(
+      function () {
+        vm.reevaluated = true;
+        updateComponent();
+      },
+      function (error) {
+        vm.error = Messages.getHttpErrorMessage(error);
+      }
+    );
   }
 }
 ComponentUpdateController.$inject = [

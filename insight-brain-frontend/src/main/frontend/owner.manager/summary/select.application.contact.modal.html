@@ -1,7 +1,4 @@
-<div
-  id="select-application-contact-modal"
-  ng-hide="vm.deleteMode || vm.unsavedModalVisible"
->
+<div id="select-application-contact-modal" ng-hide="vm.deleteMode || vm.unsavedModalVisible">
   <div class="iq-modal-header">
     <h2><i class="fa size-20px fa-user slate"></i>Select Contact</h2>
   </div>
@@ -24,9 +21,7 @@
       <div class="iq-form-group">
         <label for="user-search-input" id="user-search-input-label">
           Search Users
-          <span class="iq-sub-label"
-            >use ‘*’ as wildcard (ex. ‘Isa*’ matches ‘Isaac Asimov’)</span
-          >
+          <span class="iq-sub-label">use ‘*’ as wildcard (ex. ‘Isa*’ matches ‘Isaac Asimov’)</span>
         </label>
         <input
           id="user-search-input"
@@ -50,9 +45,7 @@
           Search
         </button>
       </div>
-      <div ng-if="vm.searchError" class="iq-alert">
-        <i class="fa fa-warning"></i> Search failed. {{vm.searchError}}
-      </div>
+      <div ng-if="vm.searchError" class="iq-alert"><i class="fa fa-warning"></i> Search failed. {{vm.searchError}}</div>
       <div class="form-group" ng-if="!vm.searchError">
         <label for="contact-selector" ng-if="vm.users">Results</label>
         <p ng-if="vm.users.length === 0">No results</p>
@@ -68,9 +61,7 @@
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{ error : vm.submitError }">
-      <div ng-if="vm.submitError" class="iq-alert">
-        <i class="fa fa-warning"></i> {{vm.submitError}}
-      </div>
+      <div ng-if="vm.submitError" class="iq-alert"><i class="fa fa-warning"></i> {{vm.submitError}}</div>
       <button
         ng-if="!vm.submitError"
         class="iq-btn iq-btn--primary"
@@ -81,21 +72,10 @@
       >
         Select</button
       ><!--
-   --><button
-        ng-if="vm.submitError"
-        class="iq-btn iq-btn--error"
-        type="submit"
-        ng-disabled="!vm.isDirty()"
-      >
+   --><button ng-if="vm.submitError" class="iq-btn iq-btn--error" type="submit" ng-disabled="!vm.isDirty()">
         <i class="fa fa-refresh"></i>Retry</button
       ><!--
-   --><button
-        class="iq-btn"
-        type="button"
-        id="cancel-select-contact-button"
-        ng-click="$dismiss()"
-      >
-        Cancel</button
+   --><button class="iq-btn" type="button" id="cancel-select-contact-button" ng-click="$dismiss()">Cancel</button
       ><!--
    --><button
         id="remove-contact-button"

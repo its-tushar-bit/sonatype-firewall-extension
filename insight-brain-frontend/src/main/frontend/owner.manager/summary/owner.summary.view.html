@@ -3,12 +3,7 @@
     <div class="nx-page-title iq-page-title">
       <div class="nx-btn-bar">
         <div class="iq-dropdown dropdown iq-pull-right" id="action-dropdown">
-          <button
-            class="iq-btn dropdown-toggle iq-btn--tertiary"
-            type="button"
-            id="action-menu"
-            data-toggle="dropdown"
-          >
+          <button class="iq-btn dropdown-toggle iq-btn--tertiary" type="button" id="action-menu" data-toggle="dropdown">
             Actions
             <span class="caret"></span>
           </button>
@@ -31,13 +26,8 @@
               >
                 <i class="fa fa-user fa-fw"></i>Select Contact
               </a>
-              <a
-                ng-click="vm.edit()"
-                id="app-org-link"
-                class="iq-btn iq-btn--dropdown"
-              >
-                <i class="fa fa-pencil fa-fw"></i>Edit {{::
-                vm.getShortTypeName()}} Name / Icon
+              <a ng-click="vm.edit()" id="app-org-link" class="iq-btn iq-btn--dropdown">
+                <i class="fa fa-pencil fa-fw"></i>Edit {{:: vm.getShortTypeName()}} Name / Icon
               </a>
               <a
                 ng-if="vm.isApp"
@@ -57,12 +47,7 @@
               >
                 <i class="fa fa-download fa-fw"></i>Import Policies
               </a>
-              <a
-                ng-show="vm.isApp"
-                ng-click="vm.moveApplication()"
-                id="app-move-link"
-                class="iq-btn iq-btn--dropdown"
-              >
+              <a ng-show="vm.isApp" ng-click="vm.moveApplication()" id="app-move-link" class="iq-btn iq-btn--dropdown">
                 <i class="fa fa-arrows fa-fw"></i>Move {{vm.owner.name}}
               </a>
               <a
@@ -112,8 +97,7 @@
                   ng-class="{'disabled': !vm.applicationSummary.policyEvaluations[stage.stageTypeId]}"
                   ng-click="vm.openReport(stage)"
                 >
-                  <i class="fa fa-external-link fa-fw"></i>View
-                  {{::stage.shortName | lowercase}} report
+                  <i class="fa fa-external-link fa-fw"></i>View {{::stage.shortName | lowercase}} report
                 </a>
               </div>
             </div>
@@ -121,49 +105,29 @@
         </div>
       </div>
       <h1 class="nx-h1">
-        <span owner-image="vm.owner" class="nx-icon"></span
-        ><span>{{vm.owner.name}}</span>
-        <span class="iq-owner-public-id" ng-if="vm.isApp"
-          >({{vm.owner.publicId}})</span
-        >
+        <span owner-image="vm.owner" class="nx-icon"></span><span>{{vm.owner.name}}</span>
+        <span class="iq-owner-public-id" ng-if="vm.isApp">({{vm.owner.publicId}})</span>
       </h1>
       <div class="nx-page-title__description" ng-if="vm.owner.contact">
-        <i class="fa fa-user size-12px iq-owner-contact-icon"></i
-        >{{vm.owner.contact.displayName}}
+        <i class="fa fa-user size-12px iq-owner-contact-icon"></i>{{vm.owner.contact.displayName}}
       </div>
     </div>
     <div class="iq-nav-pills-container">
       <ul class="nav nav-pills iq-nav-pills iq-nav-pills--owner">
         <li class="active iq-nav-pills__pill">
-          <a
-            data-toggle="pill"
-            id="owner-app-categories-button"
-            data-target="#owner-pill-app-categories"
-            ng-href=""
-          >
+          <a data-toggle="pill" id="owner-app-categories-button" data-target="#owner-pill-app-categories" ng-href="">
             Application Categories
           </a>
         </li>
         <!--
      -->
         <li class="iq-nav-pills__pill">
-          <a
-            data-toggle="pill"
-            id="owner-policy-button"
-            data-target="#owner-pill-policy"
-            ng-href=""
-            >Policies</a
-          >
+          <a data-toggle="pill" id="owner-policy-button" data-target="#owner-pill-policy" ng-href="">Policies</a>
         </li>
         <!--
      -->
         <li class="iq-nav-pills__pill">
-          <a
-            data-toggle="pill"
-            id="owner-grandfathering-button"
-            data-target="#owner-pill-grandfathering"
-            ng-href=""
-          >
+          <a data-toggle="pill" id="owner-grandfathering-button" data-target="#owner-pill-grandfathering" ng-href="">
             Grandfathering
           </a>
         </li>
@@ -192,21 +156,12 @@
           </a>
         </li>
       </ul>
-      <div
-        class="iq-dropdown dropdown iq-pull-right iq-dropdown--nav-pills"
-        id="nav-pill-dropdown"
-      >
-        <button
-          class="dropdown-toggle iq-btn--nav-pill"
-          type="button"
-          data-toggle="dropdown"
-        >
+      <div class="iq-dropdown dropdown iq-pull-right iq-dropdown--nav-pills" id="nav-pill-dropdown">
+        <button class="dropdown-toggle iq-btn--nav-pill" type="button" data-toggle="dropdown">
           <span class="ellipsis">…</span>
           <span class="caret"></span>
         </button>
-        <ul
-          class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--nav-pills nav nav-pills iq-nav-pills"
-        >
+        <ul class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--nav-pills nav nav-pills iq-nav-pills">
           <li class="iq-nav-pills__pill">
             <a
               data-toggle="pill"
@@ -228,44 +183,22 @@
             </a>
           </li>
           <li class="iq-nav-pills__pill">
-            <a
-              data-toggle="pill"
-              id="owner-ltgs-button"
-              data-target="#owner-pill-ltgs"
-              ng-href=""
-            >
+            <a data-toggle="pill" id="owner-ltgs-button" data-target="#owner-pill-ltgs" ng-href="">
               License threat groups
             </a>
           </li>
           <li ng-if="vm.isOrg" class="iq-nav-pills__pill">
-            <a
-              data-toggle="pill"
-              id="owner-data-retention-button"
-              data-target="#owner-pill-retention"
-              ng-href=""
-            >
+            <a data-toggle="pill" id="owner-data-retention-button" data-target="#owner-pill-retention" ng-href="">
               Data retention
             </a>
           </li>
           <li ng-if="vm.isOrg || vm.isApp" class="iq-nav-pills__pill">
-            <a
-              data-toggle="pill"
-              id="owner-source-control-button"
-              data-target="#owner-pill-source-control"
-              ng-href=""
-            >
+            <a data-toggle="pill" id="owner-source-control-button" data-target="#owner-pill-source-control" ng-href="">
               Source control
             </a>
           </li>
           <li class="iq-nav-pills__pill">
-            <a
-              data-toggle="pill"
-              id="owner-access-button"
-              data-target="#owner-pill-access"
-              ng-href=""
-            >
-              Access
-            </a>
+            <a data-toggle="pill" id="owner-access-button" data-target="#owner-pill-access" ng-href=""> Access </a>
           </li>
         </ul>
       </div>
@@ -301,33 +234,19 @@
             <hexagon class="size-20px outline iq-tile-header__icon"></hexagon>
             <h2>Application Categories</h2>
           </div>
-          <div class="iq-tile-header__subtitle">
-            assigned to {{vm.ownerName}}
-          </div>
+          <div class="iq-tile-header__subtitle">assigned to {{vm.ownerName}}</div>
         </div>
         <div class="iq-tile-content">
           <div class="iq-list">
-            <div
-              class="iq-list__item iq-list__item--empty"
-              ng-if="vm.appliedCategories.length <= 0"
-            >
-              No application categories {{vm.areAnyCategoriesDefined ?
-              'assigned' : 'defined'}}
+            <div class="iq-list__item iq-list__item--empty" ng-if="vm.appliedCategories.length <= 0">
+              No application categories {{vm.areAnyCategoriesDefined ? 'assigned' : 'defined'}}
             </div>
             <ul ng-if="vm.appliedCategories.length > 0">
-              <li
-                class="iq-list__item"
-                ng-repeat="category in vm.appliedCategories"
-              >
+              <li class="iq-list__item" ng-repeat="category in vm.appliedCategories">
                 <span class="test-list-item-title">
-                  <hexagon
-                    class="size-16px {{category.color}} hexagon--list-item"
-                  ></hexagon
-                  >{{category.name}}
+                  <hexagon class="size-16px {{category.color}} hexagon--list-item"></hexagon>{{category.name}}
                 </span>
-                <p class="iq-list__subtext" ng-if="category.description">
-                  {{category.description}}
-                </p>
+                <p class="iq-list__subtext" ng-if="category.description">{{category.description}}</p>
               </li>
             </ul>
           </div>
@@ -342,11 +261,7 @@
         reload="vm.doLoad()"
       >
         <div class="iq-tile__actions">
-          <button
-            id="add-category-button"
-            class="iq-btn iq-btn--tertiary"
-            same-owner-edit-sref="create-category"
-          >
+          <button id="add-category-button" class="iq-btn iq-btn--tertiary" same-owner-edit-sref="create-category">
             <i class="fa fa-plus"></i>Add a Category
           </button>
         </div>
@@ -355,9 +270,7 @@
             <hexagon class="size-20px outline iq-tile-header__icon"></hexagon>
             <h2>Application Categories</h2>
           </div>
-          <div class="iq-tile-header__subtitle">
-            available to apps in {{vm.ownerName}}
-          </div>
+          <div class="iq-tile-header__subtitle">available to apps in {{vm.ownerName}}</div>
         </div>
         <div class="iq-tile-content">
           <div
@@ -367,10 +280,7 @@
             ng-repeat="owner in vm.appCategoryOwners"
           >
             <h4 class="iq-list__title" ng-if="!owner.parent">Local</h4>
-            <h4
-              class="iq-list__title"
-              ng-if="owner.parent && owner.applicationCategories.length > 0"
-            >
+            <h4 class="iq-list__title" ng-if="owner.parent && owner.applicationCategories.length > 0">
               Inherited from {{owner.ownerName}}
             </h4>
             <div
@@ -385,19 +295,11 @@
                 ng-repeat="category in owner.applicationCategories"
                 ng-click="vm.editCategory(category.id, owner.parent)"
               >
-                <i
-                  class="fa fa-chevron-right iq-pull-right"
-                  ng-if="!owner.parent"
-                ></i>
+                <i class="fa fa-chevron-right iq-pull-right" ng-if="!owner.parent"></i>
                 <span class="test-list-item-title">
-                  <hexagon
-                    class="size-16px {{category.color}} hexagon--list-item"
-                  ></hexagon
-                  >{{category.name}}
+                  <hexagon class="size-16px {{category.color}} hexagon--list-item"></hexagon>{{category.name}}
                 </span>
-                <p class="iq-list__subtext" ng-if="category.description">
-                  {{category.description}}
-                </p>
+                <p class="iq-list__subtext" ng-if="category.description">{{category.description}}</p>
               </li>
             </ul>
           </div>
@@ -406,18 +308,10 @@
     </div>
   </div>
   <div ng-controller="policy.tile.controller as vm">
-    <div
-      load-wrapper="vm.error"
-      loading="!(vm.ownerName && vm.policiesByOwner)"
-      reload="vm.doLoad()"
-    >
+    <div load-wrapper="vm.error" loading="!(vm.ownerName && vm.policiesByOwner)" reload="vm.doLoad()">
       <div class="iq-tile" id="owner-pill-policy">
         <div class="iq-tile__actions">
-          <button
-            id="add-policy-button"
-            class="iq-btn iq-btn--tertiary"
-            same-owner-edit-sref="create-policy"
-          >
+          <button id="add-policy-button" class="iq-btn iq-btn--tertiary" same-owner-edit-sref="create-policy">
             <i class="fa fa-plus"></i>Add a Policy
           </button>
         </div>
@@ -426,9 +320,7 @@
             <i class="fa fa-bank size-20px slate iq-tile-header__icon"></i>
             <h2>Policies</h2>
           </div>
-          <div class="iq-tile-header__subtitle">
-            applying to {{vm.ownerName}}
-          </div>
+          <div class="iq-tile-header__subtitle">applying to {{vm.ownerName}}</div>
         </div>
         <div class="iq-tile-content">
           <owner-policy-list
@@ -450,10 +342,7 @@
         </div>
         <div class="iq-tile-content">
           <div class="iq-list iq-list--clickable" id="violation-grandfathering">
-            <div
-              class="iq-list__item iq-list__item--empty"
-              ng-if="!vm.isGrandfatheringSupported"
-            >
+            <div class="iq-list__item iq-list__item--empty" ng-if="!vm.isGrandfatheringSupported">
               Policy Violation Grandfathering is not supported by your license
             </div>
             <ul ng-if="vm.isGrandfatheringSupported">
@@ -463,9 +352,7 @@
                 id="policy-violation-grandfathering"
               >
                 <i class="fa fa-chevron-right iq-pull-right"></i>
-                <div class="test-list-item-title">
-                  {{vm.grandfatheringStatusMessage}}
-                </div>
+                <div class="test-list-item-title">{{vm.grandfatheringStatusMessage}}</div>
               </li>
             </ul>
           </div>
@@ -479,26 +366,14 @@
           </div>
         </div>
         <div class="iq-tile-content">
-          <div
-            class="iq-list"
-            id="continuous-monitoring"
-            ng-class="{'iq-list--clickable': vm.isMonitoringSupported}"
-          >
-            <div
-              class="iq-list__item iq-list__item--empty"
-              ng-if="!vm.isMonitoringSupported"
-            >
+          <div class="iq-list" id="continuous-monitoring" ng-class="{'iq-list--clickable': vm.isMonitoringSupported}">
+            <div class="iq-list__item iq-list__item--empty" ng-if="!vm.isMonitoringSupported">
               Policy monitoring is not supported by your license
             </div>
             <ul ng-if="vm.isMonitoringSupported">
               <li class="iq-list__item" same-owner-edit-sref="monitor-policy">
-                <i
-                  class="fa fa-chevron-right iq-pull-right"
-                  ng-if="vm.isMonitoringSupported"
-                ></i>
-                <div class="test-list-item-title">
-                  {{vm.monitoredStage.stageName}}
-                </div>
+                <i class="fa fa-chevron-right iq-pull-right" ng-if="vm.isMonitoringSupported"></i>
+                <div class="test-list-item-title">{{vm.monitoredStage.stageName}}</div>
               </li>
             </ul>
           </div>
@@ -512,21 +387,13 @@
           </div>
         </div>
         <div class="iq-tile-content">
-          <div
-            class="iq-list iq-list--clickable"
-            id="proprietary-component-matchers"
-          >
+          <div class="iq-list iq-list--clickable" id="proprietary-component-matchers">
             <ul>
-              <li
-                class="iq-list__item"
-                same-owner-edit-sref="proprietary-config-policy"
-              >
+              <li class="iq-list__item" same-owner-edit-sref="proprietary-config-policy">
                 <i class="fa fa-chevron-right iq-pull-right"></i>
                 <div class="test-list-item-title">
                   {{::vm.localProprietaryCount}} local<!--
-              --><span ng-if="::!vm.isRootOrg"
-                    >, {{::vm.inheritedProprietaryCount}} inherited</span
-                  >
+              --><span ng-if="::!vm.isRootOrg">, {{::vm.inheritedProprietaryCount}} inherited</span>
                 </div>
               </li>
             </ul>
@@ -535,22 +402,14 @@
       </div>
     </div>
   </div>
-  <div
-    class="iq-tile"
-    id="owner-pill-comp-labels"
-    ng-controller="LabelTileController as labelTile"
-  >
+  <div class="iq-tile" id="owner-pill-comp-labels" ng-controller="LabelTileController as labelTile">
     <div
       load-wrapper="labelTile.error"
       loading="!(labelTile.ownerName && labelTile.applicableLabels)"
       reload="labelTile.doLoad()"
     >
       <div class="iq-tile__actions">
-        <button
-          id="add-label-button"
-          same-owner-edit-sref="create-label"
-          class="iq-btn iq-btn--tertiary"
-        >
+        <button id="add-label-button" same-owner-edit-sref="create-label" class="iq-btn iq-btn--tertiary">
           <i class="fa fa-plus"></i>Add a Label
         </button>
       </div>
@@ -559,9 +418,7 @@
           <i class="fa fa-tag size-20px outline iq-tile-header__icon"></i>
           <h2>Component Labels</h2>
         </div>
-        <div class="iq-tile-header__subtitle">
-          available to {{labelTile.ownerName}} policies
-        </div>
+        <div class="iq-tile-header__subtitle">available to {{labelTile.ownerName}} policies</div>
       </div>
       <div class="iq-tile-content">
         <div
@@ -570,13 +427,8 @@
           ng-if="!ownerLabelList.inherited || (ownerLabelList.inherited && ownerLabelList.labels.length > 0)"
           ng-repeat="ownerLabelList in labelTile.applicableLabels"
         >
-          <h4 class="iq-list__title" ng-if="!ownerLabelList.inherited">
-            Local
-          </h4>
-          <h4
-            class="iq-list__title"
-            ng-if="ownerLabelList.inherited && ownerLabelList.labels.length > 0"
-          >
+          <h4 class="iq-list__title" ng-if="!ownerLabelList.inherited">Local</h4>
+          <h4 class="iq-list__title" ng-if="ownerLabelList.inherited && ownerLabelList.labels.length > 0">
             Inherited from {{ownerLabelList.ownerName}}
           </h4>
           <div
@@ -591,39 +443,21 @@
               ng-repeat="label in ownerLabelList.labels"
               ng-click="labelTile.editLabel(label.id, ownerLabelList.inherited)"
             >
-              <i
-                class="fa fa-chevron-right iq-pull-right"
-                ng-if="!ownerLabelList.inherited"
-              ></i>
+              <i class="fa fa-chevron-right iq-pull-right" ng-if="!ownerLabelList.inherited"></i>
               <span class="test-list-item-title">
-                <i class="fa fa-tag size-16px {{label.color}}"></i
-                >{{label.label}}
+                <i class="fa fa-tag size-16px {{label.color}}"></i>{{label.label}}
               </span>
-              <p class="iq-list__subtext" ng-if="label.description">
-                {{label.description}}
-              </p>
+              <p class="iq-list__subtext" ng-if="label.description">{{label.description}}</p>
             </li>
           </ul>
         </div>
       </div>
     </div>
   </div>
-  <div
-    class="iq-tile"
-    id="owner-pill-ltgs"
-    ng-controller="LicenseThreatGroupTileController as vm"
-  >
-    <div
-      load-wrapper="vm.error"
-      loading="!(vm.ownerName && vm.applicableLicenseGroups)"
-      reload="vm.doLoad()"
-    >
+  <div class="iq-tile" id="owner-pill-ltgs" ng-controller="LicenseThreatGroupTileController as vm">
+    <div load-wrapper="vm.error" loading="!(vm.ownerName && vm.applicableLicenseGroups)" reload="vm.doLoad()">
       <div class="iq-tile__actions" ng-if="vm.isOrg">
-        <button
-          id="add-ltg-button"
-          class="iq-btn iq-btn--tertiary"
-          same-owner-edit-sref="create-license-threat-group"
-        >
+        <button id="add-ltg-button" class="iq-btn iq-btn--tertiary" same-owner-edit-sref="create-license-threat-group">
           <i class="fa fa-plus"></i>Add a Threat Group
         </button>
       </div>
@@ -632,9 +466,7 @@
           <i class="fa fa-book size-20px slate iq-tile-header__icon"></i>
           <h2>License Threat Groups</h2>
         </div>
-        <div class="iq-tile-header__subtitle">
-          available to {{vm.ownerName}} policies
-        </div>
+        <div class="iq-tile-header__subtitle">available to {{vm.ownerName}} policies</div>
       </div>
       <div class="iq-tile-content" id="ltg-summary-hierarchy">
         <div
@@ -666,16 +498,9 @@
               ng-repeat="licenseThreatGroup in ownerLicenseGroupList.licenseThreatGroups | orderBy: ['-threatLevel', 'name']"
               ng-click="vm.editLTG(licenseThreatGroup.id, ownerLicenseGroupList.inherited)"
             >
-              <i
-                ng-if="!ownerLicenseGroupList.inherited"
-                class="fa fa-chevron-right iq-pull-right"
-              ></i>
-              <span
-                class="iq-threat-bar iq-threat-bar--{{licenseThreatGroup.threatLevel}}"
-              ></span>
-              <span class="test-list-item-title">
-                {{licenseThreatGroup.name}}
-              </span>
+              <i ng-if="!ownerLicenseGroupList.inherited" class="fa fa-chevron-right iq-pull-right"></i>
+              <span class="iq-threat-bar iq-threat-bar--{{licenseThreatGroup.threatLevel}}"></span>
+              <span class="test-list-item-title"> {{licenseThreatGroup.name}} </span>
             </li>
           </ul>
         </div>

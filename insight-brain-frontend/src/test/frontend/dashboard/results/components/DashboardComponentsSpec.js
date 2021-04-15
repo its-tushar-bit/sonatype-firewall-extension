@@ -18,14 +18,8 @@ describe('DashboardComponents', function () {
       stateGo: jasmine.createSpy('stateGo'),
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardComponents,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      DashboardComponents,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardComponents, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(DashboardComponents, minimalProps);
   });
 
   it('renders a DashboardComponentsTable with the appropriate props', function () {

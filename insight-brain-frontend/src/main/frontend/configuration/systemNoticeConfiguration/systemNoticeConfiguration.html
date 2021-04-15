@@ -5,24 +5,14 @@
         <h2>System Notice</h2>
       </div>
     </div>
-    <div
-      class="iq-tile-content"
-      load-wrapper="vm.error"
-      loading="!vm.loaded"
-      reload="vm.load()"
-    >
+    <div class="iq-tile-content" load-wrapper="vm.error" loading="!vm.loaded" reload="vm.load()">
       <p id="system-notice-explanation" class="iq-system-config-explanation">
-        Here you can enter a notice that will be displayed in a prominent manner
-        on all pages of IQ Server, as well as the login prompt. The notice will
-        be visible to all users and cannot be dismissed. You might want to use
-        this feature for company policy or legal compliance reasons. The 'Notice
-        Display' toggle allows you to hide or show the notice.
+        Here you can enter a notice that will be displayed in a prominent manner on all pages of IQ Server, as well as
+        the login prompt. The notice will be visible to all users and cannot be dismissed. You might want to use this
+        feature for company policy or legal compliance reasons. The 'Notice Display' toggle allows you to hide or show
+        the notice.
       </p>
-      <form
-        name="system-notice-editor"
-        class="iq-form iq-form--no-padding iq-form--no-border"
-        ng-submit="vm.save()"
-      >
+      <form name="system-notice-editor" class="iq-form iq-form--no-padding iq-form--no-border" ng-submit="vm.save()">
         <div id="system-notice-text-control-group" class="iq-form-group">
           <label for="system-notice-text" class="iq-label">Notice Text</label>
           <textarea
@@ -36,13 +26,8 @@
           ></textarea>
         </div>
         <div id="system-notice-display-control-group" class="iq-form-group">
-          <label for="system-notice-display" class="iq-label"
-            >Notice Display</label
-          >
-          <div
-            class="toggle-checkbox"
-            id="system-notice-display-toggle-checkbox"
-          >
+          <label for="system-notice-display" class="iq-label">Notice Display</label>
+          <div class="toggle-checkbox" id="system-notice-display-toggle-checkbox">
             <input
               id="system-notice-display"
               type="checkbox"
@@ -63,12 +48,7 @@
           >
             Update</button
           ><!--
-       --><button
-            id="system-notice-cancel"
-            class="iq-btn"
-            ng-disabled="!vm.isChanged()"
-            ng-click="vm.cancel()"
-          >
+       --><button id="system-notice-cancel" class="iq-btn" ng-disabled="!vm.isChanged()" ng-click="vm.cancel()">
             Cancel
           </button>
         </div>

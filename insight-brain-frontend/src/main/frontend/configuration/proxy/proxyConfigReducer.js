@@ -64,18 +64,9 @@ const initialState = {
 };
 
 const textProps = ['hostname', 'port', 'username', 'password', 'excludeHosts'];
-const hostNameValidator = combineValidators([
-  validateNonEmpty,
-  validateHostname,
-]);
-const portValidator = combineValidators([
-  validateNonEmpty,
-  validatePatternMatch(/^\d+$/, 'Must be a number'),
-]);
-const clearedErrors = pick(
-  ['loadError', 'saveError', 'deleteError'],
-  initialState
-);
+const hostNameValidator = combineValidators([validateNonEmpty, validateHostname]);
+const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
+const clearedErrors = pick(['loadError', 'saveError', 'deleteError'], initialState);
 
 function setFormStateFromServerData(state) {
   const { serverData } = state,
@@ -105,32 +96,21 @@ function computeIsDirty(state) {
   const { formState, serverData } = state;
 
   if (serverData) {
-    const isTextPropDirty = (prop) =>
-        formState[prop].trimmedValue !== (serverData[prop] || ''),
-      textPropsDirty = any(isTextPropDirty, [
-        'hostname',
-        'username',
-        'excludeHosts',
-      ]),
+    const isTextPropDirty = (prop) => formState[prop].trimmedValue !== (serverData[prop] || ''),
+      textPropsDirty = any(isTextPropDirty, ['hostname', 'username', 'excludeHosts']),
       portDirty = serverData.port.toString() !== formState.port.value,
       passwordDirty = formState.password.value !== FAKE_PASSWORD;
 
     return { ...state, isDirty: textPropsDirty || portDirty || passwordDirty };
   } else {
-    const textPropsDirty = any(
-      (prop) => formState[prop].trimmedValue !== '',
-      textProps
-    );
+    const textPropsDirty = any((prop) => formState[prop].trimmedValue !== '', textProps);
     return { ...state, isDirty: textPropsDirty };
   }
 }
 
 function computeIsValid(state) {
   const { formState } = state,
-    validationErrorsByProp = map(
-      prop('validationErrors'),
-      pick(textProps, formState)
-    ),
+    validationErrorsByProp = map(prop('validationErrors'), pick(textProps, formState)),
     isValid = !any(hasValidationErrors, values(validationErrorsByProp));
 
   return { ...state, isValid };
@@ -152,9 +132,7 @@ function computeMustReenterPassword(state) {
 
   return {
     ...state,
-    mustReenterPassword:
-      (hostname !== serverHostname || port !== serverPort) &&
-      password === FAKE_PASSWORD,
+    mustReenterPassword: (hostname !== serverHostname || port !== serverPort) && password === FAKE_PASSWORD,
   };
 }
 
@@ -178,15 +156,13 @@ function loadFulfilled(payload, state) {
   });
 }
 
-const resetForm = (_, state) =>
-  state.serverData ? loadFulfilled(state.serverData, state) : initialState;
+const resetForm = (_, state) => (state.serverData ? loadFulfilled(state.serverData, state) : initialState);
 
 function loadFailed(payload) {
   return {
     ...initialState,
     loading: false,
-    loadError:
-      payload.response && payload.response.status === 404 ? null : payload,
+    loadError: payload.response && payload.response.status === 404 ? null : payload,
   };
 }
 
@@ -242,18 +218,15 @@ function deleteFailed(payload, state) {
   };
 }
 
-const setTextInput = curryN(
-  4,
-  function setTextInput(fieldName, validator, payload, state) {
-    const stateWithUpdatedValue = pathSet(
-      ['formState', fieldName],
-      textInputStateHelpers.userInput(validator, payload),
-      state
-    );
+const setTextInput = curryN(4, function setTextInput(fieldName, validator, payload, state) {
+  const stateWithUpdatedValue = pathSet(
+    ['formState', fieldName],
+    textInputStateHelpers.userInput(validator, payload),
+    state
+  );
 
-    return updatedComputedProps(stateWithUpdatedValue);
-  }
-);
+  return updatedComputedProps(stateWithUpdatedValue);
+});
 
 const reducerActionMap = {
   [PROXY_CONFIG_LOAD_REQUESTED]: propSetConst('loading', true),

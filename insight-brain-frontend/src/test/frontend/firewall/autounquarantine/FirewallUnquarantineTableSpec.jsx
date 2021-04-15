@@ -5,13 +5,7 @@
  */
 
 import React from 'react';
-import {
-  NxTable,
-  NxTableBody,
-  NxTableCell,
-  NxOverflowTooltip,
-  NxTableRow,
-} from '@sonatype/react-shared-components';
+import { NxTable, NxTableBody, NxTableCell, NxOverflowTooltip, NxTableRow } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 
 describe('FirewallUnquarantineTable', function () {
@@ -70,10 +64,7 @@ describe('FirewallUnquarantineTable', function () {
       ],
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      FirewallUnquarantineTable,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(FirewallUnquarantineTable, minimalProps);
   });
 
   it('renders a table', () => {
@@ -89,12 +80,8 @@ describe('FirewallUnquarantineTable', function () {
       let component = getShallowComponent(),
         table = component.find(NxTable),
         tableBody = table.find(NxTableBody),
-        quarantineDate = new Date(
-          minimalProps.releaseQuarantineList[0].quarantineDate
-        ).toLocaleDateString(),
-        dateCleared = new Date(
-          minimalProps.releaseQuarantineList[0].dateCleared
-        ).toLocaleDateString();
+        quarantineDate = new Date(minimalProps.releaseQuarantineList[0].quarantineDate).toLocaleDateString(),
+        dateCleared = new Date(minimalProps.releaseQuarantineList[0].dateCleared).toLocaleDateString();
 
       // contains a row of normal data
       expect(

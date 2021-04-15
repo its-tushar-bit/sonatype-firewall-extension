@@ -14,9 +14,7 @@ const automaticSourceControlConfiguration = {
   template: template,
 };
 
-function AutomaticSourceControlConfigurationController(
-  automaticSourceControlConfigurationService
-) {
+function AutomaticSourceControlConfigurationController(automaticSourceControlConfigurationService) {
   const vm = this;
 
   Object.assign(vm, {
@@ -38,8 +36,7 @@ function AutomaticSourceControlConfigurationController(
         .getConfiguration()
         .then(function (data) {
           vm.automaticSourceControlEnabled = data.enabled;
-          vm.savedAutomaticSourceControlEnabled =
-            vm.automaticSourceControlEnabled;
+          vm.savedAutomaticSourceControlEnabled = vm.automaticSourceControlEnabled;
           vm.loaded = true;
         })
         .catch(function (error) {
@@ -48,10 +45,7 @@ function AutomaticSourceControlConfigurationController(
     },
 
     save() {
-      if (
-        !vm.isChanged() ||
-        !vm.automaticSourceControlConfigurationForm.$valid
-      ) {
+      if (!vm.isChanged() || !vm.automaticSourceControlConfigurationForm.$valid) {
         return;
       }
 
@@ -61,9 +55,7 @@ function AutomaticSourceControlConfigurationController(
         enabled: vm.automaticSourceControlEnabled,
       };
 
-      const savePromise = automaticSourceControlConfigurationService.saveConfiguration(
-        configuration
-      );
+      const savePromise = automaticSourceControlConfigurationService.saveConfiguration(configuration);
       vm.automaticSourceControlConfigurationFormMask
         .wrap(savePromise)
         .then(function (data) {
@@ -79,16 +71,11 @@ function AutomaticSourceControlConfigurationController(
     },
 
     isChanged() {
-      return (
-        vm.savedAutomaticSourceControlEnabled !==
-        vm.automaticSourceControlEnabled
-      );
+      return vm.savedAutomaticSourceControlEnabled !== vm.automaticSourceControlEnabled;
     },
   });
 }
 
-AutomaticSourceControlConfigurationController.$inject = [
-  'automaticSourceControlConfigurationService',
-];
+AutomaticSourceControlConfigurationController.$inject = ['automaticSourceControlConfigurationService'];
 
 export default automaticSourceControlConfiguration;

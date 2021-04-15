@@ -66,12 +66,8 @@ var dateFormat = (function () {
         T: 12 > e ? 'A' : 'P',
         TT: 12 > e ? 'AM' : 'PM',
         Z: h ? 'UTC' : (String(a).match(l) || ['']).pop().replace(t, ''),
-        o:
-          (0 < m ? '-' : '+') +
-          d(100 * Math.floor(Math.abs(m) / 60) + (Math.abs(m) % 60), 4),
-        S: ['th', 'st', 'nd', 'rd'][
-          3 < g % 10 ? 0 : ((10 != (g % 100) - (g % 10)) * g) % 10
-        ],
+        o: (0 < m ? '-' : '+') + d(100 * Math.floor(Math.abs(m) / 60) + (Math.abs(m) % 60), 4),
+        S: ['th', 'st', 'nd', 'rd'][3 < g % 10 ? 0 : ((10 != (g % 100) - (g % 10)) * g) % 10],
       };
     return c.replace(k, function (a) {
       return a in s ? s[a] : a.slice(1, a.length - 1);
@@ -93,9 +89,7 @@ dateFormat.masks = {
   isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'",
 };
 dateFormat.i18n = {
-  dayNames: 'Sun Mon Tue Wed Thu Fri Sat Sunday Monday Tuesday Wednesday Thursday Friday Saturday'.split(
-    ' '
-  ),
+  dayNames: 'Sun Mon Tue Wed Thu Fri Sat Sunday Monday Tuesday Wednesday Thursday Friday Saturday'.split(' '),
   monthNames: 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec January February March April May June July August September October November December'.split(
     ' '
   ),

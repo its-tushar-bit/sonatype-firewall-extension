@@ -1,25 +1,14 @@
 <section id="getting-started" class="nx-page-main">
   <header class="nx-page-title iq-page-title">
     <h1 class="nx-h1">Welcome to IQ Server</h1>
-    <div
-      class="nx-page-title__description"
-      load-wrapper="vm.error"
-      loading="vm.isLoading()"
-      reload="vm.$onInit()"
-    >
+    <div class="nx-page-title__description" load-wrapper="vm.error" loading="vm.isLoading()" reload="vm.$onInit()">
       You can access this page at any time from the help menu.
-      <i
-        class="glyphicons-sonatype medium help iq-icon--getting-started-reference"
-      ></i>
+      <i class="glyphicons-sonatype medium help iq-icon--getting-started-reference"></i>
     </div>
   </header>
 
   <div ng-if="vm.isDataLoaded()">
-    <section
-      class="iq-tile iq-alert"
-      id="hds-unreachable-warning"
-      ng-if="vm.shouldDisplayHdsUnreachable"
-    >
+    <section class="iq-tile iq-alert" id="hds-unreachable-warning" ng-if="vm.shouldDisplayHdsUnreachable">
       <div class="iq-tile-header">
         <div class="iq-tile-header__title">
           <i class="iq-tile-header__icon fa fa-warning"></i>
@@ -28,8 +17,7 @@
       </div>
       <div class="iq-tile-content">{{vm.hdsUnreachableErrorMessage}}</div>
       <div class="iq-tile-content visual-testing-ignore">
-        Search server logs for the following ID for error details:
-        {{vm.hdsUnreachableIncidentId}}
+        Search server logs for the following ID for error details: {{vm.hdsUnreachableIncidentId}}
       </div>
       <div class="iq-tile-content">
         Review the
@@ -41,10 +29,7 @@
       </div>
     </section>
 
-    <product-license-summary
-      ng-if="vm.license"
-      license="vm.license"
-    ></product-license-summary>
+    <product-license-summary ng-if="vm.license" license="vm.license"></product-license-summary>
 
     <system-setup ng-if="vm.isAuthorizedToViewSystemSetup()"></system-setup>
 

@@ -186,9 +186,7 @@ describe('proxyConfigReducer', function () {
 
       const { formState } = newState;
       expect(formState.hostname.value).toEqual('sonatype.com/host');
-      expect(formState.hostname.validationErrors).toEqual([
-        'Invalid host name',
-      ]);
+      expect(formState.hostname.validationErrors).toEqual(['Invalid host name']);
     });
 
     it('sets the hostname value when using a valid hostname', function () {

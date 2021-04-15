@@ -15,9 +15,7 @@ export default function withStoreProvider(WrappedComponent) {
       </Provider>
     );
   }
-  StoreProvider.displayName = `withStoreProvider(${getDisplayName(
-    WrappedComponent
-  )})`;
+  StoreProvider.displayName = `withStoreProvider(${getDisplayName(WrappedComponent)})`;
   StoreProvider.propTypes = {
     $ngRedux: PropTypes.shape({
       subscribe: PropTypes.func.isRequired,
@@ -33,9 +31,5 @@ withStoreProvider.propTypes = {
 };
 
 function getDisplayName(WrappedComponent) {
-  return (
-    WrappedComponent.displayName ||
-    WrappedComponent.name ||
-    'AnonymousComponent'
-  );
+  return WrappedComponent.displayName || WrappedComponent.name || 'AnonymousComponent';
 }

@@ -1,17 +1,6 @@
-<div
-  load-wrapper="vm.loadError"
-  loading="!vm.conditionTypesMap"
-  reload="vm.doLoad()"
->
-  <div
-    class="iq-policy-constraint"
-    ng-repeat="constraint in vm.constraints"
-    ng-init="constraintIndex = $index"
-  >
-    <div
-      class="iq-policy-constraint-summaries"
-      ng-if="!vm.editConstraintMap[constraint.id]"
-    >
+<div load-wrapper="vm.loadError" loading="!vm.conditionTypesMap" reload="vm.doLoad()">
+  <div class="iq-policy-constraint" ng-repeat="constraint in vm.constraints" ng-init="constraintIndex = $index">
+    <div class="iq-policy-constraint-summaries" ng-if="!vm.editConstraintMap[constraint.id]">
       <div class="iq-policy-constraint__button-container iq-pull-right">
         <button
           class="iq-btn iq-btn--tertiary iq-btn--icon-only iq-btn--edit-constraint-button"
@@ -33,55 +22,31 @@
         </button>
       </div>
       <div class="iq-policy-constraint-summary">
-        <span class="iq-policy-constraint-summary__name">
-          {{constraint.name}}
-        </span>
-        <span
-          class="iq-policy-constraint-summary__subheader"
-          ng-if="constraint.conditions.length > 1"
-        >
+        <span class="iq-policy-constraint-summary__name"> {{constraint.name}} </span>
+        <span class="iq-policy-constraint-summary__subheader" ng-if="constraint.conditions.length > 1">
           is in violation if
-          <span class="iq-policy-constraint-summary__operator"
-            >{{constraint.operator === "OR" ? "any" : "all"}}</span
-          >
+          <span class="iq-policy-constraint-summary__operator">{{constraint.operator === "OR" ? "any" : "all"}}</span>
           of the following are true:
         </span>
-        <span
-          class="iq-policy-constraint-summary__subheader"
-          ng-if="constraint.conditions.length <= 1"
-        >
+        <span class="iq-policy-constraint-summary__subheader" ng-if="constraint.conditions.length <= 1">
           is in violation if the following is true:
         </span>
         <div class="iq-list iq-list--bulleted">
-          <div
-            class="test-constraint-summary-condition"
-            ng-repeat="condition in constraint.conditions"
-          >
+          <div class="test-constraint-summary-condition" ng-repeat="condition in constraint.conditions">
             <ul>
-              <li
-                ng-if="!vm.conditionTypesMap[condition.conditionTypeId].enabled"
-              >
-                <div
-                  class="test-summary-condition-type-unsupported-message iq-alert"
-                >
-                  <i class="fa fa-warning"></i>{{::
-                  vm.conditionTypesMap[condition.conditionTypeId].name}}
-                  condition is not supported by your license. Please delete the
-                  condition.
+              <li ng-if="!vm.conditionTypesMap[condition.conditionTypeId].enabled">
+                <div class="test-summary-condition-type-unsupported-message iq-alert">
+                  <i class="fa fa-warning"></i>{{:: vm.conditionTypesMap[condition.conditionTypeId].name}} condition is
+                  not supported by your license. Please delete the condition.
                 </div>
               </li>
-              <li class="iq-list__item test-constraint-summary-condition-text">
-                {{:: vm.conditionString(condition)}}
-              </li>
+              <li class="iq-list__item test-constraint-summary-condition-text">{{:: vm.conditionString(condition)}}</li>
             </ul>
           </div>
         </div>
       </div>
     </div>
-    <div
-      class="iq-policy-constraint-editor"
-      ng-if="vm.editConstraintMap[constraint.id]"
-    >
+    <div class="iq-policy-constraint-editor" ng-if="vm.editConstraintMap[constraint.id]">
       <div class="iq-policy-constraint__button-container iq-pull-right">
         <button
           class="iq-btn iq-btn--tertiary iq-btn--icon-only iq-btn--delete-constraint-button"
@@ -94,9 +59,7 @@
         </button>
       </div>
       <div class="iq-form-group">
-        <label class="iq-label" for="editor-constraint-name-{{$index}}"
-          >Constraint Name</label
-        >
+        <label class="iq-label" for="editor-constraint-name-{{$index}}">Constraint Name</label>
         <input
           id="editor-constraint-name-{{$index}}"
           class="iq-text-input iq-text-input--wide"
@@ -133,17 +96,13 @@
         of the following are true:
 
         <div class="iq-policy-conditions">
-          <div
-            class="iq-policy-condition"
-            ng-repeat="condition in constraint.conditions"
-          >
+          <div class="iq-policy-condition" ng-repeat="condition in constraint.conditions">
             <div
               class="test-editor-condition-type-unsupported iq-alert iq-alert--form-item"
               ng-if="!vm.conditionTypesMap[condition.conditionTypeId].enabled"
             >
-              <i class="fa fa-warning"></i>{{::
-              vm.conditionTypesMap[condition.conditionTypeId].name}} condition
-              is not supported by your license. Please delete the condition.
+              <i class="fa fa-warning"></i>{{:: vm.conditionTypesMap[condition.conditionTypeId].name}} condition is not
+              supported by your license. Please delete the condition.
             </div>
             <button
               class="iq-btn iq-btn--tertiary iq-btn--icon-only iq-btn--delete-condition-button"
@@ -154,9 +113,7 @@
               <!--
               --><i class="fa fa-trash"></i>
             </button>
-            <div
-              class="iq-policy-editor-condition iq-policy-editor-condition--type"
-            >
+            <div class="iq-policy-editor-condition iq-policy-editor-condition--type">
               <dropdown-selector
                 class="editor-condition-type"
                 ng-model="condition.conditionTypeId"
@@ -173,9 +130,7 @@
               >
               </dropdown-selector>
             </div>
-            <div
-              class="iq-policy-editor-condition iq-policy-editor-condition--operator"
-            >
+            <div class="iq-policy-editor-condition iq-policy-editor-condition--operator">
               <dropdown-selector
                 class="editor-condition-operator"
                 ng-model="condition.operator"
@@ -185,9 +140,7 @@
               >
               </dropdown-selector>
             </div>
-            <div
-              class="iq-policy-editor-condition iq-policy-editor-condition--value"
-            >
+            <div class="iq-policy-editor-condition iq-policy-editor-condition--value">
               <dropdown-selector
                 ng-model="condition.value"
                 option-value-param="id"

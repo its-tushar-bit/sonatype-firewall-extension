@@ -9,8 +9,6 @@ import axios from 'axios';
 import { pathSet } from '../util/jsUtil';
 
 // Http cache-buster interceptor
-axios.interceptors.request.use((config) =>
-  pathSet(['params', 'timestamp'], Date.now(), config)
-);
+axios.interceptors.request.use((config) => pathSet(['params', 'timestamp'], Date.now(), config));
 axios.defaults.xsrfHeaderName = 'X-CSRF-TOKEN';
 axios.defaults.xsrfCookieName = 'CLM-CSRF-TOKEN';

@@ -22,21 +22,11 @@ describe('state.history.service.spec.js', function () {
   it('Adds state to history on stateChangeSuccess', function () {
     var newState = { name: 'new.state' };
 
-    $rootScope.$broadcast(
-      '$stateChangeSuccess',
-      undefined,
-      undefined,
-      newState
-    );
+    $rootScope.$broadcast('$stateChangeSuccess', undefined, undefined, newState);
     expect(StateHistoryService.getPreviousState()).toEqual(newState);
 
     var anotherState = { name: 'another.state' };
-    $rootScope.$broadcast(
-      '$stateChangeSuccess',
-      undefined,
-      undefined,
-      anotherState
-    );
+    $rootScope.$broadcast('$stateChangeSuccess', undefined, undefined, anotherState);
     expect(StateHistoryService.getPreviousState()).toEqual(anotherState);
   });
 });

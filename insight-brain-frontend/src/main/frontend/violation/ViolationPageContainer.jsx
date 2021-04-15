@@ -39,10 +39,7 @@ const mapDispatchToProps = {
   stateGo,
 };
 
-const ViolationPageContainer = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ViolationPage);
+const ViolationPageContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationPage);
 export default ViolationPageContainer;
 
 ViolationPageContainer.propTypes = pick(['$state'], ViolationPage.propTypes);

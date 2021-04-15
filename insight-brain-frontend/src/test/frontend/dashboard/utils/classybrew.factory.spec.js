@@ -40,15 +40,7 @@ describe('classybrew.factory.spec', function () {
     expect(brew.isWhiteText(2)).toBe(false);
     expect(brew.isWhiteText(3)).toBe(true);
 
-    setUpColors(brew, [
-      'lightest',
-      'light',
-      'lightish',
-      'medium',
-      'darkish',
-      'dark',
-      'darkest',
-    ]);
+    setUpColors(brew, ['lightest', 'light', 'lightish', 'medium', 'darkish', 'dark', 'darkest']);
     expect(brew.isWhiteText(1)).toBe(false);
     expect(brew.isWhiteText(2)).toBe(false);
     expect(brew.isWhiteText(3)).toBe(false);

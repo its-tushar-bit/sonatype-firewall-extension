@@ -9,9 +9,7 @@ import legacyConfigurationModule from '../../../../main/frontend/LegacyConfigura
 describe('iq-back-button component', function () {
   var getVm, $state;
 
-  beforeEach(
-    angular.mock.module(componentsModule.name, legacyConfigurationModule.name)
-  );
+  beforeEach(angular.mock.module(componentsModule.name, legacyConfigurationModule.name));
   beforeEach(inject(function ($componentController) {
     $state = jasmine.createSpyObj('$state', ['get']);
     $state.get.and.callFake(function (stateName) {
@@ -33,24 +31,18 @@ describe('iq-back-button component', function () {
   }));
 
   it('linkText supplied via argument is preferred', function () {
-    expect(
-      getVm({ stateName: 'labs.successMetrics', text: 'FOO' }).linkText
-    ).toBe('FOO');
+    expect(getVm({ stateName: 'labs.successMetrics', text: 'FOO' }).linkText).toBe('FOO');
   });
 
   it('linkText is using page title for given state', function () {
-    expect(getVm({ stateName: 'labs.successMetrics' }).linkText).toBe(
-      'Back to Success Metrics'
-    );
+    expect(getVm({ stateName: 'labs.successMetrics' }).linkText).toBe('Back to Success Metrics');
   });
 
   it('throws error if provided state does not exist', function () {
     function initWithBadState() {
       getVm({ stateName: 'bad.state' });
     }
-    expect(initWithBadState).toThrowError(
-      'Failed to display iq-back-button, provided state does not exist: bad.state'
-    );
+    expect(initWithBadState).toThrowError('Failed to display iq-back-button, provided state does not exist: bad.state');
   });
 
   it('linkText is initialized with "Back" if provided state has no "data" property', function () {

@@ -4,10 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  componentCopyrightDetailsPropType,
-  componentPropType,
-} from '../advancedLegalPropTypes';
+import { componentCopyrightDetailsPropType, componentPropType } from '../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 
@@ -24,8 +21,7 @@ export default function CopyrightList(props) {
     $state,
   } = props;
 
-  const plural = (count, name) =>
-    count > 1 ? `${count} ${name}s` : `1 ${name}`;
+  const plural = (count, name) => (count > 1 ? `${count} ${name}s` : `1 ${name}`);
 
   const listLinkClass = (index) =>
     classnames('nx-list__link', {
@@ -34,20 +30,14 @@ export default function CopyrightList(props) {
 
   const getCopyrightFileCount = (itemHash) => {
     const count = componentCopyrightDetails.copyrightFileCounts[itemHash] || -1;
-    return count > 0
-      ? `Found in ${plural(count, 'file')}`
-      : 'Not found in source files';
+    return count > 0 ? `Found in ${plural(count, 'file')}` : 'Not found in source files';
   };
 
   const attributionStatus = (item) =>
-    item.status === 'enabled'
-      ? 'Included in attribution report'
-      : 'Excluded from attribution report';
+    item.status === 'enabled' ? 'Included in attribution report' : 'Excluded from attribution report';
 
   const copyrightSource = (item) =>
-    item.originalContentHash
-      ? getCopyrightFileCount(item.originalContentHash)
-      : 'Manually added';
+    item.originalContentHash ? getCopyrightFileCount(item.originalContentHash) : 'Manually added';
 
   const listItems =
     component && component.licenseLegalData
@@ -62,9 +52,7 @@ export default function CopyrightList(props) {
               })}
               className={listLinkClass(index)}
             >
-              <div className="nx-list__text nx-truncate-ellipsis">
-                {item.content}
-              </div>
+              <div className="nx-list__text nx-truncate-ellipsis">{item.content}</div>
               <div className="nx-list__subtext">
                 <p className="copyright-detail-p">{attributionStatus(item)}</p>
                 <p className="copyright-detail-p">{copyrightSource(item)}</p>

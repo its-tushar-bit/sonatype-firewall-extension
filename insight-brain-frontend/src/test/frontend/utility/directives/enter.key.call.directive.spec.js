@@ -12,9 +12,7 @@ describe('enter.key.call.directive.js', function () {
 
   beforeEach(inject(function ($rootScope, $compile) {
     scope = $rootScope.$new();
-    element = $compile('<input enter-key-call="doSomething($event)"></div>')(
-      scope
-    );
+    element = $compile('<input enter-key-call="doSomething($event)"></div>')(scope);
     scope.$digest();
 
     scope.doSomething = function () {};

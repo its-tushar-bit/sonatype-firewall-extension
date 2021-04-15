@@ -45,11 +45,7 @@ describe('manageLegalFiltersReducer', function () {
       beforeEach(function () {
         filterJson = {
           organizationFilters: ['orgId1', 'orgId2'],
-          applicationFilters: [
-            'applicationIdZ',
-            'applicationIdA',
-            'applicationIdQ',
-          ],
+          applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
           stageTypeFilters: ['release', 'stage-release', 'build'],
           categoryFilters: ['tagId1', 'tagId2', null],
           progressOptionsFilters: ['NOT_REVIEWED'],
@@ -132,12 +128,8 @@ describe('manageLegalFiltersReducer', function () {
     });
   }
 
-  testSetsAppliedFilterNameAndShowDirtyAsterisk(
-    'LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED'
-  );
-  testSetsAppliedFilterNameAndShowDirtyAsterisk(
-    'LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED'
-  );
+  testSetsAppliedFilterNameAndShowDirtyAsterisk('LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED');
+  testSetsAppliedFilterNameAndShowDirtyAsterisk('LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED');
 
   describe('LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED action', function () {
     it('sets savedFilters to the payload and sets savedFilterListError to null', function () {
@@ -295,10 +287,7 @@ describe('manageLegalFiltersReducer', function () {
           payload: { name: 'foo' },
         };
         const newState = reduce(state, action);
-        expect(newState.savedFilters).toEqual([
-          { name: 'bar' },
-          { name: 'foo' },
-        ]);
+        expect(newState.savedFilters).toEqual([{ name: 'bar' }, { name: 'foo' }]);
         expect(newState.appliedFilterName).toBe('foo');
         expect(newState.saveFilterSuccess).toBe(true);
         expect(newState.showDirtyAsterisk).toBe(false);

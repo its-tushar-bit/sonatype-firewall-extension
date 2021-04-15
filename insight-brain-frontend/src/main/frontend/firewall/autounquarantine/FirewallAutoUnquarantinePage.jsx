@@ -35,11 +35,7 @@ export default function FirewallAutoUnquarantinePage(props) {
   // state
   const { $state } = props;
 
-  const dataLoaded = isDataLoaded(
-    loadedStatus,
-    loadedReleaseQuarantineSummary,
-    loadedConfiguration
-  );
+  const dataLoaded = isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration);
 
   const error = determineError(loadedStatus, isEnabled, loadError);
 
@@ -50,22 +46,14 @@ export default function FirewallAutoUnquarantinePage(props) {
   return (
     <main id="firewall-auto-unquarantine-page" className="nx-page-main">
       <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadData}>
-        <BackButton
-          stateName="firewall"
-          $state={$state}
-          text="Back to Quarantine"
-        />
+        <BackButton stateName="firewall" $state={$state} text="Back to Quarantine" />
         {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
         <div className="nx-page-title">
           <h1 className="nx-h1">Auto Release from Quarantine</h1>
         </div>
         <div className="nx-card-container nx-card-container--no-wrap">
-          <FirewallAutoReleaseQuarantineMtd
-            autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}
-          />
-          <FirewallAutoReleaseQuarantineYtd
-            autoReleaseQuarantineCountYTD={autoReleaseQuarantineCountYTD}
-          />
+          <FirewallAutoReleaseQuarantineMtd autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD} />
+          <FirewallAutoReleaseQuarantineYtd autoReleaseQuarantineCountYTD={autoReleaseQuarantineCountYTD} />
           <FirewallAutoUnquarantineStatus {...props} />
         </div>
         <FirewallUnquarantineTable {...props} />
@@ -83,11 +71,7 @@ function determineError(loadedStatus, isEnabled, loadError) {
   }
 }
 
-function isDataLoaded(
-  loadedStatus,
-  loadedReleaseQuarantineSummary,
-  loadedConfiguration
-) {
+function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration) {
   return loadedStatus && loadedReleaseQuarantineSummary && loadedConfiguration;
 }
 

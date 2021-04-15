@@ -60,9 +60,7 @@ describe('jira.service.js', function () {
     'jira.service',
     function (jiraService) {
       var expectedProjects = JiraServiceMockData.getJiraProjectsUrl();
-      $httpBackend
-        .expectGET(CLMLocations.getJiraProjectsUrl())
-        .respond(expectedProjects);
+      $httpBackend.expectGET(CLMLocations.getJiraProjectsUrl()).respond(expectedProjects);
 
       jiraService.getJiraProjects().then(function (projects) {
         expect(projects).toEqual(expectedProjects);
@@ -78,9 +76,7 @@ describe('jira.service.js', function () {
     function (jiraService, $timeout) {
       var getProjectsIsCalledAgain;
       var expectedProjects = JiraServiceMockData.getJiraProjectsUrl();
-      $httpBackend
-        .expectGET(CLMLocations.getJiraProjectsUrl())
-        .respond(expectedProjects);
+      $httpBackend.expectGET(CLMLocations.getJiraProjectsUrl()).respond(expectedProjects);
 
       jiraService.getJiraProjects().then(function (projects) {
         expect(projects).toEqual(expectedProjects);

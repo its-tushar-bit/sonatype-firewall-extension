@@ -30,16 +30,12 @@ export const Messages = {
       return Messages.getHttpErrorMessage(args.response);
     } else {
       let message = '',
-        headers = angular.isFunction(args.headers)
-          ? args.headers()
-          : args.headers;
+        headers = angular.isFunction(args.headers) ? args.headers() : args.headers;
       if (args.status <= 0 || args.status >= 1000) {
         message = 'Unable to reach Nexus IQ Server';
       } else if (
         args.data &&
-        (!headers ||
-          !headers['content-type'] ||
-          headers['content-type'].indexOf('text/html') === -1)
+        (!headers || !headers['content-type'] || headers['content-type'].indexOf('text/html') === -1)
       ) {
         message = args.data;
       }
@@ -212,11 +208,7 @@ function ElapsedTimeFunctionFactory(rules) {
  */
 services.filter('agoLastDay', function () {
   return function (agoString) {
-    if (
-      agoString.indexOf('seconds ago') > -1 ||
-      agoString.indexOf('minute') > -1 ||
-      agoString.indexOf('hour') > -1
-    ) {
+    if (agoString.indexOf('seconds ago') > -1 || agoString.indexOf('minute') > -1 || agoString.indexOf('hour') > -1) {
       return 'Less than a day ago';
     }
     return agoString;
@@ -324,18 +316,12 @@ services.filter('fileName', function () {
     var pathDelimiter = '/';
     var stringPath = String(path);
     // Avoid checking the last character as paths might end in a delimiter.
-    var lastIndexOfDelimiter = stringPath.lastIndexOf(
-      pathDelimiter,
-      stringPath.length - 2
-    );
+    var lastIndexOfDelimiter = stringPath.lastIndexOf(pathDelimiter, stringPath.length - 2);
 
     if (lastIndexOfDelimiter > -1) {
       // If the last character is a delimiter, do not return it.
       if (stringPath.charAt(stringPath.length - 1) === pathDelimiter) {
-        return stringPath.substring(
-          lastIndexOfDelimiter + 1,
-          stringPath.length - 1
-        );
+        return stringPath.substring(lastIndexOfDelimiter + 1, stringPath.length - 1);
       }
 
       return stringPath.substring(lastIndexOfDelimiter + 1);

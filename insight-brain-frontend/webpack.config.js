@@ -18,16 +18,10 @@ const CopyPlugin = require('copy-webpack-plugin');
 const CopyModulesPlugin = require('copy-modules-webpack-plugin');
 
 const webpackOutputPath = 'assets';
-const webpackOutputDir = path.resolve(
-  __dirname,
-  'target/classes',
-  webpackOutputPath
-);
+const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutputPath);
 
 function extractFromPom(nodeName) {
-  const doc = new DOMParser().parseFromString(
-    fs.readFileSync('pom.xml', 'utf-8')
-  );
+  const doc = new DOMParser().parseFromString(fs.readFileSync('pom.xml', 'utf-8'));
   const node = doc.documentElement.getElementsByTagName(nodeName)[0];
   return node.firstChild.nodeValue;
 }
@@ -45,10 +39,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
     let contentStr = content.toString();
 
     for (let key in buildConstants) {
-      contentStr = contentStr.replace(
-        new RegExp(key, 'g'),
-        buildConstants[key]
-      );
+      contentStr = contentStr.replace(new RegExp(key, 'g'), buildConstants[key]);
     }
 
     return Buffer.from(contentStr);
@@ -105,11 +96,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
           presets: [['env', { modules: false }]],
           // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
           // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
-          plugins: [
-            transformObjectRestSpread,
-            transformJsx,
-            [transformRuntime, { polyfill: false }],
-          ],
+          plugins: [transformObjectRestSpread, transformJsx, [transformRuntime, { polyfill: false }]],
         },
       },
     };
@@ -141,15 +128,11 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
           use: 'eslint-loader',
         },
         {
-          test: require.resolve(
-            path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')
-          ),
+          test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')),
           use: 'exports-loader?pv',
         },
         {
-          test: require.resolve(
-            path.join(__dirname, 'src/main/frontend/lib/Base64')
-          ),
+          test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/Base64')),
           use: 'exports-loader?Base64',
         },
         {

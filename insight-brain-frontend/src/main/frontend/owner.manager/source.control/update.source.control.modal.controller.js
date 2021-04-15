@@ -3,12 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function UpdateSourceControlModalController(
-  $scope,
-  Messages,
-  continueAction,
-  dismissOnError
-) {
+export default function UpdateSourceControlModalController($scope, Messages, continueAction, dismissOnError) {
   var vm = this;
 
   vm.updateSourceControl = updateSourceControl;
@@ -35,9 +30,4 @@ export default function UpdateSourceControlModalController(
   }
 }
 
-UpdateSourceControlModalController.$inject = [
-  '$scope',
-  'Messages',
-  'continueAction',
-  'dismissOnError',
-];
+UpdateSourceControlModalController.$inject = ['$scope', 'Messages', 'continueAction', 'dismissOnError'];

@@ -21,15 +21,12 @@ export default function ReportTableRow(props) {
   const { index, component } = props;
 
   const dependencyTooltipTitle =
-      component.derivedDependencyType === 'direct'
-        ? 'Direct Dependency'
-        : 'Transitive Dependency',
+      component.derivedDependencyType === 'direct' ? 'Direct Dependency' : 'Transitive Dependency',
     dependencyIndicatorClasses = classnames('iq-dependency-indicator', {
       direct: component.derivedDependencyType === 'direct',
       transitive: component.derivedDependencyType === 'transitive',
     }),
-    dependencyIndicator =
-      component.derivedDependencyType === 'direct' ? 'D' : 'T';
+    dependencyIndicator = component.derivedDependencyType === 'direct' ? 'D' : 'T';
 
   return (
     <NxTableRow key={index}>

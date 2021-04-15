@@ -32,9 +32,7 @@ describe('webhook.list.controller.spec.js', function () {
   });
 
   it('Properly Loads Webhooks', function () {
-    $httpBackend
-      .expectGET(CLMLocations.getWebhooksUrl())
-      .respond(webhookMockData.getWebhooks());
+    $httpBackend.expectGET(CLMLocations.getWebhooksUrl()).respond(webhookMockData.getWebhooks());
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
     $httpBackend.flush();
 
@@ -43,9 +41,7 @@ describe('webhook.list.controller.spec.js', function () {
   });
 
   it('Missing Webhooks', function () {
-    $httpBackend
-      .expectGET(CLMLocations.getWebhooksUrl())
-      .respond(400, 'Bad Request');
+    $httpBackend.expectGET(CLMLocations.getWebhooksUrl()).respond(400, 'Bad Request');
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
     $httpBackend.flush();
 

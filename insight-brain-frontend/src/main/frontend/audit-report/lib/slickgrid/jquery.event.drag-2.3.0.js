@@ -107,11 +107,7 @@
         // check for suppressed selector
         if ($(event.target).is(dd.not)) return;
         // check for handle selector
-        if (
-          dd.handle &&
-          !$(event.target).closest(dd.handle, event.currentTarget).length
-        )
-          return;
+        if (dd.handle && !$(event.target).closest(dd.handle, event.currentTarget).length) return;
 
         drag.touched = event.type == 'touchstart' ? this : null;
         dd.propagates = 1;
@@ -137,13 +133,11 @@
         // remember how many interactions are propagating
         dd.propagates = dd.interactions.length;
         // locate and init the drop targets
-        if (dd.drop !== false && $special.drop)
-          $special.drop.handler(event, dd);
+        if (dd.drop !== false && $special.drop) $special.drop.handler(event, dd);
         // disable text selection
         drag.textselect(false);
         // bind additional events...
-        if (drag.touched)
-          $event.add(drag.touched, 'touchmove touchend', drag.handler, dd);
+        if (drag.touched) $event.add(drag.touched, 'touchmove touchend', drag.handler, dd);
         else $event.add(document, 'mousemove mouseup', drag.handler, dd);
         // helps prevent text selection or scrolling
         if (!drag.touched || dd.live) return false;
@@ -177,11 +171,7 @@
             event.preventDefault();
           case !dd.dragging && 'mousemove':
             //  drag tolerance, x² + y² = distance²
-            if (
-              Math.pow(event.pageX - dd.pageX, 2) +
-                Math.pow(event.pageY - dd.pageY, 2) <
-              Math.pow(dd.distance, 2)
-            )
+            if (Math.pow(event.pageX - dd.pageX, 2) + Math.pow(event.pageY - dd.pageY, 2) < Math.pow(dd.distance, 2))
               break; // distance tolerance not reached
             event.target = dd.target; // force target from "mousedown" event (fix distance issue)
             drag.hijack(event, 'dragstart', dd); // trigger "dragstart"
@@ -197,8 +187,7 @@
               drag.hijack(event, 'drag', dd);
               if (dd.propagates) {
                 // manage drop events
-                if (dd.drop !== false && $special.drop)
-                  $special.drop.handler(event, dd); // "dropstart", "dropend"
+                if (dd.drop !== false && $special.drop) $special.drop.handler(event, dd); // "dropstart", "dropend"
                 break; // "drag" not rejected, stop
               }
               event.type = 'mouseup'; // helps "drop" handler behave
@@ -207,19 +196,16 @@
           case 'touchend':
           case 'mouseup':
           default:
-            if (drag.touched)
-              $event.remove(drag.touched, 'touchmove touchend', drag.handler);
+            if (drag.touched) $event.remove(drag.touched, 'touchmove touchend', drag.handler);
             // remove touch events
             else $event.remove(document, 'mousemove mouseup', drag.handler); // remove page events
             if (dd.dragging) {
-              if (dd.drop !== false && $special.drop)
-                $special.drop.handler(event, dd); // "drop"
+              if (dd.drop !== false && $special.drop) $special.drop.handler(event, dd); // "drop"
               drag.hijack(event, 'dragend', dd); // trigger "dragend"
             }
             drag.textselect(true); // enable text selection
             // if suppressing click events...
-            if (dd.click === false && dd.dragging)
-              $.data(dd.mousedown, 'suppress.click', new Date().getTime() + 5);
+            if (dd.click === false && dd.dragging) $.data(dd.mousedown, 'suppress.click', new Date().getTime() + 5);
             dd.dragging = drag.touched = false; // deactivate element
             break;
         }
@@ -269,9 +255,7 @@
                 return false;
               };
               // handle the event
-              result = subject
-                ? $event.dispatch.call(subject, event, callback)
-                : null;
+              result = subject ? $event.dispatch.call(subject, event, callback) : null;
               // stop the drag interaction for this element
               if (result === false) {
                 if (mode == 'drag') {
@@ -283,11 +267,9 @@
                 }
               }
               // assign any dropinit elements
-              else if (type == 'dropinit')
-                ia.droppable.push(drag.element(result) || subject);
+              else if (type == 'dropinit') ia.droppable.push(drag.element(result) || subject);
               // accept a returned proxy element
-              if (type == 'dragstart')
-                ia.proxy = $(drag.element(result) || ia.drag)[0];
+              if (type == 'dragstart') ia.proxy = $(drag.element(result) || ia.drag)[0];
               // remember this result
               ia.results.push(result);
               // forget the event result, for recycling

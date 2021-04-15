@@ -29,10 +29,7 @@ describe('reduxUtil', function () {
       'returns a function that takes a single parameter which is then run through the specified mapper function to' +
         'produce the payload of the returned action',
       function () {
-        const actionCreator = reduxUtil.mappedPayloadParamActionCreator(
-          'BAZ',
-          (str) => str.trim()
-        );
+        const actionCreator = reduxUtil.mappedPayloadParamActionCreator('BAZ', (str) => str.trim());
 
         expect(actionCreator).toEqual(jasmine.any(Function));
         expect(actionCreator('   abcdef\t')).toEqual({

@@ -3,13 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function GrandfatherModalController(
-  $scope,
-  $http,
-  Messages,
-  CLMLocations,
-  selectedApplication
-) {
+export default function GrandfatherModalController($scope, $http, Messages, CLMLocations, selectedApplication) {
   const vm = this;
 
   Object.assign(vm, {
@@ -34,10 +28,4 @@ export default function GrandfatherModalController(
   });
 }
 
-GrandfatherModalController.$inject = [
-  '$scope',
-  '$http',
-  'Messages',
-  'CLMLocations',
-  'selectedApplication',
-];
+GrandfatherModalController.$inject = ['$scope', '$http', 'Messages', 'CLMLocations', 'selectedApplication'];

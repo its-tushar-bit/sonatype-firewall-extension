@@ -10,10 +10,7 @@ import { gotoNewVulnerability, loadSidebarNav } from './sidebarNavListActions';
 import SidebarNavList from './SidebarNavList';
 
 function mapStateToProps({ sidebarNavList, router, violation }) {
-  let props = pick(
-    ['data', 'error', 'loading', 'contentType', 'backButtonStateName'],
-    sidebarNavList
-  );
+  let props = pick(['data', 'error', 'loading', 'contentType', 'backButtonStateName'], sidebarNavList);
 
   if (!props.contentType) {
     const currentStateName = router.currentState.name;

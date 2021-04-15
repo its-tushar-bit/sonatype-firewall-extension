@@ -235,9 +235,7 @@
 
       @for $i from 1 through 3 {
         &:nth-child(#{$i + 1}) {
-          top: #{$toolbar-padding +
-            ($toolbar-btn-width + $toolbar-padding) *
-            $i};
+          top: #{$toolbar-padding + ($toolbar-btn-width + $toolbar-padding) * $i};
         }
       }
     }

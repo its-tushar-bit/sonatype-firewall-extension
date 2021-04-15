@@ -19,9 +19,7 @@ describe('delete.modal.controller.spec.js', function () {
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy();
     continueActionDeferred = $q.defer();
-    continueAction = jasmine
-      .createSpy()
-      .and.returnValue(continueActionDeferred.promise);
+    continueAction = jasmine.createSpy().and.returnValue(continueActionDeferred.promise);
 
     vm = $controller('DeleteModalController', {
       $scope: scope,

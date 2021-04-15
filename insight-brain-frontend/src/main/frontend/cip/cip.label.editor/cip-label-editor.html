@@ -8,44 +8,23 @@
 >
   <div clm-alerts="alerts"></div>
   <div id="available-labels">
-    <h5>
-      Available <i class="icon-refresh tm-refresh" ng-click="doLoad()"></i>
-    </h5>
+    <h5>Available <i class="icon-refresh tm-refresh" ng-click="doLoad()"></i></h5>
     <div class="cip-label-container">
       <span
         ng-repeat="label in availableLabels | filter:isApplied | orderBy:'label'"
         class="clmLabel tm-label {{label.color}}"
       >
-        <span
-          tooltip="{{label.description || label.label}}"
-          tooltip-placement="right"
-          >{{label.label}}</span
-        >&nbsp;
-        <i
-          class="icon-plus-sign"
-          ng-class='{ "icon-white" : isWhite(label) }'
-          ng-click="addLabel(label)"
-        ></i>
+        <span tooltip="{{label.description || label.label}}" tooltip-placement="right">{{label.label}}</span>&nbsp;
+        <i class="icon-plus-sign" ng-class='{ "icon-white" : isWhite(label) }' ng-click="addLabel(label)"></i>
       </span>
     </div>
   </div>
   <div id="applied-labels">
     <h5>Applied <i class="icon-refresh tm-refresh" ng-click="doLoad()"></i></h5>
     <div class="cip-label-container">
-      <span
-        ng-repeat="label in itemLabels | orderBy:'label'"
-        class="clmLabel tm-label {{label.color}}"
-      >
-        <span
-          tooltip="{{label.description || label.label}}"
-          tooltip-placement="top"
-          >{{label.label}}</span
-        >&nbsp;
-        <i
-          class="icon-minus-sign"
-          ng-class='{ "icon-white" : isWhite(label) }'
-          ng-click="removeLabel(label)"
-        ></i>
+      <span ng-repeat="label in itemLabels | orderBy:'label'" class="clmLabel tm-label {{label.color}}">
+        <span tooltip="{{label.description || label.label}}" tooltip-placement="top">{{label.label}}</span>&nbsp;
+        <i class="icon-minus-sign" ng-class='{ "icon-white" : isWhite(label) }' ng-click="removeLabel(label)"></i>
       </span>
     </div>
   </div>

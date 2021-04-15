@@ -35,10 +35,7 @@ function componentCountsChartController(successMetricsDataService) {
   );
 
   function showRow(componentDisplayName) {
-    return (
-      componentDisplayName.indexOf(successMetricsDataService.EMPTY_PREFIX) ===
-      -1
-    );
+    return componentDisplayName.indexOf(successMetricsDataService.EMPTY_PREFIX) === -1;
   }
 }
 

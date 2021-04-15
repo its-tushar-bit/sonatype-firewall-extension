@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  NxModal,
-  NxSubmitMask,
-  NxWarningAlert,
-} from '@sonatype/react-shared-components';
+import { NxModal, NxSubmitMask, NxWarningAlert } from '@sonatype/react-shared-components';
 import NxTextInput from '@sonatype/react-shared-components/components/NxTextInput/NxTextInput';
 
 import * as enzymeUtils from '../../../enzymeUtils';
@@ -17,9 +13,7 @@ describe('SaveFilterModalContent component', function () {
   let getShallowComponent;
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      SaveFilterModalContent
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(SaveFilterModalContent);
   });
 
   it('returns an NxModal component', function () {
@@ -52,10 +46,7 @@ describe('SaveFilterModalContent component', function () {
   it('shows the save filter form initially', () => {
     const wrapper = getShallowComponent();
     expect(wrapper.find('.nx-h2 span').text()).toBe('Save Filter');
-    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp(
-      'disabled',
-      true
-    );
+    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp('disabled', true);
     expect(wrapper.find('#dashboard-filter-save-as')).toExist();
     expect(wrapper.find('#save-filter-modal-continue-button')).toExist();
     expect(wrapper.find('#save-filter-modal-cancel-button')).toExist();
@@ -78,13 +69,8 @@ describe('SaveFilterModalContent component', function () {
     const wrapper = getShallowComponent({
       appliedFilterName: 'mario',
     });
-    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp(
-      'isChecked',
-      true
-    );
-    expect(wrapper.find('#dashboard-filter-overwrite').text()).toBe(
-      'save (overwrite mario)'
-    );
+    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp('isChecked', true);
+    expect(wrapper.find('#dashboard-filter-overwrite').text()).toBe('save (overwrite mario)');
   });
 
   it('checks the save as radio button and shows the save as text box if you dont have an active filter', () => {
@@ -93,10 +79,7 @@ describe('SaveFilterModalContent component', function () {
     expect(overwriteRadioButton).toHaveProp('isChecked', false);
     expect(overwriteRadioButton).toHaveProp('disabled', true);
 
-    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp(
-      'isChecked',
-      true
-    );
+    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp('isChecked', true);
     expect(wrapper.find(NxTextInput)).toExist();
   });
 
@@ -131,10 +114,7 @@ describe('SaveFilterModalContent component', function () {
     const saveAsTextBox = wrapper.find(NxTextInput);
     saveAsTextBox.simulate('change', 'awesome new filter');
 
-    expect(wrapper.find('#save-filter-modal-continue-button')).toHaveProp(
-      'disabled',
-      false
-    );
+    expect(wrapper.find('#save-filter-modal-continue-button')).toHaveProp('disabled', false);
 
     const form = wrapper.find('form');
     const preventDefaultSpy = jasmine.createSpy('preventDefault');
@@ -156,10 +136,7 @@ describe('SaveFilterModalContent component', function () {
       saveFilter: saveFilterSpy,
     });
 
-    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp(
-      'isChecked',
-      true
-    );
+    expect(wrapper.find('#dashboard-filter-overwrite')).toHaveProp('isChecked', true);
     const submitButton = wrapper.find('#save-filter-modal-continue-button');
     expect(submitButton).toHaveProp('disabled', false);
 
@@ -186,10 +163,7 @@ describe('SaveFilterModalContent component', function () {
     const saveAsTextBox = wrapper.find(NxTextInput);
     saveAsTextBox.simulate('change', ' mario   ');
 
-    expect(wrapper.find('#save-filter-modal-continue-button')).toHaveProp(
-      'disabled',
-      false
-    );
+    expect(wrapper.find('#save-filter-modal-continue-button')).toHaveProp('disabled', false);
 
     let warningAlert = wrapper.find(NxWarningAlert);
     expect(warningAlert).not.toExist();
@@ -211,10 +185,7 @@ describe('SaveFilterModalContent component', function () {
   it('disables the save button if there is no value in the save as text box', () => {
     const wrapper = getShallowComponent();
 
-    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp(
-      'isChecked',
-      true
-    );
+    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp('isChecked', true);
     const saveAsTextBox = wrapper.find(NxTextInput);
     expect(saveAsTextBox).toExist();
     let submitButton = wrapper.find('#save-filter-modal-continue-button');
@@ -228,26 +199,17 @@ describe('SaveFilterModalContent component', function () {
   it('disables the save button if there is a value in the save as text box more than 60 chars', () => {
     const wrapper = getShallowComponent();
 
-    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp(
-      'isChecked',
-      true
-    );
+    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp('isChecked', true);
     const saveAsTextBox = wrapper.find(NxTextInput);
     expect(saveAsTextBox).toExist();
     let submitButton = wrapper.find('#save-filter-modal-continue-button');
     expect(submitButton).toHaveProp('disabled', true);
 
-    saveAsTextBox.simulate(
-      'change',
-      'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh'
-    );
+    saveAsTextBox.simulate('change', 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefgh');
     submitButton = wrapper.find('#save-filter-modal-continue-button');
     expect(submitButton).toHaveProp('disabled', false);
 
-    saveAsTextBox.simulate(
-      'change',
-      'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghi'
-    );
+    saveAsTextBox.simulate('change', 'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghi');
     submitButton = wrapper.find('#save-filter-modal-continue-button');
     expect(submitButton).toHaveProp('disabled', true);
   });
@@ -255,10 +217,7 @@ describe('SaveFilterModalContent component', function () {
   it('disables the save button if the value in the save as text box is "Default"', () => {
     const wrapper = getShallowComponent();
 
-    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp(
-      'isChecked',
-      true
-    );
+    expect(wrapper.find('#dashboard-filter-save-as')).toHaveProp('isChecked', true);
     const saveAsTextBox = wrapper.find(NxTextInput);
     expect(saveAsTextBox).toExist();
     let submitButton = wrapper.find('#save-filter-modal-continue-button');

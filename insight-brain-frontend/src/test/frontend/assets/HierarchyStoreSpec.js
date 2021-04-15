@@ -32,9 +32,7 @@ describe('HierarchyStoreFactory', function () {
     };
   }
 
-  beforeEach(
-    angular.mock.module(resourceModule.name, clmContextLocationModule.name)
-  );
+  beforeEach(angular.mock.module(resourceModule.name, clmContextLocationModule.name));
 
   beforeEach(inject(function (HierarchyStoreFactory) {
     store = HierarchyStoreFactory.getStore({
@@ -64,14 +62,10 @@ describe('HierarchyStoreFactory', function () {
     expect(result[0].ownerId).toEqual('foo');
     // check the resource PUTs to the right URL
     $httpBackend.expectPUT(storeUrl).respond(200);
-    result[0].policies[0]
-      .$save()
-      .then(angular.noop(), getUnexpectedErrorHandler());
+    result[0].policies[0].$save().then(angular.noop(), getUnexpectedErrorHandler());
     $httpBackend.flush();
     // check store refresh() updates the resource
-    $httpBackend
-      .expectGET(storeUrl)
-      .respond([{ name: 'First Policy - Updated' }]);
+    $httpBackend.expectGET(storeUrl).respond([{ name: 'First Policy - Updated' }]);
     result[0].store.refresh().then(angular.noop(), getUnexpectedErrorHandler());
     $httpBackend.flush();
     expect(result[0].policies[0].name).toBe('First Policy - Updated');
@@ -79,14 +73,10 @@ describe('HierarchyStoreFactory', function () {
     expect(result[1].ownerId).toEqual('bar');
     // check the resource PUTs to the right URL
     $httpBackend.expectPUT(storeUrl).respond(200);
-    result[1].policies[0]
-      .$save()
-      .then(angular.noop(), getUnexpectedErrorHandler());
+    result[1].policies[0].$save().then(angular.noop(), getUnexpectedErrorHandler());
     $httpBackend.flush();
     // check store refresh() updates the resource
-    $httpBackend
-      .expectGET(storeUrl)
-      .respond([{ name: 'Second Policy - Updated' }]);
+    $httpBackend.expectGET(storeUrl).respond([{ name: 'Second Policy - Updated' }]);
     result[1].store.refresh().then(angular.noop(), getUnexpectedErrorHandler());
     $httpBackend.flush();
     expect(result[1].policies[0].name).toBe('Second Policy - Updated');
@@ -119,9 +109,7 @@ describe('HierarchyStoreFactory', function () {
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  it('refresh() reloads whether in error state or not', inject(function (
-    $httpBackend
-  ) {
+  it('refresh() reloads whether in error state or not', inject(function ($httpBackend) {
     // first, fail the request so we're in error state
     store.get().then(angular.noop(), function (error) {
       expect(error).toBeDefined();
@@ -193,9 +181,7 @@ describe('HierarchyStoreFactory', function () {
           expect(result.id).toEqual('xxx');
         }));
 
-        it('is still missing after reload and results in error', inject(function (
-          $httpBackend
-        ) {
+        it('is still missing after reload and results in error', inject(function ($httpBackend) {
           var result = null;
 
           store.getById('xxx').then(angular.noop, function (error) {

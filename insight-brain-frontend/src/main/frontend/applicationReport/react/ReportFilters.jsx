@@ -4,11 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxFieldset,
-  NxRadio,
-  NxStatefulTreeViewMultiSelect,
-} from '@sonatype/react-shared-components';
+import { NxFieldset, NxRadio, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 
 import IqTreeViewPolicyThreatSlider from '../../react/IqTreeViewPolicyThreatSlider';
 import { policyTypes } from '../../dashboard/filter/staticFilterEntries';
@@ -63,37 +59,22 @@ export default function ReportFilters(props) {
     aggregate,
   } = props;
 
-  const {
-    proprietary = [],
-    derivedViolationState = new Set(),
-    policyThreatLevel,
-  } = exactValueFilters;
+  const { proprietary = [], derivedViolationState = new Set(), policyThreatLevel } = exactValueFilters;
 
   const derivedSelectedProprietaryOptions = new Set(
-    [...proprietary].map((option) =>
-      option ? 'proprietary' : 'nonProprietary'
-    )
+    [...proprietary].map((option) => (option ? 'proprietary' : 'nonProprietary'))
   );
 
-  const violationStateCheckedIds = new Set(
-    reject(equals('waived+grandfathered'), setToArray(derivedViolationState))
-  );
+  const violationStateCheckedIds = new Set(reject(equals('waived+grandfathered'), setToArray(derivedViolationState)));
 
   const onSelectionChange = (filterName, selectedIds) => {
-    setExactValueFilter(
-      filterName,
-      new Set(mapActionIds(filterName, selectedIds))
-    );
+    setExactValueFilter(filterName, new Set(mapActionIds(filterName, selectedIds)));
   };
 
-  const setSelectedProprietaryOptions = (selectedIds) =>
-      onSelectionChange('proprietary', selectedIds),
-    setSelectedMatchStateOptions = (selectedIds) =>
-      onSelectionChange('matchState', selectedIds),
-    setSelectedDependencyTypeOptions = (selectedIds) =>
-      onSelectionChange('derivedDependencyType', selectedIds),
-    setSelectedPolicyTypeOptions = (selectedIds) =>
-      onSelectionChange('policyThreatCategory', selectedIds);
+  const setSelectedProprietaryOptions = (selectedIds) => onSelectionChange('proprietary', selectedIds),
+    setSelectedMatchStateOptions = (selectedIds) => onSelectionChange('matchState', selectedIds),
+    setSelectedDependencyTypeOptions = (selectedIds) => onSelectionChange('derivedDependencyType', selectedIds),
+    setSelectedPolicyTypeOptions = (selectedIds) => onSelectionChange('policyThreatCategory', selectedIds);
 
   /**
    * The new react report filters uses `NxTreeViewMultiSelect` which supports a list of strings as options.
@@ -109,24 +90,16 @@ export default function ReportFilters(props) {
   };
 
   const setSelectedViolationStateOptions = (selectedIds) => {
-    const selectedFilters = map(
-        lookup(violationStateCheckboxFilterMapping),
-        setToArray(selectedIds)
-      ),
+    const selectedFilters = map(lookup(violationStateCheckboxFilterMapping), setToArray(selectedIds)),
       mergedFilter = reduce(union, new Set(), selectedFilters);
     setExactValueFilter('derivedViolationState', mergedFilter);
   };
 
   const setSelectedPolicyThreatChange = (selectedRange) => {
-    setExactValueFilter(
-      'policyThreatLevel',
-      fromSelectedPolicyThreatRange(selectedRange)
-    );
+    setExactValueFilter('policyThreatLevel', fromSelectedPolicyThreatRange(selectedRange));
   };
 
-  const policyThreatLevelFilterSelectedRange = toSelectedRange(
-    policyThreatLevel
-  );
+  const policyThreatLevelFilterSelectedRange = toSelectedRange(policyThreatLevel);
 
   function toSelectedRange(allowedValues) {
     if (allowedValues && allowedValues.size) {
@@ -139,9 +112,7 @@ export default function ReportFilters(props) {
 
   const fromSelectedPolicyThreatRange = (selectedRange) => {
     // if whole range is selected - don't do any filtering
-    return equals([0, 10], selectedRange)
-      ? new Set()
-      : new Set(range(head(selectedRange), last(selectedRange) + 1));
+    return equals([0, 10], selectedRange) ? new Set() : new Set(range(head(selectedRange), last(selectedRange) + 1));
   };
 
   return (

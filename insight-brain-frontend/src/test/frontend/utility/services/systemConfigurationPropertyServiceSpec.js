@@ -8,19 +8,9 @@ import utilityServicesModule from '../../../../main/frontend/utility/services/ut
 describe('systemConfigurationPropertyServiceSpec.js', function () {
   beforeEach(angular.mock.module(utilityServicesModule.name));
 
-  var systemConfigurationPropertyService,
-    $httpBackend,
-    $rootScope,
-    CLMLocations,
-    successSpy,
-    failSpy;
+  var systemConfigurationPropertyService, $httpBackend, $rootScope, CLMLocations, successSpy, failSpy;
 
-  beforeEach(inject(function (
-    _systemConfigurationPropertyService_,
-    _$httpBackend_,
-    _$rootScope_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function (_systemConfigurationPropertyService_, _$httpBackend_, _$rootScope_, _CLMLocations_) {
     systemConfigurationPropertyService = _systemConfigurationPropertyService_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
@@ -36,13 +26,8 @@ describe('systemConfigurationPropertyServiceSpec.js', function () {
 
   describe('getting success metrics flag', function () {
     it('returns enabled when the request succeeds', function () {
-      systemConfigurationPropertyService
-        .isSuccessMetricsEnabled()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getSuccessMetricsConfigUrl())
-        .respond({ enabled: true });
+      systemConfigurationPropertyService.isSuccessMetricsEnabled().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsConfigUrl()).respond({ enabled: true });
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(true);
@@ -50,13 +35,8 @@ describe('systemConfigurationPropertyServiceSpec.js', function () {
     });
 
     it('throws a failed request', function () {
-      systemConfigurationPropertyService
-        .isSuccessMetricsEnabled()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getSuccessMetricsConfigUrl())
-        .respond(404, 'not found');
+      systemConfigurationPropertyService.isSuccessMetricsEnabled().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsConfigUrl()).respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
@@ -68,13 +48,8 @@ describe('systemConfigurationPropertyServiceSpec.js', function () {
 
   describe('checking success metrics flag has not been disabled by sys admin', function () {
     it('returns a resolved promise when it is enabled', function () {
-      systemConfigurationPropertyService
-        .checkSuccessMetricsEnabled()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getSuccessMetricsConfigUrl())
-        .respond({ enabled: true });
+      systemConfigurationPropertyService.checkSuccessMetricsEnabled().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsConfigUrl()).respond({ enabled: true });
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(true);
@@ -82,13 +57,8 @@ describe('systemConfigurationPropertyServiceSpec.js', function () {
     });
 
     it('returns a rejected promise with error message when it is disabled', function () {
-      systemConfigurationPropertyService
-        .checkSuccessMetricsEnabled()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getSuccessMetricsConfigUrl())
-        .respond({ enabled: false });
+      systemConfigurationPropertyService.checkSuccessMetricsEnabled().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getSuccessMetricsConfigUrl()).respond({ enabled: false });
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
@@ -102,56 +72,35 @@ describe('systemConfigurationPropertyServiceSpec.js', function () {
   describe('saving the success metrics flag', function () {
     it('returns property when the request succeeds and broadcasts event', function () {
       spyOn($rootScope, '$broadcast').and.callThrough();
-      systemConfigurationPropertyService
-        .saveSuccessMetricsEnabled(true)
-        .then(successSpy)
-        .catch(failSpy);
+      systemConfigurationPropertyService.saveSuccessMetricsEnabled(true).then(successSpy).catch(failSpy);
       var config = { enabled: true };
-      $httpBackend
-        .expectPUT(CLMLocations.getSuccessMetricsConfigUrl(), config)
-        .respond(config);
+      $httpBackend.expectPUT(CLMLocations.getSuccessMetricsConfigUrl(), config).respond(config);
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(config);
       expect(failSpy).not.toHaveBeenCalled();
-      expect($rootScope.$broadcast).toHaveBeenCalledWith(
-        'successMetricsConfigurationUpdated',
-        true
-      );
+      expect($rootScope.$broadcast).toHaveBeenCalledWith('successMetricsConfigurationUpdated', true);
     });
 
     it('throws a failed request', function () {
       spyOn($rootScope, '$broadcast').and.callThrough();
-      systemConfigurationPropertyService
-        .saveSuccessMetricsEnabled(false)
-        .then(successSpy)
-        .catch(failSpy);
+      systemConfigurationPropertyService.saveSuccessMetricsEnabled(false).then(successSpy).catch(failSpy);
       var config = { enabled: false };
-      $httpBackend
-        .expectPUT(CLMLocations.getSuccessMetricsConfigUrl(), config)
-        .respond(401, 'unauthorized');
+      $httpBackend.expectPUT(CLMLocations.getSuccessMetricsConfigUrl(), config).respond(401, 'unauthorized');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
       expect(failSpy).toHaveBeenCalled();
       expect(failSpy.calls.mostRecent().args[0].status).toEqual(401);
       expect(failSpy.calls.mostRecent().args[0].data).toEqual('unauthorized');
-      expect($rootScope.$broadcast).not.toHaveBeenCalledWith(
-        'successMetricsConfigurationUpdated',
-        false
-      );
+      expect($rootScope.$broadcast).not.toHaveBeenCalledWith('successMetricsConfigurationUpdated', false);
     });
   });
 
   describe('getting advanced search flag', function () {
     it('returns enabled when the request succeeds', function () {
-      systemConfigurationPropertyService
-        .isAdvancedSearchEnabled()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getAdvancedSearchConfigUrl())
-        .respond({ isEnabled: true });
+      systemConfigurationPropertyService.isAdvancedSearchEnabled().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getAdvancedSearchConfigUrl()).respond({ isEnabled: true });
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith(true);
@@ -159,13 +108,8 @@ describe('systemConfigurationPropertyServiceSpec.js', function () {
     });
 
     it('throws a failed request', function () {
-      systemConfigurationPropertyService
-        .isAdvancedSearchEnabled()
-        .then(successSpy)
-        .catch(failSpy);
-      $httpBackend
-        .expectGET(CLMLocations.getAdvancedSearchConfigUrl())
-        .respond(404, 'not found');
+      systemConfigurationPropertyService.isAdvancedSearchEnabled().then(successSpy).catch(failSpy);
+      $httpBackend.expectGET(CLMLocations.getAdvancedSearchConfigUrl()).respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();

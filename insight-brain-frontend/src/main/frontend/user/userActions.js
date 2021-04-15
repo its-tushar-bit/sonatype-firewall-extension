@@ -10,21 +10,10 @@ export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
 export const LOAD_USER_FAILED = 'LOAD_USER_FAILED';
 
-function userActions(
-  $rootScope,
-  $q,
-  $http,
-  CurrentUser,
-  CLMLocations,
-  telemetryService,
-  PermissionService
-) {
+function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetryService, PermissionService) {
   function fetchUser() {
     const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning(),
-      shouldDisplayWarningPromise = PermissionService.isAuthorized(
-        ['CONFIGURE_SYSTEM'],
-        true
-      )
+      shouldDisplayWarningPromise = PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true)
         .then(function (isAdmin) {
           if (isAdmin) {
             // user is admin, check if we need to display the password warning

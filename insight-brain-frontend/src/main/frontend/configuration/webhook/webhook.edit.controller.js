@@ -39,10 +39,7 @@ export default function WebhookEditController(
   });
 
   function doLoad() {
-    var promises = [
-      $http.get(CLMLocations.getWebhookEventTypesUrl()),
-      ProductFeatures.load(),
-    ];
+    var promises = [$http.get(CLMLocations.getWebhookEventTypesUrl()), ProductFeatures.load()];
 
     if ($stateParams.webhookId) {
       promises.push(WebhookStore.getById($stateParams.webhookId));
@@ -65,9 +62,7 @@ export default function WebhookEditController(
         vm.isWebhooksSupported =
           ProductFeatures.isAvailable('webhooks-for-applications') ||
           ProductFeatures.isAvailable('webhooks-for-repositories');
-        vm.isWebhooksForApplicationsSupported = ProductFeatures.isAvailable(
-          'webhooks-for-applications'
-        );
+        vm.isWebhooksForApplicationsSupported = ProductFeatures.isAvailable('webhooks-for-applications');
       },
       function (error) {
         vm.loadError = error;
@@ -78,11 +73,7 @@ export default function WebhookEditController(
   }
 
   function deleteWebhook() {
-    DeleteModalService.deleteResource(
-      'Webhook',
-      vm.dirtyWebhook.url,
-      vm.dirtyWebhook
-    ).then(function () {
+    DeleteModalService.deleteResource('Webhook', vm.dirtyWebhook.url, vm.dirtyWebhook).then(function () {
       // Model needs to be clean in order to navigate
       vm.dirtyWebhook.$revert();
       $state.go('webhooks.list');
@@ -114,10 +105,7 @@ export default function WebhookEditController(
   }
 
   function isEventTypeDisabled(eventType) {
-    return (
-      eventType === 'Application Evaluation' &&
-      !vm.isWebhooksForApplicationsSupported
-    );
+    return eventType === 'Application Evaluation' && !vm.isWebhooksForApplicationsSupported;
   }
 }
 

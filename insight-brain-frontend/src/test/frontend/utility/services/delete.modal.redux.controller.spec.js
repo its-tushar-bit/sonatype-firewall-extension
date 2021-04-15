@@ -56,9 +56,7 @@ describe('DeleteModalReduxController', function () {
     maskDeferred = $q.defer();
 
     vm.deleteResourceMask = {
-      showSuccessMaskBriefly: jasmine
-        .createSpy('showSuccessMaskBriefly')
-        .and.returnValue(maskDeferred.promise),
+      showSuccessMaskBriefly: jasmine.createSpy('showSuccessMaskBriefly').and.returnValue(maskDeferred.promise),
       activateMask: jasmine.createSpy('activateMask'),
       removeMask: jasmine.createSpy('removeMask'),
     };
@@ -85,9 +83,7 @@ describe('DeleteModalReduxController', function () {
       var scope = createController(),
         vm = scope.vm;
 
-      expect(
-        vm.deleteResourceMask.showSuccessMaskBriefly
-      ).not.toHaveBeenCalled();
+      expect(vm.deleteResourceMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.activateMask).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.removeMask).toHaveBeenCalledTimes(1);
 
@@ -106,9 +102,7 @@ describe('DeleteModalReduxController', function () {
 
       scope.$close = jasmine.createSpy('$close');
 
-      expect(
-        vm.deleteResourceMask.showSuccessMaskBriefly
-      ).not.toHaveBeenCalled();
+      expect(vm.deleteResourceMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.activateMask).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.removeMask).toHaveBeenCalledTimes(1);
 
@@ -131,9 +125,7 @@ describe('DeleteModalReduxController', function () {
       var scope = createController(),
         vm = scope.vm;
 
-      expect(
-        vm.deleteResourceMask.showSuccessMaskBriefly
-      ).not.toHaveBeenCalled();
+      expect(vm.deleteResourceMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.activateMask).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.removeMask).toHaveBeenCalledTimes(1);
 
@@ -150,18 +142,14 @@ describe('DeleteModalReduxController', function () {
       var scope = createController(),
         vm = scope.vm;
 
-      expect(
-        vm.deleteResourceMask.showSuccessMaskBriefly
-      ).not.toHaveBeenCalled();
+      expect(vm.deleteResourceMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.activateMask).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.removeMask).toHaveBeenCalledTimes(1);
 
       vm.deleting = true;
       scope.$digest();
 
-      expect(
-        vm.deleteResourceMask.showSuccessMaskBriefly
-      ).not.toHaveBeenCalled();
+      expect(vm.deleteResourceMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.activateMask).toHaveBeenCalled();
       expect(vm.deleteResourceMask.removeMask).toHaveBeenCalledTimes(1);
     });
@@ -179,9 +167,7 @@ describe('DeleteModalReduxController', function () {
       vm.deleting = false;
       scope.$digest();
 
-      expect(
-        vm.deleteResourceMask.showSuccessMaskBriefly
-      ).not.toHaveBeenCalled();
+      expect(vm.deleteResourceMask.showSuccessMaskBriefly).not.toHaveBeenCalled();
       expect(vm.deleteResourceMask.activateMask).toHaveBeenCalledTimes(1);
       expect(vm.deleteResourceMask.removeMask).toHaveBeenCalledTimes(2);
     });
@@ -190,20 +176,9 @@ describe('DeleteModalReduxController', function () {
   describe('mapStateToThis', function () {
     it('returns an object with the properties returned by stateMapper', function () {
       var mappedState = { foo: 'bar' },
-        stateMapper = jasmine
-          .createSpy('stateMapper')
-          .and.returnValue(mappedState);
+        stateMapper = jasmine.createSpy('stateMapper').and.returnValue(mappedState);
 
-      createController(
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        stateMapper
-      );
+      createController(undefined, undefined, undefined, undefined, undefined, undefined, undefined, stateMapper);
 
       var mapStateToThis = $ngRedux.connect.calls.first().args[0],
         inputState = { baz: 'buzz' };
@@ -224,16 +199,7 @@ describe('DeleteModalReduxController', function () {
 
         spyOn(Messages, 'getHttpErrorMessage').and.returnValue('error2');
 
-        createController(
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          stateMapper
-        );
+        createController(undefined, undefined, undefined, undefined, undefined, undefined, undefined, stateMapper);
 
         var mapStateToThis = $ngRedux.connect.calls.first().args[0],
           inputState = { errorState: 'error!' };
@@ -252,13 +218,7 @@ describe('DeleteModalReduxController', function () {
       headerText = 'header',
       bodyText = 'body',
       maskText = 'mask',
-      scope = createController(
-        resourceType,
-        resourceName,
-        headerText,
-        bodyText,
-        maskText
-      ),
+      scope = createController(resourceType, resourceName, headerText, bodyText, maskText),
       vm = scope.vm;
 
     expect(vm.resourceName).toBe(resourceName);
@@ -275,14 +235,7 @@ describe('DeleteModalReduxController', function () {
       bodyText = 'body',
       maskText = 'mask',
       continueAction = jasmine.createSpy('continueAction'),
-      scope = createController(
-        resourceType,
-        resourceName,
-        headerText,
-        bodyText,
-        maskText,
-        continueAction
-      ),
+      scope = createController(resourceType, resourceName, headerText, bodyText, maskText, continueAction),
       vm = scope.vm;
 
     expect(vm.deleteResource).toBe(continueAction);

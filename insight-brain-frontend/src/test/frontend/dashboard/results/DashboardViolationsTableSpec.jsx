@@ -4,12 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxTable,
-  NxTableBody,
-  NxTableHead,
-  NxTableRow,
-} from '@sonatype/react-shared-components';
+import { NxTable, NxTableBody, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 
 describe('DashboardViolationsTable', function () {
@@ -88,10 +83,7 @@ describe('DashboardViolationsTable', function () {
       },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      DashboardViolationsTable,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolationsTable, minimalProps);
   });
 
   it('renders a container for the table', () => {
@@ -139,9 +131,7 @@ describe('DashboardViolationsTable', function () {
         infoBox = tRow.find('#needs-acknowledgement');
 
       expect(tBody.children().length).toEqual(1);
-      expect(infoBox).toHaveText(
-        "Select your filter criteria and click 'apply' to see results."
-      );
+      expect(infoBox).toHaveText("Select your filter criteria and click 'apply' to see results.");
     });
 
     it('renders an empty message if the table is empty', () => {
@@ -156,15 +146,13 @@ describe('DashboardViolationsTable', function () {
 
       component = getShallowComponent(props);
       tableBody = component.find(NxTableBody);
-      expectedEmptyMessage =
-        'No data available given the applied filters and permissions.';
+      expectedEmptyMessage = 'No data available given the applied filters and permissions.';
 
       expect(tableBody).toHaveProp('emptyMessage', expectedEmptyMessage);
 
       component = getShallowComponent({ ...props, maxDaysOld: 7 });
       tableBody = component.find(NxTableBody);
-      expectedEmptyMessage =
-        'No data available in the last 7 days given the applied filters and permissions.';
+      expectedEmptyMessage = 'No data available in the last 7 days given the applied filters and permissions.';
 
       expect(tableBody).toHaveProp('emptyMessage', expectedEmptyMessage);
     });
@@ -206,10 +194,7 @@ describe('DashboardViolationsTable', function () {
       expect(threatHeaderCell).toHaveProp('sortDir', 'asc');
 
       threatHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        '-threatLevel',
-        '-firstOccurrenceTime',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['-threatLevel', '-firstOccurrenceTime']);
     });
 
     it('calls the sortViolations function with the threat column fields if clicked: asc to desc', () => {
@@ -229,10 +214,7 @@ describe('DashboardViolationsTable', function () {
       expect(threatHeaderCell).toHaveProp('sortDir', 'desc');
 
       threatHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        'threatLevel',
-        '-firstOccurrenceTime',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['threatLevel', '-firstOccurrenceTime']);
     });
 
     it('calls the sortViolations function with the policy column fields if clicked: asc to desc', () => {
@@ -252,10 +234,7 @@ describe('DashboardViolationsTable', function () {
       expect(policyHeaderCell).toHaveProp('sortDir', 'asc');
 
       policyHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        '-policyName',
-        '-firstOccurrenceTime',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['-policyName', '-firstOccurrenceTime']);
     });
 
     it('calls the sortViolations function with the policy column fields if clicked: desc to asc', () => {
@@ -275,10 +254,7 @@ describe('DashboardViolationsTable', function () {
       expect(policyHeaderCell).toHaveProp('sortDir', 'desc');
 
       policyHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        'policyName',
-        '-firstOccurrenceTime',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['policyName', '-firstOccurrenceTime']);
     });
 
     it('calls the sortViolations function with the application column fields if clicked: asc to desc', () => {
@@ -298,10 +274,7 @@ describe('DashboardViolationsTable', function () {
       expect(applicationHeaderCell).toHaveProp('sortDir', 'asc');
 
       applicationHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        '-applicationName',
-        '-threatLevel',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['-applicationName', '-threatLevel']);
     });
 
     it('calls the sortViolations function with the application column fields if clicked: desc to asc', () => {
@@ -321,10 +294,7 @@ describe('DashboardViolationsTable', function () {
       expect(applicationHeaderCell).toHaveProp('sortDir', 'desc');
 
       applicationHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        'applicationName',
-        '-threatLevel',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['applicationName', '-threatLevel']);
     });
 
     it('calls the sortViolations function with the component column fields if clicked: asc to desc', () => {
@@ -344,10 +314,7 @@ describe('DashboardViolationsTable', function () {
       expect(componentHeaderCell).toHaveProp('sortDir', 'asc');
 
       componentHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        '-derivedComponentName',
-        '-threatLevel',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['-derivedComponentName', '-threatLevel']);
     });
 
     it('calls the sortViolations function with the component column fields if clicked: desc to asc', () => {
@@ -367,10 +334,7 @@ describe('DashboardViolationsTable', function () {
       expect(componentHeaderCell).toHaveProp('sortDir', 'desc');
 
       componentHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        'derivedComponentName',
-        '-threatLevel',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['derivedComponentName', '-threatLevel']);
     });
 
     it('calls the sortViolations function with the age column fields if clicked: desc to asc', () => {
@@ -390,10 +354,7 @@ describe('DashboardViolationsTable', function () {
       expect(ageHeaderCell).toHaveProp('sortDir', 'desc'); // age column uses inverted sort hence the flipped order.
 
       ageHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        '-firstOccurrenceTime',
-        '-threatLevel',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['-firstOccurrenceTime', '-threatLevel']);
     });
 
     it('calls the sortViolations function with the age column fields if clicked: asc to desc', () => {
@@ -413,10 +374,7 @@ describe('DashboardViolationsTable', function () {
       expect(ageHeaderCell).toHaveProp('sortDir', 'asc'); // age column uses inverted sort hence the flipped order.
 
       ageHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith([
-        'firstOccurrenceTime',
-        '-threatLevel',
-      ]);
+      expect(sortViolationsSpy).toHaveBeenCalledWith(['firstOccurrenceTime', '-threatLevel']);
     });
   });
 });

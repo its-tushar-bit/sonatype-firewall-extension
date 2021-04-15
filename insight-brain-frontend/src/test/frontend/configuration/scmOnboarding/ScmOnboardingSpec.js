@@ -25,10 +25,7 @@ describe('ScmOnboarding', function () {
 
     minimalProps = { $state: mock$State };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ScmOnboarding,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ScmOnboarding, minimalProps);
   });
 
   describe('back button', () => {
@@ -65,9 +62,7 @@ describe('ScmOnboarding', function () {
       const errorWrapper = shallow(<div>{error}</div>);
 
       // then error message is matches expected value
-      expect(errorWrapper.text()).toContain(
-        'It appears you do not have permission to access this page.'
-      );
+      expect(errorWrapper.text()).toContain('It appears you do not have permission to access this page.');
     });
 
     it('retry handler triggers reload', () => {
@@ -97,17 +92,14 @@ describe('ScmOnboarding', function () {
   describe('Page title', () => {
     it('contains title with human readable SCM provider name', () => {
       // expect title to contain camelcase provider name
-      expect(
-        getShallowComponent({ scmProvider: 'github' })
-          .find('.iq-scmonboarding-title')
-          .text()
-      ).toEqual('Import Applications from GitHub');
+      expect(getShallowComponent({ scmProvider: 'github' }).find('.iq-scmonboarding-title').text()).toEqual(
+        'Import Applications from GitHub'
+      );
     });
   });
 
   describe('Reports CTA', () => {
-    const createRepos = (count) =>
-      Array.from(Array(count).keys()).map((i) => createRepo(i));
+    const createRepos = (count) => Array.from(Array(count).keys()).map((i) => createRepo(i));
 
     // given repos list with [0] none imported repos and [1] 5 imported repos
     const propsData = [
@@ -124,21 +116,17 @@ describe('ScmOnboarding', function () {
     ];
 
     propsData.forEach((props) => {
-      it(
-        'with alreadyImportedCount: ' +
-          (props.totalRepositories - props.repositories.length),
-        () => {
-          // given the provided number of repos
-          const reportsCta = getShallowComponent(props).find(ReportsCta);
+      it('with alreadyImportedCount: ' + (props.totalRepositories - props.repositories.length), () => {
+        // given the provided number of repos
+        const reportsCta = getShallowComponent(props).find(ReportsCta);
 
-          // then reports CTA is only rendered when there are already imported repos
-          if (props.totalRepositories - props.repositories.length > 0) {
-            expect(reportsCta).toExist();
-          } else {
-            expect(reportsCta).not.toExist();
-          }
+        // then reports CTA is only rendered when there are already imported repos
+        if (props.totalRepositories - props.repositories.length > 0) {
+          expect(reportsCta).toExist();
+        } else {
+          expect(reportsCta).not.toExist();
         }
-      );
+      });
     });
   });
 

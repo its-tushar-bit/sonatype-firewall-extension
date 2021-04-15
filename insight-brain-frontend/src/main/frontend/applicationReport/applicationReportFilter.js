@@ -24,11 +24,7 @@ const violationStateCheckboxFilterMapping = {
   grandfathered: new Set(['grandfathered', 'waived+grandfathered']),
 };
 
-export function ApplicationReportFilterController(
-  $scope,
-  $ngRedux,
-  applicationReportActions
-) {
+export function ApplicationReportFilterController($scope, $ngRedux, applicationReportActions) {
   const vm = this;
 
   Object.assign(vm, {
@@ -84,29 +80,18 @@ export function ApplicationReportFilterController(
       document.addEventListener('keydown', vm.escapeKeyHandler);
       document.addEventListener('mousedown', vm.offClickHandler);
 
-      $scope.$watch(
-        'vm.exactValueFilters.derivedViolationState',
-        function (derivedViolationState) {
-          const violationStateFilter = derivedViolationState || new Set(),
-            // the 'waived+grandfathered' value is redundant for these purposes, and the other possible values
-            // all map perfectly to the checkbox ids
-            checkedIds = reject(
-              equals('waived+grandfathered'),
-              setToArray(violationStateFilter)
-            );
+      $scope.$watch('vm.exactValueFilters.derivedViolationState', function (derivedViolationState) {
+        const violationStateFilter = derivedViolationState || new Set(),
+          // the 'waived+grandfathered' value is redundant for these purposes, and the other possible values
+          // all map perfectly to the checkbox ids
+          checkedIds = reject(equals('waived+grandfathered'), setToArray(violationStateFilter));
 
-          vm.violationStateCheckedIds = new Set(checkedIds);
-        }
-      );
+        vm.violationStateCheckedIds = new Set(checkedIds);
+      });
 
-      $scope.$watch(
-        'vm.exactValueFilters.policyThreatLevel',
-        function (allowedValues) {
-          vm.policyThreatLevelFilterSelectedRange = toSelectedRange(
-            allowedValues
-          );
-        }
-      );
+      $scope.$watch('vm.exactValueFilters.policyThreatLevel', function (allowedValues) {
+        vm.policyThreatLevelFilterSelectedRange = toSelectedRange(allowedValues);
+      });
     },
 
     $onDestroy() {
@@ -124,10 +109,7 @@ export function ApplicationReportFilterController(
     },
 
     setViolationStateFilterOptions(selectedIds) {
-      const selectedFilters = map(
-          lookup(violationStateCheckboxFilterMapping),
-          setToArray(selectedIds)
-        ),
+      const selectedFilters = map(lookup(violationStateCheckboxFilterMapping), setToArray(selectedIds)),
         mergedFilter = reduce(union, new Set(), selectedFilters);
 
       vm.setExactValueFilter('derivedViolationState', mergedFilter);
@@ -142,10 +124,7 @@ export function ApplicationReportFilterController(
     },
 
     setPolicyThreatLevelFilter(selectedRange) {
-      vm.setExactValueFilter(
-        'policyThreatLevel',
-        fromSelectedRange(selectedRange)
-      );
+      vm.setExactValueFilter('policyThreatLevel', fromSelectedRange(selectedRange));
     },
 
     closeSideBarFilterIfOpen() {
@@ -165,9 +144,7 @@ export function ApplicationReportFilterController(
         return;
       }
 
-      const filterMainElement = document.getElementById(
-        'application-report-sidebar'
-      );
+      const filterMainElement = document.getElementById('application-report-sidebar');
       const isClickOnReportFilter = filterMainElement.contains(event.target);
       if (!isClickOnReportFilter) {
         vm.closeSideBarFilterIfOpen();
@@ -178,22 +155,12 @@ export function ApplicationReportFilterController(
 
 function mapStateToThis(state) {
   return pick(
-    [
-      'policyTypeFilterEnabled',
-      'aggregate',
-      'exactValueFilters',
-      'reportParameters',
-      'filterSidebarOpen',
-    ],
+    ['policyTypeFilterEnabled', 'aggregate', 'exactValueFilters', 'reportParameters', 'filterSidebarOpen'],
     state.applicationReport || {}
   );
 }
 
-ApplicationReportFilterController.$inject = [
-  '$scope',
-  '$ngRedux',
-  'applicationReportActions',
-];
+ApplicationReportFilterController.$inject = ['$scope', '$ngRedux', 'applicationReportActions'];
 
 function toSelectedRange(allowedValues) {
   if (allowedValues && allowedValues.size) {
@@ -206,7 +173,5 @@ function toSelectedRange(allowedValues) {
 
 function fromSelectedRange(selectedRange) {
   // if whole range is selected - don't do any filtering
-  return equals([0, 10], selectedRange)
-    ? new Set()
-    : new Set(range(head(selectedRange), last(selectedRange) + 1));
+  return equals([0, 10], selectedRange) ? new Set() : new Set(range(head(selectedRange), last(selectedRange) + 1));
 }

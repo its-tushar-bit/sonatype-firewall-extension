@@ -11,26 +11,17 @@ describe('summaryStatementTileSpec', function () {
     angular.mock.module(successMetricsModule.name);
   });
 
-  var getVm,
-    $rootScope,
-    deleteDeferred,
-    mockOnDelete,
-    mockDeleteModalService,
-    mockSuccessMetricsDataService;
+  var getVm, $rootScope, deleteDeferred, mockOnDelete, mockDeleteModalService, mockSuccessMetricsDataService;
 
   beforeEach(inject(function ($q, _$rootScope_, $componentController) {
     $rootScope = _$rootScope_;
     deleteDeferred = $q.defer();
     mockOnDelete = jasmine.createSpy('onDelete');
     mockSuccessMetricsDataService = {
-      deleteSuccessMetricsReport: jasmine.createSpy(
-        'deleteSuccessMetricsReport'
-      ),
+      deleteSuccessMetricsReport: jasmine.createSpy('deleteSuccessMetricsReport'),
     };
     mockDeleteModalService = {
-      deleteCustom: jasmine
-        .createSpy('deleteCustom')
-        .and.returnValue(deleteDeferred.promise),
+      deleteCustom: jasmine.createSpy('deleteCustom').and.returnValue(deleteDeferred.promise),
     };
     getVm = function (bindings) {
       return $componentController(
@@ -92,9 +83,7 @@ describe('summaryStatementTileSpec', function () {
       jasmine.any(Function)
     );
     mockDeleteModalService.deleteCustom.calls.argsFor(0)[3]();
-    expect(
-      mockSuccessMetricsDataService.deleteSuccessMetricsReport
-    ).toHaveBeenCalledWith('1');
+    expect(mockSuccessMetricsDataService.deleteSuccessMetricsReport).toHaveBeenCalledWith('1');
     expect(mockOnDelete).toHaveBeenCalled();
   });
 });

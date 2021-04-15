@@ -15,13 +15,8 @@
    -->{{vm.isOrg ? (vm.isRootOrg ? '' : ' organization') : ' application'}}
     </div>
   </header>
-  <div
-    id="source-control-not-supported"
-    class="iq-alert iq-alert--info"
-    ng-if="!vm.isSourceControlSupported"
-  >
-    <i class="fa fa-info-circle"></i>Source Control is not supported by your
-    license
+  <div id="source-control-not-supported" class="iq-alert iq-alert--info" ng-if="!vm.isSourceControlSupported">
+    <i class="fa fa-info-circle"></i>Source Control is not supported by your license
   </div>
   <div class="iq-tile-content">
     <form
@@ -39,22 +34,14 @@
         class="iq-alert"
         ng-if="!vm.isRootOrg && !vm.dirtySourceControl.provider"
       >
-        <i class="fa fa-warning"></i>Access Token provider must be configured at
-        Root Organization
+        <i class="fa fa-warning"></i>Access Token provider must be configured at Root Organization
       </div>
-      <div
-        id="source-control-token-warning"
-        class="iq-alert"
-        ng-if="vm.shouldShowAccessTokenWarning"
-      >
+      <div id="source-control-token-warning" class="iq-alert" ng-if="vm.shouldShowAccessTokenWarning">
         <i class="fa fa-warning"></i>Access Token must be configured
       </div>
       <div id="repository-url-row" class="iq-form-row" ng-if="vm.isApp">
         <div class="iq-form-group">
-          <label
-            class="iq-label"
-            for="editor-source-control-url"
-            ng-disabled="!vm.dirtySourceControl.provider"
+          <label class="iq-label" for="editor-source-control-url" ng-disabled="!vm.dirtySourceControl.provider"
             ><!--
          -->Repository URL
           </label>
@@ -73,20 +60,13 @@
             messages="{required: 'A valid repository URL is required',
                     pattern: 'A valid repository URL is required. HTTP(S) and SSH URLs are supported'}"
           />
-          <div
-            id="editor-source-control-url-info"
-            class="iq-alert iq-alert--info"
-            ng-if="vm.showSshUrlInfo"
-          >
-            <i class="fa fa-info-circle"></i>SSH URLs will be converted to HTTPS
-            on save. The provided access token works over HTTPS.
+          <div id="editor-source-control-url-info" class="iq-alert iq-alert--info" ng-if="vm.showSshUrlInfo">
+            <i class="fa fa-info-circle"></i>SSH URLs will be converted to HTTPS on save. The provided access token
+            works over HTTPS.
           </div>
         </div>
       </div>
-      <div
-        class="iq-tree-view iq-tree-view--source-control-editor"
-        ng-if="vm.isApp"
-      >
+      <div class="iq-tree-view iq-tree-view--source-control-editor" ng-if="vm.isApp">
         <a
           id="source-control-advanced-settings-trigger"
           class="iq-tree-view__trigger"
@@ -106,9 +86,7 @@
         <hr class="iq-hr" ng-if="vm.isApp" />
         <div class="iq-form-row" ng-if="vm.isRootOrg">
           <div class="iq-form-group">
-            <label for="source-control-provider" class="iq-label"
-              >Access Token Provider</label
-            >
+            <label for="source-control-provider" class="iq-label">Access Token Provider</label>
             <dropdown-selector
               id="source-control-provider"
               ng-model="vm.dirtySourceControl.provider"
@@ -125,14 +103,9 @@
             </dropdown-selector>
           </div>
         </div>
-        <div
-          class="iq-form-row"
-          ng-if="vm.dirtySourceControl.provider === 'bitbucket'"
-        >
+        <div class="iq-form-row" ng-if="vm.dirtySourceControl.provider === 'bitbucket'">
           <div class="iq-form-group" ng-if="!vm.isRootOrg">
-            <label
-              for="editor-source-control-credentials-inherit"
-              class="iq-label"
+            <label for="editor-source-control-credentials-inherit" class="iq-label"
               ><!--
            -->Credentials
             </label>
@@ -156,13 +129,8 @@
             </fieldset>
           </div>
           <div class="iq-form-row">
-            <div
-              class="iq-form-group"
-              ng-class="{'iq-form-group--indent': !vm.isRootOrg}"
-            >
-              <label
-                for="editor-source-control-credentials-username"
-                class="iq-label"
+            <div class="iq-form-group" ng-class="{'iq-form-group--indent': !vm.isRootOrg}">
+              <label for="editor-source-control-credentials-username" class="iq-label"
                 ><!--
              -->Username
               </label>
@@ -204,15 +172,9 @@
             </div>
           </div>
         </div>
-        <div
-          class="iq-form-row"
-          ng-if="vm.dirtySourceControl.provider !== 'bitbucket'"
-        >
+        <div class="iq-form-row" ng-if="vm.dirtySourceControl.provider !== 'bitbucket'">
           <div class="iq-form-group">
-            <label
-              for="editor-source-control-token"
-              class="iq-label"
-              ng-disabled="!vm.dirtySourceControl.provider"
+            <label for="editor-source-control-token" class="iq-label" ng-disabled="!vm.dirtySourceControl.provider"
               ><!--
            -->Access Token
             </label>
@@ -225,9 +187,8 @@
                 tooltip="{{vm.isAccessTokenRequiredOnNode() ? 'Access token cannot be inherited. No inheritable access token defined.' : ''}}"
                 tooltip-append-to-body="true"
                 ><!--
-             -->{{vm.dirtySourceControl.tokenInheritFrom ? 'Inherit from ' +
-                vm.dirtySourceControl.tokenInheritFrom : 'Inherit (Not
-                Configured)'}}
+             -->{{vm.dirtySourceControl.tokenInheritFrom ? 'Inherit from ' + vm.dirtySourceControl.tokenInheritFrom :
+                'Inherit (Not Configured)'}}
               </iq-radio>
               <iq-radio
                 id="editor-source-control-token-override"
@@ -262,22 +223,15 @@
               ><!--
           -->Pull Requests
             </label>
-            <div
-              class="iq-form-group"
-              id="editor-source-control-enable-pull-requests"
-            >
+            <div class="iq-form-group" id="editor-source-control-enable-pull-requests">
               <div
                 id="source-control-pull-request-unavailable"
                 class="iq-alert iq-alert--info"
                 ng-if="!vm.isPullRequestsSupported()"
               >
-                <i class="fa fa-info-circle"></i
-                >{{vm.getPullRequestsNotAvailableMessage()}}
+                <i class="fa fa-info-circle"></i>{{vm.getPullRequestsNotAvailableMessage()}}
               </div>
-              <fieldset
-                class="iq-radio-group"
-                ng-if="vm.isPullRequestsSupported()"
-              >
+              <fieldset class="iq-radio-group" ng-if="vm.isPullRequestsSupported()">
                 <iq-radio
                   id="editor-source-control-pull-request-inherit"
                   name="enablePullRequests"
@@ -319,12 +273,8 @@
               ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
               ><!--
           -->Default Branch
-              <div
-                class="iq-sub-label"
-                ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
-              >
-                The branch used for Automated PRs and as the basis for finding
-                introduced violations in feature branches
+              <div class="iq-sub-label" ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()">
+                The branch used for Automated PRs and as the basis for finding introduced violations in feature branches
               </div>
             </label>
             <div
@@ -332,13 +282,9 @@
               class="iq-alert iq-alert--info"
               ng-if="!vm.isPullRequestsSupported()"
             >
-              <i class="fa fa-info-circle"></i
-              >{{vm.getPullRequestsNotAvailableMessage()}}
+              <i class="fa fa-info-circle"></i>{{vm.getPullRequestsNotAvailableMessage()}}
             </div>
-            <fieldset
-              class="iq-radio-group"
-              ng-if="vm.isPullRequestsSupported()"
-            >
+            <fieldset class="iq-radio-group" ng-if="vm.isPullRequestsSupported()">
               <iq-radio
                 id="editor-source-control-branch-inherit"
                 model="vm.dirtySourceControl.baseBranchInherit"
@@ -390,19 +336,12 @@
               ng-class="vm.getScmValidationClass(vm.scmConfigValidationResult.configurationComplete)"
             ></i>
             <span>Is the configuration complete?</span>
-            <p class="iq-list__subtext">
-              {{vm.scmConfigValidationResult.configurationComplete.message}}
-            </p>
+            <p class="iq-list__subtext">{{vm.scmConfigValidationResult.configurationComplete.message}}</p>
           </li>
           <li class="iq-list__item">
-            <i
-              class="fa size-16px"
-              ng-class="vm.getScmValidationClass(vm.scmConfigValidationResult.repoPrivate)"
-            ></i>
+            <i class="fa size-16px" ng-class="vm.getScmValidationClass(vm.scmConfigValidationResult.repoPrivate)"></i>
             <span>Is the repository private?</span>
-            <p class="iq-list__subtext">
-              {{vm.scmConfigValidationResult.repoPrivate.message}}
-            </p>
+            <p class="iq-list__subtext">{{vm.scmConfigValidationResult.repoPrivate.message}}</p>
           </li>
           <li class="iq-list__item">
             <i
@@ -410,17 +349,11 @@
               ng-class="vm.getScmValidationClass(vm.scmConfigValidationResult.tokenPermissions)"
             ></i>
             <span>Does the token have sufficient permissions?</span>
-            <p class="iq-list__subtext">
-              {{vm.scmConfigValidationResult.tokenPermissions.message}}
-            </p>
+            <p class="iq-list__subtext">{{vm.scmConfigValidationResult.tokenPermissions.message}}</p>
           </li>
         </ul>
       </div>
-      <div
-        submit-wrapper="vm.submitError"
-        retry="vm.save()"
-        class="iq-tile-footer"
-      >
+      <div submit-wrapper="vm.submitError" retry="vm.save()" class="iq-tile-footer">
         <button
           type="submit"
           class="iq-btn iq-btn--primary"
@@ -456,11 +389,7 @@
     </form>
   </div>
 </div>
-<div
-  id="metricsTable"
-  ng-if="vm.isApp && vm.originalSourceControl.repositoryUrl"
-  class="iq-tile"
->
+<div id="metricsTable" ng-if="vm.isApp && vm.originalSourceControl.repositoryUrl" class="iq-tile">
   <h2>Automated Pull Request Daily Activity</h2>
   <table class="nx-table">
     <thead>
@@ -489,11 +418,7 @@
       </th>
     </thead>
     <tbody>
-      <tr
-        ng-repeat="result in vm.sourceControlMetrics.results"
-        class="nx-table-row"
-        tooltip="{{result.reasoning}}"
-      >
+      <tr ng-repeat="result in vm.sourceControlMetrics.results" class="nx-table-row" tooltip="{{result.reasoning}}">
         <td class="nx-cell">{{result.title}}</td>
         <td class="nx-cell">
           <i
@@ -506,10 +431,7 @@
         <td class="nx-cell">{{result.exceptionThrown}}</td>
         <td class="nx-cell">{{result.startTime | date: 'shortTime'}}</td>
       </tr>
-      <tr
-        class="nx-table-row"
-        ng-if="!vm.sourceControlMetrics || vm.sourceControlMetrics.results.length == 0"
-      >
+      <tr class="nx-table-row" ng-if="!vm.sourceControlMetrics || vm.sourceControlMetrics.results.length == 0">
         <td colspan="5" style="text-align: center">
           <i>No automated pull requests results available.</i>
         </td>

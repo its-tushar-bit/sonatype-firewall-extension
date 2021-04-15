@@ -3,11 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ScrollSpy(
-  $timeout,
-  EventNameConstant,
-  StableBodyService
-) {
+export default function ScrollSpy($timeout, EventNameConstant, StableBodyService) {
   return {
     scope: {
       scrollspy: '@',
@@ -42,18 +38,10 @@ export default function ScrollSpy(
         });
       };
 
-      $(document).on(
-        'click',
-        $scope.scrollspy + ' .nav li > a',
-        eventHandlerFn
-      );
+      $(document).on('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
 
       $scope.$on('$destroy', function () {
-        $(document).off(
-          'click',
-          $scope.scrollspy + ' .nav li > a',
-          eventHandlerFn
-        );
+        $(document).off('click', $scope.scrollspy + ' .nav li > a', eventHandlerFn);
       });
 
       $scope.$on(EventNameConstant.UPDATE_SCROLLSPY, function (event, options) {
@@ -88,10 +76,7 @@ export default function ScrollSpy(
       }
 
       function unpauseScrollspy() {
-        $(element).on(
-          'scroll.scroll-spy.data-api',
-          $.proxy(scrollspyObject.process, scrollspyObject)
-        );
+        $(element).on('scroll.scroll-spy.data-api', $.proxy(scrollspyObject.process, scrollspyObject));
       }
     },
   };

@@ -16,9 +16,7 @@ export default function LicenseTextsTile(props) {
 
   const isLicensePresent = () => licenseFiles.length > 0;
 
-  const enabledLicenses = licenseFiles.filter(
-    (licenseFile) => licenseFile.originalStatus === 'enabled'
-  );
+  const enabledLicenses = licenseFiles.filter((licenseFile) => licenseFile.originalStatus === 'enabled');
 
   const classes = classnames('nx-tile-content', {
     'license-no-legal-elements-text': !isLicensePresent(),
@@ -31,32 +29,20 @@ export default function LicenseTextsTile(props) {
           <h2 className="nx-h2">License Texts</h2>
         </div>
         <div className="nx-tile__actions">
-          <NxButton
-            id="edit-licenses"
-            variant="tertiary"
-            onClick={() => setShowLicensesModal(true)}
-          >
+          <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicensesModal(true)}>
             <NxFontAwesomeIcon icon={isLicensePresent() ? faPen : faPlus} />
             <span>{isLicensePresent() ? 'Edit' : 'Add'}</span>
           </NxButton>
         </div>
         {showLicensesModal && <LicensesModalContainer />}
       </header>
-      <div className={classes}>
-        {enabledLicenses.length > 0
-          ? enabledLicenses.map(createItem)
-          : 'None found'}
-      </div>
+      <div className={classes}>{enabledLicenses.length > 0 ? enabledLicenses.map(createItem) : 'None found'}</div>
     </section>
   );
 }
 
 const createItem = (license, index) => (
-  <section
-    id={'license-section-' + index}
-    key={index}
-    className="nx-tile-subsection legal-file"
-  >
+  <section id={'license-section-' + index} key={index} className="nx-tile-subsection legal-file">
     <div className="legal-file-section-header">
       <span id={'license-path-' + index} className="legal-file-path">
         {license.relPath}

@@ -2,25 +2,11 @@
   <div class="iq-sys-prefs-back-button">
     <iq-back-button state="roles"></iq-back-button>
   </div>
-  <div
-    load-wrapper="error"
-    reload="doLoad()"
-    ng-class="{'container' : error}"
-    class="iq-tile iq-tile--sys-prefs"
-  >
+  <div load-wrapper="error" reload="doLoad()" ng-class="{'container' : error}" class="iq-tile iq-tile--sys-prefs">
     <h5 ng-if="!role"><i class="icon-time"></i> Loading...</h5>
     <div ng-if="role">
-      <div
-        class="iq-tile__actions"
-        ng-controller="DeleteRoleController"
-        ng-if="dirtyRole.id"
-      >
-        <button
-          class="iq-btn"
-          ng-click="deleteRole()"
-          id="delete-role"
-          ng-disabled="readOnly"
-        >
+      <div class="iq-tile__actions" ng-controller="DeleteRoleController" ng-if="dirtyRole.id">
+        <button class="iq-btn" ng-click="deleteRole()" id="delete-role" ng-disabled="readOnly">
           <i class="icon icon-minus-sign"></i> Delete Role
         </button>
       </div>
@@ -67,21 +53,12 @@
           ></textarea>
         </div>
         <h2 class="iq-tile__section-header">Permissions</h2>
-        <div
-          class="iq-list iq-list--role-permissions"
-          ng-repeat="permissionCategory in dirtyRole.permissionCategories"
-        >
-          <h3
-            class="iq-list__title test-permission-category-{{::permissionCategory.displayName}}"
-          >
+        <div class="iq-list iq-list--role-permissions" ng-repeat="permissionCategory in dirtyRole.permissionCategories">
+          <h3 class="iq-list__title test-permission-category-{{::permissionCategory.displayName}}">
             {{::permissionCategory.displayName}}
           </h3>
           <ul class="test-permissions-{{::permissionCategory.displayName}}">
-            <li
-              class="iq-list__item"
-              ng-repeat="permission in permissionCategory.permissions"
-              id="{{::permission.id}}"
-            >
+            <li class="iq-list__item" ng-repeat="permission in permissionCategory.permissions" id="{{::permission.id}}">
               <div class="checkbox toggle-checkbox">
                 <label>
                   <input
@@ -95,9 +72,7 @@
                   <span>{{::permission.displayName}}</span>
                 </label>
               </div>
-              <div class="iq-role-description">
-                {{::permission.description}}
-              </div>
+              <div class="iq-role-description">{{::permission.description}}</div>
             </li>
           </ul>
         </div>
@@ -113,14 +88,7 @@
       >
         Save</button
       ><!--
-   --><button
-        class="iq-btn"
-        id="role-details-cancel"
-        type="button"
-        ng-click="cancel()"
-      >
-        Cancel
-      </button>
+   --><button class="iq-btn" id="role-details-cancel" type="button" ng-click="cancel()">Cancel</button>
     </div>
   </div>
 </div>

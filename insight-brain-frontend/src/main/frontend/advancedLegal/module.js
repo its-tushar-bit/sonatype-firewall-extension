@@ -12,19 +12,11 @@ export default angular
   .module('advancedLegalApplications', [])
   .component(
     'advancedLegalApplications',
-    react2angular(
-      withStoreProvider(AdvancedLegalApplicationsContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(AdvancedLegalApplicationsContainer), [], ['$ngRedux', '$state'])
   )
   .component(
     'advancedLegalApplication',
-    react2angular(
-      withStoreProvider(AdvancedLegalApplicationContainer),
-      [],
-      ['$ngRedux', '$state']
-    )
+    react2angular(withStoreProvider(AdvancedLegalApplicationContainer), [], ['$ngRedux', '$state'])
   )
   .config(routes);
 

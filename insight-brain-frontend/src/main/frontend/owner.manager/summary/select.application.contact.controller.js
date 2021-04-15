@@ -108,9 +108,7 @@ export default function SelectApplicationContactController(
     if (!vm.selected) {
       return false;
     } else {
-      return vm.owner.contact
-        ? vm.selected.internalName !== vm.owner.contact.internalName
-        : true;
+      return vm.owner.contact ? vm.selected.internalName !== vm.owner.contact.internalName : true;
     }
   }
 }

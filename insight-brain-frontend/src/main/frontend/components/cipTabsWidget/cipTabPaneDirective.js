@@ -26,9 +26,7 @@ export default function CIPTabPane() {
           }
           if (directive) {
             childScope = $scope.$new(true);
-            childElement = $compile('<div ' + directive + '></div>')(
-              childScope
-            );
+            childElement = $compile('<div ' + directive + '></div>')(childScope);
             childElement.appendTo($element);
           }
         });

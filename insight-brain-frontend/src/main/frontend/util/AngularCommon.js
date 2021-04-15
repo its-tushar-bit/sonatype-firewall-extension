@@ -52,9 +52,7 @@ angularCommon.factory('commonCodeFactory', function () {
   return {
     // URI Encoded Query Parameter
     getEncodedQueryString: function (key) {
-      var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(
-        window.location.search
-      );
+      var results = new RegExp('[\\?&]' + key + '=([^&#]*)').exec(window.location.search);
       if (results) {
         return results[1].replace(/\+/g, '%20');
       }
@@ -74,9 +72,7 @@ angularCommon.directive('isDuplicate', [
           // Pretty rigid implementation. Assumes that the model is an field on a selected item which is
           // an item in an array of items (isDuplicateArray)
           modelObject = attr.ngModel.substr(0, attr.ngModel.lastIndexOf('.')),
-          modelFieldParser = $parse(
-            attr.ngModel.substr(attr.ngModel.lastIndexOf('.') + 1)
-          ),
+          modelFieldParser = $parse(attr.ngModel.substr(attr.ngModel.lastIndexOf('.') + 1)),
           idFieldParser = $parse(attr.isDuplicateIdField),
           caseSensitive = attr.isDuplicateCaseSensitive;
 
@@ -96,10 +92,7 @@ angularCommon.directive('isDuplicate', [
                   modelFieldParser(item).toLowerCase() === value.toLowerCase()
                 );
               } else {
-                return (
-                  idFieldParser(item) !== modelIdValue &&
-                  modelFieldParser(item) === value
-                );
+                return idFieldParser(item) !== modelIdValue && modelFieldParser(item) === value;
               }
             }).length <= 0;
 
@@ -228,10 +221,7 @@ angularCommon.directive('clmAlerts', function () {
 angularCommon.directive('validNameCharacters', [
   'regexFactory',
   function (regexFactory) {
-    var invalidNameCharactersRegex = new RegExp(
-      '[^-\\._' + regexFactory.allLetters().source + '0-9 ]',
-      'i'
-    );
+    var invalidNameCharactersRegex = new RegExp('[^-\\._' + regexFactory.allLetters().source + '0-9 ]', 'i');
     return {
       require: 'ngModel',
       restrict: 'A',
@@ -451,8 +441,7 @@ angularCommon.directive('breadcrumb', [
                 name: state.data.crumb,
                 icon: 'sonatype-icons dashboard',
                 state:
-                  previousState &&
-                  $.inArray(previousState.name, parentStates) !== -1
+                  previousState && $.inArray(previousState.name, parentStates) !== -1
                     ? previousState.name
                     : defaultState,
               });
@@ -612,9 +601,7 @@ angularCommon.directive('multiSelect', [
         useVsRepeat: '@?',
       },
       link: function (scope, element, attrs) {
-        var effectiveIdField = scope.effectiveIdField
-          ? scope.effectiveIdField
-          : 'id';
+        var effectiveIdField = scope.effectiveIdField ? scope.effectiveIdField : 'id';
         var dropdownScrollHtml =
           '<div class="dropdown-scroll">' +
           '<li ng-repeat="item in items | filter: { name : filter.name }" ' +
@@ -659,10 +646,7 @@ angularCommon.directive('multiSelect', [
         function hide(event) {
           if (scope.open) {
             var parents = $(event.target).parentsUntil(element);
-            if (
-              parents.length > 0 &&
-              parents[parents.length - 1].tagName === 'HTML'
-            ) {
+            if (parents.length > 0 && parents[parents.length - 1].tagName === 'HTML') {
               scope.$applyAsync(function () {
                 scope.open = false;
               });
@@ -692,14 +676,8 @@ angularCommon.directive('multiSelect', [
 
         scope.getText = function () {
           // upon page load, getText() gets called before our watcher calls updateSelection() to sync scope.selected
-          if (
-            !scope.selectedIds ||
-            scope.selectedIds.length === 0 ||
-            !scope.selected
-          ) {
-            return scope.noneSelectedText
-              ? scope.noneSelectedText
-              : 'None selected';
+          if (!scope.selectedIds || scope.selectedIds.length === 0 || !scope.selected) {
+            return scope.noneSelectedText ? scope.noneSelectedText : 'None selected';
           }
 
           if (scope.summarizeWith && scope.selectedIds.length >= 3) {

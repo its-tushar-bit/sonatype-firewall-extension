@@ -40,11 +40,7 @@ reportViolationsModule.controller('ReportViolationsController', [
         results = application.policyEvaluationsResults,
         counts = results[stageTypeId];
 
-      return !!(
-        counts.criticalComponentCount +
-        counts.severeComponentCount +
-        counts.moderateComponentCount
-      );
+      return !!(counts.criticalComponentCount + counts.severeComponentCount + counts.moderateComponentCount);
     };
 
     vm.doLoad = function () {
@@ -88,14 +84,7 @@ reportViolationsModule.controller('ReportViolationsController', [
         vm.applications.length = 0;
       }
       $http
-        .get(
-          clmLocations.getApplicationSummariesUrl(
-            vm.appFilter,
-            getOrder(),
-            pages,
-            RESULTS_PER_PAGE
-          )
-        )
+        .get(clmLocations.getApplicationSummariesUrl(vm.appFilter, getOrder(), pages, RESULTS_PER_PAGE))
         .then(
           function (results) {
             vm.hasMoreResults = results.data.length === RESULTS_PER_PAGE;

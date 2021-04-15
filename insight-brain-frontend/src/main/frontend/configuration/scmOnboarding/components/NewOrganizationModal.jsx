@@ -6,24 +6,11 @@
 
 import React, { useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import {
-  NxFontAwesomeIcon,
-  NxForm,
-  NxFormGroup,
-  NxModal,
-  NxTextInput,
-} from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxForm, NxFormGroup, NxModal, NxTextInput } from '@sonatype/react-shared-components';
 import { faSitemap } from '@fortawesome/pro-solid-svg-icons';
-import {
-  initialState,
-  userInput,
-} from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { isNil, reject } from 'ramda';
-import {
-  validateMaxLength,
-  validateNonEmpty,
-  validatePatternMatch,
-} from '../../../util/validationUtil';
+import { validateMaxLength, validateNonEmpty, validatePatternMatch } from '../../../util/validationUtil';
 import LoadError from '../../../react/LoadError';
 import { Messages } from '../../../util/CommonServices';
 
@@ -37,27 +24,17 @@ import { Messages } from '../../../util/CommonServices';
  * This component currently lives within scmOnboarding but the intention is that i can be used as generic component in
  * IQ. See https://issues.sonatype.org/browse/INT-4524
  */
-function NewOrganizationModal({
-  setIsNewOrganizationModalVisible,
-  addOrganization,
-  addOrganizationError,
-}) {
+function NewOrganizationModal({ setIsNewOrganizationModalVisible, addOrganization, addOrganizationError }) {
   const ORGANIZATION_REGEX = /^[^!@#$%^&*()\\=£+|[\]{};:~`"',.<>/?]*$/;
 
   const validateOrgNameChange = (val) =>
     reject(isNil, [
       validateNonEmpty(val),
-      validatePatternMatch(
-        ORGANIZATION_REGEX,
-        'Organization name contains an invalid character',
-        val
-      ),
+      validatePatternMatch(ORGANIZATION_REGEX, 'Organization name contains an invalid character', val),
       validateMaxLength(200, val),
     ]);
 
-  const [newOrganizationName, setNewOrganizationName] = useState(
-    initialState('', validateOrgNameChange)
-  );
+  const [newOrganizationName, setNewOrganizationName] = useState(initialState('', validateOrgNameChange));
 
   const [submitError, setSubmitError] = useState(null);
 
@@ -66,15 +43,11 @@ function NewOrganizationModal({
     setSubmitError(null);
   };
 
-  const addOrganizationClicked = () =>
-    addOrganization(newOrganizationName.trimmedValue);
+  const addOrganizationClicked = () => addOrganization(newOrganizationName.trimmedValue);
 
   const closeModal = () => setIsNewOrganizationModalVisible(false);
 
-  useEffect(
-    () => setSubmitError(Messages.getHttpErrorMessage(addOrganizationError)),
-    [addOrganizationError]
-  );
+  useEffect(() => setSubmitError(Messages.getHttpErrorMessage(addOrganizationError)), [addOrganizationError]);
 
   return (
     <NxModal onClose={closeModal} variant="narrow" id="new-organization-modal">

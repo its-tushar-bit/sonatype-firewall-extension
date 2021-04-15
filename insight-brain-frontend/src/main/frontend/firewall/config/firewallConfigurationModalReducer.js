@@ -85,28 +85,13 @@ const loadConfigurationFulfilled = (payload, state) => ({
 });
 
 const toggleAutoUnquarantineEnabled = (payload, state) => {
-  const index = state.formState.conditionTypes.findIndex(
-    (element) => element.id === payload
-  );
-  const newState = over(
-    lensPath([
-      'formState',
-      'conditionTypes',
-      index,
-      'autoReleaseQuarantineEnabled',
-    ]),
-    not,
-    state
-  );
+  const index = state.formState.conditionTypes.findIndex((element) => element.id === payload);
+  const newState = over(lensPath(['formState', 'conditionTypes', index, 'autoReleaseQuarantineEnabled']), not, state);
   return updatedComputedProps(newState);
 };
 
 const updatedComputedProps = (state) => {
-  return pathSet(
-    ['viewState', 'isDirty'],
-    isConfigurationChanged(state),
-    state
-  );
+  return pathSet(['viewState', 'isDirty'], isConfigurationChanged(state), state);
 };
 
 const configurationSaveMaskTimerDone = (_, state) => ({
@@ -133,8 +118,5 @@ function isConfigurationChanged(state) {
   return !equals(formState, serverState);
 }
 
-const firewallConfigurationModalReducer = createReducerFromActionMap(
-  reducerActionMap,
-  initialState
-);
+const firewallConfigurationModalReducer = createReducerFromActionMap(reducerActionMap, initialState);
 export default firewallConfigurationModalReducer;

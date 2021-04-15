@@ -64,36 +64,32 @@ describe('legalApplicationDetailsActions', function () {
           [getActionStageUrl()]: Promise.resolve({ data: stageTypes }),
         },
         post: {
-          [getLegalDashboardApplicationUrl(
-            applicationPublicId
-          )]: Promise.resolve({ data: 'result components' }),
+          [getLegalDashboardApplicationUrl(applicationPublicId)]: Promise.resolve({ data: 'result components' }),
         },
       });
 
-      store
-        .dispatch(loadApplication(applicationPublicId, stageTypeId))
-        .then(() => {
-          expect(store.getActions().length).toBe(6);
-          expect(store.getActions()[1]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED,
-            payload: 'result application',
-          });
-          expect(store.getActions()[2]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED,
-          });
-          expect(store.getActions()[3]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED,
-            payload: 'Stage Type',
-          });
-          expect(store.getActions()[4]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED,
-          });
-          expect(store.getActions()[5]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
-            payload: 'result components',
-          });
-          done();
+      store.dispatch(loadApplication(applicationPublicId, stageTypeId)).then(() => {
+        expect(store.getActions().length).toBe(6);
+        expect(store.getActions()[1]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FULFILLED,
+          payload: 'result application',
         });
+        expect(store.getActions()[2]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED,
+        });
+        expect(store.getActions()[3]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED,
+          payload: 'Stage Type',
+        });
+        expect(store.getActions()[4]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED,
+        });
+        expect(store.getActions()[5]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
+          payload: 'result components',
+        });
+        done();
+      });
 
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0]).toEqual({
@@ -108,22 +104,18 @@ describe('legalApplicationDetailsActions', function () {
 
       mockAxiosCalls({
         get: {
-          [getApplicationUrl(applicationPublicId)]: Promise.reject(
-            'error application'
-          ),
+          [getApplicationUrl(applicationPublicId)]: Promise.reject('error application'),
         },
       });
 
-      store
-        .dispatch(loadApplication(applicationPublicId, stageTypeId))
-        .catch(() => {
-          expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
-            payload: 'error application',
-          });
-          done();
+      store.dispatch(loadApplication(applicationPublicId, stageTypeId)).catch(() => {
+        expect(store.getActions().length).toBe(2);
+        expect(store.getActions()[1]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
+          payload: 'error application',
         });
+        done();
+      });
     });
 
     it('handles failure due to stage type id missing', function (done) {
@@ -170,23 +162,21 @@ describe('legalApplicationDetailsActions', function () {
         },
       });
 
-      store
-        .dispatch(loadApplication(applicationPublicId, stageTypeId))
-        .catch(() => {
-          expect(store.getActions().length).toBe(5);
-          expect(store.getActions()[2]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED,
-          });
-          expect(store.getActions()[3]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED,
-            payload: 'error stage type',
-          });
-          expect(store.getActions()[4]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
-            payload: 'error stage type',
-          });
-          done();
+      store.dispatch(loadApplication(applicationPublicId, stageTypeId)).catch(() => {
+        expect(store.getActions().length).toBe(5);
+        expect(store.getActions()[2]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED,
         });
+        expect(store.getActions()[3]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED,
+          payload: 'error stage type',
+        });
+        expect(store.getActions()[4]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
+          payload: 'error stage type',
+        });
+        done();
+      });
     });
 
     it('handles failure to load data for components', function (done) {
@@ -208,26 +198,22 @@ describe('legalApplicationDetailsActions', function () {
           [getActionStageUrl()]: Promise.resolve({ data: stageTypes }),
         },
         post: {
-          [getLegalDashboardApplicationUrl(
-            applicationPublicId
-          )]: Promise.reject('error components'),
+          [getLegalDashboardApplicationUrl(applicationPublicId)]: Promise.reject('error components'),
         },
       });
 
-      store
-        .dispatch(loadApplication(applicationPublicId, stageTypeId))
-        .catch(() => {
-          expect(store.getActions().length).toBe(7);
-          expect(store.getActions()[5]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED,
-            payload: 'error components',
-          });
-          expect(store.getActions()[6]).toEqual({
-            type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
-            payload: 'error components',
-          });
-          done();
+      store.dispatch(loadApplication(applicationPublicId, stageTypeId)).catch(() => {
+        expect(store.getActions().length).toBe(7);
+        expect(store.getActions()[5]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED,
+          payload: 'error components',
         });
+        expect(store.getActions()[6]).toEqual({
+          type: LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
+          payload: 'error components',
+        });
+        done();
+      });
     });
   });
 });

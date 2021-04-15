@@ -12,10 +12,7 @@ function telemetryService($http, $cookies, CLMLocations) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', CLMLocations.getTelemetryUrl(), sync !== true);
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader(
-      $http.defaults.xsrfHeaderName,
-      $cookies.get($http.defaults.xsrfCookieName)
-    );
+    xhr.setRequestHeader($http.defaults.xsrfHeaderName, $cookies.get($http.defaults.xsrfCookieName));
     xhr.send(
       JSON.stringify({
         purpose,
@@ -33,8 +30,5 @@ function telemetryService($http, $cookies, CLMLocations) {
 telemetryService.$inject = ['$http', '$cookies', 'CLMLocations'];
 
 export default angular
-  .module('telemetryServiceModule', [
-    CLMLocationModule.name,
-    angularCookiesModuleName,
-  ])
+  .module('telemetryServiceModule', [CLMLocationModule.name, angularCookiesModuleName])
   .service('telemetryService', telemetryService);

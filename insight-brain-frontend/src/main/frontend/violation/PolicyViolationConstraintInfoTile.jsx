@@ -21,9 +21,7 @@ export default function PolicyViolationConstraintInfoTile(props) {
       <div className="nx-tile-content">
         <h3 className="nx-h3">
           <strong>{constraintName}</strong>{' '}
-          <span className="regular">
-            is in violation for the following reason(s):
-          </span>
+          <span className="regular">is in violation for the following reason(s):</span>
         </h3>
         <div className="nx-list nx-list--bulleted nx-list--violation-reasons">
           <ul id="policy-violation-reasons">
@@ -55,9 +53,7 @@ const constraintViolationPropType = PropTypes.shape({
   reasons: PropTypes.arrayOf(reasonPropType).isRequired,
 });
 
-export const constraintViolationsPropType = PropTypes.arrayOf(
-  constraintViolationPropType
-);
+export const constraintViolationsPropType = PropTypes.arrayOf(constraintViolationPropType);
 
 PolicyViolationConstraintInfoTile.propTypes = {
   constraintViolations: constraintViolationsPropType.isRequired,

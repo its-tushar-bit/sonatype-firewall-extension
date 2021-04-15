@@ -4,10 +4,7 @@
       <td colspan="2">
         <div class="td-container">
           <i class="fa fa-filter size-16px size-fw"></i>
-          <input
-            ng-model="vm.search[vm.itemNameParam]"
-            placeholder="{{::vm.filterPlaceholder}}"
-          />
+          <input ng-model="vm.search[vm.itemNameParam]" placeholder="{{::vm.filterPlaceholder}}" />
         </div>
       </td>
     </tr>
@@ -72,11 +69,7 @@
               tooltip-only-on-overflow="{{::vm.showTooltipOnlyOnOverflow(item)}}"
               tooltip-attach-to-body
             >
-              <i
-                ng-if="vm.iconFn"
-                class="fa fa-fw {{vm.iconFn({item: item})}}"
-              ></i
-              >{{item[vm.itemNameParam]}}
+              <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
             </span>
           </iq-checkbox>
         </div>
@@ -95,11 +88,7 @@
               tooltip-only-on-overflow="{{::vm.showTooltipOnlyOnOverflow(item)}}"
               tooltip-attach-to-body
             >
-              <i
-                ng-if="vm.iconFn"
-                class="fa fa-fw {{vm.iconFn({item: item})}}"
-              ></i
-              >{{item[vm.itemNameParam]}}
+              <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
             </span>
           </iq-checkbox>
         </div>

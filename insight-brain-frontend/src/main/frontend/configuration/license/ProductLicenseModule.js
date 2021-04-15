@@ -10,12 +10,7 @@ import productLicense from './ProductLicense';
 import UninstallLicenseController from './uninstall.license.controller';
 
 export default angular
-  .module('ProductLicense', [
-    'ui.router',
-    angularCommonModule.name,
-    'ngCookies',
-    CLMLocationModule.name,
-  ])
+  .module('ProductLicense', ['ui.router', angularCommonModule.name, 'ngCookies', CLMLocationModule.name])
   .directive('onFileChange', function () {
     return {
       restrict: 'A',

@@ -30,9 +30,7 @@ describe('fuzzy.filter.js', function () {
 
   it('is fuzzy', function () {
     expect(nameFilter('test', ['test-name'])).toEqual(['test-name']);
-    expect(nameFilter('test', ['app-test-server'])).toEqual([
-      'app-test-server',
-    ]);
+    expect(nameFilter('test', ['app-test-server'])).toEqual(['app-test-server']);
     expect(nameFilter('test', ['quality-test'])).toEqual(['quality-test']);
     expect(nameFilter('testung-app', ['testing-app'])).toEqual(['testing-app']);
   });

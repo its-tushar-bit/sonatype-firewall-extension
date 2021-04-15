@@ -124,10 +124,9 @@ function OwnerTreeViewController(
         for (var i = vm.organizations.length - 1; i >= 0; i--) {
           var organization = vm.organizations[i];
           organization.isVisible = true;
-          organization.isExpanded = $state.includes(
-            'management.view.organization',
-            { organizationId: organization.id }
-          );
+          organization.isExpanded = $state.includes('management.view.organization', {
+            organizationId: organization.id,
+          });
 
           organization.applications.forEach(function (application) {
             application.isVisible = true;
@@ -160,17 +159,9 @@ function OwnerTreeViewController(
       if (topOrganization) {
         var options = { location: replaceLastHistoryRecord ? 'replace' : true };
         if (topOrganization.synthetic) {
-          $state.go(
-            '.application',
-            { applicationPublicId: topOrganization.applications[0].publicId },
-            options
-          );
+          $state.go('.application', { applicationPublicId: topOrganization.applications[0].publicId }, options);
         } else {
-          $state.go(
-            '.organization',
-            { organizationId: topOrganization.id },
-            options
-          );
+          $state.go('.organization', { organizationId: topOrganization.id }, options);
         }
       }
     }
@@ -221,11 +212,7 @@ function OwnerTreeViewController(
 
   function createOrganization() {
     var organizations = vm.organizations.concat(vm.rootOrganization);
-    OwnerEditor.open(
-      organizationStore.create(),
-      ownerConstant.ORGANIZATION_TYPE,
-      organizations
-    );
+    OwnerEditor.open(organizationStore.create(), ownerConstant.ORGANIZATION_TYPE, organizations);
   }
 
   function filter() {
@@ -236,12 +223,7 @@ function OwnerTreeViewController(
     var filterValue = vm.filter.value;
     var filteredOrganizations = [];
     if (filterValue && filterValue.length >= 3) {
-      filteredOrganizations = fuzzyFilter(
-        vm.organizations,
-        filterValue,
-        'name',
-        'id'
-      );
+      filteredOrganizations = fuzzyFilter(vm.organizations, filterValue, 'name', 'id');
     }
 
     for (var i = 0; i < vm.organizations.length; i++) {
@@ -250,21 +232,12 @@ function OwnerTreeViewController(
         anyApplicationVisible = false,
         filteredApplications;
 
-      if (
-        !filterValue ||
-        filterValue.length < 3 ||
-        filteredOrganizations.indexOf(organization.id) > -1
-      ) {
+      if (!filterValue || filterValue.length < 3 || filteredOrganizations.indexOf(organization.id) > -1) {
         organizationVisible = true;
       }
 
       if (filterValue && filterValue.length >= 3) {
-        filteredApplications = fuzzyFilter(
-          organization.applications,
-          filterValue,
-          'name',
-          'id'
-        );
+        filteredApplications = fuzzyFilter(organization.applications, filterValue, 'name', 'id');
       }
 
       for (var j = 0; j < organization.applications.length; j++) {
@@ -279,10 +252,8 @@ function OwnerTreeViewController(
       }
 
       organization.isExpanded =
-        Boolean(
-          filterValue &&
-            (filterValue.length < 3 ? false : anyApplicationVisible)
-        ) || isOrganizationChildSelected(organization);
+        Boolean(filterValue && (filterValue.length < 3 ? false : anyApplicationVisible)) ||
+        isOrganizationChildSelected(organization);
       organization.isVisible = organizationVisible || anyApplicationVisible;
     }
   }
@@ -303,8 +274,7 @@ function OwnerTreeViewController(
 
     for (var i = 0; i < organization.applications.length; i++) {
       var application = organization.applications[i];
-      var isApplicationViewed =
-        $stateParams.applicationPublicId === application.publicId;
+      var isApplicationViewed = $stateParams.applicationPublicId === application.publicId;
       if (isApplicationViewed) {
         return true;
       }
@@ -317,21 +287,17 @@ function OwnerTreeViewController(
     var stateIsThisOrg = vm.$state.includes('management.view.organization', {
         organizationId: organization.id,
       }),
-      selectedParentIsThisOrg =
-        vm.selectedParentOrganization &&
-        vm.selectedParentOrganization.id === organization.id;
+      selectedParentIsThisOrg = vm.selectedParentOrganization && vm.selectedParentOrganization.id === organization.id;
 
     evt.preventDefault();
     evt.stopPropagation();
 
-    organization.isExpanded =
-      stateIsThisOrg || selectedParentIsThisOrg || !organization.isExpanded;
+    organization.isExpanded = stateIsThisOrg || selectedParentIsThisOrg || !organization.isExpanded;
   }
 
   function mapStateToThis(state) {
     return {
-      isScmOnboardingFeatureEnabled:
-        state.scmOnboarding.configState.isScmOnboardingFeatureEnabled,
+      isScmOnboardingFeatureEnabled: state.scmOnboarding.configState.isScmOnboardingFeatureEnabled,
     };
   }
 }

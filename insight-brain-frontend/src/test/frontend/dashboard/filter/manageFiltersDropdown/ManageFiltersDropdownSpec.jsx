@@ -51,17 +51,12 @@ describe('ManageFiltersDropdown', function () {
       DeleteFilterModal: DeleteFilterModalContainerMock,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ManageFiltersDropdown,
-      props
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ManageFiltersDropdown, props);
   });
 
   it('renders provided DeleteFilterModal', function () {
     const component = getShallowComponent();
-    expect(component.childAt(0)).toMatchSelector(
-      DeleteFilterModalContainerMock
-    );
+    expect(component.childAt(0)).toMatchSelector(DeleteFilterModalContainerMock);
   });
 
   it('renders NxDropdown component', function () {
@@ -87,26 +82,20 @@ describe('ManageFiltersDropdown', function () {
     });
 
     it('renders appliedFilterName with asterisk as dropdown toggle label if showDirtyAsterisk is true', function () {
-      const component = getShallowComponent({ showDirtyAsterisk: true }).find(
-          NxDropdown
-        ),
+      const component = getShallowComponent({ showDirtyAsterisk: true }).find(NxDropdown),
         labelProp = component.prop('label');
 
       const asteriskVDom = shallow(labelProp.props.children[0]);
       const labelVDom = shallow(labelProp.props.children[1]);
 
-      expect(asteriskVDom).toHaveClassName(
-        'iq-manage-filters-dropdown__dirty-asterisk'
-      );
+      expect(asteriskVDom).toHaveClassName('iq-manage-filters-dropdown__dirty-asterisk');
       expect(asteriskVDom).toHaveText('*');
 
       expect(labelVDom).toHaveText('filter 1234');
     });
 
     it('renders "Default" as dropdown toggle label if appliedFilterName is null', function () {
-      const component = getShallowComponent({ appliedFilterName: null }).find(
-          NxDropdown
-        ),
+      const component = getShallowComponent({ appliedFilterName: null }).find(NxDropdown),
         labelProp = component.prop('label');
 
       const asteriskVDom = labelProp.props.children[0];
@@ -126,9 +115,7 @@ describe('ManageFiltersDropdown', function () {
       const asteriskVDom = shallow(labelProp.props.children[0]);
       const labelVDom = shallow(labelProp.props.children[1]);
 
-      expect(asteriskVDom).toHaveClassName(
-        'iq-manage-filters-dropdown__dirty-asterisk'
-      );
+      expect(asteriskVDom).toHaveClassName('iq-manage-filters-dropdown__dirty-asterisk');
       expect(asteriskVDom).toHaveText('*');
 
       expect(labelVDom).toHaveText('Default');
@@ -167,30 +154,18 @@ describe('ManageFiltersDropdown', function () {
       const component = getShallowComponent({ appliedFilterName: null }),
         options = component.find('.iq-manage-filters-dropdown__option');
 
-      expect(options.at(0)).toHaveClassName(
-        'iq-manage-filters-dropdown__option--selected'
-      );
-      expect(options.at(1)).not.toHaveClassName(
-        'iq-manage-filters-dropdown__option--selected'
-      );
-      expect(options.at(2)).not.toHaveClassName(
-        'iq-manage-filters-dropdown__option--selected'
-      );
+      expect(options.at(0)).toHaveClassName('iq-manage-filters-dropdown__option--selected');
+      expect(options.at(1)).not.toHaveClassName('iq-manage-filters-dropdown__option--selected');
+      expect(options.at(2)).not.toHaveClassName('iq-manage-filters-dropdown__option--selected');
     });
 
     it('renders saved filter option with selected class if corresponding filter is applied', function () {
       const component = getShallowComponent({ appliedFilterName: 'bar' }),
         options = component.find('.iq-manage-filters-dropdown__option');
 
-      expect(options.at(0)).not.toHaveClassName(
-        'iq-manage-filters-dropdown__option--selected'
-      );
-      expect(options.at(1)).not.toHaveClassName(
-        'iq-manage-filters-dropdown__option--selected'
-      );
-      expect(options.at(2)).toHaveClassName(
-        'iq-manage-filters-dropdown__option--selected'
-      );
+      expect(options.at(0)).not.toHaveClassName('iq-manage-filters-dropdown__option--selected');
+      expect(options.at(1)).not.toHaveClassName('iq-manage-filters-dropdown__option--selected');
+      expect(options.at(2)).toHaveClassName('iq-manage-filters-dropdown__option--selected');
     });
 
     describe('option click handler', function () {
@@ -198,37 +173,25 @@ describe('ManageFiltersDropdown', function () {
         const component = getShallowComponent(),
           options = component.find('.iq-manage-filters-dropdown__option');
 
-        options
-          .at(1)
-          .find('.nx-dropdown-button--select-filter')
-          .simulate('click');
+        options.at(1).find('.nx-dropdown-button--select-filter').simulate('click');
         expect(applySavedFilter).toHaveBeenCalledWith({ name: 'foo' });
 
-        options
-          .at(2)
-          .find('.nx-dropdown-button--select-filter')
-          .simulate('click');
+        options.at(2).find('.nx-dropdown-button--select-filter').simulate('click');
         expect(applySavedFilter).toHaveBeenCalledWith({ name: 'bar' });
       });
 
       it('calls applyDefaultFilter callback if default option is clicked', function () {
         const component = getShallowComponent(),
-          defaultOption = component
-            .find('.iq-manage-filters-dropdown__option')
-            .at(0);
+          defaultOption = component.find('.iq-manage-filters-dropdown__option').at(0);
 
-        defaultOption
-          .find('.nx-dropdown-button--select-filter')
-          .simulate('click');
+        defaultOption.find('.nx-dropdown-button--select-filter').simulate('click');
         expect(applyDefaultFilter).toHaveBeenCalled();
       });
     });
 
     describe('delete filter button click handler', function () {
       it('fires selectFilterToDelete action with filter name', function () {
-        const savedFilterOption = getShallowComponent()
-          .find('.iq-manage-filters-dropdown__option')
-          .at(1);
+        const savedFilterOption = getShallowComponent().find('.iq-manage-filters-dropdown__option').at(1);
 
         savedFilterOption.find('.nx-btn--delete-filter').simulate('click');
         expect(selectFilterToDelete).toHaveBeenCalledWith('foo');

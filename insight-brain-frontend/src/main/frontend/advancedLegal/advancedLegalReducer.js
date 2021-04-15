@@ -18,10 +18,7 @@ import {
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
 } from './advancedLegalActions';
-import {
-  ACTIONABLE_OBLIGATIONS,
-  TEXT_BASED_OBLIGATIONS,
-} from '../legal/advancedLegalConstants';
+import { ACTIONABLE_OBLIGATIONS, TEXT_BASED_OBLIGATIONS } from '../legal/advancedLegalConstants';
 import { COPYRIGHT_OVERRIDE_SAVE_FULFILLED } from '../legal/copyright/copyrightOverrideFormActions';
 import { lensPath, over } from 'ramda';
 import { advancedLegalObligationReducerActionMap } from '../legal/obligation/advancedLegalObligationReducer';
@@ -186,40 +183,27 @@ function loadComponentFulfilled(payload, state) {
 
   const newAttributions = [
     ...newObligations
-      .filter(
-        (obligation) => TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0
-      )
-      .map((obligation) =>
-        getAttributionOrNew(
-          payload.component.licenseLegalData.attributions,
-          obligation.name
-        )
-      ),
+      .filter((obligation) => TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0)
+      .map((obligation) => getAttributionOrNew(payload.component.licenseLegalData.attributions, obligation.name)),
     getAttributionOrNew(payload.component.licenseLegalData.attributions, null),
   ];
 
-  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(
-    (noticeFile) => ({
-      ...noticeFile,
-      originalContent: noticeFile.content,
-      originalStatus: noticeFile.status,
-      isPristine: true,
-    })
-  );
-  const newLicenseFiles = payload.component.licenseLegalData.licenseFiles.map(
-    (licenseFile) => ({
-      ...licenseFile,
-      originalContent: licenseFile.content,
-      originalStatus: licenseFile.status,
-      isPristine: true,
-    })
-  );
+  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map((noticeFile) => ({
+    ...noticeFile,
+    originalContent: noticeFile.content,
+    originalStatus: noticeFile.status,
+    isPristine: true,
+  }));
+  const newLicenseFiles = payload.component.licenseLegalData.licenseFiles.map((licenseFile) => ({
+    ...licenseFile,
+    originalContent: licenseFile.content,
+    originalStatus: licenseFile.status,
+    isPristine: true,
+  }));
   const componentNoticesScopeOwnerId =
-    payload.component.licenseLegalData.componentNoticesScopeOwnerId ||
-    'ROOT_ORGANIZATION_ID';
+    payload.component.licenseLegalData.componentNoticesScopeOwnerId || 'ROOT_ORGANIZATION_ID';
   const componentLicensesScopeOwnerId =
-    payload.component.licenseLegalData.componentLicensesScopeOwnerId ||
-    'ROOT_ORGANIZATION_ID';
+    payload.component.licenseLegalData.componentLicensesScopeOwnerId || 'ROOT_ORGANIZATION_ID';
   const newLicenseLegalData = {
     ...payload.component.licenseLegalData,
     showNoticesModal: false,
@@ -299,8 +283,7 @@ function saveCopyrightOverrideFulfilled(payload, state) {
       ...lld,
       componentCopyrightId: payload.id,
       componentCopyrightScopeOwnerId: payload.componentCopyrightScopeOwnerId,
-      componentCopyrightLastUpdatedByUsername:
-        payload.componentCopyrightLastUpdatedByUsername,
+      componentCopyrightLastUpdatedByUsername: payload.componentCopyrightLastUpdatedByUsername,
       componentCopyrightLastUpdatedAt: payload.componentCopyrightLastUpdatedAt,
       copyrights: payload.copyrightOverrides,
     }),
@@ -326,8 +309,5 @@ const reducerActionMap = {
   ...advancedLegalFileReducerActionMap,
 };
 
-const advancedLegalReducer = createReducerFromActionMap(
-  reducerActionMap,
-  initialState
-);
+const advancedLegalReducer = createReducerFromActionMap(reducerActionMap, initialState);
 export default advancedLegalReducer;

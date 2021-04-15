@@ -136,29 +136,19 @@ describe('copyrightOverrideFormAction', function () {
         };
         mockAxiosCalls({
           post: {
-            [getSaveComponentCopyrightOverrideUrl(
-              'organization',
-              'org'
-            )]: Promise.resolve({
+            [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.resolve({
               data: {
                 data: 'dataPOST',
               },
             }),
-            [getSaveComponentObligationUrl(
-              'organization',
-              'org'
-            )]: Promise.resolve({
+            [getSaveComponentObligationUrl('organization', 'org')]: Promise.resolve({
               data: {
                 data: 'dataPOST2',
               },
             }),
           },
           get: {
-            [getComponentCopyrightOverrideUrl(
-              'organization',
-              'org',
-              'componentIdentifier'
-            )]: Promise.resolve({
+            [getComponentCopyrightOverrideUrl('organization', 'org', 'componentIdentifier')]: Promise.resolve({
               data: {
                 componentCopyrightDTO: {
                   data: 'dataGET',
@@ -252,21 +242,14 @@ describe('copyrightOverrideFormAction', function () {
       };
       mockAxiosCalls({
         post: {
-          [getSaveComponentCopyrightOverrideUrl(
-            'organization',
-            'org'
-          )]: Promise.resolve({
+          [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.resolve({
             data: {
               data: 'dataPOST',
             },
           }),
         },
         get: {
-          [getComponentCopyrightOverrideUrl(
-            'organization',
-            'org',
-            'componentIdentifier'
-          )]: Promise.resolve({
+          [getComponentCopyrightOverrideUrl('organization', 'org', 'componentIdentifier')]: Promise.resolve({
             data: {
               componentCopyrightDTO: {
                 data: 'dataGET',
@@ -340,10 +323,7 @@ describe('copyrightOverrideFormAction', function () {
       };
       mockAxiosCalls({
         post: {
-          [getSaveComponentCopyrightOverrideUrl(
-            'organization',
-            'org'
-          )]: Promise.reject('error'),
+          [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.reject('error'),
         },
       });
 
@@ -447,12 +427,7 @@ describe('copyrightOverrideFormAction', function () {
           },
         ],
       };
-      assertExpectedHighScopeCalls(
-        'org',
-        'organization',
-        expectedPostBody,
-        done
-      );
+      assertExpectedHighScopeCalls('org', 'organization', expectedPostBody, done);
     });
 
     it('ComponentCopyright exists at appScope, change to root scope', function (done) {
@@ -476,23 +451,12 @@ describe('copyrightOverrideFormAction', function () {
         ],
       };
 
-      assertExpectedHighScopeCalls(
-        'ROOT_ORGANIZATION_ID',
-        'organization',
-        expectedPostBody,
-        done
-      );
+      assertExpectedHighScopeCalls('ROOT_ORGANIZATION_ID', 'organization', expectedPostBody, done);
     });
 
     it('ComponentCopyright exists at orgScope, change to root scope', function (done) {
       initialState = pathSet(
-        [
-          'advancedLegal',
-          'component',
-          'component',
-          'licenseLegalData',
-          'componentCopyrightScopeOwnerId',
-        ],
+        ['advancedLegal', 'component', 'component', 'licenseLegalData', 'componentCopyrightScopeOwnerId'],
         'org',
         initialState
       );
@@ -516,23 +480,12 @@ describe('copyrightOverrideFormAction', function () {
         ],
       };
 
-      assertExpectedHighScopeCalls(
-        'ROOT_ORGANIZATION_ID',
-        'organization',
-        expectedPostBody,
-        done
-      );
+      assertExpectedHighScopeCalls('ROOT_ORGANIZATION_ID', 'organization', expectedPostBody, done);
     });
 
     it('ComponentCopyright exists at orgScope, change to app scope', function (done) {
       initialState = pathSet(
-        [
-          'advancedLegal',
-          'component',
-          'component',
-          'licenseLegalData',
-          'componentCopyrightScopeOwnerId',
-        ],
+        ['advancedLegal', 'component', 'component', 'licenseLegalData', 'componentCopyrightScopeOwnerId'],
         'org',
         initialState
       );
@@ -559,37 +512,22 @@ describe('copyrightOverrideFormAction', function () {
       assertExpectedCalls('app', 'application', expectedPostBody, done);
     });
 
-    function assertExpectedCalls(
-      expectedScope,
-      orgOrApp,
-      expectedPostBody,
-      done
-    ) {
+    function assertExpectedCalls(expectedScope, orgOrApp, expectedPostBody, done) {
       mockAxiosCalls({
         post: {
-          [getSaveComponentCopyrightOverrideUrl(
-            orgOrApp,
-            expectedScope
-          )]: Promise.resolve({
+          [getSaveComponentCopyrightOverrideUrl(orgOrApp, expectedScope)]: Promise.resolve({
             data: {
               data: 'data',
             },
           }),
-          [getSaveComponentObligationUrl(
-            orgOrApp,
-            expectedScope
-          )]: Promise.resolve({
+          [getSaveComponentObligationUrl(orgOrApp, expectedScope)]: Promise.resolve({
             data: {
               data: 'dataPOST2',
             },
           }),
         },
         get: {
-          [getComponentCopyrightOverrideUrl(
-            'application',
-            'app',
-            'componentIdentifier'
-          )]: Promise.resolve({
+          [getComponentCopyrightOverrideUrl('application', 'app', 'componentIdentifier')]: Promise.resolve({
             data: {
               componentCopyrightDTO: {
                 data: 'dataGET',
@@ -633,11 +571,7 @@ describe('copyrightOverrideFormAction', function () {
           setTimeout(() => {
             const actions = store.getActions();
             expect(axios.post).toHaveBeenCalledWith(
-              '/api/experimental/licenseLegalMetadata/' +
-                orgOrApp +
-                '/' +
-                expectedScope +
-                '/component/copyright',
+              '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + expectedScope + '/component/copyright',
               expectedPostBody
             );
             expect(actions.length).toBe(3);
@@ -660,37 +594,22 @@ describe('copyrightOverrideFormAction', function () {
       expect(actions[0].type).toBe(COPYRIGHT_OVERRIDE_SAVE_REQUESTED);
     }
 
-    function assertExpectedHighScopeCalls(
-      persistedAtScope,
-      orgOrApp,
-      expectedPostBody,
-      done
-    ) {
+    function assertExpectedHighScopeCalls(persistedAtScope, orgOrApp, expectedPostBody, done) {
       mockAxiosCalls({
         post: {
-          [getSaveComponentCopyrightOverrideUrl(
-            orgOrApp,
-            persistedAtScope
-          )]: Promise.resolve({
+          [getSaveComponentCopyrightOverrideUrl(orgOrApp, persistedAtScope)]: Promise.resolve({
             data: {
               data: 'dataPOST',
             },
           }),
-          [getSaveComponentObligationUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          )]: Promise.resolve({
+          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
             data: {
               data: 'dataPOST2',
             },
           }),
         },
         get: {
-          [getComponentCopyrightOverrideUrl(
-            'application',
-            'app',
-            'componentIdentifier'
-          )]: Promise.resolve({
+          [getComponentCopyrightOverrideUrl('application', 'app', 'componentIdentifier')]: Promise.resolve({
             data: {
               componentCopyrightDTO: {
                 data: 'dataGET',
@@ -733,11 +652,7 @@ describe('copyrightOverrideFormAction', function () {
         .then(() => {
           const actions = store.getActions();
           expect(axios.post).toHaveBeenCalledWith(
-            '/api/experimental/licenseLegalMetadata/' +
-              orgOrApp +
-              '/' +
-              persistedAtScope +
-              '/component/copyright',
+            '/api/experimental/licenseLegalMetadata/' + orgOrApp + '/' + persistedAtScope + '/component/copyright',
             expectedPostBody
           );
           expect(axios.get).toHaveBeenCalledWith(
@@ -754,9 +669,7 @@ describe('copyrightOverrideFormAction', function () {
             componentCopyrightLastUpdatedByUsername: 'admin',
             componentCopyrightLastUpdatedAt: 1618873200000,
           });
-          expect(actions[2].type).toBe(
-            ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED
-          );
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
           done();
         });
 
@@ -838,18 +751,12 @@ describe('copyrightOverrideFormAction', function () {
       };
       mockAxiosCalls({
         post: {
-          [getSaveComponentCopyrightOverrideUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          )]: Promise.resolve({
+          [getSaveComponentCopyrightOverrideUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
             data: {
               data: 'dataPOST1',
             },
           }),
-          [getSaveComponentObligationUrl(
-            'organization',
-            'ROOT_ORGANIZATION_ID'
-          )]: Promise.resolve({
+          [getSaveComponentObligationUrl('organization', 'ROOT_ORGANIZATION_ID')]: Promise.resolve({
             data: {
               data: 'dataPOST2',
             },
@@ -937,12 +844,8 @@ describe('copyrightOverrideFormAction', function () {
               componentCopyrightLastUpdatedByUsername: 'admin',
               componentCopyrightLastUpdatedAt: 1618873200000,
             });
-            expect(actions[2].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED
-            );
-            expect(actions[3].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED
-            );
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED);
+            expect(actions[3].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED);
             expect(actions[3].payload).toEqual({
               name: 'Inclusion of Copyright',
               value: {
@@ -954,9 +857,7 @@ describe('copyrightOverrideFormAction', function () {
                 lastUpdatedAt: 1618873200000,
               },
             });
-            expect(actions[4].type).toBe(
-              ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE
-            );
+            expect(actions[4].type).toBe(ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE);
             expect(actions[4].payload).toEqual({
               name: 'Inclusion of Copyright',
             });

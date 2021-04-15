@@ -5,17 +5,10 @@
  */
 import { payloadParamActionCreator } from '../../util/reduxUtil';
 import axios from 'axios';
-import {
-  getCopyrightContextUrl,
-  getCopyrightFileCountUrl,
-  getCopyrightFilePathsUrl,
-} from '../../util/CLMLocation';
+import { getCopyrightContextUrl, getCopyrightFileCountUrl, getCopyrightFilePathsUrl } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 import { FILE_PATH_PAGE_SIZE, pageOffset } from './copyrightDetailsUtils';
-import {
-  loadAvailableScopes,
-  loadComponent,
-} from '../../advancedLegal/advancedLegalActions';
+import { loadAvailableScopes, loadComponent } from '../../advancedLegal/advancedLegalActions';
 
 export const COPYRIGHT_DETAILS_REQUEST = 'COPYRIGHT_DETAILS_REQUEST';
 export const COPYRIGHT_DETAILS_FULFILLED = 'COPYRIGHT_DETAILS_FULFILLED';
@@ -29,42 +22,19 @@ export const COPYRIGHT_CONTEXT_REQUEST = 'COPYRIGHT_CONTEXT_REQUEST';
 export const COPYRIGHT_CONTEXT_FULFILLED = 'COPYRIGHT_CONTEXT_FULFILLED';
 export const COPYRIGHT_CONTEXT_FAILED = 'COPYRIGHT_CONTEXT_FAILED';
 
-export const copyrightDetailsRequest = payloadParamActionCreator(
-  COPYRIGHT_DETAILS_REQUEST
-);
-export const copyrightDetailsFulfilled = payloadParamActionCreator(
-  COPYRIGHT_DETAILS_FULFILLED
-);
-export const copyrightDetailsFailed = payloadParamActionCreator(
-  COPYRIGHT_DETAILS_FAILED
-);
+export const copyrightDetailsRequest = payloadParamActionCreator(COPYRIGHT_DETAILS_REQUEST);
+export const copyrightDetailsFulfilled = payloadParamActionCreator(COPYRIGHT_DETAILS_FULFILLED);
+export const copyrightDetailsFailed = payloadParamActionCreator(COPYRIGHT_DETAILS_FAILED);
 
-export const copyrightFilePathsRequest = payloadParamActionCreator(
-  COPYRIGHT_FILE_PATHS_REQUEST
-);
-export const copyrightFilePathsFulfilled = payloadParamActionCreator(
-  COPYRIGHT_FILE_PATHS_FULFILLED
-);
-export const copyrightFilePathsFailed = payloadParamActionCreator(
-  COPYRIGHT_FILE_PATHS_FAILED
-);
+export const copyrightFilePathsRequest = payloadParamActionCreator(COPYRIGHT_FILE_PATHS_REQUEST);
+export const copyrightFilePathsFulfilled = payloadParamActionCreator(COPYRIGHT_FILE_PATHS_FULFILLED);
+export const copyrightFilePathsFailed = payloadParamActionCreator(COPYRIGHT_FILE_PATHS_FAILED);
 
-export const copyrightContextsRequest = payloadParamActionCreator(
-  COPYRIGHT_CONTEXT_REQUEST
-);
-export const copyrightContextFulfilled = payloadParamActionCreator(
-  COPYRIGHT_CONTEXT_FULFILLED
-);
-export const copyrightContextFailed = payloadParamActionCreator(
-  COPYRIGHT_CONTEXT_FAILED
-);
+export const copyrightContextsRequest = payloadParamActionCreator(COPYRIGHT_CONTEXT_REQUEST);
+export const copyrightContextFulfilled = payloadParamActionCreator(COPYRIGHT_CONTEXT_FULFILLED);
+export const copyrightContextFailed = payloadParamActionCreator(COPYRIGHT_CONTEXT_FAILED);
 
-export function loadComponentAndCopyrightDetails(
-  ownerType,
-  ownerId,
-  hash,
-  copyrightIndex
-) {
+export function loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex) {
   return (dispatch, getState) => {
     const component = getState().advancedLegal.component.component;
     if (!component) {
@@ -80,24 +50,12 @@ export function loadComponentAndCopyrightDetails(
 
 export function loadFilePathsOnPageUpdate(filePathsPage) {
   return (dispatch, getState) => {
-    const {
-      copyright,
-      component,
-      ownerType,
-      ownerPublicId,
-    } = extractRoutingParameters(getState());
+    const { copyright, component, ownerType, ownerPublicId } = extractRoutingParameters(getState());
 
     const pageNumber = filePathsPage || 0;
     dispatch(copyrightFilePathsRequest({ filePathsPage: pageNumber }));
     if (copyright.originalContentHash) {
-      return loadFilePaths(
-        dispatch,
-        ownerType,
-        ownerPublicId,
-        component,
-        copyright,
-        pageNumber
-      );
+      return loadFilePaths(dispatch, ownerType, ownerPublicId, component, copyright, pageNumber);
     } else {
       return dispatch(
         copyrightFilePathsFulfilled({
@@ -118,30 +76,13 @@ export function unloadCopyrightContexts() {
 export function loadCopyrightContexts(filePath) {
   return (dispatch, getState) => {
     dispatch(copyrightContextsRequest({ selectedFilePath: filePath }));
-    const {
-      copyright,
-      component,
-      ownerType,
-      ownerPublicId,
-    } = extractRoutingParameters(getState());
+    const { copyright, component, ownerType, ownerPublicId } = extractRoutingParameters(getState());
 
-    return loadCopyrightContext(
-      dispatch,
-      ownerType,
-      ownerPublicId,
-      component,
-      copyright.originalContentHash,
-      filePath
-    );
+    return loadCopyrightContext(dispatch, ownerType, ownerPublicId, component, copyright.originalContentHash, filePath);
   };
 }
 
-function onCopyrightDetailsLoaded(
-  dispatch,
-  copyrightIndex,
-  component,
-  results
-) {
+function onCopyrightDetailsLoaded(dispatch, copyrightIndex, component, results) {
   dispatch(
     copyrightDetailsFulfilled({
       copyrightIndex,
@@ -153,12 +94,7 @@ function onCopyrightDetailsLoaded(
 }
 
 function requestLoadCopyrightDetails(dispatch, state, copyrightIndex) {
-  const {
-    copyright,
-    component,
-    ownerType,
-    ownerPublicId,
-  } = extractRoutingParameters(state, copyrightIndex);
+  const { copyright, component, ownerType, ownerPublicId } = extractRoutingParameters(state, copyrightIndex);
 
   const details = state.componentCopyrightDetails;
 
@@ -173,18 +109,8 @@ function requestLoadCopyrightDetails(dispatch, state, copyrightIndex) {
     })
   );
 
-  const copyrightFileCounts = loadCopyrightFileCountPromise(
-    ownerType,
-    ownerPublicId,
-    component
-  );
-  const loadPaths = loadFilePathsPromise(
-    ownerType,
-    ownerPublicId,
-    component,
-    copyright,
-    0
-  );
+  const copyrightFileCounts = loadCopyrightFileCountPromise(ownerType, ownerPublicId, component);
+  const loadPaths = loadFilePathsPromise(ownerType, ownerPublicId, component, copyright, 0);
 
   return Promise.all([loadPaths, copyrightFileCounts])
     .then(([paths, copyrightCount]) =>
@@ -193,21 +119,10 @@ function requestLoadCopyrightDetails(dispatch, state, copyrightIndex) {
         copyrightCount,
       })
     )
-    .catch((error) =>
-      dispatch(
-        copyrightDetailsFailed({ value: Messages.getHttpErrorMessage(error) })
-      )
-    );
+    .catch((error) => dispatch(copyrightDetailsFailed({ value: Messages.getHttpErrorMessage(error) })));
 }
 
-function loadCopyrightContext(
-  dispatch,
-  ownerType,
-  ownerId,
-  component,
-  copyrightContentHash,
-  filePath
-) {
+function loadCopyrightContext(dispatch, ownerType, ownerId, component, copyrightContentHash, filePath) {
   const copyrightContextUrl = getCopyrightContextUrl(
     ownerType,
     ownerId,
@@ -225,47 +140,16 @@ function loadCopyrightContext(
         })
       )
     )
-    .catch((error) =>
-      dispatch(
-        copyrightContextFailed({ value: Messages.getHttpErrorMessage(error) })
-      )
-    );
+    .catch((error) => dispatch(copyrightContextFailed({ value: Messages.getHttpErrorMessage(error) })));
 }
 
-function loadFilePaths(
-  dispatch,
-  ownerType,
-  ownerId,
-  component,
-  copyright,
-  pageNumber
-) {
-  return loadFilePathsPromise(
-    ownerType,
-    ownerId,
-    component,
-    copyright,
-    pageNumber
-  )
-    .then((filePathsPayload) =>
-      dispatch(
-        copyrightFilePathsFulfilled({ filePaths: filePathsPayload.data })
-      )
-    )
-    .catch((error) =>
-      dispatch(
-        copyrightFilePathsFailed({ value: Messages.getHttpErrorMessage(error) })
-      )
-    );
+function loadFilePaths(dispatch, ownerType, ownerId, component, copyright, pageNumber) {
+  return loadFilePathsPromise(ownerType, ownerId, component, copyright, pageNumber)
+    .then((filePathsPayload) => dispatch(copyrightFilePathsFulfilled({ filePaths: filePathsPayload.data })))
+    .catch((error) => dispatch(copyrightFilePathsFailed({ value: Messages.getHttpErrorMessage(error) })));
 }
 
-function loadFilePathsPromise(
-  ownerType,
-  ownerId,
-  component,
-  copyright,
-  pageNumber
-) {
+function loadFilePathsPromise(ownerType, ownerId, component, copyright, pageNumber) {
   if (copyright.originalContentHash) {
     const copyrightFilePathsUrl = getCopyrightFilePathsUrl(
       ownerType,
@@ -298,8 +182,7 @@ function extractRoutingParameters(state, requestedCopyrightIndex) {
   const advancedLegalState = state.advancedLegal;
   const routerParams = state.router.currentParams;
 
-  const copyrightIndex =
-    requestedCopyrightIndex || state.componentCopyrightDetails.copyrightIndex;
+  const copyrightIndex = requestedCopyrightIndex || state.componentCopyrightDetails.copyrightIndex;
 
   const component = advancedLegalState.component.component;
   const copyright = component.licenseLegalData.copyrights[copyrightIndex];

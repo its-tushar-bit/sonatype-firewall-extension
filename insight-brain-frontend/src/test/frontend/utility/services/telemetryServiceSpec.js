@@ -35,23 +35,14 @@ describe('telemetryService', function () {
       });
 
       expect($cookies.get).toHaveBeenCalledWith($http.defaults.xsrfCookieName);
-      expect(XMLHttpRequest.prototype.open).toHaveBeenCalledWith(
-        'POST',
-        CLMLocations.getTelemetryUrl(),
-        true
-      );
-      expect(XMLHttpRequest.prototype.setRequestHeader).toHaveBeenCalledWith(
-        'Content-Type',
-        'application/json'
-      );
+      expect(XMLHttpRequest.prototype.open).toHaveBeenCalledWith('POST', CLMLocations.getTelemetryUrl(), true);
+      expect(XMLHttpRequest.prototype.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/json');
       expect(XMLHttpRequest.prototype.setRequestHeader).toHaveBeenCalledWith(
         $http.defaults.xsrfHeaderName,
         'xsrfCookieTestValue'
       );
 
-      var telemetryData = JSON.parse(
-        XMLHttpRequest.prototype.send.calls.argsFor(0)
-      );
+      var telemetryData = JSON.parse(XMLHttpRequest.prototype.send.calls.argsFor(0));
       expect(telemetryData).toEqual(
         jasmine.objectContaining({
           purpose: 'test_purpose',
@@ -68,22 +59,14 @@ describe('telemetryService', function () {
       spyOn(XMLHttpRequest.prototype, 'open').and.callThrough();
       spyOn(XMLHttpRequest.prototype, 'send');
       telemetryService.submitData('test_purpose', null, true);
-      expect(XMLHttpRequest.prototype.open).toHaveBeenCalledWith(
-        'POST',
-        CLMLocations.getTelemetryUrl(),
-        false
-      );
+      expect(XMLHttpRequest.prototype.open).toHaveBeenCalledWith('POST', CLMLocations.getTelemetryUrl(), false);
     });
 
     it('submits data asynchronously when provided sync flag is not true but truthy', function () {
       spyOn(XMLHttpRequest.prototype, 'open').and.callThrough();
       spyOn(XMLHttpRequest.prototype, 'send');
       telemetryService.submitData('test_purpose', null, 1);
-      expect(XMLHttpRequest.prototype.open).toHaveBeenCalledWith(
-        'POST',
-        CLMLocations.getTelemetryUrl(),
-        true
-      );
+      expect(XMLHttpRequest.prototype.open).toHaveBeenCalledWith('POST', CLMLocations.getTelemetryUrl(), true);
     });
   });
 });

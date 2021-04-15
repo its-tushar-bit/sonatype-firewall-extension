@@ -34,19 +34,13 @@ describe('repository.policy.violations.service', function () {
     })
   );
 
-  it('success', inject(function (
-    $httpBackend,
-    PolicyViolations,
-    SelectedComponent
-  ) {
+  it('success', inject(function ($httpBackend, PolicyViolations, SelectedComponent) {
     var successSpy = jasmine.createSpy('success');
 
     $httpBackend
       .expectGET(
         SpecUtil.toRegExp(
-          window.CLM.path +
-            'rest/repositories/repository-id/report/policyThreat/' +
-            SelectedComponent.get().pathname
+          window.CLM.path + 'rest/repositories/repository-id/report/policyThreat/' + SelectedComponent.get().pathname
         )
       )
       .respond(200, { activePolicyViolations: [] });
@@ -56,19 +50,13 @@ describe('repository.policy.violations.service', function () {
     expect(successSpy).toHaveBeenCalledWith([]);
   }));
 
-  it('error', inject(function (
-    $httpBackend,
-    PolicyViolations,
-    SelectedComponent
-  ) {
+  it('error', inject(function ($httpBackend, PolicyViolations, SelectedComponent) {
     var failureSpy = jasmine.createSpy('failure');
 
     $httpBackend
       .expectGET(
         SpecUtil.toRegExp(
-          window.CLM.path +
-            'rest/repositories/repository-id/report/policyThreat/' +
-            SelectedComponent.get().pathname
+          window.CLM.path + 'rest/repositories/repository-id/report/policyThreat/' + SelectedComponent.get().pathname
         )
       )
       .respond(404, 'failure');

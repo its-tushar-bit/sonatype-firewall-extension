@@ -5,11 +5,7 @@
  */
 
 import React, { Fragment } from 'react';
-import {
-  faCaretDown,
-  faCaretRight,
-  faLightbulb,
-} from '@fortawesome/pro-solid-svg-icons';
+import { faCaretDown, faCaretRight, faLightbulb } from '@fortawesome/pro-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import NxExternalLink from '../react/NxExternalLink';
 import * as PropTypes from 'prop-types';
@@ -38,9 +34,8 @@ export default function AdvancedSearchHelp(props) {
         'Search by application name focused on *open* security vulnerabilities'
       )}
       <div className="iq-adv-search-help__note">
-        Note: Do not need <i>itemType:SECURITY_VULNERABILITY</i> anymore, since
-        vulnerabilityStatus:Open will already return search results that are of
-        item type <i>SECURITY_VULNERABILITY</i>.
+        Note: Do not need <i>itemType:SECURITY_VULNERABILITY</i> anymore, since vulnerabilityStatus:Open will already
+        return search results that are of item type <i>SECURITY_VULNERABILITY</i>.
       </div>
       {helpRow(
         'itemType:SECURITY_VULNERABILITY AND componentFormat:(a-name OR npm) AND' +
@@ -52,14 +47,12 @@ export default function AdvancedSearchHelp(props) {
         'Search specific components with specific state (alternative version)'
       )}
       <div className="iq-adv-search-help__note">
-        Tip: Both queries above are equivalent, they return the same result. It
-        is a good example of not actually requiring the itemType. OR is the
-        default operator so it can be omitted.
+        Tip: Both queries above are equivalent, they return the same result. It is a good example of not actually
+        requiring the itemType. OR is the default operator so it can be omitted.
       </div>
       <p className="nx-text--advanced-search-help-row">
         <span className="iq-adv-search-help__explanation">
-          Also watch out for special characters that need escaping e.g. ( ) and
-          “ “
+          Also watch out for special characters that need escaping e.g. ( ) and “ “
         </span>
       </p>
       <p>
@@ -82,15 +75,8 @@ export default function AdvancedSearchHelp(props) {
   return (
     <Fragment>
       <div className="nx-container--advanced-search-help-container">
-        <NxFontAwesomeIcon
-          className="nx-icon--advanced-search-bulb"
-          icon={faLightbulb}
-        />
-        <span
-          id="advanced-search-help-container-toggle"
-          className="iq-adv-search-help__toggle"
-          onClick={toggleHelp}
-        >
+        <NxFontAwesomeIcon className="nx-icon--advanced-search-bulb" icon={faLightbulb} />
+        <span id="advanced-search-help-container-toggle" className="iq-adv-search-help__toggle" onClick={toggleHelp}>
           <strong>Craft your search terms for the best results.</strong>
           {!showHelp && <NxFontAwesomeIcon icon={faCaretRight} />}
           {showHelp && <NxFontAwesomeIcon icon={faCaretDown} />}

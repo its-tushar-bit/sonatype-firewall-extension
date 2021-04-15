@@ -32,9 +32,7 @@ describe('validationUtil', function () {
     });
 
     it('returns an error message for values with a length greater than maxLength', function () {
-      expect(validateMaxLength(4, 'testy')).toEqual(
-        'Please enter less than 4 characters'
-      );
+      expect(validateMaxLength(4, 'testy')).toEqual('Please enter less than 4 characters');
     });
   });
 

@@ -13,12 +13,7 @@ import SecurityVulnerabilityDetailsTile from '../../../main/frontend/violation/S
 import PolicyViolationConstraintInfoTile from '../../../main/frontend/violation/PolicyViolationConstraintInfoTile';
 
 describe('ViolationPage', function () {
-  let minimalProps,
-    loadViolationSpy,
-    fetchStageTypesSpy,
-    stateGoSpy,
-    getShallowComponent,
-    getMountedComponent;
+  let minimalProps, loadViolationSpy, fetchStageTypesSpy, stateGoSpy, getShallowComponent, getMountedComponent;
 
   beforeEach(function () {
     loadViolationSpy = jasmine.createSpy('loadViolation');
@@ -41,14 +36,8 @@ describe('ViolationPage', function () {
       loading: false,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      ViolationPage,
-      minimalProps
-    );
-    getMountedComponent = enzymeUtils.getMountedComponent(
-      ViolationPage,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(ViolationPage, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(ViolationPage, minimalProps);
   });
 
   it('renders a LoadWrapper within the page', function () {
@@ -56,40 +45,22 @@ describe('ViolationPage', function () {
   });
 
   it("sets the LoadWrapper's loading flag based on the loading, violationDetails, and stageTypes props", function () {
-    const getLoadWrapper = (props) =>
-      getShallowComponent(props).find(LoadWrapper);
+    const getLoadWrapper = (props) => getShallowComponent(props).find(LoadWrapper);
 
     expect(getLoadWrapper()).toHaveProp('loading', true);
-    expect(getLoadWrapper({ violationDetails: {} })).toHaveProp(
-      'loading',
-      true
-    );
+    expect(getLoadWrapper({ violationDetails: {} })).toHaveProp('loading', true);
     expect(getLoadWrapper({ stageTypes: [] })).toHaveProp('loading', true);
-    expect(getLoadWrapper({ violationDetails: {}, stageTypes: [] })).toHaveProp(
-      'loading',
-      false
-    );
-    expect(
-      getLoadWrapper({ violationDetails: {}, stageTypes: [], loading: true })
-    ).toHaveProp('loading', true);
+    expect(getLoadWrapper({ violationDetails: {}, stageTypes: [] })).toHaveProp('loading', false);
+    expect(getLoadWrapper({ violationDetails: {}, stageTypes: [], loading: true })).toHaveProp('loading', true);
   });
 
   it("sets the LoadWrapper's error from the violationDetailsError and stageTypesError props", function () {
-    const getLoadWrapper = (props) =>
-      getShallowComponent(props).find(LoadWrapper);
+    const getLoadWrapper = (props) => getShallowComponent(props).find(LoadWrapper);
 
     expect(getLoadWrapper()).toHaveProp('error', undefined);
-    expect(getLoadWrapper({ violationDetailsError: 'foo' })).toHaveProp(
-      'error',
-      'foo'
-    );
-    expect(getLoadWrapper({ stageTypesError: 'foo' })).toHaveProp(
-      'error',
-      'foo'
-    );
-    expect(
-      getLoadWrapper({ violationDetailsError: 'foo', stageTypesError: 'bar' })
-    ).toHaveProp('error', 'foo');
+    expect(getLoadWrapper({ violationDetailsError: 'foo' })).toHaveProp('error', 'foo');
+    expect(getLoadWrapper({ stageTypesError: 'foo' })).toHaveProp('error', 'foo');
+    expect(getLoadWrapper({ violationDetailsError: 'foo', stageTypesError: 'bar' })).toHaveProp('error', 'foo');
   });
 
   it("sets the LoadWrapper's retryHandler to a function that calls loadViolation and fetchStateTypes", function () {
@@ -145,9 +116,7 @@ describe('ViolationPage', function () {
 
   it('renders a PolicyViolationConstraintInfoTile within the LoadWrapper with correct props', function () {
     const violationDetails = { constraintViolations: 'constraintViolations' };
-    const tile = getShallowComponent({ violationDetails })
-      .find(LoadWrapper)
-      .find(PolicyViolationConstraintInfoTile);
+    const tile = getShallowComponent({ violationDetails }).find(LoadWrapper).find(PolicyViolationConstraintInfoTile);
 
     expect(tile).toExist();
     expect(tile.prop('constraintViolations')).toBe('constraintViolations');

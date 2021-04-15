@@ -31,15 +31,11 @@ describe('coverageDonut', function () {
   }));
 
   it('passes the complement of the percentage, as a value out of 1, to artifactChart', function () {
-    expect(HealthCheck.artifactsChart).toHaveBeenCalledWith(
-      0.75,
-      jasmine.anything()
-    );
+    expect(HealthCheck.artifactsChart).toHaveBeenCalledWith(0.75, jasmine.anything());
   });
 
   it('passes the element to artifactsChart', function () {
-    const passedElement = HealthCheck.artifactsChart.calls.argsFor(0)[1]
-      .element;
+    const passedElement = HealthCheck.artifactsChart.calls.argsFor(0)[1].element;
 
     expect(passedElement).toBe(element[0]);
   });
@@ -54,13 +50,7 @@ describe('coverageDonut', function () {
 
   it('passes the fillColors, strokeColor, lineWidth, innerRadius, and outerRadius from the corresponding attributes', function () {
     const passedConfig = HealthCheck.artifactsChart.calls.argsFor(0)[1],
-      {
-        fillColors,
-        strokeColor,
-        lineWidth,
-        innerRadius,
-        outerRadius,
-      } = passedConfig;
+      { fillColors, strokeColor, lineWidth, innerRadius, outerRadius } = passedConfig;
 
     expect(fillColors).toEqual(['foo', 'bar']);
     expect(strokeColor).toBe('baz');

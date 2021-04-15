@@ -7,10 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import StatusIndicatorIcon from '../../../main/frontend/react/statusIndicatorIcon/StatusIndicatorIcon';
 
 describe('FirewallAutoUnquarantineStatus', function () {
-  let minimalProps,
-    FirewallAutoUnquarantineStatus,
-    openConfigurationModalSpy,
-    getShallowComponent;
+  let minimalProps, FirewallAutoUnquarantineStatus, openConfigurationModalSpy, getShallowComponent;
 
   beforeEach(function () {
     FirewallAutoUnquarantineStatus = require('inject-loader!../../../main/frontend/firewall/FirewallAutoUnquarantineStatus')()
@@ -25,10 +22,7 @@ describe('FirewallAutoUnquarantineStatus', function () {
       autoUnquarantineEnabled: true,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      FirewallAutoUnquarantineStatus,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(FirewallAutoUnquarantineStatus, minimalProps);
   });
 
   it('renders a component with the "nx-card" class', function () {
@@ -37,9 +31,7 @@ describe('FirewallAutoUnquarantineStatus', function () {
 
   it('renders a card header', function () {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText(
-      'Auto Release from Quarantine Status'
-    );
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Auto Release from Quarantine Status');
   });
 
   it('renders card content', function () {

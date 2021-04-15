@@ -3,15 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-const SUCCESS_METRICS_DISABLED_MESSAGE =
-  'Success metrics have been disabled by your system administrator.';
+const SUCCESS_METRICS_DISABLED_MESSAGE = 'Success metrics have been disabled by your system administrator.';
 
-export default function systemConfigurationPropertyService(
-  $http,
-  $rootScope,
-  $q,
-  CLMLocations
-) {
+export default function systemConfigurationPropertyService($http, $rootScope, $q, CLMLocations) {
   return {
     isSuccessMetricsEnabled: isSuccessMetricsEnabled,
     saveSuccessMetricsEnabled: saveSuccessMetricsEnabled,
@@ -38,48 +32,29 @@ export default function systemConfigurationPropertyService(
 
   function saveSuccessMetricsEnabled(successMetricsEnabled) {
     var successMetricsConfig = { enabled: successMetricsEnabled };
-    return saveSuccessMetricsConfiguration(successMetricsConfig).then(function (
-      configuration
-    ) {
-      $rootScope.$broadcast(
-        'successMetricsConfigurationUpdated',
-        configuration.enabled
-      );
+    return saveSuccessMetricsConfiguration(successMetricsConfig).then(function (configuration) {
+      $rootScope.$broadcast('successMetricsConfigurationUpdated', configuration.enabled);
       return configuration;
     });
   }
 
   function getSuccessMetricsConfiguration() {
-    return $http
-      .get(CLMLocations.getSuccessMetricsConfigUrl())
-      .then(function (response) {
-        return response.data;
-      });
+    return $http.get(CLMLocations.getSuccessMetricsConfigUrl()).then(function (response) {
+      return response.data;
+    });
   }
 
   function saveSuccessMetricsConfiguration(successMetricsConfiguration) {
-    return $http
-      .put(
-        CLMLocations.getSuccessMetricsConfigUrl(),
-        successMetricsConfiguration
-      )
-      .then(function (response) {
-        return response.data;
-      });
+    return $http.put(CLMLocations.getSuccessMetricsConfigUrl(), successMetricsConfiguration).then(function (response) {
+      return response.data;
+    });
   }
 
   function isAdvancedSearchEnabled() {
-    return $http
-      .get(CLMLocations.getAdvancedSearchConfigUrl())
-      .then(function (response) {
-        return response.data.isEnabled;
-      });
+    return $http.get(CLMLocations.getAdvancedSearchConfigUrl()).then(function (response) {
+      return response.data.isEnabled;
+    });
   }
 }
 
-systemConfigurationPropertyService.$inject = [
-  '$http',
-  '$rootScope',
-  '$q',
-  'CLMLocations',
-];
+systemConfigurationPropertyService.$inject = ['$http', '$rootScope', '$q', 'CLMLocations'];

@@ -10,11 +10,7 @@ describe('cipTabPanel', function () {
 
   beforeEach(angular.mock.module(cipModalModule.name));
 
-  beforeEach(inject(function (
-    _$componentController_,
-    _$httpBackend_,
-    _CLMLocations_
-  ) {
+  beforeEach(inject(function (_$componentController_, _$httpBackend_, _CLMLocations_) {
     $componentController = _$componentController_;
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
@@ -31,11 +27,7 @@ describe('cipTabPanel', function () {
 
     beforeEach(inject(function ($rootScope) {
       $scope = $rootScope.$new();
-      controller = $componentController(
-        'cipTabPanel',
-        { $scope },
-        { selectedComponent: {} }
-      );
+      controller = $componentController('cipTabPanel', { $scope }, { selectedComponent: {} });
 
       innerSourceComponent = {
         hash: '1249e25aebb15358bedd',
@@ -68,9 +60,7 @@ describe('cipTabPanel', function () {
         },
       };
       $scope.$digest();
-      expect(controller.selectedComponent.latestReport.url).toContain(
-        'latestReportUrl'
-      );
+      expect(controller.selectedComponent.latestReport.url).toContain('latestReportUrl');
     });
 
     it('sets vm.latestReportUrl with InnerSource report for latest stage', function () {
@@ -89,26 +79,16 @@ describe('cipTabPanel', function () {
         },
       ];
 
-      $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))
-        )
-        .respond(200, mockResponse);
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(200, mockResponse);
       controller.selectedComponent = innerSourceComponent;
       $scope.$digest();
       $httpBackend.flush();
 
-      expect(controller.selectedComponent.latestReport.url).toContain(
-        'releaseUrl'
-      );
+      expect(controller.selectedComponent.latestReport.url).toContain('releaseUrl');
     });
 
     it('handle the error action if request fails', function () {
-      $httpBackend
-        .expectGET(
-          SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))
-        )
-        .respond(500, 'error');
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(500, 'error');
       controller.selectedComponent = innerSourceComponent;
       $scope.$digest();
       $httpBackend.flush();

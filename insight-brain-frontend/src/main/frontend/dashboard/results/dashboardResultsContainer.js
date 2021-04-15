@@ -5,10 +5,7 @@
  */
 import template from './dashboardResultsContainer.html';
 import { DEFAULT_FILTER_NAME } from '../filter/defaultFilter';
-import {
-  loadFilter,
-  toggleFilterSidebar,
-} from '../filter/dashboardFilterActions';
+import { loadFilter, toggleFilterSidebar } from '../filter/dashboardFilterActions';
 
 export default {
   template,
@@ -16,11 +13,7 @@ export default {
   controllerAs: 'vm',
 };
 
-function dashboardResultsContainerController(
-  createRequest,
-  CLMLocations,
-  $ngRedux
-) {
+function dashboardResultsContainerController(createRequest, CLMLocations, $ngRedux) {
   const vm = this;
 
   Object.assign(vm, {
@@ -44,11 +37,7 @@ function dashboardResultsContainerController(
   });
 }
 
-dashboardResultsContainerController.$inject = [
-  'createDashboardDataRequestPayload',
-  'CLMLocations',
-  '$ngRedux',
-];
+dashboardResultsContainerController.$inject = ['createDashboardDataRequestPayload', 'CLMLocations', '$ngRedux'];
 
 // Which part of the Redux global state does our component want to receive?
 function mapStateToThis(state) {

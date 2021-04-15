@@ -26,8 +26,7 @@
       /(webkit)[ \/]([\w.]+)/.exec(ua) ||
       /(opera)(?:.*version|)[ \/]([\w.]+)/.exec(ua) ||
       /(msie) ([\w.]+)/.exec(ua) ||
-      (ua.indexOf('compatible') < 0 &&
-        /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua)) ||
+      (ua.indexOf('compatible') < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua)) ||
       [];
 
     return {

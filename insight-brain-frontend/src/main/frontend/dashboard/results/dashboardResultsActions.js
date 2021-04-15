@@ -42,9 +42,7 @@ export function loadResults(resultsType) {
     return fetchResults(resultsType, getState())
       .then((data) => {
         const { results, numResults, classyBrew } = data;
-        dispatch(
-          loadResultsFulfilled(resultsType, results, numResults, classyBrew)
-        );
+        dispatch(loadResultsFulfilled(resultsType, results, numResults, classyBrew));
       })
       .catch((error) => {
         dispatch(loadResultsFailed(resultsType, error));

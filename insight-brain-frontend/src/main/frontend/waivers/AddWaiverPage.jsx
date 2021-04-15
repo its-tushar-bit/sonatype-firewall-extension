@@ -78,11 +78,7 @@ export default function AddWaiverPage(props) {
 
       <section className="nx-tile">
         {submitMaskState !== null && (
-          <NxSubmitMask
-            success={submitMaskState}
-            message="Creating waiver…"
-            successMessage="Success!"
-          />
+          <NxSubmitMask success={submitMaskState} message="Creating waiver…" successMessage="Success!" />
         )}
 
         <LoadWrapper
@@ -116,9 +112,7 @@ AddWaiverPage.propTypes = {
     value: PropTypes.string.isRequired,
     isPristine: PropTypes.bool.isRequired,
   }).isRequired,
-  availableWaiverScopes: PropTypes.arrayOf(
-    PropTypes.shape(waiverScopePropTypes)
-  ),
+  availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)),
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes),
   applyToAllComponents: PropTypes.bool,
   expiryTime: PropTypes.string,

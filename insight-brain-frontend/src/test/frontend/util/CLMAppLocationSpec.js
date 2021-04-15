@@ -51,22 +51,16 @@ describe('CLMContextLocation', function () {
 
   it('New Triggers Global', inject(function (CLMContextLocations) {
     setApplicationState('_new_');
-    expect(CLMContextLocations.getFindUsersUrl()).toEqual(
-      '/rest/user/global/global/query'
-    );
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/global/global/query');
   }));
 
   it('Application', inject(function (CLMContextLocations) {
     setApplicationState('bom1-12345678');
-    expect(CLMContextLocations.getFindUsersUrl()).toEqual(
-      '/rest/user/application/bom1-12345678/query'
-    );
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/application/bom1-12345678/query');
   }));
 
   it('Organization', inject(function (CLMContextLocations) {
     setOrganizationState('bom1-12345678');
-    expect(CLMContextLocations.getFindUsersUrl()).toEqual(
-      '/rest/user/organization/bom1-12345678/query'
-    );
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/organization/bom1-12345678/query');
   }));
 });

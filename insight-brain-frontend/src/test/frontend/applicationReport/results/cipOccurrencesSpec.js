@@ -19,9 +19,7 @@ describe('cipOccurrences', function () {
     });
 
     it('separates the basename with backslash and dirname of a path with previous and next folder', function () {
-      expect(
-        parsePathname('dependency:/bar/go.sum/site\\baz\\foo\\foo@v1.0.1')
-      ).toEqual({
+      expect(parsePathname('dependency:/bar/go.sum/site\\baz\\foo\\foo@v1.0.1')).toEqual({
         isDependency: true,
         dirname: 'bar/go.sum',
         basename: 'site/baz/foo/foo@v1.0.1',
@@ -45,13 +43,11 @@ describe('cipOccurrences', function () {
     });
 
     it('separates the basename with backslash and dirname of a path that includes no previous folder', function () {
-      expect(parsePathname('dependency:/go.sum/site\\foo\\foo@v1.0.1')).toEqual(
-        {
-          isDependency: true,
-          dirname: 'go.sum',
-          basename: 'site/foo/foo@v1.0.1',
-        }
-      );
+      expect(parsePathname('dependency:/go.sum/site\\foo\\foo@v1.0.1')).toEqual({
+        isDependency: true,
+        dirname: 'go.sum',
+        basename: 'site/foo/foo@v1.0.1',
+      });
     });
 
     describe('when the pathname starts with "dependency:/"', function () {
@@ -81,17 +77,10 @@ describe('cipOccurrences', function () {
     });
   });
 
-  it('parses the provided pathnames into parsedPathnames objects', inject(function (
-    $componentController,
-    $rootScope
-  ) {
+  it('parses the provided pathnames into parsedPathnames objects', inject(function ($componentController, $rootScope) {
     const pathnames = ['foo', 'foo/bar', 'dependency:/foo/bar'],
       scope = $rootScope.$new(),
-      controller = $componentController(
-        'cipOccurrences',
-        { $scope: scope },
-        { pathnames }
-      );
+      controller = $componentController('cipOccurrences', { $scope: scope }, { pathnames });
 
     scope.$digest();
 

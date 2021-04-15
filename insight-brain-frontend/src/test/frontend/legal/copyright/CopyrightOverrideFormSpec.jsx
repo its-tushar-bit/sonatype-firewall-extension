@@ -6,12 +6,7 @@
 
 import CopyrightOverrideForm from '../../../../main/frontend/legal/copyright/CopyrightOverrideForm';
 import * as enzymeUtils from '../../enzymeUtils';
-import {
-  NxForm,
-  NxModal,
-  NxToggle,
-  NxTextInput,
-} from '@sonatype/react-shared-components';
+import { NxForm, NxModal, NxToggle, NxTextInput } from '@sonatype/react-shared-components';
 import { pathSet } from '../../../../main/frontend/util/jsUtil';
 import ObligationStatusComponent from '../../../../main/frontend/legal/shared/ObligationStatusComponent';
 
@@ -69,10 +64,7 @@ describe('CopyrightOverrideForm component', function () {
   };
 
   beforeEach(function () {
-    getShallowComponent = enzymeUtils.getShallowComponent(
-      CopyrightOverrideForm,
-      minimalProps
-    );
+    getShallowComponent = enzymeUtils.getShallowComponent(CopyrightOverrideForm, minimalProps);
   });
 
   afterEach(function () {
@@ -125,9 +117,7 @@ describe('CopyrightOverrideForm component', function () {
   it('modify toggle', function () {
     let wrapper = getShallowComponent();
     let copyrightStatusToggles = wrapper.find(NxToggle);
-    copyrightStatusToggles
-      .at(0)
-      .simulate('change', { target: { checked: false } });
+    copyrightStatusToggles.at(0).simulate('change', { target: { checked: false } });
 
     const copyrightTextInputs = wrapper.find(NxTextInput);
     expect(copyrightTextInputs.length).toBe(2);
@@ -168,18 +158,13 @@ describe('CopyrightOverrideForm component', function () {
 
     expect(form).toHaveProp('validationErrors', 'No modifications');
 
-    copyrightTextInputs
-      .at(0)
-      .simulate('change', 'Newly updated Copyright 3000');
+    copyrightTextInputs.at(0).simulate('change', 'Newly updated Copyright 3000');
 
     form = wrapper.find(NxForm);
     expect(form).toHaveProp('validationErrors', null);
 
     copyrightTextInputs = wrapper.find(NxTextInput);
-    expect(copyrightTextInputs.at(0)).toHaveProp(
-      'value',
-      'Newly updated Copyright 3000'
-    );
+    expect(copyrightTextInputs.at(0)).toHaveProp('value', 'Newly updated Copyright 3000');
     expect(copyrightTextInputs.at(0)).toHaveProp('isPristine', false);
   });
 
@@ -202,16 +187,8 @@ describe('CopyrightOverrideForm component', function () {
   });
 
   it('Existing override at higher scope', function () {
-    let props = pathSet(
-      ['component', 'licenseLegalData', 'componentCopyrightScopeOwnerId'],
-      'someOrg',
-      minimalProps
-    );
-    props = pathSet(
-      ['component', 'licenseLegalData', 'componentCopyrightId'],
-      'ccId',
-      props
-    );
+    let props = pathSet(['component', 'licenseLegalData', 'componentCopyrightScopeOwnerId'], 'someOrg', minimalProps);
+    props = pathSet(['component', 'licenseLegalData', 'componentCopyrightId'], 'ccId', props);
     let wrapper = getShallowComponent(props);
     let scopeSelect = wrapper.find('#edit-copyright-scope-selection');
     let form = wrapper.find(NxForm);

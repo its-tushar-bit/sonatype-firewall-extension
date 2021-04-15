@@ -18,15 +18,11 @@ describe('role.mapping.service.spec', function () {
     function (RoleMappingService, CLMContextLocations, $httpBackend) {
       roleMappingService = RoleMappingService;
 
-      $httpBackend
-        .expectGET(CLMContextLocations.getRoleMappingUrl())
-        .respond(accessMockData.getRoleMappings());
+      $httpBackend.expectGET(CLMContextLocations.getRoleMappingUrl()).respond(accessMockData.getRoleMappings());
       roleMappingService.get().then(function (roleMappings) {
         loadedData = roleMappings;
         // Assertion in case test data is changed
-        expect(
-          loadedData.membersByRole[0].membersByOwner[0].members.length
-        ).toEqual(2);
+        expect(loadedData.membersByRole[0].membersByOwner[0].members.length).toEqual(2);
         roleId = loadedData.membersByRole[0].roleId;
       });
       $httpBackend.flush();
@@ -34,9 +30,7 @@ describe('role.mapping.service.spec', function () {
   ]));
 
   it('Set to empty', inject(function ($httpBackend, CLMContextLocations) {
-    $httpBackend
-      .expectPUT(CLMContextLocations.getRoleMappingUrl(roleId), [])
-      .respond(204);
+    $httpBackend.expectPUT(CLMContextLocations.getRoleMappingUrl(roleId), []).respond(204);
     roleMappingService.put(roleId, []);
     $httpBackend.flush();
 
@@ -51,14 +45,10 @@ describe('role.mapping.service.spec', function () {
       email: 'userTest1@sonatype.com',
       realm: 'CLM',
     };
-    $httpBackend
-      .expectPUT(CLMContextLocations.getRoleMappingUrl(roleId), [member])
-      .respond(204);
+    $httpBackend.expectPUT(CLMContextLocations.getRoleMappingUrl(roleId), [member]).respond(204);
     roleMappingService.put(roleId, [member]);
     $httpBackend.flush();
 
-    expect(loadedData.membersByRole[0].membersByOwner[0].members).toEqual([
-      member,
-    ]);
+    expect(loadedData.membersByRole[0].membersByOwner[0].members).toEqual([member]);
   }));
 });

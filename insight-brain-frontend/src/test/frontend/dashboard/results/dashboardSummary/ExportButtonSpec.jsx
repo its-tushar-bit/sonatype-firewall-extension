@@ -47,8 +47,6 @@ describe('ExportButton', () => {
       policyThreatLevelRange: '2,10',
     };
     const component = getMountedComponent({ exportRequestData });
-    expect(component.find('form input').prop('value')).toEqual(
-      JSON.stringify(exportRequestData)
-    );
+    expect(component.find('form input').prop('value')).toEqual(JSON.stringify(exportRequestData));
   });
 });

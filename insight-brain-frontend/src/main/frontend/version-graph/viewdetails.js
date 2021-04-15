@@ -66,17 +66,14 @@ function transformPolicyAlerts(alerts) {
     }
     angular.forEach(alert.trigger.componentFacts, function (componentFact) {
       angular.forEach(componentFact.constraintFacts, function (constraintFact) {
-        angular.forEach(
-          constraintFact.conditionFacts,
-          function (conditionFact) {
-            retval.push({
-              policyName: alert.trigger.policyName,
-              threat: threat,
-              constraintName: constraintFact.constraintName,
-              reason: conditionFact.reason,
-            });
-          }
-        );
+        angular.forEach(constraintFact.conditionFacts, function (conditionFact) {
+          retval.push({
+            policyName: alert.trigger.policyName,
+            threat: threat,
+            constraintName: constraintFact.constraintName,
+            reason: conditionFact.reason,
+          });
+        });
       });
     });
   });
@@ -173,9 +170,7 @@ module.controller('view', [
 
     var appId = query.appId,
       deferLoad = query.deferLoad,
-      identifier = query.componentIdentifier
-        ? JSON.parse(query.componentIdentifier)
-        : null,
+      identifier = query.componentIdentifier ? JSON.parse(query.componentIdentifier) : null,
       hash = query.hash,
       proprietary = query.proprietary,
       matchState = query.matchState;
@@ -205,11 +200,7 @@ module.controller('view', [
         headers = headersFn ? headersFn() : {};
       if (status === 0 || status >= 1000) {
         message = 'Network error while contacting server';
-      } else if (
-        data &&
-        headers['content-type'] &&
-        headers['content-type'].indexOf('text/plain') >= 0
-      ) {
+      } else if (data && headers['content-type'] && headers['content-type'].indexOf('text/plain') >= 0) {
         message = data;
       } else if (status === 502) {
         message = 'Bad Gateway';
@@ -253,18 +244,10 @@ module.controller('view', [
       $q.all(promises).then(
         function (results) {
           $scope.data = results[0].data;
-          $scope.data.observedLicenses = toLicenseNames(
-            $scope.data.observedLicenses
-          );
-          $scope.data.declaredLicenses = toLicenseNames(
-            $scope.data.declaredLicenses
-          );
-          $scope.data.overriddenLicenses = toLicenseNames(
-            $scope.data.overriddenLicenses
-          );
-          $scope.data.policyAlerts = transformPolicyAlerts(
-            $scope.data.policyAlerts
-          );
+          $scope.data.observedLicenses = toLicenseNames($scope.data.observedLicenses);
+          $scope.data.declaredLicenses = toLicenseNames($scope.data.declaredLicenses);
+          $scope.data.overriddenLicenses = toLicenseNames($scope.data.overriddenLicenses);
+          $scope.data.policyAlerts = transformPolicyAlerts($scope.data.policyAlerts);
           angular.forEach($scope.data.securityVulnerabilities, function (item) {
             if (item.severity !== null) {
               item.severity = Math.floor(item.severity);
@@ -284,11 +267,7 @@ module.controller('view', [
         },
         function (errorData) {
           $scope.error = errorData.status;
-          $scope.errorMessage = getErrorMessage(
-            errorData.data,
-            errorData.status,
-            errorData.headers
-          );
+          $scope.errorMessage = getErrorMessage(errorData.data, errorData.status, errorData.headers);
         }
       );
     };
@@ -301,8 +280,7 @@ module.controller('view', [
         return false;
       }
       return (
-        $scope.data.securityVulnerabilities[index - 1].severity ===
-        $scope.data.securityVulnerabilities[index].severity
+        $scope.data.securityVulnerabilities[index - 1].severity === $scope.data.securityVulnerabilities[index].severity
       );
     };
     $scope.getSvUrl = function (item) {
@@ -325,19 +303,13 @@ module.controller('view', [
       if (index === 0) {
         return false;
       }
-      return (
-        $scope.data.policyAlerts[index - 1].policyName ===
-        $scope.data.policyAlerts[index].policyName
-      );
+      return $scope.data.policyAlerts[index - 1].policyName === $scope.data.policyAlerts[index].policyName;
     };
     $scope.isConstraintGrouped = function (index) {
       if (index === 0) {
         return false;
       }
-      return (
-        $scope.data.policyAlerts[index - 1].constraintName ===
-        $scope.data.policyAlerts[index].constraintName
-      );
+      return $scope.data.policyAlerts[index - 1].constraintName === $scope.data.policyAlerts[index].constraintName;
     };
     $scope.showContext = function () {
       return clmEndpoint.showContext;

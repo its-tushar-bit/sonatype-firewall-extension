@@ -16,10 +16,7 @@ import {
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import {
-  availableScopesPropType,
-  licenseObligationPropType,
-} from './advancedLegalPropTypes';
+import { availableScopesPropType, licenseObligationPropType } from './advancedLegalPropTypes';
 import ObligationStatusComponent from './shared/ObligationStatusComponent';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
@@ -48,29 +45,20 @@ export default function LicenseObligationAttributionTile(props) {
     existingObligation,
   } = props;
   const isAttributionPresent = () => id !== null;
-  const isAttributionDirty = () =>
-    attributionText !== originalAttributionText || scope !== originalScope;
+  const isAttributionDirty = () => attributionText !== originalAttributionText || scope !== originalScope;
   const isDirty = () => isAttributionDirty() || isObligationDirty();
-  const isValid = () =>
-    isDirty() && (isAttributionPresent() || attributionText);
+  const isValid = () => isDirty() && (isAttributionPresent() || attributionText);
   const validationErrorMessage = isAttributionPresent()
     ? 'Must change attribution text or scope.'
     : 'Must add attribution text.';
-  const [attributionTextInput, setAttributionTextInput] = useState(
-    initialState(attributionText)
-  );
+  const [attributionTextInput, setAttributionTextInput] = useState(initialState(attributionText));
   const isAdditionalAttribution = name === null;
-  const title = isAdditionalAttribution
-    ? 'Additional Attribution'
-    : 'Attribution for "' + name + '"';
+  const title = isAdditionalAttribution ? 'Additional Attribution' : 'Attribution for "' + name + '"';
   const editOrAdd = isAttributionPresent() ? 'Edit' : 'Add';
   const toId = (s) => s.toLowerCase().replace(/\s+/g, '-');
 
   function isObligationDirty() {
-    return (
-      existingObligation &&
-      existingObligation.status !== existingObligation.originalStatus
-    );
+    return existingObligation && existingObligation.status !== existingObligation.originalStatus;
   }
 
   const resetExistingObligation = () => {
@@ -102,10 +90,7 @@ export default function LicenseObligationAttributionTile(props) {
   };
 
   const setObligationScopeIfNeeded = (event) => {
-    if (
-      existingObligation &&
-      existingObligation.status !== existingObligation.originalStatus
-    ) {
+    if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
       setObligationScope({
         name: existingObligation.name,
         value: event.target.value,
@@ -150,9 +135,7 @@ export default function LicenseObligationAttributionTile(props) {
           }}
           submitBtnText="Save"
           onSubmit={() => trySave(name)}
-          submitError={
-            error || (existingObligation ? existingObligation.error : false)
-          }
+          submitError={error || (existingObligation ? existingObligation.error : false)}
           submitMaskState={getSubmitMaskState()}
           validationErrors={isValid() ? undefined : validationErrorMessage}
         >
@@ -180,10 +163,7 @@ export default function LicenseObligationAttributionTile(props) {
               />
             </NxFormGroup>
             {existingObligation && (
-              <ObligationStatusComponent
-                existingObligation={existingObligation}
-                onChange={onObligationChange}
-              />
+              <ObligationStatusComponent existingObligation={existingObligation} onChange={onObligationChange} />
             )}
             <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
               <select
@@ -221,11 +201,7 @@ export default function LicenseObligationAttributionTile(props) {
 
   return (
     <section
-      id={
-        isAdditionalAttribution
-          ? 'additional-attribution-tile'
-          : toId(name) + '-attribution-tile'
-      }
+      id={isAdditionalAttribution ? 'additional-attribution-tile' : toId(name) + '-attribution-tile'}
       className="nx-tile license-obligation-attribution-tile"
     >
       <header className="nx-tile-header">
@@ -246,9 +222,7 @@ export default function LicenseObligationAttributionTile(props) {
         </div>
         {showAttributionModal && createAttributionModal()}
       </header>
-      <div className={classes}>
-        {isAttributionPresent() ? originalAttributionText : 'None added'}
-      </div>
+      <div className={classes}>{isAttributionPresent() ? originalAttributionText : 'None added'}</div>
     </section>
   );
 }

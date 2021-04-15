@@ -47,9 +47,7 @@ function addSuccessMetricsReportModalController(
       $q.all([ApplicationStore.get(), OrganizationStore.get()])
         .then(function ([applications, organizations]) {
           vm.applications = applications;
-          vm.organizations = organizations.filter(
-            (org) => org.id !== 'ROOT_ORGANIZATION_ID'
-          );
+          vm.organizations = organizations.filter((org) => org.id !== 'ROOT_ORGANIZATION_ID');
         })
         .catch(function (error) {
           vm.error = error;
@@ -102,8 +100,7 @@ function addSuccessMetricsReportModalController(
       return !!(
         form &&
         !form.$invalid &&
-        (vm.isAllApplications ||
-          vm.selectedApplications.size + vm.selectedOrganizations.size > 0)
+        (vm.isAllApplications || vm.selectedApplications.size + vm.selectedOrganizations.size > 0)
       );
     },
 

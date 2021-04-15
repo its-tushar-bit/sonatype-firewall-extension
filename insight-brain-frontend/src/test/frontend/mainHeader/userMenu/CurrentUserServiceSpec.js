@@ -9,9 +9,7 @@ import CLMLocationModule from '../../../../main/frontend/util/CLMLocation';
 describe('CurrentUserService', function () {
   let CLMLocations, $httpBackend, service;
 
-  beforeEach(
-    angular.mock.module(mainHeaderModule.name, CLMLocationModule.name)
-  );
+  beforeEach(angular.mock.module(mainHeaderModule.name, CLMLocationModule.name));
 
   beforeEach(inject(function (_CLMLocations_, _$httpBackend_, CurrentUser) {
     CLMLocations = _CLMLocations_;
@@ -38,10 +36,7 @@ describe('CurrentUserService', function () {
       expect(loginSpy).toHaveBeenCalledWith('foo');
     });
 
-    it('passes true as the waitForLogin http config if no parameter is passed to it', inject(function (
-      $http,
-      $q
-    ) {
+    it('passes true as the waitForLogin http config if no parameter is passed to it', inject(function ($http, $q) {
       spyOn($http, 'get').and.returnValue($q.defer().promise);
 
       service.fetch();
@@ -51,10 +46,7 @@ describe('CurrentUserService', function () {
       });
     }));
 
-    it('passes its parameter as the waitForLogin http config', inject(function (
-      $http,
-      $q
-    ) {
+    it('passes its parameter as the waitForLogin http config', inject(function ($http, $q) {
       spyOn($http, 'get').and.returnValue($q.defer().promise);
 
       service.fetch('asdf');
@@ -73,9 +65,7 @@ describe('CurrentUserService', function () {
 
       $httpBackend.flush();
 
-      expect(loginSpy).toHaveBeenCalledWith(
-        jasmine.objectContaining({ status: 500 })
-      );
+      expect(loginSpy).toHaveBeenCalledWith(jasmine.objectContaining({ status: 500 }));
     });
 
     it('neither rejects nor resolves the waitForLogin promise if the REST call fails with a 401', function () {

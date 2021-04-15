@@ -46,15 +46,11 @@ import {
 import { isNilOrEmpty, multiGroupBy, setToArray } from '../util/jsUtil';
 import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
 import { getComponentName } from '../util/componentNameUtils';
-import {
-  getDeclaredLicensesDisplay,
-  getObservedLicensesDisplay,
-} from './licenseDisplayUtils';
+import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
 import DependencyInfoGenerator from './DependencyInfoGenerator';
 
 const joinPathnames = join('\t'),
-  toKey = (component) =>
-    component.hash || joinPathnames(component.pathnames || []),
+  toKey = (component) => component.hash || joinPathnames(component.pathnames || []),
   nullHashCheck = ({ hash }) => !!hash && hash !== 'null',
   indexBy = reduceBy((acc, c) => c, null),
   indexByKey = indexBy(toKey),
@@ -82,13 +78,7 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
 
         return {
           ...pick(
-            [
-              'policyThreatLevel',
-              'policyName',
-              'policyThreatCategory',
-              'policyViolationId',
-              'constraints',
-            ],
+            ['policyThreatLevel', 'policyName', 'policyThreatCategory', 'policyViolationId', 'constraints'],
             violation
           ),
           ...bomComponent,
@@ -102,10 +92,7 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
     return map(makeEntryForViolation, component.allViolations);
   }
 
-  return chain(
-    makeEntriesForComponent,
-    filter(nullHashCheck, policyResult.aaData)
-  );
+  return chain(makeEntriesForComponent, filter(nullHashCheck, policyResult.aaData));
 }
 
 /**
@@ -131,10 +118,7 @@ function makeViolationEntriesV1V2(policyResult, bomDataByKey) {
     );
   }
 
-  return chain(
-    makeEntriesForComponent,
-    filter(nullHashCheck, policyResult.aaData)
-  );
+  return chain(makeEntriesForComponent, filter(nullHashCheck, policyResult.aaData));
 }
 
 /**
@@ -165,23 +149,14 @@ const getLicenseSortKey = (licenseObj) => {
     return '';
   }
   const observedLicenses = getObservedLicensesDisplay(licenseObj);
-  return (
-    getDeclaredLicensesDisplay(licenseObj) +
-    (observedLicenses ? ', ' + observedLicenses : '')
-  );
+  return getDeclaredLicensesDisplay(licenseObj) + (observedLicenses ? ', ' + observedLicenses : '');
 };
 
 // Violation state is a combination of Waived and Grandfathered.  These two values need to be stored in the same
 // field so that OR-based filtering can be performed on them.  If only their separate-field values were used, the
 // current filtering engine could only do AND-based filtering on them.
 const deriveViolationState = (waived, grandfathered) =>
-  waived && grandfathered
-    ? 'waived+grandfathered'
-    : waived
-    ? 'waived'
-    : grandfathered
-    ? 'grandfathered'
-    : 'open';
+  waived && grandfathered ? 'waived+grandfathered' : waived ? 'waived' : grandfathered ? 'grandfathered' : 'open';
 
 // A map of makeViolationEntries functions, indexed by policyResult version
 const violationEntryMakersByPolicyThreatsVersion = new window.Map([
@@ -196,9 +171,7 @@ const violationEntryMakersByPolicyThreatsVersion = new window.Map([
 const addPartialMatchData = curry(function (partialMatchesByKey, entry) {
   const partialMatches = partialMatchesByKey[toKey(entry)];
 
-  return partialMatches
-    ? { ...entry, matchDetails: partialMatches.matchDetails }
-    : entry;
+  return partialMatches ? { ...entry, matchDetails: partialMatches.matchDetails } : entry;
 });
 
 const innerSourceDependencyType = {
@@ -231,9 +204,7 @@ function augmentInnerSourceIndicator(components) {
             ? innerSourceDependencyType.innerSourceDD
             : innerSourceDependencyType.innerSourceTD;
         }
-        entry.innerSourceDependencyType = entry.innerSource
-          ? innerSourceDependencyType.innerSource
-          : dependencyType;
+        entry.innerSourceDependencyType = entry.innerSource ? innerSourceDependencyType.innerSource : dependencyType;
         isInnerSourceEnabled = true;
         result.push(entry);
       });
@@ -252,9 +223,7 @@ function addSerializedComponentIdentifier(entry) {
 
   return {
     ...entry,
-    serializedComponentIdentifier: serializeComponentIdentifier(
-      componentIdentifier
-    ),
+    serializedComponentIdentifier: serializeComponentIdentifier(componentIdentifier),
   };
 }
 
@@ -268,15 +237,11 @@ export function createReportEntries(
   dependencies
 ) {
   // BOM (and unknownJS) records indexed by their key
-  const bomDataByKey = indexByKey(
-      concat(bomResult.aaData, unknownJsResult.aaData)
-    ),
+  const bomDataByKey = indexByKey(concat(bomResult.aaData, unknownJsResult.aaData)),
     partialMatchesByKey = indexByKey(partialMatches.aaData),
     dependencyInfoGenerator = DependencyInfoGenerator(dependencies),
     // select the right processing function for this version of the data
-    makeViolationEntries = violationEntryMakersByPolicyThreatsVersion.get(
-      policyResult.version || null
-    ),
+    makeViolationEntries = violationEntryMakersByPolicyThreatsVersion.get(policyResult.version || null),
     // make entries for all violations
     violationEntries = makeViolationEntries(policyResult, bomDataByKey),
     augmentViolationEntries = compose(
@@ -284,11 +249,7 @@ export function createReportEntries(
       map(addDependencyInfo),
       map(addSerializedComponentIdentifier)
     ),
-    augmentedViolationEntries = into(
-      [],
-      augmentViolationEntries,
-      violationEntries
-    ),
+    augmentedViolationEntries = into([], augmentViolationEntries, violationEntries),
     violatingEntriesByKey = groupBy(toKey, augmentedViolationEntries);
 
   function isKeyInactive([key]) {
@@ -312,29 +273,18 @@ export function createReportEntries(
     const dependencyInfo = dependencyInfoGenerator.getDependencyInfo(entry);
     const derivedDependencyType = getDerivedDependencyType(dependencyInfo);
     const entryWithDerivedDependencyType = { ...entry, derivedDependencyType };
-    return dependencyInfo
-      ? { ...entryWithDerivedDependencyType, dependencyInfo }
-      : entryWithDerivedDependencyType;
+    return dependencyInfo ? { ...entryWithDerivedDependencyType, dependencyInfo } : entryWithDerivedDependencyType;
   }
 
-  const nonViolatingBomData = map(
-      prop(1),
-      filter(isKeyInactive, toPairs(bomDataByKey))
-    ),
+  const nonViolatingBomData = map(prop(1), filter(isKeyInactive, toPairs(bomDataByKey))),
     nonViolatingEntriesTransducer = compose(
       map(makeNonViolatingComponentEntry),
       map(addDependencyInfo),
       map(addSerializedComponentIdentifier)
     ),
-    nonViolatingComponentEntries = into(
-      [],
-      nonViolatingEntriesTransducer,
-      nonViolatingBomData
-    );
+    nonViolatingComponentEntries = into([], nonViolatingEntriesTransducer, nonViolatingBomData);
 
-  return augmentInnerSourceIndicator(
-    concat(augmentedViolationEntries, nonViolatingComponentEntries)
-  );
+  return augmentInnerSourceIndicator(concat(augmentedViolationEntries, nonViolatingComponentEntries));
 }
 
 export function createRawDataEntries(
@@ -344,10 +294,7 @@ export function createRawDataEntries(
   unknownJsResult = defaultParamValue
 ) {
   const bomDataByComponentId = groupBy(serializeComponentId, bomResult.aaData);
-  const licenseEntriesByComponentId = indexBy(
-    serializeComponentId,
-    licensesResult.aaData
-  );
+  const licenseEntriesByComponentId = indexBy(serializeComponentId, licensesResult.aaData);
 
   // flatten all the bom entries for a given component id into one, creating a new property to aggregate all the hashes
   const flattenedBomDataByComponentId = map(
@@ -364,41 +311,38 @@ export function createRawDataEntries(
 
   const securityEntriesByKey = groupBy(toKey, securityResult.aaData);
 
-  const reportRawData = mapObjIndexed(
-    ({ hashes, ...oneBomData }, componentId) => {
-      // distinct security entries associated with any detected hash of this component id
-      const securityEntries = pipe(
-          chain((hash) => securityEntriesByKey[hash] || []),
-          uniqBy(prop('reference'))
-        )(hashes),
-        license = licenseEntriesByComponentId[componentId],
-        derivedComponentName = deriveComponentName(oneBomData);
+  const reportRawData = mapObjIndexed(({ hashes, ...oneBomData }, componentId) => {
+    // distinct security entries associated with any detected hash of this component id
+    const securityEntries = pipe(
+        chain((hash) => securityEntriesByKey[hash] || []),
+        uniqBy(prop('reference'))
+      )(hashes),
+      license = licenseEntriesByComponentId[componentId],
+      derivedComponentName = deriveComponentName(oneBomData);
 
-      if (securityEntries.length) {
-        return map(
-          (oneSecurityEntry) => ({
-            ...oneBomData,
-            derivedComponentName,
-            license,
-            securityCode: oneSecurityEntry.reference,
-            cvssScore: oneSecurityEntry.score,
-            url: oneSecurityEntry.url,
-            licenseSortKey: getLicenseSortKey(license),
-            source: oneSecurityEntry.source,
-          }),
-          securityEntries
-        );
-      } else {
-        return {
+    if (securityEntries.length) {
+      return map(
+        (oneSecurityEntry) => ({
           ...oneBomData,
           derivedComponentName,
           license,
+          securityCode: oneSecurityEntry.reference,
+          cvssScore: oneSecurityEntry.score,
+          url: oneSecurityEntry.url,
           licenseSortKey: getLicenseSortKey(license),
-        };
-      }
-    },
-    flattenedBomDataByComponentId
-  );
+          source: oneSecurityEntry.source,
+        }),
+        securityEntries
+      );
+    } else {
+      return {
+        ...oneBomData,
+        derivedComponentName,
+        license,
+        licenseSortKey: getLicenseSortKey(license),
+      };
+    }
+  }, flattenedBomDataByComponentId);
 
   const bomRawData = flatten(values(reportRawData));
 
@@ -432,25 +376,17 @@ function serializeComponentId({ componentIdentifier, pathnames }) {
 }
 
 function highestViolationReducer(highestViolationSoFar, violation) {
-  const isActive = complement(
-      either(isNil, either(prop('waived'), prop('grandfathered')))
-    ),
+  const isActive = complement(either(isNil, either(prop('waived'), prop('grandfathered')))),
     activeViolations = filter(isActive, [highestViolationSoFar, violation]),
     highestActiveViolation =
-      activeViolations.length < 2
-        ? activeViolations[0]
-        : apply(maxBy(prop('policyThreatLevel')))(activeViolations);
+      activeViolations.length < 2 ? activeViolations[0] : apply(maxBy(prop('policyThreatLevel')))(activeViolations);
 
   // return the highest active violation, or if there isn't one, merge the inactive violations
   if (highestActiveViolation) {
     return highestActiveViolation;
   } else {
-    const waived =
-        (highestViolationSoFar && highestViolationSoFar.waived) ||
-        violation.waived,
-      grandfathered =
-        (highestViolationSoFar && highestViolationSoFar.grandfathered) ||
-        violation.grandfathered;
+    const waived = (highestViolationSoFar && highestViolationSoFar.waived) || violation.waived,
+      grandfathered = (highestViolationSoFar && highestViolationSoFar.grandfathered) || violation.grandfathered;
 
     return {
       ...violation,
@@ -464,9 +400,7 @@ function highestViolationReducer(highestViolationSoFar, violation) {
 }
 
 const unsetWaivedAndGrandfatheredOnViolatingEntry = (entry) =>
-  entry.policyThreatLevel === 0
-    ? entry
-    : { ...entry, waived: false, grandfathered: false };
+  entry.policyThreatLevel === 0 ? entry : { ...entry, waived: false, grandfathered: false };
 
 /**
  * Take a list of all report entries and return a list of just the "aggregated" entries (ie one entry per component).
@@ -510,17 +444,13 @@ export const filterReportEntries = curry(function filterReportEntries(
  * @param filterConfig The object mapping property names to values that specify how they should be
  * filtered (the objects that get passed into filterBuilder)
  */
-const makeFilterTransducer = curry(function makeFilterTransducer(
-  checkBuilder,
-  filterConfig
-) {
+const makeFilterTransducer = curry(function makeFilterTransducer(checkBuilder, filterConfig) {
   if (isNilOrEmpty(filterConfig)) {
     return identity;
   } else {
     // make a function which takes a violation and sees if the value of the specified property passes a
     // check built from the specified filterValues
-    const makePropValueCheck = (propName, filterValue) =>
-        pipe(prop(propName), checkBuilder(filterValue)),
+    const makePropValueCheck = (propName, filterValue) => pipe(prop(propName), checkBuilder(filterValue)),
       // make a list-filtering function using a [propName, filterValue] tuple
       makeFilterFromPair = pipe(apply(makePropValueCheck), filter),
       filters = map(makeFilterFromPair, toPairs(filterConfig));
@@ -543,9 +473,7 @@ const filterBySubstring = makeFilterTransducer((filterString) => {
 });
 
 const filterBetweenValues = makeFilterTransducer(([min, max]) => {
-  return !min && !max
-    ? always(true)
-    : both(gte(__, min || 0), lte(__, max || 10));
+  return !min && !max ? always(true) : both(gte(__, min || 0), lte(__, max || 10));
 });
 
 /**
@@ -569,10 +497,7 @@ export function getVulnerabilities(policyEntries, rawDataEntries) {
       )
     ),
     // map from CVE -> list of policy entries that reference that CVE
-    policyEntriesBySecurityCode = multiGroupBy(
-      getVulnIdsFromPolicyEntry,
-      policyEntries
-    ),
+    policyEntriesBySecurityCode = multiGroupBy(getVulnIdsFromPolicyEntry, policyEntries),
     // two level map: CVE -> Component Id -> highest threat policy entry for that CVE and component
     highestPolicyEntryBySecurityCodeByComponentId = map(
       reduceBy(highestViolationReducer, null, serializeComponentId),
@@ -591,27 +516,15 @@ export function getVulnerabilities(policyEntries, rawDataEntries) {
 
       return policyEntry
         ? {
-            ...pick(
-              ['policyThreatLevel', 'waived', 'grandfathered'],
-              policyEntry
-            ),
+            ...pick(['policyThreatLevel', 'waived', 'grandfathered'], policyEntry),
             ...rawDataEntry,
-            violationSortState:
-              vulnerabilitySortStateMap[policyEntry.derivedViolationState],
+            violationSortState: vulnerabilitySortStateMap[policyEntry.derivedViolationState],
             key: `${serializedComponentId}\u001D${securityCode}`,
           }
         : null;
     };
 
-  return into(
-    [],
-    compose(
-      filter(has('securityCode')),
-      map(mkVulnerabilityEntry),
-      reject(isNil)
-    ),
-    rawDataEntries
-  );
+  return into([], compose(filter(has('securityCode')), map(mkVulnerabilityEntry), reject(isNil)), rawDataEntries);
 }
 
 const vulnerabilitySortStateMap = {

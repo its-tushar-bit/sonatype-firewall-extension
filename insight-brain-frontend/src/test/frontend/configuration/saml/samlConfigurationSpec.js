@@ -7,13 +7,7 @@ import samlModule from '../../../../main/frontend/configuration/saml/module';
 import { omit } from 'ramda';
 
 describe('samlConfiguration', function () {
-  let $scope,
-    $httpBackend,
-    CLMContextLocations,
-    mockFileReader,
-    Dialog,
-    wrapReturn,
-    vm;
+  let $scope, $httpBackend, CLMContextLocations, mockFileReader, Dialog, wrapReturn, vm;
 
   const defaultSaml = {
     identityProviderName: 'identity provider',
@@ -98,9 +92,7 @@ describe('samlConfiguration', function () {
 
   describe('load', function () {
     it('sets the given saml values if a configuration exists', function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
 
       $scope.$digest();
 
@@ -112,9 +104,7 @@ describe('samlConfiguration', function () {
     });
 
     it('sets the default saml values if no configuration exists', function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(404, 'not found');
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
 
       $scope.$digest();
 
@@ -126,9 +116,7 @@ describe('samlConfiguration', function () {
     });
 
     it('sets the error message on failure', function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(400, 'bad request');
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(400, 'bad request');
 
       $scope.$digest();
 
@@ -142,45 +130,33 @@ describe('samlConfiguration', function () {
 
   describe('readIdentityProviderMetadataXml', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
     it('does nothing if the given file is undefined', function () {
-      expect(vm.saml.identityProviderMetadataXml).toBe(
-        saml1.identityProviderMetadataXml
-      );
+      expect(vm.saml.identityProviderMetadataXml).toBe(saml1.identityProviderMetadataXml);
 
       vm.readIdentityProviderMetadataXml();
 
-      expect(vm.saml.identityProviderMetadataXml).toBe(
-        saml1.identityProviderMetadataXml
-      );
+      expect(vm.saml.identityProviderMetadataXml).toBe(saml1.identityProviderMetadataXml);
     });
 
     it('sets the identityProviderMetadataXml to the file content', function () {
-      expect(vm.saml.identityProviderMetadataXml).toBe(
-        saml1.identityProviderMetadataXml
-      );
+      expect(vm.saml.identityProviderMetadataXml).toBe(saml1.identityProviderMetadataXml);
       let file = { content: '<xml>different</xml>' };
 
       vm.readIdentityProviderMetadataXml(file);
 
-      expect(mockFileReader.addEventListener.calls.mostRecent().args[0]).toBe(
-        'load'
-      );
+      expect(mockFileReader.addEventListener.calls.mostRecent().args[0]).toBe('load');
       expect(mockFileReader.result).toBe('<xml>different</xml>');
     });
   });
 
   describe('isChanged', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
@@ -212,8 +188,7 @@ describe('samlConfiguration', function () {
     it('returns true if the usernameNameAttributeName is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
-      vm.saml.usernameNameAttributeName =
-        vm.saml.usernameNameAttributeName + '2';
+      vm.saml.usernameNameAttributeName = vm.saml.usernameNameAttributeName + '2';
 
       expect(vm.isChanged()).toBe(true);
     });
@@ -279,9 +254,7 @@ describe('samlConfiguration', function () {
 
   describe('save', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(404, 'not found');
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
       $scope.$digest();
       $httpBackend.flush();
     });
@@ -296,12 +269,8 @@ describe('samlConfiguration', function () {
           CLMContextLocations.getSamlConfigurationUrl(),
           function (data) {
             expect(data).not.toBeUndefined();
-            expect(data.get('identityProviderXml')).toBe(
-              vm.saml.identityProviderMetadataXml
-            );
-            expect(data.get('samlConfiguration')).toBe(
-              JSON.stringify(omit(['identityProviderMetadataXml'], vm.saml))
-            );
+            expect(data.get('identityProviderXml')).toBe(vm.saml.identityProviderMetadataXml);
+            expect(data.get('samlConfiguration')).toBe(JSON.stringify(omit(['identityProviderMetadataXml'], vm.saml)));
             return true;
           },
           function (headers) {
@@ -311,9 +280,7 @@ describe('samlConfiguration', function () {
           }
         )
         .respond(204);
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(vm.saml);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(vm.saml);
       expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       vm.save();
@@ -339,9 +306,7 @@ describe('samlConfiguration', function () {
       expect(vm.isChanged()).toBe(false);
       vm.saml = saml2;
       expect(vm.isChanged()).toBe(true);
-      $httpBackend
-        .expectPUT(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(400, 'bad request');
+      $httpBackend.expectPUT(CLMContextLocations.getSamlConfigurationUrl()).respond(400, 'bad request');
       expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       vm.save();
@@ -358,9 +323,7 @@ describe('samlConfiguration', function () {
 
       expect(maskArgResolvedSpy).not.toHaveBeenCalled();
       expect(maskArgFailedSpy).toHaveBeenCalled();
-      wrapReturn.catch.calls
-        .mostRecent()
-        .args[0](maskArgFailedSpy.calls.mostRecent().args[0]);
+      wrapReturn.catch.calls.mostRecent().args[0](maskArgFailedSpy.calls.mostRecent().args[0]);
       expect(vm.saml).toBe(saml2);
       expect(vm.isUpdating).toBe(false);
       expect(vm.isChanged()).toBe(true);
@@ -371,9 +334,7 @@ describe('samlConfiguration', function () {
 
   describe('cancel', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
@@ -389,9 +350,7 @@ describe('samlConfiguration', function () {
 
   describe('delete', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
@@ -404,12 +363,8 @@ describe('samlConfiguration', function () {
       vm.delete();
 
       expect(Dialog.open).toHaveBeenCalled();
-      $httpBackend
-        .expectDELETE(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(200);
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(404, 'not found');
+      $httpBackend.expectDELETE(CLMContextLocations.getSamlConfigurationUrl()).respond(200);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
       expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       Dialog.open.calls.mostRecent().args[0].buttons[0].click();
@@ -437,9 +392,7 @@ describe('samlConfiguration', function () {
       vm.delete();
 
       expect(Dialog.open).toHaveBeenCalled();
-      $httpBackend
-        .expectDELETE(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(404, 'not found');
+      $httpBackend.expectDELETE(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
       expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       Dialog.open.calls.mostRecent().args[0].buttons[0].click();
@@ -456,9 +409,7 @@ describe('samlConfiguration', function () {
 
       expect(maskArgResolvedSpy).not.toHaveBeenCalled();
       expect(maskArgFailedSpy).toHaveBeenCalled();
-      wrapReturn.catch.calls
-        .mostRecent()
-        .args[0](maskArgFailedSpy.calls.mostRecent().args[0]);
+      wrapReturn.catch.calls.mostRecent().args[0](maskArgFailedSpy.calls.mostRecent().args[0]);
       expect(vm.saml).toEqual(saml1);
       expect(vm.isUpdating).toBe(true);
       expect(vm.loadError).toBeUndefined();
@@ -473,9 +424,7 @@ describe('samlConfiguration', function () {
       vm.delete();
 
       expect(Dialog.open).toHaveBeenCalled();
-      expect(Dialog.open.calls.mostRecent().args[0].buttons[1].click).toBe(
-        undefined
-      );
+      expect(Dialog.open.calls.mostRecent().args[0].buttons[1].click).toBe(undefined);
       expect(vm.saml).toEqual(saml1);
       expect(vm.isUpdating).toBe(true);
       expect(vm.loadError).toBeUndefined();
@@ -485,26 +434,20 @@ describe('samlConfiguration', function () {
 
   describe('defaultsToTooltipText', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
     it('returns the expected text given a default value', function () {
       let defaultValue = 'defaultValue';
-      expect(vm.defaultsToTooltipText(defaultValue)).toBe(
-        'If empty will default to "' + defaultValue + '"'
-      );
+      expect(vm.defaultsToTooltipText(defaultValue)).toBe('If empty will default to "' + defaultValue + '"');
     });
   });
 
   describe('resetToDefaultValueIfEmpty', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
@@ -528,15 +471,9 @@ describe('samlConfiguration', function () {
       vm.resetToDefaultValueIfEmpty('groupsAttributeName');
 
       expect(vm.saml.entityId).toBe(defaultSaml.entityId);
-      expect(vm.saml.usernameAttributeName).toBe(
-        defaultSaml.usernameAttributeName
-      );
-      expect(vm.saml.firstNameAttributeName).toBe(
-        defaultSaml.firstNameAttributeName
-      );
-      expect(vm.saml.lastNameAttributeName).toBe(
-        defaultSaml.lastNameAttributeName
-      );
+      expect(vm.saml.usernameAttributeName).toBe(defaultSaml.usernameAttributeName);
+      expect(vm.saml.firstNameAttributeName).toBe(defaultSaml.firstNameAttributeName);
+      expect(vm.saml.lastNameAttributeName).toBe(defaultSaml.lastNameAttributeName);
       expect(vm.saml.emailAttributeName).toBe(defaultSaml.emailAttributeName);
       expect(vm.saml.groupsAttributeName).toBe(defaultSaml.groupsAttributeName);
     });
@@ -562,9 +499,7 @@ describe('samlConfiguration', function () {
 
   describe('downloadMetadataForIE', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
@@ -591,12 +526,8 @@ describe('samlConfiguration', function () {
 
       expect(window.Blob).toHaveBeenCalledWith(['<xml>metadata</xml>']);
       expect(window.navigator.msSaveBlob).toHaveBeenCalled();
-      expect(
-        window.navigator.msSaveBlob.calls.mostRecent().args[0]
-      ).not.toBeNull();
-      expect(window.navigator.msSaveBlob.calls.mostRecent().args[1]).toBe(
-        'metadata.xml'
-      );
+      expect(window.navigator.msSaveBlob.calls.mostRecent().args[0]).not.toBeNull();
+      expect(window.navigator.msSaveBlob.calls.mostRecent().args[1]).toBe('metadata.xml');
     });
 
     it('does nothing if a configuration is saved and it is not IE', function () {
@@ -629,9 +560,7 @@ describe('samlConfiguration', function () {
 
   describe('shouldEnableDownloadMetadataLink', function () {
     beforeEach(function () {
-      $httpBackend
-        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
-        .respond(saml1);
+      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });

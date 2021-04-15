@@ -21,8 +21,6 @@ describe('DashboardMask', function () {
   it('renders message within NxInfoAlert', () => {
     const component = getShallowComponent();
 
-    expect(component.find(NxInfoAlert)).toHaveText(
-      'Please apply or revert filter to see results.'
-    );
+    expect(component.find(NxInfoAlert)).toHaveText('Please apply or revert filter to see results.');
   });
 });

@@ -18,22 +18,16 @@ export default function CopyrightDetailsOverview(props) {
   const ifExistsElseEmpty = (element, func) => (element ? func() : '');
 
   const attributionStatus = (item) =>
-    ifExistsElseEmpty(item, () =>
-      item.status === 'enabled' ? 'Included' : 'Excluded'
-    );
+    ifExistsElseEmpty(item, () => (item.status === 'enabled' ? 'Included' : 'Excluded'));
 
   const copyrightSource = (item) =>
-    ifExistsElseEmpty(item, () =>
-      item.originalContentHash ? 'Sonatype Scan' : 'Manually added'
-    );
+    ifExistsElseEmpty(item, () => (item.originalContentHash ? 'Sonatype Scan' : 'Manually added'));
 
   const copyrightModification = () => {
     const licenseLegalData = component && component.licenseLegalData;
     if (licenseLegalData && licenseLegalData.componentCopyrightLastUpdatedAt) {
       const age = timeAgo(licenseLegalData.componentCopyrightLastUpdatedAt);
-      return `${age.age} ${age.qualifier} by ${
-        licenseLegalData.componentCopyrightLastUpdatedByUsername || 'N/A'
-      }`;
+      return `${age.age} ${age.qualifier} by ${licenseLegalData.componentCopyrightLastUpdatedByUsername || 'N/A'}`;
     } else {
       return 'N/A';
     }
@@ -41,21 +35,11 @@ export default function CopyrightDetailsOverview(props) {
 
   const scopeName = () => {
     const scopeOwnerId =
-      (component &&
-        component.licenseLegalData &&
-        component.licenseLegalData.componentCopyrightScopeOwnerId) ||
+      (component && component.licenseLegalData && component.licenseLegalData.componentCopyrightScopeOwnerId) ||
       'ROOT_ORGANIZATION_ID';
-    const availableScopeValues =
-      (availableScopes &&
-        availableScopes.values && [...availableScopes.values]) ||
-      [];
-    const scopeIndex = findIndex(
-      propEq('id', scopeOwnerId),
-      availableScopeValues
-    );
-    return scopeIndex < 0
-      ? 'Root Organization'
-      : availableScopeValues[scopeIndex].name;
+    const availableScopeValues = (availableScopes && availableScopes.values && [...availableScopes.values]) || [];
+    const scopeIndex = findIndex(propEq('id', scopeOwnerId), availableScopeValues);
+    return scopeIndex < 0 ? 'Root Organization' : availableScopeValues[scopeIndex].name;
   };
 
   return (
@@ -69,9 +53,7 @@ export default function CopyrightDetailsOverview(props) {
         <dl className="nx-read-only copyright-overview">
           <div className="copyright-overview-item">
             <dt className="nx-read-only__label">Attribution Report Status</dt>
-            <dd className="nx-read-only__data">
-              {attributionStatus(componentCopyrightDetails.selectedCopyright)}
-            </dd>
+            <dd className="nx-read-only__data">{attributionStatus(componentCopyrightDetails.selectedCopyright)}</dd>
           </div>
           <div className="copyright-overview-item">
             <dt className="nx-read-only__label">Scope</dt>
@@ -79,9 +61,7 @@ export default function CopyrightDetailsOverview(props) {
           </div>
           <div className="copyright-overview-item">
             <dt className="nx-read-only__label">Source</dt>
-            <dd className="nx-read-only__data">
-              {copyrightSource(componentCopyrightDetails.selectedCopyright)}
-            </dd>
+            <dd className="nx-read-only__data">{copyrightSource(componentCopyrightDetails.selectedCopyright)}</dd>
           </div>
           <div className="copyright-overview-item">
             <dt className="nx-read-only__label">Last Modified</dt>
@@ -90,8 +70,7 @@ export default function CopyrightDetailsOverview(props) {
           <div className="nx-read-only copyright-overview-text">
             <dt className="nx-read-only__label">Copyright Text</dt>
             <dd className="nx-read-only__data">
-              {componentCopyrightDetails.selectedCopyright &&
-                componentCopyrightDetails.selectedCopyright.content}
+              {componentCopyrightDetails.selectedCopyright && componentCopyrightDetails.selectedCopyright.content}
             </dd>
           </div>
         </dl>

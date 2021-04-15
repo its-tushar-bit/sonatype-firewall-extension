@@ -59,6 +59,12 @@ module.exports = {
       'error',
       { name: 'angular.merge', use: 'ramdajs deep merge methods' },
     ],
+    'prettier/prettier': [
+      'error',
+      {
+        endOfLine: 'auto',
+      },
+    ],
   },
   settings: {
     react: {

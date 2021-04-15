@@ -10,6 +10,8 @@ import * as PropTypes from 'prop-types';
 
 export default function CopyrightList(props) {
   const {
+    loading,
+    error,
     component,
     copyrightIndex,
     ownerType,
@@ -42,7 +44,8 @@ export default function CopyrightList(props) {
   const listItems = component && component.licenseLegalData
     ? (component.licenseLegalData.copyrights.map((item, index) =>
       <li key={index} className="nx-list__item nx-list__item--link">
-        <a href={$state.href('componentCopyrightDetails', {ownerType, ownerId, hash, copyrightIndex: index})}
+        <a href={$state.href('componentCopyrightDetails.copyrightDetails',
+            {ownerType, ownerId, hash, copyrightIndex: index})}
            className={listLinkClass(index)}>
           <div className="nx-list__text nx-truncate-ellipsis">{item.content}</div>
           <div className="nx-list__subtext">
@@ -54,16 +57,20 @@ export default function CopyrightList(props) {
     ))
     : '';
 
-  return (
-    <aside className="nx-scrollable nx-viewport-sized__scrollable">
+  // If we're loading data or in error state than the rendering will be handled by CopyrightDetailsHeader
+  // component and this component should not be rendered
+  return loading || error
+    ? null
+    : <aside className="nx-scrollable nx-viewport-sized__scrollable">
       <ul className="nx-list nx-list--clickable">
         {listItems}
       </ul>
-    </aside>
-  );
+    </aside>;
 }
 
 CopyrightList.propTypes = {
+  loading: PropTypes.bool,
+  error: PropTypes.string,
   component: componentPropType,
   componentCopyrightDetails: componentCopyrightDetailsPropType,
   ownerType: PropTypes.string,

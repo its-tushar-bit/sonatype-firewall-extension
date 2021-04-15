@@ -33,7 +33,8 @@ export default function CopyrightStatementsTile(props) {
     return (
       <li className="nx-list__item nx-list__item--link" key={index}>
         <a className="nx-list__link"
-           href={$state.href('componentCopyrightDetails', {ownerType, ownerId, hash, copyrightIndex: index})}>
+           href={$state.href('componentCopyrightDetails.copyrightDetails',
+               {ownerType, ownerId, hash, copyrightIndex: index})}>
           <span className="nx-list__text">
             {copyright.content}
           </span>

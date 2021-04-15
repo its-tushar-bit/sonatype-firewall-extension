@@ -4,31 +4,30 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {connect} from 'react-redux';
-
-import ComponentCopyrightDetailsPage from './ComponentCopyrightDetailsPage';
 import {pick} from 'ramda';
-import {loadFilePathsOnPageUpdate, loadCopyrightContexts, loadComponentAndCopyrightDetails, unloadCopyrightContexts}
-  from './componentCopyrightDetailsActions';
+import CopyrightDetailsHeader from './CopyrightDetailsHeader';
+import {loadComponentAndCopyrightDetails} from './componentCopyrightDetailsActions';
+import { copyrightDetailsStateName } from './copyrightDetailsUtils';
 
 function mapStateToProps({advancedLegal, componentCopyrightDetails, router}) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
+
+  let routerParams = router.currentParams;
+  if (router.currentState.name !== copyrightDetailsStateName && router.prevState.name === copyrightDetailsStateName) {
+    routerParams = router.prevParams;
+  }
   return {
     loading: component.loading || availableScopes.loading || componentCopyrightDetails.loadingCopyrightFileCounts,
     error: component.error || availableScopes.error || componentCopyrightDetails.errorCopyrightFileCounts,
     availableScopes,
-    componentCopyrightDetails,
-    ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'copyrightIndex'], router.currentParams)
+    ...pick(['hash', 'ownerType', 'ownerId', 'copyrightIndex'], routerParams)
   };
 }
 
 const mapDispatchToProps = {
-  loadComponentAndCopyrightDetails,
-  loadCopyrightContexts,
-  unloadCopyrightContexts,
-  loadFilePathsOnPageUpdate
+  loadComponentAndCopyrightDetails
 };
 
-const ComponentCopyrightDetailsContainer = connect(mapStateToProps, mapDispatchToProps)(ComponentCopyrightDetailsPage);
-export default ComponentCopyrightDetailsContainer;
+const CopyrightDetailsHeaderContainer = connect(mapStateToProps, mapDispatchToProps)(CopyrightDetailsHeader);
+export default CopyrightDetailsHeaderContainer;

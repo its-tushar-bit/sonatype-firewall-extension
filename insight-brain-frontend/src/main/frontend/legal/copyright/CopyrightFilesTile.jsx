@@ -100,10 +100,7 @@ export default function CopyrightFilesTile(props) {
     const filePathPageCount = pageCount(componentCopyrightDetails.totalFileMatches);
     return (
       <Fragment>
-        <div>
-          {componentCopyrightDetails.filePaths.map((path, index) =>
-            createFilePathItem(index, path))}
-        </div>
+        {componentCopyrightDetails.filePaths.map((path, index) => createFilePathItem(index, path))}
         {filePathsPagination(filePathPageCount)}
       </Fragment>
     );
@@ -116,7 +113,7 @@ export default function CopyrightFilesTile(props) {
   }
 
   return (
-    <section className="nx-tile">
+    <section id="copyright-file-paths" className="nx-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">File Paths</h2>

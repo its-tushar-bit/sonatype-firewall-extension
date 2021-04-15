@@ -8,7 +8,7 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
-component-copyright-details {
+component-copyright-details, copyright-list, copyright-details-header, copyright-details-contents {
   display: contents;
 }
 
@@ -16,11 +16,6 @@ component-copyright-details {
   display: grid;
   column-gap: $nx-spacing-md;
   grid-template-columns: 24% 1fr;
-}
-
-#component-copyright-details-right {
-  @include container-vertical;
-  min-width: 0;
 }
 
 .copyright-overview {

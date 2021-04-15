@@ -43,7 +43,7 @@ public final class ComponentCopyrightDetailsPage
   public static class CopyrightOverview
       extends BasicElement<CopyrightOverview>
   {
-    private static final String COPYRIGHT_DETAILS_TILE = "#copyright-details-tile";
+    private static final String COPYRIGHT_DETAILS_TILE = "copyright-details-header";
 
     public CopyrightOverview() {
       super(COPYRIGHT_DETAILS_TILE);
@@ -74,14 +74,15 @@ public final class ComponentCopyrightDetailsPage
       extends BasicElement<CopyrightFilePaths>
   {
     private static final String COPYRIGHT_FILE_PATHS =
-        "#component-copyright-details-right > section:nth-child(2) > div > div";
+        "copyright-details-contents section#copyright-file-paths";
 
     public CopyrightFilePaths() {
       super(COPYRIGHT_FILE_PATHS);
     }
 
     public SelenideElement pathAt(final int index) {
-      return $(String.format(".file-path-item:nth-child(%d)", index));
+      // need to add 1 as parent contains additional <p> element
+      return $(String.format(".file-path-item:nth-child(%d)", index + 1));
     }
 
     public boolean isOpen(final int index) {
@@ -101,7 +102,7 @@ public final class ComponentCopyrightDetailsPage
   public static class CopyrightList
       extends BasicElement<CopyrightList>
   {
-    private static final String COPYRIGHT_LIST_SELECTOR = "#component-copyright-details-content";
+    private static final String COPYRIGHT_LIST_SELECTOR = "copyright-list";
 
     public CopyrightList() {
       super(COPYRIGHT_LIST_SELECTOR);

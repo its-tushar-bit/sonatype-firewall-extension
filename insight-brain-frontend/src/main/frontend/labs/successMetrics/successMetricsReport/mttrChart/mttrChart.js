@@ -17,8 +17,8 @@ const mttrChart = {
   bindings: {
     mttrData: '<',
     activeApplicationCount: '<',
-    monthCount: '<'
-  }
+    monthCount: '<',
+  },
 };
 
 export default mttrChart;
@@ -31,18 +31,21 @@ function controller() {
   function makeMttrChart(dataset) {
     const xScale = new Scales.Category();
 
-    const lineConfigs = [{
-      name: 'Critical',
-      yAccessor: getYAccessor('criticalMttrInSeconds'),
-      className: 'iq-chart__dataset--critical'
-    }, {
-      name: 'All',
-      yAccessor: getYAccessor('mttrInSeconds'),
-      className: 'iq-chart__dataset--overall'
-    }];
+    const lineConfigs = [
+      {
+        name: 'Critical',
+        yAccessor: getYAccessor('criticalMttrInSeconds'),
+        className: 'iq-chart__dataset--critical',
+      },
+      {
+        name: 'All',
+        yAccessor: getYAccessor('mttrInSeconds'),
+        className: 'iq-chart__dataset--overall',
+      },
+    ];
 
     function getYAccessor(key) {
-      return function(d) {
+      return function (d) {
         // expected data in seconds; use undefined for nulls to display graph breaks
         return d[key] === null ? undefined : d[key] / SECONDS_IN_DAY;
       };
@@ -55,6 +58,14 @@ function controller() {
     const xAxis = new Axes.Category(xScale, 'bottom');
     const yAxisLabelText = 'Days to Resolve';
 
-    return createScatterPlotChart(xAccessor, xScale, xAxis, null, yAxisLabelText, lineConfigs, dataset);
+    return createScatterPlotChart(
+      xAccessor,
+      xScale,
+      xAxis,
+      null,
+      yAxisLabelText,
+      lineConfigs,
+      dataset
+    );
   }
 }

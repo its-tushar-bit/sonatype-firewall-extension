@@ -12,11 +12,11 @@ export default function ArtifactNameDisplay({ artifactName }) {
   return (
     <Fragment>
       <NxFontAwesomeIcon icon={faCube} />
-      <span>{ artifactName }</span>
+      <span>{artifactName}</span>
     </Fragment>
   );
 }
 
 ArtifactNameDisplay.propTypes = {
-  artifactName: PropTypes.string.isRequired
+  artifactName: PropTypes.string.isRequired,
 };

@@ -11,10 +11,15 @@ import reevaluationErrorModalWrapperTemplate from './reevaluationErrorModal/reev
 export default {
   template: template,
   controllerAs: 'vm',
-  controller: ApplicationReportController
+  controller: ApplicationReportController,
 };
 
-export function ApplicationReportController($scope, $ngRedux, applicationReportActions, Modal) {
+export function ApplicationReportController(
+  $scope,
+  $ngRedux,
+  applicationReportActions,
+  Modal
+) {
   const vm = this;
 
   let reevaluationErrorModal = undefined;
@@ -27,33 +32,34 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
     $onInit() {
       const actions = {
         ...pick(
-            [
-              'setAggregateReportEntries', 'reevaluateReport', 'reevaluateReportCancelled',
-              'loadReport', 'loadInnerSourceReports'
-            ],
-            applicationReportActions)
+          [
+            'setAggregateReportEntries',
+            'reevaluateReport',
+            'reevaluateReportCancelled',
+            'loadReport',
+            'loadInnerSourceReports',
+          ],
+          applicationReportActions
+        ),
       };
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
       vm.loadReport();
 
-      $scope.$watch('vm.reevaluating', function(reevaluating) {
+      $scope.$watch('vm.reevaluating', function (reevaluating) {
         if (reevaluating) {
           vm.formMaskController.activateMask();
-        }
-        else if (!vm.reevaluationError) {
+        } else if (!vm.reevaluationError) {
           vm.formMaskController.showSuccessMaskBriefly();
-        }
-        else {
+        } else {
           vm.formMaskController.removeMask();
         }
       });
 
-      $scope.$watch('vm.reevaluationError', function(reevaluationError) {
+      $scope.$watch('vm.reevaluationError', function (reevaluationError) {
         if (reevaluationError && !reevaluationErrorModal) {
           vm.openReevaluationErrorModal();
-        }
-        else if (!reevaluationError) {
+        } else if (!reevaluationError) {
           vm.dismissReevaluationErrorModal();
         }
       });
@@ -68,7 +74,7 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
       function modalController($scope) {
         Object.assign($scope, {
           retry: vm.reevaluateReport,
-          cancel: vm.reevaluateReportCancelled
+          cancel: vm.reevaluateReportCancelled,
         });
       }
 
@@ -76,7 +82,7 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
 
       reevaluationErrorModal = Modal.open({
         template: reevaluationErrorModalWrapperTemplate,
-        controller: modalController
+        controller: modalController,
       });
     },
 
@@ -85,19 +91,27 @@ export function ApplicationReportController($scope, $ngRedux, applicationReportA
         reevaluationErrorModal.dismiss();
         reevaluationErrorModal = undefined;
       }
-    }
+    },
   });
 }
 
 function mapStateToThis(state) {
-  return pick([
-    'policyTypeFilterEnabled',
-    'aggregate',
-    'reevaluating',
-    'reevaluationError',
-    'exactValueFilters',
-    'reportParameters'
-  ], state.applicationReport || {});
+  return pick(
+    [
+      'policyTypeFilterEnabled',
+      'aggregate',
+      'reevaluating',
+      'reevaluationError',
+      'exactValueFilters',
+      'reportParameters',
+    ],
+    state.applicationReport || {}
+  );
 }
 
-ApplicationReportController.$inject = ['$scope', '$ngRedux', 'applicationReportActions', 'Modal'];
+ApplicationReportController.$inject = [
+  '$scope',
+  '$ngRedux',
+  'applicationReportActions',
+  'Modal',
+];

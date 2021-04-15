@@ -7,7 +7,10 @@
 import { always } from 'ramda';
 
 import { UI_ROUTER_ON_FINISH } from '../../../reduxUiRouter/routerActions';
-import { createReducerFromActionMap, propSetConst } from '../../../util/reduxUtil';
+import {
+  createReducerFromActionMap,
+  propSetConst,
+} from '../../../util/reduxUtil';
 import {
   USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED,
   USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED,
@@ -20,7 +23,7 @@ import {
   USER_TOKEN_DELETE_TOKEN_FULFILLED,
   USER_TOKEN_SHOW_MODAL,
   USER_TOKEN_HIDE_MODAL,
-  USER_TOKEN_MASK_TIMER_DONE
+  USER_TOKEN_MASK_TIMER_DONE,
 } from './userTokenActions';
 
 const initialState = Object.freeze({
@@ -35,66 +38,66 @@ const initialState = Object.freeze({
   generateUserTokenLoading: null,
   // delete state
   deleteUserTokenError: null,
-  deleteUserTokenLoading: null
+  deleteUserTokenLoading: null,
 });
 
 const checkTokenRequested = (payload, state) => ({
   ...state,
   userToken: null,
   checkUserTokenError: null,
-  checkUserTokenLoading: true
+  checkUserTokenLoading: true,
 });
 
 const checkTokenFailed = (payload, state) => ({
   ...state,
   userToken: null,
   checkUserTokenLoading: false,
-  checkUserTokenError: payload
+  checkUserTokenError: payload,
 });
 
 const checkTokenFulfilled = (payload, state) => ({
   ...state,
   userToken: payload,
   checkUserTokenLoading: false,
-  checkUserTokenError: null
+  checkUserTokenError: null,
 });
 
 const generateTokenRequested = (payload, state) => ({
   ...state,
   generateUserTokenLoading: false,
-  generateUserTokenError: null
+  generateUserTokenError: null,
 });
 
 const generateTokenFailed = (payload, state) => ({
   ...state,
   generateUserTokenLoading: null,
-  generateUserTokenError: payload
+  generateUserTokenError: payload,
 });
 
 const generateTokenFulfilled = (payload, state) => ({
   ...state,
   userToken: payload,
   generateUserTokenLoading: null,
-  generateUserTokenError: null
+  generateUserTokenError: null,
 });
 
 const deleteTokenRequested = (payload, state) => ({
   ...state,
   deleteUserTokenLoading: false,
-  deleteUserTokenError: null
+  deleteUserTokenError: null,
 });
 
 const deleteTokenFailed = (payload, state) => ({
   ...state,
   deleteUserTokenLoading: null,
-  deleteUserTokenError: payload
+  deleteUserTokenError: payload,
 });
 
 const deleteUserTokenFulfilled = (payload, state) => ({
   ...state,
   deleteUserTokenLoading: true,
   deleteUserTokenError: null,
-  userToken: null
+  userToken: null,
 });
 
 const reducerActionMap = {
@@ -110,8 +113,11 @@ const reducerActionMap = {
   [USER_TOKEN_DELETE_TOKEN_REQUESTED]: deleteTokenRequested,
   [USER_TOKEN_DELETE_TOKEN_FAILED]: deleteTokenFailed,
   [USER_TOKEN_DELETE_TOKEN_FULFILLED]: deleteUserTokenFulfilled,
-  [USER_TOKEN_MASK_TIMER_DONE]: propSetConst('deleteUserTokenLoading', null)
+  [USER_TOKEN_MASK_TIMER_DONE]: propSetConst('deleteUserTokenLoading', null),
 };
 
-const userTokenReducer = createReducerFromActionMap(reducerActionMap, initialState);
+const userTokenReducer = createReducerFromActionMap(
+  reducerActionMap,
+  initialState
+);
 export default userTokenReducer;

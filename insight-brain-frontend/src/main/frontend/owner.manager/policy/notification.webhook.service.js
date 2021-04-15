@@ -8,7 +8,15 @@
  * Provides a globally cached version of notification webhooks for the current context. Note that get() callers should
  * not modify the returned object as it is shared.
  */
-export default function NotificationWebhookService(CachedServiceFactory, CLMContextLocations) {
-  return CachedServiceFactory.create(CLMContextLocations.getNotificationWebhooksUrl);
+export default function NotificationWebhookService(
+  CachedServiceFactory,
+  CLMContextLocations
+) {
+  return CachedServiceFactory.create(
+    CLMContextLocations.getNotificationWebhooksUrl
+  );
 }
-NotificationWebhookService.$inject = ['cached.service.factory', 'CLMContextLocations'];
+NotificationWebhookService.$inject = [
+  'cached.service.factory',
+  'CLMContextLocations',
+];

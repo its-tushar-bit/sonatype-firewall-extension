@@ -4,10 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-export default
-function windowEventsFactory($window) {
+export default function windowEventsFactory($window) {
   return {
-    addResizeHandler: function(scope, element, callBack) {
+    addResizeHandler: function (scope, element, callBack) {
       var width = element.width();
       var height = element.height();
 
@@ -22,10 +21,10 @@ function windowEventsFactory($window) {
       }
 
       angular.element($window).on('resize', callBackWrapper);
-      scope.$on('$destroy', function() {
+      scope.$on('$destroy', function () {
         angular.element($window).off('resize', callBackWrapper);
       });
-    }
+    },
   };
 }
 

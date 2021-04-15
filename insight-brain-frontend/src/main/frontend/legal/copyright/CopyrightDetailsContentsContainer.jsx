@@ -7,28 +7,37 @@ import { pick } from 'ramda';
 import {
   loadCopyrightContexts,
   loadFilePathsOnPageUpdate,
-  unloadCopyrightContexts
+  unloadCopyrightContexts,
 } from './componentCopyrightDetailsActions';
 import { connect } from 'react-redux';
 import CopyrightDetailsContents from './CopyrightDetailsContents';
 
-function mapStateToProps({advancedLegal, componentCopyrightDetails}) {
+function mapStateToProps({ advancedLegal, componentCopyrightDetails }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
   return {
-    loading: component.loading || availableScopes.loading || componentCopyrightDetails.loadingCopyrightFileCounts,
-    error: component.error || availableScopes.error || componentCopyrightDetails.errorCopyrightFileCounts,
+    loading:
+      component.loading ||
+      availableScopes.loading ||
+      componentCopyrightDetails.loadingCopyrightFileCounts,
+    error:
+      component.error ||
+      availableScopes.error ||
+      componentCopyrightDetails.errorCopyrightFileCounts,
     availableScopes,
     componentCopyrightDetails,
-    ...pick(['component'], component)
+    ...pick(['component'], component),
   };
 }
 
 const mapDispatchToProps = {
   loadCopyrightContexts,
   unloadCopyrightContexts,
-  loadFilePathsOnPageUpdate
+  loadFilePathsOnPageUpdate,
 };
 
-const CopyrightDetailsContentsContainer = connect(mapStateToProps, mapDispatchToProps)(CopyrightDetailsContents);
+const CopyrightDetailsContentsContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(CopyrightDetailsContents);
 export default CopyrightDetailsContentsContainer;

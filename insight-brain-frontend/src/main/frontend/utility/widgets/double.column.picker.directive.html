@@ -4,7 +4,10 @@
       <td colspan="2">
         <div class="td-container">
           <i class="fa fa-filter size-16px size-fw"></i>
-          <input ng-model="vm.search[vm.itemNameParam]" placeholder="{{::vm.filterPlaceholder}}"/>
+          <input
+            ng-model="vm.search[vm.itemNameParam]"
+            placeholder="{{::vm.filterPlaceholder}}"
+          />
         </div>
       </td>
     </tr>
@@ -13,14 +16,21 @@
         <div class="td-container tm-available-header">
           <div class="title">{{::vm.leftColumnName}}</div>
           <div class="tools">
-            <iq-checkbox label="all"
-                         on-click="vm.toggleLeftSelectAll(false)"
-                         is-checked="vm.checkAllLeft"
-                         is-disabled="vm.disabled">
+            <iq-checkbox
+              label="all"
+              on-click="vm.toggleLeftSelectAll(false)"
+              is-checked="vm.checkAllLeft"
+              is-disabled="vm.disabled"
+            >
             </iq-checkbox>
-            <button class="btn btn-tertiary btn-icon-only" type="button" ng-click="vm.moveItems(false)"
-                    ng-disabled="vm.disabled || !vm.areAnyItemsChecked(false)">
-              <i class="fa fa-arrow-right"></i></button>
+            <button
+              class="btn btn-tertiary btn-icon-only"
+              type="button"
+              ng-click="vm.moveItems(false)"
+              ng-disabled="vm.disabled || !vm.areAnyItemsChecked(false)"
+            >
+              <i class="fa fa-arrow-right"></i>
+            </button>
           </div>
         </div>
       </td>
@@ -28,14 +38,21 @@
         <div class="td-container tm-picked-header">
           <div class="title">{{::vm.rightColumnName}}</div>
           <div class="tools">
-            <iq-checkbox label="all"
-                         on-click="vm.toggleRightSelectAll(true)"
-                         is-checked="vm.checkAllRight"
-                         is-disabled="vm.disabled">
+            <iq-checkbox
+              label="all"
+              on-click="vm.toggleRightSelectAll(true)"
+              is-checked="vm.checkAllRight"
+              is-disabled="vm.disabled"
+            >
             </iq-checkbox>
-            <button class="btn btn-tertiary btn-icon-only" type="button" ng-click="vm.moveItems(true)"
-                    ng-disabled="vm.disabled || !vm.areAnyItemsChecked(true)">
-              <i class="fa fa-arrow-left"></i></button>
+            <button
+              class="btn btn-tertiary btn-icon-only"
+              type="button"
+              ng-click="vm.moveItems(true)"
+              ng-disabled="vm.disabled || !vm.areAnyItemsChecked(true)"
+            >
+              <i class="fa fa-arrow-left"></i>
+            </button>
           </div>
         </div>
       </td>
@@ -43,30 +60,46 @@
     <tr class="list-row">
       <td>
         <div class="td-container available-list">
-          <iq-checkbox ng-repeat="item in vm.list | filter: vm.listFilter(false) | orderBy: vm.itemNameParam"
-                       on-click="vm.toggleChecked(item, false)"
-                       is-checked="item.checked"
-                       is-disabled="vm.disabled">
-            <span iq-tooltip="!!vm.tooltipFn({item: item})"
-                  tooltip-text="{{vm.tooltipFn({item: item})}}"
-                  tooltip-only-on-overflow="{{::vm.showTooltipOnlyOnOverflow(item)}}"
-                  tooltip-attach-to-body>
-              <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
+          <iq-checkbox
+            ng-repeat="item in vm.list | filter: vm.listFilter(false) | orderBy: vm.itemNameParam"
+            on-click="vm.toggleChecked(item, false)"
+            is-checked="item.checked"
+            is-disabled="vm.disabled"
+          >
+            <span
+              iq-tooltip="!!vm.tooltipFn({item: item})"
+              tooltip-text="{{vm.tooltipFn({item: item})}}"
+              tooltip-only-on-overflow="{{::vm.showTooltipOnlyOnOverflow(item)}}"
+              tooltip-attach-to-body
+            >
+              <i
+                ng-if="vm.iconFn"
+                class="fa fa-fw {{vm.iconFn({item: item})}}"
+              ></i
+              >{{item[vm.itemNameParam]}}
             </span>
           </iq-checkbox>
         </div>
       </td>
       <td>
         <div class="td-container picked-list">
-          <iq-checkbox ng-repeat="item in vm.list | filter: vm.listFilter(true) | orderBy: vm.itemNameParam"
-                       on-click="vm.toggleChecked(item, true)"
-                       is-checked="item.checked"
-                       is-disabled="vm.disabled">
-            <span iq-tooltip="!!vm.tooltipFn({item: item})"
-                  tooltip-text="{{vm.tooltipFn({item: item})}}"
-                  tooltip-only-on-overflow="{{::vm.showTooltipOnlyOnOverflow(item)}}"
-                  tooltip-attach-to-body>
-              <i ng-if="vm.iconFn" class="fa fa-fw {{vm.iconFn({item: item})}}"></i>{{item[vm.itemNameParam]}}
+          <iq-checkbox
+            ng-repeat="item in vm.list | filter: vm.listFilter(true) | orderBy: vm.itemNameParam"
+            on-click="vm.toggleChecked(item, true)"
+            is-checked="item.checked"
+            is-disabled="vm.disabled"
+          >
+            <span
+              iq-tooltip="!!vm.tooltipFn({item: item})"
+              tooltip-text="{{vm.tooltipFn({item: item})}}"
+              tooltip-only-on-overflow="{{::vm.showTooltipOnlyOnOverflow(item)}}"
+              tooltip-attach-to-body
+            >
+              <i
+                ng-if="vm.iconFn"
+                class="fa fa-fw {{vm.iconFn({item: item})}}"
+              ></i
+              >{{item[vm.itemNameParam]}}
             </span>
           </iq-checkbox>
         </div>

@@ -12,20 +12,29 @@ import {
   saveLicenses,
   setLicenseContent,
   setLicensesScope,
-  setLicenseStatus
+  setLicenseStatus,
 } from '../advancedLegalFileActions';
-import { setObligationScope, setObligationStatus } from '../../obligation/advancedLegalObligationActions';
+import {
+  setObligationScope,
+  setObligationStatus,
+} from '../../obligation/advancedLegalObligationActions';
 
 function mapStateToProps({ advancedLegal }) {
   return {
-    scope: advancedLegal.component.component.licenseLegalData.componentLicensesScopeOwnerId,
-    originalScope: advancedLegal.component.component.licenseLegalData.originalComponentLicensesScopeOwnerId,
+    scope:
+      advancedLegal.component.component.licenseLegalData
+        .componentLicensesScopeOwnerId,
+    originalScope:
+      advancedLegal.component.component.licenseLegalData
+        .originalComponentLicensesScopeOwnerId,
     availableScopes: advancedLegal.availableScopes,
     licenses: advancedLegal.component.component.licenseLegalData.licenseFiles,
     error: advancedLegal.component.component.licenseLegalData.licensesError,
-    submitMaskState: advancedLegal.component.component.licenseLegalData.saveLicensesSubmitMask,
-    existingObligation: advancedLegal.component.component.licenseLegalData.obligations
-        .find(o => o.name === 'Inclusion of License')
+    submitMaskState:
+      advancedLegal.component.component.licenseLegalData.saveLicensesSubmitMask,
+    existingObligation: advancedLegal.component.component.licenseLegalData.obligations.find(
+      (o) => o.name === 'Inclusion of License'
+    ),
   };
 }
 
@@ -37,7 +46,7 @@ const mapDispatchToProps = {
   setLicensesScope,
   saveLicenses,
   setObligationScope,
-  setObligationStatus
+  setObligationStatus,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(LicensesModal);

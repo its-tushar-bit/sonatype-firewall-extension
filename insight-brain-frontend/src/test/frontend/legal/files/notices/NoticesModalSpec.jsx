@@ -5,19 +5,24 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import NoticesModal from '../../../../../main/frontend/legal/files/notices/NoticesModal';
-import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxForm,
+  NxTextInput,
+  NxToggle,
+} from '@sonatype/react-shared-components';
 
-describe('NoticesModal', function() {
+describe('NoticesModal', function () {
   let getShallowComponent,
-      minimalProps,
-      cancelNoticesModalSpy,
-      setNoticeContentSpy,
-      setNoticeStatusSpy,
-      addNoticeSpy,
-      setNoticesScopeSpy,
-      saveNoticesSpy;
+    minimalProps,
+    cancelNoticesModalSpy,
+    setNoticeContentSpy,
+    setNoticeStatusSpy,
+    addNoticeSpy,
+    setNoticesScopeSpy,
+    saveNoticesSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     cancelNoticesModalSpy = jasmine.createSpy('cancelNoticesModalSpy');
     setNoticeContentSpy = jasmine.createSpy('setNoticeContentSpy');
     setNoticeStatusSpy = jasmine.createSpy('setNoticeStatusSpy');
@@ -37,8 +42,12 @@ describe('NoticesModal', function() {
         values: [
           { id: 'appId', name: 'app', label: 'Application' },
           { id: 'orgId', name: 'org', label: 'Organization' },
-          { id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }
-        ]
+          {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'Root Organization',
+            label: 'Organization',
+          },
+        ],
       },
       notices: [
         {
@@ -49,7 +58,7 @@ describe('NoticesModal', function() {
           content: 'content1',
           originalStatus: 'enabled',
           status: 'enabled',
-          isPristine: true
+          isPristine: true,
         },
         {
           id: null,
@@ -59,22 +68,25 @@ describe('NoticesModal', function() {
           content: '',
           originalStatus: 'disabled',
           status: 'disabled',
-          isPristine: false
-        }
+          isPristine: false,
+        },
       ],
       error: 'error',
-      submitMaskState: 'submitMaskState'
+      submitMaskState: 'submitMaskState',
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(NoticesModal, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      NoticesModal,
+      minimalProps
+    );
   });
 
-  it('renders no notice texts found if there are no notices', function() {
+  it('renders no notice texts found if there are no notices', function () {
     const wrapper = getShallowComponent({ notices: [] });
     const noNoticeTextsRow = wrapper.find('tbody tr');
     expect(noNoticeTextsRow).toHaveText('No notice texts found');
   });
 
-  it('renders notice contents', function() {
+  it('renders notice contents', function () {
     const wrapper = getShallowComponent();
     const noticeContents = wrapper.find(NxTextInput);
     expect(noticeContents.length).toBe(2);
@@ -86,16 +98,22 @@ describe('NoticesModal', function() {
     expect(noticeContents.at(1).prop('isPristine')).toBeFalsy();
   });
 
-  it('sets a notice content to the input value when typed', function() {
+  it('sets a notice content to the input value when typed', function () {
     const wrapper = getShallowComponent();
     const noticeContents = wrapper.find(NxTextInput);
     noticeContents.at(0).simulate('change', '');
-    expect(setNoticeContentSpy.calls.mostRecent().args[0]).toEqual({ index: 0, value: '' });
+    expect(setNoticeContentSpy.calls.mostRecent().args[0]).toEqual({
+      index: 0,
+      value: '',
+    });
     noticeContents.at(1).simulate('change', 'content2');
-    expect(setNoticeContentSpy.calls.mostRecent().args[0]).toEqual({ index: 1, value: 'content2' });
+    expect(setNoticeContentSpy.calls.mostRecent().args[0]).toEqual({
+      index: 1,
+      value: 'content2',
+    });
   });
 
-  it('renders notice statuses', function() {
+  it('renders notice statuses', function () {
     const wrapper = getShallowComponent();
     const noticeStatuses = wrapper.find(NxToggle);
     expect(noticeStatuses.length).toBe(2);
@@ -105,30 +123,36 @@ describe('NoticesModal', function() {
     expect(noticeStatuses.at(1)).toHaveText('Excluded');
   });
 
-  it('sets a notice status to its opposite value when the toggle is clicked', function() {
+  it('sets a notice status to its opposite value when the toggle is clicked', function () {
     const wrapper = getShallowComponent();
     const noticeStatuses = wrapper.find(NxToggle);
     noticeStatuses.at(0).simulate('change');
-    expect(setNoticeStatusSpy.calls.mostRecent().args[0]).toEqual({ index: 0, value: 'disabled' });
+    expect(setNoticeStatusSpy.calls.mostRecent().args[0]).toEqual({
+      index: 0,
+      value: 'disabled',
+    });
     noticeStatuses.at(1).simulate('change');
-    expect(setNoticeStatusSpy.calls.mostRecent().args[0]).toEqual({ index: 1, value: 'enabled' });
+    expect(setNoticeStatusSpy.calls.mostRecent().args[0]).toEqual({
+      index: 1,
+      value: 'enabled',
+    });
   });
 
-  it('adds a notice when the add notice button is clicked', function() {
+  it('adds a notice when the add notice button is clicked', function () {
     const wrapper = getShallowComponent();
     const addNoticeButton = wrapper.find(NxButton);
     addNoticeButton.simulate('click');
     expect(addNoticeSpy).toHaveBeenCalled();
   });
 
-  it('selects the given notices scope', function() {
+  it('selects the given notices scope', function () {
     const wrapper = getShallowComponent();
     const noticesScope = wrapper.find('select');
     expect(noticesScope.length).toBe(1);
     expect(noticesScope.at(0).prop('value')).toEqual('ROOT_ORGANIZATION_ID');
   });
 
-  it('has the notices scope options', function() {
+  it('has the notices scope options', function () {
     const wrapper = getShallowComponent();
     const noticesScopeOptions = wrapper.find('option');
     expect(noticesScopeOptions.length).toBe(3);
@@ -136,18 +160,22 @@ describe('NoticesModal', function() {
     expect(noticesScopeOptions.at(0)).toHaveText('Application - app');
     expect(noticesScopeOptions.at(1).prop('value')).toEqual('orgId');
     expect(noticesScopeOptions.at(1)).toHaveText('Organization - org');
-    expect(noticesScopeOptions.at(2).prop('value')).toEqual('ROOT_ORGANIZATION_ID');
-    expect(noticesScopeOptions.at(2)).toHaveText('Organization - Root Organization');
+    expect(noticesScopeOptions.at(2).prop('value')).toEqual(
+      'ROOT_ORGANIZATION_ID'
+    );
+    expect(noticesScopeOptions.at(2)).toHaveText(
+      'Organization - Root Organization'
+    );
   });
 
-  it('sets the notices scope to the selected value when changed', function() {
+  it('sets the notices scope to the selected value when changed', function () {
     const wrapper = getShallowComponent();
     const noticesScope = wrapper.find('select');
     noticesScope.simulate('change', { currentTarget: { value: 'appId' } });
     expect(setNoticesScopeSpy).toHaveBeenCalledWith('appId');
   });
 
-  it('has a validation error if a custom notice has no content', function() {
+  it('has a validation error if a custom notice has no content', function () {
     const wrapper = getShallowComponent({
       notices: [
         ...minimalProps.notices,
@@ -157,15 +185,17 @@ describe('NoticesModal', function() {
           originalContent: '',
           content: '',
           status: 'disabled',
-          isPristine: true
-        }
-      ]
+          isPristine: true,
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
-    expect(form.prop('validationErrors')).toBe('A custom notice must have text.');
+    expect(form.prop('validationErrors')).toBe(
+      'A custom notice must have text.'
+    );
   });
 
-  it('has a validation error if there has been no changes', function() {
+  it('has a validation error if there has been no changes', function () {
     const wrapper = getShallowComponent({
       notices: [
         {
@@ -176,21 +206,23 @@ describe('NoticesModal', function() {
           content: 'content1',
           originalStatus: 'enabled',
           status: 'enabled',
-          isPristine: true
-        }
-      ]
+          isPristine: true,
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
-    expect(form.prop('validationErrors')).toBe('Must add a new notice or change the content or status of a notice.');
+    expect(form.prop('validationErrors')).toBe(
+      'Must add a new notice or change the content or status of a notice.'
+    );
   });
 
-  it('has no validation error if the scope has changed', function() {
+  it('has no validation error if the scope has changed', function () {
     const wrapper = getShallowComponent({ scope: 'appId' });
     const form = wrapper.find(NxForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
-  it('has no validation error if a custom notice was added with content', function() {
+  it('has no validation error if a custom notice was added with content', function () {
     const wrapper = getShallowComponent({
       notices: [
         {
@@ -199,15 +231,15 @@ describe('NoticesModal', function() {
           originalContent: '',
           content: 'content',
           originalStatus: 'enabled',
-          status: 'enabled'
-        }
-      ]
+          status: 'enabled',
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
-  it('has no validation error if the content has changed', function() {
+  it('has no validation error if the content has changed', function () {
     const wrapper = getShallowComponent({
       notices: [
         {
@@ -217,15 +249,15 @@ describe('NoticesModal', function() {
           originalContent: 'content1',
           content: 'updatedContent1',
           originalStatus: 'enabled',
-          status: 'enabled'
-        }
-      ]
+          status: 'enabled',
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
-  it('has no validation error if the status has changed', function() {
+  it('has no validation error if the status has changed', function () {
     const wrapper = getShallowComponent({
       notices: [
         {
@@ -235,9 +267,9 @@ describe('NoticesModal', function() {
           originalContent: 'content1',
           content: 'content1',
           originalStatus: 'enabled',
-          status: 'disabled'
-        }
-      ]
+          status: 'disabled',
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
     expect(form.prop('validationErrors')).toBeUndefined();

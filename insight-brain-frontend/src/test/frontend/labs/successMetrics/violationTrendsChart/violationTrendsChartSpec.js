@@ -4,38 +4,40 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global describe, beforeEach, it, expect, inject */
-import {sum, values, compose} from 'ramda';
+import { sum, values, compose } from 'ramda';
 import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
-import {generateWeekCounts} from './mockViolationCounts';
+import { generateWeekCounts } from './mockViolationCounts';
 
-describe('violationTrendsChart component', function() {
+describe('violationTrendsChart component', function () {
   beforeEach(angular.mock.module(successMetricsModule.name));
 
   let getVm;
 
-  beforeEach(inject(function($componentController) {
-    getVm = function(violationCounts) {
-      return $componentController('violationTrendsChart', null, { violationCounts: violationCounts });
+  beforeEach(inject(function ($componentController) {
+    getVm = function (violationCounts) {
+      return $componentController('violationTrendsChart', null, {
+        violationCounts: violationCounts,
+      });
     };
   }));
 
-  describe('$onInit', function() {
-    it('sets vm.weekCount from the size of the violationCounts', function() {
+  describe('$onInit', function () {
+    it('sets vm.weekCount from the size of the violationCounts', function () {
       const mockCounts = [
         generateWeekCounts('Week of Sep 10th', 0, 1, 2),
         generateWeekCounts('Week of Sep 17th', 3, 4, 5),
-        generateWeekCounts('Week of Sep 24th', 6, 7, 8)
+        generateWeekCounts('Week of Sep 24th', 6, 7, 8),
       ];
       const vm = getVm(mockCounts);
       vm.$onInit();
       expect(vm.weekCount).toBe(3);
     });
 
-    it('calculates totals', function() {
+    it('calculates totals', function () {
       const mockCounts = [
         generateWeekCounts('Week of Sep 10th', 0, 1, 2),
         generateWeekCounts('Week of Sep 17th', 3, 4, 5),
-        generateWeekCounts('Week of Sep 24th', 6, 7, 8)
+        generateWeekCounts('Week of Sep 24th', 6, 7, 8),
       ];
       const vm = getVm(mockCounts);
       vm.$onInit();
@@ -49,62 +51,116 @@ describe('violationTrendsChart component', function() {
       expect(vm.totals.totalDelta).toBe(expectedTotalDelta);
     });
 
-    it('converts violationCounts to datasets consumed by charts per policy type', function() {
+    it('converts violationCounts to datasets consumed by charts per policy type', function () {
       const mockCounts = [
         generateWeekCounts('Week of Sep 10th', 0, 1, 2),
         generateWeekCounts('Week of Sep 17th', 3, 4, 5),
-        generateWeekCounts('Week of Sep 24th', 6, 7, 8)
+        generateWeekCounts('Week of Sep 24th', 6, 7, 8),
       ];
       const vm = getVm(mockCounts);
       vm.$onInit();
 
-      expect(vm.data.security).toEqual(getExpectedDataset(mockCounts, 'SECURITY'));
-      expect(vm.data.quality).toEqual(getExpectedDataset(mockCounts, 'QUALITY'));
-      expect(vm.data.license).toEqual(getExpectedDataset(mockCounts, 'LICENSE'));
+      expect(vm.data.security).toEqual(
+        getExpectedDataset(mockCounts, 'SECURITY')
+      );
+      expect(vm.data.quality).toEqual(
+        getExpectedDataset(mockCounts, 'QUALITY')
+      );
+      expect(vm.data.license).toEqual(
+        getExpectedDataset(mockCounts, 'LICENSE')
+      );
       expect(vm.data.other).toEqual(getExpectedDataset(mockCounts, 'OTHER'));
     });
 
-    it('creates dataset for "all violations" chart', function() {
+    it('creates dataset for "all violations" chart', function () {
       const mockCounts = [
         generateWeekCounts('Week of Sep 10th', 0, 1, 2),
         generateWeekCounts('Week of Sep 17th', 3, 4, 5),
-        generateWeekCounts('Week of Sep 24th', 6, 7, 8)
+        generateWeekCounts('Week of Sep 24th', 6, 7, 8),
       ];
       const vm = getVm(mockCounts);
       vm.$onInit();
 
       const expectedDataset = {
         discovered: [
-          {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: 0},
-          {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: 3},
-          {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: 6}
+          {
+            timePeriodIndex: 0,
+            timePeriodName: 'Week of Sep 10th',
+            violations: 0,
+          },
+          {
+            timePeriodIndex: 1,
+            timePeriodName: 'Week of Sep 17th',
+            violations: 3,
+          },
+          {
+            timePeriodIndex: 2,
+            timePeriodName: 'Week of Sep 24th',
+            violations: 6,
+          },
         ],
         waived: [
-          {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: 1},
-          {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: 4},
-          {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: 7}
+          {
+            timePeriodIndex: 0,
+            timePeriodName: 'Week of Sep 10th',
+            violations: 1,
+          },
+          {
+            timePeriodIndex: 1,
+            timePeriodName: 'Week of Sep 17th',
+            violations: 4,
+          },
+          {
+            timePeriodIndex: 2,
+            timePeriodName: 'Week of Sep 24th',
+            violations: 7,
+          },
         ],
         fixed: [
-          {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: 2},
-          {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: 5},
-          {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: 8}
+          {
+            timePeriodIndex: 0,
+            timePeriodName: 'Week of Sep 10th',
+            violations: 2,
+          },
+          {
+            timePeriodIndex: 1,
+            timePeriodName: 'Week of Sep 17th',
+            violations: 5,
+          },
+          {
+            timePeriodIndex: 2,
+            timePeriodName: 'Week of Sep 24th',
+            violations: 8,
+          },
         ],
         delta: [
-          {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: -3},
-          {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: -6},
-          {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: -9}
-        ]
+          {
+            timePeriodIndex: 0,
+            timePeriodName: 'Week of Sep 10th',
+            violations: -3,
+          },
+          {
+            timePeriodIndex: 1,
+            timePeriodName: 'Week of Sep 17th',
+            violations: -6,
+          },
+          {
+            timePeriodIndex: 2,
+            timePeriodName: 'Week of Sep 24th',
+            violations: -9,
+          },
+        ],
       };
 
       expect(vm.data.all).toEqual(expectedDataset);
     });
 
-    describe('statistics', function() {
-      it('are created with proper values', function() {
+    describe('statistics', function () {
+      it('are created with proper values', function () {
         const mockCounts = [
           generateWeekCounts('Week of Sep 10th', 2, 0, 10),
           generateWeekCounts('Week of Sep 17th', 5, 3, 1),
-          generateWeekCounts('Week of Sep 24th', 8, 1, 2)
+          generateWeekCounts('Week of Sep 24th', 8, 1, 2),
         ];
         const vm = getVm(mockCounts);
         vm.$onInit();
@@ -113,16 +169,16 @@ describe('violationTrendsChart component', function() {
           deltaMin: -8,
           discoveredMax: 8,
           waivedMax: 3,
-          fixedMax: 10
+          fixedMax: 10,
         };
         expect(vm.data.statistics).toEqual(expectedStatistics);
       });
 
-      it('are created with zero deltaMax if there are no positive deltas', function() {
+      it('are created with zero deltaMax if there are no positive deltas', function () {
         const mockCounts = [
           generateWeekCounts('Week of Sep 10th', 0, 1, 2),
           generateWeekCounts('Week of Sep 17th', 3, 4, 5),
-          generateWeekCounts('Week of Sep 24th', 6, 7, 8)
+          generateWeekCounts('Week of Sep 24th', 6, 7, 8),
         ];
         const vm = getVm(mockCounts);
         vm.$onInit();
@@ -131,16 +187,16 @@ describe('violationTrendsChart component', function() {
           deltaMin: -9,
           discoveredMax: 6,
           waivedMax: 7,
-          fixedMax: 8
+          fixedMax: 8,
         };
         expect(vm.data.statistics).toEqual(expectedStatistics);
       });
 
-      it('are created with zero deltaMin if there are no negative deltas', function() {
+      it('are created with zero deltaMin if there are no negative deltas', function () {
         const mockCounts = [
           generateWeekCounts('Week of Sep 10th', 2, 0, 1),
           generateWeekCounts('Week of Sep 17th', 5, 3, 1),
-          generateWeekCounts('Week of Sep 24th', 8, 1, 2)
+          generateWeekCounts('Week of Sep 24th', 8, 1, 2),
         ];
         const vm = getVm(mockCounts);
         vm.$onInit();
@@ -149,7 +205,7 @@ describe('violationTrendsChart component', function() {
           deltaMin: 0,
           discoveredMax: 8,
           waivedMax: 3,
-          fixedMax: 2
+          fixedMax: 2,
         };
         expect(vm.data.statistics).toEqual(expectedStatistics);
       });
@@ -160,9 +216,15 @@ describe('violationTrendsChart component', function() {
 const sumValues = compose(sum, values);
 
 function getExpectedDataset(violationCounts, policyType) {
-  const week0Discovered = sumValues(violationCounts[0].discoveredCounts[policyType]);
-  const week1Discovered = sumValues(violationCounts[1].discoveredCounts[policyType]);
-  const week2Discovered = sumValues(violationCounts[2].discoveredCounts[policyType]);
+  const week0Discovered = sumValues(
+    violationCounts[0].discoveredCounts[policyType]
+  );
+  const week1Discovered = sumValues(
+    violationCounts[1].discoveredCounts[policyType]
+  );
+  const week2Discovered = sumValues(
+    violationCounts[2].discoveredCounts[policyType]
+  );
 
   const week0Waived = sumValues(violationCounts[0].waivedCounts[policyType]);
   const week1Waived = sumValues(violationCounts[1].waivedCounts[policyType]);
@@ -178,24 +240,72 @@ function getExpectedDataset(violationCounts, policyType) {
 
   return {
     discovered: [
-      {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: week0Discovered},
-      {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: week1Discovered},
-      {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: week2Discovered}
+      {
+        timePeriodIndex: 0,
+        timePeriodName: 'Week of Sep 10th',
+        violations: week0Discovered,
+      },
+      {
+        timePeriodIndex: 1,
+        timePeriodName: 'Week of Sep 17th',
+        violations: week1Discovered,
+      },
+      {
+        timePeriodIndex: 2,
+        timePeriodName: 'Week of Sep 24th',
+        violations: week2Discovered,
+      },
     ],
     waived: [
-      {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: week0Waived},
-      {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: week1Waived},
-      {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: week2Waived}
+      {
+        timePeriodIndex: 0,
+        timePeriodName: 'Week of Sep 10th',
+        violations: week0Waived,
+      },
+      {
+        timePeriodIndex: 1,
+        timePeriodName: 'Week of Sep 17th',
+        violations: week1Waived,
+      },
+      {
+        timePeriodIndex: 2,
+        timePeriodName: 'Week of Sep 24th',
+        violations: week2Waived,
+      },
     ],
     fixed: [
-      {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: week0Fixed},
-      {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: week1Fixed},
-      {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: week2Fixed}
+      {
+        timePeriodIndex: 0,
+        timePeriodName: 'Week of Sep 10th',
+        violations: week0Fixed,
+      },
+      {
+        timePeriodIndex: 1,
+        timePeriodName: 'Week of Sep 17th',
+        violations: week1Fixed,
+      },
+      {
+        timePeriodIndex: 2,
+        timePeriodName: 'Week of Sep 24th',
+        violations: week2Fixed,
+      },
     ],
     delta: [
-      {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: week0Delta},
-      {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: week1Delta},
-      {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: week2Delta}
-    ]
+      {
+        timePeriodIndex: 0,
+        timePeriodName: 'Week of Sep 10th',
+        violations: week0Delta,
+      },
+      {
+        timePeriodIndex: 1,
+        timePeriodName: 'Week of Sep 17th',
+        violations: week1Delta,
+      },
+      {
+        timePeriodIndex: 2,
+        timePeriodName: 'Week of Sep 24th',
+        violations: week2Delta,
+      },
+    ],
   };
 }

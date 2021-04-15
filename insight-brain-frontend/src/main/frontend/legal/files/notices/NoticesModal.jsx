@@ -11,10 +11,14 @@ import {
   NxFormGroup,
   NxModal,
   NxTextInput,
-  NxToggle
+  NxToggle,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { availableScopesPropType, legalFilesPropType, licenseObligationPropType } from '../../advancedLegalPropTypes';
+import {
+  availableScopesPropType,
+  legalFilesPropType,
+  licenseObligationPropType,
+} from '../../advancedLegalPropTypes';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 import ObligationStatusComponent from '../../shared/ObligationStatusComponent';
 
@@ -36,60 +40,92 @@ export default function NoticesModal(props) {
     notices,
     error,
     submitMaskState,
-    existingObligation
+    existingObligation,
   } = props;
 
-  const createFormRowItem = (notice, index) =>
-    <tr id={ 'notice-row-' + index } key={ index }>
+  const createFormRowItem = (notice, index) => (
+    <tr id={'notice-row-' + index} key={index}>
       <td>
-        <NxTextInput id={ 'notice-text-input-' + index }
-                     className="nx-text-input nx-text-input--full"
-                     type="textarea"
-                     value={ notice.content }
-                     isPristine={ notice.isPristine }
-                     onChange={ payload => setNoticeContent({ index: index, value: payload }) }
-                     disabled={ notice.status === 'disabled' }/>
+        <NxTextInput
+          id={'notice-text-input-' + index}
+          className="nx-text-input nx-text-input--full"
+          type="textarea"
+          value={notice.content}
+          isPristine={notice.isPristine}
+          onChange={(payload) =>
+            setNoticeContent({ index: index, value: payload })
+          }
+          disabled={notice.status === 'disabled'}
+        />
       </td>
       <td>
-        <NxToggle inputId={ 'notice-status-toggle-' + index }
-                  onChange={ () => setNoticeStatus(
-                      { index: index, value: notice.status === 'enabled' ? 'disabled' : 'enabled' }) }
-                  className="nx-toggle nx-toggle--no-gap"
-                  isChecked={ notice.status === 'enabled' }>
-          { notice.status === 'enabled' ? 'Included' : 'Excluded' }
+        <NxToggle
+          inputId={'notice-status-toggle-' + index}
+          onChange={() =>
+            setNoticeStatus({
+              index: index,
+              value: notice.status === 'enabled' ? 'disabled' : 'enabled',
+            })
+          }
+          className="nx-toggle nx-toggle--no-gap"
+          isChecked={notice.status === 'enabled'}
+        >
+          {notice.status === 'enabled' ? 'Included' : 'Excluded'}
         </NxToggle>
       </td>
-    </tr>;
+    </tr>
+  );
 
-  const createScopeOption = value => (
-    <option key={ value.id } value={ value.id }>{ value.label } - { value.name }</option>
+  const createScopeOption = (value) => (
+    <option key={value.id} value={value.id}>
+      {value.label} - {value.name}
+    </option>
   );
 
   const notValidErrorMessage = 'A custom notice must have text.';
 
   const isValid = () => {
-    return !notices.some(notice => notice.id === null && notice.originalContentHash === null && notice.content === '');
+    return !notices.some(
+      (notice) =>
+        notice.id === null &&
+        notice.originalContentHash === null &&
+        notice.content === ''
+    );
   };
 
-  const notDirtyErrorMessage = 'Must add a new notice or change the content or status of a notice.';
+  const notDirtyErrorMessage =
+    'Must add a new notice or change the content or status of a notice.';
 
   function isObligationDirty() {
-    return existingObligation && existingObligation.status !== existingObligation.originalStatus;
+    return (
+      existingObligation &&
+      existingObligation.status !== existingObligation.originalStatus
+    );
   }
 
   const resetExistingObligation = () => {
     if (existingObligation) {
-      setObligationStatus({ name: existingObligation.name, value: existingObligation.originalStatus });
-      setObligationScope({ name: existingObligation.name, value: existingObligation.originalScope });
+      setObligationStatus({
+        name: existingObligation.name,
+        value: existingObligation.originalStatus,
+      });
+      setObligationScope({
+        name: existingObligation.name,
+        value: existingObligation.originalScope,
+      });
     }
   };
 
   function isNoticesDirty() {
-    return scope !== originalScope ||
-        notices.some(notice =>
+    return (
+      scope !== originalScope ||
+      notices.some(
+        (notice) =>
           (notice.id === null && notice.originalContentHash === null) ||
-          (notice.content !== notice.originalContent) ||
-          (notice.status !== notice.originalStatus));
+          notice.content !== notice.originalContent ||
+          notice.status !== notice.originalStatus
+      )
+    );
   }
 
   const isDirty = () => {
@@ -107,10 +143,11 @@ export default function NoticesModal(props) {
   };
 
   const getSubmitMaskState = () => {
-    const nullIfUndef = (b) => b === undefined ? null : b;
+    const nullIfUndef = (b) => (b === undefined ? null : b);
     const mainSubmitMaskState = nullIfUndef(submitMaskState);
-    const obligationSubmitMaskState = existingObligation ? nullIfUndef(
-        existingObligation.saveObligationSubmitMask) : null;
+    const obligationSubmitMaskState = existingObligation
+      ? nullIfUndef(existingObligation.saveObligationSubmitMask)
+      : null;
     if (mainSubmitMaskState === null) {
       return obligationSubmitMaskState;
     }
@@ -121,18 +158,25 @@ export default function NoticesModal(props) {
   };
 
   const setObligationScopeIfNeeded = (event) => {
-    if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
-      setObligationScope({ name: existingObligation.name, value: event.target.value });
+    if (
+      existingObligation &&
+      existingObligation.status !== existingObligation.originalStatus
+    ) {
+      setObligationScope({
+        name: existingObligation.name,
+        value: event.target.value,
+      });
     }
   };
 
   const onObligationChange = (value) => {
     setObligationStatus({ name: existingObligation.name, value });
     if (value === existingObligation.originalStatus) {
-      setObligationScope(
-          { name: existingObligation.name, value: existingObligation.originalScope });
-    }
-    else {
+      setObligationScope({
+        name: existingObligation.name,
+        value: existingObligation.originalScope,
+      });
+    } else {
       setObligationScope({ name: existingObligation.name, value: scope });
     }
   };
@@ -141,61 +185,95 @@ export default function NoticesModal(props) {
     saveNotices({
       existingObligation,
       isNoticesDirty: isNoticesDirty(),
-      isObligationDirty: isObligationDirty()
+      isObligationDirty: isObligationDirty(),
     });
   };
 
-  return <NxModal id="edit-notices-attribution-modal"
-                  onClose={ () => {resetExistingObligation(); cancelNoticesModal();} }
-                  variant="wide">
-    <NxForm onCancel={ () => { resetExistingObligation(); cancelNoticesModal(); } }
-            submitBtnText="Save"
-            onSubmit={ trySave }
-            submitError={error || (existingObligation ? existingObligation.error : false)}
-            submitMaskState={getSubmitMaskState()}
-            validationErrors={ getValidationErrors() }>
-      <header className="nx-modal-header">
-        <h2 className="nx-h2">
-          Edit Notice Texts
-        </h2>
-      </header>
-      <div className="nx-modal-content">
-        <table className="legal-file-override-table">
-          <thead>
-            <tr>
-              <th>Notice Text</th>
-              <th>Attribution Report Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            { notices.length > 0 ? notices.map(createFormRowItem) :
-            <tr><td className="no-legal-texts-found">No notice texts found</td><td/></tr> }
-          </tbody>
-        </table>
-        <div className="nx-btn-bar nx-btn-bar--left">
-          <NxButton id="add-notice" type="button" variant="tertiary" onClick={ addNotice }>
-            <NxFontAwesomeIcon icon={ faPlus }/>
-            <span>Add Notice Text</span>
-          </NxButton>
-        </div>
-        { existingObligation &&
-          (<ObligationStatusComponent existingObligation={ existingObligation } onChange={ onObligationChange }/>)
+  return (
+    <NxModal
+      id="edit-notices-attribution-modal"
+      onClose={() => {
+        resetExistingObligation();
+        cancelNoticesModal();
+      }}
+      variant="wide"
+    >
+      <NxForm
+        onCancel={() => {
+          resetExistingObligation();
+          cancelNoticesModal();
+        }}
+        submitBtnText="Save"
+        onSubmit={trySave}
+        submitError={
+          error || (existingObligation ? existingObligation.error : false)
         }
-        <NxFormGroup id="edit-notices-attribution-scope-selection-group"
-                     label="Scope" sublabel="Apply changes to" isRequired>
-          <select id="edit-notice-scope-selection"
-                  className="nx-form-select nx-form-select--long"
-                  value={ scope }
-                  onChange={ (payload) => {
-                    setNoticesScope(payload.currentTarget.value);
-                    setObligationScopeIfNeeded(payload);
-                  } }>
-            { availableScopes.values.map(createScopeOption) }
-          </select>
-        </NxFormGroup>
-      </div>
-    </NxForm>
-  </NxModal>;
+        submitMaskState={getSubmitMaskState()}
+        validationErrors={getValidationErrors()}
+      >
+        <header className="nx-modal-header">
+          <h2 className="nx-h2">Edit Notice Texts</h2>
+        </header>
+        <div className="nx-modal-content">
+          <table className="legal-file-override-table">
+            <thead>
+              <tr>
+                <th>Notice Text</th>
+                <th>Attribution Report Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {notices.length > 0 ? (
+                notices.map(createFormRowItem)
+              ) : (
+                <tr>
+                  <td className="no-legal-texts-found">
+                    No notice texts found
+                  </td>
+                  <td />
+                </tr>
+              )}
+            </tbody>
+          </table>
+          <div className="nx-btn-bar nx-btn-bar--left">
+            <NxButton
+              id="add-notice"
+              type="button"
+              variant="tertiary"
+              onClick={addNotice}
+            >
+              <NxFontAwesomeIcon icon={faPlus} />
+              <span>Add Notice Text</span>
+            </NxButton>
+          </div>
+          {existingObligation && (
+            <ObligationStatusComponent
+              existingObligation={existingObligation}
+              onChange={onObligationChange}
+            />
+          )}
+          <NxFormGroup
+            id="edit-notices-attribution-scope-selection-group"
+            label="Scope"
+            sublabel="Apply changes to"
+            isRequired
+          >
+            <select
+              id="edit-notice-scope-selection"
+              className="nx-form-select nx-form-select--long"
+              value={scope}
+              onChange={(payload) => {
+                setNoticesScope(payload.currentTarget.value);
+                setObligationScopeIfNeeded(payload);
+              }}
+            >
+              {availableScopes.values.map(createScopeOption)}
+            </select>
+          </NxFormGroup>
+        </div>
+      </NxForm>
+    </NxModal>
+  );
 }
 
 NoticesModal.propTypes = {
@@ -213,5 +291,5 @@ NoticesModal.propTypes = {
   submitMaskState: PropTypes.bool,
   existingObligation: licenseObligationPropType,
   setObligationStatus: PropTypes.func.isRequired,
-  setObligationScope: PropTypes.func.isRequired
+  setObligationScope: PropTypes.func.isRequired,
 };

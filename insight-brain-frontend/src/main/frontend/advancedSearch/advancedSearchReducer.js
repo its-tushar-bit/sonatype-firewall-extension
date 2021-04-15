@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import {createReducerFromActionMap} from '../util/reduxUtil';
+import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
   ADVANCED_SEARCH_LOAD_FAILED,
   ADVANCED_SEARCH_LOAD_FULFILLED,
@@ -14,7 +14,7 @@ import {
   ADVANCED_SEARCH_QUERY_FULFILLED,
   ADVANCED_SEARCH_QUERY_FAILED,
   ADVANCED_SEARCH_RESET_QUERY,
-  ADVANCED_SEARCH_TOGGLE_HELP
+  ADVANCED_SEARCH_TOGGLE_HELP,
 } from './advancedSearchActions';
 import { pathSet } from '../util/jsUtil';
 
@@ -23,10 +23,10 @@ const initialState = {
     loading: true,
     loadError: null,
     waitingSearchResponse: false,
-    showHelp: false
+    showHelp: false,
   },
   configurationState: {
-    isEnabled: true
+    isEnabled: true,
   },
   formState: {
     currentQuery: '',
@@ -35,10 +35,10 @@ const initialState = {
       page: 0,
       groupingByDTOS: [],
       totalNumberOfHits: 0,
-      isExactTotalNumberOfHits: false
+      isExactTotalNumberOfHits: false,
     },
-    queryError: null
-  }
+    queryError: null,
+  },
 };
 
 function loadRequested() {
@@ -47,8 +47,8 @@ function loadRequested() {
     viewState: {
       ...initialState.viewState,
       loading: true,
-      loadError: null
-    }
+      loadError: null,
+    },
   };
 }
 
@@ -58,9 +58,9 @@ function loadFulfilled(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      loadError: null
+      loadError: null,
     },
-    configurationState: payload
+    configurationState: payload,
   };
 }
 
@@ -70,8 +70,8 @@ function loadFailed(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      loadError: payload
-    }
+      loadError: payload,
+    },
   };
 }
 
@@ -80,8 +80,8 @@ function queryRequested(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      waitingSearchResponse: true
-    }
+      waitingSearchResponse: true,
+    },
   };
 }
 
@@ -90,8 +90,8 @@ function resetQuery(payload, state) {
     ...state,
     formState: {
       ...state.formState,
-      currentQuery: state.formState.searchedQuery
-    }
+      currentQuery: state.formState.searchedQuery,
+    },
   };
 }
 
@@ -102,12 +102,12 @@ function queryFulfilled(payload, state) {
       ...state.formState,
       searchResult: payload,
       queryError: null,
-      searchedQuery: state.formState.currentQuery
+      searchedQuery: state.formState.currentQuery,
     },
     viewState: {
       ...state.viewState,
-      waitingSearchResponse: false
-    }
+      waitingSearchResponse: false,
+    },
   };
 }
 
@@ -116,12 +116,12 @@ function queryFailed(payload, state) {
     ...state,
     formState: {
       ...state.formState,
-      queryError: payload
+      queryError: payload,
     },
     viewState: {
       ...state.viewState,
-      waitingSearchResponse: false
-    }
+      waitingSearchResponse: false,
+    },
   };
 }
 
@@ -130,8 +130,8 @@ function toggleHelp(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      showHelp: !state.viewState.showHelp
-    }
+      showHelp: !state.viewState.showHelp,
+    },
   };
 }
 
@@ -144,7 +144,7 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_QUERY_FULFILLED]: queryFulfilled,
   [ADVANCED_SEARCH_QUERY_FAILED]: queryFailed,
   [ADVANCED_SEARCH_RESET_QUERY]: resetQuery,
-  [ADVANCED_SEARCH_TOGGLE_HELP]: toggleHelp
+  [ADVANCED_SEARCH_TOGGLE_HELP]: toggleHelp,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

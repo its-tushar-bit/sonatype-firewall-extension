@@ -5,30 +5,30 @@
  */
 import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
 
-describe('copy.to.clipboard.directive.js', function() {
-  var element,
-      scope,
-      $window;
+describe('copy.to.clipboard.directive.js', function () {
+  var element, scope, $window;
 
   beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
-  beforeEach(inject(function($rootScope, $compile, _$window_) {
+  beforeEach(inject(function ($rootScope, $compile, _$window_) {
     $window = _$window_;
     scope = $rootScope.$new();
-    element = $compile('<div copy-to-clipboard="vm.owner.publicId" copied-tooltip="successTooltip"></div>')(scope);
+    element = $compile(
+      '<div copy-to-clipboard="vm.owner.publicId" copied-tooltip="successTooltip"></div>'
+    )(scope);
 
     scope.vm = {
       owner: {
-        publicId: 'test-app-id'
-      }
+        publicId: 'test-app-id',
+      },
     };
 
     spyOn(scope.successTooltip, 'showTooltip');
   }));
 
-  describe('in non-safari browsers', function() {
-    it('copies expression value and clears document selection', function() {
-      spyOn($window.document, 'execCommand').and.callFake(function() {
+  describe('in non-safari browsers', function () {
+    it('copies expression value and clears document selection', function () {
+      spyOn($window.document, 'execCommand').and.callFake(function () {
         // the selections should contain expected text
         expect($window.getSelection().toString()).toBe('test-app-id');
         simulateCopy();
@@ -45,28 +45,28 @@ describe('copy.to.clipboard.directive.js', function() {
     });
   });
 
-  describe('in safari browsers', function() {
+  describe('in safari browsers', function () {
     var promptTooltip;
 
-    beforeEach(function() {
+    beforeEach(function () {
       // simulate copy failure
       spyOn($window.document, 'execCommand').and.returnValue(false);
 
       // mock the tooltip
       promptTooltip = jasmine.createSpy('promptTooltip');
       spyOn($.fn, 'tooltip').and.returnValue({
-        tooltip: promptTooltip
+        tooltip: promptTooltip,
       });
     });
 
-    it('selects expression value and prompts user to copy', function() {
+    it('selects expression value and prompts user to copy', function () {
       element.trigger('click');
 
       expect($window.document.execCommand).toHaveBeenCalledWith('copy');
       expect($.fn.tooltip).toHaveBeenCalledWith({
         title: 'Press ⌘-C to copy',
         trigger: 'manual',
-        placement: 'bottom'
+        placement: 'bottom',
       });
       expect(promptTooltip).toHaveBeenCalledWith('show');
 
@@ -76,7 +76,7 @@ describe('copy.to.clipboard.directive.js', function() {
       expect(scope.successTooltip.showTooltip).not.toHaveBeenCalled();
     });
 
-    it('removes copy prompt and shows success on copy event', function() {
+    it('removes copy prompt and shows success on copy event', function () {
       element.trigger('click');
 
       simulateCopy();
@@ -84,7 +84,6 @@ describe('copy.to.clipboard.directive.js', function() {
       expect($.fn.tooltip).toHaveBeenCalledWith('destroy');
       expect(scope.successTooltip.showTooltip).toHaveBeenCalled();
     });
-
   });
 
   function simulateCopy() {

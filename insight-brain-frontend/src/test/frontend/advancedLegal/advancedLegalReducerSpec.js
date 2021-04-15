@@ -17,10 +17,10 @@ import {
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
 } from '../../../main/frontend/advancedLegal/advancedLegalActions.js';
-import {pick} from 'ramda';
-import {TEXT_BASED_OBLIGATIONS} from '../../../main/frontend/legal/advancedLegalConstants';
+import { pick } from 'ramda';
+import { TEXT_BASED_OBLIGATIONS } from '../../../main/frontend/legal/advancedLegalConstants';
 
 describe('advancedLegalReducer', function () {
   describe('initial state', function () {
@@ -53,7 +53,7 @@ describe('advancedLegalReducer', function () {
     it('returns original state', function () {
       const state = { foo: 'bar' };
       const action = {
-        type: 'UNKNOWN'
+        type: 'UNKNOWN',
       };
       const newState = reduce(state, action);
       expect(newState).toBe(state);
@@ -63,7 +63,7 @@ describe('advancedLegalReducer', function () {
   describe('ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED action', function () {
     it('sets in viewStateApplications loading to true and error to null', function () {
       const newState = reduce(undefined, {
-        type: ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED
+        type: ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
       });
 
       const { component } = newState;
@@ -77,8 +77,8 @@ describe('advancedLegalReducer', function () {
       const state = {
         component: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const componentInfo = {
         foo: 'bar',
@@ -87,13 +87,13 @@ describe('advancedLegalReducer', function () {
             noticeFiles: [],
             licenseFiles: [],
             obligations: [],
-            attributions: []
-          }
-        }
+            attributions: [],
+          },
+        },
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-        payload: componentInfo
+        payload: componentInfo,
       });
 
       const { component } = newState;
@@ -106,8 +106,8 @@ describe('advancedLegalReducer', function () {
       const state = {
         component: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const componentInfo = {
         component: {
@@ -122,17 +122,21 @@ describe('advancedLegalReducer', function () {
               { name: 'Inclusion of Notice' },
               { name: 'a' },
               { name: 'Inclusion of License' },
-              { name: 'Inclusion of Copyright' }
+              { name: 'Inclusion of Copyright' },
             ],
-            attributions: []
-          }
-        }
+            attributions: [],
+          },
+        },
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-        payload: componentInfo
+        payload: componentInfo,
       });
-      expect(newState.component.component.licenseLegalData.obligations.map(o => pick(['name'], o))).toEqual([
+      expect(
+        newState.component.component.licenseLegalData.obligations.map((o) =>
+          pick(['name'], o)
+        )
+      ).toEqual([
         { name: 'Inclusion of Copyright' },
         { name: 'Inclusion of Notice' },
         { name: 'Inclusion of License' },
@@ -140,7 +144,7 @@ describe('advancedLegalReducer', function () {
         { name: 'Must Give Credit' },
         { name: 'Must State Changes' },
         { name: 'a' },
-        { name: 'z' }
+        { name: 'z' },
       ]);
     });
 
@@ -148,8 +152,8 @@ describe('advancedLegalReducer', function () {
       const state = {
         component: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const componentInfo = {
         foo: 'bar',
@@ -158,47 +162,59 @@ describe('advancedLegalReducer', function () {
             noticeFiles: [],
             licenseFiles: [],
             obligations: [],
-            attributions: []
-          }
-        }
+            attributions: [],
+          },
+        },
       };
-      TEXT_BASED_OBLIGATIONS.forEach(element => {
-        componentInfo.component.licenseLegalData.obligations.push({ name: element, status: 'status'});
+      TEXT_BASED_OBLIGATIONS.forEach((element) => {
+        componentInfo.component.licenseLegalData.obligations.push({
+          name: element,
+          status: 'status',
+        });
       });
-      componentInfo.component.licenseLegalData.obligations.push({ name: 'other', status: 'status'});
+      componentInfo.component.licenseLegalData.obligations.push({
+        name: 'other',
+        status: 'status',
+      });
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-        payload: componentInfo
+        payload: componentInfo,
       });
 
-      const {component} = newState;
-      component.component.licenseLegalData.obligations.forEach(obligation => {
+      const { component } = newState;
+      component.component.licenseLegalData.obligations.forEach((obligation) => {
         expect(obligation.originalStatus).toBe(obligation.status);
       });
 
-      expect(component.component.licenseLegalData.attributions.length).toBe(TEXT_BASED_OBLIGATIONS.length + 1);
-      component.component.licenseLegalData.attributions.forEach(attribution => {
-        if (attribution.obligationName !== null) {
-          expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
+      expect(component.component.licenseLegalData.attributions.length).toBe(
+        TEXT_BASED_OBLIGATIONS.length + 1
+      );
+      component.component.licenseLegalData.attributions.forEach(
+        (attribution) => {
+          if (attribution.obligationName !== null) {
+            expect(TEXT_BASED_OBLIGATIONS).toContain(
+              attribution.obligationName
+            );
+          }
+          expect(attribution.obligationName).not.toBe('other');
+          expect(attribution.id).toBeNull();
+          expect(attribution.content).toBe('');
+          expect(attribution.ownerId).toBe('ROOT_ORGANIZATION_ID');
+          expect(attribution.originalContent).toBe(attribution.content);
+          expect(attribution.originalOwnerId).toBe(attribution.ownerId);
+          expect(attribution.showAttributionModal).toBeFalsy();
+          expect(attribution.error).toBeNull();
+          expect(attribution.saveAttributionSubmitMask).toBeNull();
         }
-        expect(attribution.obligationName).not.toBe('other');
-        expect(attribution.id).toBeNull();
-        expect(attribution.content).toBe('');
-        expect(attribution.ownerId).toBe('ROOT_ORGANIZATION_ID');
-        expect(attribution.originalContent).toBe(attribution.content);
-        expect(attribution.originalOwnerId).toBe(attribution.ownerId);
-        expect(attribution.showAttributionModal).toBeFalsy();
-        expect(attribution.error).toBeNull();
-        expect(attribution.saveAttributionSubmitMask).toBeNull();
-      });
+      );
     });
 
     it('sets the obligation attribution data for additional or text based obligations with attributions', function () {
       const state = {
         component: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const componentInfo = {
         foo: 'bar',
@@ -207,67 +223,91 @@ describe('advancedLegalReducer', function () {
             noticeFiles: [],
             licenseFiles: [],
             obligations: [],
-            attributions: []
-          }
-        }
+            attributions: [],
+          },
+        },
       };
-      TEXT_BASED_OBLIGATIONS.forEach(element => {
-        componentInfo.component.licenseLegalData.obligations.push({ name: element, status: 'status' });
-        componentInfo.component.licenseLegalData.attributions.push(
-            {id: 'id', obligationName: element, content: 'content', ownerId: 'ownerId'});
+      TEXT_BASED_OBLIGATIONS.forEach((element) => {
+        componentInfo.component.licenseLegalData.obligations.push({
+          name: element,
+          status: 'status',
+        });
+        componentInfo.component.licenseLegalData.attributions.push({
+          id: 'id',
+          obligationName: element,
+          content: 'content',
+          ownerId: 'ownerId',
+        });
       });
-      componentInfo.component.licenseLegalData.attributions.push(
-          {id: 'id', obligationName: null, content: 'content', ownerId: 'ownerId'});
-      componentInfo.component.licenseLegalData.obligations.push({ name: 'other', status: 'status'});
+      componentInfo.component.licenseLegalData.attributions.push({
+        id: 'id',
+        obligationName: null,
+        content: 'content',
+        ownerId: 'ownerId',
+      });
+      componentInfo.component.licenseLegalData.obligations.push({
+        name: 'other',
+        status: 'status',
+      });
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-        payload: componentInfo
+        payload: componentInfo,
       });
 
       const { component } = newState;
-      component.component.licenseLegalData.obligations.forEach(obligation => {
+      component.component.licenseLegalData.obligations.forEach((obligation) => {
         expect(obligation.originalStatus).toBe(obligation.status);
       });
 
-      component.component.licenseLegalData.attributions.forEach(attribution => {
-        if (attribution.obligationName !== null) {
-          expect(TEXT_BASED_OBLIGATIONS).toContain(attribution.obligationName);
+      component.component.licenseLegalData.attributions.forEach(
+        (attribution) => {
+          if (attribution.obligationName !== null) {
+            expect(TEXT_BASED_OBLIGATIONS).toContain(
+              attribution.obligationName
+            );
+          }
+          expect(attribution.obligationName).not.toBe('other');
+          expect(attribution.id).toBe('id');
+          expect(attribution.content).toBe('content');
+          expect(attribution.ownerId).toBe('ownerId');
+          expect(attribution.originalContent).toBe(attribution.content);
+          expect(attribution.originalOwnerId).toBe(attribution.ownerId);
+          expect(attribution.showAttributionModal).toBeFalsy();
+          expect(attribution.error).toBeNull();
+          expect(attribution.saveAttributionSubmitMask).toBeNull();
         }
-        expect(attribution.obligationName).not.toBe('other');
-        expect(attribution.id).toBe('id');
-        expect(attribution.content).toBe('content');
-        expect(attribution.ownerId).toBe('ownerId');
-        expect(attribution.originalContent).toBe(attribution.content);
-        expect(attribution.originalOwnerId).toBe(attribution.ownerId);
-        expect(attribution.showAttributionModal).toBeFalsy();
-        expect(attribution.error).toBeNull();
-        expect(attribution.saveAttributionSubmitMask).toBeNull();
-      });
+      );
     });
 
-    it('sets the notices and licenses view data', function() {
+    it('sets the notices and licenses view data', function () {
       const state = {
         component: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const componentInfo = {
         foo: 'bar',
         component: {
           licenseLegalData: {
             componentNoticesScopeOwnerId: 'appId',
-            noticeFiles: [{ content: 'content1', status: 'enabled' }, { content: '', status: 'disabled' }],
+            noticeFiles: [
+              { content: 'content1', status: 'enabled' },
+              { content: '', status: 'disabled' },
+            ],
             componentLicensesScopeOwnerId: 'appId',
-            licenseFiles: [{ content: 'content2', status: 'enabled' }, { content: '', status: 'disabled' }],
+            licenseFiles: [
+              { content: 'content2', status: 'enabled' },
+              { content: '', status: 'disabled' },
+            ],
             obligations: [],
-            attributions: []
-          }
-        }
+            attributions: [],
+          },
+        },
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-        payload: componentInfo
+        payload: componentInfo,
       });
 
       expect(newState.component.component.licenseLegalData).toEqual({
@@ -280,15 +320,15 @@ describe('advancedLegalReducer', function () {
             content: 'content1',
             originalStatus: 'enabled',
             status: 'enabled',
-            isPristine: true
+            isPristine: true,
           },
           {
             originalContent: '',
             content: '',
             originalStatus: 'disabled',
             status: 'disabled',
-            isPristine: true
-          }
+            isPristine: true,
+          },
         ],
         obligations: [],
         attributions: [
@@ -301,8 +341,8 @@ describe('advancedLegalReducer', function () {
             originalOwnerId: 'ROOT_ORGANIZATION_ID',
             showAttributionModal: false,
             error: null,
-            saveAttributionSubmitMask: null
-          }
+            saveAttributionSubmitMask: null,
+          },
         ],
         noticesError: null,
         saveNoticesSubmitMask: null,
@@ -315,27 +355,27 @@ describe('advancedLegalReducer', function () {
             content: 'content2',
             originalStatus: 'enabled',
             status: 'enabled',
-            isPristine: true
+            isPristine: true,
           },
           {
             originalContent: '',
             content: '',
             originalStatus: 'disabled',
             status: 'disabled',
-            isPristine: true
-          }
+            isPristine: true,
+          },
         ],
         licensesError: null,
-        saveLicensesSubmitMask: null
+        saveLicensesSubmitMask: null,
       });
     });
 
-    it('sets the default legal file scope owner id if there is none', function() {
+    it('sets the default legal file scope owner id if there is none', function () {
       const state = {
         component: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const componentInfo = {
         foo: 'bar',
@@ -346,21 +386,31 @@ describe('advancedLegalReducer', function () {
             noticeFiles: [],
             licenseFiles: [],
             obligations: [],
-            attributions: []
-          }
-        }
+            attributions: [],
+          },
+        },
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-        payload: componentInfo
+        payload: componentInfo,
       });
 
-      expect(newState.component.component.licenseLegalData.originalComponentNoticesScopeOwnerId).toBe(
-          'ROOT_ORGANIZATION_ID');
-      expect(newState.component.component.licenseLegalData.componentNoticesScopeOwnerId).toBe('ROOT_ORGANIZATION_ID');
-      expect(newState.component.component.licenseLegalData.originalComponentLicensesScopeOwnerId).toBe(
-          'ROOT_ORGANIZATION_ID');
-      expect(newState.component.component.licenseLegalData.componentLicensesScopeOwnerId).toBe('ROOT_ORGANIZATION_ID');
+      expect(
+        newState.component.component.licenseLegalData
+          .originalComponentNoticesScopeOwnerId
+      ).toBe('ROOT_ORGANIZATION_ID');
+      expect(
+        newState.component.component.licenseLegalData
+          .componentNoticesScopeOwnerId
+      ).toBe('ROOT_ORGANIZATION_ID');
+      expect(
+        newState.component.component.licenseLegalData
+          .originalComponentLicensesScopeOwnerId
+      ).toBe('ROOT_ORGANIZATION_ID');
+      expect(
+        newState.component.component.licenseLegalData
+          .componentLicensesScopeOwnerId
+      ).toBe('ROOT_ORGANIZATION_ID');
     });
   });
 
@@ -369,13 +419,13 @@ describe('advancedLegalReducer', function () {
       const state = {
         component: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const errorTest = 'Error test';
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
-        payload: errorTest
+        payload: errorTest,
       });
 
       const { component } = newState;
@@ -387,7 +437,7 @@ describe('advancedLegalReducer', function () {
   describe('ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED action', function () {
     it('sets in viewStateApplications loading to true and error to null', function () {
       const newState = reduce(undefined, {
-        type: ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED
+        type: ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED,
       });
 
       const { viewStateApplications } = newState;
@@ -401,19 +451,21 @@ describe('advancedLegalReducer', function () {
       const state = {
         viewStateApplications: {
           loading: true,
-          error: null
+          error: null,
         },
-        applications: []
+        applications: [],
       };
-      const applications = [{
-        publicId: 'a'
-      },
-      {
-        publicId: 'b'
-      }];
+      const applications = [
+        {
+          publicId: 'a',
+        },
+        {
+          publicId: 'b',
+        },
+      ];
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED,
-        payload: applications
+        payload: applications,
       });
 
       const { viewStateApplications } = newState;
@@ -428,13 +480,13 @@ describe('advancedLegalReducer', function () {
       const state = {
         viewStateApplications: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const errorTest = 'Error test';
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED,
-        payload: errorTest
+        payload: errorTest,
       });
 
       const { viewStateApplications } = newState;
@@ -446,7 +498,7 @@ describe('advancedLegalReducer', function () {
   describe('ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED action', function () {
     it('sets in viewStateApplicationReport loading to true and error to null', function () {
       const newState = reduce(undefined, {
-        type: ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED
+        type: ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED,
       });
 
       const { viewStateApplicationReport } = newState;
@@ -460,17 +512,17 @@ describe('advancedLegalReducer', function () {
       const state = {
         viewStateApplicationReport: {
           loading: true,
-          error: null
+          error: null,
         },
-        applicationReport: {}
+        applicationReport: {},
       };
       const applicationReport = {
         components: [{ displayName: 'groupId : artifactId : version' }],
-        licenseLegalMetadata: [{ licenseId: 'License Test' }]
+        licenseLegalMetadata: [{ licenseId: 'License Test' }],
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
-        payload: applicationReport
+        payload: applicationReport,
       });
 
       const { viewStateApplicationReport } = newState;
@@ -485,13 +537,13 @@ describe('advancedLegalReducer', function () {
       const state = {
         viewStateApplicationReport: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const errorTest = 'Error test';
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
-        payload: errorTest
+        payload: errorTest,
       });
 
       const { viewStateApplicationReport } = newState;
@@ -503,7 +555,7 @@ describe('advancedLegalReducer', function () {
   describe('ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED action', function () {
     it('sets in availableScopes loading to true and error to null', function () {
       const newState = reduce(undefined, {
-        type: ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED
+        type: ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
       });
 
       const { availableScopes } = newState;
@@ -513,29 +565,31 @@ describe('advancedLegalReducer', function () {
   });
 
   describe('ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED action', function () {
-    it('sets availableScopes loading to false, error to null, and merges the payload with availableScopes', function() {
+    it('sets availableScopes loading to false, error to null, and merges the payload with availableScopes', function () {
       const state = {
         availableScopes: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const applicableContext = {
         id: 'ROOT_ORGANIZATION_ID',
         name: 'Root Organization',
         type: 'organization',
-        children: []
+        children: [],
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
-        payload: applicableContext
+        payload: applicableContext,
       });
 
       const { availableScopes } = newState;
       expect(availableScopes.loading).toBeFalsy();
       expect(availableScopes.error).toBeNull();
-      expect(newState.availableScopes).toEqual(
-          { ...pick(['loading', 'error'], newState.availableScopes), ...applicableContext });
+      expect(newState.availableScopes).toEqual({
+        ...pick(['loading', 'error'], newState.availableScopes),
+        ...applicableContext,
+      });
     });
   });
 
@@ -544,13 +598,13 @@ describe('advancedLegalReducer', function () {
       const state = {
         availableScopes: {
           loading: true,
-          error: null
-        }
+          error: null,
+        },
       };
       const errorTest = 'Error test';
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED,
-        payload: errorTest
+        payload: errorTest,
       });
 
       const { availableScopes } = newState;
@@ -559,8 +613,8 @@ describe('advancedLegalReducer', function () {
     });
   });
 
-  describe('COPYRIGHT_OVERRIDE_SAVE_FULFILLED action', function() {
-    it('sets componentCopyrightId, componentCopyrightScopeOwnerId, and updated list of copyrights', function() {
+  describe('COPYRIGHT_OVERRIDE_SAVE_FULFILLED action', function () {
+    it('sets componentCopyrightId, componentCopyrightScopeOwnerId, and updated list of copyrights', function () {
       const state = {
         component: {
           component: {
@@ -572,12 +626,12 @@ describe('advancedLegalReducer', function () {
                   id: '1',
                   content: 'Copyright 2043',
                   originalContentHash: 'originalContentHash1',
-                  status: 'enabled'
-                }
-              ]
-            }
-          }
-        }
+                  status: 'enabled',
+                },
+              ],
+            },
+          },
+        },
       };
 
       const copyrightOverrides = [
@@ -585,14 +639,14 @@ describe('advancedLegalReducer', function () {
           id: '1',
           content: 'Copyright 2043',
           originalContentHash: 'originalContentHash1',
-          status: 'disabled'
+          status: 'disabled',
         },
         {
           id: '2',
           content: 'Copyright 2020',
           originalContentHash: 'originalContentHash2',
-          status: 'enabled'
-        }
+          status: 'enabled',
+        },
       ];
 
       const newState = reduce(state, {
@@ -600,14 +654,20 @@ describe('advancedLegalReducer', function () {
         payload: {
           id: 'componentCopyrightId',
           copyrightOverrides,
-          componentCopyrightScopeOwnerId: 'owner'
-        }
+          componentCopyrightScopeOwnerId: 'owner',
+        },
       });
 
-      expect(newState.component.component.licenseLegalData.componentCopyrightId).toBe('componentCopyrightId');
-      expect(newState.component.component.licenseLegalData.componentCopyrightScopeOwnerId).toBe('owner');
-      expect(newState.component.component.licenseLegalData.copyrights).toBe(copyrightOverrides);
+      expect(
+        newState.component.component.licenseLegalData.componentCopyrightId
+      ).toBe('componentCopyrightId');
+      expect(
+        newState.component.component.licenseLegalData
+          .componentCopyrightScopeOwnerId
+      ).toBe('owner');
+      expect(newState.component.component.licenseLegalData.copyrights).toBe(
+        copyrightOverrides
+      );
     });
-
   });
 });

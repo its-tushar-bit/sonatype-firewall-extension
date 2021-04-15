@@ -4,10 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import {connect} from 'react-redux';
-import {pick} from 'ramda';
+import { connect } from 'react-redux';
+import { pick } from 'ramda';
 import ComponentLegalOverviewPage from './ComponentLegalOverviewPage';
-import {loadAvailableScopes, loadComponent} from '../advancedLegal/advancedLegalActions';
+import {
+  loadAvailableScopes,
+  loadComponent,
+} from '../advancedLegal/advancedLegalActions';
 import * as copyrightOverrideFormActions from './copyright/copyrightOverrideFormActions';
 
 function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
@@ -18,17 +21,25 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
     error: component.error || availableScopes.error,
     availableScopes: availableScopes,
     ...pick(['component', 'licenseLegalMetadata'], component),
-    obligations: component.component ? component.component.licenseLegalData.obligations : null,
-    ...pick(['hash', 'organizationId', 'applicationPublicId', 'stageTypeId'], router.currentParams),
-    ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides)
+    obligations: component.component
+      ? component.component.licenseLegalData.obligations
+      : null,
+    ...pick(
+      ['hash', 'organizationId', 'applicationPublicId', 'stageTypeId'],
+      router.currentParams
+    ),
+    ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides),
   };
 }
 
 const mapDispatchToProps = {
   loadComponent,
   loadAvailableScopes,
-  ...copyrightOverrideFormActions
+  ...copyrightOverrideFormActions,
 };
 
-const ComponentLegalOverviewContainer = connect(mapStateToProps, mapDispatchToProps)(ComponentLegalOverviewPage);
+const ComponentLegalOverviewContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ComponentLegalOverviewPage);
 export default ComponentLegalOverviewContainer;

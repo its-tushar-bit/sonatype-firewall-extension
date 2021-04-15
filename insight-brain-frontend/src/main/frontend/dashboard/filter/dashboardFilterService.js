@@ -15,6 +15,6 @@ export function filterToJson(filter) {
     policyViolationStates: setToArray(filter.policyViolationStates),
     maxDaysOld: filter.maxDaysOld,
     minPolicyThreatLevel: filter.policyThreatLevels[0],
-    maxPolicyThreatLevel: filter.policyThreatLevels[1]
+    maxPolicyThreatLevel: filter.policyThreatLevels[1],
   };
 }

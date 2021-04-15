@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {combineReducers} from 'redux';
+import { combineReducers } from 'redux';
 import routerStateReducer from '../reduxUiRouter/routerStateReducer';
 import dashboardReducer from '../dashboard/dashboardReducer';
 import manageFiltersReducer from '../dashboard/filter/manageFiltersReducer';
@@ -65,5 +65,5 @@ export default combineReducers({
   firewallConfigurationModal: firewallConfigurationModalReducer,
   manageLegalFilters: manageLegalFiltersReducer,
   legalApplicationDetails: legalApplicationDetailsReducer,
-  labsDataInsights: labsDataInsightsReducer
+  labsDataInsights: labsDataInsightsReducer,
 });

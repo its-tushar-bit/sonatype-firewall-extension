@@ -3,7 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import {
+  initialState,
+  userInput,
+} from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { always, equals } from 'ramda';
 
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
@@ -20,7 +23,7 @@ import {
   WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT,
   WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE,
   WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
-  WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME
+  WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME,
 } from './waiverActions';
 
 const initState = Object.freeze({
@@ -35,7 +38,7 @@ const initState = Object.freeze({
   selectedWaiverScope: null,
   applyToAllComponents: false,
   expiryTime: null,
-  fieldsPristineState: null
+  fieldsPristineState: null,
 });
 
 /**
@@ -48,14 +51,14 @@ const isFormDirty = (state) => {
     applyToAllComponents,
     expiryTime,
     waiverComments,
-    fieldsPristineState
+    fieldsPristineState,
   } = state;
 
   const currentFields = {
     selectedWaiverScope,
     applyToAllComponents,
     expiryTime,
-    waiverComments: waiverComments.value
+    waiverComments: waiverComments.value,
   };
   return !equals(fieldsPristineState, currentFields);
 };
@@ -66,13 +69,13 @@ const isFormDirty = (state) => {
  */
 const setIsDirtyFlag = (partialNewState) => ({
   ...partialNewState,
-  isDirty: isFormDirty(partialNewState)
+  isDirty: isFormDirty(partialNewState),
 });
 
 const loadDataFailed = (payload, state) => ({
   ...state,
   loading: false,
-  loadError: payload
+  loadError: payload,
 });
 
 const setLoadedData = (payload, state) => ({
@@ -82,50 +85,55 @@ const setLoadedData = (payload, state) => ({
   submitError: null,
   availableWaiverScopes: payload,
   selectedWaiverScope: payload[0], // automatically set selectedWaiverScope with the owner
-  fieldsPristineState: { // save a snapshot of what pristine fields are like
+  fieldsPristineState: {
+    // save a snapshot of what pristine fields are like
     selectedWaiverScope: payload[0],
     applyToAllComponents: false,
     expiryTime: null,
-    waiverComments: ''
-  }
+    waiverComments: '',
+  },
 });
 
 const saveWaiverRequested = (payload, state) => ({
   ...state,
   submitMaskState: false,
-  submitError: null
+  submitError: null,
 });
 
 const saveWaiverFailed = (payload, state) => ({
   ...state,
   submitMaskState: null,
-  submitError: payload
+  submitError: payload,
 });
 
-const setWaiverComment = (payload, state) => setIsDirtyFlag({
-  ...state,
-  waiverComments: userInput(null, payload)
-});
+const setWaiverComment = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    waiverComments: userInput(null, payload),
+  });
 
-const setSelectedWaiverScope = (payload, state) => setIsDirtyFlag({
-  ...state,
-  selectedWaiverScope: payload
-});
+const setSelectedWaiverScope = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    selectedWaiverScope: payload,
+  });
 
-const setApplyToAllComponents = (payload, state) => setIsDirtyFlag({
-  ...state,
-  applyToAllComponents: payload
-});
+const setApplyToAllComponents = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    applyToAllComponents: payload,
+  });
 
-const setExpiryTime = (payload, state) => setIsDirtyFlag({
-  ...state,
-  expiryTime: payload
-});
+const setExpiryTime = (payload, state) =>
+  setIsDirtyFlag({
+    ...state,
+    expiryTime: payload,
+  });
 
 const saveWaiverFulfilled = (payload, state) => ({
   ...state,
   submitMaskState: true,
-  isDirty: false
+  isDirty: false,
 });
 
 const reducerActionMap = {
@@ -135,13 +143,19 @@ const reducerActionMap = {
   [WAIVERS_SAVE_WAIVER_REQUESTED]: saveWaiverRequested,
   [WAIVERS_SAVE_WAIVER_FULFILLED]: saveWaiverFulfilled,
   [WAIVERS_SAVE_WAIVER_FAILED]: saveWaiverFailed,
-  [WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
+  [WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE]: propSetConst(
+    'submitMaskState',
+    null
+  ),
   [WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT]: setWaiverComment,
   [WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE]: setSelectedWaiverScope,
   [WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS]: setApplyToAllComponents,
   [WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME]: setExpiryTime,
-  [UI_ROUTER_ON_FINISH]: always(initState)
+  [UI_ROUTER_ON_FINISH]: always(initState),
 };
 
-const addWaiverReducer = createReducerFromActionMap(reducerActionMap, initState);
+const addWaiverReducer = createReducerFromActionMap(
+  reducerActionMap,
+  initState
+);
 export default addWaiverReducer;

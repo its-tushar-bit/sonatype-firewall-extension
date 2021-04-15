@@ -6,5 +6,5 @@
 import template from './learningTopics.html';
 
 export default {
-  template
+  template,
 };

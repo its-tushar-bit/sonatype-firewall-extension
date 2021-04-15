@@ -3,9 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStore, CLMContextLocations, CLMLocations,
-                                              SameOwnerStateNavigationService, EventNameConstant) {
+export default function ApplicationCategoryTileControllerApp(
+  $scope,
+  $q,
+  $http,
+  ApplicationStore,
+  CLMContextLocations,
+  CLMLocations,
+  SameOwnerStateNavigationService,
+  EventNameConstant
+) {
   var vm = this;
 
   vm.areAnyCategoriesDefined = undefined;
@@ -26,24 +33,36 @@ function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStor
     if (vm.isApp) {
       $q.all([
         ApplicationStore[vm.error ? 'refresh' : 'get'](),
-        $http.get(CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())),
-        $http.get(CLMLocations.getApplicableOrganizationTags(CLMContextLocations.getEntityId()))
-      ]).then(function(results) {
-        results[0].forEach(function(candidate) {
-          if (candidate.publicId === CLMContextLocations.getEntityId()) {
-            vm.ownerName = candidate.name;
+        $http.get(
+          CLMLocations.getApplicationTagUrl(CLMContextLocations.getEntityId())
+        ),
+        $http.get(
+          CLMLocations.getApplicableOrganizationTags(
+            CLMContextLocations.getEntityId()
+          )
+        ),
+      ]).then(
+        function (results) {
+          results[0].forEach(function (candidate) {
+            if (candidate.publicId === CLMContextLocations.getEntityId()) {
+              vm.ownerName = candidate.name;
+            }
+          });
+
+          vm.appliedCategories = results[1].data;
+          vm.areAnyCategoriesDefined = results[2].data.length > 0;
+
+          if (!vm.ownerName) {
+            vm.error =
+              'Could not find an application with ID ' +
+              CLMContextLocations.getEntityId() +
+              '.';
           }
-        });
-
-        vm.appliedCategories = results[1].data;
-        vm.areAnyCategoriesDefined = results[2].data.length > 0;
-
-        if (!vm.ownerName) {
-          vm.error = 'Could not find an application with ID ' + CLMContextLocations.getEntityId() + '.';
+        },
+        function (error) {
+          vm.error = error;
         }
-      }, function(error) {
-        vm.error = error;
-      });
+      );
     }
 
     delete vm.error;
@@ -61,6 +80,12 @@ function ApplicationCategoryTileControllerApp($scope, $q, $http, ApplicationStor
 }
 
 ApplicationCategoryTileControllerApp.$inject = [
-  '$scope', '$q', '$http', 'ApplicationStore', 'CLMContextLocations', 'CLMLocations',
-  'SameOwnerStateNavigationService', 'event.name.constant'
+  '$scope',
+  '$q',
+  '$http',
+  'ApplicationStore',
+  'CLMContextLocations',
+  'CLMLocations',
+  'SameOwnerStateNavigationService',
+  'event.name.constant',
 ];

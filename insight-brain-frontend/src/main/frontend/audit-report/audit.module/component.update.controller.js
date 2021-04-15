@@ -4,7 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global Brain */
-export default function ComponentUpdateController($scope, $rootScope, $http, $q, Messages, OwnerContext, componentKey, reevaluate) {
+export default function ComponentUpdateController(
+  $scope,
+  $rootScope,
+  $http,
+  $q,
+  Messages,
+  OwnerContext,
+  componentKey,
+  reevaluate
+) {
   var vm = this;
 
   vm.error = null;
@@ -16,8 +25,7 @@ export default function ComponentUpdateController($scope, $rootScope, $http, $q,
   function doProcess() {
     if (!vm.reevaluated) {
       doReevaluate();
-    }
-    else {
+    } else {
       updateComponent();
     }
   }
@@ -27,24 +35,44 @@ export default function ComponentUpdateController($scope, $rootScope, $http, $q,
 
     // emit an event
     var promises = [];
-    $rootScope.$broadcast('component.evaluation.updated', componentKey, promises);
-    $q.all(promises).then(function () {
-      $scope.$dismiss();
-    }, function (error) {
-      vm.error = Messages.getHttpErrorMessage(error);
-    });
+    $rootScope.$broadcast(
+      'component.evaluation.updated',
+      componentKey,
+      promises
+    );
+    $q.all(promises).then(
+      function () {
+        $scope.$dismiss();
+      },
+      function (error) {
+        vm.error = Messages.getHttpErrorMessage(error);
+      }
+    );
   }
 
   function doReevaluate() {
     delete vm.error;
 
-    $http.post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash)).then(function () {
-      vm.reevaluated = true;
-      updateComponent();
-    }, function (error) {
-      vm.error = Messages.getHttpErrorMessage(error);
-    });
+    $http
+      .post(Brain.getComponentReevaluationUrl(OwnerContext, componentKey.hash))
+      .then(
+        function () {
+          vm.reevaluated = true;
+          updateComponent();
+        },
+        function (error) {
+          vm.error = Messages.getHttpErrorMessage(error);
+        }
+      );
   }
 }
-ComponentUpdateController.$inject = ['$scope', '$rootScope', '$http', '$q', 'Messages', 'OwnerContext',
-                                     'componentKey', 'reevaluate'];
+ComponentUpdateController.$inject = [
+  '$scope',
+  '$rootScope',
+  '$http',
+  '$q',
+  'Messages',
+  'OwnerContext',
+  'componentKey',
+  'reevaluate',
+];

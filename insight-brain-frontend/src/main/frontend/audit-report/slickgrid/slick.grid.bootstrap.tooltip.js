@@ -8,16 +8,16 @@ import $ from 'jquery';
 // NOTE: originally copied from slick.grid.tipsy.js and then modified to use bootstrap instead of tipsy
 export default function SlickGridTooltip(options) {
   if (!jQuery.fn.tooltip) {
-    throw new Error('SlickGrid Tooltip plugin requires bootstrap-tooltip module to be loaded');
+    throw new Error(
+      'SlickGrid Tooltip plugin requires bootstrap-tooltip module to be loaded'
+    );
   }
 
-  let _grid,
-      _headerTimer,
-      _cellTimer;
+  let _grid, _headerTimer, _cellTimer;
 
   const _defaults = {
     maxToolTipLength: null,
-    disableAutoTooltips: true
+    disableAutoTooltips: true,
   };
 
   Object.assign(this, {
@@ -47,7 +47,7 @@ export default function SlickGridTooltip(options) {
 
       _removeTooltips();
       _grid = null;
-    }
+    },
   });
 
   /**
@@ -58,12 +58,12 @@ export default function SlickGridTooltip(options) {
    */
   function getPlacement(gravity) {
     const placementMap = {
-          s: 'top',
-          n: 'bottom',
-          w: 'right',
-          e: 'left'
-        },
-        placement = gravity ? placementMap[gravity.charAt(0)] : undefined;
+        s: 'top',
+        n: 'bottom',
+        w: 'right',
+        e: 'left',
+      },
+      placement = gravity ? placementMap[gravity.charAt(0)] : undefined;
 
     return placement || 'left';
   }
@@ -73,14 +73,18 @@ export default function SlickGridTooltip(options) {
     if (_cellTimer) {
       clearTimeout(_cellTimer);
     }
-    _cellTimer = setTimeout(function() {
+    _cellTimer = setTimeout(function () {
       var columns = _grid.getColumns();
       for (var i = 0; i < columns.length; i++) {
         if (columns[i].id !== 'selector') {
           var index = i;
           var toolTipFn = columns[i].toolTipFn;
           var toolTipGravity = columns[i].toolTipGravity;
-          _addTooltipToCellNodes(index, toolTipFn, getPlacement(toolTipGravity));
+          _addTooltipToCellNodes(
+            index,
+            toolTipFn,
+            getPlacement(toolTipGravity)
+          );
         }
       }
     }, 500);
@@ -92,7 +96,7 @@ export default function SlickGridTooltip(options) {
       title: tooltip,
       placement,
       html: true,
-      container: 'body'
+      container: 'body',
     });
   }
 
@@ -105,19 +109,22 @@ export default function SlickGridTooltip(options) {
     if (_headerTimer) {
       clearTimeout(_headerTimer);
     }
-    _headerTimer = setTimeout(function() {
+    _headerTimer = setTimeout(function () {
       var columns = _grid.getColumns();
 
-      columns.forEach(function(column, i) {
+      columns.forEach(function (column, i) {
         const placement = getPlacement(column.toolTipGravity);
 
         if (column.id !== 'selector') {
           // slickgrid gives no decent API for getting its container element, so we need to
           // get one of the children it gives us access to and then traverse up
           const slickGridContainer = $(_grid.getHeaderRow()).parent().parent(),
-              headerIndex = _grid.getColumnIndex(column.id),
-              header = slickGridContainer.find(
-                  `> .slick-header > .slick-header-columns > .slick-header-column:nth-child(${headerIndex + 1})`);
+            headerIndex = _grid.getColumnIndex(column.id),
+            header = slickGridContainer.find(
+              `> .slick-header > .slick-header-columns > .slick-header-column:nth-child(${
+                headerIndex + 1
+              })`
+            );
 
           if (column.toolTip) {
             createTooltip(header, column.toolTip, placement);
@@ -142,20 +149,21 @@ export default function SlickGridTooltip(options) {
         //use requested tooltip
         if (fnVal) {
           createTooltip(node, fnVal, placement);
-        }
-        else if (!options.disableAutoTooltips) {
+        } else if (!options.disableAutoTooltips) {
           //otherwise do the default
           var cellNode = _grid.getCellNode(j, column);
           if (cellNode) {
             if (node.innerWidth() < cellNode.scrollWidth) {
               var text = $.trim(node.text());
-              if (options.maxToolTipLength && text.length > options.maxToolTipLength) {
+              if (
+                options.maxToolTipLength &&
+                text.length > options.maxToolTipLength
+              ) {
                 text = text.substr(0, options.maxToolTipLength - 3) + '...';
               }
 
               createTooltip(node, text, placement);
-            }
-            else {
+            } else {
               destroyTooltip(node);
             }
           }

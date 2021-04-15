@@ -1,8 +1,10 @@
 <div class="iq-color-picker">
   <div class="iq-color-picker-row" ng-repeat="colorRow in vm.colorRows">
-    <div ng-repeat="color in colorRow"
-         class="{{ ::color }} iq-color-picker-color"
-         ng-class="{ selected: vm.ngModel == color }"
-         ng-click="vm.ngModel = color"></div>
+    <div
+      ng-repeat="color in colorRow"
+      class="{{ ::color }} iq-color-picker-color"
+      ng-class="{ selected: vm.ngModel == color }"
+      ng-click="vm.ngModel = color"
+    ></div>
   </div>
 </div>

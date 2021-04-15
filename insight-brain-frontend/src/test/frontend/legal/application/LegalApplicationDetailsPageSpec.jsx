@@ -8,14 +8,10 @@ import { NxTable, NxTableBody } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 import BackButton from '../../../../main/frontend/react/BackButton';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
-import LegalApplicationDetailsComponentRow
-  from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
+import LegalApplicationDetailsComponentRow from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
 
 describe('LegalApplicationDetailsPage', function () {
-  let minimalProps,
-      loadApplicationSpy,
-      stateSpy,
-      getShallowComponent;
+  let minimalProps, loadApplicationSpy, stateSpy, getShallowComponent;
 
   beforeEach(function () {
     loadApplicationSpy = jasmine.createSpy('loadApplication');
@@ -26,12 +22,12 @@ describe('LegalApplicationDetailsPage', function () {
       application: {
         name: 'app-name',
         error: null,
-        loading: false
+        loading: false,
       },
       stageType: {
         name: 'stage name',
         error: null,
-        loading: false
+        loading: false,
       },
       components: {
         results: [
@@ -41,7 +37,7 @@ describe('LegalApplicationDetailsPage', function () {
             licenses: [],
             reviewCompletedCount: 0,
             reviewStatus: 'COMPLETED',
-            reviewTotalCount: 0
+            reviewTotalCount: 0,
           },
           {
             displayName: 'g2 : a2 : v2',
@@ -49,17 +45,20 @@ describe('LegalApplicationDetailsPage', function () {
             licenses: [],
             reviewCompletedCount: 1,
             reviewStatus: 'IN_PROGRESS',
-            reviewTotalCount: 10
-          }
+            reviewTotalCount: 10,
+          },
         ],
         error: null,
-        loading: false
+        loading: false,
       },
       loadApplication: loadApplicationSpy,
-      $state: stateSpy
+      $state: stateSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(LegalApplicationDetailsPage, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      LegalApplicationDetailsPage,
+      minimalProps
+    );
   });
 
   it('is wrapped by a LoadWrapper with appropriate parameters', function () {
@@ -107,7 +106,7 @@ describe('LegalApplicationDetailsPage', function () {
     expect(loadWrapper).toHaveProp('error', 'some other error');
   });
 
-  it('renders a BackButton with the dashboard state name and the provided $state object, ', function() {
+  it('renders a BackButton with the dashboard state name and the provided $state object, ', function () {
     const backButton = getShallowComponent().find(BackButton);
 
     expect(backButton).toExist();
@@ -121,10 +120,14 @@ describe('LegalApplicationDetailsPage', function () {
   });
 
   it('renders the page title and subtitle', function () {
-    const pageTitle = getShallowComponent().find('main.nx-page-main .nx-page-title');
+    const pageTitle = getShallowComponent().find(
+      'main.nx-page-main .nx-page-title'
+    );
     expect(pageTitle).toExist();
     expect(pageTitle.find('h1').text()).toEqual('app-name Obligations');
-    expect(pageTitle.find('.nx-tile-header__subtitle').text()).toEqual('stage name Stage');
+    expect(pageTitle.find('.nx-tile-header__subtitle').text()).toEqual(
+      'stage name Stage'
+    );
   });
 
   it('renders a table', function () {
@@ -144,7 +147,10 @@ describe('LegalApplicationDetailsPage', function () {
   });
 
   it('renders a table with an error message when fetching components failed', function () {
-    const components = { ...minimalProps.components, error: 'components error' };
+    const components = {
+      ...minimalProps.components,
+      error: 'components error',
+    };
     minimalProps = { ...minimalProps, components: components };
 
     const wrapper = getShallowComponent(minimalProps);

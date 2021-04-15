@@ -8,13 +8,10 @@ import LicenseTextsTile from '../../../../../main/frontend/legal/files/licenses/
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
-describe('LicenseTextsTile', function() {
+describe('LicenseTextsTile', function () {
+  let getShallowComponent, minimalProps, setShowLicensesModalSpy;
 
-  let getShallowComponent,
-      minimalProps,
-      setShowLicensesModalSpy;
-
-  beforeEach(function() {
+  beforeEach(function () {
     setShowLicensesModalSpy = jasmine.createSpy('setShowLicensesModalSpy');
     minimalProps = {
       setShowLicensesModal: setShowLicensesModalSpy,
@@ -23,60 +20,65 @@ describe('LicenseTextsTile', function() {
           originalStatus: 'enabled',
           originalContent: 'license content 1',
           content: 'license content 1',
-          relPath: 'path1/license.txt'
+          relPath: 'path1/license.txt',
         },
         {
           originalStatus: 'enabled',
           originalContent: 'license content 2',
-          content: 'license content 2'
+          content: 'license content 2',
         },
         {
           originalStatus: 'disabled',
           originalContent: 'license content 3',
-          content: 'license content 3'
-        }
+          content: 'license content 3',
+        },
       ],
-      showLicensesModal: false
+      showLicensesModal: false,
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(LicenseTextsTile, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      LicenseTextsTile,
+      minimalProps
+    );
   });
 
-  it('renders a header with label `License Texts`', function() {
+  it('renders a header with label `License Texts`', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find('h2.nx-h2')).toHaveText('License Texts');
   });
 
-  it('renders the given licenses', function() {
+  it('renders the given licenses', function () {
     const wrapper = getShallowComponent();
     const licenses = wrapper.find('.legal-file');
     expect(licenses.length).toBe(2);
-    expect(licenses.at(0).find('.legal-file-path')).toHaveText('path1/license.txt');
+    expect(licenses.at(0).find('.legal-file-path')).toHaveText(
+      'path1/license.txt'
+    );
     expect(licenses.at(0).find('blockquote')).toHaveText('license content 1');
     expect(licenses.at(1).find('.legal-file-path')).toHaveText('');
     expect(licenses.at(1).find('blockquote')).toHaveText('license content 2');
   });
 
-  it('renders none found if there are no licenses', function() {
+  it('renders none found if there are no licenses', function () {
     const wrapper = getShallowComponent({ licenseFiles: [] });
     const content = wrapper.find('.nx-tile-content');
     expect(content).toHaveText('None found');
   });
 
-  it('renders an add button if there are no licenses', function() {
+  it('renders an add button if there are no licenses', function () {
     const wrapper = getShallowComponent({ licenseFiles: [] });
     const button = wrapper.find(NxButton);
     expect(button.find(NxFontAwesomeIcon).at(0).prop('icon')).toEqual(faPlus);
     expect(button.find('span').at(0)).toHaveText('Add');
   });
 
-  it('renders an edit button if there is at least one license', function() {
+  it('renders an edit button if there is at least one license', function () {
     const wrapper = getShallowComponent();
     const button = wrapper.find(NxButton);
     expect(button.find(NxFontAwesomeIcon).at(0).prop('icon')).toEqual(faPen);
     expect(button.find('span').at(0)).toHaveText('Edit');
   });
 
-  it('shows the licenses modal when clicking the add/edit button', function() {
+  it('shows the licenses modal when clicking the add/edit button', function () {
     const wrapper = getShallowComponent();
     const button = wrapper.find(NxButton);
     button.simulate('click');

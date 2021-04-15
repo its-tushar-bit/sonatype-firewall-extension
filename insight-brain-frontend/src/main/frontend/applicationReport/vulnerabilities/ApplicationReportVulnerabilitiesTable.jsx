@@ -12,16 +12,21 @@ import {
   NxTableBody,
   NxTableHead,
   NxTableCell,
-  NxThreatIndicator
+  NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 import { faCheck, faHistory } from '@fortawesome/free-solid-svg-icons';
 
-import ComponentDisplay, { componentPropTypes } from '../../ComponentDisplay/ReactComponentDisplay';
+import ComponentDisplay, {
+  componentPropTypes,
+} from '../../ComponentDisplay/ReactComponentDisplay';
 import { getBaseUrl } from '../../util/urlUtil';
 
 function createRow(data, $state) {
   const { securityCode, cvssScore, key, policyThreatLevel } = data;
-  const linkUrl = getBaseUrl(window.location.href) + '/ui/links/vln/' + encodeURIComponent(securityCode);
+  const linkUrl =
+    getBaseUrl(window.location.href) +
+    '/ui/links/vln/' +
+    encodeURIComponent(securityCode);
 
   return (
     <NxTableRow key={key}>
@@ -30,25 +35,31 @@ function createRow(data, $state) {
         <span className="nx-threat-number">{policyThreatLevel}</span>
       </NxTableCell>
       <NxTableCell>
-        <a className="iq-vulnerability-refid-link"
-           href={$state.href('vulnerabilitySearchDetail', { id: securityCode })}>
+        <a
+          className="iq-vulnerability-refid-link"
+          href={$state.href('vulnerabilitySearchDetail', { id: securityCode })}
+        >
           {securityCode}
         </a>
-        <a className="iq-vulnerability-printable-link" href={linkUrl}>{linkUrl}</a>
+        <a className="iq-vulnerability-printable-link" href={linkUrl}>
+          {linkUrl}
+        </a>
       </NxTableCell>
       <NxTableCell isNumeric>{cvssScore.toFixed(1)}</NxTableCell>
       <NxTableCell>
         <div className="iq-vulnerability-component-name">
-          { data.waived &&
+          {data.waived && (
             <span className="iq-text-indicator iq-text-indicator--waived iq-pull-right">
-              <span>Waived</span><NxFontAwesomeIcon icon={faCheck} />
+              <span>Waived</span>
+              <NxFontAwesomeIcon icon={faCheck} />
             </span>
-          }
-          { data.grandfathered &&
+          )}
+          {data.grandfathered && (
             <span className="iq-text-indicator iq-text-indicator--grandfathered iq-pull-right">
-              <span>Grandfathered</span><NxFontAwesomeIcon icon={faHistory} />
+              <span>Grandfathered</span>
+              <NxFontAwesomeIcon icon={faHistory} />
             </span>
-          }
+          )}
           <ComponentDisplay component={data} truncate={true} />
         </div>
       </NxTableCell>
@@ -56,8 +67,11 @@ function createRow(data, $state) {
   );
 }
 
-export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities, $state }) {
-  const rows = vulnerabilities.map(vuln => createRow(vuln, $state));
+export default function ApplicationReportVulnerabilitiesTable({
+  vulnerabilities,
+  $state,
+}) {
+  const rows = vulnerabilities.map((vuln) => createRow(vuln, $state));
 
   return (
     <div className="nx-tile-content nx-viewport-sized__container">
@@ -71,22 +85,26 @@ export default function ApplicationReportVulnerabilitiesTable({ vulnerabilities,
               <NxTableCell>Component</NxTableCell>
             </NxTableRow>
           </NxTableHead>
-          <NxTableBody emptyMessage="This report contains no vulnerabilities.">{ rows }</NxTableBody>
+          <NxTableBody emptyMessage="This report contains no vulnerabilities.">
+            {rows}
+          </NxTableBody>
         </NxTable>
       </div>
     </div>
   );
 }
 
-export const vulnerabilitiesPropType = PropTypes.arrayOf(PropTypes.shape({
-  ...componentPropTypes,
-  securityCode: PropTypes.string.isRequired,
-  cvssScore: PropTypes.number.isRequired
-}));
+export const vulnerabilitiesPropType = PropTypes.arrayOf(
+  PropTypes.shape({
+    ...componentPropTypes,
+    securityCode: PropTypes.string.isRequired,
+    cvssScore: PropTypes.number.isRequired,
+  })
+);
 
 ApplicationReportVulnerabilitiesTable.propTypes = {
   vulnerabilities: vulnerabilitiesPropType.isRequired,
   $state: PropTypes.shape({
-    href: PropTypes.func.isRequired
-  }).isRequired
+    href: PropTypes.func.isRequired,
+  }).isRequired,
 };

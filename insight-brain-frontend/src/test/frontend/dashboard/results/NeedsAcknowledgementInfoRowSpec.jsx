@@ -7,11 +7,14 @@ import * as enzymeUtils from '../../enzymeUtils';
 import NeedsAcknowledgementInfoRow from '../../../../main/frontend/dashboard/results/NeedsAcknowledgementInfoRow';
 import { NxInfoAlert, NxTableCell } from '@sonatype/react-shared-components';
 
-describe('NeedsAcknowledgementInfoRowSpec', function() {
+describe('NeedsAcknowledgementInfoRowSpec', function () {
   let getShallowComponent;
 
-  beforeEach(function() {
-    getShallowComponent = enzymeUtils.getShallowComponent(NeedsAcknowledgementInfoRow, { colSpan: 6 });
+  beforeEach(function () {
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      NeedsAcknowledgementInfoRow,
+      { colSpan: 6 }
+    );
   });
 
   it('renders a component', () => {
@@ -24,6 +27,8 @@ describe('NeedsAcknowledgementInfoRowSpec', function() {
     const infoAlert = tableCell.find(NxInfoAlert);
 
     expect(tableCell.prop('colSpan')).toEqual(6);
-    expect(infoAlert).toHaveText('Select your filter criteria and click \'apply\' to see results.');
+    expect(infoAlert).toHaveText(
+      "Select your filter criteria and click 'apply' to see results."
+    );
   });
 });

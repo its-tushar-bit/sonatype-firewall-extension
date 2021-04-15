@@ -3,10 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function MoveApplicationModalController($rootScope, $scope, currentApplication, MoveApplicationService,
-                                        MoveApplicationErrorModal, EventNameConstant,
-                                        MoveApplicationSuccessModalService) {
+export default function MoveApplicationModalController(
+  $rootScope,
+  $scope,
+  currentApplication,
+  MoveApplicationService,
+  MoveApplicationErrorModal,
+  EventNameConstant,
+  MoveApplicationSuccessModalService
+) {
   var vm = this;
 
   vm.formMask = undefined;
@@ -23,7 +28,7 @@ function MoveApplicationModalController($rootScope, $scope, currentApplication, 
   vm.isLoading = isLoading;
   vm.showIncompatibilities = showIncompatibilities;
 
-  $scope.$on('pageChangeAccepted', function() {
+  $scope.$on('pageChangeAccepted', function () {
     $scope.$dismiss();
   });
 
@@ -35,12 +40,12 @@ function MoveApplicationModalController($rootScope, $scope, currentApplication, 
 
   function doLoad() {
     MoveApplicationService.getDestinationOrganizations(currentApplication.id)
-        .then(function(organizations) {
-          vm.organizations = organizations;
-        })
-        .catch(function(errorMessage) {
-          vm.loadError = errorMessage;
-        });
+      .then(function (organizations) {
+        vm.organizations = organizations;
+      })
+      .catch(function (errorMessage) {
+        vm.loadError = errorMessage;
+      });
   }
 
   function save() {
@@ -51,18 +56,24 @@ function MoveApplicationModalController($rootScope, $scope, currentApplication, 
     vm.saveError = undefined;
     vm.incompatibilities = undefined;
 
-    vm.formMask.wrap(MoveApplicationService.moveApplication(currentApplication.id, vm.selectedOrganization.id))
-        .then(function(messages) {
-          $scope.$close();
-          MoveApplicationSuccessModalService.open(messages);
-          // refresh nav and all the tiles
-          $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_TREE_DATA);
-          $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
-        })
-        .catch(function(error) {
-          vm.saveError = error.message;
-          vm.incompatibilities = error.incompatibilities;
-        });
+    vm.formMask
+      .wrap(
+        MoveApplicationService.moveApplication(
+          currentApplication.id,
+          vm.selectedOrganization.id
+        )
+      )
+      .then(function (messages) {
+        $scope.$close();
+        MoveApplicationSuccessModalService.open(messages);
+        // refresh nav and all the tiles
+        $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_TREE_DATA);
+        $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
+      })
+      .catch(function (error) {
+        vm.saveError = error.message;
+        vm.incompatibilities = error.incompatibilities;
+      });
   }
 
   function isLoading() {
@@ -72,19 +83,22 @@ function MoveApplicationModalController($rootScope, $scope, currentApplication, 
   function showIncompatibilities() {
     vm.isHidden = true;
     MoveApplicationErrorModal.open(vm.incompatibilities)
-        .then(function() {
-          vm.isHidden = false;
-        })
-        .catch(function() {
-          // in case error dialog fails
-          vm.isHidden = false;
-        });
-
+      .then(function () {
+        vm.isHidden = false;
+      })
+      .catch(function () {
+        // in case error dialog fails
+        vm.isHidden = false;
+      });
   }
 }
 
 MoveApplicationModalController.$inject = [
-  '$rootScope', '$scope', 'currentApplication', 'move.application.service',
-  'move.application.error.modal.service', 'event.name.constant',
-  'move.application.success.modal.service'
+  '$rootScope',
+  '$scope',
+  'currentApplication',
+  'move.application.service',
+  'move.application.error.modal.service',
+  'event.name.constant',
+  'move.application.success.modal.service',
 ];

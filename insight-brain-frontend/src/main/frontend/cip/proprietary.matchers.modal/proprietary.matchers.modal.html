@@ -1,64 +1,94 @@
-<form id="add-proprietary-matchers-modal"
-      class="iq-form iq-form--modal-form"
-      name="vm.addMatchersForm"
-      ng-submit="vm.save()"
-      form-mask="vm.formMask"
-      mask-message="Adding matchers">
+<form
+  id="add-proprietary-matchers-modal"
+  class="iq-form iq-form--modal-form"
+  name="vm.addMatchersForm"
+  ng-submit="vm.save()"
+  form-mask="vm.formMask"
+  mask-message="Adding matchers"
+>
   <div class="iq-modal-header">
-    <h2><i class="clm-icon-proprietary-component-20px"></i>Add Proprietary Component Matchers</h2>
+    <h2>
+      <i class="clm-icon-proprietary-component-20px"></i>Add Proprietary
+      Component Matchers
+    </h2>
   </div>
 
-  <div class="iq-modal-content iq-scrollable" load-wrapper loading="vm.isLoading()">
+  <div
+    class="iq-modal-content iq-scrollable"
+    load-wrapper
+    loading="vm.isLoading()"
+  >
     <div class="iq-alert iq-alert--info" ng-hide="vm.isLoading()">
       <i class="clm-icon-info"></i>
       <div>
         The following matchers will be added to the
-        <a ng-href="{{::vm.basePath}}assets/index.html#/management/edit/application/{{::vm.appId}}/proprietary"
-           target="_blank">
-          {{::vm.applicationName}} configuration<i class="clm-icon-external-link"></i>
+        <a
+          ng-href="{{::vm.basePath}}assets/index.html#/management/edit/application/{{::vm.appId}}/proprietary"
+          target="_blank"
+        >
+          {{::vm.applicationName}} configuration<i
+            class="clm-icon-external-link"
+          ></i>
         </a>
-        (duplicates will be ignored). The new matchers will be in effect for the next application analysis.
+        (duplicates will be ignored). The new matchers will be in effect for the
+        next application analysis.
       </div>
     </div>
     <fieldset id="path-matchers" class="iq-form-group iq-checkbox-group">
       <legend class="iq-label">Matchers</legend>
       <label class="checkbox" ng-repeat="pathName in ::vm.pathNames">
-        <input type="checkbox" ng-checked="vm.isSelected(pathName)" ng-click="vm.toggleSelected(pathName)">
+        <input
+          type="checkbox"
+          ng-checked="vm.isSelected(pathName)"
+          ng-click="vm.toggleSelected(pathName)"
+        />
         {{::pathName}}
       </label>
     </fieldset>
     <div class="iq-form-group">
       <label class="iq-label iq-label--optional">Regular Expression</label>
-      <span class="iq-sub-label">will be added in addition to any matchers checked above</span>
-      <input id="regex-matcher"
-             class="iq-text-input iq-text-input--long"
-             clm-input
-             name="regex-matcher"
-             type="text"
-             ng-model="vm.regex">
+      <span class="iq-sub-label"
+        >will be added in addition to any matchers checked above</span
+      >
+      <input
+        id="regex-matcher"
+        class="iq-text-input iq-text-input--long"
+        clm-input
+        name="regex-matcher"
+        type="text"
+        ng-model="vm.regex"
+      />
     </div>
   </div>
 
   <div class="iq-modal-footer" ng-class="{ error : vm.error }">
-    <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="clm-icon-error"></i> {{::vm.error}}</div>
-    <button ng-if="!vm.error"
-            class="iq-btn iq-btn--primary"
-            type="submit"
-            submit-validation
-            submit-tooltip-target="body"
-            submit-type="Add"
-            submit-dirty="vm.isValid()">
+    <div ng-if="vm.error" class="iq-alert iq-alert--error">
+      <i class="clm-icon-error"></i> {{::vm.error}}
+    </div>
+    <button
+      ng-if="!vm.error"
+      class="iq-btn iq-btn--primary"
+      type="submit"
+      submit-validation
+      submit-tooltip-target="body"
+      submit-type="Add"
+      submit-dirty="vm.isValid()"
+    >
       Add
     </button>
-    <button ng-if="vm.error"
-            class="iq-btn iq-btn--error"
-            type="submit"
-            submit-validation
-            submit-tooltip-target="body"
-            submit-type="Add"
-            submit-dirty="vm.isValid()">
+    <button
+      ng-if="vm.error"
+      class="iq-btn iq-btn--error"
+      type="submit"
+      submit-validation
+      submit-tooltip-target="body"
+      submit-type="Add"
+      submit-dirty="vm.isValid()"
+    >
       <i class="clm-icon-retry"></i> Retry
     </button>
-    <button id="dismiss-btn" class="iq-btn" type="button" ng-click="$dismiss()">Cancel</button>
+    <button id="dismiss-btn" class="iq-btn" type="button" ng-click="$dismiss()">
+      Cancel
+    </button>
   </div>
 </form>

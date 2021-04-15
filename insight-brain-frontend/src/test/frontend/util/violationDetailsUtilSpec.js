@@ -5,13 +5,13 @@
  */
 import { extractViolationDetails } from '../../../main/frontend/util/violationDetailsUtil';
 
-describe('violationDetailsUtil', function() {
+describe('violationDetailsUtil', function () {
   describe('extractViolationDetails', () => {
-    it('returns empty object for a falsy violationDetails object', function() {
+    it('returns empty object for a falsy violationDetails object', function () {
       expect(extractViolationDetails(null)).toEqual({});
     });
 
-    it('returns the correct information from the violationDetails object', function() {
+    it('returns the correct information from the violationDetails object', function () {
       const violationDetails = {
         componentIdentifier: { format: 'maven', coordinates: null },
         constraintViolations: [
@@ -22,17 +22,17 @@ describe('violationDetailsUtil', function() {
               {
                 reason: 'reason',
                 reference: {
-                  value: 'vulnerabilityId'
-                }
-              }
-            ]
-          }
+                  value: 'vulnerabilityId',
+                },
+              },
+            ],
+          },
         ],
         displayName: { parts: [], name: 'artifactName' },
         filename: 'componentName',
         policyName: 'policyName',
         policyViolationId: 'policyViolationId',
-        threatLevel: 10
+        threatLevel: 10,
       };
 
       expect(extractViolationDetails(violationDetails)).toEqual({
@@ -44,7 +44,7 @@ describe('violationDetailsUtil', function() {
         policyViolationId: 'policyViolationId',
         reasons: ['reason'],
         threatLevelCategory: 'critical',
-        vulnerabilityId: 'vulnerabilityId'
+        vulnerabilityId: 'vulnerabilityId',
       });
     });
   });

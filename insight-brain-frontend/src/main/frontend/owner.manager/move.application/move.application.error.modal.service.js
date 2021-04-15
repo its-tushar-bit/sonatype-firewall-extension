@@ -5,10 +5,9 @@
  */
 import template from './move.application.error.modal.html';
 
-export default
-function MoveApplicationErrorModalService(Modal) {
+export default function MoveApplicationErrorModalService(Modal) {
   return {
-    open: openModal
+    open: openModal,
   };
 
   function openModal(messages) {
@@ -19,17 +18,17 @@ function MoveApplicationErrorModalService(Modal) {
       controller: MoveApplicationErrorModalController,
       template,
       resolve: {
-        messages: function() {
+        messages: function () {
           return messages;
-        }
-      }
+        },
+      },
     }).result;
   }
 }
 
 function MoveApplicationErrorModalController($scope, messages) {
   $scope.messages = messages;
-  $scope.$on('pageChangeAccepted', function() {
+  $scope.$on('pageChangeAccepted', function () {
     $scope.$close();
   });
 }
@@ -37,4 +36,3 @@ function MoveApplicationErrorModalController($scope, messages) {
 MoveApplicationErrorModalController.$inject = ['$scope', 'messages'];
 
 MoveApplicationErrorModalService.$inject = ['Modal'];
-

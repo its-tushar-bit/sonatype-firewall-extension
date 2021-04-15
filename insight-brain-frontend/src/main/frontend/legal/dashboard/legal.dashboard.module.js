@@ -7,20 +7,26 @@ import { react2angular } from 'react2angular';
 import withStoreProvider from '../../reactAdapter/StoreProvider';
 import LegalDashboardContainer from './LegalDashboardContainer';
 
-export default angular.module('legalDashboardModule', [])
-    .component('legalDashboard',
-        react2angular(withStoreProvider(LegalDashboardContainer), ['isAuthorized'], ['$ngRedux']))
-    .config(routes);
+export default angular
+  .module('legalDashboardModule', [])
+  .component(
+    'legalDashboard',
+    react2angular(
+      withStoreProvider(LegalDashboardContainer),
+      ['isAuthorized'],
+      ['$ngRedux']
+    )
+  )
+  .config(routes);
 
 function routes($stateProvider) {
-  $stateProvider
-      .state('legalDashboard', {
-        url: '/legal/dashboard',
-        component: 'legalDashboard',
-        data: {
-          title: 'Legal Dashboard'
-        }
-      });
+  $stateProvider.state('legalDashboard', {
+    url: '/legal/dashboard',
+    component: 'legalDashboard',
+    data: {
+      title: 'Legal Dashboard',
+    },
+  });
 }
 
 routes.$inject = ['$stateProvider'];

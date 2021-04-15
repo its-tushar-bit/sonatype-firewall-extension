@@ -6,31 +6,32 @@
 
 import React from 'react';
 import configureStore from 'redux-mock-store';
-import {shallow} from 'enzyme';
+import { shallow } from 'enzyme';
 import CopyrightOverrideForm from '../../../../main/frontend/legal/copyright/CopyrightOverrideForm';
 
-describe('CopyrightOverrideFormContainer', function() {
+describe('CopyrightOverrideFormContainer', function () {
   let store,
-      vdom,
-      componentPart,
-      state,
-      CopyrightOverrideFormContainer,
-      saveCopyrightOverrideMock,
-      setDisplayCopyrightOverrideModalMock;
+    vdom,
+    componentPart,
+    state,
+    CopyrightOverrideFormContainer,
+    saveCopyrightOverrideMock,
+    setDisplayCopyrightOverrideModalMock;
 
-  beforeEach(function() {
-    saveCopyrightOverrideMock = jasmine.createSpy('saveCopyrightOverride').and.returnValue({type: 'FOO'});
-    setDisplayCopyrightOverrideModalMock = jasmine.createSpy('setDisplayCopyrightOverrideModal').and.returnValue(
-        {type: 'BAR'});
+  beforeEach(function () {
+    saveCopyrightOverrideMock = jasmine
+      .createSpy('saveCopyrightOverride')
+      .and.returnValue({ type: 'FOO' });
+    setDisplayCopyrightOverrideModalMock = jasmine
+      .createSpy('setDisplayCopyrightOverrideModal')
+      .and.returnValue({ type: 'BAR' });
 
-    CopyrightOverrideFormContainer = require(
-        'inject-loader!../../../../main/frontend/' +
-        'legal/copyright/CopyrightOverrideFormContainer'
-    )({
+    CopyrightOverrideFormContainer = require('inject-loader!../../../../main/frontend/' +
+      'legal/copyright/CopyrightOverrideFormContainer')({
       './copyrightOverrideFormActions': {
         saveCopyrightOverride: saveCopyrightOverrideMock,
-        setDisplayCopyrightOverrideModal: setDisplayCopyrightOverrideModalMock
-      }
+        setDisplayCopyrightOverrideModal: setDisplayCopyrightOverrideModalMock,
+      },
     }).default;
 
     componentPart = {
@@ -38,36 +39,36 @@ describe('CopyrightOverrideFormContainer', function() {
       licenseLegalData: {
         obligations: [
           {
-            'name': 'Inclusion of Copyright',
-            'status': 'FLAGGED'
+            name: 'Inclusion of Copyright',
+            status: 'FLAGGED',
           },
           {
-            'name': 'Something else'
-          }
-        ]
-      }
+            name: 'Something else',
+          },
+        ],
+      },
     };
 
     state = {
       copyrightOverrides: {
         saveCopyrightError: 'Some error',
         submitMaskState: true,
-        showEditCopyrightOverrideModal: true
+        showEditCopyrightOverrideModal: true,
       },
       advancedLegal: {
         availableScopes: {
           loading: false,
           error: null,
-          values: []
+          values: [],
         },
         component: {
-          component: componentPart
-        }
-      }
+          component: componentPart,
+        },
+      },
     };
 
     store = configureStore()(() => state);
-    vdom = <CopyrightOverrideFormContainer store={store}/>;
+    vdom = <CopyrightOverrideFormContainer store={store} />;
   });
 
   it('maps from mapStateToProps and mapDispatchToProps', () => {
@@ -76,14 +77,23 @@ describe('CopyrightOverrideFormContainer', function() {
     expect(wrapper).toHaveProp('submitMaskState', true);
     expect(wrapper).toHaveProp('showEditCopyrightOverrideModal', true);
     expect(wrapper).toHaveProp('component', componentPart);
-    expect(wrapper).toHaveProp('availableScopes', {loading: false, error: null, values: []});
-    expect(wrapper).toHaveProp('existingObligation', {'name': 'Inclusion of Copyright', 'status': 'FLAGGED'});
+    expect(wrapper).toHaveProp('availableScopes', {
+      loading: false,
+      error: null,
+      values: [],
+    });
+    expect(wrapper).toHaveProp('existingObligation', {
+      name: 'Inclusion of Copyright',
+      status: 'FLAGGED',
+    });
   });
 
   it('correctly maps actions', () => {
     const wrapper = shallow(vdom).dive();
     const saveCopyrightOverride = wrapper.prop('saveCopyrightOverride');
-    const setDisplayCopyrightOverrideModal = wrapper.prop('setDisplayCopyrightOverrideModal');
+    const setDisplayCopyrightOverrideModal = wrapper.prop(
+      'setDisplayCopyrightOverrideModal'
+    );
 
     expect(store.getActions()).toEqual([]);
     saveCopyrightOverride('test', 'test');
@@ -92,7 +102,7 @@ describe('CopyrightOverrideFormContainer', function() {
     expect(store.getActions()).toEqual([{ type: 'FOO' }, { type: 'BAR' }]);
   });
 
-  it('renders CopyrightOverrideForm component', function() {
+  it('renders CopyrightOverrideForm component', function () {
     const copyrightOverrideForm = shallow(vdom).find(CopyrightOverrideForm);
     expect(copyrightOverrideForm).toExist();
   });

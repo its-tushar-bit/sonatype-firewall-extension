@@ -6,7 +6,7 @@
 import template from './externalLinkModalService.html';
 
 export default function externalLinkModalService(Modal) {
-  return {open: openModal};
+  return { open: openModal };
 
   function openModal(href) {
     return Modal.open({
@@ -14,9 +14,12 @@ export default function externalLinkModalService(Modal) {
       backdrop: 'static',
       keyboard: false,
       template,
-      controller: ['$scope', function(scope) {
-        scope.href = href;
-      }]
+      controller: [
+        '$scope',
+        function (scope) {
+          scope.href = href;
+        },
+      ],
     }).result;
   }
 }

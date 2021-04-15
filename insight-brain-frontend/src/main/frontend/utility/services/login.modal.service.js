@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './loginModal.html';
-import {always} from 'ramda';
+import { always } from 'ramda';
 
 export default function LoginModalService(Modal) {
   var service = {
     show: LoginModal,
-    dismiss
+    dismiss,
   };
 
   let modal = null;
@@ -27,8 +27,8 @@ export default function LoginModalService(Modal) {
       windowClass: 'loginPanel iq-modal',
       resolve: {
         showSamlSso: always(showSamlSso),
-        identityProviderName: always(identityProviderName)
-      }
+        identityProviderName: always(identityProviderName),
+      },
     });
 
     return modal.result;

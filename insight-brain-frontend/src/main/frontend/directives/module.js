@@ -5,5 +5,6 @@
  */
 import iqTooltip from './iqTooltip/iqTooltip';
 
-export default angular.module('directives', [])
-    .directive('iqTooltip', iqTooltip);
+export default angular
+  .module('directives', [])
+  .directive('iqTooltip', iqTooltip);

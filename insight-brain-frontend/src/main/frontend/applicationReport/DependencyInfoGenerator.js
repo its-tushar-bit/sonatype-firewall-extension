@@ -11,7 +11,7 @@ import { isNilOrEmpty, setToArray } from '../util/jsUtil';
 const getKey = prop('key');
 
 const emptyDependencyInfoGenerator = {
-  getDependencyInfo: always(null)
+  getDependencyInfo: always(null),
 };
 
 // given serialized component id of a component, get all its dependencies from indexedDependencyNodes
@@ -20,7 +20,7 @@ function getAllDependenciesFromNodes(indexedDependencyNodes) {
   function getNextDependenciesLayer(currentLayer) {
     const retval = new Set();
 
-    currentLayer.forEach(function(key) {
+    currentLayer.forEach(function (key) {
       const childDependencies = indexedDependencyNodes[key].children || [];
 
       for (let i = 0; i < childDependencies.length; i++) {
@@ -35,17 +35,16 @@ function getAllDependenciesFromNodes(indexedDependencyNodes) {
     return retval;
   }
 
-  return function(parentKey) {
+  return function (parentKey) {
     let dependencies = new Set(),
-        dependenciesLayer = new Set([parentKey]);
+      dependenciesLayer = new Set([parentKey]);
     while (dependenciesLayer && dependenciesLayer.size) {
       dependenciesLayer = getNextDependenciesLayer(dependenciesLayer);
-      dependenciesLayer.forEach(function(layerElement) {
+      dependenciesLayer.forEach(function (layerElement) {
         // remove already-seen dependencies from the layer to prevent infinite loops from circular deps
         if (dependencies.has(layerElement) || layerElement === parentKey) {
           dependenciesLayer.delete(layerElement);
-        }
-        else {
+        } else {
           dependencies.add(layerElement);
         }
       });
@@ -55,23 +54,24 @@ function getAllDependenciesFromNodes(indexedDependencyNodes) {
 }
 
 // creates reducer of children into rootAncestorsByChild map for given rootAncestorId
-const getRootAncestorsByChildReducer = rootAncestorId => (acc, childKey) => {
+const getRootAncestorsByChildReducer = (rootAncestorId) => (acc, childKey) => {
   const rootAncestors = acc[childKey];
 
   if (rootAncestors) {
     rootAncestors.add(rootAncestorId);
-  }
-  else {
+  } else {
     acc[childKey] = new Set([rootAncestorId]);
   }
 
   return acc;
 };
 
-const populateDependencyNodeKeys = node => ({
+const populateDependencyNodeKeys = (node) => ({
   ...node,
-  key: node.componentIdentifier && serializeComponentIdentifier(node.componentIdentifier),
-  children: node.children && map(populateDependencyNodeKeys, node.children)
+  key:
+    node.componentIdentifier &&
+    serializeComponentIdentifier(node.componentIdentifier),
+  children: node.children && map(populateDependencyNodeKeys, node.children),
 });
 
 export default function DependencyInfoGenerator(dependencies) {
@@ -81,29 +81,42 @@ export default function DependencyInfoGenerator(dependencies) {
 
   // an object containing two lists: a list containing only the root dependency node (under the 'root' prop)
   // and a list containing all other top-level dependency nodes (under the 'other') prop
-  const {root, other} = groupBy(({ componentIdentifier }) => componentIdentifier ? 'other' : 'root',
-      dependencies.dependencyGraph);
+  const { root, other } = groupBy(
+    ({ componentIdentifier }) => (componentIdentifier ? 'other' : 'root'),
+    dependencies.dependencyGraph
+  );
 
   if (isNilOrEmpty(root) || isNilOrEmpty(other)) {
     return emptyDependencyInfoGenerator;
   }
 
   const dependencyNodesWithKeys = map(populateDependencyNodeKeys, other),
-      directDeps = populateDependencyNodeKeys(root[0]).children,
-      directDepIds = new Set(map(getKey, directDeps)),
-      indexedDependencyNodes = indexBy(getKey, dependencyNodesWithKeys),
-      getAllDependencies = getAllDependenciesFromNodes(indexedDependencyNodes),
-      // map rootAncestors to [componentId, childrenKeyArray] pairs
-      pairWithDependencies = map(
-          ({ componentIdentifier, key }) => [componentIdentifier, getAllDependencies(key)]
-      ),
-      // given list of [rootAncestorId, children] pairs, generate rootAncestorsByChild map
-      // where key is child iD, and value is a Set of its unique rootAncestorIds
-      mapRootAncestorsToChildren = reduce((acc, [rootAncestorId, children]) => {
-        return reduce(getRootAncestorsByChildReducer(rootAncestorId), acc, setToArray(children));
-      }, {}),
-      rootAncestorsToArray = map(rootAncestorsSet => setToArray(rootAncestorsSet)),
-      rootAncestorsByChild = pipe(pairWithDependencies, mapRootAncestorsToChildren, rootAncestorsToArray)(directDeps);
+    directDeps = populateDependencyNodeKeys(root[0]).children,
+    directDepIds = new Set(map(getKey, directDeps)),
+    indexedDependencyNodes = indexBy(getKey, dependencyNodesWithKeys),
+    getAllDependencies = getAllDependenciesFromNodes(indexedDependencyNodes),
+    // map rootAncestors to [componentId, childrenKeyArray] pairs
+    pairWithDependencies = map(({ componentIdentifier, key }) => [
+      componentIdentifier,
+      getAllDependencies(key),
+    ]),
+    // given list of [rootAncestorId, children] pairs, generate rootAncestorsByChild map
+    // where key is child iD, and value is a Set of its unique rootAncestorIds
+    mapRootAncestorsToChildren = reduce((acc, [rootAncestorId, children]) => {
+      return reduce(
+        getRootAncestorsByChildReducer(rootAncestorId),
+        acc,
+        setToArray(children)
+      );
+    }, {}),
+    rootAncestorsToArray = map((rootAncestorsSet) =>
+      setToArray(rootAncestorsSet)
+    ),
+    rootAncestorsByChild = pipe(
+      pairWithDependencies,
+      mapRootAncestorsToChildren,
+      rootAncestorsToArray
+    )(directDeps);
 
   return {
     getDependencyInfo: ({ componentIdentifier }) => {
@@ -114,9 +127,11 @@ export default function DependencyInfoGenerator(dependencies) {
       const key = serializeComponentIdentifier(componentIdentifier);
       const rootAncestors = rootAncestorsByChild[key];
 
-      return directDepIds.has(key) ? { isDirectDependency: true } :
-        rootAncestors ? { isDirectDependency: false, rootAncestors } :
-          null;
-    }
+      return directDepIds.has(key)
+        ? { isDirectDependency: true }
+        : rootAncestors
+        ? { isDirectDependency: false, rootAncestors }
+        : null;
+    },
   };
 }

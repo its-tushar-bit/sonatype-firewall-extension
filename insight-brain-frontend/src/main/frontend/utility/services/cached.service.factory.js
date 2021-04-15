@@ -10,51 +10,54 @@
 export default function CachedServiceFactory($q, $http, Messages) {
   function createCachedService(urlFn) {
     var deferred,
-        usedUrl,
-        resolved = false,
-        error = false;
+      usedUrl,
+      resolved = false,
+      error = false;
 
     return {
-      get: function() {
+      get: function () {
         var currentUrl = urlFn();
         if (error || !deferred || currentUrl !== usedUrl) {
           // do load
           error = resolved = false;
           usedUrl = currentUrl;
 
-          deferred = $http.get(currentUrl).then(function(response) {
-            if (currentUrl === usedUrl) {
-              resolved = true;
+          deferred = $http.get(currentUrl).then(
+            function (response) {
+              if (currentUrl === usedUrl) {
+                resolved = true;
+              }
+              return response.data;
+            },
+            function (response) {
+              if (currentUrl === usedUrl) {
+                error = true;
+              }
+              return $q.reject(Messages.getHttpErrorMessage(response));
             }
-            return response.data;
-          }, function(response) {
-            if (currentUrl === usedUrl) {
-              error = true;
-            }
-            return $q.reject(Messages.getHttpErrorMessage(response));
-          });
+          );
         }
 
         return deferred;
       },
-      refresh: function() {
+      refresh: function () {
         if (deferred && resolved) {
           deferred = undefined;
         }
         return this.get();
-      }
+      },
     };
   }
 
   return {
     create: function (url) {
       if (typeof url === 'string') {
-        url = function() {
+        url = function () {
           return url;
         };
       }
       return createCachedService(url);
-    }
+    },
   };
 }
 CachedServiceFactory.$inject = ['$q', '$http', 'Messages'];

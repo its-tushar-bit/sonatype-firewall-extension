@@ -10,20 +10,20 @@ function decode(encodedString) {
 
 export default function OwnerContext($window) {
   var search = $window.location.search,
-      result = {};
+    result = {};
   if (search.length === 0) {
     return;
   }
 
   search = search.substring(1).split('&');
-  angular.forEach(search, function(item) {
+  angular.forEach(search, function (item) {
     var field = item.split('=');
     result[decode(field[0])] = decode(field[1]);
   });
 
   return {
     ownerType: 'repository',
-    ownerId: result.repositoryId
+    ownerId: result.repositoryId,
   };
 }
 OwnerContext.$inject = ['$window'];

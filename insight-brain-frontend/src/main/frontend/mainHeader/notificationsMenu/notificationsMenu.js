@@ -6,8 +6,14 @@
 import { faInbox } from '@fortawesome/pro-solid-svg-icons';
 import template from './notificationsMenu.html';
 
-function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoService, Messages) {
-
+function NotificationsController(
+  $scope,
+  $http,
+  $sce,
+  CLMLocations,
+  timeAgoService,
+  Messages
+) {
   var vm = this;
 
   vm.faInbox = faInbox;
@@ -18,7 +24,7 @@ function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoServi
 
   function processNotifications(notifications) {
     $scope.unreadNotificationCount = 0;
-    angular.forEach(notifications, function(notification) {
+    angular.forEach(notifications, function (notification) {
       if (!notification.viewed) {
         $scope.unreadNotificationCount++;
       }
@@ -32,19 +38,22 @@ function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoServi
   }
 
   function openDetail(notification) {
-    if ($scope.selectedNotification &&
-        $scope.selectedNotification === notification) {
+    if (
+      $scope.selectedNotification &&
+      $scope.selectedNotification === notification
+    ) {
       $scope.selectedNotification = null;
-    }
-    else {
+    } else {
       $scope.selectedNotification = notification;
       if (!notification.viewed) {
-        $http.post(CLMLocations.getNotificationViewedUrl(), {
-          id: notification.id
-        }).then(function() {
-          notification.viewed = true;
-          $scope.unreadNotificationCount--;
-        });
+        $http
+          .post(CLMLocations.getNotificationViewedUrl(), {
+            id: notification.id,
+          })
+          .then(function () {
+            notification.viewed = true;
+            $scope.unreadNotificationCount--;
+          });
       }
     }
 
@@ -58,23 +67,35 @@ function NotificationsController($scope, $http, $sce, CLMLocations, timeAgoServi
   function getNotifications() {
     $scope.loading = true;
 
-    $http.get(CLMLocations.getNotificationUrl()).then(function(response) {
-      $scope.loading = false;
-      $scope.notifications = response.data.notifications;
-      processNotifications($scope.notifications);
-    }, function(error) {
-      $scope.loading = false;
-      $scope.errorText = 'An error occurred while loading notifications. (' +
-          Messages.getHttpErrorMessage(error) + ')';
-      $scope.unreadNotificationCount = '!';
-    });
+    $http.get(CLMLocations.getNotificationUrl()).then(
+      function (response) {
+        $scope.loading = false;
+        $scope.notifications = response.data.notifications;
+        processNotifications($scope.notifications);
+      },
+      function (error) {
+        $scope.loading = false;
+        $scope.errorText =
+          'An error occurred while loading notifications. (' +
+          Messages.getHttpErrorMessage(error) +
+          ')';
+        $scope.unreadNotificationCount = '!';
+      }
+    );
   }
 }
 
-NotificationsController.$inject = ['$scope', '$http', '$sce', 'CLMLocations', 'timeAgoService', 'Messages'];
+NotificationsController.$inject = [
+  '$scope',
+  '$http',
+  '$sce',
+  'CLMLocations',
+  'timeAgoService',
+  'Messages',
+];
 
 export default {
   controller: NotificationsController,
   controllerAs: 'vm',
-  template
+  template,
 };

@@ -5,20 +5,20 @@
  */
 export default function CurrentLabelData() {
   var currentLabel = null,
-      currentError = null;
+    currentError = null;
 
   return {
-    get: function() {
+    get: function () {
       return currentLabel;
     },
-    set: function(label) {
+    set: function (label) {
       currentLabel = label;
     },
-    getError: function() {
+    getError: function () {
       return currentError;
     },
-    setError: function(error) {
+    setError: function (error) {
       currentError = error;
-    }
+    },
   };
 }

@@ -14,8 +14,7 @@ import proprietaryMatchersModule from '../../../cip/proprietary.matchers.modal/p
 import cipPolicyViolationsModule from '../../../cip/cip.policy.violations/cip.policy.violations.module';
 import cipLicenseEditorModule from '../../../cip/cip.license.editor/cip.license.editor.module';
 import cipLabelEditorModule from '../../../cip/cip.label.editor/cip.label.editor.module';
-import cipVulnerabilityEditorModule from
-  '../../../audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.module';
+import cipVulnerabilityEditorModule from '../../../audit-report/cip/cip.vulnerability.editor/cip.vulnerability.editor.module';
 import CLMLocationModule from '../../../util/CLMLocation';
 
 // needed for Vulnerabilities tab
@@ -42,20 +41,26 @@ import cipTabPanel from './cipTabPanel/cipTabPanel';
 import cipClaimComponent from './cipClaimComponent/cipClaimComponent';
 import rootAncestors from './rootAncestors/rootAncestors';
 
-export default angular.module('cipModal',
-    [
-      cipTabsWidgetModule.name, versionGraphModule.name, cipComponentUtilModule.name, proprietaryMatchersModule.name,
-      cipPolicyViolationsModule.name, cipLicenseEditorModule.name, cipLabelEditorModule.name,
-      cipVulnerabilityEditorModule.name, CLMLocationModule.name
-    ])
-    .component('cipModal', cipModal)
-    .component('cipOccurrences', cipOccurrences)
-    .component('cipSimilar', cipSimilar)
-    .component('cipAudit', cipAudit)
-    .component('cipTabPanel', cipTabPanel)
-    .component('cipClaimComponent', cipClaimComponent)
-    .component('rootAncestors', rootAncestors)
-    .service('OwnerContext', OwnerContext);
+export default angular
+  .module('cipModal', [
+    cipTabsWidgetModule.name,
+    versionGraphModule.name,
+    cipComponentUtilModule.name,
+    proprietaryMatchersModule.name,
+    cipPolicyViolationsModule.name,
+    cipLicenseEditorModule.name,
+    cipLabelEditorModule.name,
+    cipVulnerabilityEditorModule.name,
+    CLMLocationModule.name,
+  ])
+  .component('cipModal', cipModal)
+  .component('cipOccurrences', cipOccurrences)
+  .component('cipSimilar', cipSimilar)
+  .component('cipAudit', cipAudit)
+  .component('cipTabPanel', cipTabPanel)
+  .component('cipClaimComponent', cipClaimComponent)
+  .component('rootAncestors', rootAncestors)
+  .service('OwnerContext', OwnerContext);
 
 // context service needed for CIP
 function OwnerContext() {
@@ -68,7 +73,7 @@ function OwnerContext() {
     },
     setScanId(scanId) {
       this.scanId = scanId;
-    }
+    },
   };
 }
 

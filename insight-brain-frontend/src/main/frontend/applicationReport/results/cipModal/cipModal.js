@@ -11,28 +11,38 @@ export default {
   controller: CipModalController,
   controllerAs: 'vm',
   bindings: {
-    dismiss: '&'
-  }
+    dismiss: '&',
+  },
 };
 
-function CipModalController($ngRedux, $scope, applicationReportActions, SelectedComponent, Coordinates, ComponentUtil,
-                            Properties) {
+function CipModalController(
+  $ngRedux,
+  $scope,
+  applicationReportActions,
+  SelectedComponent,
+  Coordinates,
+  ComponentUtil,
+  Properties
+) {
   const vm = this;
 
   Object.assign(vm, {
     $onInit() {
-      vm.unsubscribeFromReduxStore = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
+      vm.unsubscribeFromReduxStore = $ngRedux.connect(
+        mapStateToThis,
+        applicationReportActions
+      )(vm);
 
       Properties.setStageId(vm.metadata.stageId);
 
-      $scope.$watch('vm.selectedComponent', function(selectedComponent) {
+      $scope.$watch('vm.selectedComponent', function (selectedComponent) {
         if (selectedComponent) {
           setupVersionGraphGlobalState(selectedComponent);
           SelectedComponent.toggle(selectedComponent);
         }
       });
 
-      $scope.$on('modal.closing', function() {
+      $scope.$on('modal.closing', function () {
         // un-select component so that watchers are triggered when the same component is selected again
         SelectedComponent.toggle();
       });
@@ -60,7 +70,7 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
 
     reloadReportAndHandleError() {
       return vm.reloadReport().catch(() => vm.dismiss());
-    }
+    },
   });
 
   function getLastIndex() {
@@ -72,30 +82,37 @@ function CipModalController($ngRedux, $scope, applicationReportActions, Selected
     ComponentUtil.enhanceWithComponentIdentifier(selectedComponent);
 
     Properties.setHash(selectedComponent.hash);
-    Properties.setFilename(selectedComponent.matchState === 'unknown' ? selectedComponent.coordinates : null);
+    Properties.setFilename(
+      selectedComponent.matchState === 'unknown'
+        ? selectedComponent.coordinates
+        : null
+    );
     Properties.setProprietary(selectedComponent.proprietary || false);
     Properties.setMatchState(selectedComponent.matchState);
     Coordinates.setIdentificationSource(selectedComponent.identificationSource);
-    Properties.setDependencyType(selectedComponent.dependencyInfo &&
-        (selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'));
+    Properties.setDependencyType(
+      selectedComponent.dependencyInfo &&
+        (selectedComponent.dependencyInfo.isDirectDependency
+          ? 'direct'
+          : 'transitive')
+    );
     Properties.setInnerSource(selectedComponent.innerSource);
     if (selectedComponent.componentIdentifier) {
-      const {coordinates, format} = selectedComponent.componentIdentifier;
+      const { coordinates, format } = selectedComponent.componentIdentifier;
       Coordinates.set(format, coordinates);
-    }
-    else {
+    } else {
       Coordinates.set(null, {}); // unknown
     }
   }
 }
 
-export function mapStateToThis({applicationReport}) {
+export function mapStateToThis({ applicationReport }) {
   let {
     selectedReport,
     selectedComponentIndex,
     selectedRootAncestor,
     metadata,
-    selectedComponent
+    selectedComponent,
   } = applicationReport;
   let previousComponent = null;
 
@@ -110,10 +127,16 @@ export function mapStateToThis({applicationReport}) {
     selectedComponentIndex,
     selectedRootAncestor,
     previousComponent,
-    metadata
+    metadata,
   };
 }
 
 CipModalController.$inject = [
-  '$ngRedux', '$scope', 'applicationReportActions', 'SelectedComponent', 'Coordinates', 'ComponentUtil', 'Properties'
+  '$ngRedux',
+  '$scope',
+  'applicationReportActions',
+  'SelectedComponent',
+  'Coordinates',
+  'ComponentUtil',
+  'Properties',
 ];

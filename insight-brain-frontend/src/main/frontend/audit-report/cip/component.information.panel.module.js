@@ -14,8 +14,13 @@ import cipTabsWidgetModule from '../../components/cipTabsWidget/module';
 
 import repositoryPolicyViolationsService from './repository.policy.violations.service';
 
-export default angular.module('component.information.panel', [
-  cipLabelEditorModule.name, cipPolicyViolationsModule.name, cipVulnerabilityEditorModule.name,
-  cipLicenseEditorModule.name, cipVersionGraphModule.name, cipTabsWidgetModule.name
-])
-    .service('PolicyViolations', repositoryPolicyViolationsService);
+export default angular
+  .module('component.information.panel', [
+    cipLabelEditorModule.name,
+    cipPolicyViolationsModule.name,
+    cipVulnerabilityEditorModule.name,
+    cipLicenseEditorModule.name,
+    cipVersionGraphModule.name,
+    cipTabsWidgetModule.name,
+  ])
+  .service('PolicyViolations', repositoryPolicyViolationsService);

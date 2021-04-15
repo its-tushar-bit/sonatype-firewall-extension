@@ -4,42 +4,42 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 window.LabelMockData = {
-  getApplicableLabels: function() {
+  getApplicableLabels: function () {
     return {
-      'labelsByOwner': [
+      labelsByOwner: [
         {
-          'ownerId': 'appownerid',
-          'ownerName': 'appname',
-          'ownerType': 'application',
-          'labels': [
+          ownerId: 'appownerid',
+          ownerName: 'appname',
+          ownerType: 'application',
+          labels: [
             {
-              'id': 'applabelid',
-              'ownerId': 'appownerid',
-              'label': 'AppLabel',
-              'color': 'red'
+              id: 'applabelid',
+              ownerId: 'appownerid',
+              label: 'AppLabel',
+              color: 'red',
             },
             {
-              'id': 'applabelid_01',
-              'ownerId': 'appownerid',
-              'label': 'AnotherAppLabel',
-              'color': 'red'
-            }
-          ]
+              id: 'applabelid_01',
+              ownerId: 'appownerid',
+              label: 'AnotherAppLabel',
+              color: 'red',
+            },
+          ],
         },
         {
-          'ownerId': 'orgownerid',
-          'ownerName': 'orgname',
-          'ownerType': 'organization',
-          'labels': [
+          ownerId: 'orgownerid',
+          ownerName: 'orgname',
+          ownerType: 'organization',
+          labels: [
             {
-              'id': 'orglabelid',
-              'ownerId': 'orgownerid',
-              'label': 'OrgLabel',
-              'color': 'red'
-            }
-          ]
-        }
-      ]
+              id: 'orglabelid',
+              ownerId: 'orgownerid',
+              label: 'OrgLabel',
+              color: 'red',
+            },
+          ],
+        },
+      ],
     };
-  }
+  },
 };

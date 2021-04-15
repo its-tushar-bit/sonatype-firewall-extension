@@ -6,13 +6,20 @@
     <div ng-if="!vm.reevaluated">Evaluating Component</div>
     <div ng-if="vm.reevaluated">Retrieving Details</div>
     <div class="progress progress-striped active">
-      <div class="bar" ng-style="{ width: (vm.reevaluated ? '50%' : '10%') }"></div>
+      <div
+        class="bar"
+        ng-style="{ width: (vm.reevaluated ? '50%' : '10%') }"
+      ></div>
     </div>
   </div>
   <div ng-if="vm.error">
     <div class="modal-body error modal-error">
-      <div ng-if="!vm.reevaluated">An error occurred reevaluating the component. ({{vm.error}})</div>
-      <div ng-if="vm.reevaluated">An error occurred while reloading data. ({{vm.error}})</div>
+      <div ng-if="!vm.reevaluated">
+        An error occurred reevaluating the component. ({{vm.error}})
+      </div>
+      <div ng-if="vm.reevaluated">
+        An error occurred while reloading data. ({{vm.error}})
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" ng-click="vm.doProcess()">

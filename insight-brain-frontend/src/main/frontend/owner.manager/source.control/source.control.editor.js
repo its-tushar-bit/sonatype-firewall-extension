@@ -8,12 +8,22 @@ import template from './source.control.editor.view.html';
 export default {
   template: template,
   controllerAs: 'vm',
-  controller: SourceControlEditorController
+  controller: SourceControlEditorController,
 };
 
-function SourceControlEditorController(CLMContextLocations, OrganizationStore, ApplicationStore, $q, Messages,
-                                       SameOwnerStateNavigationService, DeleteModalService, SourceControlService,
-                                       $scope, ProductFeatures, UpdateSourceControlModalService) {
+function SourceControlEditorController(
+  CLMContextLocations,
+  OrganizationStore,
+  ApplicationStore,
+  $q,
+  Messages,
+  SameOwnerStateNavigationService,
+  DeleteModalService,
+  SourceControlService,
+  $scope,
+  ProductFeatures,
+  UpdateSourceControlModalService
+) {
   var vm = this;
 
   vm.ownerName = undefined;
@@ -72,7 +82,7 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   vm.doLoad = doLoad;
   vm.doLoad();
 
-  $scope.$on('pageChangeStarted', function(event) {
+  $scope.$on('pageChangeStarted', function (event) {
     if (vm.isDirty()) {
       event.preventDefault();
     }
@@ -86,61 +96,89 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
     let ownerPromise;
 
     if (vm.isApp) {
-      ownerPromise = ApplicationStore.getById(CLMContextLocations.getEntityId());
+      ownerPromise = ApplicationStore.getById(
+        CLMContextLocations.getEntityId()
+      );
       vm.ownerType = 'application';
-    }
-    else if (vm.isOrg) {
-      ownerPromise = OrganizationStore.getById(CLMContextLocations.getEntityId());
+    } else if (vm.isOrg) {
+      ownerPromise = OrganizationStore.getById(
+        CLMContextLocations.getEntityId()
+      );
       vm.ownerType = 'organization';
     }
 
     if (ownerPromise !== undefined) {
-      const promises = [
-        ownerPromise,
-        ProductFeatures.load()
-      ];
+      const promises = [ownerPromise, ProductFeatures.load()];
 
-      $q.all(promises).then(function(results) {
-        vm.ownerName = results[0].name;
-        vm.ownerId = results[0].id;
-        let isNotificationsSupported = ProductFeatures.isAvailable('notifications');
-        vm.isAutomationSupported = ProductFeatures.isAvailable('automation');
-        vm.isSourceControlSupported = isNotificationsSupported || vm.isAutomationSupported;
-        if (vm.isSourceControlSupported) {
-          return getSourceControl();
-        }
-      }).catch(function(e) {
-        vm.loadError = Messages.getHttpErrorMessage(e);
-      }).finally(function() {
-        vm.loading = false;
-      });
+      $q.all(promises)
+        .then(function (results) {
+          vm.ownerName = results[0].name;
+          vm.ownerId = results[0].id;
+          let isNotificationsSupported = ProductFeatures.isAvailable(
+            'notifications'
+          );
+          vm.isAutomationSupported = ProductFeatures.isAvailable('automation');
+          vm.isSourceControlSupported =
+            isNotificationsSupported || vm.isAutomationSupported;
+          if (vm.isSourceControlSupported) {
+            return getSourceControl();
+          }
+        })
+        .catch(function (e) {
+          vm.loadError = Messages.getHttpErrorMessage(e);
+        })
+        .finally(function () {
+          vm.loading = false;
+        });
     }
   }
 
   function getSourceControl() {
     var promises = [
-      SourceControlService.getCompositeSourceControlRecord(vm.ownerType, vm.ownerId),
-      SourceControlService.getSourceControlMetrics(vm.ownerType, vm.ownerId)
+      SourceControlService.getCompositeSourceControlRecord(
+        vm.ownerType,
+        vm.ownerId
+      ),
+      SourceControlService.getSourceControlMetrics(vm.ownerType, vm.ownerId),
     ];
-    return $q.all(promises).then(function(result) {
-      let compositeSourceControl = typeof result[0] !== 'undefined' && result[0] !== null ? result[0] : {};
-      vm.dirtySourceControl = compositeSourceControlToModel(compositeSourceControl);
-      vm.dirtySourceControl.usernameInherit = vm.dirtySourceControl.usernameInherit
-          && !isUsernameRequiredOnNode() && vm.dirtySourceControl.provider === 'bitbucket';
-      vm.dirtySourceControl.credentialsInherit = vm.dirtySourceControl.usernameInherit
-          && !isUsernameRequiredOnNode();
-      vm.usernameInheritText = getInheritText(vm.dirtySourceControl.usernameInheritFrom,
-          vm.dirtySourceControl.usernameInheritedValue);
-      vm.dirtySourceControl.tokenInherit = vm.dirtySourceControl.tokenInherit && !isAccessTokenRequiredOnNode();
+    return $q.all(promises).then(function (result) {
+      let compositeSourceControl =
+        typeof result[0] !== 'undefined' && result[0] !== null ? result[0] : {};
+      vm.dirtySourceControl = compositeSourceControlToModel(
+        compositeSourceControl
+      );
+      vm.dirtySourceControl.usernameInherit =
+        vm.dirtySourceControl.usernameInherit &&
+        !isUsernameRequiredOnNode() &&
+        vm.dirtySourceControl.provider === 'bitbucket';
+      vm.dirtySourceControl.credentialsInherit =
+        vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode();
+      vm.usernameInheritText = getInheritText(
+        vm.dirtySourceControl.usernameInheritFrom,
+        vm.dirtySourceControl.usernameInheritedValue
+      );
+      vm.dirtySourceControl.tokenInherit =
+        vm.dirtySourceControl.tokenInherit && !isAccessTokenRequiredOnNode();
       vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
-      vm.shouldShowAccessTokenWarning = isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
+      vm.shouldShowAccessTokenWarning =
+        isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
       vm.showAdvanced = !vm.isApp || !canCollapseAdvanced();
-      vm.statusChecksInheritText = getInheritText(vm.dirtySourceControl.enableStatusChecksInheritFrom,
-          vm.dirtySourceControl.enableStatusChecksInheritedValue ? 'Enabled' : 'Disabled');
-      vm.pullRequestsInheritText = getInheritText(vm.dirtySourceControl.enablePullRequestsInheritFrom,
-          vm.dirtySourceControl.enablePullRequestsInheritedValue ? 'Enabled' : 'Disabled');
-      vm.baseBranchInheritText = getInheritText(vm.dirtySourceControl.baseBranchInheritFrom,
-          vm.dirtySourceControl.baseBranchInheritedValue);
+      vm.statusChecksInheritText = getInheritText(
+        vm.dirtySourceControl.enableStatusChecksInheritFrom,
+        vm.dirtySourceControl.enableStatusChecksInheritedValue
+          ? 'Enabled'
+          : 'Disabled'
+      );
+      vm.pullRequestsInheritText = getInheritText(
+        vm.dirtySourceControl.enablePullRequestsInheritFrom,
+        vm.dirtySourceControl.enablePullRequestsInheritedValue
+          ? 'Enabled'
+          : 'Disabled'
+      );
+      vm.baseBranchInheritText = getInheritText(
+        vm.dirtySourceControl.baseBranchInheritFrom,
+        vm.dirtySourceControl.baseBranchInheritedValue
+      );
 
       vm.sourceControlMetrics = result[1];
     });
@@ -152,7 +190,10 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   function validateScmConfig() {
     vm.scmConfigValidationResult = undefined;
     vm.scmConfigValidationInProgress = true;
-    return SourceControlService.validateCompositeSCMConfig(vm.ownerType, vm.ownerId).then(function(result) {
+    return SourceControlService.validateCompositeSCMConfig(
+      vm.ownerType,
+      vm.ownerId
+    ).then(function (result) {
       vm.scmConfigValidationResult = result;
       vm.scmConfigValidationInProgress = false;
     });
@@ -169,12 +210,19 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   }
 
   function deleteSourceControl() {
-    let message =
-        `You are about to permanently remove Source Control configuration for ${vm.ownerType} \
+    let message = `You are about to permanently remove Source Control configuration for ${vm.ownerType} \
          ${vm.ownerName}. This action cannot be undone.`;
-    DeleteModalService.deleteCustom('Delete Source Control', message, 'Deleting', function() {
-      return SourceControlService.deleteSourceControlRecord(vm.ownerType, vm.ownerId);
-    }).then(function() {
+    DeleteModalService.deleteCustom(
+      'Delete Source Control',
+      message,
+      'Deleting',
+      function () {
+        return SourceControlService.deleteSourceControlRecord(
+          vm.ownerType,
+          vm.ownerId
+        );
+      }
+    ).then(function () {
       vm.dirtySourceControl = {};
       vm.originalSourceControl = {};
       vm.sourceControlEditor.$setPristine();
@@ -189,35 +237,53 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
     let savePromise;
     let sourceControl = modelToSourceControl(vm.dirtySourceControl);
 
-    if (vm.dirtySourceControl.id && vm.isApp && sourceControl.repositoryUrl !==
-        vm.originalSourceControl.repositoryUrl) {
-      UpdateSourceControlModalService.updateSourceControl(function() {
-        return SourceControlService.updateSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
-      }).then(function() {
-        doLoad();
-      }).catch(function(e) {
-        vm.submitError = Messages.getHttpErrorMessage(e);
-      });
-    }
-    else {
+    if (
+      vm.dirtySourceControl.id &&
+      vm.isApp &&
+      sourceControl.repositoryUrl !== vm.originalSourceControl.repositoryUrl
+    ) {
+      UpdateSourceControlModalService.updateSourceControl(function () {
+        return SourceControlService.updateSourceControlRecord(
+          vm.ownerType,
+          vm.ownerId,
+          sourceControl
+        );
+      })
+        .then(function () {
+          doLoad();
+        })
+        .catch(function (e) {
+          vm.submitError = Messages.getHttpErrorMessage(e);
+        });
+    } else {
       if (vm.dirtySourceControl.id) {
-        savePromise = SourceControlService.updateSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
+        savePromise = SourceControlService.updateSourceControlRecord(
+          vm.ownerType,
+          vm.ownerId,
+          sourceControl
+        );
+      } else {
+        savePromise = SourceControlService.addSourceControlRecord(
+          vm.ownerType,
+          vm.ownerId,
+          sourceControl
+        );
       }
-      else {
-        savePromise = SourceControlService.addSourceControlRecord(vm.ownerType, vm.ownerId, sourceControl);
-      }
-      vm.sourceControlEditorMask.wrap(savePromise).then(function() {
-        doLoad();
-      }).catch(function(e) {
-        vm.submitError = Messages.getHttpErrorMessage(e);
-      });
+      vm.sourceControlEditorMask
+        .wrap(savePromise)
+        .then(function () {
+          doLoad();
+        })
+        .catch(function (e) {
+          vm.submitError = Messages.getHttpErrorMessage(e);
+        });
     }
   }
 
   function isDirty() {
     let original = modelToSourceControl(vm.originalSourceControl);
     let dirty = modelToSourceControl(vm.dirtySourceControl);
-    return (original !== dirty && !angular.equals(original, dirty));
+    return original !== dirty && !angular.equals(original, dirty);
   }
 
   function compositeSourceControlToModel(compositeSourceControl) {
@@ -229,30 +295,36 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
     model.repositoryUrl = compositeSourceControl.repositoryUrl;
 
     model.username = compositeSourceControl.username.value;
-    model.usernameInherit = compositeSourceControl.username.value === null && !vm.isRootOrg;
+    model.usernameInherit =
+      compositeSourceControl.username.value === null && !vm.isRootOrg;
     model.usernameInheritFrom = compositeSourceControl.username.parentName;
     model.usernameInheritedValue = compositeSourceControl.username.parentValue;
 
     model.token = compositeSourceControl.token.value;
-    model.tokenInherit = compositeSourceControl.token.value === null && !vm.isRootOrg;
+    model.tokenInherit =
+      compositeSourceControl.token.value === null && !vm.isRootOrg;
     model.tokenInheritFrom = compositeSourceControl.token.parentName;
 
-    model.baseBranch = getBaseBranchValue(compositeSourceControl.baseBranch.value);
-    model.baseBranchInherit = compositeSourceControl.baseBranch.value === null && !vm.isRootOrg;
+    model.baseBranch = getBaseBranchValue(
+      compositeSourceControl.baseBranch.value
+    );
+    model.baseBranchInherit =
+      compositeSourceControl.baseBranch.value === null && !vm.isRootOrg;
     model.baseBranchInheritFrom = compositeSourceControl.baseBranch.parentName;
-    model.baseBranchInheritedValue = compositeSourceControl.baseBranch.parentValue;
+    model.baseBranchInheritedValue =
+      compositeSourceControl.baseBranch.parentValue;
 
     model.enablePullRequests = compositeSourceControl.enablePullRequests.value;
     model.enablePullRequestsInheritFrom =
-        compositeSourceControl.enablePullRequests.parentName;
+      compositeSourceControl.enablePullRequests.parentName;
     model.enablePullRequestsInheritedValue =
-        compositeSourceControl.enablePullRequests.parentValue;
+      compositeSourceControl.enablePullRequests.parentValue;
 
     model.enableStatusChecks = compositeSourceControl.enableStatusChecks.value;
     model.enableStatusChecksInheritFrom =
-        compositeSourceControl.enableStatusChecks.parentName;
+      compositeSourceControl.enableStatusChecks.parentName;
     model.enableStatusChecksInheritedValue =
-        compositeSourceControl.enableStatusChecks.parentValue;
+      compositeSourceControl.enableStatusChecks.parentValue;
 
     return model;
   }
@@ -262,13 +334,14 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
 
     sourceControl.ownerId = model.ownerId;
     sourceControl.id = model.id;
-    sourceControl.enablePullRequests = getPullRequestsEnabledFlagFromModel(model);
+    sourceControl.enablePullRequests = getPullRequestsEnabledFlagFromModel(
+      model
+    );
     sourceControl.enableStatusChecks = true;
 
     if (vm.isRootOrg) {
       sourceControl.provider = model.provider;
-    }
-    else if (vm.isApp) {
+    } else if (vm.isApp) {
       sourceControl.repositoryUrl = model.repositoryUrl;
     }
 
@@ -276,12 +349,15 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
     sourceControl.token = null;
     if (model.provider === 'bitbucket') {
       // bitbucket uses 'credentials' to gather username & password. They both move as a single block
-      if ((!model.credentialsInherit || vm.isRootOrg) && (model.token && model.username)) {
+      if (
+        (!model.credentialsInherit || vm.isRootOrg) &&
+        model.token &&
+        model.username
+      ) {
         sourceControl.username = model.username;
         sourceControl.token = model.token;
       }
-    }
-    else {
+    } else {
       // username only supported in Bitbucket
       if (!model.tokenInherit || (vm.isRootOrg && model.token)) {
         sourceControl.token = model.token === '' ? null : model.token;
@@ -289,9 +365,9 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
     }
 
     if (!model.baseBranchInherit || (vm.isRootOrg && model.baseBranch)) {
-      sourceControl.baseBranch = model.baseBranch === '' ? null : getBaseBranchValueFromModel(model);
-    }
-    else {
+      sourceControl.baseBranch =
+        model.baseBranch === '' ? null : getBaseBranchValueFromModel(model);
+    } else {
       sourceControl.baseBranch = null;
     }
     return sourceControl;
@@ -302,7 +378,11 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   }
 
   function isUsernameRequiredOnNode() {
-    return vm.isApp && !vm.dirtySourceControl.usernameInheritFrom && vm.dirtySourceControl.provider === 'bitbucket';
+    return (
+      vm.isApp &&
+      !vm.dirtySourceControl.usernameInheritFrom &&
+      vm.dirtySourceControl.provider === 'bitbucket'
+    );
   }
 
   function toggleShowAdvanced() {
@@ -317,8 +397,10 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
    * user@server:path
    */
   function isSshUrl() {
-    return vm.dirtySourceControl.repositoryUrl &&
-        vm.dirtySourceControl.repositoryUrl.match(sshUrlRegExp);
+    return (
+      vm.dirtySourceControl.repositoryUrl &&
+      vm.dirtySourceControl.repositoryUrl.match(sshUrlRegExp)
+    );
   }
 
   function checkUrlFormat() {
@@ -326,16 +408,21 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   }
 
   function canCollapseAdvanced() {
-    return vm.isApp && (vm.dirtySourceControl.tokenInherit || vm.dirtySourceControl.token)
-        && ((vm.dirtySourceControl.usernameInherit || vm.dirtySourceControl.username) || vm.provider !== 'bitbucket')
-        && (vm.dirtySourceControl.baseBranchInherit || vm.dirtySourceControl.baseBranch);
+    return (
+      vm.isApp &&
+      (vm.dirtySourceControl.tokenInherit || vm.dirtySourceControl.token) &&
+      (vm.dirtySourceControl.usernameInherit ||
+        vm.dirtySourceControl.username ||
+        vm.provider !== 'bitbucket') &&
+      (vm.dirtySourceControl.baseBranchInherit ||
+        vm.dirtySourceControl.baseBranch)
+    );
   }
 
   function getBaseBranchValue(value) {
     if (!value && vm.isRootOrg) {
       return 'master';
-    }
-    else {
+    } else {
       return value;
     }
   }
@@ -343,15 +430,19 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
   function getInheritText(parentName, parentValue) {
     if (parentName !== null) {
       return `Inherit from ${parentName} (${parentValue})`;
-    }
-    else {
+    } else {
       return 'Inherit (Not Configured)';
     }
   }
 
   function isPullRequestsSupported() {
-    return (!vm.dirtySourceControl.provider ||
-        vm.providersSupportingPullRequests.includes(vm.dirtySourceControl.provider)) && vm.isAutomationSupported;
+    return (
+      (!vm.dirtySourceControl.provider ||
+        vm.providersSupportingPullRequests.includes(
+          vm.dirtySourceControl.provider
+        )) &&
+      vm.isAutomationSupported
+    );
   }
 
   function getPullRequestsNotAvailableMessage() {
@@ -359,8 +450,10 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
       return '';
     }
 
-    return vm.isAutomationSupported ? 'This feature is not currently supported for ' +
-        vm.providerTypesMap[vm.dirtySourceControl.provider] : 'This feature is not supported by your licence';
+    return vm.isAutomationSupported
+      ? 'This feature is not currently supported for ' +
+          vm.providerTypesMap[vm.dirtySourceControl.provider]
+      : 'This feature is not supported by your licence';
   }
 
   function getPullRequestsEnabledFlagFromModel(model) {
@@ -368,7 +461,9 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
       return model.enablePullRequests;
     }
 
-    return vm.originalSourceControl.enablePullRequests === null ? true : vm.originalSourceControl.enablePullRequests;
+    return vm.originalSourceControl.enablePullRequests === null
+      ? true
+      : vm.originalSourceControl.enablePullRequests;
   }
 
   function getBaseBranchValueFromModel(model) {
@@ -376,7 +471,9 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
       return model.baseBranch;
     }
 
-    return vm.originalSourceControl.baseBranch === null ? 'master' : vm.originalSourceControl.baseBranch;
+    return vm.originalSourceControl.baseBranch === null
+      ? 'master'
+      : vm.originalSourceControl.baseBranch;
   }
 
   function isProviderSpecifiedAndPullRequestsSupported() {
@@ -385,6 +482,15 @@ function SourceControlEditorController(CLMContextLocations, OrganizationStore, A
 }
 
 SourceControlEditorController.$inject = [
-  'CLMContextLocations', 'OrganizationStore', 'ApplicationStore', '$q', 'Messages', 'SameOwnerStateNavigationService',
-  'DeleteModalService', 'SourceControlService', '$scope', 'ProductFeatures', 'UpdateSourceControlModalService'
+  'CLMContextLocations',
+  'OrganizationStore',
+  'ApplicationStore',
+  '$q',
+  'Messages',
+  'SameOwnerStateNavigationService',
+  'DeleteModalService',
+  'SourceControlService',
+  '$scope',
+  'ProductFeatures',
+  'UpdateSourceControlModalService',
 ];

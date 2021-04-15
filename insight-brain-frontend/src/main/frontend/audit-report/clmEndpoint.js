@@ -6,5 +6,5 @@
 window.clmEndpoint = {
   type: 'ci',
   linkTarget: '_blank',
-  path: '../assets/version-graph/'
+  path: '../assets/version-graph/',
 };

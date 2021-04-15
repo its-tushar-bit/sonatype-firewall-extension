@@ -8,66 +8,71 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
 
-describe('ComponentLegalOverviewContainer', function() {
+describe('ComponentLegalOverviewContainer', function () {
   let store,
-      state,
-      vdom,
-      ComponentLegalOverviewContainer,
-      loadComponentActionMock,
-      loadAvailableScopesActionMock;
+    state,
+    vdom,
+    ComponentLegalOverviewContainer,
+    loadComponentActionMock,
+    loadAvailableScopesActionMock;
 
-  beforeEach(function() {
+  beforeEach(function () {
     state = {
       advancedLegal: {
         component: {
           component: {
             licenseLegalData: {
-              obligations: 'obligations'
-            }
+              obligations: 'obligations',
+            },
           },
           licenseLegalMetadata: 'licenseLegalMetadata',
           loading: 'loading',
-          error: 'error'
+          error: 'error',
         },
         availableScopes: {
           loading: false,
           error: null,
-          values: []
-        }
+          values: [],
+        },
       },
       router: {
         currentParams: {
           hash: 'fooHash',
           organizationId: 'organizationId',
           applicationPublicId: 'applicationPublicId',
-          stageTypeId: 'stage-type-id'
-        }
+          stageTypeId: 'stage-type-id',
+        },
       },
       copyrightOverrides: {
-        showEditCopyrightOverrideModal: false
-      }
+        showEditCopyrightOverrideModal: false,
+      },
     };
 
-    loadComponentActionMock = jasmine.createSpy('loadComponent').and.returnValue({ type: 'FOO' });
-    loadAvailableScopesActionMock = jasmine.createSpy('loadAvailableScopes').and.returnValue({ type: 'BAR' });
-    ComponentLegalOverviewContainer =
-        require('inject-loader!../../../main/frontend/legal/ComponentLegalOverviewContainer')({
-          '../advancedLegal/advancedLegalActions': {
-            loadComponent: loadComponentActionMock,
-            loadAvailableScopes: loadAvailableScopesActionMock
-          }
-        }).default;
+    loadComponentActionMock = jasmine
+      .createSpy('loadComponent')
+      .and.returnValue({ type: 'FOO' });
+    loadAvailableScopesActionMock = jasmine
+      .createSpy('loadAvailableScopes')
+      .and.returnValue({ type: 'BAR' });
+    ComponentLegalOverviewContainer = require('inject-loader!../../../main/frontend/legal/ComponentLegalOverviewContainer')(
+      {
+        '../advancedLegal/advancedLegalActions': {
+          loadComponent: loadComponentActionMock,
+          loadAvailableScopes: loadAvailableScopesActionMock,
+        },
+      }
+    ).default;
 
     store = configureStore()(() => state);
-    vdom = <ComponentLegalOverviewContainer store={store}/>;
+    vdom = <ComponentLegalOverviewContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('component', {
       licenseLegalData: {
-        obligations: 'obligations'
-      }
+        obligations: 'obligations',
+      },
     });
     expect(wrapper).toHaveProp('licenseLegalMetadata', 'licenseLegalMetadata');
     expect(wrapper).toHaveProp('obligations', 'obligations');
@@ -77,13 +82,19 @@ describe('ComponentLegalOverviewContainer', function() {
     expect(wrapper).toHaveProp('organizationId', 'organizationId');
     expect(wrapper).toHaveProp('applicationPublicId', 'applicationPublicId');
     expect(wrapper).toHaveProp('stageTypeId', 'stage-type-id');
-    expect(wrapper).toHaveProp('availableScopes', { loading: false, error: null, values: [] });
+    expect(wrapper).toHaveProp('availableScopes', {
+      loading: false,
+      error: null,
+      values: [],
+    });
   });
 
-  it('correctly maps the action creators to the ComponentLegalOverviewContainer props', function() {
+  it('correctly maps the action creators to the ComponentLegalOverviewContainer props', function () {
     const wrapper = shallow(vdom).dive();
     const loadComponentActionCreator = wrapper.prop('loadComponent');
-    const loadAvailableScopesActionCreator = wrapper.prop('loadAvailableScopes');
+    const loadAvailableScopesActionCreator = wrapper.prop(
+      'loadAvailableScopes'
+    );
     expect(loadComponentActionCreator).toEqual(jasmine.any(Function));
     expect(loadAvailableScopesActionCreator).toEqual(jasmine.any(Function));
 
@@ -94,8 +105,10 @@ describe('ComponentLegalOverviewContainer', function() {
     expect(store.getActions()).toEqual([{ type: 'FOO' }, { type: 'BAR' }]);
   });
 
-  it('renders ComponentLegalOverviewPage component', function() {
-    const componentLegalOverviewPage = shallow(vdom).find(ComponentLegalOverviewPage);
+  it('renders ComponentLegalOverviewPage component', function () {
+    const componentLegalOverviewPage = shallow(vdom).find(
+      ComponentLegalOverviewPage
+    );
     expect(componentLegalOverviewPage).toExist();
   });
 });

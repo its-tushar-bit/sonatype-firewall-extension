@@ -1,7 +1,11 @@
-<main id="dashboard-container"
-      ng-if="!$state.is('dashboard.component')"
-      class="nx-page-main nx-viewport-sized"
-      ui-view>
-</main>
-<main ng-if="$state.is('dashboard.component')" class="nx-page-main component-container nx-viewport-sized" ui-view>
-</main>
+<main
+  id="dashboard-container"
+  ng-if="!$state.is('dashboard.component')"
+  class="nx-page-main nx-viewport-sized"
+  ui-view
+></main>
+<main
+  ng-if="$state.is('dashboard.component')"
+  class="nx-page-main component-container nx-viewport-sized"
+  ui-view
+></main>

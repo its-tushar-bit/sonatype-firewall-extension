@@ -15,31 +15,40 @@ function getFilename(pathname) {
 }
 
 function run($rootScope, SelectedComponent, Coordinates, Properties) {
-  $rootScope.$watch(function () {
-    return SelectedComponent.get();
-  }, function (newComponent) {
-    if (newComponent){
-      if (newComponent.componentIdentifier) {
-        Coordinates.set(newComponent.componentIdentifier.format, newComponent.componentIdentifier.coordinates);
+  $rootScope.$watch(
+    function () {
+      return SelectedComponent.get();
+    },
+    function (newComponent) {
+      if (newComponent) {
+        if (newComponent.componentIdentifier) {
+          Coordinates.set(
+            newComponent.componentIdentifier.format,
+            newComponent.componentIdentifier.coordinates
+          );
+        } else if (newComponent.groupId) {
+          Coordinates.set('maven', {
+            groupId: newComponent.groupId,
+            artifactId: newComponent.artifactId,
+            version: newComponent.version,
+          });
+        } else {
+          Coordinates.set(null, {}); // unknown
+        }
+        Properties.setHash(newComponent.hash);
+        Properties.setFilename(getFilename(newComponent.pathname));
+        Properties.setPathname(newComponent.pathname);
+        Properties.setProprietary(newComponent.proprietary || false);
+        Properties.setMatchState(newComponent.matchState || 'exact');
+      } else {
+        Coordinates.set(null, null);
+        Properties.reset();
       }
-      else if (newComponent.groupId) {
-        Coordinates.set('maven', { groupId: newComponent.groupId, artifactId: newComponent.artifactId, version: newComponent.version});
-      }
-      else {
-        Coordinates.set(null, {}); // unknown
-      }
-      Properties.setHash(newComponent.hash);
-      Properties.setFilename(getFilename(newComponent.pathname));
-      Properties.setPathname(newComponent.pathname);
-      Properties.setProprietary(newComponent.proprietary || false);
-      Properties.setMatchState(newComponent.matchState || 'exact');
     }
-    else {
-      Coordinates.set(null, null);
-      Properties.reset();
-    }
-  });
+  );
 }
 run.$inject = ['$rootScope', 'SelectedComponent', 'Coordinates', 'Properties'];
 
-export default angular.module('cip.version.graph', [versionGraphModule.name]).run(run);
+export default angular
+  .module('cip.version.graph', [versionGraphModule.name])
+  .run(run);

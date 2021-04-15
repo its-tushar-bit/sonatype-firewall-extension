@@ -12,7 +12,7 @@ import {
   VIOLATION_LOAD_VIOLATION_DETAILS_FAILED,
   VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED,
   VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED,
-  VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED
+  VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED,
 } from './violationActions';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
@@ -25,7 +25,7 @@ const initialState = Object.freeze({
   vulnerabilityDetailsError: null,
   activeWaivers: Object.freeze([]),
   expiredWaivers: Object.freeze([]),
-  selectedViolationId: null
+  selectedViolationId: null,
 });
 
 const reducerActionMap = {
@@ -34,24 +34,30 @@ const reducerActionMap = {
   [VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED]: fetchApplicableWaiversFulfilled,
   [VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED]: loadViolationFulfilled,
   [VIOLATION_LOAD_VIOLATION_DETAILS_FAILED]: loadViolationFailed,
-  [VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst('vulnerabilityDetailsLoading', true),
+  [VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED]: propSetConst(
+    'vulnerabilityDetailsLoading',
+    true
+  ),
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED]: loadVulnerabilityDetailsFulfilled,
   [VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED]: loadVulnerabilityDetailsFailed,
-  [UI_ROUTER_ON_FINISH]: propSetConst('loading', true)
+  [UI_ROUTER_ON_FINISH]: propSetConst('loading', true),
 };
 
 function loadViolationRequested() {
   return {
     ...initialState,
-    loading: true
+    loading: true,
   };
 }
 
-function fetchCrossStageViolationFulfilled({ violationDetails, selectedViolationId }, state) {
+function fetchCrossStageViolationFulfilled(
+  { violationDetails, selectedViolationId },
+  state
+) {
   return {
     ...state,
     violationDetails,
-    selectedViolationId
+    selectedViolationId,
   };
 }
 
@@ -59,15 +65,18 @@ function loadViolationFulfilled(payload, state) {
   return {
     ...state,
     loading: false,
-    violationDetailsError: null
+    violationDetailsError: null,
   };
 }
 
-function fetchApplicableWaiversFulfilled({activeWaivers, expiredWaivers}, state) {
+function fetchApplicableWaiversFulfilled(
+  { activeWaivers, expiredWaivers },
+  state
+) {
   return {
     ...state,
     activeWaivers,
-    expiredWaivers
+    expiredWaivers,
   };
 }
 
@@ -80,7 +89,7 @@ function loadVulnerabilityDetailsFulfilled(payload, state) {
     ...state,
     vulnerabilityDetailsLoading: false,
     vulnerabilityDetailsError: null,
-    vulnerabilityDetails: payload
+    vulnerabilityDetails: payload,
   };
 }
 
@@ -88,7 +97,7 @@ function loadVulnerabilityDetailsFailed(payload, state) {
   return {
     ...state,
     vulnerabilityDetailsLoading: false,
-    vulnerabilityDetailsError: payload
+    vulnerabilityDetailsError: payload,
   };
 }
 

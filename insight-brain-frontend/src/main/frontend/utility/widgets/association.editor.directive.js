@@ -15,13 +15,13 @@ export default function AssociationEditor() {
       description: '@',
       isRadioButton: '@',
       selected: '=',
-      disabled: '=?ngDisabled'
+      disabled: '=?ngDisabled',
     },
     replace: true,
     template,
     controller: AssociationEditorController,
     controllerAs: 'vm',
-    bindToController: true
+    bindToController: true,
   };
 }
 

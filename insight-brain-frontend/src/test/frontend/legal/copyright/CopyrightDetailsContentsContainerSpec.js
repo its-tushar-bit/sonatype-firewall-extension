@@ -10,34 +10,38 @@ import { shallow } from 'enzyme';
 import { copyrightState } from './copyrightCommonState';
 import CopyrightDetailsContents from '../../../../main/frontend/legal/copyright/CopyrightDetailsContents';
 
-describe('CopyrightDetailsContentsContainer', function() {
+describe('CopyrightDetailsContentsContainer', function () {
   let store,
-      state,
-      vdom,
-      CopyrightDetailsContentsContainer,
-      loadCopyrightContextsMock,
-      unloadCopyrightContextsMock,
-      loadFilePathsOnPageUpdateMock;
+    state,
+    vdom,
+    CopyrightDetailsContentsContainer,
+    loadCopyrightContextsMock,
+    unloadCopyrightContextsMock,
+    loadFilePathsOnPageUpdateMock;
 
-  beforeEach(function() {
+  beforeEach(function () {
     state = copyrightState;
     loadCopyrightContextsMock = jasmine
-        .createSpy('loadCopyrightContexts').and.returnValue({ type: 'FOO' });
+      .createSpy('loadCopyrightContexts')
+      .and.returnValue({ type: 'FOO' });
     unloadCopyrightContextsMock = jasmine
-        .createSpy('unloadCopyrightContexts').and.returnValue({type: 'BAR'});
+      .createSpy('unloadCopyrightContexts')
+      .and.returnValue({ type: 'BAR' });
     loadFilePathsOnPageUpdateMock = jasmine
-        .createSpy('loadFilePathsOnPageUpdate').and.returnValue({type: 'BAZ'});
-    CopyrightDetailsContentsContainer =
-      require('inject-loader!../../../../main/frontend/legal/copyright/CopyrightDetailsContentsContainer')({
+      .createSpy('loadFilePathsOnPageUpdate')
+      .and.returnValue({ type: 'BAZ' });
+    CopyrightDetailsContentsContainer = require('inject-loader!../../../../main/frontend/legal/copyright/CopyrightDetailsContentsContainer')(
+      {
         './componentCopyrightDetailsActions': {
           loadCopyrightContexts: loadCopyrightContextsMock,
           unloadCopyrightContexts: unloadCopyrightContextsMock,
-          loadFilePathsOnPageUpdate: loadFilePathsOnPageUpdateMock
-        }
-      }).default;
+          loadFilePathsOnPageUpdate: loadFilePathsOnPageUpdateMock,
+        },
+      }
+    ).default;
 
     store = configureStore()(() => state);
-    vdom = <CopyrightDetailsContentsContainer store={store}/>;
+    vdom = <CopyrightDetailsContentsContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -45,11 +49,11 @@ describe('CopyrightDetailsContentsContainer', function() {
     expect(wrapper).toHaveProp('component', {
       licenseLegalData: {
         copyrights: [
-          {originalContentHash: 'hash1', content: 'content1'},
-          {originalContentHash: 'hash2', content: 'content2'},
-          {originalContentHash: null, content: 'content3'}
-        ]
-      }
+          { originalContentHash: 'hash1', content: 'content1' },
+          { originalContentHash: 'hash2', content: 'content2' },
+          { originalContentHash: null, content: 'content3' },
+        ],
+      },
     });
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('error', 'error');
@@ -65,15 +69,19 @@ describe('CopyrightDetailsContentsContainer', function() {
       filePaths: ['path1', 'path2'],
       totalFileMatches: 2,
       copyrightContexts: ['context1', 'context2'],
-      copyrightFileCounts: {'path1': 1, 'path2': 2}
+      copyrightFileCounts: { path1: 1, path2: 2 },
     });
   });
 
-  it('correctly maps the action creators to the ComponentLegalOverviewContainer props', function() {
+  it('correctly maps the action creators to the ComponentLegalOverviewContainer props', function () {
     const wrapper = shallow(vdom).dive();
     const loadCopyrightContextsCreator = wrapper.prop('loadCopyrightContexts');
-    const unloadCopyrightContextsCreator = wrapper.prop('unloadCopyrightContexts');
-    const loadFilePathsOnPageUpdateCreator = wrapper.prop('loadFilePathsOnPageUpdate');
+    const unloadCopyrightContextsCreator = wrapper.prop(
+      'unloadCopyrightContexts'
+    );
+    const loadFilePathsOnPageUpdateCreator = wrapper.prop(
+      'loadFilePathsOnPageUpdate'
+    );
 
     expect(loadCopyrightContextsCreator).toEqual(jasmine.any(Function));
     expect(unloadCopyrightContextsCreator).toEqual(jasmine.any(Function));
@@ -85,11 +93,17 @@ describe('CopyrightDetailsContentsContainer', function() {
     unloadCopyrightContextsCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }, { type: 'BAR' }]);
     loadFilePathsOnPageUpdateCreator('test');
-    expect(store.getActions()).toEqual([{ type: 'FOO' }, { type: 'BAR' }, {type: 'BAZ'}]);
+    expect(store.getActions()).toEqual([
+      { type: 'FOO' },
+      { type: 'BAR' },
+      { type: 'BAZ' },
+    ]);
   });
 
-  it('renders CopyrightDetailsContents component', function() {
-    const copyrightDetailsContents = shallow(vdom).find(CopyrightDetailsContents);
+  it('renders CopyrightDetailsContents component', function () {
+    const copyrightDetailsContents = shallow(vdom).find(
+      CopyrightDetailsContents
+    );
     expect(copyrightDetailsContents).toExist();
   });
 });

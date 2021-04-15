@@ -7,28 +7,28 @@
   #Widgets
 */
 
-@import "iq-alerts";
-@import "iq-dropdowns";
-@import "iq-loader";
-@import "iq-modals";
-@import "iq-tables";
-@import "iq-tree-view";
-@import "iq-grid";
-@import "iq-list";
-@import "iq-buttons";
-@import "iq-indicator-row";
-@import "iq-threat-indicators";
-@import "iq-coverage-indicator";
-@import "iq-grandfathering-indicator";
-@import "iq-dependency-indicators";
-@import "iq-innersource-indicator";
-@import "iq-counter";
-@import "iq-nav-pills";
-@import "../role.membership/role.membership.view";
-@import "iq-text-indicators.scss";
-@import "iq-threat-bar";
-@import "iq-pagination";
-@import "iq-tabs";
+@import 'iq-alerts';
+@import 'iq-dropdowns';
+@import 'iq-loader';
+@import 'iq-modals';
+@import 'iq-tables';
+@import 'iq-tree-view';
+@import 'iq-grid';
+@import 'iq-list';
+@import 'iq-buttons';
+@import 'iq-indicator-row';
+@import 'iq-threat-indicators';
+@import 'iq-coverage-indicator';
+@import 'iq-grandfathering-indicator';
+@import 'iq-dependency-indicators';
+@import 'iq-innersource-indicator';
+@import 'iq-counter';
+@import 'iq-nav-pills';
+@import '../role.membership/role.membership.view';
+@import 'iq-text-indicators.scss';
+@import 'iq-threat-bar';
+@import 'iq-pagination';
+@import 'iq-tabs';
 
 /*
   ##Twisty Container
@@ -38,7 +38,7 @@
   display: inline-block;
 
   .twisty {
-    content: "";
+    content: '';
     display: inline-block;
     -webkit-font-smoothing: antialiased;
     vertical-align: text-top;
@@ -74,22 +74,26 @@
   z-index: 1080;
 }
 
-.tooltip.top-left { // missing in our version of bootstrap
-  margin-top:  -3px;
+.tooltip.top-left {
+  // missing in our version of bootstrap
+  margin-top: -3px;
   padding: 5px 0;
 }
 
-.tooltip.top, .tooltip.top-left {
+.tooltip.top,
+.tooltip.top-left {
   padding-top: 0px;
   padding-bottom: 2px;
 }
 
 .tooltip-arrow {
-  .tooltip.top &, .tooltip.top-left & {
+  .tooltip.top &,
+  .tooltip.top-left & {
     border-top-color: $iq-off-black;
   }
 
-  .tooltip.top-left & { // missing in our version of bootstrap
+  .tooltip.top-left & {
+    // missing in our version of bootstrap
     border-width: 5px 5px 0;
     bottom: 0;
   }
@@ -108,7 +112,7 @@
 
   &::after {
     border: 5px solid transparent;
-    content: "";
+    content: '';
     display: block;
     height: 0;
     position: absolute;
@@ -116,12 +120,15 @@
     bottom: 0;
     width: 0;
 
-    .tooltip.top &, .tooltip.bottom &, .tooltip.top-left & {
+    .tooltip.top &,
+    .tooltip.bottom &,
+    .tooltip.top-left & {
       margin-left: -5px;
       left: 50%;
     }
 
-    .tooltip.top &, .tooltip.top-left & {
+    .tooltip.top &,
+    .tooltip.top-left & {
       border-top-color: $iq-slate;
       border-bottom-width: 0;
       margin-top: -6px;
@@ -133,7 +140,8 @@
       margin-top: 1px;
     }
 
-    .tooltip.right &, .tooltip.left & {
+    .tooltip.right &,
+    .tooltip.left & {
       margin-top: -5px;
       top: 50%;
     }
@@ -191,7 +199,7 @@
   }
 
   &::after {
-    content: "";
+    content: '';
     display: inline-block;
     vertical-align: top;
     width: 100%;
@@ -323,13 +331,15 @@
   margin: 0;
   max-width: max-content;
 
-  iq-radio, iq-checkbox {
+  iq-radio,
+  iq-checkbox {
     // tells browser not to split the height of a single li across columns
     break-inside: avoid-column;
     page-break-inside: avoid; // for Firefox
   }
 
-  .iq-checkbox__label, .iq-radio {
+  .iq-checkbox__label,
+  .iq-radio {
     @extend .truncate-ellipsis;
   }
 
@@ -495,7 +505,7 @@ double-column-picker {
 .threat-level-selector {
   display: block;
 
-  &.open .selected-threat-level{
+  &.open .selected-threat-level {
     opacity: 0.6;
   }
 
@@ -613,7 +623,11 @@ double-column-picker {
   color: $iq-slate;
   position: relative;
 
-  &:hover, &:active, &:visited, &:link, &:focus {
+  &:hover,
+  &:active,
+  &:visited,
+  &:link,
+  &:focus {
     color: $iq-slate;
     text-decoration: none;
   }
@@ -636,7 +650,8 @@ double-column-picker {
   .fa {
     color: $iq-grey-4;
 
-    &.up, &.down {
+    &.up,
+    &.down {
       color: $iq-slate;
     }
   }
@@ -671,7 +686,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 
   tbody {
     &::before {
-      content: ""; // to give room for the first row's top border
+      content: ''; // to give room for the first row's top border
     }
 
     tr {
@@ -685,7 +700,8 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
       }
 
       &.clickable {
-        &:hover, &:active {
+        &:hover,
+        &:active {
           cursor: pointer;
 
           > .fa-chevron-right {
@@ -693,7 +709,8 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
           }
         }
 
-        &:active, &:focus {
+        &:active,
+        &:focus {
           outline: 0;
         }
 
@@ -729,7 +746,8 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
     height: 40px;
     line-height: 40px;
 
-    th, td {
+    th,
+    td {
       font-size: 14px;
       padding: 0 12px 0 12px;
 
@@ -791,7 +809,6 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 
     &:after {
       border-bottom-color: $iq-off-white !important;
-
     }
   }
 
@@ -803,7 +820,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
     padding: 4px 8px 4px 8px;
 
     i {
-      padding-right: 8px
+      padding-right: 8px;
     }
 
     .tooltip-inner {
@@ -821,7 +838,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
  #Multi-select dropdown styles
 */
 .dropdown-menu.multiselect-container > li:hover {
-  background-color: #E0E0E0;
+  background-color: #e0e0e0;
   background-image: none;
   color: black;
 }
@@ -848,8 +865,8 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
     max-width: 250px;
 
     &.selected {
-      background: #2476FC;
-      border-top: 1px solid #5C9AFF;
+      background: #2476fc;
+      border-top: 1px solid #5c9aff;
       color: white;
     }
   }
@@ -878,7 +895,6 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
       }
     }
   }
-
 }
 
 .multi-dropdown-item {
@@ -911,7 +927,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 
 .multi-dropdown-item-color {
   background-color: #f4f4f4;
-  border: solid 1px #E0E0E0 !important;
+  border: solid 1px #e0e0e0 !important;
   border-radius: 6px;
   height: 24px;
   margin-top: 1px;
@@ -993,10 +1009,10 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
   border: 1px solid transparent;
 
   &:hover {
-    border: 1px solid rgba(0, 0, 0, .1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 
     .hover-buttons {
-      opacity: 1.0;
+      opacity: 1;
     }
 
     .btn-mini {
@@ -1015,10 +1031,10 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
 
 .slide {
   height: 0px;
-  -webkit-transition: height .15s linear;
-  -moz-transition: height .15s linear;
-  -o-transition: height .15s linear;
-  transition: height .15s linear;
+  -webkit-transition: height 0.15s linear;
+  -moz-transition: height 0.15s linear;
+  -o-transition: height 0.15s linear;
+  transition: height 0.15s linear;
 
   &.in {
     height: auto;
@@ -1038,11 +1054,10 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
   min-width: 500px;
 
   &::after,
-  &::before
-   {
+  &::before {
     display: table;
     clear: both;
-    content: "";
+    content: '';
     line-height: 0;
   }
 
@@ -1077,7 +1092,7 @@ See style guide (v2): TABLES - RESPONSIVE COLUMN WIDTHS in the for details.
     border-bottom: 8px solid $iq-grey-4;
     border-left: 8px solid transparent;
     color: $iq-grey-4;
-    content: "";
+    content: '';
     display: block;
     -webkit-font-smoothing: antialiased;
     margin: -5px auto 0;

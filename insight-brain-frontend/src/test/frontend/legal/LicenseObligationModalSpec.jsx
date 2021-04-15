@@ -5,25 +5,31 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseObligationModal from '../../../main/frontend/legal/obligation/LicenseObligationModal';
-import { NxDropdown, NxForm, NxTextInput } from '@sonatype/react-shared-components';
+import {
+  NxDropdown,
+  NxForm,
+  NxTextInput,
+} from '@sonatype/react-shared-components';
 
-describe('LicenseObligationModal', function() {
+describe('LicenseObligationModal', function () {
   let getShallowComponent,
-      minimalProps,
-      setObligationStatusSpy,
-      setObligationCommentSpy,
-      setObligationScopeSpy,
-      saveObligationSpy,
-      cancelObligationModalSpy,
-      createObligationStatusIconSpy;
+    minimalProps,
+    setObligationStatusSpy,
+    setObligationCommentSpy,
+    setObligationScopeSpy,
+    saveObligationSpy,
+    cancelObligationModalSpy,
+    createObligationStatusIconSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     setObligationStatusSpy = jasmine.createSpy('setObligationStatusSpy');
     setObligationCommentSpy = jasmine.createSpy('setObligationCommentSpy');
     setObligationScopeSpy = jasmine.createSpy('setObligationScopeSpy');
     saveObligationSpy = jasmine.createSpy('saveObligationSpy');
     cancelObligationModalSpy = jasmine.createSpy('cancelObligationModalSpy');
-    createObligationStatusIconSpy = jasmine.createSpy('createObligationStatusIconSpy').and.returnValue('possibleIcon');
+    createObligationStatusIconSpy = jasmine
+      .createSpy('createObligationStatusIconSpy')
+      .and.returnValue('possibleIcon');
     minimalProps = {
       setObligationStatus: setObligationStatusSpy,
       setObligationComment: setObligationCommentSpy,
@@ -39,21 +45,28 @@ describe('LicenseObligationModal', function() {
         comment: 'comment',
         originalOwnerId: 'ROOT_ORGANIZATION_ID',
         ownerId: 'ROOT_ORGANIZATION_ID',
-        attributions: []
+        attributions: [],
       },
       availableScopes: {
         loading: false,
         values: [
           { id: 'appId', name: 'app', label: 'Application' },
           { id: 'orgId', name: 'org', label: 'Organization' },
-          { id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }
-        ]
-      }
+          {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'Root Organization',
+            label: 'Organization',
+          },
+        ],
+      },
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(LicenseObligationModal, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      LicenseObligationModal,
+      minimalProps
+    );
   });
 
-  it('renders the modal with the OPEN status', function() {
+  it('renders the modal with the OPEN status', function () {
     const wrapper = getShallowComponent();
     const statusDropdown = wrapper.find(NxDropdown);
     const statusLabelChildren = statusDropdown.prop('label').props['children'];
@@ -69,13 +82,13 @@ describe('LicenseObligationModal', function() {
     expect(statusOptions.at(2).childAt(1)).toHaveText('Not Applicable');
   });
 
-  it('renders the modal with the FULFILLED status', function() {
+  it('renders the modal with the FULFILLED status', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       licenseObligation: {
         ...minimalProps.licenseObligation,
-        status: 'FULFILLED'
-      }
+        status: 'FULFILLED',
+      },
     });
     const statusDropdown = wrapper.find(NxDropdown);
     const statusLabelChildren = statusDropdown.prop('label').props['children'];
@@ -91,13 +104,13 @@ describe('LicenseObligationModal', function() {
     expect(statusOptions.at(2).childAt(1)).toHaveText('Unreviewed');
   });
 
-  it('renders the modal with the FLAGGED status', function() {
+  it('renders the modal with the FLAGGED status', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       licenseObligation: {
         ...minimalProps.licenseObligation,
-        status: 'FLAGGED'
-      }
+        status: 'FLAGGED',
+      },
     });
     const statusDropdown = wrapper.find(NxDropdown);
     const statusLabelChildren = statusDropdown.prop('label').props['children'];
@@ -113,13 +126,13 @@ describe('LicenseObligationModal', function() {
     expect(statusOptions.at(2).childAt(1)).toHaveText('Unreviewed');
   });
 
-  it('renders the modal with the IGNORED status', function() {
+  it('renders the modal with the IGNORED status', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       licenseObligation: {
         ...minimalProps.licenseObligation,
-        status: 'IGNORED'
-      }
+        status: 'IGNORED',
+      },
     });
     const statusDropdown = wrapper.find(NxDropdown);
     const statusLabelChildren = statusDropdown.prop('label').props['children'];
@@ -135,12 +148,12 @@ describe('LicenseObligationModal', function() {
     expect(statusOptions.at(2).childAt(1)).toHaveText('Unreviewed');
   });
 
-  it('renders the modal with the correct comment', function() {
+  it('renders the modal with the correct comment', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(NxTextInput)).toHaveProp('value', 'comment');
   });
 
-  it('renders the modal with the correct scope', function() {
+  it('renders the modal with the correct scope', function () {
     const wrapper = getShallowComponent();
     const select = wrapper.find('select');
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
@@ -151,43 +164,46 @@ describe('LicenseObligationModal', function() {
     expect(options.at(2)).toHaveText('Organization - Root Organization');
   });
 
-  it('disables the submit button if nothing is dirty', function() {
+  it('disables the submit button if nothing is dirty', function () {
     const wrapper = getShallowComponent();
     const result = wrapper.find(NxForm);
-    expect(result).toHaveProp('validationErrors', 'Must change obligation status, or comments, or scope.');
+    expect(result).toHaveProp(
+      'validationErrors',
+      'Must change obligation status, or comments, or scope.'
+    );
   });
 
-  it('enables the submit button if the status is dirty', function() {
+  it('enables the submit button if the status is dirty', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       licenseObligation: {
         ...minimalProps.licenseObligation,
-        status: 'IGNORED'
-      }
+        status: 'IGNORED',
+      },
     });
     const result = wrapper.find(NxForm);
     expect(result).toHaveProp('validationErrors', undefined);
   });
 
-  it('enables the submit button if the comment is dirty', function() {
+  it('enables the submit button if the comment is dirty', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       licenseObligation: {
         ...minimalProps.licenseObligation,
-        comment: 'other'
-      }
+        comment: 'other',
+      },
     });
     const result = wrapper.find(NxForm);
     expect(result).toHaveProp('validationErrors', undefined);
   });
 
-  it('enables the submit button if the ownerId is dirty', function() {
+  it('enables the submit button if the ownerId is dirty', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
       licenseObligation: {
         ...minimalProps.licenseObligation,
-        ownerId: 'other'
-      }
+        ownerId: 'other',
+      },
     });
     const result = wrapper.find(NxForm);
     expect(result).toHaveProp('validationErrors', undefined);

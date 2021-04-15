@@ -1,162 +1,271 @@
 <div id="policy-editor-summary">
-  <div load-wrapper="vm.loadError" loading="!vm.dirtyPolicy" reload="vm.doLoad()">
+  <div
+    load-wrapper="vm.loadError"
+    loading="!vm.dirtyPolicy"
+    reload="vm.doLoad()"
+  >
     <div class="nx-page-title iq-page-title">
       <h1 class="nx-h1">
-        <i class="fa fa-university slate nx-page-title__page-icon"></i><!--
-     --><span>{{::vm.dirtyPolicy.id ? (vm.readOnly ? 'View' : 'Edit') : 'New'}} Policy</span>
+        <i class="fa fa-university slate nx-page-title__page-icon"></i
+        ><!--
+     --><span
+          >{{::vm.dirtyPolicy.id ? (vm.readOnly ? 'View' : 'Edit') : 'New'}}
+          Policy</span
+        >
       </h1>
     </div>
     <ul class="nav nav-pills iq-nav-pills">
       <li class="active iq-nav-pills__pill">
-        <a data-toggle="pill" id="policy-summary-button" data-target="#policy-edit-summary">Summary</a>
+        <a
+          data-toggle="pill"
+          id="policy-summary-button"
+          data-target="#policy-edit-summary"
+          >Summary</a
+        >
       </li>
       <li class="iq-nav-pills__pill" ng-if="vm.isOrgOwner">
-        <a data-toggle="pill" id="policy-inheritance-button" data-target="#policy-edit-inheritance">Inheritance</a>
+        <a
+          data-toggle="pill"
+          id="policy-inheritance-button"
+          data-target="#policy-edit-inheritance"
+          >Inheritance</a
+        >
       </li>
       <li class="iq-nav-pills__pill">
-        <a data-toggle="pill" id="policy-constraints-button" data-target="#policy-edit-constraints">Constraints</a>
+        <a
+          data-toggle="pill"
+          id="policy-constraints-button"
+          data-target="#policy-edit-constraints"
+          >Constraints</a
+        >
       </li>
       <li class="iq-nav-pills__pill">
-        <a data-toggle="pill" id="policy-actions-button" data-target="#policy-edit-actions">Actions</a>
+        <a
+          data-toggle="pill"
+          id="policy-actions-button"
+          data-target="#policy-edit-actions"
+          >Actions</a
+        >
       </li>
       <li class="iq-nav-pills__pill">
-        <a data-toggle="pill" id="policy-notifications-button" data-target="#policy-edit-notifications">
+        <a
+          data-toggle="pill"
+          id="policy-notifications-button"
+          data-target="#policy-edit-notifications"
+        >
           Notifications
         </a>
       </li>
       <li class="iq-nav-pills__pill">
-        <a data-toggle="pill" id="policy-endofpage-button" data-target="#policy-edit-endofpage">End of Page</a>
+        <a
+          data-toggle="pill"
+          id="policy-endofpage-button"
+          data-target="#policy-edit-endofpage"
+          >End of Page</a
+        >
       </li>
     </ul>
   </div>
 </div>
-<div id="policy-editor"
-     class="iq-tile-editor-container iq-tile-scroll-container nx-viewport-sized__scrollable"
-     scrollspy="#policy-editor-summary">
-  <div class="iq-tile iq-tile--form-tile"
-       load-wrapper="vm.loadError"
-       loading="!vm.dirtyPolicy"
-       reload="vm.doLoad()"
-       pad-to-top="#policy-edit-endofpage">
-    <form name="vm.policyEditor"
-          class="iq-form--view-edit-policy"
-          role="form"
-          ng-submit="vm.save()"
-          novalidate
-          form-mask="vm.policyEditorMask"
-          mask-attach-to-body>
+<div
+  id="policy-editor"
+  class="iq-tile-editor-container iq-tile-scroll-container nx-viewport-sized__scrollable"
+  scrollspy="#policy-editor-summary"
+>
+  <div
+    class="iq-tile iq-tile--form-tile"
+    load-wrapper="vm.loadError"
+    loading="!vm.dirtyPolicy"
+    reload="vm.doLoad()"
+    pad-to-top="#policy-edit-endofpage"
+  >
+    <form
+      name="vm.policyEditor"
+      class="iq-form--view-edit-policy"
+      role="form"
+      ng-submit="vm.save()"
+      novalidate
+      form-mask="vm.policyEditorMask"
+      mask-attach-to-body
+    >
       <div id="policy-edit-summary" class="test-editor-section">
         <h2 class="iq-tile__section-header">Summary</h2>
         <div class="iq-form-row">
           <div class="iq-form-group">
-            <label class="iq-label" for="editor-policy-name" ng-class="{disabled: vm.readOnly}">Policy Name</label>
-            <input id="editor-policy-name"
-                   class="iq-text-input"
-                   type="text"
-                   name="policy"
-                   required
-                   ng-model="vm.dirtyPolicy.name"
-                   ng-maxlength="60"
-                   focus-input="true"
-                   valid-name-characters
-                   has-whitespace-validator
-                   is-duplicate
-                   is-duplicate-array="vm.siblings"
-                   is-duplicate-id-field="id"
-                   messages="{duplicate: 'Name is already in use'}"
-                   ng-disabled="vm.readOnly"
-                   clm-input>
+            <label
+              class="iq-label"
+              for="editor-policy-name"
+              ng-class="{disabled: vm.readOnly}"
+              >Policy Name</label
+            >
+            <input
+              id="editor-policy-name"
+              class="iq-text-input"
+              type="text"
+              name="policy"
+              required
+              ng-model="vm.dirtyPolicy.name"
+              ng-maxlength="60"
+              focus-input="true"
+              valid-name-characters
+              has-whitespace-validator
+              is-duplicate
+              is-duplicate-array="vm.siblings"
+              is-duplicate-id-field="id"
+              messages="{duplicate: 'Name is already in use'}"
+              ng-disabled="vm.readOnly"
+              clm-input
+            />
           </div>
           <div class="iq-form-group">
-            <label class="iq-label" for="editor-policy-threat-level" ng-class="{disabled: vm.readOnly}">
+            <label
+              class="iq-label"
+              for="editor-policy-threat-level"
+              ng-class="{disabled: vm.readOnly}"
+            >
               Threat Level
             </label>
-            <threat-level-selector id="editor-policy-threat-level"
-                                   ng-model="vm.dirtyPolicy.threatLevel"
-                                   threat-type="policy"
-                                   ng-disabled="vm.readOnly">
+            <threat-level-selector
+              id="editor-policy-threat-level"
+              ng-model="vm.dirtyPolicy.threatLevel"
+              threat-type="policy"
+              ng-disabled="vm.readOnly"
+            >
             </threat-level-selector>
           </div>
         </div>
-        <div id="editor-policy-violation-grandfathering-control-group" class="iq-form-group">
-          <label class="iq-label" for="editor-policy-violation-grandfathering" ng-class="{disabled: vm.readOnly}">
+        <div
+          id="editor-policy-violation-grandfathering-control-group"
+          class="iq-form-group"
+        >
+          <label
+            class="iq-label"
+            for="editor-policy-violation-grandfathering"
+            ng-class="{disabled: vm.readOnly}"
+          >
             Policy Violation Grandfathering
           </label>
-          <div id="grandfathering-disabled-message"
-               ng-if="!vm.isGrandfatheringSupported"
-               class="iq-alert iq-alert--info iq-alert--form-item">
-            <i class="fa fa-info-circle"></i>Policy Violation Grandfathering is not supported by your license
+          <div
+            id="grandfathering-disabled-message"
+            ng-if="!vm.isGrandfatheringSupported"
+            class="iq-alert iq-alert--info iq-alert--form-item"
+          >
+            <i class="fa fa-info-circle"></i>Policy Violation Grandfathering is
+            not supported by your license
           </div>
-          <iq-checkbox id="editor-policy-violation-grandfathering"
-                       label="Allow this policy to be grandfathered"
-                       on-click="vm.dirtyPolicy.policyViolationGrandfatheringAllowed = !vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
-                       is-checked="vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
-                       is-disabled="vm.readOnly || !vm.isGrandfatheringSupported">
+          <iq-checkbox
+            id="editor-policy-violation-grandfathering"
+            label="Allow this policy to be grandfathered"
+            on-click="vm.dirtyPolicy.policyViolationGrandfatheringAllowed = !vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
+            is-checked="vm.dirtyPolicy.policyViolationGrandfatheringAllowed"
+            is-disabled="vm.readOnly || !vm.isGrandfatheringSupported"
+          >
           </iq-checkbox>
         </div>
       </div>
-      <div ng-if="vm.isOrgOwner" id="policy-edit-inheritance" class="test-editor-section">
+      <div
+        ng-if="vm.isOrgOwner"
+        id="policy-edit-inheritance"
+        class="test-editor-section"
+      >
         <h2 class="iq-tile__section-header">Inheritance</h2>
         <div class="iq-form-group">
-          <label class="iq-label" for="editor-policy-inherit" ng-class="{disabled: vm.readOnly}">
+          <label
+            class="iq-label"
+            for="editor-policy-inherit"
+            ng-class="{disabled: vm.readOnly}"
+          >
             This Policy Inherits to
           </label>
           <div id="editor-policy-inherit" class="iq-form-group">
-            <iq-radio model="vm.hasPolicyCategories" value="false" is-disabled="vm.readOnly"><!--
-           --><span ng-if="::!vm.isRootOrg">All Applications in {{::vm.owner.name}}</span><!--
-           --><span ng-if="::vm.isRootOrg">All Applications and Repositories</span>
+            <iq-radio
+              model="vm.hasPolicyCategories"
+              value="false"
+              is-disabled="vm.readOnly"
+              ><!--
+           --><span ng-if="::!vm.isRootOrg"
+                >All Applications in {{::vm.owner.name}}</span
+              ><!--
+           --><span ng-if="::vm.isRootOrg"
+                >All Applications and Repositories</span
+              >
             </iq-radio>
-            <iq-radio model="vm.hasPolicyCategories"
-                      value="true"
-                      is-disabled="vm.categories.length === 0 || vm.readOnly"><!--
-           --><span>Applications of the specified Application Categories in {{::vm.owner.name}}</span>
+            <iq-radio
+              model="vm.hasPolicyCategories"
+              value="true"
+              is-disabled="vm.categories.length === 0 || vm.readOnly"
+              ><!--
+           --><span
+                >Applications of the specified Application Categories in
+                {{::vm.owner.name}}</span
+              >
             </iq-radio>
-            <association-editor ng-show="vm.hasPolicyCategories"
-                                id="associated-categories"
-                                items="vm.categories"
-                                checkbox-param="isApplied"
-                                description="name"
-                                icon="hexagon"
-                                ng-disabled="vm.readOnly"/>
+            <association-editor
+              ng-show="vm.hasPolicyCategories"
+              id="associated-categories"
+              items="vm.categories"
+              checkbox-param="isApplied"
+              description="name"
+              icon="hexagon"
+              ng-disabled="vm.readOnly"
+            />
           </div>
         </div>
       </div>
       <div id="policy-edit-constraints" class="test-editor-section">
         <h2 class="iq-tile__section-header">Constraints</h2>
-        <policy-editor-constraints constraints="vm.dirtyPolicy.constraints"
-                                   is-new-policy="vm.dirtyPolicy.$new"
-                                   editor-disabled="vm.readOnly">
+        <policy-editor-constraints
+          constraints="vm.dirtyPolicy.constraints"
+          is-new-policy="vm.dirtyPolicy.$new"
+          editor-disabled="vm.readOnly"
+        >
         </policy-editor-constraints>
       </div>
       <div id="policy-edit-actions" class="test-editor-section">
-        <h2 class="iq-tile__section-header iq-tile__section-header--simple">Actions</h2>
-        <policy-editor-actions actions="vm.dirtyPolicy.actions" editor-disabled="vm.readOnly"></policy-editor-actions>
+        <h2 class="iq-tile__section-header iq-tile__section-header--simple">
+          Actions
+        </h2>
+        <policy-editor-actions
+          actions="vm.dirtyPolicy.actions"
+          editor-disabled="vm.readOnly"
+        ></policy-editor-actions>
       </div>
       <div id="policy-edit-notifications" class="test-editor-section">
-        <h2 class="iq-tile__section-header iq-tile__section-header--simple">Notifications</h2>
-        <policy-editor-notifications notifications="vm.dirtyPolicy.notifications" editor-disabled="vm.readOnly">
+        <h2 class="iq-tile__section-header iq-tile__section-header--simple">
+          Notifications
+        </h2>
+        <policy-editor-notifications
+          notifications="vm.dirtyPolicy.notifications"
+          editor-disabled="vm.readOnly"
+        >
         </policy-editor-notifications>
       </div>
-      <div id="policy-edit-endofpage"
-           class="iq-tile-footer iq-tile-footer--editor-footer"
-           submit-wrapper="vm.submitError"
-           retry="vm.save()">
-        <button id="save-policy-button"
-                type="submit"
-                class="iq-btn iq-btn--primary"
-                submit-validation
-                submit-dirty="vm.isPolicyDirty()"
-                submit-type="vm.dirtyPolicy.id ? 'update' : 'create'"
-                submit-tooltip-target="body"
-                ng-disabled="vm.readOnly">
-          {{vm.dirtyPolicy.id ? 'Update' : 'Create'}}
-        </button><!--
-     --><button id="delete-policy-button"
-                class="iq-btn iq-btn--tertiary"
-                type="button"
-                ng-click="vm.deletePolicy()"
-                ng-if="vm.dirtyPolicy && !vm.dirtyPolicy.$new"
-                ng-disabled="vm.readOnly">
+      <div
+        id="policy-edit-endofpage"
+        class="iq-tile-footer iq-tile-footer--editor-footer"
+        submit-wrapper="vm.submitError"
+        retry="vm.save()"
+      >
+        <button
+          id="save-policy-button"
+          type="submit"
+          class="iq-btn iq-btn--primary"
+          submit-validation
+          submit-dirty="vm.isPolicyDirty()"
+          submit-type="vm.dirtyPolicy.id ? 'update' : 'create'"
+          submit-tooltip-target="body"
+          ng-disabled="vm.readOnly"
+        >
+          {{vm.dirtyPolicy.id ? 'Update' : 'Create'}}</button
+        ><!--
+     --><button
+          id="delete-policy-button"
+          class="iq-btn iq-btn--tertiary"
+          type="button"
+          ng-click="vm.deletePolicy()"
+          ng-if="vm.dirtyPolicy && !vm.dirtyPolicy.$new"
+          ng-disabled="vm.readOnly"
+        >
           <i class="fa fa-trash"></i>Delete Policy
         </button>
       </div>

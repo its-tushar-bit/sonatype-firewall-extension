@@ -8,42 +8,40 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import LegalDashboardPage from '../../../../main/frontend/legal/dashboard/LegalDashboardPage';
 
-describe('LegalDashboardContainerSpec', function() {
-  let store,
-      state,
-      vdom,
-      LegalDashboardContainer,
-      loadResultsMock,
-      stateGoMock;
+describe('LegalDashboardContainerSpec', function () {
+  let store, state, vdom, LegalDashboardContainer, loadResultsMock, stateGoMock;
 
-  beforeEach(function() {
+  beforeEach(function () {
     state = {
       legalDashboard: {
         applications: 'applications',
         components: 'components',
         loading: 'loading',
-        loadError: 'loadError'
+        loadError: 'loadError',
       },
       legalDashboardFilter: {
-        filtersAreDirty: false
-      }
+        filtersAreDirty: false,
+      },
     };
 
-    loadResultsMock = jasmine.createSpy('loadResults').and.returnValue({ type: 'FOO' });
+    loadResultsMock = jasmine
+      .createSpy('loadResults')
+      .and.returnValue({ type: 'FOO' });
     stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'BAR' });
 
-    LegalDashboardContainer =
-        require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardContainer')({
-          './legalDashboardActions': {
-            loadResults: loadResultsMock
-          },
-          '../../reduxUiRouter/routerActions': {
-            stateGo: stateGoMock
-          }
-        }).default;
+    LegalDashboardContainer = require('inject-loader!../../../../main/frontend/legal/dashboard/LegalDashboardContainer')(
+      {
+        './legalDashboardActions': {
+          loadResults: loadResultsMock,
+        },
+        '../../reduxUiRouter/routerActions': {
+          stateGo: stateGoMock,
+        },
+      }
+    ).default;
 
     store = configureStore()(() => state);
-    vdom = <LegalDashboardContainer store={store}/>;
+    vdom = <LegalDashboardContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -55,7 +53,7 @@ describe('LegalDashboardContainerSpec', function() {
     expect(wrapper).toHaveProp('filtersAreDirty', false);
   });
 
-  it('correctly maps the action creators to the LegalDashboardContainer props', function() {
+  it('correctly maps the action creators to the LegalDashboardContainer props', function () {
     const wrapper = shallow(vdom).dive();
     const loadResultsActionCreator = wrapper.prop('loadResults');
     expect(loadResultsActionCreator).toEqual(jasmine.any(Function));
@@ -70,7 +68,7 @@ describe('LegalDashboardContainerSpec', function() {
     expect(store.getActions()[1]).toEqual({ type: 'BAR' });
   });
 
-  it('renders LegalDashboardPage component', function() {
+  it('renders LegalDashboardPage component', function () {
     const legalDashboardPage = shallow(vdom).find(LegalDashboardPage);
     expect(legalDashboardPage).toExist();
   });

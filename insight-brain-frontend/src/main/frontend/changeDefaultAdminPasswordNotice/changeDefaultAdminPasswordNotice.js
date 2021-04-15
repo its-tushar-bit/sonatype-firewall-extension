@@ -9,7 +9,7 @@ import template from './changeDefaultAdminPasswordNotice.html';
 export default {
   template,
   controller: changeDefaultAdminPasswordNoticeController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };
 
 function changeDefaultAdminPasswordNoticeController($ngRedux, actions) {
@@ -22,14 +22,15 @@ function changeDefaultAdminPasswordNoticeController($ngRedux, actions) {
 
     $onDestroy() {
       vm.unsubscribe();
-    }
+    },
   });
 }
 
-function mapStateToThis({user}) {
+function mapStateToThis({ user }) {
   return pick(['isDefaultUser', 'shouldDisplayNotice'], user);
 }
 
 changeDefaultAdminPasswordNoticeController.$inject = [
-  '$ngRedux', 'userActions'
+  '$ngRedux',
+  'userActions',
 ];

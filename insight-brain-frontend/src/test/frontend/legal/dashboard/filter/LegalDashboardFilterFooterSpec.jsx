@@ -8,22 +8,25 @@ import { NxButton, NxErrorAlert } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../enzymeUtils';
 import LegalDashboardFilterFooter from '../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterFooter';
 
-describe('LegalDashboardFilterFooter', function() {
-  const getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardFilterFooter, {});
+describe('LegalDashboardFilterFooter', function () {
+  const getShallowComponent = enzymeUtils.getShallowComponent(
+    LegalDashboardFilterFooter,
+    {}
+  );
 
-  it('renders a section with the footer classes', function() {
+  it('renders a section with the footer classes', function () {
     const fullFilter = getShallowComponent(),
-        footer = fullFilter.find('.dashboard-filter-footer');
+      footer = fullFilter.find('.dashboard-filter-footer');
 
     expect(footer).toExist();
   });
 
   it('renders buttons', function () {
     const fullFilter = getShallowComponent(),
-        footer = fullFilter.find('.dashboard-filter-footer'),
-        applyBtn = footer.find('#legal-dashboard-filter-apply').dive(),
-        revertBtn = footer.find('#legal-dashboard-filter-revert').dive(),
-        saveBtn = footer.find('#legal-dashboard-filter-save').dive();
+      footer = fullFilter.find('.dashboard-filter-footer'),
+      applyBtn = footer.find('#legal-dashboard-filter-apply').dive(),
+      revertBtn = footer.find('#legal-dashboard-filter-revert').dive(),
+      saveBtn = footer.find('#legal-dashboard-filter-save').dive();
 
     expect(applyBtn).toHaveClassName('nx-btn--primary', 'nx-btn');
     expect(revertBtn).toHaveClassName('nx-btn--tertiary', 'nx-btn');
@@ -36,7 +39,7 @@ describe('LegalDashboardFilterFooter', function() {
     // !needsAcknowledgement && !filtersAreDirty
     fullFilter = getShallowComponent({
       needsAcknowledgement: false,
-      filtersAreDirty: false
+      filtersAreDirty: false,
     });
     footer = fullFilter.find('.dashboard-filter-footer');
     applyBtn = footer.find('#legal-dashboard-filter-apply');
@@ -45,7 +48,7 @@ describe('LegalDashboardFilterFooter', function() {
     // needsAcknowledgement && !filtersAreDirty
     fullFilter = getShallowComponent({
       needsAcknowledgement: true,
-      filtersAreDirty: false
+      filtersAreDirty: false,
     });
     footer = fullFilter.find('.dashboard-filter-footer');
     applyBtn = footer.find('#legal-dashboard-filter-apply');
@@ -54,7 +57,7 @@ describe('LegalDashboardFilterFooter', function() {
     // needsAcknowledgement && filtersAreDirty
     fullFilter = getShallowComponent({
       needsAcknowledgement: true,
-      filtersAreDirty: true
+      filtersAreDirty: true,
     });
     footer = fullFilter.find('.dashboard-filter-footer');
     applyBtn = footer.find('#legal-dashboard-filter-apply');
@@ -63,7 +66,7 @@ describe('LegalDashboardFilterFooter', function() {
     // !needsAcknowledgement && filtersAreDirty
     fullFilter = getShallowComponent({
       needsAcknowledgement: false,
-      filtersAreDirty: true
+      filtersAreDirty: true,
     });
     footer = fullFilter.find('.dashboard-filter-footer');
     applyBtn = footer.find('#legal-dashboard-filter-apply');
@@ -72,15 +75,20 @@ describe('LegalDashboardFilterFooter', function() {
 
   it('adds a tooltip to the apply btn if it is disabled', function () {
     const fullFilter = getShallowComponent({ filtersAreDirty: false }),
-        applyBtnTooltip = fullFilter.find('#legal-dashboard-filter-apply-tooltip'),
-        applyBtn = applyBtnTooltip.find(NxButton);
+      applyBtnTooltip = fullFilter.find(
+        '#legal-dashboard-filter-apply-tooltip'
+      ),
+      applyBtn = applyBtnTooltip.find(NxButton);
 
     expect(applyBtnTooltip).toHaveTagName('NxTooltip');
-    expect(applyBtnTooltip).toHaveProp('title', 'There are no changes to update.');
+    expect(applyBtnTooltip).toHaveProp(
+      'title',
+      'There are no changes to update.'
+    );
     expect(applyBtn).toHaveClassName('disabled');
   });
 
-  it('disables the revert button if the filters are not dirty', function() {
+  it('disables the revert button if the filters are not dirty', function () {
     let fullFilter, footer, revertBtn;
 
     fullFilter = getShallowComponent({ filtersAreDirty: false });
@@ -94,39 +102,39 @@ describe('LegalDashboardFilterFooter', function() {
     expect(revertBtn).not.toHaveClassName('disabled');
   });
 
-  describe('Apply button onClick handler', function() {
+  describe('Apply button onClick handler', function () {
     let onApplyCurrentFilter;
-    beforeEach(function() {
+    beforeEach(function () {
       onApplyCurrentFilter = jasmine.createSpy('onApplyCurrentFilter');
     });
 
-    it('calls onApplyCurrentFilter callback if filters are dirty', function() {
+    it('calls onApplyCurrentFilter callback if filters are dirty', function () {
       const shallowRender = getShallowComponent({
         filtersAreDirty: true,
         needsAcknowledgement: false,
-        onApplyCurrentFilter
+        onApplyCurrentFilter,
       });
 
       shallowRender.find('#legal-dashboard-filter-apply').simulate('click');
       expect(onApplyCurrentFilter).toHaveBeenCalled();
     });
 
-    it('calls onApplyCurrentFilter if filters are not dirty but needs acknowledgement', function() {
+    it('calls onApplyCurrentFilter if filters are not dirty but needs acknowledgement', function () {
       const shallowRender = getShallowComponent({
         filtersAreDirty: false,
         needsAcknowledgement: true,
-        onApplyCurrentFilter
+        onApplyCurrentFilter,
       });
 
       shallowRender.find('#legal-dashboard-filter-apply').simulate('click');
       expect(onApplyCurrentFilter).toHaveBeenCalled();
     });
 
-    it('doesn\'t call onApplyCurrentFilter if filters are not dirty and doesn\'t need acknowledgement', function() {
+    it("doesn't call onApplyCurrentFilter if filters are not dirty and doesn't need acknowledgement", function () {
       const shallowRender = getShallowComponent({
         filtersAreDirty: false,
         needsAcknowledgement: false,
-        onApplyCurrentFilter
+        onApplyCurrentFilter,
       });
 
       shallowRender.find('#legal-dashboard-filter-apply').simulate('click');
@@ -134,16 +142,16 @@ describe('LegalDashboardFilterFooter', function() {
     });
   });
 
-  describe('Filter error buttons', function() {
+  describe('Filter error buttons', function () {
     let onApplyCurrentFilter;
-    beforeEach(function() {
+    beforeEach(function () {
       onApplyCurrentFilter = jasmine.createSpy('onApplyCurrentFilter');
     });
 
-    it('shows the filter error buttons if applyFilterError is true', function() {
+    it('shows the filter error buttons if applyFilterError is true', function () {
       const shallowRender = getShallowComponent({
         applyFilterError: true,
-        onApplyCurrentFilter
+        onApplyCurrentFilter,
       });
 
       const footer = shallowRender.find('.dashboard-filter-footer');
@@ -154,12 +162,12 @@ describe('LegalDashboardFilterFooter', function() {
       expect(noErrorSaveButton).not.toExist();
     });
 
-    it('retries to apply filters if you click the filter error retry button', function() {
+    it('retries to apply filters if you click the filter error retry button', function () {
       const shallowRender = getShallowComponent({
         applyFilterError: true,
         filtersAreDirty: false,
         needsAcknowledgement: true,
-        onApplyCurrentFilter
+        onApplyCurrentFilter,
       });
 
       const footer = shallowRender.find('.dashboard-filter-footer');
@@ -168,20 +176,22 @@ describe('LegalDashboardFilterFooter', function() {
 
       expect(errorFooter).toExist();
       expect(noErrorSaveButton).not.toExist();
-      const errorButton = errorFooter.find('#legal-dashboard-filter-retry-button');
+      const errorButton = errorFooter.find(
+        '#legal-dashboard-filter-retry-button'
+      );
       expect(onApplyCurrentFilter).not.toHaveBeenCalled();
       errorButton.simulate('click');
       expect(onApplyCurrentFilter).toHaveBeenCalled();
     });
 
-    it('calls the onCancel function if you click the filter error cancel button', function() {
+    it('calls the onCancel function if you click the filter error cancel button', function () {
       const onApplyCancelSpy = jasmine.createSpy('onCancelApplyFilter');
       const shallowRender = getShallowComponent({
         applyFilterError: true,
         filtersAreDirty: false,
         needsAcknowledgement: true,
         onApplyCurrentFilter,
-        onCancelApplyFilter: onApplyCancelSpy
+        onCancelApplyFilter: onApplyCancelSpy,
       });
 
       const footer = shallowRender.find('.dashboard-filter-footer');
@@ -190,16 +200,18 @@ describe('LegalDashboardFilterFooter', function() {
 
       expect(errorFooter).toExist();
       expect(noErrorSaveButton).not.toExist();
-      const cancelButton = errorFooter.find('#legal-dashboard-filter-cancel-button');
+      const cancelButton = errorFooter.find(
+        '#legal-dashboard-filter-cancel-button'
+      );
       expect(onApplyCancelSpy).not.toHaveBeenCalled();
       cancelButton.simulate('click');
       expect(onApplyCancelSpy).toHaveBeenCalled();
     });
 
-    it('does not show the filter error buttons if applyFilterError is false', function() {
+    it('does not show the filter error buttons if applyFilterError is false', function () {
       const shallowRender = getShallowComponent({
         applyFilterError: false,
-        onApplyCurrentFilter
+        onApplyCurrentFilter,
       });
 
       const footer = shallowRender.find('.dashboard-filter-footer');
@@ -211,36 +223,38 @@ describe('LegalDashboardFilterFooter', function() {
     });
   });
 
-  describe('Revert button onClick handler', function() {
-    it('calls revert callback', function() {
+  describe('Revert button onClick handler', function () {
+    it('calls revert callback', function () {
       const revert = jasmine.createSpy('revert'),
-          shallowRender = getShallowComponent({ revert });
+        shallowRender = getShallowComponent({ revert });
 
       shallowRender.find('#legal-dashboard-filter-revert').simulate('click');
       expect(revert).toHaveBeenCalled();
     });
   });
 
-  describe('Save button onClick handler', function() {
+  describe('Save button onClick handler', function () {
     let setDisplaySaveFilterModal;
-    beforeEach(function() {
-      setDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal');
+    beforeEach(function () {
+      setDisplaySaveFilterModal = jasmine.createSpy(
+        'setDisplaySaveFilterModal'
+      );
     });
 
-    it('calls setDisplaySaveFilterModal callback if filters are not dirty', function() {
+    it('calls setDisplaySaveFilterModal callback if filters are not dirty', function () {
       const shallowRender = getShallowComponent({
         filtersAreDirty: false,
-        setDisplaySaveFilterModal
+        setDisplaySaveFilterModal,
       });
 
       shallowRender.find('#legal-dashboard-filter-save').simulate('click');
       expect(setDisplaySaveFilterModal).toHaveBeenCalledWith(true);
     });
 
-    it('doesn\'t call setDisplaySaveFilterModal if filters are dirty', function() {
+    it("doesn't call setDisplaySaveFilterModal if filters are dirty", function () {
       const shallowRender = getShallowComponent({
         filtersAreDirty: true,
-        setDisplaySaveFilterModal
+        setDisplaySaveFilterModal,
       });
 
       shallowRender.find('#legal-dashboard-filter-save').simulate('click');
@@ -248,21 +262,28 @@ describe('LegalDashboardFilterFooter', function() {
     });
   });
 
-  describe('Save button', function() {
-    it('is disabled with tooltip when filters are dirty', function() {
+  describe('Save button', function () {
+    it('is disabled with tooltip when filters are dirty', function () {
       const shallowRender = getShallowComponent({ filtersAreDirty: true }),
-          saveBtnTooltip = shallowRender.find('#legal-dashboard-filter-save-tooltip'),
-          saveBtn = saveBtnTooltip.find(NxButton);
+        saveBtnTooltip = shallowRender.find(
+          '#legal-dashboard-filter-save-tooltip'
+        ),
+        saveBtn = saveBtnTooltip.find(NxButton);
 
       expect(saveBtnTooltip).toHaveTagName('NxTooltip');
-      expect(saveBtnTooltip).toHaveProp('title', 'Please apply filter before saving');
+      expect(saveBtnTooltip).toHaveProp(
+        'title',
+        'Please apply filter before saving'
+      );
       expect(saveBtn).toHaveClassName('disabled');
     });
 
-    it('is enabled with no tooltip when filters are not dirty', function() {
+    it('is enabled with no tooltip when filters are not dirty', function () {
       const shallowRender = getShallowComponent({ filtersAreDirty: false }),
-          saveBtnTooltip = shallowRender.find('#legal-dashboard-filter-save-tooltip'),
-          saveBtn = saveBtnTooltip.find(NxButton);
+        saveBtnTooltip = shallowRender.find(
+          '#legal-dashboard-filter-save-tooltip'
+        ),
+        saveBtn = saveBtnTooltip.find(NxButton);
 
       expect(saveBtnTooltip).toHaveTagName('NxTooltip');
       expect(saveBtnTooltip).toHaveProp('title', '');

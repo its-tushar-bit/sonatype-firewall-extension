@@ -3,44 +3,59 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {availableScopesPropType, componentCopyrightDetailsPropType, componentPropType}
-  from '../advancedLegalPropTypes';
+import {
+  availableScopesPropType,
+  componentCopyrightDetailsPropType,
+  componentPropType,
+} from '../advancedLegalPropTypes';
 import React from 'react';
-import {timeAgo} from '../../util/CommonServices';
-import {findIndex, propEq} from 'ramda';
+import { timeAgo } from '../../util/CommonServices';
+import { findIndex, propEq } from 'ramda';
 
 export default function CopyrightDetailsOverview(props) {
-  const {
-    availableScopes,
-    component,
-    componentCopyrightDetails
-  } = props;
+  const { availableScopes, component, componentCopyrightDetails } = props;
 
-  const ifExistsElseEmpty = (element, func) => element ? func() : '';
+  const ifExistsElseEmpty = (element, func) => (element ? func() : '');
 
-  const attributionStatus = (item) => ifExistsElseEmpty(item,
-      () => item.status === 'enabled' ? 'Included' : 'Excluded');
+  const attributionStatus = (item) =>
+    ifExistsElseEmpty(item, () =>
+      item.status === 'enabled' ? 'Included' : 'Excluded'
+    );
 
-  const copyrightSource = (item) => ifExistsElseEmpty(item,
-      () => item.originalContentHash ? 'Sonatype Scan' : 'Manually added');
+  const copyrightSource = (item) =>
+    ifExistsElseEmpty(item, () =>
+      item.originalContentHash ? 'Sonatype Scan' : 'Manually added'
+    );
 
   const copyrightModification = () => {
     const licenseLegalData = component && component.licenseLegalData;
     if (licenseLegalData && licenseLegalData.componentCopyrightLastUpdatedAt) {
       const age = timeAgo(licenseLegalData.componentCopyrightLastUpdatedAt);
-      return `${age.age} ${age.qualifier} by ${licenseLegalData.componentCopyrightLastUpdatedByUsername || 'N/A'}`;
-    }
-    else {
+      return `${age.age} ${age.qualifier} by ${
+        licenseLegalData.componentCopyrightLastUpdatedByUsername || 'N/A'
+      }`;
+    } else {
       return 'N/A';
     }
   };
 
   const scopeName = () => {
-    const scopeOwnerId = (component && component.licenseLegalData
-      && component.licenseLegalData.componentCopyrightScopeOwnerId) || 'ROOT_ORGANIZATION_ID';
-    const availableScopeValues = availableScopes && availableScopes.values && [...availableScopes.values] || [];
-    const scopeIndex = findIndex(propEq('id', scopeOwnerId), availableScopeValues);
-    return scopeIndex < 0 ? 'Root Organization' : availableScopeValues[scopeIndex].name;
+    const scopeOwnerId =
+      (component &&
+        component.licenseLegalData &&
+        component.licenseLegalData.componentCopyrightScopeOwnerId) ||
+      'ROOT_ORGANIZATION_ID';
+    const availableScopeValues =
+      (availableScopes &&
+        availableScopes.values && [...availableScopes.values]) ||
+      [];
+    const scopeIndex = findIndex(
+      propEq('id', scopeOwnerId),
+      availableScopeValues
+    );
+    return scopeIndex < 0
+      ? 'Root Organization'
+      : availableScopeValues[scopeIndex].name;
   };
 
   return (
@@ -60,9 +75,7 @@ export default function CopyrightDetailsOverview(props) {
           </div>
           <div className="copyright-overview-item">
             <dt className="nx-read-only__label">Scope</dt>
-            <dd className="nx-read-only__data">
-              {scopeName()}
-            </dd>
+            <dd className="nx-read-only__data">{scopeName()}</dd>
           </div>
           <div className="copyright-overview-item">
             <dt className="nx-read-only__label">Source</dt>
@@ -77,7 +90,8 @@ export default function CopyrightDetailsOverview(props) {
           <div className="nx-read-only copyright-overview-text">
             <dt className="nx-read-only__label">Copyright Text</dt>
             <dd className="nx-read-only__data">
-              {componentCopyrightDetails.selectedCopyright && componentCopyrightDetails.selectedCopyright.content}
+              {componentCopyrightDetails.selectedCopyright &&
+                componentCopyrightDetails.selectedCopyright.content}
             </dd>
           </div>
         </dl>
@@ -89,5 +103,5 @@ export default function CopyrightDetailsOverview(props) {
 CopyrightDetailsOverview.propTypes = {
   availableScopes: availableScopesPropType,
   component: componentPropType,
-  componentCopyrightDetails: componentCopyrightDetailsPropType
+  componentCopyrightDetails: componentCopyrightDetailsPropType,
 };

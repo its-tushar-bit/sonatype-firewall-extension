@@ -13,19 +13,17 @@ import DashboardMask from '../dashboardMask/DashboardMask';
 export default function DashboardViolations(props) {
   const VIOLATIONS_RESULTS_TYPE = 'violations';
   const {
-        results,
-        filterLoading,
-        needsAcknowledgement,
-        filtersAreDirty,
-        loadResults,
-        sortResults,
-        stateGo,
-        appliedFilter: {
-          maxDaysOld
-        }
-      } = props,
-      violations = results && results[VIOLATIONS_RESULTS_TYPE],
-      sortViolations = partial(sortResults, [VIOLATIONS_RESULTS_TYPE]);
+      results,
+      filterLoading,
+      needsAcknowledgement,
+      filtersAreDirty,
+      loadResults,
+      sortResults,
+      stateGo,
+      appliedFilter: { maxDaysOld },
+    } = props,
+    violations = results && results[VIOLATIONS_RESULTS_TYPE],
+    sortViolations = partial(sortResults, [VIOLATIONS_RESULTS_TYPE]);
 
   const doLoad = () => {
     loadResults(VIOLATIONS_RESULTS_TYPE);
@@ -43,13 +41,16 @@ export default function DashboardViolations(props) {
     stateGo,
     maxDaysOld,
     needsAcknowledgement,
-    reload: doLoad
+    reload: doLoad,
   };
 
   return (
-    <div id="dashboard-violations" className="iq-dashboard-violations nx-viewport-sized__container">
-      { filtersAreDirty && <DashboardMask /> }
-      <DashboardViolationsTable { ...tableProps } />
+    <div
+      id="dashboard-violations"
+      className="iq-dashboard-violations nx-viewport-sized__container"
+    >
+      {filtersAreDirty && <DashboardMask />}
+      <DashboardViolationsTable {...tableProps} />
     </div>
   );
 }
@@ -58,7 +59,7 @@ const dashboardResultsShape = PropTypes.shape({
   results: PropTypes.array,
   numResults: PropTypes.number,
   error: PropTypes.string,
-  sortFields: PropTypes.arrayOf(PropTypes.string)
+  sortFields: PropTypes.arrayOf(PropTypes.string),
 });
 
 DashboardViolations.propTypes = {
@@ -69,9 +70,9 @@ DashboardViolations.propTypes = {
   sortResults: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   appliedFilter: PropTypes.shape({
-    maxDaysOld: PropTypes.number
+    maxDaysOld: PropTypes.number,
   }).isRequired,
   results: PropTypes.shape({
-    violations: dashboardResultsShape
-  })
+    violations: dashboardResultsShape,
+  }),
 };

@@ -6,12 +6,11 @@
 window.clmEndpoint = {
   type: 'ide',
   showContext: false,
-  linkTarget: '_self'
+  linkTarget: '_self',
 };
 
 // disable the context menu to prevent the user from reloading the page which would break the integration with
 // the IDE plugin's Java code
-$(document).bind('contextmenu', function() {
+$(document).bind('contextmenu', function () {
   return false;
 });
-

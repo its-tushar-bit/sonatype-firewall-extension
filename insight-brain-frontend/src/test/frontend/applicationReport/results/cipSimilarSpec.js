@@ -5,18 +5,17 @@
  */
 import cipModalModule from '../../../../main/frontend/applicationReport/results/cipModal/module';
 
-describe('cipSimilar', function() {
-  let controller,
-      $scope;
+describe('cipSimilar', function () {
+  let controller, $scope;
 
   beforeEach(angular.mock.module(cipModalModule.name));
 
-  beforeEach(inject(function($componentController, $rootScope) {
+  beforeEach(inject(function ($componentController, $rootScope) {
     $scope = $rootScope.$new();
     controller = $componentController('cipSimilar', { $scope });
   }));
 
-  it('sets vm.mostSimilarComponent and vm.otherSimilarComponents based on vm.similarComponents', function() {
+  it('sets vm.mostSimilarComponent and vm.otherSimilarComponents based on vm.similarComponents', function () {
     controller.similarComponents = [];
     $scope.$digest();
 

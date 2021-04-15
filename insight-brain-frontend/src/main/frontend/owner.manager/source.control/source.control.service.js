@@ -3,10 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {prop} from 'ramda';
+import { prop } from 'ramda';
 
 export default function SourceControlService($http, CLMLocations) {
-
   return {
     addSourceControlRecord: addSourceControlRecord,
     updateSourceControlRecord: updateSourceControlRecord,
@@ -15,7 +14,7 @@ export default function SourceControlService($http, CLMLocations) {
     getProviderTypes: getProviderTypes,
     getCompositeSourceControlRecord: getCompositeSourceControlRecord,
     validateCompositeSCMConfig: validateCompositeSCMConfig,
-    getSourceControlMetrics: getSourceControlMetrics
+    getSourceControlMetrics: getSourceControlMetrics,
   };
 
   /**
@@ -23,11 +22,15 @@ export default function SourceControlService($http, CLMLocations) {
    * @returns source control record with inherited fields
    */
   function getCompositeSourceControlRecord(ownerType, ownerId) {
-    return $http.get(CLMLocations.getCompositeSourceControlUrl(ownerType, ownerId)).then(prop('data'));
+    return $http
+      .get(CLMLocations.getCompositeSourceControlUrl(ownerType, ownerId))
+      .then(prop('data'));
   }
 
   function validateCompositeSCMConfig(ownerType, ownerId) {
-    return $http.get(CLMLocations.getValidateScmConfigUrl(ownerType, ownerId)).then(prop('data'));
+    return $http
+      .get(CLMLocations.getValidateScmConfigUrl(ownerType, ownerId))
+      .then(prop('data'));
   }
 
   /**
@@ -36,7 +39,9 @@ export default function SourceControlService($http, CLMLocations) {
    * @returns source control metrics associated with application
    */
   function getSourceControlMetrics(ownerType, ownerId) {
-    return $http.get(CLMLocations.getSourceControlMetricsUrl(ownerType, ownerId)).then(prop('data'));
+    return $http
+      .get(CLMLocations.getSourceControlMetricsUrl(ownerType, ownerId))
+      .then(prop('data'));
   }
 
   /**
@@ -72,12 +77,14 @@ export default function SourceControlService($http, CLMLocations) {
    * @returns 204 on success
    */
   function deleteSourceControlRecord(ownerType, ownerId) {
-    return $http.delete(CLMLocations.getSourceControlUrl(ownerType, ownerId)).then(prop('data'));
+    return $http
+      .delete(CLMLocations.getSourceControlUrl(ownerType, ownerId))
+      .then(prop('data'));
   }
 
   function getProviderTypesMap() {
     let providerTypesMap = {};
-    getProviderTypes().forEach(function(providerType) {
+    getProviderTypes().forEach(function (providerType) {
       providerTypesMap[providerType.value] = providerType.name;
     });
 
@@ -86,29 +93,27 @@ export default function SourceControlService($http, CLMLocations) {
 
   function getProviderTypes() {
     return [
-      {name: 'GitHub', value: 'github'}, {name: 'GitLab', value: 'gitlab'}, {name: 'Bitbucket', value: 'bitbucket'}
+      { name: 'GitHub', value: 'github' },
+      { name: 'GitLab', value: 'gitlab' },
+      { name: 'Bitbucket', value: 'bitbucket' },
     ];
   }
-
 }
 
 function getDataFromSourceControl(ownerType, ownerId, sourceControl) {
   let data = {
-    'username': sourceControl.username,
-    'token': sourceControl.token,
-    'baseBranch': sourceControl.baseBranch,
-    'enablePullRequests': sourceControl.enablePullRequests,
-    'enableStatusChecks': sourceControl.enableStatusChecks
+    username: sourceControl.username,
+    token: sourceControl.token,
+    baseBranch: sourceControl.baseBranch,
+    enablePullRequests: sourceControl.enablePullRequests,
+    enableStatusChecks: sourceControl.enableStatusChecks,
   };
   if (ownerType === 'application') {
     data.repositoryUrl = sourceControl.repositoryUrl;
-  }
-  else if (ownerId === 'ROOT_ORGANIZATION_ID') {
+  } else if (ownerId === 'ROOT_ORGANIZATION_ID') {
     data.provider = sourceControl.provider;
   }
   return data;
 }
 
-SourceControlService.$inject = [
-  '$http', 'CLMLocations'
-];
+SourceControlService.$inject = ['$http', 'CLMLocations'];

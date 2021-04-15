@@ -20,17 +20,16 @@ export default function CopyToClipboard($window, $parse) {
   return {
     restrict: 'A',
     require: 'copiedTooltip',
-    link: CopyToClipboardLink
+    link: CopyToClipboardLink,
   };
 
   function CopyToClipboardLink(scope, element, attrs, copiedTooltipCtrl) {
-    element.on('click', function(e) {
+    element.on('click', function (e) {
       e.stopPropagation();
       var textToCopy = $parse(attrs.copyToClipboard)(scope);
       try {
         copyText(textToCopy);
-      }
-      catch (err) {
+      } catch (err) {
         // expected in Safari browser
         showManualCopyPrompt();
       }
@@ -51,7 +50,7 @@ export default function CopyToClipboard($window, $parse) {
       node.style.left = '-10000px';
 
       node.textContent = text;
-      node.oncopy = function() {
+      node.oncopy = function () {
         removeManualCopyPrompt();
         copiedTooltipCtrl.showTooltip();
       };
@@ -63,17 +62,19 @@ export default function CopyToClipboard($window, $parse) {
       selection.removeAllRanges();
       node.select();
       if (!$window.document.execCommand('copy')) {
-        throw ('failure copy');
+        throw 'failure copy';
       }
       selection.removeAllRanges();
     }
 
     function showManualCopyPrompt() {
-      element.tooltip({
-        title: 'Press ⌘-C to copy',
-        trigger: 'manual',
-        placement: 'bottom'
-      }).tooltip('show');
+      element
+        .tooltip({
+          title: 'Press ⌘-C to copy',
+          trigger: 'manual',
+          placement: 'bottom',
+        })
+        .tooltip('show');
     }
 
     function removeManualCopyPrompt() {

@@ -6,33 +6,33 @@
 
 import reduce from '../../../../main/frontend/configuration/mail/mailConfigReducer';
 
-describe('mailConfigReducer', function() {
+describe('mailConfigReducer', function () {
   let otherObject;
 
-  beforeEach(function() {
-    otherObject = {value: 'test value'};
+  beforeEach(function () {
+    otherObject = { value: 'test value' };
   });
 
-  describe('unknown action', function() {
-    it('returns original state', function() {
-      const state = Object.freeze({foo: 'bar'});
+  describe('unknown action', function () {
+    it('returns original state', function () {
+      const state = Object.freeze({ foo: 'bar' });
       const action = {
-        type: 'UNKNOWN'
+        type: 'UNKNOWN',
       };
       const newState = reduce(state, action);
       expect(newState).toBe(state);
     });
   });
 
-  describe('MAIL_CONFIG_SAVE_REQUESTED action', function() {
-    it('sets submitMaskState to false', function() {
+  describe('MAIL_CONFIG_SAVE_REQUESTED action', function () {
+    it('sets submitMaskState to false', function () {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: null
+        submitMaskState: null,
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_SAVE_REQUESTED'
+        type: 'MAIL_CONFIG_SAVE_REQUESTED',
       });
 
       expect(newState.submitMaskState).toBe(false);
@@ -40,12 +40,12 @@ describe('mailConfigReducer', function() {
     });
   });
 
-  describe('MAIL_CONFIG_SAVE_FULFILLED action', function() {
-    it('sets submitMaskState to true', function() {
+  describe('MAIL_CONFIG_SAVE_FULFILLED action', function () {
+    it('sets submitMaskState to true', function () {
       const state = Object.freeze({
         other: otherObject,
         formState: {},
-        submitMaskState: false
+        submitMaskState: false,
       });
 
       const newState = reduce(state, {
@@ -53,8 +53,8 @@ describe('mailConfigReducer', function() {
         payload: {
           hostname: 'test.host',
           port: 42,
-          systemEmail: 'foo@bar.com'
-        }
+          systemEmail: 'foo@bar.com',
+        },
       });
 
       expect(newState.submitMaskState).toBe(true);
@@ -62,16 +62,16 @@ describe('mailConfigReducer', function() {
     });
   });
 
-  describe('MAIL_CONFIG_SAVE_FAILED action', function() {
-    it('sets submitMaskState to null', function() {
+  describe('MAIL_CONFIG_SAVE_FAILED action', function () {
+    it('sets submitMaskState to null', function () {
       const state = Object.freeze({
         other: otherObject,
         submitMaskState: true,
-        formState: {}
+        formState: {},
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_SAVE_FAILED'
+        type: 'MAIL_CONFIG_SAVE_FAILED',
       });
 
       expect(newState.submitMaskState).toBeNull();
@@ -79,15 +79,15 @@ describe('mailConfigReducer', function() {
     });
   });
 
-  describe('MAIL_CONFIG_DELETE_REQUESTED action', function() {
-    it('sets submitMaskState to false', function() {
+  describe('MAIL_CONFIG_DELETE_REQUESTED action', function () {
+    it('sets submitMaskState to false', function () {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: null
+        submitMaskState: null,
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_DELETE_REQUESTED'
+        type: 'MAIL_CONFIG_DELETE_REQUESTED',
       });
 
       expect(newState.submitMaskState).toBe(false);
@@ -95,29 +95,29 @@ describe('mailConfigReducer', function() {
     });
   });
 
-  describe('MAIL_CONFIG_DELETE_FULFILLED action', function() {
-    it('sets submitMaskState to true', function() {
+  describe('MAIL_CONFIG_DELETE_FULFILLED action', function () {
+    it('sets submitMaskState to true', function () {
       const state = Object.freeze({
-        submitMaskState: false
+        submitMaskState: false,
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_DELETE_FULFILLED'
+        type: 'MAIL_CONFIG_DELETE_FULFILLED',
       });
 
       expect(newState.submitMaskState).toBe(true);
     });
   });
 
-  describe('MAIL_CONFIG_DELETE_FAILED action', function() {
-    it('sets submitMaskState to null', function() {
+  describe('MAIL_CONFIG_DELETE_FAILED action', function () {
+    it('sets submitMaskState to null', function () {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: true
+        submitMaskState: true,
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_DELETE_FAILED'
+        type: 'MAIL_CONFIG_DELETE_FAILED',
       });
 
       expect(newState.submitMaskState).toBeNull();
@@ -125,15 +125,15 @@ describe('mailConfigReducer', function() {
     });
   });
 
-  describe('MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED action', function() {
-    it('sets submitMaskState to false', function() {
+  describe('MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED action', function () {
+    it('sets submitMaskState to false', function () {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: null
+        submitMaskState: null,
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED'
+        type: 'MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED',
       });
 
       expect(newState.submitMaskState).toBe(false);
@@ -141,15 +141,15 @@ describe('mailConfigReducer', function() {
     });
   });
 
-  describe('MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED action', function() {
-    it('sets submitMaskState to true', function() {
+  describe('MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED action', function () {
+    it('sets submitMaskState to true', function () {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: false
+        submitMaskState: false,
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED'
+        type: 'MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED',
       });
 
       expect(newState.submitMaskState).toBe(true);
@@ -157,15 +157,15 @@ describe('mailConfigReducer', function() {
     });
   });
 
-  describe('MAIL_CONFIG_SEND_TEST_MAIL_FAILED action', function() {
-    it('sets submitMaskState to null', function() {
+  describe('MAIL_CONFIG_SEND_TEST_MAIL_FAILED action', function () {
+    it('sets submitMaskState to null', function () {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: false
+        submitMaskState: false,
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_SEND_TEST_MAIL_FAILED'
+        type: 'MAIL_CONFIG_SEND_TEST_MAIL_FAILED',
       });
 
       expect(newState.submitMaskState).toBeNull();
@@ -173,15 +173,15 @@ describe('mailConfigReducer', function() {
     });
   });
 
-  describe('MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE action', function() {
-    it('sets submitMaskState to null', function() {
+  describe('MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE action', function () {
+    it('sets submitMaskState to null', function () {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: true
+        submitMaskState: true,
       });
 
       const newState = reduce(state, {
-        type: 'MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE'
+        type: 'MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE',
       });
 
       expect(newState.submitMaskState).toBeNull();

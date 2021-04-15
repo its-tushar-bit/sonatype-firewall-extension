@@ -10,11 +10,14 @@ import AdvancedLegalApplicationsPage from './AdvancedLegalApplicationsPage';
 
 function mapStateToProps({ advancedLegal }) {
   return {
-    ...pick(['viewStateApplications', 'applications'], advancedLegal)
+    ...pick(['viewStateApplications', 'applications'], advancedLegal),
   };
 }
 
 const mapDispatchToProps = { ...advancedLegalActions };
 
-const AdvancedLegalApplicationsContainer = connect(mapStateToProps, mapDispatchToProps)(AdvancedLegalApplicationsPage);
+const AdvancedLegalApplicationsContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(AdvancedLegalApplicationsPage);
 export default AdvancedLegalApplicationsContainer;

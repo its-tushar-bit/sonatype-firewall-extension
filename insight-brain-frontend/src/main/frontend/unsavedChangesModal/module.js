@@ -6,5 +6,6 @@
 
 import unsavedChangesModalService from './unsavedChangesModalService';
 
-export default angular.module('unsavedChangesModalModule', [])
-    .service('unsavedChangesModalService', unsavedChangesModalService);
+export default angular
+  .module('unsavedChangesModalModule', [])
+  .service('unsavedChangesModalService', unsavedChangesModalService);

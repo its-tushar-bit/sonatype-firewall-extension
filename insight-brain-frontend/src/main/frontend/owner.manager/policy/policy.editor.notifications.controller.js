@@ -3,22 +3,34 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function PolicyEditorNotificationsController($scope, $q, RoleMappingService, StageTypeStore, JiraService,
-                                                            ProductFeatures, NotificationWebhookService) {
+export default function PolicyEditorNotificationsController(
+  $scope,
+  $q,
+  RoleMappingService,
+  StageTypeStore,
+  JiraService,
+  ProductFeatures,
+  NotificationWebhookService
+) {
   var vm = this,
-      availableRoles,
-      availableWebhooks,
-      roleNames,
-      jiraProjects,
-      jiraIssueTypes,
-      jiraProjectNames;
+    availableRoles,
+    availableWebhooks,
+    roleNames,
+    jiraProjects,
+    jiraIssueTypes,
+    jiraProjectNames;
 
   vm.addRecipientForm = undefined;
   vm.loadError = undefined;
   vm.jiraError = undefined;
   vm.actionStages = undefined;
   vm.recipients = undefined;
-  vm.recipientTypes = {EMAIL: 'Email', ROLE: 'Role', JIRA: 'JIRA', WEBHOOK: 'Webhook'};
+  vm.recipientTypes = {
+    EMAIL: 'Email',
+    ROLE: 'Role',
+    JIRA: 'JIRA',
+    WEBHOOK: 'Webhook',
+  };
   vm.recipientType = vm.recipientTypes.EMAIL;
   vm.recipientToAdd = '';
   vm.recipientTypeOptions = [vm.recipientTypes.EMAIL, vm.recipientTypes.ROLE];
@@ -40,14 +52,15 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   vm.isNotificationsSupported = undefined;
   vm.isFirewallSupported = undefined;
   vm.resetNotifications = resetNotifications;
-  vm.isNotificationsSupportedForStage = ProductFeatures.isNotificationsSupportedForStage;
+  vm.isNotificationsSupportedForStage =
+    ProductFeatures.isNotificationsSupportedForStage;
   vm.isNotificationsFormDisabled = isNotificationsFormDisabled;
   vm.isCheckboxForStageDisabled = isCheckboxForStageDisabled;
   vm.getAvailableWebhooks = getAvailableWebhooks;
 
   vm.doLoad();
 
-  $scope.$watch('vm.notifications', function(newValue, oldValue) {
+  $scope.$watch('vm.notifications', function (newValue, oldValue) {
     if (newValue === oldValue) {
       return;
     }
@@ -58,76 +71,84 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
     var promises = [
       StageTypeStore.getActionStages(),
       RoleMappingService.get(),
-      JiraService.isEnabled().then(function(isEnabled) {
+      JiraService.isEnabled().then(function (isEnabled) {
         if (isEnabled) {
           var getJiraDeferred = $q.defer();
-          JiraService.getJiraProjects().then(function(results) {
-            getJiraDeferred.resolve({
-              projects: results
-            });
-          }, function(error) {
-            getJiraDeferred.resolve({
-              error: error
-            });
-          });
+          JiraService.getJiraProjects().then(
+            function (results) {
+              getJiraDeferred.resolve({
+                projects: results,
+              });
+            },
+            function (error) {
+              getJiraDeferred.resolve({
+                error: error,
+              });
+            }
+          );
           return getJiraDeferred.promise;
         }
       }),
-      ProductFeatures.load().then(function() {
+      ProductFeatures.load().then(function () {
         return loadWebhooksIfSupported();
-      })
+      }),
     ];
 
-    $q.all(promises).then(function(results) {
-      vm.actionStages = results[0];
-      vm.roles = results[1].membersByRole;
-      var jiraResults = results[2];
-      var webhookResults = results[3];
+    $q.all(promises).then(
+      function (results) {
+        vm.actionStages = results[0];
+        vm.roles = results[1].membersByRole;
+        var jiraResults = results[2];
+        var webhookResults = results[3];
 
-      if (!jiraResults) {
-        // JIRA is disabled
-      }
-      else if (jiraResults.error) {
-        vm.jiraError = jiraResults.error;
-      }
-      else {
-        if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.JIRA) === -1) {
-          vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
+        if (!jiraResults) {
+          // JIRA is disabled
+        } else if (jiraResults.error) {
+          vm.jiraError = jiraResults.error;
+        } else {
+          if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.JIRA) === -1) {
+            vm.recipientTypeOptions.push(vm.recipientTypes.JIRA);
+          }
+          jiraProjects = jiraResults.projects;
         }
-        jiraProjects = jiraResults.projects;
-      }
 
-      if (!webhookResults || !vm.isWebhooksSupported) {
-        // webhooks is disabled or not licensed
-      }
-      else if (webhookResults.webhookError) {
-        vm.webhookError = webhookResults.webhookError;
-      }
-      else {
-        vm.webhooks = webhookResults.webhooks;
-      }
-
-      roleNames = vm.roles ? mapRoleNames() : {};
-
-      mapJiraProjectsAndIssueTypes();
-
-      updateAvailableRoles();
-      updateAvailableJiraProjects();
-      loadRecipients();
-
-      vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
-      vm.isNotificationsSupported = ProductFeatures.isAvailable('notifications');
-      vm.isFirewallSupported = ProductFeatures.isAvailable('firewall');
-
-      if (vm.isWebhooksSupported) {
-        updateAvailableWebhooks();
-        if (vm.recipientTypeOptions.indexOf(vm.recipientTypes.WEBHOOK) === -1) {
-          vm.recipientTypeOptions.push(vm.recipientTypes.WEBHOOK);
+        if (!webhookResults || !vm.isWebhooksSupported) {
+          // webhooks is disabled or not licensed
+        } else if (webhookResults.webhookError) {
+          vm.webhookError = webhookResults.webhookError;
+        } else {
+          vm.webhooks = webhookResults.webhooks;
         }
+
+        roleNames = vm.roles ? mapRoleNames() : {};
+
+        mapJiraProjectsAndIssueTypes();
+
+        updateAvailableRoles();
+        updateAvailableJiraProjects();
+        loadRecipients();
+
+        vm.isMonitoringSupported = ProductFeatures.isAvailable(
+          'policy-monitoring'
+        );
+        vm.isNotificationsSupported = ProductFeatures.isAvailable(
+          'notifications'
+        );
+        vm.isFirewallSupported = ProductFeatures.isAvailable('firewall');
+
+        if (vm.isWebhooksSupported) {
+          updateAvailableWebhooks();
+          if (
+            vm.recipientTypeOptions.indexOf(vm.recipientTypes.WEBHOOK) === -1
+          ) {
+            vm.recipientTypeOptions.push(vm.recipientTypes.WEBHOOK);
+          }
+        }
+      },
+      function (error) {
+        vm.loadError = error;
       }
-    }, function(error) {
-      vm.loadError = error;
-    });
+    );
 
     delete vm.loadError;
     delete vm.jiraError;
@@ -135,19 +156,23 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   }
 
   function loadWebhooksIfSupported() {
-    vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
-        ProductFeatures.isAvailable('webhooks-for-repositories');
+    vm.isWebhooksSupported =
+      ProductFeatures.isAvailable('webhooks-for-applications') ||
+      ProductFeatures.isAvailable('webhooks-for-repositories');
     if (vm.isWebhooksSupported) {
       var getWebhooksDeferred = $q.defer();
-      NotificationWebhookService.get().then(function(results) {
-        getWebhooksDeferred.resolve({
-          webhooks: results
-        });
-      }, function(error) {
-        getWebhooksDeferred.resolve({
-          webhookError: error
-        });
-      });
+      NotificationWebhookService.get().then(
+        function (results) {
+          getWebhooksDeferred.resolve({
+            webhooks: results,
+          });
+        },
+        function (error) {
+          getWebhooksDeferred.resolve({
+            webhookError: error,
+          });
+        }
+      );
       return getWebhooksDeferred.promise;
     }
   }
@@ -158,19 +183,21 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
     var roleNotifications = vm.notifications.roleNotifications || [];
     var jiraNotifications = vm.notifications.jiraNotifications || [];
 
-    vm.recipients = userNotifications.concat(roleNotifications).concat(jiraNotifications).sort(function(a, b) {
-      return getDisplayName(a).localeCompare(getDisplayName(b));
-    });
+    vm.recipients = userNotifications
+      .concat(roleNotifications)
+      .concat(jiraNotifications)
+      .sort(function (a, b) {
+        return getDisplayName(a).localeCompare(getDisplayName(b));
+      });
 
     var webhookNotifications = vm.notifications.webhookNotifications || [];
     vm.recipients = userNotifications
-        .concat(roleNotifications)
-        .concat(jiraNotifications)
-        .concat(webhookNotifications)
-        .sort(function(a, b) {
-          return getDisplayName(a).localeCompare(getDisplayName(b));
-        });
-
+      .concat(roleNotifications)
+      .concat(jiraNotifications)
+      .concat(webhookNotifications)
+      .sort(function (a, b) {
+        return getDisplayName(a).localeCompare(getDisplayName(b));
+      });
   }
 
   function addRecipient(keypressEvent) {
@@ -184,14 +211,11 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
 
     if (vm.recipientType === vm.recipientTypes.EMAIL) {
       addEmailRecipient(vm.recipientToAdd);
-    }
-    else if (vm.recipientType === vm.recipientTypes.ROLE) {
+    } else if (vm.recipientType === vm.recipientTypes.ROLE) {
       addRoleRecipient(vm.recipientToAdd.roleId);
-    }
-    else if (vm.recipientType === vm.recipientTypes.JIRA) {
+    } else if (vm.recipientType === vm.recipientTypes.JIRA) {
       addJiraRecipient();
-    }
-    else if (vm.recipientType === vm.recipientTypes.WEBHOOK) {
+    } else if (vm.recipientType === vm.recipientTypes.WEBHOOK) {
       addWebhookRecipient();
     }
 
@@ -212,43 +236,71 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
 
     // remove notifications from original policy notifications
     if (recipient.roleId) {
-      vm.notifications.roleNotifications.splice(vm.notifications.roleNotifications.indexOf(recipient), 1);
+      vm.notifications.roleNotifications.splice(
+        vm.notifications.roleNotifications.indexOf(recipient),
+        1
+      );
       updateAvailableRoles();
-    }
-    else if (recipient.emailAddress) {
-      vm.notifications.userNotifications.splice(vm.notifications.userNotifications.indexOf(recipient), 1);
-    }
-    else if (recipient.projectKey) {
-      vm.notifications.jiraNotifications.splice(vm.notifications.jiraNotifications.indexOf(recipient), 1);
+    } else if (recipient.emailAddress) {
+      vm.notifications.userNotifications.splice(
+        vm.notifications.userNotifications.indexOf(recipient),
+        1
+      );
+    } else if (recipient.projectKey) {
+      vm.notifications.jiraNotifications.splice(
+        vm.notifications.jiraNotifications.indexOf(recipient),
+        1
+      );
       updateAvailableJiraProjects();
-    }
-    else if (recipient.webhookId) {
-      vm.notifications.webhookNotifications.splice(vm.notifications.webhookNotifications.indexOf(recipient), 1);
+    } else if (recipient.webhookId) {
+      vm.notifications.webhookNotifications.splice(
+        vm.notifications.webhookNotifications.indexOf(recipient),
+        1
+      );
       updateAvailableWebhooks();
     }
   }
 
   function getDisplayName(recipient) {
-    return recipient.emailAddress || roleNames[recipient.roleId] || getWebhookDisplayName(recipient) ||
-        getJiraDisplayName(recipient);
+    return (
+      recipient.emailAddress ||
+      roleNames[recipient.roleId] ||
+      getWebhookDisplayName(recipient) ||
+      getJiraDisplayName(recipient)
+    );
   }
 
   function getJiraDisplayName(recipient) {
-    if (!vm.jiraError && jiraProjectNames[recipient.projectKey] && jiraIssueTypes[recipient.issueTypeId]) {
-      return jiraProjectNames[recipient.projectKey] + ' (' + jiraIssueTypes[recipient.issueTypeId] + ')';
+    if (
+      !vm.jiraError &&
+      jiraProjectNames[recipient.projectKey] &&
+      jiraIssueTypes[recipient.issueTypeId]
+    ) {
+      return (
+        jiraProjectNames[recipient.projectKey] +
+        ' (' +
+        jiraIssueTypes[recipient.issueTypeId] +
+        ')'
+      );
     }
-    return recipient.projectKey + ' (Issue Type ID: ' + recipient.issueTypeId + ')';
+    return (
+      recipient.projectKey + ' (Issue Type ID: ' + recipient.issueTypeId + ')'
+    );
   }
 
   function getWebhookDisplayName(recipient) {
     if (recipient.webhookId) {
-      var webhook = vm.webhooks ? vm.webhooks.find(function(webhook) {
-        return recipient.webhookId === webhook.id;
-      }) : undefined;
+      var webhook = vm.webhooks
+        ? vm.webhooks.find(function (webhook) {
+            return recipient.webhookId === webhook.id;
+          })
+        : undefined;
       if (webhook) {
-        return 'Webhook: ' + (webhook.description ? webhook.description : webhook.url);
-      }
-      else {
+        return (
+          'Webhook: ' +
+          (webhook.description ? webhook.description : webhook.url)
+        );
+      } else {
         return 'Undefined webhook: ' + recipient.webhookId;
       }
     }
@@ -258,8 +310,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
     var index = recipient.stageIds.indexOf(stage);
     if (index !== -1) {
       recipient.stageIds.splice(index, 1);
-    }
-    else {
+    } else {
       recipient.stageIds.push(stage);
     }
   }
@@ -271,7 +322,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
 
     var newNotification = {
       emailAddress: email,
-      stageIds: []
+      stageIds: [],
     };
     vm.notifications.userNotifications.push(newNotification);
     vm.recipients.push(newNotification);
@@ -280,7 +331,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   function addRoleRecipient(roleId) {
     var newNotification = {
       roleId: roleId,
-      stageIds: []
+      stageIds: [],
     };
     vm.notifications.roleNotifications.push(newNotification);
     vm.recipients.push(newNotification);
@@ -291,7 +342,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
     var newNotification = {
       projectKey: vm.recipientToAdd.key,
       issueTypeId: vm.recipientToAddIssueType.id,
-      stageIds: []
+      stageIds: [],
     };
     vm.notifications.jiraNotifications.push(newNotification);
     vm.recipients.push(newNotification);
@@ -301,7 +352,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   function addWebhookRecipient() {
     var newNotification = {
       webhookId: vm.recipientToAdd.id,
-      stageIds: []
+      stageIds: [],
     };
     vm.notifications.webhookNotifications.push(newNotification);
     vm.recipients.push(newNotification);
@@ -309,7 +360,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   }
 
   function emailExists(email) {
-    return vm.notifications.userNotifications.some(function(entry) {
+    return vm.notifications.userNotifications.some(function (entry) {
       return entry.emailAddress === email;
     });
   }
@@ -319,7 +370,7 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   }
 
   function mapRoleNames() {
-    return vm.roles.reduce(function(map, role) {
+    return vm.roles.reduce(function (map, role) {
       map[role.roleId] = role.roleName;
       return map;
     }, {});
@@ -330,9 +381,9 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
     jiraIssueTypes = {};
 
     if (jiraProjects) {
-      jiraProjects.forEach(function(project) {
+      jiraProjects.forEach(function (project) {
         jiraProjectNames[project.key] = project.name;
-        project.issueTypes.forEach(function(issueType) {
+        project.issueTypes.forEach(function (issueType) {
           jiraIssueTypes[issueType.id] = issueType.name;
         });
       });
@@ -340,13 +391,16 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   }
 
   function updateAvailableRoles() {
-    if (!vm.notifications.roleNotifications || vm.notifications.roleNotifications.length === 0) {
+    if (
+      !vm.notifications.roleNotifications ||
+      vm.notifications.roleNotifications.length === 0
+    ) {
       availableRoles = vm.roles;
       return;
     }
 
-    availableRoles = vm.roles.filter(function(role) {
-      return !vm.notifications.roleNotifications.some(function(notification) {
+    availableRoles = vm.roles.filter(function (role) {
+      return !vm.notifications.roleNotifications.some(function (notification) {
         return role.roleId === notification.roleId;
       });
     });
@@ -361,38 +415,48 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
       return;
     }
 
-    if (!vm.notifications.jiraNotifications || vm.notifications.jiraNotifications.length === 0) {
+    if (
+      !vm.notifications.jiraNotifications ||
+      vm.notifications.jiraNotifications.length === 0
+    ) {
       vm.availableJiraProjects = jiraProjects;
       return;
     }
 
-    vm.availableJiraProjects = jiraProjects.filter(function(project) {
-      return !vm.notifications.jiraNotifications.some(function(notification) {
+    vm.availableJiraProjects = jiraProjects.filter(function (project) {
+      return !vm.notifications.jiraNotifications.some(function (notification) {
         return project.key === notification.projectKey;
       });
     });
   }
 
   function getEmails() {
-    return vm.notifications.userNotifications.map(function(entry) {
+    return vm.notifications.userNotifications.map(function (entry) {
       return entry.emailAddress;
     });
   }
 
   function updateAvailableWebhooks() {
-    if (!vm.notifications.webhookNotifications || vm.notifications.webhookNotifications.length === 0 || !vm.webhooks) {
+    if (
+      !vm.notifications.webhookNotifications ||
+      vm.notifications.webhookNotifications.length === 0 ||
+      !vm.webhooks
+    ) {
       availableWebhooks = vm.webhooks;
-    }
-    else {
-      availableWebhooks = vm.webhooks.filter(function(webhook) {
-        return !vm.notifications.webhookNotifications.some(function(notification) {
+    } else {
+      availableWebhooks = vm.webhooks.filter(function (webhook) {
+        return !vm.notifications.webhookNotifications.some(function (
+          notification
+        ) {
           return webhook.id === notification.webhookId;
         });
       });
     }
     if (availableWebhooks) {
-      availableWebhooks.forEach(function(webhook) {
-        webhook.displayName = webhook.description ? webhook.description : webhook.url;
+      availableWebhooks.forEach(function (webhook) {
+        webhook.displayName = webhook.description
+          ? webhook.description
+          : webhook.url;
       });
     }
   }
@@ -402,9 +466,12 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   }
 
   function isAddButtonDisabled() {
-    return (vm.recipientType !== vm.recipientTypes.JIRA && !vm.recipientToAdd) ||
-        (vm.recipientType === vm.recipientTypes.JIRA && (!vm.recipientToAdd || !vm.recipientToAddIssueType)) ||
-        vm.isNotificationsFormDisabled();
+    return (
+      (vm.recipientType !== vm.recipientTypes.JIRA && !vm.recipientToAdd) ||
+      (vm.recipientType === vm.recipientTypes.JIRA &&
+        (!vm.recipientToAdd || !vm.recipientToAddIssueType)) ||
+      vm.isNotificationsFormDisabled()
+    );
   }
 
   function resetNotifications() {
@@ -413,16 +480,26 @@ export default function PolicyEditorNotificationsController($scope, $q, RoleMapp
   }
 
   function isNotificationsFormDisabled() {
-    return vm.disabled || !ProductFeatures.isNotificationsSupportedForAnyStage();
+    return (
+      vm.disabled || !ProductFeatures.isNotificationsSupportedForAnyStage()
+    );
   }
 
   function isCheckboxForStageDisabled(recipient, stageTypeId) {
-    return vm.disabled || !vm.isStageApplicable(recipient, stageTypeId) ||
-        !vm.isNotificationsSupportedForStage(stageTypeId);
+    return (
+      vm.disabled ||
+      !vm.isStageApplicable(recipient, stageTypeId) ||
+      !vm.isNotificationsSupportedForStage(stageTypeId)
+    );
   }
 }
 
 PolicyEditorNotificationsController.$inject = [
-  '$scope', '$q', 'role.mapping.service', 'StageTypeStore', 'jira.service', 'ProductFeatures',
-  'notification.webhook.service'
+  '$scope',
+  '$q',
+  'role.mapping.service',
+  'StageTypeStore',
+  'jira.service',
+  'ProductFeatures',
+  'notification.webhook.service',
 ];

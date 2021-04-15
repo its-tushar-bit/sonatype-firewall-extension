@@ -12,5 +12,8 @@ const mapDispatchToProps = { ...userTokenActions };
 
 const mapStateToProps = ({ userToken }) => ({ ...userToken });
 
-const UserTokenModalContainer = connect(mapStateToProps, mapDispatchToProps)(UserTokenModal);
+const UserTokenModalContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(UserTokenModal);
 export default UserTokenModalContainer;

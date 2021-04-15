@@ -7,18 +7,20 @@ import * as enzymeUtils from '../enzymeUtils';
 import LicenseObligationAttributionTile from '../../../main/frontend/legal/LicenseObligationAttributionTile';
 import { NxTextInput } from '@sonatype/react-shared-components';
 
-describe('LicenseObligationAttributionTile component', function() {
+describe('LicenseObligationAttributionTile component', function () {
   let getShallowComponent,
-      setAttributionTextSpy,
-      setAttributionScopeSpy,
-      saveAttributionSpy,
-      setShowAttributionModalSpy;
+    setAttributionTextSpy,
+    setAttributionScopeSpy,
+    saveAttributionSpy,
+    setShowAttributionModalSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     setAttributionTextSpy = jasmine.createSpy('setAttributionTextSpy');
     setAttributionScopeSpy = jasmine.createSpy('setAttributionScope');
     saveAttributionSpy = jasmine.createSpy('saveAttributionSpy');
-    setShowAttributionModalSpy = jasmine.createSpy('setShowAttributionModalSpy');
+    setShowAttributionModalSpy = jasmine.createSpy(
+      'setShowAttributionModalSpy'
+    );
     const minimalProps = {
       setAttributionText: setAttributionTextSpy,
       setAttributionScope: setAttributionScopeSpy,
@@ -28,55 +30,82 @@ describe('LicenseObligationAttributionTile component', function() {
       name: 'License Obligation Name',
       originalAttributionText: '',
       attributionText: '',
-      availableScopes: { values: [{ id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }] },
+      availableScopes: {
+        values: [
+          {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'Root Organization',
+            label: 'Organization',
+          },
+        ],
+      },
       originalScope: 'ROOT_ORGANIZATION_ID',
       scope: 'ROOT_ORGANIZATION_ID',
       error: null,
       saveAttributionSubmitMask: null,
-      showAttributionModal: false
+      showAttributionModal: false,
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(LicenseObligationAttributionTile, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      LicenseObligationAttributionTile,
+      minimalProps
+    );
   });
 
-  it('renders a header with a label matching the license obligation name', function() {
+  it('renders a header with a label matching the license obligation name', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('.nx-h2')).toHaveText('Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-h2')).toHaveText(
+      'Attribution for "License Obligation Name"'
+    );
   });
 
-  it('renders an Add button if there is no attribution', function() {
+  it('renders an Add button if there is no attribution', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find('.nx-tile__actions span')).toHaveText('Add');
   });
 
-  it('renders an Edit button if there is an attribution', function() {
+  it('renders an Edit button if there is an attribution', function () {
     const wrapper = getShallowComponent({ id: 'id' });
     expect(wrapper.find('.nx-tile__actions span')).toHaveText('Edit');
   });
 
-  it('renders an Add modal title if there is no attribution', function() {
+  it('renders an Add modal title if there is no attribution', function () {
     const wrapper = getShallowComponent({ showAttributionModal: true });
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-modal-header')).toHaveText(
+      'Add Attribution for "License Obligation Name"'
+    );
   });
 
-  it('renders an Edit modal title if there is an attribution', function() {
-    const wrapper = getShallowComponent({ id: 'id', showAttributionModal: true });
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Edit Attribution for "License Obligation Name"');
+  it('renders an Edit modal title if there is an attribution', function () {
+    const wrapper = getShallowComponent({
+      id: 'id',
+      showAttributionModal: true,
+    });
+    expect(wrapper.find('.nx-modal-header')).toHaveText(
+      'Edit Attribution for "License Obligation Name"'
+    );
   });
 
-  it('renders `None added` as content if there is no attribution', function() {
+  it('renders `None added` as content if there is no attribution', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find('.nx-tile-content')).toHaveText('None added');
   });
 
-  it('renders the original attribution text as content if there is an attribution', function() {
-    const attribution = { id: 'id', originalAttributionText: 'Some attribution text.' };
+  it('renders the original attribution text as content if there is an attribution', function () {
+    const attribution = {
+      id: 'id',
+      originalAttributionText: 'Some attribution text.',
+    };
     const wrapper = getShallowComponent(attribution);
-    expect(wrapper.find('.nx-tile-content')).toHaveText(attribution.originalAttributionText);
+    expect(wrapper.find('.nx-tile-content')).toHaveText(
+      attribution.originalAttributionText
+    );
   });
 
-  it('renders the modal with root org data', function() {
+  it('renders the modal with root org data', function () {
     const wrapper = getShallowComponent({ showAttributionModal: true });
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-modal-header')).toHaveText(
+      'Add Attribution for "License Obligation Name"'
+    );
     expect(wrapper.find(NxTextInput)).toHaveProp('value', '');
     let select = wrapper.find('select');
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
@@ -85,20 +114,29 @@ describe('LicenseObligationAttributionTile component', function() {
     expect(options.at(0)).toHaveText('Organization - Root Organization');
   });
 
-  it('renders the modal with org data', function() {
+  it('renders the modal with org data', function () {
     let orgData = {
       attributionText: 'Some obligation attribution text.',
       availableScopes: {
         values: [
           { id: 'orgId', name: 'org', label: 'Organization' },
-          { id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }
-        ]
+          {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'Root Organization',
+            label: 'Organization',
+          },
+        ],
       },
-      showAttributionModal: true
+      showAttributionModal: true,
     };
     const wrapper = getShallowComponent(orgData);
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for "License Obligation Name"');
-    expect(wrapper.find(NxTextInput)).toHaveProp('value', 'Some obligation attribution text.');
+    expect(wrapper.find('.nx-modal-header')).toHaveText(
+      'Add Attribution for "License Obligation Name"'
+    );
+    expect(wrapper.find(NxTextInput)).toHaveProp(
+      'value',
+      'Some obligation attribution text.'
+    );
     let select = wrapper.find('select');
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     let options = wrapper.find('option');
@@ -107,21 +145,30 @@ describe('LicenseObligationAttributionTile component', function() {
     expect(options.at(1)).toHaveText('Organization - Root Organization');
   });
 
-  it('renders the modal with app data', function() {
+  it('renders the modal with app data', function () {
     let appData = {
       attributionText: 'Some obligation attribution text.',
       availableScopes: {
         values: [
           { id: 'appId', name: 'app', label: 'Application' },
           { id: 'orgId', name: 'org', label: 'Organization' },
-          { id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }
-        ]
+          {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'Root Organization',
+            label: 'Organization',
+          },
+        ],
       },
-      showAttributionModal: true
+      showAttributionModal: true,
     };
     const wrapper = getShallowComponent(appData);
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for "License Obligation Name"');
-    expect(wrapper.find(NxTextInput)).toHaveProp('value', 'Some obligation attribution text.');
+    expect(wrapper.find('.nx-modal-header')).toHaveText(
+      'Add Attribution for "License Obligation Name"'
+    );
+    expect(wrapper.find(NxTextInput)).toHaveProp(
+      'value',
+      'Some obligation attribution text.'
+    );
     let select = wrapper.find('select');
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
     let options = wrapper.find('option');

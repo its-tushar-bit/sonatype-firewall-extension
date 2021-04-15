@@ -16,13 +16,13 @@ import {
   USER_TOKEN_GENERATE_TOKEN_REQUESTED,
   USER_TOKEN_HIDE_MODAL,
   USER_TOKEN_MASK_TIMER_DONE,
-  USER_TOKEN_SHOW_MODAL
+  USER_TOKEN_SHOW_MODAL,
 } from '../../../../../main/frontend/mainHeader/userMenu/userToken/userTokenActions';
 import { UI_ROUTER_ON_FINISH } from '../../../../../main/frontend/reduxUiRouter/routerActions';
 
-describe('userTokenReducer', function() {
-  describe('unknown action', function() {
-    it('returns original state', function() {
+describe('userTokenReducer', function () {
+  describe('unknown action', function () {
+    it('returns original state', function () {
       const state = Object.freeze({ foo: 'bar' });
       const action = { type: 'UNKNOWN' };
       const newState = reducer(state, action);
@@ -30,14 +30,14 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('initial state', function() {
-    it('is used if no state is provided', function() {
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
       const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState).not.toBeUndefined();
     });
 
-    it('has default fields', function() {
+    it('has default fields', function () {
       const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState).not.toBeUndefined();
@@ -51,7 +51,7 @@ describe('userTokenReducer', function() {
       expect(newState.deleteUserTokenLoading).toBeNull();
     });
 
-    it('is immutable', function() {
+    it('is immutable', function () {
       const action = { type: 'UNKNOWN' };
       const state = reducer(undefined, action);
 
@@ -93,11 +93,11 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_SHOW_MODAL action', function() {
-    it('sets isUserTokenModalVisible to true', function() {
+  describe('USER_TOKEN_SHOW_MODAL action', function () {
+    it('sets isUserTokenModalVisible to true', function () {
       const state = {
         isUserTokenModalVisible: false,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
       const action = { type: USER_TOKEN_SHOW_MODAL };
       const newState = reducer(state, action);
@@ -106,13 +106,16 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_HIDE_MODAL action', function() {
-    it('sets isUserTokenModalVisible to false and restores the state to the init state', function() {
-      const reducerInitState = reducer(undefined, 'unknownActionToReturnInitState');
+  describe('USER_TOKEN_HIDE_MODAL action', function () {
+    it('sets isUserTokenModalVisible to false and restores the state to the init state', function () {
+      const reducerInitState = reducer(
+        undefined,
+        'unknownActionToReturnInitState'
+      );
 
       const state = {
         isUserTokenModalVisible: true,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
       const action = { type: USER_TOKEN_HIDE_MODAL };
       const newState = reducer(state, action);
@@ -121,16 +124,19 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('UI_ROUTER_ON_FINISH action', function() {
-    it('resets state to initState', function() {
-      const reducerInitState = reducer(undefined, 'unknownActionToReturnInitState');
+  describe('UI_ROUTER_ON_FINISH action', function () {
+    it('resets state to initState', function () {
+      const reducerInitState = reducer(
+        undefined,
+        'unknownActionToReturnInitState'
+      );
 
       const state = {
         isUserTokenModalVisible: true,
         otherProp: 'foo',
         userToken: 'userToken',
         checkUserTokenError: null,
-        checkUserTokenLoading: false
+        checkUserTokenLoading: false,
       };
       const action = { type: UI_ROUTER_ON_FINISH };
       const newState = reducer(state, action);
@@ -138,11 +144,11 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_MASK_TIMER_DONE action', function() {
-    it('unsets deleteUserTokenLoading', function() {
+  describe('USER_TOKEN_MASK_TIMER_DONE action', function () {
+    it('unsets deleteUserTokenLoading', function () {
       const state = {
         otherProp: 'foo',
-        deleteUserTokenLoading: true
+        deleteUserTokenLoading: true,
       };
       const action = { type: USER_TOKEN_MASK_TIMER_DONE };
       const newState = reducer(state, action);
@@ -151,13 +157,13 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED action', function() {
-    it('unsets userToken and checkUserTokenError, also sets checkUserTokenLoading to true', function() {
+  describe('USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED action', function () {
+    it('unsets userToken and checkUserTokenError, also sets checkUserTokenLoading to true', function () {
       const state = {
         userToken: 'userToken',
         checkUserTokenError: 'Err',
         checkUserTokenLoading: false,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
       const action = { type: USER_TOKEN_CHECK_TOKEN_EXISTENCE_REQUESTED };
       const newState = reducer(state, action);
@@ -168,15 +174,18 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_CHECK_TOKEN_EXISTENCE_FAILED action', function() {
-    it('unsets userToken, also sets checkUserTokenLoading to false and checkUserTokenError to the payload', function() {
+  describe('USER_TOKEN_CHECK_TOKEN_EXISTENCE_FAILED action', function () {
+    it('unsets userToken, also sets checkUserTokenLoading to false and checkUserTokenError to the payload', function () {
       const state = {
         userToken: 'userToken',
         checkUserTokenError: null,
         checkUserTokenLoading: true,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
-      const action = { type: USER_TOKEN_CHECK_TOKEN_EXISTENCE_FAILED, payload: 'Err' };
+      const action = {
+        type: USER_TOKEN_CHECK_TOKEN_EXISTENCE_FAILED,
+        payload: 'Err',
+      };
       const newState = reducer(state, action);
       expect(newState.userToken).toBeNull();
       expect(newState.checkUserTokenError).toBe('Err');
@@ -185,15 +194,18 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED action', function() {
-    it('unsets checkUserTokenError, also sets checkUserTokenLoading to false and userToken to the payload', function() {
+  describe('USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED action', function () {
+    it('unsets checkUserTokenError, also sets checkUserTokenLoading to false and userToken to the payload', function () {
       const state = {
         userToken: null,
         checkUserTokenError: 'Err',
         checkUserTokenLoading: true,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
-      const action = { type: USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED, payload: true };
+      const action = {
+        type: USER_TOKEN_CHECK_TOKEN_EXISTENCE_FULFILLED,
+        payload: true,
+      };
       const newState = reducer(state, action);
       expect(newState.userToken).toBe(true);
       expect(newState.checkUserTokenError).toBeNull();
@@ -202,12 +214,12 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_GENERATE_TOKEN_REQUESTED action', function() {
-    it('unsets generateUserTokenError, also sets generateUserTokenLoading to false', function() {
+  describe('USER_TOKEN_GENERATE_TOKEN_REQUESTED action', function () {
+    it('unsets generateUserTokenError, also sets generateUserTokenLoading to false', function () {
       const state = {
         generateUserTokenError: 'Err',
         generateUserTokenLoading: true,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
       const action = { type: USER_TOKEN_GENERATE_TOKEN_REQUESTED };
       const newState = reducer(state, action);
@@ -217,12 +229,12 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_GENERATE_TOKEN_FAILED action', function() {
-    it('unsets generateUserTokenLoading, also sets generateUserTokenError to the payload', function() {
+  describe('USER_TOKEN_GENERATE_TOKEN_FAILED action', function () {
+    it('unsets generateUserTokenLoading, also sets generateUserTokenError to the payload', function () {
       const state = {
         generateUserTokenError: null,
         generateUserTokenLoading: false,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
       const action = { type: USER_TOKEN_GENERATE_TOKEN_FAILED, payload: 'Err' };
       const newState = reducer(state, action);
@@ -232,14 +244,17 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_GENERATE_TOKEN_FULFILLED action', function() {
-    it('unsets generateUserTokenLoading and generateUserTokenError, also sets userToken to the payload', function() {
+  describe('USER_TOKEN_GENERATE_TOKEN_FULFILLED action', function () {
+    it('unsets generateUserTokenLoading and generateUserTokenError, also sets userToken to the payload', function () {
       const state = {
         generateUserTokenError: 'Err',
         generateUserTokenLoading: false,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
-      const action = { type: USER_TOKEN_GENERATE_TOKEN_FULFILLED, payload: 'userToken' };
+      const action = {
+        type: USER_TOKEN_GENERATE_TOKEN_FULFILLED,
+        payload: 'userToken',
+      };
       const newState = reducer(state, action);
       expect(newState.userToken).toBe('userToken');
       expect(newState.generateUserTokenError).toBeNull();
@@ -248,12 +263,12 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_DELETE_TOKEN_REQUESTED action', function() {
-    it('unsets deleteUserTokenError, also sets deleteUserTokenLoading to false', function() {
+  describe('USER_TOKEN_DELETE_TOKEN_REQUESTED action', function () {
+    it('unsets deleteUserTokenError, also sets deleteUserTokenLoading to false', function () {
       const state = {
         deleteUserTokenError: 'Err',
         deleteUserTokenLoading: true,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
       const action = { type: USER_TOKEN_DELETE_TOKEN_REQUESTED };
       const newState = reducer(state, action);
@@ -263,12 +278,12 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_DELETE_TOKEN_FAILED action', function() {
-    it('unsets deleteUserTokenLoading, also sets deleteUserTokenError to the payload', function() {
+  describe('USER_TOKEN_DELETE_TOKEN_FAILED action', function () {
+    it('unsets deleteUserTokenLoading, also sets deleteUserTokenError to the payload', function () {
       const state = {
         deleteUserTokenError: null,
         deleteUserTokenLoading: false,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
       const action = { type: USER_TOKEN_DELETE_TOKEN_FAILED, payload: 'Err' };
       const newState = reducer(state, action);
@@ -278,15 +293,18 @@ describe('userTokenReducer', function() {
     });
   });
 
-  describe('USER_TOKEN_DELETE_TOKEN_FULFILLED action', function() {
-    it('unsets userToken and deleteUserTokenError, also sets deleteUserTokenLoading to true', function() {
+  describe('USER_TOKEN_DELETE_TOKEN_FULFILLED action', function () {
+    it('unsets userToken and deleteUserTokenError, also sets deleteUserTokenLoading to true', function () {
       const state = {
         userToken: 'userToken',
         deleteUserTokenError: 'Err',
         deleteUserTokenLoading: false,
-        otherProp: 'foo'
+        otherProp: 'foo',
       };
-      const action = { type: USER_TOKEN_DELETE_TOKEN_FULFILLED, payload: 'userToken' };
+      const action = {
+        type: USER_TOKEN_DELETE_TOKEN_FULFILLED,
+        payload: 'userToken',
+      };
       const newState = reducer(state, action);
       expect(newState.userToken).toBeNull();
       expect(newState.deleteUserTokenError).toBeNull();

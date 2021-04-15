@@ -5,9 +5,13 @@
  */
 /* global angular */
 export default function getThreatColor(threatLevel) {
-    return threatLevel > 7 ? 'red' :
-        threatLevel > 3 ? 'orange' :
-        threatLevel > 1 ? 'yellow' :
-        threatLevel > 0 ? 'darkblue' :
-        'blue';
-};
+  return threatLevel > 7
+    ? 'red'
+    : threatLevel > 3
+    ? 'orange'
+    : threatLevel > 1
+    ? 'yellow'
+    : threatLevel > 0
+    ? 'darkblue'
+    : 'blue';
+}

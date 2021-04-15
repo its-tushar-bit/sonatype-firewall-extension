@@ -5,12 +5,13 @@
  */
 import escapeHtmlString from '../../../main/frontend/util/escapeHtmlString';
 
-describe('escapeHtmlString', function() {
-  it('escapes HTML special characters in the string', function() {
+describe('escapeHtmlString', function () {
+  it('escapes HTML special characters in the string', function () {
     expect(escapeHtmlString('foo')).toBe('foo');
     expect(escapeHtmlString('<>&"\'')).toBe('&lt;&gt;&amp;"\'');
-    expect(escapeHtmlString('<img src="nothing.png" onerror="alert(\'pwned!\')">'))
-        .toBe('&lt;img src="nothing.png" onerror="alert(\'pwned!\')"&gt;');
+    expect(
+      escapeHtmlString('<img src="nothing.png" onerror="alert(\'pwned!\')">')
+    ).toBe('&lt;img src="nothing.png" onerror="alert(\'pwned!\')"&gt;');
 
     expect(escapeHtmlString('합기도')).toBe('합기도');
   });

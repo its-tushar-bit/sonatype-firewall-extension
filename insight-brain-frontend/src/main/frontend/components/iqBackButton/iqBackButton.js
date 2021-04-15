@@ -11,8 +11,8 @@ var iqBackButtonComponent = {
   controllerAs: 'vm',
   bindings: {
     stateName: '@state',
-    text: '@?'
-  }
+    text: '@?',
+  },
 };
 
 export default iqBackButtonComponent;
@@ -25,16 +25,16 @@ function controller($state) {
   if (stateObj) {
     if (this.text !== undefined) {
       vm.linkText = this.text;
-    }
-    else if (stateObj.data && stateObj.data.title) {
+    } else if (stateObj.data && stateObj.data.title) {
       vm.linkText = 'Back to ' + stateObj.data.title;
-    }
-    else {
+    } else {
       vm.linkText = 'Back';
     }
-  }
-  else {
-    throw new Error('Failed to display iq-back-button, provided state does not exist: ' + this.stateName);
+  } else {
+    throw new Error(
+      'Failed to display iq-back-button, provided state does not exist: ' +
+        this.stateName
+    );
   }
 }
 

@@ -10,6 +10,6 @@ export default {
   controllerAs: 'vm',
   bindings: {
     retry: '&',
-    cancel: '&'
-  }
+    cancel: '&',
+  },
 };

@@ -3,13 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  join,
-  map,
-  prop,
-  sortBy,
-  toPairs
-} from 'ramda';
+import { join, map, prop, sortBy, toPairs } from 'ramda';
 
 /**
  * Takes component identifier object and returns a string representing the component identifier's value.
@@ -18,11 +12,13 @@ import {
  */
 export function serializeComponentIdentifier(componentIdentifier) {
   const { format, coordinates } = componentIdentifier,
-
-      // use U+001F UNIT SEPARATOR to separate coordinate field names from values, and use U+001E RECORD SEPARATOR to
-      // separate the key/value pairs from each other
-      coordinatePairStrings = map(join('\u001f'), sortBy(prop(0), toPairs(coordinates))),
-      coordinatesString = join('\u001e', coordinatePairStrings);
+    // use U+001F UNIT SEPARATOR to separate coordinate field names from values, and use U+001E RECORD SEPARATOR to
+    // separate the key/value pairs from each other
+    coordinatePairStrings = map(
+      join('\u001f'),
+      sortBy(prop(0), toPairs(coordinates))
+    ),
+    coordinatesString = join('\u001e', coordinatePairStrings);
 
   return `${format}:${coordinatesString}`;
 }

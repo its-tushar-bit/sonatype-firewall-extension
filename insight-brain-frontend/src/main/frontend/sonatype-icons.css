@@ -33,13 +33,13 @@
 .sonatype-icons.fail:before {
   content: '\e037';
   font-size: inherit;
-  color: #74071C;
+  color: #74071c;
 }
 
 .sonatype-icons.warn:before {
   content: '\e03f';
   font-size: inherit;
-  color: #EE7116;
+  color: #ee7116;
 }
 
 .sonatype-icons.pad-left:before {

@@ -4,27 +4,37 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 import CopyrightOverrideForm from './CopyrightOverrideForm';
-import {saveCopyrightOverride, setDisplayCopyrightOverrideModal} from './copyrightOverrideFormActions';
-import {setObligationScope, setObligationStatus} from '../obligation/advancedLegalObligationActions';
+import {
+  saveCopyrightOverride,
+  setDisplayCopyrightOverrideModal,
+} from './copyrightOverrideFormActions';
+import {
+  setObligationScope,
+  setObligationStatus,
+} from '../obligation/advancedLegalObligationActions';
 
 const mapDispatchToProps = {
   saveCopyrightOverride,
   setDisplayCopyrightOverrideModal,
   setObligationScope,
-  setObligationStatus
+  setObligationStatus,
 };
 
-function mapStateToProps({advancedLegal, copyrightOverrides}) {
+function mapStateToProps({ advancedLegal, copyrightOverrides }) {
   return {
     availableScopes: advancedLegal.availableScopes,
     component: advancedLegal.component.component,
-    existingObligation: advancedLegal.component.component.licenseLegalData.obligations
-        .find(o => o.name === 'Inclusion of Copyright'),
-    ...copyrightOverrides
+    existingObligation: advancedLegal.component.component.licenseLegalData.obligations.find(
+      (o) => o.name === 'Inclusion of Copyright'
+    ),
+    ...copyrightOverrides,
   };
 }
 
-const CopyrightOverrideFormContainer = connect(mapStateToProps, mapDispatchToProps)(CopyrightOverrideForm);
+const CopyrightOverrideFormContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(CopyrightOverrideForm);
 export default CopyrightOverrideFormContainer;

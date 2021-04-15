@@ -24,14 +24,16 @@
     margin-right: 8px;
   }
 
-  &.disabled, &[disabled] {
+  &.disabled,
+  &[disabled] {
     background-color: $iq-grey-1;
     border-color: $iq-grey-2;
     cursor: not-allowed;
     color: $iq-grey-4;
   }
 
-  &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
+  &:hover:not(.disabled):not([disabled]),
+  &:focus:not(.disabled):not([disabled]) {
     border-color: $iq-slate;
   }
 
@@ -49,11 +51,13 @@
     border-color: transparent;
     color: $iq-off-white;
 
-    &.disabled, &[disabled] {
+    &.disabled,
+    &[disabled] {
       background-color: $iq-light-blue;
     }
 
-    &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
+    &:hover:not(.disabled):not([disabled]),
+    &:focus:not(.disabled):not([disabled]) {
       border-color: #0046b1;
       color: $iq-off-white;
     }
@@ -68,11 +72,13 @@
     border-color: transparent;
     color: $iq-slate;
 
-    &.disabled, &[disabled] {
+    &.disabled,
+    &[disabled] {
       color: $iq-grey-4;
     }
 
-    &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
+    &:hover:not(.disabled):not([disabled]),
+    &:focus:not(.disabled):not([disabled]) {
       border-color: $iq-grey-4;
     }
 
@@ -87,11 +93,13 @@
     color: $iq-off-white;
     border-color: $iq-fail-color;
 
-    &.disabled, &[disabled] {
+    &.disabled,
+    &[disabled] {
       background-color: $iq-fail-color-disabled;
     }
 
-    &:hover:not(.disabled):not([disabled]), &:focus:not(.disabled):not([disabled]) {
+    &:hover:not(.disabled):not([disabled]),
+    &:focus:not(.disabled):not([disabled]) {
       border-color: $iq-fail-color-active;
     }
 
@@ -118,14 +126,17 @@
 /*
   ##Form Actions
 */
-.btn-primary.disabled, .btn-primary[disabled] {
+.btn-primary.disabled,
+.btn-primary[disabled] {
   color: $iq-off-white;
   background-color: $iq-light-blue;
   text-shadow: none;
 }
 
 // mini buttons (only used in legacy UI pages)
-#ldapName, #proprietary-component-form, .accordion-group.users {
+#ldapName,
+#proprietary-component-form,
+.accordion-group.users {
   .btn-mini {
     @include border-radius($borderRadiusSmall);
 

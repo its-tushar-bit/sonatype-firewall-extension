@@ -5,20 +5,22 @@
  */
 var DEFAULT_SYSTEM_NOTICE = {
   message: 'Error: could not get the system notice from the server',
-  enabled: true
+  enabled: true,
 };
 
 export default function systemNoticeService($http, $q, CLMLocations) {
   return {
     getSystemNotice: getSystemNotice,
     getDefaultSystemNotice: getDefaultSystemNotice,
-    saveSystemNotice: saveSystemNotice
+    saveSystemNotice: saveSystemNotice,
   };
 
   function getSystemNotice() {
-    return $http.get(CLMLocations.getSystemNoticeFetchUrl()).then(function(response) {
-      return response.data;
-    });
+    return $http
+      .get(CLMLocations.getSystemNoticeFetchUrl())
+      .then(function (response) {
+        return response.data;
+      });
   }
 
   function getDefaultSystemNotice() {
@@ -26,9 +28,11 @@ export default function systemNoticeService($http, $q, CLMLocations) {
   }
 
   function saveSystemNotice(systemNotice) {
-    return $http.put(CLMLocations.getSystemNoticeUrl(), systemNotice).then(function(response) {
-      return response.data;
-    });
+    return $http
+      .put(CLMLocations.getSystemNoticeUrl(), systemNotice)
+      .then(function (response) {
+        return response.data;
+      });
   }
 }
 

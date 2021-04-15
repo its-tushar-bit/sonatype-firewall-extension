@@ -6,34 +6,35 @@
 import webhookModule from '../../../../main/frontend/configuration/webhook/webhook.module';
 import webhookMockData from '../../stores/configuration/webhook/webhook.mock.data';
 
-describe('webhook.list.controller.spec.js', function() {
+describe('webhook.list.controller.spec.js', function () {
+  beforeEach(
+    angular.mock.module(webhookModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
+    })
+  );
 
-  beforeEach(angular.mock.module(webhookModule.name, function($provide) {
-    $provide.value('$cookies', {
-      get: angular.noop
-    });
-  }));
+  var vm, $httpBackend, CLMLocations;
 
-  var vm,
-      $httpBackend,
-      CLMLocations;
-
-  beforeEach(inject(function($controller, _$httpBackend_, _CLMLocations_) {
+  beforeEach(inject(function ($controller, _$httpBackend_, _CLMLocations_) {
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
 
     vm = $controller('webhook.list.controller', {
-      isAuthorized: true
+      isAuthorized: true,
     });
   }));
 
-  afterEach(function() {
+  afterEach(function () {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   });
 
-  it('Properly Loads Webhooks', function() {
-    $httpBackend.expectGET(CLMLocations.getWebhooksUrl()).respond(webhookMockData.getWebhooks());
+  it('Properly Loads Webhooks', function () {
+    $httpBackend
+      .expectGET(CLMLocations.getWebhooksUrl())
+      .respond(webhookMockData.getWebhooks());
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
     $httpBackend.flush();
 
@@ -41,8 +42,10 @@ describe('webhook.list.controller.spec.js', function() {
     expect(vm.webhooks[0].id).toEqual(webhookMockData.getWebhooks()[0].id);
   });
 
-  it('Missing Webhooks', function() {
-    $httpBackend.expectGET(CLMLocations.getWebhooksUrl()).respond(400, 'Bad Request');
+  it('Missing Webhooks', function () {
+    $httpBackend
+      .expectGET(CLMLocations.getWebhooksUrl())
+      .respond(400, 'Bad Request');
     $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
     $httpBackend.flush();
 

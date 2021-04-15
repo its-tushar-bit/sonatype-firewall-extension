@@ -5,31 +5,35 @@
  */
 import ownerManagerModule from '../../../../../main/frontend/owner.manager/owner.manager.module';
 
-describe('import.policy.modal.controller.spec.js', function() {
-  var scope,
-      vm,
-      $httpBackend,
-      CLMContextLocations;
+describe('import.policy.modal.controller.spec.js', function () {
+  var scope, vm, $httpBackend, CLMContextLocations;
 
-  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
-    $provide.value('$cookies', {
-      get: angular.noop
-    });
-  }));
+  beforeEach(
+    angular.mock.module(ownerManagerModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
+    })
+  );
 
-  beforeEach(inject(function($rootScope, $q, $controller, _$httpBackend_, _CLMContextLocations_) {
+  beforeEach(inject(function (
+    $rootScope,
+    $q,
+    $controller,
+    _$httpBackend_,
+    _CLMContextLocations_
+  ) {
     scope = $rootScope.$new();
     scope.$dismiss = jasmine.createSpy('$dismiss');
 
     $httpBackend = _$httpBackend_;
     CLMContextLocations = _CLMContextLocations_;
 
-    vm = $controller('import.policy.modal.controller',
-        {$scope: scope});
-    vm.importPolicyMask = {wrap: SpecUtil.promiseWrapper($q)};
+    vm = $controller('import.policy.modal.controller', { $scope: scope });
+    vm.importPolicyMask = { wrap: SpecUtil.promiseWrapper($q) };
   }));
 
-  it('Test Form validation', function() {
+  it('Test Form validation', function () {
     expect(vm.importFile).toBeFalsy();
     vm.importFile = 'testfile';
   });
@@ -39,17 +43,16 @@ describe('import.policy.modal.controller.spec.js', function() {
     expect(scope.$dismiss).toHaveBeenCalled();
   }));
 
-  describe('Policy Import', function() {
-    let originalFormData,
-        submitEvent;
+  describe('Policy Import', function () {
+    let originalFormData, submitEvent;
 
-    beforeEach(inject(function($window) {
+    beforeEach(inject(function ($window) {
       originalFormData = $window.FormData;
       $window.FormData = angular.noop;
       submitEvent = jasmine.createSpyObj(['preventDefault']);
     }));
 
-    afterEach(inject(function($window) {
+    afterEach(inject(function ($window) {
       $window.FormData = originalFormData;
     }));
 
@@ -58,10 +61,12 @@ describe('import.policy.modal.controller.spec.js', function() {
       expect(vm.error).toBeUndefined();
     }
 
-    it('Test import failure', function() {
+    it('Test import failure', function () {
       validateInitialState();
 
-      $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond(500, 'Some failure');
+      $httpBackend
+        .expectPOST(CLMContextLocations.getImportPolicyUrl())
+        .respond(500, 'Some failure');
 
       vm.doSubmit(submitEvent);
       $httpBackend.flush();
@@ -70,13 +75,15 @@ describe('import.policy.modal.controller.spec.js', function() {
       expect(submitEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('Test import success', inject(function(PolicyHierarchyStore) {
+    it('Test import success', inject(function (PolicyHierarchyStore) {
       validateInitialState();
       scope.$close = jasmine.createSpy('close');
 
-      $httpBackend.expectPOST(CLMContextLocations.getImportPolicyUrl()).respond({
-        ownerName: 'test'
-      });
+      $httpBackend
+        .expectPOST(CLMContextLocations.getImportPolicyUrl())
+        .respond({
+          ownerName: 'test',
+        });
       spyOn(PolicyHierarchyStore, 'refresh');
 
       vm.doSubmit(submitEvent);

@@ -44,9 +44,12 @@
 // When there's a scrollbar this takes a bit away of space from the contacts column
 // and gives it to the last column so that the text doesn't disappear under the scrollbar
 .iq-scrollable--report-list.scrollbar-present {
-  .iq-table--fixed__header, .iq-table--fixed__content {
+  .iq-table--fixed__header,
+  .iq-table--fixed__content {
     .iq-cell--contact {
-      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 7) - #{$iq-cell-scroll-bar-width});
+      width: calc(
+        ((100% + #{$iq-cell-scroll-bar-width}) / 7) - #{$iq-cell-scroll-bar-width}
+      );
     }
 
     .iq-cell:last-child {
@@ -54,7 +57,9 @@
     }
 
     .iq-cell--header:last-child {
-      width: calc(((100% + #{$iq-cell-scroll-bar-width}) / 7) + #{$iq-spacing-xs});
+      width: calc(
+        ((100% + #{$iq-cell-scroll-bar-width}) / 7) + #{$iq-spacing-xs}
+      );
     }
   }
 }
@@ -136,7 +141,8 @@
       text-decoration: none;
     }
 
-    .up::before, .down::before {
+    .up::before,
+    .down::before {
       line-height: 40px;
       font-size: 12px;
       vertical-align: top;
@@ -153,7 +159,8 @@
     width: 24px;
   }
 
-  .vs-repeat-before-content, .vs-repeat-after-content {
+  .vs-repeat-before-content,
+  .vs-repeat-after-content {
     display: block;
   }
 }
@@ -182,10 +189,12 @@
   .iq-table-row:last-child .iq-cell:not(.iq-cell--header):not(.iq-error) {
     border-bottom: none;
     text-align: center;
-    width: 100%
+    width: 100%;
   }
 }
 
-.report-organization-name-tooltip, .report-application-name-tooltip, .report-contact-name-tooltip {
+.report-organization-name-tooltip,
+.report-application-name-tooltip,
+.report-contact-name-tooltip {
   word-wrap: break-word;
 }

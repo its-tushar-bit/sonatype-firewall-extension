@@ -5,5 +5,6 @@
  */
 import * as dashboardDataService from './dashboard.data.service';
 
-export default angular.module('dashboardServicesModule', [])
-    .value('dashboard.data.service', dashboardDataService);
+export default angular
+  .module('dashboardServicesModule', [])
+  .value('dashboard.data.service', dashboardDataService);

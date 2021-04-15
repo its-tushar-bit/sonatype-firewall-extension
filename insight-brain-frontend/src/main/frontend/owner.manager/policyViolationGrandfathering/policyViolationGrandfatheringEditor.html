@@ -1,8 +1,10 @@
-<section id="violation-grandfathering-editor"
-         class="iq-tile"
-         load-wrapper="vm.loadError"
-         loading="vm.currentConfiguration === undefined"
-         reload="vm.doLoad()">
+<section
+  id="violation-grandfathering-editor"
+  class="iq-tile"
+  load-wrapper="vm.loadError"
+  loading="vm.currentConfiguration === undefined"
+  reload="vm.doLoad()"
+>
   <div ng-if="vm.isGrandfatheringSupported">
     <header class="iq-tile-header">
       <div class="iq-tile-header__title">
@@ -10,64 +12,93 @@
         <h2>Policy Violation Grandfathering</h2>
       </div>
       <div class="iq-tile-header__subtitle">
-        Policy violation grandfathering can be enabled on organizations and applications.
-        These settings can be inherited by child organizations and applications.
+        Policy violation grandfathering can be enabled on organizations and
+        applications. These settings can be inherited by child organizations and
+        applications.
       </div>
     </header>
-    <div id="violation-grandfathering-status-message">
-      {{vm.statusMessage}}
-    </div>
-    <form name="vm.violationGrandfatheringEditor"
-          class="iq-form"
-          role="form"
-          ng-submit="vm.isDirty() && vm.save()"
-          form-mask="vm.violationGrandfatheringEditorMask"
-          mask-attach-to-body>
-      <fieldset id="violation-grandfathering-enable-toggle-control-group" class="iq-radio-group iq-form-group">
+    <div id="violation-grandfathering-status-message">{{vm.statusMessage}}</div>
+    <form
+      name="vm.violationGrandfatheringEditor"
+      class="iq-form"
+      role="form"
+      ng-submit="vm.isDirty() && vm.save()"
+      form-mask="vm.violationGrandfatheringEditorMask"
+      mask-attach-to-body
+    >
+      <fieldset
+        id="violation-grandfathering-enable-toggle-control-group"
+        class="iq-radio-group iq-form-group"
+      >
         <legend class="iq-label">Enable Policy Violation Grandfathering</legend>
-        <div id="violation-grandfathering-disabled-message"
-             ng-if="!vm.currentConfiguration.allowChange"
-             class="iq-alert iq-alert--info iq-alert--form-item">
-          <i class="fa fa-info-circle"></i>The parent selection cannot be overridden.
+        <div
+          id="violation-grandfathering-disabled-message"
+          ng-if="!vm.currentConfiguration.allowChange"
+          class="iq-alert iq-alert--info iq-alert--form-item"
+        >
+          <i class="fa fa-info-circle"></i>The parent selection cannot be
+          overridden.
         </div>
-        <iq-radio model="vm.currentConfiguration.enabled" 
-                  value="null"
-                  is-disabled="!vm.currentConfiguration.allowChange" 
-                  ng-if="!vm.isRootOrg">
+        <iq-radio
+          model="vm.currentConfiguration.enabled"
+          value="null"
+          is-disabled="!vm.currentConfiguration.allowChange"
+          ng-if="!vm.isRootOrg"
+        >
           Inherit from parent organization
         </iq-radio>
-        <iq-radio model="vm.currentConfiguration.enabled"
-                  value="true"
-                  id="enable-policy-violation-grandfathering"
-                  is-disabled="!vm.currentConfiguration.allowChange">
+        <iq-radio
+          model="vm.currentConfiguration.enabled"
+          value="true"
+          id="enable-policy-violation-grandfathering"
+          is-disabled="!vm.currentConfiguration.allowChange"
+        >
           Enable
         </iq-radio>
-        <iq-radio model="vm.currentConfiguration.enabled"
-                  value="false"
-                  id="disable-policy-violation-grandfathering"
-                  is-disabled="!vm.currentConfiguration.allowChange">
+        <iq-radio
+          model="vm.currentConfiguration.enabled"
+          value="false"
+          id="disable-policy-violation-grandfathering"
+          is-disabled="!vm.currentConfiguration.allowChange"
+        >
           Disable
         </iq-radio>
       </fieldset>
-      <div id="violation-grandfathering-override-toggle-control-group" class="iq-form-group" ng-if="!vm.isApp"> 
-        <label class="iq-label" ng-if="vm.isRootOrg">Allow Override by Child Organizations and Applications</label>
-        <label class="iq-label" ng-if="!vm.isRootOrg">Allow Override by Child Applications</label>
-        <iq-checkbox label="Allow override"
-                     id="policy-violation-grandfathering-override"
-                     on-click="vm.currentConfiguration.allowOverride = !vm.currentConfiguration.allowOverride"
-                     is-checked="vm.currentConfiguration.allowOverride"
-                     is-disabled="!vm.currentConfiguration.allowChange">
+      <div
+        id="violation-grandfathering-override-toggle-control-group"
+        class="iq-form-group"
+        ng-if="!vm.isApp"
+      >
+        <label class="iq-label" ng-if="vm.isRootOrg"
+          >Allow Override by Child Organizations and Applications</label
+        >
+        <label class="iq-label" ng-if="!vm.isRootOrg"
+          >Allow Override by Child Applications</label
+        >
+        <iq-checkbox
+          label="Allow override"
+          id="policy-violation-grandfathering-override"
+          on-click="vm.currentConfiguration.allowOverride = !vm.currentConfiguration.allowOverride"
+          is-checked="vm.currentConfiguration.allowOverride"
+          is-disabled="!vm.currentConfiguration.allowChange"
+        >
         </iq-checkbox>
       </div>
-      <footer class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit"
-                class="iq-btn iq-btn--primary"
-                id="update-policy-grandfathering-button"
-                submit-validation
-                submit-dirty="vm.isDirty()"
-                submit-type="update"
-                submit-tooltip-target="body"
-                ng-disabled="!vm.currentConfiguration.allowChange">
+      <footer
+        class="iq-tile-footer"
+        submit-wrapper="vm.submitError"
+        retry="vm.save()"
+      >
+        <button
+          type="submit"
+          class="iq-btn iq-btn--primary"
+          id="update-policy-grandfathering-button"
+          submit-validation
+          submit-dirty="vm.isDirty()"
+          submit-type="update"
+          submit-tooltip-target="body"
+          ng-disabled="!vm.currentConfiguration.allowChange"
+        >
           Update
         </button>
       </footer>
@@ -76,7 +107,8 @@
 
   <div ng-if="!vm.isGrandfatheringSupported">
     <div class="iq-alert iq-alert--error">
-      <i class="fa fa-warning"></i>Policy Violation Grandfathering is not supported by your license.
+      <i class="fa fa-warning"></i>Policy Violation Grandfathering is not
+      supported by your license.
     </div>
   </div>
 </section>

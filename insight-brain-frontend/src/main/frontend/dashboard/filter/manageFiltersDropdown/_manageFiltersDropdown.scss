@@ -36,7 +36,8 @@
         background-color: $iq-blue-light;
       }
 
-      &:hover, &:focus {
+      &:hover,
+      &:focus {
         background-color: $nx-grey-1;
       }
 
@@ -47,7 +48,8 @@
       .nx-dropdown-button--select-filter {
         flex-shrink: 1;
 
-        &:hover, &:focus {
+        &:hover,
+        &:focus {
           background: none;
         }
 

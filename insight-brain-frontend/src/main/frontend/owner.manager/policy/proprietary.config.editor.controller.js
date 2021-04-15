@@ -3,12 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHierarchyStore) {
+export default function ProprietaryConfigEditorController(
+  $scope,
+  Messages,
+  ProprietaryConfigHierarchyStore
+) {
   var vm = this,
-      PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
+    PACKAGE_REGEXP = new RegExp('^[^ /.][^ /]*[^ /.]$');
 
-  vm.matcherTypes = {PACKAGE: 'Package', REGEX: 'Regular Expression'};
+  vm.matcherTypes = { PACKAGE: 'Package', REGEX: 'Regular Expression' };
 
   vm.addMatcher = addMatcher;
   vm.dirtyProprietaryConfig = undefined;
@@ -31,7 +34,7 @@ function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHi
 
   vm.doLoad();
 
-  $scope.$on('pageChangeStarted', function(event) {
+  $scope.$on('pageChangeStarted', function (event) {
     if (vm.dirtyProprietaryConfig.isDirty()) {
       event.preventDefault();
     }
@@ -40,36 +43,45 @@ function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHi
   function doLoad() {
     delete vm.loadError;
 
-    ProprietaryConfigHierarchyStore.get().then(function(results) {
-      vm.localMatchers = [];
-      vm.proprietaryConfigs = results;
-      vm.proprietaryConfigs.forEach(function(configOwner, index) {
-        var proprietaryConfig = configOwner.proprietaryConfig[0];
-        if (index === 0) {
-          vm.dirtyProprietaryConfig = proprietaryConfig.$clone();
-          proprietaryConfig.packages.forEach(function(component) {
-            var matcher = {'type': vm.matcherTypes.PACKAGE, 'matcher': component};
-            vm.localMatchers.push(matcher);
-          });
-          proprietaryConfig.regexes.forEach(function(regex) {
-            var matcher = {'type': vm.matcherTypes.REGEX, 'matcher': regex};
-            vm.localMatchers.push(matcher);
-          });
-        }
-      });
-    }, function(error) {
-      vm.loadError = Messages.getHttpErrorMessage(error);
-    });
+    ProprietaryConfigHierarchyStore.get().then(
+      function (results) {
+        vm.localMatchers = [];
+        vm.proprietaryConfigs = results;
+        vm.proprietaryConfigs.forEach(function (configOwner, index) {
+          var proprietaryConfig = configOwner.proprietaryConfig[0];
+          if (index === 0) {
+            vm.dirtyProprietaryConfig = proprietaryConfig.$clone();
+            proprietaryConfig.packages.forEach(function (component) {
+              var matcher = {
+                type: vm.matcherTypes.PACKAGE,
+                matcher: component,
+              };
+              vm.localMatchers.push(matcher);
+            });
+            proprietaryConfig.regexes.forEach(function (regex) {
+              var matcher = { type: vm.matcherTypes.REGEX, matcher: regex };
+              vm.localMatchers.push(matcher);
+            });
+          }
+        });
+      },
+      function (error) {
+        vm.loadError = Messages.getHttpErrorMessage(error);
+      }
+    );
   }
 
   function save() {
     delete vm.submitError;
 
-    vm.proprietaryConfigEditorMask.wrap(vm.dirtyProprietaryConfig.$save()).then(function() {
-      vm.proprietaryConfigEditor.$setPristine();
-    }, function(error) {
-      vm.submitError = Messages.getHttpErrorMessage(error);
-    });
+    vm.proprietaryConfigEditorMask.wrap(vm.dirtyProprietaryConfig.$save()).then(
+      function () {
+        vm.proprietaryConfigEditor.$setPristine();
+      },
+      function (error) {
+        vm.submitError = Messages.getHttpErrorMessage(error);
+      }
+    );
   }
 
   function addMatcher(keypressEvent) {
@@ -77,17 +89,19 @@ function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHi
       keypressEvent.preventDefault();
     }
 
-    var matcherToAdd = vm.matcherType === vm.matcherTypes.REGEX ? vm.regexMatcher : vm.packageMatcher;
+    var matcherToAdd =
+      vm.matcherType === vm.matcherTypes.REGEX
+        ? vm.regexMatcher
+        : vm.packageMatcher;
 
     if (!matcherToAdd) {
       return;
     }
 
-    vm.localMatchers.push({'type': vm.matcherType, 'matcher': matcherToAdd});
+    vm.localMatchers.push({ type: vm.matcherType, matcher: matcherToAdd });
     if (vm.matcherType === vm.matcherTypes.REGEX) {
       vm.dirtyProprietaryConfig.regexes.push(matcherToAdd);
-    }
-    else {
+    } else {
       vm.dirtyProprietaryConfig.packages.push(matcherToAdd);
     }
 
@@ -101,35 +115,42 @@ function ProprietaryConfigEditorController($scope, Messages, ProprietaryConfigHi
   }
 
   function removeMatcher(theMatcher) {
-
-    vm.localMatchers = vm.localMatchers.filter(function(aMatcher) {
+    vm.localMatchers = vm.localMatchers.filter(function (aMatcher) {
       return aMatcher !== theMatcher;
     });
     if (theMatcher.type === vm.matcherTypes.REGEX) {
-      vm.dirtyProprietaryConfig.regexes = vm.dirtyProprietaryConfig.regexes.filter(function(aMatcher) {
-        return aMatcher !== theMatcher.matcher;
-      });
-    }
-    else {
-      vm.dirtyProprietaryConfig.packages = vm.dirtyProprietaryConfig.packages.filter(function(aMatcher) {
-        return aMatcher !== theMatcher.matcher;
-      });
+      vm.dirtyProprietaryConfig.regexes = vm.dirtyProprietaryConfig.regexes.filter(
+        function (aMatcher) {
+          return aMatcher !== theMatcher.matcher;
+        }
+      );
+    } else {
+      vm.dirtyProprietaryConfig.packages = vm.dirtyProprietaryConfig.packages.filter(
+        function (aMatcher) {
+          return aMatcher !== theMatcher.matcher;
+        }
+      );
     }
   }
 
   function validatePackage(value) {
     return {
       invalidPrefix: !value || PACKAGE_REGEXP.test(value),
-      wildcards: !value || value.indexOf('*') < 0
+      wildcards: !value || value.indexOf('*') < 0,
     };
   }
 
   function isAddButtonDisabled() {
-    var matcherToAdd = vm.matcherType === vm.matcherTypes.REGEX ? vm.regexMatcher : vm.packageMatcher;
+    var matcherToAdd =
+      vm.matcherType === vm.matcherTypes.REGEX
+        ? vm.regexMatcher
+        : vm.packageMatcher;
     return !matcherToAdd;
   }
 }
 
 ProprietaryConfigEditorController.$inject = [
-  '$scope', 'Messages', 'ProprietaryConfigHierarchyStore'
+  '$scope',
+  'Messages',
+  'ProprietaryConfigHierarchyStore',
 ];

@@ -57,7 +57,8 @@ tbody {
         border-top: $iq-border-row-hover;
       }
 
-      .iq-cell--label, .iq-cell--chevron {
+      .iq-cell--label,
+      .iq-cell--chevron {
         color: $iq-text-color;
       }
     }
@@ -113,7 +114,8 @@ tbody {
   text-align: left;
   text-transform: uppercase;
 
-  &.iq-cell--selected, &.selected-column {
+  &.iq-cell--selected,
+  &.selected-column {
     color: $iq-text-color;
 
     .iq-column-sort-trigger {
@@ -125,20 +127,22 @@ tbody {
     color: $iq-grey-4;
 
     a {
-     cursor: default;
+      cursor: default;
     }
 
     .iq-column-sort-trigger {
       color: $iq-grey-4;
     }
 
-    .iq-col-sort-icons, .iq-column-sort-icons {
+    .iq-col-sort-icons,
+    .iq-column-sort-icons {
       color: $iq-grey-3;
     }
   }
 }
 
-.iq-cell--selected-column, .iq-cell--selected {
+.iq-cell--selected-column,
+.iq-cell--selected {
   background-color: $iq-grey-2;
 }
 
@@ -153,7 +157,8 @@ tbody {
   }
 }
 
-.iq-col-sort-icons, .iq-column-sort-icons {
+.iq-col-sort-icons,
+.iq-column-sort-icons {
   color: $iq-grey-4;
   display: inline-block;
   margin-right: 6px;
@@ -253,7 +258,7 @@ thead {
       padding: 3px 4px 3px 2px;
 
       // NOTE [type=text] was necessary to increase specificity above that of some of the styles from clm-form
-      & + input[type=text] {
+      & + input[type='text'] {
         height: 18px;
         padding-left: 0;
         width: calc(100% - 30px);
@@ -294,7 +299,8 @@ thead {
   position: relative;
 }
 
-.iq-scrollable--fixed-table, .iq-scrollable--full-height {
+.iq-scrollable--fixed-table,
+.iq-scrollable--full-height {
   height: 100%;
   max-height: 100%;
 }

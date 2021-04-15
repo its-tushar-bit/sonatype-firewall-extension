@@ -24,8 +24,8 @@ advanced-search {
 }
 
 .iq-adv-search-help__explanation {
-  display:inline-block;
-  margin-left:$nx-spacing-md;
+  display: inline-block;
+  margin-left: $nx-spacing-md;
 }
 
 .iq-adv-search-help__note {
@@ -37,8 +37,8 @@ advanced-search {
   background-color: $nx-off-white;
   border: 1px solid $nx-grey-5;
   cursor: pointer;
-  display:inline-block;
-  margin-left:$nx-spacing-md;
+  display: inline-block;
+  margin-left: $nx-spacing-md;
   padding: $nx-spacing-xs;
   user-select: all;
 }
@@ -66,7 +66,7 @@ advanced-search {
 
 .iq-tag {
   border: solid $nx-grey-5 1px;
-  border-radius:$nx-spacing-sm;
+  border-radius: $nx-spacing-sm;
   cursor: pointer;
   display: inline-block;
   margin-bottom: $nx-spacing-sm;

@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import {
   selectExportTitle,
   selectExportRequestData,
-  selectExportUrl
+  selectExportUrl,
 } from '../../dashboardSelectors';
 import ExportButton from './ExportButton/ExportButton';
 
@@ -15,7 +15,7 @@ function mapStateToProps(state) {
   return {
     exportTitle: selectExportTitle(state),
     exportRequestData: selectExportRequestData(state),
-    exportUrl: selectExportUrl(state)
+    exportUrl: selectExportUrl(state),
   };
 }
 

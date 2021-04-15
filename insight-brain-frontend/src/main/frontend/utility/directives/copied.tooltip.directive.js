@@ -8,7 +8,7 @@ export default function CopiedTooltipDirective($parse) {
     restrict: 'A',
     controller: CopiedTooltipController,
     require: 'copiedTooltip',
-    link: CopiedTooltipLink
+    link: CopiedTooltipLink,
   };
 
   function CopiedTooltipLink(scope, element, attrs, tooltipController) {
@@ -26,13 +26,16 @@ function CopiedTooltipController($element) {
   $element.on('mouseleave', removeTooltip);
 
   function showTooltip() {
-    $element.tooltip({
-      title: 'Copied!',
-      trigger: 'manual',
-      placement: 'bottom',
-      template: '<div class="tooltip copied-tooltip"><div class="tooltip-arrow"></div>' +
-      '<div class="tooltip-content"><i class="fa fa-check-circle"></i><span class="tooltip-inner"></span></div></div>'
-    }).tooltip('show');
+    $element
+      .tooltip({
+        title: 'Copied!',
+        trigger: 'manual',
+        placement: 'bottom',
+        template:
+          '<div class="tooltip copied-tooltip"><div class="tooltip-arrow"></div>' +
+          '<div class="tooltip-content"><i class="fa fa-check-circle"></i><span class="tooltip-inner"></span></div></div>',
+      })
+      .tooltip('show');
   }
 
   function removeTooltip() {

@@ -22,7 +22,7 @@ function SessionSecurityService($cookies, $window) {
    */
   function getSessionExpirationTimestamp() {
     var sessionExpirationTimestampStr = $cookies.get(COOKIE_NAME),
-        sessionExpirationTimestamp = parseInt(sessionExpirationTimestampStr, 10);
+      sessionExpirationTimestamp = parseInt(sessionExpirationTimestampStr, 10);
 
     return sessionExpirationTimestamp;
   }
@@ -33,12 +33,12 @@ function SessionSecurityService($cookies, $window) {
   function checkSessionExpired() {
     // get the timestamp from the cookie and adjust it to compensate for clock differences between
     // the client and server.
-    var sessionExpirationTimestamp = getSessionExpirationTimestamp() + serverDateDifference;
+    var sessionExpirationTimestamp =
+      getSessionExpirationTimestamp() + serverDateDifference;
 
     if (new Date() > sessionExpirationTimestamp) {
       sessionExpired();
-    }
-    else {
+    } else {
       checkSessionExpiredLater(sessionExpirationTimestamp);
     }
   }
@@ -65,9 +65,11 @@ function SessionSecurityService($cookies, $window) {
       // avoid letting angular know about this timeout so that problem is avoided.
       // Cleanup of the StableBodyService is in https://issues.sonatype.org/browse/CLM-7840
       setTimeout(checkSessionExpired, sessionTimeoutMillis);
-    }
-    else {
-      console.warn(COOKIE_NAME + ' cookie is missing. Session timeout detection will be disabled');
+    } else {
+      console.warn(
+        COOKIE_NAME +
+          ' cookie is missing. Session timeout detection will be disabled'
+      );
     }
   }
 
@@ -85,15 +87,20 @@ function SessionSecurityService($cookies, $window) {
   return {
     init: init,
     sessionExpired: sessionExpired,
-    setServerDate: setServerDate
+    setServerDate: setServerDate,
   };
 }
 
 SessionSecurityService.$inject = ['$cookies', '$window'];
 
-export default angular.module('SessionSecurityModule', ['ngCookies']) //
-    .service('SessionSecurityService', SessionSecurityService) //
-    .run(['$window', 'SessionSecurityService', function($window, SessionSecurityService) {
+export default angular
+  .module('SessionSecurityModule', ['ngCookies']) //
+  .service('SessionSecurityService', SessionSecurityService) //
+  .run([
+    '$window',
+    'SessionSecurityService',
+    function ($window, SessionSecurityService) {
       // expose sessionExpired globally so it can be called by code from child iframes
       $window.sessionExpired = SessionSecurityService.sessionExpired;
-    }]);
+    },
+  ]);

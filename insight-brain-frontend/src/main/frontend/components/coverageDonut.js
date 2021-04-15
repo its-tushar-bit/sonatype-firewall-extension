@@ -19,28 +19,42 @@ export default function CoverageDonut() {
       strokeColor: '<',
       lineWidth: '<',
       innerRadius: '<',
-      outerRadius: '<'
+      outerRadius: '<',
     },
-    link: function(scope, element) {
+    link: function (scope, element) {
       function updateGraph() {
         if (scope.percentKnownComponents !== undefined) {
           HealthCheck.artifactsChart(1 - scope.percentKnownComponents / 100, {
-            ...pick(['width', 'height', 'fillColors', 'strokeColor', 'lineWidth', 'innerRadius', 'outerRadius'], scope),
-            element: element[0]
+            ...pick(
+              [
+                'width',
+                'height',
+                'fillColors',
+                'strokeColor',
+                'lineWidth',
+                'innerRadius',
+                'outerRadius',
+              ],
+              scope
+            ),
+            element: element[0],
           });
         }
       }
 
-      scope.$watchGroup([
-        'percentKnownComponents',
-        'width',
-        'height',
-        'fillColors',
-        'strokeColor',
-        'lineWidth',
-        'innerRadius',
-        'outerRadius'
-      ], updateGraph);
-    }
+      scope.$watchGroup(
+        [
+          'percentKnownComponents',
+          'width',
+          'height',
+          'fillColors',
+          'strokeColor',
+          'lineWidth',
+          'innerRadius',
+          'outerRadius',
+        ],
+        updateGraph
+      );
+    },
   };
 }

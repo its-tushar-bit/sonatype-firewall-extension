@@ -12,10 +12,10 @@ export default {
   controllerAs: 'vm',
   bindings: {
     component: '<',
-    truncate: '<'
+    truncate: '<',
   },
   template,
-  controller: ComponentDisplayController
+  controller: ComponentDisplayController,
 };
 
 function ComponentDisplayController($scope) {
@@ -26,8 +26,14 @@ function ComponentDisplayController($scope) {
     filename: undefined,
 
     $onInit() {
-      $scope.$watchGroup(['vm.component.displayName', 'vm.component.filename', 'vm.component.filenames'],
-          vm.updateDisplay);
+      $scope.$watchGroup(
+        [
+          'vm.component.displayName',
+          'vm.component.filename',
+          'vm.component.filenames',
+        ],
+        vm.updateDisplay
+      );
       vm.updateDisplay();
     },
 
@@ -39,7 +45,7 @@ function ComponentDisplayController($scope) {
         vm.dependencyType = vm.component.dependencyType || null;
         vm.isFilenameOrUnknown = isFilenameOrUnknown(vm.component);
       }
-    }
+    },
   });
 }
 

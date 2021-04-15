@@ -3,7 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {defaultTo, filter, isEmpty, not, pipe, prop, props, sum, without} from 'ramda';
+import {
+  defaultTo,
+  filter,
+  isEmpty,
+  not,
+  pipe,
+  prop,
+  props,
+  sum,
+  without,
+} from 'ramda';
 import { Scales, Axes } from 'plottable';
 
 import { createScatterPlotChart } from '../../chartUtils';
@@ -14,55 +24,68 @@ const violationsByCategoryChart = {
   controller: ViolationsByCategoryChartController,
   controllerAs: 'vm',
   bindings: {
-    violationsByCategoryData: '<'
-  }
+    violationsByCategoryData: '<',
+  },
 };
 
 export default violationsByCategoryChart;
 
 function ViolationsByCategoryChartController() {
   const vm = this,
-      dataset = vm.violationsByCategoryData,
-      notNullFilter = without([null]),
-      getNotNullValues = pipe(props(['security', 'license', 'quality', 'other']), notNullFilter),
-      weekCount = filter(pipe(getNotNullValues, isEmpty, not), dataset).length,
-      xAccessor = prop('timePeriodName'),
-
-      xScale = new Scales.Category(),
-      xAxis = new Axes.Category(xScale, 'bottom'),
-
-      yAxisLabelText = 'Policy Violations',
-
-      lineConfigs = [{
+    dataset = vm.violationsByCategoryData,
+    notNullFilter = without([null]),
+    getNotNullValues = pipe(
+      props(['security', 'license', 'quality', 'other']),
+      notNullFilter
+    ),
+    weekCount = filter(pipe(getNotNullValues, isEmpty, not), dataset).length,
+    xAccessor = prop('timePeriodName'),
+    xScale = new Scales.Category(),
+    xAxis = new Axes.Category(xScale, 'bottom'),
+    yAxisLabelText = 'Policy Violations',
+    lineConfigs = [
+      {
         name: 'Total',
-        yAccessor: function(entry) {
+        yAccessor: function (entry) {
           const notNullValues = getNotNullValues(entry);
           // for null values return undefined to display graph breaks
           return isEmpty(notNullValues) ? undefined : sum(notNullValues);
         },
-        className: 'iq-chart__dataset--overall'
-      }, {
+        className: 'iq-chart__dataset--overall',
+      },
+      {
         name: 'Security',
         yAccessor: pipe(prop('security'), defaultTo(undefined)),
-        className: 'iq-chart__dataset--security'
-      }, {
+        className: 'iq-chart__dataset--security',
+      },
+      {
         name: 'License',
         yAccessor: pipe(prop('license'), defaultTo(undefined)),
-        className: 'iq-chart__dataset--license'
-      }, {
+        className: 'iq-chart__dataset--license',
+      },
+      {
         name: 'Quality',
         yAccessor: pipe(prop('quality'), defaultTo(undefined)),
-        className: 'iq-chart__dataset--quality'
-      }, {
+        className: 'iq-chart__dataset--quality',
+      },
+      {
         name: 'Other',
         yAccessor: pipe(prop('other'), defaultTo(undefined)),
-        className: 'iq-chart__dataset--other'
-      }],
-
-      chart = createScatterPlotChart(xAccessor, xScale, xAxis, null, yAxisLabelText, lineConfigs, dataset);
+        className: 'iq-chart__dataset--other',
+      },
+    ],
+    chart = createScatterPlotChart(
+      xAccessor,
+      xScale,
+      xAxis,
+      null,
+      yAxisLabelText,
+      lineConfigs,
+      dataset
+    );
 
   Object.assign(vm, {
     violationsByCategoryChart: chart,
-    weekCount
+    weekCount,
   });
 }

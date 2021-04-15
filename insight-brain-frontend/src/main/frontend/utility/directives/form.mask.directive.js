@@ -8,27 +8,27 @@ export default function FormMaskDirective($parse) {
     restrict: 'A',
     controller: FormMaskController,
     require: 'formMask',
-    link: FormMaskLink
+    link: FormMaskLink,
   };
 
   function FormMaskLink(scope, element, attrs, maskController) {
     var maskElement,
-        maskMessage = 'Saving',
-        // if maskAttachToBody flag is set the mask will cover the whole page
-        attachToBody = attrs.hasOwnProperty('maskAttachToBody');
+      maskMessage = 'Saving',
+      // if maskAttachToBody flag is set the mask will cover the whole page
+      attachToBody = attrs.hasOwnProperty('maskAttachToBody');
 
     maskController.removeMask = removeMask;
     maskController.activateMask = activateMask;
     maskController.showSuccessMask = showSuccessMask;
 
     if (!attrs.formMask.length) {
-      throw ('Form Mask requires a name to bind the controller.');
+      throw 'Form Mask requires a name to bind the controller.';
     }
 
     $parse(attrs.formMask).assign(scope, maskController);
 
-    attrs.$observe('maskMessage', function(newMessage) {
-      maskMessage = (newMessage != null ? newMessage : 'Saving');
+    attrs.$observe('maskMessage', function (newMessage) {
+      maskMessage = newMessage != null ? newMessage : 'Saving';
     });
 
     scope.$on('$destroy', removeMask);
@@ -43,14 +43,17 @@ export default function FormMaskDirective($parse) {
     function activateMask() {
       if (!maskElement) {
         var msgElement,
-            targetElement = attachToBody ? $('body') : element;
+          targetElement = attachToBody ? $('body') : element;
 
         // open mask
         maskElement = $('<div class="form-mask"></div>');
 
         if (maskMessage) {
-          msgElement = $('<div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' +
-            maskMessage + '</h3></div>');
+          msgElement = $(
+            '<div class="form-mask-msg"><h3><i class="fa fa-circle-o-notch fa-spin"></i> ' +
+              maskMessage +
+              '</h3></div>'
+          );
 
           maskElement.append(msgElement);
         }
@@ -79,7 +82,7 @@ FormMaskDirective.$inject = ['$parse'];
 
 function FormMaskController($q, $timeout, $attrs) {
   var maskController = this,
-      skipSuccess = $attrs.hasOwnProperty('maskSkipSuccess');
+    skipSuccess = $attrs.hasOwnProperty('maskSkipSuccess');
 
   maskController.wrap = wrap;
   maskController.showSuccessMaskBriefly = showSuccessMaskBriefly;
@@ -87,18 +90,21 @@ function FormMaskController($q, $timeout, $attrs) {
   function wrap(promise) {
     maskController.activateMask();
 
-    return promise.then(function() {
-      var args = arguments;
+    return promise.then(
+      function () {
+        var args = arguments;
 
-      if (!skipSuccess) {
-        maskController.showSuccessMask();
+        if (!skipSuccess) {
+          maskController.showSuccessMask();
+        }
+
+        return waitAndRemove(args);
+      },
+      function () {
+        maskController.removeMask();
+        return $q.reject.apply($q, arguments);
       }
-
-      return waitAndRemove(args);
-    }, function() {
-      maskController.removeMask();
-      return $q.reject.apply($q, arguments);
-    });
+    );
   }
 
   // show the success mask for 800 ms and then remove it.  Returns a promise for when this is complete
@@ -109,8 +115,8 @@ function FormMaskController($q, $timeout, $attrs) {
   }
 
   function waitAndRemove(resolutionArgs) {
-    return $q(function(resolve) {
-      $timeout(function() {
+    return $q(function (resolve) {
+      $timeout(function () {
         maskController.removeMask();
         resolve.apply(null, resolutionArgs);
       }, 800);

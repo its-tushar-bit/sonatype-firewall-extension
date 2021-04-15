@@ -5,10 +5,9 @@
  */
 import template from './move.application.modal.html';
 
-export default
-function MoveApplicationModalService(Modal) {
+export default function MoveApplicationModalService(Modal) {
   return {
-    open: openModal
+    open: openModal,
   };
 
   function openModal(application) {
@@ -19,10 +18,10 @@ function MoveApplicationModalService(Modal) {
       controller: 'move.application.modal.controller as vm',
       template,
       resolve: {
-        currentApplication: function() {
+        currentApplication: function () {
           return application;
-        }
-      }
+        },
+      },
     });
   }
 }

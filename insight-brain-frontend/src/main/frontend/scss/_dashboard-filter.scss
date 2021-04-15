@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import "../dashboard/filter/manageFiltersDropdown/manageFiltersDropdown";
+@import '../dashboard/filter/manageFiltersDropdown/manageFiltersDropdown';
 
 dashboard-filter {
   display: contents;
@@ -113,7 +113,7 @@ dashboard-filter {
       border-radius: 0px 0px 4px 4px;
       color: $iq-fail-color;
       margin-top: -1px;
-      margin-bottom:-9px;
+      margin-bottom: -9px;
       margin-left: -9px;
       padding: 6px 0px 4px 12px;
     }

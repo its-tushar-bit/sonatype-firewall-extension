@@ -5,10 +5,9 @@
  */
 import template from './owner.editor.service.html';
 
-export default
-function OwnerEditorService(Modal) {
+export default function OwnerEditorService(Modal) {
   return {
-    open: function(owner, ownerType, siblings) {
+    open: function (owner, ownerType, siblings) {
       Modal.open({
         animation: false,
         backdrop: 'static',
@@ -16,18 +15,18 @@ function OwnerEditorService(Modal) {
         controller: 'owner.editor.controller as vm',
         template,
         resolve: {
-          owner: function() {
+          owner: function () {
             return owner;
           },
-          ownerType: function() {
+          ownerType: function () {
             return ownerType;
           },
-          siblings: function() {
+          siblings: function () {
             return siblings;
-          }
-        }
+          },
+        },
       });
-    }
+    },
   };
 }
 

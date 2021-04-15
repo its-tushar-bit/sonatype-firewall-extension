@@ -5,15 +5,14 @@
  */
 import applicationReportModule from '../../../../main/frontend/applicationReport/module';
 
-describe('rawLicenseDisplay', function() {
-
+describe('rawLicenseDisplay', function () {
   let getVm;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
-  beforeEach(inject(function($componentController) {
+  beforeEach(inject(function ($componentController) {
     getVm = (license) => {
-      const vm = $componentController('rawLicenseDisplay', null, {license});
+      const vm = $componentController('rawLicenseDisplay', null, { license });
       vm.$onInit();
       return vm;
     };
@@ -28,7 +27,7 @@ describe('rawLicenseDisplay', function() {
   it('handles empty licenses', () => {
     const vm = getVm({
       declaredLicenses: [],
-      observedLicenses: []
+      observedLicenses: [],
     });
 
     expect(vm.declaredLicenses).toBe('Not Declared');
@@ -38,7 +37,7 @@ describe('rawLicenseDisplay', function() {
   it('sets declaredLicenses', () => {
     const vm = getVm({
       declaredLicenses: ['foo', 'bar', 'baz'],
-      observedLicenses: []
+      observedLicenses: [],
     });
 
     expect(vm.declaredLicenses).toBe('foo, bar, baz');
@@ -47,7 +46,7 @@ describe('rawLicenseDisplay', function() {
   it('sets observedLicenses', () => {
     const vm = getVm({
       declaredLicenses: [],
-      observedLicenses: ['foo', 'bar', 'baz']
+      observedLicenses: ['foo', 'bar', 'baz'],
     });
 
     expect(vm.observedLicenses).toBe('foo, bar, baz');
@@ -56,7 +55,7 @@ describe('rawLicenseDisplay', function() {
   it('dedupes Licenses', () => {
     const vm = getVm({
       declaredLicenses: ['bar'],
-      observedLicenses: ['foo', 'bar', 'baz']
+      observedLicenses: ['foo', 'bar', 'baz'],
     });
 
     expect(vm.declaredLicenses).toBe('bar');
@@ -66,7 +65,7 @@ describe('rawLicenseDisplay', function() {
   it('does not dedupe "Not Provided" value', () => {
     const vm = getVm({
       declaredLicenses: ['Not Provided'],
-      observedLicenses: ['Not Provided']
+      observedLicenses: ['Not Provided'],
     });
 
     expect(vm.declaredLicenses).toBe('Not Provided');

@@ -16,7 +16,7 @@ export default function ComponentInformationPanel() {
   return {
     template,
     scope: {
-      tabs: '<'
+      tabs: '<',
     },
     controllerAs: 'vm',
     bindToController: true,
@@ -24,40 +24,52 @@ export default function ComponentInformationPanel() {
     link(scope, element, attrs, controller) {
       controller.showCloseButton = attrs.hideCloseButton == null;
     },
-    controller: ['$scope', 'SelectedComponent', function ($scope, selectedComponent) {
-      var vm = this;
+    controller: [
+      '$scope',
+      'SelectedComponent',
+      function ($scope, selectedComponent) {
+        var vm = this;
 
-      vm.hide = hide;
-      vm.showCIP = false;
-      vm.selectedTab = undefined;
-      vm.tabShown = tabShown;
+        vm.hide = hide;
+        vm.showCIP = false;
+        vm.selectedTab = undefined;
+        vm.tabShown = tabShown;
 
-      function hide() {
-        selectedComponent.toggle();
-      }
-
-      function tabShown(tab) {
-        var isUnknown = selectedComponent.get() && selectedComponent.get().matchState === 'unknown';
-        if (isUnknown) {
-          return !tab.matchedOnly;
+        function hide() {
+          selectedComponent.toggle();
         }
-        return true;
-      }
 
-      $scope.$watch(function () {
-        return selectedComponent.get() && {
-          hash: selectedComponent.get().hash,
-          componentIdentifier: selectedComponent.get().componentIdentifier
-        };
-      }, function () {
-        vm.showCIP = selectedComponent.get();
-        if (vm.showCIP) {
-          vm.selectedTab = vm.tabs[0];
+        function tabShown(tab) {
+          var isUnknown =
+            selectedComponent.get() &&
+            selectedComponent.get().matchState === 'unknown';
+          if (isUnknown) {
+            return !tab.matchedOnly;
+          }
+          return true;
         }
-        else {
-          vm.selectedTab = null;
-        }
-      }, true);
-    }]
+
+        $scope.$watch(
+          function () {
+            return (
+              selectedComponent.get() && {
+                hash: selectedComponent.get().hash,
+                componentIdentifier: selectedComponent.get()
+                  .componentIdentifier,
+              }
+            );
+          },
+          function () {
+            vm.showCIP = selectedComponent.get();
+            if (vm.showCIP) {
+              vm.selectedTab = vm.tabs[0];
+            } else {
+              vm.selectedTab = null;
+            }
+          },
+          true
+        );
+      },
+    ],
   };
 }

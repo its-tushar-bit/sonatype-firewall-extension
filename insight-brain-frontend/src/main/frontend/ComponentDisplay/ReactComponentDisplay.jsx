@@ -16,8 +16,10 @@ import { getComponentName } from '../util/componentNameUtils';
  */
 export default function ComponentDisplay({ component, truncate }) {
   const textTag = isFilenameOrUnknown(component) ? 'em' : 'span',
-      divClass = classnames('iq-component-display', { 'truncate-ellipsis': truncate }),
-      componentName = getComponentName(component);
+    divClass = classnames('iq-component-display', {
+      'truncate-ellipsis': truncate,
+    }),
+    componentName = getComponentName(component);
 
   return (
     <NxOverflowTooltip>
@@ -32,14 +34,16 @@ export const componentPropTypes = {
   filename: PropTypes.string,
   filenames: PropTypes.arrayOf(PropTypes.string),
   displayName: PropTypes.shape({
-    parts: PropTypes.arrayOf(PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      field: PropTypes.string
-    })).isRequired
-  })
+    parts: PropTypes.arrayOf(
+      PropTypes.shape({
+        value: PropTypes.string.isRequired,
+        field: PropTypes.string,
+      })
+    ).isRequired,
+  }),
 };
 
 ComponentDisplay.propTypes = {
   truncate: PropTypes.bool,
-  component: PropTypes.shape(componentPropTypes)
+  component: PropTypes.shape(componentPropTypes),
 };

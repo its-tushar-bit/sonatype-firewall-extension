@@ -7,7 +7,7 @@ import template from './proprietary.matchers.modal.html';
 
 export default function ProprietaryMatchersModal(Modal) {
   return {
-    open: openModal
+    open: openModal,
   };
 
   function openModal(ownerAppId, pathNames) {
@@ -18,13 +18,13 @@ export default function ProprietaryMatchersModal(Modal) {
       controller: 'proprietary.matchers.modal.controller as vm',
       template,
       resolve: {
-        ownerAppId: function() {
+        ownerAppId: function () {
           return ownerAppId;
         },
-        pathNames: function() {
+        pathNames: function () {
           return pathNames;
-        }
-      }
+        },
+      },
     });
   }
 }

@@ -13,7 +13,7 @@ import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 export default {
   template: template,
   controllerAs: 'vm',
-  controller: ApplicationReportFilterController
+  controller: ApplicationReportFilterController,
 };
 
 // Map from checkbox option id to violationState filter set
@@ -21,35 +21,39 @@ const violationStateCheckboxFilterMapping = {
   notViolating: new Set(['notViolating']),
   open: new Set(['open']),
   waived: new Set(['waived', 'waived+grandfathered']),
-  grandfathered: new Set(['grandfathered', 'waived+grandfathered'])
+  grandfathered: new Set(['grandfathered', 'waived+grandfathered']),
 };
 
-export function ApplicationReportFilterController($scope, $ngRedux, applicationReportActions) {
+export function ApplicationReportFilterController(
+  $scope,
+  $ngRedux,
+  applicationReportActions
+) {
   const vm = this;
 
   Object.assign(vm, {
     availableProprietaryFilterOptions: [
       { id: false, name: 'Non-Proprietary' },
-      { id: true, name: 'Proprietary' }
+      { id: true, name: 'Proprietary' },
     ],
 
     availableMatchStateFilterOptions: [
       { id: 'exact', name: 'Exact' },
       { id: 'similar', name: 'Similar' },
-      { id: 'unknown', name: 'Unknown' }
+      { id: 'unknown', name: 'Unknown' },
     ],
 
     availableViolationStateFilterOptions: [
       { id: 'notViolating', name: 'Not Violating' },
       { id: 'open', name: 'Open' },
       { id: 'waived', name: 'Waived' },
-      { id: 'grandfathered', name: 'Grandfathered' }
+      { id: 'grandfathered', name: 'Grandfathered' },
     ],
 
     availableDependencyTypeFilterOptions: [
       { id: 'direct', name: 'Direct Dependencies' },
       { id: 'transitive', name: 'Transitive Dependencies' },
-      { id: 'unknown', name: 'Unknown' }
+      { id: 'unknown', name: 'Unknown' },
     ],
 
     availablePolicyTypeFilterOptions: policyTypes,
@@ -63,12 +67,16 @@ export function ApplicationReportFilterController($scope, $ngRedux, applicationR
     $onInit() {
       const actions = {
         ...pick(
-            [
-              'setAggregateReportEntries', 'setExactValueFilter', 'reevaluateReport', 'loadInnerSourceReports',
-              'toggleFilterSidebar'
-            ],
-            applicationReportActions),
-        fetchStageTypes
+          [
+            'setAggregateReportEntries',
+            'setExactValueFilter',
+            'reevaluateReport',
+            'loadInnerSourceReports',
+            'toggleFilterSidebar',
+          ],
+          applicationReportActions
+        ),
+        fetchStageTypes,
       };
 
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
@@ -76,19 +84,29 @@ export function ApplicationReportFilterController($scope, $ngRedux, applicationR
       document.addEventListener('keydown', vm.escapeKeyHandler);
       document.addEventListener('mousedown', vm.offClickHandler);
 
-      $scope.$watch('vm.exactValueFilters.derivedViolationState', function(derivedViolationState) {
-        const violationStateFilter = derivedViolationState || new Set(),
-
+      $scope.$watch(
+        'vm.exactValueFilters.derivedViolationState',
+        function (derivedViolationState) {
+          const violationStateFilter = derivedViolationState || new Set(),
             // the 'waived+grandfathered' value is redundant for these purposes, and the other possible values
             // all map perfectly to the checkbox ids
-            checkedIds = reject(equals('waived+grandfathered'), setToArray(violationStateFilter));
+            checkedIds = reject(
+              equals('waived+grandfathered'),
+              setToArray(violationStateFilter)
+            );
 
-        vm.violationStateCheckedIds = new Set(checkedIds);
-      });
+          vm.violationStateCheckedIds = new Set(checkedIds);
+        }
+      );
 
-      $scope.$watch('vm.exactValueFilters.policyThreatLevel', function(allowedValues) {
-        vm.policyThreatLevelFilterSelectedRange = toSelectedRange(allowedValues);
-      });
+      $scope.$watch(
+        'vm.exactValueFilters.policyThreatLevel',
+        function (allowedValues) {
+          vm.policyThreatLevelFilterSelectedRange = toSelectedRange(
+            allowedValues
+          );
+        }
+      );
     },
 
     $onDestroy() {
@@ -106,8 +124,11 @@ export function ApplicationReportFilterController($scope, $ngRedux, applicationR
     },
 
     setViolationStateFilterOptions(selectedIds) {
-      const selectedFilters = map(lookup(violationStateCheckboxFilterMapping), setToArray(selectedIds)),
-          mergedFilter = reduce(union, new Set(), selectedFilters);
+      const selectedFilters = map(
+          lookup(violationStateCheckboxFilterMapping),
+          setToArray(selectedIds)
+        ),
+        mergedFilter = reduce(union, new Set(), selectedFilters);
 
       vm.setExactValueFilter('derivedViolationState', mergedFilter);
     },
@@ -121,7 +142,10 @@ export function ApplicationReportFilterController($scope, $ngRedux, applicationR
     },
 
     setPolicyThreatLevelFilter(selectedRange) {
-      vm.setExactValueFilter('policyThreatLevel', fromSelectedRange(selectedRange));
+      vm.setExactValueFilter(
+        'policyThreatLevel',
+        fromSelectedRange(selectedRange)
+      );
     },
 
     closeSideBarFilterIfOpen() {
@@ -141,26 +165,35 @@ export function ApplicationReportFilterController($scope, $ngRedux, applicationR
         return;
       }
 
-      const filterMainElement = document.getElementById('application-report-sidebar');
+      const filterMainElement = document.getElementById(
+        'application-report-sidebar'
+      );
       const isClickOnReportFilter = filterMainElement.contains(event.target);
       if (!isClickOnReportFilter) {
         vm.closeSideBarFilterIfOpen();
       }
-    }
+    },
   });
 }
 
 function mapStateToThis(state) {
-  return pick([
-    'policyTypeFilterEnabled',
-    'aggregate',
-    'exactValueFilters',
-    'reportParameters',
-    'filterSidebarOpen'
-  ], state.applicationReport || {});
+  return pick(
+    [
+      'policyTypeFilterEnabled',
+      'aggregate',
+      'exactValueFilters',
+      'reportParameters',
+      'filterSidebarOpen',
+    ],
+    state.applicationReport || {}
+  );
 }
 
-ApplicationReportFilterController.$inject = ['$scope', '$ngRedux', 'applicationReportActions'];
+ApplicationReportFilterController.$inject = [
+  '$scope',
+  '$ngRedux',
+  'applicationReportActions',
+];
 
 function toSelectedRange(allowedValues) {
   if (allowedValues && allowedValues.size) {

@@ -3,13 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigationService,
-                              PolicyMonitoringStore, MonitoredStageService, EventNameConstant, PolicyHierarchyStore,
-                              ProprietaryConfigHierarchyStore, CLMContextLocations, ProductFeatures,
-                              PolicyViolationGrandfatheringService) {
+export default function PolicyTileController(
+  $scope,
+  $q,
+  StageTypeStore,
+  SameOwnerStateNavigationService,
+  PolicyMonitoringStore,
+  MonitoredStageService,
+  EventNameConstant,
+  PolicyHierarchyStore,
+  ProprietaryConfigHierarchyStore,
+  CLMContextLocations,
+  ProductFeatures,
+  PolicyViolationGrandfatheringService
+) {
   var vm = this;
-  vm.isAppOrOrg = CLMContextLocations.isApplication() || CLMContextLocations.isOrganization();
+  vm.isAppOrOrg =
+    CLMContextLocations.isApplication() || CLMContextLocations.isOrganization();
   vm.ownerName = undefined;
   vm.policiesByOwner = undefined;
   vm.error = undefined;
@@ -21,11 +31,12 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isMonitoringSupported = undefined;
   vm.isGrandfatheringSupported = undefined;
-  vm.isEnforcementSupportedForStage = ProductFeatures.isEnforcementSupportedForStage;
+  vm.isEnforcementSupportedForStage =
+    ProductFeatures.isEnforcementSupportedForStage;
   vm.editPolicy = editPolicy;
   vm.doLoad = doLoad;
 
-  vm.$onInit = function() {
+  vm.$onInit = function () {
     vm.doLoad();
   };
 
@@ -39,65 +50,78 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
       StageTypeStore.getActionStages(),
       PolicyMonitoringStore.getApplicable(),
       ProprietaryConfigHierarchyStore.get(),
-      ProductFeatures.load()
+      ProductFeatures.load(),
     ];
     if (vm.isAppOrOrg) {
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
     }
 
-    $q.all(promises).then(function(results) {
-      vm.policiesByOwner = results[0];
-      vm.actionStages = results[1];
+    $q.all(promises).then(
+      function (results) {
+        vm.policiesByOwner = results[0];
+        vm.actionStages = results[1];
 
-      vm.policiesByOwner.forEach(function(policyOwner, index) {
-        policyOwner.inherited = index > 0;
-        policyOwner.policies.forEach(function(policy) {
-          policy.enforcementAction = {};
-          vm.actionStages.forEach(function(actionStage) {
-            if (policy.actions[actionStage.stageTypeId]) {
-              policy.enforcementAction[actionStage.stageTypeId] = policy.actions[actionStage.stageTypeId];
-            }
+        vm.policiesByOwner.forEach(function (policyOwner, index) {
+          policyOwner.inherited = index > 0;
+          policyOwner.policies.forEach(function (policy) {
+            policy.enforcementAction = {};
+            vm.actionStages.forEach(function (actionStage) {
+              if (policy.actions[actionStage.stageTypeId]) {
+                policy.enforcementAction[actionStage.stageTypeId] =
+                  policy.actions[actionStage.stageTypeId];
+              }
+            });
           });
         });
-      });
 
-      vm.ownerName = vm.policiesByOwner[0].ownerName;
+        vm.ownerName = vm.policiesByOwner[0].ownerName;
 
-      var policyMonitoringByOwner = results[2].data.policyMonitoringByOwner;
-      vm.monitoredStage = MonitoredStageService.getMonitoredStage(policyMonitoringByOwner[0].policyMonitoring,
-          vm.actionStages);
-      if (!vm.monitoredStage) {
-        vm.monitoredStage = MonitoredStageService.createInheritOrNoMonitorOption(policyMonitoringByOwner,
-            vm.actionStages);
-      }
+        var policyMonitoringByOwner = results[2].data.policyMonitoringByOwner;
+        vm.monitoredStage = MonitoredStageService.getMonitoredStage(
+          policyMonitoringByOwner[0].policyMonitoring,
+          vm.actionStages
+        );
+        if (!vm.monitoredStage) {
+          vm.monitoredStage = MonitoredStageService.createInheritOrNoMonitorOption(
+            policyMonitoringByOwner,
+            vm.actionStages
+          );
+        }
 
-      var proprietaryMatchers = results[3];
-      proprietaryMatchers.forEach(function(configOwner, index) {
-        var config = configOwner.proprietaryConfig[0],
+        var proprietaryMatchers = results[3];
+        proprietaryMatchers.forEach(function (configOwner, index) {
+          var config = configOwner.proprietaryConfig[0],
             matcherTotal = config.packages.length + config.regexes.length;
-        if (index === 0) {
-          vm.localProprietaryCount += matcherTotal;
-        }
-        else {
-          vm.inheritedProprietaryCount += matcherTotal;
-        }
-      });
+          if (index === 0) {
+            vm.localProprietaryCount += matcherTotal;
+          } else {
+            vm.inheritedProprietaryCount += matcherTotal;
+          }
+        });
 
-      vm.isMonitoringSupported = ProductFeatures.isAvailable('policy-monitoring');
-      vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
+        vm.isMonitoringSupported = ProductFeatures.isAvailable(
+          'policy-monitoring'
+        );
+        vm.isGrandfatheringSupported = ProductFeatures.isAvailable(
+          'policy-grandfathering'
+        );
 
-      if (vm.isAppOrOrg) {
-        vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(results[5]);
+        if (vm.isAppOrOrg) {
+          vm.grandfatheringStatusMessage = PolicyViolationGrandfatheringService.getStatusMessage(
+            results[5]
+          );
+        }
+      },
+      function (error) {
+        vm.error = error;
       }
-    }, function(error) {
-      vm.error = error;
-    });
+    );
 
     delete vm.error;
   }
 
   function editPolicy(policyId) {
-    SameOwnerStateNavigationService.goEdit('policy', {policyId: policyId});
+    SameOwnerStateNavigationService.goEdit('policy', { policyId: policyId });
   }
 
   function updatedOwnerHandler(event, newOwner) {
@@ -106,8 +130,16 @@ function PolicyTileController($scope, $q, StageTypeStore, SameOwnerStateNavigati
 }
 
 PolicyTileController.$inject = [
-  '$scope', '$q', 'StageTypeStore', 'SameOwnerStateNavigationService',
-  'PolicyMonitoringStore', 'monitored.stage.service', 'event.name.constant', 'PolicyHierarchyStore',
-  'ProprietaryConfigHierarchyStore', 'CLMContextLocations', 'ProductFeatures',
-  'policyViolationGrandfatheringService'
+  '$scope',
+  '$q',
+  'StageTypeStore',
+  'SameOwnerStateNavigationService',
+  'PolicyMonitoringStore',
+  'monitored.stage.service',
+  'event.name.constant',
+  'PolicyHierarchyStore',
+  'ProprietaryConfigHierarchyStore',
+  'CLMContextLocations',
+  'ProductFeatures',
+  'policyViolationGrandfatheringService',
 ];

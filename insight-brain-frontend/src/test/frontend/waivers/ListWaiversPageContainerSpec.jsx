@@ -8,52 +8,57 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import ListWaiversPage from '../../../main/frontend/waivers/ListWaiversPage';
 
-describe('ListWaiversPageContainer', function() {
+describe('ListWaiversPageContainer', function () {
   let ListWaiversPageContainer,
-      loadManageWaiversDataMock,
-      setWaiverToDeleteMock,
-      store,
-      state,
-      vdom;
+    loadManageWaiversDataMock,
+    setWaiverToDeleteMock,
+    store,
+    state,
+    vdom;
 
-  beforeEach(function() {
-    loadManageWaiversDataMock = jasmine.createSpy('loadManageWaiversData').and.returnValue({
-      type: 'LOAD_MANAGE_WAIVERS_DATA'
-    });
+  beforeEach(function () {
+    loadManageWaiversDataMock = jasmine
+      .createSpy('loadManageWaiversData')
+      .and.returnValue({
+        type: 'LOAD_MANAGE_WAIVERS_DATA',
+      });
 
-    setWaiverToDeleteMock = jasmine.createSpy('setWaiverToDelete').and.returnValue({
-      type: 'SET_WAIVER_TO_DELETE'
-    });
+    setWaiverToDeleteMock = jasmine
+      .createSpy('setWaiverToDelete')
+      .and.returnValue({
+        type: 'SET_WAIVER_TO_DELETE',
+      });
 
-    ListWaiversPageContainer =
-        require('inject-loader!../../../main/frontend/waivers/ListWaiversPageContainer')({
-          './waiverActions': {
-            loadManageWaiversData: loadManageWaiversDataMock,
-            setWaiverToDelete: setWaiverToDeleteMock
-          }
-        }).default;
+    ListWaiversPageContainer = require('inject-loader!../../../main/frontend/waivers/ListWaiversPageContainer')(
+      {
+        './waiverActions': {
+          loadManageWaiversData: loadManageWaiversDataMock,
+          setWaiverToDelete: setWaiverToDeleteMock,
+        },
+      }
+    ).default;
 
     state = {
       violation: {
         activeWaivers: [],
         expiredWaivers: [],
-        violationDetails: {}
+        violationDetails: {},
       },
       router: {
-        currentParams: { violationId: 'foo' }
+        currentParams: { violationId: 'foo' },
       },
       manageWaivers: {
         loadingManageWaiversData: false,
         loadManageWaiversDataError: 'test error',
-        hasPermissionForAppWaivers: false
+        hasPermissionForAppWaivers: false,
       },
       deleteWaiver: {
-        waiverToDelete: { waiverId: 'foo' }
-      }
+        waiverToDelete: { waiverId: 'foo' },
+      },
     };
 
     store = configureStore()(() => state);
-    vdom = <ListWaiversPageContainer store={store}/>;
+    vdom = <ListWaiversPageContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -70,14 +75,14 @@ describe('ListWaiversPageContainer', function() {
       ...state,
       violation: {
         violationDetails: {
-          id: 'bar'
-        }
+          id: 'bar',
+        },
       },
       manageWaivers: {
         loadingManageWaiversData: true,
         loadManageWaiversDataError: null,
-        hasPermissionForAppWaivers: true
-      }
+        hasPermissionForAppWaivers: true,
+      },
     };
     wrapper = shallow(vdom).dive();
 
@@ -89,9 +94,11 @@ describe('ListWaiversPageContainer', function() {
     expect(wrapper).toHaveProp('waiverToDelete', { waiverId: 'foo' });
   });
 
-  it('maps action creators to props', function() {
+  it('maps action creators to props', function () {
     const wrapper = shallow(vdom).dive();
-    const loadMAnageWaiversDataActionCreator = wrapper.prop('loadManageWaiversData');
+    const loadMAnageWaiversDataActionCreator = wrapper.prop(
+      'loadManageWaiversData'
+    );
     const setWaiverToDeleteActionCreator = wrapper.prop('setWaiverToDelete');
 
     expect(loadMAnageWaiversDataActionCreator).toEqual(jasmine.any(Function));
@@ -105,11 +112,11 @@ describe('ListWaiversPageContainer', function() {
     setWaiverToDeleteActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_MANAGE_WAIVERS_DATA' },
-      { type: 'SET_WAIVER_TO_DELETE' }
+      { type: 'SET_WAIVER_TO_DELETE' },
     ]);
   });
 
-  it('renders ListWaiversPage component', function() {
+  it('renders ListWaiversPage component', function () {
     const listWaiversPageComponent = shallow(vdom).find(ListWaiversPage);
     expect(listWaiversPageComponent).toExist();
     expect(listWaiversPageComponent).toHaveProp('violationId', 'foo');

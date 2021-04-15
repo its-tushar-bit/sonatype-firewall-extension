@@ -13,12 +13,17 @@ export default {
   bindings: {
     close: '&',
     dismiss: '&',
-    existingReports: '<'
-  }
+    existingReports: '<',
+  },
 };
 
-function addSuccessMetricsReportModalController($q, ApplicationStore, OrganizationStore, successMetricsDataService,
-                                                Messages) {
+function addSuccessMetricsReportModalController(
+  $q,
+  ApplicationStore,
+  OrganizationStore,
+  successMetricsDataService,
+  Messages
+) {
   const vm = this;
 
   Object.assign(vm, {
@@ -39,14 +44,19 @@ function addSuccessMetricsReportModalController($q, ApplicationStore, Organizati
     $onInit() {
       vm.error = undefined;
 
-      $q.all([ApplicationStore.get(), OrganizationStore.get()]).then(function([applications, organizations]) {
-        vm.applications = applications;
-        vm.organizations = organizations.filter(org => org.id !== 'ROOT_ORGANIZATION_ID');
-      }).catch(function(error) {
-        vm.error = error;
-      }).finally(function() {
-        vm.loaded = true;
-      });
+      $q.all([ApplicationStore.get(), OrganizationStore.get()])
+        .then(function ([applications, organizations]) {
+          vm.applications = applications;
+          vm.organizations = organizations.filter(
+            (org) => org.id !== 'ROOT_ORGANIZATION_ID'
+          );
+        })
+        .catch(function (error) {
+          vm.error = error;
+        })
+        .finally(function () {
+          vm.loaded = true;
+        });
     },
 
     onOrgAppSelectionChange(selectedOrganizations, selectedApplications) {
@@ -62,39 +72,51 @@ function addSuccessMetricsReportModalController($q, ApplicationStore, Organizati
       function toArray(set) {
         const retval = [];
 
-        set.forEach(function(val) {
+        set.forEach(function (val) {
           retval.push(val);
         });
 
         return retval;
       }
 
-      vm.maskController.wrap(successMetricsDataService
-          .createSuccessMetricsReportForCurrentUser({
+      vm.maskController
+        .wrap(
+          successMetricsDataService.createSuccessMetricsReportForCurrentUser({
             name: vm.name,
-            scope: vm.isAllApplications ? {} : {
-              organizationIds: toArray(vm.selectedOrganizations),
-              applicationIds: toArray(vm.selectedApplications)
-            },
-            includeLatestData: vm.includeLatestData
-          }))
-          .then(result => vm.close({ result }))
-          .catch(error => vm.error = error);
+            scope: vm.isAllApplications
+              ? {}
+              : {
+                  organizationIds: toArray(vm.selectedOrganizations),
+                  applicationIds: toArray(vm.selectedApplications),
+                },
+            includeLatestData: vm.includeLatestData,
+          })
+        )
+        .then((result) => vm.close({ result }))
+        .catch((error) => (vm.error = error));
     },
 
     isCreateEnabled() {
       const form = vm.addSuccessMetricsReportForm;
 
-      return !!(form && !form.$invalid && (vm.isAllApplications ||
-          (vm.selectedApplications.size + vm.selectedOrganizations.size > 0)));
+      return !!(
+        form &&
+        !form.$invalid &&
+        (vm.isAllApplications ||
+          vm.selectedApplications.size + vm.selectedOrganizations.size > 0)
+      );
     },
 
     getErrorMessage() {
       return vm.error && Messages.getHttpErrorMessage(vm.error);
-    }
+    },
   });
 }
 
 addSuccessMetricsReportModalController.$inject = [
-  '$q', 'ApplicationStore', 'OrganizationStore', 'successMetricsDataService', 'Messages'
+  '$q',
+  'ApplicationStore',
+  'OrganizationStore',
+  'successMetricsDataService',
+  'Messages',
 ];

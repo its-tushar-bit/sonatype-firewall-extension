@@ -5,7 +5,7 @@
  */
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
 
-describe('userReducer', function() {
+describe('userReducer', function () {
   let reduce;
 
   beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
@@ -22,11 +22,11 @@ describe('userReducer', function() {
         shouldDisplayNotice: false,
         canChangePassword: false,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
-        type: 'UNKNOWN'
+        type: 'UNKNOWN',
       };
       const newState = reduce(state, action);
       expect(newState.currentUser).toBe(state.currentUser);
@@ -37,10 +37,10 @@ describe('userReducer', function() {
     });
   });
 
-  describe('initial state', function() {
+  describe('initial state', function () {
     it('is used if no state is provided', () => {
       const action = {
-        type: 'UNKNOWN'
+        type: 'UNKNOWN',
       };
       const newState = reduce(undefined, action);
       expect(newState.currentUser).toBe(null);
@@ -55,11 +55,11 @@ describe('userReducer', function() {
       const state = Object.freeze({
         shouldDisplayNotice: true,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
-        type: 'DEFAULT_ADMIN_PASSWORD_CHANGED'
+        type: 'DEFAULT_ADMIN_PASSWORD_CHANGED',
       };
       const newState = reduce(state, action);
       expect(newState.shouldDisplayNotice).toBe(false);
@@ -71,19 +71,19 @@ describe('userReducer', function() {
     it('should set currentUser', () => {
       const user = {
         username: 'admin',
-        internalUser: true
+        internalUser: true,
       };
       const state = Object.freeze({
         currentUser: null,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
         type: 'LOAD_USER_FULFILLED',
         payload: {
-          currentUser: user
-        }
+          currentUser: user,
+        },
       };
       const newState = reduce(state, action);
       expect(newState.currentUser).toBe(user);
@@ -92,20 +92,20 @@ describe('userReducer', function() {
 
     it('should set isDefaultUser according to the username: admin', () => {
       const user = {
-        username: 'admin'
+        username: 'admin',
       };
       const state = Object.freeze({
         currentUser: null,
         isDefaultUser: false,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
         type: 'LOAD_USER_FULFILLED',
         payload: {
-          currentUser: user
-        }
+          currentUser: user,
+        },
       };
       const newState = reduce(state, action);
       expect(newState.currentUser.username).toBe(user.username);
@@ -115,20 +115,20 @@ describe('userReducer', function() {
 
     it('should set isDefaultUser according to the username: foo', () => {
       const user = {
-        username: 'foo'
+        username: 'foo',
       };
       const state = Object.freeze({
         currentUser: null,
         isDefaultUser: false,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
         type: 'LOAD_USER_FULFILLED',
         payload: {
-          currentUser: user
-        }
+          currentUser: user,
+        },
       };
       const newState = reduce(state, action);
       expect(newState.currentUser.username).toBe(user.username);
@@ -138,19 +138,19 @@ describe('userReducer', function() {
 
     it('should set canChangePassword true for internal users', () => {
       const user = {
-        internalUser: true
+        internalUser: true,
       };
       const state = Object.freeze({
         canChangePassword: false,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
         type: 'LOAD_USER_FULFILLED',
         payload: {
-          currentUser: user
-        }
+          currentUser: user,
+        },
       };
       const newState = reduce(state, action);
       expect(newState.canChangePassword).toBe(true);
@@ -160,19 +160,19 @@ describe('userReducer', function() {
 
     it('should set canChangePassword false for non-internal users', () => {
       const user = {
-        internalUser: false
+        internalUser: false,
       };
       const state = Object.freeze({
         canChangePassword: true,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
         type: 'LOAD_USER_FULFILLED',
         payload: {
-          currentUser: user
-        }
+          currentUser: user,
+        },
       };
       const newState = reduce(state, action);
       expect(newState.canChangePassword).toBe(false);
@@ -184,14 +184,14 @@ describe('userReducer', function() {
       const state = Object.freeze({
         shouldDisplayNotice: false,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
         type: 'LOAD_USER_FULFILLED',
         payload: {
-          shouldDisplayWarning: true
-        }
+          shouldDisplayWarning: true,
+        },
       };
       const newState = reduce(state, action);
       expect(newState.shouldDisplayNotice).toBe(true);
@@ -202,14 +202,14 @@ describe('userReducer', function() {
       const state = Object.freeze({
         shouldDisplayNotice: true,
         other: {
-          random: 'prop'
-        }
+          random: 'prop',
+        },
       });
       const action = {
         type: 'LOAD_USER_FULFILLED',
         payload: {
-          shouldDisplayWarning: false
-        }
+          shouldDisplayWarning: false,
+        },
       };
       const newState = reduce(state, action);
       expect(newState.shouldDisplayNotice).toBe(false);

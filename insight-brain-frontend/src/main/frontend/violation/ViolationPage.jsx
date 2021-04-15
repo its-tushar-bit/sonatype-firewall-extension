@@ -7,8 +7,12 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
 import LoadWrapper from '../react/LoadWrapper';
-import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
-import PolicyViolationConstraintInfoTile, { constraintViolationsPropType } from './PolicyViolationConstraintInfoTile';
+import ViolationDetailsTile, {
+  violationDetailsPropTypes,
+} from './ViolationDetailsTile';
+import PolicyViolationConstraintInfoTile, {
+  constraintViolationsPropType,
+} from './PolicyViolationConstraintInfoTile';
 import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
 
 export default function ViolationPage(props) {
@@ -24,18 +28,24 @@ export default function ViolationPage(props) {
     vulnerabilityDetailsLoading,
     vulnerabilityDetails,
     vulnerabilityDetailsError,
-    activeWaivers
+    activeWaivers,
   } = props;
 
   const { id } = $state.params,
-      error = props.violationDetailsError || props.stageTypesError;
+    error = props.violationDetailsError || props.stageTypesError;
 
-  const constraintViolations = violationDetails ? violationDetails.constraintViolations : [];
+  const constraintViolations = violationDetails
+    ? violationDetails.constraintViolations
+    : [];
 
   // eslint-disable-next-line react/prop-types
-  const isSecurityVulnerability = violationDetails && violationDetails.policyThreatCategory === 'security';
+  const isSecurityVulnerability =
+    // eslint-disable-next-line react/prop-types
+    violationDetails && violationDetails.policyThreatCategory === 'security';
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => {
+    load();
+  }, [id]);
 
   function load() {
     loadViolation(id);
@@ -44,15 +54,25 @@ export default function ViolationPage(props) {
 
   return (
     <div id="violation-page">
-      <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)} retryHandler={load}>
-        <ViolationDetailsTile { ...({ $state, stageTypes, violationDetails, stateGo, activeWaivers }) } />
-        <PolicyViolationConstraintInfoTile constraintViolations={constraintViolations} />
-        { isSecurityVulnerability &&
-          <SecurityVulnerabilityDetailsTile vulnerabilityDetails={vulnerabilityDetails}
-                                            error={vulnerabilityDetailsError}
-                                            loading={vulnerabilityDetailsLoading}
-                                            retryLoad={loadVulnerabilityDetails} />
-        }
+      <LoadWrapper
+        error={error}
+        loading={loading || !(violationDetails && stageTypes)}
+        retryHandler={load}
+      >
+        <ViolationDetailsTile
+          {...{ $state, stageTypes, violationDetails, stateGo, activeWaivers }}
+        />
+        <PolicyViolationConstraintInfoTile
+          constraintViolations={constraintViolations}
+        />
+        {isSecurityVulnerability && (
+          <SecurityVulnerabilityDetailsTile
+            vulnerabilityDetails={vulnerabilityDetails}
+            error={vulnerabilityDetailsError}
+            loading={vulnerabilityDetailsLoading}
+            retryLoad={loadVulnerabilityDetails}
+          />
+        )}
       </LoadWrapper>
     </div>
   );
@@ -61,10 +81,10 @@ export default function ViolationPage(props) {
 ViolationPage.propTypes = {
   $state: PropTypes.shape({
     params: PropTypes.shape({
-      id: PropTypes.string.isRequired
+      id: PropTypes.string.isRequired,
     }).isRequired,
     get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired
+    href: PropTypes.func.isRequired,
   }).isRequired,
   loadViolation: PropTypes.func.isRequired,
   loadVulnerabilityDetails: PropTypes.func.isRequired,
@@ -75,11 +95,11 @@ ViolationPage.propTypes = {
   stageTypesError: LoadWrapper.propTypes.error,
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,
-    constraintViolations: constraintViolationsPropType.isRequired
+    constraintViolations: constraintViolationsPropType.isRequired,
   }),
   stageTypes: ViolationDetailsTile.propTypes.stageTypes,
   vulnerabilityDetailsLoading: PropTypes.bool.isRequired,
   vulnerabilityDetails: PropTypes.object,
   vulnerabilityDetailsError: LoadWrapper.propTypes.error,
-  activeWaivers: ViolationDetailsTile.propTypes.activeWaivers
+  activeWaivers: ViolationDetailsTile.propTypes.activeWaivers,
 };

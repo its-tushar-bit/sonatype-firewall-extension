@@ -15,51 +15,60 @@ const dashboardCommonResults = {
     maxResults: '<',
     maxDaysOld: '<',
     error: '<',
-    reload: '&'
+    reload: '&',
   },
   controllerAs: 'vm',
   controller: DashboardCommonResultsController,
   template: template,
-  replace: true
+  replace: true,
 };
 
-function DashboardCommonResultsController(Dialog, ApplicationStore, Messages, $ngRedux,
-                                          dashboardFilterActions) {
+function DashboardCommonResultsController(
+  Dialog,
+  ApplicationStore,
+  Messages,
+  $ngRedux,
+  dashboardFilterActions
+) {
   const vm = this;
 
   Object.assign(vm, {
-
     loadCommonResults() {
-      return !vm.results || vm.results.length === 0 || vm.numResults > vm.maxResults || vm.needsAcknowledgement;
+      return (
+        !vm.results ||
+        vm.results.length === 0 ||
+        vm.numResults > vm.maxResults ||
+        vm.needsAcknowledgement
+      );
     },
 
-    $onChanges({error}) {
+    $onChanges({ error }) {
       if (error && error.currentValue) {
-        const {currentValue} = error;
+        const { currentValue } = error;
         if (currentValue.status && currentValue.status === 403) {
           openFilterInvalidDialog();
-        }
-        else {
+        } else {
           vm.errorMessage = Messages.getHttpErrorMessage(currentValue);
         }
       }
-    }
+    },
   });
 
   function openFilterInvalidDialog() {
     Dialog.open({
       title: 'Filter invalid',
-      body: 'Your filter settings have become invalid because of permission changes, click OK to reload.',
+      body:
+        'Your filter settings have become invalid because of permission changes, click OK to reload.',
       buttons: [
         {
           name: 'OK',
-          click: function() {
+          click: function () {
             //make sure to get any stale apps out of the app list
             ApplicationStore.refresh();
             reloadFilter();
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
   }
 
@@ -69,7 +78,11 @@ function DashboardCommonResultsController(Dialog, ApplicationStore, Messages, $n
 }
 
 DashboardCommonResultsController.$inject = [
-  'Dialog', 'ApplicationStore', 'Messages', '$ngRedux', 'dashboardFilterActions'
+  'Dialog',
+  'ApplicationStore',
+  'Messages',
+  '$ngRedux',
+  'dashboardFilterActions',
 ];
 
 export default dashboardCommonResults;

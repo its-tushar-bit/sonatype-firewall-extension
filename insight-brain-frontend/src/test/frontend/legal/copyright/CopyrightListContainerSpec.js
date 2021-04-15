@@ -11,19 +11,17 @@ import { copyrightState } from './copyrightCommonState';
 import CopyrightList from '../../../../main/frontend/legal/copyright/CopyrightList';
 import { copyrightDetailsStateName } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
 
-describe('CopyrightListContainer', function() {
-  let store,
-      state,
-      vdom,
-      CopyrightListContainer;
+describe('CopyrightListContainer', function () {
+  let store, state, vdom, CopyrightListContainer;
 
-  beforeEach(function() {
+  beforeEach(function () {
     state = copyrightState;
-    CopyrightListContainer =
-      require('inject-loader!../../../../main/frontend/legal/copyright/CopyrightListContainer')({}).default;
+    CopyrightListContainer = require('inject-loader!../../../../main/frontend/legal/copyright/CopyrightListContainer')(
+      {}
+    ).default;
 
     store = configureStore()(() => state);
-    vdom = <CopyrightListContainer store={store}/>;
+    vdom = <CopyrightListContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -31,11 +29,11 @@ describe('CopyrightListContainer', function() {
     expect(wrapper).toHaveProp('component', {
       licenseLegalData: {
         copyrights: [
-          {originalContentHash: 'hash1', content: 'content1'},
-          {originalContentHash: 'hash2', content: 'content2'},
-          {originalContentHash: null, content: 'content3'}
-        ]
-      }
+          { originalContentHash: 'hash1', content: 'content1' },
+          { originalContentHash: 'hash2', content: 'content2' },
+          { originalContentHash: null, content: 'content3' },
+        ],
+      },
     });
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('error', 'error');
@@ -55,26 +53,33 @@ describe('CopyrightListContainer', function() {
       filePaths: ['path1', 'path2'],
       totalFileMatches: 2,
       copyrightContexts: ['context1', 'context2'],
-      copyrightFileCounts: {'path1': 1, 'path2': 2}
+      copyrightFileCounts: { path1: 1, path2: 2 },
     });
   });
 
-  it('renders CopyrightList component', function() {
+  it('renders CopyrightList component', function () {
     const copyrightList = shallow(vdom).find(CopyrightList);
     expect(copyrightList).toExist();
   });
 
   it('handles route switch when current state has changed', () => {
-    state = {...copyrightState,
+    state = {
+      ...copyrightState,
       router: {
-        currentState: {name: 'ComponentOverview'},
-        currentParams: {hash: 'fooHash', applicationPublicId: 'appId'},
-        prevParams: {hash: 'fooHash', ownerType: 'organization', ownerId: 'org', copyrightIndex: '12'},
-        prevState: {name: copyrightDetailsStateName}
-      }};
+        currentState: { name: 'ComponentOverview' },
+        currentParams: { hash: 'fooHash', applicationPublicId: 'appId' },
+        prevParams: {
+          hash: 'fooHash',
+          ownerType: 'organization',
+          ownerId: 'org',
+          copyrightIndex: '12',
+        },
+        prevState: { name: copyrightDetailsStateName },
+      },
+    };
 
     store = configureStore()(() => state);
-    vdom = <CopyrightListContainer store={store}/>;
+    vdom = <CopyrightListContainer store={store} />;
 
     let wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('hash', 'fooHash');

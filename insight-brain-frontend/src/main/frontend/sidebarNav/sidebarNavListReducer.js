@@ -7,7 +7,7 @@ import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
   LOAD_SIDEBAR_NAV_LIST_FAILED,
   LOAD_SIDEBAR_NAV_LIST_FULFILLED,
-  LOAD_SIDEBAR_NAV_LIST_REQUESTED
+  LOAD_SIDEBAR_NAV_LIST_REQUESTED,
 } from './sidebarNavListActions';
 
 const initialState = Object.freeze({
@@ -16,13 +16,13 @@ const initialState = Object.freeze({
   loading: false,
   error: null,
   sidebarId: null,
-  sidebarReference: null
+  sidebarReference: null,
 });
 
 const reducerActionMap = {
   [LOAD_SIDEBAR_NAV_LIST_REQUESTED]: loadRequested,
   [LOAD_SIDEBAR_NAV_LIST_FULFILLED]: loadFulfilled,
-  [LOAD_SIDEBAR_NAV_LIST_FAILED]: loadFailed
+  [LOAD_SIDEBAR_NAV_LIST_FAILED]: loadFailed,
 };
 
 function loadFulfilled(payload, state) {
@@ -30,7 +30,7 @@ function loadFulfilled(payload, state) {
     ...state,
     ...payload,
     error: null,
-    loading: false
+    loading: false,
   };
 }
 
@@ -44,7 +44,7 @@ function loadRequested({ contentType, sidebarReference, sidebarId }, state) {
     contentType,
     sidebarReference,
     sidebarId,
-    loading: true
+    loading: true,
   };
 }
 

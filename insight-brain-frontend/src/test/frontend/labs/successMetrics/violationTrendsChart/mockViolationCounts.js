@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {range, sum, curry} from 'ramda';
+import { range, sum, curry } from 'ramda';
 
 /**
  * Breaks a number into n random numbers
  * @returns array of n random numbers, such that their sum is equal to numberToDistribute
  */
 function distributeRandom(n, numberToDistribute) {
-  const randomValues = range(0, n - 1).reduce(acc => {
+  const randomValues = range(0, n - 1).reduce((acc) => {
     const remainder = numberToDistribute - sum(acc);
     return [...acc, getRandomInt(remainder)];
   }, []);
@@ -19,12 +19,17 @@ function distributeRandom(n, numberToDistribute) {
 
 const divideByFourRandom = curry(distributeRandom)(4);
 
-export function generateWeekCounts(timePeriodName, discoveredCountsTotal, waivedCountsTotal, fixedCountsTotal) {
+export function generateWeekCounts(
+  timePeriodName,
+  discoveredCountsTotal,
+  waivedCountsTotal,
+  fixedCountsTotal
+) {
   return {
     timePeriodName,
     discoveredCounts: distributeCountsPerPolicyType(discoveredCountsTotal),
     waivedCounts: distributeCountsPerPolicyType(waivedCountsTotal),
-    fixedCounts: distributeCountsPerPolicyType(fixedCountsTotal)
+    fixedCounts: distributeCountsPerPolicyType(fixedCountsTotal),
   };
 }
 
@@ -34,7 +39,7 @@ function distributeCountsPerPolicyType(i) {
     SECURITY: distributeCountsPerThreatLevel(counts[0]),
     LICENSE: distributeCountsPerThreatLevel(counts[1]),
     QUALITY: distributeCountsPerThreatLevel(counts[2]),
-    OTHER: distributeCountsPerThreatLevel(counts[3])
+    OTHER: distributeCountsPerThreatLevel(counts[3]),
   };
 }
 
@@ -44,7 +49,7 @@ function distributeCountsPerThreatLevel(i) {
     SEVERE: counts[0],
     CRITICAL: counts[1],
     MODERATE: counts[2],
-    LOW: counts[3]
+    LOW: counts[3],
   };
 }
 

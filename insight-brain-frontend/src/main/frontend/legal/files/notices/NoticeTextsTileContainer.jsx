@@ -11,12 +11,13 @@ import NoticeTextsTile from './NoticeTextsTile';
 function mapStateToProps({ advancedLegal }) {
   return {
     noticeFiles: advancedLegal.component.component.licenseLegalData.noticeFiles,
-    showNoticesModal: advancedLegal.component.component.licenseLegalData.showNoticesModal
+    showNoticesModal:
+      advancedLegal.component.component.licenseLegalData.showNoticesModal,
   };
 }
 
 const mapDispatchToProps = {
-  setShowNoticesModal
+  setShowNoticesModal,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(NoticeTextsTile);

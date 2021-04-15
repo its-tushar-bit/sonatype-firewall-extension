@@ -25,7 +25,8 @@
   padding: 12px $iq-spacing-l 0 $iq-spacing-l;
   text-transform: uppercase;
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     border-bottom-color: $iq-blue;
     color: $iq-blue;
     text-decoration: none;

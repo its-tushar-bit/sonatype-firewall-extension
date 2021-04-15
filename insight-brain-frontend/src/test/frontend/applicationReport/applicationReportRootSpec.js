@@ -5,18 +5,25 @@
  */
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
 
-describe('applicationReportRoot', function() {
-
+describe('applicationReportRoot', function () {
   let createController;
 
   beforeEach(angular.mock.module(applicationReportModule.name));
 
-  beforeEach(angular.mock.module(function($provide) {
-    SpecUtil.mockNgRedux($provide);
-  }));
+  beforeEach(
+    angular.mock.module(function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
-  beforeEach(inject(function($componentController) {
-    createController = function(publicId, scanId, unknownJs, embeddable, policyViolationId) {
+  beforeEach(inject(function ($componentController) {
+    createController = function (
+      publicId,
+      scanId,
+      unknownJs,
+      embeddable,
+      policyViolationId
+    ) {
       const vm = $componentController('applicationReportRoot', {
         $state: {
           params: {
@@ -24,9 +31,9 @@ describe('applicationReportRoot', function() {
             scanId,
             unknownJs,
             embeddable,
-            policyViolationId
-          }
-        }
+            policyViolationId,
+          },
+        },
       });
 
       vm.$onInit();
@@ -35,27 +42,51 @@ describe('applicationReportRoot', function() {
     };
   }));
 
-  describe('$onInit()', function() {
+  describe('$onInit()', function () {
     it('subscribes to the redux store', () => {
       const vm = createController();
 
       expect(vm.unsubscribe).toBeDefined();
     });
 
-    it('calls setReportParameters with the correct parameters', function() {
-      const vm = createController('testApp', 'testReport', false, true, undefined);
-      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false, true, undefined);
+    it('calls setReportParameters with the correct parameters', function () {
+      const vm = createController(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        undefined
+      );
+      expect(vm.setReportParameters).toHaveBeenCalledWith(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        undefined
+      );
     });
 
-    it('calls setReportParameters with the correct parameters when returning from addWaiver', function() {
-      const vm = createController('testApp', 'testReport', false, true, 'policyViolationId');
+    it('calls setReportParameters with the correct parameters when returning from addWaiver', function () {
+      const vm = createController(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        'policyViolationId'
+      );
 
-      expect(vm.setReportParameters).toHaveBeenCalledWith('testApp', 'testReport', false, true, 'policyViolationId');
+      expect(vm.setReportParameters).toHaveBeenCalledWith(
+        'testApp',
+        'testReport',
+        false,
+        true,
+        'policyViolationId'
+      );
     });
   });
 
-  describe('$onDestroy()', function() {
-    it('unsubscribes from redux store', function() {
+  describe('$onDestroy()', function () {
+    it('unsubscribes from redux store', function () {
       const vm = createController();
 
       expect(vm.unsubscribe).not.toHaveBeenCalled();

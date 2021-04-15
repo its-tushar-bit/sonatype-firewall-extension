@@ -12,14 +12,14 @@ import {
   NxTableHead,
   NxTableRow,
   NxTooltip,
-  NxPagination
+  NxPagination,
 } from '@sonatype/react-shared-components';
-import React, {useMemo, useState} from 'react';
+import React, { useMemo, useState } from 'react';
 import * as PropTypes from 'prop-types';
-import {repositoryPropType} from '../ScmOnboarding';
+import { repositoryPropType } from '../ScmOnboarding';
 import NxFilterInput from '@sonatype/react-shared-components/components/NxFilterInput/NxFilterInput';
 import NxExternalLink from '../../../react/NxExternalLink';
-import {propSet} from '../../../util/jsUtil';
+import { propSet } from '../../../util/jsUtil';
 
 export default function ResultsTable(props) {
   const {
@@ -36,16 +36,25 @@ export default function ResultsTable(props) {
     // actions
     setSortingParameters,
     setIsAllChecked,
-    setSelectedRepositories
+    setSelectedRepositories,
   } = props;
 
-  const [filters, setFilters] = useState({project: '', namespace: '', description: ''}),
-      [page, setPage] = useState(0);
+  const [filters, setFilters] = useState({
+      project: '',
+      namespace: '',
+      description: '',
+    }),
+    [page, setPage] = useState(0);
 
   const maxRowsPerPage = 15;
 
-  const filteredRepos = useMemo(() => repositories === null ? null : repositories.filter(isRepositorySelectedByFilter),
-      [repositories, filters]);
+  const filteredRepos = useMemo(
+    () =>
+      repositories === null
+        ? null
+        : repositories.filter(isRepositorySelectedByFilter),
+    [repositories, filters]
+  );
 
   function getPageCount() {
     return Math.ceil(filteredRepos.length / maxRowsPerPage);
@@ -58,7 +67,10 @@ export default function ResultsTable(props) {
 
   const currentPagedRepos = useMemo(() => {
     let currentPage = getDefinedPage();
-    return filteredRepos.slice(currentPage * maxRowsPerPage, (currentPage + 1) * maxRowsPerPage);
+    return filteredRepos.slice(
+      currentPage * maxRowsPerPage,
+      (currentPage + 1) * maxRowsPerPage
+    );
   }, [page, filteredRepos]);
 
   function getCurrentPage() {
@@ -90,15 +102,15 @@ export default function ResultsTable(props) {
 
   const sortSettingsProject = {
     key: 'project',
-    sortingOrder: ['project', 'namespace', 'description']
+    sortingOrder: ['project', 'namespace', 'description'],
   };
   const sortSettingsNamespace = {
     key: 'namespace',
-    sortingOrder: ['namespace', 'project', 'description']
+    sortingOrder: ['namespace', 'project', 'description'],
   };
   const sortSettingsDescription = {
     key: 'description',
-    sortingOrder: ['description', 'namespace', 'project']
+    sortingOrder: ['description', 'namespace', 'project'],
   };
 
   function requestSort(settings) {
@@ -121,9 +133,11 @@ export default function ResultsTable(props) {
   }
 
   function isRepositorySelectedByFilter(repository) {
-    return repository.project.includes(filters.project)
-        && repository.namespace.includes(filters.namespace)
-        && repository.description.includes(filters.description);
+    return (
+      repository.project.includes(filters.project) &&
+      repository.namespace.includes(filters.namespace) &&
+      repository.description.includes(filters.description)
+    );
   }
 
   function toggleSelectAll() {
@@ -133,8 +147,13 @@ export default function ResultsTable(props) {
 
   function changeFilter(filterName, filterValue) {
     setFilters(propSet(filterName, filterValue, filters));
-    setSelectedRepositories(repositories.filter(repo => repo[filterName].includes(filterValue)
-        && selectedRepositories.includes(repo)));
+    setSelectedRepositories(
+      repositories.filter(
+        (repo) =>
+          repo[filterName].includes(filterValue) &&
+          selectedRepositories.includes(repo)
+      )
+    );
 
     // when filters change, always reset to the first page
     setPage(0);
@@ -146,53 +165,89 @@ export default function ResultsTable(props) {
         <NxTableHead>
           <NxTableRow>
             <NxTableCell>Selection</NxTableCell>
-            <NxTableCell id='namespace-header' isSortable sortDir={sortDirNamespace}
-                         onClick={() => requestSort(sortSettingsNamespace)}>Namespace</NxTableCell>
-            <NxTableCell id='project-header' isSortable sortDir={sortDirProject}
-                         onClick={() => requestSort(sortSettingsProject)}>Project</NxTableCell>
-            <NxTableCell id='description-header' isSortable sortDir={sortDirDescription}
-                         onClick={() => requestSort(sortSettingsDescription)}>Description</NxTableCell>
+            <NxTableCell
+              id="namespace-header"
+              isSortable
+              sortDir={sortDirNamespace}
+              onClick={() => requestSort(sortSettingsNamespace)}
+            >
+              Namespace
+            </NxTableCell>
+            <NxTableCell
+              id="project-header"
+              isSortable
+              sortDir={sortDirProject}
+              onClick={() => requestSort(sortSettingsProject)}
+            >
+              Project
+            </NxTableCell>
+            <NxTableCell
+              id="description-header"
+              isSortable
+              sortDir={sortDirDescription}
+              onClick={() => requestSort(sortSettingsDescription)}
+            >
+              Description
+            </NxTableCell>
           </NxTableRow>
           <NxTableRow isFilterHeader>
             <NxTableCell className="iq-scmonboarding__select-all-cell">
-              <NxCheckbox checkboxId="iq-scmonboarding-select-all"
-                          isChecked={isAllChecked}
-                          onChange={toggleSelectAll}>
+              <NxCheckbox
+                checkboxId="iq-scmonboarding-select-all"
+                isChecked={isAllChecked}
+                onChange={toggleSelectAll}
+              >
                 All
               </NxCheckbox>
             </NxTableCell>
             <NxTableCell className="iq-scmonboarding__filter-cell">
-              <NxFilterInput id="iq-scmonboarding-namespace-filter"
-                             value={filters.namespace}
-                             onChange={filterValue => changeFilter('namespace', filterValue)} />
+              <NxFilterInput
+                id="iq-scmonboarding-namespace-filter"
+                value={filters.namespace}
+                onChange={(filterValue) =>
+                  changeFilter('namespace', filterValue)
+                }
+              />
             </NxTableCell>
             <NxTableCell className="iq-scmonboarding__filter-cell">
-              <NxFilterInput id="iq-scmonboarding-project-filter"
-                             value={filters.project}
-                             onChange={filterValue => changeFilter('project', filterValue)} />
+              <NxFilterInput
+                id="iq-scmonboarding-project-filter"
+                value={filters.project}
+                onChange={(filterValue) => changeFilter('project', filterValue)}
+              />
             </NxTableCell>
             <NxTableCell className="iq-scmonboarding__filter-cell">
-              <NxFilterInput id="iq-scmonboarding-description-filter"
-                             value={filters.description}
-                             onChange={filterValue => changeFilter('description', filterValue)} />
+              <NxFilterInput
+                id="iq-scmonboarding-description-filter"
+                value={filters.description}
+                onChange={(filterValue) =>
+                  changeFilter('description', filterValue)
+                }
+              />
             </NxTableCell>
           </NxTableRow>
         </NxTableHead>
         <NxTableBody emptyMessage="No matching repositories.">
-          { currentPagedRepos.map(repo =>
-            <RepositoryRow repo={repo}
-                           key={repo.httpCloneUrl}
-                           rowKey={repo.httpCloneUrl}
-                           selectedRepositories={selectedRepositories}
-                           setSelectedRepositories={setSelectedRepositories} />
-          )}
+          {currentPagedRepos.map((repo) => (
+            <RepositoryRow
+              repo={repo}
+              key={repo.httpCloneUrl}
+              rowKey={repo.httpCloneUrl}
+              selectedRepositories={selectedRepositories}
+              setSelectedRepositories={setSelectedRepositories}
+            />
+          ))}
         </NxTableBody>
       </NxTable>
-      {canRenderPagination() &&
-      <div className='nx-table-container__footer'>
-        <NxPagination onChange={setCurrentPage} pageCount={getPageCount()} currentPage={getCurrentPage()}/>
-      </div>
-      }
+      {canRenderPagination() && (
+        <div className="nx-table-container__footer">
+          <NxPagination
+            onChange={setCurrentPage}
+            pageCount={getPageCount()}
+            currentPage={getCurrentPage()}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -208,42 +263,47 @@ ResultsTable.propTypes = {
   sortConfiguration: PropTypes.shape({
     sortFields: PropTypes.arrayOf(PropTypes.string),
     dir: PropTypes.string,
-    key: PropTypes.string
+    key: PropTypes.string,
   }),
 
   // actions
   setSortingParameters: PropTypes.func,
   onRepositorySelectionChanged: PropTypes.func.isRequired,
   setIsAllChecked: PropTypes.func.isRequired,
-  setSelectedRepositories: PropTypes.func.isRequired
+  setSelectedRepositories: PropTypes.func.isRequired,
 };
 
 export function RepositoryRow(props) {
-  const {
-    rowKey,
-    repo,
-    setSelectedRepositories,
-    selectedRepositories
-  } = props;
+  const { rowKey, repo, setSelectedRepositories, selectedRepositories } = props;
 
   const toggleSelection = () => {
-    setSelectedRepositories(selectedRepositories.includes(repo)
-      ? selectedRepositories.filter(selectedRepo => selectedRepo !== repo)
-      : selectedRepositories.concat([repo]));
+    setSelectedRepositories(
+      selectedRepositories.includes(repo)
+        ? selectedRepositories.filter((selectedRepo) => selectedRepo !== repo)
+        : selectedRepositories.concat([repo])
+    );
   };
 
   return (
     <NxTableRow key={rowKey}>
       <NxTableCell>
-        <NxCheckbox checkboxId={rowKey} isChecked={selectedRepositories.includes(repo)}
-                    onChange={toggleSelection}/>
+        <NxCheckbox
+          checkboxId={rowKey}
+          isChecked={selectedRepositories.includes(repo)}
+          onChange={toggleSelection}
+        />
       </NxTableCell>
-      <NxTableCell className='iq-scm-repository-namespace'>{repo.namespace}</NxTableCell>
-      <NxTableCell className='iq-scm-repository-project'>
+      <NxTableCell className="iq-scm-repository-namespace">
+        {repo.namespace}
+      </NxTableCell>
+      <NxTableCell className="iq-scm-repository-project">
         <NxExternalLink href={repo.httpCloneUrl}>{repo.project}</NxExternalLink>
       </NxTableCell>
-      <NxTableCell className='iq-scm-repository-description'>
-        <NxTooltip title={repo.description} className='iq-scm-repo-description-tooltip'>
+      <NxTableCell className="iq-scm-repository-description">
+        <NxTooltip
+          title={repo.description}
+          className="iq-scm-repo-description-tooltip"
+        >
           <div className="nx-truncate-ellipsis">{repo.description}</div>
         </NxTooltip>
       </NxTableCell>
@@ -254,5 +314,5 @@ RepositoryRow.propTypes = {
   rowKey: PropTypes.string,
   repo: PropTypes.shape(repositoryPropType).isRequired,
   setSelectedRepositories: PropTypes.func.isRequired,
-  selectedRepositories: PropTypes.array.isRequired
+  selectedRepositories: PropTypes.array.isRequired,
 };

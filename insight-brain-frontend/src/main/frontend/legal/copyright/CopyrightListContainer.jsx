@@ -8,20 +8,29 @@ import { connect } from 'react-redux';
 import CopyrightList from './CopyrightList';
 import { copyrightDetailsStateName } from './copyrightDetailsUtils';
 
-function mapStateToProps({advancedLegal, componentCopyrightDetails, router}) {
+function mapStateToProps({ advancedLegal, componentCopyrightDetails, router }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
 
   let routerParams = router.currentParams;
-  if (router.currentState.name !== copyrightDetailsStateName && router.prevState.name === copyrightDetailsStateName) {
+  if (
+    router.currentState.name !== copyrightDetailsStateName &&
+    router.prevState.name === copyrightDetailsStateName
+  ) {
     routerParams = router.prevParams;
   }
   return {
-    loading: component.loading || availableScopes.loading || componentCopyrightDetails.loadingCopyrightFileCounts,
-    error: component.error || availableScopes.error || componentCopyrightDetails.errorCopyrightFileCounts,
+    loading:
+      component.loading ||
+      availableScopes.loading ||
+      componentCopyrightDetails.loadingCopyrightFileCounts,
+    error:
+      component.error ||
+      availableScopes.error ||
+      componentCopyrightDetails.errorCopyrightFileCounts,
     componentCopyrightDetails,
     ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'copyrightIndex'], routerParams)
+    ...pick(['hash', 'ownerType', 'ownerId', 'copyrightIndex'], routerParams),
   };
 }
 

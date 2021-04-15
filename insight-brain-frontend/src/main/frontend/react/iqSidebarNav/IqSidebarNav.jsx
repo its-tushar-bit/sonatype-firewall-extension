@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import {
   NxStatefulGlobalSidebar,
   NxGlobalSidebarNavigation,
-  NxGlobalSidebarNavigationLink
+  NxGlobalSidebarNavigationLink,
 } from '@sonatype/react-shared-components';
 import { faBars, faArrowToLeft } from '@fortawesome/pro-regular-svg-icons';
 import {
@@ -19,7 +19,7 @@ import {
   faMicroscope,
   faSearch,
   faShieldCheck,
-  faSitemap
+  faSitemap,
 } from '@fortawesome/pro-solid-svg-icons';
 
 import RouterStateContext from '../RouterStateContext';
@@ -39,7 +39,7 @@ function IqSidebarNav(props) {
     isSuccessMetricsEnabled,
     isAdvancedSearchEnabled,
     isFirewallEnabled,
-    isLegalEnabled
+    isLegalEnabled,
   } = props;
 
   const logo = getProductLogo(productEdition);
@@ -57,82 +57,104 @@ function IqSidebarNav(props) {
     return uiRouterState.includes(entryName);
   };
 
-  const isVulnerabilitySearchSelected = isSelected('vulnerabilitySearch') || isSelected('vulnerabilitySearchDetail');
-  const isFirewallSelected = isSelected('firewall') || isSelected('firewallAutoUnquarantine');
+  const isVulnerabilitySearchSelected =
+    isSelected('vulnerabilitySearch') ||
+    isSelected('vulnerabilitySearchDetail');
+  const isFirewallSelected =
+    isSelected('firewall') || isSelected('firewallAutoUnquarantine');
 
   return (
-    <NxStatefulGlobalSidebar isDefaultOpen={true}
-                             toggleOpenIcon={faArrowToLeft}
-                             toggleCloseIcon={faBars}
-                             logoImg={logo}
-                             logoAltText={productEdition}
-                             logoLink="#">
-      { isLoggedIn &&
+    <NxStatefulGlobalSidebar
+      isDefaultOpen={true}
+      toggleOpenIcon={faArrowToLeft}
+      toggleCloseIcon={faBars}
+      logoImg={logo}
+      logoAltText={productEdition}
+      logoLink="#"
+    >
+      {isLoggedIn && (
         <NxGlobalSidebarNavigation id="main-header-buttons">
-          { isDashboardAvailable &&
-            <NxGlobalSidebarNavigationLink isSelected={isSelected('dashboard')}
-                                           id="dashboard-navigation-button"
-                                           icon={faHome}
-                                           text="Dashboard"
-                                           href={dashboardHref} />
-          }
+          {isDashboardAvailable && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('dashboard')}
+              id="dashboard-navigation-button"
+              icon={faHome}
+              text="Dashboard"
+              href={dashboardHref}
+            />
+          )}
 
-          { isLicensed &&
-            <NxGlobalSidebarNavigationLink isSelected={isSelected('management')}
-                                           id="policies-navigation-button"
-                                           icon={faSitemap}
-                                           text="Orgs and Policies"
-                                           href={orgsPoliciesHref} />
-          }
-          { isReportsListAvailable &&
-            <NxGlobalSidebarNavigationLink isSelected={isSelected('violations')}
-                                           id="reporting-navigation-button"
-                                           icon={faFileChartLine}
-                                           text="Reports"
-                                           href={reportsHref} />
-          }
-          { isSuccessMetricsEnabled &&
-            <NxGlobalSidebarNavigationLink isSelected={isSelected('labs')}
-                                           id="labs-navigation-button"
-                                           icon={faChartArea}
-                                           text="Success Metrics"
-                                           href={successMetricsHref} />
-          }
-          { isLicensed &&
-            <NxGlobalSidebarNavigationLink isSelected={isVulnerabilitySearchSelected}
-                                           id="vulnerability-navigation-button"
-                                           icon={faMicroscope}
-                                           text="Vulnerability Search"
-                                           href={vulnSearchHref} />
-          }
-          { isLicensed && isAdvancedSearchEnabled &&
-            <NxGlobalSidebarNavigationLink isSelected={isSelected('advancedSearch')}
-                                           id="search-navigation-button"
-                                           icon={faSearch}
-                                           text="Advanced Search"
-                                           href={advSearchHref} />
-          }
-          { isLicensed && isFirewallEnabled &&
-            <NxGlobalSidebarNavigationLink isSelected={isFirewallSelected}
-                                           id="firewall-navigation-button"
-                                           icon={faShieldCheck}
-                                           text="Firewall"
-                                           href={firewallHref} />
-          }
-          {
-            isLicensed && isLegalEnabled &&
-            <NxGlobalSidebarNavigationLink isSelected={isSelected('legalDashboard')}
-                                           id="advanced-legal-navigation-button"
-                                           icon={faGavel}
-                                           text="Legal"
-                                           href={legalHref} />
-          }
+          {isLicensed && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('management')}
+              id="policies-navigation-button"
+              icon={faSitemap}
+              text="Orgs and Policies"
+              href={orgsPoliciesHref}
+            />
+          )}
+          {isReportsListAvailable && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('violations')}
+              id="reporting-navigation-button"
+              icon={faFileChartLine}
+              text="Reports"
+              href={reportsHref}
+            />
+          )}
+          {isSuccessMetricsEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('labs')}
+              id="labs-navigation-button"
+              icon={faChartArea}
+              text="Success Metrics"
+              href={successMetricsHref}
+            />
+          )}
+          {isLicensed && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isVulnerabilitySearchSelected}
+              id="vulnerability-navigation-button"
+              icon={faMicroscope}
+              text="Vulnerability Search"
+              href={vulnSearchHref}
+            />
+          )}
+          {isLicensed && isAdvancedSearchEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('advancedSearch')}
+              id="search-navigation-button"
+              icon={faSearch}
+              text="Advanced Search"
+              href={advSearchHref}
+            />
+          )}
+          {isLicensed && isFirewallEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isFirewallSelected}
+              id="firewall-navigation-button"
+              icon={faShieldCheck}
+              text="Firewall"
+              href={firewallHref}
+            />
+          )}
+          {isLicensed && isLegalEnabled && (
+            <NxGlobalSidebarNavigationLink
+              isSelected={isSelected('legalDashboard')}
+              id="advanced-legal-navigation-button"
+              icon={faGavel}
+              text="Legal"
+              href={legalHref}
+            />
+          )}
         </NxGlobalSidebarNavigation>
-      }
-      { productEdition && releaseVersion &&
-        <IqSidebarNavFooter productName={productEdition}
-                            releaseNumber={releaseVersion} />
-      }
+      )}
+      {productEdition && releaseVersion && (
+        <IqSidebarNavFooter
+          productName={productEdition}
+          releaseNumber={releaseVersion}
+        />
+      )}
     </NxStatefulGlobalSidebar>
   );
 }
@@ -148,6 +170,6 @@ IqSidebarNav.propTypes = {
   isSuccessMetricsEnabled: PropTypes.bool,
   isAdvancedSearchEnabled: PropTypes.bool,
   isFirewallEnabled: PropTypes.bool,
-  isLegalEnabled: PropTypes.bool
+  isLegalEnabled: PropTypes.bool,
 };
 export default IqSidebarNav;

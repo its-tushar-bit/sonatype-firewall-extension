@@ -5,16 +5,17 @@
  */
 function ErrorMessage(error) {
   var responseText = error[0] || error.data,
-      status = error[1] || error.status,
-      headers = error[2] || error.headers;
+    status = error[1] || error.status,
+    headers = error[2] || error.headers;
 
   if (status === 0 || status >= 1000) {
     return 'Network error while contacting server';
-  }
-  else if (responseText && (headers('Content-Type') || '').indexOf('text/plain') >= 0) {
+  } else if (
+    responseText &&
+    (headers('Content-Type') || '').indexOf('text/plain') >= 0
+  ) {
     return responseText;
-  }
-  else {
+  } else {
     return 'Error ' + status;
   }
 }

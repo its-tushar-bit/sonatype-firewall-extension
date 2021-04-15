@@ -9,43 +9,48 @@ export default function SubmitValidation() {
     scope: {
       submitDirty: '&',
       submitType: '&',
-      submitTooltipTarget: '@?' // useful for elements relatively positioned
+      submitTooltipTarget: '@?', // useful for elements relatively positioned
     },
     require: '^form',
-    link: function(scope, element, attrs, formCtrl) {
-      var isSubmissionValid,
-          isSubmissionDirty;
+    link: function (scope, element, attrs, formCtrl) {
+      var isSubmissionValid, isSubmissionDirty;
 
-      scope.$watchGroup([
-        function() {
-          return scope.submitDirty();
-        }, function() {
-          return formCtrl.$valid;
-        }
-      ], function(results) {
-        isSubmissionDirty = results[0];
-        isSubmissionValid = isSubmissionDirty && formCtrl.$valid;
+      scope.$watchGroup(
+        [
+          function () {
+            return scope.submitDirty();
+          },
+          function () {
+            return formCtrl.$valid;
+          },
+        ],
+        function (results) {
+          isSubmissionDirty = results[0];
+          isSubmissionValid = isSubmissionDirty && formCtrl.$valid;
 
-        if (isSubmissionValid) {
-          element.tooltip('destroy');
-          element.removeClass('disabled');
+          if (isSubmissionValid) {
+            element.tooltip('destroy');
+            element.removeClass('disabled');
+          } else {
+            insertAndUpdateTooltip();
+            element.addClass('disabled');
+          }
         }
-        else {
-          insertAndUpdateTooltip();
-          element.addClass('disabled');
-        }
-      });
+      );
 
-      scope.$watch(function() {
-        return scope.submitType() || attrs.submitType;
-      }, function() {
-        if (!isSubmissionValid) {
-          insertAndUpdateTooltip();
+      scope.$watch(
+        function () {
+          return scope.submitType() || attrs.submitType;
+        },
+        function () {
+          if (!isSubmissionValid) {
+            insertAndUpdateTooltip();
+          }
         }
-      });
+      );
 
       // prevent form submissions if not valid
-      element.on('click', function(e) {
+      element.on('click', function (e) {
         if (!(isSubmissionValid && isSubmissionDirty)) {
           e.preventDefault();
         }
@@ -53,13 +58,15 @@ export default function SubmitValidation() {
 
       function insertAndUpdateTooltip() {
         var title,
-            submitType = scope.submitType() || attrs.submitType;
+          submitType = scope.submitType() || attrs.submitType;
 
         if (submitType === 'update' && !isSubmissionDirty) {
           title = 'There are no changes to update.';
-        }
-        else {
-          title = 'Unable to ' + (submitType ? submitType : 'save') + ': fields with invalid or missing data.';
+        } else {
+          title =
+            'Unable to ' +
+            (submitType ? submitType : 'save') +
+            ': fields with invalid or missing data.';
         }
 
         var options = {};
@@ -68,6 +75,6 @@ export default function SubmitValidation() {
         }
         element.tooltip(options).attr('title', title).tooltip('fixTitle');
       }
-    }
+    },
   };
 }

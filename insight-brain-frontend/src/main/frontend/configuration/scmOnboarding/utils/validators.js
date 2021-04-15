@@ -14,14 +14,11 @@ function validateIsUrl(val) {
       return 'Protocol must be http or https';
     }
     return null;
-  }
-  catch (_) {
+  } catch (_) {
     return 'Not a valid URL';
   }
 }
 
 const validateHostUrl = validateIsUrl;
 
-export {
-  validateHostUrl
-};
+export { validateHostUrl };

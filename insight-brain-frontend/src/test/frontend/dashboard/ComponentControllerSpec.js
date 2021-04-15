@@ -5,10 +5,12 @@
  */
 import componentModule from '../../../main/frontend/dashboard/ComponentController';
 
-describe('ComponentController tests', function() {
-  beforeEach(angular.mock.module(componentModule.name, function($provide) {
-    SpecUtil.mockNgRedux($provide);
-  }));
+describe('ComponentController tests', function () {
+  beforeEach(
+    angular.mock.module(componentModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
   var applicationComponents = [
     {
@@ -17,7 +19,7 @@ describe('ComponentController tests', function() {
         publicId: 'appPublicId',
         name: 'appName',
         organizationId: 'appOrgId',
-        organizationName: 'appOrgName'
+        organizationName: 'appOrgName',
       },
       policyViolations: [
         {
@@ -25,114 +27,129 @@ describe('ComponentController tests', function() {
           policyName: 'policy1Name',
           threatLevel: 7,
           time: 1,
-          stageTypeIds: [
-            'build'
-          ]
-        }, {
+          stageTypeIds: ['build'],
+        },
+        {
           policyId: 'policy2Id',
           policyName: 'policy2Name',
           threatLevel: 9,
           time: 2,
-          stageTypeIds: [
-            'build'
-          ]
-        }
-      ]
-    }
+          stageTypeIds: ['build'],
+        },
+      ],
+    },
   ];
 
-  describe('ComponentController', function() {
-    var scope, displayName = [
-      {field: 'Group', value: 'foo'},
-      {value: ':'},
-      {field: 'Artifact', value: 'bar'},
-      {value: ':'},
-      {field: 'Version', value: '1.0'}
-    ];
-    beforeEach(inject(function($rootScope, $controller, $httpBackend, $timeout, $q, CLMLocations, StageTypeStore) {
+  describe('ComponentController', function () {
+    var scope,
+      displayName = [
+        { field: 'Group', value: 'foo' },
+        { value: ':' },
+        { field: 'Artifact', value: 'bar' },
+        { value: ':' },
+        { field: 'Version', value: '1.0' },
+      ];
+    beforeEach(inject(function (
+      $rootScope,
+      $controller,
+      $httpBackend,
+      $timeout,
+      $q,
+      CLMLocations,
+      StageTypeStore
+    ) {
       scope = $rootScope.$new();
       var stageTypeStoreDefer = $q.defer();
-      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(stageTypeStoreDefer.promise);
+      spyOn(StageTypeStore, 'getDashboardStages').and.returnValue(
+        stageTypeStoreDefer.promise
+      );
       stageTypeStoreDefer.resolve([]);
-      $httpBackend.expectGET(CLMLocations.getComponentDetailsUrl()).respond(applicationComponents);
-      $httpBackend.expectGET(CLMLocations.getComponentNameUrl()).respond(displayName);
+      $httpBackend
+        .expectGET(CLMLocations.getComponentDetailsUrl())
+        .respond(applicationComponents);
+      $httpBackend
+        .expectGET(CLMLocations.getComponentNameUrl())
+        .respond(displayName);
       $controller('componentController', { $scope: scope });
       $httpBackend.flush();
       $timeout.flush();
     }));
 
-    afterEach(inject(function($httpBackend) {
+    afterEach(inject(function ($httpBackend) {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
       scope.$destroy();
     }));
 
-    it('loads application components', function() {
+    it('loads application components', function () {
       expect(scope.applicationComponents.length).toBe(1);
       expect(scope.applicationComponents[0].application.id).toBe('appId');
       expect(scope.applicationComponents[0].policyViolations.length).toBe(2);
-      expect(scope.applicationComponents[0].policyViolations[0].policyId).toBe('policy1Id');
+      expect(scope.applicationComponents[0].policyViolations[0].policyId).toBe(
+        'policy1Id'
+      );
     });
 
-    it('calculates the total risk', function() {
+    it('calculates the total risk', function () {
       expect(scope.totalRisk).toBe(16);
     });
 
-    it('loads a component name', function() {
+    it('loads a component name', function () {
       expect(scope.component.displayName).toEqual(displayName);
     });
 
-    describe('formatRiskPercent', function() {
-      it('returns "0%" if the totalRisk is 0', function() {
+    describe('formatRiskPercent', function () {
+      it('returns "0%" if the totalRisk is 0', function () {
         expect(scope.formatRiskPercent(1, 0)).toBe('0%');
       });
 
-      it('returns "0%" if the riskValue is 0', function() {
+      it('returns "0%" if the riskValue is 0', function () {
         expect(scope.formatRiskPercent(0, 1)).toBe('0%');
         expect(scope.formatRiskPercent(0, 0)).toBe('0%');
       });
 
-      it('returns "< 1%" if the riskValue divided by the totalRisk is less than 0.01', function() {
+      it('returns "< 1%" if the riskValue divided by the totalRisk is less than 0.01', function () {
         expect(scope.formatRiskPercent(1, 101)).toBe('< 1%');
         expect(scope.formatRiskPercent(0.000001, 1)).toBe('< 1%');
         expect(scope.formatRiskPercent(10000, 2000000000)).toBe('< 1%');
       });
 
-      it('returns the percentage of risk, rounded to a whole number, if it is greater than or equal to one',
-          function() {
-            expect(scope.formatRiskPercent(1, 100)).toBe('1%');
-            expect(scope.formatRiskPercent(1, 50)).toBe('2%');
-            expect(scope.formatRiskPercent(494, 1000)).toBe('49%');
-            expect(scope.formatRiskPercent(495, 1000)).toBe('50%');
-            expect(scope.formatRiskPercent(1, 1)).toBe('100%');
-            expect(scope.formatRiskPercent(100, 100)).toBe('100%');
-          }
-      );
+      it('returns the percentage of risk, rounded to a whole number, if it is greater than or equal to one', function () {
+        expect(scope.formatRiskPercent(1, 100)).toBe('1%');
+        expect(scope.formatRiskPercent(1, 50)).toBe('2%');
+        expect(scope.formatRiskPercent(494, 1000)).toBe('49%');
+        expect(scope.formatRiskPercent(495, 1000)).toBe('50%');
+        expect(scope.formatRiskPercent(1, 1)).toBe('100%');
+        expect(scope.formatRiskPercent(100, 100)).toBe('100%');
+      });
     });
   });
 
-  describe('riskPie', function() {
-    var element,
-        scope;
+  describe('riskPie', function () {
+    var element, scope;
 
-    beforeEach(inject(function($rootScope, $compile) {
+    beforeEach(inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();
-      element = angular.element('<span risk-pie risk="0.33" height="24" width="24"></span>');
+      element = angular.element(
+        '<span risk-pie risk="0.33" height="24" width="24"></span>'
+      );
       element = $compile(element)(scope);
     }));
 
-    it('should render to the specified dimensions', function() {
+    it('should render to the specified dimensions', function () {
       var svg = element.find('svg');
       expect(svg.length).toBe(1);
       expect(+svg.attr('width')).toBe(24);
       expect(+svg.attr('height')).toBe(24);
     });
 
-    it('should apply the correct arc class', inject(function($compile) {
+    it('should apply the correct arc class', inject(function ($compile) {
       var g = element.find('g');
       expect(g.attr('class')).toBeUndefined();
 
-      element = angular.element('<span risk-pie risk="0.66" height="24" width="24" clazz="foo"></span>');
+      element = angular.element(
+        '<span risk-pie risk="0.66" height="24" width="24" clazz="foo"></span>'
+      );
       element = $compile(element)(scope);
       g = element.find('g');
       expect(g.attr('class')).toBe('foo');

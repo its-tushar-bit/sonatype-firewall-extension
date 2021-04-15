@@ -29,7 +29,7 @@ import 'angular-vs-repeat';
 import 'angular-xeditable';
 import './lib/bootstrap-loader';
 import 'es6-collections';
-import {polyfill} from 'es6-promise';
+import { polyfill } from 'es6-promise';
 
 // d3 has a commonjs impl and a es6 impl.  The commonjs impl doesn't work with rollup for
 // unknown reasons and the es6 one isn't detected correctly, despite the jsnext config which

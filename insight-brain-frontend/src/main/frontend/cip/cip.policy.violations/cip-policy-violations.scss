@@ -8,9 +8,9 @@
 
 .cip-policy-table {
   width: 100%;
-  border-bottom: 1px solid #CFD0D2;
-  border-left: 1px solid #CFD0D2;
-  border-right: 1px solid #CFD0D2;
+  border-bottom: 1px solid #cfd0d2;
+  border-left: 1px solid #cfd0d2;
+  border-right: 1px solid #cfd0d2;
 }
 
 .cip-policy-table .actions .icon {
@@ -22,21 +22,21 @@
 }
 
 .cip-policy-table-header {
-  border-left: 1px solid #CFD0D2 !important;
-  border-top: 1px solid #CFD0D2 !important;
+  border-left: 1px solid #cfd0d2 !important;
+  border-top: 1px solid #cfd0d2 !important;
   /* For IE */
   filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr=#FAFAFC,
   endColorstr=#CFD0D2);
   /* For Chrome and Safari */
-  background-image: -webkit-linear-gradient(top, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+  background-image: -webkit-linear-gradient(top, #fafafc, #fafafc 25%, #cfd0d2);
   /* For old Fx (3.6 to 15) */
-  background-image: -moz-linear-gradient(top, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+  background-image: -moz-linear-gradient(top, #fafafc, #fafafc 25%, #cfd0d2);
   /* For pre-releases of IE 10*/
-  background-image: -ms-linear-gradient(top, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+  background-image: -ms-linear-gradient(top, #fafafc, #fafafc 25%, #cfd0d2);
   /* For old Opera (11.1 to 12.0) */
-  background-image: -o-linear-gradient(top, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+  background-image: -o-linear-gradient(top, #fafafc, #fafafc 25%, #cfd0d2);
   /* Standard syntax; must be last */
-  background-image: linear-gradient(to bottom, #FAFAFC, #FAFAFC 25%, #CFD0D2);
+  background-image: linear-gradient(to bottom, #fafafc, #fafafc 25%, #cfd0d2);
   line-height: 16px !important;
   font-size: 12px;
   font-weight: bold;
@@ -45,7 +45,7 @@
 }
 
 .cip-policy-table-header:last-child {
-  border-right: 1px solid #CFD0D2 !important;
+  border-right: 1px solid #cfd0d2 !important;
 }
 
 .cip-policy {
@@ -53,27 +53,32 @@
 }
 
 .cip-policy-red {
-  background: url(../../img/cip/bg-score-critical.png) repeat-y scroll 0 0 transparent;
+  background: url(../../img/cip/bg-score-critical.png) repeat-y scroll 0 0
+    transparent;
   color: #bc012f;
 }
 
 .cip-policy-orange {
-  background: url(../../img/cip/bg-score-severe.png) repeat-y scroll 0 0 transparent;
+  background: url(../../img/cip/bg-score-severe.png) repeat-y scroll 0 0
+    transparent;
   color: #f4861d;
 }
 
 .cip-policy-yellow {
-  background: url(../../img/cip/bg-score-moderate.png) repeat-y scroll 0 0 transparent;
+  background: url(../../img/cip/bg-score-moderate.png) repeat-y scroll 0 0
+    transparent;
   color: #f5c648;
 }
 
 .cip-policy-darkblue {
-  background: url(../../img/cip/bg-score-ignore.png) repeat-y scroll 0 0 transparent;
+  background: url(../../img/cip/bg-score-ignore.png) repeat-y scroll 0 0
+    transparent;
   color: #006bbf;
 }
 
 .cip-policy-blue {
-  background: url(../../img/cip/bg-score-none.png) repeat-y scroll 0 0 transparent;
+  background: url(../../img/cip/bg-score-none.png) repeat-y scroll 0 0
+    transparent;
   color: #97cbee;
 }
 
@@ -134,7 +139,7 @@
 }
 
 #add-waiver-modal .modal-footer .alert {
-  max-width: 330px
+  max-width: 330px;
 }
 
 #add-proprietary-matchers-modal {
@@ -169,7 +174,8 @@
   vertical-align: middle;
 }
 
-.component-waiver-comment, .component-waiver-owner {
+.component-waiver-comment,
+.component-waiver-owner {
   max-width: 150px;
   word-wrap: break-word;
   overflow-wrap: anywhere;

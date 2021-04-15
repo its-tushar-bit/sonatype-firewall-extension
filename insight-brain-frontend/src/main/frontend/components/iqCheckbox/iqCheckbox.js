@@ -23,12 +23,12 @@ var iqCheckbox = {
     label: '@',
     onClick: '&',
     isChecked: '<',
-    isDisabled: '<'
+    isDisabled: '<',
   },
   controller: IqCheckboxController,
   controllerAs: 'vm',
   template: template,
-  transclude: true
+  transclude: true,
 };
 
 function IqCheckboxController() {

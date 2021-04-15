@@ -11,22 +11,25 @@ import MailConfig from './MailConfig';
 
 function mapStateToProps({ mailConfig }) {
   return {
-    ...pick([
-      'loading',
-      'submitMaskState',
-      'submitMaskMessage',
-      'hasAllRequiredData',
-      'isDirty',
-      'isValid',
-      'mustReenterPassword',
-      'loadError',
-      'saveError',
-      'deleteError',
-      'testEmailError',
-      'serverData',
-      'showDeleteModal',
-      'testEmailSent'
-    ], mailConfig),
+    ...pick(
+      [
+        'loading',
+        'submitMaskState',
+        'submitMaskMessage',
+        'hasAllRequiredData',
+        'isDirty',
+        'isValid',
+        'mustReenterPassword',
+        'loadError',
+        'saveError',
+        'deleteError',
+        'testEmailError',
+        'serverData',
+        'showDeleteModal',
+        'testEmailSent',
+      ],
+      mailConfig
+    ),
     hostnameState: mailConfig.formState.hostname,
     portState: mailConfig.formState.port,
     usernameState: mailConfig.formState.username,
@@ -34,7 +37,7 @@ function mapStateToProps({ mailConfig }) {
     sslEnabledState: mailConfig.formState.sslEnabled,
     startTlsEnabledState: mailConfig.formState.startTlsEnabled,
     systemEmailState: mailConfig.formState.systemEmail,
-    testEmailState: mailConfig.formState.testEmail
+    testEmailState: mailConfig.formState.testEmail,
   };
 }
 

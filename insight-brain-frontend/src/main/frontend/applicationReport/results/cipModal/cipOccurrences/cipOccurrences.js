@@ -12,14 +12,14 @@ export default {
   controller: OccurrencesController,
   controllerAs: 'vm',
   bindings: {
-    pathnames: '<'
-  }
+    pathnames: '<',
+  },
 };
 
 function OccurrencesController($scope) {
   const vm = this;
 
-  $scope.$watch('vm.pathnames', function() {
+  $scope.$watch('vm.pathnames', function () {
     vm.parsedPathnames = map(parsePathname, vm.pathnames);
   });
 }
@@ -30,9 +30,14 @@ const pathnameRegex = /^(dependency:\/)?((.*?)\/)?([^/]+)$/;
 
 // @visibleForTesting
 export function parsePathname(pathname) {
-  const [/* overall match */, dependency, /* dirname including delimiter */, dirname, originalBasename] =
-        pathnameRegex.exec(pathname),
-      isDependency = !!dependency;
+  const [
+      ,
+      /* overall match */ dependency /* dirname including delimiter */,
+      ,
+      dirname,
+      originalBasename,
+    ] = pathnameRegex.exec(pathname),
+    isDependency = !!dependency;
 
   // component names which contains '/' are replaced with '\' by the Occurrence pathnames string in the backend. This is
   // to avoid considering them as part of basename. Replacing them back as how it should be after resolving base name -

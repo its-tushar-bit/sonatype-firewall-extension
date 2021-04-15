@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer from '../../../main/frontend/waivers/addWaiverReducer';
-import {initialState as initState} from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import { initialState as initState } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 
-describe('addWaiverReducer', function() {
-  describe('unknown action', function() {
-    it('returns original state', function() {
+describe('addWaiverReducer', function () {
+  describe('unknown action', function () {
+    it('returns original state', function () {
       const state = Object.freeze({ foo: 'bar' });
       const action = { type: 'UNKNOWN' };
       const newState = reducer(state, action);
@@ -16,14 +16,14 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('initial state', function() {
-    it('is used if no state is provided', function() {
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
       const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState).not.toBeUndefined();
     });
 
-    it('has default fields', function() {
+    it('has default fields', function () {
       const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState.loading).toBe(false);
@@ -37,13 +37,17 @@ describe('addWaiverReducer', function() {
       expect(newState.fieldsPristineState).toBeNull();
     });
 
-    it('calls textHelpers.initialState for waiverComments', function() {
-      const textHelperInitialStateSpy = jasmine.createSpy('initialState').and.callFake((val) => ({ value: val }));
-      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')({
-        '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
-          initialState: textHelperInitialStateSpy
+    it('calls textHelpers.initialState for waiverComments', function () {
+      const textHelperInitialStateSpy = jasmine
+        .createSpy('initialState')
+        .and.callFake((val) => ({ value: val }));
+      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')(
+        {
+          '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
+            initialState: textHelperInitialStateSpy,
+          },
         }
-      }).default;
+      ).default;
       const action = { type: 'UNKNOWN' };
       const newState = reducerWithMockDeps(undefined, action);
 
@@ -51,8 +55,8 @@ describe('addWaiverReducer', function() {
       expect(newState.waiverComments).toEqual({ value: '' });
     });
 
-    it('is immutable', function() {
-      const action = {type: 'UNKNOWN'};
+    it('is immutable', function () {
+      const action = { type: 'UNKNOWN' };
       const state = reducer(undefined, action);
 
       expect(() => {
@@ -73,8 +77,8 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED action', function() {
-    it('sets the loading prop to true', function() {
+  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED action', function () {
+    it('sets the loading prop to true', function () {
       const initialState = {
         loading: false,
         loadError: null,
@@ -85,17 +89,19 @@ describe('addWaiverReducer', function() {
         selectedWaiverScope: null,
         applyToAllComponents: false,
         violationDetails: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
-      const newState = reducer(initialState, { type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED' });
+      const newState = reducer(initialState, {
+        type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED',
+      });
 
       expect(newState.loading).toBe(true);
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
   });
 
-  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED action', function() {
+  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED action', function () {
     const initialState = {
       loading: true,
       loadError: null,
@@ -106,40 +112,40 @@ describe('addWaiverReducer', function() {
       selectedWaiverScope: null,
       applyToAllComponents: false,
       violationDetails: null,
-      otherProp: { prop: 'foo' }
+      otherProp: { prop: 'foo' },
     };
     const action = {
       type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED',
-      payload: ['target1', 'target2']
+      payload: ['target1', 'target2'],
     };
     const payload = ['target1', 'target2'];
 
-    it('unsets the loading flag', function() {
+    it('unsets the loading flag', function () {
       const newState = reducer(initialState, action);
       expect(newState.loading).toBe(false);
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
 
-    it('sets the availableWaiverScopes and chooses the first element as selectedWaiverScope', function() {
+    it('sets the availableWaiverScopes and chooses the first element as selectedWaiverScope', function () {
       const newState = reducer(initialState, action);
       expect(newState.availableWaiverScopes).toEqual(payload);
       expect(newState.selectedWaiverScope).toEqual(payload[0]);
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
 
-    it('creates a snapshot of the pristine fields using the received data', function() {
+    it('creates a snapshot of the pristine fields using the received data', function () {
       const newState = reducer(initialState, action);
       expect(newState.fieldsPristineState).toEqual({
         selectedWaiverScope: 'target1',
         applyToAllComponents: false,
         expiryTime: null,
-        waiverComments: ''
+        waiverComments: '',
       });
     });
   });
 
-  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED action', function() {
-    it('unsets the loading flag and sets the loadError', function() {
+  describe('WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED action', function () {
+    it('unsets the loading flag and sets the loadError', function () {
       const initialState = {
         loading: true,
         loadError: null,
@@ -150,12 +156,12 @@ describe('addWaiverReducer', function() {
         selectedWaiverScope: null,
         applyToAllComponents: false,
         violationDetails: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
       const newState = reducer(initialState, {
         type: 'WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED',
-        payload: 'Err'
+        payload: 'Err',
       });
 
       expect(newState.loading).toBe(false);
@@ -164,8 +170,8 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_SAVE_WAIVER_REQUESTED action', function() {
-    it('sets submitMaskState to false and unsets submitError', function() {
+  describe('WAIVERS_SAVE_WAIVER_REQUESTED action', function () {
+    it('sets submitMaskState to false and unsets submitError', function () {
       const initialState = {
         loading: false,
         loadError: null,
@@ -176,10 +182,12 @@ describe('addWaiverReducer', function() {
         selectedWaiverScope: null,
         applyToAllComponents: false,
         violationDetails: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
-      const newState = reducer(initialState, { type: 'WAIVERS_SAVE_WAIVER_REQUESTED' });
+      const newState = reducer(initialState, {
+        type: 'WAIVERS_SAVE_WAIVER_REQUESTED',
+      });
 
       expect(newState.submitMaskState).toBe(false);
       expect(newState.submitError).toBeNull();
@@ -187,8 +195,8 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_SAVE_WAIVER_FULFILLED action', function() {
-    it('sets submitMaskState to true', function() {
+  describe('WAIVERS_SAVE_WAIVER_FULFILLED action', function () {
+    it('sets submitMaskState to true', function () {
       const initialState = {
         isDirty: false,
         loading: false,
@@ -200,18 +208,20 @@ describe('addWaiverReducer', function() {
         selectedWaiverScope: null,
         applyToAllComponents: false,
         violationDetails: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
-      const newState = reducer(initialState, { type: 'WAIVERS_SAVE_WAIVER_FULFILLED' });
+      const newState = reducer(initialState, {
+        type: 'WAIVERS_SAVE_WAIVER_FULFILLED',
+      });
 
       expect(newState.submitMaskState).toBe(true);
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
   });
 
-  describe('WAIVERS_SAVE_WAIVER_FAILED action', function() {
-    it('unsets submitMaskState and sets the submitError', function() {
+  describe('WAIVERS_SAVE_WAIVER_FAILED action', function () {
+    it('unsets submitMaskState and sets the submitError', function () {
       const initialState = {
         loading: false,
         loadError: null,
@@ -222,12 +232,12 @@ describe('addWaiverReducer', function() {
         selectedWaiverScope: null,
         applyToAllComponents: false,
         violationDetails: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
       const newState = reducer(initialState, {
         type: 'WAIVERS_SAVE_WAIVER_FAILED',
-        payload: 'Err'
+        payload: 'Err',
       });
 
       expect(newState.submitMaskState).toBeNull();
@@ -236,8 +246,8 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE action', function() {
-    it('unsets submitMaskState', function() {
+  describe('WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE action', function () {
+    it('unsets submitMaskState', function () {
       const initialState = {
         loading: false,
         loadError: null,
@@ -248,34 +258,43 @@ describe('addWaiverReducer', function() {
         selectedWaiverScope: null,
         applyToAllComponents: false,
         violationDetails: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
       const expectedNewState = {
         ...initialState,
-        submitMaskState: null
+        submitMaskState: null,
       };
 
-      let newState = reducer(initialState, { type: 'WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE' });
+      let newState = reducer(initialState, {
+        type: 'WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE',
+      });
       expect(newState).toEqual(expectedNewState);
       expect(newState.otherProp).toBe(initialState.otherProp);
 
-      newState = reducer({ ...initialState, submitMaskState: true }, {
-        type: 'WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE'
-      });
+      newState = reducer(
+        { ...initialState, submitMaskState: true },
+        {
+          type: 'WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE',
+        }
+      );
       expect(newState).toEqual(expectedNewState);
       expect(newState.otherProp).toBe(initialState.otherProp);
     });
   });
 
-  describe('WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT action', function() {
-    it('sets waiverComments and isDiry props', function() {
-      const textHelperUserInputSpy = jasmine.createSpy('userInput').and.callFake((validator, val) => ({ value: val }));
-      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')({
-        '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
-          userInput: textHelperUserInputSpy,
-          initialState: () => {}
+  describe('WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT action', function () {
+    it('sets waiverComments and isDiry props', function () {
+      const textHelperUserInputSpy = jasmine
+        .createSpy('userInput')
+        .and.callFake((validator, val) => ({ value: val }));
+      const reducerWithMockDeps = require('inject-loader!../../../main/frontend/waivers/addWaiverReducer')(
+        {
+          '@sonatype/react-shared-components/components/NxTextInput/stateHelpers': {
+            userInput: textHelperUserInputSpy,
+            initialState: () => {},
+          },
         }
-      }).default;
+      ).default;
       const initialState = {
         isDirty: false,
         loading: false,
@@ -292,13 +311,13 @@ describe('addWaiverReducer', function() {
           selectedWaiverScope: null,
           applyToAllComponents: false,
           expiryTime: null,
-          waiverComments: ''
-        }
+          waiverComments: '',
+        },
       };
 
       const newState = reducerWithMockDeps(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT',
-        payload: 'Bar'
+        payload: 'Bar',
       });
 
       expect(textHelperUserInputSpy).toHaveBeenCalledWith(null, 'Bar');
@@ -308,8 +327,8 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE action', function() {
-    it('sets selectedWaiverScope and isDirty props', function() {
+  describe('WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE action', function () {
+    it('sets selectedWaiverScope and isDirty props', function () {
       const initialState = {
         isDirty: false,
         loading: false,
@@ -326,13 +345,13 @@ describe('addWaiverReducer', function() {
           selectedWaiverScope: null,
           applyToAllComponents: false,
           expiryTime: null,
-          waiverComments: ''
-        }
+          waiverComments: '',
+        },
       };
 
       const newState = reducer(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE',
-        payload: 'target'
+        payload: 'target',
       });
 
       expect(newState.selectedWaiverScope).toBe('target');
@@ -341,8 +360,8 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS action', function() {
-    it('sets applyToAllComponents and isDirty props', function() {
+  describe('WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS action', function () {
+    it('sets applyToAllComponents and isDirty props', function () {
       const initialState = {
         loading: false,
         loadError: null,
@@ -358,13 +377,13 @@ describe('addWaiverReducer', function() {
           selectedWaiverScope: null,
           applyToAllComponents: false,
           expiryTime: null,
-          waiverComments: ''
-        }
+          waiverComments: '',
+        },
       };
 
       let newState = reducer(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS',
-        payload: true
+        payload: true,
       });
 
       expect(newState.applyToAllComponents).toBe(true);
@@ -373,7 +392,7 @@ describe('addWaiverReducer', function() {
 
       newState = reducer(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS',
-        payload: false
+        payload: false,
       });
 
       expect(newState.applyToAllComponents).toBe(false);
@@ -382,8 +401,8 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME action', function() {
-    it('sets expiryTime and isDirty props in the state', function() {
+  describe('WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME action', function () {
+    it('sets expiryTime and isDirty props in the state', function () {
       const initialState = {
         isDirty: true,
         loading: false,
@@ -401,13 +420,13 @@ describe('addWaiverReducer', function() {
           selectedWaiverScope: null,
           applyToAllComponents: false,
           expiryTime: null,
-          waiverComments: ''
-        }
+          waiverComments: '',
+        },
       };
 
       let newState = reducer(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME',
-        payload: '7'
+        payload: '7',
       });
       expect(newState.isDirty).toBe(true);
       expect(newState.expiryTime).toEqual('7');
@@ -415,7 +434,7 @@ describe('addWaiverReducer', function() {
 
       newState = reducer(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME',
-        payload: '60'
+        payload: '60',
       });
 
       expect(newState.isDirty).toBe(true);
@@ -424,7 +443,7 @@ describe('addWaiverReducer', function() {
 
       newState = reducer(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME',
-        payload: null
+        payload: null,
       });
 
       expect(newState.isDirty).toBe(true);
@@ -433,7 +452,7 @@ describe('addWaiverReducer', function() {
 
       newState = reducer(initialState, {
         type: 'WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME',
-        payload: 'never'
+        payload: 'never',
       });
 
       expect(newState.isDirty).toBe(true);
@@ -442,8 +461,8 @@ describe('addWaiverReducer', function() {
     });
   });
 
-  describe('UI_ROUTER_ON_FINISH action', function() {
-    it('clears state on onFinish', function() {
+  describe('UI_ROUTER_ON_FINISH action', function () {
+    it('clears state on onFinish', function () {
       const currentState = {
         loading: true,
         loadError: 'load error',
@@ -454,11 +473,11 @@ describe('addWaiverReducer', function() {
         selectedWaiverScope: 'pqr',
         applyToAllComponents: true,
         violationDetails: 'xyz',
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
       const newState = reducer(currentState, {
-        type: '@@reduxUiRouter/onFinish'
+        type: '@@reduxUiRouter/onFinish',
       });
 
       expect(newState.loading).toBe(false);

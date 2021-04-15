@@ -46,7 +46,8 @@
       display: table-row;
     }
 
-    td, th {
+    td,
+    th {
       display: table-cell;
     }
 
@@ -86,7 +87,8 @@
     // prevents the h1/h2 from wrapping under the icon when there's no flexbox
     white-space: nowrap;
 
-    h1, h2 {
+    h1,
+    h2 {
       vertical-align: middle;
     }
   }

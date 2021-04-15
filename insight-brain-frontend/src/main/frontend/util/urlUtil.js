@@ -3,8 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {append, compose, filter, flatten, isEmpty, isNil, join, map, not, nth, reduceWhile, replace, toPairs, zip}
-  from 'ramda';
+import {
+  append,
+  compose,
+  filter,
+  flatten,
+  isEmpty,
+  isNil,
+  join,
+  map,
+  not,
+  nth,
+  reduceWhile,
+  replace,
+  toPairs,
+  zip,
+} from 'ramda';
 
 const toNonNullPairs = compose(filter(compose(not, isNil, nth(1))), toPairs);
 const pairToURIParam = compose(join('='), map(encodeURIComponent));
@@ -12,7 +26,11 @@ const pairToURIParam = compose(join('='), map(encodeURIComponent));
  * {k: String} -> String
  * Converts object to URI params string omitting empty values
  */
-export const toURIParams = compose(join('&'), map(pairToURIParam), toNonNullPairs);
+export const toURIParams = compose(
+  join('&'),
+  map(pairToURIParam),
+  toNonNullPairs
+);
 
 export function getBaseUrl(url) {
   const segments = ['/assets/', '/rest/report/'];
@@ -51,15 +69,17 @@ setBaseUrl();
  */
 export function uriTemplate(strings, ...params) {
   const escapedParams = map(encodeURIComponent, params),
-      whitespaceStrippedStrings = map(replace(/\s+/g, ''), strings),
-
-      // a template like `${foo}/bar/${baz}` will result in strings being ['', '/bar/', ''] and
-      // params being a 2-value array containing the values of the foo and baz variables. Thus
-      // the strings array will always contain the first "part" as well as the last "part" - and accordingly
-      // it will always be one entry longer than the parts array. The last part will thus be
-      // droppedby `zip` so we have to add it back with `append`
-      finalPart = whitespaceStrippedStrings[whitespaceStrippedStrings.length - 1],
-      parts = append(finalPart, flatten(zip(whitespaceStrippedStrings, escapedParams)));
+    whitespaceStrippedStrings = map(replace(/\s+/g, ''), strings),
+    // a template like `${foo}/bar/${baz}` will result in strings being ['', '/bar/', ''] and
+    // params being a 2-value array containing the values of the foo and baz variables. Thus
+    // the strings array will always contain the first "part" as well as the last "part" - and accordingly
+    // it will always be one entry longer than the parts array. The last part will thus be
+    // droppedby `zip` so we have to add it back with `append`
+    finalPart = whitespaceStrippedStrings[whitespaceStrippedStrings.length - 1],
+    parts = append(
+      finalPart,
+      flatten(zip(whitespaceStrippedStrings, escapedParams))
+    );
 
   return `${BASE_URL || ''}${join('', parts)}`;
 }

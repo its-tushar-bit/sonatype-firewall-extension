@@ -6,7 +6,7 @@
 var ownerConstant = {
   ROOT_ORGANIZATION_ID: 'ROOT_ORGANIZATION_ID',
   APPLICATION_TYPE: 'application',
-  ORGANIZATION_TYPE: 'organization'
+  ORGANIZATION_TYPE: 'organization',
 };
 
 export default ownerConstant;

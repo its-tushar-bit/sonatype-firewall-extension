@@ -12,21 +12,21 @@ export const copyrightState = {
       component: {
         licenseLegalData: {
           copyrights: [
-            {originalContentHash: 'hash1', content: 'content1'},
-            {originalContentHash: 'hash2', content: 'content2'},
-            {originalContentHash: null, content: 'content3'}
-          ]
-        }
+            { originalContentHash: 'hash1', content: 'content1' },
+            { originalContentHash: 'hash2', content: 'content2' },
+            { originalContentHash: null, content: 'content3' },
+          ],
+        },
       },
       licenseLegalMetadata: 'licenseLegalMetadata',
       loading: 'loading',
-      error: 'error'
+      error: 'error',
     },
     availableScopes: {
       loading: false,
       error: null,
-      values: []
-    }
+      values: [],
+    },
   },
   componentCopyrightDetails: {
     selectedCopyright: 'selectedCopyright',
@@ -40,13 +40,18 @@ export const copyrightState = {
     filePaths: ['path1', 'path2'],
     totalFileMatches: 2,
     copyrightContexts: ['context1', 'context2'],
-    copyrightFileCounts: {'path1': 1, 'path2': 2}
+    copyrightFileCounts: { path1: 1, path2: 2 },
   },
   router: {
-    currentParams: {hash: 'fooHash', ownerType: 'organization', ownerId: 'org', copyrightIndex: '12'},
-    currentState: {name: copyrightDetailsStateName}
+    currentParams: {
+      hash: 'fooHash',
+      ownerType: 'organization',
+      ownerId: 'org',
+      copyrightIndex: '12',
+    },
+    currentState: { name: copyrightDetailsStateName },
   },
   copyrightOverrides: {
-    showEditCopyrightOverrideModal: false
-  }
+    showEditCopyrightOverrideModal: false,
+  },
 };

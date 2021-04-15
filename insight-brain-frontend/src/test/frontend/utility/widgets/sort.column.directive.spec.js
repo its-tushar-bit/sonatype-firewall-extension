@@ -5,28 +5,26 @@
  */
 import utilityModule from '../../../../main/frontend/utility/utility.module';
 
-describe('sort.column.directive.spec.js', function() {
-  var $compile,
-      scope,
-      isolatedScope,
-      vm,
-      element;
+describe('sort.column.directive.spec.js', function () {
+  var $compile, scope, isolatedScope, vm, element;
 
   beforeEach(angular.mock.module(utilityModule.name));
-  beforeEach(inject(function(_$compile_, $rootScope) {
+  beforeEach(inject(function (_$compile_, $rootScope) {
     scope = $rootScope.$new();
 
     $compile = _$compile_;
   }));
 
-  afterEach(function() {
+  afterEach(function () {
     scope.$destroy();
   });
 
-  it('Test initial sort with no default', function() {
+  it('Test initial sort with no default', function () {
     scope.currentSortFields = [];
-    element = $compile('<table sort="currentSortFields" class="policy-list" cols="8"><tr class="simple">' +
-        '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
+    element = $compile(
+      '<table sort="currentSortFields" class="policy-list" cols="8"><tr class="simple">' +
+        '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>'
+    )(scope).find('th');
 
     isolatedScope = element.isolateScope();
     isolatedScope.$digest();
@@ -43,10 +41,12 @@ describe('sort.column.directive.spec.js', function() {
     expect(element.hasClass('selected-column')).toBe(false);
   });
 
-  it('Test initial sort with default', function() {
+  it('Test initial sort with default', function () {
     scope.currentSortFields = ['foo'];
-    element = $compile('<table sort="currentSortFields"><tr>' +
-        '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
+    element = $compile(
+      '<table sort="currentSortFields"><tr>' +
+        '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>'
+    )(scope).find('th');
 
     isolatedScope = element.isolateScope();
     isolatedScope.$digest();
@@ -63,10 +63,12 @@ describe('sort.column.directive.spec.js', function() {
     expect(element.hasClass('selected-column')).toBe(true);
   });
 
-  it('Check initial sort with inverted', function() {
+  it('Check initial sort with inverted', function () {
     scope.currentSortFields = ['foo'];
-    element = $compile('<table sort="currentSortFields"><tr>' +
-        '<th sort-column="foo" sort-inverted="true"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
+    element = $compile(
+      '<table sort="currentSortFields"><tr>' +
+        '<th sort-column="foo" sort-inverted="true"><span>COL HEADER</span></th></tr></table>'
+    )(scope).find('th');
 
     isolatedScope = element.isolateScope();
     isolatedScope.$digest();
@@ -83,10 +85,12 @@ describe('sort.column.directive.spec.js', function() {
     expect(element.hasClass('selected-column')).toBe(true);
   });
 
-  it('Test sort calls', function() {
+  it('Test sort calls', function () {
     scope.currentSortFields = [];
-    element = $compile('<table sort="currentSortFields" on-sort-change="currentSortFields = sortFields" ><tr>' +
-        '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>')(scope).find('th');
+    element = $compile(
+      '<table sort="currentSortFields" on-sort-change="currentSortFields = sortFields" ><tr>' +
+        '<th sort-column="foo"><span>COL HEADER</span></th></tr></table>'
+    )(scope).find('th');
 
     isolatedScope = element.isolateScope();
     isolatedScope.$digest();

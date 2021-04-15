@@ -11,13 +11,19 @@ import AdvancedLegalApplicationPage from './AdvancedLegalApplicationPage';
 function mapStateToProps({ advancedLegal, router }) {
   return {
     ...pick(['viewStateApplicationReport', 'applicationReport'], advancedLegal),
-    ...pick(['publicId'], router.currentParams)
+    ...pick(['publicId'], router.currentParams),
   };
 }
 
 const mapDispatchToProps = { ...advancedLegalActions };
 
-const AdvancedLegalApplicationContainer = connect(mapStateToProps, mapDispatchToProps)(AdvancedLegalApplicationPage);
+const AdvancedLegalApplicationContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(AdvancedLegalApplicationPage);
 export default AdvancedLegalApplicationContainer;
 
-AdvancedLegalApplicationContainer.propTypes = pick(['$state'], AdvancedLegalApplicationPage.propTypes);
+AdvancedLegalApplicationContainer.propTypes = pick(
+  ['$state'],
+  AdvancedLegalApplicationPage.propTypes
+);

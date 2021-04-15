@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
- @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 .legal-file-section-header {
   display: flex;
@@ -37,7 +37,9 @@
     padding: 0;
   }
 
-  thead, tbody, tr {
+  thead,
+  tbody,
+  tr {
     display: contents;
   }
 

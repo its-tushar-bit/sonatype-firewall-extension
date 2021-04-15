@@ -6,7 +6,11 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { NxStatefulDropdown, NxDropdownDivider, NxButton } from '@sonatype/react-shared-components';
+import {
+  NxStatefulDropdown,
+  NxDropdownDivider,
+  NxButton,
+} from '@sonatype/react-shared-components';
 import NxFontAwesomeIcon from '@sonatype/react-shared-components/components/NxFontAwesomeIcon/NxFontAwesomeIcon';
 import { faFilePdf, faSync, faFile } from '@fortawesome/pro-solid-svg-icons';
 import { getDownloadPdfUrl } from '../../util/CLMLocation';
@@ -20,38 +24,43 @@ export default function ReportTitle(props) {
     publicId,
     scanId,
     selectedReport,
-    reevaluateReport
+    reevaluateReport,
   } = props;
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
-  const vulnerabilitiesPageDisable = selectedReport && selectedReport.reportVersion < 5 ? true : false;
-  const applyBtnClasses = classnames('nx-dropdown-link', {'disabled': vulnerabilitiesPageDisable});
+  const vulnerabilitiesPageDisable =
+    selectedReport && selectedReport.reportVersion < 5 ? true : false;
+  const applyBtnClasses = classnames('nx-dropdown-link', {
+    disabled: vulnerabilitiesPageDisable,
+  });
 
-  const formatDate = date => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]Z');
+  const formatDate = (date) =>
+    moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]Z');
 
   const onRawDataClick = () => {
     stateGo('applicationReport.rawData', {
       publicId: publicId,
-      scanId: scanId
+      scanId: scanId,
     });
   };
 
   const onVulnerabilitiesDetailsClick = () => {
     stateGo('applicationReport.vulnerabilities', {
       publicId: publicId,
-      scanId: scanId
+      scanId: scanId,
     });
   };
 
   const onLegacyReportClick = () => {
     stateGo('report', {
       publicId: publicId,
-      scanId: scanId
+      scanId: scanId,
     });
   };
 
-  const vulnPageTooltip =
-      vulnerabilitiesPageDisable ? 'Reevaluate the report in order to enable Vulnerabilities view' : '';
+  const vulnPageTooltip = vulnerabilitiesPageDisable
+    ? 'Reevaluate the report in order to enable Vulnerabilities view'
+    : '';
 
   return (
     <div className="nx-page-title">
@@ -60,32 +69,45 @@ export default function ReportTitle(props) {
           <NxFontAwesomeIcon icon={faSync} />
           <span>Re-Evaluate Report</span>
         </NxButton>
-        <NxStatefulDropdown label="Options" className="nx-dropdown--navigation iq-report-actions">
+        <NxStatefulDropdown
+          label="Options"
+          className="nx-dropdown--navigation iq-report-actions"
+        >
           <a className="nx-dropdown-button" href={pdfUrl}>
-            <NxFontAwesomeIcon icon={faFilePdf}/>
+            <NxFontAwesomeIcon icon={faFilePdf} />
             <span>Generate PDF</span>
           </a>
-          <NxDropdownDivider/>
+          <NxDropdownDivider />
           <a className="nx-dropdown-link" onClick={onRawDataClick}>
-            <NxFontAwesomeIcon icon={faFile}/>
+            <NxFontAwesomeIcon icon={faFile} />
             <span>View raw data</span>
           </a>
           <NxTooltip title={vulnPageTooltip} placement="top">
-            <a className={applyBtnClasses} onClick={onVulnerabilitiesDetailsClick} id="viewVulnBtn">
-              <NxFontAwesomeIcon icon={faFile}/>
+            <a
+              className={applyBtnClasses}
+              onClick={onVulnerabilitiesDetailsClick}
+              id="viewVulnBtn"
+            >
+              <NxFontAwesomeIcon icon={faFile} />
               <span>View vulnerabilities</span>
             </a>
           </NxTooltip>
           <a className="nx-dropdown-link" onClick={onLegacyReportClick}>
-            <NxFontAwesomeIcon icon={faFile}/>
+            <NxFontAwesomeIcon icon={faFile} />
             <span>View legacy report</span>
           </a>
         </NxStatefulDropdown>
       </div>
-      <h1 className="nx-h1">{metadataDetails.application.name} {metadataDetails.reportTitle}</h1>
+      <h1 className="nx-h1">
+        {metadataDetails.application.name} {metadataDetails.reportTitle}
+      </h1>
       <div className="nx-page-title__description">
-        { metadataDetails.reportTime && <span>{formatDate(metadataDetails.reportTime)}</span> }
-        { metadataDetails.commitHash && <span> — Commit {metadataDetails.commitHash}</span> }
+        {metadataDetails.reportTime && (
+          <span>{formatDate(metadataDetails.reportTime)}</span>
+        )}
+        {metadataDetails.commitHash && (
+          <span> — Commit {metadataDetails.commitHash}</span>
+        )}
       </div>
     </div>
   );
@@ -101,15 +123,15 @@ ReportTitle.propTypes = {
     forMonitoring: PropTypes.bool.isRequired,
     commitHash: PropTypes.string,
     application: PropTypes.shape({
-      name: PropTypes.string.isRequired
-    })
+      name: PropTypes.string.isRequired,
+    }),
   }),
   publicId: PropTypes.string,
   scanId: PropTypes.string,
   selectedReport: PropTypes.shape({
-    reportVersion: PropTypes.number.isRequired
+    reportVersion: PropTypes.number.isRequired,
   }),
   stateGo: PropTypes.func.isRequired,
   // actions
-  reevaluateReport: PropTypes.func.isRequired
+  reevaluateReport: PropTypes.func.isRequired,
 };

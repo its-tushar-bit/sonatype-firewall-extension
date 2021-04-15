@@ -5,10 +5,9 @@
  */
 import template from './move.application.success.modal.html';
 
-export default
-function MoveApplicationSuccessModalService(Modal) {
+export default function MoveApplicationSuccessModalService(Modal) {
   return {
-    open: openModal
+    open: openModal,
   };
 
   function openModal(messages) {
@@ -19,17 +18,17 @@ function MoveApplicationSuccessModalService(Modal) {
       controller: MoveApplicationSuccessModalController,
       template,
       resolve: {
-        messages: function() {
+        messages: function () {
           return messages;
-        }
-      }
+        },
+      },
     }).result;
   }
 }
 
 function MoveApplicationSuccessModalController($scope, messages) {
   $scope.messages = messages;
-  $scope.$on('pageChangeAccepted', function() {
+  $scope.$on('pageChangeAccepted', function () {
     $scope.$dismiss();
   });
 }

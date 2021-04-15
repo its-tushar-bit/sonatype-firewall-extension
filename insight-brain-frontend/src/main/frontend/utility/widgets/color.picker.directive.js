@@ -9,19 +9,19 @@ function ColorPickerController() {
 
   vm.colorRows = [
     ['light-red', 'yellow', 'light-green', 'light-blue', 'light-purple'],
-    ['dark-red', 'orange', 'dark-green', 'dark-blue', 'dark-purple']
+    ['dark-red', 'orange', 'dark-green', 'dark-blue', 'dark-purple'],
   ];
 }
 
 export default function ColorPicker() {
   return {
     scope: {
-      ngModel: '='
+      ngModel: '=',
     },
     template,
     controller: ColorPickerController,
     controllerAs: 'vm',
     bindToController: true,
-    require: 'ngModel'
+    require: 'ngModel',
   };
 }

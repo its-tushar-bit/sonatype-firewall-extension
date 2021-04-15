@@ -7,83 +7,97 @@
 import requestWaiverTemplate from './cip-request-waiver-modal.html';
 import getThreatColor from './threatColorUtil';
 
-export default function PolicyViolationsController($http, $scope, $q, Modal, SelectedComponent, OwnerContext,
-                                                   PolicyViolations, Messages, $state) {
+export default function PolicyViolationsController(
+  $http,
+  $scope,
+  $q,
+  Modal,
+  SelectedComponent,
+  OwnerContext,
+  PolicyViolations,
+  Messages,
+  $state
+) {
   $scope.getThreatColor = getThreatColor;
 
   function sortPolicyAlerts() {
-    $scope.processedPolicyAlerts.sort(function(a, b) {
+    $scope.processedPolicyAlerts.sort(function (a, b) {
       return b.threatLevel - a.threatLevel;
     });
   }
 
   $scope.quarantined = SelectedComponent.get().quarantined;
 
-  $scope.doLoad = function() {
+  $scope.doLoad = function () {
     $scope.processedPolicyAlerts = null;
     $scope.error = null;
 
-    return PolicyViolations.get().then(function (policyThreats) {
-      $scope.processedPolicyAlerts = policyThreats;
-      sortPolicyAlerts();
-    }, function (err) {
-      $scope.error = Messages.getHttpErrorMessage(err);
-    });
+    return PolicyViolations.get().then(
+      function (policyThreats) {
+        $scope.processedPolicyAlerts = policyThreats;
+        sortPolicyAlerts();
+      },
+      function (err) {
+        $scope.error = Messages.getHttpErrorMessage(err);
+      }
+    );
   };
 
   $scope.hasQuarantiningViolations = function () {
-    return !angular.isArray($scope.processedPolicyAlerts) || $scope.processedPolicyAlerts.some(function(alert) {
-      return alert.blocksUnquarantine;
-    });
+    return (
+      !angular.isArray($scope.processedPolicyAlerts) ||
+      $scope.processedPolicyAlerts.some(function (alert) {
+        return alert.blocksUnquarantine;
+      })
+    );
   };
 
-  $scope.waiveComponent = function(policyAlert) {
+  $scope.waiveComponent = function (policyAlert) {
     // if in new policy centric report
     if ($scope.useNewWaiverPages) {
       $scope.closeCipModal();
       $state.go('addWaiver', { violationId: policyAlert.policyViolationId });
-    }
-    else {
+    } else {
       Modal.open({
         templateUrl: 'add-waiver-modal-tmpl',
         controller: 'AddWaiverController',
         backdrop: 'static',
         keyboard: false,
         resolve: {
-          policy: function() {
+          policy: function () {
             return policyAlert;
-          }
-        }
+          },
+        },
       });
     }
   };
 
-  $scope.releaseQuarantine = function() {
+  $scope.releaseQuarantine = function () {
     Modal.open({
       templateUrl: 'release-quarantine-tmpl',
       controller: 'release.quarantine.controller as vm',
       backdrop: 'static',
       keyboard: false,
-    }).result.then(function() {
+    }).result.then(function () {
       $scope.quarantined = false;
     });
   };
 
-  $scope.requestWaiver = function(policyAlert) {
+  $scope.requestWaiver = function (policyAlert) {
     Modal.open({
       template: requestWaiverTemplate,
       controller: 'RequestWaiverController',
       backdrop: 'static',
       keyboard: false,
       resolve: {
-        policy: function() {
+        policy: function () {
           return policyAlert;
-        }
-      }
+        },
+      },
     });
   };
 
-  $scope.viewWaivers = function() {
+  $scope.viewWaivers = function () {
     Modal.open({
       templateUrl: 'view-waivers-modal-tmpl',
       controller: 'ViewWaiverController',
@@ -93,19 +107,33 @@ export default function PolicyViolationsController($http, $scope, $q, Modal, Sel
   };
   $scope.alerts = [];
 
-  $scope.$on('component.evaluation.updated', function(event, componentKey, promises) {
-    promises.push($scope.doLoad());
-  });
-
-  $scope.$watch(function () {
-    return SelectedComponent.get();
-  }, function (component) {
-    if (component) {
-      $scope.doLoad();
+  $scope.$on(
+    'component.evaluation.updated',
+    function (event, componentKey, promises) {
+      promises.push($scope.doLoad());
     }
-  });
+  );
+
+  $scope.$watch(
+    function () {
+      return SelectedComponent.get();
+    },
+    function (component) {
+      if (component) {
+        $scope.doLoad();
+      }
+    }
+  );
 }
 
 PolicyViolationsController.$inject = [
-  '$http', '$scope', '$q', 'Modal', 'SelectedComponent', 'OwnerContext', 'PolicyViolations', 'Messages', '$state'
+  '$http',
+  '$scope',
+  '$q',
+  'Modal',
+  'SelectedComponent',
+  'OwnerContext',
+  'PolicyViolations',
+  'Messages',
+  '$state',
 ];

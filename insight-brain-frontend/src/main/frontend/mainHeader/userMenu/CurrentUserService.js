@@ -13,20 +13,23 @@ export default function CurrentUserService($http, $q, clmLocations) {
 
       // waitForLogin is passed in as a request configuration here so that HttpInterceptors can look for it
       // when deciding whether to show the login modal
-      $http.get(clmLocations.getSessionUrl(), { waitForLogin }).then(function({ data }) {
-        deferred.resolve(data);
-      }, function(response) {
-        // 401 means the user is not logged in (and waitForLogin was false), in which case do nothing.
-        // Only report other errors
-        if (response.status !== 401) {
-          deferred.reject(response);
+      $http.get(clmLocations.getSessionUrl(), { waitForLogin }).then(
+        function ({ data }) {
+          deferred.resolve(data);
+        },
+        function (response) {
+          // 401 means the user is not logged in (and waitForLogin was false), in which case do nothing.
+          // Only report other errors
+          if (response.status !== 401) {
+            deferred.reject(response);
+          }
         }
-      });
+      );
     },
 
     waitForLogin() {
       return deferred.promise;
-    }
+    },
   };
 }
 

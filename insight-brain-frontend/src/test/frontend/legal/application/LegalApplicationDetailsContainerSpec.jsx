@@ -8,44 +8,47 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
 
-describe('LegalApplicationDetailsContainer', function() {
+describe('LegalApplicationDetailsContainer', function () {
   let store,
-      state,
-      vdom,
-      LegalApplicationDetailsContainer,
-      loadApplicationMock,
-      stateGoMock;
+    state,
+    vdom,
+    LegalApplicationDetailsContainer,
+    loadApplicationMock,
+    stateGoMock;
 
-  beforeEach(function() {
+  beforeEach(function () {
     state = {
       legalApplicationDetails: {
         application: 'application',
         stageType: 'stageType',
-        components: 'components'
+        components: 'components',
       },
       router: {
         currentParams: {
           applicationPublicId: 'appId',
-          stageTypeId: 'develop'
-        }
-      }
+          stageTypeId: 'develop',
+        },
+      },
     };
 
-    loadApplicationMock = jasmine.createSpy('loadApplication').and.returnValue({ type: 'FOO' });
+    loadApplicationMock = jasmine
+      .createSpy('loadApplication')
+      .and.returnValue({ type: 'FOO' });
     stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'BAR' });
 
-    LegalApplicationDetailsContainer =
-        require('inject-loader!../../../../main/frontend/legal/application/LegalApplicationDetailsContainer')({
-          './legalApplicationDetailsActions': {
-            loadApplication: loadApplicationMock
-          },
-          '../../reduxUiRouter/routerActions': {
-            stateGo: stateGoMock
-          }
-        }).default;
+    LegalApplicationDetailsContainer = require('inject-loader!../../../../main/frontend/legal/application/LegalApplicationDetailsContainer')(
+      {
+        './legalApplicationDetailsActions': {
+          loadApplication: loadApplicationMock,
+        },
+        '../../reduxUiRouter/routerActions': {
+          stateGo: stateGoMock,
+        },
+      }
+    ).default;
 
     store = configureStore()(() => state);
-    vdom = <LegalApplicationDetailsContainer store={store}/>;
+    vdom = <LegalApplicationDetailsContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -57,7 +60,7 @@ describe('LegalApplicationDetailsContainer', function() {
     expect(wrapper).toHaveProp('stageTypeId', 'develop');
   });
 
-  it('correctly maps the action creators to the LegalApplicationDetailsContainer props', function() {
+  it('correctly maps the action creators to the LegalApplicationDetailsContainer props', function () {
     const wrapper = shallow(vdom).dive();
     const loadApplicationActionCreator = wrapper.prop('loadApplication');
     expect(loadApplicationActionCreator).toEqual(jasmine.any(Function));
@@ -72,8 +75,10 @@ describe('LegalApplicationDetailsContainer', function() {
     expect(store.getActions()[1]).toEqual({ type: 'BAR' });
   });
 
-  it('renders LegalApplicationDetailsPage component', function() {
-    const legalApplicationDetailsPage = shallow(vdom).find(LegalApplicationDetailsPage);
+  it('renders LegalApplicationDetailsPage component', function () {
+    const legalApplicationDetailsPage = shallow(vdom).find(
+      LegalApplicationDetailsPage
+    );
     expect(legalApplicationDetailsPage).toExist();
   });
 });

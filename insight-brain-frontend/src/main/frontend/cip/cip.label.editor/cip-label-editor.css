@@ -12,7 +12,7 @@
   font-size: 12px;
   overflow: hidden;
   text-align: center;
-  border-color: #AFBFCF;
+  border-color: #afbfcf;
   color: #575757;
 }
 
@@ -92,27 +92,31 @@ span.clmLabel .tooltip {
 }
 
 .labelEditor .clmLabel {
-  margin-right: 5px
+  margin-right: 5px;
 }
 
-.labelEditor .icon-refresh, .clmLabel > .icon-plus-sign, .clmLabel > .icon-minus-sign {
+.labelEditor .icon-refresh,
+.clmLabel > .icon-plus-sign,
+.clmLabel > .icon-minus-sign {
   cursor: pointer;
   opacity: 0.5;
   filter: alpha(opacity=50);
   vertical-align: top;
-  margin-top: 1px
+  margin-top: 1px;
 }
 
-.labelEditor .icon-refresh:hover, .clmLabel > .icon-plus-sign:hover, .clmLabel > .icon-minus-sign:hover {
-  opacity: 1.0;
-  filter: alpha(opacity=100)
+.labelEditor .icon-refresh:hover,
+.clmLabel > .icon-plus-sign:hover,
+.clmLabel > .icon-minus-sign:hover {
+  opacity: 1;
+  filter: alpha(opacity=100);
 }
 
 .clmLabel > span {
   max-width: 380px;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: inline-block
+  display: inline-block;
 }
 
 #informationPanel .labelEditor .alert {
@@ -120,7 +124,8 @@ span.clmLabel .tooltip {
   width: 830px;
 }
 
-#available-labels, #applied-labels {
+#available-labels,
+#applied-labels {
   display: inline-block;
   margin-bottom: 10px;
   width: 49.5%;

@@ -3,47 +3,54 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {capitalize, getFutureDate, isNilOrEmpty, multiGroupBy, union} from '../../../main/frontend/util/jsUtil';
+import {
+  capitalize,
+  getFutureDate,
+  isNilOrEmpty,
+  multiGroupBy,
+  union,
+} from '../../../main/frontend/util/jsUtil';
 
-describe('jsUtil', function() {
-
-  describe('isNilOrEmpty', function() {
-    it('returns true if the argument is null or undefined', function() {
+describe('jsUtil', function () {
+  describe('isNilOrEmpty', function () {
+    it('returns true if the argument is null or undefined', function () {
       expect(isNilOrEmpty(null)).toBe(true);
       expect(isNilOrEmpty(undefined)).toBe(true);
     });
 
-    it('returns true if the argument is an empty object or empty list', function() {
+    it('returns true if the argument is an empty object or empty list', function () {
       expect(isNilOrEmpty({})).toBe(true);
       expect(isNilOrEmpty([])).toBe(true);
     });
 
-    it('returns false if the argument is a non-empty object or non-empty list', function() {
+    it('returns false if the argument is a non-empty object or non-empty list', function () {
       expect(isNilOrEmpty({ a: 1 })).toBe(false);
       expect(isNilOrEmpty(['foo'])).toBe(false);
     });
   });
 
-  describe('union', function() {
-    it('returns an set empty set if both inputs are empty', function() {
+  describe('union', function () {
+    it('returns an set empty set if both inputs are empty', function () {
       expect(union(new Set(), new Set())).toEqual(new Set());
     });
 
-    it('returns a set equal to the first one if the second one is empty', function() {
+    it('returns a set equal to the first one if the second one is empty', function () {
       expect(union(new Set([1, 2, 3]), new Set())).toEqual(new Set([1, 2, 3]));
     });
 
-    it('returns a set equal to the second one if the first one is empty', function() {
+    it('returns a set equal to the second one if the first one is empty', function () {
       expect(union(new Set(), new Set([1, 2, 3]))).toEqual(new Set([1, 2, 3]));
     });
 
-    it('returns the union of the two sets', function() {
-      expect(union(new Set([1, 2, 3]), new Set([5, 2, 4, 'a']))).toEqual(new Set([1, 2, 3, 4, 5, 'a']));
+    it('returns the union of the two sets', function () {
+      expect(union(new Set([1, 2, 3]), new Set([5, 2, 4, 'a']))).toEqual(
+        new Set([1, 2, 3, 4, 5, 'a'])
+      );
     });
 
-    it('does not modify either input', function() {
+    it('does not modify either input', function () {
       const set1 = new Set([1, 2, 3]),
-          set2 = new Set([3, 4, 5, 6]);
+        set2 = new Set([3, 4, 5, 6]);
 
       union(set1, set2);
 
@@ -51,30 +58,34 @@ describe('jsUtil', function() {
       expect(set2).toEqual(new Set([3, 4, 5, 6]));
     });
 
-    it('always returns a new set', function() {
+    it('always returns a new set', function () {
       const set1 = new Set([1, 2, 3]),
-          set2 = new Set(),
-          result = union(set1, set2);
+        set2 = new Set(),
+        result = union(set1, set2);
 
       expect(result).toEqual(set1);
       expect(result).not.toBe(set1);
     });
   });
 
-  describe('multiGroupBy', function() {
-    it('groups items by their multiple keys', function() {
-      const data = [{
+  describe('multiGroupBy', function () {
+    it('groups items by their multiple keys', function () {
+      const data = [
+          {
             foo: ['bar', 'baz'],
-            a: 1
-          }, {
+            a: 1,
+          },
+          {
             foo: ['baz', 'asdf'],
-            a: 2
-          }, {
+            a: 2,
+          },
+          {
             foo: ['asdf'],
-            a: 3
-          }],
-          keyFn = item => item.foo,
-          results = multiGroupBy(keyFn, data);
+            a: 3,
+          },
+        ],
+        keyFn = (item) => item.foo,
+        results = multiGroupBy(keyFn, data);
 
       expect(results.bar.length).toBe(1);
       expect(results.bar).toContain(data[0]);
@@ -88,47 +99,50 @@ describe('jsUtil', function() {
       expect(results.asdf).toContain(data[2]);
     });
 
-    it('drops items that do not have any values for the key', function() {
-      const data = [{
+    it('drops items that do not have any values for the key', function () {
+      const data = [
+          {
             foo: ['bar'],
-            a: 1
-          }, {
+            a: 1,
+          },
+          {
             foo: [],
-            a: 2
-          }],
-          keyFn = item => item.foo,
-          results = multiGroupBy(keyFn, data);
+            a: 2,
+          },
+        ],
+        keyFn = (item) => item.foo,
+        results = multiGroupBy(keyFn, data);
 
       expect(results).toEqual({ bar: [data[0]] });
     });
 
-    it('returns an empty object if given an empty list', function() {
+    it('returns an empty object if given an empty list', function () {
       const data = [],
-          keyFn = item => item.foo,
-          results = multiGroupBy(keyFn, data);
+        keyFn = (item) => item.foo,
+        results = multiGroupBy(keyFn, data);
 
       expect(results).toEqual({});
     });
   });
 
-  describe('capitalize', function() {
-    it('returns falsey values as-is', function() {
+  describe('capitalize', function () {
+    it('returns falsey values as-is', function () {
       expect(capitalize(null)).toBe(null);
       expect(capitalize(undefined)).toBe(undefined);
       expect(capitalize('')).toBe('');
     });
 
-    it('uppercases the first letter of the string', function() {
+    it('uppercases the first letter of the string', function () {
       expect(capitalize('foo')).toBe('Foo');
     });
 
-    it('leaves already-capital letters alone', function() {
+    it('leaves already-capital letters alone', function () {
       expect(capitalize('Foo')).toBe('Foo');
       expect(capitalize('FOO')).toBe('FOO');
     });
   });
 
-  describe('getFutureDate', function() {
+  describe('getFutureDate', function () {
     const assertEndOfDayTime = (dateString) => {
       expect(dateString.indexOf('23:59:59')).not.toEqual(-1);
     };
@@ -146,12 +160,12 @@ describe('jsUtil', function() {
       expect(dateString.indexOf(timeStamp)).not.toEqual(-1);
     };
 
-    it('returns the End of Day timestamp for today if no param or 0 is provided', function() {
+    it('returns the End of Day timestamp for today if no param or 0 is provided', function () {
       assertToday(getFutureDate());
       assertToday(getFutureDate(0));
     });
 
-    it('includes End of Day time', function() {
+    it('includes End of Day time', function () {
       assertEndOfDayTime(getFutureDate(1));
       assertEndOfDayTime(getFutureDate(0));
       assertEndOfDayTime(getFutureDate(30));
@@ -167,6 +181,5 @@ describe('jsUtil', function() {
       assertFormat(getFutureDate(90));
       assertFormat(getFutureDate(120));
     });
-
   });
 });

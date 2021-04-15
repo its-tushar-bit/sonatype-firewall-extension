@@ -3,9 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function AccessTileController($scope, RoleMappingService, SameOwnerStateNavigationService, LocalRoleService,
-                              EventNameConstant) {
+export default function AccessTileController(
+  $scope,
+  RoleMappingService,
+  SameOwnerStateNavigationService,
+  LocalRoleService,
+  EventNameConstant
+) {
   var vm = this;
   vm.ownerName = undefined;
   vm.membersByRole = undefined;
@@ -18,34 +22,39 @@ function AccessTileController($scope, RoleMappingService, SameOwnerStateNavigati
 
   vm.doLoad();
 
-  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function() {
+  $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
     doLoad(true);
   });
   $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad(reload) {
-    RoleMappingService[reload ? 'refresh' : 'get']().then(function(roleMappings) {
-      vm.membersByRole = roleMappings.membersByRole;
-      vm.membersByRole.forEach(function(role) {
-        role.membersByOwner.forEach(function(memberOwner, index) {
-          memberOwner.inherited = index > 0;
-          if (memberOwner.members.length > 0) {
-            vm.membersByRole[0].membersByOwner[index].hasMembers = true;
-          }
+    RoleMappingService[reload ? 'refresh' : 'get']().then(
+      function (roleMappings) {
+        vm.membersByRole = roleMappings.membersByRole;
+        vm.membersByRole.forEach(function (role) {
+          role.membersByOwner.forEach(function (memberOwner, index) {
+            memberOwner.inherited = index > 0;
+            if (memberOwner.members.length > 0) {
+              vm.membersByRole[0].membersByOwner[index].hasMembers = true;
+            }
+          });
         });
-      });
 
-      vm.ownerName = vm.membersByRole[0].membersByOwner[0].ownerName;
-      vm.rolesWithoutLocalMembersExist = LocalRoleService.getRolesWithoutLocalMembers(vm.membersByRole).length > 0;
-    }, function(error) {
-      vm.error = error;
-    });
+        vm.ownerName = vm.membersByRole[0].membersByOwner[0].ownerName;
+        vm.rolesWithoutLocalMembersExist =
+          LocalRoleService.getRolesWithoutLocalMembers(vm.membersByRole)
+            .length > 0;
+      },
+      function (error) {
+        vm.error = error;
+      }
+    );
 
     delete vm.error;
   }
 
   function filterRolesWithMembers(index) {
-    return function(role) {
+    return function (role) {
       return role.membersByOwner[index].members.length > 0;
     };
   }
@@ -68,5 +77,9 @@ function AccessTileController($scope, RoleMappingService, SameOwnerStateNavigati
 }
 
 AccessTileController.$inject = [
-  '$scope', 'role.mapping.service', 'SameOwnerStateNavigationService', 'local.role.service', 'event.name.constant'
+  '$scope',
+  'role.mapping.service',
+  'SameOwnerStateNavigationService',
+  'local.role.service',
+  'event.name.constant',
 ];

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './userDetailsModal.html';
-import {sort} from 'ramda';
+import { sort } from 'ramda';
 
 export default {
   template,
@@ -12,8 +12,8 @@ export default {
   controllerAs: 'vm',
   bindings: {
     close: '&',
-    currentUser: '<'
-  }
+    currentUser: '<',
+  },
 };
 
 function userDetailsModalController() {
@@ -21,7 +21,9 @@ function userDetailsModalController() {
 
   Object.assign(vm, {
     getGroups() {
-      return sort((a, b) => a.localeCompare(b), vm.currentUser.groups).join(', ');
-    }
+      return sort((a, b) => a.localeCompare(b), vm.currentUser.groups).join(
+        ', '
+      );
+    },
   });
 }

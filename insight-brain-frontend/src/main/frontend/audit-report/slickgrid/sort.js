@@ -4,14 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global Slick*/
-(function($) {
+(function ($) {
   'use strict';
 
   // register namespace
   $.extend(true, window, {
-    'Slick': {
-      'Sort': Sort
-    }
+    Slick: {
+      Sort: Sort,
+    },
   });
 
   function Sort() {
@@ -38,23 +38,23 @@
       var sortColumns = _grid.getSortColumns();
       if (sortColumns.length > 0) {
         var sortCols = [];
-        $.each(sortColumns, function(index, item) {
+        $.each(sortColumns, function (index, item) {
           sortCols.push({
             sortCol: {
-              id: item.columnId
+              id: item.columnId,
             },
-            sortAsc: item.sortAsc
+            sortAsc: item.sortAsc,
           });
         });
         _doSort(null, {
           multiColumnSort: true,
-          sortCols: sortCols
+          sortCols: sortCols,
         });
       }
     }
 
     function wrapHandler(handler) {
-      return function() {
+      return function () {
         if (!_inHandler) {
           _inHandler = true;
           handler.apply(this, arguments);
@@ -69,13 +69,13 @@
       if (args.multiColumnSort) {
         var sortData = [];
 
-        $.each(args.sortCols, function(index, item) {
-          $.each(_grid.getColumns(), function(subindex, subitem) {
+        $.each(args.sortCols, function (index, item) {
+          $.each(_grid.getColumns(), function (subindex, subitem) {
             if (item.sortCol.id === subitem.id) {
               sortData.push({
                 sortFn: subitem.sortFn,
                 field: subitem.field,
-                sortAsc: item.sortAsc
+                sortAsc: item.sortAsc,
               });
               return false;
             }
@@ -83,9 +83,9 @@
         });
 
         //create our own uber sort function to do all the levels of sorting
-        sortFn = function(dataRow1, dataRow2) {
+        sortFn = function (dataRow1, dataRow2) {
           var sortResult = 0;
-          $.each(sortData, function(index, item) {
+          $.each(sortData, function (index, item) {
             if (item.sortFn) {
               var result = item.sortFn(dataRow1, dataRow2);
               if (result !== 0) {
@@ -107,9 +107,9 @@
         _grid.getData().sort(sortFn, true);
       } else {
         var sortColumn = args.sortCol,
-            gridColumns = _grid.getColumns();
+          gridColumns = _grid.getColumns();
 
-        $.each(gridColumns, function(index, item) {
+        $.each(gridColumns, function (index, item) {
           if (item.id === sortColumn.id) {
             sortFn = item.sortFn;
             sortColumn.field = item.field;
@@ -117,10 +117,13 @@
           }
         });
 
-        sortFn = sortFn || function(dataRow1, dataRow2) {
-          var a = dataRow1[sortColumn.field], b = dataRow2[sortColumn.field];
-          return a > b ? 1 : (a < b ? -1 : 0);
-        };
+        sortFn =
+          sortFn ||
+          function (dataRow1, dataRow2) {
+            var a = dataRow1[sortColumn.field],
+              b = dataRow2[sortColumn.field];
+            return a > b ? 1 : a < b ? -1 : 0;
+          };
 
         _grid.getData().sort(sortFn, args.sortAsc);
       }
@@ -132,8 +135,8 @@
     }
 
     $.extend(this, {
-      'init': init,
-      'destroy': destroy
+      init: init,
+      destroy: destroy,
     });
   }
 })(jQuery);

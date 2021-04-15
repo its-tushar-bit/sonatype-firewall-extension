@@ -13,30 +13,30 @@ import {
   WAIVERS_DELETE_WAIVER_FAILED,
   WAIVERS_DELETE_MASK_TIMER_DONE,
   WAIVERS_SET_WAIVER_TO_DELETE,
-  WAIVERS_HIDE_DELETE_WAIVER_MODAL
+  WAIVERS_HIDE_DELETE_WAIVER_MODAL,
 } from '../waiverActions';
 
 const initState = Object.freeze({
   waiverToDelete: null,
   deleteWaiverSaving: null,
-  deleteWaiverError: null
+  deleteWaiverError: null,
 });
 
 const setWaiverToDelete = (payload) => ({
   ...initState,
-  waiverToDelete: payload
+  waiverToDelete: payload,
 });
 
 const deleteWaiverRequested = (payload, state) => ({
   ...state,
   deleteWaiverSaving: false,
-  deleteWaiverError: null
+  deleteWaiverError: null,
 });
 
 const deleteWaiverFailed = (payload, state) => ({
   ...state,
   deleteWaiverSaving: null,
-  deleteWaiverError: payload
+  deleteWaiverError: payload,
 });
 
 const reducerActionMap = {
@@ -46,8 +46,11 @@ const reducerActionMap = {
   [WAIVERS_DELETE_WAIVER_REQUESTED]: deleteWaiverRequested,
   [WAIVERS_DELETE_WAIVER_FAILED]: deleteWaiverFailed,
   [WAIVERS_DELETE_WAIVER_FULFILLED]: propSetConst('deleteWaiverSaving', true),
-  [WAIVERS_DELETE_MASK_TIMER_DONE]: always(initState)
+  [WAIVERS_DELETE_MASK_TIMER_DONE]: always(initState),
 };
 
-const deleteWaiverReducer = createReducerFromActionMap(reducerActionMap, initState);
+const deleteWaiverReducer = createReducerFromActionMap(
+  reducerActionMap,
+  initState
+);
 export default deleteWaiverReducer;

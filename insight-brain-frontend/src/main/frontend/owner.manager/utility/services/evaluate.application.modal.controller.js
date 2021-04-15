@@ -3,12 +3,28 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $timeout, $window, $cookies, $q,
-                                            Messages, CLMLocations, selectedApplication, StageTypeStore,
-                                            ProductFeatures) {
-  var validEvaluateBundleStages = ['build', 'stage-release', 'release', 'operate'],
-      vm = this;
+export default function EvaluateApplicationModalController(
+  $rootScope,
+  $scope,
+  $http,
+  $state,
+  $timeout,
+  $window,
+  $cookies,
+  $q,
+  Messages,
+  CLMLocations,
+  selectedApplication,
+  StageTypeStore,
+  ProductFeatures
+) {
+  var validEvaluateBundleStages = [
+      'build',
+      'stage-release',
+      'release',
+      'operate',
+    ],
+    vm = this;
 
   vm.bundle = undefined;
   vm.csrfTokenName = $http.defaults.xsrfHeaderName;
@@ -28,16 +44,19 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
 
   doLoad();
 
-  var reportListener = $scope.$watch(function() {
-    return vm.evaluationStatus && vm.evaluationStatus.scanId;
-  }, function(isReportReady) {
-    if (isReportReady) {
-      reportListener();
-      $rootScope.$broadcast('reload.app.report.data');
+  var reportListener = $scope.$watch(
+    function () {
+      return vm.evaluationStatus && vm.evaluationStatus.scanId;
+    },
+    function (isReportReady) {
+      if (isReportReady) {
+        reportListener();
+        $rootScope.$broadcast('reload.app.report.data');
+      }
     }
-  });
+  );
 
-  $scope.$on('$destroy', function() {
+  $scope.$on('$destroy', function () {
     reportListener();
   });
 
@@ -49,8 +68,10 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
     vm.evaluationState = 'loading';
     vm.bundle = {
       notify: 'true',
-      applicationPublicId: selectedApplication ? selectedApplication.publicId : null,
-      applicationName: selectedApplication ? selectedApplication.name : null
+      applicationPublicId: selectedApplication
+        ? selectedApplication.publicId
+        : null,
+      applicationName: selectedApplication ? selectedApplication.name : null,
     };
 
     if (!vm.bundle.applicationPublicId) {
@@ -58,47 +79,57 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
       return setError('Cannot find the associated Application', doLoad);
     }
 
-    const promises = [
-      StageTypeStore.get(),
-      ProductFeatures.load()
-    ];
+    const promises = [StageTypeStore.get(), ProductFeatures.load()];
 
-    $q.all(promises).then(function(results) {
-      vm.evaluationState = 'ready';
+    $q.all(promises).then(
+      function (results) {
+        vm.evaluationState = 'ready';
 
-      results[0].forEach(function(stage) {
-        if (validEvaluateBundleStages.indexOf(stage.stageTypeId) > -1) {
-          vm.stages.push(stage);
-        }
-      });
+        results[0].forEach(function (stage) {
+          if (validEvaluateBundleStages.indexOf(stage.stageTypeId) > -1) {
+            vm.stages.push(stage);
+          }
+        });
 
-      vm.isNotificationsSupported = ProductFeatures.isAvailable('notifications');
-    }, function(error) {
-      vm.evaluationState = 'ready';
-      setError(Messages.getHttpErrorMessage(error), doLoad);
-    });
+        vm.isNotificationsSupported = ProductFeatures.isAvailable(
+          'notifications'
+        );
+      },
+      function (error) {
+        vm.evaluationState = 'ready';
+        setError(Messages.getHttpErrorMessage(error), doLoad);
+      }
+    );
   }
 
   function doPoll() {
     if (!$scope.$$destroyed) {
-      $http.get(vm.pollingUrl).then(function(response) {
-        vm.evaluationStatus = response.data;
-        if (vm.evaluationStatus.error) {
-          setError(vm.evaluationStatus.error, doSubmit);
+      $http.get(vm.pollingUrl).then(
+        function (response) {
+          vm.evaluationStatus = response.data;
+          if (vm.evaluationStatus.error) {
+            setError(vm.evaluationStatus.error, doSubmit);
+          } else if (
+            vm.evaluationStatus.currentStep < vm.evaluationStatus.totalSteps
+          ) {
+            $timeout(doPoll, 500);
+          }
+        },
+        function (error) {
+          setError(Messages.getHttpErrorMessage(error), doSubmit);
         }
-        else if (vm.evaluationStatus.currentStep < vm.evaluationStatus.totalSteps) {
-          $timeout(doPoll, 500);
-        }
-      }, function(error) {
-        setError(Messages.getHttpErrorMessage(error), doSubmit);
-      });
+      );
     }
   }
 
   function doSubmit() {
     var fileElement = angular.element('#bundle-file')[0];
     vm.evaluationState = 'polling';
-    vm.evaluationStatus = {currentStep: 1, totalSteps: 1, currentStepName: 'Uploading'};
+    vm.evaluationStatus = {
+      currentStep: 1,
+      totalSteps: 1,
+      currentStepName: 'Uploading',
+    };
     vm.bundle.filename = parseFilename(fileElement.value);
     vm.error = null;
     vm.pollingUrl = null;
@@ -108,31 +139,48 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
     // Explicitly add the filename as a form parameter since there is an encoding mismatch between the browsers and
     // server in the Content-Disposition filename header.
     form.append('filename', fileElement.files[0].name);
-    $http.post(vm.uploadBundleUrl(), form).then(function(response) {
-      vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(vm.bundle.applicationPublicId, response.data.ticketId);
-      doPoll();
-    }, function(errorResponse) {
-      vm.evaluationStatus.error = Messages.getHttpErrorMessage(errorResponse);
-      vm.evaluationStatus.currentStepName = 'Done';
-      setError(vm.evaluationStatus.error, doSubmit);
-    });
+    $http.post(vm.uploadBundleUrl(), form).then(
+      function (response) {
+        vm.pollingUrl = CLMLocations.getEvaluationStatusUrl(
+          vm.bundle.applicationPublicId,
+          response.data.ticketId
+        );
+        doPoll();
+      },
+      function (errorResponse) {
+        vm.evaluationStatus.error = Messages.getHttpErrorMessage(errorResponse);
+        vm.evaluationStatus.currentStepName = 'Done';
+        setError(vm.evaluationStatus.error, doSubmit);
+      }
+    );
   }
 
   function getProgressWidth() {
-    return vm.evaluationStatus ? (vm.evaluationStatus.currentStep / vm.evaluationStatus.totalSteps * 100) : '0';
+    return vm.evaluationStatus
+      ? (vm.evaluationStatus.currentStep / vm.evaluationStatus.totalSteps) * 100
+      : '0';
   }
 
   function isFormValid() {
-    return Boolean(vm.bundle && vm.bundle.file && vm.bundle.applicationPublicId && vm.bundle.stage &&
-        vm.bundle.stage.stageTypeId && vm.bundle.notify);
+    return Boolean(
+      vm.bundle &&
+        vm.bundle.file &&
+        vm.bundle.applicationPublicId &&
+        vm.bundle.stage &&
+        vm.bundle.stage.stageTypeId &&
+        vm.bundle.notify
+    );
   }
 
   function openReport() {
     if (vm.evaluationStatus && vm.evaluationStatus.scanId) {
-      $window.open($state.href('applicationReport.policy', {
-        publicId: vm.evaluationStatus.applicationPublicId,
-        scanId: vm.evaluationStatus.scanId
-      }), '_blank');
+      $window.open(
+        $state.href('applicationReport.policy', {
+          publicId: vm.evaluationStatus.applicationPublicId,
+          scanId: vm.evaluationStatus.scanId,
+        }),
+        '_blank'
+      );
     }
   }
 
@@ -151,21 +199,34 @@ function EvaluateApplicationModalController($rootScope, $scope, $http, $state, $
 
     if (message) {
       vm.error = message;
-    }
-    else {
+    } else {
       vm.error = 'Error uploading, please check the file.';
     }
   }
 
   function uploadBundleUrl() {
     if (isFormValid()) {
-      return CLMLocations.getBundleUploadUrl(vm.bundle.applicationPublicId, vm.bundle.stage.stageTypeId,
-          vm.bundle.notify);
+      return CLMLocations.getBundleUploadUrl(
+        vm.bundle.applicationPublicId,
+        vm.bundle.stage.stageTypeId,
+        vm.bundle.notify
+      );
     }
   }
 }
 
 EvaluateApplicationModalController.$inject = [
-  '$rootScope', '$scope', '$http', '$state', '$timeout', '$window', '$cookies', '$q', 'Messages', 'CLMLocations',
-  'selectedApplication', 'StageTypeStore', 'ProductFeatures'
+  '$rootScope',
+  '$scope',
+  '$http',
+  '$state',
+  '$timeout',
+  '$window',
+  '$cookies',
+  '$q',
+  'Messages',
+  'CLMLocations',
+  'selectedApplication',
+  'StageTypeStore',
+  'ProductFeatures',
 ];

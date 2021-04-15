@@ -4,7 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {componentCopyrightDetailsPropType, componentPropType} from '../advancedLegalPropTypes';
+import {
+  componentCopyrightDetailsPropType,
+  componentPropType,
+} from '../advancedLegalPropTypes';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 
@@ -18,13 +21,16 @@ export default function CopyrightList(props) {
     ownerId,
     hash,
     componentCopyrightDetails,
-    $state
+    $state,
   } = props;
 
-  const plural = (count, name) => count > 1 ? `${count} ${name}s` : `1 ${name}`;
+  const plural = (count, name) =>
+    count > 1 ? `${count} ${name}s` : `1 ${name}`;
 
-  const listLinkClass = (index) => classnames('nx-list__link',
-      {'selected': index === parseInt(copyrightIndex)});
+  const listLinkClass = (index) =>
+    classnames('nx-list__link', {
+      selected: index === parseInt(copyrightIndex),
+    });
 
   const getCopyrightFileCount = (itemHash) => {
     const count = componentCopyrightDetails.copyrightFileCounts[itemHash] || -1;
@@ -33,39 +39,48 @@ export default function CopyrightList(props) {
       : 'Not found in source files';
   };
 
-  const attributionStatus = (item) => item.status === 'enabled'
-    ? 'Included in attribution report'
-    : 'Excluded from attribution report';
+  const attributionStatus = (item) =>
+    item.status === 'enabled'
+      ? 'Included in attribution report'
+      : 'Excluded from attribution report';
 
-  const copyrightSource = (item) => item.originalContentHash
-    ? getCopyrightFileCount(item.originalContentHash)
-    : 'Manually added';
+  const copyrightSource = (item) =>
+    item.originalContentHash
+      ? getCopyrightFileCount(item.originalContentHash)
+      : 'Manually added';
 
-  const listItems = component && component.licenseLegalData
-    ? (component.licenseLegalData.copyrights.map((item, index) =>
-      <li key={index} className="nx-list__item nx-list__item--link">
-        <a href={$state.href('componentCopyrightDetails.copyrightDetails',
-            {ownerType, ownerId, hash, copyrightIndex: index})}
-           className={listLinkClass(index)}>
-          <div className="nx-list__text nx-truncate-ellipsis">{item.content}</div>
-          <div className="nx-list__subtext">
-            <p className="copyright-detail-p">{attributionStatus(item)}</p>
-            <p className="copyright-detail-p">{copyrightSource(item)}</p>
-          </div>
-        </a>
-      </li>
-    ))
-    : '';
+  const listItems =
+    component && component.licenseLegalData
+      ? component.licenseLegalData.copyrights.map((item, index) => (
+          <li key={index} className="nx-list__item nx-list__item--link">
+            <a
+              href={$state.href('componentCopyrightDetails.copyrightDetails', {
+                ownerType,
+                ownerId,
+                hash,
+                copyrightIndex: index,
+              })}
+              className={listLinkClass(index)}
+            >
+              <div className="nx-list__text nx-truncate-ellipsis">
+                {item.content}
+              </div>
+              <div className="nx-list__subtext">
+                <p className="copyright-detail-p">{attributionStatus(item)}</p>
+                <p className="copyright-detail-p">{copyrightSource(item)}</p>
+              </div>
+            </a>
+          </li>
+        ))
+      : '';
 
   // If we're loading data or in error state than the rendering will be handled by CopyrightDetailsHeader
   // component and this component should not be rendered
-  return loading || error
-    ? null
-    : <aside className="nx-scrollable nx-viewport-sized__scrollable">
-      <ul className="nx-list nx-list--clickable">
-        {listItems}
-      </ul>
-    </aside>;
+  return loading || error ? null : (
+    <aside className="nx-scrollable nx-viewport-sized__scrollable">
+      <ul className="nx-list nx-list--clickable">{listItems}</ul>
+    </aside>
+  );
 }
 
 CopyrightList.propTypes = {
@@ -77,5 +92,5 @@ CopyrightList.propTypes = {
   ownerId: PropTypes.string,
   hash: PropTypes.string,
   $state: PropTypes.object.isRequired,
-  copyrightIndex: PropTypes.string.isRequired
+  copyrightIndex: PropTypes.string.isRequired,
 };

@@ -1,9 +1,9 @@
 (function ($) {
   // register namespace
   $.extend(true, window, {
-    "Slick": {
-      "RowSelectionModel": RowSelectionModel
-    }
+    Slick: {
+      RowSelectionModel: RowSelectionModel,
+    },
   });
 
   function RowSelectionModel(options) {
@@ -14,18 +14,18 @@
     var _inHandler;
     var _options;
     var _defaults = {
-      selectActiveRow: true
+      selectActiveRow: true,
     };
 
     function init(grid) {
       _options = $.extend(true, {}, _defaults, options);
       _grid = grid;
-      _handler.subscribe(_grid.onActiveCellChanged,
-          wrapHandler(handleActiveCellChange));
-      _handler.subscribe(_grid.onKeyDown,
-          wrapHandler(handleKeyDown));
-      _handler.subscribe(_grid.onClick,
-          wrapHandler(handleClick));
+      _handler.subscribe(
+        _grid.onActiveCellChanged,
+        wrapHandler(handleActiveCellChange)
+      );
+      _handler.subscribe(_grid.onKeyDown, wrapHandler(handleKeyDown));
+      _handler.subscribe(_grid.onClick, wrapHandler(handleClick));
     }
 
     function destroy() {
@@ -62,7 +62,8 @@
     }
 
     function getRowsRange(from, to) {
-      var i, rows = [];
+      var i,
+        rows = [];
       for (i = from; i <= to; i++) {
         rows.push(i);
       }
@@ -91,16 +92,25 @@
 
     function handleActiveCellChange(e, data) {
       if (_options.selectActiveRow) {
-        setSelectedRanges([new Slick.Range(data.row, 0, data.row, _grid.getColumns().length - 1)]);
+        setSelectedRanges([
+          new Slick.Range(data.row, 0, data.row, _grid.getColumns().length - 1),
+        ]);
       }
     }
 
     function handleKeyDown(e) {
       var activeRow = _grid.getActiveCell();
-      if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which == 38 || e.which == 40)) {
+      if (
+        activeRow &&
+        e.shiftKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !e.metaKey &&
+        (e.which == 38 || e.which == 40)
+      ) {
         var selectedRows = getSelectedRows();
         selectedRows.sort(function (x, y) {
-          return x - y
+          return x - y;
         });
 
         if (!selectedRows.length) {
@@ -139,14 +149,13 @@
 
       if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
         return false;
-      }
-      else if (_grid.getOptions().multiSelect) {
+      } else if (_grid.getOptions().multiSelect) {
         if (idx === -1 && (e.ctrlKey || e.metaKey)) {
           selection.push(cell.row);
           _grid.setActiveCell(cell.row, cell.cell);
         } else if (idx !== -1 && (e.ctrlKey || e.metaKey)) {
           selection = $.grep(selection, function (o, i) {
-            return (o !== cell.row);
+            return o !== cell.row;
           });
           _grid.setActiveCell(cell.row, cell.cell);
         } else if (selection.length && e.shiftKey) {
@@ -172,16 +181,16 @@
     }
 
     $.extend(this, {
-      "getSelectedRows": getSelectedRows,
-      "setSelectedRows": setSelectedRows,
+      getSelectedRows: getSelectedRows,
+      setSelectedRows: setSelectedRows,
 
-      "getSelectedRanges": getSelectedRanges,
-      "setSelectedRanges": setSelectedRanges,
+      getSelectedRanges: getSelectedRanges,
+      setSelectedRanges: setSelectedRanges,
 
-      "init": init,
-      "destroy": destroy,
+      init: init,
+      destroy: destroy,
 
-      "onSelectedRangesChanged": new Slick.Event()
+      onSelectedRangesChanged: new Slick.Event(),
     });
   }
 })(jQuery);

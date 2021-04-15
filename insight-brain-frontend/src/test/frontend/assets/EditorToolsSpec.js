@@ -6,25 +6,30 @@
 import editorToolsModule from '../../../main/frontend/EditorTools';
 import { httpInterceptors } from '../../../main/frontend/util/HttpInterceptors';
 
-describe('EditorToolsSpec', function() {
-
+describe('EditorToolsSpec', function () {
   var scope = null;
 
-  beforeEach(angular.mock.module(editorToolsModule.name, httpInterceptors.name, function ($provide) {
-    $provide.value('ApplicationId', {
-      encoded: function() {
-        return 'bom1-12345678';
+  beforeEach(
+    angular.mock.module(
+      editorToolsModule.name,
+      httpInterceptors.name,
+      function ($provide) {
+        $provide.value('ApplicationId', {
+          encoded: function () {
+            return 'bom1-12345678';
+          },
+        });
+        $provide.value('OrganizationId', {
+          encoded: function () {
+            return null;
+          },
+        });
+        $provide.value('selectedApplication', {
+          publicId: 'bom1-12345678',
+        });
       }
-    });
-    $provide.value('OrganizationId', {
-      encoded: function() {
-        return null;
-      }
-    });
-    $provide.value('selectedApplication', {
-      publicId: 'bom1-12345678'
-    });
-  }));
+    )
+  );
 
   beforeEach(inject(function ($rootScope) {
     scope = $rootScope.$new();
@@ -45,20 +50,22 @@ describe('EditorToolsSpec', function() {
       angular.extend(scope, {
         selected: {
           name: '',
-          id: null
+          id: null,
         },
         siblings: [],
-        eForm: {}
+        eForm: {},
       });
-      element = $compile('<div clm-editable ' +
-        'model="selected" ' +
-        'model-field="name" ' +
-        'e-form="eForm" ' +
-        'empty-text="Enter Name" ' +
-        'whitespace-check="true" ' +
-        'invalid="$invalid" ' +
-        'duplicate-array="siblings" ' +
-        'duplicate-id-field="id"></div>')(scope);
+      element = $compile(
+        '<div clm-editable ' +
+          'model="selected" ' +
+          'model-field="name" ' +
+          'e-form="eForm" ' +
+          'empty-text="Enter Name" ' +
+          'whitespace-check="true" ' +
+          'invalid="$invalid" ' +
+          'duplicate-array="siblings" ' +
+          'duplicate-id-field="id"></div>'
+      )(scope);
       angular.element('body').append(element);
       directiveScope = scope.$$childHead;
     }));
@@ -73,7 +80,9 @@ describe('EditorToolsSpec', function() {
       scope.$digest();
       expect(scope.$invalid).not.toBeTruthy();
 
-      expect(directiveScope.check('Foo  Bar')).toEqual('No double spaces or tabs in name');
+      expect(directiveScope.check('Foo  Bar')).toEqual(
+        'No double spaces or tabs in name'
+      );
       scope.$digest();
       expect(scope.$invalid).toBeTruthy();
 
@@ -85,7 +94,9 @@ describe('EditorToolsSpec', function() {
       scope.$digest();
       expect(scope.$invalid).not.toBeTruthy();
 
-      expect(directiveScope.check('Foo&Bar')).toEqual('Use valid characters: alphanumeric, "_", ".", "-", or spaces');
+      expect(directiveScope.check('Foo&Bar')).toEqual(
+        'Use valid characters: alphanumeric, "_", ".", "-", or spaces'
+      );
       scope.$digest();
       expect(scope.$invalid).toBeTruthy();
     });
@@ -95,7 +106,7 @@ describe('EditorToolsSpec', function() {
         scope.$apply(function () {
           scope.siblings.push({
             id: 'bar',
-            name: 'foo'
+            name: 'foo',
           });
           scope.selected.id = 'bar';
         });
@@ -109,7 +120,7 @@ describe('EditorToolsSpec', function() {
         scope.$apply(function () {
           scope.siblings.push({
             id: 'asdf',
-            name: 'foo'
+            name: 'foo',
           });
           scope.selected.id = 'bar';
         });
@@ -123,12 +134,16 @@ describe('EditorToolsSpec', function() {
     describe('No Spaces', function () {
       it('Spaces Validation', function () {
         directiveScope.noSpaces = 'true';
-        expect(directiveScope.check('f oo')).toEqual('Spaces or tabs are not allowed');
+        expect(directiveScope.check('f oo')).toEqual(
+          'Spaces or tabs are not allowed'
+        );
         scope.$digest();
         expect(scope.$invalid).toBeTruthy();
 
         directiveScope.noSpaces = 'true';
-        expect(directiveScope.check('Foo&Bar')).toEqual('Use valid characters: alphanumeric, "_", ".", or "-"');
+        expect(directiveScope.check('Foo&Bar')).toEqual(
+          'Use valid characters: alphanumeric, "_", ".", or "-"'
+        );
         scope.$digest();
         expect(scope.$invalid).toBeTruthy();
       });

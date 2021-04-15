@@ -10,13 +10,13 @@ import {
   saveObligation,
   setObligationComment,
   setObligationScope,
-  setObligationStatus
+  setObligationStatus,
 } from './advancedLegalObligationActions';
 import LicenseObligationModal from './LicenseObligationModal';
 
 function mapStateToProps({ advancedLegal }) {
   return {
-    availableScopes: advancedLegal.availableScopes
+    availableScopes: advancedLegal.availableScopes,
   };
 }
 
@@ -25,7 +25,10 @@ const mapDispatchToProps = {
   setObligationComment,
   setObligationScope,
   saveObligation,
-  cancelObligationModal
+  cancelObligationModal,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(LicenseObligationModal);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LicenseObligationModal);

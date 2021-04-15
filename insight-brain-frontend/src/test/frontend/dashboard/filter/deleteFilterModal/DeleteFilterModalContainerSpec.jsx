@@ -5,24 +5,20 @@
  */
 import React from 'react';
 import configureStore from 'redux-mock-store';
-import {mount} from 'enzyme';
-import {Provider} from 'react-redux';
+import { mount } from 'enzyme';
+import { Provider } from 'react-redux';
 
-describe('DeleteFilterModalContainer', function() {
+describe('DeleteFilterModalContainer', function () {
+  let store, DeleteFilterModalContainer, DeleteFilterModalMock;
 
-  let store,
-      DeleteFilterModalContainer,
-      DeleteFilterModalMock;
+  beforeEach(function () {
+    DeleteFilterModalMock = jasmine
+      .createSpy('DeleteFilterModalMock')
+      .and.returnValue(<div>DeleteFilterModalMock</div>);
 
-  beforeEach(function() {
-    DeleteFilterModalMock = jasmine.createSpy('DeleteFilterModalMock')
-        .and.returnValue(<div>DeleteFilterModalMock</div>);
-
-    DeleteFilterModalContainer = require(
-        'inject-loader!../../../../../main/frontend/dashboard/' +
-        'filter/deleteFilterModal/DeleteFilterModalContainer'
-    )({
-      './DeleteFilterModal': DeleteFilterModalMock
+    DeleteFilterModalContainer = require('inject-loader!../../../../../main/frontend/dashboard/' +
+      'filter/deleteFilterModal/DeleteFilterModalContainer')({
+      './DeleteFilterModal': DeleteFilterModalMock,
     }).default;
 
     const state = {
@@ -30,26 +26,28 @@ describe('DeleteFilterModalContainer', function() {
         filterToDelete: 'filter1',
         deleteFilterError: 'error123',
         deleteFilterSaving: true,
-        deleteFilterSuccess: true
-      }
+        deleteFilterSuccess: true,
+      },
     };
     store = configureStore()(() => state);
   });
 
-  it('passes the correct properties to DeleteFilterModal from mapStateToPops and mapDispatchToProps', function() {
+  it('passes the correct properties to DeleteFilterModal from mapStateToPops and mapDispatchToProps', function () {
     const wrapper = mount(
       <Provider store={store}>
-        <DeleteFilterModalContainer/>
+        <DeleteFilterModalContainer />
       </Provider>
     );
     const modalProps = wrapper.find(DeleteFilterModalMock).props();
-    expect(modalProps).toEqual(jasmine.objectContaining({
-      filterToDelete: 'filter1',
-      deleteFilterError: 'error123',
-      deleteFilterSaving: true,
-      deleteFilterSuccess: true,
-      deleteFilter: jasmine.any(Function),
-      hideDeleteFilterModal: jasmine.any(Function)
-    }));
+    expect(modalProps).toEqual(
+      jasmine.objectContaining({
+        filterToDelete: 'filter1',
+        deleteFilterError: 'error123',
+        deleteFilterSaving: true,
+        deleteFilterSuccess: true,
+        deleteFilter: jasmine.any(Function),
+        hideDeleteFilterModal: jasmine.any(Function),
+      })
+    );
   });
 });

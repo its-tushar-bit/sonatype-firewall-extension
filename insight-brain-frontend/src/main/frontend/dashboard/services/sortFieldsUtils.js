@@ -9,7 +9,7 @@ export const violationsSortFields = {
   COMPONENT_NAME: 'COMPONENT_NAME',
   POLICY_NAME: 'POLICY_NAME',
   THREAT_LEVEL: 'THREAT_LEVEL',
-  AGE: 'AGE'
+  AGE: 'AGE',
 };
 
 export const applicationsSortFields = {
@@ -18,7 +18,7 @@ export const applicationsSortFields = {
   CRITICAL_RISK: 'CRITICAL_RISK',
   SEVERE_RISK: 'SEVERE_RISK',
   MODERATE_RISK: 'MODERATE_RISK',
-  LOW_RISK: 'LOW_RISK'
+  LOW_RISK: 'LOW_RISK',
 };
 
 export const componentsSortFields = {
@@ -28,11 +28,11 @@ export const componentsSortFields = {
   CRITICAL_RISK: 'CRITICAL_RISK',
   SEVERE_RISK: 'SEVERE_RISK',
   MODERATE_RISK: 'MODERATE_RISK',
-  LOW_RISK: 'LOW_RISK'
+  LOW_RISK: 'LOW_RISK',
 };
 
-const translateSortFields = fieldsMap => sortFields => {
-  return sortFields.map(field => {
+const translateSortFields = (fieldsMap) => (sortFields) => {
+  return sortFields.map((field) => {
     if (field.substr(0, 1) === '-') {
       return '-' + fieldsMap[field.substr(1)];
     }
@@ -45,16 +45,16 @@ export const translateViolationsSortFields = translateSortFields({
   derivedComponentName: violationsSortFields.COMPONENT_NAME,
   policyName: violationsSortFields.POLICY_NAME,
   threatLevel: violationsSortFields.THREAT_LEVEL,
-  firstOccurrenceTime: violationsSortFields.AGE
+  firstOccurrenceTime: violationsSortFields.AGE,
 });
 
 export const translateApplicationsSortFields = translateSortFields({
-  'applicationName': applicationsSortFields.NAME,
+  applicationName: applicationsSortFields.NAME,
   'totalApplicationRisk.totalRisk': applicationsSortFields.TOTAL_RISK,
   'totalApplicationRisk.criticalRisk': applicationsSortFields.CRITICAL_RISK,
   'totalApplicationRisk.severeRisk': applicationsSortFields.SEVERE_RISK,
   'totalApplicationRisk.moderateRisk': applicationsSortFields.MODERATE_RISK,
-  'totalApplicationRisk.lowRisk': applicationsSortFields.LOW_RISK
+  'totalApplicationRisk.lowRisk': applicationsSortFields.LOW_RISK,
 });
 
 export const translateComponentsSortFields = translateSortFields({
@@ -64,5 +64,5 @@ export const translateComponentsSortFields = translateSortFields({
   scoreCritical: componentsSortFields.CRITICAL_RISK,
   scoreSevere: componentsSortFields.SEVERE_RISK,
   scoreModerate: componentsSortFields.MODERATE_RISK,
-  scoreLow: componentsSortFields.LOW_RISK
+  scoreLow: componentsSortFields.LOW_RISK,
 });

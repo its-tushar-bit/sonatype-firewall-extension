@@ -6,21 +6,30 @@
 /* global angular, $, clmBuildTimestamp */
 import { identity } from 'ramda';
 
-import {getDaysFromNow} from './../../util/jsUtil';
+import { getDaysFromNow } from './../../util/jsUtil';
 import template from './license.html';
 
 export default {
   controller: ProductLicenseController,
   bindings: {
-    isAuthorized: '<'
+    isAuthorized: '<',
   },
   controllerAs: 'vm',
-  template: template
+  template: template,
 };
 
 const mkLimit = (name, count) => ({ name, count });
 
-function ProductLicenseController($http, $scope, clmLocations, $timeout, $window, $cookies, Modal, Messages) {
+function ProductLicenseController(
+  $http,
+  $scope,
+  clmLocations,
+  $timeout,
+  $window,
+  $cookies,
+  Modal,
+  Messages
+) {
   const vm = this;
 
   Object.assign(vm, {
@@ -39,29 +48,34 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
       if (vm.isAuthorized) {
         vm.loadError = null;
 
-        $http.get(vm.summaryUrl).then(function({data}) {
-          vm.license = Object.assign({}, data, {
-            daysToExpiration: getDaysFromNow(data.expiryTimestamp)
-          });
+        $http.get(vm.summaryUrl).then(
+          function ({ data }) {
+            vm.license = Object.assign({}, data, {
+              daysToExpiration: getDaysFromNow(data.expiryTimestamp),
+            });
 
-          vm.userLimits = [
-            data.licensedUsersToDisplay && mkLimit('Lifecycle', data.licensedUsersToDisplay),
-            data.firewallUsersToDisplay && mkLimit('Firewall', data.firewallUsersToDisplay)
-          ].filter(identity);
+            vm.userLimits = [
+              data.licensedUsersToDisplay &&
+                mkLimit('Lifecycle', data.licensedUsersToDisplay),
+              data.firewallUsersToDisplay &&
+                mkLimit('Firewall', data.firewallUsersToDisplay),
+            ].filter(identity);
 
-          vm.displayUserLimits = vm.userLimits.length > 0;
-          vm.displayApplicationLimit = data.applicationLimitToDisplay !== null;
-        }, function(errorResponse) {
-          if (errorResponse.status !== 402) {
-            vm.loadError = {
-              status: errorResponse.status,
-              data: errorResponse.data
-            };
+            vm.displayUserLimits = vm.userLimits.length > 0;
+            vm.displayApplicationLimit =
+              data.applicationLimitToDisplay !== null;
+          },
+          function (errorResponse) {
+            if (errorResponse.status !== 402) {
+              vm.loadError = {
+                status: errorResponse.status,
+                data: errorResponse.data,
+              };
+            } else {
+              vm.license = false;
+            }
           }
-          else {
-            vm.license = false;
-          }
-        });
+        );
       }
     },
 
@@ -69,8 +83,7 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
       // vm.license is still set as it was before the installation
       if (vm.license) {
         vm.reload();
-      }
-      else {
+      } else {
         $scope.$emit('licenseInstalled');
       }
     },
@@ -85,7 +98,7 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
         backdrop: 'static',
         keyboard: false,
         templateUrl: 'license-uninstall-modal-template',
-        controller: 'uninstall.license.controller as vm'
+        controller: 'uninstall.license.controller as vm',
       });
     },
 
@@ -94,25 +107,37 @@ function ProductLicenseController($http, $scope, clmLocations, $timeout, $window
         animation: false,
         backdrop: 'static',
         keyboard: false,
-        templateUrl: 'eula-modal-template'
-      }).result.then(function() {
-        var form = new FormData();
-        form.append('file', $('#license-input')[0].files[0]);
+        templateUrl: 'eula-modal-template',
+      }).result.then(
+        function () {
+          var form = new FormData();
+          form.append('file', $('#license-input')[0].files[0]);
 
-        vm.formMask.wrap($http.post(vm.uploadUrl, form)).then(vm.postInstall, function(error) {
-          vm.submitError = Messages.getHttpErrorMessage(error);
-        });
-      }, function() {
-        $window.location.reload();
-      });
+          vm.formMask
+            .wrap($http.post(vm.uploadUrl, form))
+            .then(vm.postInstall, function (error) {
+              vm.submitError = Messages.getHttpErrorMessage(error);
+            });
+        },
+        function () {
+          $window.location.reload();
+        }
+      );
     },
 
     isLoaded() {
       return typeof vm.license !== 'undefined';
-    }
+    },
   });
 }
 
 ProductLicenseController.$inject = [
-  '$http', '$scope', 'CLMLocations', '$timeout', '$window', '$cookies', 'Modal', 'Messages'
+  '$http',
+  '$scope',
+  'CLMLocations',
+  '$timeout',
+  '$window',
+  '$cookies',
+  'Modal',
+  'Messages',
 ];

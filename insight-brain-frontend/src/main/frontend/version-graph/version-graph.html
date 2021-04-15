@@ -1,5 +1,5 @@
-<div id='version-graph' class="cip-info-wrapper">
-  <script type='text/ng-template' id='error'>
+<div id="version-graph" class="cip-info-wrapper">
+  <script type="text/ng-template" id="error">
     <div class='alert alert-error cipContentBox' ng-if='errorMessage' id='error-message'>
       <h5>Error</h5>
 
@@ -14,43 +14,64 @@
     </div>
   </script>
   <div ng-include='"error"'></div>
-  <div ng-hide='errorMessage'>
-    <div ng-if='selectApplication' ng-controller='ApplicationController'>
-      <div class='application-header'>
-        <form ng-show='applications' class='form-horizontal'>
-          <div class='control-group'>
-            <label for='selectApp' class='control-label'>IQ Application: </label>
+  <div ng-hide="errorMessage">
+    <div ng-if="selectApplication" ng-controller="ApplicationController">
+      <div class="application-header">
+        <form ng-show="applications" class="form-horizontal">
+          <div class="control-group">
+            <label for="selectApp" class="control-label"
+              >IQ Application:
+            </label>
 
-            <div class='controls'>
-              <select id='selectApp' class='input-xlarge' ng-model='selectedApplication'
-                      ng-options='application.publicId as application.name + " (" + application.publicId + ")" for application in applications'></select>
+            <div class="controls">
+              <select
+                id="selectApp"
+                class="input-xlarge"
+                ng-model="selectedApplication"
+                ng-options='application.publicId as application.name + " (" + application.publicId + ")" for application in applications'
+              ></select>
             </div>
           </div>
         </form>
-        <span ng-hide='applications'><h5><i class='icon-time'></i> Loading...</h5></span>
+        <span ng-hide="applications"
+          ><h5><i class="icon-time"></i> Loading...</h5></span
+        >
       </div>
-      <div id='select-application' ng-if='!selectedApplication' class='alert alert-info alert-centered fade in'>
+      <div
+        id="select-application"
+        ng-if="!selectedApplication"
+        class="alert alert-info alert-centered fade in"
+      >
         Select an application.
       </div>
     </div>
-    <div ng-if='canLoad()' ng-controller='ComponentController' class="version-graph-content"
-         ng-class="isInnerSource() ? 'version-graph-content__inner-source' : ''">
+    <div
+      ng-if="canLoad()"
+      ng-controller="ComponentController"
+      class="version-graph-content"
+      ng-class="isInnerSource() ? 'version-graph-content__inner-source' : ''"
+    >
       <div ng-include='"error"'></div>
-      <div ng-controller='StatusController' ng-show='!coordinates'>
-        <div id='select-component' ng-if='!state' class='alert alert-info alert-centered fade in'>
+      <div ng-controller="StatusController" ng-show="!coordinates">
+        <div
+          id="select-component"
+          ng-if="!state"
+          class="alert alert-info alert-centered fade in"
+        >
           Select a component to view details.
         </div>
         <!-- filtered -->
-        <div class='alert alert-info cipContentBox' ng-if="state == 'filtered'">
-          All components are filtered out of the view. Adjust your <a href='#' ng-click='openView($event, "filter")'>filter
-          settings</a> to view components.
+        <div class="alert alert-info cipContentBox" ng-if="state == 'filtered'">
+          All components are filtered out of the view. Adjust your
+          <a href="#" ng-click='openView($event, "filter")'>filter settings</a>
+          to view components.
         </div>
         <!-- Pend -->
-        <div class='alert alert-info cipContentBox' ng-if="state == 'pending'">
+        <div class="alert alert-info cipContentBox" ng-if="state == 'pending'">
           The data for the component {{stateArgs.filename}} is still pending.
         </div>
         <!-- failure -->
-        <div class='alert alert-error cipContentBox' ng-if="state == 'failure'">
+        <div class="alert alert-error cipContentBox" ng-if="state == 'failure'">
           <h5>Error</h5>
 
           <p>The component {{stateArgs.filename}} could not be evaluated:</p>
@@ -58,201 +79,291 @@
           <p>{{stateArgs.errorMessage}}</p>
         </div>
         <!-- Cred -->
-        <div class='alert alert-error cipContentBox' ng-if="state == 'invalid-credentials'">
+        <div
+          class="alert alert-error cipContentBox"
+          ng-if="state == 'invalid-credentials'"
+        >
           <h5>Authentication failure</h5>
 
-          <p>Please verify you supplied the proper credentials in the <a href='#' ng-click='openView($event, "config")'>plugin
-            configuration</a>.</p>
+          <p>
+            Please verify you supplied the proper credentials in the
+            <a href="#" ng-click='openView($event, "config")'
+              >plugin configuration</a
+            >.
+          </p>
         </div>
         <!-- AppID -->
-        <div class='alert alert-error cipContentBox' ng-if="state == 'invalid-appid'">
+        <div
+          class="alert alert-error cipContentBox"
+          ng-if="state == 'invalid-appid'"
+        >
           <h5>Invalid application ID</h5>
 
-          <p>The application ID <strong>{{stateArgs.appId}}</strong> is invalid or you do not have permission to use it.
-            Please verify the <a href='#' ng-click='openView($event, "config")'>plugin configuration</a>.</p>
+          <p>
+            The application ID <strong>{{stateArgs.appId}}</strong> is invalid
+            or you do not have permission to use it. Please verify the
+            <a href="#" ng-click='openView($event, "config")'
+              >plugin configuration</a
+            >.
+          </p>
         </div>
         <!-- Unassigned -->
-        <div class='alert cipContentBox' ng-if="state == 'unassigned'">
-          No open projects are assigned application IDs, please verify the <a href='#'
-                                                                              ng-click='openView($event, "config")'>Nexus
-          IQ for Eclipse configuration</a>.
+        <div class="alert cipContentBox" ng-if="state == 'unassigned'">
+          No open projects are assigned application IDs, please verify the
+          <a href="#" ng-click='openView($event, "config")'
+            >Nexus IQ for Eclipse configuration</a
+          >.
         </div>
       </div>
-      <div ng-if='isUnknown' >
-        <div class="alert alert-centered fade in" style='line-height:50px'>
-          <span style='font-size: 50px; font-weight: bold'>?</span>
-          <span style='padding-left: 40px;vertical-align:top'>
+      <div ng-if="isUnknown">
+        <div class="alert alert-centered fade in" style="line-height: 50px">
+          <span style="font-size: 50px; font-weight: bold">?</span>
+          <span style="padding-left: 40px; vertical-align: top">
             The component is unknown.
           </span>
         </div>
 
-        <button ng-if="::canShowAddProprietary()" id="add-proprietary-btn" class="clm-btn" ng-click="showAddProprietary()">
+        <button
+          ng-if="::canShowAddProprietary()"
+          id="add-proprietary-btn"
+          class="clm-btn"
+          ng-click="showAddProprietary()"
+        >
           Add Proprietary Component Matchers
         </button>
-
       </div>
-      <div ng-show='!isUnknown && !errorMessage'>
+      <div ng-show="!isUnknown && !errorMessage">
         <div class="cip-box">
           <div id="version-graph-container" ng-show="loaded">
             <root-ancestors></root-ancestors>
-            <div id="suggested-remediation-version-links"
-                 ng-controller="ComponentController"
-                 ng-show="loaded && isApplicationOwnerContext() && isRecommendationsAvailable()">
+            <div
+              id="suggested-remediation-version-links"
+              ng-controller="ComponentController"
+              ng-show="loaded && isApplicationOwnerContext() && isRecommendationsAvailable()"
+            >
               <h5 id="recommended-versions-header">Recommended Version(s)</h5>
               <ul class="version-graph-list">
-                <li ng-repeat="remediation in suggestedRemediations"
-                    id = "{{ remediation.id }}"
-                    class= "version-graph-container-text">
-                    <a class="version-graph-link"
-                       id="{{ remediation.linkId }}"
-                       ng-if="remediation.linkText"
-                       ng-click="markSelection(remediation)">
-                      Select {{ remediation.linkText }}<!--
-                 --></a><!--
+                <li
+                  ng-repeat="remediation in suggestedRemediations"
+                  id="{{ remediation.id }}"
+                  class="version-graph-container-text"
+                >
+                  <a
+                    class="version-graph-link"
+                    id="{{ remediation.linkId }}"
+                    ng-if="remediation.linkText"
+                    ng-click="markSelection(remediation)"
+                  >
+                    Select {{ remediation.linkText }}<!--
+                 --></a
+                  ><!--
                  -->{{ remediation.text }}
                 </li>
               </ul>
             </div>
             <h5 id="version-graph-header">Version Graph</h5>
-            <div id="aiVersionChart" graph="componentDetailsList">
-            </div>
+            <div id="aiVersionChart" graph="componentDetailsList"></div>
             <p class="version-graph-container-text">
               Click on the graph above to see details about different versions
             </p>
           </div>
         </div>
-        <div ng-show='loaded' class='cip-box' ng-controller='DetailsController'>
-          <div id='detailsparent'>
-            <table ng-show='componentDetails' id='infoPanelArtifactTable' style='border-collapse: collapse'>
+        <div ng-show="loaded" class="cip-box" ng-controller="DetailsController">
+          <div id="detailsparent">
+            <table
+              ng-show="componentDetails"
+              id="infoPanelArtifactTable"
+              style="border-collapse: collapse"
+            >
               <tr id="info-panel-heading">
                 <td class="info-panel-heading">Selected Version:</td>
-                <td class="info-panel-heading">{{componentDetails.componentIdentifier.coordinates.version}}</td>
+                <td class="info-panel-heading">
+                  {{componentDetails.componentIdentifier.coordinates.version}}
+                </td>
               </tr>
-              <tr id='artifactInfoComponentTypeRow'>
+              <tr id="artifactInfoComponentTypeRow">
                 <td>Type:</td>
                 <td>{{componentDetails.componentIdentifier.format}}</td>
               </tr>
-              <tr ng-repeat='part in componentDetails.displayName.parts | namePart' id='artifactInfo-{{part.field}}' class='component-name'>
+              <tr
+                ng-repeat="part in componentDetails.displayName.parts | namePart"
+                id="artifactInfo-{{part.field}}"
+                class="component-name"
+              >
                 <td>{{part.field}}:</td>
                 <td>{{part.value}}</td>
               </tr>
-              <tr id='artifactInfoClaimedLicenseRow' ng-if="isManual()">
+              <tr id="artifactInfoClaimedLicenseRow" ng-if="isManual()">
                 <td>License:</td>
                 <td>Unavailable, Claimed Component</td>
               </tr>
-              <tr id='artifactInfoDeclaredLicenseRow' ng-if="!isManual()">
+              <tr id="artifactInfoDeclaredLicenseRow" ng-if="!isManual()">
                 <td>Declared License:</td>
-                <td licenses='componentDetails.declaredLicenses'></td>
+                <td licenses="componentDetails.declaredLicenses"></td>
               </tr>
-              <tr id='artifactInfoObservedLicenseRow' ng-if="!isManual()">
+              <tr id="artifactInfoObservedLicenseRow" ng-if="!isManual()">
                 <td>Observed License:</td>
-                <td licenses='componentDetails.observedLicenses'></td>
+                <td licenses="componentDetails.observedLicenses"></td>
               </tr>
-              <tr id='artifactInfoEffectiveLicenseRow'>
+              <tr id="artifactInfoEffectiveLicenseRow">
                 <td>Effective License:</td>
-                <td licenses='componentDetails.effectiveLicenses'
-                    status='{{componentDetails.effectiveLicenseStatus}}' empty-text='-'></td>
+                <td
+                  licenses="componentDetails.effectiveLicenses"
+                  status="{{componentDetails.effectiveLicenseStatus}}"
+                  empty-text="-"
+                ></td>
               </tr>
-              <tr id='artifactInfoHighestPolicyThreat'>
+              <tr id="artifactInfoHighestPolicyThreat">
                 <td>Highest Policy Threat:</td>
                 <td>
-                  <div class='clm-chiclet'
-                       ng-class='{ critical : highestPolicyThreat.level > 7,
+                  <div
+                    class="clm-chiclet"
+                    ng-class="{ critical : highestPolicyThreat.level > 7,
                                         severe : highestPolicyThreat.level <= 7 && highestPolicyThreat.level > 3,
                                         moderate : highestPolicyThreat.level <= 3 && highestPolicyThreat.level > 1,
                                         none : highestPolicyThreat.level == 1,
                                         ignore : highestPolicyThreat.level == 0,
-                                        unspecified : highestPolicyThreat.level == null }'>
-                    {{highestPolicyThreat.level != null ? highestPolicyThreat.level : 'NA'}}
+                                        unspecified : highestPolicyThreat.level == null }"
+                  >
+                    {{highestPolicyThreat.level != null ?
+                    highestPolicyThreat.level : 'NA'}}
                   </div>
-                  <span ng-if='highestPolicyThreat.violatedPolicies > 1'>within {{highestPolicyThreat.violatedPolicies}} policies</span>
+                  <span ng-if="highestPolicyThreat.violatedPolicies > 1"
+                    >within {{highestPolicyThreat.violatedPolicies}}
+                    policies</span
+                  >
                 </td>
               </tr>
-              <tr id='artifactInfoSecurityThreatRow'>
+              <tr id="artifactInfoSecurityThreatRow">
                 <td>Highest CVSS Score:</td>
-                <td ng-if="isManual()">
-                  Unavailable, Claimed Component
-                </td>
+                <td ng-if="isManual()">Unavailable, Claimed Component</td>
                 <td ng-if="!isManual()">
                   {{getMaximumSeverity()}}
-                  <span ng-if='componentDetails.securityVulnerabilities.length > 1'> within {{componentDetails.securityVulnerabilities.length}} security issues</span>
+                  <span
+                    ng-if="componentDetails.securityVulnerabilities.length > 1"
+                  >
+                    within {{componentDetails.securityVulnerabilities.length}}
+                    security issues</span
+                  >
                 </td>
               </tr>
-              <tr id='artifactIntegrityRating' ng-if='componentDetails.integrityRating'>
+              <tr
+                id="artifactIntegrityRating"
+                ng-if="componentDetails.integrityRating"
+              >
                 <td>Integrity Rating:</td>
                 <td>
-                  <span ng-class="{ 'cip-color-suspicious': componentDetails.integrityRating.id === 1}">{{componentDetails.integrityRating.label}}</span>
+                  <span
+                    ng-class="{ 'cip-color-suspicious': componentDetails.integrityRating.id === 1}"
+                    >{{componentDetails.integrityRating.label}}</span
+                  >
                 </td>
               </tr>
-              <tr id='artifactHygieneRating' ng-if='componentDetails.hygieneRating'>
+              <tr
+                id="artifactHygieneRating"
+                ng-if="componentDetails.hygieneRating"
+              >
                 <td>Hygiene Rating:</td>
                 <td>
-                  <i class='fa fa-trophy cip-color-exemplar' ng-if='componentDetails.hygieneRating.id === 1'></i>
-                  <i class='fa fa-warning cip-color-laggard' ng-if='componentDetails.hygieneRating.id === 4'></i>
+                  <i
+                    class="fa fa-trophy cip-color-exemplar"
+                    ng-if="componentDetails.hygieneRating.id === 1"
+                  ></i>
+                  <i
+                    class="fa fa-warning cip-color-laggard"
+                    ng-if="componentDetails.hygieneRating.id === 4"
+                  ></i>
                   {{componentDetails.hygieneRating.label}}
                 </td>
               </tr>
-              <tr id='artifactInfoCatalogDateRow' class="visual-testing-ignore">
+              <tr id="artifactInfoCatalogDateRow" class="visual-testing-ignore">
                 <td>Cataloged:</td>
-                <td ng-if='componentDetails.catalogDate'>{{componentDetails.catalogDate | ago | agoLastDay}}</td>
-                <td ng-if='!componentDetails.catalogDate'>-</td>
+                <td ng-if="componentDetails.catalogDate">
+                  {{componentDetails.catalogDate | ago | agoLastDay}}
+                </td>
+                <td ng-if="!componentDetails.catalogDate">-</td>
               </tr>
-              <tr id='artifactInfoSimilarityScoreRow' ng-if='componentDetails.matchState'>
+              <tr
+                id="artifactInfoSimilarityScoreRow"
+                ng-if="componentDetails.matchState"
+              >
                 <td>Match State:</td>
-                <td>{{componentDetails.matchState}} <span ng-if='componentDetails.proprietary'>(proprietary)</span></td>
+                <td>
+                  {{componentDetails.matchState}}
+                  <span ng-if="componentDetails.proprietary"
+                    >(proprietary)</span
+                  >
+                </td>
               </tr>
-              <tr id='artifactInfoIdentificatonSource'>
+              <tr id="artifactInfoIdentificatonSource">
                 <td>Identification Source:</td>
                 <td>{{componentDetails.identificationSource}}</td>
               </tr>
               <tr id="artifactInfoCategory">
                 <td>Category:</td>
                 <td>
-                  <span ng-repeat="category in componentDetails.componentCategories">{{category.path}}<!--
-                 --><span ng-show="!$last">,
-                    </span>
+                  <span
+                    ng-repeat="category in componentDetails.componentCategories"
+                    >{{category.path}}<!--
+                 --><span ng-show="!$last">, </span>
                   </span>
                 </td>
               </tr>
-              <tr id='artifactWebsite' ng-if='componentDetails.website'>
+              <tr id="artifactWebsite" ng-if="componentDetails.website">
                 <td>Website:</td>
                 <td>
-                  <a href='{{componentDetails.website}}' rel="noreferrer" target='{{linkTarget}}'>
-                    <i class='icon-info-sign'></i>
+                  <a
+                    href="{{componentDetails.website}}"
+                    rel="noreferrer"
+                    target="{{linkTarget}}"
+                  >
+                    <i class="icon-info-sign"></i>
                   </a>
                 </td>
               </tr>
-              <tr id='artifactInfoClaimComment' ng-if='componentDetails.identificationSourceComment'>
+              <tr
+                id="artifactInfoClaimComment"
+                ng-if="componentDetails.identificationSourceComment"
+              >
                 <td>Identification Comment:</td>
                 <td>{{componentDetails.identificationSourceComment}}</td>
               </tr>
               <tfoot>
-              <!-- Links rather than buttons for JavaFX 7, in tfoot to avoid bold font styling -->
-              <tr>
-                <td>
-                  <a class='btn' href='#' id='view-details-button'
-                     ng-click='viewDetails()'
-                     ng-if='viewDetailsSupported'>View Details</a>
-                </td>
-                <td>
-                  <a class='btn' href='#' id='migrate-button'
-                     ng-class='{ disabled : !canMigrate()}'
-                     ng-click='canMigrate() && markUpgrade()'
-                     ng-if='migrateSupported'>
-                    Migrate to Selected
-                  </a>
-                </td>
-              </tr>
+                <!-- Links rather than buttons for JavaFX 7, in tfoot to avoid bold font styling -->
+                <tr>
+                  <td>
+                    <a
+                      class="btn"
+                      href="#"
+                      id="view-details-button"
+                      ng-click="viewDetails()"
+                      ng-if="viewDetailsSupported"
+                      >View Details</a
+                    >
+                  </td>
+                  <td>
+                    <a
+                      class="btn"
+                      href="#"
+                      id="migrate-button"
+                      ng-class="{ disabled : !canMigrate()}"
+                      ng-click="canMigrate() && markUpgrade()"
+                      ng-if="migrateSupported"
+                    >
+                      Migrate to Selected
+                    </a>
+                  </td>
+                </tr>
               </tfoot>
             </table>
-            <div ng-hide='componentDetails' class="cip-box-loading">
-              <h5><i class='icon-time'></i> Loading...</h5>
+            <div ng-hide="componentDetails" class="cip-box-loading">
+              <h5><i class="icon-time"></i> Loading...</h5>
             </div>
           </div>
         </div>
 
-        <div ng-if='coordinates && !componentDetailsList && !errorMessage'>
-          <h5><i class='icon-time'></i> Loading...</h5>
+        <div ng-if="coordinates && !componentDetailsList && !errorMessage">
+          <h5><i class="icon-time"></i> Loading...</h5>
         </div>
       </div>
     </div>

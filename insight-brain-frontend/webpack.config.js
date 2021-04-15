@@ -18,10 +18,16 @@ const CopyPlugin = require('copy-webpack-plugin');
 const CopyModulesPlugin = require('copy-modules-webpack-plugin');
 
 const webpackOutputPath = 'assets';
-const webpackOutputDir = path.resolve(__dirname, 'target/classes', webpackOutputPath);
+const webpackOutputDir = path.resolve(
+  __dirname,
+  'target/classes',
+  webpackOutputPath
+);
 
 function extractFromPom(nodeName) {
-  const doc = new DOMParser().parseFromString(fs.readFileSync('pom.xml', 'utf-8'));
+  const doc = new DOMParser().parseFromString(
+    fs.readFileSync('pom.xml', 'utf-8')
+  );
   const node = doc.documentElement.getElementsByTagName(nodeName)[0];
   return node.firstChild.nodeValue;
 }
@@ -35,150 +41,164 @@ function extractFromPom(nodeName) {
  * @param externals configuration object to use on the `externals` property
  */
 function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
-
   function transformCopiedFile(content) {
     let contentStr = content.toString();
 
     for (let key in buildConstants) {
-      contentStr = contentStr.replace(new RegExp(key, 'g'), buildConstants[key]);
+      contentStr = contentStr.replace(
+        new RegExp(key, 'g'),
+        buildConstants[key]
+      );
     }
 
     return Buffer.from(contentStr);
   }
 
   const production = env.production,
-      buildConstants = {
-        CLM_BUILD_TIMESTAMP: new Date().getTime(),
-        CLM_SERVER_VERSION: JSON.stringify(extractFromPom('version'))
-      },
-      extractSass = new ExtractTextPlugin({ filename: cssOutputPath }),
-      getCssPlugins = () => [
-        extractSass,
-        new CSSSplitPlugin({
-          size: 4095,
-          filename: '[name]-[part].[ext]'
-        })
-      ],
-      productionPlugins = [
-        new CopyModulesPlugin({
-          destination: path.join('target', 'webpack-modules'),
-          includePackageJsons: true
-        })
-      ],
-      copyPluginFromGlobs = [
-        { from: '**/index.html', transform: true },
-        { from: 'version-graph/**/viewdetails.html', transform: true },
-        { from: 'version-graph/version-graph.html', transform: true },
-        { from: 'version-graph/details.html', transform: true },
-        { from: 'version-graph/**/version-graph-*.*', transform: true },
-        { from: 'version-graph/**/viewdetails-*.*', transform: true },
-        { from: 'cip/cip-claim-component.html', transform: true },
-        { from: 'brain.client.js', transform: true },
-        { from: 'reports.*', transform: true },
-        { from: 'configuration/license/eula.html', transform: false },
-        { from: '**/*.{ttf,woff,png,svg,gif,jpg,ico}', transform: false }
-      ],
-      plugins = [
-        new CopyPlugin(copyPluginFromGlobs.map(({ from, transform }) => ({
+    buildConstants = {
+      CLM_BUILD_TIMESTAMP: new Date().getTime(),
+      CLM_SERVER_VERSION: JSON.stringify(extractFromPom('version')),
+    },
+    extractSass = new ExtractTextPlugin({ filename: cssOutputPath }),
+    getCssPlugins = () => [
+      extractSass,
+      new CSSSplitPlugin({
+        size: 4095,
+        filename: '[name]-[part].[ext]',
+      }),
+    ],
+    productionPlugins = [
+      new CopyModulesPlugin({
+        destination: path.join('target', 'webpack-modules'),
+        includePackageJsons: true,
+      }),
+    ],
+    copyPluginFromGlobs = [
+      { from: '**/index.html', transform: true },
+      { from: 'version-graph/**/viewdetails.html', transform: true },
+      { from: 'version-graph/version-graph.html', transform: true },
+      { from: 'version-graph/details.html', transform: true },
+      { from: 'version-graph/**/version-graph-*.*', transform: true },
+      { from: 'version-graph/**/viewdetails-*.*', transform: true },
+      { from: 'cip/cip-claim-component.html', transform: true },
+      { from: 'brain.client.js', transform: true },
+      { from: 'reports.*', transform: true },
+      { from: 'configuration/license/eula.html', transform: false },
+      { from: '**/*.{ttf,woff,png,svg,gif,jpg,ico}', transform: false },
+    ],
+    plugins = [
+      new CopyPlugin(
+        copyPluginFromGlobs.map(({ from, transform }) => ({
           from,
           to: path.join(__dirname, 'target/classes/assets'),
-          transform: transform ? transformCopiedFile : null
-        }))),
-        new webpack.DefinePlugin(buildConstants),
-        new StyleLintPlugin({ syntax: 'scss' })
-      ].concat(
-          cssOutputPath ? getCssPlugins() : [],
-          productionPlugins
+          transform: transform ? transformCopiedFile : null,
+        }))
       ),
-      babelLoaderBaseRule = {
-        test: /\.jsx?$/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: [['env', { modules: false }]],
-            // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
-            // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
-            plugins: [
-              transformObjectRestSpread,
-              transformJsx,
-              [transformRuntime, { polyfill: false }]
-            ]
-          }
-        }
-      };
+      new webpack.DefinePlugin(buildConstants),
+      new StyleLintPlugin({ syntax: 'scss' }),
+    ].concat(cssOutputPath ? getCssPlugins() : [], productionPlugins),
+    babelLoaderBaseRule = {
+      test: /\.jsx?$/,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: [['env', { modules: false }]],
+          // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
+          // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
+          plugins: [
+            transformObjectRestSpread,
+            transformJsx,
+            [transformRuntime, { polyfill: false }],
+          ],
+        },
+      },
+    };
 
   return {
     context: path.resolve(__dirname, 'src/main/frontend'),
     entry: entryPath,
     output: {
       path: webpackOutputDir,
-      filename: outputPath
+      filename: outputPath,
     },
     resolve: {
-      extensions: ['.js', '.jsx']
+      extensions: ['.js', '.jsx'],
     },
     module: {
-      rules: [{
-        ...babelLoaderBaseRule,
-        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/
-      }, {
-        ...babelLoaderBaseRule,
-        include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|@react-hook)/
-      }, {
-        test: /\.jsx?$/,
-        enforce: 'pre',
-        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\](lib|cip|audit-report|version-graph)/,
-        use: 'eslint-loader'
-
-      }, {
-        test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')),
-        use: 'exports-loader?pv'
-      }, {
-        test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/Base64')),
-        use: 'exports-loader?Base64'
-      }, {
-        test: /\.html$/,
-        use: {
-          loader: 'html-loader',
-          options: {
-            attrs: false
-          }
-        }
-      }, {
-        test: /\.s?css$/,
-        use: extractSass.extract({
-          use: [
-            { loader: 'css-loader' },
-            {
-              loader: 'resolve-url-loader',
-              options: { attempts: 1 }
+      rules: [
+        {
+          ...babelLoaderBaseRule,
+          exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
+        },
+        {
+          ...babelLoaderBaseRule,
+          include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|@react-hook)/,
+        },
+        {
+          test: /\.jsx?$/,
+          enforce: 'pre',
+          exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\](lib|cip|audit-report|version-graph)/,
+          use: 'eslint-loader',
+        },
+        {
+          test: require.resolve(
+            path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')
+          ),
+          use: 'exports-loader?pv',
+        },
+        {
+          test: require.resolve(
+            path.join(__dirname, 'src/main/frontend/lib/Base64')
+          ),
+          use: 'exports-loader?Base64',
+        },
+        {
+          test: /\.html$/,
+          use: {
+            loader: 'html-loader',
+            options: {
+              attrs: false,
             },
-            {
-              loader: 'sass-loader',
-              options: {
-                sourceMap: true,
+          },
+        },
+        {
+          test: /\.s?css$/,
+          use: extractSass.extract({
+            use: [
+              { loader: 'css-loader' },
+              {
+                loader: 'resolve-url-loader',
+                options: { attempts: 1 },
+              },
+              {
+                loader: 'sass-loader',
+                options: {
+                  sourceMap: true,
 
-                // for unknown reasons this fixes a build error relating to css source maps and
-                // resolve-url-loader. It is mentioned in the sass-loader docs
-                // https://webpack.js.org/loaders/sass-loader/
-                outputStyle: 'compressed'
-              }
-            }
-          ]
-        })
-      }, {
-        test: /\.(png|jpg|jpeg|gif)/,
-        loader: 'file-loader',
-        options: {
-          name: 'images/[name].[ext]'
-        }
-      }, {
-        test: /\.(ttf|eot|woff2?|svg)$/,
-        loader: 'file-loader',
-        options: {
-          name: 'fonts/[name].[ext]'
-        }
-      }]
+                  // for unknown reasons this fixes a build error relating to css source maps and
+                  // resolve-url-loader. It is mentioned in the sass-loader docs
+                  // https://webpack.js.org/loaders/sass-loader/
+                  outputStyle: 'compressed',
+                },
+              },
+            ],
+          }),
+        },
+        {
+          test: /\.(png|jpg|jpeg|gif)/,
+          loader: 'file-loader',
+          options: {
+            name: 'images/[name].[ext]',
+          },
+        },
+        {
+          test: /\.(ttf|eot|woff2?|svg)$/,
+          loader: 'file-loader',
+          options: {
+            name: 'fonts/[name].[ext]',
+          },
+        },
+      ],
     },
     plugins: plugins,
     externals,
@@ -191,45 +211,45 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       host: '0.0.0.0',
       contentBase: path.join(__dirname, 'target', 'classes'),
       publicPath: '/assets/',
-      proxy: [{
-        context: ['/rest', '/api', '/ui', '/policy-assets', '/saml'],
-        target: 'http://localhost:8072/'
-      }]
-    }
+      proxy: [
+        {
+          context: ['/rest', '/api', '/ui', '/policy-assets', '/saml'],
+          target: 'http://localhost:8072/',
+        },
+      ],
+    },
   };
 }
 
-module.exports = function(env) {
+module.exports = function (env) {
   env = env || {};
 
   const brainConfig = config({
-        entryPath: './index.js',
-        outputPath: 'bundle.js',
-        cssOutputPath: 'style.css',
-        env
-      }),
-
-      versionGraphConfig = config({
-        entryPath: './version-graph/view-details-index.js',
-        outputPath: 'viewdetails.js',
-        cssOutputPath: 'viewdetails.css',
-        env
-      }),
-      versionGraphAppConfig = config({
-        entryPath: './version-graph/version-graph-app-index.js',
-        outputPath: 'version.graph.app.js',
-        cssOutputPath: 'version.graph.app.css',
-        env
-      }),
-
-      // to be used as the `externals` config on bundles that expect jquery to already be defined.  Prevents
-      // loading of multiple copies of jquery
-      jqueryExternals = {
-        'jquery': 'jQuery'
-      },
-      angularExternals = {
-        'angular': 'angular'
-      };
+      entryPath: './index.js',
+      outputPath: 'bundle.js',
+      cssOutputPath: 'style.css',
+      env,
+    }),
+    versionGraphConfig = config({
+      entryPath: './version-graph/view-details-index.js',
+      outputPath: 'viewdetails.js',
+      cssOutputPath: 'viewdetails.css',
+      env,
+    }),
+    versionGraphAppConfig = config({
+      entryPath: './version-graph/version-graph-app-index.js',
+      outputPath: 'version.graph.app.js',
+      cssOutputPath: 'version.graph.app.css',
+      env,
+    }),
+    // to be used as the `externals` config on bundles that expect jquery to already be defined.  Prevents
+    // loading of multiple copies of jquery
+    jqueryExternals = {
+      jquery: 'jQuery',
+    },
+    angularExternals = {
+      angular: 'angular',
+    };
 
   if (env.brainOnly) {
     return brainConfig;
@@ -248,26 +268,26 @@ module.exports = function(env) {
       outputPath: 'audit-report.js',
       cssOutputPath: 'audit-report.css',
       env,
-      externals: Object.assign({}, jqueryExternals, angularExternals)
+      externals: Object.assign({}, jqueryExternals, angularExternals),
     }),
     config({
       entryPath: './cip/cip-loader-index.js',
       outputPath: 'cip-loader.js',
       cssOutputPath: 'cip-loader.css',
       env,
-      externals: jqueryExternals
+      externals: jqueryExternals,
     }),
     config({
       entryPath: './cip/cip-index.js',
       outputPath: 'cip.js',
       cssOutputPath: 'cip.css',
       env,
-      externals: Object.assign({}, jqueryExternals, angularExternals)
+      externals: Object.assign({}, jqueryExternals, angularExternals),
     }),
     config({
       entryPath: './audit-report/external-index.js',
       outputPath: 'external.js',
-      env
-    })
+      env,
+    }),
   ];
 };

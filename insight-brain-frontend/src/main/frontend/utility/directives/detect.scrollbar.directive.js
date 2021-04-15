@@ -12,8 +12,8 @@ export default function detectScrollbar($window, $timeout, StableBodyService) {
     restrict: 'A',
     link: ScrollbarDetectorLink,
     scope: {
-      state: '<detectScrollbar'
-    }
+      state: '<detectScrollbar',
+    },
   };
 
   function ScrollbarDetectorLink(scope, element) {
@@ -23,8 +23,7 @@ export default function detectScrollbar($window, $timeout, StableBodyService) {
       // false positives in cases where such styling is used.
       if (element[0].offsetWidth > element[0].clientWidth) {
         element.addClass('scrollbar-present');
-      }
-      else {
+      } else {
         element.removeClass('scrollbar-present');
       }
     }

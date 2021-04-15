@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {createReducerFromActionMap} from '../../util/reduxUtil';
+import { createReducerFromActionMap } from '../../util/reduxUtil';
 import {
   SCM_ONBOARDING_IMPORT_REPOS_FAILED,
   SCM_ONBOARDING_IMPORT_REPOS_FULFILLED,
@@ -29,15 +29,15 @@ import {
   SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE,
   SCM_ONBOARDING_ADD_ORGANIZATION_FULFILLED,
   SCM_ONBOARDING_ADD_ORGANIZATION_FAILED,
-  SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE
+  SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE,
 } from './scmOnboardingActions';
-import {sortItemsByFields} from '../../util/sortUtils';
+import { sortItemsByFields } from '../../util/sortUtils';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
-import {validateHostUrl} from './utils/validators';
-import {hasValidationErrors} from '../../util/validationUtil';
-import {over, lensPath} from 'ramda';
+import { validateHostUrl } from './utils/validators';
+import { hasValidationErrors } from '../../util/validationUtil';
+import { over, lensPath } from 'ramda';
 import { propSet } from '../../util/jsUtil';
-import {UI_ROUTER_ON_FINISH} from '../../reduxUiRouter/routerActions';
+import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
 import ownerConstant from '../../utility/services/owner.constant';
 
 const initialState = {
@@ -46,7 +46,7 @@ const initialState = {
     isScmTokenConfigured: null,
     isScmTokenOverridden: null,
     scmProvider: '',
-    rootOrgHasToken: null
+    rootOrgHasToken: null,
   },
   viewState: {
     loadingPage: false,
@@ -61,7 +61,7 @@ const initialState = {
 
     generalError: null,
     loadRepositoriesErrorCode: null,
-    addOrganizationError: null
+    addOrganizationError: null,
   },
   formState: {
     organizations: [],
@@ -75,13 +75,13 @@ const initialState = {
     defaultHostUrl: '',
     currentHostUrlState: textInputStateHelpers.initialState(''),
     failedImportCount: 0,
-    failedRepos: []
+    failedRepos: [],
   },
   sortConfiguration: {
     key: 'namespace',
     sortingOrder: ['namespace', 'project', 'description'],
-    dir: 'asc'
-  }
+    dir: 'asc',
+  },
 };
 
 /*
@@ -89,7 +89,10 @@ const initialState = {
  */
 function onRouterFinish(payload, state) {
   // retain state if navigating using router within the same page
-  if (payload.toState.name === 'scmOnboardingOrg' && payload.fromState.name === 'scmOnboardingOrg') {
+  if (
+    payload.toState.name === 'scmOnboardingOrg' &&
+    payload.fromState.name === 'scmOnboardingOrg'
+  ) {
     return state;
   }
 
@@ -97,7 +100,7 @@ function onRouterFinish(payload, state) {
   return {
     ...initialState,
     // retain only the config
-    configState: state.configState
+    configState: state.configState,
   };
 }
 
@@ -106,8 +109,8 @@ function loadConfigFulfilled(payload, state) {
     ...state,
     configState: {
       ...state.configState,
-      isScmOnboardingFeatureEnabled: payload.scmOnboardingFeatureEnabled
-    }
+      isScmOnboardingFeatureEnabled: payload.scmOnboardingFeatureEnabled,
+    },
   };
 }
 
@@ -116,12 +119,12 @@ function loadConfigFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      generalError: payload
+      generalError: payload,
     },
     configState: {
       ...state.configState,
-      isScmOnboardingFeatureEnabled: null
-    }
+      isScmOnboardingFeatureEnabled: null,
+    },
   };
 }
 
@@ -130,12 +133,12 @@ function loadPageRequested(payload) {
     ...initialState,
     viewState: {
       ...initialState.viewState,
-      loadingPage: true
+      loadingPage: true,
     },
     formState: {
       ...initialState.formState,
-      preselectedOrganizationId: payload
-    }
+      preselectedOrganizationId: payload,
+    },
   };
 }
 
@@ -145,43 +148,55 @@ function loadPageFailed(payload) {
     viewState: {
       ...initialState.viewState,
       loadingPage: false,
-      generalError: payload
-    }
+      generalError: payload,
+    },
   };
 }
 
 function loadPageFulfilled(payload, state) {
-  const rootOrg = payload.organizationsResults.find(org => org.organization.id === ownerConstant.ROOT_ORGANIZATION_ID);
-  const selectedOrganization = payload.organizationsResults.find(org =>
-    org.organization.id === state.formState.preselectedOrganizationId);
-  const hasToken = (selectedOrganization && !!selectedOrganization.sourceControl.token.value)
-      || !!rootOrg.sourceControl.token.value;
+  const rootOrg = payload.organizationsResults.find(
+    (org) => org.organization.id === ownerConstant.ROOT_ORGANIZATION_ID
+  );
+  const selectedOrganization = payload.organizationsResults.find(
+    (org) => org.organization.id === state.formState.preselectedOrganizationId
+  );
+  const hasToken =
+    (selectedOrganization &&
+      !!selectedOrganization.sourceControl.token.value) ||
+    !!rootOrg.sourceControl.token.value;
   let newState = {
     ...state,
     viewState: {
       ...state.viewState,
-      loadingPage: false
+      loadingPage: false,
     },
     configState: {
       ...state.configState,
-      isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
+      isScmOnboardingFeatureEnabled:
+        payload.configResults.scmOnboardingFeatureEnabled,
       isScmTokenConfigured: hasToken,
       scmProvider: rootOrg !== null ? rootOrg.sourceControl.provider : null,
-      rootOrgHasToken: rootOrg !== null
+      rootOrgHasToken: rootOrg !== null,
     },
     formState: {
       ...state.formState,
       organizations: payload.organizationsResults.filter(
-          org => org.organization.id !== ownerConstant.ROOT_ORGANIZATION_ID)
-    }
+        (org) => org.organization.id !== ownerConstant.ROOT_ORGANIZATION_ID
+      ),
+    },
   };
   if (!selectedOrganization) {
     return newState;
   }
-  return setTargetOrgFulfilled({
-    defaultHostUrl: payload.hostUrlResult ? payload.hostUrlResult.defaultHostUrl : null,
-    selectedOrganization: selectedOrganization
-  }, newState);
+  return setTargetOrgFulfilled(
+    {
+      defaultHostUrl: payload.hostUrlResult
+        ? payload.hostUrlResult.defaultHostUrl
+        : null,
+      selectedOrganization: selectedOrganization,
+    },
+    newState
+  );
 }
 
 function setIsImportStatusDialogVisibleChanged(payload, state) {
@@ -189,8 +204,8 @@ function setIsImportStatusDialogVisibleChanged(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      isImportStatusDialogVisible: payload
-    }
+      isImportStatusDialogVisible: payload,
+    },
   };
 }
 
@@ -199,8 +214,8 @@ function setShowHostDialogChanged(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      isGitHostDialogVisible: payload
-    }
+      isGitHostDialogVisible: payload,
+    },
   };
 }
 
@@ -209,8 +224,8 @@ function setIsGitHostNeeded(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      isGitHostNeeded: payload
-    }
+      isGitHostNeeded: payload,
+    },
   };
 }
 
@@ -220,8 +235,8 @@ function setTargetOrgRequested(payload, state) {
     viewState: {
       ...state.viewState,
       isSelectingOrganization: true,
-      loadRepositoriesErrorCode: null
-    }
+      loadRepositoriesErrorCode: null,
+    },
   };
 }
 function setTargetOrgFailed(payload, state) {
@@ -230,19 +245,26 @@ function setTargetOrgFailed(payload, state) {
     viewState: {
       ...state.viewState,
       isSelectingOrganization: false,
-      generalError: payload
-    }
+      generalError: payload,
+    },
   };
 }
-function setTargetOrgFulfilled({selectedOrganization, defaultHostUrl}, state) {
+function setTargetOrgFulfilled(
+  { selectedOrganization, defaultHostUrl },
+  state
+) {
   const prevOrg = state.formState.selectedOrganization;
   const prevTokenOverridden = state.configState.isScmTokenOverridden;
 
   const currOrg = selectedOrganization;
-  const currTokenOverridden = !!selectedOrganization && !!selectedOrganization.sourceControl &&
-      !!selectedOrganization.sourceControl.token.value;
-  const hasToken = selectedOrganization &&
-      (!!selectedOrganization.sourceControl.token.value || !!selectedOrganization.sourceControl.token.parentValue);
+  const currTokenOverridden =
+    !!selectedOrganization &&
+    !!selectedOrganization.sourceControl &&
+    !!selectedOrganization.sourceControl.token.value;
+  const hasToken =
+    selectedOrganization &&
+    (!!selectedOrganization.sourceControl.token.value ||
+      !!selectedOrganization.sourceControl.token.parentValue);
 
   const isAuthFailure = !!state.viewState.loadRepositoriesErrorCode;
 
@@ -255,8 +277,15 @@ function setTargetOrgFulfilled({selectedOrganization, defaultHostUrl}, state) {
   //    2. OR the previous token was overridden at the org level
   //    3. OR the previous org was empty (ie: this is the first selected org)
   //    4. OR the user needed to enter the git URL in the previous org
-  const showHostDialog = hasToken && (isAuthFailure ||
-      (!defaultHostUrl && !!currOrg && (currTokenOverridden || prevTokenOverridden || !prevOrg || prevGitHostNeeded)));
+  const showHostDialog =
+    hasToken &&
+    (isAuthFailure ||
+      (!defaultHostUrl &&
+        !!currOrg &&
+        (currTokenOverridden ||
+          prevTokenOverridden ||
+          !prevOrg ||
+          prevGitHostNeeded)));
 
   // we will set the current host URL to a default cloud value if the current host URL is empty
   const overrideCurrentHostUrl = !defaultHostUrl;
@@ -267,28 +296,28 @@ function setTargetOrgFulfilled({selectedOrganization, defaultHostUrl}, state) {
       ...state.viewState,
       isSelectingOrganization: false,
       isGitHostNeeded: showHostDialog,
-      isGitHostDialogVisible: showHostDialog
+      isGitHostDialogVisible: showHostDialog,
     },
     configState: {
       ...state.configState,
       isScmTokenOverridden: currTokenOverridden,
-      isScmTokenConfigured: hasToken
+      isScmTokenConfigured: hasToken,
     },
     formState: {
       ...state.formState,
       defaultHostUrl: defaultHostUrl,
       selectedOrganization: selectedOrganization,
-      currentHostUrlState: overrideCurrentHostUrl ?
-        initialHostUrlState(defaultHostUrl, state.configState.scmProvider) :
-        textInputStateHelpers.initialState(defaultHostUrl)
-    }
+      currentHostUrlState: overrideCurrentHostUrl
+        ? initialHostUrlState(defaultHostUrl, state.configState.scmProvider)
+        : textInputStateHelpers.initialState(defaultHostUrl),
+    },
   };
 }
 
 const providerCloudDefaults = {
-  'github': 'https://github.com/',
-  'gitlab': 'https://gitlab.com/',
-  'bitbucket': 'https://bitbucket.org/'
+  github: 'https://github.com/',
+  gitlab: 'https://gitlab.com/',
+  bitbucket: 'https://bitbucket.org/',
 };
 
 function initialHostUrlState(defaultHostUrl, scmProvider) {
@@ -305,13 +334,13 @@ function addOrganizationFulfilled(payload, state) {
     ...state,
     formState: {
       ...state.formState,
-      organizations: [...state.formState.organizations, payload]
+      organizations: [...state.formState.organizations, payload],
     },
     viewState: {
       ...state.viewState,
       addOrganizationError: null,
-      isNewOrganizationModalVisible: false
-    }
+      isNewOrganizationModalVisible: false,
+    },
   };
 }
 
@@ -320,8 +349,8 @@ function addOrganizationFailed(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      addOrganizationError: payload
-    }
+      addOrganizationError: payload,
+    },
   };
 }
 
@@ -331,8 +360,8 @@ function setIsNewOrganizationModalVisible(payload, state) {
     viewState: {
       ...state.viewState,
       isNewOrganizationModalVisible: payload,
-      addOrganizationError: null
-    }
+      addOrganizationError: null,
+    },
   };
 }
 
@@ -343,53 +372,68 @@ function loadRepositoriesRequested(payload, state) {
       ...state.viewState,
       loadingRepositories: true,
       generalError: null,
-      loadRepositoriesErrorCode: null
+      loadRepositoriesErrorCode: null,
     },
     formState: {
       ...state.formState,
       repositories: [],
       totalRepositories: 0,
       importedRepositoryCount: 0,
-      selectedRepositoryCount: 0
-    }
+      selectedRepositoryCount: 0,
+    },
   };
 }
 
 function loadRepositoriesFulfilled(payload, state) {
-  const repos = payload.availableRepositories ? sortItemsByFields(state.sortConfiguration.sortingOrder,
-      payload.availableRepositories) : [];
-  return payload.status === 'SUCCESS' ? {
-    ...state,
-    viewState: {
-      ...state.viewState,
-      loadingRepositories: false
-    },
-    formState: {
-      ...state.formState,
-      repositories: repos,
-      totalRepositories: payload.totalRepositories
-    }
-  } : handleLoadRepositoriesFailed({loadRepositoriesErrorCode: payload.status}, state);
+  const repos = payload.availableRepositories
+    ? sortItemsByFields(
+        state.sortConfiguration.sortingOrder,
+        payload.availableRepositories
+      )
+    : [];
+  return payload.status === 'SUCCESS'
+    ? {
+        ...state,
+        viewState: {
+          ...state.viewState,
+          loadingRepositories: false,
+        },
+        formState: {
+          ...state.formState,
+          repositories: repos,
+          totalRepositories: payload.totalRepositories,
+        },
+      }
+    : handleLoadRepositoriesFailed(
+        { loadRepositoriesErrorCode: payload.status },
+        state
+      );
 }
 
 function loadRepositoriesFailed(payload, state) {
-  return handleLoadRepositoriesFailed({generalError: payload}, state);
+  return handleLoadRepositoriesFailed({ generalError: payload }, state);
 }
 
-function handleLoadRepositoriesFailed({generalError, loadRepositoriesErrorCode}, state) {
+function handleLoadRepositoriesFailed(
+  { generalError, loadRepositoriesErrorCode },
+  state
+) {
   return {
     ...state,
     viewState: {
       ...state.viewState,
       loadingRepositories: false,
       generalError: generalError ? generalError : null,
-      loadRepositoriesErrorCode: loadRepositoriesErrorCode ? loadRepositoriesErrorCode : null,
-      isGitHostDialogVisible: state.viewState.isGitHostNeeded || !!loadRepositoriesErrorCode
+      loadRepositoriesErrorCode: loadRepositoriesErrorCode
+        ? loadRepositoriesErrorCode
+        : null,
+      isGitHostDialogVisible:
+        state.viewState.isGitHostNeeded || !!loadRepositoriesErrorCode,
     },
     formState: {
       ...state.formState,
-      repositories: []
-    }
+      repositories: [],
+    },
   };
 }
 
@@ -398,38 +442,41 @@ function importRepositoriesRequested(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      isImporting: true
+      isImporting: true,
     },
     formState: {
       ...state.formState,
       selectedRepositoryCount: 0,
       failedImportCount: 0,
-      failedRepos: []
-    }
+      failedRepos: [],
+    },
   };
 }
 
 function importRepositoriesFulfilled(payload, state) {
   let importedRepos = payload.importedRepositories;
-  let newRepositoryList = state.formState.repositories.filter(function(repo) {
-    return !importedRepos.some(imported => imported.httpCloneUrl === repo.httpCloneUrl);
+  let newRepositoryList = state.formState.repositories.filter(function (repo) {
+    return !importedRepos.some(
+      (imported) => imported.httpCloneUrl === repo.httpCloneUrl
+    );
   });
   return {
     ...state,
     formState: {
       ...state.formState,
       repositories: newRepositoryList,
-      importedRepositoryCount: state.formState.importedRepositoryCount + importedRepos.length,
+      importedRepositoryCount:
+        state.formState.importedRepositoryCount + importedRepos.length,
       selectedRepositoryCount: 0,
       newlyImportedRepos: importedRepos,
       failedImportCount: payload.failedImportCount,
-      failedRepos: payload.failedRepositories
+      failedRepos: payload.failedRepositories,
     },
     viewState: {
       ...state.viewState,
       isImportStatusDialogVisible: true,
-      isImporting: false
-    }
+      isImporting: false,
+    },
   };
 }
 
@@ -439,8 +486,8 @@ function importRepositoriesFailed(payload, state) {
     viewState: {
       ...state.viewState,
       generalError: payload,
-      isImporting: false
-    }
+      isImporting: false,
+    },
   };
 }
 
@@ -448,8 +495,11 @@ function setSortingParameters(payload, state) {
   const { sortFields } = payload;
 
   // set sortConfiguration and sort repositories
-  return over(lensPath(['formState', 'repositories']), sortItemsByFields(sortFields),
-      propSet('sortConfiguration', payload, state));
+  return over(
+    lensPath(['formState', 'repositories']),
+    sortItemsByFields(sortFields),
+    propSet('sortConfiguration', payload, state)
+  );
 }
 
 function validateScmHostUrlRequested(payload, state) {
@@ -457,8 +507,8 @@ function validateScmHostUrlRequested(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      validatingCompositeSourceControl: true
-    }
+      validatingCompositeSourceControl: true,
+    },
   };
 }
 
@@ -467,15 +517,15 @@ function validateScmHostUrlFulfilled(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      validatingCompositeSourceControl: false
+      validatingCompositeSourceControl: false,
     },
     formState: {
       ...state.formState,
       currentHostUrlState: {
         ...state.formState.currentHostUrlState,
-        validationErrors: payload.isValid ? null : payload.errorMessages
-      }
-    }
+        validationErrors: payload.isValid ? null : payload.errorMessages,
+      },
+    },
   };
 }
 
@@ -485,8 +535,8 @@ function validateScmHostUrlFailed(payload, state) {
     viewState: {
       ...state.viewState,
       validatingCompositeSourceControl: false,
-      generalError: payload
-    }
+      generalError: payload,
+    },
   };
 }
 
@@ -497,15 +547,19 @@ function setCurrentHostUrl(payload, state) {
   //      instead keep the invalid state and wait for the server side check to complete
   let currentErrors = validateHostUrl(payload);
   let previousErrors = state.formState.currentHostUrlState.validationErrors;
-  let validator = payload && hasValidationErrors(previousErrors) && !hasValidationErrors(currentErrors)
-    ? () => previousErrors : validateHostUrl;
+  let validator =
+    payload &&
+    hasValidationErrors(previousErrors) &&
+    !hasValidationErrors(currentErrors)
+      ? () => previousErrors
+      : validateHostUrl;
 
   return {
     ...state,
     formState: {
       ...state.formState,
-      currentHostUrlState: textInputStateHelpers.userInput(validator, payload)
-    }
+      currentHostUrlState: textInputStateHelpers.userInput(validator, payload),
+    },
   };
 }
 
@@ -546,7 +600,7 @@ const reducerActionMap = {
 
   [SCM_ONBOARDING_IS_IMPORT_STATUS_MODAL_VISIBLE]: setIsImportStatusDialogVisibleChanged,
 
-  [UI_ROUTER_ON_FINISH]: onRouterFinish
+  [UI_ROUTER_ON_FINISH]: onRouterFinish,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

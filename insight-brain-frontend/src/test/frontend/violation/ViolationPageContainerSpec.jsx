@@ -7,57 +7,63 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
 
-describe('ViolationPageContainer', function() {
-
+describe('ViolationPageContainer', function () {
   let ViolationPageContainer,
-      loadViolationActionMock,
-      loadVulnerabilityDetailsActionMock,
-      stateGoMock,
-      fetchStageTypesMock,
-      state,
-      store,
-      vdom,
-      mock$State;
+    loadViolationActionMock,
+    loadVulnerabilityDetailsActionMock,
+    stateGoMock,
+    fetchStageTypesMock,
+    state,
+    store,
+    vdom,
+    mock$State;
 
-  beforeEach(function() {
+  beforeEach(function () {
+    loadViolationActionMock = jasmine
+      .createSpy('loadViolation')
+      .and.returnValue({ type: 'LOAD_VIOLATION' });
+    loadVulnerabilityDetailsActionMock = jasmine
+      .createSpy('loadVulnerabilityDetails')
+      .and.returnValue({ type: 'LOAD_VULNERABILITY' });
+    fetchStageTypesMock = jasmine
+      .createSpy('fetchStageTypes')
+      .and.returnValue({ type: 'FETCH_STAGE_TYPES' });
+    stateGoMock = jasmine
+      .createSpy('stateGo')
+      .and.returnValue({ type: 'STATE_GO' });
 
-    loadViolationActionMock = jasmine.createSpy('loadViolation').and.returnValue({ type: 'LOAD_VIOLATION' });
-    loadVulnerabilityDetailsActionMock = jasmine.createSpy('loadVulnerabilityDetails')
-        .and.returnValue({ type: 'LOAD_VULNERABILITY' });
-    fetchStageTypesMock = jasmine.createSpy('fetchStageTypes').and.returnValue({ type: 'FETCH_STAGE_TYPES' });
-    stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'STATE_GO' });
-
-    ViolationPageContainer =
-        require('inject-loader!../../../main/frontend/violation/ViolationPageContainer')({
-          './violationActions': {
-            loadViolation: loadViolationActionMock,
-            loadVulnerabilityDetails: loadVulnerabilityDetailsActionMock
-          },
-          '../stages/stagesActions': {
-            fetchStageTypes: fetchStageTypesMock
-          },
-          '../reduxUiRouter/routerActions': {
-            stateGo: stateGoMock
-          }
-        }).default;
+    ViolationPageContainer = require('inject-loader!../../../main/frontend/violation/ViolationPageContainer')(
+      {
+        './violationActions': {
+          loadViolation: loadViolationActionMock,
+          loadVulnerabilityDetails: loadVulnerabilityDetailsActionMock,
+        },
+        '../stages/stagesActions': {
+          fetchStageTypes: fetchStageTypesMock,
+        },
+        '../reduxUiRouter/routerActions': {
+          stateGo: stateGoMock,
+        },
+      }
+    ).default;
 
     state = {
       violation: {
         loading: false,
-        violationDetailsError: null
+        violationDetailsError: null,
       },
       stages: {
         dashboard: {
           stageTypes: null,
-          error: null
-        }
-      }
+          error: null,
+        },
+      },
     };
 
     mock$State = { params: { id: 'foo' } };
 
     store = configureStore()(() => state);
-    vdom = <ViolationPageContainer store={store} $state={mock$State}/>;
+    vdom = <ViolationPageContainer store={store} $state={mock$State} />;
   });
 
   it('maps the state slice ("violation") to ViolationPageContainer props', () => {
@@ -70,8 +76,8 @@ describe('ViolationPageContainer', function() {
       ...state,
       violation: {
         loading: true,
-        violationDetailsError: 'foo'
-      }
+        violationDetailsError: 'foo',
+      },
     };
 
     // force state update
@@ -93,9 +99,9 @@ describe('ViolationPageContainer', function() {
       stages: {
         dashboard: {
           stageTypes: [],
-          error: 'foo'
-        }
-      }
+          error: 'foo',
+        },
+      },
     };
 
     // force state update
@@ -106,15 +112,19 @@ describe('ViolationPageContainer', function() {
     expect(wrapper).toHaveProp('stageTypesError', 'foo');
   });
 
-  it('maps action creators to ViolationPageContainer props', function() {
+  it('maps action creators to ViolationPageContainer props', function () {
     const wrapper = shallow(vdom).dive(),
-        loadViolationActionCreator = wrapper.prop('loadViolation'),
-        loadVulnerabilityDetailsActionCreator = wrapper.prop('loadVulnerabilityDetails'),
-        fetchStageTypesActionCreator = wrapper.prop('fetchStageTypes'),
-        stateGoActionCreator = wrapper.prop('stateGo');
+      loadViolationActionCreator = wrapper.prop('loadViolation'),
+      loadVulnerabilityDetailsActionCreator = wrapper.prop(
+        'loadVulnerabilityDetails'
+      ),
+      fetchStageTypesActionCreator = wrapper.prop('fetchStageTypes'),
+      stateGoActionCreator = wrapper.prop('stateGo');
 
     expect(loadViolationActionCreator).toEqual(jasmine.any(Function));
-    expect(loadVulnerabilityDetailsActionCreator).toEqual(jasmine.any(Function));
+    expect(loadVulnerabilityDetailsActionCreator).toEqual(
+      jasmine.any(Function)
+    );
     expect(fetchStageTypesActionCreator).toEqual(jasmine.any(Function));
     expect(stateGoActionCreator).toEqual(jasmine.any(Function));
 
@@ -124,14 +134,17 @@ describe('ViolationPageContainer', function() {
     expect(store.getActions()).toEqual([{ type: 'LOAD_VIOLATION' }]);
 
     loadVulnerabilityDetailsActionCreator();
-    expect(store.getActions()).toEqual([{ type: 'LOAD_VIOLATION' }, { type: 'LOAD_VULNERABILITY' }]);
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_VIOLATION' },
+      { type: 'LOAD_VULNERABILITY' },
+    ]);
 
     fetchStageTypesActionCreator();
 
     expect(store.getActions()).toEqual([
       { type: 'LOAD_VIOLATION' },
       { type: 'LOAD_VULNERABILITY' },
-      { type: 'FETCH_STAGE_TYPES' }
+      { type: 'FETCH_STAGE_TYPES' },
     ]);
 
     stateGoActionCreator();
@@ -140,7 +153,7 @@ describe('ViolationPageContainer', function() {
       { type: 'LOAD_VIOLATION' },
       { type: 'LOAD_VULNERABILITY' },
       { type: 'FETCH_STAGE_TYPES' },
-      { type: 'STATE_GO' }
+      { type: 'STATE_GO' },
     ]);
   });
 });

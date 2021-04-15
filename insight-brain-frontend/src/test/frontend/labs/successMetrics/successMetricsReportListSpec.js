@@ -5,40 +5,50 @@
  */
 import successMetricsModule from '../../../../main/frontend/labs/successMetrics/module';
 
-describe('successMetricsReportList component', function() {
+describe('successMetricsReportList component', function () {
   beforeEach(angular.mock.module(successMetricsModule.name));
 
   var vm,
-      $state,
-      $scope,
-      $q,
-      mockSystemConfigurationPropertyService = {
-        checkSuccessMetricsEnabled: undefined,
-        SUCCESS_METRICS_DISABLED_MESSAGE: 'Success metrics have been disabled by your system administrator.'
-      },
-      mockSuccessMetricsDataService = {
-        getSuccessMetricsReportsForCurrentUser: undefined
-      },
-      checkSuccessMetricsEnabledDeferred,
-      getSuccessMetricsReportsForCurrentUserDeferred,
-      resetCheckSuccessMetricsEnabledPromise,
-      resetGetSuccessMetricsReportsForCurrentUserPromise;
+    $state,
+    $scope,
+    $q,
+    mockSystemConfigurationPropertyService = {
+      checkSuccessMetricsEnabled: undefined,
+      SUCCESS_METRICS_DISABLED_MESSAGE:
+        'Success metrics have been disabled by your system administrator.',
+    },
+    mockSuccessMetricsDataService = {
+      getSuccessMetricsReportsForCurrentUser: undefined,
+    },
+    checkSuccessMetricsEnabledDeferred,
+    getSuccessMetricsReportsForCurrentUserDeferred,
+    resetCheckSuccessMetricsEnabledPromise,
+    resetGetSuccessMetricsReportsForCurrentUserPromise;
 
-  beforeEach(inject(function(_$state_, _$q_, _$rootScope_, $componentController) {
+  beforeEach(inject(function (
+    _$state_,
+    _$q_,
+    _$rootScope_,
+    $componentController
+  ) {
     $scope = _$rootScope_.$new();
     $state = _$state_;
     $q = _$q_;
 
-    resetCheckSuccessMetricsEnabledPromise = function() {
+    resetCheckSuccessMetricsEnabledPromise = function () {
       checkSuccessMetricsEnabledDeferred = $q.defer();
-      mockSystemConfigurationPropertyService.checkSuccessMetricsEnabled = jasmine.createSpy().and.returnValue(
-          checkSuccessMetricsEnabledDeferred.promise);
+      mockSystemConfigurationPropertyService.checkSuccessMetricsEnabled = jasmine
+        .createSpy()
+        .and.returnValue(checkSuccessMetricsEnabledDeferred.promise);
     };
 
-    resetGetSuccessMetricsReportsForCurrentUserPromise = function() {
+    resetGetSuccessMetricsReportsForCurrentUserPromise = function () {
       getSuccessMetricsReportsForCurrentUserDeferred = $q.defer();
-      mockSuccessMetricsDataService.getSuccessMetricsReportsForCurrentUser = jasmine.createSpy().and.returnValue(
-          getSuccessMetricsReportsForCurrentUserDeferred.promise);
+      mockSuccessMetricsDataService.getSuccessMetricsReportsForCurrentUser = jasmine
+        .createSpy()
+        .and.returnValue(
+          getSuccessMetricsReportsForCurrentUserDeferred.promise
+        );
     };
 
     resetCheckSuccessMetricsEnabledPromise();
@@ -46,16 +56,16 @@ describe('successMetricsReportList component', function() {
 
     vm = $componentController('successMetricsReportList', {
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
-      successMetricsDataService: mockSuccessMetricsDataService
+      successMetricsDataService: mockSuccessMetricsDataService,
     });
   }));
 
-  afterEach(function() {
+  afterEach(function () {
     $scope.$destroy();
   });
 
-  describe('$onInit()', function() {
-    it('properly loads on enabled success metrics', function() {
+  describe('$onInit()', function () {
+    it('properly loads on enabled success metrics', function () {
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
       getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
@@ -66,19 +76,22 @@ describe('successMetricsReportList component', function() {
       expect(vm.disabledError).toBeUndefined();
     });
 
-    it('properly loads on disabled success metrics', function() {
+    it('properly loads on disabled success metrics', function () {
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.reject(
-          mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
+        mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE
+      );
       getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
       $scope.$digest();
 
       expect(vm.loaded).toBeTruthy();
-      expect(vm.error).toBe(mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE);
+      expect(vm.error).toBe(
+        mockSystemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE
+      );
       expect(vm.hasDisabledError()).toBe(true);
     });
 
-    it('properly loads on error success metrics', function() {
+    it('properly loads on error success metrics', function () {
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.reject('error');
       getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
@@ -89,21 +102,25 @@ describe('successMetricsReportList component', function() {
       expect(vm.hasDisabledError()).toBe(false);
     });
 
-    it('properly loads the successMetricsReports', function() {
-      const successMetricsReports = [{
-        name: 'Empty',
-        scope: {}
-      }];
+    it('properly loads the successMetricsReports', function () {
+      const successMetricsReports = [
+        {
+          name: 'Empty',
+          scope: {},
+        },
+      ];
 
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsReportsForCurrentUserDeferred.resolve(successMetricsReports);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve(
+        successMetricsReports
+      );
       $scope.$digest();
 
       expect(vm.successMetricsReports).toBe(successMetricsReports);
     });
 
-    it('resets error on load', function() {
+    it('resets error on load', function () {
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.reject('error');
       getSuccessMetricsReportsForCurrentUserDeferred.resolve([]);
@@ -123,33 +140,38 @@ describe('successMetricsReportList component', function() {
     });
   });
 
-  describe('goToCharts()', function() {
-    it('calls $state.go with the correct route and successMetricsId', function() {
+  describe('goToCharts()', function () {
+    it('calls $state.go with the correct route and successMetricsId', function () {
       const id = '12345';
 
       spyOn($state, 'go');
       vm.$onInit();
       vm.goToCharts(id);
-      expect($state.go).toHaveBeenCalledWith('labs.successMetricsReport', { successMetricsReportId: '12345' });
+      expect($state.go).toHaveBeenCalledWith('labs.successMetricsReport', {
+        successMetricsReportId: '12345',
+      });
     });
   });
 
-  describe('openAddSuccessMetricsModal', function() {
-    it('opens a modal and then adds its result onto the end of the successMetricsReports', inject(function(Modal) {
+  describe('openAddSuccessMetricsModal', function () {
+    it('opens a modal and then adds its result onto the end of the successMetricsReports', inject(function (
+      Modal
+    ) {
       const successMetricsReports = {
-            name: 'Empty',
-            scope: {}
-          },
-
-          // NOTE: all we do with this object is check reference equality, so its contents don't matter
-          modalResult = {},
-          modalDeferred = $q.defer();
+          name: 'Empty',
+          scope: {},
+        },
+        // NOTE: all we do with this object is check reference equality, so its contents don't matter
+        modalResult = {},
+        modalDeferred = $q.defer();
 
       spyOn(Modal, 'open').and.returnValue({ result: modalDeferred.promise });
 
       vm.$onInit();
       checkSuccessMetricsEnabledDeferred.resolve(true);
-      getSuccessMetricsReportsForCurrentUserDeferred.resolve([successMetricsReports]);
+      getSuccessMetricsReportsForCurrentUserDeferred.resolve([
+        successMetricsReports,
+      ]);
       $scope.$digest();
 
       vm.openAddSuccessMetricsReportModal();

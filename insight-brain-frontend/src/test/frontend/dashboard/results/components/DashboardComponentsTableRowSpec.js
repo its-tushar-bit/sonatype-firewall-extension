@@ -7,26 +7,28 @@ import * as enzymeUtils from '../../../enzymeUtils';
 
 import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 
-import DashboardComponentsTableRow
-  from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTableRow';
-import DashboardHeatMapCell
-  from '../../../../../main/frontend/dashboard/results/DashboardHeatMapCell';
+import DashboardComponentsTableRow from '../../../../../main/frontend/dashboard/results/components/DashboardComponentsTableRow';
+import DashboardHeatMapCell from '../../../../../main/frontend/dashboard/results/DashboardHeatMapCell';
 
-describe('DashboardComponentsTableRow', function() {
-  let minimalProps,
-      getShallowComponent,
-      getMountedComponent;
+describe('DashboardComponentsTableRow', function () {
+  let minimalProps, getShallowComponent, getMountedComponent;
 
-  beforeEach(function() {
+  beforeEach(function () {
     minimalProps = {
-      stateGo: jasmine.createSpy('stateGo')
+      stateGo: jasmine.createSpy('stateGo'),
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(DashboardComponentsTableRow, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(DashboardComponentsTableRow, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      DashboardComponentsTableRow,
+      minimalProps
+    );
+    getMountedComponent = enzymeUtils.getMountedComponent(
+      DashboardComponentsTableRow,
+      minimalProps
+    );
   });
 
-  it('renders a clickable NxTableRow with appropriate columns', function() {
+  it('renders a clickable NxTableRow with appropriate columns', function () {
     const row = getMountedComponent({
       component: {
         hash: 'componentHash',
@@ -36,13 +38,13 @@ describe('DashboardComponentsTableRow', function() {
         scoreCritical: 300,
         scoreSevere: 20,
         scoreModerate: 10,
-        scoreLow: 35
-      }
+        scoreLow: 35,
+      },
     });
 
     const tableRow = row.find(NxTableRow),
-        cells = row.find(NxTableCell),
-        heatmapColoredCells = row.find(DashboardHeatMapCell);
+      cells = row.find(NxTableCell),
+      heatmapColoredCells = row.find(DashboardHeatMapCell);
 
     expect(tableRow).toHaveProp('isClickable', true);
     expect(heatmapColoredCells.length).toBe(6);
@@ -60,14 +62,16 @@ describe('DashboardComponentsTableRow', function() {
     expect(heatmapColoredCells.at(5)).toHaveProp('threatScore', 35);
   });
 
-  it('opens component details when clicking on the row', function() {
+  it('opens component details when clicking on the row', function () {
     const row = getShallowComponent({
       component: {
-        hash: 'componentHash'
-      }
+        hash: 'componentHash',
+      },
     });
 
     row.simulate('click');
-    expect(minimalProps.stateGo).toHaveBeenCalledWith('dashboard.component', { hash: 'componentHash' });
+    expect(minimalProps.stateGo).toHaveBeenCalledWith('dashboard.component', {
+      hash: 'componentHash',
+    });
   });
 });

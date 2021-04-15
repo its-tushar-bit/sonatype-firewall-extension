@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {find, propEq} from 'ramda';
+import { find, propEq } from 'ramda';
 
 import template from './iqTreeViewRadioSelect.html';
 
@@ -22,10 +22,10 @@ const iqTreeViewRadioSelect = {
     available: '<',
     selectedId: '<',
     readOnly: '<?',
-    onChange: '&'
+    onChange: '&',
   },
   controller: IqTreeViewRadioSelectController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };
 
 export default iqTreeViewRadioSelect;
@@ -40,7 +40,7 @@ function IqTreeViewRadioSelectController() {
     },
 
     select(id) {
-      vm.onChange({selected: id});
+      vm.onChange({ selected: id });
     },
 
     isSelected(id) {
@@ -49,6 +49,6 @@ function IqTreeViewRadioSelectController() {
 
     shouldShowSelected() {
       return vm.selectedId !== undefined;
-    }
+    },
   });
 }

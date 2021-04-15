@@ -11,14 +11,15 @@ export default {
     user: '<?',
     existingUsers: '<',
     onSave: '&',
-    onCancel: '&'
+    onCancel: '&',
   },
   template,
   controllerAs: 'vm',
-  controller: UserFormController
+  controller: UserFormController,
 };
 
-const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
+const invalidCharactersMessage =
+  'Use valid characters: alphanumeric, "_", "." or "-"';
 
 function UserFormController($scope, UserStore, Dialog) {
   var vm = this;
@@ -27,13 +28,13 @@ function UserFormController($scope, UserStore, Dialog) {
   vm.cancelClick = cancelClick;
 
   // clone if existing user
-  vm.user = (vm.user && vm.user.id) ? vm.user.$clone() : UserStore.create();
+  vm.user = vm.user && vm.user.id ? vm.user.$clone() : UserStore.create();
   vm.passwordValidate = '';
 
   vm.usernameMessages = {
     duplicate: 'Username already taken',
     pattern: invalidCharactersMessage,
-    validNameCharacters: invalidCharactersMessage
+    validNameCharacters: invalidCharactersMessage,
   };
 
   vm.identifier = Math.random();
@@ -49,15 +50,18 @@ function UserFormController($scope, UserStore, Dialog) {
       vm.alerts = null;
       vm.saving = true;
 
-      user.$save().then(function() {
-        vm.saving = false;
+      user.$save().then(
+        function () {
+          vm.saving = false;
 
-        // signal save to parent controller
-        vm.onSave();
-      }, function(error) {
-        vm.alerts = [AngularUtils.toAlert(error.data)];
-        vm.saving = false;
-      });
+          // signal save to parent controller
+          vm.onSave();
+        },
+        function (error) {
+          vm.alerts = [AngularUtils.toAlert(error.data)];
+          vm.saving = false;
+        }
+      );
     }
   }
 
@@ -79,25 +83,28 @@ function UserFormController($scope, UserStore, Dialog) {
     if (isDirty()) {
       Dialog.open({
         title: 'Unsaved Changes',
-        body: 'The current user has unsaved changes, continuing will lose them.',
+        body:
+          'The current user has unsaved changes, continuing will lose them.',
         id: 'dirty-user-confirmation',
-        buttons: [{
-          name: 'Continue',
-          type: 'primary',
-          click: doCancel
-        }, {
-          name: 'Cancel',
-          type: 'cancel'
-        }]
+        buttons: [
+          {
+            name: 'Continue',
+            type: 'primary',
+            click: doCancel,
+          },
+          {
+            name: 'Cancel',
+            type: 'cancel',
+          },
+        ],
       });
-    }
-    else {
+    } else {
       doCancel();
     }
   }
 
   // make sure user is aware they are about to lose changes
-  $scope.$on('pageChangeStarted', function(event) {
+  $scope.$on('pageChangeStarted', function (event) {
     if (isDirty()) {
       event.preventDefault();
     }

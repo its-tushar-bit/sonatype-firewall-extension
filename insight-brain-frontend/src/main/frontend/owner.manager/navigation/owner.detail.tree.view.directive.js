@@ -9,7 +9,7 @@ export default function OwnerDetailTreeViewDirective() {
   return {
     controller: 'OwnerDetailTreeViewController',
     controllerAs: 'vm',
-    template
+    template,
   };
 }
 OwnerDetailTreeViewDirective.$inject = [];

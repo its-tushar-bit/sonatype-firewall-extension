@@ -5,5 +5,5 @@
  */
 import $ from 'jquery';
 
-const escapeHtmlString = str => $('<div/>').text(str).html();
+const escapeHtmlString = (str) => $('<div/>').text(str).html();
 export default escapeHtmlString;

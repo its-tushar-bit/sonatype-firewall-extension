@@ -20,16 +20,43 @@ import DashboardComponentsContainer from './components/DashboardComponentsContai
 import ExportButtonContainer from './dashboardSummary/ExportButtonContainer';
 import DashboardApplicationsContainer from './applications/DashboardApplicationsContainer';
 
-export default angular.module('dashboardResultsModule',
-    [CLMLocationModule.name, utilityModule.name, dashboardUtilsModule.name, dashboardResultsActionsModule.name])
-    .component('violations', react2angular(withStoreProvider(DashboardViolationsContainer), [], ['$ngRedux']))
-    .component('components', react2angular(withStoreProvider(DashboardComponentsContainer), [], ['$ngRedux']))
-    .component('dashboardResultsExportButton',
-        react2angular(withStoreProvider(ExportButtonContainer), [], ['$ngRedux'])
+export default angular
+  .module('dashboardResultsModule', [
+    CLMLocationModule.name,
+    utilityModule.name,
+    dashboardUtilsModule.name,
+    dashboardResultsActionsModule.name,
+  ])
+  .component(
+    'violations',
+    react2angular(
+      withStoreProvider(DashboardViolationsContainer),
+      [],
+      ['$ngRedux']
     )
-    .component('applications',
-        react2angular(withStoreProvider(withRouterStateProvider(DashboardApplicationsContainer)), [],
-            ['$ngRedux', '$state']))
-    .component('dashboardResultsContainer', dashboardResultsContainer)
-    .component('dashboardCommonResults', dashboardCommonResults)
-    .component('dashboardTabs', dashboardTabs);
+  )
+  .component(
+    'components',
+    react2angular(
+      withStoreProvider(DashboardComponentsContainer),
+      [],
+      ['$ngRedux']
+    )
+  )
+  .component(
+    'dashboardResultsExportButton',
+    react2angular(withStoreProvider(ExportButtonContainer), [], ['$ngRedux'])
+  )
+  .component(
+    'applications',
+    react2angular(
+      withStoreProvider(
+        withRouterStateProvider(DashboardApplicationsContainer)
+      ),
+      [],
+      ['$ngRedux', '$state']
+    )
+  )
+  .component('dashboardResultsContainer', dashboardResultsContainer)
+  .component('dashboardCommonResults', dashboardCommonResults)
+  .component('dashboardTabs', dashboardTabs);

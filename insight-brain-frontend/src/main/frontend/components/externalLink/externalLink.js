@@ -12,6 +12,6 @@ export default {
   bindings: {
     href: '@',
     linkText: '@',
-    onClick: '&'
-  }
+    onClick: '&',
+  },
 };

@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*
-* Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
-* Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
-* "Sonatype" is a trademark of Sonatype, Inc.
-*/
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
 import template from './dropdown.selector.directive.tpl.html';
 
 export default function DropdownSelector() {
@@ -23,19 +23,19 @@ export default function DropdownSelector() {
       undefinedOptionsString: '@?',
       noOptionsString: '@?',
       optionValueParam: '@?',
-      disabled: '=?ngDisabled'
+      disabled: '=?ngDisabled',
     },
     template: template,
     controller: DropdownSelectorController,
     controllerAs: 'vm',
     bindToController: true,
     require: ['ngModel', '^form'],
-    link: DropdownSelectorLink
+    link: DropdownSelectorLink,
   };
 
   function DropdownSelectorLink(scope, element, attr, ctrls) {
     var ctrl = ctrls[0],
-        form = ctrls[1];
+      form = ctrls[1];
 
     form.$addControl(ctrl);
 
@@ -43,7 +43,7 @@ export default function DropdownSelector() {
     scope.vm.formatSelectedModel = formatSelectedModel;
     scope.vm.selectItem = selectItem;
 
-    ctrl.$viewChangeListeners.push(function() {
+    ctrl.$viewChangeListeners.push(function () {
       scope.$eval(attr.ngChange);
     });
 
@@ -51,19 +51,27 @@ export default function DropdownSelector() {
     ctrl.$parsers.push(scope.vm.parseSelectedModel);
     ctrl.$isEmpty = isEmpty;
 
-    scope.$watch('vm.disabled', function(disabled) {
+    scope.$watch('vm.disabled', function (disabled) {
       element[disabled ? 'addClass' : 'removeClass']('disabled');
     });
 
-    scope.$watch('vm.options', function(options) {
+    scope.$watch('vm.options', function (options) {
       ctrl.$setPristine();
-      element[angular.isUndefined(options) || scope.vm.disabled ? 'addClass' : 'removeClass']('disabled');
+      element[
+        angular.isUndefined(options) || scope.vm.disabled
+          ? 'addClass'
+          : 'removeClass'
+      ]('disabled');
     });
 
     if (scope.vm.noOptionsString) {
-      scope.$watch('vm.options.length', function(hasOptions) {
+      scope.$watch('vm.options.length', function (hasOptions) {
         // no-options class should only show if no options are available from a defined options set
-        element[angular.isUndefined(scope.vm.options) || hasOptions ? 'removeClass' : 'addClass']('no-options');
+        element[
+          angular.isUndefined(scope.vm.options) || hasOptions
+            ? 'removeClass'
+            : 'addClass'
+        ]('no-options');
       });
     }
 
@@ -77,19 +85,25 @@ export default function DropdownSelector() {
       }
 
       if (modelValue) {
-        return scope.vm.optionNameParam ? modelValue[scope.vm.optionNameParam] : modelValue;
-      }
-      else {
+        return scope.vm.optionNameParam
+          ? modelValue[scope.vm.optionNameParam]
+          : modelValue;
+      } else {
         return scope.vm.emptyOptionString || 'None Selected';
       }
     }
 
     function isEmpty(viewValue) {
-      return !viewValue || viewValue === (scope.vm.emptyOptionString || 'None Selected');
+      return (
+        !viewValue ||
+        viewValue === (scope.vm.emptyOptionString || 'None Selected')
+      );
     }
 
     function selectItem(item) {
-      ctrl.$setViewValue(scope.vm.optionNameParam ? item[scope.vm.optionNameParam] : item);
+      ctrl.$setViewValue(
+        scope.vm.optionNameParam ? item[scope.vm.optionNameParam] : item
+      );
     }
   }
 }
@@ -111,7 +125,7 @@ function DropdownSelectorController($scope, $element) {
     vm.optionViewMap = {};
 
     if (vm.options) {
-      vm.options.forEach(function(option) {
+      vm.options.forEach(function (option) {
         if (vm.optionValueParam) {
           vm.optionModelMap[option[vm.optionValueParam]] = option;
         }

@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-window.ResourceUtils = function() {
+window.ResourceUtils = function () {
   var me = {
-    createMockResource: createMockResource
+    createMockResource: createMockResource,
   };
 
   function createMockResource() {
@@ -14,11 +14,8 @@ window.ResourceUtils = function() {
 
   function MockResource() {
     var promises,
-        functions = [
-          '$delete',
-          '$save'
-        ],
-        me = this;
+      functions = ['$delete', '$save'],
+      me = this;
 
     me.$revert = jasmine.createSpy();
     me.$clone = jasmine.createSpy().and.returnValue(me);
@@ -27,13 +24,13 @@ window.ResourceUtils = function() {
     me.resolveSave = resolvePromise('$save');
     me.rejectSave = rejectPromise('$save');
 
-    beforeEach(inject(function($q) {
+    beforeEach(inject(function ($q) {
       promises = {};
 
       // Add mock functions and return a unique promise
-      functions.forEach(function(fn) {
+      functions.forEach(function (fn) {
         promises[fn] = $q.defer();
-        me[fn] = function() {
+        me[fn] = function () {
           return promises[fn].promise;
         };
         spyOn(promises[fn].promise, 'then').and.callThrough();
@@ -42,7 +39,7 @@ window.ResourceUtils = function() {
     }));
 
     function resolvePromise(promiseName) {
-      return function(value) {
+      return function (value) {
         if (!promises) {
           throw 'Promises not defined. Make sure to call resolve in an "it".';
         }
@@ -53,7 +50,7 @@ window.ResourceUtils = function() {
     }
 
     function rejectPromise(promiseName) {
-      return function(value) {
+      return function (value) {
         if (!promises) {
           throw 'Promises not defined. Make sure to call resolve in an "it".';
         }

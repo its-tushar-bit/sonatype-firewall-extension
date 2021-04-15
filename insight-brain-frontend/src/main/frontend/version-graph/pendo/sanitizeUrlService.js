@@ -11,18 +11,17 @@ function sanitizeUrlService(baseUrlService) {
   return {
     sanitize(url) {
       const baseUrl = baseUrlService.get(),
-          indexOfBaseUrl = url.indexOf(baseUrl),
-          isExternal = indexOfBaseUrl === -1;
+        indexOfBaseUrl = url.indexOf(baseUrl),
+        isExternal = indexOfBaseUrl === -1;
 
       if (isExternal) {
         return url;
-      }
-      else {
+      } else {
         const urlWithoutBase = url.substring(baseUrl.length);
 
         return urlWithoutBase;
       }
-    }
+    },
   };
 }
 

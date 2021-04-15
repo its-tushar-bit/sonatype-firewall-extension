@@ -1,5 +1,5 @@
 module.exports = {
   rules: {
-    "no-eol-whitespace": true
-  }
+    'no-eol-whitespace': true,
+  },
 };

@@ -16,68 +16,78 @@ module.exports = {
   entry: './main.js',
   output: {
     publicPath,
-    filename: 'app-bundle.js'
+    filename: 'app-bundle.js',
   },
   module: {
-    rules: [{
-      test: /\.js$/,
-      exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
-      use: {
-        loader: 'babel-loader',
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\]lib[\/\\](protovis|Base64)/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['env'],
+            plugins: [transformObjectRestSpread],
+          },
+        },
+      },
+      {
+        test: /\.html$/,
+        use: {
+          loader: 'html-loader',
+          options: {
+            attrs: false,
+          },
+        },
+      },
+      {
+        test: /\.s?css$/,
+        use: extractSass.extract({
+          use: [
+            { loader: 'css-loader' },
+            { loader: 'resolve-url-loader' },
+            {
+              loader: 'sass-loader',
+              options: {
+                sourceMap: true,
+              },
+            },
+          ],
+        }),
+      },
+      {
+        test: /\.(png|jpg|jpeg|gif)/,
+        loader: 'file-loader',
         options: {
-          presets: ['env'],
-          plugins: [transformObjectRestSpread]
-        }
-      }
-    }, {
-      test: /\.html$/,
-      use: {
-        loader: 'html-loader',
+          name: 'images/[name].[ext]',
+        },
+      },
+      {
+        test: /\.(ttf|eot|woff2?|svg)$/,
+        loader: 'file-loader',
         options: {
-          attrs: false
-        }
-      }
-    }, {
-      test: /\.s?css$/,
-      use: extractSass.extract({
-        use: [
-          { loader: 'css-loader' },
-          { loader: 'resolve-url-loader' },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true
-            }
-          }
-        ]
-      })
-    }, {
-      test: /\.(png|jpg|jpeg|gif)/,
-      loader: 'file-loader',
-      options: {
-        name: 'images/[name].[ext]'
-      }
-    }, {
-      test: /\.(ttf|eot|woff2?|svg)$/,
-      loader: 'file-loader',
-      options: {
-        name: 'fonts/[name].[ext]'
-      }
-    }]
+          name: 'fonts/[name].[ext]',
+        },
+      },
+    ],
   },
   plugins: [
     extractSass,
     new CSSSplitPlugin({
       size: 4095,
-      filename: '[name]-[part].[ext]'
-    })
+      filename: '[name]-[part].[ext]',
+    }),
   ],
   devtool: 'eval',
   devServer: {
-    contentBase: ['src/main/component-gallery', 'src/main/frontend', 'target/classes/assets', '.tmp/scss']
-        .map(subpath => path.join(__dirname, subpath)),
+    contentBase: [
+      'src/main/component-gallery',
+      'src/main/frontend',
+      'target/classes/assets',
+      '.tmp/scss',
+    ].map((subpath) => path.join(__dirname, subpath)),
     publicPath,
     port: 4040,
-    host: '0.0.0.0'
-  }
+    host: '0.0.0.0',
+  },
 };

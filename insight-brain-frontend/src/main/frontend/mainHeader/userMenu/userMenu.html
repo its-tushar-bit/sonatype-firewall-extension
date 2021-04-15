@@ -64,10 +64,15 @@
   </script>
   <user-token-modal ng-if="vm.isUserTokenModalVisible"></user-token-modal>
   <div id="user-menu" class="dropdown iq-dropdown iq-dropdown--user-menu">
-    <a id="user-menu-dropdown-toggle"
-       class="iq-dropdown-toggle iq-dropdown-toggle--main-header iq-dropdown-toggle--user-menu"
-       data-toggle="dropdown">
-      <nx-font-awesome-icon icon="vm.faUserCircle" size="'2x'"></nx-font-awesome-icon>
+    <a
+      id="user-menu-dropdown-toggle"
+      class="iq-dropdown-toggle iq-dropdown-toggle--main-header iq-dropdown-toggle--user-menu"
+      data-toggle="dropdown"
+    >
+      <nx-font-awesome-icon
+        icon="vm.faUserCircle"
+        size="'2x'"
+      ></nx-font-awesome-icon>
     </a>
     <div class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--main-header">
       <h4 class="iq-dropdown-menu__title">
@@ -78,26 +83,36 @@
       </h4>
 
       <div ng-show="vm.canChangePassword">
-        <a id="change-password"
-           ng-click="vm.changePassword()"
-           class="iq-dropdown-menu__link--main-header">
+        <a
+          id="change-password"
+          ng-click="vm.changePassword()"
+          class="iq-dropdown-menu__link--main-header"
+        >
           Change Password
         </a>
       </div>
-      <a id="user-token-management"
-         ng-click="vm.manageUserToken()"
-         class="iq-dropdown-menu__link--main-header">
-         Manage User Token
+      <a
+        id="user-token-management"
+        ng-click="vm.manageUserToken()"
+        class="iq-dropdown-menu__link--main-header"
+      >
+        Manage User Token
       </a>
-      <a id="user-details" ng-click="vm.details()" class="iq-dropdown-menu__link--main-header">
+      <a
+        id="user-details"
+        ng-click="vm.details()"
+        class="iq-dropdown-menu__link--main-header"
+      >
         Details
       </a>
-      <a id="logout"
-         form-mask="vm.logoutMask"
-         mask-attach-to-body
-         mask-message="Logging out..."
-         ng-click="vm.logout()"
-         class="iq-dropdown-menu__link--main-header">
+      <a
+        id="logout"
+        form-mask="vm.logoutMask"
+        mask-attach-to-body
+        mask-message="Logging out..."
+        ng-click="vm.logout()"
+        class="iq-dropdown-menu__link--main-header"
+      >
         Logout
       </a>
     </div>

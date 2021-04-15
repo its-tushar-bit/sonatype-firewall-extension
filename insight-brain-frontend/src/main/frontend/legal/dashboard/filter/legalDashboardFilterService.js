@@ -12,6 +12,6 @@ export function filterToJson(filter) {
     applicationFilters: setToArray(filter.applications),
     categoryFilters: setToArray(filter.categories),
     stageTypeFilters: setToArray(filter.stages),
-    progressOptionsFilters: setToArray(filter.progressOptions)
+    progressOptionsFilters: setToArray(filter.progressOptions),
   };
 }

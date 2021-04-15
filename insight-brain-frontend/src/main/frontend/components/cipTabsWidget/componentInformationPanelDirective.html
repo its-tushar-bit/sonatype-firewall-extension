@@ -1,14 +1,30 @@
-<div id="informationPanel" class="informationPanel fullBorderedTable" ng-show="vm.showCIP">
-  <div style="width:99%; padding-top: 5px; padding-left: 0.5%; padding-right: 0.5%;">
+<div
+  id="informationPanel"
+  class="informationPanel fullBorderedTable"
+  ng-show="vm.showCIP"
+>
+  <div
+    style="
+      width: 99%;
+      padding-top: 5px;
+      padding-left: 0.5%;
+      padding-right: 0.5%;
+    "
+  >
     <a ng-if="vm.showCloseButton" class="close" ng-click="vm.hide()">&times;</a>
     <ul class="nav nav-tabs" style="margin-bottom:0px; !important">
-      <li ng-repeat="tab in vm.tabs | filter: vm.tabShown" ng-class="{ active: vm.selectedTab === tab }">
+      <li
+        ng-repeat="tab in vm.tabs | filter: vm.tabShown"
+        ng-class="{ active: vm.selectedTab === tab }"
+      >
         <a ng-click="vm.selectedTab = tab">{{tab.title}}</a>
       </li>
     </ul>
     <div class="tab-content">
-      <div class="tab-pane active" cip-tab-pane="vm.selectedTab.directive">
-      </div>
+      <div
+        class="tab-pane active"
+        cip-tab-pane="vm.selectedTab.directive"
+      ></div>
     </div>
   </div>
 </div>

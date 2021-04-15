@@ -30,7 +30,9 @@ $iq-modal-bottom-spacing: 8px;
   border-radius: 0;
   box-shadow: -8px 8px 12px $iq-slate;
   height: auto;
-  max-height: calc(100vh - #{$iq-modal-top-spacing} - #{$iq-modal-bottom-spacing});
+  max-height: calc(
+    100vh - #{$iq-modal-top-spacing} - #{$iq-modal-bottom-spacing}
+  );
   margin: 0; // override bootstrap .modal style
   outline: none;
   position: fixed;
@@ -58,7 +60,8 @@ $iq-modal-bottom-spacing: 8px;
   }
 }
 
-.iq-modal-content, .iq-modal-footer {
+.iq-modal-content,
+.iq-modal-footer {
   .iq-grid-col {
     border-left-color: $iq-grey-4;
   }
@@ -77,7 +80,8 @@ $iq-modal-bottom-spacing: 8px;
 
   .iq-alert--system-notice {
     // last-child to handle specificity issue
-    &, &:last-child {
+    &,
+    &:last-child {
       border-width: 1px;
       margin: -12px -4px 12px -4px;
     }
@@ -106,7 +110,8 @@ $iq-modal-bottom-spacing: 8px;
   border-top: 1px solid $iq-grey-4;
   padding: 12px;
 
-  &.error, &.iq-error {
+  &.error,
+  &.iq-error {
     background-color: $iq-fail-color-bg;
     border: 1px solid $iq-fail-color;
     color: $iq-fail-color;

@@ -6,7 +6,10 @@
 export default function SameOwnerStateNavigationService($state) {
   return {
     goEdit: goEdit,
-    refactorStateParams: {edit: refactorStateParams('edit'), view: refactorStateParams('view')}
+    refactorStateParams: {
+      edit: refactorStateParams('edit'),
+      view: refactorStateParams('view'),
+    },
   };
 
   function goEdit(to, params) {
@@ -15,20 +18,24 @@ export default function SameOwnerStateNavigationService($state) {
   }
 
   function refactorStateParams(ownerState) {
-    return function(to, params) {
+    return function (to, params) {
       var isApp = $state.current.name.indexOf('application') !== -1,
-          isRepositories = $state.current.name.indexOf('repositories') !== -1,
-          type = isApp ? 'application' : isRepositories ? 'repositories' : 'organization',
-          ownerId = isApp ? 'applicationPublicId' : 'organizationId';
+        isRepositories = $state.current.name.indexOf('repositories') !== -1,
+        type = isApp
+          ? 'application'
+          : isRepositories
+          ? 'repositories'
+          : 'organization',
+        ownerId = isApp ? 'applicationPublicId' : 'organizationId';
 
-      to = 'management.' + ownerState + '.' + type + (to ? ('.' + to) : '');
+      to = 'management.' + ownerState + '.' + type + (to ? '.' + to : '');
       params = params || {};
 
       if ($state.params[ownerId]) {
         params[ownerId] = $state.params[ownerId];
       }
 
-      return {to: to, params: params};
+      return { to: to, params: params };
     };
   }
 }

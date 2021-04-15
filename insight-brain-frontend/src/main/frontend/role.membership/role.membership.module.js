@@ -8,6 +8,10 @@ import CLMContextLocationModule from '../util/CLMContextLocation';
 import RoleMembershipDirective from './role.membership.directive';
 import RoleMembershipController from './role.membership.controller';
 
-export default angular.module('role.membership.module', [CLMContextLocationModule.name, commonServicesModule.name])
-    .directive('roleMembership', RoleMembershipDirective)
-    .controller('role.membership.controller', RoleMembershipController);
+export default angular
+  .module('role.membership.module', [
+    CLMContextLocationModule.name,
+    commonServicesModule.name,
+  ])
+  .directive('roleMembership', RoleMembershipDirective)
+  .controller('role.membership.controller', RoleMembershipController);

@@ -4,12 +4,28 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
-import { __, any, complement, compose, curryN, eqProps, map, pick, prop, propEq, values } from 'ramda';
+import {
+  __,
+  any,
+  complement,
+  compose,
+  curryN,
+  eqProps,
+  map,
+  pick,
+  prop,
+  propEq,
+  values,
+} from 'ramda';
 
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import { pathSet, propSet } from '../../util/jsUtil';
-import { combineValidators, hasValidationErrors, validateNonEmpty, validatePatternMatch }
-  from '../../util/validationUtil';
+import {
+  combineValidators,
+  hasValidationErrors,
+  validateNonEmpty,
+  validatePatternMatch,
+} from '../../util/validationUtil';
 
 import {
   MAIL_CONFIG_LOAD_REQUESTED,
@@ -34,7 +50,7 @@ import {
   MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED,
   MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED,
   MAIL_CONFIG_SEND_TEST_MAIL_FAILED,
-  MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE
+  MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE,
 } from './mailConfigActions';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
@@ -53,7 +69,7 @@ const initialState = {
     sslEnabled: false,
     startTlsEnabled: false,
     systemEmail: textInputStateHelpers.initialState(''),
-    testEmail: textInputStateHelpers.initialState('')
+    testEmail: textInputStateHelpers.initialState(''),
   },
   isDirty: false,
   isValid: true,
@@ -67,35 +83,43 @@ const initialState = {
   testEmailError: null,
   showDeleteModal: false,
   mustReenterPassword: false,
-  testEmailSent: false
+  testEmailSent: false,
 };
 
 const textProps = ['hostname', 'port', 'username', 'password', 'systemEmail'],
-    booleanProps = ['startTlsEnabled', 'sslEnabled'];
+  booleanProps = ['startTlsEnabled', 'sslEnabled'];
 
-const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
+const portValidator = combineValidators([
+  validateNonEmpty,
+  validatePatternMatch(/^\d+$/, 'Must be a number'),
+]);
 
-const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'testEmailError'], initialState);
+const clearedErrors = pick(
+  ['loadError', 'saveError', 'deleteError', 'testEmailError'],
+  initialState
+);
 
 function setFormStateFromServerData(state) {
   const { serverData } = state,
-      formState = {
-        hostname: textInputStateHelpers.initialState(serverData.hostname),
-        port: textInputStateHelpers.initialState(serverData.port.toString()),
-        username: textInputStateHelpers.initialState(serverData.username || ''),
-        password: textInputStateHelpers.initialState(FAKE_PASSWORD),
-        sslEnabled: serverData.sslEnabled,
-        startTlsEnabled: serverData.startTlsEnabled,
-        systemEmail: textInputStateHelpers.initialState(serverData.systemEmail),
-        testEmail: state.formState.testEmail
-      };
+    formState = {
+      hostname: textInputStateHelpers.initialState(serverData.hostname),
+      port: textInputStateHelpers.initialState(serverData.port.toString()),
+      username: textInputStateHelpers.initialState(serverData.username || ''),
+      password: textInputStateHelpers.initialState(FAKE_PASSWORD),
+      sslEnabled: serverData.sslEnabled,
+      startTlsEnabled: serverData.startTlsEnabled,
+      systemEmail: textInputStateHelpers.initialState(serverData.systemEmail),
+      testEmail: state.formState.testEmail,
+    };
 
   return computeHasAllRequiredData({ ...state, formState });
 }
 
 function computeHasAllRequiredData(state) {
-  const { formState: { hostname, port, systemEmail } } = state,
-      hasAllRequiredData = !!(hostname.value && port.value && systemEmail.value);
+  const {
+      formState: { hostname, port, systemEmail },
+    } = state,
+    hasAllRequiredData = !!(hostname.value && port.value && systemEmail.value);
 
   return { ...state, hasAllRequiredData };
 }
@@ -104,17 +128,31 @@ function computeIsDirty(state) {
   const { formState, serverData } = state;
 
   if (serverData) {
-    const isTextPropDirty = prop => formState[prop].trimmedValue !== (serverData[prop] || ''),
-        textPropsDirty = any(isTextPropDirty, ['hostname', 'username', 'systemEmail']),
-        booleanPropsDirty = any(complement(eqProps(__, formState, serverData)), booleanProps),
-        portDirty = serverData.port.toString() !== formState.port.value,
-        passwordDirty = formState.password.value !== FAKE_PASSWORD;
+    const isTextPropDirty = (prop) =>
+        formState[prop].trimmedValue !== (serverData[prop] || ''),
+      textPropsDirty = any(isTextPropDirty, [
+        'hostname',
+        'username',
+        'systemEmail',
+      ]),
+      booleanPropsDirty = any(
+        complement(eqProps(__, formState, serverData)),
+        booleanProps
+      ),
+      portDirty = serverData.port.toString() !== formState.port.value,
+      passwordDirty = formState.password.value !== FAKE_PASSWORD;
 
-    return { ...state, isDirty: textPropsDirty || booleanPropsDirty || portDirty || passwordDirty };
-  }
-  else {
-    const textPropsDirty = any(prop => formState[prop].trimmedValue !== '', textProps),
-        booleanPropsDirty = any(propEq(__, true, formState), booleanProps);
+    return {
+      ...state,
+      isDirty:
+        textPropsDirty || booleanPropsDirty || portDirty || passwordDirty,
+    };
+  } else {
+    const textPropsDirty = any(
+        (prop) => formState[prop].trimmedValue !== '',
+        textProps
+      ),
+      booleanPropsDirty = any(propEq(__, true, formState), booleanProps);
 
     return { ...state, isDirty: textPropsDirty || booleanPropsDirty };
   }
@@ -122,8 +160,11 @@ function computeIsDirty(state) {
 
 function computeIsValid(state) {
   const { formState } = state,
-      validationErrorsByProp = map(prop('validationErrors'), pick(textProps, formState)),
-      isValid = !any(hasValidationErrors, values(validationErrorsByProp));
+    validationErrorsByProp = map(
+      prop('validationErrors'),
+      pick(textProps, formState)
+    ),
+    isValid = !any(hasValidationErrors, values(validationErrorsByProp));
 
   return { ...state, isValid };
 }
@@ -136,25 +177,31 @@ function computeMustReenterPassword(state) {
   }
 
   const { formState } = state,
-      hostname = formState.hostname.value,
-      port = formState.port.value,
-      password = formState.password.value,
-      serverHostname = serverData.hostname,
-      serverPort = serverData.port.toString();
+    hostname = formState.hostname.value,
+    port = formState.port.value,
+    password = formState.password.value,
+    serverHostname = serverData.hostname,
+    serverPort = serverData.port.toString();
 
   return {
     ...state,
-    mustReenterPassword: (hostname !== serverHostname || port !== serverPort) && password === FAKE_PASSWORD
+    mustReenterPassword:
+      (hostname !== serverHostname || port !== serverPort) &&
+      password === FAKE_PASSWORD,
   };
 }
 
-const updatedComputedProps = compose(computeHasAllRequiredData, computeIsDirty, computeIsValid,
-    computeMustReenterPassword);
+const updatedComputedProps = compose(
+  computeHasAllRequiredData,
+  computeIsDirty,
+  computeIsValid,
+  computeMustReenterPassword
+);
 
 function loadRequested() {
   return {
     ...initialState,
-    loading: true
+    loading: true,
   };
 }
 
@@ -168,21 +215,23 @@ function loadFulfilled(payload, state) {
     submitMaskMessage: initialState.submitMaskMessage,
     serverData: payload,
     mustReenterPassword: false,
-    testEmailSent: false
+    testEmailSent: false,
   });
 }
 
-const resetForm = (_, state) => state.serverData ? loadFulfilled(state.serverData, state) : initialState;
+const resetForm = (_, state) =>
+  state.serverData ? loadFulfilled(state.serverData, state) : initialState;
 
 function loadFailed(payload) {
   // 404 is fine, it just means there is no configuration
-  const error = payload.response && payload.response.status === 404 ? null : payload;
+  const error =
+    payload.response && payload.response.status === 404 ? null : payload;
 
   return {
     ...initialState,
     loading: false,
     ...clearedErrors,
-    loadError: error
+    loadError: error,
   };
 }
 
@@ -192,7 +241,7 @@ function saveRequested(payload, state) {
     submitMaskState: false,
     submitMaskMessage: SUBMIT_MASK_SAVING_MESSAGE,
     testEmailSent: false,
-    ...clearedErrors
+    ...clearedErrors,
   };
 }
 
@@ -203,7 +252,7 @@ function saveFulfilled(payload, state) {
     submitMaskState: true,
     isDirty: false,
     ...clearedErrors,
-    serverData: payload
+    serverData: payload,
   });
 }
 
@@ -213,7 +262,7 @@ function saveFailed(payload, state) {
     loading: false,
     submitMaskState: null,
     ...clearedErrors,
-    saveError: payload
+    saveError: payload,
   };
 }
 
@@ -221,7 +270,7 @@ function sendTestMailRequested(payload, state) {
   return {
     ...state,
     submitMaskState: false,
-    submitMaskMessage: SUBMIT_MASK_SENDING_TEST_MAIL_MESSAGE
+    submitMaskMessage: SUBMIT_MASK_SENDING_TEST_MAIL_MESSAGE,
   };
 }
 
@@ -230,7 +279,7 @@ function sendTestMailFulfilled(payload, state) {
     ...state,
     submitMaskState: true,
     testEmailSent: true,
-    testEmailError: null
+    testEmailError: null,
   };
 }
 
@@ -239,7 +288,7 @@ function sendTestMailFailed(payload, state) {
     ...state,
     submitMaskState: null,
     testEmailError: payload,
-    testEmailSent: false
+    testEmailSent: false,
   };
 }
 
@@ -249,7 +298,7 @@ function deleteRequested(payload, state) {
     submitMaskState: false,
     submitMaskMessage: SUBMIT_MASK_DELETING_MESSAGE,
     showDeleteModal: false,
-    ...clearedErrors
+    ...clearedErrors,
   };
 }
 
@@ -263,19 +312,29 @@ function deleteFailed(payload, state) {
     loading: false,
     submitMaskState: null,
     ...clearedErrors,
-    deleteError: payload
+    deleteError: payload,
   };
 }
 
-const setTextInput = curryN(4, function setTextInput(fieldName, validator, payload, state) {
-  const stateWithUpdatedValue =
-      pathSet(['formState', fieldName], textInputStateHelpers.userInput(validator, payload), state);
+const setTextInput = curryN(
+  4,
+  function setTextInput(fieldName, validator, payload, state) {
+    const stateWithUpdatedValue = pathSet(
+      ['formState', fieldName],
+      textInputStateHelpers.userInput(validator, payload),
+      state
+    );
 
-  return updatedComputedProps(stateWithUpdatedValue);
-});
+    return updatedComputedProps(stateWithUpdatedValue);
+  }
+);
 
 const setCheckbox = curryN(3, function setCheckbox(fieldName, payload, state) {
-  const stateWithUpdatedValue = pathSet(['formState', fieldName], payload, state);
+  const stateWithUpdatedValue = pathSet(
+    ['formState', fieldName],
+    payload,
+    state
+  );
 
   return updatedComputedProps(stateWithUpdatedValue);
 });
@@ -303,7 +362,7 @@ const reducerActionMap = {
   [MAIL_CONFIG_SEND_TEST_MAIL_FAILED]: sendTestMailFailed,
   [MAIL_CONFIG_SET_TEST_EMAIL]: setTextInput('testEmail', null),
   [MAIL_CONFIG_SET_SHOW_DELETE_MODAL]: propSet('showDeleteModal'),
-  [MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null)
+  [MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

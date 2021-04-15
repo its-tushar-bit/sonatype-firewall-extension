@@ -10,15 +10,18 @@ import {
   NxButton,
   NxFontAwesomeIcon,
   NxTextInput,
-  NxTooltip
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 
 export default function UserTokenDisplay({ userToken }) {
   const { userCode, passCode } = userToken;
 
-  const onSubmit = (evt) => { evt.preventDefault(); };
+  const onSubmit = (evt) => {
+    evt.preventDefault();
+  };
 
-  const copyToClipboard = textToCopy => navigator.clipboard.writeText(textToCopy);
+  const copyToClipboard = (textToCopy) =>
+    navigator.clipboard.writeText(textToCopy);
 
   return (
     <form onSubmit={onSubmit}>
@@ -26,18 +29,22 @@ export default function UserTokenDisplay({ userToken }) {
         <div className="nx-form-group">
           <label className="nx-label">
             <span className="nx-label__text">User Code</span>
-            <NxTextInput id="user-token-usercode"
-                         isPristine={true}
-                         value={userCode}
-                         className="user-token-modal__input visual-testing-ignore"/>
+            <NxTextInput
+              id="user-token-usercode"
+              isPristine={true}
+              value={userCode}
+              className="user-token-modal__input visual-testing-ignore"
+            />
           </label>
         </div>
         <div className="nx-btn-bar">
           <NxTooltip title="Copy to clipboard">
-            <NxButton id="user-token-copy-usercode"
-                      variant="tertiary"
-                      onClick={() => copyToClipboard(userCode)}>
-              <NxFontAwesomeIcon icon={faCopy}/>
+            <NxButton
+              id="user-token-copy-usercode"
+              variant="tertiary"
+              onClick={() => copyToClipboard(userCode)}
+            >
+              <NxFontAwesomeIcon icon={faCopy} />
             </NxButton>
           </NxTooltip>
         </div>
@@ -46,18 +53,22 @@ export default function UserTokenDisplay({ userToken }) {
         <div className="nx-form-group">
           <label className="nx-label">
             <span className="nx-label__text">Passcode</span>
-            <NxTextInput id="user-token-passcode"
-                         isPristine={true}
-                         value={passCode}
-                         className="user-token-modal__input visual-testing-ignore"/>
+            <NxTextInput
+              id="user-token-passcode"
+              isPristine={true}
+              value={passCode}
+              className="user-token-modal__input visual-testing-ignore"
+            />
           </label>
         </div>
         <div className="nx-btn-bar">
           <NxTooltip title="Copy to clipboard">
-            <NxButton id="user-token-copy-passcode"
-                      variant="tertiary"
-                      onClick={() => copyToClipboard(passCode)}>
-              <NxFontAwesomeIcon icon={faCopy}/>
+            <NxButton
+              id="user-token-copy-passcode"
+              variant="tertiary"
+              onClick={() => copyToClipboard(passCode)}
+            >
+              <NxFontAwesomeIcon icon={faCopy} />
             </NxButton>
           </NxTooltip>
         </div>
@@ -68,9 +79,9 @@ export default function UserTokenDisplay({ userToken }) {
 
 export const userTokenType = {
   userCode: PropTypes.string.isRequired,
-  passCode: PropTypes.string.isRequired
+  passCode: PropTypes.string.isRequired,
 };
 
 UserTokenDisplay.propTypes = {
-  userToken: PropTypes.shape(userTokenType).isRequired
+  userToken: PropTypes.shape(userTokenType).isRequired,
 };

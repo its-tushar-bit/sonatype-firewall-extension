@@ -8,21 +8,21 @@ window.clmEndpoint = {
   migrate: true,
   selectApplication: false,
   viewDetails: true,
-  openView: function(scope, value){
+  openView: function (scope, value) {
     scope.$emit('openView', value);
   },
   linkTarget: '_self',
-  path: '../../'
+  path: '../../',
 };
 
 window.CLM = {
   path: window.clmEndpoint.path + '../../',
-  assetsPath: window.clmEndpoint.path + '../'
+  assetsPath: window.clmEndpoint.path + '../',
 };
 
 // disable the context menu to prevent the user from reloading the page which would break the integration with
 // the IDE plugin's Java code
-$(document).bind('contextmenu', function() {
+$(document).bind('contextmenu', function () {
   return false;
 });
 

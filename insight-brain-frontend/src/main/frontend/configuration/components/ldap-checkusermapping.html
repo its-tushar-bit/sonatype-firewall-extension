@@ -1,23 +1,42 @@
 <div id="ldap-checkusermapping-modal">
   <div class="iq-modal-header">
     <h2>Verify LDAP Field Mappings</h2>
-    <span class="icon-question-sign"
-          data-popover="{{infoText}}"
-          data-popover-placement="left"
-          data-popover-trigger="mouseenter"></span>
+    <span
+      class="icon-question-sign"
+      data-popover="{{infoText}}"
+      data-popover-placement="left"
+      data-popover-trigger="mouseenter"
+    ></span>
   </div>
   <div class="iq-modal-content iq-scrollable modal-ldap-user-list">
     <table class="iq-table">
       <thead>
         <tr class="iq-table-row">
-          <th class="iq-cell iq-cell--header modal-ldap-user-list__username-column">USERNAME</th>
-          <th class="iq-cell iq-cell--header modal-ldap-user-list__name-column">NAME</th>
-          <th class="iq-cell iq-cell--header modal-ldap-user-list__email-column">EMAIL</th>
-          <th class="iq-cell iq-cell--header modal-ldap-user-list__groups-column">GROUPS</th>
+          <th
+            class="iq-cell iq-cell--header modal-ldap-user-list__username-column"
+          >
+            USERNAME
+          </th>
+          <th class="iq-cell iq-cell--header modal-ldap-user-list__name-column">
+            NAME
+          </th>
+          <th
+            class="iq-cell iq-cell--header modal-ldap-user-list__email-column"
+          >
+            EMAIL
+          </th>
+          <th
+            class="iq-cell iq-cell--header modal-ldap-user-list__groups-column"
+          >
+            GROUPS
+          </th>
         </tr>
       </thead>
       <tbody>
-        <tr class="iq-table-row" ng-repeat="user in users | orderBy: ['-fieldCount', 'username']">
+        <tr
+          class="iq-table-row"
+          ng-repeat="user in users | orderBy: ['-fieldCount', 'username']"
+        >
           <td class="iq-cell modal-ldap-user-list__username-column">
             <span iq-tooltip tooltip-text="{{::user.username}}">
               {{::user.username}}
@@ -43,6 +62,12 @@
     </table>
   </div>
   <div class="iq-modal-footer">
-    <button class="iq-btn" id="verify-field-mappings-cancel" ng-click="$close()">Close</button>
+    <button
+      class="iq-btn"
+      id="verify-field-mappings-cancel"
+      ng-click="$close()"
+    >
+      Close
+    </button>
   </div>
 </div>

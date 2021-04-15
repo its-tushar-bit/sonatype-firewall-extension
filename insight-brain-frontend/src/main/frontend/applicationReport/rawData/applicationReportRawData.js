@@ -11,23 +11,31 @@ import template from './applicationReportRawData.html';
 export default {
   template: template,
   controllerAs: 'vm',
-  controller: ApplicationReportRawController
+  controller: ApplicationReportRawController,
 };
 
-function ApplicationReportRawController($ngRedux, applicationReportActions, SelectedComponent, OwnerContext) {
+function ApplicationReportRawController(
+  $ngRedux,
+  applicationReportActions,
+  SelectedComponent,
+  OwnerContext
+) {
   const vm = this;
 
   Object.assign(vm, {
     $onInit() {
       const actions = {
         openVulnerabilityDetailsModal,
-        ...pick([
-          'loadReportRawData',
-          'setRawDataNumericMinFilter',
-          'setRawDataNumericMaxFilter',
-          'setRawDataStringFieldFilter',
-          'setSortingRawData'
-        ], applicationReportActions)
+        ...pick(
+          [
+            'loadReportRawData',
+            'setRawDataNumericMinFilter',
+            'setRawDataNumericMaxFilter',
+            'setRawDataStringFieldFilter',
+            'setSortingRawData',
+          ],
+          applicationReportActions
+        ),
       };
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
       vm.load();
@@ -42,15 +50,24 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Sele
     },
 
     onRawDataComponentNameFilterChange() {
-      vm.setRawDataStringFieldFilter('derivedComponentName', vm.derivedComponentNameSubstringFilter);
+      vm.setRawDataStringFieldFilter(
+        'derivedComponentName',
+        vm.derivedComponentNameSubstringFilter
+      );
     },
 
     onRawDataLicenseFilterChange() {
-      vm.setRawDataStringFieldFilter('licenseSortKey', vm.licenseSortKeySubstringFilter);
+      vm.setRawDataStringFieldFilter(
+        'licenseSortKey',
+        vm.licenseSortKeySubstringFilter
+      );
     },
 
     onRawDataSecurityCodeFilterChange() {
-      vm.setRawDataStringFieldFilter('securityCode', vm.securityCodeSubstringFilter);
+      vm.setRawDataStringFieldFilter(
+        'securityCode',
+        vm.securityCodeSubstringFilter
+      );
     },
 
     onRawDataCVSSMinFilterChange() {
@@ -63,10 +80,10 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Sele
 
     getLicenseTooltip(rawDataEntry) {
       const placeholder = '-',
-          joiner = pipe(defaultTo([]), join(', ')),
-          license = rawDataEntry.license || {},
-          declaredLicenses = joiner(license.declaredLicenses),
-          observedLicenses = joiner(license.observedLicenses);
+        joiner = pipe(defaultTo([]), join(', ')),
+        license = rawDataEntry.license || {},
+        declaredLicenses = joiner(license.declaredLicenses),
+        observedLicenses = joiner(license.observedLicenses);
 
       return `
         <dl class="iq-license-table">
@@ -87,15 +104,22 @@ function ApplicationReportRawController($ngRedux, applicationReportActions, Sele
           identificationSource: rawDataEntry.identificationSource || '',
           scanId,
           ownerId,
-          ownerType
-        }
+          ownerType,
+        },
       });
-    }
+    },
   });
 }
 
-export function mapStateToThis({applicationReport, vulnerabilityDetailsModal}) {
-  const { derivedComponentName, licenseSortKey, securityCode } = applicationReport.rawDataSubstringFilters;
+export function mapStateToThis({
+  applicationReport,
+  vulnerabilityDetailsModal,
+}) {
+  const {
+    derivedComponentName,
+    licenseSortKey,
+    securityCode,
+  } = applicationReport.rawDataSubstringFilters;
   const { cvssScore } = applicationReport.rawDataNumericFilters;
   let cvssScoreMin, cvssScoreMax;
 
@@ -112,7 +136,7 @@ export function mapStateToThis({applicationReport, vulnerabilityDetailsModal}) {
     securityCodeSubstringFilter: securityCode,
     cvssMinNumericFilter: cvssScoreMin,
     cvssMaxNumericFilter: cvssScoreMax,
-    ...pick(['vulnerabilityId'], vulnerabilityDetailsModal)
+    ...pick(['vulnerabilityId'], vulnerabilityDetailsModal),
   };
 }
 
@@ -120,5 +144,5 @@ ApplicationReportRawController.$inject = [
   '$ngRedux',
   'applicationReportActions',
   'SelectedComponent',
-  'OwnerContext'
+  'OwnerContext',
 ];

@@ -5,7 +5,7 @@
  */
 
 import React, { Fragment, useState } from 'react';
-import {NxButton, NxTextInput} from '@sonatype/react-shared-components';
+import { NxButton, NxTextInput } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import AdvancedSearchHelp from './AdvancedSearchHelp';
 import AdvancedSearchCriteriaBuilder from './AdvancedSearchCriteriaBuilder';
@@ -15,10 +15,7 @@ export default function AdvancedSearchForm(props) {
     searchFormSubmit,
     setCurrentQuery,
     currentQuery,
-    searchResult: {
-      page,
-      totalNumberOfHits
-    }
+    searchResult: { page, totalNumberOfHits },
   } = props;
 
   const [showCriteriaBuilder, setShowCriteriaBuilder] = useState(false);
@@ -55,45 +52,65 @@ export default function AdvancedSearchForm(props) {
 
   return (
     <Fragment>
-      <form className="nx-form nx-form--advanced-search" id="advanced-search-form" onSubmit={formOnSubmitHandler}>
+      <form
+        className="nx-form nx-form--advanced-search"
+        id="advanced-search-form"
+        onSubmit={formOnSubmitHandler}
+      >
         <div className="nx-form-row">
           <div className="nx-form-group">
             <label className="nx-label">
-              <NxTextInput id={inputFieldId}
-                           className="nx-text-input--advanced-search"
-                           isPristine={currentQuery === ''}
-                           onChange={queryInputOnChangeHandler}
-                           value={currentQuery}/>
+              <NxTextInput
+                id={inputFieldId}
+                className="nx-text-input--advanced-search"
+                isPristine={currentQuery === ''}
+                onChange={queryInputOnChangeHandler}
+                value={currentQuery}
+              />
             </label>
           </div>
           <div className="nx-btn-bar">
-            <NxButton id="advanced-search-button"
-                      inline
-                      variant="primary"
-                      disabled={!currentQuery}>
+            <NxButton
+              id="advanced-search-button"
+              inline
+              variant="primary"
+              disabled={!currentQuery}
+            >
               Search
             </NxButton>
           </div>
         </div>
       </form>
-      <AdvancedSearchCriteriaBuilder {...props}
-                                     inputFieldId={inputFieldId}
-                                     showCriteriaBuilder={showCriteriaBuilder}
-                                     setShowCriteriaBuilder={setShowCriteriaBuilder}/>
+      <AdvancedSearchCriteriaBuilder
+        {...props}
+        inputFieldId={inputFieldId}
+        showCriteriaBuilder={showCriteriaBuilder}
+        setShowCriteriaBuilder={setShowCriteriaBuilder}
+      />
       <AdvancedSearchHelp {...props} />
       <section className="nx-tile iq-adv-search__results-control-tile">
         <div className="nx-tile-content">
-          <h2 id="advanced-search-result-count" className="nx-h2">Results: {totalNumberOfHits}</h2>
+          <h2 id="advanced-search-result-count" className="nx-h2">
+            Results: {totalNumberOfHits}
+          </h2>
           <div className="nx-btn-bar">
-            { numberOfPages() !== 0 &&
-              <span id="advanced-search-current-page-info">Page {page} of {numberOfPages()}</span>
-            }
-            <NxButton id="advanced-search-previous-page-button" disabled={page <= 1} onClick={previousPageHandler}>
+            {numberOfPages() !== 0 && (
+              <span id="advanced-search-current-page-info">
+                Page {page} of {numberOfPages()}
+              </span>
+            )}
+            <NxButton
+              id="advanced-search-previous-page-button"
+              disabled={page <= 1}
+              onClick={previousPageHandler}
+            >
               Previous
             </NxButton>
-            <NxButton id="advanced-search-next-page-button"
-                      disabled={page >= numberOfPages()}
-                      onClick={nextPageHandler}>
+            <NxButton
+              id="advanced-search-next-page-button"
+              disabled={page >= numberOfPages()}
+              onClick={nextPageHandler}
+            >
               Next
             </NxButton>
           </div>
@@ -110,5 +127,5 @@ AdvancedSearchForm.propTypes = {
   // formState
   currentQuery: PropTypes.string.isRequired,
   searchResult: PropTypes.object,
-  totalNumberOfHits: PropTypes.number
+  totalNumberOfHits: PropTypes.number,
 };

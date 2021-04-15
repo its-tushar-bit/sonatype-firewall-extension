@@ -7,8 +7,13 @@
 import cipLicenseEditorDirective from './cip.license.editor.directive';
 import licenseEditorController from './license.editor.controller';
 
-export default angular.module('cip.license.editor', [
-  'CommonServices', 'HttpInterceptors', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'utility.directives'
-])
-    .directive('cipLicenseEditor', cipLicenseEditorDirective)
-    .controller('LicenseEditorController', licenseEditorController);
+export default angular
+  .module('cip.license.editor', [
+    'CommonServices',
+    'HttpInterceptors',
+    'UnauthenticatedResponseHttpInterceptor',
+    'ui.bootstrap',
+    'utility.directives',
+  ])
+  .directive('cipLicenseEditor', cipLicenseEditorDirective)
+  .controller('LicenseEditorController', licenseEditorController);

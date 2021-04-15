@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import "cipTabPanel/cipTabPanel";
-@import "../../../version-graph/buttons";
-@import "../../../version-graph/content";
+@import 'cipTabPanel/cipTabPanel';
+@import '../../../version-graph/buttons';
+@import '../../../version-graph/content';
 @import '../../../cip/cip.policy.violations/cip-policy-violations';
 @import '../../../cip/cip.license.editor/cip-license-editor';
 @import '../../../cip/cip.label.editor/cip-label-editor';
@@ -42,13 +42,14 @@ $cip-modal-max-height: 550px;
     padding: 0;
 
     #informationPanel {
-      height: calc((100vh - #{$cip-modal-vertical-margins})
-                  - #{$cip-modal-header-height}
-                  - #{$cip-modal-footer-height});
-      max-height: calc(#{$cip-modal-max-height}
-                  + var(--inner-source-banner-height)
-                  - #{$cip-modal-header-height}
-                  - #{$cip-modal-footer-height});
+      height: calc(
+        (100vh - #{$cip-modal-vertical-margins}) - #{$cip-modal-header-height} -
+          #{$cip-modal-footer-height}
+      );
+      max-height: calc(
+        #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} -
+          #{$cip-modal-footer-height}
+      );
 
       .tab-content {
         height: 100%;
@@ -82,10 +83,12 @@ $cip-modal-max-height: 550px;
           }
 
           // compensate for discrepancies in Bootstrap in CIP - v2.0.4 vs IQ - v2.3.2
-          .table th, .table td {
+          .table th,
+          .table td {
             line-height: 18px;
           }
-          label, .nav-header {
+          label,
+          .nav-header {
             line-height: 18px;
           }
           .btn {
@@ -105,7 +108,6 @@ $cip-modal-max-height: 550px;
         }
 
         #vulnerability-editor-table-wrapper {
-
           .topBorder {
             border: 10px solid $iq-grey-1;
             margin-left: 5px;
@@ -152,37 +154,29 @@ cip-occurrences,
 .labelEditor.iq-load-wrapper,
 cip-audit,
 #claim-component-editor {
-  height: calc(100vh - #{$cip-modal-vertical-margins}
-                 - #{$cip-modal-header-height}
-                 - #{$cip-modal-tab-bar-height}
-                 - #{$cip-modal-footer-height}
-                 - var(--inner-source-height)
-                 - #{$iq-cip-tab-content-padding-top});
-  max-height: calc( #{$cip-modal-max-height}
-              + var(--inner-source-banner-height)
-              - #{$cip-modal-header-height}
-              - #{$cip-modal-tab-bar-height}
-              - #{$cip-modal-footer-height}
-              - var(--inner-source-height)
-              - #{$iq-cip-tab-content-padding-top});
+  height: calc(
+    100vh - #{$cip-modal-vertical-margins} - #{$cip-modal-header-height} - #{$cip-modal-tab-bar-height} -
+      #{$cip-modal-footer-height} - var(--inner-source-height) - #{$iq-cip-tab-content-padding-top}
+  );
+  max-height: calc(
+    #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} -
+      #{$cip-modal-tab-bar-height} - #{$cip-modal-footer-height} -
+      var(--inner-source-height) - #{$iq-cip-tab-content-padding-top}
+  );
 }
 
 .cip-policy-wrapper {
-  height: calc(100vh - #{$cip-modal-vertical-margins}
-                 - #{$cip-modal-header-height}
-                 - #{$cip-modal-tab-bar-height}
-                 - #{$cip-modal-footer-height}
-                 - #{$iq-spacing-xs}
-                 - var(--inner-source-height)
-                 - 42px); // button bar & margins
-  max-height: calc( #{$cip-modal-max-height}
-              + var(--inner-source-banner-height)
-              - #{$cip-modal-header-height}
-              - #{$cip-modal-tab-bar-height}
-              - #{$cip-modal-footer-height}
-              - #{$iq-spacing-xs}
-              - var(--inner-source-height)
-              - 42px); // button bar & margins
+  height: calc(
+    100vh - #{$cip-modal-vertical-margins} - #{$cip-modal-header-height} - #{$cip-modal-tab-bar-height} -
+      #{$cip-modal-footer-height} - #{$iq-spacing-xs} - var(
+        --inner-source-height
+      ) - 42px
+  ); // button bar & margins
+  max-height: calc(
+    #{$cip-modal-max-height} + var(--inner-source-banner-height) - #{$cip-modal-header-height} -
+      #{$cip-modal-tab-bar-height} - #{$cip-modal-footer-height} - #{$iq-spacing-xs} -
+      var(--inner-source-height) - 42px
+  ); // button bar & margins
 }
 
 cip-audit {
@@ -214,7 +208,8 @@ cip-audit {
   }
 }
 
-cip-similar, cip-occurrences {
+cip-similar,
+cip-occurrences {
   display: block;
 
   .iq-scrollable {

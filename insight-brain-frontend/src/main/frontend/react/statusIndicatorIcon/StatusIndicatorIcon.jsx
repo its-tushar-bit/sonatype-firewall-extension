@@ -5,19 +5,19 @@
  */
 
 import React from 'react';
-import {faCircle} from '@fortawesome/pro-solid-svg-icons';
-import {NxFontAwesomeIcon} from '@sonatype/react-shared-components';
+import { faCircle } from '@fortawesome/pro-solid-svg-icons';
+import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 
 export default function StatusIndicatorIcon({ status }) {
-  const iconClassName = classnames('iq-status-indicator-icon', {'iq-status-indicator-icon--active': status});
+  const iconClassName = classnames('iq-status-indicator-icon', {
+    'iq-status-indicator-icon--active': status,
+  });
 
-  return (
-    <NxFontAwesomeIcon icon={faCircle} className={iconClassName}/>
-  );
+  return <NxFontAwesomeIcon icon={faCircle} className={iconClassName} />;
 }
 
 StatusIndicatorIcon.propTypes = {
-  status: PropTypes.bool.isRequired
+  status: PropTypes.bool.isRequired,
 };

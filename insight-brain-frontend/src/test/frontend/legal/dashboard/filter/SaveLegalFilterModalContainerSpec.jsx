@@ -5,47 +5,51 @@
  */
 import React from 'react';
 import configureStore from 'redux-mock-store';
-import {mount} from 'enzyme';
-import {Provider} from 'react-redux';
+import { mount } from 'enzyme';
+import { Provider } from 'react-redux';
 
-describe('SaveLegalFilterModalContainer', function() {
-
+describe('SaveLegalFilterModalContainer', function () {
   let store,
-      state,
-      mockDashboardFilterActions,
-      mockManageFiltersActions,
-      mockMessages,
-      SaveLegalFilterModalContainer,
-      MockSaveFilterModalContent,
-      vdom;
+    state,
+    mockDashboardFilterActions,
+    mockManageFiltersActions,
+    mockMessages,
+    SaveLegalFilterModalContainer,
+    MockSaveFilterModalContent,
+    vdom;
 
   const mockSaveFilterError = 'saveFilterError';
   const mockSaveFilterWarning = 'saveFilterWarning';
   const mockErrorMessage = 'mockErrorMessage';
 
-  beforeEach(function() {
-    const mockDisplaySaveFilterModal = jasmine.createSpy('setDisplaySaveFilterModal');
+  beforeEach(function () {
+    const mockDisplaySaveFilterModal = jasmine.createSpy(
+      'setDisplaySaveFilterModal'
+    );
 
-    MockSaveFilterModalContent = jasmine.createSpy('mockSaveFilterModalContentPage')
-        .and.returnValue(<div>mockSaveFilterModalContentPage</div>);
+    MockSaveFilterModalContent = jasmine
+      .createSpy('mockSaveFilterModalContentPage')
+      .and.returnValue(<div>mockSaveFilterModalContentPage</div>);
 
     mockDashboardFilterActions = {
-      setDisplaySaveFilterModal: mockDisplaySaveFilterModal
+      setDisplaySaveFilterModal: mockDisplaySaveFilterModal,
     };
 
     mockManageFiltersActions = {
-      saveFilter: jasmine.createSpy('saveFilter')
+      saveFilter: jasmine.createSpy('saveFilter'),
     };
     mockMessages = {
-      getHttpErrorMessage: jasmine.createSpy('getHttpErrorMessage').and.returnValue(mockErrorMessage)
+      getHttpErrorMessage: jasmine
+        .createSpy('getHttpErrorMessage')
+        .and.returnValue(mockErrorMessage),
     };
 
-    SaveLegalFilterModalContainer = require(
-        'inject-loader!../../../../../main/frontend/legal/dashboard/filter/SaveLegalFilterModalContainer'
-    )({
-      '../../../dashboard/filter/saveFilterModal/SaveFilterModalContent': MockSaveFilterModalContent,
-      '../../../util/CommonServices': { Messages: mockMessages }
-    }).default;
+    SaveLegalFilterModalContainer = require('inject-loader!../../../../../main/frontend/legal/dashboard/filter/SaveLegalFilterModalContainer')(
+      {
+        '../../../dashboard/filter/saveFilterModal/SaveFilterModalContent': MockSaveFilterModalContent,
+        '../../../util/CommonServices': { Messages: mockMessages },
+      }
+    ).default;
 
     state = {
       manageLegalFilters: {
@@ -53,23 +57,23 @@ describe('SaveLegalFilterModalContainer', function() {
         saveFilterSaving: true,
         saveFilterSuccess: false,
         saveFilterError: mockSaveFilterError,
-        saveFilterWarning: mockSaveFilterWarning
-      }
+        saveFilterWarning: mockSaveFilterWarning,
+      },
     };
 
     store = configureStore()(() => state);
     vdom = (
       <Provider store={store}>
         <SaveLegalFilterModalContainer
-            dashboardFilterActions={mockDashboardFilterActions}
-            manageFiltersActions={mockManageFiltersActions}
-            Messages={mockMessages}
+          dashboardFilterActions={mockDashboardFilterActions}
+          manageFiltersActions={mockManageFiltersActions}
+          Messages={mockMessages}
         />
       </Provider>
     );
   });
 
-  it('passes the correct properties to SaveFilterModalContent from mapStateToPops and mapDispatchToProps', function() {
+  it('passes the correct properties to SaveFilterModalContent from mapStateToPops and mapDispatchToProps', function () {
     const wrapper = mount(vdom);
     const modalContent = wrapper.find(MockSaveFilterModalContent).props();
     expect(modalContent.appliedFilterName).toEqual('appliedFilterName');
@@ -78,6 +82,8 @@ describe('SaveLegalFilterModalContainer', function() {
     expect(modalContent.saveFilter).toEqual(jasmine.any(Function));
     expect(modalContent.saveError).toEqual(mockErrorMessage);
     expect(modalContent.saveFilterWarning).toEqual(mockSaveFilterWarning);
-    expect(mockMessages.getHttpErrorMessage).toHaveBeenCalledWith(mockSaveFilterError);
+    expect(mockMessages.getHttpErrorMessage).toHaveBeenCalledWith(
+      mockSaveFilterError
+    );
   });
 });

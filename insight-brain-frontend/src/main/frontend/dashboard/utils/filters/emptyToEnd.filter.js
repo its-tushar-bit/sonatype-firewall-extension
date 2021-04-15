@@ -7,20 +7,23 @@
 /**
  * Filter an array to ensure that null entries are always at the end.
  */
-export default
-function emptyToEndFilter(extractColumn) {
-  return function(array, key) {
+export default function emptyToEndFilter(extractColumn) {
+  return function (array, key) {
     if (!angular.isArray(array)) {
       return;
     }
     // in the event of a compound sort, use the first field
     var sortField = angular.isArray(key) ? key[0] : key;
     var sortColumn = extractColumn(sortField);
-    return array.filter(function(item) {
-      return item[sortColumn];
-    }).concat(array.filter(function(item) {
-      return !item[sortColumn];
-    }));
+    return array
+      .filter(function (item) {
+        return item[sortColumn];
+      })
+      .concat(
+        array.filter(function (item) {
+          return !item[sortColumn];
+        })
+      );
   };
 }
 

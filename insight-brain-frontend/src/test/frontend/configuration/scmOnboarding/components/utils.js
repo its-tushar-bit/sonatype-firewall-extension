@@ -11,7 +11,7 @@ const createRepo = (postfix) => {
     project: `prj-${postfix}`,
     description: `desc-${postfix}`,
     isSelected: false,
-    isImported: false
+    isImported: false,
   };
 };
 
@@ -19,9 +19,9 @@ const createOrg = (postfix) => {
   return {
     organization: {
       name: `org-${postfix}`,
-      id: `id-${postfix}`
-    }
+      id: `id-${postfix}`,
+    },
   };
 };
 
-export {createRepo, createOrg};
+export { createRepo, createOrg };

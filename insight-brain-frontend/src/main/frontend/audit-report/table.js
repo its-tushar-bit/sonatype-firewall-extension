@@ -6,15 +6,14 @@
 import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
 
 /*global $, window, window, Slick, Insight, setTimeout*/
-(function() {
+(function () {
   'use strict';
 
   var offset = null;
   if ($.browser) {
     if ($.browser.mozilla && parseFloat($.browser.version) < 4) {
       offset = 9;
-    }
-    else if ($.browser.msie && parseFloat($.browser.version) < 9) {
+    } else if ($.browser.msie && parseFloat($.browser.version) < 9) {
       offset = 15;
     }
   }
@@ -23,9 +22,9 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
   }
   function getHeight(node) {
     var windowHeight = $(window).innerHeight(),
-        containerTop = $(node).offset().top,
-        pagerHeight = $('#' + node.attr('id') + 'Pager').height(),
-        val;
+      containerTop = $(node).offset().top,
+      pagerHeight = $('#' + node.attr('id') + 'Pager').height(),
+      val;
     val = Math.max(150, windowHeight - containerTop - offset - pagerHeight);
     return val;
   }
@@ -36,19 +35,32 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
 
   function openMessagebox(id, msg) {
     var container = $('#' + id + 'container'),
-        position = $('#' + id + 'Table').position(),
-        message;
+      position = $('#' + id + 'Table').position(),
+      message;
     if (position !== null) {
       closeMessagebox(id);
-      container.append('<div class="message" style="top:' + (position.top + 70) + 'px">' + msg + '</div>');
+      container.append(
+        '<div class="message" style="top:' +
+          (position.top + 70) +
+          'px">' +
+          msg +
+          '</div>'
+      );
       message = $('.message', container);
-      message.css('left', (position.left + container.outerWidth() / 2 - message.outerWidth() / 2) + 'px');
+      message.css(
+        'left',
+        position.left +
+          container.outerWidth() / 2 -
+          message.outerWidth() / 2 +
+          'px'
+      );
     }
   }
 
   function Table(id, data, options) {
     var groupMetadataProvider = new Slick.Data.GroupItemMetadataProvider(),
-        config = $.extend({
+      config = $.extend(
+        {
           editable: false,
           enableAddRow: false,
           enableCellNavigation: options.enableCellNavigation,
@@ -61,73 +73,87 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
           showHeaderRow: !options.disableFilter,
           multiSelect: false,
           autoHeight: options.autoHeight,
-          multiColumnSort: options.multiColumnSort
-        }, options.config || {}),
-        me = this,
-        tableNode = $('#' + id + 'Table');
+          multiColumnSort: options.multiColumnSort,
+        },
+        options.config || {}
+      ),
+      me = this,
+      tableNode = $('#' + id + 'Table');
 
     this.options = options;
     this.id = id;
-    this.dataView = new Slick.Data.DataView({ 'groupItemMetadataProvider': groupMetadataProvider});
+    this.dataView = new Slick.Data.DataView({
+      groupItemMetadataProvider: groupMetadataProvider,
+    });
     this.filter = new Slick.Filter();
 
     function postDataLoad(data) {
       if (me.destroyed) {
         return;
       }
-      me.table = new Slick.Grid('#' + id + 'Table', me.dataView, options.columns, config);
+      me.table = new Slick.Grid(
+        '#' + id + 'Table',
+        me.dataView,
+        options.columns,
+        config
+      );
 
       //make sure this is done first, so any handlers provided will be called first, and can
       //properly stop propogation
       if (options.handlers) {
-        for (var i = 0 ; i < options.handlers.length ; i++) {
-          me.table[options.handlers[i].event].subscribe(options.handlers[i].handler);
+        for (var i = 0; i < options.handlers.length; i++) {
+          me.table[options.handlers[i].event].subscribe(
+            options.handlers[i].handler
+          );
         }
       }
 
       if (options.selectable) {
         me.table.setSelectionModel(new Slick.RowSelectionModel());
         me.dataView.syncGridSelection(me.table, true);
-      }
-      else {
+      } else {
         // TODO Need to set another selection model to avoid exceptions with info panel
       }
 
       groupMetadataProvider.init(me.table);
 
-      tableNode.css('height', options.height || (getHeight($('#' + id + 'Table')) + 'px'));
+      tableNode.css(
+        'height',
+        options.height || getHeight($('#' + id + 'Table')) + 'px'
+      );
       me.processData(data);
       me.initialize();
     }
 
     function getErrorFn(reloadCallback) {
-      return function(resp, type, msg) {
-        var node = tableNode.empty().append(Insight.templates.error.render({ message: msg }));
+      return function (resp, type, msg) {
+        var node = tableNode
+          .empty()
+          .append(Insight.templates.error.render({ message: msg }));
         $('button', node).click(reloadCallback);
       };
     }
 
     if ($.isArray(data)) {
-      postDataLoad({aaData: data});
-    }
-    else {
+      postDataLoad({ aaData: data });
+    } else {
       window.console.log('Unable to load: ' + data);
     }
   }
 
-  Table.prototype.updateHeight = function() {
+  Table.prototype.updateHeight = function () {
     var node = $('#' + this.id + 'Table'),
-        me = this;
+      me = this;
     node.css('height', getHeight(node) + 'px');
 
     window.clearTimeout(this.resizeTimeout);
 
-    this.resizeTimeout = window.setTimeout(function() {
+    this.resizeTimeout = window.setTimeout(function () {
       me.table.resizeCanvas();
     }, 50);
   };
 
-  Table.prototype.destroy = function() {
+  Table.prototype.destroy = function () {
     this.destroyed = true;
 
     closeMessagebox(this.id);
@@ -146,7 +172,7 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
     }
   };
 
-  Table.prototype.initialize = function() {
+  Table.prototype.initialize = function () {
     var me = this;
     if (this.initialized) {
       return;
@@ -156,14 +182,13 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
     if (this.options.defaultSort) {
       if ($.isArray(this.options.defaultSort)) {
         this.table.setSortColumns(this.options.defaultSort);
-      }
-      else {
+      } else {
         this.table.setSortColumns([this.options.defaultSort]);
       }
     }
 
     if ($.isArray(this.options.plugins)) {
-      $.each(this.options.plugins, function(index, plugin) {
+      $.each(this.options.plugins, function (index, plugin) {
         me.table.registerPlugin(plugin);
       });
     }
@@ -176,7 +201,7 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
     this.table.registerPlugin(new SlickGridTooltip());
 
     if (!this.options.resizeFn) {
-      this.options.resizeFn = function() {
+      this.options.resizeFn = function () {
         if (Insight.util.isNullOrUndefined(me.options.height)) {
           me.updateHeight();
         }
@@ -185,14 +210,14 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
 
     $(window).resize(this.options.resizeFn);
     if (this.listeners) {
-      $.each(this.listeners, function(key, listener) {
+      $.each(this.listeners, function (key, listener) {
         setTimeout(listener, 0);
       });
       this.listeners = null;
     }
   };
 
-  Table.prototype.processData = function(dd) {
+  Table.prototype.processData = function (dd) {
     var me = this;
     this.initialize();
     if (Insight.util.isNotNullOrUndefined(dd)) {
@@ -204,31 +229,39 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
       this.dataView.setItems(dd.aaData);
       if (!this.options.disableFilter) {
         if (this.options.externalFilters) {
-          this.dataView.setFilter(function(item, args) {
+          this.dataView.setFilter(function (item, args) {
             var valid = true;
-            $.each(me.options.externalFilters, function(index, externalFilter) {
-              if (!externalFilter(item, args)) {
-                valid = false;
+            $.each(
+              me.options.externalFilters,
+              function (index, externalFilter) {
+                if (!externalFilter(item, args)) {
+                  valid = false;
+                }
+                return valid;
               }
-              return valid;
-            });
+            );
             return valid && me.filter.getFilter()(item, args);
           });
-        }
-        else {
+        } else {
           this.dataView.setFilter(this.filter.getFilter());
         }
       }
       if (this.options.groupInfo) {
-        this.dataView.groupBy(this.options.groupInfo.field, this.options.groupInfo.groupHeaderFn,
-            this.options.groupInfo.groupingComparer);
+        this.dataView.groupBy(
+          this.options.groupInfo.field,
+          this.options.groupInfo.groupHeaderFn,
+          this.options.groupInfo.groupingComparer
+        );
       }
       this.dataView.endUpdate();
-      if (this.options.groupInfo && this.options.groupInfo.initialState === 'collapsed') {
+      if (
+        this.options.groupInfo &&
+        this.options.groupInfo.initialState === 'collapsed'
+      ) {
         //note that we need to do a second update here to collapse the groups, as this isn't possible until the dataview
         //has been updated with the groupInfo set above
         this.dataView.beginUpdate();
-        $.each(this.dataView.getGroups(), function(index, group) {
+        $.each(this.dataView.getGroups(), function (index, group) {
           me.dataView.collapseGroup(group.value);
         });
         this.dataView.endUpdate();
@@ -240,17 +273,23 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
       openMessagebox(this.id, this.options.emptyText || 'None');
     }
     if (!this.options.disablePager) {
-      this.table.pager = new Slick.Controls.Pager(this.dataView, this.table, $('#' + this.id + 'TablePager'));
+      this.table.pager = new Slick.Controls.Pager(
+        this.dataView,
+        this.table,
+        $('#' + this.id + 'TablePager')
+      );
     }
   };
 
-  Table.prototype.addMessage = function(message, type, fadeOut) {
+  Table.prototype.addMessage = function (message, type, fadeOut) {
     var me = this,
-        msgNode = $('<div class="alert"><button class="close" data-dismiss="alert">&times;</button></div>');
+      msgNode = $(
+        '<div class="alert"><button class="close" data-dismiss="alert">&times;</button></div>'
+      );
     msgNode.addClass(type);
     msgNode.append('<span></span>').text(message);
 
-    msgNode.bind('closed', function() {
+    msgNode.bind('closed', function () {
       me.updateHeight();
     });
 
@@ -258,8 +297,8 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
     me.updateHeight();
 
     if (fadeOut) {
-      setTimeout(function() {
-        msgNode.fadeOut('fast', function() {
+      setTimeout(function () {
+        msgNode.fadeOut('fast', function () {
           msgNode.remove();
           me.updateHeight();
         });
@@ -269,27 +308,26 @@ import SlickGridTooltip from './slickgrid/slick.grid.bootstrap.tooltip';
     return msgNode;
   };
 
-  Table.prototype.addLoadListener = function(listener) {
+  Table.prototype.addLoadListener = function (listener) {
     if (this.table) {
       setTimeout(listener, 0);
-    }
-    else {
+    } else {
       this.listeners = this.listeners || [];
       this.listeners.push(listener);
     }
   };
 
-  Table.prototype.addSuccess = function(message, fadeOut) {
+  Table.prototype.addSuccess = function (message, fadeOut) {
     this.addMessage(message, 'alert-success', fadeOut);
   };
 
-  Table.prototype.addError = function(message, fadeOut) {
+  Table.prototype.addError = function (message, fadeOut) {
     this.addMessage(message, 'alert-error', fadeOut);
   };
 
   $.extend(true, window, {
-    'Insight': {
-      'Table': Table
-    }
+    Insight: {
+      Table: Table,
+    },
   });
-}());
+})();

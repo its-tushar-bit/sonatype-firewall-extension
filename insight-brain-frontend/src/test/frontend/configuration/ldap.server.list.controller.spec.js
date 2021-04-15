@@ -6,46 +6,48 @@
 import ldapModule from '../../../main/frontend/configuration/ldap/ldap.module';
 import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
 
-describe('ldap.server.list.controller.spec.js', function() {
+describe('ldap.server.list.controller.spec.js', function () {
+  beforeEach(
+    angular.mock.module(ldapModule.name, legacyConfigurationModule.name)
+  );
 
-  beforeEach(angular.mock.module(ldapModule.name, legacyConfigurationModule.name));
+  var vm, $httpBackend, CLMContextLocations;
 
-  var vm,
-      $httpBackend,
-      CLMContextLocations;
-
-  beforeEach(inject(function(_$httpBackend_, $controller, _CLMContextLocations_) {
+  beforeEach(inject(function (
+    _$httpBackend_,
+    $controller,
+    _CLMContextLocations_
+  ) {
     $httpBackend = _$httpBackend_;
     CLMContextLocations = _CLMContextLocations_;
   }));
 
-  describe('Authorized', function() {
-
-    beforeEach(inject(function($controller) {
+  describe('Authorized', function () {
+    beforeEach(inject(function ($controller) {
       vm = $controller('ldap.server.list.controller', {
-        isAuthorized: true
+        isAuthorized: true,
       });
     }));
 
-    afterEach(function() {
+    afterEach(function () {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
     });
 
-    it('Properly loads ldap servers', function() {
+    it('Properly loads ldap servers', function () {
       expect(vm.ldapList).toBeUndefined();
 
       $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([
         {
-          'id': '123',
-          'name': 'ldap1',
-          'nameLowercaseNoWhitespace': 'ldap1'
+          id: '123',
+          name: 'ldap1',
+          nameLowercaseNoWhitespace: 'ldap1',
         },
         {
-          'id': '456',
-          'name': 'ldap2',
-          'nameLowercaseNoWhitespace': 'ldap2'
-        }
+          id: '456',
+          name: 'ldap2',
+          nameLowercaseNoWhitespace: 'ldap2',
+        },
       ]);
       $httpBackend.flush();
 
@@ -57,8 +59,10 @@ describe('ldap.server.list.controller.spec.js', function() {
       expect(vm.ldapList[1].name).toBe('ldap2');
     });
 
-    it('fails to load ldap server data', function() {
-      $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond(500, 'foo');
+    it('fails to load ldap server data', function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getLdapConfig())
+        .respond(500, 'foo');
       $httpBackend.flush();
       expect(vm.error.data).toEqual('foo');
 
@@ -69,11 +73,18 @@ describe('ldap.server.list.controller.spec.js', function() {
       expect(vm.error).toBeFalsy();
     });
 
-    it('Refresh after reorder', inject(function(LdapConfigurationStore, LdapServerOrderingModal, $q, $timeout) {
+    it('Refresh after reorder', inject(function (
+      LdapConfigurationStore,
+      LdapServerOrderingModal,
+      $q,
+      $timeout
+    ) {
       $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([]);
       $httpBackend.flush();
       spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.resolve());
-      spyOn(LdapConfigurationStore, 'refresh').and.returnValue($q.defer().promise);
+      spyOn(LdapConfigurationStore, 'refresh').and.returnValue(
+        $q.defer().promise
+      );
 
       vm.reorder();
       $timeout.flush();
@@ -82,12 +93,18 @@ describe('ldap.server.list.controller.spec.js', function() {
       expect(vm.ldapStore).toBeFalsy();
     }));
 
-    it('Does not refresh on cancelled reorder', inject(function(LdapConfigurationStore, LdapServerOrderingModal, $q,
-                                                                $timeout) {
+    it('Does not refresh on cancelled reorder', inject(function (
+      LdapConfigurationStore,
+      LdapServerOrderingModal,
+      $q,
+      $timeout
+    ) {
       $httpBackend.expectGET(CLMContextLocations.getLdapConfig()).respond([]);
       $httpBackend.flush();
       spyOn(LdapServerOrderingModal, 'open').and.returnValue($q.reject());
-      spyOn(LdapConfigurationStore, 'refresh').and.returnValue($q.defer().promise);
+      spyOn(LdapConfigurationStore, 'refresh').and.returnValue(
+        $q.defer().promise
+      );
 
       vm.reorder();
       $timeout.flush();
@@ -97,18 +114,17 @@ describe('ldap.server.list.controller.spec.js', function() {
     }));
   });
 
-  describe('Not authorized', function() {
-    beforeEach(inject(function($controller) {
+  describe('Not authorized', function () {
+    beforeEach(inject(function ($controller) {
       vm = $controller('ldap.server.list.controller', {
-        isAuthorized: false
+        isAuthorized: false,
       });
     }));
 
-    it('Should not trigger HTTP request', function() {
+    it('Should not trigger HTTP request', function () {
       $httpBackend.verifyNoOutstandingRequest();
 
       expect(vm.ldapList).toBeUndefined();
     });
   });
-
 });

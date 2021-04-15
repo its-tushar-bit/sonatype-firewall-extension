@@ -11,10 +11,12 @@ export default function routeStateUtilService($state) {
      */
     stateRequiresAuthentication(state = $state.current) {
       const { data } = state,
-          authenticationRequired = data ? data.authenticationRequired !== false : true;
+        authenticationRequired = data
+          ? data.authenticationRequired !== false
+          : true;
 
       return authenticationRequired;
-    }
+    },
   };
 }
 

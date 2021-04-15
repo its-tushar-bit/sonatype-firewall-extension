@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default {
-  getSystemNotice: function(message, enabled) {
+  getSystemNotice: function (message, enabled) {
     return {
-      'message': message,
-      'enabled': enabled
+      message: message,
+      enabled: enabled,
     };
-  }
+  },
 };

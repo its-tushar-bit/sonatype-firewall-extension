@@ -16,7 +16,7 @@ import {
   reject,
   set,
   sum,
-  values
+  values,
 } from 'ramda';
 
 import {
@@ -50,7 +50,7 @@ import {
   GENERATE_VULNERABILITY_ENTRIES,
   SET_SORTING_PARAMETERS,
   SELECT_COMPONENT,
-  APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR
+  APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR,
 } from './applicationReportActions';
 
 import { sortItemsByFields } from '../util/sortUtils';
@@ -58,7 +58,7 @@ import { sortItemsByFields } from '../util/sortUtils';
 import {
   aggregateReportEntries,
   filterReportEntries,
-  getVulnerabilities
+  getVulnerabilities,
 } from './applicationReportService';
 import { pathSet } from '../util/jsUtil';
 
@@ -69,8 +69,17 @@ const initState = Object.freeze({
   loadError: null,
   reevaluationError: null,
   aggregate: true,
-  sortFields: Object.freeze(['-policyThreatLevel', 'policyName', 'derivedComponentName']),
-  rawDataSortFields: Object.freeze(['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore']),
+  sortFields: Object.freeze([
+    '-policyThreatLevel',
+    'policyName',
+    'derivedComponentName',
+  ]),
+  rawDataSortFields: Object.freeze([
+    'derivedComponentName',
+    'licenseSortKey',
+    'securityCode',
+    '-cvssScore',
+  ]),
 
   // map from field name to Set of allowed values
   // example: { policyThreatLevel: new Set([1, 5, 6, 7]) }
@@ -97,12 +106,15 @@ const initState = Object.freeze({
   sortConfiguration: {
     key: 'policyThreatLevel',
     sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-    dir: 'desc'
+    dir: 'desc',
   },
-  selectedComponent: null
+  selectedComponent: null,
 });
 
-export default function applicationReportReducer(state = initState, {type, payload}) {
+export default function applicationReportReducer(
+  state = initState,
+  { type, payload }
+) {
   switch (type) {
     case SET_REPORT_PARAMETERS:
       return setReportParameters(state, payload);
@@ -111,18 +123,31 @@ export default function applicationReportReducer(state = initState, {type, paylo
       return setSortingParameters(state, payload);
 
     case LOAD_REPORT_REQUESTED:
-      return setPendingLoads(['common', 'policy'], {...state, loadError: null, selectedReport: null});
+      return setPendingLoads(['common', 'policy'], {
+        ...state,
+        loadError: null,
+        selectedReport: null,
+      });
 
     case LOAD_REPORT_FULFILLED:
       return setSelectedReport(state, payload);
 
     case LOAD_COMMON_DATA_FULFILLED: {
-      const {bomData, metadata, unknownJsData} = payload;
-      return unsetPendingLoads(['common'], {...state, bomData, metadata, unknownJsData});
+      const { bomData, metadata, unknownJsData } = payload;
+      return unsetPendingLoads(['common'], {
+        ...state,
+        bomData,
+        metadata,
+        unknownJsData,
+      });
     }
 
     case LOAD_REPORT_RAW_DATA_REQUESTED:
-      return setPendingLoads(['common', 'raw'], {...state, loadError: null, reportRawData: null});
+      return setPendingLoads(['common', 'raw'], {
+        ...state,
+        loadError: null,
+        reportRawData: null,
+      });
 
     case LOAD_REPORT_RAW_DATA_FULFILLED:
       return setRawDataInformation(state, payload);
@@ -131,23 +156,23 @@ export default function applicationReportReducer(state = initState, {type, paylo
       return setPendingLoads(['common', 'raw', 'policy'], state);
 
     case REEVALUATE_REPORT_REQUESTED:
-      return {...state, reevaluating: true, reevaluationError: null};
+      return { ...state, reevaluating: true, reevaluationError: null };
 
     case REEVALUATE_REPORT_FULFILLED:
     case REEVALUATE_REPORT_CANCELLED:
-      return {...state, reevaluating: false, reevaluationError: null};
+      return { ...state, reevaluating: false, reevaluationError: null };
 
     case LOAD_REPORT_FAILED:
-      return unsetPendingLoads(['policy'], {...state, loadError: payload});
+      return unsetPendingLoads(['policy'], { ...state, loadError: payload });
 
     case LOAD_REPORT_RAW_DATA_FAILED:
-      return unsetPendingLoads(['raw'], {...state, loadError: payload});
+      return unsetPendingLoads(['raw'], { ...state, loadError: payload });
 
     case LOAD_COMMON_DATA_FAILED:
-      return unsetPendingLoads(['common'], {...state, loadError: payload});
+      return unsetPendingLoads(['common'], { ...state, loadError: payload });
 
     case REEVALUATE_REPORT_FAILED:
-      return {...state, reevaluating: false, reevaluationError: payload};
+      return { ...state, reevaluating: false, reevaluationError: payload };
 
     case LOAD_COMMON_DATA_UNNECESSARY:
       return unsetPendingLoads(['common'], state);
@@ -159,46 +184,59 @@ export default function applicationReportReducer(state = initState, {type, paylo
       return unsetPendingLoads(['policy'], state);
 
     case SET_AGGREGATE_REPORT_ENTRIES:
-      return updateDisplayedEntries({...state, aggregate: payload});
+      return updateDisplayedEntries({ ...state, aggregate: payload });
 
     case SET_EXACT_VALUE_FILTER: {
       const { fieldName, allowedValues } = payload;
 
-      return updateDisplayedEntries(pathSet(['exactValueFilters', fieldName], allowedValues, state));
+      return updateDisplayedEntries(
+        pathSet(['exactValueFilters', fieldName], allowedValues, state)
+      );
     }
 
     case SET_SUBSTRING_FIELD_FILTER: {
       const { fieldName, filterString } = payload;
 
-      return updateDisplayedEntries(pathSet(['substringFilters', fieldName], filterString, state));
+      return updateDisplayedEntries(
+        pathSet(['substringFilters', fieldName], filterString, state)
+      );
     }
 
     case SET_RAW_DATA_SUBSTRING_FIELD_FILTER: {
       const { fieldName, filterString } = payload;
-      return updateRawDataDisplayedEntries(pathSet(['rawDataSubstringFilters', fieldName], filterString, state));
+      return updateRawDataDisplayedEntries(
+        pathSet(['rawDataSubstringFilters', fieldName], filterString, state)
+      );
     }
 
     case SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER: {
       const { fieldName, filterValue } = payload;
-      return updateRawDataDisplayedEntries(pathSet(['rawDataNumericFilters', fieldName, 0], filterValue, state));
+      return updateRawDataDisplayedEntries(
+        pathSet(['rawDataNumericFilters', fieldName, 0], filterValue, state)
+      );
     }
 
     case SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER: {
       const { fieldName, filterValue } = payload;
-      return updateRawDataDisplayedEntries(pathSet(['rawDataNumericFilters', fieldName, 1], filterValue, state));
+      return updateRawDataDisplayedEntries(
+        pathSet(['rawDataNumericFilters', fieldName, 1], filterValue, state)
+      );
     }
 
     case SET_SORTING:
-      return updateDisplayedEntries({...state, sortFields: payload});
+      return updateDisplayedEntries({ ...state, sortFields: payload });
 
     case SET_SORTING_RAW_DATA:
-      return updateRawDataDisplayedEntries({...state, rawDataSortFields: payload});
+      return updateRawDataDisplayedEntries({
+        ...state,
+        rawDataSortFields: payload,
+      });
 
     case SELECT_ROOT_ANCESTOR:
-      return {...state, selectedRootAncestor: payload};
+      return { ...state, selectedRootAncestor: payload };
 
     case UNSELECT_ROOT_ANCESTOR:
-      return {...state, selectedRootAncestor: null};
+      return { ...state, selectedRootAncestor: null };
 
     case GENERATE_VULNERABILITY_ENTRIES:
       return generateVulnerabilityEntries(state);
@@ -217,7 +255,7 @@ export default function applicationReportReducer(state = initState, {type, paylo
 function setReportParameters(state, payload) {
   return {
     ...initState,
-    reportParameters: payload
+    reportParameters: payload,
   };
 }
 
@@ -226,45 +264,60 @@ function setSelectedComponent(state, payload) {
     ...state,
     selectedComponent: payload.component,
     selectedComponentIndex: payload.componentIndex,
-    selectedRootAncestor: null
+    selectedRootAncestor: null,
   };
 }
 
 function setSortingParameters(state, payload) {
   return {
     ...state,
-    sortConfiguration: payload
+    sortConfiguration: payload,
   };
 }
 
 function setSelectedReport(state, report) {
   const newState = pipe(
-      updateDisplayedEntries,
-      unsetPendingLoads(['policy'])
+    updateDisplayedEntries,
+    unsetPendingLoads(['policy'])
   )({
     ...state,
     policyTypeFilterEnabled: report.reportVersion && report.reportVersion >= 4,
-    vulnerabilitiesPageEnabled: !!(report.reportVersion && report.reportVersion >= 5),
-    selectedReport: {...report, ...getViolationCountsPerThreatLevel(report.allEntries)},
+    vulnerabilitiesPageEnabled: !!(
+      report.reportVersion && report.reportVersion >= 5
+    ),
+    selectedReport: {
+      ...report,
+      ...getViolationCountsPerThreatLevel(report.allEntries),
+    },
     isInnerSourceEnabled: report.isInnerSourceEnabled,
-    sortFields: report.isInnerSourceEnabled ? [
-      'innerSourceData.ownerApplicationName',
-      'innerSourceData.ownerComponentName',
-      'dependencyType',
-      '-policyThreatLevel',
-      'policyName',
-      'derivedComponentName'] : state.sortFields
+    sortFields: report.isInnerSourceEnabled
+      ? [
+          'innerSourceData.ownerApplicationName',
+          'innerSourceData.ownerComponentName',
+          'dependencyType',
+          '-policyThreatLevel',
+          'policyName',
+          'derivedComponentName',
+        ]
+      : state.sortFields,
   });
 
   // if there is selected component, update selectedComponentIndex
   if (state.selectedReport && state.selectedComponentIndex != null) {
-    const selectedComponent = state.selectedReport.displayedEntries[state.selectedComponentIndex];
+    const selectedComponent =
+      state.selectedReport.displayedEntries[state.selectedComponentIndex];
     const findPredicate = state.aggregate
       ? propEq('hash', selectedComponent.hash)
-      : both(propEq('hash', selectedComponent.hash), propEq('policyName', selectedComponent.policyName));
-    const selectedComponentIndex = findIndex(findPredicate, newState.selectedReport.displayedEntries);
+      : both(
+          propEq('hash', selectedComponent.hash),
+          propEq('policyName', selectedComponent.policyName)
+        );
+    const selectedComponentIndex = findIndex(
+      findPredicate,
+      newState.selectedReport.displayedEntries
+    );
     if (selectedComponentIndex >= 0) {
-      return {...newState, selectedComponentIndex};
+      return { ...newState, selectedComponentIndex };
     }
   }
   return newState;
@@ -272,13 +325,13 @@ function setSelectedReport(state, report) {
 
 function setRawDataInformation(state, rawDataEntries) {
   return pipe(
-      updateRawDataDisplayedEntries,
-      unsetPendingLoads(['raw'])
+    updateRawDataDisplayedEntries,
+    unsetPendingLoads(['raw'])
   )({
     ...state,
     reportRawData: {
-      allEntries: rawDataEntries
-    }
+      allEntries: rawDataEntries,
+    },
   });
 }
 
@@ -287,17 +340,23 @@ function generateVulnerabilityEntries(state) {
 
   if (reportRawData == null || selectedReport == null) {
     return state;
-  }
-  else {
+  } else {
     const rawDataEntries = reportRawData.allEntries,
-        policyEntries = selectedReport.allEntries,
-        vulnerabilityEntries = getVulnerabilities(policyEntries, rawDataEntries);
+      policyEntries = selectedReport.allEntries,
+      vulnerabilityEntries = getVulnerabilities(policyEntries, rawDataEntries);
 
     return {
       ...state,
       vulnerabilities: sortItemsByFields(
-          ['violationSortState', '-policyThreatLevel', '-cvssScore', 'securityCode', 'derivedComponentName'],
-          vulnerabilityEntries)
+        [
+          'violationSortState',
+          '-policyThreatLevel',
+          '-cvssScore',
+          'securityCode',
+          'derivedComponentName',
+        ],
+        vulnerabilityEntries
+      ),
     };
   }
 }
@@ -307,21 +366,28 @@ function generateVulnerabilityEntries(state) {
  * based on `allEntries` and the sorting passed-in, if any.
  */
 function updateRawDataDisplayedEntries(state) {
-  const { reportRawData, rawDataSortFields, rawDataSubstringFilters, rawDataNumericFilters } = state;
+  const {
+    reportRawData,
+    rawDataSortFields,
+    rawDataSubstringFilters,
+    rawDataNumericFilters,
+  } = state;
   if (reportRawData) {
     const { allEntries } = reportRawData;
     const processEntries = pipe(
-        filterReportEntries(null, rawDataSubstringFilters, rawDataNumericFilters),
-        sortItemsByFields(rawDataSortFields)
+      filterReportEntries(null, rawDataSubstringFilters, rawDataNumericFilters),
+      sortItemsByFields(rawDataSortFields)
     );
     const newDisplayedEntries = processEntries(allEntries);
 
-    return pathSet(['reportRawData', 'displayedEntries'], newDisplayedEntries, state);
-  }
-  else {
+    return pathSet(
+      ['reportRawData', 'displayedEntries'],
+      newDisplayedEntries,
+      state
+    );
+  } else {
     return state;
   }
-
 }
 
 /**
@@ -329,42 +395,69 @@ function updateRawDataDisplayedEntries(state) {
  * based on `allEntries` and the various sorting, filtering, and aggregation settings stored in the state
  */
 function updateDisplayedEntries(state) {
-  let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
+  let {
+    selectedReport,
+    sortFields,
+    aggregate,
+    exactValueFilters,
+    substringFilters,
+  } = state;
   if (selectedReport) {
     const { allEntries } = selectedReport,
-        processEntries = pipe(
-            aggregate ? aggregateReportEntries : identity,
-            filterReportEntries(exactValueFilters, substringFilters, null),
-            sortItemsByFields(sortFields)
-        ),
-        newDisplayedEntries = processEntries(allEntries);
+      processEntries = pipe(
+        aggregate ? aggregateReportEntries : identity,
+        filterReportEntries(exactValueFilters, substringFilters, null),
+        sortItemsByFields(sortFields)
+      ),
+      newDisplayedEntries = processEntries(allEntries);
 
-    return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, state);
-  }
-  else {
+    return set(
+      lensPath(['selectedReport', 'displayedEntries']),
+      newDisplayedEntries,
+      state
+    );
+  } else {
     return state;
   }
 }
 
 function getViolationCountsPerThreatLevel(entries) {
-  const zeroCounts = {'criticalViolationCount': 0, 'severeViolationCount': 0, 'moderateViolationCount': 0};
-  const groupByThreatLevel = v => v.policyThreatLevel >= 8 ? 'criticalViolationCount' : v.policyThreatLevel >= 4 ?
-    'severeViolationCount' : v.policyThreatLevel >= 2 ? 'moderateViolationCount' : undefined;
+  const zeroCounts = {
+    criticalViolationCount: 0,
+    severeViolationCount: 0,
+    moderateViolationCount: 0,
+  };
+  const groupByThreatLevel = (v) =>
+    v.policyThreatLevel >= 8
+      ? 'criticalViolationCount'
+      : v.policyThreatLevel >= 4
+      ? 'severeViolationCount'
+      : v.policyThreatLevel >= 2
+      ? 'moderateViolationCount'
+      : undefined;
   const reduceToCountsByThreatLevel = reduceBy(inc, 0)(groupByThreatLevel);
-  const rejectIgnored = reject(v => v.grandfathered || v.waived || v.policyThreatLevel < 2);
-  const nonZeroCounts = pipe(rejectIgnored, reduceToCountsByThreatLevel)(entries);
+  const rejectIgnored = reject(
+    (v) => v.grandfathered || v.waived || v.policyThreatLevel < 2
+  );
+  const nonZeroCounts = pipe(
+    rejectIgnored,
+    reduceToCountsByThreatLevel
+  )(entries);
   const nonLowViolationCount = sum(values(nonZeroCounts));
-  return {...zeroCounts, ...nonZeroCounts, nonLowViolationCount};
+  return { ...zeroCounts, ...nonZeroCounts, nonLowViolationCount };
 }
 
-const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loads, state) {
-  const { pendingLoads } = state,
+const mutatePendingLoads = curryN(
+  3,
+  function mutatePendingLoads(setMutator, loads, state) {
+    const { pendingLoads } = state,
       newPendingLoads = new Set(pendingLoads);
 
-  loads.forEach(setMutator(newPendingLoads));
+    loads.forEach(setMutator(newPendingLoads));
 
-  return { ...state, pendingLoads: newPendingLoads };
-});
+    return { ...state, pendingLoads: newPendingLoads };
+  }
+);
 
-const setPendingLoads = mutatePendingLoads(set => val => set.add(val)),
-    unsetPendingLoads = mutatePendingLoads(set => val => set.delete(val));
+const setPendingLoads = mutatePendingLoads((set) => (val) => set.add(val)),
+  unsetPendingLoads = mutatePendingLoads((set) => (val) => set.delete(val));

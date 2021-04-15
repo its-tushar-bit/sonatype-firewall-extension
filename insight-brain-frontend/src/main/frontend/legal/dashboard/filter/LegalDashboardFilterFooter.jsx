@@ -6,8 +6,13 @@
 import React from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
-import {NxErrorAlert, NxButton, NxFontAwesomeIcon, NxTooltip} from '@sonatype/react-shared-components';
-import {faSync} from '@fortawesome/free-solid-svg-icons';
+import {
+  NxErrorAlert,
+  NxButton,
+  NxFontAwesomeIcon,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
+import { faSync } from '@fortawesome/free-solid-svg-icons';
 
 export default function LegalDashboardFilterFooter(props) {
   const {
@@ -17,49 +22,59 @@ export default function LegalDashboardFilterFooter(props) {
     setDisplaySaveFilterModal,
     revert,
     onApplyCurrentFilter,
-    onCancelApplyFilter
+    onCancelApplyFilter,
   } = props;
 
   const applyBtnDisabled = !filtersAreDirty && !needsAcknowledgement,
-      revertBtnClassnames = classnames({'disabled': !filtersAreDirty}),
-      applyBtnClassnames = classnames({'disabled': applyBtnDisabled}),
-      saveBtnClassnames = classnames({'disabled': filtersAreDirty}),
-      handleSaveBtnClick = () => {
-        if (filtersAreDirty) {
-          return;
-        }
-        setDisplaySaveFilterModal(true);
-      },
-      handleApplyBtnClick = () => {
-        if (applyBtnDisabled) {
-          return;
-        }
-        onApplyCurrentFilter();
-      };
+    revertBtnClassnames = classnames({ disabled: !filtersAreDirty }),
+    applyBtnClassnames = classnames({ disabled: applyBtnDisabled }),
+    saveBtnClassnames = classnames({ disabled: filtersAreDirty }),
+    handleSaveBtnClick = () => {
+      if (filtersAreDirty) {
+        return;
+      }
+      setDisplaySaveFilterModal(true);
+    },
+    handleApplyBtnClick = () => {
+      if (applyBtnDisabled) {
+        return;
+      }
+      onApplyCurrentFilter();
+    };
 
   const footerHTML = (
     <div className="nx-btn-bar dashboard-filter-footer-btns">
-      <NxButton id="legal-dashboard-filter-revert"
-                variant="tertiary"
-                className={revertBtnClassnames}
-                disabled={!filtersAreDirty}
-                onClick={revert}>
+      <NxButton
+        id="legal-dashboard-filter-revert"
+        variant="tertiary"
+        className={revertBtnClassnames}
+        disabled={!filtersAreDirty}
+        onClick={revert}
+      >
         Revert
       </NxButton>
-      <NxTooltip id="legal-dashboard-filter-save-tooltip"
-                 title={filtersAreDirty ? 'Please apply filter before saving' : ''}>
-        <NxButton id="legal-dashboard-filter-save"
-                  className={saveBtnClassnames}
-                  onClick={handleSaveBtnClick}>
+      <NxTooltip
+        id="legal-dashboard-filter-save-tooltip"
+        title={filtersAreDirty ? 'Please apply filter before saving' : ''}
+      >
+        <NxButton
+          id="legal-dashboard-filter-save"
+          className={saveBtnClassnames}
+          onClick={handleSaveBtnClick}
+        >
           Save
         </NxButton>
       </NxTooltip>
-      <NxTooltip id="legal-dashboard-filter-apply-tooltip"
-                 title={filtersAreDirty ? '' : 'There are no changes to update.'}>
-        <NxButton id="legal-dashboard-filter-apply"
-                  variant="primary"
-                  className={applyBtnClassnames}
-                  onClick={handleApplyBtnClick}>
+      <NxTooltip
+        id="legal-dashboard-filter-apply-tooltip"
+        title={filtersAreDirty ? '' : 'There are no changes to update.'}
+      >
+        <NxButton
+          id="legal-dashboard-filter-apply"
+          variant="primary"
+          className={applyBtnClassnames}
+          onClick={handleApplyBtnClick}
+        >
           Apply
         </NxButton>
       </NxTooltip>
@@ -70,24 +85,29 @@ export default function LegalDashboardFilterFooter(props) {
     <NxErrorAlert>
       <span>{applyFilterError}</span>
       <div className="nx-btn-bar">
-        <NxButton id="legal-dashboard-filter-cancel-button"
-                  variant="tertiary"
-                  type="button"
-                  onClick={onCancelApplyFilter}>
+        <NxButton
+          id="legal-dashboard-filter-cancel-button"
+          variant="tertiary"
+          type="button"
+          onClick={onCancelApplyFilter}
+        >
           Cancel
         </NxButton>
-        <NxButton id="legal-dashboard-filter-retry-button"
-                  variant="error"
-                  onClick={handleApplyBtnClick}>
-          <NxFontAwesomeIcon icon={faSync}/>
+        <NxButton
+          id="legal-dashboard-filter-retry-button"
+          variant="error"
+          onClick={handleApplyBtnClick}
+        >
+          <NxFontAwesomeIcon icon={faSync} />
           <span>Retry</span>
         </NxButton>
       </div>
-    </NxErrorAlert>);
+    </NxErrorAlert>
+  );
 
   return (
     <footer className="dashboard-filter-footer">
-      { applyFilterError ? footerErrorHTML : footerHTML }
+      {applyFilterError ? footerErrorHTML : footerHTML}
     </footer>
   );
 }
@@ -98,5 +118,5 @@ LegalDashboardFilterFooter.propTypes = {
   setDisplaySaveFilterModal: PropTypes.func.isRequired,
   revert: PropTypes.func.isRequired,
   onApplyCurrentFilter: PropTypes.func.isRequired,
-  onCancelApplyFilter: PropTypes.func.isRequired
+  onCancelApplyFilter: PropTypes.func.isRequired,
 };

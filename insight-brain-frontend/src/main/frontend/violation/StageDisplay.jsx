@@ -5,38 +5,53 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
+import {
+  faExclamationCircle,
+  faExclamationTriangle,
+  faSquare,
+} from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import { terseAgo } from '../util/CommonServices';
 
 const iconByActionTypeId = {
   fail: faExclamationCircle,
-  warn: faExclamationTriangle
+  warn: faExclamationTriangle,
 };
 
-export default function StageDisplay({ $state, stageType, stageData, applicationPublicId }) {
+export default function StageDisplay({
+  $state,
+  stageType,
+  stageData,
+  applicationPublicId,
+}) {
   const displayName = stageType.shortName;
 
   if (stageData) {
-    const { mostRecentEvaluationTime, mostRecentScanId, actionTypeId } = stageData,
-        icon = iconByActionTypeId[actionTypeId],
-        iconClassName = actionTypeId ?
-          `iq-violation-details__stage-action iq-violation-details__stage-action--${actionTypeId}` : null,
-        href = $state.href($state.get('applicationReport'), {
-          publicId: applicationPublicId,
-          scanId: mostRecentScanId
-        }),
-        displayTime = terseAgo(new Date(mostRecentEvaluationTime));
+    const {
+        mostRecentEvaluationTime,
+        mostRecentScanId,
+        actionTypeId,
+      } = stageData,
+      icon = iconByActionTypeId[actionTypeId],
+      iconClassName = actionTypeId
+        ? `iq-violation-details__stage-action iq-violation-details__stage-action--${actionTypeId}`
+        : null,
+      href = $state.href($state.get('applicationReport'), {
+        publicId: applicationPublicId,
+        scanId: mostRecentScanId,
+      }),
+      displayTime = terseAgo(new Date(mostRecentEvaluationTime));
 
     return (
       <span className="iq-violation-details__stage">
-        { icon && <NxFontAwesomeIcon icon={icon} className={iconClassName} /> }
-        <a href={href}>{displayName} {displayTime}</a>
+        {icon && <NxFontAwesomeIcon icon={icon} className={iconClassName} />}
+        <a href={href}>
+          {displayName} {displayTime}
+        </a>
       </span>
     );
-  }
-  else {
+  } else {
     return (
       <span className="iq-violation-details__stage iq-violation-details__stage--unused">
         <NxFontAwesomeIcon icon={faSquare} />
@@ -49,15 +64,15 @@ export default function StageDisplay({ $state, stageType, stageData, application
 StageDisplay.propTypes = {
   $state: PropTypes.shape({
     get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired
+    href: PropTypes.func.isRequired,
   }).isRequired,
   stageType: PropTypes.shape({
-    shortName: PropTypes.string.isRequired
+    shortName: PropTypes.string.isRequired,
   }).isRequired,
   stageData: PropTypes.shape({
     mostRecentEvaluationTime: PropTypes.string.isRequired,
     mostRecentScanId: PropTypes.string.isRequired,
-    actionTypeId: PropTypes.oneOf(['fail', 'warn', null])
+    actionTypeId: PropTypes.oneOf(['fail', 'warn', null]),
   }),
-  applicationPublicId: PropTypes.string.isRequired
+  applicationPublicId: PropTypes.string.isRequired,
 };

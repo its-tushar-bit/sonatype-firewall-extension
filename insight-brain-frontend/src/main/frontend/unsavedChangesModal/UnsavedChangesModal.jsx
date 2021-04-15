@@ -4,11 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxButton, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxModal,
+  NxWarningAlert,
+} from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
-export default function UnsavedChangesModal({onContinue, onClose}) {
-
+export default function UnsavedChangesModal({ onContinue, onClose }) {
   return (
     <NxModal id="unsaved-modal">
       <header className="nx-modal-header">
@@ -23,8 +26,14 @@ export default function UnsavedChangesModal({onContinue, onClose}) {
       </div>
       <footer className="nx-footer">
         <div className="nx-btn-bar">
-          <NxButton onClick={onClose} id="unsaved-changes-modal-cancel-button">Cancel</NxButton>
-          <NxButton variant="primary" id="unsaved-changes-modal-continue-button" onClick={onContinue}>
+          <NxButton onClick={onClose} id="unsaved-changes-modal-cancel-button">
+            Cancel
+          </NxButton>
+          <NxButton
+            variant="primary"
+            id="unsaved-changes-modal-continue-button"
+            onClick={onContinue}
+          >
             Continue
           </NxButton>
         </div>
@@ -35,5 +44,5 @@ export default function UnsavedChangesModal({onContinue, onClose}) {
 
 UnsavedChangesModal.propTypes = {
   onClose: PropTypes.func,
-  onContinue: PropTypes.func
+  onContinue: PropTypes.func,
 };

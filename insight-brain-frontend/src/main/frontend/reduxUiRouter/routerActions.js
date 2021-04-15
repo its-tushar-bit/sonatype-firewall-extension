@@ -17,15 +17,15 @@ export const stateGo = (to, params, options) => {
     payload: {
       to,
       params,
-      options
-    }
+      options,
+    },
   };
 };
 
-export const stateReload = state => {
+export const stateReload = (state) => {
   return {
     type: STATE_RELOAD,
-    payload: state
+    payload: state,
   };
 };
 
@@ -35,7 +35,7 @@ export const stateTransitionTo = (to, params, options) => {
     payload: {
       to,
       params,
-      options
-    }
+      options,
+    },
   };
 };

@@ -5,13 +5,17 @@
  */
 export default function FormDataHttpInterceptor($window) {
   return {
-    request: function(config) {
-      if (config.method === 'POST' && $window.FormData && config.data instanceof FormData) {
+    request: function (config) {
+      if (
+        config.method === 'POST' &&
+        $window.FormData &&
+        config.data instanceof FormData
+      ) {
         config.headers['Content-Type'] = undefined;
         config.transformRequest = angular.identity;
       }
       return config;
-    }
+    },
   };
 }
 

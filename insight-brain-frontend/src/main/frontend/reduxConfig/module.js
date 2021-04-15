@@ -16,7 +16,7 @@ const enhancers = [];
 if (window.angularDebug && window.console && window.console.log.apply) {
   // use require because es6 import redux-logger breaks in IE9
   const createLogger = require('redux-logger').createLogger;
-  const logger = createLogger({level: 'info', collapsed: true, diff: false});
+  const logger = createLogger({ level: 'info', collapsed: true, diff: false });
   middleware.push(logger);
 }
 
@@ -30,5 +30,6 @@ function config($ngReduxProvider) {
 }
 config.$inject = ['$ngReduxProvider'];
 
-export default angular.module('reduxConfig', [ngReduxModule, reduxUiRouterModule.name])
-    .config(config);
+export default angular
+  .module('reduxConfig', [ngReduxModule, reduxUiRouterModule.name])
+  .config(config);

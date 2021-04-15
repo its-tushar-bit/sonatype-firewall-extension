@@ -1,13 +1,17 @@
 <application-report-filter></application-report-filter>
-<main id="application-report"
-      class="nx-page-main nx-viewport-sized"
-      form-mask="vm.formMaskController"
-      mask-message="Re-Evaluating"
-      mask-attach-to-body>
-  <iq-back-button ng-if="!vm.reportParameters.embeddable"
-                  state="violations"
-                  text="All Reports"
-                  class="iq-page-back-button">
+<main
+  id="application-report"
+  class="nx-page-main nx-viewport-sized"
+  form-mask="vm.formMaskController"
+  mask-message="Re-Evaluating"
+  mask-attach-to-body
+>
+  <iq-back-button
+    ng-if="!vm.reportParameters.embeddable"
+    state="violations"
+    text="All Reports"
+    class="iq-page-back-button"
+  >
   </iq-back-button>
   <application-report-results></application-report-results>
 </main>

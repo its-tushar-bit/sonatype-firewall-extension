@@ -16,7 +16,7 @@ $iq-sonatype-orange: #f89100;
 $iq-blue: #3d4e90;
 $iq-blue-xlight: #edeff7;
 $iq-blue-light: #dbdfed;
-$iq-blue-dark: #4F64BA;
+$iq-blue-dark: #4f64ba;
 
 // Colour variables
 $iq-off-black: #070707;
@@ -64,17 +64,11 @@ $iq-fail-color-active: #5c0000;
 $iq-fail-color-disabled: #dd9595;
 $iq-fail-color-hover: #5d0000;
 
-$pickable-colors:
-  ('dark-blue', $iq-dark-blue),
-  ('light-blue', $iq-light-blue),
-  ('dark-green', $iq-dark-green),
-  ('light-green', $iq-light-green),
-  ('orange', $iq-orange),
-  ('dark-purple', $iq-dark-purple),
-  ('light-purple', $iq-light-purple),
-  ('dark-red', $iq-dark-red),
-  ('light-red', $iq-light-red),
-  ('yellow', $iq-yellow);
+$pickable-colors: ('dark-blue', $iq-dark-blue), ('light-blue', $iq-light-blue),
+  ('dark-green', $iq-dark-green), ('light-green', $iq-light-green),
+  ('orange', $iq-orange), ('dark-purple', $iq-dark-purple),
+  ('light-purple', $iq-light-purple), ('dark-red', $iq-dark-red),
+  ('light-red', $iq-light-red), ('yellow', $iq-yellow);
 
 /*
   ##Threat Colors
@@ -95,30 +89,24 @@ $iq-threat-color-moderate-light: #fdecaf;
 $iq-threat-color-severe-light: #ffd6a2;
 $iq-threat-color-critical-light: #ff9493;
 
-$threat-levels:
-  ("none", #FFF, $iq-threat-color-none, (0)),
-  ("moderate", #444, $iq-threat-color-moderate, (1, 2, 3)),
-  ("severe", #FFF, $iq-threat-color-severe, (4, 5, 6, 7)),
-  ("critical", #FFF, $iq-threat-color-critical, (8, 9, 10));
+$threat-levels: ('none', #fff, $iq-threat-color-none, (0)),
+  ('moderate', #444, $iq-threat-color-moderate, (1, 2, 3)),
+  ('severe', #fff, $iq-threat-color-severe, (4, 5, 6, 7)),
+  ('critical', #fff, $iq-threat-color-critical, (8, 9, 10));
 
-$policy-threat-levels:
-  ("none", #FFF, $iq-threat-color-policy-none, (0)),
-  ("low", #444, $iq-threat-color-low, (1)),
-  ("moderate", #444, $iq-threat-color-moderate, (2, 3)),
-  ("severe", #FFF, $iq-threat-color-severe, (4, 5, 6, 7)),
-  ("critical", #FFF, $iq-threat-color-critical, (8, 9, 10));
+$policy-threat-levels: ('none', #fff, $iq-threat-color-policy-none, (0)),
+  ('low', #444, $iq-threat-color-low, (1)),
+  ('moderate', #444, $iq-threat-color-moderate, (2, 3)),
+  ('severe', #fff, $iq-threat-color-severe, (4, 5, 6, 7)),
+  ('critical', #fff, $iq-threat-color-critical, (8, 9, 10));
 
-$threat-bars:
-  ("ignore", #FFF, $iq-threat-color-ignore),
-  ("unspecified", #FFF, $iq-threat-color-unspecified);
+$threat-bars: ('ignore', #fff, $iq-threat-color-ignore),
+  ('unspecified', #fff, $iq-threat-color-unspecified);
 
-$nx-threat-levels:
-  ("unspecified", $nx-threat-color-unspecified)
-  ("none",  $nx-threat-color-none),
-  ("low",  $nx-threat-color-low),
-  ("moderate", $nx-threat-color-moderate),
-  ("severe", $nx-threat-color-severe),
-  ("critical", $nx-threat-color-critical);
+$nx-threat-levels: ('unspecified', $nx-threat-color-unspecified)
+    ('none', $nx-threat-color-none),
+  ('low', $nx-threat-color-low), ('moderate', $nx-threat-color-moderate),
+  ('severe', $nx-threat-color-severe), ('critical', $nx-threat-color-critical);
 
 /*
   #Content color variables

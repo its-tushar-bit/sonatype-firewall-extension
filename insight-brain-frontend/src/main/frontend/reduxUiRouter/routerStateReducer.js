@@ -3,25 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {UI_ROUTER_ON_FINISH} from './routerActions';
+import { UI_ROUTER_ON_FINISH } from './routerActions';
 
 const initState = {
   currentState: {},
   currentParams: {},
   prevState: {},
-  prevParams: {}
+  prevParams: {},
 };
 
-export default function routerStateReducer(state = initState, {type, payload}) {
+export default function routerStateReducer(
+  state = initState,
+  { type, payload }
+) {
   switch (type) {
-
     case UI_ROUTER_ON_FINISH: {
-      const {fromState, fromParams, toState, toParams} = payload;
+      const { fromState, fromParams, toState, toParams } = payload;
       return {
         currentState: getRouteStateData(toState),
         currentParams: toParams,
         prevState: getRouteStateData(fromState),
-        prevParams: fromParams
+        prevParams: fromParams,
       };
     }
 
@@ -30,6 +32,6 @@ export default function routerStateReducer(state = initState, {type, payload}) {
   }
 }
 
-function getRouteStateData({name, url, data}) {
-  return {name, url, data};
+function getRouteStateData({ name, url, data }) {
+  return { name, url, data };
 }

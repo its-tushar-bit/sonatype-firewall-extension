@@ -100,7 +100,7 @@ $policy-condition-left-margin: 8px;
   margin-left: $policy-condition-left-margin;
 
   // The two following values fix a height discrepency between inputs and dropdowns
-  .iq-text-input[type="text"] {
+  .iq-text-input[type='text'] {
     height: 31px;
   }
 
@@ -127,18 +127,22 @@ coordinates-input {
     width: 88px;
   }
 
-  input[type=text] {
+  input[type='text'] {
     margin-left: $policy-condition-left-margin;
 
-    &[name^="groupid-"], &[name^="name-"] {
+    &[name^='groupid-'],
+    &[name^='name-'] {
       width: 140px;
     }
 
-    &[name^="artifactid-"], &[name^="qualifier-"] {
+    &[name^='artifactid-'],
+    &[name^='qualifier-'] {
       width: 120px;
     }
 
-    &[name^="version-"], &[name^="extension-"], &[name^="classifier-"] {
+    &[name^='version-'],
+    &[name^='extension-'],
+    &[name^='classifier-'] {
       width: 80px;
     }
   }

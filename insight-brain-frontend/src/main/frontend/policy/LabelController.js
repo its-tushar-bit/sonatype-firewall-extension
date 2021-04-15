@@ -7,19 +7,24 @@
 import CLMContextLocationModule from '../util/CLMContextLocation';
 import storesModule from '../util/Stores';
 
-var labelTemplate = {id: null, label: null, color: null, description: ''};
+var labelTemplate = { id: null, label: null, color: null, description: '' };
 
-var labelModule = angular.module('Labels', [CLMContextLocationModule.name, storesModule.name]);
+var labelModule = angular.module('Labels', [
+  CLMContextLocationModule.name,
+  storesModule.name,
+]);
 
 labelModule.service('LabelStore', [
-  'CachedStore', 'CLMContextLocations', function(CachedStore, CLMContextLocations) {
+  'CachedStore',
+  'CLMContextLocations',
+  function (CachedStore, CLMContextLocations) {
     var labelStoreTemplate = {
       getUrl: CLMContextLocations.getLabelsUrl,
-      template: labelTemplate
+      template: labelTemplate,
     };
 
     return CachedStore.get(labelStoreTemplate);
-  }
+  },
 ]);
 
 export default labelModule;

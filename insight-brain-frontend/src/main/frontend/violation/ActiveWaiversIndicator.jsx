@@ -9,20 +9,23 @@ import classnames from 'classnames';
 
 export default function ActiveWaiversIndicator({ noOfWaivers = 0 }) {
   const noActiveWaivers = noOfWaivers === 0;
-  const containerClass = classnames('iq-waiver-indicator', { 'iq-waiver-indicator--inactive': noActiveWaivers });
+  const containerClass = classnames('iq-waiver-indicator', {
+    'iq-waiver-indicator--inactive': noActiveWaivers,
+  });
 
-  const iconClass = classnames('iq-waiver-indicator__counter',
-      { 'iq-waiver-indicator__counter--inactive': noActiveWaivers });
+  const iconClass = classnames('iq-waiver-indicator__counter', {
+    'iq-waiver-indicator__counter--inactive': noActiveWaivers,
+  });
   const indicatorText = noOfWaivers === 1 ? 'Active Waiver' : 'Active Waivers';
 
   return (
-    <div id='waivers-indicator' className={ containerClass }>
-      <span className={ iconClass }>{ noOfWaivers }</span>
-      <span>{ indicatorText }</span>
+    <div id="waivers-indicator" className={containerClass}>
+      <span className={iconClass}>{noOfWaivers}</span>
+      <span>{indicatorText}</span>
     </div>
   );
 }
 
 ActiveWaiversIndicator.propTypes = {
-  noOfWaivers: PropTypes.number.isRequired
+  noOfWaivers: PropTypes.number.isRequired,
 };

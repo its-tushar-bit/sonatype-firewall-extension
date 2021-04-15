@@ -7,21 +7,17 @@
 // Karma configuration
 // Generated on Tue Apr 14 2020 09:10:29 GMT-0400 (Eastern Daylight Time)
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
-
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
-
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['jasmine'],
 
-
     // list of files / patterns to load in the browser
     files: ['target/classes/assets/test-bundle.js'],
-
 
     // list of files / patterns to exclude
     exclude: [],
@@ -38,32 +34,26 @@ module.exports = function(config) {
         // the tests for the bundles outside of the main bundle depend on a bunch of global mutable state and
         // are unfortunately quite fragile. They are known to run correctly when run in alphabetical order, but
         // not necessarily in random order.
-        random: false
-      }
+        random: false,
+      },
     },
-
 
     // web server port
     port: 9876,
 
-
     // enable / disable colors in the output (reporters and logs)
     colors: true,
-
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
     logLevel: config.LOG_INFO,
 
-
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
-
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: ['ChromeHeadless'],
-
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
@@ -76,14 +66,13 @@ module.exports = function(config) {
     coverageIstanbulReporter: {
       reports: ['text-summary', 'lcovonly'],
       fixWebpackSourcePaths: true,
-      dir: 'target/coverage'
+      dir: 'target/coverage',
     },
 
     junitReporter: {
       outputDir: 'target/karma-reports',
       outputFile: 'jasmine.xml',
-      useBrowserName: false
-    }
-
-  })
-}
+      useBrowserName: false,
+    },
+  });
+};

@@ -6,27 +6,37 @@
 import mainHeaderModule from '../../../main/frontend/mainHeader/module';
 import legacyConfigurationModule from '../../../main/frontend/LegacyConfigurationModule';
 
-describe('mainHeaderSpec', function() {
-
+describe('mainHeaderSpec', function () {
   var $scope,
-      $rootScope,
-      $ngRedux,
-      unsubscribeSpy,
-      mockSystemConfigurationPropertyService,
-      mockCurrentUser,
-      mockPermissionService,
-      mockProductFeatures,
-      isSuccessMetricsEnabledDeferred,
-      loginDeferred,
-      productFeaturesDeferred,
-      vm,
-      clmServerVersion;
+    $rootScope,
+    $ngRedux,
+    unsubscribeSpy,
+    mockSystemConfigurationPropertyService,
+    mockCurrentUser,
+    mockPermissionService,
+    mockProductFeatures,
+    isSuccessMetricsEnabledDeferred,
+    loginDeferred,
+    productFeaturesDeferred,
+    vm,
+    clmServerVersion;
 
-  beforeEach(angular.mock.module(mainHeaderModule.name, legacyConfigurationModule.name, function($provide) {
-    unsubscribeSpy = SpecUtil.mockNgRedux($provide);
-  }));
+  beforeEach(
+    angular.mock.module(
+      mainHeaderModule.name,
+      legacyConfigurationModule.name,
+      function ($provide) {
+        unsubscribeSpy = SpecUtil.mockNgRedux($provide);
+      }
+    )
+  );
 
-  beforeEach(inject(function(_$rootScope_, $q, $componentController, _$ngRedux_) {
+  beforeEach(inject(function (
+    _$rootScope_,
+    $q,
+    $componentController,
+    _$ngRedux_
+  ) {
     clmServerVersion = window.clmServerVersion;
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
@@ -35,19 +45,28 @@ describe('mainHeaderSpec', function() {
     loginDeferred = $q.defer();
     productFeaturesDeferred = $q.defer();
     mockSystemConfigurationPropertyService = {
-      isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise)
+      isSuccessMetricsEnabled: jasmine
+        .createSpy()
+        .and.returnValue(isSuccessMetricsEnabledDeferred.promise),
     };
 
     mockCurrentUser = {
       fetch: jasmine.createSpy('fetch'),
-      waitForLogin: jasmine.createSpy('waitForLogin').and.returnValue(loginDeferred.promise)
+      waitForLogin: jasmine
+        .createSpy('waitForLogin')
+        .and.returnValue(loginDeferred.promise),
     };
 
-    mockPermissionService = {getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve())};
+    mockPermissionService = {
+      getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve()),
+    };
 
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
+    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', [
+      'isAvailable',
+      'load',
+    ]);
     mockProductFeatures.load.and.returnValue(productFeaturesDeferred.promise);
-    mockProductFeatures.isAvailable.and.callFake(function() {
+    mockProductFeatures.isAvailable.and.callFake(function () {
       return false;
     });
 
@@ -58,16 +77,16 @@ describe('mainHeaderSpec', function() {
       CurrentUser: mockCurrentUser,
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
       ProductFeatures: mockProductFeatures,
-      $scope: $scope
+      $scope: $scope,
     });
   }));
 
-  afterEach(function() {
+  afterEach(function () {
     window.clmServerVersion = clmServerVersion;
     $scope.$destroy();
   });
 
-  it('properly loads on enabled success metrics', function() {
+  it('properly loads on enabled success metrics', function () {
     vm.$onInit();
     loginDeferred.resolve();
     isSuccessMetricsEnabledDeferred.resolve(true);
@@ -76,7 +95,7 @@ describe('mainHeaderSpec', function() {
     expect(vm.isSuccessMetricsEnabled).toBe(true);
   });
 
-  it('properly loads on disabled success metrics', function() {
+  it('properly loads on disabled success metrics', function () {
     vm.$onInit();
     loginDeferred.resolve();
     isSuccessMetricsEnabledDeferred.reject('disabled');
@@ -85,8 +104,8 @@ describe('mainHeaderSpec', function() {
     expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
 
-  it('properly loads on supported firewall', function() {
-    mockProductFeatures.isAvailable.and.callFake(function(feature) {
+  it('properly loads on supported firewall', function () {
+    mockProductFeatures.isAvailable.and.callFake(function (feature) {
       return feature === 'firewall' || feature === 'release-integrity';
     });
     vm.$onInit();
@@ -97,7 +116,7 @@ describe('mainHeaderSpec', function() {
     expect(vm.isFirewallSupported).toBe(true);
   });
 
-  it('properly loads on not supported firewall', function() {
+  it('properly loads on not supported firewall', function () {
     vm.$onInit();
     loginDeferred.resolve();
     productFeaturesDeferred.resolve();
@@ -106,8 +125,8 @@ describe('mainHeaderSpec', function() {
     expect(vm.isFirewallSupported).toBe(false);
   });
 
-  it('properly loads on supported advanced legal pack', function() {
-    mockProductFeatures.isAvailable.and.callFake(function(feature) {
+  it('properly loads on supported advanced legal pack', function () {
+    mockProductFeatures.isAvailable.and.callFake(function (feature) {
       return feature === 'advanced-legal-pack';
     });
     vm.$onInit();
@@ -118,7 +137,7 @@ describe('mainHeaderSpec', function() {
     expect(vm.isAdvancedLegalPackSupported).toBe(true);
   });
 
-  it('properly loads on not supported advanced legal pack', function() {
+  it('properly loads on not supported advanced legal pack', function () {
     vm.$onInit();
     loginDeferred.resolve();
     productFeaturesDeferred.resolve();
@@ -127,7 +146,7 @@ describe('mainHeaderSpec', function() {
     expect(vm.isAdvancedLegalPackSupported).toBe(false);
   });
 
-  it('properly loads on not supported labs data insights', function() {
+  it('properly loads on not supported labs data insights', function () {
     vm.$onInit();
     loginDeferred.resolve();
     productFeaturesDeferred.resolve();
@@ -136,8 +155,8 @@ describe('mainHeaderSpec', function() {
     expect(vm.isLabsDataInsightsEnabled).toBe(false);
   });
 
-  it('properly loads on supported labs data insights', function() {
-    mockProductFeatures.isAvailable.and.callFake(function(feature) {
+  it('properly loads on supported labs data insights', function () {
+    mockProductFeatures.isAvailable.and.callFake(function (feature) {
       return feature === 'data-insights';
     });
     vm.$onInit();
@@ -148,11 +167,13 @@ describe('mainHeaderSpec', function() {
     expect(vm.isLabsDataInsightsEnabled).toBe(true);
   });
 
-  it('does not load success metrics, permissions, or features until after login', function() {
+  it('does not load success metrics, permissions, or features until after login', function () {
     vm.$onInit();
 
     isSuccessMetricsEnabledDeferred.reject('disabled');
-    expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).not.toHaveBeenCalled();
+    expect(
+      mockSystemConfigurationPropertyService.isSuccessMetricsEnabled
+    ).not.toHaveBeenCalled();
     expect($ngRedux.dispatch).not.toHaveBeenCalled();
     expect(mockPermissionService.getValidPermissions).not.toHaveBeenCalled();
     expect(mockProductFeatures.load).not.toHaveBeenCalled();
@@ -160,95 +181,106 @@ describe('mainHeaderSpec', function() {
     loginDeferred.resolve();
     $scope.$digest();
 
-    expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
+    expect(
+      mockSystemConfigurationPropertyService.isSuccessMetricsEnabled
+    ).toHaveBeenCalled();
     expect($ngRedux.dispatch).toHaveBeenCalledTimes(2);
     expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
     expect(mockProductFeatures.load).toHaveBeenCalled();
   });
 
-  describe('mapStateToThis', function() {
+  describe('mapStateToThis', function () {
     let mapStateToThis;
 
-    beforeEach(function() {
+    beforeEach(function () {
       vm.$onInit();
       loginDeferred.resolve();
       $scope.$digest();
       mapStateToThis = $ngRedux.connect.calls.first().args[0];
     });
 
-    it('returns an object with isAdvancedSearchEnabled set to false given a state with no server data', function() {
+    it('returns an object with isAdvancedSearchEnabled set to false given a state with no server data', function () {
       let mockStateNoServerData = {
         advancedSearchConfig: {
-          serverData: null
-        }
+          serverData: null,
+        },
       };
 
-      expect(mapStateToThis(mockStateNoServerData).isAdvancedSearchEnabled).toBeFalsy();
+      expect(
+        mapStateToThis(mockStateNoServerData).isAdvancedSearchEnabled
+      ).toBeFalsy();
     });
 
-    it('returns an object with isAdvancedSearchEnabled set to true given a state with server data and isEnabled true',
-        function() {
-          let mockStateWithServerDataAndIsEnabledTrue = {
-            advancedSearchConfig: {
-              serverData: {
-                isEnabled: true
-              }
-            }
-          };
+    it('returns an object with isAdvancedSearchEnabled set to true given a state with server data and isEnabled true', function () {
+      let mockStateWithServerDataAndIsEnabledTrue = {
+        advancedSearchConfig: {
+          serverData: {
+            isEnabled: true,
+          },
+        },
+      };
 
-          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledTrue).isAdvancedSearchEnabled).toBe(true);
-        });
+      expect(
+        mapStateToThis(mockStateWithServerDataAndIsEnabledTrue)
+          .isAdvancedSearchEnabled
+      ).toBe(true);
+    });
 
-    it('returns an object with isAdvancedSearchEnabled set to false given a state with server data and isEnabled false',
-        function() {
-          let mockStateWithServerDataAndIsEnabledFalse = {
-            advancedSearchConfig: {
-              serverData: {
-                isEnabled: false
-              }
-            }
-          };
+    it('returns an object with isAdvancedSearchEnabled set to false given a state with server data and isEnabled false', function () {
+      let mockStateWithServerDataAndIsEnabledFalse = {
+        advancedSearchConfig: {
+          serverData: {
+            isEnabled: false,
+          },
+        },
+      };
 
-          expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse).isAdvancedSearchEnabled).toBe(false);
-        });
+      expect(
+        mapStateToThis(mockStateWithServerDataAndIsEnabledFalse)
+          .isAdvancedSearchEnabled
+      ).toBe(false);
+    });
 
-    it('returns an object with isFirewallEnabled set to false given a state with no firewall state statusState',
-        function() {
-          let mockStateNoFirewallStatusState = {
-            firewall: {}
-          };
+    it('returns an object with isFirewallEnabled set to false given a state with no firewall state statusState', function () {
+      let mockStateNoFirewallStatusState = {
+        firewall: {},
+      };
 
-          expect(mapStateToThis(mockStateNoFirewallStatusState).isFirewallEnabled).toBeFalsy();
-        });
+      expect(
+        mapStateToThis(mockStateNoFirewallStatusState).isFirewallEnabled
+      ).toBeFalsy();
+    });
 
-    it('returns an object with isFirewallEnabled true given state with firewall statusState and isEnabled true',
-        function() {
-          let mockStateWithIsEnabledTrue = {
-            firewall: {
-              statusState: {
-                isEnabled: true
-              }
-            }
-          };
+    it('returns an object with isFirewallEnabled true given state with firewall statusState and isEnabled true', function () {
+      let mockStateWithIsEnabledTrue = {
+        firewall: {
+          statusState: {
+            isEnabled: true,
+          },
+        },
+      };
 
-          expect(mapStateToThis(mockStateWithIsEnabledTrue).isFirewallEnabled).toBe(true);
-        });
+      expect(mapStateToThis(mockStateWithIsEnabledTrue).isFirewallEnabled).toBe(
+        true
+      );
+    });
 
-    it('returns object with isFirewallEnabled false given state with firewall statusState and isEnabled false',
-        function() {
-          let mockStateWithIsEnabledFalse = {
-            firewall: {
-              statusState: {
-                isEnabled: false
-              }
-            }
-          };
+    it('returns object with isFirewallEnabled false given state with firewall statusState and isEnabled false', function () {
+      let mockStateWithIsEnabledFalse = {
+        firewall: {
+          statusState: {
+            isEnabled: false,
+          },
+        },
+      };
 
-          expect(mapStateToThis(mockStateWithIsEnabledFalse).isFirewallEnabled).toBe(false);
-        });
+      expect(
+        mapStateToThis(mockStateWithIsEnabledFalse).isFirewallEnabled
+      ).toBe(false);
+    });
   });
 
-  it('calls unsubscribe when the $scope is destroyed', function() {
+  it('calls unsubscribe when the $scope is destroyed', function () {
     vm.$onInit();
     loginDeferred.resolve();
     $scope.$digest();
@@ -258,7 +290,7 @@ describe('mainHeaderSpec', function() {
     expect(unsubscribeSpy).toHaveBeenCalled();
   });
 
-  it('resets isSuccessMetricsEnabled on successMetricsConfigurationUpdated event', function() {
+  it('resets isSuccessMetricsEnabled on successMetricsConfigurationUpdated event', function () {
     vm.$onInit();
     isSuccessMetricsEnabledDeferred.resolve(false);
 
@@ -273,7 +305,7 @@ describe('mainHeaderSpec', function() {
     expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
 
-  it('properly determines the displayed release version number', function() {
+  it('properly determines the displayed release version number', function () {
     vm.$onInit();
 
     window.clmServerVersion = '1.50.0-SNAPSHOT';
@@ -301,38 +333,38 @@ describe('mainHeaderSpec', function() {
     expect(vm.getReleaseVersion()).toEqual('50.1');
   });
 
-  describe('isLoggedIn()', function() {
-    it('Not Loaded', function() {
+  describe('isLoggedIn()', function () {
+    it('Not Loaded', function () {
       expect(vm.isLoggedIn()).toBeFalsy();
     });
-    it('Logged In', function() {
+    it('Logged In', function () {
       $rootScope.username = 'user';
       vm.$onInit();
       expect(vm.isLoggedIn()).toBeTruthy();
     });
-    it('Not LoggedIn', function() {
+    it('Not LoggedIn', function () {
       vm.$onInit();
       expect(vm.isLoggedIn()).toBeFalsy();
     });
   });
 
-  describe('isLicensed()', function() {
-    it('Not Loaded', function() {
+  describe('isLicensed()', function () {
+    it('Not Loaded', function () {
       expect(vm.isLicensed()).toBeFalsy();
     });
-    it('Licensed', function() {
+    it('Licensed', function () {
       $rootScope.licensed = true;
       vm.$onInit();
       expect(vm.isLicensed()).toBeTruthy();
     });
-    it('Not Licensed', function() {
+    it('Not Licensed', function () {
       vm.$onInit();
       expect(vm.isLicensed()).toBeFalsy();
     });
   });
 
-  describe('login', function() {
-    it('calls CurrentUser.fetch', function() {
+  describe('login', function () {
+    it('calls CurrentUser.fetch', function () {
       vm.$onInit();
 
       expect(mockCurrentUser.fetch).not.toHaveBeenCalled();
@@ -343,18 +375,21 @@ describe('mainHeaderSpec', function() {
     });
   });
 
-  describe('shouldShowLoginButton', function() {
+  describe('shouldShowLoginButton', function () {
     let routeStateUtilService;
 
-    beforeEach(inject(function(_routeStateUtilService_) {
+    beforeEach(inject(function (_routeStateUtilService_) {
       routeStateUtilService = _routeStateUtilService_;
     }));
 
-    it('returns false if the user is logged in already', function() {
+    it('returns false if the user is logged in already', function () {
       vm.$onInit();
       $rootScope.username = 'user';
       $scope.$digest();
-      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(true);
+      spyOn(
+        routeStateUtilService,
+        'stateRequiresAuthentication'
+      ).and.returnValue(true);
 
       expect(vm.shouldShowLoginButton()).toBe(false);
 
@@ -363,16 +398,22 @@ describe('mainHeaderSpec', function() {
       expect(vm.shouldShowLoginButton()).toBe(false);
     });
 
-    it('returns false if the user is not logged in but the current page requires authentication', function() {
+    it('returns false if the user is not logged in but the current page requires authentication', function () {
       vm.$onInit();
-      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(true);
+      spyOn(
+        routeStateUtilService,
+        'stateRequiresAuthentication'
+      ).and.returnValue(true);
 
       expect(vm.shouldShowLoginButton()).toBe(false);
     });
 
-    it('returns true if the user is not logged in and the current page does not require authentication', function() {
+    it('returns true if the user is not logged in and the current page does not require authentication', function () {
       vm.$onInit();
-      spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(false);
+      spyOn(
+        routeStateUtilService,
+        'stateRequiresAuthentication'
+      ).and.returnValue(false);
 
       expect(vm.shouldShowLoginButton()).toBe(true);
     });

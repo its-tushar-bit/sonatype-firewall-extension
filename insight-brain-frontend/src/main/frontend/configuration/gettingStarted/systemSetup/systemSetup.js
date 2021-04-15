@@ -6,5 +6,5 @@
 import template from './systemSetup.html';
 
 export default {
-  template
+  template,
 };

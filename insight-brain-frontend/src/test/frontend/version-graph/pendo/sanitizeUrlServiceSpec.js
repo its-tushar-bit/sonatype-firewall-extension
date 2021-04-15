@@ -5,37 +5,44 @@
  */
 import versionGraphPendoModule from '../../../../main/frontend/version-graph/pendo/module';
 
-describe('version-graph sanitizeUrlService', function() {
-  var sanitizeUrlService,
-      baseUrl;
+describe('version-graph sanitizeUrlService', function () {
+  var sanitizeUrlService, baseUrl;
 
-  beforeEach(angular.mock.module(versionGraphPendoModule.name, function($provide) {
-    $provide.service('BaseUrl', () => ({ get: () => baseUrl }));
-  }));
+  beforeEach(
+    angular.mock.module(versionGraphPendoModule.name, function ($provide) {
+      $provide.service('BaseUrl', () => ({ get: () => baseUrl }));
+    })
+  );
 
-  beforeEach(inject(function(_sanitizeUrlService_) {
+  beforeEach(inject(function (_sanitizeUrlService_) {
     sanitizeUrlService = _sanitizeUrlService_;
 
     baseUrl = 'http://localhost:8070';
   }));
 
-  it('removes the baseUrl', function() {
-    expect(sanitizeUrlService.sanitize('http://localhost:8070/assets/version-graph/index.html'))
-        .toBe('/assets/version-graph/index.html');
+  it('removes the baseUrl', function () {
+    expect(
+      sanitizeUrlService.sanitize(
+        'http://localhost:8070/assets/version-graph/index.html'
+      )
+    ).toBe('/assets/version-graph/index.html');
 
     baseUrl = 'https://foobar.com/iq';
 
-    expect(sanitizeUrlService.sanitize('https://foobar.com/iq/assets/version-graph/index.html'))
-        .toBe('/assets/version-graph/index.html');
+    expect(
+      sanitizeUrlService.sanitize(
+        'https://foobar.com/iq/assets/version-graph/index.html'
+      )
+    ).toBe('/assets/version-graph/index.html');
   });
 
-  it('doesn\'t crash on an unexpected URL', function() {
+  it("doesn't crash on an unexpected URL", function () {
     const url = 'http://localhost:8070/assets/version-graph/foo';
 
     expect(sanitizeUrlService.sanitize(url)).toBe('/assets/version-graph/foo');
   });
 
-  it('passes through external URLs unchanged', function() {
+  it('passes through external URLs unchanged', function () {
     const url = 'http://links.sonatype.com/asdf';
 
     expect(sanitizeUrlService.sanitize(url)).toBe(url);

@@ -9,9 +9,7 @@ import * as PropTypes from 'prop-types';
 
 export default function FirewallAutoReleaseQuarantineYtd(props) {
   // viewState
-  const {
-    autoReleaseQuarantineCountYTD
-  } = props;
+  const { autoReleaseQuarantineCountYTD } = props;
 
   return (
     <section id="firewall-auto-release-quarantine-ytd" className="nx-card">
@@ -19,9 +17,7 @@ export default function FirewallAutoReleaseQuarantineYtd(props) {
         <h3 className="nx-h3">Auto Released (Year to Date)</h3>
       </header>
       <div className="nx-card__content">
-        <div className="nx-card__call-out">
-          {autoReleaseQuarantineCountYTD}
-        </div>
+        <div className="nx-card__call-out">{autoReleaseQuarantineCountYTD}</div>
 
         <div className="nx-card__text">components released year-to-date</div>
       </div>
@@ -30,6 +26,5 @@ export default function FirewallAutoReleaseQuarantineYtd(props) {
 }
 
 FirewallAutoReleaseQuarantineYtd.propTypes = {
-  autoReleaseQuarantineCountYTD: PropTypes.string
+  autoReleaseQuarantineCountYTD: PropTypes.string,
 };
-

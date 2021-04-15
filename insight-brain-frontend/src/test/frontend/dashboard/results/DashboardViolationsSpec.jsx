@@ -8,34 +8,37 @@ import DashboardViolations from '../../../../main/frontend/dashboard/results/vio
 import DashboardViolationsTable from '../../../../main/frontend/dashboard/results/violations/DashboardViolationsTable';
 import DashboardMask from '../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
 
-describe('DashboardViolations', function() {
-  let minimalProps,
-      getShallowComponent,
-      getMountedComponent,
-      loadResultsSpy;
+describe('DashboardViolations', function () {
+  let minimalProps, getShallowComponent, getMountedComponent, loadResultsSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     loadResultsSpy = jasmine.createSpy('loadResults');
 
     minimalProps = {
       results: {
         violations: {
           results: {},
-          sortFields: ['field']
-        }
+          sortFields: ['field'],
+        },
       },
       appliedFilter: {
-        maxDaysOld: 0
+        maxDaysOld: 0,
       },
       filterLoading: false,
       needsAcknowledgement: false,
       loadResults: loadResultsSpy,
       sortResults: () => {},
-      stateGo: () => {}
+      stateGo: () => {},
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolations, minimalProps),
-    getMountedComponent = enzymeUtils.getMountedComponent(DashboardViolations, minimalProps);
+    (getShallowComponent = enzymeUtils.getShallowComponent(
+      DashboardViolations,
+      minimalProps
+    )),
+      (getMountedComponent = enzymeUtils.getMountedComponent(
+        DashboardViolations,
+        minimalProps
+      ));
   });
 
   it('renders a component', () => {
@@ -73,12 +76,18 @@ describe('DashboardViolations', function() {
 
   it('renders a DashboardViolationsTable component', () => {
     const component = getShallowComponent(),
-        table = component.find(DashboardViolationsTable);
+      table = component.find(DashboardViolationsTable);
 
     expect(table).toExist();
     expect(table).toHaveProp('violations', minimalProps.results.violations);
-    expect(table).toHaveProp('needsAcknowledgement', minimalProps.needsAcknowledgement);
-    expect(table).toHaveProp('maxDaysOld', minimalProps.appliedFilter.maxDaysOld);
+    expect(table).toHaveProp(
+      'needsAcknowledgement',
+      minimalProps.needsAcknowledgement
+    );
+    expect(table).toHaveProp(
+      'maxDaysOld',
+      minimalProps.appliedFilter.maxDaysOld
+    );
     expect(table).toHaveProp('stateGo', minimalProps.stateGo);
     expect(table).toHaveProp('sortViolations');
     expect(table).toHaveProp('reload');

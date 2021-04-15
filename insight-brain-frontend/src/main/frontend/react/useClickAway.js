@@ -9,7 +9,6 @@ import { useEffect } from 'react';
 const EVENT = 'mousedown';
 
 export default function useClickAway(ref, callback) {
-
   useEffect(() => {
     const listener = (event) => {
       if (!ref || !ref.current || ref.current.contains(event.target)) {

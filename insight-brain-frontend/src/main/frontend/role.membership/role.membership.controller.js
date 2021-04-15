@@ -5,8 +5,12 @@
  */
 import { omit, map } from 'ramda';
 
-export default function RoleMembershipController($scope, $http, CLMContextLocations, Messages) {
-
+export default function RoleMembershipController(
+  $scope,
+  $http,
+  CLMContextLocations,
+  Messages
+) {
   var vm = this;
 
   vm.accessEditor = undefined;
@@ -52,10 +56,11 @@ export default function RoleMembershipController($scope, $http, CLMContextLocati
   //Update the currentMembers scope property based on the members property.  NOTE: This must be called
   //manually each time members or its contents are adjusted
   function getCurrentMembers() {
-    return vm.members ?
-      vm.members.filter(function(user) {
-        return user.picked;
-      }) : [];
+    return vm.members
+      ? vm.members.filter(function (user) {
+          return user.picked;
+        })
+      : [];
   }
 
   // Like getCurrentMembers, but filters out properties that the server isn't expecting
@@ -64,13 +69,14 @@ export default function RoleMembershipController($scope, $http, CLMContextLocati
   }
 
   function setMembers(originalMembers) {
-    vm.members = originalMembers ?
-      originalMembers.map(function(member) {
-        var copy = angular.copy(member);
-        copy.picked = true;
-        copy.checked = false;
-        return copy;
-      }) : [];
+    vm.members = originalMembers
+      ? originalMembers.map(function (member) {
+          var copy = angular.copy(member);
+          copy.picked = true;
+          copy.checked = false;
+          return copy;
+        })
+      : [];
   }
 
   function addGroup() {
@@ -78,7 +84,7 @@ export default function RoleMembershipController($scope, $http, CLMContextLocati
       displayName: vm.newGroupName,
       email: null,
       internalName: vm.newGroupName,
-      type: 'GROUP'
+      type: 'GROUP',
     };
     updatePickedUsers([group]);
 
@@ -103,29 +109,39 @@ export default function RoleMembershipController($scope, $http, CLMContextLocati
       var pickedUsers = getCurrentMembers();
       vm.searchInProgress = true;
 
-      vm.accessEditorSearchMask.wrap($http.get(CLMContextLocations.getFindUsersUrl(), {
-        params: {
-          q: vm.query
-        }
-      })).then(function(result) {
-        vm.searchInProgress = false;
-        vm.members = result.data.members;
-        updatePickedUsers(pickedUsers);
+      vm.accessEditorSearchMask
+        .wrap(
+          $http.get(CLMContextLocations.getFindUsersUrl(), {
+            params: {
+              q: vm.query,
+            },
+          })
+        )
+        .then(
+          function (result) {
+            vm.searchInProgress = false;
+            vm.members = result.data.members;
+            updatePickedUsers(pickedUsers);
 
-        if (result.data.error) {
-          vm.searchError = result.data.error;
-        }
-      }, function(error) {
-        vm.searchInProgress = false;
-        vm.searchError = Messages.getHttpErrorMessage(error);
-      });
+            if (result.data.error) {
+              vm.searchError = result.data.error;
+            }
+          },
+          function (error) {
+            vm.searchInProgress = false;
+            vm.searchError = Messages.getHttpErrorMessage(error);
+          }
+        );
     }
   }
 
   function updatePickedUsers(pickedUsers) {
-    pickedUsers.forEach(function(pickedUser) {
-      var replaced = vm.members.some(function(user, index) {
-        if (user.internalName === pickedUser.internalName && user.type === pickedUser.type) {
+    pickedUsers.forEach(function (pickedUser) {
+      var replaced = vm.members.some(function (user, index) {
+        if (
+          user.internalName === pickedUser.internalName &&
+          user.type === pickedUser.type
+        ) {
           vm.members[index] = pickedUser;
           return true;
         }
@@ -138,16 +154,21 @@ export default function RoleMembershipController($scope, $http, CLMContextLocati
 
   function isDirty() {
     function getSortedNames(members) {
-      return members.map(function(user) {
-        return user.internalName;
-      }).sort();
+      return members
+        .map(function (user) {
+          return user.internalName;
+        })
+        .sort();
     }
 
-    return !angular.equals(getSortedNames(getCurrentMembers()), getSortedNames(vm.originalMembers));
+    return !angular.equals(
+      getSortedNames(getCurrentMembers()),
+      getSortedNames(vm.originalMembers)
+    );
   }
 
   function groupExists(groupName) {
-    return vm.members.some(function(member) {
+    return vm.members.some(function (member) {
       return member.internalName === groupName;
     });
   }
@@ -157,10 +178,15 @@ export default function RoleMembershipController($scope, $http, CLMContextLocati
   }
 
   function getTooltip(item) {
-    return item.realm && item.type !== 'GROUP' ? item.realm + (item.email ? '\n' + item.email : '') : null;
+    return item.realm && item.type !== 'GROUP'
+      ? item.realm + (item.email ? '\n' + item.email : '')
+      : null;
   }
 }
 
 RoleMembershipController.$inject = [
-  '$scope', '$http', 'CLMContextLocations', 'Messages'
+  '$scope',
+  '$http',
+  'CLMContextLocations',
+  'Messages',
 ];

@@ -13,7 +13,7 @@ export default Object.freeze({
   policyTypes: new Set(),
   policyViolationStates: new Set(['OPEN']),
   maxDaysOld: defaultMaxDaysOld,
-  policyThreatLevels: [2, 10]
+  policyThreatLevels: [2, 10],
 });
 
 export const DEFAULT_FILTER_NAME = 'Default';

@@ -10,7 +10,6 @@ import React from 'react';
 import UnsavedChangesModal from './UnsavedChangesModal';
 
 export default function unsavedChangesModalService($q) {
-
   let modalPromise = null;
 
   function resetIsShowing() {
@@ -46,11 +45,14 @@ export default function unsavedChangesModalService($q) {
         document.body.removeChild(unsavedChangesDiv);
       };
 
-      ReactDOM.render(<UnsavedChangesModal onContinue={onContinue} onClose={onClose}/>, unsavedChangesDiv);
+      ReactDOM.render(
+        <UnsavedChangesModal onContinue={onContinue} onClose={onClose} />,
+        unsavedChangesDiv
+      );
       modalPromise = deferred.promise;
 
       return modalPromise;
-    }
+    },
   };
 }
 

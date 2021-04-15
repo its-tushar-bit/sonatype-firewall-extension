@@ -11,10 +11,14 @@ import {
   NxFormGroup,
   NxModal,
   NxTextInput,
-  NxToggle
+  NxToggle,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { availableScopesPropType, legalFilesPropType, licenseObligationPropType } from '../../advancedLegalPropTypes';
+import {
+  availableScopesPropType,
+  legalFilesPropType,
+  licenseObligationPropType,
+} from '../../advancedLegalPropTypes';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 import ObligationStatusComponent from '../../shared/ObligationStatusComponent';
 
@@ -36,64 +40,95 @@ export default function LicensesModal(props) {
     licenses,
     error,
     submitMaskState,
-    existingObligation
+    existingObligation,
   } = props;
 
-  const createFormRowItem = (license, index) =>
-    <tr id={ 'license-row-' + index } key={ index }>
+  const createFormRowItem = (license, index) => (
+    <tr id={'license-row-' + index} key={index}>
       <td>
-        <NxTextInput id={ 'license-text-input-' + index }
-                     className="nx-text-input nx-text-input--full"
-                     type="textarea"
-                     value={ license.content }
-                     isPristine={ license.isPristine }
-                     onChange={ payload => setLicenseContent({ index: index, value: payload }) }
-                     disabled={ license.status === 'disabled' }/>
+        <NxTextInput
+          id={'license-text-input-' + index}
+          className="nx-text-input nx-text-input--full"
+          type="textarea"
+          value={license.content}
+          isPristine={license.isPristine}
+          onChange={(payload) =>
+            setLicenseContent({ index: index, value: payload })
+          }
+          disabled={license.status === 'disabled'}
+        />
       </td>
       <td>
-        <NxToggle inputId={ 'license-status-toggle-' + index }
-                  onChange={ () => setLicenseStatus(
-                      { index: index, value: license.status === 'enabled' ? 'disabled' : 'enabled' }) }
-                  className="nx-toggle nx-toggle--no-gap"
-                  isChecked={ license.status === 'enabled' }>
-          { license.status === 'enabled' ? 'Included' : 'Excluded' }
+        <NxToggle
+          inputId={'license-status-toggle-' + index}
+          onChange={() =>
+            setLicenseStatus({
+              index: index,
+              value: license.status === 'enabled' ? 'disabled' : 'enabled',
+            })
+          }
+          className="nx-toggle nx-toggle--no-gap"
+          isChecked={license.status === 'enabled'}
+        >
+          {license.status === 'enabled' ? 'Included' : 'Excluded'}
         </NxToggle>
       </td>
-    </tr>;
+    </tr>
+  );
 
-  const createScopeOption = value => (
-    <option key={ value.id } value={ value.id }>{ value.label } - { value.name }</option>
+  const createScopeOption = (value) => (
+    <option key={value.id} value={value.id}>
+      {value.label} - {value.name}
+    </option>
   );
 
   const notValidErrorMessage = 'A custom license must have text.';
 
   const isValid = () => {
     return !licenses.some(
-        license => license.id === null && license.originalContentHash === null && license.content === '');
+      (license) =>
+        license.id === null &&
+        license.originalContentHash === null &&
+        license.content === ''
+    );
   };
 
-  const notDirtyErrorMessage = 'Must add a new license or change the content or status of a license.';
+  const notDirtyErrorMessage =
+    'Must add a new license or change the content or status of a license.';
 
   const isDirty = () => {
     return isLicensesDirty() || isObligationDirty();
   };
 
   const isLicensesDirty = () => {
-    return scope !== originalScope ||
-        licenses.some(license =>
+    return (
+      scope !== originalScope ||
+      licenses.some(
+        (license) =>
           (license.id === null && license.originalContentHash === null) ||
-          (license.content !== license.originalContent) ||
-          (license.status !== license.originalStatus));
+          license.content !== license.originalContent ||
+          license.status !== license.originalStatus
+      )
+    );
   };
 
   function isObligationDirty() {
-    return existingObligation && existingObligation.status !== existingObligation.originalStatus;
+    return (
+      existingObligation &&
+      existingObligation.status !== existingObligation.originalStatus
+    );
   }
 
   const resetExistingObligation = () => {
     if (existingObligation) {
-      setObligationStatus({ name: existingObligation.name, value: existingObligation.originalStatus });
-      setObligationScope({ name: existingObligation.name, value: existingObligation.originalScope });
+      setObligationStatus({
+        name: existingObligation.name,
+        value: existingObligation.originalStatus,
+      });
+      setObligationScope({
+        name: existingObligation.name,
+        value: existingObligation.originalScope,
+      });
     }
   };
 
@@ -108,10 +143,11 @@ export default function LicensesModal(props) {
   };
 
   const getSubmitMaskState = () => {
-    const nullIfUndef = (b) => b === undefined ? null : b;
+    const nullIfUndef = (b) => (b === undefined ? null : b);
     const mainSubmitMaskState = nullIfUndef(submitMaskState);
-    const obligationSubmitMaskState = existingObligation ? nullIfUndef(
-        existingObligation.saveObligationSubmitMask) : null;
+    const obligationSubmitMaskState = existingObligation
+      ? nullIfUndef(existingObligation.saveObligationSubmitMask)
+      : null;
     if (mainSubmitMaskState === null) {
       return obligationSubmitMaskState;
     }
@@ -122,18 +158,25 @@ export default function LicensesModal(props) {
   };
 
   const setObligationScopeIfNeeded = (event) => {
-    if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
-      setObligationScope({ name: existingObligation.name, value: event.target.value });
+    if (
+      existingObligation &&
+      existingObligation.status !== existingObligation.originalStatus
+    ) {
+      setObligationScope({
+        name: existingObligation.name,
+        value: event.target.value,
+      });
     }
   };
 
   const onObligationChange = (value) => {
     setObligationStatus({ name: existingObligation.name, value });
     if (value === existingObligation.originalStatus) {
-      setObligationScope(
-          { name: existingObligation.name, value: existingObligation.originalScope });
-    }
-    else {
+      setObligationScope({
+        name: existingObligation.name,
+        value: existingObligation.originalScope,
+      });
+    } else {
       setObligationScope({ name: existingObligation.name, value: scope });
     }
   };
@@ -142,61 +185,95 @@ export default function LicensesModal(props) {
     saveLicenses({
       existingObligation,
       isLicensesDirty: isLicensesDirty(),
-      isObligationDirty: isObligationDirty()
+      isObligationDirty: isObligationDirty(),
     });
   };
 
-  return <NxModal id="edit-licenses-attribution-modal"
-                  onClose={ () => {resetExistingObligation(); cancelLicensesModal();} }
-                  variant="wide">
-    <NxForm onCancel={ () => {resetExistingObligation(); cancelLicensesModal();} }
-            submitBtnText="Save"
-            onSubmit={ trySave }
-            submitError={ error || (existingObligation ? existingObligation.error : false) }
-            submitMaskState={ getSubmitMaskState() }
-            validationErrors={ getValidationErrors() }>
-      <header className="nx-modal-header">
-        <h2 className="nx-h2">
-          Edit License Texts
-        </h2>
-      </header>
-      <div className="nx-modal-content">
-        <table className="legal-file-override-table">
-          <thead>
-            <tr>
-              <th>License Text</th>
-              <th>Attribution Report Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            { licenses.length > 0 ? licenses.map(createFormRowItem) :
-            <tr><td className="no-legal-texts-found">No license texts found</td><td/></tr> }
-          </tbody>
-        </table>
-        <div className="nx-btn-bar nx-btn-bar--left">
-          <NxButton id="add-license" type="button" variant="tertiary" onClick={ addLicense }>
-            <NxFontAwesomeIcon icon={ faPlus }/>
-            <span>Add License Text</span>
-          </NxButton>
-        </div>
-        { existingObligation &&
-          (<ObligationStatusComponent existingObligation={ existingObligation } onChange={ onObligationChange }/>)
+  return (
+    <NxModal
+      id="edit-licenses-attribution-modal"
+      onClose={() => {
+        resetExistingObligation();
+        cancelLicensesModal();
+      }}
+      variant="wide"
+    >
+      <NxForm
+        onCancel={() => {
+          resetExistingObligation();
+          cancelLicensesModal();
+        }}
+        submitBtnText="Save"
+        onSubmit={trySave}
+        submitError={
+          error || (existingObligation ? existingObligation.error : false)
         }
-        <NxFormGroup id="edit-licenses-attribution-scope-selection-group"
-                     label="Scope" sublabel="Apply changes to" isRequired>
-          <select id="edit-license-scope-selection"
-                  className="nx-form-select nx-form-select--long"
-                  value={ scope }
-                  onChange={ (payload) => {
-                    setLicensesScope(payload.currentTarget.value);
-                    setObligationScopeIfNeeded(payload);
-                  } }>
-            { availableScopes.values.map(createScopeOption) }
-          </select>
-        </NxFormGroup>
-      </div>
-    </NxForm>
-  </NxModal>;
+        submitMaskState={getSubmitMaskState()}
+        validationErrors={getValidationErrors()}
+      >
+        <header className="nx-modal-header">
+          <h2 className="nx-h2">Edit License Texts</h2>
+        </header>
+        <div className="nx-modal-content">
+          <table className="legal-file-override-table">
+            <thead>
+              <tr>
+                <th>License Text</th>
+                <th>Attribution Report Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {licenses.length > 0 ? (
+                licenses.map(createFormRowItem)
+              ) : (
+                <tr>
+                  <td className="no-legal-texts-found">
+                    No license texts found
+                  </td>
+                  <td />
+                </tr>
+              )}
+            </tbody>
+          </table>
+          <div className="nx-btn-bar nx-btn-bar--left">
+            <NxButton
+              id="add-license"
+              type="button"
+              variant="tertiary"
+              onClick={addLicense}
+            >
+              <NxFontAwesomeIcon icon={faPlus} />
+              <span>Add License Text</span>
+            </NxButton>
+          </div>
+          {existingObligation && (
+            <ObligationStatusComponent
+              existingObligation={existingObligation}
+              onChange={onObligationChange}
+            />
+          )}
+          <NxFormGroup
+            id="edit-licenses-attribution-scope-selection-group"
+            label="Scope"
+            sublabel="Apply changes to"
+            isRequired
+          >
+            <select
+              id="edit-license-scope-selection"
+              className="nx-form-select nx-form-select--long"
+              value={scope}
+              onChange={(payload) => {
+                setLicensesScope(payload.currentTarget.value);
+                setObligationScopeIfNeeded(payload);
+              }}
+            >
+              {availableScopes.values.map(createScopeOption)}
+            </select>
+          </NxFormGroup>
+        </div>
+      </NxForm>
+    </NxModal>
+  );
 }
 
 LicensesModal.propTypes = {
@@ -214,5 +291,5 @@ LicensesModal.propTypes = {
   submitMaskState: PropTypes.bool,
   existingObligation: licenseObligationPropType,
   setObligationStatus: PropTypes.func.isRequired,
-  setObligationScope: PropTypes.func.isRequired
+  setObligationScope: PropTypes.func.isRequired,
 };

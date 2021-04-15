@@ -17,22 +17,22 @@ export default function iqRenderPlottable($window, $q) {
   return {
     restrict: 'E',
     scope: {
-      chart: '<'
+      chart: '<',
     },
-    link: function(scope, el) {
+    link: function (scope, el) {
       function renderChart() {
-        $q.when(scope.chart).then(function(plot) {
+        $q.when(scope.chart).then(function (plot) {
           plot.renderTo(el[0]);
         });
       }
 
       angular.element($window).on('resize', renderChart);
-      scope.$on('$destroy', function() {
+      scope.$on('$destroy', function () {
         angular.element($window).off('resize', renderChart);
       });
 
       renderChart();
-    }
+    },
   };
 }
 

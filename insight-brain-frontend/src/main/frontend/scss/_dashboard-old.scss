@@ -6,11 +6,12 @@
 // these are leftovers from old dashboard, still used by report-list.html and component.html
 
 $dashboard-border-width: 2px;
-$dashboard-border: $dashboard-border-width solid #CCC;
+$dashboard-border: $dashboard-border-width solid #ccc;
 
 // used by component details
-.dashboard-root-container, .component-container {
-    white-space: normal;
+.dashboard-root-container,
+.component-container {
+  white-space: normal;
 
   /* Breadcrumb */
   .nav-crumb {
@@ -64,7 +65,7 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     }
   }
   h4 {
-    font-size: 19.5px
+    font-size: 19.5px;
   }
   td {
     border-top: 0px;
@@ -132,18 +133,18 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 
       .stage td {
         &:first-child {
-          background-color: #FCFCFC;
+          background-color: #fcfcfc;
         }
 
         &:not(:first-child) {
-          background-color: #FFF;
+          background-color: #fff;
         }
       }
 
       td.total-risk {
         background-color: #444;
         border-bottom: 1px solid white;
-        color: #FFF;
+        color: #fff;
         font-size: 14px;
       }
     }
@@ -152,7 +153,7 @@ $dashboard-border: $dashboard-border-width solid #CCC;
   span.total-risk {
     background-color: #444;
     border-bottom: 1px solid white;
-    color: #FFF;
+    color: #fff;
     font-size: 14px;
   }
 
@@ -163,7 +164,8 @@ $dashboard-border: $dashboard-border-width solid #CCC;
       border-left: 0px;
     }
 
-    .stage td.total-risk, td.total-risk.black-text {
+    .stage td.total-risk,
+    td.total-risk.black-text {
       color: #000;
     }
 
@@ -173,41 +175,44 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 
     td {
       &.muted-text {
-        color: #C6C6C6 !important;
+        color: #c6c6c6 !important;
       }
 
       &.critical-risk {
-        background-color: #E6A29F;
+        background-color: #e6a29f;
         border-left: 1px solid white;
         border-bottom: 1px solid white;
-        color: #880D10;
+        color: #880d10;
       }
     }
   }
 
   span.critical-risk {
-    background-color: #E6A29F;
+    background-color: #e6a29f;
     border-bottom: 1px solid white;
     border-left: 1px solid white;
-    color: #880D10;
+    color: #880d10;
   }
 
-  table.table-risk td.severe-risk, span.severe-risk {
-    background-color: #E7C2A1;
+  table.table-risk td.severe-risk,
+  span.severe-risk {
+    background-color: #e7c2a1;
     border-bottom: 1px solid white;
     border-left: 1px solid white;
-    color: #64460A;
+    color: #64460a;
   }
 
-  table.table-risk td.moderate-risk, span.moderate-risk {
-    background-color: #E8D9A1;
+  table.table-risk td.moderate-risk,
+  span.moderate-risk {
+    background-color: #e8d9a1;
     border-bottom: 1px solid white;
     border-left: 1px solid white;
     color: #968900;
   }
 
-  table.table-risk td.low-risk, span.low-risk {
-    background-color: #B8D7E8;
+  table.table-risk td.low-risk,
+  span.low-risk {
+    background-color: #b8d7e8;
     border-bottom: 1px solid white;
     border-left: 1px solid white;
     color: #233894;
@@ -219,17 +224,17 @@ $dashboard-border: $dashboard-border-width solid #CCC;
 
   // only stripe the first column of the heat-mapped tables, excepting those with the .stage class
   .table-risk tr.striped > td:nth-child(1) {
-    background-color: #E8E8E8;
+    background-color: #e8e8e8;
   }
 
   .table-risk-component tr {
     &:nth-child(odd):not(.stage) > td:nth-child(2) {
-      background-color: #E8E8E8;
-      background-color: #EDEDED;
+      background-color: #e8e8e8;
+      background-color: #ededed;
     }
 
     &:nth-child(even):not(.stage) > td:nth-child(2) {
-      background-color: #F1F1F1;
+      background-color: #f1f1f1;
     }
   }
 
@@ -237,7 +242,8 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     #Affected Applications background
   */
   .sort-column {
-    .up:before, .down:before {
+    .up:before,
+    .down:before {
       line-height: 30px;
       font-size: 12px;
       vertical-align: top;
@@ -260,9 +266,10 @@ $dashboard-border: $dashboard-border-width solid #CCC;
   }
 
   .clm-arc {
-    &.application circle, &.violation circle {
+    &.application circle,
+    &.violation circle {
       fill: #f4f4f4;
-      stroke: #C1C1C1;
+      stroke: #c1c1c1;
     }
 
     &.application path {
@@ -316,7 +323,6 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     }
   }
 
-
   @keyframes visibility {
     from {
       opacity: 0;
@@ -349,7 +355,7 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     }
 
     .accordion-column .in {
-      border-top: 2px solid #C1C1C1;
+      border-top: 2px solid #c1c1c1;
     }
 
     a {
@@ -368,7 +374,8 @@ $dashboard-border: $dashboard-border-width solid #CCC;
       border-top: 1px solid #ddd;
     }
 
-    .stage-column, .risk-column {
+    .stage-column,
+    .risk-column {
       width: 84px;
     }
 
@@ -389,12 +396,13 @@ $dashboard-border: $dashboard-border-width solid #CCC;
       border-bottom: 0px;
     }
 
-    td:not(:first-child), a {
-      opacity: .75;
+    td:not(:first-child),
+    a {
+      opacity: 0.75;
     }
 
     tr {
-      background-color: #FCFCFC !important;
+      background-color: #fcfcfc !important;
       border-bottom: 1px solid #ddd;
     }
   }
@@ -471,12 +479,15 @@ $dashboard-border: $dashboard-border-width solid #CCC;
     }
   }
 
-  .risk-header, .stage-column, .component-violations-table .risk-column {
+  .risk-header,
+  .stage-column,
+  .component-violations-table .risk-column {
     min-width: 60px;
     width: 60px;
   }
 
-  .stage-column-release, .stage-column-operate {
+  .stage-column-release,
+  .stage-column-operate {
     min-width: 68px;
     width: 68px;
   }

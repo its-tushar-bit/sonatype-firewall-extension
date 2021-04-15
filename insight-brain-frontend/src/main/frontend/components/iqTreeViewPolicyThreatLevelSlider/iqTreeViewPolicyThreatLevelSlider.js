@@ -14,9 +14,9 @@ const iqTreeViewPolicyThreatLevelSlider = {
   template,
   bindings: {
     selectedRange: '<',
-    onChange: '&'
+    onChange: '&',
   },
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };
 
 export default iqTreeViewPolicyThreatLevelSlider;

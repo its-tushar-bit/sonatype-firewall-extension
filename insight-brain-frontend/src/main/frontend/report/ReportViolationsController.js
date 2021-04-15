@@ -8,13 +8,22 @@ import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import utilityDirectiveModule from '../utility/directives/utility.directives.module';
 
-var reportViolationsModule = angular.module('ReportViolations',
-    [angularCommonModule.name, CLMLocationModule.name, utilityDirectiveModule.name, 'vs-repeat']);
+var reportViolationsModule = angular.module('ReportViolations', [
+  angularCommonModule.name,
+  CLMLocationModule.name,
+  utilityDirectiveModule.name,
+  'vs-repeat',
+]);
 
 export default reportViolationsModule;
 
-reportViolationsModule.controller('ReportViolationsController', ['$scope', '$http', '$q', 'CLMLocations', '$filter',
-  function($scope, $http, $q, clmLocations) {
+reportViolationsModule.controller('ReportViolationsController', [
+  '$scope',
+  '$http',
+  '$q',
+  'CLMLocations',
+  '$filter',
+  function ($scope, $http, $q, clmLocations) {
     const vm = this;
     const RESULTS_PER_PAGE = 50;
 
@@ -26,38 +35,45 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
     vm.applications = [];
     vm.hasMoreResults = true;
 
-    vm.applicationHasViolationsForStage = function(application, stage) {
+    vm.applicationHasViolationsForStage = function (application, stage) {
       const stageTypeId = stage.stageTypeId,
-          results = application.policyEvaluationsResults,
-          counts = results[stageTypeId];
+        results = application.policyEvaluationsResults,
+        counts = results[stageTypeId];
 
-      return !!(counts.criticalComponentCount + counts.severeComponentCount + counts.moderateComponentCount);
+      return !!(
+        counts.criticalComponentCount +
+        counts.severeComponentCount +
+        counts.moderateComponentCount
+      );
     };
 
-    vm.doLoad = function() {
+    vm.doLoad = function () {
       vm.error = null;
 
-      $http.get(clmLocations.getActionStageUrl()).then(function(results) {
-        vm.stages = results.data;
-      }, function(error) {
-        vm.error = error;
-      });
+      $http.get(clmLocations.getActionStageUrl()).then(
+        function (results) {
+          vm.stages = results.data;
+        },
+        function (error) {
+          vm.error = error;
+        }
+      );
       getResults();
     };
     vm.doLoad();
 
-    vm.sortAndFilter = function() {
+    vm.sortAndFilter = function () {
       pages = 1;
       vm.hasMoreResults = true;
       getResults();
     };
 
-    vm.loadMoreResults = function() {
+    vm.loadMoreResults = function () {
       pages++;
       getResults();
     };
 
-    vm.sortChange = function(sortFields) {
+    vm.sortChange = function (sortFields) {
       vm.sortFields = sortFields;
       vm.sortAndFilter();
     };
@@ -71,17 +87,29 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
       if (pages === 1) {
         vm.applications.length = 0;
       }
-      $http.get(clmLocations.getApplicationSummariesUrl(vm.appFilter, getOrder(), pages,
-          RESULTS_PER_PAGE)).then(function(results) {
-        vm.hasMoreResults = results.data.length === RESULTS_PER_PAGE;
-        vm.applications.push.apply(vm.applications, results.data);
-        vm.noReports = vm.applications.length === 0;
-        vm.showReports = vm.applications.length > 0;
-      }, function(error) {
-        vm.error = error;
-      }).finally(function() {
-        vm.loadingApps = false;
-      });
+      $http
+        .get(
+          clmLocations.getApplicationSummariesUrl(
+            vm.appFilter,
+            getOrder(),
+            pages,
+            RESULTS_PER_PAGE
+          )
+        )
+        .then(
+          function (results) {
+            vm.hasMoreResults = results.data.length === RESULTS_PER_PAGE;
+            vm.applications.push.apply(vm.applications, results.data);
+            vm.noReports = vm.applications.length === 0;
+            vm.showReports = vm.applications.length > 0;
+          },
+          function (error) {
+            vm.error = error;
+          }
+        )
+        .finally(function () {
+          vm.loadingApps = false;
+        });
     }
 
     function getOrder() {
@@ -99,4 +127,5 @@ reportViolationsModule.controller('ReportViolationsController', ['$scope', '$htt
           throw new Error('invalid sort: ' + sort);
       }
     }
-  }]);
+  },
+]);

@@ -6,32 +6,33 @@
 
 import successMetricsModule from './successMetrics/module';
 
-export default angular.module('labsModule', [successMetricsModule.name])
-    .config(configureRoutes);
+export default angular
+  .module('labsModule', [successMetricsModule.name])
+  .config(configureRoutes);
 
 function configureRoutes($stateProvider) {
   $stateProvider
-      .state('labs', {
-        abstract: true,
-        url: '/labs',
-        template: `<div id="labs" class="nx-page-main">
+    .state('labs', {
+      abstract: true,
+      url: '/labs',
+      template: `<div id="labs" class="nx-page-main">
           <ui-view></ui-view>
-        </div>`
-      })
-      .state('labs.successMetrics', {
-        url: '/successMetrics',
-        component: 'successMetricsReportList',
-        data: {
-          title: 'Success Metrics'
-        }
-      })
-      .state('labs.successMetricsReport', {
-        url: '/successMetrics/:successMetricsReportId',
-        component: 'successMetricsReport',
-        data: {
-          title: 'Success Metrics Report'
-        }
-      });
+        </div>`,
+    })
+    .state('labs.successMetrics', {
+      url: '/successMetrics',
+      component: 'successMetricsReportList',
+      data: {
+        title: 'Success Metrics',
+      },
+    })
+    .state('labs.successMetricsReport', {
+      url: '/successMetrics/:successMetricsReportId',
+      component: 'successMetricsReport',
+      data: {
+        title: 'Success Metrics Report',
+      },
+    });
 }
 
 configureRoutes.$inject = ['$stateProvider'];

@@ -7,33 +7,40 @@ import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.ma
 import OwnerUtils from '../owner.utils';
 import TagResourceMockData from '../mock.data/tag.resource.mock.data';
 
-describe('application.category.tile.controller.org.spec.js', function() {
+describe('application.category.tile.controller.org.spec.js', function () {
   var $state;
 
-  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
-    $provide.value('$cookies', {
-      get: angular.noop
-    });
+  beforeEach(
+    angular.mock.module(ownerManagerModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
 
-    $state = {
-      current: {
-        name: ''
-      },
-      params: {}
-    };
-    $provide.value('$state', $state);
-    $provide.value('$stateParams', $state.params);
-  }));
+      $state = {
+        current: {
+          name: '',
+        },
+        params: {},
+      };
+      $provide.value('$state', $state);
+      $provide.value('$stateParams', $state.params);
+    })
+  );
 
   function createTests(type, storeName, owner) {
     var vm,
-        scope,
-        $httpBackend,
-        $rootScope,
-        EventNameConstant,
-        isOrg = type === 'organization';
+      scope,
+      $httpBackend,
+      $rootScope,
+      EventNameConstant,
+      isOrg = type === 'organization';
 
-    beforeEach(inject(function(_$rootScope_, $controller, $injector, _$httpBackend_) {
+    beforeEach(inject(function (
+      _$rootScope_,
+      $controller,
+      $injector,
+      _$httpBackend_
+    ) {
       $rootScope = _$rootScope_;
       scope = $rootScope.$new();
       $httpBackend = _$httpBackend_;
@@ -42,40 +49,56 @@ describe('application.category.tile.controller.org.spec.js', function() {
       $state.current.name = type;
       if (type === 'application') {
         $state.params.applicationPublicId = owner.publicId;
-      }
-      else if (type === 'organization') {
+      } else if (type === 'organization') {
         $state.params.organizationId = owner.id;
       }
 
       vm = $controller('ApplicationCategoryTileControllerOrg', {
-        $scope: scope
+        $scope: scope,
       });
     }));
 
-    afterEach(function() {
+    afterEach(function () {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
     });
 
     if (isOrg) {
-      it('Properly Loading Applicable Categories and Org Name', inject(function(CLMContextLocations) {
+      it('Properly Loading Applicable Categories and Org Name', inject(function (
+        CLMContextLocations
+      ) {
         var mockAppCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl();
 
-        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
-            mockAppCategoryOwners);
+        $httpBackend
+          .expectGET(
+            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
+          )
+          .respond(mockAppCategoryOwners);
         $httpBackend.flush();
 
-        expect(vm.ownerName).toEqual(mockAppCategoryOwners.applicationCategoriesByOwner[0].ownerName);
-        expect(vm.appCategoryOwners.length).toEqual(mockAppCategoryOwners.applicationCategoriesByOwner.length);
-        vm.appCategoryOwners.forEach(function(owner, index) {
-          expect(angular.equals(owner.applicationCategories,
-              mockAppCategoryOwners.applicationCategoriesByOwner[index].applicationCategories)).toBeTruthy();
+        expect(vm.ownerName).toEqual(
+          mockAppCategoryOwners.applicationCategoriesByOwner[0].ownerName
+        );
+        expect(vm.appCategoryOwners.length).toEqual(
+          mockAppCategoryOwners.applicationCategoriesByOwner.length
+        );
+        vm.appCategoryOwners.forEach(function (owner, index) {
+          expect(
+            angular.equals(
+              owner.applicationCategories,
+              mockAppCategoryOwners.applicationCategoriesByOwner[index]
+                .applicationCategories
+            )
+          ).toBeTruthy();
         });
       }));
 
-      it('Missing Categories', inject(function(CLMContextLocations) {
-        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(400,
-            'Bad Request');
+      it('Missing Categories', inject(function (CLMContextLocations) {
+        $httpBackend
+          .expectGET(
+            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
+          )
+          .respond(400, 'Bad Request');
         $httpBackend.flush();
 
         expect(vm.error).toBeDefined();
@@ -83,26 +106,39 @@ describe('application.category.tile.controller.org.spec.js', function() {
         expect(vm.appCategoryOwners).toEqual([]);
       }));
 
-      it('Reloads on broadcasted owner summary reload event', inject(function(CLMContextLocations) {
-        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
-            TagResourceMockData.getApplicationCategoriesUrl());
+      it('Reloads on broadcasted owner summary reload event', inject(function (
+        CLMContextLocations
+      ) {
+        $httpBackend
+          .expectGET(
+            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
+          )
+          .respond(TagResourceMockData.getApplicationCategoriesUrl());
         expect($httpBackend.flush).not.toThrow();
 
         $rootScope.$broadcast(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA);
 
-        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
-            TagResourceMockData.getApplicationCategoriesUrl());
+        $httpBackend
+          .expectGET(
+            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
+          )
+          .respond(TagResourceMockData.getApplicationCategoriesUrl());
         expect($httpBackend.flush).not.toThrow();
       }));
 
-      it('Updates Owner name on broadcasted updated owner event', inject(function(CLMContextLocations) {
-        $httpBackend.expectGET(CLMContextLocations.getApplicationCategoriesUrl() + '/applicable').respond(
-            TagResourceMockData.getApplicationCategoriesUrl());
+      it('Updates Owner name on broadcasted updated owner event', inject(function (
+        CLMContextLocations
+      ) {
+        $httpBackend
+          .expectGET(
+            CLMContextLocations.getApplicationCategoriesUrl() + '/applicable'
+          )
+          .respond(TagResourceMockData.getApplicationCategoriesUrl());
         $httpBackend.flush();
 
         expect(vm.ownerName).not.toEqual('Bob');
 
-        $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, {name: 'Bob'});
+        $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, { name: 'Bob' });
 
         expect(vm.ownerName).toEqual('Bob');
       }));

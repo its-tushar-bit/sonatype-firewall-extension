@@ -1,140 +1,219 @@
-<div class='container ng-cloak'>
-  <div ng-show='data == null && error == null'>
-    <div class='alert alert-info' style='margin: auto; margin-top: 20px; padding-top: 5px; width: 450px'>
+<div class="container ng-cloak">
+  <div ng-show="data == null && error == null">
+    <div
+      class="alert alert-info"
+      style="margin: auto; margin-top: 20px; padding-top: 5px; width: 450px"
+    >
       <p>Loading component data...</p>
     </div>
   </div>
-  <div ng-show='data != null'>
-    <div ng-show='showContext()'>
-      <h5>Component Details for <span ng-repeat='part in data.displayName.parts'>{{part.value}}</span> in the context of
-        IQ Application {{data.appName}}</h5>
-      <br>
+  <div ng-show="data != null">
+    <div ng-show="showContext()">
+      <h5>
+        Component Details for
+        <span ng-repeat="part in data.displayName.parts">{{part.value}}</span>
+        in the context of IQ Application {{data.appName}}
+      </h5>
+      <br />
     </div>
-    <h5 class='policy-header'>Policy Violations</h5>
+    <h5 class="policy-header">Policy Violations</h5>
 
-    <div id='no-policy-violations' ng-show='!data.policyAlerts || data.policyAlerts.length == 0'>None</div>
-    <table id='policy-violation-table' class='table table-striped table-bordered' ng-show='data.policyAlerts && data.policyAlerts.length > 0'>
+    <div
+      id="no-policy-violations"
+      ng-show="!data.policyAlerts || data.policyAlerts.length == 0"
+    >
+      None
+    </div>
+    <table
+      id="policy-violation-table"
+      class="table table-striped table-bordered"
+      ng-show="data.policyAlerts && data.policyAlerts.length > 0"
+    >
       <thead>
-      <tr>
-        <th style='width: 120px' colspan='2'>Policy</th>
-        <th style='width: 120px'>Constraint</th>
-        <th>Summary</th>
-      </tr>
+        <tr>
+          <th style="width: 120px" colspan="2">Policy</th>
+          <th style="width: 120px">Constraint</th>
+          <th>Summary</th>
+        </tr>
       </thead>
-      <tr ng-repeat='issue in data.policyAlerts'>
-        <td class='clm-bar'
-            ng-class='{ critical : issue.threat == 4, severe : issue.threat == 3, moderate : issue.threat == 2, none : issue.threat == 1, ignore : issue.threat == 0, grouped : isPolicyGrouped($index) }'>
+      <tr ng-repeat="issue in data.policyAlerts">
+        <td
+          class="clm-bar"
+          ng-class="{ critical : issue.threat == 4, severe : issue.threat == 3, moderate : issue.threat == 2, none : issue.threat == 1, ignore : issue.threat == 0, grouped : isPolicyGrouped($index) }"
+        ></td>
+        <td
+          class="severity-column"
+          ng-class="{ grouped : isPolicyGrouped($index) }"
+        >
+          <span ng-show="!isPolicyGrouped($index)">{{issue.policyName}}</span>
+          <span ng-show="isPolicyGrouped($index)"> </span>
         </td>
-        <td class='severity-column' ng-class='{ grouped : isPolicyGrouped($index) }'>
-          <span ng-show='!isPolicyGrouped($index)'>{{issue.policyName}}</span> <span
-                ng-show='isPolicyGrouped($index)'> </span>
+        <td
+          ng-class="{ grouped : isPolicyGrouped($index) && isConstraintGrouped($index) }"
+        >
+          <span
+            ng-show="!(isPolicyGrouped($index) && isConstraintGrouped($index))"
+            >{{issue.constraintName}}</span
+          >
+          <span
+            ng-show="isPolicyGrouped($index) && isConstraintGrouped($index)"
+          >
+          </span>
         </td>
-        <td ng-class='{ grouped : isPolicyGrouped($index) && isConstraintGrouped($index) }'><span
-                ng-show='!(isPolicyGrouped($index) && isConstraintGrouped($index))'>{{issue.constraintName}}</span> <span
-                ng-show='isPolicyGrouped($index) && isConstraintGrouped($index)'> </span></td>
         <td>{{issue.reason}}</td>
       </tr>
     </table>
-    <br/>
+    <br />
 
-    <h5 class='license-header'>License Analysis</h5>
+    <h5 class="license-header">License Analysis</h5>
 
-    <div id='license-unknown' ng-show='data.matchState == "unknown"'>
+    <div id="license-unknown" ng-show='data.matchState == "unknown"'>
       The component is unknown, license data is not available.
     </div>
-    <div id='license-claimed' ng-show='data.identificationSource == "Manual"'>
+    <div id="license-claimed" ng-show='data.identificationSource == "Manual"'>
       The component is claimed, license data is not available.
     </div>
-    <table id='license-table' class='table table-striped table-bordered'
-           ng-show='data.matchState != "unknown" && data.identificationSource != "Manual"'>
+    <table
+      id="license-table"
+      class="table table-striped table-bordered"
+      ng-show='data.matchState != "unknown" && data.identificationSource != "Manual"'
+    >
       <thead>
-      <tr>
-        <th style='width: 70px' colspan='2'>Threat Level</th>
-        <th ng-show='data.overriddenLicenses.length > 0'>Overridden License</th>
-        <th>Declared License(s)</th>
-        <th>Observed License(s)</th>
-      </tr>
+        <tr>
+          <th style="width: 70px" colspan="2">Threat Level</th>
+          <th ng-show="data.overriddenLicenses.length > 0">
+            Overridden License
+          </th>
+          <th>Declared License(s)</th>
+          <th>Observed License(s)</th>
+        </tr>
       </thead>
       <tr>
-        <td class='clm-bar'
-            ng-class='{ critical : data.licenseThreatLevel >= 8, severe : data.licenseThreatLevel >= 4 && data.licenseThreatLevel < 8, moderate : data.licenseThreatLevel >= 1 && data.licenseThreatLevel < 4, ignore : data.licenseThreatLevel == 0, unspecified : data.licenseThreatLevel == null }'>
-        </td>
-        <td class='severity-column'>
-          <div ng-repeat='groupName in data.licenseThreatGroupNames' style='margin-bottom: 5px;'>
+        <td
+          class="clm-bar"
+          ng-class="{ critical : data.licenseThreatLevel >= 8, severe : data.licenseThreatLevel >= 4 && data.licenseThreatLevel < 8, moderate : data.licenseThreatLevel >= 1 && data.licenseThreatLevel < 4, ignore : data.licenseThreatLevel == 0, unspecified : data.licenseThreatLevel == null }"
+        ></td>
+        <td class="severity-column">
+          <div
+            ng-repeat="groupName in data.licenseThreatGroupNames"
+            style="margin-bottom: 5px"
+          >
             {{groupName}}
           </div>
         </td>
-        <td ng-show='data.overriddenLicenses.length > 0'><span ng-repeat='license in data.overriddenLicenses'>{{license}}<span
-                ng-show='!$last'>, </span></span></td>
-        <td><span ng-repeat='license in data.declaredLicenses'>{{license}}<span ng-show='!$last'>, </span></span></td>
-        <td><span ng-repeat='license in data.observedLicenses'>{{license}}<span ng-show='!$last'>, </span></span></td>
+        <td ng-show="data.overriddenLicenses.length > 0">
+          <span ng-repeat="license in data.overriddenLicenses"
+            >{{license}}<span ng-show="!$last">, </span></span
+          >
+        </td>
+        <td>
+          <span ng-repeat="license in data.declaredLicenses"
+            >{{license}}<span ng-show="!$last">, </span></span
+          >
+        </td>
+        <td>
+          <span ng-repeat="license in data.observedLicenses"
+            >{{license}}<span ng-show="!$last">, </span></span
+          >
+        </td>
       </tr>
     </table>
-    <br/>
+    <br />
 
-    <h5 class='security-header'>Security Issues</h5>
+    <h5 class="security-header">Security Issues</h5>
 
-    <div id='security-unknown' ng-show='data.matchState == "unknown"'>
+    <div id="security-unknown" ng-show='data.matchState == "unknown"'>
       The component is unknown, security data is not available.
     </div>
-    <div id='security-claimed' ng-show='data.identificationSource == "Manual"'>
+    <div id="security-claimed" ng-show='data.identificationSource == "Manual"'>
       The component is claimed, security data is not available.
     </div>
-    <div id='security-none' ng-show='data.identificationSource != "Manual" && data.matchState != "unknown" && (!data.securityVulnerabilities || data.securityVulnerabilities.length == 0)'>
+    <div
+      id="security-none"
+      ng-show='data.identificationSource != "Manual" && data.matchState != "unknown" && (!data.securityVulnerabilities || data.securityVulnerabilities.length == 0)'
+    >
       None
     </div>
-    <table id='security-table' class='table table-striped table-bordered'
-           ng-show='data.securityVulnerabilities && data.securityVulnerabilities.length > 0'>
+    <table
+      id="security-table"
+      class="table table-striped table-bordered"
+      ng-show="data.securityVulnerabilities && data.securityVulnerabilities.length > 0"
+    >
       <thead>
-      <tr>
-        <th style='width: 12ex' colspan='2'>Threat Level</th>
-        <th style='width: 7ex'>Problem Code</th>
-        <th>Status</th>
-        <th>Summary</th>
-      </tr>
+        <tr>
+          <th style="width: 12ex" colspan="2">Threat Level</th>
+          <th style="width: 7ex">Problem Code</th>
+          <th>Status</th>
+          <th>Summary</th>
+        </tr>
       </thead>
-      <tr ng-repeat='issue in data.securityVulnerabilities'>
-        <td class='clm-bar'
-            ng-class='{ unspecified : issue.severity == null, critical : issue.severity >= 7, severe : issue.severity < 8 && issue.severity >= 4, moderate : issue.severity < 4, grouped : isSvGrouped($index) }'>
+      <tr ng-repeat="issue in data.securityVulnerabilities">
+        <td
+          class="clm-bar"
+          ng-class="{ unspecified : issue.severity == null, critical : issue.severity >= 7, severe : issue.severity < 8 && issue.severity >= 4, moderate : issue.severity < 4, grouped : isSvGrouped($index) }"
+        ></td>
+        <td
+          class="severity-column"
+          ng-class="{ grouped : isSvGrouped($index) }"
+        >
+          <span ng-show="!isSvGrouped($index)">
+            <span ng-show="issue.severity != null">{{issue.severity}}</span>
+            <span ng-show="issue.severity == null">Unscored</span>
+          </span>
+          <span ng-show="isSvGrouped($index)"> </span>
         </td>
-        <td class='severity-column' ng-class='{ grouped : isSvGrouped($index) }'>
-          <span ng-show='!isSvGrouped($index)'> <span ng-show='issue.severity != null'>{{issue.severity}}</span> <span
-                  ng-show='issue.severity == null'>Unscored</span>
-        </span> <span ng-show='isSvGrouped($index)'> </span>
-        </td>
-        <td class='refCol'>
-          <a ng-if="getSvUrl(issue)" ng-href='{{getSvUrl(issue)}}' rel="noreferrer" target='{{linkTarget}}'>
+        <td class="refCol">
+          <a
+            ng-if="getSvUrl(issue)"
+            ng-href="{{getSvUrl(issue)}}"
+            rel="noreferrer"
+            target="{{linkTarget}}"
+          >
             {{getSvName(issue)}}
           </a>
           <span ng-if="!getSvUrl(issue)">{{getSvName(issue)}}</span>
         </td>
-        <td class='refCol'>{{issue.status}}</td>
+        <td class="refCol">{{issue.status}}</td>
         <td>{{issue.summary}}</td>
       </tr>
     </table>
   </div>
-  <div ng-show='error != null'>
-    <div class='alert alert-error' style='margin: auto; margin-top: 20px; padding-top: 5px; width: 450px'>
+  <div ng-show="error != null">
+    <div
+      class="alert alert-error"
+      style="margin: auto; margin-top: 20px; padding-top: 5px; width: 450px"
+    >
       <h4>Error</h4>
 
-      <div id='error-message' ng-switch='error'>
-        <div ng-switch-when='401'>
-          <p>Authentication with the Nexus IQ Server failed. Please verify you supplied the proper credentials in the
-            plugin configuration. Once the issue has been resolved, you will need to close and re-open this page.</p>
+      <div id="error-message" ng-switch="error">
+        <div ng-switch-when="401">
+          <p>
+            Authentication with the Nexus IQ Server failed. Please verify you
+            supplied the proper credentials in the plugin configuration. Once
+            the issue has been resolved, you will need to close and re-open this
+            page.
+          </p>
         </div>
-        <div ng-switch-when='403'>
-          <p>This component has been associated with an invalid application ID. Please verify your plugin
-            configuration or contact your Nexus IQ administrator to verify your permissions. Once the issue has been resolved,
-            you will need to close and re-open this page.</p>
+        <div ng-switch-when="403">
+          <p>
+            This component has been associated with an invalid application ID.
+            Please verify your plugin configuration or contact your Nexus IQ
+            administrator to verify your permissions. Once the issue has been
+            resolved, you will need to close and re-open this page.
+          </p>
         </div>
         <div ng-switch-default>
-          <p>Unfortunately an error occurred while contacting the Nexus IQ Server, if the problem persists please
-            contact support.</p>
+          <p>
+            Unfortunately an error occurred while contacting the Nexus IQ
+            Server, if the problem persists please contact support.
+          </p>
 
           <p>{{errorMessage}}</p>
 
           <p>
-            <a href='#' class='btn btn-danger btn-error' ng-click='reload()'><i class='icon-white icon-refresh'></i> Retry</a>
+            <a href="#" class="btn btn-danger btn-error" ng-click="reload()"
+              ><i class="icon-white icon-refresh"></i> Retry</a
+            >
           </p>
         </div>
       </div>

@@ -12,12 +12,12 @@ const authErrorMessage = `It appears you do not have permission to access this p
 
 export default function LabsDataInsights(props) {
   const {
-        loadLabsDataInsights,
-        errorMessage,
-        loadingLabsDataInsights,
-        isAuthorized
-      } = props,
-      loadError = isAuthorized ? errorMessage : authErrorMessage;
+      loadLabsDataInsights,
+      errorMessage,
+      loadingLabsDataInsights,
+      isAuthorized,
+    } = props,
+    loadError = isAuthorized ? errorMessage : authErrorMessage;
 
   function load() {
     if (isAuthorized) {
@@ -33,11 +33,15 @@ export default function LabsDataInsights(props) {
 
   return (
     <React.Fragment>
-      {loadError &&
-      <main id="labs-data-insights-container" className="nx-page-main">
-        <LoadWrapper loading={loadingLabsDataInsights} error={loadError}
-                     retryHandler={() => load()} />
-      </main>}
+      {loadError && (
+        <main id="labs-data-insights-container" className="nx-page-main">
+          <LoadWrapper
+            loading={loadingLabsDataInsights}
+            error={loadError}
+            retryHandler={() => load()}
+          />
+        </main>
+      )}
       {/* Putting the labs-container div outside the load wrapper as we load a script in data insights actions and need
       this visible for the script to append an iframe before loading is finished */}
       {!loadError && <div id="labs-container"></div>}
@@ -49,5 +53,5 @@ LabsDataInsights.propTypes = {
   loadingLabsDataInsights: PropTypes.bool.isRequired,
   loadLabsDataInsights: PropTypes.func.isRequired,
   errorMessage: PropTypes.string,
-  isAuthorized: PropTypes.bool.isRequired
+  isAuthorized: PropTypes.bool.isRequired,
 };

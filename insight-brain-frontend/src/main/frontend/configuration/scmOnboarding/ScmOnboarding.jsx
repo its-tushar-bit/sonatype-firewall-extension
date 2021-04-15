@@ -3,14 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, {useEffect, Fragment} from 'react';
+import React, { useEffect, Fragment } from 'react';
 
 import * as PropTypes from 'prop-types';
-import {NxBackButton} from '@sonatype/react-shared-components';
+import { NxBackButton } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import RepositoryPane from './components/RepositoryPane';
 import ReportsCta from './components/ReportsCta';
-import {displayName} from './utils/providers';
+import { displayName } from './utils/providers';
 import ImportStatusModal from './components/ImportStatusModal';
 
 const iqAuthorizationErrorMessage = `It appears you do not have permission to access this page.
@@ -32,7 +32,7 @@ export default function ScmOnboarding(props) {
     // from angular URL router
     isAuthorized,
     preselectedOrganizationId,
-    $state
+    $state,
   } = props;
 
   const pageError = !isAuthorized ? iqAuthorizationErrorMessage : null;
@@ -50,30 +50,36 @@ export default function ScmOnboarding(props) {
   return (
     <main id="scm-onboarding-container" className="nx-page-main">
       <NxBackButton
-          href={$state.href($state.get('management.view.organization'),
-              {organizationId: preselectedOrganizationId})}
-          targetPageTitle={$state.get('management.view.organization').data.title} />
+        href={$state.href($state.get('management.view.organization'), {
+          organizationId: preselectedOrganizationId,
+        })}
+        targetPageTitle={$state.get('management.view.organization').data.title}
+      />
       {
         <LoadWrapper
-            loading={loadingPage}
-            error={pageError} retryHandler={load}>
+          loading={loadingPage}
+          error={pageError}
+          retryHandler={load}
+        >
           <ImportStatusModal {...props} />
           <div className="nx-page-title iq-scmonboarding-title">
-            { scmProvider &&
-            <Fragment>
-              <h1 className="nx-h1">
-                <span>Import Applications from {displayName(scmProvider)}</span>
-              </h1>
-              {alreadyImportedCount > 0 &&
-              <div className="nx-btn-bar">
-                <ReportsCta { ...{$state}} id="scm-reports-cta"/>
-              </div>
-              }
-            </Fragment>
-            }
+            {scmProvider && (
+              <Fragment>
+                <h1 className="nx-h1">
+                  <span>
+                    Import Applications from {displayName(scmProvider)}
+                  </span>
+                </h1>
+                {alreadyImportedCount > 0 && (
+                  <div className="nx-btn-bar">
+                    <ReportsCta {...{ $state }} id="scm-reports-cta" />
+                  </div>
+                )}
+              </Fragment>
+            )}
           </div>
           <section className="nx-tile">
-            <RepositoryPane { ...props } />
+            <RepositoryPane {...props} />
           </section>
         </LoadWrapper>
       }
@@ -83,7 +89,7 @@ export default function ScmOnboarding(props) {
 
 export const organizationPropType = {
   id: PropTypes.string,
-  name: PropTypes.string
+  name: PropTypes.string,
 };
 
 export const repositoryPropType = {
@@ -92,7 +98,7 @@ export const repositoryPropType = {
   project: PropTypes.string,
   description: PropTypes.string,
   isSelected: PropTypes.bool,
-  isImported: PropTypes.bool
+  isImported: PropTypes.bool,
 };
 
 ScmOnboarding.propTypes = {
@@ -115,5 +121,5 @@ ScmOnboarding.propTypes = {
   preselectedOrganizationId: PropTypes.string,
 
   // actions
-  loadPage: PropTypes.func.isRequired
+  loadPage: PropTypes.func.isRequired,
 };

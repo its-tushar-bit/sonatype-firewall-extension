@@ -21,7 +21,7 @@ export default function SidebarNavList(props) {
     backButtonStateName,
     $state,
     stateParams,
-    scrollToSelection
+    scrollToSelection,
   } = props;
 
   const { id, sidebarId, sidebarReference, type } = stateParams;
@@ -32,27 +32,31 @@ export default function SidebarNavList(props) {
 
   useEffect(load, [sidebarId, sidebarReference, type]);
 
-  const sidebarDisplayComponent = (function(contentType) {
+  const sidebarDisplayComponent = (function (contentType) {
     switch (contentType) {
       case 'violations':
-        return <SidebarNavViolationList currentViolationId={id}
-                                        violations={data}
-                                        onClick={gotoNewVulnerability}
-                                        scrollToSelection={scrollToSelection} />;
+        return (
+          <SidebarNavViolationList
+            currentViolationId={id}
+            violations={data}
+            onClick={gotoNewVulnerability}
+            scrollToSelection={scrollToSelection}
+          />
+        );
       default:
         return null;
     }
-  }(contentType));
+  })(contentType);
 
   return (
     <aside id="sidebar-nav-list" className="nx-viewport-sized__container">
-      { backButtonStateName && <BackButton $state={$state} stateName={backButtonStateName} /> }
+      {backButtonStateName && (
+        <BackButton $state={$state} stateName={backButtonStateName} />
+      )}
       <LoadWrapper error={error} loading={loading} retryHandler={load}>
-        <h4 className="nx-h4">
-          {contentType}
-        </h4>
+        <h4 className="nx-h4">{contentType}</h4>
         <div className="nx-scrollable nx-scrollable--nav-list nx-viewport-sized__scrollable">
-          { sidebarDisplayComponent }
+          {sidebarDisplayComponent}
         </div>
       </LoadWrapper>
     </aside>
@@ -68,17 +72,17 @@ SidebarNavList.propTypes = {
   loading: PropTypes.bool.isRequired,
   error: LoadWrapper.propTypes.error,
   data: PropTypes.arrayOf(
-      PropTypes.shape({
-        policyName: PropTypes.string.isRequired,
-        policyViolationId: PropTypes.string.isRequired,
-        threatLevel: PropTypes.number.isRequired
-      })
+    PropTypes.shape({
+      policyName: PropTypes.string.isRequired,
+      policyViolationId: PropTypes.string.isRequired,
+      threatLevel: PropTypes.number.isRequired,
+    })
   ),
   stateParams: PropTypes.shape({
     id: PropTypes.string,
     type: PropTypes.string,
     sidebarReference: PropTypes.string,
-    sidebarId: PropTypes.string
+    sidebarId: PropTypes.string,
   }).isRequired,
-  scrollToSelection: PropTypes.bool.isRequired
+  scrollToSelection: PropTypes.bool.isRequired,
 };

@@ -9,36 +9,35 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import NoticeTextsTile from '../../../../../main/frontend/legal/files/notices/NoticeTextsTile';
 
-describe('NoticeTextsTileContainer', function() {
-  let store,
-      state,
-      vdom,
-      NoticeTextsTileContainer,
-      setShowNoticesModalSpy;
+describe('NoticeTextsTileContainer', function () {
+  let store, state, vdom, NoticeTextsTileContainer, setShowNoticesModalSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     state = {
       advancedLegal: {
         component: {
           component: {
             licenseLegalData: {
               noticeFiles: 'noticeFiles',
-              showNoticesModal: 'showNoticesModal'
-            }
-          }
-        }
-      }
+              showNoticesModal: 'showNoticesModal',
+            },
+          },
+        },
+      },
     };
-    setShowNoticesModalSpy = jasmine.createSpy().and.returnValue({ type: 'setShowNoticesModalSpy' });
+    setShowNoticesModalSpy = jasmine
+      .createSpy()
+      .and.returnValue({ type: 'setShowNoticesModalSpy' });
 
-    NoticeTextsTileContainer =
-        require('inject-loader!../../../../../main/frontend/legal/files/notices/NoticeTextsTileContainer')({
-          '../advancedLegalFileActions': {
-            setShowNoticesModal: setShowNoticesModalSpy
-          }
-        }).default;
+    NoticeTextsTileContainer = require('inject-loader!../../../../../main/frontend/legal/files/notices/NoticeTextsTileContainer')(
+      {
+        '../advancedLegalFileActions': {
+          setShowNoticesModal: setShowNoticesModalSpy,
+        },
+      }
+    ).default;
     store = configureStore()(() => state);
-    vdom = <NoticeTextsTileContainer store={store}/>;
+    vdom = <NoticeTextsTileContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -47,12 +46,14 @@ describe('NoticeTextsTileContainer', function() {
     expect(wrapper).toHaveProp('showNoticesModal', 'showNoticesModal');
   });
 
-  it('correctly maps the action creators to the NoticeTextsTileContainer props', function() {
+  it('correctly maps the action creators to the NoticeTextsTileContainer props', function () {
     const wrapper = shallow(vdom).dive();
-    expect(wrapper.prop('setShowNoticesModal')()).toEqual({ type: 'setShowNoticesModalSpy' });
+    expect(wrapper.prop('setShowNoticesModal')()).toEqual({
+      type: 'setShowNoticesModalSpy',
+    });
   });
 
-  it('renders the NoticeTextsTile component', function() {
+  it('renders the NoticeTextsTile component', function () {
     const noticeTextsTile = shallow(vdom).find(NoticeTextsTile);
     expect(noticeTextsTile).toExist();
   });

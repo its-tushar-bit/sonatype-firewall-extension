@@ -7,10 +7,10 @@ import * as enzymeUtils from '../../enzymeUtils';
 import DashboardMask from '../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
 import { NxInfoAlert } from '@sonatype/react-shared-components';
 
-describe('DashboardMask', function() {
+describe('DashboardMask', function () {
   let getShallowComponent;
 
-  beforeEach(function() {
+  beforeEach(function () {
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardMask, {});
   });
 
@@ -21,6 +21,8 @@ describe('DashboardMask', function() {
   it('renders message within NxInfoAlert', () => {
     const component = getShallowComponent();
 
-    expect(component.find(NxInfoAlert)).toHaveText('Please apply or revert filter to see results.');
+    expect(component.find(NxInfoAlert)).toHaveText(
+      'Please apply or revert filter to see results.'
+    );
   });
 });

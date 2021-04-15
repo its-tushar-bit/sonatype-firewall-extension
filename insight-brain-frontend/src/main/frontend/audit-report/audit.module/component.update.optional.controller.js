@@ -4,7 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global Brain */
-export default function ComponentUpdateOptionalController($scope, $rootScope, $http, $q, Messages, OwnerContext) {
+export default function ComponentUpdateOptionalController(
+  $scope,
+  $rootScope,
+  $http,
+  $q,
+  Messages,
+  OwnerContext
+) {
   var vm = this;
 
   vm.error = null;
@@ -12,12 +19,22 @@ export default function ComponentUpdateOptionalController($scope, $rootScope, $h
 
   function forceReevaluation() {
     delete vm.error;
-    $http.post(Brain.getRepositoryEvaluateUrl(OwnerContext)).then(function() {
-      $scope.$close();
-    }, function(error) {
-      vm.error = Messages.getHttpErrorMessage(error);
-    });
+    $http.post(Brain.getRepositoryEvaluateUrl(OwnerContext)).then(
+      function () {
+        $scope.$close();
+      },
+      function (error) {
+        vm.error = Messages.getHttpErrorMessage(error);
+      }
+    );
   }
 }
 
-ComponentUpdateOptionalController.$inject = ['$scope', '$rootScope', '$http', '$q', 'Messages', 'OwnerContext'];
+ComponentUpdateOptionalController.$inject = [
+  '$scope',
+  '$rootScope',
+  '$http',
+  '$q',
+  'Messages',
+  'OwnerContext',
+];

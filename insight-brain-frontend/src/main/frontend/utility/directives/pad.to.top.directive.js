@@ -6,20 +6,23 @@
 export default function PadToTop($interval) {
   return {
     restrict: 'A',
-    link: PadToTopLink
+    link: PadToTopLink,
   };
 
   function PadToTopLink(scope, element, attrs) {
     var topTarget,
-        refreshPadToTopInterval,
-        container = element.parent(),
-        isTopTargetElement = !attrs.padToTop,
-        originalBottomMargin = element.css('margin-bottom'),
-        currentBottomMargin = originalBottomMargin;
+      refreshPadToTopInterval,
+      container = element.parent(),
+      isTopTargetElement = !attrs.padToTop,
+      originalBottomMargin = element.css('margin-bottom'),
+      currentBottomMargin = originalBottomMargin;
 
-    var waitUntilElementReadyInterval = $interval(initializeAfterTopTargetReady, 200);
+    var waitUntilElementReadyInterval = $interval(
+      initializeAfterTopTargetReady,
+      200
+    );
 
-    scope.$on('$destroy', function() {
+    scope.$on('$destroy', function () {
       if (refreshPadToTopInterval) {
         $interval.cancel(refreshPadToTopInterval);
       }
@@ -38,8 +41,10 @@ export default function PadToTop($interval) {
     }
 
     function updatePaddingWithMargin() {
-      var newBottomMargin = container.height() > topTargetOuterHeight() ? ((container.height() -
-      topTargetOuterHeight()) + 'px') : originalBottomMargin;
+      var newBottomMargin =
+        container.height() > topTargetOuterHeight()
+          ? container.height() - topTargetOuterHeight() + 'px'
+          : originalBottomMargin;
 
       if (newBottomMargin !== currentBottomMargin) {
         element.css('margin-bottom', newBottomMargin);
@@ -48,8 +53,9 @@ export default function PadToTop($interval) {
     }
 
     function topTargetOuterHeight() {
-      return isTopTargetElement ? (topTarget.outerHeight(true) -
-      parseInt(currentBottomMargin)) : topTarget.outerHeight(true);
+      return isTopTargetElement
+        ? topTarget.outerHeight(true) - parseInt(currentBottomMargin)
+        : topTarget.outerHeight(true);
     }
   }
 }

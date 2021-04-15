@@ -18,11 +18,12 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
   vm.constraintOperatorOptions = [
     {
       operator: 'OR',
-      name: 'any'
-    }, {
+      name: 'any',
+    },
+    {
       operator: 'AND',
-      name: 'all'
-    }
+      name: 'all',
+    },
   ];
   vm.updateConditionType = updateConditionType;
   vm.getEmptyOptionCondition = getEmptyOptionCondition;
@@ -31,8 +32,7 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
   vm.doLoad();
 
   function conditionString(condition) {
-    var operator,
-        value;
+    var operator, value;
 
     switch (condition.conditionTypeId) {
       case 'AgeInDays':
@@ -76,22 +76,34 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
       case '>':
         operator = 'greater than';
         break;
-      default :
+      default:
         operator = condition.operator;
         break;
     }
 
-    return vm.conditionTypesMap[condition.conditionTypeId].name + ' ' + operator + (value ? (' ' + value) : '');
+    return (
+      vm.conditionTypesMap[condition.conditionTypeId].name +
+      ' ' +
+      operator +
+      (value ? ' ' + value : '')
+    );
 
     function parseDays(days) {
-      return days % 365 === 0 ? days / 365 + ' Years' : days % 30 === 0 ? days / 30 + ' Months' : days % 7 ===
-      0 ? days / 7 + ' Weeks' : days + ' Days';
+      return days % 365 === 0
+        ? days / 365 + ' Years'
+        : days % 30 === 0
+        ? days / 30 + ' Months'
+        : days % 7 === 0
+        ? days / 7 + ' Weeks'
+        : days + ' Days';
     }
 
     function getAvailableValue(valueParam) {
       var result = '';
 
-      vm.conditionTypesMap[condition.conditionTypeId].valueType.availableValues.some(function(availableValue) {
+      vm.conditionTypesMap[
+        condition.conditionTypeId
+      ].valueType.availableValues.some(function (availableValue) {
         if (availableValue.id === condition.value) {
           result = availableValue[valueParam];
           return true;
@@ -103,27 +115,32 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
   }
 
   function doLoad() {
-    ConstraintStore.get().then(function(constraintStore) {
-      var typeValues = {};
-      var allConditionTypes = constraintStore[0];
-      vm.conditionTypes = allConditionTypes.filter(type => type.enabled);
-      vm.conditionTypesMap = {};
+    ConstraintStore.get().then(
+      function (constraintStore) {
+        var typeValues = {};
+        var allConditionTypes = constraintStore[0];
+        vm.conditionTypes = allConditionTypes.filter((type) => type.enabled);
+        vm.conditionTypesMap = {};
 
-      constraintStore[1].forEach(function(typeValue) {
-        typeValues[typeValue.id] = typeValue;
-      });
+        constraintStore[1].forEach(function (typeValue) {
+          typeValues[typeValue.id] = typeValue;
+        });
 
-      allConditionTypes.forEach(function(type) {
-        type.valueType = type.valueTypeId ? typeValues[type.valueTypeId] : null;
-        vm.conditionTypesMap[type.id] = type;
-      });
+        allConditionTypes.forEach(function (type) {
+          type.valueType = type.valueTypeId
+            ? typeValues[type.valueTypeId]
+            : null;
+          vm.conditionTypesMap[type.id] = type;
+        });
 
-      if (vm.isNewPolicy) {
-        vm.editConstraintMap[vm.constraints[0].id] = true;
+        if (vm.isNewPolicy) {
+          vm.editConstraintMap[vm.constraints[0].id] = true;
+        }
+      },
+      function (error) {
+        vm.loadError = error;
       }
-    }, function(error) {
-      vm.loadError = error;
-    });
+    );
 
     delete vm.loadError;
   }
@@ -135,7 +152,10 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
 
     if (conditionType.valueType) {
       var availableValues = conditionType.valueType.availableValues;
-      condition.value = (availableValues && availableValues.length > 0) ? availableValues[0].id : null;
+      condition.value =
+        availableValues && availableValues.length > 0
+          ? availableValues[0].id
+          : null;
     }
   }
 
@@ -154,7 +174,7 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
     var newCondition = {
       conditionTypeId: 'AgeInDays',
       operator: 'older than',
-      value: null
+      value: null,
     };
 
     constraint.conditions.push(newCondition);
@@ -170,10 +190,10 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
       conditions: [
         {
           conditionTypeId: 'AgeInDays',
-          operator: 'older than'
-        }
+          operator: 'older than',
+        },
       ],
-      operator: 'OR'
+      operator: 'OR',
     };
 
     vm.editConstraintMap[newConstraint.id] = true;

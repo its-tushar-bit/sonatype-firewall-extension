@@ -12,8 +12,8 @@ export default {
   template,
   controller: ProductLicenseSummaryController,
   bindings: {
-    license: '<'
-  }
+    license: '<',
+  },
 };
 
 const mkLimit = (name, count) => ({ name, count });
@@ -28,11 +28,14 @@ function ProductLicenseSummaryController() {
 
     $onInit() {
       vm.daysToExpiration = getDaysFromNow(vm.license.expiryTimestamp);
-      vm.shouldDisplayApplicationLimit = vm.license.applicationLimitToDisplay != null;
+      vm.shouldDisplayApplicationLimit =
+        vm.license.applicationLimitToDisplay != null;
       vm.userLimits = [
-        vm.license.licensedUsersToDisplay && mkLimit('Lifecycle', vm.license.licensedUsersToDisplay),
-        vm.license.firewallUsersToDisplay && mkLimit('Firewall', vm.license.firewallUsersToDisplay)
+        vm.license.licensedUsersToDisplay &&
+          mkLimit('Lifecycle', vm.license.licensedUsersToDisplay),
+        vm.license.firewallUsersToDisplay &&
+          mkLimit('Firewall', vm.license.firewallUsersToDisplay),
       ].filter(identity);
-    }
+    },
   });
 }

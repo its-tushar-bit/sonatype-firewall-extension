@@ -20,7 +20,7 @@ export default function DashboardApplications(props) {
     needsAcknowledgement,
     filtersAreDirty,
     loadResults,
-    sortResults
+    sortResults,
   } = props;
 
   const doLoad = () => {
@@ -38,13 +38,16 @@ export default function DashboardApplications(props) {
     colorStyler: applicationResults && applicationResults.classyBrew,
     sortApplications: partial(sortResults, [APPLICATIONS_RESULTS_TYPE]),
     applicationResults,
-    needsAcknowledgement
+    needsAcknowledgement,
   };
 
   return (
-    <div id="dashboard-applications" className="iq-dashboard-applications nx-viewport-sized__container">
+    <div
+      id="dashboard-applications"
+      className="iq-dashboard-applications nx-viewport-sized__container"
+    >
       {filtersAreDirty && <DashboardMask />}
-      <DashboardApplicationsTable {...tableProps}/>
+      <DashboardApplicationsTable {...tableProps} />
     </div>
   );
 }
@@ -53,7 +56,7 @@ const dashboardResultsShape = PropTypes.shape({
   results: PropTypes.array,
   sortFields: PropTypes.arrayOf(PropTypes.string),
   error: PropTypes.string,
-  classyBrew: heatMapColorStylerPropTypes
+  classyBrew: heatMapColorStylerPropTypes,
 });
 
 DashboardApplications.propTypes = {
@@ -62,5 +65,5 @@ DashboardApplications.propTypes = {
   needsAcknowledgement: PropTypes.bool.isRequired,
   filtersAreDirty: PropTypes.bool.isRequired,
   loadResults: PropTypes.func.isRequired,
-  sortResults: PropTypes.func.isRequired
+  sortResults: PropTypes.func.isRequired,
 };

@@ -3,7 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-.glyphicons-sonatype:before, .glyphicons-sonatype-hover:hover:before {
+.glyphicons-sonatype:before,
+.glyphicons-sonatype-hover:hover:before {
   *zoom: 1;
   font: 14px/28px 'Glyphicons';
   font-style: normal;
@@ -19,7 +20,7 @@
 }
 
 .glyphicons-sonatype.bin:before {
-  content: "\e017";
+  content: '\e017';
 }
 
 .glyphicons-sonatype.medium:before {
@@ -34,23 +35,24 @@
 }
 
 .glyphicons-sonatype.user:before {
-  content: "\E004";
+  content: '\E004';
 }
 
 .glyphicons-sonatype.group:before {
-  content: "\E044";
+  content: '\E044';
 }
 
 .glyphicons-sonatype.envelope:before {
-  content: "\2709";
+  content: '\2709';
 }
 
-.glyphicons-sonatype.bell:before, .glyphicons-sonatype-hover.bell:hover:before {
-  content: "\E334"
+.glyphicons-sonatype.bell:before,
+.glyphicons-sonatype-hover.bell:hover:before {
+  content: '\E334';
 }
 
 .glyphicons-sonatype.inherited:before {
-  content: "\E214";
+  content: '\E214';
 }
 
 .glyphicons-halflings-sonatype:before {
@@ -61,11 +63,11 @@
 }
 
 .glyphicons-halflings-sonatype.expand:before {
-  content: "\e158";
+  content: '\e158';
 }
 
 .glyphicons-halflings-sonatype.collapse:before {
-  content: "\e159";
+  content: '\e159';
 }
 
 .glyphicons-sonatype.required {
@@ -74,23 +76,23 @@
 }
 
 .glyphicons-sonatype.required:before {
-  content: "\002A";
+  content: '\002A';
   color: #bc012f;
   font-size: 10px;
 }
 
 .glyphicons-sonatype.clipboard:before {
-  content: "\e030";
+  content: '\e030';
   font: 14px 'Glyphicons' !important;
   vertical-align: bottom;
 }
 
 .glyphicons-sonatype.cogwheel:before {
-  content: '\e137'
+  content: '\e137';
 }
 
 .glyphicons-sonatype.help:before {
-  content: '\e195'
+  content: '\e195';
 }
 
 .glyphicons-sonatype.filter:before {
@@ -105,7 +107,7 @@
   font-size: 10px;
   line-height: 10px;
   vertical-align: super;
-  opacity: .3;
+  opacity: 0.3;
   *zoom: 1;
   font: 10px/10px 'Glyphicons';
   font-style: normal;
@@ -121,13 +123,13 @@
 }
 
 .glyphicons-sonatype.cup:before {
-  content: "\E075";
+  content: '\E075';
 }
 
 .glyphicons-sonatype.inbox:before {
-  content: "\e131";
+  content: '\e131';
 }
 
 .glyphicons-sonatype.calculator:before {
-  content: "\E324";
+  content: '\E324';
 }

@@ -5,39 +5,45 @@
  */
 import reduxUiRouterModule from '../../../main/frontend/reduxUiRouter/module';
 
-describe('routerListener', function() {
+describe('routerListener', function () {
   var routerListener, mockTransitions, mockTransition, store;
 
-  beforeEach(angular.mock.module(reduxUiRouterModule.name, function($provide) {
-    SpecUtil.mockNgRedux($provide);
-  }));
+  beforeEach(
+    angular.mock.module(reduxUiRouterModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
-  beforeEach(inject(function($injector) {
+  beforeEach(inject(function ($injector) {
     routerListener = $injector.get('routerListener');
     store = SpecUtil.mockReduxStore();
     mockTransitions = {
       callback: null,
-      onFinish: function(query, callback) {
+      onFinish: function (query, callback) {
         this.callback = callback;
       },
-      finish: function(transition) {
+      finish: function (transition) {
         this.callback(transition);
-      }
+      },
     };
     mockTransition = {
       parameters: {
         to: 'to-params',
-        from: 'from-params'
+        from: 'from-params',
       },
-      to: function() { return 'to-state';},
-      from: function() { return 'from-state';},
-      params: function(key) {
+      to: function () {
+        return 'to-state';
+      },
+      from: function () {
+        return 'from-state';
+      },
+      params: function (key) {
         return this.parameters[key];
-      }
+      },
     };
   }));
 
-  it('listens to onFinish transition event and dispatches UI_ROUTER_ON_FINISH action', function() {
+  it('listens to onFinish transition event and dispatches UI_ROUTER_ON_FINISH action', function () {
     routerListener(mockTransitions, store);
     expect(store.getActions().length).toBe(0);
 
@@ -51,8 +57,8 @@ describe('routerListener', function() {
         toState: 'to-state',
         toParams: 'to-params',
         fromState: 'from-state',
-        fromParams: 'from-params'
-      }
+        fromParams: 'from-params',
+      },
     });
   });
 });

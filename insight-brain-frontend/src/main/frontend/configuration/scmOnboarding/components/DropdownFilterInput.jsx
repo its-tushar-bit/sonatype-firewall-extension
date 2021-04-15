@@ -4,24 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import * as PropTypes from 'prop-types';
 
-import {
-  NxFilterInput,
-  NxDropdown
-} from '@sonatype/react-shared-components';
+import { NxFilterInput, NxDropdown } from '@sonatype/react-shared-components';
 import './DropdownFilterInput.scss';
 
 /**
  * A Dropdown with a Filter Input element which operates on the list of elements in the dropdown
  */
 function DropdownFilterInput(props) {
-  const {
-    children,
-    filterFn,
-    ...nxDropdownProps
-  } = props;
+  const { children, filterFn, ...nxDropdownProps } = props;
 
   const [filterValue, setFilterValue] = useState('');
 
@@ -31,22 +24,23 @@ function DropdownFilterInput(props) {
       return children;
     }
     return [
-      <NxFilterInput key="__filter" className="nx-dropdown-menu-filter" onChange={setFilterValue} value={filterValue}/>,
-      ...children.filter(child => filterFn(child, filterValue))
+      <NxFilterInput
+        key="__filter"
+        className="nx-dropdown-menu-filter"
+        onChange={setFilterValue}
+        value={filterValue}
+      />,
+      ...children.filter((child) => filterFn(child, filterValue)),
     ];
   };
 
-  return (
-    <NxDropdown {...nxDropdownProps}>
-      {filterChildren()}
-    </NxDropdown>
-  );
+  return <NxDropdown {...nxDropdownProps}>{filterChildren()}</NxDropdown>;
 }
 
 DropdownFilterInput.propTypes = {
   children: PropTypes.arrayOf(PropTypes.element),
   filterFn: PropTypes.func,
-  nxDropdownProps: PropTypes.object
+  nxDropdownProps: PropTypes.object,
 };
 
 export default DropdownFilterInput;

@@ -5,33 +5,33 @@
  */
 
 import React from 'react';
-import {faShieldCheck} from '@fortawesome/pro-solid-svg-icons';
-import {NxFontAwesomeIcon} from '@sonatype/react-shared-components';
+import { faShieldCheck } from '@fortawesome/pro-solid-svg-icons';
+import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
 export default function FirewallStatus(props) {
   //viewState
-  const {
-    totalComponentCount,
-    repositoryCount
-  } = props;
+  const { totalComponentCount, repositoryCount } = props;
 
   return (
     <section id="firewall-status">
       <header className="nx-page-title">
         <h1 className="nx-h1">
-          <NxFontAwesomeIcon icon={faShieldCheck} size="sm" className="iq-firewall-protected-icon"/>
+          <NxFontAwesomeIcon
+            icon={faShieldCheck}
+            size="sm"
+            className="iq-firewall-protected-icon"
+          />
           <span>You are protected</span>
         </h1>
 
         <div className="iq-firewall-status-description">
-          <div className="iq-firewall-status-description-line">
-          </div>
+          <div className="iq-firewall-status-description-line"></div>
           <div>
-            Firewall is currently monitoring {totalComponentCount} components in {repositoryCount} repositories
+            Firewall is currently monitoring {totalComponentCount} components in{' '}
+            {repositoryCount} repositories
           </div>
         </div>
-
       </header>
     </section>
   );
@@ -39,5 +39,5 @@ export default function FirewallStatus(props) {
 
 FirewallStatus.propTypes = {
   totalComponentCount: PropTypes.number.isRequired,
-  repositoryCount: PropTypes.number.isRequired
+  repositoryCount: PropTypes.number.isRequired,
 };

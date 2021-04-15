@@ -12,7 +12,7 @@ export default function cipPolicyViolationsDirective() {
     controller: 'PolicyViolationsController',
     scope: {
       useNewWaiverPages: '<?',
-      closeCipModal: '&?'
-    }
+      closeCipModal: '&?',
+    },
   };
 }

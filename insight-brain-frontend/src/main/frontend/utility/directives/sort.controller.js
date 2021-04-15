@@ -12,22 +12,21 @@ export default function SortController() {
     if (angular.equals(vm.sortFields, newFields)) {
       var column = extractSortField(newFields[0]);
       if (vm.sortFields[0] !== column) {
-        vm.onSortChange({sortFields: [column, ...vm.sortFields.slice(1)]});
+        vm.onSortChange({ sortFields: [column, ...vm.sortFields.slice(1)] });
+      } else {
+        vm.onSortChange({
+          sortFields: ['-' + column, ...vm.sortFields.slice(1)],
+        });
       }
-      else {
-        vm.onSortChange({sortFields: ['-' + column, ...vm.sortFields.slice(1)]});
-      }
-    }
-    else {
-      vm.onSortChange({sortFields: newFields});
+    } else {
+      vm.onSortChange({ sortFields: newFields });
     }
   }
 
   function extractSortField(orderedField) {
     if (orderedField && orderedField.indexOf('-') === 0) {
       return orderedField.substring(1);
-    }
-    else {
+    } else {
       return orderedField;
     }
   }

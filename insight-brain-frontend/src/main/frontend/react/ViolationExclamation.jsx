@@ -12,11 +12,19 @@ import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { allThreatLevelCategories } from '@sonatype/react-shared-components/util/threatLevels';
 
 export default function ViolationExclamation({ threatLevelCategory }) {
-  const iconClassName = classnames('iq-violation-exclamation', `iq-violation-exclamation--${threatLevelCategory}`);
+  const iconClassName = classnames(
+    'iq-violation-exclamation',
+    `iq-violation-exclamation--${threatLevelCategory}`
+  );
 
-  return <NxFontAwesomeIcon className={iconClassName} icon={faExclamationCircle}/>;
+  return (
+    <NxFontAwesomeIcon className={iconClassName} icon={faExclamationCircle} />
+  );
 }
 
 ViolationExclamation.propTypes = {
-  threatLevelCategory: PropTypes.oneOf([...allThreatLevelCategories, 'disabled']).isRequired
+  threatLevelCategory: PropTypes.oneOf([
+    ...allThreatLevelCategories,
+    'disabled',
+  ]).isRequired,
 };

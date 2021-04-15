@@ -16,8 +16,8 @@ var componentIdentifier = {
     groupId: 'g',
     artifactId: 'a',
     version: 'v',
-    extension: 'e'
-  }
+    extension: 'e',
+  },
 };
 var component = {
   componentIdentifier: componentIdentifier,
@@ -28,40 +28,45 @@ var component = {
   version: componentIdentifier.coordinates.version,
   extension: componentIdentifier.coordinates.extension,
   createTime: 100,
-  comment: 'testc'
+  comment: 'testc',
 };
 
-describe('CIP Claim Component tests', function() {
+describe('CIP Claim Component tests', function () {
   var scope, $http, formSetPristineSpy;
 
-  beforeEach(angular.mock.module(ClaimComponentModule.name, function($provide) {
-    $provide.value('ComponentUtil', {
-      setDisplayNameAndCoordinates: function() {}
-    });
-  }));
+  beforeEach(
+    angular.mock.module(ClaimComponentModule.name, function ($provide) {
+      $provide.value('ComponentUtil', {
+        setDisplayNameAndCoordinates: function () {},
+      });
+    })
+  );
   // setup our http backend to return what we want
-  beforeEach(inject(function($rootScope, $controller, $httpBackend, $location) {
+  beforeEach(inject(function (
+    $rootScope,
+    $controller,
+    $httpBackend,
+    $location
+  ) {
     window.InsightDatatable = {
-      getActiveTable: function() {
+      getActiveTable: function () {
         return {
           dataView: {
-            getItems: function() {
+            getItems: function () {
               return dataTableItems;
             },
-            beginUpdate: function() {
-            },
-            updateItem: function(id, data) {
+            beginUpdate: function () {},
+            updateItem: function (id, data) {
               dataTableItems[current++] = data;
             },
-            endUpdate: function() {
-            }
-          }
+            endUpdate: function () {},
+          },
         };
-      }
+      },
     };
 
     window.CLM = {
-      path: '../brain/'
+      path: '../brain/',
     };
 
     dataTableItems = [];
@@ -75,23 +80,23 @@ describe('CIP Claim Component tests', function() {
       global: {},
       CurrentData: {
         hash: '1',
-        createTime: 1
-      }
+        createTime: 1,
+      },
     });
 
     scope.claimForm = {
       $valid: true,
-      $setPristine: angular.noop
+      $setPristine: angular.noop,
     };
     formSetPristineSpy = spyOn(scope.claimForm, '$setPristine');
   }));
 
-  afterEach(inject(function($httpBackend) {
+  afterEach(inject(function ($httpBackend) {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  it('Test Claim Component', function() {
+  it('Test Claim Component', function () {
     expect(scope.formValid()).toEqual(false);
     scope.claimData.groupId = 'groupid';
     expect(scope.formValid()).toEqual(false);
@@ -102,29 +107,45 @@ describe('CIP Claim Component tests', function() {
     scope.claimData.extension = 'e';
     expect(scope.formValid()).toEqual(true);
 
-    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified'), function(data) {
-      var obj = JSON.parse(data);
-      expect(obj.componentIdentifier.coordinates.groupId).toEqual('groupid');
-      expect(obj.componentIdentifier.coordinates.artifactId).toEqual('artifactid');
-      expect(obj.componentIdentifier.coordinates.version).toEqual('version');
-      expect(obj.componentIdentifier.coordinates.classifier).toEqual('');
-      expect(obj.componentIdentifier.coordinates.extension).toEqual('e');
-      return true;
-    }).respond(component);
+    $http
+      .expectPOST(
+        SpecUtil.toRegExp('../brain/rest/component/identified'),
+        function (data) {
+          var obj = JSON.parse(data);
+          expect(obj.componentIdentifier.coordinates.groupId).toEqual(
+            'groupid'
+          );
+          expect(obj.componentIdentifier.coordinates.artifactId).toEqual(
+            'artifactid'
+          );
+          expect(obj.componentIdentifier.coordinates.version).toEqual(
+            'version'
+          );
+          expect(obj.componentIdentifier.coordinates.classifier).toEqual('');
+          expect(obj.componentIdentifier.coordinates.extension).toEqual('e');
+          return true;
+        }
+      )
+      .respond(component);
     scope.claimSubmit();
     $http.flush();
     expect(formSetPristineSpy).toHaveBeenCalled();
   });
 
-  it('Test multiple duplicate hashes handled properly', function() {
-    dataTableItems = [{
-      hash: '1',
-      id: '1'
-    }, {
-      hash: '1',
-      id: '1'
-    }];
-    $http.expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(component);
+  it('Test multiple duplicate hashes handled properly', function () {
+    dataTableItems = [
+      {
+        hash: '1',
+        id: '1',
+      },
+      {
+        hash: '1',
+        id: '1',
+      },
+    ];
+    $http
+      .expectPOST(SpecUtil.toRegExp('../brain/rest/component/identified'))
+      .respond(component);
     scope.claimSubmit();
     $http.flush();
 
@@ -132,50 +153,58 @@ describe('CIP Claim Component tests', function() {
     expect(formSetPristineSpy).toHaveBeenCalled();
   });
 
-  it('Can revoke a claim on a component', inject(function(Dialog) {
+  it('Can revoke a claim on a component', inject(function (Dialog) {
     spyOn(Dialog, 'open');
-    $http.expectDELETE(SpecUtil.toRegExp('../brain/rest/component/identified/1')).respond(204);
+    $http
+      .expectDELETE(SpecUtil.toRegExp('../brain/rest/component/identified/1'))
+      .respond(204);
 
     scope.revokeClaimSubmit();
 
     expect(Dialog.open).toHaveBeenCalledWith({
       title: 'Revoke Claim',
-      body: 'Are you sure you want to revoke the claim on this component?' +
+      body:
+        'Are you sure you want to revoke the claim on this component?' +
         ' This change will not be reflected until a new policy evaluation is triggered.',
-      buttons: [{
-        name: 'Revoke',
-        type: 'primary',
-        click: jasmine.any(Function)
-      }, {
-        name: 'Cancel',
-        type: 'cancel'
-      }],
+      buttons: [
+        {
+          name: 'Revoke',
+          type: 'primary',
+          click: jasmine.any(Function),
+        },
+        {
+          name: 'Cancel',
+          type: 'cancel',
+        },
+      ],
       windowClass: null,
-      backdropClass: null
+      backdropClass: null,
     });
     Dialog.open.calls.mostRecent().args[0].buttons[0].click();
     $http.flush();
   }));
 
-  it('Can update a claim on a component', function() {
+  it('Can update a claim on a component', function () {
     dataTableItems = [
       {
         hash: '1',
-        id: '1'
-      }
+        id: '1',
+      },
     ];
 
-    $http.expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified')).respond(component);
+    $http
+      .expectPUT(SpecUtil.toRegExp('../brain/rest/component/identified'))
+      .respond(component);
     scope.claimUpdateSubmit();
     $http.flush();
     confirmDataViewUpdated(1);
   });
 
   // Functional tests for the clm datepicker since we do not have a functional tests for the cip components
-  describe('clm datepicker test', function() {
+  describe('clm datepicker test', function () {
     var element, scope, formSetDirtySpy;
 
-    beforeEach(inject(function($rootScope, $compile) {
+    beforeEach(inject(function ($rootScope, $compile) {
       scope = $rootScope.$new();
       scope.claimData = {};
 
@@ -184,11 +213,13 @@ describe('CIP Claim Component tests', function() {
       scope.claimForm = { $setDirty: angular.noop };
       formSetDirtySpy = spyOn(scope.claimForm, '$setDirty');
 
-      element = angular.element('<div clm-datepicker><input name="foo" ng-model="claimData.createTimeText"></div>');
+      element = angular.element(
+        '<div clm-datepicker><input name="foo" ng-model="claimData.createTimeText"></div>'
+      );
       $compile(element)(scope);
     }));
 
-    it('binds data correctly', function() {
+    it('binds data correctly', function () {
       expect(scope.claimData.createTimeText).toBe('12/12/2012');
 
       element.find('td.day:contains(1)').first().click();

@@ -12,6 +12,6 @@ export default function AccessTile() {
     template,
     controller: 'AccessTileController',
     controllerAs: 'vm',
-    bindToController: true
+    bindToController: true,
   };
 }

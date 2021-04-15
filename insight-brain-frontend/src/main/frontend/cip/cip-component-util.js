@@ -5,31 +5,33 @@
  */
 /* global angular */
 export default angular.module('ComponentUtils', []).service('ComponentUtil', [
-  function() {
+  function () {
     /**
      * Subset of the logic implemented on HDS for displaying unknown components.
      * Required when revoking the claim on an existing component.
      * @param dataItem
      */
-    var setDisplayNameAndCoordinates = function(dataItem) {
+    var setDisplayNameAndCoordinates = function (dataItem) {
       dataItem.displayName = {};
       if (dataItem.filenames && dataItem.filenames.length > 0) {
         dataItem.displayName.parts = [];
         for (var i = 0; i < dataItem.filenames.length; i++) {
-          dataItem.displayName.parts.push({ field: 'Filename', value: dataItem.filenames[i] });
+          dataItem.displayName.parts.push({
+            field: 'Filename',
+            value: dataItem.filenames[i],
+          });
           if (i < dataItem.filenames.length - 1) {
             dataItem.displayName.parts.push({ value: ', ' });
           }
         }
-      }
-      else {
+      } else {
         dataItem.displayName.parts = [
           { value: '(Anonymized Path) SHA1: ' },
-          { field: 'Hash', value: dataItem.hash }
+          { field: 'Hash', value: dataItem.hash },
         ];
       }
       // Set coordinates value for filtering and sorting
-      dataItem.coordinates = $.map(dataItem.displayName.parts, function(p) {
+      dataItem.coordinates = $.map(dataItem.displayName.parts, function (p) {
         return p.value;
       }).join('');
     };
@@ -39,7 +41,7 @@ export default angular.module('ComponentUtils', []).service('ComponentUtil', [
      * Exists to enhance legacy report data structure with componentIdentifier where needed
      * @param component representation of a coordinate agnostic component or maven GAV
      */
-    var enhanceWithComponentIdentifier = function(component) {
+    var enhanceWithComponentIdentifier = function (component) {
       var componentIdentifier = component.componentIdentifier;
       if (!componentIdentifier) {
         // This component represents an unknown or maven GAV.
@@ -48,7 +50,7 @@ export default angular.module('ComponentUtils', []).service('ComponentUtil', [
           coordinates = {
             groupId: component.groupId,
             artifactId: component.artifactId,
-            version: component.version
+            version: component.version,
           };
           // Extension and classifier properties should only populated for claimed components in data prior to v1.13.0
           if (component.extension) {
@@ -60,8 +62,8 @@ export default angular.module('ComponentUtils', []).service('ComponentUtil', [
           angular.extend(component, {
             componentIdentifier: {
               format: 'maven',
-              coordinates: coordinates
-            }
+              coordinates: coordinates,
+            },
           });
         }
       }
@@ -69,7 +71,7 @@ export default angular.module('ComponentUtils', []).service('ComponentUtil', [
 
     return {
       setDisplayNameAndCoordinates: setDisplayNameAndCoordinates,
-      enhanceWithComponentIdentifier: enhanceWithComponentIdentifier
+      enhanceWithComponentIdentifier: enhanceWithComponentIdentifier,
     };
-  }
+  },
 ]);

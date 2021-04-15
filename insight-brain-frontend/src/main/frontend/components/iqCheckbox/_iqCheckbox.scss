@@ -23,7 +23,7 @@
 
   &:checked + .iq-checkbox__box::after {
     color: $iq-slate;
-    content: "\f00c"; // unicode for fa-check
+    content: '\f00c'; // unicode for fa-check
     display: inline-block;
     font: normal normal normal 14px/1 FontAwesome;
     position: absolute;

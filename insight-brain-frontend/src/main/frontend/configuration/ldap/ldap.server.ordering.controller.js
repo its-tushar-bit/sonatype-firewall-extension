@@ -6,9 +6,15 @@
 import template from './ldap.server.ordering.modal.html';
 
 /*global angular*/
-export function LdapServerOrderingController($scope, $http, LdapConfigurationStore, CLMLocation, Messages) {
+export function LdapServerOrderingController(
+  $scope,
+  $http,
+  LdapConfigurationStore,
+  CLMLocation,
+  Messages
+) {
   var vm = this,
-      originalStoreOrder;
+    originalStoreOrder;
 
   vm.store = undefined;
 
@@ -21,7 +27,7 @@ export function LdapServerOrderingController($scope, $http, LdapConfigurationSto
   vm.save = save;
 
   // The store should always be loaded at this point
-  LdapConfigurationStore.get().then(function(store) {
+  LdapConfigurationStore.get().then(function (store) {
     vm.store = store.slice();
     sort();
     originalStoreOrder = vm.store.slice();
@@ -74,25 +80,35 @@ export function LdapServerOrderingController($scope, $http, LdapConfigurationSto
     if (!isDirty()) {
       return;
     }
-    var serverIds = vm.store.map(function(server) {
+    var serverIds = vm.store.map(function (server) {
       return server.id;
     });
 
-    vm.ldapOrderForm.wrap($http.put(CLMLocation.getLdapPriority(), serverIds)).then(function() {
-      $scope.$close();
-    }, function(error) {
-      vm.error = Messages.getHttpErrorMessage(error);
-    });
+    vm.ldapOrderForm
+      .wrap($http.put(CLMLocation.getLdapPriority(), serverIds))
+      .then(
+        function () {
+          $scope.$close();
+        },
+        function (error) {
+          vm.error = Messages.getHttpErrorMessage(error);
+        }
+      );
   }
 
   function scroll(ldapServer) {
     var container = angular.element('#ldap-server-ordering-modal .simple-list'),
-        containerOffset = container.offset(),
-        element = container.find('li:nth-child(' + (vm.store.indexOf(ldapServer) + 1) + ')'),
-        elementOffset = element.offset();
+      containerOffset = container.offset(),
+      element = container.find(
+        'li:nth-child(' + (vm.store.indexOf(ldapServer) + 1) + ')'
+      ),
+      elementOffset = element.offset();
 
-    if (elementOffset.top < containerOffset.top ||
-        elementOffset.top + element.outerHeight() > containerOffset.top + container.outerHeight()) {
+    if (
+      elementOffset.top < containerOffset.top ||
+      elementOffset.top + element.outerHeight() >
+        containerOffset.top + container.outerHeight()
+    ) {
       element[0].scrollIntoView();
     }
   }
@@ -105,32 +121,38 @@ export function LdapServerOrderingController($scope, $http, LdapConfigurationSto
   }
 
   function sort() {
-    vm.store.sort(function(a, b) {
+    vm.store.sort(function (a, b) {
       return a.priority - b.priority;
     });
   }
 
   function updatePriority() {
-    vm.store.forEach(function(server, index) {
+    vm.store.forEach(function (server, index) {
       server.priority = index + 1;
     });
   }
 }
 
-LdapServerOrderingController.$inject = ['$scope', '$http', 'LdapConfigurationStore', 'CLMLocations', 'Messages'];
+LdapServerOrderingController.$inject = [
+  '$scope',
+  '$http',
+  'LdapConfigurationStore',
+  'CLMLocations',
+  'Messages',
+];
 
 export function LdapServerOrderingModal(Modal) {
   return {
-    open: function() {
+    open: function () {
       return Modal.open({
         animation: false,
         backdrop: 'static',
         keyboard: false,
         controller: LdapServerOrderingController,
         controllerAs: 'vm',
-        template
+        template,
       }).result;
-    }
+    },
   };
 }
 LdapServerOrderingModal.$inject = ['Modal'];

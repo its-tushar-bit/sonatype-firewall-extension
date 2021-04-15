@@ -8,7 +8,7 @@ import template from './dashboardTabs.html';
 var dashboardTabsComponent = {
   controllerAs: 'vm',
   controller: DashboardTabsController,
-  template
+  template,
 };
 
 function DashboardTabsController($ngRedux) {
@@ -21,7 +21,7 @@ function DashboardTabsController($ngRedux) {
 
     $onDestroy() {
       vm.unsubscribe();
-    }
+    },
   });
 }
 
@@ -29,7 +29,7 @@ function mapStateToThis(state) {
   return {
     violationsCount: state.dashboard.violations.numResults,
     componentsCount: state.dashboard.components.numResults,
-    applicationsCount: state.dashboard.applications.numResults
+    applicationsCount: state.dashboard.applications.numResults,
   };
 }
 

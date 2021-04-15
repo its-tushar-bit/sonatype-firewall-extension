@@ -8,13 +8,15 @@ import template from './automaticSourceControlConfiguration.html';
 const automaticSourceControlConfiguration = {
   controller: AutomaticSourceControlConfigurationController,
   bindings: {
-    isAuthorized: '<'
+    isAuthorized: '<',
   },
   controllerAs: 'vm',
-  template: template
+  template: template,
 };
 
-function AutomaticSourceControlConfigurationController(automaticSourceControlConfigurationService) {
+function AutomaticSourceControlConfigurationController(
+  automaticSourceControlConfigurationService
+) {
   const vm = this;
 
   Object.assign(vm, {
@@ -32,32 +34,44 @@ function AutomaticSourceControlConfigurationController(automaticSourceControlCon
       vm.error = undefined;
       vm.loaded = false;
 
-      automaticSourceControlConfigurationService.getConfiguration().then(function(data) {
-        vm.automaticSourceControlEnabled = data.enabled;
-        vm.savedAutomaticSourceControlEnabled = vm.automaticSourceControlEnabled;
-        vm.loaded = true;
-      }).catch(function(error) {
-        vm.error = error;
-      });
+      automaticSourceControlConfigurationService
+        .getConfiguration()
+        .then(function (data) {
+          vm.automaticSourceControlEnabled = data.enabled;
+          vm.savedAutomaticSourceControlEnabled =
+            vm.automaticSourceControlEnabled;
+          vm.loaded = true;
+        })
+        .catch(function (error) {
+          vm.error = error;
+        });
     },
 
     save() {
-      if (!vm.isChanged() || !vm.automaticSourceControlConfigurationForm.$valid) {
+      if (
+        !vm.isChanged() ||
+        !vm.automaticSourceControlConfigurationForm.$valid
+      ) {
         return;
       }
 
       vm.error = undefined;
 
       const configuration = {
-        enabled: vm.automaticSourceControlEnabled
+        enabled: vm.automaticSourceControlEnabled,
       };
 
-      const savePromise = automaticSourceControlConfigurationService.saveConfiguration(configuration);
-      vm.automaticSourceControlConfigurationFormMask.wrap(savePromise).then(function(data) {
-        vm.savedAutomaticSourceControlEnabled = data.enabled;
-      }).catch(function(error) {
-        vm.error = error;
-      });
+      const savePromise = automaticSourceControlConfigurationService.saveConfiguration(
+        configuration
+      );
+      vm.automaticSourceControlConfigurationFormMask
+        .wrap(savePromise)
+        .then(function (data) {
+          vm.savedAutomaticSourceControlEnabled = data.enabled;
+        })
+        .catch(function (error) {
+          vm.error = error;
+        });
     },
 
     cancel() {
@@ -65,11 +79,16 @@ function AutomaticSourceControlConfigurationController(automaticSourceControlCon
     },
 
     isChanged() {
-      return vm.savedAutomaticSourceControlEnabled !== vm.automaticSourceControlEnabled;
-    }
+      return (
+        vm.savedAutomaticSourceControlEnabled !==
+        vm.automaticSourceControlEnabled
+      );
+    },
   });
 }
 
-AutomaticSourceControlConfigurationController.$inject = ['automaticSourceControlConfigurationService'];
+AutomaticSourceControlConfigurationController.$inject = [
+  'automaticSourceControlConfigurationService',
+];
 
 export default automaticSourceControlConfiguration;

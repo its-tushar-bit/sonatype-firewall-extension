@@ -6,30 +6,27 @@
 import applicationReportModule from '../../../../../main/frontend/applicationReport/module';
 import { serializeComponentIdentifier } from '../../../../../main/frontend/util/componentIdentifierUtils';
 
-import {
-  mapStateToThis
-} from '../../../../../main/frontend/applicationReport/results/cipModal/rootAncestors/rootAncestors';
+import { mapStateToThis } from '../../../../../main/frontend/applicationReport/results/cipModal/rootAncestors/rootAncestors';
 
-describe('rootAncestorsComponent', function() {
-
+describe('rootAncestorsComponent', function () {
   let vm, scope;
 
-  beforeEach(angular.mock.module(applicationReportModule.name, function($provide) {
-    SpecUtil.mockNgRedux($provide);
+  beforeEach(
+    angular.mock.module(applicationReportModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
+
+  beforeEach(inject(function ($componentController, $rootScope) {
+    scope = $rootScope.$new();
+    vm = $componentController('rootAncestors', {
+      $scope: scope,
+    });
+    scope.vm = vm;
+    vm.$onInit();
   }));
 
-  beforeEach(inject(
-      function($componentController, $rootScope) {
-        scope = $rootScope.$new();
-        vm = $componentController('rootAncestors', {
-          $scope: scope
-        });
-        scope.vm = vm;
-        vm.$onInit();
-      }
-  ));
-
-  beforeEach(function() {
+  beforeEach(function () {
     vm.selectedReport = {
       allEntries: [
         {
@@ -39,9 +36,9 @@ describe('rootAncestorsComponent', function() {
               artifactId: 'foo',
               extension: 'jar',
               groupId: 'test',
-              version: 1
-            }
-          })
+              version: 1,
+            },
+          }),
         },
         {
           serializedComponentIdentifier: serializeComponentIdentifier({
@@ -50,9 +47,9 @@ describe('rootAncestorsComponent', function() {
               artifactId: 'bar',
               extension: 'jar',
               groupId: 'test',
-              version: 2
-            }
-          })
+              version: 2,
+            },
+          }),
         },
         {
           serializedComponentIdentifier: serializeComponentIdentifier({
@@ -61,9 +58,9 @@ describe('rootAncestorsComponent', function() {
               artifactId: 'baz',
               extension: 'jar',
               groupId: 'test',
-              version: 3
-            }
-          })
+              version: 3,
+            },
+          }),
         },
         {
           serializedComponentIdentifier: serializeComponentIdentifier({
@@ -72,38 +69,38 @@ describe('rootAncestorsComponent', function() {
               artifactId: 'bla',
               extension: 'jar',
               groupId: 'test',
-              version: 4
-            }
-          })
-        }
-      ]
+              version: 4,
+            },
+          }),
+        },
+      ],
     };
   });
 
-  it('sets vm.showAll to false by default', function() {
+  it('sets vm.showAll to false by default', function () {
     expect(vm.showAll).toBe(false);
   });
 
-  describe('$onInit()', function() {
-    describe('vm.selectedComponent watcher', function() {
-      describe('vm.rootAncestors', function() {
-        it('is set to empty array if dependencyInfo.rootAncestors is undefined', function() {
+  describe('$onInit()', function () {
+    describe('vm.selectedComponent watcher', function () {
+      describe('vm.rootAncestors', function () {
+        it('is set to empty array if dependencyInfo.rootAncestors is undefined', function () {
           vm.selectedComponent = {
-            dependencyInfo: undefined
+            dependencyInfo: undefined,
           };
           scope.$digest();
           expect(vm.rootAncestors).toEqual([]);
         });
 
-        it('is set to empty array if dependencyInfo.rootAncestors is empty', function() {
+        it('is set to empty array if dependencyInfo.rootAncestors is empty', function () {
           vm.selectedComponent = {
-            dependencyInfo: []
+            dependencyInfo: [],
           };
           scope.$digest();
           expect(vm.rootAncestors).toEqual([]);
         });
 
-        it('is set to matching components in selectedReport.allEntries', function() {
+        it('is set to matching components in selectedReport.allEntries', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               rootAncestors: [
@@ -113,8 +110,8 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'foo',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 1
-                  }
+                    version: 1,
+                  },
                 },
                 {
                   format: 'maven',
@@ -122,11 +119,11 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'baz',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 3
-                  }
-                }
-              ]
-            }
+                    version: 3,
+                  },
+                },
+              ],
+            },
           };
 
           scope.$digest();
@@ -135,7 +132,7 @@ describe('rootAncestorsComponent', function() {
           expect(vm.rootAncestors).toContain(vm.selectedReport.allEntries[2]);
         });
 
-        it('is set to empty array if selected component is a Direct dependency', function() {
+        it('is set to empty array if selected component is a Direct dependency', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               isDirectDependency: true,
@@ -146,8 +143,8 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'foo',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 1
-                  }
+                    version: 1,
+                  },
                 },
                 {
                   format: 'maven',
@@ -155,18 +152,18 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'baz',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 3
-                  }
-                }
-              ]
-            }
+                    version: 3,
+                  },
+                },
+              ],
+            },
           };
 
           scope.$digest();
           expect(vm.rootAncestors).toEqual([]);
         });
 
-        it('is set to empty array if there are no matching components in selectedReport.allEntries', function() {
+        it('is set to empty array if there are no matching components in selectedReport.allEntries', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               rootAncestors: [
@@ -176,8 +173,8 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'foo',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 5
-                  }
+                    version: 5,
+                  },
                 },
                 {
                   format: 'maven',
@@ -185,11 +182,11 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'baz',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 6
-                  }
-                }
-              ]
-            }
+                    version: 6,
+                  },
+                },
+              ],
+            },
           };
 
           scope.$digest();
@@ -197,8 +194,8 @@ describe('rootAncestorsComponent', function() {
         });
       });
 
-      describe('vm.isShowMoreLinkDisplayed', function() {
-        it('is set to false if there was no rootAncestors found', function() {
+      describe('vm.isShowMoreLinkDisplayed', function () {
+        it('is set to false if there was no rootAncestors found', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               rootAncestors: [
@@ -208,18 +205,18 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'foo',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 5
-                  }
-                }
-              ]
-            }
+                    version: 5,
+                  },
+                },
+              ],
+            },
           };
 
           scope.$digest();
           expect(vm.isShowMoreLinkDisplayed).toBe(false);
         });
 
-        it('is set to false if vm.rootAncestors length is 3 or less', function() {
+        it('is set to false if vm.rootAncestors length is 3 or less', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               rootAncestors: [
@@ -229,8 +226,8 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'foo',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 1
-                  }
+                    version: 1,
+                  },
                 },
                 {
                   format: 'maven',
@@ -238,8 +235,8 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'bar',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 2
-                  }
+                    version: 2,
+                  },
                 },
                 {
                   format: 'maven',
@@ -247,11 +244,11 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'baz',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 3
-                  }
-                }
-              ]
-            }
+                    version: 3,
+                  },
+                },
+              ],
+            },
           };
 
           scope.$digest();
@@ -259,7 +256,7 @@ describe('rootAncestorsComponent', function() {
           expect(vm.isShowMoreLinkDisplayed).toBe(false);
         });
 
-        it('is set to true if vm.rootAncestors length is more then 3', function() {
+        it('is set to true if vm.rootAncestors length is more then 3', function () {
           vm.selectedComponent = {
             dependencyInfo: {
               rootAncestors: [
@@ -269,8 +266,8 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'foo',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 1
-                  }
+                    version: 1,
+                  },
                 },
                 {
                   format: 'maven',
@@ -278,8 +275,8 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'bar',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 2
-                  }
+                    version: 2,
+                  },
                 },
                 {
                   format: 'maven',
@@ -287,8 +284,8 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'baz',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 3
-                  }
+                    version: 3,
+                  },
                 },
                 {
                   format: 'maven',
@@ -296,11 +293,11 @@ describe('rootAncestorsComponent', function() {
                     artifactId: 'bla',
                     extension: 'jar',
                     groupId: 'test',
-                    version: 4
-                  }
-                }
-              ]
-            }
+                    version: 4,
+                  },
+                },
+              ],
+            },
           };
 
           scope.$digest();
@@ -311,16 +308,16 @@ describe('rootAncestorsComponent', function() {
     });
   });
 
-  describe('$onDestroy()', function() {
-    it('unsubscribes from redux store', function() {
+  describe('$onDestroy()', function () {
+    it('unsubscribes from redux store', function () {
       expect(vm.unsubscribe).not.toHaveBeenCalled();
       vm.$onDestroy();
       expect(vm.unsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('vm.toggleShowAll', function() {
-    it('toggles vm.showAll flag', function() {
+  describe('vm.toggleShowAll', function () {
+    it('toggles vm.showAll flag', function () {
       expect(vm.showAll).toBe(false);
       vm.toggleShowAll();
       expect(vm.showAll).toBe(true);
@@ -329,8 +326,8 @@ describe('rootAncestorsComponent', function() {
     });
   });
 
-  describe('vm.getDisplayedRootAncestors', function() {
-    beforeEach(function() {
+  describe('vm.getDisplayedRootAncestors', function () {
+    beforeEach(function () {
       vm.selectedComponent = {
         dependencyInfo: {
           rootAncestors: [
@@ -340,8 +337,8 @@ describe('rootAncestorsComponent', function() {
                 artifactId: 'foo',
                 extension: 'jar',
                 groupId: 'test',
-                version: 1
-              }
+                version: 1,
+              },
             },
             {
               format: 'maven',
@@ -349,8 +346,8 @@ describe('rootAncestorsComponent', function() {
                 artifactId: 'bar',
                 extension: 'jar',
                 groupId: 'test',
-                version: 2
-              }
+                version: 2,
+              },
             },
             {
               format: 'maven',
@@ -358,8 +355,8 @@ describe('rootAncestorsComponent', function() {
                 artifactId: 'baz',
                 extension: 'jar',
                 groupId: 'test',
-                version: 3
-              }
+                version: 3,
+              },
             },
             {
               format: 'maven',
@@ -367,16 +364,16 @@ describe('rootAncestorsComponent', function() {
                 artifactId: 'bla',
                 extension: 'jar',
                 groupId: 'test',
-                version: 4
-              }
-            }
-          ]
-        }
+                version: 4,
+              },
+            },
+          ],
+        },
       };
       scope.$digest();
     });
 
-    it('returns all vm.rootAncestors if vm.showAll is true', function() {
+    it('returns all vm.rootAncestors if vm.showAll is true', function () {
       vm.showAll = true;
       const displayedRootAncestors = vm.getDisplayedRootAncestors();
       expect(displayedRootAncestors.length).toBe(4);
@@ -386,7 +383,7 @@ describe('rootAncestorsComponent', function() {
       expect(displayedRootAncestors).toContain(vm.selectedReport.allEntries[3]);
     });
 
-    it('returns first 3 entries from vm.rootAncestors if vm.showAll is false', function() {
+    it('returns first 3 entries from vm.rootAncestors if vm.showAll is false', function () {
       vm.showAll = false;
       const displayedRootAncestors = vm.getDisplayedRootAncestors();
       expect(displayedRootAncestors.length).toBe(3);
@@ -396,43 +393,45 @@ describe('rootAncestorsComponent', function() {
     });
   });
 
-  describe('vm.isRootAncestorsSectionDisplayed', function() {
-    it('is false if vm.rootAncestors is empty', function() {
+  describe('vm.isRootAncestorsSectionDisplayed', function () {
+    it('is false if vm.rootAncestors is empty', function () {
       vm.rootAncestors = [];
       expect(vm.isRootAncestorsSectionDisplayed()).toBe(false);
     });
 
-    it('is true if vm.rootAncestors is not empty', function() {
+    it('is true if vm.rootAncestors is not empty', function () {
       vm.rootAncestors = [{}];
       expect(vm.isRootAncestorsSectionDisplayed()).toBe(true);
     });
   });
 
-  describe('mapStateToThis', function() {
-    it('sets selectedReport', function() {
+  describe('mapStateToThis', function () {
+    it('sets selectedReport', function () {
       const state = {
         applicationReport: {
           selectedReport: {
-            displayedEntries: []
-          }
-        }
+            displayedEntries: [],
+          },
+        },
       };
 
       const output = mapStateToThis(state);
-      expect(output.selectedReport).toBe(state.applicationReport.selectedReport);
+      expect(output.selectedReport).toBe(
+        state.applicationReport.selectedReport
+      );
     });
 
-    describe('when selectedRootAncestor is not set', function() {
-      it('sets selectedComponent using selectedComponentIndex', function() {
-        const selectedComponent = {foo: 'bar'};
+    describe('when selectedRootAncestor is not set', function () {
+      it('sets selectedComponent using selectedComponentIndex', function () {
+        const selectedComponent = { foo: 'bar' };
         const state = {
           applicationReport: {
             selectedRootAncestor: null,
             selectedComponentIndex: 1,
             selectedReport: {
-              displayedEntries: [{}, selectedComponent, {}]
-            }
-          }
+              displayedEntries: [{}, selectedComponent, {}],
+            },
+          },
         };
 
         const output = mapStateToThis(state);
@@ -440,18 +439,18 @@ describe('rootAncestorsComponent', function() {
       });
     });
 
-    describe('when selectedRootAncestor is set', function() {
-      it('sets selectedComponent to selectedRootAncestor', function() {
-        const selectedRootAncestor = {foo: 'baz'};
-        const selectedComponent = {foo: 'bar'};
+    describe('when selectedRootAncestor is set', function () {
+      it('sets selectedComponent to selectedRootAncestor', function () {
+        const selectedRootAncestor = { foo: 'baz' };
+        const selectedComponent = { foo: 'bar' };
         const state = {
           applicationReport: {
             selectedRootAncestor,
             selectedComponentIndex: 0,
             selectedReport: {
-              displayedEntries: [selectedComponent]
-            }
-          }
+              displayedEntries: [selectedComponent],
+            },
+          },
         };
 
         const output = mapStateToThis(state);

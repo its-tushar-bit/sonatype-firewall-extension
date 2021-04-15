@@ -15,53 +15,67 @@ import viewTemplate from './webhook.view.html';
 import listTemplate from './webhook.list.view.html';
 import editTemplate from './webhook.edit.view.html';
 
-export default angular.module('webhook.module', [
-  storesModule.name, 'ui.bootstrap', 'ui.router', angularCommonModule.name, permissionServiceModule.name,
-  ProductFeaturesModule.name
-], webhookModuleConfiguration)
-    .controller('webhook.view.controller', WebhookViewController)
-    .controller('webhook.list.controller', WebhookListController)
-    .controller('webhook.edit.controller', WebhookEditController);
+export default angular
+  .module(
+    'webhook.module',
+    [
+      storesModule.name,
+      'ui.bootstrap',
+      'ui.router',
+      angularCommonModule.name,
+      permissionServiceModule.name,
+      ProductFeaturesModule.name,
+    ],
+    webhookModuleConfiguration
+  )
+  .controller('webhook.view.controller', WebhookViewController)
+  .controller('webhook.list.controller', WebhookListController)
+  .controller('webhook.edit.controller', WebhookEditController);
 
 function webhookModuleConfiguration($stateProvider) {
-  $stateProvider.state('webhooks', {
-    url: '/webhooks',
-    abstract: true,
-    template: viewTemplate,
-    resolve: {
-      'isAuthorized': [
-        'PermissionService', function(PermissionService) {
-          return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-        }
-      ]
-    },
-    controller: 'webhook.view.controller',
-    controllerAs: 'vm'
-  }).state('webhooks.list', {
-    url: '/list',
-    template: listTemplate,
-    controller: 'webhook.list.controller',
-    controllerAs: 'vm',
-    data: {
-      title: 'Webhook Configuration'
-    }
-  }).state('webhooks.create', {
-    url: '/create',
-    controller: 'webhook.edit.controller',
-    controllerAs: 'vm',
-    template: editTemplate,
-    data: {
-      title: 'Create Webhook'
-    }
-  }).state('webhooks.edit', {
-    url: '/{webhookId}',
-    controller: 'webhook.edit.controller',
-    controllerAs: 'vm',
-    template: editTemplate,
-    data: {
-      title: 'Edit Webhook'
-    }
-  });
+  $stateProvider
+    .state('webhooks', {
+      url: '/webhooks',
+      abstract: true,
+      template: viewTemplate,
+      resolve: {
+        isAuthorized: [
+          'PermissionService',
+          function (PermissionService) {
+            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+          },
+        ],
+      },
+      controller: 'webhook.view.controller',
+      controllerAs: 'vm',
+    })
+    .state('webhooks.list', {
+      url: '/list',
+      template: listTemplate,
+      controller: 'webhook.list.controller',
+      controllerAs: 'vm',
+      data: {
+        title: 'Webhook Configuration',
+      },
+    })
+    .state('webhooks.create', {
+      url: '/create',
+      controller: 'webhook.edit.controller',
+      controllerAs: 'vm',
+      template: editTemplate,
+      data: {
+        title: 'Create Webhook',
+      },
+    })
+    .state('webhooks.edit', {
+      url: '/{webhookId}',
+      controller: 'webhook.edit.controller',
+      controllerAs: 'vm',
+      template: editTemplate,
+      data: {
+        title: 'Edit Webhook',
+      },
+    });
 }
 
 webhookModuleConfiguration.$inject = ['$stateProvider'];

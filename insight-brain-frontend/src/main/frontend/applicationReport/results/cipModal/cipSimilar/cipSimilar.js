@@ -12,14 +12,14 @@ export default {
   controller: CipSimilarController,
   controllerAs: 'vm',
   bindings: {
-    similarComponents: '<'
-  }
+    similarComponents: '<',
+  },
 };
 
 function CipSimilarController($scope) {
   const vm = this;
 
-  $scope.$watch('vm.similarComponents', function(similarComponents = []) {
+  $scope.$watch('vm.similarComponents', function (similarComponents = []) {
     vm.mostSimilarComponent = head(similarComponents);
     vm.otherSimilarComponents = tail(similarComponents);
   });

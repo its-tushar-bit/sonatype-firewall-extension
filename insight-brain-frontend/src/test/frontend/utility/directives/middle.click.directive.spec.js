@@ -5,31 +5,32 @@
  */
 import utilityDirectivesModule from '../../../../main/frontend/utility/directives/utility.directives.module';
 
-describe('middle.click.directive.js', function() {
-  var compile,
-      element,
-      event,
-      scope;
+describe('middle.click.directive.js', function () {
+  var compile, element, event, scope;
 
   beforeEach(angular.mock.module(utilityDirectivesModule.name));
 
-  beforeEach(inject(function($rootScope, $compile) {
+  beforeEach(inject(function ($rootScope, $compile) {
     scope = $rootScope.$new();
     compile = $compile;
 
-    scope.doSomething = function() {};
+    scope.doSomething = function () {};
     spyOn(scope, 'doSomething').and.callThrough();
   }));
 
-  it('does not call ng-click action without middle-click', function() {
-    element = compile('<a href="test" ng-click="doSomething($event)"></a>')(scope);
+  it('does not call ng-click action without middle-click', function () {
+    element = compile('<a href="test" ng-click="doSomething($event)"></a>')(
+      scope
+    );
     scope.$digest();
     triggerMiddleClick(element);
     expect(scope.doSomething).not.toHaveBeenCalled();
   });
 
-  it('calls ng-click action with middle-click', function() {
-    element = compile('<a href="test" ng-click="doSomething($event)" middle-click></a>')(scope);
+  it('calls ng-click action with middle-click', function () {
+    element = compile(
+      '<a href="test" ng-click="doSomething($event)" middle-click></a>'
+    )(scope);
     scope.$digest();
     triggerMiddleClick(element);
     expect(scope.doSomething).toHaveBeenCalledWith(event);
@@ -37,7 +38,8 @@ describe('middle.click.directive.js', function() {
 
   function triggerMiddleClick(element) {
     // the event type is determined by the browser... not all browsers support auxclick
-    var eventType = 'onauxclick' in document.documentElement ? 'auxclick' : 'mousedown';
+    var eventType =
+      'onauxclick' in document.documentElement ? 'auxclick' : 'mousedown';
     event = jQuery.Event(eventType);
     event.which = 2;
     element.trigger(event);

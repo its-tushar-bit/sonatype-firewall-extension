@@ -6,11 +6,22 @@
 /*global angular, CLM */
 
 function getUrl(OwnerContext, component) {
-  return CLM.path + 'rest/repositories/' + OwnerContext.ownerId + '/unquarantine/' +
-          encodeURIComponent(component.pathname).replace(/%2F/gi, '/');
+  return (
+    CLM.path +
+    'rest/repositories/' +
+    OwnerContext.ownerId +
+    '/unquarantine/' +
+    encodeURIComponent(component.pathname).replace(/%2F/gi, '/')
+  );
 }
 
-export default function ReleaseQuarantineController($scope, $http, Messages, SelectedComponent, OwnerContext) {
+export default function ReleaseQuarantineController(
+  $scope,
+  $http,
+  Messages,
+  SelectedComponent,
+  OwnerContext
+) {
   var vm = this;
 
   vm.activeRequest = false;
@@ -22,14 +33,26 @@ export default function ReleaseQuarantineController($scope, $http, Messages, Sel
     vm.activeRequest = true;
 
     delete vm.error;
-    $http.post(getUrl(OwnerContext, component)).then(function() {
-      $scope.$emit('reload.component', { pathname: component.pathname });
-      $scope.$close();
-    }, function (error) {
-      vm.error = Messages.getHttpErrorMessage(error);
-    }).finally(function () {
-      vm.activeRequest = false;
-    });
+    $http
+      .post(getUrl(OwnerContext, component))
+      .then(
+        function () {
+          $scope.$emit('reload.component', { pathname: component.pathname });
+          $scope.$close();
+        },
+        function (error) {
+          vm.error = Messages.getHttpErrorMessage(error);
+        }
+      )
+      .finally(function () {
+        vm.activeRequest = false;
+      });
   }
 }
-ReleaseQuarantineController.$inject = ['$scope', '$http', 'Messages', 'SelectedComponent', 'OwnerContext'];
+ReleaseQuarantineController.$inject = [
+  '$scope',
+  '$http',
+  'Messages',
+  'SelectedComponent',
+  'OwnerContext',
+];

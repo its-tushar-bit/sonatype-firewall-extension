@@ -10,7 +10,7 @@
 .iq-spinner__wrapper {
   height: 14px;
   line-height: 14px;
-  margin: 8px 0
+  margin: 8px 0;
 }
 
 .iq-spinner__icon {
@@ -20,6 +20,10 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

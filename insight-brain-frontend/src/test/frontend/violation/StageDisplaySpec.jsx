@@ -3,21 +3,25 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
+import {
+  faExclamationCircle,
+  faExclamationTriangle,
+  faSquare,
+} from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 
-describe('StageDisplay', function() {
+describe('StageDisplay', function () {
   let terseAgoMock,
-      StageDisplay,
-      stateGetMock,
-      stateHrefMock,
-      minimalProps,
-      dateCreatorMock,
-      mockDate,
-      getShallowComponent;
+    StageDisplay,
+    stateGetMock,
+    stateHrefMock,
+    minimalProps,
+    dateCreatorMock,
+    mockDate,
+    getShallowComponent;
 
-  beforeEach(function() {
+  beforeEach(function () {
     mockDate = new Date();
     terseAgoMock = jasmine.createSpy('terseAgo').and.returnValue('5d');
     dateCreatorMock = spyOn(window, 'Date').and.returnValue(mockDate);
@@ -26,39 +30,50 @@ describe('StageDisplay', function() {
     minimalProps = {
       $state: {
         get: stateGetMock,
-        href: stateHrefMock
+        href: stateHrefMock,
       },
       stageType: { shortName: 'Build' },
       stageData: null,
-      applicationPublicId: 'app1'
+      applicationPublicId: 'app1',
     };
 
-    StageDisplay = require('inject-loader!../../../main/frontend/violation/StageDisplay')({
-      '../util/CommonServices': { terseAgo: terseAgoMock }
-    }).default;
-
-    getShallowComponent = enzymeUtils.getShallowComponent(StageDisplay, minimalProps);
-  });
-
-  it('renders a span with the iq-violation-details__stage class', function() {
-    expect(getShallowComponent()).toMatchSelector('span.iq-violation-details__stage');
-    expect(getShallowComponent({
-      stageData: {
-        mostRecentEvaluationTime: '2020-05-07T16:53:33.263Z',
-        mostRecentScanId: 'scan1',
-        actionTypeId: null
+    StageDisplay = require('inject-loader!../../../main/frontend/violation/StageDisplay')(
+      {
+        '../util/CommonServices': { terseAgo: terseAgoMock },
       }
-    })).toMatchSelector('span.iq-violation-details__stage');
+    ).default;
+
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      StageDisplay,
+      minimalProps
+    );
   });
 
-  describe('when stageData is not provided', function() {
-    it('adds the iq-violation-details__stage--unused class', function() {
-      expect(getShallowComponent()).toHaveClassName('iq-violation-details__stage--unused');
+  it('renders a span with the iq-violation-details__stage class', function () {
+    expect(getShallowComponent()).toMatchSelector(
+      'span.iq-violation-details__stage'
+    );
+    expect(
+      getShallowComponent({
+        stageData: {
+          mostRecentEvaluationTime: '2020-05-07T16:53:33.263Z',
+          mostRecentScanId: 'scan1',
+          actionTypeId: null,
+        },
+      })
+    ).toMatchSelector('span.iq-violation-details__stage');
+  });
+
+  describe('when stageData is not provided', function () {
+    it('adds the iq-violation-details__stage--unused class', function () {
+      expect(getShallowComponent()).toHaveClassName(
+        'iq-violation-details__stage--unused'
+      );
     });
 
-    it('renders a square icon followed by the stage shortName', function() {
+    it('renders a square icon followed by the stage shortName', function () {
       const component = getShallowComponent(),
-          icon = component.find(NxFontAwesomeIcon);
+        icon = component.find(NxFontAwesomeIcon);
 
       // toHaveText includes the component name for components
       expect(component).toHaveText('<NxFontAwesomeIcon />Build');
@@ -66,26 +81,32 @@ describe('StageDisplay', function() {
     });
   });
 
-  describe('when stageData is provided', function() {
-    const getComponentWithData = (props, actionTypeId = null) => getShallowComponent({
-      ...props,
-      stageData: {
-        mostRecentEvaluationTime: '2020-05-07T16:53:33.263Z',
-        mostRecentScanId: 'scan1',
-        actionTypeId
-      }
+  describe('when stageData is provided', function () {
+    const getComponentWithData = (props, actionTypeId = null) =>
+      getShallowComponent({
+        ...props,
+        stageData: {
+          mostRecentEvaluationTime: '2020-05-07T16:53:33.263Z',
+          mostRecentScanId: 'scan1',
+          actionTypeId,
+        },
+      });
+
+    it('does not set the iq-violation-details__stage--unused class', function () {
+      expect(getComponentWithData()).not.toHaveClassName(
+        'iq-violation-details__stage--unused'
+      );
     });
 
-    it('does not set the iq-violation-details__stage--unused class', function() {
-      expect(getComponentWithData()).not.toHaveClassName('iq-violation-details__stage--unused');
-    });
-
-    it('renders a link computed via $state showing the stage shortName and how long ago it was', function() {
+    it('renders a link computed via $state showing the stage shortName and how long ago it was', function () {
       const component = getComponentWithData(),
-          link = component.find('a');
+        link = component.find('a');
 
       expect(stateGetMock).toHaveBeenCalledWith('applicationReport');
-      expect(stateHrefMock).toHaveBeenCalledWith('theState', { publicId: 'app1', scanId: 'scan1' });
+      expect(stateHrefMock).toHaveBeenCalledWith('theState', {
+        publicId: 'app1',
+        scanId: 'scan1',
+      });
       expect(dateCreatorMock).toHaveBeenCalledWith('2020-05-07T16:53:33.263Z');
       expect(terseAgoMock).toHaveBeenCalledWith(mockDate);
 
@@ -93,42 +114,46 @@ describe('StageDisplay', function() {
       expect(link).toHaveText('Build 5d');
     });
 
-    describe('when the actionTypeId is null', function() {
-      it('renders no icon', function() {
+    describe('when the actionTypeId is null', function () {
+      it('renders no icon', function () {
         expect(getComponentWithData().find(NxFontAwesomeIcon)).not.toExist();
       });
     });
 
-    describe('when the actionTypeId is warn', function() {
-      it('renders an exclamation triangle icon', function() {
-        expect(getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)).toHaveProp('icon', faExclamationTriangle);
+    describe('when the actionTypeId is warn', function () {
+      it('renders an exclamation triangle icon', function () {
+        expect(
+          getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)
+        ).toHaveProp('icon', faExclamationTriangle);
       });
 
-      it('sets the iq-violation-details__stage-action and iq-violation-details__stage-action--warn classes on the icon',
-          function() {
-            expect(getComponentWithData({}, 'warn').find(NxFontAwesomeIcon))
-                .toHaveClassName('iq-violation-details__stage-action');
+      it('sets the iq-violation-details__stage-action and iq-violation-details__stage-action--warn classes on the icon', function () {
+        expect(
+          getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)
+        ).toHaveClassName('iq-violation-details__stage-action');
 
-            expect(getComponentWithData({}, 'warn').find(NxFontAwesomeIcon))
-                .toHaveClassName('iq-violation-details__stage-action--warn');
-          }
-      );
+        expect(
+          getComponentWithData({}, 'warn').find(NxFontAwesomeIcon)
+        ).toHaveClassName('iq-violation-details__stage-action--warn');
+      });
     });
 
-    describe('when the actionTypeId is fail', function() {
-      it('renders an exclamation circle icon', function() {
-        expect(getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)).toHaveProp('icon', faExclamationCircle);
+    describe('when the actionTypeId is fail', function () {
+      it('renders an exclamation circle icon', function () {
+        expect(
+          getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)
+        ).toHaveProp('icon', faExclamationCircle);
       });
 
-      it('sets the iq-violation-details__stage-action and iq-violation-details__stage-action--fail classes on the icon',
-          function() {
-            expect(getComponentWithData({}, 'fail').find(NxFontAwesomeIcon))
-                .toHaveClassName('iq-violation-details__stage-action');
+      it('sets the iq-violation-details__stage-action and iq-violation-details__stage-action--fail classes on the icon', function () {
+        expect(
+          getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)
+        ).toHaveClassName('iq-violation-details__stage-action');
 
-            expect(getComponentWithData({}, 'fail').find(NxFontAwesomeIcon))
-                .toHaveClassName('iq-violation-details__stage-action--fail');
-          }
-      );
+        expect(
+          getComponentWithData({}, 'fail').find(NxFontAwesomeIcon)
+        ).toHaveClassName('iq-violation-details__stage-action--fail');
+      });
     });
   });
 });

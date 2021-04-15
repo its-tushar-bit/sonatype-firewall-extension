@@ -1,9 +1,17 @@
 <div id="role-management" class="nx-page-main">
   <div load-wrapper="error" reload="doLoad()" ng-if="$state.is('roles')">
-    <div authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
+    <div
+      authorization-wrapper="isAuthorized"
+      class="iq-tile iq-tile--sys-prefs"
+    >
       <div class="iq-tile__actions">
-        <button class='btn pull-right' ng-click="newRole()" id='create-role' ng-disabled='readOnly'>
-          <i class='icon icon-plus'></i> Create Role
+        <button
+          class="btn pull-right"
+          ng-click="newRole()"
+          id="create-role"
+          ng-disabled="readOnly"
+        >
+          <i class="icon icon-plus"></i> Create Role
         </button>
       </div>
       <div class="iq-tile-header">
@@ -12,18 +20,18 @@
         </div>
       </div>
       <div class="iq-tile-content iq-tile-content--roles" ng-hide="roles">
-        <h5>
-          <i class='icon-time'></i> Loading...
-        </h5>
+        <h5><i class="icon-time"></i> Loading...</h5>
       </div>
-      <div class="iq-tile-content" ng-show='roles'>
+      <div class="iq-tile-content" ng-show="roles">
         <div class="iq-list iq-list--clickable">
           <h4 class="iq-list__title">Built-In</h4>
-          <ul id='builtin-roles'>
-            <li ng-repeat="role in roles | filter:{ builtIn : true }"
-                id="{{::role.id}}"
-                ui-sref="roles.editor({roleId: role.id})"
-                class="iq-list__item">
+          <ul id="builtin-roles">
+            <li
+              ng-repeat="role in roles | filter:{ builtIn : true }"
+              id="{{::role.id}}"
+              ui-sref="roles.editor({roleId: role.id})"
+              class="iq-list__item"
+            >
               <i class="fa fa-chevron-right iq-pull-right"></i>
               <span class="role-name">{{role.name}}</span>
               <p class="iq-list__subtext">{{role.description}}</p>
@@ -33,12 +41,18 @@
         <div class="iq-list iq-list--clickable">
           <h4 class="iq-list__title">Custom</h4>
           <ul id="custom-roles">
-            <li class="iq-list__item iq-list__item--empty" ng-if='(roles | filter:{ builtIn : false }).length === 0'>
-              No custom roles defined. Click "Create Role" in the upper right to add one.
+            <li
+              class="iq-list__item iq-list__item--empty"
+              ng-if="(roles | filter:{ builtIn : false }).length === 0"
+            >
+              No custom roles defined. Click "Create Role" in the upper right to
+              add one.
             </li>
-            <li ng-repeat="role in roles | filter:{ builtIn : false }"
-                ui-sref="roles.editor({roleId: role.id})"
-                class="iq-list__item role-name-list-item">
+            <li
+              ng-repeat="role in roles | filter:{ builtIn : false }"
+              ui-sref="roles.editor({roleId: role.id})"
+              class="iq-list__item role-name-list-item"
+            >
               <i class="fa fa-chevron-right iq-pull-right"></i>
               <span class="role-name">{{role.name}}</span>
               <p class="iq-list__subtext">{{role.description}}</p>

@@ -13,8 +13,8 @@ export default {
     ownerPolicyList: '<',
     actionStages: '<',
     onPolicyClick: '&',
-    isEnforcementSupportedForStage: '&'
-  }
+    isEnforcementSupportedForStage: '&',
+  },
 };
 
 function ownerPolicyListController() {

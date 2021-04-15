@@ -8,10 +8,10 @@ import template from './systemNoticeConfiguration.html';
 var systemNoticeConfiguration = {
   controller: SystemNoticeConfigurationController,
   bindings: {
-    isAuthorized: '<'
+    isAuthorized: '<',
   },
   controllerAs: 'vm',
-  template: template
+  template: template,
 };
 
 function SystemNoticeConfigurationController($rootScope, systemNoticeService) {
@@ -27,26 +27,36 @@ function SystemNoticeConfigurationController($rootScope, systemNoticeService) {
     vm.error = undefined;
     vm.loaded = false;
 
-    systemNoticeService.getSystemNotice().then(function(response) {
-      vm.savedSystemNotice = response;
-      vm.systemNotice = angular.copy(vm.savedSystemNotice);
-    }).catch(function(error) {
-      vm.error = error;
-      vm.savedSystemNotice = systemNoticeService.getDefaultSystemNotice();
-      vm.systemNotice = angular.copy(vm.savedSystemNotice);
-    }).finally(function() {
-      vm.loaded = true;
-    });
+    systemNoticeService
+      .getSystemNotice()
+      .then(function (response) {
+        vm.savedSystemNotice = response;
+        vm.systemNotice = angular.copy(vm.savedSystemNotice);
+      })
+      .catch(function (error) {
+        vm.error = error;
+        vm.savedSystemNotice = systemNoticeService.getDefaultSystemNotice();
+        vm.systemNotice = angular.copy(vm.savedSystemNotice);
+      })
+      .finally(function () {
+        vm.loaded = true;
+      });
   }
 
   function save() {
     vm.error = undefined;
-    systemNoticeService.saveSystemNotice(vm.systemNotice).then(function(data) {
-      vm.savedSystemNotice = data;
-      $rootScope.$broadcast('systemNoticeUpdated', angular.copy(vm.savedSystemNotice));
-    }).catch(function(error) {
-      vm.error = error;
-    });
+    systemNoticeService
+      .saveSystemNotice(vm.systemNotice)
+      .then(function (data) {
+        vm.savedSystemNotice = data;
+        $rootScope.$broadcast(
+          'systemNoticeUpdated',
+          angular.copy(vm.savedSystemNotice)
+        );
+      })
+      .catch(function (error) {
+        vm.error = error;
+      });
   }
 
   function cancel() {
@@ -58,6 +68,9 @@ function SystemNoticeConfigurationController($rootScope, systemNoticeService) {
   }
 }
 
-SystemNoticeConfigurationController.$inject = ['$rootScope', 'systemNoticeService'];
+SystemNoticeConfigurationController.$inject = [
+  '$rootScope',
+  'systemNoticeService',
+];
 
 export default systemNoticeConfiguration;

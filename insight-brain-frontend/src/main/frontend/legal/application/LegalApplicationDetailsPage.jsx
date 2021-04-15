@@ -12,7 +12,7 @@ import {
   NxTableBody,
   NxTableCell,
   NxTableHead,
-  NxTableRow
+  NxTableRow,
 } from '@sonatype/react-shared-components';
 import { Messages } from '../../util/CommonServices';
 import BackButton from '../../react/BackButton';
@@ -27,7 +27,7 @@ export default function LegalApplicationDetailsPage(props) {
     components,
     $state,
     loadApplication,
-    stateGo
+    stateGo,
   } = props;
 
   useEffect(() => {
@@ -39,26 +39,41 @@ export default function LegalApplicationDetailsPage(props) {
   const reportUrl = `/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
 
   return (
-    <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
-      <LoadWrapper loading={ application.loading || stageType.loading }
-                   error={ application.error || stageType.error }
-                   retryHandler={ () => loadApplication(applicationPublicId, stageTypeId) }>
-        <BackButton stateName="legalDashboard" $state={ $state } text="Back to Dashboard"/>
+    <main
+      id="legal-application-details-container"
+      className="nx-page-main nx-viewport-sized"
+    >
+      <LoadWrapper
+        loading={application.loading || stageType.loading}
+        error={application.error || stageType.error}
+        retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
+      >
+        <BackButton
+          stateName="legalDashboard"
+          $state={$state}
+          text="Back to Dashboard"
+        />
         <div className="nx-page-title">
-          <h1 className="nx-h1">{ application.name } Obligations</h1>
+          <h1 className="nx-h1">{application.name} Obligations</h1>
           <div className="nx-btn-bar">
             <NxButton
-                variant="primary"
-                onClick={() => window.open(reportUrl, '_blank')}>
+              variant="primary"
+              onClick={() => window.open(reportUrl, '_blank')}
+            >
               Create Attribution Report
             </NxButton>
           </div>
           <div className="nx-page-title__description">
-            <div className="nx-tile-header__subtitle">{ stageType.name } Stage</div>
+            <div className="nx-tile-header__subtitle">
+              {stageType.name} Stage
+            </div>
           </div>
         </div>
         <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-          <NxTable id="legal-application-details-table" className="legal-dashboard-table" >
+          <NxTable
+            id="legal-application-details-table"
+            className="legal-dashboard-table"
+          >
             <NxTableHead>
               <NxTableRow>
                 <NxTableCell>Component</NxTableCell>
@@ -71,16 +86,20 @@ export default function LegalApplicationDetailsPage(props) {
                 </NxTableCell>
               </NxTableRow>
             </NxTableHead>
-            <NxTableBody emptyMessage="No components found"
-                         isLoading={components.loading}
-                         error={Messages.getHttpErrorMessage(components.error)}>
-              {components.results.map((row, index) =>
-                <LegalApplicationDetailsComponentRow key={index}
-                                                     applicationPublicId={applicationPublicId}
-                                                     stageTypeId={stageTypeId}
-                                                     row={row}
-                                                     stateGo={stateGo} />)
-              }
+            <NxTableBody
+              emptyMessage="No components found"
+              isLoading={components.loading}
+              error={Messages.getHttpErrorMessage(components.error)}
+            >
+              {components.results.map((row, index) => (
+                <LegalApplicationDetailsComponentRow
+                  key={index}
+                  applicationPublicId={applicationPublicId}
+                  stageTypeId={stageTypeId}
+                  row={row}
+                  stateGo={stateGo}
+                />
+              ))}
             </NxTableBody>
           </NxTable>
         </div>
@@ -95,19 +114,21 @@ LegalApplicationDetailsPage.propTypes = {
   application: PropTypes.shape({
     name: PropTypes.string,
     loading: PropTypes.bool,
-    error: LoadWrapper.propTypes.error
+    error: LoadWrapper.propTypes.error,
   }),
   stageType: PropTypes.shape({
     name: PropTypes.string,
     loading: PropTypes.bool,
-    error: LoadWrapper.propTypes.error
+    error: LoadWrapper.propTypes.error,
   }),
   components: PropTypes.shape({
-    results: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
+    results: PropTypes.arrayOf(
+      LegalApplicationDetailsComponentRow.propTypes.row
+    ),
     loading: PropTypes.bool,
-    error: LoadWrapper.propTypes.error
+    error: LoadWrapper.propTypes.error,
   }),
   $state: PropTypes.object.isRequired,
   loadApplication: PropTypes.func.isRequired,
-  stateGo: PropTypes.func.isRequired
+  stateGo: PropTypes.func.isRequired,
 };

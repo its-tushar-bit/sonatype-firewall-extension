@@ -6,27 +6,33 @@
 export default function CIPTabPane() {
   return {
     scope: {
-      directive: '=cipTabPane'
+      directive: '=cipTabPane',
     },
-    controller: ['$scope', '$element', '$compile', function($scope, $element, $compile) {
-      var childScope,
-          childElement;
+    controller: [
+      '$scope',
+      '$element',
+      '$compile',
+      function ($scope, $element, $compile) {
+        var childScope, childElement;
 
-      $scope.$watch('directive', function (directive) {
-        if (childScope) {
-          childScope.$destroy();
-          childScope = undefined;
-        }
-        if (childElement) {
-          childElement.remove();
-          childElement = undefined;
-        }
-        if (directive) {
-          childScope = $scope.$new(true);
-          childElement = $compile('<div ' + directive + '></div>')(childScope);
-          childElement.appendTo($element);
-        }
-      });
-    }]
+        $scope.$watch('directive', function (directive) {
+          if (childScope) {
+            childScope.$destroy();
+            childScope = undefined;
+          }
+          if (childElement) {
+            childElement.remove();
+            childElement = undefined;
+          }
+          if (directive) {
+            childScope = $scope.$new(true);
+            childElement = $compile('<div ' + directive + '></div>')(
+              childScope
+            );
+            childElement.appendTo($element);
+          }
+        });
+      },
+    ],
   };
 }

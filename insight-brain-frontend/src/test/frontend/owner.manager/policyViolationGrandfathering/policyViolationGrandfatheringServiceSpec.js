@@ -3,20 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import policyViolationGrandfatheringModule
-  from '../../../../main/frontend/owner.manager/policyViolationGrandfathering/module';
+import policyViolationGrandfatheringModule from '../../../../main/frontend/owner.manager/policyViolationGrandfathering/module';
 
-describe('PolicyViolationGrandfatheringService', function() {
-
+describe('PolicyViolationGrandfatheringService', function () {
   var PolicyViolationGrandfatheringService,
-      CLMContextLocations,
-      $httpBackend,
-      successSpy,
-      failSpy;
+    CLMContextLocations,
+    $httpBackend,
+    successSpy,
+    failSpy;
 
   beforeEach(angular.mock.module(policyViolationGrandfatheringModule.name));
 
-  beforeEach(inject(function(policyViolationGrandfatheringService, _CLMContextLocations_, _$httpBackend_) {
+  beforeEach(inject(function (
+    policyViolationGrandfatheringService,
+    _CLMContextLocations_,
+    _$httpBackend_
+  ) {
     PolicyViolationGrandfatheringService = policyViolationGrandfatheringService;
     CLMContextLocations = _CLMContextLocations_;
     $httpBackend = _$httpBackend_;
@@ -24,23 +26,27 @@ describe('PolicyViolationGrandfatheringService', function() {
     failSpy = jasmine.createSpy('failSpy');
   }));
 
-  afterEach(function() {
+  afterEach(function () {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   });
 
   describe('getting the current settings', function () {
-    it('returns appropriate content for the root organization when enabled is absent', function() {
+    it('returns appropriate content for the root organization when enabled is absent', function () {
       spyOn(CLMContextLocations, 'isRootOrg').and.returnValue(true);
 
-      PolicyViolationGrandfatheringService.getGrandfathering().then(successSpy).catch(failSpy);
+      PolicyViolationGrandfatheringService.getGrandfathering()
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectGET(CLMContextLocations.getGrandfatheringUrl()).respond({
-        enabled: null,
-        inheritedFromOrganizationName: null,
-        allowChange: true,
-        allowOverride: true
-      });
+      $httpBackend
+        .expectGET(CLMContextLocations.getGrandfatheringUrl())
+        .respond({
+          enabled: null,
+          inheritedFromOrganizationName: null,
+          allowChange: true,
+          allowOverride: true,
+        });
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith({
@@ -48,22 +54,26 @@ describe('PolicyViolationGrandfatheringService', function() {
         calculatedEnabled: false,
         inheritedFromOrganizationName: null,
         allowChange: true,
-        allowOverride: true
+        allowOverride: true,
       });
       expect(failSpy).not.toHaveBeenCalled();
     });
 
-    it('returns appropriate content for the root organization when enabled is present', function() {
+    it('returns appropriate content for the root organization when enabled is present', function () {
       spyOn(CLMContextLocations, 'isRootOrg').and.returnValue(true);
 
-      PolicyViolationGrandfatheringService.getGrandfathering().then(successSpy).catch(failSpy);
+      PolicyViolationGrandfatheringService.getGrandfathering()
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectGET(CLMContextLocations.getGrandfatheringUrl()).respond({
-        enabled: true,
-        inheritedFromOrganizationName: null,
-        allowChange: true,
-        allowOverride: true
-      });
+      $httpBackend
+        .expectGET(CLMContextLocations.getGrandfatheringUrl())
+        .respond({
+          enabled: true,
+          inheritedFromOrganizationName: null,
+          allowChange: true,
+          allowOverride: true,
+        });
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith({
@@ -71,20 +81,24 @@ describe('PolicyViolationGrandfatheringService', function() {
         calculatedEnabled: true,
         inheritedFromOrganizationName: null,
         allowChange: true,
-        allowOverride: true
+        allowOverride: true,
       });
       expect(failSpy).not.toHaveBeenCalled();
     });
 
-    it('returns appropriate content for other owners when config is inherited', function() {
-      PolicyViolationGrandfatheringService.getGrandfathering().then(successSpy).catch(failSpy);
+    it('returns appropriate content for other owners when config is inherited', function () {
+      PolicyViolationGrandfatheringService.getGrandfathering()
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectGET(CLMContextLocations.getGrandfatheringUrl()).respond({
-        enabled: true,
-        inheritedFromOrganizationName: 'Test Organization',
-        allowChange: true,
-        allowOverride: true
-      });
+      $httpBackend
+        .expectGET(CLMContextLocations.getGrandfatheringUrl())
+        .respond({
+          enabled: true,
+          inheritedFromOrganizationName: 'Test Organization',
+          allowChange: true,
+          allowOverride: true,
+        });
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith({
@@ -92,20 +106,24 @@ describe('PolicyViolationGrandfatheringService', function() {
         calculatedEnabled: true,
         inheritedFromOrganizationName: 'Test Organization',
         allowChange: true,
-        allowOverride: true
+        allowOverride: true,
       });
       expect(failSpy).not.toHaveBeenCalled();
     });
 
-    it('returns appropriate content for other owners when config is not inherited', function() {
-      PolicyViolationGrandfatheringService.getGrandfathering().then(successSpy).catch(failSpy);
+    it('returns appropriate content for other owners when config is not inherited', function () {
+      PolicyViolationGrandfatheringService.getGrandfathering()
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectGET(CLMContextLocations.getGrandfatheringUrl()).respond({
-        enabled: true,
-        inheritedFromOrganizationName: null,
-        allowChange: true,
-        allowOverride: true
-      });
+      $httpBackend
+        .expectGET(CLMContextLocations.getGrandfatheringUrl())
+        .respond({
+          enabled: true,
+          inheritedFromOrganizationName: null,
+          allowChange: true,
+          allowOverride: true,
+        });
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalledWith({
@@ -113,15 +131,19 @@ describe('PolicyViolationGrandfatheringService', function() {
         calculatedEnabled: true,
         inheritedFromOrganizationName: null,
         allowChange: true,
-        allowOverride: true
+        allowOverride: true,
       });
       expect(failSpy).not.toHaveBeenCalled();
     });
 
-    it('correctly handles a failure by rejecting the promise', function() {
-      PolicyViolationGrandfatheringService.getGrandfathering().then(successSpy).catch(failSpy);
+    it('correctly handles a failure by rejecting the promise', function () {
+      PolicyViolationGrandfatheringService.getGrandfathering()
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectGET(CLMContextLocations.getGrandfatheringUrl()).respond(404, 'not found');
+      $httpBackend
+        .expectGET(CLMContextLocations.getGrandfatheringUrl())
+        .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
@@ -131,30 +153,38 @@ describe('PolicyViolationGrandfatheringService', function() {
   });
 
   describe('setting the current settings', function () {
-    it('stores appropriate content for an organization or application', function() {
+    it('stores appropriate content for an organization or application', function () {
       const config = {
         enabled: true,
-        allowOverride: true
+        allowOverride: true,
       };
 
-      PolicyViolationGrandfatheringService.setGrandfathering(config).then(successSpy).catch(failSpy);
+      PolicyViolationGrandfatheringService.setGrandfathering(config)
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectPUT(CLMContextLocations.getGrandfatheringUrl(), config).respond(204, '');
+      $httpBackend
+        .expectPUT(CLMContextLocations.getGrandfatheringUrl(), config)
+        .respond(204, '');
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalled();
       expect(failSpy).not.toHaveBeenCalled();
     });
 
-    it('stores appropriate content for an organization or application', function() {
+    it('stores appropriate content for an organization or application', function () {
       const config = {
         enabled: true,
-        allowOverride: true
+        allowOverride: true,
       };
 
-      PolicyViolationGrandfatheringService.setGrandfathering(config).then(successSpy).catch(failSpy);
+      PolicyViolationGrandfatheringService.setGrandfathering(config)
+        .then(successSpy)
+        .catch(failSpy);
 
-      $httpBackend.expectPUT(CLMContextLocations.getGrandfatheringUrl(), config).respond(404, 'not found');
+      $httpBackend
+        .expectPUT(CLMContextLocations.getGrandfatheringUrl(), config)
+        .respond(404, 'not found');
       $httpBackend.flush();
 
       expect(successSpy).not.toHaveBeenCalled();
@@ -164,31 +194,33 @@ describe('PolicyViolationGrandfatheringService', function() {
   });
 
   describe('building status messages for configuration settings', function () {
-    it('builds an appropriate summary for inherited configuration', function() {
+    it('builds an appropriate summary for inherited configuration', function () {
       const result = PolicyViolationGrandfatheringService.getStatusMessage({
         inheritedFromOrganizationName: 'Test Organization',
         calculatedEnabled: false,
-        allowOverride: false
+        allowOverride: false,
       });
 
-      expect(result).toBe('Inherit from Test Organization (Grandfathering is disabled)');
+      expect(result).toBe(
+        'Inherit from Test Organization (Grandfathering is disabled)'
+      );
     });
 
-    it('builds an appropriate summary when grandfathering is enabled', function() {
+    it('builds an appropriate summary when grandfathering is enabled', function () {
       const result = PolicyViolationGrandfatheringService.getStatusMessage({
         inheritedFromOrganizationName: null,
         calculatedEnabled: true,
-        allowOverride: false
+        allowOverride: false,
       });
 
       expect(result).toBe('Grandfathering is enabled');
     });
 
-    it('builds an appropriate summary when overrides are enabled', function() {
+    it('builds an appropriate summary when overrides are enabled', function () {
       const result = PolicyViolationGrandfatheringService.getStatusMessage({
         inheritedFromOrganizationName: null,
         calculatedEnabled: false,
-        allowOverride: true
+        allowOverride: true,
       });
 
       expect(result).toBe('Grandfathering is disabled');

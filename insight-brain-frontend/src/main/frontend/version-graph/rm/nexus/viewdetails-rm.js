@@ -6,5 +6,5 @@
 window.clmEndpoint = {
   type: 'rm',
   showContext: true,
-  linkTarget: '_blank'
+  linkTarget: '_blank',
 };

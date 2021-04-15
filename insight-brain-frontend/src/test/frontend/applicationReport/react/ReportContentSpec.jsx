@@ -11,29 +11,31 @@ import {
   NxTableCell,
   NxTableHead,
   NxTableRow,
-  NxFilterInput
+  NxFilterInput,
 } from '@sonatype/react-shared-components';
 
-describe('ReportContent component', function() {
+describe('ReportContent component', function () {
   let getShallowComponent;
 
-  beforeEach(function() {
-
+  beforeEach(function () {
     const minimalProps = {
       selectedReport: {
-        displayedEntries: []
-      }
+        displayedEntries: [],
+      },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(ReportContent, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      ReportContent,
+      minimalProps
+    );
   });
 
-  it('renders a tile', function() {
+  it('renders a tile', function () {
     const shallowComponent = getShallowComponent();
     expect(shallowComponent).toMatchSelector('.nx-tile');
   });
 
-  it('renders table header and body', function() {
+  it('renders table header and body', function () {
     const shallowComponent = getShallowComponent();
     const table = shallowComponent.find(NxTable);
     const header = shallowComponent.find(NxTableHead);
@@ -43,39 +45,42 @@ describe('ReportContent component', function() {
     expect(body).toExist();
   });
 
-  it('sets the emptyMessage prop on the NxTableBody', function() {
+  it('sets the emptyMessage prop on the NxTableBody', function () {
     const tableBody = getShallowComponent().find(NxTableBody);
     expect(tableBody).toHaveProp('emptyMessage', 'No Results');
   });
 
-  it('render the table header with sordir desc', function() {
-
+  it('render the table header with sordir desc', function () {
     const props = {
       selectedReport: {
         displayedEntries: [
           {
             derivedComponentName: 'Component A',
             policyName: 'None',
-            policyThreatLevel: 0
+            policyThreatLevel: 0,
           },
           {
             derivedComponentName: 'Component B',
             policyName: 'Security-High',
-            policyThreatLevel: 9
-          }
-        ]
+            policyThreatLevel: 9,
+          },
+        ],
       },
       sortConfiguration: {
         key: 'policyThreatLevel',
-        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-        dir: 'desc'
-      }
+        sortFields: [
+          '-policyThreatLevel',
+          'policyName',
+          'derivedComponentName',
+        ],
+        dir: 'desc',
+      },
     };
 
     const shallowComponent = getShallowComponent(props),
-        head = shallowComponent.find(NxTableHead),
-        rows = head.find(NxTableRow),
-        firstRowTds = rows.at(0).find(NxTableCell);
+      head = shallowComponent.find(NxTableHead),
+      rows = head.find(NxTableRow),
+      firstRowTds = rows.at(0).find(NxTableCell);
 
     expect(firstRowTds.at(0)).toHaveProp('isSortable', true);
     expect(firstRowTds.at(0)).toHaveProp('sortDir', 'desc');
@@ -83,34 +88,37 @@ describe('ReportContent component', function() {
     expect(firstRowTds.at(2)).toHaveProp('isSortable', true);
   });
 
-  it('render the table header with sordir asc', function() {
-
+  it('render the table header with sordir asc', function () {
     const props = {
       selectedReport: {
         displayedEntries: [
           {
             derivedComponentName: 'Component A',
             policyName: 'None',
-            policyThreatLevel: 0
+            policyThreatLevel: 0,
           },
           {
             derivedComponentName: 'Component B',
             policyName: 'Security-High',
-            policyThreatLevel: 9
-          }
-        ]
+            policyThreatLevel: 9,
+          },
+        ],
       },
       sortConfiguration: {
         key: 'policyName',
-        sortFields: ['policyName', '-policyThreatLevel', 'derivedComponentName'],
-        dir: 'asc'
-      }
+        sortFields: [
+          'policyName',
+          '-policyThreatLevel',
+          'derivedComponentName',
+        ],
+        dir: 'asc',
+      },
     };
 
     const shallowComponent = getShallowComponent(props),
-        head = shallowComponent.find(NxTableHead),
-        rows = head.find(NxTableRow),
-        firstRowTds = rows.at(0).find(NxTableCell);
+      head = shallowComponent.find(NxTableHead),
+      rows = head.find(NxTableRow),
+      firstRowTds = rows.at(0).find(NxTableCell);
 
     expect(firstRowTds.at(0)).toHaveProp('isSortable', true);
     expect(firstRowTds.at(1)).toHaveProp('isSortable', true);
@@ -118,8 +126,7 @@ describe('ReportContent component', function() {
     expect(firstRowTds.at(2)).toHaveProp('isSortable', true);
   });
 
-  it('render the table header with filters', function() {
-
+  it('render the table header with filters', function () {
     const setStringFieldFilterSpy = jasmine.createSpy('setStringFieldFilter');
 
     const props = {
@@ -129,75 +136,97 @@ describe('ReportContent component', function() {
           {
             derivedComponentName: 'Component A',
             policyName: 'None',
-            policyThreatLevel: 0
+            policyThreatLevel: 0,
           },
           {
             derivedComponentName: 'Component B',
             policyName: 'Security-High',
-            policyThreatLevel: 9
-          }
-        ]
+            policyThreatLevel: 9,
+          },
+        ],
       },
       sortConfiguration: {
         key: 'policyThreatLevel',
-        sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-        dir: 'desc'
+        sortFields: [
+          '-policyThreatLevel',
+          'policyName',
+          'derivedComponentName',
+        ],
+        dir: 'desc',
       },
       substringFilters: {
         policyName: 'policyName',
-        derivedComponentName: 'derivedComponentName'
-      }
+        derivedComponentName: 'derivedComponentName',
+      },
     };
 
     const shallowComponent = getShallowComponent(props),
-        head = shallowComponent.find(NxTableHead),
-        rows = head.find(NxTableRow),
-        secondRowTds = rows.at(1).find(NxTableCell),
-        policyNameFilter = secondRowTds.at(0).find(NxFilterInput),
-        derivedComponentNameFilter = secondRowTds.at(1).find(NxFilterInput);
+      head = shallowComponent.find(NxTableHead),
+      rows = head.find(NxTableRow),
+      secondRowTds = rows.at(1).find(NxTableCell),
+      policyNameFilter = secondRowTds.at(0).find(NxFilterInput),
+      derivedComponentNameFilter = secondRowTds.at(1).find(NxFilterInput);
 
     expect(policyNameFilter).toHaveProp('placeholder', 'policy name');
     expect(policyNameFilter).toHaveProp('value', 'policyName');
-    expect(derivedComponentNameFilter).toHaveProp('placeholder', 'component name');
-    expect(derivedComponentNameFilter).toHaveProp('value', 'derivedComponentName');
+    expect(derivedComponentNameFilter).toHaveProp(
+      'placeholder',
+      'component name'
+    );
+    expect(derivedComponentNameFilter).toHaveProp(
+      'value',
+      'derivedComponentName'
+    );
     policyNameFilter.simulate('change', 'High');
     derivedComponentNameFilter.simulate('change', 'A');
     expect(setStringFieldFilterSpy).toHaveBeenCalledWith('policyName', 'High');
-    expect(setStringFieldFilterSpy).toHaveBeenCalledWith('derivedComponentName', 'A');
-
+    expect(setStringFieldFilterSpy).toHaveBeenCalledWith(
+      'derivedComponentName',
+      'A'
+    );
   });
 
-  it('renders a ReportTableRow for each entry', function() {
+  it('renders a ReportTableRow for each entry', function () {
     const props = {
-          selectedReport: {
-            displayedEntries: [
-              {
-                derivedComponentName: 'Component B',
-                policyName: 'Security-Critical',
-                policyThreatLevel: 9
-              },
-              {
-                derivedComponentName: 'Component A',
-                policyName: 'None',
-                policyThreatLevel: 0
-              }
-            ]
-          },
-          sortConfiguration: {
-            key: 'policyThreatLevel',
-            sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
-            dir: 'desc'
-          }
+        selectedReport: {
+          displayedEntries: [
+            {
+              derivedComponentName: 'Component B',
+              policyName: 'Security-Critical',
+              policyThreatLevel: 9,
+            },
+            {
+              derivedComponentName: 'Component A',
+              policyName: 'None',
+              policyThreatLevel: 0,
+            },
+          ],
         },
-        shallowComponent = getShallowComponent(props),
-        body = shallowComponent.find(NxTableBody),
-        tableRow = body.find('ReportTableRow');
+        sortConfiguration: {
+          key: 'policyThreatLevel',
+          sortFields: [
+            '-policyThreatLevel',
+            'policyName',
+            'derivedComponentName',
+          ],
+          dir: 'desc',
+        },
+      },
+      shallowComponent = getShallowComponent(props),
+      body = shallowComponent.find(NxTableBody),
+      tableRow = body.find('ReportTableRow');
 
     expect(body).toExist();
     expect(tableRow).toExist();
-    expect(tableRow.at(0)).toHaveProp('component', props.selectedReport.displayedEntries[0]);
+    expect(tableRow.at(0)).toHaveProp(
+      'component',
+      props.selectedReport.displayedEntries[0]
+    );
     expect(tableRow.at(0)).toHaveProp('index', 0);
-    expect(tableRow.at(1)).toHaveProp('component', props.selectedReport.displayedEntries[1]);
+    expect(tableRow.at(1)).toHaveProp(
+      'component',
+      props.selectedReport.displayedEntries[1]
+    );
     expect(tableRow.at(1)).toHaveProp('index', 1);
   });
 });

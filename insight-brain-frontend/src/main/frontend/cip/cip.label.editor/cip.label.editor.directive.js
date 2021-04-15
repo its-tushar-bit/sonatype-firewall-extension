@@ -10,6 +10,6 @@ export default function CIPLabelEditor() {
   return {
     template,
     controllerAs: 'vm',
-    controller: 'LabelsController'
+    controller: 'LabelsController',
   };
 }

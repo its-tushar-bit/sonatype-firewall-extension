@@ -5,21 +5,20 @@
  */
 /*global window*/
 window.InsightDatatable = {
-  getActiveTable: function() {
+  getActiveTable: function () {
     return {
       dataView: {
-        getItems: function() {
+        getItems: function () {
           return [];
-        }
-      }
+        },
+      },
     };
-  }
+  },
 };
 window.clmBuildTimestamp = 'testTimestamp';
 
 window.Insight = window.Insight || {};
 
 window.CLM = {
-  loadPlugin: function() {
-  }
+  loadPlugin: function () {},
 };

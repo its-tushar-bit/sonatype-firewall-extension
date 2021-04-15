@@ -5,7 +5,7 @@
  */
 /*global $, window, Insight */
 /*jslint plusplus:true */
-(function() {
+(function () {
   'use strict';
 
   function isNullOrUndefined(obj) {
@@ -17,11 +17,11 @@
   }
 
   $.extend(true, window, {
-    'Insight': {
-      'util': {
-        'isNullOrUndefined': isNullOrUndefined,
-        'isNotNullOrUndefined': isNotNullOrUndefined
-      }
-    }
+    Insight: {
+      util: {
+        isNullOrUndefined: isNullOrUndefined,
+        isNotNullOrUndefined: isNotNullOrUndefined,
+      },
+    },
   });
-}());
+})();

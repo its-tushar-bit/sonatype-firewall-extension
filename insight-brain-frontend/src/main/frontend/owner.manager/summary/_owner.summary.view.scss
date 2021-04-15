@@ -47,8 +47,10 @@
 .iq-nav-pills--owner {
   margin-top: 0;
 
-  > .iq-nav-pills__pill, .iq-nav-pills__pill {
-    &, &:last-child {
+  > .iq-nav-pills__pill,
+  .iq-nav-pills__pill {
+    &,
+    &:last-child {
       margin-right: $iq-spacing-sm;
     }
   }
@@ -87,7 +89,8 @@
   text-decoration: none;
   white-space: nowrap;
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     background-color: $iq-blue-light;
     border-color: $iq-blue-light;
     color: $iq-blue;
@@ -139,7 +142,8 @@
   }
 
   .iq-dropdown-menu--nav-pills {
-    .iq-nav-pills__pill:first-child, .iq-nav-pills__pill:nth-child(5) {
+    .iq-nav-pills__pill:first-child,
+    .iq-nav-pills__pill:nth-child(5) {
       display: block;
     }
   }

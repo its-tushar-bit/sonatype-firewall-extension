@@ -8,12 +8,10 @@ import { NxToggle, NxTooltip } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 import IqToggle from '../../../main/frontend/react/IqToggle';
 
-describe('IqToggle (React)', function() {
-  let minimalProps,
-      getShallowComponent,
-      onChangeSpy;
+describe('IqToggle (React)', function () {
+  let minimalProps, getShallowComponent, onChangeSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     onChangeSpy = jasmine.createSpy('onChange');
 
     minimalProps = {
@@ -21,13 +19,16 @@ describe('IqToggle (React)', function() {
       toggleTooltip: 'Aggregate Tooltip',
       inputId: 'aggregateId',
       isChecked: true,
-      onChange: onChangeSpy
+      onChange: onChangeSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(IqToggle, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      IqToggle,
+      minimalProps
+    );
   });
 
-  it('renders an NxToggle within an NxTooltip with the supplied props', function() {
+  it('renders an NxToggle within an NxTooltip with the supplied props', function () {
     const toggle = getShallowComponent();
 
     expect(toggle).toMatchSelector(NxToggle);
@@ -42,7 +43,7 @@ describe('IqToggle (React)', function() {
     expect(onChangeSpy).not.toHaveBeenCalled();
   });
 
-  it('calls a function when NxToggle is clicked', function() {
+  it('calls a function when NxToggle is clicked', function () {
     const toggle = getShallowComponent();
     expect(toggle).toMatchSelector(NxToggle);
     expect(onChangeSpy).not.toHaveBeenCalled();

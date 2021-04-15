@@ -4,53 +4,61 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import retentionModule from '../../../../main/frontend/owner.manager/retention/module';
-import {disabledRetentionPolicies, inheritedRetentionPolicies, customRetentionPolicies} from './retentionMockData';
+import {
+  disabledRetentionPolicies,
+  inheritedRetentionPolicies,
+  customRetentionPolicies,
+} from './retentionMockData';
 
-describe('retentionEditor', function() {
+describe('retentionEditor', function () {
   let $scope,
-      $q,
-      $componentController,
-      mockCLMContextLocations,
-      getRootOrganizationRetentionPoliciesDeferred,
-      getRetentionPoliciesDeferred,
-      setRetentionPoliciesDeferred,
-      mockRetentionService,
-      vm;
+    $q,
+    $componentController,
+    mockCLMContextLocations,
+    getRootOrganizationRetentionPoliciesDeferred,
+    getRetentionPoliciesDeferred,
+    setRetentionPoliciesDeferred,
+    mockRetentionService,
+    vm;
 
   beforeEach(angular.mock.module(retentionModule.name));
 
-  beforeEach(inject(function($rootScope, _$q_, _$componentController_) {
+  beforeEach(inject(function ($rootScope, _$q_, _$componentController_) {
     $scope = $rootScope.$new();
     $q = _$q_;
     $componentController = _$componentController_;
-    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', ['isRootOrg']);
+    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', [
+      'isRootOrg',
+    ]);
     mockCLMContextLocations.isRootOrg.and.returnValue(false);
     getRootOrganizationRetentionPoliciesDeferred = $q.defer();
     getRetentionPoliciesDeferred = $q.defer();
     setRetentionPoliciesDeferred = $q.defer();
     mockRetentionService = {
-      getRootOrganizationRetentionPolicies: jasmine.createSpy().and.callFake(function() {
-        return getRootOrganizationRetentionPoliciesDeferred.promise;
-      }),
-      getRetentionPolicies: jasmine.createSpy().and.callFake(function() {
+      getRootOrganizationRetentionPolicies: jasmine
+        .createSpy()
+        .and.callFake(function () {
+          return getRootOrganizationRetentionPoliciesDeferred.promise;
+        }),
+      getRetentionPolicies: jasmine.createSpy().and.callFake(function () {
         return getRetentionPoliciesDeferred.promise;
       }),
-      setRetentionPolicies: jasmine.createSpy().and.callFake(function() {
+      setRetentionPolicies: jasmine.createSpy().and.callFake(function () {
         return setRetentionPoliciesDeferred.promise;
-      })
+      }),
     };
     vm = $componentController('retentionEditor', {
       $scope: $scope,
       CLMContextLocations: mockCLMContextLocations,
-      retentionService: mockRetentionService
+      retentionService: mockRetentionService,
     });
     vm.retentionEditorMask = {
-      wrap: jasmine.createSpy('wrap')
+      wrap: jasmine.createSpy('wrap'),
     };
   }));
 
-  describe('load', function() {
-    it('expects whether or not this is the root organization to have been set', function() {
+  describe('load', function () {
+    it('expects whether or not this is the root organization to have been set', function () {
       expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
       expect(vm.isRootOrganization).toBe(false);
 
@@ -58,48 +66,64 @@ describe('retentionEditor', function() {
       vm = $componentController('retentionEditor', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        retentionService: mockRetentionService
+        retentionService: mockRetentionService,
       });
       expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
       expect(vm.isRootOrganization).toBe(true);
     });
 
-    it('loads reports and parent reports for an organization on success', function() {
+    it('loads reports and parent reports for an organization on success', function () {
       getRetentionPoliciesDeferred.resolve(inheritedRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
-      expect(vm.applicationReportsFromServer).toEqual(inheritedRetentionPolicies.applicationReports);
-      expect(vm.parentApplicationReportsFromServer).toEqual(customRetentionPolicies.applicationReports);
-      expect(vm.successMetricsFromServer).toEqual(inheritedRetentionPolicies.successMetrics);
-      expect(vm.parentSuccessMetricsFromServer).toEqual(customRetentionPolicies.successMetrics);
+      expect(vm.applicationReportsFromServer).toEqual(
+        inheritedRetentionPolicies.applicationReports
+      );
+      expect(vm.parentApplicationReportsFromServer).toEqual(
+        customRetentionPolicies.applicationReports
+      );
+      expect(vm.successMetricsFromServer).toEqual(
+        inheritedRetentionPolicies.successMetrics
+      );
+      expect(vm.parentSuccessMetricsFromServer).toEqual(
+        customRetentionPolicies.successMetrics
+      );
       expect(vm.error).toBeUndefined();
     });
 
-    it('loads reports for the root organization on success', function() {
+    it('loads reports for the root organization on success', function () {
       mockCLMContextLocations.isRootOrg.and.returnValue(true);
       mockRetentionService.getRootOrganizationRetentionPolicies.calls.reset();
       vm = $componentController('retentionEditor', {
         $scope: $scope,
         CLMContextLocations: mockCLMContextLocations,
-        retentionService: mockRetentionService
+        retentionService: mockRetentionService,
       });
 
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
 
       $scope.$digest();
 
-      expect(mockRetentionService.getRootOrganizationRetentionPolicies).not.toHaveBeenCalled();
-      expect(vm.applicationReportsFromServer).toEqual(customRetentionPolicies.applicationReports);
+      expect(
+        mockRetentionService.getRootOrganizationRetentionPolicies
+      ).not.toHaveBeenCalled();
+      expect(vm.applicationReportsFromServer).toEqual(
+        customRetentionPolicies.applicationReports
+      );
       expect(vm.parentApplicationReportsFromServer).toBeUndefined();
-      expect(vm.successMetricsFromServer).toEqual(customRetentionPolicies.successMetrics);
+      expect(vm.successMetricsFromServer).toEqual(
+        customRetentionPolicies.successMetrics
+      );
       expect(vm.parentSuccessMetricsFromServer).toBeUndefined();
       expect(vm.error).toBeUndefined();
     });
 
-    it('sets the error message on failure', function() {
-      getRetentionPoliciesDeferred.reject({status: 404, data: 'not found'});
+    it('sets the error message on failure', function () {
+      getRetentionPoliciesDeferred.reject({ status: 404, data: 'not found' });
 
       $scope.$digest();
 
@@ -108,20 +132,22 @@ describe('retentionEditor', function() {
       expect(vm.error).toEqual('not found');
     });
 
-    it('sets the inherit data retention form value', function() {
+    it('sets the inherit data retention form value', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              inheritPolicy: true
-            }
-          }
+              inheritPolicy: true,
+            },
+          },
         },
         successMetrics: {
-          inheritPolicy: true
-        }
+          inheritPolicy: true,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -130,20 +156,22 @@ describe('retentionEditor', function() {
       expect(vm.error).toBeUndefined();
     });
 
-    it('sets the don\'t purge data retention form value', function() {
+    it("sets the don't purge data retention form value", function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              enablePurging: false
-            }
-          }
+              enablePurging: false,
+            },
+          },
         },
         successMetrics: {
-          enablePurging: false
-        }
+          enablePurging: false,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -152,49 +180,60 @@ describe('retentionEditor', function() {
       expect(vm.error).toBeUndefined();
     });
 
-    it('sets the custom data retention form value', function() {
+    it('sets the custom data retention form value', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              enablePurging: true
-            }
-          }
+              enablePurging: true,
+            },
+          },
         },
         successMetrics: {
           enablePurging: true,
-          maxAge: '1 year'
-        }
+          maxAge: '1 year',
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
-      expect(vm.retention.stages.stage).toEqual({formValue: 'custom', maxCount: null, maxAgeInDays: null});
-      expect(vm.retention.successMetrics).toEqual({formValue: 'custom', maxAgeInYears: 1});
+      expect(vm.retention.stages.stage).toEqual({
+        formValue: 'custom',
+        maxCount: null,
+        maxAgeInDays: null,
+      });
+      expect(vm.retention.successMetrics).toEqual({
+        formValue: 'custom',
+        maxAgeInYears: 1,
+      });
       expect(vm.error).toBeUndefined();
     });
 
-    it('prioritizes setting inherit on success', function() {
+    it('prioritizes setting inherit on success', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             'stage 1': {
               inheritPolicy: true,
-              enablePurging: false
+              enablePurging: false,
             },
             'stage 2': {
               inheritPolicy: true,
-              enablePurging: true
-            }
-          }
+              enablePurging: true,
+            },
+          },
         },
         successMetrics: {
           inheritPolicy: true,
-          enablePurging: false
-        }
+          enablePurging: false,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -204,21 +243,23 @@ describe('retentionEditor', function() {
       expect(vm.error).toBeUndefined();
     });
 
-    it('prioritizes setting inherit over custom for success metrics on success', function() {
+    it('prioritizes setting inherit over custom for success metrics on success', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              inheritPolicy: true
-            }
-          }
+              inheritPolicy: true,
+            },
+          },
         },
         successMetrics: {
           inheritPolicy: true,
-          enablePurging: true
-        }
+          enablePurging: true,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -226,71 +267,79 @@ describe('retentionEditor', function() {
       expect(vm.error).toBeUndefined();
     });
 
-    it('sets the maxCount for a custom data retention form value if maxCount exists', function() {
+    it('sets the maxCount for a custom data retention form value if maxCount exists', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
               enablePurging: true,
-              maxCount: 1
-            }
-          }
+              maxCount: 1,
+            },
+          },
         },
         successMetrics: {
-          inheritPolicy: true
-        }
+          inheritPolicy: true,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
-      expect(vm.retention.stages.stage).toEqual({formValue: 'custom', maxCount: 1, maxAgeInDays: null});
+      expect(vm.retention.stages.stage).toEqual({
+        formValue: 'custom',
+        maxCount: 1,
+        maxAgeInDays: null,
+      });
       expect(vm.error).toBeUndefined();
     });
 
-    it('sets the maxAgeInDays for a custom application report retention form value if maxAge exists', function() {
+    it('sets the maxAgeInDays for a custom application report retention form value if maxAge exists', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             'stage 1': {
               enablePurging: true,
-              maxAge: '1 day'
+              maxAge: '1 day',
             },
             'stage 2': {
               enablePurging: true,
-              maxAge: '2 days'
+              maxAge: '2 days',
             },
             'stage 3': {
               enablePurging: true,
-              maxAge: '1 week'
+              maxAge: '1 week',
             },
             'stage 4': {
               enablePurging: true,
-              maxAge: '2 weeks'
+              maxAge: '2 weeks',
             },
             'stage 5': {
               enablePurging: true,
-              maxAge: '1 month'
+              maxAge: '1 month',
             },
             'stage 6': {
               enablePurging: true,
-              maxAge: '2 months'
+              maxAge: '2 months',
             },
             'stage 7': {
               enablePurging: true,
-              maxAge: '1 year'
+              maxAge: '1 year',
             },
             'stage 8': {
               enablePurging: true,
-              maxAge: '2 years'
-            }
-          }
+              maxAge: '2 years',
+            },
+          },
         },
         successMetrics: {
-          inheritPolicy: true
-        }
+          inheritPolicy: true,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -313,21 +362,23 @@ describe('retentionEditor', function() {
       expect(vm.error).toBeUndefined();
     });
 
-    it('sets the maxAgeInYears (1) for a custom success metrics retention form value', function() {
+    it('sets the maxAgeInYears (1) for a custom success metrics retention form value', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              inheritPolicy: true
-            }
-          }
+              inheritPolicy: true,
+            },
+          },
         },
         successMetrics: {
           enablePurging: true,
-          maxAge: '1 year'
-        }
+          maxAge: '1 year',
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -336,21 +387,23 @@ describe('retentionEditor', function() {
       expect(vm.error).toBeUndefined();
     });
 
-    it('sets the maxAgeInYears (>1) for a custom success metrics retention form value', function() {
+    it('sets the maxAgeInYears (>1) for a custom success metrics retention form value', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              inheritPolicy: true
-            }
-          }
+              inheritPolicy: true,
+            },
+          },
         },
         successMetrics: {
           enablePurging: true,
-          maxAge: '2 years'
-        }
+          maxAge: '2 years',
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -359,57 +412,63 @@ describe('retentionEditor', function() {
       expect(vm.error).toBeUndefined();
     });
 
-    it('sets an error message if the maxAge value cannot be parsed', function() {
+    it('sets an error message if the maxAge value cannot be parsed', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
               enablePurging: true,
-              maxAge: 'X year'
-            }
-          }
-        }
+              maxAge: 'X year',
+            },
+          },
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
       expect(vm.error).toContain('Unable to parse');
     });
 
-    it('sets an error message if the maxAge is not in years for success metrics', function() {
+    it('sets an error message if the maxAge is not in years for success metrics', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              inheritPolicy: true
-            }
-          }
+              inheritPolicy: true,
+            },
+          },
         },
         successMetrics: {
           enablePurging: true,
-          maxAge: '1 day'
-        }
+          maxAge: '1 day',
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
       expect(vm.error).toContain('Unable to parse');
     });
 
-    it('sets an error message if the maxAge time unit cannot be parsed', function() {
+    it('sets an error message if the maxAge time unit cannot be parsed', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
               enablePurging: true,
-              maxAge: '1 unknown'
-            }
-          }
-        }
+              maxAge: '1 unknown',
+            },
+          },
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -417,8 +476,8 @@ describe('retentionEditor', function() {
     });
   });
 
-  describe('getParentMaxReportsAndMaxAge', function() {
-    it('returns the correct text if both the parent maxCount and maxAge exist', function() {
+  describe('getParentMaxReportsAndMaxAge', function () {
+    it('returns the correct text if both the parent maxCount and maxAge exist', function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
       getRootOrganizationRetentionPoliciesDeferred.resolve({
         applicationReports: {
@@ -426,123 +485,145 @@ describe('retentionEditor', function() {
             'stage 1': {
               enablePurging: true,
               maxCount: 1,
-              maxAge: '1 day'
+              maxAge: '1 day',
             },
             'stage 2': {
               enablePurging: true,
               maxCount: 2,
-              maxAge: '2 days'
+              maxAge: '2 days',
             },
             'stage 3': {
               enablePurging: true,
               maxCount: 1,
-              maxAge: '2 days'
+              maxAge: '2 days',
             },
             'stage 4': {
               enablePurging: true,
               maxCount: 2,
-              maxAge: '1 day'
-            }
-          }
-        }
+              maxAge: '1 day',
+            },
+          },
+        },
       });
 
       $scope.$digest();
 
-      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual('keep at most 1 day, 1 report');
-      expect(vm.getParentMaxReportsAndMaxAge('stage 2')).toEqual('keep at most 2 days, 2 reports');
-      expect(vm.getParentMaxReportsAndMaxAge('stage 3')).toEqual('keep at most 2 days, 1 report');
-      expect(vm.getParentMaxReportsAndMaxAge('stage 4')).toEqual('keep at most 1 day, 2 reports');
+      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual(
+        'keep at most 1 day, 1 report'
+      );
+      expect(vm.getParentMaxReportsAndMaxAge('stage 2')).toEqual(
+        'keep at most 2 days, 2 reports'
+      );
+      expect(vm.getParentMaxReportsAndMaxAge('stage 3')).toEqual(
+        'keep at most 2 days, 1 report'
+      );
+      expect(vm.getParentMaxReportsAndMaxAge('stage 4')).toEqual(
+        'keep at most 1 day, 2 reports'
+      );
     });
 
-    it('returns the correct text if only the parent maxCount exists', function() {
+    it('returns the correct text if only the parent maxCount exists', function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
       getRootOrganizationRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             'stage 1': {
               enablePurging: true,
-              maxCount: 1
+              maxCount: 1,
             },
             'stage 2': {
               enablePurging: true,
-              maxCount: 2
-            }
-          }
-        }
+              maxCount: 2,
+            },
+          },
+        },
       });
 
       $scope.$digest();
 
-      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual('keep at most 1 report');
-      expect(vm.getParentMaxReportsAndMaxAge('stage 2')).toEqual('keep at most 2 reports');
+      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual(
+        'keep at most 1 report'
+      );
+      expect(vm.getParentMaxReportsAndMaxAge('stage 2')).toEqual(
+        'keep at most 2 reports'
+      );
     });
 
-    it('returns the correct text if only the parent maxAge exists', function() {
+    it('returns the correct text if only the parent maxAge exists', function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
       getRootOrganizationRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
               enablePurging: true,
-              maxAge: '1 day'
-            }
-          }
-        }
+              maxAge: '1 day',
+            },
+          },
+        },
       });
 
       $scope.$digest();
 
-      expect(vm.getParentMaxReportsAndMaxAge('stage')).toEqual('keep at most 1 day');
+      expect(vm.getParentMaxReportsAndMaxAge('stage')).toEqual(
+        'keep at most 1 day'
+      );
     });
 
-    it('returns the correct text if the parent has purging disabled', function() {
+    it('returns the correct text if the parent has purging disabled', function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        disabledRetentionPolicies
+      );
 
       $scope.$digest();
 
-      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual('don\'t purge');
+      expect(vm.getParentMaxReportsAndMaxAge('stage 1')).toEqual("don't purge");
     });
   });
 
-  describe('getParentSuccessMetricsMaxAge', function() {
-    it('returns the correct text if the parent has purging enabled', function() {
+  describe('getParentSuccessMetricsMaxAge', function () {
+    it('returns the correct text if the parent has purging enabled', function () {
       getRetentionPoliciesDeferred.resolve(inheritedRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
       expect(vm.getParentSuccessMetricsMaxAge()).toEqual('keep last 2 years');
     });
 
-    it('returns the correct text if the parent has purging disabled', function() {
+    it('returns the correct text if the parent has purging disabled', function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        disabledRetentionPolicies
+      );
 
       $scope.$digest();
 
-      expect(vm.getParentSuccessMetricsMaxAge()).toEqual('don\'t purge');
+      expect(vm.getParentSuccessMetricsMaxAge()).toEqual("don't purge");
     });
   });
 
-  describe('isDirty', function() {
-    it('returns true if the form value has changed', function() {
+  describe('isDirty', function () {
+    it('returns true if the form value has changed', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
               enablePurging: true,
               maxCount: 1,
-              maxAge: '1 day'
-            }
-          }
+              maxAge: '1 day',
+            },
+          },
         },
         successMetrics: {
-          inheritPolicy: true
-        }
+          inheritPolicy: true,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -554,22 +635,24 @@ describe('retentionEditor', function() {
       expect(vm.isDirty()).toBe(true);
     });
 
-    it('returns true if the custom maxCount has changed', function() {
+    it('returns true if the custom maxCount has changed', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
               enablePurging: true,
               maxCount: 1,
-              maxAge: '1 day'
-            }
-          }
+              maxAge: '1 day',
+            },
+          },
         },
         successMetrics: {
-          inheritPolicy: true
-        }
+          inheritPolicy: true,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -581,22 +664,24 @@ describe('retentionEditor', function() {
       expect(vm.isDirty()).toBe(true);
     });
 
-    it('returns true if the custom maxAgeInDays has changed', function() {
+    it('returns true if the custom maxAgeInDays has changed', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
               enablePurging: true,
               maxCount: 1,
-              maxAge: '1 day'
-            }
-          }
+              maxAge: '1 day',
+            },
+          },
         },
         successMetrics: {
-          inheritPolicy: true
-        }
+          inheritPolicy: true,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -608,21 +693,23 @@ describe('retentionEditor', function() {
       expect(vm.isDirty()).toBe(true);
     });
 
-    it('returns true if the custom maxAgeInYears has changed', function() {
+    it('returns true if the custom maxAgeInYears has changed', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              inheritPolicy: true
-            }
-          }
+              inheritPolicy: true,
+            },
+          },
         },
         successMetrics: {
           enablePurging: true,
-          maxAge: '3 years'
-        }
+          maxAge: '3 years',
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -634,20 +721,22 @@ describe('retentionEditor', function() {
       expect(vm.isDirty()).toBe(true);
     });
 
-    it('returns false if the non-custom form value has not changed even if the custom inputs have', function() {
+    it('returns false if the non-custom form value has not changed even if the custom inputs have', function () {
       getRetentionPoliciesDeferred.resolve({
         applicationReports: {
           stages: {
             stage: {
-              enablePurging: false
-            }
-          }
+              enablePurging: false,
+            },
+          },
         },
         successMetrics: {
-          inheritPolicy: true
-        }
+          inheritPolicy: true,
+        },
       });
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -661,10 +750,12 @@ describe('retentionEditor', function() {
     });
   });
 
-  describe('save', function() {
-    it('sets the correct data retention policies for the inherit form value on success', function() {
+  describe('save', function () {
+    it('sets the correct data retention policies for the inherit form value on success', function () {
       getRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -686,38 +777,46 @@ describe('retentionEditor', function() {
               inheritPolicy: true,
               enablePurging: true,
               maxCount: null,
-              maxAge: null
+              maxAge: null,
             },
             'stage 2': {
               inheritPolicy: true,
               enablePurging: true,
               maxCount: null,
-              maxAge: null
-            }
-          }
+              maxAge: null,
+            },
+          },
         },
         successMetrics: {
           inheritPolicy: true,
           enablePurging: true,
-          maxAge: null
-        }
+          maxAge: null,
+        },
       };
 
-      setRetentionPoliciesDeferred.resolve({status: 204, data: 'no content'});
+      setRetentionPoliciesDeferred.resolve({ status: 204, data: 'no content' });
       getRetentionPoliciesDeferred = $q.defer();
-      getRetentionPoliciesDeferred.resolve(inheritedRetentionPoliciesWithNullValues);
+      getRetentionPoliciesDeferred.resolve(
+        inheritedRetentionPoliciesWithNullValues
+      );
 
       $scope.$digest();
 
-      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(inheritedRetentionPoliciesWithNullValues);
-      expect(vm.applicationReportsFromServer).toEqual(inheritedRetentionPoliciesWithNullValues.applicationReports);
+      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(
+        inheritedRetentionPoliciesWithNullValues
+      );
+      expect(vm.applicationReportsFromServer).toEqual(
+        inheritedRetentionPoliciesWithNullValues.applicationReports
+      );
       expect(vm.isDirty()).toBe(false);
       expect(vm.submitError).toBeUndefined();
     });
 
-    it('sets the correct data retention policies for the don\'t purge form value on success', function() {
+    it("sets the correct data retention policies for the don't purge form value on success", function () {
       getRetentionPoliciesDeferred.resolve(customRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -732,21 +831,27 @@ describe('retentionEditor', function() {
 
       vm.save();
 
-      setRetentionPoliciesDeferred.resolve({status: 204, data: 'no content'});
+      setRetentionPoliciesDeferred.resolve({ status: 204, data: 'no content' });
       getRetentionPoliciesDeferred = $q.defer();
       getRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
 
       $scope.$digest();
 
-      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(disabledRetentionPolicies);
-      expect(vm.applicationReportsFromServer).toEqual(disabledRetentionPolicies.applicationReports);
+      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(
+        disabledRetentionPolicies
+      );
+      expect(vm.applicationReportsFromServer).toEqual(
+        disabledRetentionPolicies.applicationReports
+      );
       expect(vm.isDirty()).toBe(false);
       expect(vm.submitError).toBeUndefined();
     });
 
-    it('sets the correct data retention policies for the custom form value on success', function() {
+    it('sets the correct data retention policies for the custom form value on success', function () {
       getRetentionPoliciesDeferred.resolve(inheritedRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -764,7 +869,7 @@ describe('retentionEditor', function() {
 
       vm.save();
 
-      setRetentionPoliciesDeferred.resolve({status: 204, data: 'no content'});
+      setRetentionPoliciesDeferred.resolve({ status: 204, data: 'no content' });
 
       const expectedNewApplicationReports = {
         applicationReports: {
@@ -773,21 +878,21 @@ describe('retentionEditor', function() {
               inheritPolicy: false,
               enablePurging: true,
               maxCount: 1,
-              maxAge: '1 day'
+              maxAge: '1 day',
             },
             'stage 2': {
               inheritPolicy: false,
               enablePurging: true,
               maxCount: null,
-              maxAge: null
-            }
-          }
+              maxAge: null,
+            },
+          },
         },
         successMetrics: {
           inheritPolicy: false,
           enablePurging: true,
-          maxAge: '2 year'
-        }
+          maxAge: '2 year',
+        },
       };
 
       getRetentionPoliciesDeferred = $q.defer();
@@ -795,15 +900,21 @@ describe('retentionEditor', function() {
 
       $scope.$digest();
 
-      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(expectedNewApplicationReports);
-      expect(vm.applicationReportsFromServer).toEqual(expectedNewApplicationReports.applicationReports);
+      expect(mockRetentionService.setRetentionPolicies).toHaveBeenCalledWith(
+        expectedNewApplicationReports
+      );
+      expect(vm.applicationReportsFromServer).toEqual(
+        expectedNewApplicationReports.applicationReports
+      );
       expect(vm.isDirty()).toBe(false);
       expect(vm.submitError).toBeUndefined();
     });
 
-    it('sets the submit error on failure', function() {
+    it('sets the submit error on failure', function () {
       getRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -816,7 +927,7 @@ describe('retentionEditor', function() {
 
       vm.save();
 
-      setRetentionPoliciesDeferred.reject({status: 404, data: 'not found'});
+      setRetentionPoliciesDeferred.reject({ status: 404, data: 'not found' });
 
       $scope.$digest();
 
@@ -824,9 +935,11 @@ describe('retentionEditor', function() {
       expect(vm.error).toBeUndefined();
     });
 
-    it('waits for the saving and loading requests to resolve before clearing the mask', function() {
+    it('waits for the saving and loading requests to resolve before clearing the mask', function () {
       getRetentionPoliciesDeferred.resolve(disabledRetentionPolicies);
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
 
       $scope.$digest();
 
@@ -849,7 +962,7 @@ describe('retentionEditor', function() {
 
       expect(isPromiseResolved).not.toHaveBeenCalled();
 
-      setRetentionPoliciesDeferred.resolve({status: 204, data: 'no content'});
+      setRetentionPoliciesDeferred.resolve({ status: 204, data: 'no content' });
       $scope.$digest();
 
       expect(isPromiseResolved).not.toHaveBeenCalled();
@@ -859,7 +972,9 @@ describe('retentionEditor', function() {
 
       expect(isPromiseResolved).not.toHaveBeenCalled();
 
-      getRootOrganizationRetentionPoliciesDeferred.resolve(customRetentionPolicies);
+      getRootOrganizationRetentionPoliciesDeferred.resolve(
+        customRetentionPolicies
+      );
       $scope.$digest();
 
       expect(isPromiseResolved).toHaveBeenCalled();

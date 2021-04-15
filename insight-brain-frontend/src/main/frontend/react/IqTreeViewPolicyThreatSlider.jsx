@@ -9,7 +9,7 @@ import * as PropTypes from 'prop-types';
 import {
   NxTreeView,
   NxTreeViewChild,
-  NxPolicyThreatSlider
+  NxPolicyThreatSlider,
 } from '@sonatype/react-shared-components';
 import { ensureElement } from '@sonatype/react-shared-components/util/reactUtil';
 
@@ -17,29 +17,37 @@ export default function IqTreeViewPolicyThreatSlider(props) {
   const { id, value, onChange, disabled, children, className } = props;
 
   const [isOpen, toggleOpen] = useState(false),
-      onToggleCollapse = () => {
-        toggleOpen(!isOpen);
-      };
+    onToggleCollapse = () => {
+      toggleOpen(!isOpen);
+    };
 
   const wrappedTriggerContent = ensureElement(children),
-      counterClasses = classnames('nx-counter', { 'nx-counter--active': !disabled }, className);
+    counterClasses = classnames(
+      'nx-counter',
+      { 'nx-counter--active': !disabled },
+      className
+    );
 
   const triggerWithCounter = (
     <Fragment>
       {wrappedTriggerContent}
-      <div className={counterClasses}>{value[0]} – {value[1]}</div>
+      <div className={counterClasses}>
+        {value[0]} – {value[1]}
+      </div>
     </Fragment>
   );
 
   return (
-    <NxTreeView onToggleCollapse={onToggleCollapse}
-                isOpen={isOpen}
-                id={id}
-                triggerContent={triggerWithCounter}
-                disabled={disabled}
-                className="nx-tree-view--threat-slider">
+    <NxTreeView
+      onToggleCollapse={onToggleCollapse}
+      isOpen={isOpen}
+      id={id}
+      triggerContent={triggerWithCounter}
+      disabled={disabled}
+      className="nx-tree-view--threat-slider"
+    >
       <NxTreeViewChild>
-        <NxPolicyThreatSlider value={value} onChange={onChange}/>
+        <NxPolicyThreatSlider value={value} onChange={onChange} />
       </NxTreeViewChild>
     </NxTreeView>
   );
@@ -51,5 +59,5 @@ IqTreeViewPolicyThreatSlider.propTypes = {
   onChange: PropTypes.func,
   disabled: PropTypes.bool,
   id: PropTypes.string,
-  children: PropTypes.node
+  children: PropTypes.node,
 };

@@ -13,28 +13,28 @@ import {
   LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FAILED,
   LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_REQUESTED,
   LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
-  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED
+  LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED,
 } from './legalApplicationDetailsActions';
 
 const initState = {
   application: {
     name: null,
     error: null,
-    loading: false
+    loading: false,
   },
   stageType: {
     name: null,
     error: null,
-    loading: false
+    loading: false,
   },
   components: {
     results: [],
     error: null,
-    loading: false
-  }
+    loading: false,
+  },
 };
 
-export default function(state = initState, {type, payload}) {
+export default function (state = initState, { type, payload }) {
   switch (type) {
     case LEGAL_APPLICATION_DETAILS_LOAD_APP_REQUESTED: {
       const application = { ...initState.application, loading: true };
@@ -65,11 +65,19 @@ export default function(state = initState, {type, payload}) {
       return { ...state, components: components };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED: {
-      const components = { ...state.components, loading: false, results: payload };
+      const components = {
+        ...state.components,
+        loading: false,
+        results: payload,
+      };
       return { ...state, components: components };
     }
     case LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED: {
-      const components = { ...state.components, loading: false, error: payload };
+      const components = {
+        ...state.components,
+        loading: false,
+        error: payload,
+      };
       return { ...state, components: components };
     }
     default:

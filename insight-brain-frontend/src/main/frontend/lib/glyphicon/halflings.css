@@ -12,7 +12,12 @@ html .halflings {
 @font-face {
   font-family: 'Glyphicons Halflings';
   src: url('./glyphiconshalflings-regular.eot');
-  src: url('./glyphiconshalflings-regular.eot?#iefix') format('embedded-opentype'), url('./glyphiconshalflings-regular.woff') format('woff'), url('./glyphiconshalflings-regular.ttf') format('truetype'), url('./glyphiconshalflings-regular.svg#glyphicons_halflingsregular') format('svg');
+  src: url('./glyphiconshalflings-regular.eot?#iefix')
+      format('embedded-opentype'),
+    url('./glyphiconshalflings-regular.woff') format('woff'),
+    url('./glyphiconshalflings-regular.ttf') format('truetype'),
+    url('./glyphiconshalflings-regular.svg#glyphicons_halflingsregular')
+      format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -37,484 +42,484 @@ html .halflings {
   color: #fff;
 }
 .halflings.glass i:before {
-  content: "\e001";
+  content: '\e001';
 }
 .halflings.music i:before {
-  content: "\e002";
+  content: '\e002';
 }
 .halflings.search i:before {
-  content: "\e003";
+  content: '\e003';
 }
 .halflings.envelope i:before {
-  content: "\2709";
+  content: '\2709';
 }
 .halflings.heart i:before {
-  content: "\e005";
+  content: '\e005';
 }
 .halflings.star i:before {
-  content: "\e006";
+  content: '\e006';
 }
 .halflings.star-empty i:before {
-  content: "\e007";
+  content: '\e007';
 }
 .halflings.user i:before {
-  content: "\e008";
+  content: '\e008';
 }
 .halflings.film i:before {
-  content: "\e009";
+  content: '\e009';
 }
 .halflings.th-large i:before {
-  content: "\e010";
+  content: '\e010';
 }
 .halflings.th i:before {
-  content: "\e011";
+  content: '\e011';
 }
 .halflings.th-list i:before {
-  content: "\e012";
+  content: '\e012';
 }
 .halflings.ok i:before {
-  content: "\e013";
+  content: '\e013';
 }
 .halflings.remove i:before {
-  content: "\e014";
+  content: '\e014';
 }
 .halflings.zoom-in i:before {
-  content: "\e015";
+  content: '\e015';
 }
 .halflings.zoom-out i:before {
-  content: "\e016";
+  content: '\e016';
 }
 .halflings.off i:before {
-  content: "\e017";
+  content: '\e017';
 }
 .halflings.signal i:before {
-  content: "\e018";
+  content: '\e018';
 }
 .halflings.cog i:before {
-  content: "\e019";
+  content: '\e019';
 }
 .halflings.trash i:before {
-  content: "\e020";
+  content: '\e020';
 }
 .halflings.home i:before {
-  content: "\e021";
+  content: '\e021';
 }
 .halflings.file i:before {
-  content: "\e022";
+  content: '\e022';
 }
 .halflings.time i:before {
-  content: "\e023";
+  content: '\e023';
 }
 .halflings.road i:before {
-  content: "\e024";
+  content: '\e024';
 }
 .halflings.download-alt i:before {
-  content: "\e025";
+  content: '\e025';
 }
 .halflings.download i:before {
-  content: "\e026";
+  content: '\e026';
 }
 .halflings.upload i:before {
-  content: "\e027";
+  content: '\e027';
 }
 .halflings.inbox i:before {
-  content: "\e028";
+  content: '\e028';
 }
 .halflings.play-circle i:before {
-  content: "\e029";
+  content: '\e029';
 }
 .halflings.repeat i:before {
-  content: "\e030";
+  content: '\e030';
 }
 .halflings.refresh i:before {
-  content: "\e031";
+  content: '\e031';
 }
 .halflings.list-alt i:before {
-  content: "\e032";
+  content: '\e032';
 }
 .halflings.lock i:before {
-  content: "\e033";
+  content: '\e033';
 }
 .halflings.flag i:before {
-  content: "\e034";
+  content: '\e034';
 }
 .halflings.headphones i:before {
-  content: "\e035";
+  content: '\e035';
 }
 .halflings.volume-off i:before {
-  content: "\e036";
+  content: '\e036';
 }
 .halflings.volume-down i:before {
-  content: "\e037";
+  content: '\e037';
 }
 .halflings.volume-up i:before {
-  content: "\e038";
+  content: '\e038';
 }
 .halflings.qrcode i:before {
-  content: "\e039";
+  content: '\e039';
 }
 .halflings.barcode i:before {
-  content: "\e040";
+  content: '\e040';
 }
 .halflings.tag i:before {
-  content: "\e041";
+  content: '\e041';
 }
 .halflings.tags i:before {
-  content: "\e042";
+  content: '\e042';
 }
 .halflings.book i:before {
-  content: "\e043";
+  content: '\e043';
 }
 .halflings.bookmark i:before {
-  content: "\e044";
+  content: '\e044';
 }
 .halflings.print i:before {
-  content: "\e045";
+  content: '\e045';
 }
 .halflings.camera i:before {
-  content: "\e046";
+  content: '\e046';
 }
 .halflings.font i:before {
-  content: "\e047";
+  content: '\e047';
 }
 .halflings.bold i:before {
-  content: "\e048";
+  content: '\e048';
 }
 .halflings.italic i:before {
-  content: "\e049";
+  content: '\e049';
 }
 .halflings.text-height i:before {
-  content: "\e050";
+  content: '\e050';
 }
 .halflings.text-width i:before {
-  content: "\e051";
+  content: '\e051';
 }
 .halflings.align-left i:before {
-  content: "\e052";
+  content: '\e052';
 }
 .halflings.align-center i:before {
-  content: "\e053";
+  content: '\e053';
 }
 .halflings.align-right i:before {
-  content: "\e054";
+  content: '\e054';
 }
 .halflings.align-justify i:before {
-  content: "\e055";
+  content: '\e055';
 }
 .halflings.list i:before {
-  content: "\e056";
+  content: '\e056';
 }
 .halflings.indent-left i:before {
-  content: "\e057";
+  content: '\e057';
 }
 .halflings.indent-right i:before {
-  content: "\e058";
+  content: '\e058';
 }
 .halflings.facetime-video i:before {
-  content: "\e059";
+  content: '\e059';
 }
 .halflings.picture i:before {
-  content: "\e060";
+  content: '\e060';
 }
 .halflings.pencil i:before {
-  content: "\270f";
+  content: '\270f';
 }
 .halflings.map-marker i:before {
-  content: "\e062";
+  content: '\e062';
 }
 .halflings.adjust i:before {
-  content: "\e063";
+  content: '\e063';
 }
 .halflings.tint i:before {
-  content: "\e064";
+  content: '\e064';
 }
 .halflings.edit i:before {
-  content: "\e065";
+  content: '\e065';
 }
 .halflings.share i:before {
-  content: "\e066";
+  content: '\e066';
 }
 .halflings.check i:before {
-  content: "\e067";
+  content: '\e067';
 }
 .halflings.move i:before {
-  content: "\e068";
+  content: '\e068';
 }
 .halflings.step-backward i:before {
-  content: "\e069";
+  content: '\e069';
 }
 .halflings.fast-backward i:before {
-  content: "\e070";
+  content: '\e070';
 }
 .halflings.backward i:before {
-  content: "\e071";
+  content: '\e071';
 }
 .halflings.play i:before {
-  content: "\e072";
+  content: '\e072';
 }
 .halflings.pause i:before {
-  content: "\e073";
+  content: '\e073';
 }
 .halflings.stop i:before {
-  content: "\e074";
+  content: '\e074';
 }
 .halflings.forward i:before {
-  content: "\e075";
+  content: '\e075';
 }
 .halflings.fast-forward i:before {
-  content: "\e076";
+  content: '\e076';
 }
 .halflings.step-forward i:before {
-  content: "\e077";
+  content: '\e077';
 }
 .halflings.eject i:before {
-  content: "\e078";
+  content: '\e078';
 }
 .halflings.chevron-left i:before {
-  content: "\e079";
+  content: '\e079';
 }
 .halflings.chevron-right i:before {
-  content: "\e080";
+  content: '\e080';
 }
 .halflings.plus-sign i:before {
-  content: "\e081";
+  content: '\e081';
 }
 .halflings.minus-sign i:before {
-  content: "\e082";
+  content: '\e082';
 }
 .halflings.remove-sign i:before {
-  content: "\e083";
+  content: '\e083';
 }
 .halflings.ok-sign i:before {
-  content: "\e084";
+  content: '\e084';
 }
 .halflings.question-sign i:before {
-  content: "\e085";
+  content: '\e085';
 }
 .halflings.info-sign i:before {
-  content: "\e086";
+  content: '\e086';
 }
 .halflings.screenshot i:before {
-  content: "\e087";
+  content: '\e087';
 }
 .halflings.remove-circle i:before {
-  content: "\e088";
+  content: '\e088';
 }
 .halflings.ok-circle i:before {
-  content: "\e089";
+  content: '\e089';
 }
 .halflings.ban-circle i:before {
-  content: "\e090";
+  content: '\e090';
 }
 .halflings.arrow-left i:before {
-  content: "\e091";
+  content: '\e091';
 }
 .halflings.arrow-right i:before {
-  content: "\e092";
+  content: '\e092';
 }
 .halflings.arrow-up i:before {
-  content: "\e093";
+  content: '\e093';
 }
 .halflings.arrow-down i:before {
-  content: "\e094";
+  content: '\e094';
 }
 .halflings.share-alt i:before {
-  content: "\e095";
+  content: '\e095';
 }
 .halflings.resize-full i:before {
-  content: "\e096";
+  content: '\e096';
 }
 .halflings.resize-small i:before {
-  content: "\e097";
+  content: '\e097';
 }
 .halflings.plus i:before {
-  content: "\002b";
+  content: '\002b';
 }
 .halflings.minus i:before {
-  content: "\2212";
+  content: '\2212';
 }
 .halflings.asterisk i:before {
-  content: "\002a";
+  content: '\002a';
 }
 .halflings.exclamation-sign i:before {
-  content: "\e101";
+  content: '\e101';
 }
 .halflings.gift i:before {
-  content: "\e102";
+  content: '\e102';
 }
 .halflings.leaf i:before {
-  content: "\e103";
+  content: '\e103';
 }
 .halflings.fire i:before {
-  content: "\e104";
+  content: '\e104';
 }
 .halflings.eye-open i:before {
-  content: "\e105";
+  content: '\e105';
 }
 .halflings.eye-close i:before {
-  content: "\e106";
+  content: '\e106';
 }
 .halflings.warning-sign i:before {
-  content: "\e107";
+  content: '\e107';
 }
 .halflings.plane i:before {
-  content: "\e108";
+  content: '\e108';
 }
 .halflings.calendar i:before {
-  content: "\e109";
+  content: '\e109';
 }
 .halflings.random i:before {
-  content: "\e110";
+  content: '\e110';
 }
 .halflings.comments i:before {
-  content: "\e111";
+  content: '\e111';
 }
 .halflings.magnet i:before {
-  content: "\e113";
+  content: '\e113';
 }
 .halflings.chevron-up i:before {
-  content: "\e113";
+  content: '\e113';
 }
 .halflings.chevron-down i:before {
-  content: "\e114";
+  content: '\e114';
 }
 .halflings.retweet i:before {
-  content: "\e115";
+  content: '\e115';
 }
 .halflings.shopping-cart i:before {
-  content: "\e116";
+  content: '\e116';
 }
 .halflings.folder-close i:before {
-  content: "\e117";
+  content: '\e117';
 }
 .halflings.folder-open i:before {
-  content: "\e118";
+  content: '\e118';
 }
 .halflings.resize-vertical i:before {
-  content: "\e119";
+  content: '\e119';
 }
 .halflings.resize-horizontal i:before {
-  content: "\e120";
+  content: '\e120';
 }
 .halflings.hdd i:before {
-  content: "\e121";
+  content: '\e121';
 }
 .halflings.bullhorn i:before {
-  content: "\e122";
+  content: '\e122';
 }
 .halflings.bell i:before {
-  content: "\e123";
+  content: '\e123';
 }
 .halflings.certificate i:before {
-  content: "\e124";
+  content: '\e124';
 }
 .halflings.thumbs-up i:before {
-  content: "\e125";
+  content: '\e125';
 }
 .halflings.thumbs-down i:before {
-  content: "\e126";
+  content: '\e126';
 }
 .halflings.hand-right i:before {
-  content: "\e127";
+  content: '\e127';
 }
 .halflings.hand-left i:before {
-  content: "\e128";
+  content: '\e128';
 }
 .halflings.hand-top i:before {
-  content: "\e129";
+  content: '\e129';
 }
 .halflings.hand-down i:before {
-  content: "\e130";
+  content: '\e130';
 }
 .halflings.circle-arrow-right i:before {
-  content: "\e131";
+  content: '\e131';
 }
 .halflings.circle-arrow-left i:before {
-  content: "\e132";
+  content: '\e132';
 }
 .halflings.circle-arrow-top i:before {
-  content: "\e133";
+  content: '\e133';
 }
 .halflings.circle-arrow-down i:before {
-  content: "\e134";
+  content: '\e134';
 }
 .halflings.globe i:before {
-  content: "\e135";
+  content: '\e135';
 }
 .halflings.wrench i:before {
-  content: "\e136";
+  content: '\e136';
 }
 .halflings.tasks i:before {
-  content: "\e137";
+  content: '\e137';
 }
 .halflings.filter i:before {
-  content: "\e138";
+  content: '\e138';
 }
 .halflings.briefcase i:before {
-  content: "\e139";
+  content: '\e139';
 }
 .halflings.fullscreen i:before {
-  content: "\e140";
+  content: '\e140';
 }
 .halflings.dashboard i:before {
-  content: "\e141";
+  content: '\e141';
 }
 .halflings.paperclip i:before {
-  content: "\e142";
+  content: '\e142';
 }
 .halflings.heart-empty i:before {
-  content: "\e143";
+  content: '\e143';
 }
 .halflings.link i:before {
-  content: "\e144";
+  content: '\e144';
 }
 .halflings.phone i:before {
-  content: "\e145";
+  content: '\e145';
 }
 .halflings.pushpin i:before {
-  content: "\e146";
+  content: '\e146';
 }
 .halflings.euro i:before {
-  content: "\20ac";
+  content: '\20ac';
 }
 .halflings.usd i:before {
-  content: "\e148";
+  content: '\e148';
 }
 .halflings.gbp i:before {
-  content: "\e149";
+  content: '\e149';
 }
 .halflings.sort i:before {
-  content: "\e150";
+  content: '\e150';
 }
 .halflings.sort-by-alphabet i:before {
-  content: "\e151";
+  content: '\e151';
 }
 .halflings.sort-by-alphabet-alt i:before {
-  content: "\e152";
+  content: '\e152';
 }
 .halflings.sort-by-order i:before {
-  content: "\e153";
+  content: '\e153';
 }
 .halflings.sort-by-order-alt i:before {
-  content: "\e154";
+  content: '\e154';
 }
 .halflings.sort-by-attributes i:before {
-  content: "\e155";
+  content: '\e155';
 }
 .halflings.sort-by-attributes-alt i:before {
-  content: "\e156";
+  content: '\e156';
 }
 .halflings.unchecked i:before {
-  content: "\e157";
+  content: '\e157';
 }
 .halflings.expand i:before {
-  content: "\e158";
+  content: '\e158';
 }
 .halflings.collapse i:before {
-  content: "\e159";
+  content: '\e159';
 }
 .halflings.collapse-top i:before {
-  content: "\e160";
+  content: '\e160';
 }
 .halflings-icon {
   display: inline-block;
@@ -529,7 +534,7 @@ html .halflings {
   vertical-align: top;
   *display: inline;
   *zoom: 1;
-  *margin-right: .3em;
+  *margin-right: 0.3em;
 }
 .no-inlinesvg .halflings-icon {
   background-image: url(glyphicons_halflings.png);

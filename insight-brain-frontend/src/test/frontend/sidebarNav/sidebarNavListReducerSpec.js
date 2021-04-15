@@ -5,25 +5,25 @@
  */
 import reducer from '../../../main/frontend/sidebarNav/sidebarNavListReducer';
 
-describe('sidebarNavListReducer', function() {
-  describe('unknown action', function() {
-    it('returns original state', function() {
-      const state = Object.freeze({foo: 'bar'});
-      const action = {type: 'UNKNOWN'};
+describe('sidebarNavListReducer', function () {
+  describe('unknown action', function () {
+    it('returns original state', function () {
+      const state = Object.freeze({ foo: 'bar' });
+      const action = { type: 'UNKNOWN' };
       const newState = reducer(state, action);
       expect(newState).toBe(state);
     });
   });
 
-  describe('initial state', function() {
-    it('is used if no state is provided', function() {
-      const action = {type: 'UNKNOWN'};
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
+      const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState).not.toBeUndefined();
     });
 
-    it('has default fields', function() {
-      const action = {type: 'UNKNOWN'};
+    it('has default fields', function () {
+      const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState.data).toEqual([]);
       expect(newState.loading).toBe(false);
@@ -33,8 +33,8 @@ describe('sidebarNavListReducer', function() {
       expect(newState.sidebarReference).toBe(null);
     });
 
-    it('is immutable', function() {
-      const action = {type: 'UNKNOWN'};
+    it('is immutable', function () {
+      const action = { type: 'UNKNOWN' };
       const state = reducer(undefined, action);
 
       // Overall state object
@@ -57,13 +57,13 @@ describe('sidebarNavListReducer', function() {
     });
   });
 
-  describe('LOAD_SIDEBAR_NAV_LIST_REQUESTED action', function() {
+  describe('LOAD_SIDEBAR_NAV_LIST_REQUESTED action', function () {
     it('sets the loading flag to true and sets only sidebar and contentType data from the payload on the state', () => {
       const initialState = {
         data: [],
         error: 'foo',
         loading: false,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       };
 
       const newState = reducer(initialState, {
@@ -72,8 +72,8 @@ describe('sidebarNavListReducer', function() {
           sidebarId: 'sidebarId',
           sidebarReference: 'sidebarReference',
           contentType: 'contentType',
-          foo: 'bar'
-        }
+          foo: 'bar',
+        },
       });
 
       expect(newState).toEqual({
@@ -83,18 +83,18 @@ describe('sidebarNavListReducer', function() {
         sidebarReference: 'sidebarReference',
         contentType: 'contentType',
         data: [],
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       });
     });
   });
 
-  describe('LOAD_SIDEBAR_NAV_LIST_FULFILLED', function() {
-    it('unsets loading and error and sets data', function() {
+  describe('LOAD_SIDEBAR_NAV_LIST_FULFILLED', function () {
+    it('unsets loading and error and sets data', function () {
       const initialState = {
         data: [],
         error: 'baz',
         loading: true,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       };
 
       const newState = reducer(initialState, {
@@ -102,8 +102,8 @@ describe('sidebarNavListReducer', function() {
         payload: {
           backButtonStateName: 'foo.bar.baz',
           contentType: 'violations',
-          data: [{foo: 'bar' }]
-        }
+          data: [{ foo: 'bar' }],
+        },
       });
 
       expect(newState).toEqual({
@@ -112,30 +112,30 @@ describe('sidebarNavListReducer', function() {
         data: [{ foo: 'bar' }],
         backButtonStateName: 'foo.bar.baz',
         contentType: 'violations',
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       });
     });
   });
 
-  describe('LOAD_SIDEBAR_NAV_LIST_FAILED', function() {
-    it('unsets the loading flag and sets the error to the payload', function() {
+  describe('LOAD_SIDEBAR_NAV_LIST_FAILED', function () {
+    it('unsets the loading flag and sets the error to the payload', function () {
       const initialState = {
         data: [],
         error: null,
         loading: true,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       };
 
       const newState = reducer(initialState, {
         type: 'LOAD_SIDEBAR_NAV_LIST_FAILED',
-        payload: 'ERRRRRRRRRRRRRRRRR'
+        payload: 'ERRRRRRRRRRRRRRRRR',
       });
 
       expect(newState).toEqual({
         loading: false,
         error: 'ERRRRRRRRRRRRRRRRR',
         data: [],
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       });
     });
   });

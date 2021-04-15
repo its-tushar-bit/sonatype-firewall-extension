@@ -4,7 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
-export default function RepositoryReEvaluateModalController($scope, $http, $stateParams, CLMLocations, Messages) {
+export default function RepositoryReEvaluateModalController(
+  $scope,
+  $http,
+  $stateParams,
+  CLMLocations,
+  Messages
+) {
   var vm = this;
   vm.error = undefined;
   vm.reEvaluatePolicy = reEvaluatePolicy;
@@ -12,16 +18,27 @@ export default function RepositoryReEvaluateModalController($scope, $http, $stat
 
   function reEvaluatePolicy() {
     delete vm.error;
-    vm.reEvaluatePolicyMask.wrap($http.post(CLMLocations.getRepositoryEvaluateUrl($stateParams.repositoryId)))
-        .then(
-            function() {
-              $scope.$close();
-            },
-            function(error) {
-              vm.error = Messages.getHttpErrorMessage(error);
-            }
-        );
+    vm.reEvaluatePolicyMask
+      .wrap(
+        $http.post(
+          CLMLocations.getRepositoryEvaluateUrl($stateParams.repositoryId)
+        )
+      )
+      .then(
+        function () {
+          $scope.$close();
+        },
+        function (error) {
+          vm.error = Messages.getHttpErrorMessage(error);
+        }
+      );
   }
 }
 
-RepositoryReEvaluateModalController.$inject = ['$scope', '$http', '$stateParams', 'CLMLocations', 'Messages'];
+RepositoryReEvaluateModalController.$inject = [
+  '$scope',
+  '$http',
+  '$stateParams',
+  'CLMLocations',
+  'Messages',
+];

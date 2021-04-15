@@ -6,12 +6,16 @@
 import dashboardUtilsModule from '../../../../../main/frontend/dashboard/utils/dashboard.utils.module';
 
 describe('stageFilter.filter.spec', function () {
-
   beforeEach(angular.mock.module(dashboardUtilsModule.name));
 
   it('empty filter', inject(function ($filter) {
-    var stageList = [{ id: 'operate' }, { id: 'build' }, { id: 'release' }, { id: 'stage-release' }],
-        result;
+    var stageList = [
+        { id: 'operate' },
+        { id: 'build' },
+        { id: 'release' },
+        { id: 'stage-release' },
+      ],
+      result;
 
     // null filter
     result = $filter('stageFilter')(stageList);
@@ -23,10 +27,17 @@ describe('stageFilter.filter.spec', function () {
   }));
 
   it('filter', inject(function ($filter) {
-    var stageList = [{ id: 'build' }, { id: 'stage-release' }, { id: 'release' }, { id: 'operate' }],
-        result;
+    var stageList = [
+        { id: 'build' },
+        { id: 'stage-release' },
+        { id: 'release' },
+        { id: 'operate' },
+      ],
+      result;
 
-    result = $filter('stageFilter')(stageList, { stageTypeFilters: ['release', 'build'] });
+    result = $filter('stageFilter')(stageList, {
+      stageTypeFilters: ['release', 'build'],
+    });
     expect(result).toEqual([{ id: 'build' }, { id: 'release' }]);
   }));
 });

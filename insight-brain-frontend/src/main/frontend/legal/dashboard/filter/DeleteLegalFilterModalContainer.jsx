@@ -6,16 +6,30 @@
 import { pick } from 'ramda';
 import { connect } from 'react-redux';
 
-import { deleteFilter, hideDeleteFilterModal } from './manageLegalFiltersActions';
+import {
+  deleteFilter,
+  hideDeleteFilterModal,
+} from './manageLegalFiltersActions';
 import DeleteFilterModal from '../../../dashboard/filter/deleteFilterModal/DeleteFilterModal';
 
 const mapDispatchToProps = {
   deleteFilter,
-  hideDeleteFilterModal
+  hideDeleteFilterModal,
 };
 
 const mapStateToProps = ({ manageLegalFilters }) =>
-  pick(['filterToDelete', 'deleteFilterError', 'deleteFilterSaving', 'deleteFilterSuccess'], manageLegalFilters);
+  pick(
+    [
+      'filterToDelete',
+      'deleteFilterError',
+      'deleteFilterSaving',
+      'deleteFilterSuccess',
+    ],
+    manageLegalFilters
+  );
 
-const DeleteLegalFilterModalContainer = connect(mapStateToProps, mapDispatchToProps)(DeleteFilterModal);
+const DeleteLegalFilterModalContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DeleteFilterModal);
 export default DeleteLegalFilterModalContainer;

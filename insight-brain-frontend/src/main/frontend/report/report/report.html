@@ -1,24 +1,50 @@
 <div class="nx-page-main iq-legacy-report-container nx-viewport-sized">
   <div class="container container--old-report nx-viewport-sized__container">
-    <div load-error='error' reload='doLoad()'></div>
-    <div ng-hide='error' style="width:960px; margin:auto" class="nx-viewport-sized__container">
-      <div ng-hide='application'><h5><i class='icon icon-time'></i> Loading...</h5></div>
-      <div ng-if='application' class="iq-legacy-report__app-wrapper">
-        <div id="policy-centric-report-preview-alert" class="iq-alert iq-alert--info">
-          <a ui-sref="applicationReport.policy({ publicId: publicId, scanId: scanId })" class="iq-navigation__link">
+    <div load-error="error" reload="doLoad()"></div>
+    <div
+      ng-hide="error"
+      style="width: 960px; margin: auto"
+      class="nx-viewport-sized__container"
+    >
+      <div ng-hide="application">
+        <h5><i class="icon icon-time"></i> Loading...</h5>
+      </div>
+      <div ng-if="application" class="iq-legacy-report__app-wrapper">
+        <div
+          id="policy-centric-report-preview-alert"
+          class="iq-alert iq-alert--info"
+        >
+          <a
+            ui-sref="applicationReport.policy({ publicId: publicId, scanId: scanId })"
+            class="iq-navigation__link"
+          >
             Click here<!--
-       --></a>
-            to view the Application Report's new policy-centric look.
+       --></a
+          >
+          to view the Application Report's new policy-centric look.
         </div>
-        <div id='report-title'
-             class="visual-testing-ignore report__title"
-             style="width:940px;">
-          <strong>{{application.name}}</strong> - {{reportTime | date: 'yyyy-MM-dd HH:mm:ss UTCZ'}} -
+        <div
+          id="report-title"
+          class="visual-testing-ignore report__title"
+          style="width: 940px"
+        >
+          <strong>{{application.name}}</strong> - {{reportTime | date:
+          'yyyy-MM-dd HH:mm:ss UTCZ'}} -
           <em>{{reportTitle}}</em>
         </div>
-        <div id='evaluation-report-container' class="nx-viewport-sized__container">
-          <iframe class="nx-viewport-sized__scrollable" ng-src="{{reportUrl}}" width="100%" border="0"
-                  frameborder="0" scrolling="yes" style="overflow:auto;">
+        <div
+          id="evaluation-report-container"
+          class="nx-viewport-sized__container"
+        >
+          <iframe
+            class="nx-viewport-sized__scrollable"
+            ng-src="{{reportUrl}}"
+            width="100%"
+            border="0"
+            frameborder="0"
+            scrolling="yes"
+            style="overflow: auto"
+          >
           </iframe>
         </div>
       </div>

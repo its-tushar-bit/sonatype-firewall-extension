@@ -11,11 +11,13 @@ export default function ProductLicense($http, CLMLocations) {
   return {
     load() {
       if (!promise) {
-        promise = $http.get(CLMLocations.getValidateLicenseUrl()).then(prop('data'));
+        promise = $http
+          .get(CLMLocations.getValidateLicenseUrl())
+          .then(prop('data'));
       }
 
       return promise;
-    }
+    },
   };
 }
 

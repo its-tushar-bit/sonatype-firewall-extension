@@ -8,9 +8,10 @@ export default function UnauthenticatedRequestQueueService() {
     addRequest: addRequest,
     clearRequests: clearRequests,
     getRequests: getRequests,
-    getPromises: getPromises
+    getPromises: getPromises,
   };
-  var requests = [], promises = [];
+  var requests = [],
+    promises = [];
 
   function addRequest(request) {
     requests.push(request);
@@ -30,7 +31,7 @@ export default function UnauthenticatedRequestQueueService() {
       return promises;
     }
 
-    requests.forEach(function(request) {
+    requests.forEach(function (request) {
       promises.push(request());
     });
     return promises;

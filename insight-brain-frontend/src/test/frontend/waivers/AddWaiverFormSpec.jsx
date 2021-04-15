@@ -7,34 +7,35 @@ import {
   NxButton,
   NxFieldset,
   NxRadio,
-  NxTextInput
+  NxTextInput,
 } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../enzymeUtils';
 import AddWaiverForm from '../../../main/frontend/waivers/AddWaiverForm';
 import ArtifactNameDisplay from '../../../main/frontend/react/ArtifactNameDisplay';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
-import VulnerabilityDetailsModalContainer
-  from '../../../main/frontend/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
+import VulnerabilityDetailsModalContainer from '../../../main/frontend/vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import LoadError from '../../../main/frontend/react/LoadError';
 
-describe('AddWaiverForm', function() {
+describe('AddWaiverForm', function () {
   let minimalProps,
-      getShallowComponent,
-      saveWaiverSpy,
-      setWaiverCommentSpy,
-      setWaiverScopeSpy,
-      setApplyToAllComponentsSpy,
-      setExpiryTimeSpy,
-      openVulnerabilityDetailsModalSpy,
-      cancelActionSpy;
+    getShallowComponent,
+    saveWaiverSpy,
+    setWaiverCommentSpy,
+    setWaiverScopeSpy,
+    setApplyToAllComponentsSpy,
+    setExpiryTimeSpy,
+    openVulnerabilityDetailsModalSpy,
+    cancelActionSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     saveWaiverSpy = jasmine.createSpy('saveWaiver');
     setWaiverCommentSpy = jasmine.createSpy('setWaiverComment');
     setWaiverScopeSpy = jasmine.createSpy('setWaiverScope');
     setApplyToAllComponentsSpy = jasmine.createSpy('setApplyToAllComponents');
-    openVulnerabilityDetailsModalSpy = jasmine.createSpy('loadAddWaiverDataSpy');
+    openVulnerabilityDetailsModalSpy = jasmine.createSpy(
+      'loadAddWaiverDataSpy'
+    );
     cancelActionSpy = jasmine.createSpy('cancelAction');
     setExpiryTimeSpy = jasmine.createSpy('setExpiryTime');
 
@@ -51,27 +52,27 @@ describe('AddWaiverForm', function() {
       threatLevelCategory: 'severe',
       waiverComments: {
         value: 'waiver comments',
-        isPristine: true
+        isPristine: true,
       },
       availableWaiverScopes: [
         {
           id: 'id1',
           name: 'target1',
           label: 'Application',
-          type: 'application'
+          type: 'application',
         },
         {
           id: 'id2',
           name: 'target2',
           label: 'Organization',
-          type: 'organization'
-        }
+          type: 'organization',
+        },
       ],
       selectedWaiverScope: {
         id: 'id1',
         name: 'target1',
         label: 'Application',
-        type: 'application'
+        type: 'application',
       },
       setWaiverScope: setWaiverScopeSpy,
       setApplyToAllComponents: setApplyToAllComponentsSpy,
@@ -80,85 +81,97 @@ describe('AddWaiverForm', function() {
       saveWaiver: saveWaiverSpy,
       openVulnerabilityDetailsModal: openVulnerabilityDetailsModalSpy,
       vulnerabilityId: 'CVE-12345',
-      cancelAction: cancelActionSpy
+      cancelAction: cancelActionSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(AddWaiverForm, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      AddWaiverForm,
+      minimalProps
+    );
   });
 
-  it('renders a form with the appropriate classes', function() {
+  it('renders a form with the appropriate classes', function () {
     const component = getShallowComponent();
     expect(component).toMatchSelector('form.nx-form.iq-add-waiver-form');
   });
 
-  it('renders a tile header with the artifact and component names', function() {
+  it('renders a tile header with the artifact and component names', function () {
     const component = getShallowComponent(),
-        tileHeader = component.find('.iq-add-waiver-form__component'),
-        artifactNameComponent = tileHeader.find(ArtifactNameDisplay),
-        componentName = tileHeader.find('.nx-tile-header__subtitle');
+      tileHeader = component.find('.iq-add-waiver-form__component'),
+      artifactNameComponent = tileHeader.find(ArtifactNameDisplay),
+      componentName = tileHeader.find('.nx-tile-header__subtitle');
 
     expect(tileHeader).toHaveClassName('.nx-tile-header');
     expect(artifactNameComponent).toHaveProp('artifactName', 'artifact name');
     expect(componentName).toHaveText('component name');
   });
 
-  it('renders a form group with the policy info', function() {
+  it('renders a form group with the policy info', function () {
     const component = getShallowComponent(),
-        policySection = component.find('.iq-add-waiver-form__policy'),
-        ViolationExclamationComponent = policySection.find(ViolationExclamation),
-        policySpan = policySection.find('.iq-threat-level');
+      policySection = component.find('.iq-add-waiver-form__policy'),
+      ViolationExclamationComponent = policySection.find(ViolationExclamation),
+      policySpan = policySection.find('.iq-threat-level');
 
     expect(policySection).toHaveClassName('.nx-form-group');
-    expect(ViolationExclamationComponent).toHaveProp('threatLevelCategory', 'severe');
+    expect(ViolationExclamationComponent).toHaveProp(
+      'threatLevelCategory',
+      'severe'
+    );
     expect(policySpan).toHaveClassName('.iq-threat-level--severe');
     expect(policySpan).toHaveText('policy name');
   });
 
-  it('renders a form group with the constraint info', function() {
+  it('renders a form group with the constraint info', function () {
     const component = getShallowComponent(),
-        constraintSection = component.find('.iq-add-waiver-form__constraint'),
-        constraintName = constraintSection.find('.iq-read-only-data');
+      constraintSection = component.find('.iq-add-waiver-form__constraint'),
+      constraintName = constraintSection.find('.iq-read-only-data');
 
     expect(constraintName).toHaveText('constraint name');
   });
 
-  it('renders a form group with the conditions', function() {
+  it('renders a form group with the conditions', function () {
     const component = getShallowComponent(),
-        conditionsSection = component.find('.iq-add-waiver-form__conditions'),
-        reasons = conditionsSection.find('.iq-read-only-data');
+      conditionsSection = component.find('.iq-add-waiver-form__conditions'),
+      reasons = conditionsSection.find('.iq-read-only-data');
 
     expect(reasons.prop('children').length).toBe(minimalProps.reasons.length);
     expect(reasons.childAt(0)).toHaveText('reason1');
     expect(reasons.childAt(1)).toHaveText('reason2');
   });
 
-  it('renders a link to see vulnerability details and opens the modal on click', function() {
+  it('renders a link to see vulnerability details and opens the modal on click', function () {
     const component = getShallowComponent(),
-        vulnerabilityDetailsSection = component.find('.iq-add-waiver-form__vulnerability_details_link'),
-        vulnerabilityDetailsLink = vulnerabilityDetailsSection.find('a');
+      vulnerabilityDetailsSection = component.find(
+        '.iq-add-waiver-form__vulnerability_details_link'
+      ),
+      vulnerabilityDetailsLink = vulnerabilityDetailsSection.find('a');
 
-    expect(vulnerabilityDetailsLink).toHaveText('See Security Vulnerability Details');
+    expect(vulnerabilityDetailsLink).toHaveText(
+      'See Security Vulnerability Details'
+    );
     expect(openVulnerabilityDetailsModalSpy).not.toHaveBeenCalled();
     vulnerabilityDetailsLink.simulate('click');
     expect(openVulnerabilityDetailsModalSpy).toHaveBeenCalledWith({
       vulnerabilityId: 'CVE-12345',
-      componentIdentifier: { format: 'maven', coordinates: 'test' }
+      componentIdentifier: { format: 'maven', coordinates: 'test' },
     });
   });
 
-  it('renders a VulnerabilityDetailsModalContainer IFF vulnerabilityId is truthy', function() {
+  it('renders a VulnerabilityDetailsModalContainer IFF vulnerabilityId is truthy', function () {
     let component = getShallowComponent();
     expect(component.find(VulnerabilityDetailsModalContainer)).toExist();
 
-    component = getShallowComponent({vulnerabilityId: null});
+    component = getShallowComponent({ vulnerabilityId: null });
     expect(component.find(VulnerabilityDetailsModalContainer)).not.toExist();
-    expect(component.find('.iq-add-waiver-form__vulnerability_details_link')).not.toExist();
+    expect(
+      component.find('.iq-add-waiver-form__vulnerability_details_link')
+    ).not.toExist();
   });
 
-  it('renders a fieldset with NxRadios for the WaiverTargets', function() {
+  it('renders a fieldset with NxRadios for the WaiverTargets', function () {
     const component = getShallowComponent(),
-        waiverTargetsSection = component.find('.iq-add-waiver-form__scope'),
-        targetRadios = waiverTargetsSection.find(NxRadio);
+      waiverTargetsSection = component.find('.iq-add-waiver-form__scope'),
+      targetRadios = waiverTargetsSection.find(NxRadio);
 
     expect(waiverTargetsSection.find(NxFieldset)).toExist();
     expect(waiverTargetsSection).toHaveProp('label', 'Scope');
@@ -175,12 +188,12 @@ describe('AddWaiverForm', function() {
     expect(targetRadios.at(1)).toHaveText('Organization - target2');
   });
 
-  it('calls `setWaiverScope` when the waiver target is changed', function() {
+  it('calls `setWaiverScope` when the waiver target is changed', function () {
     let component = getShallowComponent(),
-        waiverTargetsSection = component.find('.iq-add-waiver-form__scope'),
-        targetRadios = waiverTargetsSection.find(NxRadio),
-        radio1 = targetRadios.at(0),
-        radio2 = targetRadios.at(1);
+      waiverTargetsSection = component.find('.iq-add-waiver-form__scope'),
+      targetRadios = waiverTargetsSection.find(NxRadio),
+      radio1 = targetRadios.at(0),
+      radio2 = targetRadios.at(1);
 
     expect(radio1).toHaveProp('isChecked', true);
     expect(radio2).toHaveProp('isChecked', false);
@@ -190,14 +203,14 @@ describe('AddWaiverForm', function() {
       id: 'id2',
       name: 'target2',
       label: 'Organization',
-      type: 'organization'
+      type: 'organization',
     });
   });
 
-  it('renders a fieldset with NxRadios for the waiver components', function() {
+  it('renders a fieldset with NxRadios for the waiver components', function () {
     const component = getShallowComponent(),
-        componentsSection = component.find('.iq-add-waiver-form__components'),
-        componentRadios = componentsSection.find(NxRadio);
+      componentsSection = component.find('.iq-add-waiver-form__components'),
+      componentRadios = componentsSection.find(NxRadio);
 
     expect(componentsSection.find(NxFieldset)).toExist();
     expect(componentsSection).toHaveProp('label', 'Components');
@@ -215,12 +228,12 @@ describe('AddWaiverForm', function() {
     expect(componentRadios.at(1)).toHaveText('All Components');
   });
 
-  it('calls `setApplyToAllComponents` when the waiver components are changed', function() {
+  it('calls `setApplyToAllComponents` when the waiver components are changed', function () {
     const component = getShallowComponent(),
-        componentsSection = component.find('.iq-add-waiver-form__components'),
-        componentRadios = componentsSection.find(NxRadio),
-        component1 = componentRadios.at(0),
-        component2 = componentRadios.at(1);
+      componentsSection = component.find('.iq-add-waiver-form__components'),
+      componentRadios = componentsSection.find(NxRadio),
+      component1 = componentRadios.at(0),
+      component2 = componentRadios.at(1);
 
     expect(component1).toHaveProp('isChecked', true);
     expect(component2).toHaveProp('isChecked', false);
@@ -232,11 +245,11 @@ describe('AddWaiverForm', function() {
     expect(setApplyToAllComponentsSpy).toHaveBeenCalledWith(false);
   });
 
-  it('renders a fieldset with Select for the expiry times', function() {
+  it('renders a fieldset with Select for the expiry times', function () {
     const component = getShallowComponent(),
-        expiryTimeSection = component.find('.iq-add-waiver-form__expiryTime'),
-        selectComponent = expiryTimeSection.find('select'),
-        options = selectComponent.find('option');
+      expiryTimeSection = component.find('.iq-add-waiver-form__expiryTime'),
+      selectComponent = expiryTimeSection.find('select'),
+      options = selectComponent.find('option');
 
     expect(expiryTimeSection.find(NxFieldset)).toExist();
     expect(expiryTimeSection).toHaveProp('label', 'Waiver Expiration');
@@ -265,20 +278,20 @@ describe('AddWaiverForm', function() {
     expect(options.at(6)).toHaveProp('value', '120');
   });
 
-  it('calls `setExpiryTime` when the expiry time is changed', function() {
+  it('calls `setExpiryTime` when the expiry time is changed', function () {
     const component = getShallowComponent(),
-        selectComponent = component.find('select'),
-        mockEvent = { currentTarget: { value: '7'} };
+      selectComponent = component.find('select'),
+      mockEvent = { currentTarget: { value: '7' } };
 
     selectComponent.simulate('change', mockEvent);
 
     expect(setExpiryTimeSpy).toHaveBeenCalledWith('7');
   });
 
-  it('renders a form group with a text area for the comments', function() {
+  it('renders a form group with a text area for the comments', function () {
     const component = getShallowComponent(),
-        commentsSection = component.find('.iq-add-waiver-form__comments'),
-        textArea = commentsSection.find(NxTextInput);
+      commentsSection = component.find('.iq-add-waiver-form__comments'),
+      textArea = commentsSection.find(NxTextInput);
 
     expect(commentsSection).toHaveClassName('.nx-form-group');
     expect(textArea).toHaveProp('type', 'textarea');
@@ -286,19 +299,19 @@ describe('AddWaiverForm', function() {
     expect(textArea).toHaveProp('isPristine', true);
   });
 
-  it('calls `setWaiverComment` when the comments change', function() {
+  it('calls `setWaiverComment` when the comments change', function () {
     const component = getShallowComponent(),
-        commentsSection = component.find('.iq-add-waiver-form__comments'),
-        textArea = commentsSection.find(NxTextInput);
+      commentsSection = component.find('.iq-add-waiver-form__comments'),
+      textArea = commentsSection.find(NxTextInput);
 
     textArea.simulate('change', 'Foo');
     expect(setWaiverCommentSpy).toHaveBeenCalledWith('Foo');
   });
 
-  it('renders a btn bar with action buttons in the footer', function() {
+  it('renders a btn bar with action buttons in the footer', function () {
     const component = getShallowComponent(),
-        buttonBar = component.find('.nx-footer .nx-btn-bar'),
-        buttons = buttonBar.find(NxButton);
+      buttonBar = component.find('.nx-footer .nx-btn-bar'),
+      buttons = buttonBar.find(NxButton);
 
     expect(buttons.length).toBe(2);
 
@@ -312,40 +325,61 @@ describe('AddWaiverForm', function() {
     expect(buttons.at(1)).toHaveText('Submit');
   });
 
-  describe('it calls `saveWaiver` when form is submitted', function() {
+  describe('it calls `saveWaiver` when form is submitted', function () {
     const preventDefaultSpy = jasmine.createSpy('preventDefault');
 
-    it('passes null as expiryTime if never is chosen as expiry time', function() {
+    it('passes null as expiryTime if never is chosen as expiry time', function () {
       const component = getShallowComponent({ expiryTime: 'never' }),
-          form = component.find('.nx-form');
+        form = component.find('.nx-form');
 
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false, null);
+      expect(saveWaiverSpy).toHaveBeenCalledWith(
+        'violationId',
+        'application',
+        'id1',
+        'waiver comments',
+        false,
+        null
+      );
     });
 
-    it('passes the number of days chosen for the expiry time', function() {
+    it('passes the number of days chosen for the expiry time', function () {
       let component = getShallowComponent(),
-          form = component.find('.nx-form');
+        form = component.find('.nx-form');
 
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'application', 'id1', 'waiver comments', false, 7);
+      expect(saveWaiverSpy).toHaveBeenCalledWith(
+        'violationId',
+        'application',
+        'id1',
+        'waiver comments',
+        false,
+        7
+      );
 
       component = getShallowComponent({
         selectedWaiverScope: {
           id: 'idOrg',
           name: 'target2',
           label: 'Organization',
-          type: 'organization'
+          type: 'organization',
         },
-        expiryTime: '30'
+        expiryTime: '30',
       });
       form = component.find('.nx-form');
       form.simulate('submit', { preventDefault: preventDefaultSpy });
-      expect(saveWaiverSpy).toHaveBeenCalledWith('violationId', 'organization', 'idOrg', 'waiver comments', false, 30);
+      expect(saveWaiverSpy).toHaveBeenCalledWith(
+        'violationId',
+        'organization',
+        'idOrg',
+        'waiver comments',
+        false,
+        30
+      );
     });
   });
 
-  it('calls `cancelAction` when cancel button is clicked', function() {
+  it('calls `cancelAction` when cancel button is clicked', function () {
     const preventDefaultSpy = jasmine.createSpy('preventDefault');
     const component = getShallowComponent();
     const cancelButton = component.find('#add-waiver-cancel');
@@ -354,10 +388,10 @@ describe('AddWaiverForm', function() {
     expect(cancelActionSpy).toHaveBeenCalled();
   });
 
-  it('renders an LoadError when submitError is present', function() {
+  it('renders an LoadError when submitError is present', function () {
     const submitErrorObject = new Error('an error');
     const component = getShallowComponent({ submitError: submitErrorObject }),
-        loadError = component.find(LoadError);
+      loadError = component.find(LoadError);
 
     expect(loadError).toHaveProp('error', submitErrorObject);
   });

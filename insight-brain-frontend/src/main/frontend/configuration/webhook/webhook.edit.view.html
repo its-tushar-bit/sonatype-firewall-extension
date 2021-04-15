@@ -2,108 +2,143 @@
   <div class="iq-sys-prefs-back-button">
     <iq-back-button state="webhooks.list"></iq-back-button>
   </div>
-  <div class="iq-tile iq-tile--sys-prefs" load-wrapper="vm.loadError" reload="vm.doLoad()" loading="!vm.dirtyWebhook">
+  <div
+    class="iq-tile iq-tile--sys-prefs"
+    load-wrapper="vm.loadError"
+    reload="vm.doLoad()"
+    loading="!vm.dirtyWebhook"
+  >
     <div ng-if="vm.isWebhooksSupported">
       <div class="iq-tile-header webhooks">
         <div class="iq-tile-header__title">
           <div class="iq-tile-header__icon">
-            <img src="img/webhooks_20px.png" class="pull-left webhook-icon" alt="Webhooks">
+            <img
+              src="img/webhooks_20px.png"
+              class="pull-left webhook-icon"
+              alt="Webhooks"
+            />
           </div>
           <h1>{{::vm.dirtyWebhook.id ? 'Edit' : 'Create'}} Webhook</h1>
         </div>
       </div>
-      
-      <form name="vm.webhookEditor"
-            class="iq-form iq-form--no-padding iq-form--no-border"
-            role="form"
-            ng-submit="vm.webhookEditor.$valid && vm.dirtyWebhook.isDirty() && vm.saveWebhook()"
-            novalidate
-            form-mask="vm.webhookEditorMask"
-            mask-attach-to-body>
-  
+
+      <form
+        name="vm.webhookEditor"
+        class="iq-form iq-form--no-padding iq-form--no-border"
+        role="form"
+        ng-submit="vm.webhookEditor.$valid && vm.dirtyWebhook.isDirty() && vm.saveWebhook()"
+        novalidate
+        form-mask="vm.webhookEditorMask"
+        mask-attach-to-body
+      >
         <!-- These two fields are in place solely to stop browsers from autopopulating the webhook auth fields -->
-        <input type="text" class="hidden-input-hack"/>
-        <input type="password" class="hidden-input-hack"/>
-              
+        <input type="text" class="hidden-input-hack" />
+        <input type="password" class="hidden-input-hack" />
+
         <div class="iq-tile-content">
           <div class="iq-form-group">
             <label class="iq-label" for="editor-webhook-url">
               Webhook URL
               <div class="iq-sub-label">to send the POST request</div>
             </label>
-            <input class="iq-text-input iq-text-input--long"
-                   id="editor-webhook-url"
-                   type="text"
-                   name="url"
-                   required
-                   ng-model="vm.dirtyWebhook.url"
-                   ng-maxlength="2048"
-                   focus-input="true"
-                   clm-input/>
+            <input
+              class="iq-text-input iq-text-input--long"
+              id="editor-webhook-url"
+              type="text"
+              name="url"
+              required
+              ng-model="vm.dirtyWebhook.url"
+              ng-maxlength="2048"
+              focus-input="true"
+              clm-input
+            />
           </div>
           <div class="iq-form-group">
             <label class="iq-label" for="editor-webhook-url">
               Webhook description - optional
-              <div class="iq-sub-label">a description for your webhook used in the UI</div>
+              <div class="iq-sub-label">
+                a description for your webhook used in the UI
+              </div>
             </label>
-            <input class="iq-text-input iq-text-input--long"
-                   id="editor-webhook-description"
-                   type="text"
-                   name="description"
-                   ng-model="vm.dirtyWebhook.description"
-                   ng-maxlength="2048"
-                   clm-input/>
+            <input
+              class="iq-text-input iq-text-input--long"
+              id="editor-webhook-description"
+              type="text"
+              name="description"
+              ng-model="vm.dirtyWebhook.description"
+              ng-maxlength="2048"
+              clm-input
+            />
           </div>
           <div class="iq-form-group">
             <label class="iq-label" for="editor-webhook-secret-key">
               Secret Key <span class="optional">- optional</span>
               <div class="iq-sub-label">used for the HMAC payload digest</div>
             </label>
-            <input class="iq-text-input iq-text-input--long"
-                   id="editor-webhook-secret-key"
-                   type="password"
-                   name="secret-key"
-                   ng-model="vm.dirtyWebhook.secretKey"
-                   ng-maxlength="512"
-                   clm-input/>
+            <input
+              class="iq-text-input iq-text-input--long"
+              id="editor-webhook-secret-key"
+              type="password"
+              name="secret-key"
+              ng-model="vm.dirtyWebhook.secretKey"
+              ng-maxlength="512"
+              clm-input
+            />
           </div>
-          <div id="application-evaluation-disabled-message"
-               ng-if="!vm.isWebhooksForApplicationsSupported"
-               class="iq-alert iq-alert--info iq-alert--form-item">
-            <i class="fa fa-info-circle"></i>Webhooks with Application Evaluation event types are not supported by your 
-            license.
+          <div
+            id="application-evaluation-disabled-message"
+            ng-if="!vm.isWebhooksForApplicationsSupported"
+            class="iq-alert iq-alert--info iq-alert--form-item"
+          >
+            <i class="fa fa-info-circle"></i>Webhooks with Application
+            Evaluation event types are not supported by your license.
           </div>
           <div class="iq-form-group" id="event-types">
             <label class="iq-label">
               Event Types
               <div class="iq-sub-label">which trigger this Webhook</div>
             </label>
-            <div ng-repeat="eventType in ::vm.webhookEventTypes" id="{{::eventType.split(' ').join('-')}}">
-              <iq-checkbox label="{{::eventType}}"
-                           on-click="vm.toggleEventTypeSelected(eventType)"
-                           is-checked="vm.hasEventTypeSelected(eventType)"
-                           is-disabled="::vm.isEventTypeDisabled(eventType)">
+            <div
+              ng-repeat="eventType in ::vm.webhookEventTypes"
+              id="{{::eventType.split(' ').join('-')}}"
+            >
+              <iq-checkbox
+                label="{{::eventType}}"
+                on-click="vm.toggleEventTypeSelected(eventType)"
+                is-checked="vm.hasEventTypeSelected(eventType)"
+                is-disabled="::vm.isEventTypeDisabled(eventType)"
+              >
               </iq-checkbox>
             </div>
           </div>
         </div>
-        
+
         <div class="iq-tile-footer">
           <div submit-wrapper="vm.submitError" retry="vm.saveWebhook()">
-            <button type="submit"
-                    class="iq-btn iq-btn--primary"
-                    submit-validation
-                    submit-dirty="vm.dirtyWebhook.isDirty()"
-                    submit-type="vm.dirtyWebhook.id ? 'update' : 'create'"
-                    submit-tooltip-target="body">
-              {{::vm.dirtyWebhook.id ? 'Update' : 'Create'}}
-            </button><!--
-         --><button class="iq-btn iq-btn--dismiss" type="button" ui-sref="webhooks.list">Cancel</button><!--
-         --><button id="delete-webhook-button"
-                    class="iq-btn iq-btn--tertiary"
-                    type="button"
-                    ng-click="vm.deleteWebhook()"
-                    ng-if="vm.dirtyWebhook && vm.dirtyWebhook.id">
+            <button
+              type="submit"
+              class="iq-btn iq-btn--primary"
+              submit-validation
+              submit-dirty="vm.dirtyWebhook.isDirty()"
+              submit-type="vm.dirtyWebhook.id ? 'update' : 'create'"
+              submit-tooltip-target="body"
+            >
+              {{::vm.dirtyWebhook.id ? 'Update' : 'Create'}}</button
+            ><!--
+         --><button
+              class="iq-btn iq-btn--dismiss"
+              type="button"
+              ui-sref="webhooks.list"
+            >
+              Cancel</button
+            ><!--
+         --><button
+              id="delete-webhook-button"
+              class="iq-btn iq-btn--tertiary"
+              type="button"
+              ng-click="vm.deleteWebhook()"
+              ng-if="vm.dirtyWebhook && vm.dirtyWebhook.id"
+            >
               <i class="fa fa-trash"></i>Remove Webhook
             </button>
           </div>
@@ -112,7 +147,8 @@
     </div>
     <div ng-if="!vm.isWebhooksSupported">
       <div class="iq-alert iq-alert--error">
-        <i class="fa fa-warning"></i>Webhooks feature is not supported by your license.
+        <i class="fa fa-warning"></i>Webhooks feature is not supported by your
+        license.
       </div>
     </div>
   </div>

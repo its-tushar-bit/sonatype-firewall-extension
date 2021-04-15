@@ -5,32 +5,35 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 
-describe('FirewallQuarantine', function() {
-  let minimalProps,
-      FirewallQuarantine,
-      getShallowComponent;
+describe('FirewallQuarantine', function () {
+  let minimalProps, FirewallQuarantine, getShallowComponent;
 
-  beforeEach(function() {
-    FirewallQuarantine = require(
-        'inject-loader!../../../main/frontend/firewall/FirewallQuarantine')().default;
+  beforeEach(function () {
+    FirewallQuarantine = require('inject-loader!../../../main/frontend/firewall/FirewallQuarantine')()
+      .default;
 
     minimalProps = {
-      quarantinedComponentCount: 2
+      quarantinedComponentCount: 2,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(FirewallQuarantine, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      FirewallQuarantine,
+      minimalProps
+    );
   });
 
-  it('renders a component with the "nx-card" class', function() {
+  it('renders a component with the "nx-card" class', function () {
     expect(getShallowComponent().find('.nx-card')).toExist();
   });
 
-  it('renders a card header', function() {
+  it('renders a card header', function () {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Quarantine');
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText(
+      'Quarantine'
+    );
   });
 
-  it('renders card content', function() {
+  it('renders card content', function () {
     const component = getShallowComponent();
     const content = component.find('.nx-card__content');
     expect(content).toExist();

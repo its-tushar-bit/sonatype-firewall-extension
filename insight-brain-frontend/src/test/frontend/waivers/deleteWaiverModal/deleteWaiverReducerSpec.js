@@ -5,9 +5,9 @@
  */
 import reducer from '../../../../main/frontend/waivers/deleteWaiverModal/deleteWaiverReducer';
 
-describe('deleteWaiverReducer', function() {
-  describe('unknown action', function() {
-    it('returns original state', function() {
+describe('deleteWaiverReducer', function () {
+  describe('unknown action', function () {
+    it('returns original state', function () {
       const state = Object.freeze({ foo: 'bar' });
       const action = { type: 'UNKNOWN' };
       const newState = reducer(state, action);
@@ -15,14 +15,14 @@ describe('deleteWaiverReducer', function() {
     });
   });
 
-  describe('initial state', function() {
-    it('is used if no state is provided', function() {
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
       const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState).not.toBeUndefined();
     });
 
-    it('has default fields', function() {
+    it('has default fields', function () {
       const action = { type: 'UNKNOWN' };
       const state = reducer(undefined, action);
       expect(state.waiverToDelete).toBeNull();
@@ -30,8 +30,8 @@ describe('deleteWaiverReducer', function() {
       expect(state.deleteWaiverError).toBeNull();
     });
 
-    it('is immutable', function() {
-      const action = {type: 'UNKNOWN'};
+    it('is immutable', function () {
+      const action = { type: 'UNKNOWN' };
       const state = reducer(undefined, action);
 
       expect(() => {
@@ -44,17 +44,17 @@ describe('deleteWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_SET_WAIVER_TO_DELETE action', function() {
-    it('sets the waiverToDelete from the payload and clears flags', function() {
+  describe('WAIVERS_SET_WAIVER_TO_DELETE action', function () {
+    it('sets the waiverToDelete from the payload and clears flags', function () {
       const initialState = {
         waiverToDelete: null,
         deleteWaiverSaving: false,
         deleteWaiverError: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
       const action = {
         type: 'WAIVERS_SET_WAIVER_TO_DELETE',
-        payload: { waiverId: 'foo' }
+        payload: { waiverId: 'foo' },
       };
 
       const newState = reducer(initialState, action);
@@ -65,16 +65,18 @@ describe('deleteWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_HIDE_DELETE_WAIVER_MODAL action', function() {
-    it('resets state to initial conditions', function() {
+  describe('WAIVERS_HIDE_DELETE_WAIVER_MODAL action', function () {
+    it('resets state to initial conditions', function () {
       const state = {
         waiverToDelete: null,
         deleteWaiverSaving: true,
         deleteWaiverError: 'Error',
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
-      const newState = reducer(state, { type: 'WAIVERS_HIDE_DELETE_WAIVER_MODAL' });
+      const newState = reducer(state, {
+        type: 'WAIVERS_HIDE_DELETE_WAIVER_MODAL',
+      });
       expect(newState.waiverToDelete).toBeNull();
       expect(newState.deleteWaiverSaving).toBeNull();
       expect(newState.deleteWaiverError).toBeNull();
@@ -82,67 +84,78 @@ describe('deleteWaiverReducer', function() {
     });
   });
 
-  describe('WAIVERS_DELETE_WAIVER_REQUESTED action', function() {
-    it('sets the deleteWaiverSaving flag to false', function() {
+  describe('WAIVERS_DELETE_WAIVER_REQUESTED action', function () {
+    it('sets the deleteWaiverSaving flag to false', function () {
       const state = {
         deleteWaiverSaving: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
-      const newState = reducer(state, { type: 'WAIVERS_DELETE_WAIVER_REQUESTED' });
+      const newState = reducer(state, {
+        type: 'WAIVERS_DELETE_WAIVER_REQUESTED',
+      });
 
       expect(newState.deleteWaiverSaving).toBe(false);
       expect(newState.otherProp).toEqual(state.otherProp);
     });
 
-    it('clears any error that may have previously been in the state', function() {
+    it('clears any error that may have previously been in the state', function () {
       const state = {
         deleteWaiverError: 'err',
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
-      const newState = reducer(state, { type: 'WAIVERS_DELETE_WAIVER_REQUESTED' });
+      const newState = reducer(state, {
+        type: 'WAIVERS_DELETE_WAIVER_REQUESTED',
+      });
 
       expect(newState.deleteWaiverError).toBeNull();
       expect(newState.otherProp).toEqual(state.otherProp);
     });
   });
 
-  describe('WAIVERS_DELETE_WAIVER_FAILED action', function() {
-    it('sets the deleteWaiverError prop and toggles deleteWaiverSaving to null ', function() {
+  describe('WAIVERS_DELETE_WAIVER_FAILED action', function () {
+    it('sets the deleteWaiverError prop and toggles deleteWaiverSaving to null ', function () {
       const state = {
         deleteWaiverSaving: false,
         deleteWaiverError: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
-      const newState = reducer(state, { type: 'WAIVERS_DELETE_WAIVER_FAILED', payload: 'Foo!' });
+      const newState = reducer(state, {
+        type: 'WAIVERS_DELETE_WAIVER_FAILED',
+        payload: 'Foo!',
+      });
       expect(newState.deleteWaiverError).toEqual('Foo!');
       expect(newState.otherProp).toEqual(state.otherProp);
       expect(newState.deleteWaiverSaving).toBeNull();
     });
   });
 
-  describe('WAIVERS_DELETE_WAIVER_FULFILLED action', function() {
-    it('sets the deleteWaiverSaving prop to true', function() {
+  describe('WAIVERS_DELETE_WAIVER_FULFILLED action', function () {
+    it('sets the deleteWaiverSaving prop to true', function () {
       const state = {
         deleteWaiverSaving: false,
         deleteWaiverError: null,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
-      const newState = reducer(state, { type: 'WAIVERS_DELETE_WAIVER_FULFILLED' });
+      const newState = reducer(state, {
+        type: 'WAIVERS_DELETE_WAIVER_FULFILLED',
+      });
       expect(newState.deleteWaiverSaving).toBe(true);
       expect(newState.otherProp).toBe(state.otherProp);
     });
   });
 
-  describe('WAIVERS_DELETE_MASK_TIMER_DONE action', function() {
-    it('resets state to initial conditions', function() {
+  describe('WAIVERS_DELETE_MASK_TIMER_DONE action', function () {
+    it('resets state to initial conditions', function () {
       const state = {
         waiverToDelete: { waiverId: 'foo' },
         deleteWaiverSaving: true,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
-      const newState = reducer(state, { type: 'WAIVERS_DELETE_MASK_TIMER_DONE' });
+      const newState = reducer(state, {
+        type: 'WAIVERS_DELETE_MASK_TIMER_DONE',
+      });
       expect(newState.waiverToDelete).toBeNull();
       expect(newState.deleteWaiverSaving).toBeNull();
       expect(newState.deleteWaiverError).toBeNull();
@@ -150,17 +163,17 @@ describe('deleteWaiverReducer', function() {
     });
   });
 
-  describe('UI_ROUTER_ON_FINISH action', function() {
-    it('clears state on onFinish', function() {
+  describe('UI_ROUTER_ON_FINISH action', function () {
+    it('clears state on onFinish', function () {
       const currentState = {
         waiverToDelete: { waiverId: 'foo' },
         deleteWaiverSaving: true,
         deleteWaiverError: 'Some Err',
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
       const newState = reducer(currentState, {
-        type: '@@reduxUiRouter/onFinish'
+        type: '@@reduxUiRouter/onFinish',
       });
 
       expect(newState.waiverToDelete).toBeNull();

@@ -8,16 +8,12 @@ import { NxBackButton } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 import BackButton from '../../../main/frontend/react/BackButton';
 
-describe('BackButton (React)', function() {
-  let mockState,
-      stateGetSpy,
-      stateHrefSpy,
-      minimalProps,
-      getShallowComponent;
+describe('BackButton (React)', function () {
+  let mockState, stateGetSpy, stateHrefSpy, minimalProps, getShallowComponent;
 
-  beforeEach(function() {
+  beforeEach(function () {
     mockState = {
-      data: { title: 'BarBaz' }
+      data: { title: 'BarBaz' },
     };
     stateGetSpy = jasmine.createSpy('get').and.returnValue(mockState);
     stateHrefSpy = jasmine.createSpy('href').and.returnValue('/foo');
@@ -26,14 +22,17 @@ describe('BackButton (React)', function() {
       stateName: 'foo',
       $state: {
         get: stateGetSpy,
-        href: stateHrefSpy
-      }
+        href: stateHrefSpy,
+      },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(BackButton, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      BackButton,
+      minimalProps
+    );
   });
 
-  it('renders an NxBackButton with the href and title from the state, and the specified text', function() {
+  it('renders an NxBackButton with the href and title from the state, and the specified text', function () {
     const component = getShallowComponent();
 
     expect(component).toMatchSelector(NxBackButton);

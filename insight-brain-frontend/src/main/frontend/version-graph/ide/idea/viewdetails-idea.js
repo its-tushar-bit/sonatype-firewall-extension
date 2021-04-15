@@ -6,5 +6,5 @@
 window.clmEndpoint = {
   type: 'ide',
   showContext: false,
-  linkTarget: '_self'
+  linkTarget: '_self',
 };

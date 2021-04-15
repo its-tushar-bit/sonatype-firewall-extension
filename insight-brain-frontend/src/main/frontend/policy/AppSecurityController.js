@@ -8,16 +8,19 @@ import commonServicesModule from '../util/CommonServices';
 import angularCommonModule from '../util/AngularCommon';
 import CLMContextLocationModule from '../util/CLMContextLocation';
 
-var groupings = [{
-  type: 'GROUP',
-  header: 'GROUPS',
-  icon: 'group'
-}, {
-  type: 'USER',
-  header: 'USERS',
-  icon: 'user'
-}];
-var showGroupings = function(grouping, mappings) {
+var groupings = [
+  {
+    type: 'GROUP',
+    header: 'GROUPS',
+    icon: 'group',
+  },
+  {
+    type: 'USER',
+    header: 'USERS',
+    icon: 'user',
+  },
+];
+var showGroupings = function (grouping, mappings) {
   if (!mappings) {
     return false;
   }
@@ -31,8 +34,7 @@ var showGroupings = function(grouping, mappings) {
           return true;
         }
       }
-    }
-    else {
+    } else {
       if (mapping.type === grouping.type) {
         return true;
       }
@@ -49,23 +51,26 @@ function AppSecurityController($scope, $http, clmAppLocations, isAuthorized) {
   $scope.showGrouping = showGroupings;
   $scope.isAuthorized = isAuthorized;
 
-  $scope.doLoad = function() {
+  $scope.doLoad = function () {
     if (isAuthorized) {
       $scope.error = null;
 
-      $http.get(clmAppLocations.getRoleMappingUrl()).then(function(response) {
-        var data = response.data;
-        $scope.context = {
-          roles: data.membersByRole,
-          groupSearchEnabled: data.groupSearchEnabled
-        };
-      }, function(error) {
-        $scope.error = error;
-      });
+      $http.get(clmAppLocations.getRoleMappingUrl()).then(
+        function (response) {
+          var data = response.data;
+          $scope.context = {
+            roles: data.membersByRole,
+            groupSearchEnabled: data.groupSearchEnabled,
+          };
+        },
+        function (error) {
+          $scope.error = error;
+        }
+      );
     }
   };
 
-  $scope.$on('roleSaveComplete', function(event, roleId, newMembers) {
+  $scope.$on('roleSaveComplete', function (event, roleId, newMembers) {
     for (var i = 0; i < $scope.context.roles.length; i++) {
       if ($scope.context.roles[i].roleId === roleId) {
         $scope.context.roles[i].membersByOwner[0].members = newMembers.slice();
@@ -78,13 +83,24 @@ function AppSecurityController($scope, $http, clmAppLocations, isAuthorized) {
   $scope.doLoad();
 }
 
-AppSecurityController.$inject = ['$scope', '$http', 'CLMContextLocations', 'isAuthorized'];
+AppSecurityController.$inject = [
+  '$scope',
+  '$http',
+  'CLMContextLocations',
+  'isAuthorized',
+];
 
 /**
  * Controller for the editor component of each row of the Administration Roles table.  This essentially
  * manages a role-management directive along with some submissions buttons
  */
-function AppSecurityEditorController($scope, $http, Dialog, clmAppLocations, Messages) {
+function AppSecurityEditorController(
+  $scope,
+  $http,
+  Dialog,
+  clmAppLocations,
+  Messages
+) {
   $scope.alerts = [];
   $scope.$watch('role', function (newVal) {
     if (newVal) {
@@ -102,43 +118,49 @@ function AppSecurityEditorController($scope, $http, Dialog, clmAppLocations, Mes
     if ($scope.isDirty()) {
       Dialog.open({
         title: 'Unsaved Changes',
-        body: 'This role may contain unsaved changes, continuing will discard them.',
-        buttons: [{
-          name: 'Continue',
-          type: 'primary',
-          click: function() {
-            $scope.hide();
-          }
-        }, {
-          name: 'Cancel',
-          type: 'cancel'
-        }]
+        body:
+          'This role may contain unsaved changes, continuing will discard them.',
+        buttons: [
+          {
+            name: 'Continue',
+            type: 'primary',
+            click: function () {
+              $scope.hide();
+            },
+          },
+          {
+            name: 'Cancel',
+            type: 'cancel',
+          },
+        ],
       });
-    }
-    else {
+    } else {
       $scope.hide();
     }
   };
 
   $scope.save = function () {
     var roleId = $scope.role.roleId,
-        currentMembers;
+      currentMembers;
 
     if ($scope.isDirty()) {
       currentMembers = $scope.getCurrentMembersToSave();
 
-      return $http.put(clmAppLocations.getRoleMappingUrl(roleId), currentMembers)
-          .then(function() {
+      return $http
+        .put(clmAppLocations.getRoleMappingUrl(roleId), currentMembers)
+        .then(
+          function () {
             $scope.$emit('roleSaveComplete', roleId, currentMembers);
             $scope.hide();
-          }, function(error) {
+          },
+          function (error) {
             $scope.alerts.push({
               type: 'error',
-              msg: Messages.getHttpErrorMessage(error)
+              msg: Messages.getHttpErrorMessage(error),
             });
-          });
-    }
-    else {
+          }
+        );
+    } else {
       $scope.hide();
     }
   };
@@ -146,23 +168,36 @@ function AppSecurityEditorController($scope, $http, Dialog, clmAppLocations, Mes
   //isDirty bound from role.membership.controller
 }
 
-AppSecurityEditorController.$inject = ['$scope', '$http', 'Dialog', 'CLMContextLocations', 'Messages'];
+AppSecurityEditorController.$inject = [
+  '$scope',
+  '$http',
+  'Dialog',
+  'CLMContextLocations',
+  'Messages',
+];
 
 function AppSecurityEditorDirective() {
   return {
     scope: {
       hide: '&',
       role: '<',
-      groupSearchEnabled: '<'
+      groupSearchEnabled: '<',
     },
     controller: 'AppSecurityEditorController',
-    templateUrl: 'appSecurityEditor'
+    templateUrl: 'appSecurityEditor',
   };
 }
 
 export default angular //
-    .module('ApplicationSecurityModule', //
-        [commonServicesModule.name, angularCommonModule.name, CLMContextLocationModule.name, 'role.membership.module'])
-    .controller('AppSecurityController', AppSecurityController) //
-    .controller('AppSecurityEditorController', AppSecurityEditorController) //
-    .directive('appSecurityEditor', AppSecurityEditorDirective);
+  .module(
+    'ApplicationSecurityModule', //
+    [
+      commonServicesModule.name,
+      angularCommonModule.name,
+      CLMContextLocationModule.name,
+      'role.membership.module',
+    ]
+  )
+  .controller('AppSecurityController', AppSecurityController) //
+  .controller('AppSecurityEditorController', AppSecurityEditorController) //
+  .directive('appSecurityEditor', AppSecurityEditorDirective);

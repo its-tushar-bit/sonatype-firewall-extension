@@ -5,22 +5,25 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportTitle from '../../../../main/frontend/applicationReport/react/ReportTitle';
-import { NxButton, NxStatefulDropdown, NxTooltip } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxStatefulDropdown,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
 import moment from 'moment-timezone';
 
-describe('ReportTitle component', function() {
+describe('ReportTitle component', function () {
   let getShallowComponent, mockedReevaluateReport;
 
-  beforeAll(function() {
+  beforeAll(function () {
     moment.tz.setDefault('America/New_York');
   });
 
-  afterAll(function() {
+  afterAll(function () {
     moment.tz.setDefault();
   });
 
-  beforeEach(function() {
-
+  beforeEach(function () {
     mockedReevaluateReport = jasmine.createSpy('reevaluateReport');
 
     const minimalProps = {
@@ -28,21 +31,24 @@ describe('ReportTitle component', function() {
         reportTitle: 'Title',
         reportTime: moment('2018-11-11 15:13:11').toDate().getTime(),
         application: {
-          name: 'App Name'
-        }
+          name: 'App Name',
+        },
       },
       publicId: 'publicId',
       scanId: 'scanId',
       selectedReport: {
-        reportVersion: 3
+        reportVersion: 3,
       },
-      reevaluateReport: mockedReevaluateReport
+      reevaluateReport: mockedReevaluateReport,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(ReportTitle, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      ReportTitle,
+      minimalProps
+    );
   });
 
-  it('renders a div a dropdown and a button', function() {
+  it('renders a div a dropdown and a button', function () {
     const shallowComponent = getShallowComponent();
     const div = shallowComponent.find('div');
     const button = shallowComponent.find(NxButton);
@@ -52,27 +58,30 @@ describe('ReportTitle component', function() {
     expect(button).toExist();
   });
 
-  it('renders a disabled link if report version is less than 5', function() {
+  it('renders a disabled link if report version is less than 5', function () {
     const shallowComponent = getShallowComponent();
     const tooltip = shallowComponent.find(NxTooltip);
     const link = tooltip.find('a');
-    expect(tooltip).toHaveProp('title', 'Reevaluate the report in order to enable Vulnerabilities view');
+    expect(tooltip).toHaveProp(
+      'title',
+      'Reevaluate the report in order to enable Vulnerabilities view'
+    );
     expect(link).toHaveClassName('disabled', true);
   });
 
-  it('renders an enabled link if report version is greater than 5', function() {
+  it('renders an enabled link if report version is greater than 5', function () {
     const props = {
       metadataDetails: {
         reportTitle: 'Title',
         application: {
-          name: 'App Name'
-        }
+          name: 'App Name',
+        },
       },
       publicId: 'publicId',
       scanId: 'scanId',
       selectedReport: {
-        reportVersion: 7
-      }
+        reportVersion: 7,
+      },
     };
     const shallowComponent = getShallowComponent(props);
     const button = shallowComponent.find(NxTooltip).find('a');
@@ -80,22 +89,22 @@ describe('ReportTitle component', function() {
     expect(button).not.toHaveClassName('disabled');
   });
 
-  it('calls reevaluateReport when the reevaluateReport button is pressed', function() {
+  it('calls reevaluateReport when the reevaluateReport button is pressed', function () {
     const shallowComponent = getShallowComponent();
     const button = shallowComponent.find(NxButton);
     button.simulate('click');
     expect(mockedReevaluateReport).toHaveBeenCalled();
   });
 
-  it('renders a page title value', function() {
+  it('renders a page title value', function () {
     const component = getShallowComponent(),
-        title = component.find('.nx-page-title').find('.nx-h1');
+      title = component.find('.nx-page-title').find('.nx-h1');
     expect(title).toHaveText('App Name Title');
   });
 
-  it('renders a description with time value', function() {
+  it('renders a description with time value', function () {
     const component = getShallowComponent(),
-        content = component.find('.nx-page-title__description');
+      content = component.find('.nx-page-title__description');
     expect(content).toHaveText('2018-11-11 15:13:11 UTC-05:00');
   });
 });

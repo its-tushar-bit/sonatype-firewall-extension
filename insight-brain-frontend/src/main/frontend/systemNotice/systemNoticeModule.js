@@ -6,6 +6,7 @@
 import systemNoticeService from './systemNoticeService';
 import systemNotice from './systemNotice';
 
-export default angular.module('systemNoticeModule', [])
-    .service('systemNoticeService', systemNoticeService)
-    .component('systemNotice', systemNotice);
+export default angular
+  .module('systemNoticeModule', [])
+  .service('systemNoticeService', systemNoticeService)
+  .component('systemNotice', systemNotice);

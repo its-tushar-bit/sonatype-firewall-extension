@@ -12,8 +12,8 @@ export default function PolicyEditorNotificationsDirective() {
     controllerAs: 'vm',
     scope: {
       notifications: '=',
-      disabled: '=?editorDisabled'
+      disabled: '=?editorDisabled',
     },
-    bindToController: true
+    bindToController: true,
   };
 }

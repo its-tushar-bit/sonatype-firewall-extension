@@ -1,62 +1,96 @@
 <section id="cip-modal">
   <header id="cip-modal-header" class="iq-modal-header">
-    <h2 ng-if="vm.selectedComponent.innerSourceTDIndicator"
-        ng-class="vm.selectedComponent.dependencyInfo.isDirectDependency ?
-        'iq-modal-header__component-info-direct' : 'iq-modal-header__component-info-transitive'">
-      <component-display component="vm.selectedComponent" truncate="true"></component-display>
+    <h2
+      ng-if="vm.selectedComponent.innerSourceTDIndicator"
+      ng-class="vm.selectedComponent.dependencyInfo.isDirectDependency ?
+        'iq-modal-header__component-info-direct' : 'iq-modal-header__component-info-transitive'"
+    >
+      <component-display
+        component="vm.selectedComponent"
+        truncate="true"
+      ></component-display>
     </h2>
     <h2 ng-if="!vm.selectedComponent.innerSourceTDIndicator">
-      <component-display component="vm.selectedComponent" truncate="true"></component-display>
+      <component-display
+        component="vm.selectedComponent"
+        truncate="true"
+      ></component-display>
     </h2>
-    <div ng-if="vm.selectedComponent.innerSourceData && !vm.selectedComponent.innerSource"
-         ng-class="vm.selectedComponent.innerSourceTDIndicator ? 'iq-modal-header__inner-source-info' : ''"
-         class="iq-dependency-indicator inner-source tm-inner-source-transitive">
+    <div
+      ng-if="vm.selectedComponent.innerSourceData && !vm.selectedComponent.innerSource"
+      ng-class="vm.selectedComponent.innerSourceTDIndicator ? 'iq-modal-header__inner-source-info' : ''"
+      class="iq-dependency-indicator inner-source tm-inner-source-transitive"
+    >
       <span>IS</span>
     </div>
-    <div ng-if="vm.selectedComponent.dependencyInfo"
-         class="iq-modal-header__dependency-info iq-dependency-indicator iq-dependency-indicator--long"
-         ng-class="vm.selectedComponent.innerSource ? 'inner-source tm-inner-source' :
+    <div
+      ng-if="vm.selectedComponent.dependencyInfo"
+      class="iq-modal-header__dependency-info iq-dependency-indicator iq-dependency-indicator--long"
+      ng-class="vm.selectedComponent.innerSource ? 'inner-source tm-inner-source' :
           vm.selectedComponent.innerSourceTDIndicator && vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info direct' :
           vm.selectedComponent.innerSourceTDIndicator && !vm.selectedComponent.dependencyInfo.isDirectDependency ? 'iq-modal-header__dependency-info transitive' :
-          vm.selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
-      <span ng-if="vm.selectedComponent.innerSourceDependencyType">{{vm.selectedComponent.innerSourceDependencyType.label}}</span>
-      <span ng-if="vm.selectedComponent.dependencyInfo.isDirectDependency && !vm.selectedComponent.innerSourceDependencyType">Direct Dependency</span>
-      <span ng-if="!vm.selectedComponent.dependencyInfo.isDirectDependency && !vm.selectedComponent.innerSourceDependencyType">Transitive Dependency</span>
+          vm.selectedComponent.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'"
+    >
+      <span ng-if="vm.selectedComponent.innerSourceDependencyType"
+        >{{vm.selectedComponent.innerSourceDependencyType.label}}</span
+      >
+      <span
+        ng-if="vm.selectedComponent.dependencyInfo.isDirectDependency && !vm.selectedComponent.innerSourceDependencyType"
+        >Direct Dependency</span
+      >
+      <span
+        ng-if="!vm.selectedComponent.dependencyInfo.isDirectDependency && !vm.selectedComponent.innerSourceDependencyType"
+        >Transitive Dependency</span
+      >
     </div>
   </header>
-  <cip-tab-panel class="iq-modal-content"
-                 scan-id="vm.selectedReport.scanId"
-                 application-public-id="vm.metadata.application.publicId"
-                 selected-component="vm.selectedComponent"
-                 reload-report="vm.reloadReportAndHandleError()"
-                 close-cip-modal="vm.dismiss()">
+  <cip-tab-panel
+    class="iq-modal-content"
+    scan-id="vm.selectedReport.scanId"
+    application-public-id="vm.metadata.application.publicId"
+    selected-component="vm.selectedComponent"
+    reload-report="vm.reloadReportAndHandleError()"
+    close-cip-modal="vm.dismiss()"
+  >
   </cip-tab-panel>
   <footer class="iq-modal-footer">
-    <button id="cip-modal-close-button" type="button" class="iq-btn" ng-click="vm.dismiss()">
+    <button
+      id="cip-modal-close-button"
+      type="button"
+      class="iq-btn"
+      ng-click="vm.dismiss()"
+    >
       Close
     </button>
-    <button id="cip-modal-previous-button"
-            ng-if="!vm.selectedRootAncestor"
-            type="button"
-            class="iq-btn iq-btn--tertiary"
-            ng-click="vm.previous()"
-            ng-disabled="vm.isPreviousDisabled()">
+    <button
+      id="cip-modal-previous-button"
+      ng-if="!vm.selectedRootAncestor"
+      type="button"
+      class="iq-btn iq-btn--tertiary"
+      ng-click="vm.previous()"
+      ng-disabled="vm.isPreviousDisabled()"
+    >
       <i class="fa fa-arrow-up"></i>Previous
     </button>
-    <button id="cip-modal-next-button"
-            ng-if="!vm.selectedRootAncestor"
-            type="button"
-            class="iq-btn iq-btn--tertiary"
-            ng-click="vm.next()"
-            ng-disabled="vm.isNextDisabled()">
+    <button
+      id="cip-modal-next-button"
+      ng-if="!vm.selectedRootAncestor"
+      type="button"
+      class="iq-btn iq-btn--tertiary"
+      ng-click="vm.next()"
+      ng-disabled="vm.isNextDisabled()"
+    >
       <i class="fa fa-arrow-down"></i>Next
     </button>
-    <button id="cip-modal-back-button"
-            ng-if="vm.selectedRootAncestor"
-            type="button"
-            class="iq-btn iq-btn--tertiary iq-btn--cip-modal-back-button truncate-ellipsis"
-            ng-click="vm.unselectRootAncestor()">
-      <i class="fa fa-arrow-left"></i>Back to <component-display component="vm.previousComponent"></component-display>
+    <button
+      id="cip-modal-back-button"
+      ng-if="vm.selectedRootAncestor"
+      type="button"
+      class="iq-btn iq-btn--tertiary iq-btn--cip-modal-back-button truncate-ellipsis"
+      ng-click="vm.unselectRootAncestor()"
+    >
+      <i class="fa fa-arrow-left"></i>Back to
+      <component-display component="vm.previousComponent"></component-display>
     </button>
   </footer>
 </section>

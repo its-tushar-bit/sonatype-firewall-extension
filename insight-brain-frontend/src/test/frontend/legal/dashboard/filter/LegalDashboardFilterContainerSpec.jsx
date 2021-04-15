@@ -8,42 +8,47 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import LegalDashboardFilter from '../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilter';
 
-describe('LegalDashboardFilterContainerSpec', function() {
+describe('LegalDashboardFilterContainerSpec', function () {
   let store,
-      state,
-      vdom,
-      LegalDashboardFilterContainer,
-      loadFilterMock,
-      manageFilterActionMock;
+    state,
+    vdom,
+    LegalDashboardFilterContainer,
+    loadFilterMock,
+    manageFilterActionMock;
 
-  beforeEach(function() {
+  beforeEach(function () {
     state = {
       manageLegalFilters: {
         appliedFilterName: 'appliedFilterName',
         showDirtyAsterisk: 'showDirtyAsterisk',
         showSaveFilterModal: 'showSaveFilterModal',
         savedFilters: 'savedFilters',
-        filtersDropdownOpen: 'filtersDropdownOpen'
+        filtersDropdownOpen: 'filtersDropdownOpen',
       },
       legalDashboardFilter: {
-        foo: 'bar'
-      }
+        foo: 'bar',
+      },
     };
 
-    loadFilterMock = jasmine.createSpy('loadFilter').and.returnValue({ type: 'FOO' });
-    manageFilterActionMock = jasmine.createSpy('manageFilterAction').and.returnValue({ type: 'FOO2' });
-    LegalDashboardFilterContainer =
-        require('inject-loader!../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterContainer')({
-          './legalDashboardFilterActions': {
-            loadFilter: loadFilterMock
-          },
-          './manageLegalFiltersActions': {
-            manageFilterAction: manageFilterActionMock
-          }
-        }).default;
+    loadFilterMock = jasmine
+      .createSpy('loadFilter')
+      .and.returnValue({ type: 'FOO' });
+    manageFilterActionMock = jasmine
+      .createSpy('manageFilterAction')
+      .and.returnValue({ type: 'FOO2' });
+    LegalDashboardFilterContainer = require('inject-loader!../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterContainer')(
+      {
+        './legalDashboardFilterActions': {
+          loadFilter: loadFilterMock,
+        },
+        './manageLegalFiltersActions': {
+          manageFilterAction: manageFilterActionMock,
+        },
+      }
+    ).default;
 
     store = configureStore()(() => state);
-    vdom = <LegalDashboardFilterContainer store={store}/>;
+    vdom = <LegalDashboardFilterContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -56,7 +61,7 @@ describe('LegalDashboardFilterContainerSpec', function() {
     expect(wrapper).toHaveProp('foo', 'bar');
   });
 
-  it('correctly maps the action creators to the LegalDashboardContainer props', function() {
+  it('correctly maps the action creators to the LegalDashboardContainer props', function () {
     const wrapper = shallow(vdom).dive();
     const loadFilterActionCreator = wrapper.prop('loadFilter');
     expect(loadFilterActionCreator).toEqual(jasmine.any(Function));
@@ -72,7 +77,7 @@ describe('LegalDashboardFilterContainerSpec', function() {
     expect(store.getActions()[1]).toEqual({ type: 'FOO2' });
   });
 
-  it('renders LegalDashboardFilter component', function() {
+  it('renders LegalDashboardFilter component', function () {
     const legalDashboardFilter = shallow(vdom).find(LegalDashboardFilter);
     expect(legalDashboardFilter).toExist();
   });

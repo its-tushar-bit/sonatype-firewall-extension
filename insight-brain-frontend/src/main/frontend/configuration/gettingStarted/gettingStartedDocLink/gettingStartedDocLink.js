@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './gettingStartedDocLink.html';
-import {LINK_CLICKED_ACTION} from '../gettingStartedUsageTelemetryService';
+import { LINK_CLICKED_ACTION } from '../gettingStartedUsageTelemetryService';
 
 export default {
   template,
@@ -12,8 +12,8 @@ export default {
   controller: GettingStartedDocLinkController,
   bindings: {
     href: '@',
-    linkText: '@'
-  }
+    linkText: '@',
+  },
 };
 
 function GettingStartedDocLinkController(gettingStartedUsageTelemetryService) {
@@ -22,10 +22,12 @@ function GettingStartedDocLinkController(gettingStartedUsageTelemetryService) {
   Object.assign(vm, {
     onClick() {
       gettingStartedUsageTelemetryService.submitData(LINK_CLICKED_ACTION, {
-        href: vm.href
+        href: vm.href,
       });
-    }
+    },
   });
 }
 
-GettingStartedDocLinkController.$inject = ['gettingStartedUsageTelemetryService'];
+GettingStartedDocLinkController.$inject = [
+  'gettingStartedUsageTelemetryService',
+];

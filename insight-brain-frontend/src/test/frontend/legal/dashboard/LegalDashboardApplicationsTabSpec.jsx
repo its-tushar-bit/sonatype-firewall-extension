@@ -4,13 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxPagination, NxTable, NxTableCell, NxTableHead } from '@sonatype/react-shared-components';
+import {
+  NxPagination,
+  NxTable,
+  NxTableCell,
+  NxTableHead,
+} from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
 import LegalDashboardApplicationRow from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationRow';
 import { DASHBOARD } from '../../../../main/frontend/legal/advancedLegalConstants';
 
-describe('LegalDashboardApplicationsTab component', function() {
-
+describe('LegalDashboardApplicationsTab component', function () {
   let getShallowComponent;
 
   const minimalProps = {
@@ -22,7 +26,7 @@ describe('LegalDashboardApplicationsTab component', function() {
           lastScanTime: 1000,
           applicationTagNames: ['tag'],
           componentsReviewedCount: 1,
-          componentsTotalCount: 2
+          componentsTotalCount: 2,
         },
         {
           applicationId: '2',
@@ -30,28 +34,31 @@ describe('LegalDashboardApplicationsTab component', function() {
           lastScanTime: 2000,
           applicationTagNames: ['tag'],
           componentsReviewedCount: 2,
-          componentsTotalCount: 3
-        }
+          componentsTotalCount: 3,
+        },
       ],
       totalResultsCount: 2,
-      backendPage: 1
+      backendPage: 1,
     },
     fetchBackendPage: () => {},
-    changeSortField: () => {}
+    changeSortField: () => {},
   };
 
-  beforeEach(function() {
-    getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardApplicationsTab, minimalProps);
+  beforeEach(function () {
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      LegalDashboardApplicationsTab,
+      minimalProps
+    );
   });
 
-  it('renders a table', function() {
+  it('renders a table', function () {
     const wrapper = getShallowComponent();
     let table = wrapper.find(NxTable);
     expect(table).toExist();
     expect(table).toHaveClassName('legal-dashboard-table');
   });
 
-  it('renders LegalDashboardApplicationRow components for each application passed in', function() {
+  it('renders LegalDashboardApplicationRow components for each application passed in', function () {
     const wrapper = getShallowComponent();
     let table = wrapper.find(NxTable);
     let rows = table.find(LegalDashboardApplicationRow);
@@ -61,19 +68,19 @@ describe('LegalDashboardApplicationsTab component', function() {
     expect(rows.at(1)).toHaveProp('row', minimalProps.applications.results[1]);
   });
 
-  it('displays the mask if filtersAreDirty is true', function() {
+  it('displays the mask if filtersAreDirty is true', function () {
     const wrapper = getShallowComponent({ filtersAreDirty: true });
     let mask = wrapper.find('.form-mask');
     expect(mask).toExist();
   });
 
-  it('does not display the mask if filtersAreDirty is false', function() {
+  it('does not display the mask if filtersAreDirty is false', function () {
     const wrapper = getShallowComponent({ filtersAreDirty: false });
     let mask = wrapper.find('.form-mask');
     expect(mask).not.toExist();
   });
 
-  it('paginates locally without calling backend until reaching end of pages loaded', function() {
+  it('paginates locally without calling backend until reaching end of pages loaded', function () {
     const { itemsPerPage, pagesToFill } = DASHBOARD.applications;
     const items = [];
     for (let index = 0; index < itemsPerPage * pagesToFill; index++) {
@@ -83,7 +90,7 @@ describe('LegalDashboardApplicationsTab component', function() {
         lastScanTime: 1000,
         applicationTagNames: ['tag'],
         componentsReviewedCount: 1,
-        componentsTotalCount: 2
+        componentsTotalCount: 2,
       });
     }
 
@@ -91,14 +98,17 @@ describe('LegalDashboardApplicationsTab component', function() {
       applications: {
         results: items,
         totalResultsCount: items.length * 3,
-        backendPage: 1
+        backendPage: 1,
       },
-      fetchBackendPage: () => {}
+      fetchBackendPage: () => {},
     };
 
     spyOn(appProps, 'fetchBackendPage');
 
-    const wrapper = enzymeUtils.getShallowComponent(LegalDashboardApplicationsTab, appProps)();
+    const wrapper = enzymeUtils.getShallowComponent(
+      LegalDashboardApplicationsTab,
+      appProps
+    )();
     let pagination = wrapper.find(NxPagination);
     expect(pagination).toExist();
 
@@ -116,7 +126,7 @@ describe('LegalDashboardApplicationsTab component', function() {
     expect(appProps.fetchBackendPage).toHaveBeenCalledWith('applications', 3);
   });
 
-  it('changes the sortField properly', function() {
+  it('changes the sortField properly', function () {
     spyOn(minimalProps, 'changeSortField');
     const wrapper = getShallowComponent();
     const table = wrapper.find(NxTable);
@@ -132,17 +142,26 @@ describe('LegalDashboardApplicationsTab component', function() {
 
       onClickSort();
       let expectedResult = `${expectedResults[index]}_ASC`;
-      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith(
+        'applications',
+        expectedResult
+      );
       minimalProps.applications.sortField = expectedResult;
 
       onClickSort();
       expectedResult = `${expectedResults[index]}_DESC`;
-      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith(
+        'applications',
+        expectedResult
+      );
       minimalProps.applications.sortField = expectedResult;
 
       onClickSort();
       expectedResult = null;
-      expect(minimalProps.changeSortField).toHaveBeenCalledWith('applications', expectedResult);
+      expect(minimalProps.changeSortField).toHaveBeenCalledWith(
+        'applications',
+        expectedResult
+      );
     }
   });
 });

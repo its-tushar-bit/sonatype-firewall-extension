@@ -11,45 +11,51 @@ import useEscapeKeyStack from '../../../main/frontend/react/useEscapeKeyStack';
 
 function HookWrapper({ isListening, callback }) {
   useEscapeKeyStack(isListening, callback);
-  return (
-    <div>Hook Wrapper</div>
-  );
+  return <div>Hook Wrapper</div>;
 }
 
 HookWrapper.propTypes = {
   callback: PropTypes.func,
-  isListening: PropTypes.bool
+  isListening: PropTypes.bool,
 };
 
-describe('useEscapeKeyStack', function() {
+describe('useEscapeKeyStack', function () {
   let getMountedComponent, callback;
 
-  beforeEach(function() {
+  beforeEach(function () {
     callback = jasmine.createSpy('callback');
-    getMountedComponent = enzymeUtils.getMountedComponent(HookWrapper, { callback, isListening: true });
+    getMountedComponent = enzymeUtils.getMountedComponent(HookWrapper, {
+      callback,
+      isListening: true,
+    });
     spyOn(document, 'addEventListener');
     spyOn(document, 'removeEventListener');
   });
 
-  it('adds keydown listener for event bubbling phase', function() {
+  it('adds keydown listener for event bubbling phase', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
-    const [eventType, , useCapture] = document.addEventListener.calls.argsFor(0);
+    const [eventType, , useCapture] = document.addEventListener.calls.argsFor(
+      0
+    );
     expect(eventType).toBe('keydown');
     expect(useCapture).toBeUndefined();
     wrapper.unmount();
   });
 
-  it('removes keydown listener for event bubbling phase when unmounted', function() {
+  it('removes keydown listener for event bubbling phase when unmounted', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     const listener = document.addEventListener.calls.argsFor(0)[1];
     wrapper.unmount();
     expect(document.removeEventListener).toHaveBeenCalled();
-    expect(document.removeEventListener.calls.argsFor(0)).toEqual(['keydown', listener]);
+    expect(document.removeEventListener.calls.argsFor(0)).toEqual([
+      'keydown',
+      listener,
+    ]);
   });
 
-  it('invokes callback on Escape keydown event', function() {
+  it('invokes callback on Escape keydown event', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     const listener = document.addEventListener.calls.argsFor(0)[1];
@@ -58,7 +64,7 @@ describe('useEscapeKeyStack', function() {
     wrapper.unmount();
   });
 
-  it('invokes callback on Esc keydown event', function() {
+  it('invokes callback on Esc keydown event', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     const listener = document.addEventListener.calls.argsFor(0)[1];
@@ -67,7 +73,7 @@ describe('useEscapeKeyStack', function() {
     wrapper.unmount();
   });
 
-  it('does not invoke callback on non Escape keydown event', function() {
+  it('does not invoke callback on non Escape keydown event', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     const listener = document.addEventListener.calls.argsFor(0)[1];
@@ -76,15 +82,15 @@ describe('useEscapeKeyStack', function() {
     wrapper.unmount();
   });
 
-  it('does not add addEventListener when component is not listening', function() {
+  it('does not add addEventListener when component is not listening', function () {
     const wrapper = getMountedComponent({
-      isListening: false
+      isListening: false,
     });
     expect(document.addEventListener).not.toHaveBeenCalled();
     wrapper.unmount();
   });
 
-  it('invokes callbacks in proper order', function() {
+  it('invokes callbacks in proper order', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     expect(document.addEventListener.calls.count()).toBe(1);
@@ -92,7 +98,7 @@ describe('useEscapeKeyStack', function() {
 
     const callback2 = jasmine.createSpy('callback2');
     const wrapper2 = getMountedComponent({
-      callback: callback2
+      callback: callback2,
     });
     // should not add another eventListener to the document
     expect(document.addEventListener.calls.count()).toBe(1);
@@ -115,7 +121,7 @@ describe('useEscapeKeyStack', function() {
     expect(document.removeEventListener).toHaveBeenCalled();
   });
 
-  it('uses latest callback when component updates', function() {
+  it('uses latest callback when component updates', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     expect(document.addEventListener.calls.count()).toBe(1);
@@ -138,7 +144,7 @@ describe('useEscapeKeyStack', function() {
     wrapper.unmount();
   });
 
-  it('does not call useEffect when component re-renders', function() {
+  it('does not call useEffect when component re-renders', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     expect(document.addEventListener.calls.count()).toBe(1);
@@ -153,14 +159,14 @@ describe('useEscapeKeyStack', function() {
     wrapper.unmount();
   });
 
-  it('when first mounted component is unmounted, second component should still listen', function() {
+  it('when first mounted component is unmounted, second component should still listen', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     const listener = document.addEventListener.calls.argsFor(0)[1];
 
     const callback2 = jasmine.createSpy('callback2');
     const wrapper2 = getMountedComponent({
-      callback: callback2
+      callback: callback2,
     });
 
     // unmount first component
@@ -175,7 +181,7 @@ describe('useEscapeKeyStack', function() {
     wrapper2.unmount();
   });
 
-  it('does not invoke callback for the component which is not listening', function() {
+  it('does not invoke callback for the component which is not listening', function () {
     const wrapper = getMountedComponent();
     expect(document.addEventListener).toHaveBeenCalled();
     const listener = document.addEventListener.calls.argsFor(0)[1];
@@ -184,7 +190,7 @@ describe('useEscapeKeyStack', function() {
     const callback2 = jasmine.createSpy('callback2');
     const wrapper2 = getMountedComponent({
       callback: callback2,
-      isListening: false
+      isListening: false,
     });
 
     listener({ key: 'Escape' });

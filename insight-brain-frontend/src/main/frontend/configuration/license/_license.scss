@@ -17,7 +17,8 @@ product-license {
 .iq-license-info__nested-definitions {
   margin: 0;
 
-  dt, dd {
+  dt,
+  dd {
     display: inline;
     margin: 0;
   }
@@ -26,7 +27,7 @@ product-license {
     font-weight: normal;
 
     &::after {
-      content: " — ";
+      content: ' — ';
     }
   }
 }

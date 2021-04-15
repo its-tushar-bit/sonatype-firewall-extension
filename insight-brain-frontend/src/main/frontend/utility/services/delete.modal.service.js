@@ -11,7 +11,7 @@ export default function DeleteModalService(Modal) {
   var service = {
     deleteResource: DeleteResource,
     deleteCustom: DeleteCustom,
-    deleteRedux: DeleteRedux
+    deleteRedux: DeleteRedux,
   };
 
   function DeleteResource(resourceType, resourceName, resource) {
@@ -22,25 +22,31 @@ export default function DeleteModalService(Modal) {
       controller: 'DeleteModalController as vm',
       template,
       resolve: {
-        resource: function() {
+        resource: function () {
           return resource;
         },
-        resourceType: function() {
+        resourceType: function () {
           return resourceType;
         },
-        resourceName: function() {
+        resourceName: function () {
           return resourceName;
         },
         headerText: angular.noop,
         bodyText: angular.noop,
         maskText: angular.noop,
         continueAction: angular.noop,
-        dismissOnError: angular.noop
-      }
+        dismissOnError: angular.noop,
+      },
     }).result;
   }
 
-  function DeleteCustom(headerText, bodyText, maskText, continueAction, dismissOnError) {
+  function DeleteCustom(
+    headerText,
+    bodyText,
+    maskText,
+    continueAction,
+    dismissOnError
+  ) {
     return Modal.open({
       animation: false,
       backdrop: 'static',
@@ -51,22 +57,22 @@ export default function DeleteModalService(Modal) {
         resource: angular.noop,
         resourceType: angular.noop,
         resourceName: angular.noop,
-        headerText: function() {
+        headerText: function () {
           return headerText;
         },
-        bodyText: function() {
+        bodyText: function () {
           return bodyText;
         },
-        maskText: function() {
+        maskText: function () {
           return maskText;
         },
-        continueAction: function() {
+        continueAction: function () {
           return continueAction;
         },
-        dismissOnError: function() {
+        dismissOnError: function () {
           return dismissOnError;
-        }
-      }
+        },
+      },
     }).result;
   }
 
@@ -80,7 +86,13 @@ export default function DeleteModalService(Modal) {
    * `deleting` boolean for whether the delete is currently in progress
    * `success` boolean for whether the delete was successful
    */
-  function DeleteRedux(headerText, bodyText, maskText, continueAction, stateMapper) {
+  function DeleteRedux(
+    headerText,
+    bodyText,
+    maskText,
+    continueAction,
+    stateMapper
+  ) {
     return Modal.open({
       animation: false,
       backdrop: 'static',
@@ -94,8 +106,8 @@ export default function DeleteModalService(Modal) {
         bodyText: always(bodyText),
         maskText: always(maskText),
         continueAction: always(continueAction),
-        stateMapper: always(stateMapper)
-      }
+        stateMapper: always(stateMapper),
+      },
     }).result;
   }
 

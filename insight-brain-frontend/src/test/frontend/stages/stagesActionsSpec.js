@@ -5,52 +5,56 @@
  */
 import axios from 'axios';
 
-import { getDashboardStageUrl, getCliStageUrl, getActionStageUrl } from '../../../main/frontend/util/CLMLocation';
+import {
+  getDashboardStageUrl,
+  getCliStageUrl,
+  getActionStageUrl,
+} from '../../../main/frontend/util/CLMLocation';
 import {
   validPurposes,
   fetchStageTypes,
   FETCH_STAGE_TYPES_REQUESTED,
   FETCH_STAGE_TYPES_FULFILLED,
-  FETCH_STAGE_TYPES_FAILED
+  FETCH_STAGE_TYPES_FAILED,
 } from '../../../main/frontend/stages/stagesActions';
 
-describe('stagesActions', function() {
-  describe('validPurposes', function() {
-    it('contains dashboard, action, and cli', function() {
+describe('stagesActions', function () {
+  describe('validPurposes', function () {
+    it('contains dashboard, action, and cli', function () {
       expect(validPurposes).toContain('dashboard');
       expect(validPurposes).toContain('action');
       expect(validPurposes).toContain('cli');
     });
   });
 
-  describe('fetchStageTypes', function() {
-    it('throws an error if the specified purpose is not valid', function() {
+  describe('fetchStageTypes', function () {
+    it('throws an error if the specified purpose is not valid', function () {
       const mockState = {
-            stages: {
-              dashboard: {
-                stageTypes: [1]
-              }
-            }
+          stages: {
+            dashboard: {
+              stageTypes: [1],
+            },
           },
-          store = SpecUtil.mockReduxStore(mockState);
+        },
+        store = SpecUtil.mockReduxStore(mockState);
 
       expect(() => store.dispatch(fetchStageTypes('foo'))).toThrowError();
     });
 
-    describe('when corresponding stageTypes are already present', function() {
-      it('does not dispatch actions', function(done) {
+    describe('when corresponding stageTypes are already present', function () {
+      it('does not dispatch actions', function (done) {
         const mockState = {
-              stages: {
-                action: {
-                  stageTypes: [1]
-                }
-              }
+            stages: {
+              action: {
+                stageTypes: [1],
+              },
             },
-            store = SpecUtil.mockReduxStore(mockState);
+          },
+          store = SpecUtil.mockReduxStore(mockState);
 
         spyOn(axios, 'get');
 
-        store.dispatch(fetchStageTypes('action')).then(function() {
+        store.dispatch(fetchStageTypes('action')).then(function () {
           expect(store.getActions().length).toBe(0);
 
           done();
@@ -60,16 +64,16 @@ describe('stagesActions', function() {
       });
     });
 
-    describe('when corresponding stageTypes are not already present', function() {
-      it('dispatches FETCH_STAGE_TYPES_REQUESTED immediately', function() {
+    describe('when corresponding stageTypes are not already present', function () {
+      it('dispatches FETCH_STAGE_TYPES_REQUESTED immediately', function () {
         const mockState = {
-              stages: {
-                dashboard: {
-                  stageTypes: null
-                }
-              }
+            stages: {
+              dashboard: {
+                stageTypes: null,
+              },
             },
-            store = SpecUtil.mockReduxStore(mockState);
+          },
+          store = SpecUtil.mockReduxStore(mockState);
 
         spyOn(axios, 'get').and.returnValue(Promise.resolve());
 
@@ -80,25 +84,29 @@ describe('stagesActions', function() {
         expect(store.getActions()[0].payload).toBe('dashboard');
       });
 
-      it('dispatches FETCH_STAGE_TYPES_FULFILLED with response data', function(done) {
+      it('dispatches FETCH_STAGE_TYPES_FULFILLED with response data', function (done) {
         const mockState = {
-              stages: {
-                dashboard: {
-                  stageTypes: null
-                }
-              }
+            stages: {
+              dashboard: {
+                stageTypes: null,
+              },
             },
-            responseData = [1, 2, 3],
-            store = SpecUtil.mockReduxStore(mockState);
+          },
+          responseData = [1, 2, 3],
+          store = SpecUtil.mockReduxStore(mockState);
 
-        spyOn(axios, 'get').and.returnValue(Promise.resolve({ data: responseData }));
+        spyOn(axios, 'get').and.returnValue(
+          Promise.resolve({ data: responseData })
+        );
 
         store.dispatch(fetchStageTypes('dashboard')).then(() => {
           expect(store.getActions().length).toBe(2);
-          expect(store.getActions()[1].type).toEqual(FETCH_STAGE_TYPES_FULFILLED);
+          expect(store.getActions()[1].type).toEqual(
+            FETCH_STAGE_TYPES_FULFILLED
+          );
           expect(store.getActions()[1].payload).toEqual({
             purpose: 'dashboard',
-            data: [1, 2, 3]
+            data: [1, 2, 3],
           });
           done();
         });
@@ -107,21 +115,21 @@ describe('stagesActions', function() {
         expect(axios.get).toHaveBeenCalledWith(getDashboardStageUrl());
       });
 
-      it('calls the correct URL for each purpose', function() {
+      it('calls the correct URL for each purpose', function () {
         const mockState = {
-              stages: {
-                dashboard: {
-                  stageTypes: null
-                },
-                action: {
-                  stageTypes: null
-                },
-                cli: {
-                  stageTypes: null
-                }
-              }
+            stages: {
+              dashboard: {
+                stageTypes: null,
+              },
+              action: {
+                stageTypes: null,
+              },
+              cli: {
+                stageTypes: null,
+              },
             },
-            store = SpecUtil.mockReduxStore(mockState);
+          },
+          store = SpecUtil.mockReduxStore(mockState);
 
         spyOn(axios, 'get').and.returnValue(new Promise(() => {}));
 
@@ -143,16 +151,16 @@ describe('stagesActions', function() {
         expect(axios.get).toHaveBeenCalledWith(getCliStageUrl());
       });
 
-      it('dispatches FETCH_STAGE_TYPES_FAILED when the response fails', function(done) {
+      it('dispatches FETCH_STAGE_TYPES_FAILED when the response fails', function (done) {
         const mockState = {
-              stages: {
-                cli: {
-                  stageTypes: null
-                }
-              }
+            stages: {
+              cli: {
+                stageTypes: null,
+              },
             },
-            responseError = 'errrr!',
-            store = SpecUtil.mockReduxStore(mockState);
+          },
+          responseError = 'errrr!',
+          store = SpecUtil.mockReduxStore(mockState);
 
         spyOn(axios, 'get').and.returnValue(Promise.reject(responseError));
 
@@ -161,7 +169,7 @@ describe('stagesActions', function() {
           expect(store.getActions()[1].type).toEqual(FETCH_STAGE_TYPES_FAILED);
           expect(store.getActions()[1].payload).toEqual({
             purpose: 'cli',
-            error: responseError
+            error: responseError,
           });
           done();
         });

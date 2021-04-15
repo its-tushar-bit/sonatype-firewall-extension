@@ -8,7 +8,12 @@ import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
-import { NxBackButton, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
+import {
+  NxBackButton,
+  NxButton,
+  NxFontAwesomeIcon,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
 import ViolationExclamation from '../react/ViolationExclamation';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
@@ -33,7 +38,7 @@ export default function ListWaiversPage(props) {
     waiverToDelete,
     setWaiverToDelete,
     loadApplicableWaivers,
-    $state
+    $state,
   } = props;
 
   function load() {
@@ -48,38 +53,52 @@ export default function ListWaiversPage(props) {
 
   useEffect(load, [violationId]);
 
-  const redirectToAddWaiverPage = () => hasPermissionForAppWaivers && $state.go('addWaiver', { violationId });
+  const redirectToAddWaiverPage = () =>
+    hasPermissionForAppWaivers && $state.go('addWaiver', { violationId });
   const violationDetailsHref = $state.href(
-      $state.get('sidebarView.violation'),
-      {
-        id: violationId,
-        type: $state.params.type,
-        sidebarReference: $state.params.sidebarReference
-      });
+    $state.get('sidebarView.violation'),
+    {
+      id: violationId,
+      type: $state.params.type,
+      sidebarReference: $state.params.sidebarReference,
+    }
+  );
 
   const {
     componentName,
     constraintName,
     policyName,
     reasons,
-    threatLevelCategory
+    threatLevelCategory,
   } = extractViolationDetails(violationDetails);
 
-  const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
+  const policyClassnames = classnames(
+    'iq-threat-level',
+    `iq-threat-level--${threatLevelCategory}`
+  );
 
   return (
     <Fragment>
-      { waiverToDelete && <DeleteWaiverModalContainer/> }
+      {waiverToDelete && <DeleteWaiverModalContainer />}
       <div id="list-waivers-page" className="nx-page-main list-waivers-page">
-        <LoadWrapper loading={ loadingManageWaiversData || !violationDetails }
-                     error={ loadManageWaiversDataError }
-                     retryHandler={ load }>
-          <NxBackButton targetPageTitle="Violation Details" href={ violationDetailsHref } />
+        <LoadWrapper
+          loading={loadingManageWaiversData || !violationDetails}
+          error={loadManageWaiversDataError}
+          retryHandler={load}
+        >
+          <NxBackButton
+            targetPageTitle="Violation Details"
+            href={violationDetailsHref}
+          />
           <div className="nx-page-title">
             <h1 className="nx-h1">Waivers for Violation</h1>
             <div className="list-waivers__threat-indicator">
-              { threatLevelCategory && <ViolationExclamation threatLevelCategory={ threatLevelCategory } /> }
-              <span className={ policyClassnames }>{ policyName }</span>
+              {threatLevelCategory && (
+                <ViolationExclamation
+                  threatLevelCategory={threatLevelCategory}
+                />
+              )}
+              <span className={policyClassnames}>{policyName}</span>
             </div>
           </div>
           <div className="nx-tile">
@@ -91,23 +110,37 @@ export default function ListWaiversPage(props) {
                 <label className="nx-label">
                   <span className="nx-label__text">Constraint Name</span>
                 </label>
-                <div id="list-waivers-constraint-name" className="iq-read-only-data">{ constraintName }</div>
+                <div
+                  id="list-waivers-constraint-name"
+                  className="iq-read-only-data"
+                >
+                  {constraintName}
+                </div>
               </div>
               <div className="nx-form-group iq-read-only">
                 <label className="nx-label">
                   <span className="nx-label__text">Conditions</span>
                 </label>
-                <div id="list-waivers-conditions" className="iq-read-only-data iq-read-only-data--vertical">
-                  {reasons && reasons.map((reason, index) =>
-                    <span key={index}>{reason}</span>
-                  )}
+                <div
+                  id="list-waivers-conditions"
+                  className="iq-read-only-data iq-read-only-data--vertical"
+                >
+                  {reasons &&
+                    reasons.map((reason, index) => (
+                      <span key={index}>{reason}</span>
+                    ))}
                 </div>
               </div>
               <div className="nx-form-group iq-read-only">
                 <label className="nx-label">
                   <span className="nx-label__text">Component Name</span>
                 </label>
-                <div id="list-waivers-component-name" className="iq-read-only-data">{ componentName }</div>
+                <div
+                  id="list-waivers-component-name"
+                  className="iq-read-only-data"
+                >
+                  {componentName}
+                </div>
               </div>
             </div>
           </div>
@@ -117,28 +150,40 @@ export default function ListWaiversPage(props) {
                 <h2 className="nx-h2">Applicable Waivers</h2>
               </div>
               <div className="nx-tile__actions">
-                <NxTooltip id="add-waiver-btn-tooltip"
-                           title={ hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver' }>
-                  <NxButton className={ classnames({disabled: !hasPermissionForAppWaivers}) }
-                            variant="tertiary"
-                            onClick={ redirectToAddWaiverPage }
-                            id="add-waiver-btn">
-                    <NxFontAwesomeIcon icon={ faPlus }/>
+                <NxTooltip
+                  id="add-waiver-btn-tooltip"
+                  title={
+                    hasPermissionForAppWaivers
+                      ? ''
+                      : 'Insufficient permissions to Add Waiver'
+                  }
+                >
+                  <NxButton
+                    className={classnames({
+                      disabled: !hasPermissionForAppWaivers,
+                    })}
+                    variant="tertiary"
+                    onClick={redirectToAddWaiverPage}
+                    id="add-waiver-btn"
+                  >
+                    <NxFontAwesomeIcon icon={faPlus} />
                     <span>Add Waiver</span>
                   </NxButton>
                 </NxTooltip>
               </div>
             </div>
             <div className="nx-tile-content">
-              <ListWaiversTable { ...({
-                activeWaivers,
-                expiredWaivers,
-                violationDetails,
-                setWaiverToDelete,
-                loadingApplicableWaivers,
-                loadApplicableWaiversError,
-                reloadApplicableWaivers
-              }) }/>
+              <ListWaiversTable
+                {...{
+                  activeWaivers,
+                  expiredWaivers,
+                  violationDetails,
+                  setWaiverToDelete,
+                  loadingApplicableWaivers,
+                  loadApplicableWaiversError,
+                  reloadApplicableWaivers,
+                }}
+              />
             </div>
           </div>
         </LoadWrapper>
@@ -150,9 +195,17 @@ export default function ListWaiversPage(props) {
 ListWaiversPage.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
-  loadManageWaiversDataError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+  loadManageWaiversDataError: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.instanceOf(Error),
+    PropTypes.object,
+  ]),
   loadingManageWaiversData: PropTypes.bool,
-  loadApplicableWaiversError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+  loadApplicableWaiversError: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.instanceOf(Error),
+    PropTypes.object,
+  ]),
   loadingApplicableWaivers: PropTypes.bool,
   loadManageWaiversData: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),
@@ -164,18 +217,18 @@ ListWaiversPage.propTypes = {
     get: PropTypes.func.isRequired,
     params: PropTypes.shape({
       type: PropTypes.string,
-      sidebarReference: PropTypes.string
-    })
+      sidebarReference: PropTypes.string,
+    }),
   }),
   violationId: PropTypes.string,
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,
     constraintViolations: constraintViolationsPropType.isRequired,
     displayName: PropTypes.shape({
-      parts: PropTypes.arrayOf(PropTypes.object)
+      parts: PropTypes.arrayOf(PropTypes.object),
     }),
     filename: PropTypes.string,
-    policyViolationId: PropTypes.string.isRequired
+    policyViolationId: PropTypes.string.isRequired,
   }),
-  hasPermissionForAppWaivers: PropTypes.bool
+  hasPermissionForAppWaivers: PropTypes.bool,
 };

@@ -11,21 +11,27 @@ export const REDIRECTED_ACTION = 'REDIRECTED';
 export const VISITED_ACTION = 'VISITED';
 export const LINK_CLICKED_ACTION = 'LINK_CLICKED';
 
-export default function gettingStartedUsageTelemetryService($ngRedux, telemetryService) {
-
+export default function gettingStartedUsageTelemetryService(
+  $ngRedux,
+  telemetryService
+) {
   function submitData(action, attrs, sync) {
     // don't need to connect to redux store - we don't need to subscribe to state changes
     const prevPage = $ngRedux.getState().router.prevState.name;
 
-    telemetryService.submitData(PURPOSE, {
-      action,
-      pageNavigatedFrom: prevPage && 'systemMenu',
-      ...attrs
-    }, sync);
+    telemetryService.submitData(
+      PURPOSE,
+      {
+        action,
+        pageNavigatedFrom: prevPage && 'systemMenu',
+        ...attrs,
+      },
+      sync
+    );
   }
 
   return {
-    submitData
+    submitData,
   };
 }
 

@@ -10,8 +10,7 @@ export default function isIqIframe($window) {
   try {
     // return true if we aren't the top frame AND the top frame allows access (implying it's on the same origin)
     return !!($window.top !== $window && $window.top.document);
-  }
-  catch (e) {
+  } catch (e) {
     return false;
   }
 }

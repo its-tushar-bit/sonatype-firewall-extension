@@ -4,18 +4,26 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './samlConfiguration.html';
-import {omit} from 'ramda';
+import { omit } from 'ramda';
 
 export default {
   template: template,
   bindings: {
-    isAuthorized: '<'
+    isAuthorized: '<',
   },
   controllerAs: 'vm',
-  controller: SamlConfigurationController
+  controller: SamlConfigurationController,
 };
 
-function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations, Messages, Dialog, $window) {
+function SamlConfigurationController(
+  $scope,
+  BaseUrl,
+  $http,
+  CLMContextLocations,
+  Messages,
+  Dialog,
+  $window
+) {
   const vm = this;
   const defaultSaml = {
     identityProviderName: 'identity provider',
@@ -27,12 +35,12 @@ function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations
     emailAttributeName: 'email',
     groupsAttributeName: 'groups',
     validateResponseSignature: null,
-    validateAssertionSignature: null
+    validateAssertionSignature: null,
   };
   const validateSignatureOptions = [
-    {name: 'Default', value: null},
-    {name: 'True', value: true},
-    {name: 'False', value: false}
+    { name: 'Default', value: null },
+    { name: 'True', value: true },
+    { name: 'False', value: false },
   ];
 
   let originalSaml = undefined;
@@ -47,15 +55,18 @@ function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations
     validateSignatureOptions: angular.copy(validateSignatureOptions),
     load() {
       resetErrors();
-      $http.get(CLMContextLocations.getSamlConfigurationUrl()).then(function(response) {
-        setSaml(response.data, true);
-      }, function(error) {
-        if (error.status === 404) {
-          setSaml(defaultSaml, false);
-          return;
+      $http.get(CLMContextLocations.getSamlConfigurationUrl()).then(
+        function (response) {
+          setSaml(response.data, true);
+        },
+        function (error) {
+          if (error.status === 404) {
+            setSaml(defaultSaml, false);
+            return;
+          }
+          onError('loadError', error);
         }
-        onError('loadError', error);
-      });
+      );
     },
     readIdentityProviderMetadataXml(file) {
       if (file !== undefined) {
@@ -68,18 +79,27 @@ function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations
     save() {
       resetErrors();
       let formData = new FormData();
-      formData.append('identityProviderXml', vm.saml.identityProviderMetadataXml);
+      formData.append(
+        'identityProviderXml',
+        vm.saml.identityProviderMetadataXml
+      );
       let payload = omit(['identityProviderMetadataXml'], vm.saml);
       formData.append('samlConfiguration', JSON.stringify(payload));
-      vm.samlConfigurationMask.wrap($http.put(CLMContextLocations.getSamlConfigurationUrl(), formData, {
-        // Angular's default transformRequest will try to serialize our formData, so we override it with the identity
-        // function to leave formData intact
-        transformRequest: angular.identity,
-        // Angular's default Content-Type header for POST/PUT is application/json, by setting it to undefined the
-        // browser sets it to multipart/form-data and fills in the correct boundary (which wouldn't happen if we set it
-        // manually to multipart/form-data)
-        headers: {'Content-Type': undefined}
-      }).then(vm.load)).catch(error => onError('saveOrDeleteError', error));
+      vm.samlConfigurationMask
+        .wrap(
+          $http
+            .put(CLMContextLocations.getSamlConfigurationUrl(), formData, {
+              // Angular's default transformRequest will try to serialize our formData, so we override it with the identity
+              // function to leave formData intact
+              transformRequest: angular.identity,
+              // Angular's default Content-Type header for POST/PUT is application/json, by setting it to undefined the
+              // browser sets it to multipart/form-data and fills in the correct boundary (which wouldn't happen if we set it
+              // manually to multipart/form-data)
+              headers: { 'Content-Type': undefined },
+            })
+            .then(vm.load)
+        )
+        .catch((error) => onError('saveOrDeleteError', error));
     },
     cancel() {
       resetErrors();
@@ -94,12 +114,13 @@ function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations
           {
             name: 'Delete',
             type: 'primary',
-            click: deleteConfiguration
-          }, {
+            click: deleteConfiguration,
+          },
+          {
             name: 'Cancel',
-            type: 'cancel'
-          }
-        ]
+            type: 'cancel',
+          },
+        ],
       });
     },
     defaultsToTooltipText(defaultValue) {
@@ -113,19 +134,25 @@ function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations
     // IE workaround
     downloadMetadataForIE() {
       if (vm.isUpdating && $window.navigator.msSaveBlob) {
-        $http.get(CLMContextLocations.getSamlConfigurationUrl() + '/metadata').then(
-            (response) => $window.navigator.msSaveBlob(new Blob([response.data]), 'metadata.xml'));
+        $http
+          .get(CLMContextLocations.getSamlConfigurationUrl() + '/metadata')
+          .then((response) =>
+            $window.navigator.msSaveBlob(
+              new Blob([response.data]),
+              'metadata.xml'
+            )
+          );
       }
     },
     shouldEnableDownloadMetadataLink() {
       return vm.isUpdating && !$window.navigator.msSaveBlob;
-    }
+    },
   });
 
   function getFileReader() {
     let fileReader = new FileReader();
-    fileReader.addEventListener('load', function() {
-      $scope.$apply(function() {
+    fileReader.addEventListener('load', function () {
+      $scope.$apply(function () {
         vm.saml.identityProviderMetadataXml = fileReader.result;
       });
     });
@@ -134,8 +161,13 @@ function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations
 
   function deleteConfiguration() {
     resetErrors();
-    vm.samlConfigurationMask.wrap($http.delete(CLMContextLocations.getSamlConfigurationUrl()).then(vm.load)).catch(
-        error => onError('saveOrDeleteError', error));
+    vm.samlConfigurationMask
+      .wrap(
+        $http
+          .delete(CLMContextLocations.getSamlConfigurationUrl())
+          .then(vm.load)
+      )
+      .catch((error) => onError('saveOrDeleteError', error));
   }
 
   function setSaml(saml, exists) {
@@ -157,5 +189,11 @@ function SamlConfigurationController($scope, BaseUrl, $http, CLMContextLocations
 }
 
 SamlConfigurationController.$inject = [
-  '$scope', 'BaseUrl', '$http', 'CLMContextLocations', 'Messages', 'Dialog', '$window'
+  '$scope',
+  'BaseUrl',
+  '$http',
+  'CLMContextLocations',
+  'Messages',
+  'Dialog',
+  '$window',
 ];

@@ -15,7 +15,7 @@ import {
   setWaiverScope,
   setApplyToAllComponents,
   setExpiryTime,
-  returnToAddWaiverOriginPage
+  returnToAddWaiverOriginPage,
 } from './waiverActions';
 import { openVulnerabilityDetailsModal } from '../vulnerabilityDetails/vulnerabilityDetailsModalActions';
 
@@ -23,7 +23,7 @@ function mapStateToProps({ addWaiver, violation, router }) {
   return {
     ...addWaiver,
     ...pick(['violationDetails'], violation),
-    ...pick(['violationId'], router.currentParams)
+    ...pick(['violationId'], router.currentParams),
   };
 }
 
@@ -35,8 +35,11 @@ const mapDispatchToProps = {
   setWaiverScope,
   setApplyToAllComponents,
   setExpiryTime,
-  cancelAction: returnToAddWaiverOriginPage
+  cancelAction: returnToAddWaiverOriginPage,
 };
 
-const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);
+const AddWaiverPageContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(AddWaiverPage);
 export default AddWaiverPageContainer;

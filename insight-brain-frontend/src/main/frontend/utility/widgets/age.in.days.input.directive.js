@@ -12,14 +12,14 @@ export default function AgeInDaysInput() {
       ageInDaysModel: '=ngModel',
       ageInDaysRequired: '<?isRequired',
       name: '@',
-      max: '@'
+      max: '@',
     },
     template,
     controller: AgeInDaysInputController,
     controllerAs: 'vm',
     bindToController: true,
     require: 'ngModel',
-    link: AgeInDaysInputLink
+    link: AgeInDaysInputLink,
   };
 
   function AgeInDaysInputLink(scope, element, attr, ctrl) {
@@ -37,8 +37,10 @@ function AgeInDaysInputController($scope) {
   vm.parseAgeToDays = parseAgeToDays;
   vm.modifier = getInitialModifier(vm.ageInDaysModel);
   vm.modifierTypes = [
-    {name: 'Days', modifier: 1}, {name: 'Weeks', modifier: 7}, {name: 'Months', modifier: 30},
-    {name: 'Years', modifier: 365}
+    { name: 'Days', modifier: 1 },
+    { name: 'Weeks', modifier: 7 },
+    { name: 'Months', modifier: 30 },
+    { name: 'Years', modifier: 365 },
   ];
   vm.isRequired = isRequired;
   vm.formatMax = formatMax;
@@ -46,14 +48,25 @@ function AgeInDaysInputController($scope) {
     vm.max = parseInt(vm.max, 10);
   }
 
-  $scope.$watch('vm.modifier', function(newModifier, oldModifier) {
+  $scope.$watch('vm.modifier', function (newModifier, oldModifier) {
     if (vm.ageInDaysModel) {
-      vm.ageInDaysModel = ((vm.ageInDaysModel / oldModifier) * newModifier).toString();
+      vm.ageInDaysModel = (
+        (vm.ageInDaysModel / oldModifier) *
+        newModifier
+      ).toString();
     }
   });
 
   function getInitialModifier(days) {
-    return days ? days % 365 === 0 ? 365 : days % 30 === 0 ? 30 : days % 7 === 0 ? 7 : 1 : 365;
+    return days
+      ? days % 365 === 0
+        ? 365
+        : days % 30 === 0
+        ? 30
+        : days % 7 === 0
+        ? 7
+        : 1
+      : 365;
   }
 
   function formatDaysToAge(days) {
@@ -61,7 +74,9 @@ function AgeInDaysInputController($scope) {
   }
 
   function parseAgeToDays(age) {
-    return Number.isInteger(age) ? (parseInt(age) * vm.modifier).toString() : null;
+    return Number.isInteger(age)
+      ? (parseInt(age) * vm.modifier).toString()
+      : null;
   }
 
   function isRequired() {

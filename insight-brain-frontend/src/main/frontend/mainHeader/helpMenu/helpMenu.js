@@ -18,5 +18,5 @@ function HelpMenuController() {
 export default {
   controller: HelpMenuController,
   controllerAs: 'vm',
-  template
+  template,
 };

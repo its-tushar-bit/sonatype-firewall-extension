@@ -8,30 +8,33 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import Firewall from '../../../main/frontend/firewall/Firewall';
 
-describe('FirewallContainer', function() {
+describe('FirewallContainer', function () {
   let FirewallContainer,
-      loadDataMock,
-      openConfigurationModalMock,
-      store,
-      state,
-      vdom;
+    loadDataMock,
+    openConfigurationModalMock,
+    store,
+    state,
+    vdom;
 
-  beforeEach(function() {
+  beforeEach(function () {
     loadDataMock = jasmine.createSpy('loadDataMock').and.returnValue({
-      type: 'LOAD_FIREWALL_DATA'
+      type: 'LOAD_FIREWALL_DATA',
     });
 
-    openConfigurationModalMock = jasmine.createSpy('openConfigurationModalMock').and.returnValue({
-      type: 'OPEN_FIREWALL_CONFIGURATION'
-    });
+    openConfigurationModalMock = jasmine
+      .createSpy('openConfigurationModalMock')
+      .and.returnValue({
+        type: 'OPEN_FIREWALL_CONFIGURATION',
+      });
 
-    FirewallContainer =
-        require('inject-loader!../../../main/frontend/firewall/FirewallContainer')({
-          './firewallActions': {
-            loadData: loadDataMock,
-            openConfigurationModal: openConfigurationModalMock
-          }
-        }).default;
+    FirewallContainer = require('inject-loader!../../../main/frontend/firewall/FirewallContainer')(
+      {
+        './firewallActions': {
+          loadData: loadDataMock,
+          openConfigurationModal: openConfigurationModalMock,
+        },
+      }
+    ).default;
 
     state = {
       loadError: 'this is not the error',
@@ -39,10 +42,10 @@ describe('FirewallContainer', function() {
         viewState: {
           loadedStatus: false,
           isShowConfigurationModal: false,
-          loadError: null
+          loadError: null,
         },
         statusState: {
-          isEnabled: false
+          isEnabled: false,
         },
         autoUnquarantineState: {
           viewState: {
@@ -50,11 +53,11 @@ describe('FirewallContainer', function() {
             loadedReleaseQuarantineSummary: false,
             autoReleaseQuarantineCountMTD: '-',
             enabledPolicyConditionTypesCount: 0,
-            totalPolicyConditionTypesCount: 1
-          }
+            totalPolicyConditionTypesCount: 1,
+          },
         },
         configurationState: {
-          autoUnquarantineEnabled: false
+          autoUnquarantineEnabled: false,
         },
         quarantineSummaryState: {
           viewState: {
@@ -63,14 +66,14 @@ describe('FirewallContainer', function() {
             quarantineEnabledRepositoryCount: 0,
             repositoryCount: 0,
             totalComponentCount: 0,
-            quarantinedComponentCount: 0
-          }
-        }
-      }
+            quarantinedComponentCount: 0,
+          },
+        },
+      },
     };
 
     store = configureStore()(() => state);
-    vdom = <FirewallContainer store={store}/>;
+    vdom = <FirewallContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -101,11 +104,11 @@ describe('FirewallContainer', function() {
           ...state.firewall.viewState,
           loadedStatus: true,
           isShowConfigurationModal: true,
-          loadError: 'error'
+          loadError: 'error',
         },
         statusState: {
           ...state.firewall.statusState,
-          isEnabled: true
+          isEnabled: true,
         },
         autoUnquarantineState: {
           ...state.firewall.autoUnquarantineState,
@@ -115,12 +118,12 @@ describe('FirewallContainer', function() {
             loadedReleaseQuarantineSummary: true,
             autoReleaseQuarantineCountMTD: 5,
             enabledPolicyConditionTypesCount: 1,
-            totalPolicyConditionTypesCount: 2
-          }
+            totalPolicyConditionTypesCount: 2,
+          },
         },
         configurationState: {
           ...state.firewall.configurationState,
-          autoUnquarantineEnabled: true
+          autoUnquarantineEnabled: true,
         },
         quarantineSummaryState: {
           ...state.firewall.quarantineSummaryState,
@@ -131,10 +134,10 @@ describe('FirewallContainer', function() {
             quarantineEnabledRepositoryCount: 1,
             repositoryCount: 1,
             totalComponentCount: 1,
-            quarantinedComponentCount: 1
-          }
-        }
-      }
+            quarantinedComponentCount: 1,
+          },
+        },
+      },
     };
     wrapper = shallow(vdom).dive();
 
@@ -156,10 +159,12 @@ describe('FirewallContainer', function() {
     expect(wrapper).toHaveProp('quarantinedComponentCount', 1);
   });
 
-  it('maps action creators to props', function() {
+  it('maps action creators to props', function () {
     const wrapper = shallow(vdom).dive();
     const loadDataActionCreator = wrapper.prop('loadData');
-    const openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal');
+    const openConfigurationModalActionCreator = wrapper.prop(
+      'openConfigurationModal'
+    );
 
     expect(loadDataActionCreator).toEqual(jasmine.any(Function));
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
@@ -172,11 +177,11 @@ describe('FirewallContainer', function() {
     openConfigurationModalActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_FIREWALL_DATA' },
-      { type: 'OPEN_FIREWALL_CONFIGURATION' }
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
     ]);
   });
 
-  it('renders Firewall component', function() {
+  it('renders Firewall component', function () {
     const firewall = shallow(vdom).find(Firewall);
     expect(firewall).toExist();
     expect(firewall).toHaveProp('loadError', null);

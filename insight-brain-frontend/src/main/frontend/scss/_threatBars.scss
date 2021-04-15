@@ -9,7 +9,8 @@
 }
 
 @each $threatdef in join($threat-levels, $threat-bars) {
-  .iq-threat-indication, .clm-bar {
+  .iq-threat-indication,
+  .clm-bar {
     &.#{nth($threatdef, 1)} {
       background-color: #{nth($threatdef, 3)} !important;
     }

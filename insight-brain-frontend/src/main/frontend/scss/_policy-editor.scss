@@ -53,7 +53,6 @@
 
 #policy-edit-actions,
 #policy-edit-notifications {
-
   .iq-table {
     margin-bottom: 21px;
     table-layout: fixed;
@@ -86,7 +85,8 @@
     margin-left: 0;
     padding-left: 56px;
 
-    .iq-radio__circle::before, .iq-radio__circle::after {
+    .iq-radio__circle::before,
+    .iq-radio__circle::after {
       top: 10px;
       left: 32px;
     }
@@ -103,8 +103,10 @@
   white-space: normal;
 }
 
-.iq-cell--action-name, .iq-cell--recipient {
-  > .fa, > svg {
+.iq-cell--action-name,
+.iq-cell--recipient {
+  > .fa,
+  > svg {
     margin-top: 2px;
     margin-right: 8px;
   }

@@ -21,18 +21,25 @@ import componentsModule from '../../components/module';
 import renderCombinedTrendsChart from './successMetricsReport/violationTrendsChart/renderCombinedTrendsChart';
 import violationTrendsChart from './successMetricsReport/violationTrendsChart/violationTrendsChart';
 
-export default angular.module('successMetricsModule', ['components', CLMLocationModule.name, productFeaturesModule.name,
-  directivesModule.name, commonServicesModule.name, componentsModule.name])
-    .service('successMetricsDataService', successMetricsDataService)
-    .component('successMetricsReportList', successMetricsReportList)
-    .component('addSuccessMetricsReportModal', addSuccessMetricsReportModal)
-    .component('mttrChart', mttrChart)
-    .component('violationAveragesChart', violationAveragesChart)
-    .component('applicationCountsChart', applicationCountsChart)
-    .component('violationsByCategoryChart', violationsByCategoryChart)
-    .component('summaryStatementTile', summaryStatementTile)
-    .component('componentCountsChart', componentCountsChart)
-    .component('successMetricsReport', successMetricsReport)
-    .directive('renderCombinedTrendsChart', renderCombinedTrendsChart)
-    .component('violationTrendsChart', violationTrendsChart)
-    .filter('abs', () => Math.abs);
+export default angular
+  .module('successMetricsModule', [
+    'components',
+    CLMLocationModule.name,
+    productFeaturesModule.name,
+    directivesModule.name,
+    commonServicesModule.name,
+    componentsModule.name,
+  ])
+  .service('successMetricsDataService', successMetricsDataService)
+  .component('successMetricsReportList', successMetricsReportList)
+  .component('addSuccessMetricsReportModal', addSuccessMetricsReportModal)
+  .component('mttrChart', mttrChart)
+  .component('violationAveragesChart', violationAveragesChart)
+  .component('applicationCountsChart', applicationCountsChart)
+  .component('violationsByCategoryChart', violationsByCategoryChart)
+  .component('summaryStatementTile', summaryStatementTile)
+  .component('componentCountsChart', componentCountsChart)
+  .component('successMetricsReport', successMetricsReport)
+  .directive('renderCombinedTrendsChart', renderCombinedTrendsChart)
+  .component('violationTrendsChart', violationTrendsChart)
+  .filter('abs', () => Math.abs);

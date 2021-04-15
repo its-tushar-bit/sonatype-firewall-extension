@@ -9,7 +9,7 @@ export default Object.freeze({
   applications: new Set(),
   categories: new Set(),
   stages: new Set(),
-  progressOptions: new Set()
+  progressOptions: new Set(),
 });
 
 export const DEFAULT_FILTER_NAME = 'Default';

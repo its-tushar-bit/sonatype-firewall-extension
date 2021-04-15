@@ -6,22 +6,22 @@
 
 import reduce from '../../../main/frontend/firewall/firewallReducer';
 
-describe('firewallReducer', function() {
+describe('firewallReducer', function () {
   let otherObject;
 
-  beforeEach(function() {
-    otherObject = {value: 'test value'};
+  beforeEach(function () {
+    otherObject = { value: 'test value' };
   });
 
-  describe('initial state', function() {
-    it('is used if no state is provided', function() {
-      const action = {type: 'UNKNOWN'};
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
+      const action = { type: 'UNKNOWN' };
       const newState = reduce(undefined, action);
       expect(newState).not.toBeUndefined();
     });
 
-    it('has default fields', function() {
-      const action = {type: 'UNKNOWN'};
+    it('has default fields', function () {
+      const action = { type: 'UNKNOWN' };
       const newState = reduce(undefined, action);
 
       // viewState
@@ -34,68 +34,125 @@ describe('firewallReducer', function() {
       expect(newState.statusState.isEnabled).toBe(false);
 
       //autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe(null);
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
-      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
+      expect(
+        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
+      ).toBe(false);
+      expect(
+        newState.autoUnquarantineState.viewState
+          .loadReleaseQuarantineSummaryError
+      ).toBe(null);
+      expect(
+        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD
+      ).toBe('-');
+      expect(
+        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD
+      ).toBe('-');
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
+        false
+      );
+      expect(
+        newState.autoUnquarantineState.viewState.loadConfigurationError
+      ).toBeNull();
+      expect(
+        newState.autoUnquarantineState.viewState
+          .enabledPolicyConditionTypesCount
+      ).toBe(0);
+      expect(
+        newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount
+      ).toBe(0);
 
       //autoUnquarantineState.autoUnquarantinedGridState
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadedReleaseQuarantineList).toBe(false);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadAutoUnquarantineGridError).toBeNull();
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadedPolicies).toBe(false);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantineList).toEqual([]);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantinePageCount).toBe(0);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.pageSize).toBe(12);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.currentPage).toBeNull();
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortDir).toBeNull();
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortField).toBeNull();
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.filterPolicyId).toBe('');
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.policies).toEqual([]);
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState
+          .loadedReleaseQuarantineList
+      ).toBe(false);
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState
+          .loadAutoUnquarantineGridError
+      ).toBeNull();
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState.loadedPolicies
+      ).toBe(false);
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState
+          .releaseQuarantineList
+      ).toEqual([]);
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState
+          .releaseQuarantinePageCount
+      ).toBe(0);
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState.pageSize
+      ).toBe(12);
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState.currentPage
+      ).toBeNull();
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState.sortDir
+      ).toBeNull();
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState.sortField
+      ).toBeNull();
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState.filterPolicyId
+      ).toBe('');
+      expect(
+        newState.autoUnquarantineState.autoUnquarantineGridState.policies
+      ).toEqual([]);
 
       //quarantineSummaryState.viewState
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(0);
+      expect(
+        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
+      ).toBe(false);
+      expect(
+        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
+      ).toBe(null);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(
+        false
+      );
+      expect(
+        newState.quarantineSummaryState.viewState
+          .quarantineEnabledRepositoryCount
+      ).toBe(0);
       expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(0);
+      expect(
+        newState.quarantineSummaryState.viewState.totalComponentCount
+      ).toBe(0);
+      expect(
+        newState.quarantineSummaryState.viewState.quarantinedComponentCount
+      ).toBe(0);
 
       //configurationState
       expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
     });
   });
 
-  describe('unknown action', function() {
-    it('returns original state', function() {
-      const state = Object.freeze({foo: 'bar'});
+  describe('unknown action', function () {
+    it('returns original state', function () {
+      const state = Object.freeze({ foo: 'bar' });
       const action = {
-        type: 'UNKNOWN'
+        type: 'UNKNOWN',
       };
       const newState = reduce(state, action);
       expect(newState).toBe(state);
     });
   });
 
-  describe('FIREWALL_LOAD_STATUS_REQUESTED action', function() {
-    it('updates the state', function() {
+  describe('FIREWALL_LOAD_STATUS_REQUESTED action', function () {
+    it('updates the state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
           loadedStatus: true,
-          loadStatusError: 'Error!'
+          loadStatusError: 'Error!',
         },
         statusState: otherObject,
         autoUnquarantineState: otherObject,
-        configurationState: otherObject
+        configurationState: otherObject,
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_STATUS_REQUESTED'
+        type: 'FIREWALL_LOAD_STATUS_REQUESTED',
       });
       // viewState
       expect(newState.viewState.loadedStatus).toBe(false);
@@ -116,38 +173,38 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_LOAD_STATUS_FULFILLED action', function() {
-    it('updates the state, sets the load error to null and sets enabled flag from payload', function() {
+  describe('FIREWALL_LOAD_STATUS_FULFILLED action', function () {
+    it('updates the state, sets the load error to null and sets enabled flag from payload', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
           loadedStatus: false,
-          loadStatusError: 'error!'
+          loadStatusError: 'error!',
         },
         statusState: {
           isEnabled: false,
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
-          other: otherObject
+          other: otherObject,
         },
         configurationState: {
-          other: otherObject
+          other: otherObject,
         },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
-            other: otherObject
-          }
-        }
+            other: otherObject,
+          },
+        },
       });
       const payload = {
-        experimentalFeatures: {firewallAutoUnquarantine: true}
+        experimentalFeatures: { firewallAutoUnquarantine: true },
       };
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_STATUS_FULFILLED',
-        payload: payload
+        payload: payload,
       });
       expect(newState.viewState.loadedStatus).toBe(true);
       expect(newState.viewState.loadStatusError).toBeNull();
@@ -163,36 +220,36 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_LOAD_STATUS_FAILED action', function() {
-    it('updates the state and sets the loadStatusError to the payload', function() {
+  describe('FIREWALL_LOAD_STATUS_FAILED action', function () {
+    it('updates the state and sets the loadStatusError to the payload', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
           loadedStatus: false,
           loadStatusError: null,
-          loadError: null
+          loadError: null,
         },
         statusState: {
           isEnabled: false,
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
-          other: otherObject
+          other: otherObject,
         },
         configurationState: {
-          other: otherObject
+          other: otherObject,
         },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
-            other: otherObject
-          }
-        }
+            other: otherObject,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_STATUS_FAILED',
-        payload: 'error!'
+        payload: 'error!',
       });
       expect(newState.viewState.loadedStatus).toBe(true);
       expect(newState.viewState.loadStatusError).toBe('error!');
@@ -208,17 +265,17 @@ describe('firewallReducer', function() {
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
 
-    it('does not update loadError if it exists', function() {
+    it('does not update loadError if it exists', function () {
       const state = Object.freeze({
         viewState: {
           loadedStatus: false,
           loadStatusError: null,
-          loadError: 'old error!'
-        }
+          loadError: 'old error!',
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_STATUS_FAILED',
-        payload: 'error!'
+        payload: 'error!',
       });
       expect(newState.viewState.loadedStatus).toBe(true);
       expect(newState.viewState.loadStatusError).toBe('error!');
@@ -226,33 +283,33 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_SET_SHOW_CONFIGURATION_MODAL action', function() {
-    it('updates the state and sets the isShowConfigurationModal to the payload', function() {
+  describe('FIREWALL_SET_SHOW_CONFIGURATION_MODAL action', function () {
+    it('updates the state and sets the isShowConfigurationModal to the payload', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          isShowConfigurationModal: false
+          isShowConfigurationModal: false,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
-          other: otherObject
+          other: otherObject,
         },
         configurationState: {
-          other: otherObject
+          other: otherObject,
         },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
-            other: otherObject
-          }
-        }
+            other: otherObject,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_SET_SHOW_CONFIGURATION_MODAL',
-        payload: true
+        payload: true,
       });
       //viewState
       expect(newState.viewState.isShowConfigurationModal).toBe(true);
@@ -266,40 +323,45 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_SAVE_CONFIGURATION_FULFILLED action', function() {
-    it('updates the state', function() {
+  describe('FIREWALL_SAVE_CONFIGURATION_FULFILLED action', function () {
+    it('updates the state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
-          other: otherObject
+          other: otherObject,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
           other: otherObject,
           viewState: {
             other: otherObject,
-            enabledPolicyConditionTypesCount: 0
-          }
+            enabledPolicyConditionTypesCount: 0,
+          },
         },
         configurationState: {
           other: otherObject,
-          autoUnquarantineEnabled: false
+          autoUnquarantineEnabled: false,
         },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
-            other: otherObject
-          }
-        }
+            other: otherObject,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_SAVE_CONFIGURATION_FULFILLED',
-        payload: [{id: 'IntegrityRating', autoReleaseQuarantineEnabled: true}]
+        payload: [
+          { id: 'IntegrityRating', autoReleaseQuarantineEnabled: true },
+        ],
       });
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
+      expect(
+        newState.autoUnquarantineState.viewState
+          .enabledPolicyConditionTypesCount
+      ).toBe(1);
 
       // configurationState
       expect(newState.configurationState.autoUnquarantineEnabled).toBe(true);
@@ -315,8 +377,8 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_LOAD_CONFIGURATION_REQUESTED action', function() {
-    it('updates the state', function() {
+  describe('FIREWALL_LOAD_CONFIGURATION_REQUESTED action', function () {
+    it('updates the state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: otherObject,
@@ -326,17 +388,21 @@ describe('firewallReducer', function() {
           viewState: {
             other: otherObject,
             loadedConfiguration: true,
-            loadConfigurationError: 'error!'
-          }
+            loadConfigurationError: 'error!',
+          },
         },
-        configurationState: otherObject
+        configurationState: otherObject,
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_CONFIGURATION_REQUESTED'
+        type: 'FIREWALL_LOAD_CONFIGURATION_REQUESTED',
       });
       // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
+        false
+      );
+      expect(
+        newState.autoUnquarantineState.viewState.loadConfigurationError
+      ).toBeNull();
       expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
       expect(newState.autoUnquarantineState.other).toBe(otherObject);
 
@@ -351,15 +417,15 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_LOAD_CONFIGURATION_FULFILLED action', function() {
-    it('updates the state', function() {
+  describe('FIREWALL_LOAD_CONFIGURATION_FULFILLED action', function () {
+    it('updates the state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
-          other: otherObject
+          other: otherObject,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
           other: otherObject,
@@ -368,33 +434,47 @@ describe('firewallReducer', function() {
             loadedConfiguration: false,
             loadConfigurationError: 'error!',
             enabledPolicyConditionTypesCount: 0,
-            totalPolicyConditionTypesCount: 0
-          }
+            totalPolicyConditionTypesCount: 0,
+          },
         },
         configurationState: {
           other: otherObject,
-          autoUnquarantineEnabled: false
+          autoUnquarantineEnabled: false,
         },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
-            other: otherObject
-          }
-        }
+            other: otherObject,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_CONFIGURATION_FULFILLED',
-        payload: [{autoReleaseQuarantineEnabled: true}, {autoReleaseQuarantineEnabled: false}]
+        payload: [
+          { autoReleaseQuarantineEnabled: true },
+          { autoReleaseQuarantineEnabled: false },
+        ],
       });
 
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
-      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(2);
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
+        true
+      );
+      expect(
+        newState.autoUnquarantineState.viewState.loadConfigurationError
+      ).toBeNull();
+      expect(
+        newState.autoUnquarantineState.viewState
+          .enabledPolicyConditionTypesCount
+      ).toBe(1);
+      expect(
+        newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount
+      ).toBe(2);
 
       // configurationState
-      expect(newState.configurationState).toEqual({autoUnquarantineEnabled: true});
+      expect(newState.configurationState).toEqual({
+        autoUnquarantineEnabled: true,
+      });
 
       // properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -406,46 +486,50 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_LOAD_CONFIGURATION_FAILED action', function() {
-    it('updates the state', function() {
+  describe('FIREWALL_LOAD_CONFIGURATION_FAILED action', function () {
+    it('updates the state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          loadError: null
+          loadError: null,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
           other: otherObject,
           viewState: {
             other: otherObject,
             loadedConfiguration: false,
-            loadConfigurationError: null
-          }
+            loadConfigurationError: null,
+          },
         },
         configurationState: {
-          other: otherObject
+          other: otherObject,
         },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
-            other: otherObject
-          }
-        }
+            other: otherObject,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_CONFIGURATION_FAILED',
-        payload: 'error!'
+        payload: 'error!',
       });
 
       // viewState
       expect(newState.viewState.loadError).toBe('error!');
 
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
+        true
+      );
+      expect(
+        newState.autoUnquarantineState.viewState.loadConfigurationError
+      ).toBe('error!');
 
       // properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -457,63 +541,71 @@ describe('firewallReducer', function() {
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
 
-    it('does not update loadError if it exists', function() {
+    it('does not update loadError if it exists', function () {
       const state = Object.freeze({
         viewState: {
-          loadError: 'old error!'
+          loadError: 'old error!',
         },
         autoUnquarantineState: {
           viewState: {
             loadedConfiguration: false,
-            loadConfigurationError: null
-          }
-        }
+            loadConfigurationError: null,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_LOAD_CONFIGURATION_FAILED',
-        payload: 'error!'
+        payload: 'error!',
       });
 
       // viewState
       expect(newState.viewState.loadError).toBe('old error!');
 
       // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
+        true
+      );
+      expect(
+        newState.autoUnquarantineState.viewState.loadConfigurationError
+      ).toBe('error!');
     });
   });
 
-  describe('FIREWALL_QUARANTINE_SUMMARY_REQUESTED action', function() {
-    it('updates to the initial state', function() {
+  describe('FIREWALL_QUARANTINE_SUMMARY_REQUESTED action', function () {
+    it('updates to the initial state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
-          other: otherObject
+          other: otherObject,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
-          other: otherObject
+          other: otherObject,
         },
         configurationState: {
-          other: otherObject
+          other: otherObject,
         },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
             other: otherObject,
             loadedQuarantineSummary: true,
-            loadQuarantineSummaryError: 'error!'
-          }
-        }
+            loadQuarantineSummaryError: 'error!',
+          },
+        },
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED'
+        type: 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED',
       });
 
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
+      expect(
+        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
+      ).toBe(false);
+      expect(
+        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
+      ).toBe(null);
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
       expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
       // other properties are not modified
@@ -525,21 +617,21 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_QUARANTINE_SUMMARY_FULFILLED action', function() {
-    it('updates the state, sets the load error to null and sets enabled flag from payload', function() {
+  describe('FIREWALL_QUARANTINE_SUMMARY_FULFILLED action', function () {
+    it('updates the state, sets the load error to null and sets enabled flag from payload', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
-          other: otherObject
+          other: otherObject,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
-          other: otherObject
+          other: otherObject,
         },
         configurationState: {
-          other: otherObject
+          other: otherObject,
         },
         quarantineSummaryState: {
           other: otherObject,
@@ -551,28 +643,39 @@ describe('firewallReducer', function() {
             repositoryCount: null,
             quarantineEnabledRepositoryCount: null,
             totalComponentCount: null,
-            quarantinedComponentCount: null
-          }
-        }
+            quarantinedComponentCount: null,
+          },
+        },
       });
       const payload = {
         quarantineEnabled: true,
         repositoryCount: 5,
         quarantineEnabledRepositoryCount: 2,
         totalComponentCount: 10,
-        quarantinedComponentCount: 3
+        quarantinedComponentCount: 3,
       };
       const newState = reduce(state, {
         type: 'FIREWALL_QUARANTINE_SUMMARY_FULFILLED',
-        payload: payload
+        payload: payload,
       });
 
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(true);
+      expect(
+        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
+      ).toBe(true);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(
+        true
+      );
       expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(5);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(2);
-      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(10);
-      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(3);
+      expect(
+        newState.quarantineSummaryState.viewState
+          .quarantineEnabledRepositoryCount
+      ).toBe(2);
+      expect(
+        newState.quarantineSummaryState.viewState.totalComponentCount
+      ).toBe(10);
+      expect(
+        newState.quarantineSummaryState.viewState.quarantinedComponentCount
+      ).toBe(3);
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
       expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
       // other properties are not modified
@@ -584,42 +687,46 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_QUARANTINE_SUMMARY_FAILED action', function() {
-    it('updates the state and sets the loadStatusError to the payload', function() {
+  describe('FIREWALL_QUARANTINE_SUMMARY_FAILED action', function () {
+    it('updates the state and sets the loadStatusError to the payload', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          loadError: null
+          loadError: null,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
-          other: otherObject
+          other: otherObject,
         },
         configurationState: {
-          other: otherObject
+          other: otherObject,
         },
         quarantineSummaryState: {
           other: otherObject,
           viewState: {
             other: otherObject,
-            loadedQuarantineSummary: false
-          }
-        }
+            loadedQuarantineSummary: false,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_QUARANTINE_SUMMARY_FAILED',
-        payload: 'error!'
+        payload: 'error!',
       });
 
       // viewState
       expect(newState.viewState.loadError).toBe('error!');
 
       // newState.quarantineSummaryState
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe('error!');
+      expect(
+        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
+      ).toBe(true);
+      expect(
+        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
+      ).toBe('error!');
       expect(newState.quarantineSummaryState.other).toBe(otherObject);
       expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
       // other properties are not modified
@@ -630,33 +737,37 @@ describe('firewallReducer', function() {
       expect(newState.configurationState.other).toEqual(otherObject);
     });
 
-    it('does not update loadError if it exists', function() {
+    it('does not update loadError if it exists', function () {
       const state = Object.freeze({
         viewState: {
-          loadError: 'old error!'
+          loadError: 'old error!',
         },
         quarantineSummaryState: {
           viewState: {
-            loadedQuarantineSummary: false
-          }
-        }
+            loadedQuarantineSummary: false,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_QUARANTINE_SUMMARY_FAILED',
-        payload: 'error!'
+        payload: 'error!',
       });
 
       // viewState
       expect(newState.viewState.loadError).toBe('old error!');
 
       // newState.quarantineSummaryState
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe('error!');
+      expect(
+        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
+      ).toBe(true);
+      expect(
+        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
+      ).toBe('error!');
     });
   });
 
-  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED action', function() {
-    it('updates the state', function() {
+  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED action', function () {
+    it('updates the state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: otherObject,
@@ -665,19 +776,24 @@ describe('firewallReducer', function() {
           viewState: {
             other: otherObject,
             loadedReleaseQuarantineSummary: true,
-            loadReleaseQuarantineSummaryError: 'Error!'
+            loadReleaseQuarantineSummaryError: 'Error!',
           },
-          other: otherObject
+          other: otherObject,
         },
-        configurationState: otherObject
+        configurationState: otherObject,
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED'
+        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED',
       });
 
       // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBeNull();
+      expect(
+        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
+      ).toBe(false);
+      expect(
+        newState.autoUnquarantineState.viewState
+          .loadReleaseQuarantineSummaryError
+      ).toBeNull();
       expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
 
       // viewState
@@ -693,15 +809,15 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED action', function() {
-    it('updates the state', function() {
+  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED action', function () {
+    it('updates the state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
-          other: otherObject
+          other: otherObject,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
           other: otherObject,
@@ -709,23 +825,35 @@ describe('firewallReducer', function() {
             other: otherObject,
             loadedReleaseQuarantineSummary: false,
             loadReleaseQuarantineSummaryError: null,
-            autoReleaseQuarantineCountMTD: '-'
-          }
+            autoReleaseQuarantineCountMTD: '-',
+          },
         },
         configurationState: {
-          other: otherObject
-        }
+          other: otherObject,
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED',
-        payload: {'autoReleaseQuarantineCountMTD': 0, 'autoReleaseQuarantineCountYTD': 1}
+        payload: {
+          autoReleaseQuarantineCountMTD: 0,
+          autoReleaseQuarantineCountYTD: 1,
+        },
       });
 
       // viewState
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('0');
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('1');
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBeNull();
+      expect(
+        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD
+      ).toBe('0');
+      expect(
+        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD
+      ).toBe('1');
+      expect(
+        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
+      ).toBe(true);
+      expect(
+        newState.autoUnquarantineState.viewState
+          .loadReleaseQuarantineSummaryError
+      ).toBeNull();
 
       // properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -737,16 +865,16 @@ describe('firewallReducer', function() {
     });
   });
 
-  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED action', function() {
-    it('updates the state', function() {
+  describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED action', function () {
+    it('updates the state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          loadError: null
+          loadError: null,
         },
         statusState: {
-          other: otherObject
+          other: otherObject,
         },
         autoUnquarantineState: {
           other: otherObject,
@@ -754,25 +882,32 @@ describe('firewallReducer', function() {
             other: otherObject,
             loadedReleaseQuarantineSummary: false,
             loadReleaseQuarantineSummaryError: null,
-            autoReleaseQuarantineCountMTD: '-'
-          }
+            autoReleaseQuarantineCountMTD: '-',
+          },
         },
         configurationState: {
-          other: otherObject
-        }
+          other: otherObject,
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED',
-        payload: 'error'
+        payload: 'error',
       });
 
       // viewState
       expect(newState.viewState.loadError).toBe('error');
 
       // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe('error');
+      expect(
+        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD
+      ).toBe('-');
+      expect(
+        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
+      ).toBe(true);
+      expect(
+        newState.autoUnquarantineState.viewState
+          .loadReleaseQuarantineSummaryError
+      ).toBe('error');
 
       // properties are not modified
       expect(newState.other).toBe(otherObject);
@@ -783,58 +918,76 @@ describe('firewallReducer', function() {
       expect(newState.configurationState.other).toBe(otherObject);
     });
 
-    it('it does not update loadError if it exists', function() {
+    it('it does not update loadError if it exists', function () {
       const state = Object.freeze({
         viewState: {
           other: otherObject,
-          loadError: 'old error!'
+          loadError: 'old error!',
         },
         autoUnquarantineState: {
           viewState: {
             loadedReleaseQuarantineSummary: false,
-            loadReleaseQuarantineSummaryError: null
-          }
-        }
+            loadReleaseQuarantineSummaryError: null,
+          },
+        },
       });
       const newState = reduce(state, {
         type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED',
-        payload: 'error'
+        payload: 'error',
       });
 
       // viewState
       expect(newState.viewState.loadError).toBe('old error!');
 
       // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe('error');
+      expect(
+        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
+      ).toBe(true);
+      expect(
+        newState.autoUnquarantineState.viewState
+          .loadReleaseQuarantineSummaryError
+      ).toBe('error');
     });
   });
 
-  describe('FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED action', function() {
+  describe('FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
-      expect(reduce(initialState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED' })).toEqual({
+    it('updates the state', function () {
+      expect(
+        reduce(initialState, {
+          type: 'FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED',
+        })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
           autoUnquarantineGridState: {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
             loadedReleaseQuarantineList: false,
-            releaseQuarantineList: []
-          }
-        }
+            releaseQuarantineList: [],
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED action', function() {
+  describe('FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
-      let payload = {'pageCount': 1, 'page': 1, 'results': [{'test': 'testVal'}, {'test': 'testVal'}]};
+    it('updates the state', function () {
+      let payload = {
+        pageCount: 1,
+        page: 1,
+        results: [{ test: 'testVal' }, { test: 'testVal' }],
+      };
 
-      expect(reduce(initialState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED', payload: payload })).toEqual({
+      expect(
+        reduce(initialState, {
+          type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED',
+          payload: payload,
+        })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
@@ -843,20 +996,25 @@ describe('firewallReducer', function() {
             loadedReleaseQuarantineList: true,
             releaseQuarantineList: payload.results,
             releaseQuarantinePageCount: payload.pageCount,
-            currentPage: payload.pageCount - 1
-          }
-        }
+            currentPage: payload.pageCount - 1,
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_RELEASE_QUARANTINE_LIST_FAILED action', function() {
+  describe('FIREWALL_RELEASE_QUARANTINE_LIST_FAILED action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
+    it('updates the state', function () {
       let payload = 'error!';
 
-      expect(reduce(initialState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FAILED', payload: payload })).toEqual({
+      expect(
+        reduce(initialState, {
+          type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FAILED',
+          payload: payload,
+        })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
@@ -864,145 +1022,172 @@ describe('firewallReducer', function() {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
             loadAutoUnquarantineGridError: payload,
             loadedReleaseQuarantineList: true,
-            releaseQuarantineList: []
-          }
-        }
+            releaseQuarantineList: [],
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE action', function() {
+  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
+    it('updates the state', function () {
       let payload = { currentPage: 123 };
 
-      expect(reduce(initialState, { type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE', payload})).toEqual({
+      expect(
+        reduce(initialState, {
+          type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE',
+          payload,
+        })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
           autoUnquarantineGridState: {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
-            currentPage: payload.currentPage
-          }
-        }
+            currentPage: payload.currentPage,
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING action', function() {
+  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
+    it('updates the state', function () {
       let payload = { sortField: 'testSort', sortDir: 'asc' };
 
-      expect(reduce(initialState, { type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING', payload: payload})).toEqual({
+      expect(
+        reduce(initialState, {
+          type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING',
+          payload: payload,
+        })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
           autoUnquarantineGridState: {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
             sortField: 'testSort',
-            sortDir: 'asc'
-          }
-        }
+            sortDir: 'asc',
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER action', function() {
+  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
+    it('updates the state', function () {
       let payload = { policyId: '456' };
 
-      expect(reduce(initialState, { type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER', payload: payload })).toEqual({
+      expect(
+        reduce(initialState, {
+          type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER',
+          payload: payload,
+        })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
           autoUnquarantineGridState: {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
-            filterPolicyId: payload.policyId
-          }
-        }
+            filterPolicyId: payload.policyId,
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_POLICIES_REQUESTED action', function() {
+  describe('FIREWALL_POLICIES_REQUESTED action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
-      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_REQUESTED' })).toEqual({
+    it('updates the state', function () {
+      expect(
+        reduce(initialState, { type: 'FIREWALL_POLICIES_REQUESTED' })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
           autoUnquarantineGridState: {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
-            policies: []
-          }
-        }
+            policies: [],
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_POLICIES_FULFILLED action', function() {
+  describe('FIREWALL_POLICIES_FULFILLED action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
+    it('updates the state', function () {
       let payload = {
-        policies: [{
-          'name': 'testName',
-          'ownerId': 'ROOT_ORGANIZATION_ID'
-        }, {
-          'name': 'testName2',
-          'ownerId': 'invalid-owner'
-        }]
+        policies: [
+          {
+            name: 'testName',
+            ownerId: 'ROOT_ORGANIZATION_ID',
+          },
+          {
+            name: 'testName2',
+            ownerId: 'invalid-owner',
+          },
+        ],
       };
 
-      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_FULFILLED', payload: payload })).toEqual({
+      expect(
+        reduce(initialState, {
+          type: 'FIREWALL_POLICIES_FULFILLED',
+          payload: payload,
+        })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
           autoUnquarantineGridState: {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
             loadedPolicies: true,
-            policies: [{ 'name': 'testName', 'ownerId': 'ROOT_ORGANIZATION_ID' }]
-          }
-        }
+            policies: [{ name: 'testName', ownerId: 'ROOT_ORGANIZATION_ID' }],
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_POLICIES_FAILED action', function() {
+  describe('FIREWALL_POLICIES_FAILED action', function () {
     let initialState = reduce();
 
-    it('updates the state', function() {
-      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_FAILED' })).toEqual({
+    it('updates the state', function () {
+      expect(
+        reduce(initialState, { type: 'FIREWALL_POLICIES_FAILED' })
+      ).toEqual({
         ...initialState,
         autoUnquarantineState: {
           ...initialState.autoUnquarantineState,
           autoUnquarantineGridState: {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
             loadedPolicies: true,
-            policies: []
-          }
-        }
+            policies: [],
+          },
+        },
       });
     });
   });
 
-  describe('FIREWALL_LOAD_DATA_REQUESTED action', function() {
-    it('updates to the initial state', function() {
+  describe('FIREWALL_LOAD_DATA_REQUESTED action', function () {
+    it('updates to the initial state', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: otherObject,
         statusState: otherObject,
         autoUnquarantineState: otherObject,
-        configurationState: otherObject
+        configurationState: otherObject,
       });
       const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_DATA_REQUESTED'
+        type: 'FIREWALL_LOAD_DATA_REQUESTED',
       });
       // viewState
       expect(newState.viewState.loadedStatus).toBe(false);
@@ -1014,27 +1199,57 @@ describe('firewallReducer', function() {
       expect(newState.statusState.isEnabled).toBe(false);
 
       //autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe(null);
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
-      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
+      expect(
+        newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary
+      ).toBe(false);
+      expect(
+        newState.autoUnquarantineState.viewState
+          .loadReleaseQuarantineSummaryError
+      ).toBe(null);
+      expect(
+        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD
+      ).toBe('-');
+      expect(
+        newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD
+      ).toBe('-');
+      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(
+        false
+      );
+      expect(
+        newState.autoUnquarantineState.viewState.loadConfigurationError
+      ).toBeNull();
+      expect(
+        newState.autoUnquarantineState.viewState
+          .enabledPolicyConditionTypesCount
+      ).toBe(0);
+      expect(
+        newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount
+      ).toBe(0);
 
       //configurationState
       expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
 
       //quarantineSummaryState.viewState
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(0);
+      expect(
+        newState.quarantineSummaryState.viewState.loadedQuarantineSummary
+      ).toBe(false);
+      expect(
+        newState.quarantineSummaryState.viewState.loadQuarantineSummaryError
+      ).toBe(null);
+      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(
+        false
+      );
+      expect(
+        newState.quarantineSummaryState.viewState
+          .quarantineEnabledRepositoryCount
+      ).toBe(0);
       expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(0);
-
+      expect(
+        newState.quarantineSummaryState.viewState.totalComponentCount
+      ).toBe(0);
+      expect(
+        newState.quarantineSummaryState.viewState.quarantinedComponentCount
+      ).toBe(0);
     });
   });
 });

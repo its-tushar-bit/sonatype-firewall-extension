@@ -5,20 +5,30 @@
  */
 import template from './dashboardResultsContainer.html';
 import { DEFAULT_FILTER_NAME } from '../filter/defaultFilter';
-import { loadFilter, toggleFilterSidebar } from '../filter/dashboardFilterActions';
+import {
+  loadFilter,
+  toggleFilterSidebar,
+} from '../filter/dashboardFilterActions';
 
 export default {
   template,
   controller: dashboardResultsContainerController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };
 
-function dashboardResultsContainerController(createRequest, CLMLocations, $ngRedux) {
+function dashboardResultsContainerController(
+  createRequest,
+  CLMLocations,
+  $ngRedux
+) {
   const vm = this;
 
   Object.assign(vm, {
     $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis, { toggleFilterSidebar, loadFilter })(vm);
+      vm.unsubscribe = $ngRedux.connect(mapStateToThis, {
+        toggleFilterSidebar,
+        loadFilter,
+      })(vm);
       vm.loadFilter();
     },
 
@@ -30,12 +40,14 @@ function dashboardResultsContainerController(createRequest, CLMLocations, $ngRed
       return !vm.filterLoading && !vm.loadFilterError;
     },
 
-    DEFAULT_FILTER_NAME
+    DEFAULT_FILTER_NAME,
   });
 }
 
 dashboardResultsContainerController.$inject = [
-  'createDashboardDataRequestPayload', 'CLMLocations', '$ngRedux'
+  'createDashboardDataRequestPayload',
+  'CLMLocations',
+  '$ngRedux',
 ];
 
 // Which part of the Redux global state does our component want to receive?
@@ -52,6 +64,6 @@ function mapStateToThis(state) {
     routeStateName: state.router.currentState.name,
     applicationsSortFields: state.dashboard.applications.sortFields,
     componentsSortFields: state.dashboard.components.sortFields,
-    violationsSortFields: state.dashboard.violations.sortFields
+    violationsSortFields: state.dashboard.violations.sortFields,
   };
 }

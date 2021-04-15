@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 #webhooks-view {
-  &, [ui-view] {
+  &,
+  [ui-view] {
     display: contents;
   }
 }

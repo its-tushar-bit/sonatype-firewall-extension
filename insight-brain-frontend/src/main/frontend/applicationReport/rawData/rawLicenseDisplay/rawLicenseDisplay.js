@@ -4,15 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './rawLicenseDisplay.html';
-import {getDeclaredLicensesDisplay, getObservedLicensesDisplay} from '../../licenseDisplayUtils';
+import {
+  getDeclaredLicensesDisplay,
+  getObservedLicensesDisplay,
+} from '../../licenseDisplayUtils';
 
 export default {
   template,
   controller: rawLicenseDisplayController,
   controllerAs: 'vm',
   bindings: {
-    license: '<'
-  }
+    license: '<',
+  },
 };
 
 function rawLicenseDisplayController() {
@@ -24,6 +27,6 @@ function rawLicenseDisplayController() {
         vm.declaredLicenses = getDeclaredLicensesDisplay(vm.license);
         vm.observedLicenses = getObservedLicensesDisplay(vm.license);
       }
-    }
+    },
   });
 }

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import LoadWrapper from '../react/LoadWrapper';
 import FirewallStatus from './FirewallStatus';
 import FirewallQuarantineStatus from './FirewallQuarantineStatus';
@@ -17,41 +17,33 @@ import FirewallAutoUnquarantineStatus from './FirewallAutoUnquarantineStatus';
 
 export default function Firewall(props) {
   // Actions
-  const {
-    loadData
-  } = props;
+  const { loadData } = props;
 
   // viewState
-  const {
-    loadedStatus,
-    isShowConfigurationModal,
-    loadError
-  } = props;
+  const { loadedStatus, isShowConfigurationModal, loadError } = props;
 
   // statusState
-  const {
-    isEnabled
-  } = props;
+  const { isEnabled } = props;
 
   // autoUnquarantineState.viewState
   const {
     autoReleaseQuarantineCountMTD,
     loadedReleaseQuarantineSummary,
-    loadedConfiguration
+    loadedConfiguration,
   } = props;
 
   // quarantineSummaryState
-  const {
-    loadedQuarantineSummary
-  } = props;
+  const { loadedQuarantineSummary } = props;
 
   // state
-  const {
-    $state
-  } = props;
+  const { $state } = props;
 
-  const dataLoaded = isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration,
-      loadedQuarantineSummary);
+  const dataLoaded = isDataLoaded(
+    loadedStatus,
+    loadedReleaseQuarantineSummary,
+    loadedConfiguration,
+    loadedQuarantineSummary
+  );
 
   const error = determineError(loadedStatus, isEnabled, loadError);
 
@@ -61,17 +53,19 @@ export default function Firewall(props) {
 
   return (
     <main id="firewall-page" className="nx-page-main">
-      {isShowConfigurationModal && <FirewallConfigurationModalContainer/>}
+      {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
       <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadData}>
-        <FirewallStatus { ...props }/>
+        <FirewallStatus {...props} />
         <div className="nx-card-container nx-card-container--no-wrap">
-          <FirewallQuarantineStatus { ...props }/>
-          <FirewallAutoUnquarantineStatus { ...props }/>
-          <FirewallQuarantine { ...props }/>
-          <FirewallAutoReleaseQuarantine autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}
-                                         $state={$state}/>
+          <FirewallQuarantineStatus {...props} />
+          <FirewallAutoUnquarantineStatus {...props} />
+          <FirewallQuarantine {...props} />
+          <FirewallAutoReleaseQuarantine
+            autoReleaseQuarantineCountMTD={autoReleaseQuarantineCountMTD}
+            $state={$state}
+          />
         </div>
-        <FirewallQuarantineTable/>
+        <FirewallQuarantineTable />
       </LoadWrapper>
     </main>
   );
@@ -86,8 +80,18 @@ function determineError(loadedStatus, isEnabled, loadError) {
   }
 }
 
-function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration, loadedQuarantineSummary) {
-  return loadedStatus && loadedReleaseQuarantineSummary && loadedConfiguration && loadedQuarantineSummary;
+function isDataLoaded(
+  loadedStatus,
+  loadedReleaseQuarantineSummary,
+  loadedConfiguration,
+  loadedQuarantineSummary
+) {
+  return (
+    loadedStatus &&
+    loadedReleaseQuarantineSummary &&
+    loadedConfiguration &&
+    loadedQuarantineSummary
+  );
 }
 
 Firewall.propTypes = {
@@ -101,6 +105,6 @@ Firewall.propTypes = {
   loadedQuarantineSummary: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
   $state: PropTypes.shape({
-    href: PropTypes.func.isRequired
-  }).isRequired
+    href: PropTypes.func.isRequired,
+  }).isRequired,
 };

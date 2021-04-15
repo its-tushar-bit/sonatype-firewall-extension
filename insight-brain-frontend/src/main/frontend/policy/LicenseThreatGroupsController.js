@@ -7,36 +7,42 @@
 import CLMContextLocationModule from '../util/CLMContextLocation';
 import storesModule from '../util/Stores';
 
-var licenseGroupModule = angular.module('LicenseThreatGroup',
-    [storesModule.name, CLMContextLocationModule.name]);
+var licenseGroupModule = angular.module('LicenseThreatGroup', [
+  storesModule.name,
+  CLMContextLocationModule.name,
+]);
 
 licenseGroupModule.service('licenseGroupStore', [
-  'CLMContextLocations', 'CachedStore', function(CLMContextLocations, CachedStore) {
+  'CLMContextLocations',
+  'CachedStore',
+  function (CLMContextLocations, CachedStore) {
     var licenseGroupStoreTemplate = {
       id: 'id',
       template: { id: null, ownerId: null, name: null, threatLevel: 5 },
       getUrl: CLMContextLocations.getLicenseGroupsUrl,
       relationalConfigs: {
-        'licenses': {
+        licenses: {
           id: 'licenseId',
           template: { id: null, licenseId: null },
-          url: CLMContextLocations.getLicenseGroupLicensesUrl
-        }
-      }
+          url: CLMContextLocations.getLicenseGroupLicensesUrl,
+        },
+      },
     };
 
     return CachedStore.get(licenseGroupStoreTemplate);
-  }
+  },
 ]);
 
 licenseGroupModule.service('licenseStore', [
-  'CLMLocations', 'StoreFactory', function(CLMLocations, StoreFactory) {
+  'CLMLocations',
+  'StoreFactory',
+  function (CLMLocations, StoreFactory) {
     var licenseStore = StoreFactory.getStore({
       id: 'id',
-      url: CLMLocations.getLicensesUrl()
+      url: CLMLocations.getLicensesUrl(),
     });
     return licenseStore;
-  }
+  },
 ]);
 
 export default licenseGroupModule;

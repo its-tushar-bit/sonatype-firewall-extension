@@ -7,13 +7,11 @@
 /**
  * Surrounds non-empty String input with supplied prefix and suffix
  */
-export default
-function wrapWithFilter() {
-  return function(input, left, right) {
+export default function wrapWithFilter() {
+  return function (input, left, right) {
     if (!input || input.length === 0) {
       return '';
     }
     return left + input + right;
   };
 }
-

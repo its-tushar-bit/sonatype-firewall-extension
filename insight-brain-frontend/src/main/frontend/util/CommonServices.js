@@ -5,12 +5,12 @@
  */
 /* global angular, window */
 import StableBodyService from './StableBodyService';
-import {getBaseUrl} from './urlUtil';
+import { getBaseUrl } from './urlUtil';
 
 var services = angular.module('CommonServices', []);
 
 export const Messages = {
-  getHttpErrorMessage: function(args) {
+  getHttpErrorMessage: function (args) {
     if (!args) {
       return;
     }
@@ -21,54 +21,54 @@ export const Messages = {
       args = {
         status: args[1],
         data: args[0],
-        headers: args.length >= 3 ? args[2] : null
+        headers: args.length >= 3 ? args[2] : null,
       };
     }
 
     // handle axios error objects
     if (args.response) {
       return Messages.getHttpErrorMessage(args.response);
-    }
-    else {
+    } else {
       let message = '',
-          headers = angular.isFunction(args.headers) ? args.headers() : args.headers;
+        headers = angular.isFunction(args.headers)
+          ? args.headers()
+          : args.headers;
       if (args.status <= 0 || args.status >= 1000) {
         message = 'Unable to reach Nexus IQ Server';
-      }
-      else if (args.data && (!headers || !headers['content-type'] ||
-        headers['content-type'].indexOf('text/html') === -1)) {
+      } else if (
+        args.data &&
+        (!headers ||
+          !headers['content-type'] ||
+          headers['content-type'].indexOf('text/html') === -1)
+      ) {
         message = args.data;
       }
       // Angular misses statusText (cf. https://github.com/angular/angular.js/pull/2665)
       // , so at least ensure message for typical proxy errors
       else if (args.status === 502) {
         message = 'Bad Gateway';
-      }
-      else if (args.status === 503) {
+      } else if (args.status === 503) {
         message = 'Service Unavailable';
-      }
-      else if (args.status === 504) {
+      } else if (args.status === 504) {
         message = 'Gateway Timeout';
-      }
-      else if (args.status) {
+      } else if (args.status) {
         message = 'Error ' + args.status;
-      }
-      else {
+      } else {
         message = 'Error';
       }
       return message;
     }
-  }
+  },
 };
 
-services.service('Messages', function() {
+services.service('Messages', function () {
   return Messages;
 });
 
 /**
  * English language phrases for elapsed time.
  */
-services.filter('ago', function() {
+services.filter('ago', function () {
   var rules = {
     year: 'year',
     month: 'month',
@@ -79,7 +79,9 @@ services.filter('ago', function() {
     highlightMultiples: true,
     separator: ' ',
     suffix: ' ago',
-    diffFunction: function(date) { return new Date().getTime() - date; }
+    diffFunction: function (date) {
+      return new Date().getTime() - date;
+    },
   };
   return new ElapsedTimeFilterFactory(rules);
 });
@@ -96,19 +98,24 @@ var timeAbbreviations = {
   seconds: '1min',
   highlightMultiples: false,
   separator: '',
-  suffix: ''
+  suffix: '',
 };
 
-services.filter('terseTimeSpan', function() {
-  var rules = angular.extend({
-    diffFunction: function(date) { return date; }
-  }, timeAbbreviations);
+services.filter('terseTimeSpan', function () {
+  var rules = angular.extend(
+    {
+      diffFunction: function (date) {
+        return date;
+      },
+    },
+    timeAbbreviations
+  );
   return new ElapsedTimeFilterFactory(rules);
 });
 
 export const terseAgo = new ElapsedTimeFilterFactory({
   ...timeAbbreviations,
-  diffFunction: date => new Date().getTime() - date
+  diffFunction: (date) => new Date().getTime() - date,
 });
 
 /**
@@ -118,7 +125,7 @@ services.filter('terseAgo', () => terseAgo);
 
 export const timeAgo = new ElapsedTimeFunctionFactory({
   seconds: 'Just now',
-  diffFunction: date => new Date().getTime() - date,
+  diffFunction: (date) => new Date().getTime() - date,
   year: 'year',
   month: 'month',
   day: 'day',
@@ -126,17 +133,17 @@ export const timeAgo = new ElapsedTimeFunctionFactory({
   minute: 'minute',
   highlightMultiples: true,
   separator: ' ',
-  suffix: ' ago'
+  suffix: ' ago',
 });
 
-services.service('timeAgoService', function() {
+services.service('timeAgoService', function () {
   return {
-    renderDate: timeAgo
+    renderDate: timeAgo,
   };
 });
 
 function ElapsedTimeFilterFactory(rules) {
-  return function(date) {
+  return function (date) {
     var timeAgo = new ElapsedTimeFunctionFactory(rules)(date);
     return timeAgo.age + rules.separator + timeAgo.qualifier;
   };
@@ -149,16 +156,16 @@ function ElapsedTimeFilterFactory(rules) {
  * @constructor
  */
 function ElapsedTimeFunctionFactory(rules) {
-  return function(date) {
+  return function (date) {
     var diff,
-        unit,
-        val,
-        localRules = rules;
+      unit,
+      val,
+      localRules = rules;
 
     if (!date) {
       return {
         age: '',
-        qualifier: ''
+        qualifier: '',
       };
     }
 
@@ -167,27 +174,22 @@ function ElapsedTimeFunctionFactory(rules) {
     if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
       val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
       unit = localRules.year;
-    }
-    else if (diff > 30 * 24 * 60 * 60 * 1000) {
+    } else if (diff > 30 * 24 * 60 * 60 * 1000) {
       val = diff / (30 * 24 * 60 * 60 * 1000);
       unit = localRules.month;
-    }
-    else if (diff > 24 * 60 * 60 * 1000) {
+    } else if (diff > 24 * 60 * 60 * 1000) {
       val = diff / (24 * 60 * 60 * 1000);
       unit = localRules.day;
-    }
-    else if (diff > 60 * 60 * 1000) {
+    } else if (diff > 60 * 60 * 1000) {
       val = diff / (60 * 60 * 1000);
       unit = localRules.hour;
-    }
-    else if (diff > 60 * 1000) {
+    } else if (diff > 60 * 1000) {
       val = diff / (60 * 1000);
       unit = localRules.minute;
-    }
-    else {
+    } else {
       return {
         age: '',
-        qualifier: localRules.seconds
+        qualifier: localRules.seconds,
       };
     }
     val = Math.floor(val);
@@ -199,7 +201,7 @@ function ElapsedTimeFunctionFactory(rules) {
 
     return {
       age: val,
-      qualifier: unit + localRules.suffix
+      qualifier: unit + localRules.suffix,
     };
   };
 }
@@ -208,9 +210,13 @@ function ElapsedTimeFunctionFactory(rules) {
  * Intended to reduce the granularity of results from the 'ago' filter for cases where precision is not needed for the
  * last 24 hours.
  */
-services.filter('agoLastDay', function() {
-  return function(agoString) {
-    if (agoString.indexOf('seconds ago') > -1 || agoString.indexOf('minute') > -1 || agoString.indexOf('hour') > -1) {
+services.filter('agoLastDay', function () {
+  return function (agoString) {
+    if (
+      agoString.indexOf('seconds ago') > -1 ||
+      agoString.indexOf('minute') > -1 ||
+      agoString.indexOf('hour') > -1
+    ) {
       return 'Less than a day ago';
     }
     return agoString;
@@ -227,95 +233,109 @@ services.filter('agoLastDay', function() {
  * element should take into account the possibility of increased font sizes on client machines and prefer to specify
  * boundary sizes in em.
  */
-services.filter('truncate', function() {
-  return function(text, length) {
+services.filter('truncate', function () {
+  return function (text, length) {
     var end = '...';
     if (isNaN(length)) {
       length = 25;
     }
     if (text.length <= length) {
       return text;
-    }
-    else {
+    } else {
       return String(text).substring(0, length - end.length) + end;
     }
   };
 });
 
 services.service('BaseUrl', [
-  function() {
+  function () {
     return {
-      get: () => getBaseUrl(window.location.href)
+      get: () => getBaseUrl(window.location.href),
     };
-  }
+  },
 ]);
 
-services.service('LastSelectedOrganization', [function() {
-  var lastOrg = {};
-  return {
-    get: function() {
-      return lastOrg;
-    },
-    set: function(org) {
-      lastOrg = angular.copy(org);
-    },
-    clear: function() {
-      lastOrg = {};
-    }
-  };
-}]);
+services.service('LastSelectedOrganization', [
+  function () {
+    var lastOrg = {};
+    return {
+      get: function () {
+        return lastOrg;
+      },
+      set: function (org) {
+        lastOrg = angular.copy(org);
+      },
+      clear: function () {
+        lastOrg = {};
+      },
+    };
+  },
+]);
 
-services.filter('EncodeURIComponent', ['$window', function($window) {
-  return $window.encodeURIComponent;
-}]);
+services.filter('EncodeURIComponent', [
+  '$window',
+  function ($window) {
+    return $window.encodeURIComponent;
+  },
+]);
 
-services.filter('safeDivide', function() {
-  return function(value, max) {
+services.filter('safeDivide', function () {
+  return function (value, max) {
     return max === 0 ? 0 : value / max;
   };
 });
 
 services.service('ApplicationId', [
-  '$state', function($state) {
+  '$state',
+  function ($state) {
     return {
-      encoded: function() {
+      encoded: function () {
         var applicationPublicId = $state.params.applicationPublicId;
         return applicationPublicId ? encodeURI(applicationPublicId) : null;
       },
-      raw: function() {
+      raw: function () {
         return $state.params.applicationPublicId;
-      }
+      },
     };
-  }
+  },
 ]);
 
-services.service('OrganizationId', ['$state', function($state) {
-  return {
-    encoded: function() {
-      var organizationId = $state.params.organizationId;
-      return organizationId ? encodeURI(organizationId) : null;
-    },
-    raw: function() {
-      return $state.params.organizationId;
-    }
-  };
-}]);
+services.service('OrganizationId', [
+  '$state',
+  function ($state) {
+    return {
+      encoded: function () {
+        var organizationId = $state.params.organizationId;
+        return organizationId ? encodeURI(organizationId) : null;
+      },
+      raw: function () {
+        return $state.params.organizationId;
+      },
+    };
+  },
+]);
 
 /**
  * Returns the last element of a path with the assumption that it is a file name. Path elements are assumed to be
  * delimited by a '/'.
  */
-services.filter('fileName', function() {
-  return function(path) {
+services.filter('fileName', function () {
+  return function (path) {
     var pathDelimiter = '/';
     var stringPath = String(path);
     // Avoid checking the last character as paths might end in a delimiter.
-    var lastIndexOfDelimiter = stringPath.lastIndexOf(pathDelimiter, stringPath.length - 2);
+    var lastIndexOfDelimiter = stringPath.lastIndexOf(
+      pathDelimiter,
+      stringPath.length - 2
+    );
 
     if (lastIndexOfDelimiter > -1) {
       // If the last character is a delimiter, do not return it.
       if (stringPath.charAt(stringPath.length - 1) === pathDelimiter) {
-        return stringPath.substring(lastIndexOfDelimiter + 1, stringPath.length - 1);
+        return stringPath.substring(
+          lastIndexOfDelimiter + 1,
+          stringPath.length - 1
+        );
       }
 
       return stringPath.substring(lastIndexOfDelimiter + 1);

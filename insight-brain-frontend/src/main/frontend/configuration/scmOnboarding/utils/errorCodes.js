@@ -6,4 +6,3 @@
 
 export const SCM_AUTHN_FAILURE = 'SCM_AUTHN_FAILURE';
 export const SCM_AUTHZ_FAILURE = 'SCM_AUTHZ_FAILURE';
-

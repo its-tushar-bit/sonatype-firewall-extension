@@ -21,79 +21,118 @@ import userListTemplate from './user-list.html';
 import userCreateTemplate from './user-create.html';
 import administratorsTemplate from '../policy/components/app-security/app-security.html';
 
-export const SecurityModule = angular.module('SecurityModule',
-    ['ui.router', angularCommonModule.name, ApplicationSecurityModule.name, permissionServiceModule.name],
-    ['$stateProvider', function($stateProvider) {
+export const SecurityModule = angular.module(
+  'SecurityModule',
+  [
+    'ui.router',
+    angularCommonModule.name,
+    ApplicationSecurityModule.name,
+    permissionServiceModule.name,
+  ],
+  [
+    '$stateProvider',
+    function ($stateProvider) {
       $stateProvider.state('administrators', {
         url: '/administrators',
         template: administratorsTemplate,
         data: {
-          title: 'Administrators'
+          title: 'Administrators',
         },
         controller: 'AppSecurityController',
         resolve: {
-          'isAuthorized': ['PermissionService', function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          }]
-        }
+          isAuthorized: [
+            'PermissionService',
+            function (PermissionService) {
+              return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+            },
+          ],
+        },
       });
-    }]);
+    },
+  ]
+);
 
-export const UserModule = angular.module('UserModule', ['ui.router', SecurityModule.name, CLMLocationModule.name,
-                                                        resourceModule.name, utilityModule.name,
-                                                        utilityDirectivesModule.name, telemetryServiceModule.name],
-        ['$stateProvider', function($stateProvider) {
-          $stateProvider.state('users', {
+export const UserModule = angular
+  .module(
+    'UserModule',
+    [
+      'ui.router',
+      SecurityModule.name,
+      CLMLocationModule.name,
+      resourceModule.name,
+      utilityModule.name,
+      utilityDirectivesModule.name,
+      telemetryServiceModule.name,
+    ],
+    [
+      '$stateProvider',
+      function ($stateProvider) {
+        $stateProvider
+          .state('users', {
             url: '/users',
             controller: 'UserListController',
             template: userListTemplate,
             data: {
               title: 'Users',
-              crumb: 'Users'
+              crumb: 'Users',
             },
             resolve: {
-              'isAuthorized': ['PermissionService', function (PermissionService) {
-                return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-              }]
-            }
-          }).state('users.create', {
+              isAuthorized: [
+                'PermissionService',
+                function (PermissionService) {
+                  return PermissionService.isAuthorized(
+                    ['CONFIGURE_SYSTEM'],
+                    true
+                  );
+                },
+              ],
+            },
+          })
+          .state('users.create', {
             // NOTE This is currently only used for adding new users - editing users is done using an inline form
             url: '/_new_',
             template: userCreateTemplate,
             data: {
               title: 'New User',
-              crumb: 'New User'
-            }
+              crumb: 'New User',
+            },
           });
-        }])
-    .controller('UserListController', UserListController)
-    .component('userForm', userForm)
-    .factory('userActions', userActions)
-    .value('userReducer', userReducer);
+      },
+    ]
+  )
+  .controller('UserListController', UserListController)
+  .component('userForm', userForm)
+  .factory('userActions', userActions)
+  .value('userReducer', userReducer);
 
 export default UserModule;
 
-UserModule.service('UserStore', ['CLMLocations', 'StoreFactory', function(clmLocations, StoreFactory) {
-  var config = {
-    id: 'id',
-    template: {
-      id: null,
-      username: null,
-      password: null,
-      firstName: null,
-      lastName: null,
-      email: null
-    },
-    url: clmLocations.getUserUrl()
-  }, store = StoreFactory.getStore(config);
+UserModule.service('UserStore', [
+  'CLMLocations',
+  'StoreFactory',
+  function (clmLocations, StoreFactory) {
+    var config = {
+        id: 'id',
+        template: {
+          id: null,
+          username: null,
+          password: null,
+          firstName: null,
+          lastName: null,
+          email: null,
+        },
+        url: clmLocations.getUserUrl(),
+      },
+      store = StoreFactory.getStore(config);
 
-  return store;
-}]);
+    return store;
+  },
+]);
 
 UserModule.directive('clmMatch', function () {
   return {
     require: 'ngModel',
-    link: function(scope, element, attrs, ctrl) {
+    link: function (scope, element, attrs, ctrl) {
       function emptyString(val) {
         if (val === '' || val === null) {
           return undefined;
@@ -105,32 +144,37 @@ UserModule.directive('clmMatch', function () {
         return emptyString(value) === emptyString(scope.$eval(attrs.clmMatch));
       };
 
-      scope.$watch(function () {
-        return scope.$eval(attrs.clmMatch);
-      }, function () {
-        ctrl.$$parseAndValidate();
-      });
-    }
+      scope.$watch(
+        function () {
+          return scope.$eval(attrs.clmMatch);
+        },
+        function () {
+          ctrl.$$parseAndValidate();
+        }
+      );
+    },
   };
 });
 
-UserModule.directive('expandUserOnEvent', function() {
+UserModule.directive('expandUserOnEvent', function () {
   return {
     restrict: 'A',
-    link: function(scope, element, attrs) {
-      scope.$on(attrs.expandUserOnEvent, function(event, data) {
+    link: function (scope, element, attrs) {
+      scope.$on(attrs.expandUserOnEvent, function (event, data) {
         $('#collapse' + data.userId).collapse('show');
       });
-    }
+    },
   };
 });
 
 //simple directive that will select the text in an input field
 //when user clicks on it
-UserModule.directive('selectText', [function () {
-  return function (scope, element) {
-    element.bind('focus', function () {
-      this.select();
-    });
-  };
-}]);
+UserModule.directive('selectText', [
+  function () {
+    return function (scope, element) {
+      element.bind('focus', function () {
+        this.select();
+      });
+    };
+  },
+]);

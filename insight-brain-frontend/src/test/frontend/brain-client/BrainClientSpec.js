@@ -5,9 +5,9 @@
  */
 const Brain = window.Brain;
 
-describe('brain.client.js', function() {
-  describe('getCsrfHeaders', function() {
-    it('can read the CSRF cookie', function() {
+describe('brain.client.js', function () {
+  describe('getCsrfHeaders', function () {
+    it('can read the CSRF cookie', function () {
       document.cookie = 'CLM-CSRF-TOKEN=';
       document.cookie = 'CLM-SESSION=';
       expect(Brain.getCsrfHeaders()).toEqual({ 'X-CSRF-TOKEN': '' });
@@ -17,21 +17,21 @@ describe('brain.client.js', function() {
     });
   });
 
-  describe('getSuggestedRemediationUrlForApplication', function() {
-    it('can get the suggested remediation URL', function() {
+  describe('getSuggestedRemediationUrlForApplication', function () {
+    it('can get the suggested remediation URL', function () {
       var appId = 'APPID';
       expect(Brain.getSuggestedRemediationUrlForApplication(appId)).toContain(
-          '/api/v2/components/remediation/application/' + appId
+        '/api/v2/components/remediation/application/' + appId
       );
     });
   });
 
-  describe('getInternalApplicationIdUrlForApplicationId', function() {
-    it('can get the suggested remediation URL', function() {
+  describe('getInternalApplicationIdUrlForApplicationId', function () {
+    it('can get the suggested remediation URL', function () {
       var appId = 'APPID';
-      expect(Brain.getInternalApplicationIdUrlForApplicationId(appId)).toContain(
-          '/api/v2/applications?publicId=' + appId
-      );
+      expect(
+        Brain.getInternalApplicationIdUrlForApplicationId(appId)
+      ).toContain('/api/v2/applications?publicId=' + appId);
     });
   });
 });

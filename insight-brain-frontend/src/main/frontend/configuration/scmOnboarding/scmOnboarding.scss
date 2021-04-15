@@ -63,7 +63,7 @@ scm-onboarding {
   .scm-import-detail-success:before {
     padding-left: 22px;
     padding-top: 16px;
-    content: "\f058"; /* FontAwesome Unicode: check-circle */
+    content: '\f058'; /* FontAwesome Unicode: check-circle */
     font-family: FontAwesome;
     display: inline-block;
     margin-left: -22px; /* same as padding-left */
@@ -74,7 +74,7 @@ scm-onboarding {
   .scm-import-detail-error:before {
     padding-left: 22px;
     padding-top: 16px;
-    content: "\f06a"; /* FontAwesome Unicode: exclamation-circle */
+    content: '\f06a'; /* FontAwesome Unicode: exclamation-circle */
     font-family: FontAwesome;
     display: inline-block;
     margin-left: -22px; /* same as padding-left */

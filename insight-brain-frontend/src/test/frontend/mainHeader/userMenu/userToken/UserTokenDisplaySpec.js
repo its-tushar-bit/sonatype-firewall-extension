@@ -3,35 +3,42 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxButton, NxFontAwesomeIcon, NxTextInput, NxTooltip } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxFontAwesomeIcon,
+  NxTextInput,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
 import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
 
 import * as enzymeUtils from '../../../enzymeUtils';
 import UserTokenDisplay from '../../../../../main/frontend/mainHeader/userMenu/userToken/UserTokenDisplay';
 
-describe('UserTokenDisplay', function() {
-  let minimalProps,
-      getShallowComponent;
+describe('UserTokenDisplay', function () {
+  let minimalProps, getShallowComponent;
 
-  beforeEach(function() {
+  beforeEach(function () {
     minimalProps = {
       userToken: {
         userCode: 'userCodeFromBackend',
-        passCode: 'passCodeFromBackend'
-      }
+        passCode: 'passCodeFromBackend',
+      },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(UserTokenDisplay, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      UserTokenDisplay,
+      minimalProps
+    );
   });
 
-  it('renders a form with 2 inputs for the user token information', function() {
+  it('renders a form with 2 inputs for the user token information', function () {
     const component = getShallowComponent(),
-        inputs = component.find(NxTextInput);
+      inputs = component.find(NxTextInput);
     expect(component).toMatchSelector('form');
     expect(inputs.length).toBe(2);
   });
 
-  it('prevents default submit of the form', function() {
+  it('prevents default submit of the form', function () {
     const preventDefaultSpy = jasmine.createSpy('preventDefault');
     const form = getShallowComponent();
 
@@ -39,9 +46,9 @@ describe('UserTokenDisplay', function() {
     expect(preventDefaultSpy).toHaveBeenCalled();
   });
 
-  it('renders an NxInput with label User Code with the value of userCode from the userToken prop', function() {
+  it('renders an NxInput with label User Code with the value of userCode from the userToken prop', function () {
     const component = getShallowComponent(),
-        userCodeInputContainer = component.find('.nx-form-group').at(0);
+      userCodeInputContainer = component.find('.nx-form-group').at(0);
 
     const inputTitle = userCodeInputContainer.find('span');
     expect(inputTitle).toHaveText('User Code');
@@ -51,10 +58,10 @@ describe('UserTokenDisplay', function() {
     expect(userCodeInput).toHaveProp('isPristine', true);
   });
 
-  describe('Copy User Code to clipboard button', function() {
-    it('renders a button to copy the userCode input content into the clipboard', function() {
+  describe('Copy User Code to clipboard button', function () {
+    it('renders a button to copy the userCode input content into the clipboard', function () {
       const component = getShallowComponent(),
-          userCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(0);
+        userCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(0);
 
       const buttonTooltip = userCodeInputCopyButtonContainer.find(NxTooltip);
       expect(buttonTooltip).toHaveProp('title', 'Copy to clipboard');
@@ -66,21 +73,21 @@ describe('UserTokenDisplay', function() {
       expect(buttonIcon).toHaveProp('icon', faCopy);
     });
 
-    it('calls copyToClipboard function on click with the value of the userCode from userToken', function() {
+    it('calls copyToClipboard function on click with the value of the userCode from userToken', function () {
       const copyToClipboardSpy = jasmine.createSpy('copyToClipboard');
       navigator.clipboard.writeText = copyToClipboardSpy;
       const component = getShallowComponent(),
-          userCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(0),
-          button = userCodeInputCopyButtonContainer.find(NxButton);
+        userCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(0),
+        button = userCodeInputCopyButtonContainer.find(NxButton);
 
       button.simulate('click');
       expect(copyToClipboardSpy).toHaveBeenCalledWith('userCodeFromBackend');
     });
   });
 
-  it('renders an NxInput with label Passcode with the value of passCode from the userToken prop', function() {
+  it('renders an NxInput with label Passcode with the value of passCode from the userToken prop', function () {
     const component = getShallowComponent(),
-        passCodeInputContainer = component.find('.nx-form-group').at(1);
+      passCodeInputContainer = component.find('.nx-form-group').at(1);
 
     const inputTitle = passCodeInputContainer.find('span');
     expect(inputTitle).toHaveText('Passcode');
@@ -90,10 +97,10 @@ describe('UserTokenDisplay', function() {
     expect(passCodeInput).toHaveProp('isPristine', true);
   });
 
-  describe('Copy Passcode to clipboard button', function() {
-    it('renders a button to copy the passCode input content into the clipboard', function() {
+  describe('Copy Passcode to clipboard button', function () {
+    it('renders a button to copy the passCode input content into the clipboard', function () {
       const component = getShallowComponent(),
-          passCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(1);
+        passCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(1);
 
       const buttonTooltip = passCodeInputCopyButtonContainer.find(NxTooltip);
       expect(buttonTooltip).toHaveProp('title', 'Copy to clipboard');
@@ -105,12 +112,12 @@ describe('UserTokenDisplay', function() {
       expect(buttonIcon).toHaveProp('icon', faCopy);
     });
 
-    it('calls copyToClipboard function on click with the value of the passCode from userToken', function() {
+    it('calls copyToClipboard function on click with the value of the passCode from userToken', function () {
       const copyToClipboardSpy = jasmine.createSpy('copyToClipboard');
       navigator.clipboard.writeText = copyToClipboardSpy;
       const component = getShallowComponent(),
-          passCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(1),
-          button = passCodeInputCopyButtonContainer.find(NxButton);
+        passCodeInputCopyButtonContainer = component.find('.nx-btn-bar').at(1),
+        button = passCodeInputCopyButtonContainer.find(NxButton);
 
       button.simulate('click');
       expect(copyToClipboardSpy).toHaveBeenCalledWith('passCodeFromBackend');

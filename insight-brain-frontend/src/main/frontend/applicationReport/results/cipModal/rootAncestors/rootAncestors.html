@@ -1,21 +1,30 @@
 <div class="cip-root-ancestors" ng-if="vm.isRootAncestorsSectionDisplayed()">
-  <h5 id="cip-root-ancestors-header" class="cip-root-ancestors__header">Recommended Remediation</h5>
+  <h5 id="cip-root-ancestors-header" class="cip-root-ancestors__header">
+    Recommended Remediation
+  </h5>
   <div class="cip-root-ancestors__sub-header">
-    This dependency was brought in by the following components.
-    Select a component name to be shown its information panel.
+    This dependency was brought in by the following components. Select a
+    component name to be shown its information panel.
   </div>
-  <ul id="cip-root-ancestors-links" class="version-graph-list cip-root-ancestors__list">
-    <li ng-repeat="rootAncestor in vm.getDisplayedRootAncestors() track by $index"
-        class="cip-root-ancestors__link truncate-ellipsis">
+  <ul
+    id="cip-root-ancestors-links"
+    class="version-graph-list cip-root-ancestors__list"
+  >
+    <li
+      ng-repeat="rootAncestor in vm.getDisplayedRootAncestors() track by $index"
+      class="cip-root-ancestors__link truncate-ellipsis"
+    >
       <a ng-click="vm.selectRootAncestor(rootAncestor)">
         <component-display component="rootAncestor"></component-display>
       </a>
     </li>
   </ul>
-  <a id="cip-root-ancestors-toggle-show-more"
-     ng-if="vm.isShowMoreLinkDisplayed"
-     ng-click="vm.toggleShowAll()"
-     class="cip-root-ancestors__toggle-show-more">
+  <a
+    id="cip-root-ancestors-toggle-show-more"
+    ng-if="vm.isShowMoreLinkDisplayed"
+    ng-click="vm.toggleShowAll()"
+    class="cip-root-ancestors__toggle-show-more"
+  >
     {{vm.showAll ? 'Show less' : 'Show more' }}
   </a>
 </div>

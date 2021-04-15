@@ -3,8 +3,18 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function DeleteModalController($scope, Messages, resourceType, resourceName, resource, headerText,
-                                              bodyText, maskText, continueAction, dismissOnError) {
+export default function DeleteModalController(
+  $scope,
+  Messages,
+  resourceType,
+  resourceName,
+  resource,
+  headerText,
+  bodyText,
+  maskText,
+  continueAction,
+  dismissOnError
+) {
   var vm = this;
 
   vm.deleteResource = deleteResource;
@@ -21,20 +31,32 @@ export default function DeleteModalController($scope, Messages, resourceType, re
   });
 
   function deleteResource() {
-    vm.deleteResourceMask.wrap(continueAction ? continueAction() : resource.$delete()).then(function() {
-      $scope.$close();
-    }, function(error) {
-      if (dismissOnError === true) {
-        $scope.$dismiss(error);
-      }
-      else {
-        vm.error = Messages.getHttpErrorMessage(error);
-      }
-    });
+    vm.deleteResourceMask
+      .wrap(continueAction ? continueAction() : resource.$delete())
+      .then(
+        function () {
+          $scope.$close();
+        },
+        function (error) {
+          if (dismissOnError === true) {
+            $scope.$dismiss(error);
+          } else {
+            vm.error = Messages.getHttpErrorMessage(error);
+          }
+        }
+      );
   }
 }
 
 DeleteModalController.$inject = [
-  '$scope', 'Messages', 'resourceType', 'resourceName', 'resource', 'headerText', 'bodyText', 'maskText',
-  'continueAction', 'dismissOnError'
+  '$scope',
+  'Messages',
+  'resourceType',
+  'resourceName',
+  'resource',
+  'headerText',
+  'bodyText',
+  'maskText',
+  'continueAction',
+  'dismissOnError',
 ];

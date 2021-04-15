@@ -4,20 +4,23 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 // System Preferences Administrators Page
-.iq-list__title--admin-role, .iq-list__row--admin-role {
+.iq-list__title--admin-role,
+.iq-list__row--admin-role {
   display: inline-block;
   vertical-align: top;
   width: 20%;
 }
 
-.iq-list__title--admin-member, .iq-list__row--admin-member {
+.iq-list__title--admin-member,
+.iq-list__row--admin-member {
   display: inline-block;
   width: 79%;
 }
 
 #security {
   .iq-list__item:not(.iq-list__item--empty):not(.iq-disabled):not([disabled]) {
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
       border-top: 1px solid transparent;
       border-bottom: 1px solid $iq-grey-1;
 

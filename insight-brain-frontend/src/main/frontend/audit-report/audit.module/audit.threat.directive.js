@@ -13,9 +13,10 @@ function encodeHtml(text) {
 
 function processData(data, idBase) {
   data = data || [];
-  var componentWaivedMap = [], idx = idBase ? idBase : 0;
+  var componentWaivedMap = [],
+    idx = idBase ? idBase : 0;
 
-  $.each(data, function(key, dataItem) {
+  $.each(data, function (key, dataItem) {
     if (dataItem.waived) {
       componentWaivedMap[dataItem.pathname] = true;
     }
@@ -26,8 +27,7 @@ function processData(data, idBase) {
     //it is expected that items are sorted by threat level descending
     if (!dataItem.policyName && componentWaivedMap[dataItem.pathname]) {
       dataItem.pseudo = true;
-    }
-    else {
+    } else {
       dataItem.pseudo = false;
     }
 
@@ -40,121 +40,135 @@ function processData(data, idBase) {
 }
 
 function createTable(data, $scope) {
-  var columnGrouping = new Slick.ColumnGrouping({ columnId: 'policyName', style: 'scoreCol' }),
+  var columnGrouping = new Slick.ColumnGrouping({
+      columnId: 'policyName',
+      style: 'scoreCol',
+    }),
     scoreStyler = columnGrouping.getCellStyler(),
     cellFormatter = columnGrouping.getCellRenderer(),
-    columns = [{
-      id: 'policyName',
-      name: 'Policy Threat',
-      shortName: 'Name',
-      field: 'policyName',
-      sortable: true,
-      width: 215,
-      styleFn: function(row, cell, value, columnDef, dataContext) {
-        return 'nopad ' + scoreStyler(row, cell, value, columnDef, dataContext);
-      },
-      sortFn: function(dataRow1, dataRow2) {
-        var levelA = dataRow1.threatLevel,
+    columns = [
+      {
+        id: 'policyName',
+        name: 'Policy Threat',
+        shortName: 'Name',
+        field: 'policyName',
+        sortable: true,
+        width: 215,
+        styleFn: function (row, cell, value, columnDef, dataContext) {
+          return (
+            'nopad ' + scoreStyler(row, cell, value, columnDef, dataContext)
+          );
+        },
+        sortFn: function (dataRow1, dataRow2) {
+          var levelA = dataRow1.threatLevel,
             levelB = dataRow2.threatLevel,
             nameA = dataRow1.policyName,
             nameB = dataRow2.policyName;
 
-        if (levelA < levelB) {
-          return -1;
-        }
-        else if (levelA > levelB) {
-          return 1;
-        }
-        else if (nameA < nameB) {
-          return 1;
-        }
-        else if (nameA > nameB) {
-          return -1;
-        }
+          if (levelA < levelB) {
+            return -1;
+          } else if (levelA > levelB) {
+            return 1;
+          } else if (nameA < nameB) {
+            return 1;
+          } else if (nameA > nameB) {
+            return -1;
+          }
 
-        return 0;
+          return 0;
+        },
+        formatter: function (row, cell, value, columnDef, dataContext) {
+          var colorCls;
+
+          if (dataContext.threatLevel > 7) {
+            colorCls = 'criticalScore';
+          } else if (dataContext.threatLevel > 3) {
+            colorCls = 'severeScore';
+          } else if (dataContext.threatLevel > 1) {
+            colorCls = 'moderateScore';
+          } else if (dataContext.threatLevel > 0) {
+            colorCls = 'ignoredScore';
+          } else {
+            colorCls = 'noScore';
+          }
+
+          return (
+            '<div class="' +
+            colorCls +
+            '">' +
+            (cellFormatter(row, cell, value, columnDef, dataContext).length > 0
+              ? encodeHtml(value)
+              : '') +
+            '</div>'
+          );
+        },
       },
-      formatter: function(row, cell, value, columnDef, dataContext) {
-        var colorCls;
+      {
+        id: 'coordinates',
+        name: 'Component',
+        field: 'componentDisplayText',
+        shortName: 'Coordinates',
+        sortable: true,
+        width: 295,
+        toolTipGravity: 'se',
+        styleFn: function (row, cell, value, columnDef, dataContext) {
+          return dataContext.modified ||
+            dataContext.identificationSource === 'Manual'
+            ? 'modified'
+            : '';
+        },
+        toolTipFn: function (row) {
+          var tip = '';
+          if (row.identificationSource === 'Manual') {
+            tip +=
+              '<li>been claimed from an unknown or similar component.  View the Component Information Panel (CIP) for more details.</li>';
+          }
+          if (row.waived) {
+            tip += '<li>been waived.</li>';
+          }
 
-        if (dataContext.threatLevel > 7) {
-          colorCls = 'criticalScore';
-        }
-        else if (dataContext.threatLevel > 3) {
-          colorCls = 'severeScore';
-        }
-        else if (dataContext.threatLevel > 1) {
-          colorCls = 'moderateScore';
-        }
-        else if (dataContext.threatLevel > 0) {
-          colorCls = 'ignoredScore';
-        }
-        else {
-          colorCls = 'noScore';
-        }
+          if (tip.length > 0) {
+            return 'This record has...<br><br><ul>' + tip + '</ul>';
+          }
+        },
+        formatter: function (row, cell, value, columnDef, dataContext) {
+          var result = '';
+          if (dataContext.waived) {
+            result = '<i class="waived" title="Violation has been waived"></i>';
+          } else {
+            result = '<i class="not-waived"></i> ';
+          }
 
-        return '<div class="' + colorCls + '">' +
-            (cellFormatter(row, cell, value, columnDef, dataContext).length > 0 ? encodeHtml(value) : '') + '</div>';
-      }
-    },{
-      id: 'coordinates',
-      name: 'Component',
-      field: 'componentDisplayText',
-      shortName: 'Coordinates',
-      sortable: true,
-      width: 295,
-      toolTipGravity: 'se',
-      styleFn: function(row, cell, value, columnDef, dataContext) {
-        return (dataContext.modified || dataContext.identificationSource === 'Manual') ? 'modified' : '';
+          var icon;
+          if (dataContext.componentIdentifier) {
+            icon =
+              '<i class="known-format" title="' +
+              dataContext.componentIdentifier.format +
+              '"></i> ';
+          } else {
+            icon = '<i class="unknown-format" title="Unknown"></i> ';
+          }
+          return result + icon + encodeHtml(value);
+        },
       },
-      toolTipFn: function(row) {
-        var tip = '';
-        if (row.identificationSource === 'Manual') {
-          tip += '<li>been claimed from an unknown or similar component.  View the Component Information Panel (CIP) for more details.</li>';
-        }
-        if (row.waived) {
-          tip += '<li>been waived.</li>';
-        }
-
-        if (tip.length > 0) {
-          return 'This record has...<br><br><ul>' + tip + '</ul>';
-        }
+      {
+        id: 'quarantine',
+        name: 'Quarantined',
+        field: 'quarantined',
+        sortable: true,
+        filterable: false,
+        width: 60,
+        styleFn: function () {
+          return 'middle';
+        },
+        formatter: function (row, cell, value) {
+          if (value) {
+            return '<i class="icon icon-ban-circle"></i>';
+          }
+          return '';
+        },
       },
-      formatter: function(row, cell, value, columnDef, dataContext) {
-        var result = '';
-        if (dataContext.waived) {
-          result = '<i class="waived" title="Violation has been waived"></i>';
-        }
-        else {
-          result = '<i class="not-waived"></i> ';
-        }
-
-        var icon;
-        if (dataContext.componentIdentifier) {
-          icon = '<i class="known-format" title="' + dataContext.componentIdentifier.format + '"></i> ';
-        }
-        else {
-          icon = '<i class="unknown-format" title="Unknown"></i> ';
-        }
-        return result + icon + encodeHtml(value);
-      }
-    },{
-      id: 'quarantine',
-      name: 'Quarantined',
-      field: 'quarantined',
-      sortable: true,
-      filterable: false,
-      width: 60,
-      styleFn: function () {
-        return 'middle';
-      },
-      formatter: function(row, cell, value) {
-        if (value) {
-          return '<i class="icon icon-ban-circle"></i>';
-        }
-        return '';
-      }
-    }],
+    ],
     plugins = [columnGrouping, new ComponentInformationPanelPlugin($scope)];
 
   return new Insight.Table('component', data, {
@@ -162,25 +176,28 @@ function createTable(data, $scope) {
     multiColumnSort: true,
     selectable: true,
     plugins: plugins,
-    defaultSort: [{
-      columnId: 'policyName',
-      sortAsc: false
-    }, {
-      columnId: 'coordinates',
-      sortAsc: true
-    }],
+    defaultSort: [
+      {
+        columnId: 'policyName',
+        sortAsc: false,
+      },
+      {
+        columnId: 'coordinates',
+        sortAsc: true,
+      },
+    ],
     externalFilters: [
-      function(item, args) {
+      function (item, args) {
         var visible = true;
         if (args) {
-          $.each(args, function(field, value) {
-            return (visible = (item[field] === value));
+          $.each(args, function (field, value) {
+            return (visible = item[field] === value);
           });
         }
         return visible;
-      }
+      },
     ],
-    dataProcessor: processData
+    dataProcessor: processData,
   });
 }
 
@@ -188,107 +205,133 @@ export default function auditThreat() {
   return {
     template,
     controllerAs: 'vm',
-    controller : ['$scope', 'OwnerContext', '$http', function ($scope, OwnerContext, $http) {
-      var vm = this;
+    controller: [
+      '$scope',
+      'OwnerContext',
+      '$http',
+      function ($scope, OwnerContext, $http) {
+        var vm = this;
 
-      vm.error = undefined;
-      vm.grid = undefined;
+        vm.error = undefined;
+        vm.grid = undefined;
 
-      vm.doLoad = doLoad;
+        vm.doLoad = doLoad;
 
-      function doLoad() {
-        delete vm.error;
+        function doLoad() {
+          delete vm.error;
 
-        $http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId)).then(function (response) {
-          vm.loaded = true;
-          $scope.$applyAsync(function () {
-            vm.grid = createTable(response.data, $scope);
-            setFilter();
-          });
-        }, function (error) {
-          vm.error = error;
+          $http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId)).then(
+            function (response) {
+              vm.loaded = true;
+              $scope.$applyAsync(function () {
+                vm.grid = createTable(response.data, $scope);
+                setFilter();
+              });
+            },
+            function (error) {
+              vm.error = error;
+            }
+          );
+        }
+
+        function setFilter() {
+          if (vm.grid && vm.filter) {
+            vm.grid.dataView.setFilterArgs(vm.filter);
+            vm.grid.dataView.refresh();
+          }
+        }
+
+        vm.doLoad();
+
+        $scope.$watch('vm.filter', setFilter);
+
+        $scope.$on('$destroy', function () {
+          if (vm.grid) {
+            vm.grid.destroy();
+          }
         });
-      }
 
-      function setFilter() {
-        if (vm.grid && vm.filter) {
-          vm.grid.dataView.setFilterArgs(vm.filter);
-          vm.grid.dataView.refresh();
-        }
-      }
-
-      vm.doLoad();
-
-      $scope.$watch('vm.filter', setFilter);
-
-      $scope.$on('$destroy', function () {
-        if (vm.grid) {
-          vm.grid.destroy();
-        }
-      });
-
-      $scope.$on('component.evaluation.updated', function (event, componentKey, promises) {
-        function matches(component) {
-          return !Object.keys(componentKey).some(function (key) {
-            return component[key] !== componentKey[key];
-          });
-        }
-
-        promises.push($http.get(Brain.getRepositoryResultsUrl(OwnerContext.ownerId, componentKey))
-          .then(function(response) {
-              var data = response.data,
-                  dataView = vm.grid.dataView,
-                  maxId = -1,
-                  idsToRemove = [],
-                  newItemMap = {},
-                  updatedItemMap = {};
-
-              processData(data, 0);
-
-              data.forEach(function (item) {
-                (newItemMap[item.pathname] = newItemMap[item.pathname] || {})[item.policyName] = item;
-                updatedItemMap[item.pathname] = updatedItemMap[item.pathname] || {};
+        $scope.$on(
+          'component.evaluation.updated',
+          function (event, componentKey, promises) {
+            function matches(component) {
+              return !Object.keys(componentKey).some(function (key) {
+                return component[key] !== componentKey[key];
               });
+            }
 
-              dataView.beginUpdate();
-              // update existing rows
-              dataView.getItems().forEach(function(item) {
-                maxId = Math.max(maxId, item.id);
+            promises.push(
+              $http
+                .get(
+                  Brain.getRepositoryResultsUrl(
+                    OwnerContext.ownerId,
+                    componentKey
+                  )
+                )
+                .then(function (response) {
+                  var data = response.data,
+                    dataView = vm.grid.dataView,
+                    maxId = -1,
+                    idsToRemove = [],
+                    newItemMap = {},
+                    updatedItemMap = {};
 
-                if (matches(item)) {
-                  if (newItemMap[item.pathname] && newItemMap[item.pathname][item.policyName]) {
-                    // update id
-                    newItemMap[item.pathname][item.policyName].id = item.id;
-                    // update entry
-                    dataView.updateItem(item.id, newItemMap[item.pathname][item.policyName]);
-                    // don't need to add this one
-                    updatedItemMap[item.pathname][item.policyName] = true;
-                  }
-                  else {
-                    // can't delete during iteration, collect for later
-                    idsToRemove.push(item.id);
-                  }
-                }
-              });
+                  processData(data, 0);
 
-              idsToRemove.forEach(function (id) {
-                dataView.deleteItem(parseInt(id, 10));
-              });
+                  data.forEach(function (item) {
+                    (newItemMap[item.pathname] =
+                      newItemMap[item.pathname] || {})[item.policyName] = item;
+                    updatedItemMap[item.pathname] =
+                      updatedItemMap[item.pathname] || {};
+                  });
 
-              // reduce to the new entries
-              data = data.filter(function (item) {
-                return !updatedItemMap[item.pathname][item.policyName];
-              });
+                  dataView.beginUpdate();
+                  // update existing rows
+                  dataView.getItems().forEach(function (item) {
+                    maxId = Math.max(maxId, item.id);
 
-              //add new entries
-              data.forEach(function (newItem) {
-                newItem.id = ++maxId;
-                dataView.addItem(newItem);
-              });
+                    if (matches(item)) {
+                      if (
+                        newItemMap[item.pathname] &&
+                        newItemMap[item.pathname][item.policyName]
+                      ) {
+                        // update id
+                        newItemMap[item.pathname][item.policyName].id = item.id;
+                        // update entry
+                        dataView.updateItem(
+                          item.id,
+                          newItemMap[item.pathname][item.policyName]
+                        );
+                        // don't need to add this one
+                        updatedItemMap[item.pathname][item.policyName] = true;
+                      } else {
+                        // can't delete during iteration, collect for later
+                        idsToRemove.push(item.id);
+                      }
+                    }
+                  });
 
-              dataView.endUpdate();
-            }));
-      });
-    }]
+                  idsToRemove.forEach(function (id) {
+                    dataView.deleteItem(parseInt(id, 10));
+                  });
+
+                  // reduce to the new entries
+                  data = data.filter(function (item) {
+                    return !updatedItemMap[item.pathname][item.policyName];
+                  });
+
+                  //add new entries
+                  data.forEach(function (newItem) {
+                    newItem.id = ++maxId;
+                    dataView.addItem(newItem);
+                  });
+
+                  dataView.endUpdate();
+                })
+            );
+          }
+        );
+      },
+    ],
   };
 }

@@ -9,7 +9,17 @@ import PolicyViolationGrandfatheringEditor from './policyViolationGrandfathering
 import PolicyViolationGrandfatheringService from './policyViolationGrandfatheringService';
 import ProductFeaturesModule from '../../util/ProductFeatures';
 
-export default angular.module('policyViolationGrandfatheringModule', [CLMContextLocationModule.name,
-  commonServicesModule.name, ProductFeaturesModule.name])
-    .service('policyViolationGrandfatheringService', PolicyViolationGrandfatheringService)
-    .component('policyViolationGrandfatheringEditor', PolicyViolationGrandfatheringEditor);
+export default angular
+  .module('policyViolationGrandfatheringModule', [
+    CLMContextLocationModule.name,
+    commonServicesModule.name,
+    ProductFeaturesModule.name,
+  ])
+  .service(
+    'policyViolationGrandfatheringService',
+    PolicyViolationGrandfatheringService
+  )
+  .component(
+    'policyViolationGrandfatheringEditor',
+    PolicyViolationGrandfatheringEditor
+  );

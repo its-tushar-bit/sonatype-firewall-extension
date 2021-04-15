@@ -7,7 +7,7 @@
 import legacyConfigurationModule from '../LegacyConfigurationModule';
 import cipLabelEditorModule from './cip.label.editor/cip.label.editor.module';
 /*global angular, $, CLM, Insight, applicationId */
-(function() {
+(function () {
   'use strict';
 
   function LabelTab(node, options) {
@@ -18,38 +18,46 @@ import cipLabelEditorModule from './cip.label.editor/cip.label.editor.module';
   function createPlugin() {
     LabelTab.prototype = new Insight.InformationPanelPlugin({ priority: 112 });
 
-    LabelTab.prototype.isVisible = function() {
+    LabelTab.prototype.isVisible = function () {
       return (this.component || this.gav).matchState !== 'unknown';
     };
 
-    LabelTab.prototype.create = function() {
+    LabelTab.prototype.create = function () {
       var timestamp = new Date().getTime(),
-          container = $('<div cip-label-editor></div>'),
-          me = this;
+        container = $('<div cip-label-editor></div>'),
+        me = this;
 
       me.node.empty();
       container.appendTo(this.node);
-      angular.module('componentProvider' + timestamp, []).service('SelectedComponent', function() {
-        return {
-          get: function () {
-            return me.component || me.gav;
-          }
-        };
-      }).service('OwnerContext', function () {
-        return {
-          ownerType: 'application',
-          ownerId: applicationId
-        };
-      });
-      angular.bootstrap(container[0], [cipLabelEditorModule.name, 'componentProvider' + timestamp, 'AngularCommon',
-          'ui.bootstrap', legacyConfigurationModule.name]);
+      angular
+        .module('componentProvider' + timestamp, [])
+        .service('SelectedComponent', function () {
+          return {
+            get: function () {
+              return me.component || me.gav;
+            },
+          };
+        })
+        .service('OwnerContext', function () {
+          return {
+            ownerType: 'application',
+            ownerId: applicationId,
+          };
+        });
+      angular.bootstrap(container[0], [
+        cipLabelEditorModule.name,
+        'componentProvider' + timestamp,
+        'AngularCommon',
+        'ui.bootstrap',
+        legacyConfigurationModule.name,
+      ]);
     };
 
-    LabelTab.prototype.destroy = function() {
+    LabelTab.prototype.destroy = function () {
       this.node.empty();
     };
 
-    LabelTab.prototype.getTitle = function() {
+    LabelTab.prototype.getTitle = function () {
       return 'Labels';
     };
 
@@ -57,4 +65,4 @@ import cipLabelEditorModule from './cip.label.editor/cip.label.editor.module';
   }
 
   CLM.loadPlugin(createPlugin, 'Labels');
-}());
+})();

@@ -6,25 +6,27 @@
 import * as enzymeUtils from '../enzymeUtils';
 import { NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
 
-describe('ComponentOverviewTile', function() {
+describe('ComponentOverviewTile', function () {
   let getShallowComponent,
-      $state,
-      now,
-      terseAgoSpy,
-      timeAgoSpy,
-      minimalProps,
-      ComponentOverviewTile;
+    $state,
+    now,
+    terseAgoSpy,
+    timeAgoSpy,
+    minimalProps,
+    ComponentOverviewTile;
 
-  beforeEach(function() {
+  beforeEach(function () {
     $state = {
       get: jasmine.createSpy('$state.get'),
-      href: jasmine.createSpy('$state.href')
+      href: jasmine.createSpy('$state.href'),
     };
     now = new Date();
-    terseAgoSpy = jasmine.createSpy('terseAgo').and.callFake(time => 'terseAgo ' + time);
-    timeAgoSpy = jasmine.createSpy('timeAgo').and.callFake(time => ({
+    terseAgoSpy = jasmine
+      .createSpy('terseAgo')
+      .and.callFake((time) => 'terseAgo ' + time);
+    timeAgoSpy = jasmine.createSpy('timeAgo').and.callFake((time) => ({
       age: 'timeAgo ' + time,
-      qualifier: 'ago'
+      qualifier: 'ago',
     }));
     minimalProps = {
       component: {
@@ -39,275 +41,329 @@ describe('ComponentOverviewTile', function() {
           highestEffectiveLicenseThreatGroup: {
             licenseThreatGroupLevel: 8,
             licenseThreatGroupCategory: 'severe',
-            licenseThreatGroupName: 'MyLtg'
+            licenseThreatGroupName: 'MyLtg',
           },
           obligations: [],
-          attributions: []
+          attributions: [],
         },
         stageScans: [
           { stageName: 'Build', scanId: 'scanId', scanDate: getTimeDaysAgo(1) },
           { stageName: 'Stage Release', scanId: null, scanDate: null },
           { stageName: 'Release', scanId: null, scanDate: null },
-          { stageName: 'Operate', scanId: null, scanDate: null }
-        ]
+          { stageName: 'Operate', scanId: null, scanDate: null },
+        ],
       },
       licenseNames: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
-      $state
+      $state,
     };
-    ComponentOverviewTile =
-        require('inject-loader!../../../main/frontend/legal/ComponentOverviewTile')({
-          '../util/CommonServices': { terseAgo: terseAgoSpy, timeAgo: timeAgoSpy }
-        }).default;
-    getShallowComponent = enzymeUtils.getShallowComponent(ComponentOverviewTile, minimalProps);
+    ComponentOverviewTile = require('inject-loader!../../../main/frontend/legal/ComponentOverviewTile')(
+      {
+        '../util/CommonServices': {
+          terseAgo: terseAgoSpy,
+          timeAgo: timeAgoSpy,
+        },
+      }
+    ).default;
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      ComponentOverviewTile,
+      minimalProps
+    );
   });
 
-  it('renders the review status as unreviewed if all are open', function() {
+  it('renders the review status as unreviewed if all are open', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'OPEN' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'OPEN' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Unreviewed'
+    );
   });
 
-  it('renders the review status as complete if all are fulfilled', function() {
+  it('renders the review status as complete if all are fulfilled', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'FULFILLED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'FULFILLED' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Complete'
+    );
   });
 
-  it('renders the review status as complete if all are not applicable', function() {
+  it('renders the review status as complete if all are not applicable', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'IGNORED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'IGNORED' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Complete'
+    );
   });
 
-  it('renders the review status as complete if all are fulfilled or not applicable', function() {
+  it('renders the review status as complete if all are fulfilled or not applicable', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'IGNORED' }, { name: 'obligation2', originalStatus: 'FULFILLED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'IGNORED' },
+            { name: 'obligation2', originalStatus: 'FULFILLED' },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Complete'
+    );
   });
 
-  it('renders the review status as flagged if any are flagged', function() {
+  it('renders the review status as flagged if any are flagged', function () {
     let wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'FLAGGED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'FLAGGED' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Flagged');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Flagged'
+    );
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'IGNORED' }, { name: 'obligation2', originalStatus: 'FLAGGED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'IGNORED' },
+            { name: 'obligation2', originalStatus: 'FLAGGED' },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Flagged');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Flagged'
+    );
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'FULFILLED' }, { name: 'obligation2', originalStatus: 'FLAGGED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'FULFILLED' },
+            { name: 'obligation2', originalStatus: 'FLAGGED' },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Flagged');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Flagged'
+    );
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'OPEN' }, { name: 'obligation2', originalStatus: 'FLAGGED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'OPEN' },
+            { name: 'obligation2', originalStatus: 'FLAGGED' },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Flagged');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Flagged'
+    );
   });
 
-  it('renders the review status as in progress if some are done and none are flagged', function() {
+  it('renders the review status as in progress if some are done and none are flagged', function () {
     let wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'OPEN' }, { name: 'obligation2', originalStatus: 'FULFILLED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'OPEN' },
+            { name: 'obligation2', originalStatus: 'FULFILLED' },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('In Progress');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'In Progress'
+    );
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'OPEN' }, { name: 'obligation2', originalStatus: 'IGNORED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'OPEN' },
+            { name: 'obligation2', originalStatus: 'IGNORED' },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('In Progress');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'In Progress'
+    );
   });
 
-  it('renders the review status as unreviewed if there are no obligations and no effective licenses', function() {
+  it('renders the review status as unreviewed if there are no obligations and no effective licenses', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           effectiveLicenses: [],
-          obligations: []
-        }
-      }
+          obligations: [],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Unreviewed'
+    );
   });
 
-  it('renders the review status as complete if there are no obligations and one or more effective licenses',
-      function() {
-        let wrapper = getShallowComponent({
-          component: {
-            ...minimalProps.component,
-            licenseLegalData: {
-              ...minimalProps.component.licenseLegalData,
-              obligations: []
-            }
-          }
-        });
-        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
-        wrapper = getShallowComponent({
-          component: {
-            ...minimalProps.component,
-            licenseLegalData: {
-              ...minimalProps.component.licenseLegalData,
-              effectiveLicenses: ['license1', 'license2'],
-              obligations: []
-            }
-          }
-        });
-        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Complete');
-      });
+  it('renders the review status as complete if there are no obligations and one or more effective licenses', function () {
+    let wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          obligations: [],
+        },
+      },
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Complete'
+    );
+    wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenses: ['license1', 'license2'],
+          obligations: [],
+        },
+      },
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Complete'
+    );
+  });
 
-  it('renders the review status as unreviewed if there are no obligations and effectively unspecified licenses',
-      function() {
-        let wrapper = getShallowComponent({
-          component: {
-            ...minimalProps.component,
-            licenseLegalData: {
-              ...minimalProps.component.licenseLegalData,
-              effectiveLicenses: ['Not-Declared'],
-              obligations: []
-            }
-          }
-        });
-        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+  it('renders the review status as unreviewed if there are no obligations and effectively unspecified licenses', function () {
+    let wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenses: ['Not-Declared'],
+          obligations: [],
+        },
+      },
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Unreviewed'
+    );
 
-        wrapper = getShallowComponent({
-          component: {
-            ...minimalProps.component,
-            licenseLegalData: {
-              ...minimalProps.component.licenseLegalData,
-              effectiveLicenses: ['No-Sources'],
-              obligations: []
-            }
-          }
-        });
-        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+    wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenses: ['No-Sources'],
+          obligations: [],
+        },
+      },
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Unreviewed'
+    );
 
-        wrapper = getShallowComponent({
-          component: {
-            ...minimalProps.component,
-            licenseLegalData: {
-              ...minimalProps.component.licenseLegalData,
-              effectiveLicenses: ['No-Source-License'],
-              obligations: []
-            }
-          }
-        });
-        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+    wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenses: ['No-Source-License'],
+          obligations: [],
+        },
+      },
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Unreviewed'
+    );
 
-        wrapper = getShallowComponent({
-          component: {
-            ...minimalProps.component,
-            licenseLegalData: {
-              ...minimalProps.component.licenseLegalData,
-              effectiveLicenses: ['UNSPECIFIED'],
-              obligations: []
-            }
-          }
-        });
-        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+    wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenses: ['UNSPECIFIED'],
+          obligations: [],
+        },
+      },
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Unreviewed'
+    );
 
-        wrapper = getShallowComponent({
-          component: {
-            ...minimalProps.component,
-            licenseLegalData: {
-              ...minimalProps.component.licenseLegalData,
-              effectiveLicenses: ['Not-Supported'],
-              obligations: []
-            }
-          }
-        });
-        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
+    wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenses: ['Not-Supported'],
+          obligations: [],
+        },
+      },
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Unreviewed'
+    );
 
-        wrapper = getShallowComponent({
-          component: {
-            ...minimalProps.component,
-            licenseLegalData: {
-              ...minimalProps.component.licenseLegalData,
-              effectiveLicenses: [
-                'Not-Declared', 'No-Sources', 'No-Source-License', 'UNSPECIFIED', 'Not-Supported', 'Not-Supported'
-              ],
-              obligations: []
-            }
-          }
-        });
-        expect(wrapper.find('#component-overview-tile-review-status')).toHaveText('Unreviewed');
-      });
+    wrapper = getShallowComponent({
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenses: [
+            'Not-Declared',
+            'No-Sources',
+            'No-Source-License',
+            'UNSPECIFIED',
+            'Not-Supported',
+            'Not-Supported',
+          ],
+          obligations: [],
+        },
+      },
+    });
+    expect(wrapper.find('#component-overview-tile-review-status')).toHaveText(
+      'Unreviewed'
+    );
+  });
 
-  it('renders no last modified and modified by', function() {
+  it('renders no last modified and modified by', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
@@ -320,15 +376,19 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: null,
           componentLicensesLastUpdatedByUsername: null,
           obligations: [{ lastUpdatedAt: null, lastUpdatedByUsername: null }],
-          attributions: [{ lastUpdatedAt: null, lastUpdatedByUsername: null }]
-        }
-      }
+          attributions: [{ lastUpdatedAt: null, lastUpdatedByUsername: null }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('Never');
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('N/A');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
+      'Never'
+    );
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
+      'N/A'
+    );
   });
 
-  it('renders the correct last modified and modified by', function() {
+  it('renders the correct last modified and modified by', function () {
     let wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
@@ -341,18 +401,34 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: getTimeDaysAgo(3),
           componentLicensesLastUpdatedByUsername: 'user3',
           obligations: [
-            { lastUpdatedAt: getTimeDaysAgo(4), lastUpdatedByUsername: 'user4' },
-            { lastUpdatedAt: getTimeDaysAgo(5), lastUpdatedByUsername: 'user5' }
+            {
+              lastUpdatedAt: getTimeDaysAgo(4),
+              lastUpdatedByUsername: 'user4',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(5),
+              lastUpdatedByUsername: 'user5',
+            },
           ],
           attributions: [
-            { lastUpdatedAt: getTimeDaysAgo(6), lastUpdatedByUsername: 'user6' },
-            { lastUpdatedAt: getTimeDaysAgo(7), lastUpdatedByUsername: 'user7' }
-          ]
-        }
-      }
+            {
+              lastUpdatedAt: getTimeDaysAgo(6),
+              lastUpdatedByUsername: 'user6',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(7),
+              lastUpdatedByUsername: 'user7',
+            },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(1) + ' ago');
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user1');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
+      'timeAgo ' + getTimeDaysAgo(1) + ' ago'
+    );
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
+      'user1'
+    );
 
     wrapper = getShallowComponent({
       component: {
@@ -366,18 +442,34 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: getTimeDaysAgo(3),
           componentLicensesLastUpdatedByUsername: 'user3',
           obligations: [
-            { lastUpdatedAt: getTimeDaysAgo(4), lastUpdatedByUsername: 'user4' },
-            { lastUpdatedAt: getTimeDaysAgo(5), lastUpdatedByUsername: 'user5' }
+            {
+              lastUpdatedAt: getTimeDaysAgo(4),
+              lastUpdatedByUsername: 'user4',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(5),
+              lastUpdatedByUsername: 'user5',
+            },
           ],
           attributions: [
-            { lastUpdatedAt: getTimeDaysAgo(6), lastUpdatedByUsername: 'user6' },
-            { lastUpdatedAt: getTimeDaysAgo(7), lastUpdatedByUsername: 'user7' }
-          ]
-        }
-      }
+            {
+              lastUpdatedAt: getTimeDaysAgo(6),
+              lastUpdatedByUsername: 'user6',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(7),
+              lastUpdatedByUsername: 'user7',
+            },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(2) + ' ago');
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user2');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
+      'timeAgo ' + getTimeDaysAgo(2) + ' ago'
+    );
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
+      'user2'
+    );
 
     wrapper = getShallowComponent({
       component: {
@@ -391,18 +483,34 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: getTimeDaysAgo(3),
           componentLicensesLastUpdatedByUsername: 'user3',
           obligations: [
-            { lastUpdatedAt: getTimeDaysAgo(4), lastUpdatedByUsername: 'user4' },
-            { lastUpdatedAt: getTimeDaysAgo(5), lastUpdatedByUsername: 'user5' }
+            {
+              lastUpdatedAt: getTimeDaysAgo(4),
+              lastUpdatedByUsername: 'user4',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(5),
+              lastUpdatedByUsername: 'user5',
+            },
           ],
           attributions: [
-            { lastUpdatedAt: getTimeDaysAgo(6), lastUpdatedByUsername: 'user6' },
-            { lastUpdatedAt: getTimeDaysAgo(7), lastUpdatedByUsername: 'user7' }
-          ]
-        }
-      }
+            {
+              lastUpdatedAt: getTimeDaysAgo(6),
+              lastUpdatedByUsername: 'user6',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(7),
+              lastUpdatedByUsername: 'user7',
+            },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(3) + ' ago');
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user3');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
+      'timeAgo ' + getTimeDaysAgo(3) + ' ago'
+    );
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
+      'user3'
+    );
 
     wrapper = getShallowComponent({
       component: {
@@ -416,18 +524,34 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: getTimeDaysAgo(10),
           componentLicensesLastUpdatedByUsername: 'user3',
           obligations: [
-            { lastUpdatedAt: getTimeDaysAgo(4), lastUpdatedByUsername: 'user4' },
-            { lastUpdatedAt: getTimeDaysAgo(5), lastUpdatedByUsername: 'user5' }
+            {
+              lastUpdatedAt: getTimeDaysAgo(4),
+              lastUpdatedByUsername: 'user4',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(5),
+              lastUpdatedByUsername: 'user5',
+            },
           ],
           attributions: [
-            { lastUpdatedAt: getTimeDaysAgo(6), lastUpdatedByUsername: 'user6' },
-            { lastUpdatedAt: getTimeDaysAgo(7), lastUpdatedByUsername: 'user7' }
-          ]
-        }
-      }
+            {
+              lastUpdatedAt: getTimeDaysAgo(6),
+              lastUpdatedByUsername: 'user6',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(7),
+              lastUpdatedByUsername: 'user7',
+            },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(4) + ' ago');
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user4');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
+      'timeAgo ' + getTimeDaysAgo(4) + ' ago'
+    );
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
+      'user4'
+    );
 
     wrapper = getShallowComponent({
       component: {
@@ -441,18 +565,34 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: getTimeDaysAgo(10),
           componentLicensesLastUpdatedByUsername: 'user3',
           obligations: [
-            { lastUpdatedAt: getTimeDaysAgo(11), lastUpdatedByUsername: 'user4' },
-            { lastUpdatedAt: getTimeDaysAgo(5), lastUpdatedByUsername: 'user5' }
+            {
+              lastUpdatedAt: getTimeDaysAgo(11),
+              lastUpdatedByUsername: 'user4',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(5),
+              lastUpdatedByUsername: 'user5',
+            },
           ],
           attributions: [
-            { lastUpdatedAt: getTimeDaysAgo(6), lastUpdatedByUsername: 'user6' },
-            { lastUpdatedAt: getTimeDaysAgo(7), lastUpdatedByUsername: 'user7' }
-          ]
-        }
-      }
+            {
+              lastUpdatedAt: getTimeDaysAgo(6),
+              lastUpdatedByUsername: 'user6',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(7),
+              lastUpdatedByUsername: 'user7',
+            },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(5) + ' ago');
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user5');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
+      'timeAgo ' + getTimeDaysAgo(5) + ' ago'
+    );
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
+      'user5'
+    );
 
     wrapper = getShallowComponent({
       component: {
@@ -466,18 +606,34 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: getTimeDaysAgo(10),
           componentLicensesLastUpdatedByUsername: 'user3',
           obligations: [
-            { lastUpdatedAt: getTimeDaysAgo(11), lastUpdatedByUsername: 'user4' },
-            { lastUpdatedAt: getTimeDaysAgo(12), lastUpdatedByUsername: 'user5' }
+            {
+              lastUpdatedAt: getTimeDaysAgo(11),
+              lastUpdatedByUsername: 'user4',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(12),
+              lastUpdatedByUsername: 'user5',
+            },
           ],
           attributions: [
-            { lastUpdatedAt: getTimeDaysAgo(6), lastUpdatedByUsername: 'user6' },
-            { lastUpdatedAt: getTimeDaysAgo(7), lastUpdatedByUsername: 'user7' }
-          ]
-        }
-      }
+            {
+              lastUpdatedAt: getTimeDaysAgo(6),
+              lastUpdatedByUsername: 'user6',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(7),
+              lastUpdatedByUsername: 'user7',
+            },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(6) + ' ago');
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user6');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
+      'timeAgo ' + getTimeDaysAgo(6) + ' ago'
+    );
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
+      'user6'
+    );
 
     wrapper = getShallowComponent({
       component: {
@@ -491,83 +647,108 @@ describe('ComponentOverviewTile', function() {
           componentLicensesLastUpdatedAt: getTimeDaysAgo(10),
           componentLicensesLastUpdatedByUsername: 'user3',
           obligations: [
-            { lastUpdatedAt: getTimeDaysAgo(11), lastUpdatedByUsername: 'user4' },
-            { lastUpdatedAt: getTimeDaysAgo(12), lastUpdatedByUsername: 'user5' }
+            {
+              lastUpdatedAt: getTimeDaysAgo(11),
+              lastUpdatedByUsername: 'user4',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(12),
+              lastUpdatedByUsername: 'user5',
+            },
           ],
           attributions: [
-            { lastUpdatedAt: getTimeDaysAgo(13), lastUpdatedByUsername: 'user6' },
-            { lastUpdatedAt: getTimeDaysAgo(7), lastUpdatedByUsername: 'user7' }
-          ]
-        }
-      }
+            {
+              lastUpdatedAt: getTimeDaysAgo(13),
+              lastUpdatedByUsername: 'user6',
+            },
+            {
+              lastUpdatedAt: getTimeDaysAgo(7),
+              lastUpdatedByUsername: 'user7',
+            },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText('timeAgo ' + getTimeDaysAgo(7) + ' ago');
-    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText('user7');
+    expect(wrapper.find('#component-overview-tile-last-modified')).toHaveText(
+      'timeAgo ' + getTimeDaysAgo(7) + ' ago'
+    );
+    expect(wrapper.find('#component-overview-tile-modified-by')).toHaveText(
+      'user7'
+    );
   });
 
-  const getTimeDaysAgo = (days) => new Date(new Date(now).setDate(new Date(now).getDate() - days)).getTime();
+  const getTimeDaysAgo = (days) =>
+    new Date(new Date(now).setDate(new Date(now).getDate() - days)).getTime();
 
-  it('renders the review progress with open counting as not done', function() {
+  it('renders the review progress with open counting as not done', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'OPEN' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'OPEN' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText('0/1 complete');
+    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText(
+      '0/1 complete'
+    );
   });
 
-  it('renders the review progress with flagged counting as not done', function() {
+  it('renders the review progress with flagged counting as not done', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'FLAGGED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'FLAGGED' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText('0/1 complete');
+    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText(
+      '0/1 complete'
+    );
   });
 
-  it('renders the review progress with fulfilled counting as done', function() {
+  it('renders the review progress with fulfilled counting as done', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'FULFILLED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'FULFILLED' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText('1/1 complete');
+    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText(
+      '1/1 complete'
+    );
   });
 
-  it('renders the review progress with ignored counting as done', function() {
+  it('renders the review progress with ignored counting as done', function () {
     const wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'IGNORED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'IGNORED' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText('1/1 complete');
+    expect(wrapper.find('#component-overview-tile-review-progress')).toHaveText(
+      '1/1 complete'
+    );
   });
 
-  it('renders the fulfilled count', function() {
+  it('renders the fulfilled count', function () {
     let wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'other' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'other' }],
+        },
+      },
     });
     expect(wrapper.find('#component-overview-tile-fulfilled')).toHaveText('0');
 
@@ -576,9 +757,9 @@ describe('ComponentOverviewTile', function() {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'FULFILLED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'FULFILLED' }],
+        },
+      },
     });
     expect(wrapper.find('#component-overview-tile-fulfilled')).toHaveText('1');
 
@@ -588,23 +769,24 @@ describe('ComponentOverviewTile', function() {
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'FULFILLED' }, { name: 'obligation2', originalStatus: 'FULFILLED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'FULFILLED' },
+            { name: 'obligation2', originalStatus: 'FULFILLED' },
+          ],
+        },
+      },
     });
     expect(wrapper.find('#component-overview-tile-fulfilled')).toHaveText('2');
   });
 
-  it('renders the flagged count', function() {
+  it('renders the flagged count', function () {
     let wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'other' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'other' }],
+        },
+      },
     });
     expect(wrapper.find('#component-overview-tile-flagged')).toHaveText('0');
 
@@ -613,9 +795,9 @@ describe('ComponentOverviewTile', function() {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'FLAGGED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'FLAGGED' }],
+        },
+      },
     });
     expect(wrapper.find('#component-overview-tile-flagged')).toHaveText('1');
 
@@ -625,36 +807,41 @@ describe('ComponentOverviewTile', function() {
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'FLAGGED' }, { name: 'obligation2', originalStatus: 'FLAGGED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'FLAGGED' },
+            { name: 'obligation2', originalStatus: 'FLAGGED' },
+          ],
+        },
+      },
     });
     expect(wrapper.find('#component-overview-tile-flagged')).toHaveText('2');
   });
 
-  it('renders the not applicable count', function() {
+  it('renders the not applicable count', function () {
     wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'other' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'other' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText('0');
+    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText(
+      '0'
+    );
 
     let wrapper = getShallowComponent({
       component: {
         ...minimalProps.component,
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
-          obligations: [{ name: 'obligation1', originalStatus: 'IGNORED' }]
-        }
-      }
+          obligations: [{ name: 'obligation1', originalStatus: 'IGNORED' }],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText('1');
+    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText(
+      '1'
+    );
 
     wrapper = getShallowComponent({
       component: {
@@ -662,32 +849,44 @@ describe('ComponentOverviewTile', function() {
         licenseLegalData: {
           ...minimalProps.component.licenseLegalData,
           obligations: [
-            { name: 'obligation1', originalStatus: 'IGNORED' }, { name: 'obligation2', originalStatus: 'IGNORED' }
-          ]
-        }
-      }
+            { name: 'obligation1', originalStatus: 'IGNORED' },
+            { name: 'obligation2', originalStatus: 'IGNORED' },
+          ],
+        },
+      },
     });
-    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText('2');
+    expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText(
+      '2'
+    );
   });
 
-  it('renders the licenses', function() {
+  it('renders the licenses', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find('#component-overview-tile-licenses')).toHaveText(
-        'License-1.0, License-2.0, License-1.0-License-2.0');
+      'License-1.0, License-2.0, License-1.0-License-2.0'
+    );
   });
 
-  it('renders the highest license threat group', function() {
+  it('renders the highest license threat group', function () {
     const wrapper = getShallowComponent();
     const policyViolationIndicator = wrapper.find(NxPolicyViolationIndicator);
     expect(policyViolationIndicator).toHaveProp('policyThreatLevel', 8);
     expect(policyViolationIndicator).toHaveText('MyLtg');
   });
 
-  it('renders the stages', function() {
+  it('renders the stages', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('#component-overview-tile-build')).toHaveText('Build ' + 'terseAgo ' + getTimeDaysAgo(1));
-    expect(wrapper.find('#component-overview-tile-stage-release')).toHaveText('Stage');
-    expect(wrapper.find('#component-overview-tile-release')).toHaveText('Release');
-    expect(wrapper.find('#component-overview-tile-operate')).toHaveText('Operate');
+    expect(wrapper.find('#component-overview-tile-build')).toHaveText(
+      'Build ' + 'terseAgo ' + getTimeDaysAgo(1)
+    );
+    expect(wrapper.find('#component-overview-tile-stage-release')).toHaveText(
+      'Stage'
+    );
+    expect(wrapper.find('#component-overview-tile-release')).toHaveText(
+      'Release'
+    );
+    expect(wrapper.find('#component-overview-tile-operate')).toHaveText(
+      'Operate'
+    );
   });
 });

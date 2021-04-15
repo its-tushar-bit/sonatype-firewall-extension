@@ -5,17 +5,17 @@
  */
 export default function StateService() {
   var state = null,
-      arg = null;
+    arg = null;
   return {
-    get: function() {
+    get: function () {
       return state;
     },
-    getArgs: function() {
+    getArgs: function () {
       return arg;
     },
-    set: function(newState, newArg) {
+    set: function (newState, newArg) {
       state = newState;
       arg = newArg;
-    }
+    },
   };
 }

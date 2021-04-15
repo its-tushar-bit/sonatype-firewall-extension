@@ -6,10 +6,10 @@
 window.clmEndpoint = {
   type: 'ide',
   showContext: false,
-  linkTarget: '_self'
+  linkTarget: '_self',
 };
 
 // disable the context menu to prevent the user from reloading the page
-$(document).bind('contextmenu', function() {
+$(document).bind('contextmenu', function () {
   return false;
 });

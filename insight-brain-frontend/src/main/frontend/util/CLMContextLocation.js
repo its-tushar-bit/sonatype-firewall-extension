@@ -10,14 +10,17 @@ import commonServicesModule from '../util/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
 import { getBaseUrl } from './urlUtil';
 
-var locationModule = angular.module('CLMContextLocation',
-    [commonServicesModule.name, 'ui.router', CLMLocationModule.name]);
+var locationModule = angular.module('CLMContextLocation', [
+  commonServicesModule.name,
+  'ui.router',
+  CLMLocationModule.name,
+]);
 
 export default locationModule;
 
 export function getOwnerImageUrl(owner) {
   const servicePath = owner.publicId ? 'application' : 'organization',
-      id = window.encodeURIComponent(owner.publicId || owner.id);
+    id = window.encodeURIComponent(owner.publicId || owner.id);
 
   return `${getBaseUrl(window.location.href)}/rest/${servicePath}/icon/${id}`;
 }
@@ -34,8 +37,13 @@ export function getPermissionContextTestUrl(ownerType, ownerId) {
 }
 
 locationModule.factory('CLMContextLocations', [
-  'ApplicationId', 'OrganizationId', '$state', 'BaseUrl', '$window', 'CLMLocations',
-  function(appId, orgId, $state, baseUrl, $window, CLMLocations) {
+  'ApplicationId',
+  'OrganizationId',
+  '$state',
+  'BaseUrl',
+  '$window',
+  'CLMLocations',
+  function (appId, orgId, $state, baseUrl, $window, CLMLocations) {
     // checks to see if the dot-delimited state name includes the specified part
     const includesNamePart = (part, str) => contains(part, split('.', str));
 
@@ -52,17 +60,25 @@ locationModule.factory('CLMContextLocations', [
     }
 
     function isRootOrg() {
-      return isOrganization() && $state.params.organizationId === 'ROOT_ORGANIZATION_ID';
+      return (
+        isOrganization() &&
+        $state.params.organizationId === 'ROOT_ORGANIZATION_ID'
+      );
     }
 
     function getServicePath() {
-      return isApplication() ? 'application' : isOrganization() ? 'organization' :
-        isRepositories() ? 'repository_container' : 'global';
+      return isApplication()
+        ? 'application'
+        : isOrganization()
+        ? 'organization'
+        : isRepositories()
+        ? 'repository_container'
+        : 'global';
     }
 
     function getServicePathWithId() {
       var id = getId(),
-          path = getServicePath();
+        path = getServicePath();
 
       // Repositories do not need to be associated with an ID.
       if (['repository_container'].indexOf(path) > -1) {
@@ -71,8 +87,7 @@ locationModule.factory('CLMContextLocations', [
       // New triggers global service path
       else if (id === '_new_') {
         return 'global/global';
-      }
-      else {
+      } else {
         return path + '/' + id;
       }
     }
@@ -85,174 +100,275 @@ locationModule.factory('CLMContextLocations', [
       return url;
     }
 
-    var getId = function(raw) {
-      return isApplication() ?
-        (raw ? appId.raw() : appId.encoded()) : isOrganization() ? (raw ? orgId.raw() : orgId.encoded()) : 'global';
+    var getId = function (raw) {
+      return isApplication()
+        ? raw
+          ? appId.raw()
+          : appId.encoded()
+        : isOrganization()
+        ? raw
+          ? orgId.raw()
+          : orgId.encoded()
+        : 'global';
     };
 
     return {
-      getLabelsUrl: function() {
+      getLabelsUrl: function () {
         return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId();
       },
 
-      getApplicableLabelsUrl: function() {
-        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/applicable';
+      getApplicableLabelsUrl: function () {
+        return (
+          baseUrl.get() +
+          '/api/v2/labels/' +
+          getServicePathWithId() +
+          '/applicable'
+        );
       },
 
-      getDeleteLabelsUrl: function(label) {
-        return baseUrl.get() + '/api/v2/labels/' + getServicePathWithId() + '/' + encodeURIComponent(label.id);
+      getDeleteLabelsUrl: function (label) {
+        return (
+          baseUrl.get() +
+          '/api/v2/labels/' +
+          getServicePathWithId() +
+          '/' +
+          encodeURIComponent(label.id)
+        );
       },
 
-      getLicenseGroupsUrl: function(ownerId, ownerType) {
-        return baseUrl.get() + '/rest/licenseThreatGroup/' +
-            (ownerId ? ownerType + '/' + ownerId : getServicePathWithId());
+      getLicenseGroupsUrl: function (ownerId, ownerType) {
+        return (
+          baseUrl.get() +
+          '/rest/licenseThreatGroup/' +
+          (ownerId ? ownerType + '/' + ownerId : getServicePathWithId())
+        );
       },
 
-      getApplicableLicenseGroupsUrl: function() {
-        return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/applicable';
+      getApplicableLicenseGroupsUrl: function () {
+        return (
+          baseUrl.get() +
+          '/rest/licenseThreatGroup/' +
+          getServicePathWithId() +
+          '/applicable'
+        );
       },
 
-      getDeleteLicenseGroupUrl: function(group) {
-        return baseUrl.get() + '/rest/licenseThreatGroup/' + getServicePathWithId() + '/' +
-            encodeURIComponent(group.id);
+      getDeleteLicenseGroupUrl: function (group) {
+        return (
+          baseUrl.get() +
+          '/rest/licenseThreatGroup/' +
+          getServicePathWithId() +
+          '/' +
+          encodeURIComponent(group.id)
+        );
       },
 
-      getLicenseGroupLicensesUrl: function(group) {
-        return baseUrl.get() + '/rest/licenseThreatGroupLicense/' + getServicePathWithId() + '/' + group.id;
+      getLicenseGroupLicensesUrl: function (group) {
+        return (
+          baseUrl.get() +
+          '/rest/licenseThreatGroupLicense/' +
+          getServicePathWithId() +
+          '/' +
+          group.id
+        );
       },
 
-      getConditionValueTypeUrl: function() {
-        return baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId();
+      getConditionValueTypeUrl: function () {
+        return (
+          baseUrl.get() + '/rest/conditionValueType/' + getServicePathWithId()
+        );
       },
 
-      getPolicyUrl: function(ownerType, ownerId) {
-        return baseUrl.get() + '/rest/policy/' + (ownerType || getServicePath()) + '/' + (ownerId || getId());
+      getPolicyUrl: function (ownerType, ownerId) {
+        return (
+          baseUrl.get() +
+          '/rest/policy/' +
+          (ownerType || getServicePath()) +
+          '/' +
+          (ownerId || getId())
+        );
       },
 
-      getEntitiesUrl: function() {
+      getEntitiesUrl: function () {
         return baseUrl.get() + '/rest/' + getServicePath();
       },
 
-      getEntityUrl: function() {
+      getEntityUrl: function () {
         return baseUrl.get() + '/rest/' + getServicePathWithId();
       },
 
-      getAddIconUrl: function(ownerType, ownerId) {
-        var servicePath = (ownerType) ? encodeURIComponent(ownerType) : getServicePath();
-        return baseUrl.get() + '/rest/' + servicePath + '/icon/' + encodeURIComponent(ownerId) +
-            (!$window.FormData ? '?noFormData=true' : '');
+      getAddIconUrl: function (ownerType, ownerId) {
+        var servicePath = ownerType
+          ? encodeURIComponent(ownerType)
+          : getServicePath();
+        return (
+          baseUrl.get() +
+          '/rest/' +
+          servicePath +
+          '/icon/' +
+          encodeURIComponent(ownerId) +
+          (!$window.FormData ? '?noFormData=true' : '')
+        );
       },
 
-      getEntityId: function() {
-        return isApplication() ? appId.raw() : isOrganization() ? orgId.raw() : 'global';
+      getEntityId: function () {
+        return isApplication()
+          ? appId.raw()
+          : isOrganization()
+          ? orgId.raw()
+          : 'global';
       },
 
       getOwnerImageUrl,
 
-      getApplicablePolicies: function() {
-        return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/applicable';
+      getApplicablePolicies: function () {
+        return (
+          baseUrl.get() +
+          '/rest/policy/' +
+          getServicePathWithId() +
+          '/applicable'
+        );
       },
 
       getRobotUrl: function (ownerType, hashcode) {
-        return baseUrl.get() + '/rest/' + ownerType + '/services/generateIcon/' + hashcode;
+        return (
+          baseUrl.get() +
+          '/rest/' +
+          ownerType +
+          '/services/generateIcon/' +
+          hashcode
+        );
       },
 
-      getRoleMappingUrl: function(roleId) {
-        return baseUrl.get() + '/rest/membershipMapping/' + getServicePathWithId() +
-            (roleId ? ('/role/' + roleId) : '');
+      getRoleMappingUrl: function (roleId) {
+        return (
+          baseUrl.get() +
+          '/rest/membershipMapping/' +
+          getServicePathWithId() +
+          (roleId ? '/role/' + roleId : '')
+        );
       },
 
-      getFindUsersUrl: function(type, typeId) {
+      getFindUsersUrl: function (type, typeId) {
         var servicePath = null;
         if (type && typeId) {
-          servicePath = window.encodeURIComponent(type) + '/' + window.encodeURIComponent(typeId);
-        }
-        else {
+          servicePath =
+            window.encodeURIComponent(type) +
+            '/' +
+            window.encodeURIComponent(typeId);
+        } else {
           servicePath = getServicePathWithId();
         }
         return baseUrl.get() + '/rest/user/' + servicePath + '/query';
       },
 
       getImportPolicyUrl: function () {
-        return baseUrl.get() + '/rest/policy/' + getServicePathWithId() + '/import' +
-            (!$window.FormData ? '?noFormData=true' : '');
+        return (
+          baseUrl.get() +
+          '/rest/policy/' +
+          getServicePathWithId() +
+          '/import' +
+          (!$window.FormData ? '?noFormData=true' : '')
+        );
       },
 
-      getPolicyMonitoringUrl: function() {
-        return baseUrl.get() + '/rest/policyMonitoring/' + getServicePathWithId();
+      getPolicyMonitoringUrl: function () {
+        return (
+          baseUrl.get() + '/rest/policyMonitoring/' + getServicePathWithId()
+        );
       },
 
-      getApplicablePolicyMonitoring: function() {
+      getApplicablePolicyMonitoring: function () {
         return this.getPolicyMonitoringUrl() + '/applicable';
       },
 
-      getCategoriesUrl: function() {
+      getCategoriesUrl: function () {
         return CLMLocations.getCategoriesUrl(getServicePath(), getId(true));
       },
 
-      getApplicableCategoriesUrl: function() {
+      getApplicableCategoriesUrl: function () {
         let servicePath = getServicePath();
-        return CLMLocations.getCategoriesUrl(servicePath, getId(true))
-            + (servicePath === 'organization' ? '/applicable' : '');
+        return (
+          CLMLocations.getCategoriesUrl(servicePath, getId(true)) +
+          (servicePath === 'organization' ? '/applicable' : '')
+        );
       },
 
-      getApplicationCategoriesUrl: function() {
-        return baseUrl.get() + '/api/v2/applicationCategories/organization/' + getId();
+      getApplicationCategoriesUrl: function () {
+        return (
+          baseUrl.get() +
+          '/api/v2/applicationCategories/organization/' +
+          getId()
+        );
       },
 
-      getPolicyTagUrl: function(policyId) {
-        return baseUrl.get() + '/rest/appliedTag/policy/' + encodeURIComponent(policyId) + '/' + getServicePathWithId();
+      getPolicyTagUrl: function (policyId) {
+        return (
+          baseUrl.get() +
+          '/rest/appliedTag/policy/' +
+          encodeURIComponent(policyId) +
+          '/' +
+          getServicePathWithId()
+        );
       },
 
-      getPermissionTestUrl: function(global) {
-        return baseUrl.get() + '/rest/user/permissions/' + (global ? 'global/global' : getServicePathWithId());
+      getPermissionTestUrl: function (global) {
+        return (
+          baseUrl.get() +
+          '/rest/user/permissions/' +
+          (global ? 'global/global' : getServicePathWithId())
+        );
       },
 
-      getOwnerDetailsUrl: function() {
-        return baseUrl.get() + '/rest/sidebar/' + getServicePathWithId() + '/details';
+      getOwnerDetailsUrl: function () {
+        return (
+          baseUrl.get() + '/rest/sidebar/' + getServicePathWithId() + '/details'
+        );
       },
 
       getPermissionContextTestUrl,
 
-      getProprietaryConfigUrl: function() {
+      getProprietaryConfigUrl: function () {
         return baseUrl.get() + '/rest/proprietary/' + getServicePathWithId();
       },
 
-      getLdapConnectionConfig: function() {
+      getLdapConnectionConfig: function () {
         return getLdapConfig($state.params.ldapId) + '/connection';
       },
 
-      getLdapConnectionTest: function() {
+      getLdapConnectionTest: function () {
         return getLdapConfig($state.params.ldapId) + '/testConnection';
       },
 
-      getLdapLoginTest: function() {
+      getLdapLoginTest: function () {
         return getLdapConfig($state.params.ldapId) + '/testLogin';
       },
 
-      getLdapUserMappingConfig: function() {
+      getLdapUserMappingConfig: function () {
         return getLdapConfig($state.params.ldapId) + '/userMapping';
       },
 
-      getLdapUserMappingTest: function() {
+      getLdapUserMappingTest: function () {
         return getLdapConfig($state.params.ldapId) + '/testUserMapping';
       },
 
       getLdapConfig,
 
-      getGrandfatheringUrl: function() {
+      getGrandfatheringUrl: function () {
         return `${baseUrl.get()}/rest/policyViolationGrandfathering/${getServicePathWithId()}`;
       },
 
-      getRetentionPoliciesUrl: function(orgId) {
-        return `${baseUrl.get()}/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(orgId)}`;
+      getRetentionPoliciesUrl: function (orgId) {
+        return `${baseUrl.get()}/api/v2/dataRetentionPolicies/organizations/${encodeURIComponent(
+          orgId
+        )}`;
       },
 
-      getSamlConfigurationUrl: function() {
+      getSamlConfigurationUrl: function () {
         return `${baseUrl.get()}/api/v2/config/saml`;
       },
 
-      getNotificationWebhooksUrl: function() {
+      getNotificationWebhooksUrl: function () {
         return `${baseUrl.get()}/rest/config/webhook/policy/${getServicePathWithId()}`;
       },
 
@@ -260,9 +376,9 @@ locationModule.factory('CLMContextLocations', [
       isOrganization: isOrganization,
       isRootOrg: isRootOrg,
       isRepositories: isRepositories,
-      isGlobal: function() {
+      isGlobal: function () {
         return !isApplication() && !isOrganization();
-      }
+      },
     };
-  }
+  },
 ]);

@@ -16,17 +16,17 @@ const config = {
   entry: './specRoot.js',
   output: {
     path: outputPath,
-    filename: 'test-bundle.js'
+    filename: 'test-bundle.js',
   },
   plugins: [
     new webpack.DefinePlugin({
       CLM_BUILD_TIMESTAMP: 0,
-      CLM_SERVER_VERSION: '1'
+      CLM_SERVER_VERSION: '1',
     }),
-    new JasmineWebpackPlugin()
+    new JasmineWebpackPlugin(),
   ],
   resolve: {
-    extensions: ['.js', '.jsx']
+    extensions: ['.js', '.jsx'],
   },
   module: {
     rules: [
@@ -37,9 +37,9 @@ const config = {
           loader: 'babel-loader',
           options: {
             presets: ['env'],
-            plugins: [transformObjectRestSpread, transformJsx]
-          }
-        }
+            plugins: [transformObjectRestSpread, transformJsx],
+          },
+        },
       },
       {
         test: /\.jsx?$/,
@@ -48,40 +48,41 @@ const config = {
           loader: 'babel-loader',
           options: {
             presets: [['env']],
-            plugins: [transformObjectRestSpread]
-          }
-        }
+            plugins: [transformObjectRestSpread],
+          },
+        },
       },
       {
         test: /\.html$/,
         use: {
           loader: 'html-loader',
           options: {
-            attrs: false
-          }
-        }
+            attrs: false,
+          },
+        },
       },
       {
         test: /\.s?css$/,
-        use: 'null-loader'
-      }, {
+        use: 'null-loader',
+      },
+      {
         test: /\.(png|svg)$/,
         loader: 'file-loader',
         options: {
-          name: 'images/[name].[ext]'
-        }
-      }
-    ]
+          name: 'images/[name].[ext]',
+        },
+      },
+    ],
   },
   devtool: 'eval',
   devServer: {
     index: '_specRunner.html',
     port: 8235,
-    host: '0.0.0.0'
-  }
+    host: '0.0.0.0',
+  },
 };
 
-module.exports = function(env) {
+module.exports = function (env) {
   env = env || {};
 
   if (!env.skipTestCoverage) {
@@ -92,9 +93,9 @@ module.exports = function(env) {
       use: {
         loader: 'istanbul-instrumenter-loader',
         options: {
-          esModules: true
-        }
-      }
+          esModules: true,
+        },
+      },
     });
   }
 

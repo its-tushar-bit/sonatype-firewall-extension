@@ -5,14 +5,13 @@
  */
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
 
-describe('coordinates.input.directive.spec', function() {
-  var scope,
-      directiveScope;
+describe('coordinates.input.directive.spec', function () {
+  var scope, directiveScope;
 
   beforeEach(angular.mock.module(ownerManagerModule.name));
 
   function initialize(value) {
-    inject(function($compile, $rootScope) {
+    inject(function ($compile, $rootScope) {
       scope = $rootScope.$new();
       scope.value = value;
       $compile('<coordinates-input value="value">')(scope);
@@ -22,17 +21,17 @@ describe('coordinates.input.directive.spec', function() {
     });
   }
 
-  afterEach(function() {
+  afterEach(function () {
     scope.$destroy();
   });
 
-  it('new constraint defaults to maven', function() {
+  it('new constraint defaults to maven', function () {
     initialize();
     expect(directiveScope.vm.coordinates.format).toEqual('maven');
   });
 
-  describe('parses maven coordinates', function() {
-    it('default', function() {
+  describe('parses maven coordinates', function () {
+    it('default', function () {
       initialize('maven');
       expect(directiveScope.vm.coordinates.format).toEqual('maven');
       expect(directiveScope.vm.coordinates.groupId).toBeUndefined();
@@ -42,7 +41,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.classifier).toEqual('*');
     });
 
-    it('groupId, artifactId, version, extension specific values', function() {
+    it('groupId, artifactId, version, extension specific values', function () {
       initialize('maven:com.apache.axis:axis:1.4:jar:');
       expect(directiveScope.vm.coordinates.format).toEqual('maven');
       expect(directiveScope.vm.coordinates.groupId).toEqual('com.apache.axis');
@@ -52,7 +51,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.classifier).toEqual('');
     });
 
-    it('groupId, artifactId, version, extension wildcard values', function() {
+    it('groupId, artifactId, version, extension wildcard values', function () {
       initialize('maven:*:*:*:*:');
       expect(directiveScope.vm.coordinates.format).toEqual('maven');
       expect(directiveScope.vm.coordinates.groupId).toEqual('*');
@@ -62,7 +61,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.classifier).toEqual('');
     });
 
-    it('groupId, artifactId, version, extension, classifier specific values', function() {
+    it('groupId, artifactId, version, extension, classifier specific values', function () {
       initialize('maven:com.apache.axis:axis:1.4:jar:docs');
       expect(directiveScope.vm.coordinates.format).toEqual('maven');
       expect(directiveScope.vm.coordinates.groupId).toEqual('com.apache.axis');
@@ -72,7 +71,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.classifier).toEqual('docs');
     });
 
-    it('groupId, artifactId, version, extension, classifier wildcard values', function() {
+    it('groupId, artifactId, version, extension, classifier wildcard values', function () {
       initialize('maven:*:*:*:*:*');
       expect(directiveScope.vm.coordinates.format).toEqual('maven');
       expect(directiveScope.vm.coordinates.groupId).toEqual('*');
@@ -83,8 +82,8 @@ describe('coordinates.input.directive.spec', function() {
     });
   });
 
-  describe('parses a-name coordinates', function() {
-    it('default', function() {
+  describe('parses a-name coordinates', function () {
+    it('default', function () {
       initialize('a-name');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toBeUndefined();
@@ -92,7 +91,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.version).toBeUndefined();
     });
 
-    it('name, version specific values', function() {
+    it('name, version specific values', function () {
       initialize('a-name:jquery::1.4');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toEqual('jquery');
@@ -100,7 +99,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.version).toEqual('1.4');
     });
 
-    it('name, version wildcard values', function() {
+    it('name, version wildcard values', function () {
       initialize('a-name:*::*');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toEqual('*');
@@ -108,7 +107,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.version).toEqual('*');
     });
 
-    it('name, qualifier, version specific values', function() {
+    it('name, qualifier, version specific values', function () {
       initialize('a-name:jquery:min:1.4');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toEqual('jquery');
@@ -116,7 +115,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.version).toEqual('1.4');
     });
 
-    it('name, qualifier, version wildcard values', function() {
+    it('name, qualifier, version wildcard values', function () {
       initialize('a-name:*:*:*');
       expect(directiveScope.vm.coordinates.format).toEqual('a-name');
       expect(directiveScope.vm.coordinates.name).toEqual('*');
@@ -125,8 +124,8 @@ describe('coordinates.input.directive.spec', function() {
     });
   });
 
-  describe('parses pypi coordinates', function() {
-    it('default', function() {
+  describe('parses pypi coordinates', function () {
+    it('default', function () {
       initialize('pypi');
       expect(directiveScope.vm.coordinates.format).toEqual('pypi');
       expect(directiveScope.vm.coordinates.name).toBeUndefined();
@@ -135,7 +134,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.extension).toEqual('*');
     });
 
-    it('name, version, extension specific values', function() {
+    it('name, version, extension specific values', function () {
       initialize('pypi:MarkupSafe:1.1.0::tar.gz');
       expect(directiveScope.vm.coordinates.format).toEqual('pypi');
       expect(directiveScope.vm.coordinates.name).toEqual('MarkupSafe');
@@ -144,7 +143,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.extension).toEqual('tar.gz');
     });
 
-    it('name, version, extension wildcard values', function() {
+    it('name, version, extension wildcard values', function () {
       initialize('pypi:*:*::*');
       expect(directiveScope.vm.coordinates.format).toEqual('pypi');
       expect(directiveScope.vm.coordinates.name).toEqual('*');
@@ -153,7 +152,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.extension).toEqual('*');
     });
 
-    it('name, version, qualifier, extension specific values', function() {
+    it('name, version, qualifier, extension specific values', function () {
       initialize('pypi:MarkupSafe:1.1.0:cp37:tar.gz');
       expect(directiveScope.vm.coordinates.format).toEqual('pypi');
       expect(directiveScope.vm.coordinates.name).toEqual('MarkupSafe');
@@ -162,7 +161,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(directiveScope.vm.coordinates.extension).toEqual('tar.gz');
     });
 
-    it('name, version, qualifier, extension wildcard values', function() {
+    it('name, version, qualifier, extension wildcard values', function () {
       initialize('pypi:*:*:*:*');
       expect(directiveScope.vm.coordinates.format).toEqual('pypi');
       expect(directiveScope.vm.coordinates.name).toEqual('*');
@@ -172,8 +171,8 @@ describe('coordinates.input.directive.spec', function() {
     });
   });
 
-  describe('serialization', function() {
-    it('a-name', function() {
+  describe('serialization', function () {
+    it('a-name', function () {
       initialize();
 
       directiveScope.vm.coordinates.format = 'a-name';
@@ -200,7 +199,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(scope.value).toEqual('a-name:jquery:min:1.4');
     });
 
-    it('pypi', function() {
+    it('pypi', function () {
       initialize();
 
       directiveScope.vm.coordinates.format = 'pypi';
@@ -231,7 +230,7 @@ describe('coordinates.input.directive.spec', function() {
       expect(scope.value).toEqual('pypi:MarkupSafe:1.1.0:cp37:tar.gz');
     });
 
-    it('maven', function() {
+    it('maven', function () {
       initialize();
 
       directiveScope.vm.coordinates.format = 'maven';

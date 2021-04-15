@@ -11,12 +11,12 @@ export default function ThreatLevelSelector() {
     scope: {
       threatLevelModel: '=ngModel',
       threatType: '@',
-      disabled: '=?ngDisabled'
+      disabled: '=?ngDisabled',
     },
     template,
     controller: ThreatLevelSelectorController,
     controllerAs: 'vm',
-    bindToController: true
+    bindToController: true,
   };
 }
 

@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function WebhookListController($state, WebhookStore, ProductFeatures) {
+export default function WebhookListController(
+  $state,
+  WebhookStore,
+  ProductFeatures
+) {
   var vm = this;
   vm.newWebhook = newWebhook;
   vm.doLoad = doLoad;
@@ -17,25 +21,30 @@ export default function WebhookListController($state, WebhookStore, ProductFeatu
   }
 
   function doLoad() {
-    WebhookStore[vm.loadError ? 'refresh' : 'get']().then(function(results) {
-      vm.webhooks = results;
-    }, function(error) {
-      vm.loadError = error;
-    });
+    WebhookStore[vm.loadError ? 'refresh' : 'get']().then(
+      function (results) {
+        vm.webhooks = results;
+      },
+      function (error) {
+        vm.loadError = error;
+      }
+    );
 
-    ProductFeatures.load().then(function() {
-      vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
-          ProductFeatures.isAvailable('webhooks-for-repositories');
+    ProductFeatures.load().then(function () {
+      vm.isWebhooksSupported =
+        ProductFeatures.isAvailable('webhooks-for-applications') ||
+        ProductFeatures.isAvailable('webhooks-for-repositories');
     });
 
     delete vm.loadError;
   }
 
   function isEventTypeDisabled(eventType) {
-    return eventType === 'Application Evaluation' && !ProductFeatures.isAvailable('webhooks-for-applications');
+    return (
+      eventType === 'Application Evaluation' &&
+      !ProductFeatures.isAvailable('webhooks-for-applications')
+    );
   }
 }
 
-WebhookListController.$inject = [
-  '$state', 'WebhookStore', 'ProductFeatures'
-];
+WebhookListController.$inject = ['$state', 'WebhookStore', 'ProductFeatures'];

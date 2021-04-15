@@ -7,7 +7,7 @@ import React from 'react';
 import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
-export default function MaxResultsInfoRow({colSpan, maxResults}) {
+export default function MaxResultsInfoRow({ colSpan, maxResults }) {
   return (
     <NxTableRow>
       <NxTableCell colSpan={colSpan} metaInfo>
@@ -19,5 +19,5 @@ export default function MaxResultsInfoRow({colSpan, maxResults}) {
 
 MaxResultsInfoRow.propTypes = {
   colSpan: PropTypes.number.isRequired,
-  maxResults: PropTypes.number.isRequired
+  maxResults: PropTypes.number.isRequired,
 };

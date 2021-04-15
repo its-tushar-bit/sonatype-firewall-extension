@@ -8,11 +8,17 @@ import template from './policyViolationGrandfatheringEditor.html';
 export default {
   template,
   controller: PolicyViolationGrandfatheringEditorController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };
 
-function PolicyViolationGrandfatheringEditorController($scope, $q, Messages, CLMContextLocations,
-                                                       PolicyViolationGrandfatheringService, ProductFeatures) {
+function PolicyViolationGrandfatheringEditorController(
+  $scope,
+  $q,
+  Messages,
+  CLMContextLocations,
+  PolicyViolationGrandfatheringService,
+  ProductFeatures
+) {
   const vm = this;
 
   Object.assign(vm, {
@@ -35,34 +41,45 @@ function PolicyViolationGrandfatheringEditorController($scope, $q, Messages, CLM
       delete vm.loadError;
       const promises = [
         PolicyViolationGrandfatheringService.getGrandfathering(),
-        ProductFeatures.load()
+        ProductFeatures.load(),
       ];
 
-      $q.all(promises).then(function(results) {
-        vm.originalConfiguration = results[0];
-        vm.currentConfiguration = angular.copy(results[0]);
-        vm.statusMessage = PolicyViolationGrandfatheringService.getStatusMessage(vm.originalConfiguration);
-        vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
-      }, function(error) {
-        vm.loadError = Messages.getHttpErrorMessage(error);
-      });
+      $q.all(promises).then(
+        function (results) {
+          vm.originalConfiguration = results[0];
+          vm.currentConfiguration = angular.copy(results[0]);
+          vm.statusMessage = PolicyViolationGrandfatheringService.getStatusMessage(
+            vm.originalConfiguration
+          );
+          vm.isGrandfatheringSupported = ProductFeatures.isAvailable(
+            'policy-grandfathering'
+          );
+        },
+        function (error) {
+          vm.loadError = Messages.getHttpErrorMessage(error);
+        }
+      );
     },
 
     save() {
       delete vm.submitError;
       vm.violationGrandfatheringEditorMask.wrap(
-          PolicyViolationGrandfatheringService.setGrandfathering(vm.currentConfiguration).then(vm.doLoad)
-              .catch(function(error) {
-                vm.submitError = Messages.getHttpErrorMessage(error);
-              }));
+        PolicyViolationGrandfatheringService.setGrandfathering(
+          vm.currentConfiguration
+        )
+          .then(vm.doLoad)
+          .catch(function (error) {
+            vm.submitError = Messages.getHttpErrorMessage(error);
+          })
+      );
     },
 
     isDirty() {
       return !angular.equals(vm.originalConfiguration, vm.currentConfiguration);
-    }
+    },
   });
 
-  $scope.$on('pageChangeStarted', function(event) {
+  $scope.$on('pageChangeStarted', function (event) {
     if (vm.isDirty()) {
       event.preventDefault();
     }
@@ -70,5 +87,10 @@ function PolicyViolationGrandfatheringEditorController($scope, $q, Messages, CLM
 }
 
 PolicyViolationGrandfatheringEditorController.$inject = [
-  '$scope', '$q', 'Messages', 'CLMContextLocations', 'policyViolationGrandfatheringService', 'ProductFeatures'
+  '$scope',
+  '$q',
+  'Messages',
+  'CLMContextLocations',
+  'policyViolationGrandfatheringService',
+  'ProductFeatures',
 ];

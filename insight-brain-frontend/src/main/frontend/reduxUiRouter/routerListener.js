@@ -4,18 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import {UI_ROUTER_ON_FINISH} from './routerActions';
+import { UI_ROUTER_ON_FINISH } from './routerActions';
 
 export default function routerListener($transitions, $ngRedux) {
-  $transitions.onFinish({}, transition =>
+  $transitions.onFinish({}, (transition) =>
     $ngRedux.dispatch({
       type: UI_ROUTER_ON_FINISH,
       payload: {
         toState: transition.to(),
         toParams: transition.params('to'),
         fromState: transition.from(),
-        fromParams: transition.params('from')
-      }
+        fromParams: transition.params('from'),
+      },
     })
   );
 }

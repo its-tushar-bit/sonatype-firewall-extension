@@ -4,30 +4,34 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 window.CLM = {
-  path: '../brain/'
+  path: '../brain/',
 };
 window.clmBuildTimestamp = '';
 window.angularDebug = true;
 window.SpecUtil = {
-  setupProviders: function(applicationId, organizationId) {
-    angular.module('ApplicationIdProvider', []).service('ApplicationId', function() {
-      // TODO Are ui-router parameters encoded or decoded?
-      return {
-        encoded: function() {
-          return applicationId;
-        }
-      };
-    }).service('OrganizationId', function() {
-      return {
-        encoded: function() {
-          return organizationId;
-        }
-      };
-    });
+  setupProviders: function (applicationId, organizationId) {
+    angular
+      .module('ApplicationIdProvider', [])
+      .service('ApplicationId', function () {
+        // TODO Are ui-router parameters encoded or decoded?
+        return {
+          encoded: function () {
+            return applicationId;
+          },
+        };
+      })
+      .service('OrganizationId', function () {
+        return {
+          encoded: function () {
+            return organizationId;
+          },
+        };
+      });
   },
 
   toRegExp: function toRegExp(url) {
-    var addedTimestamp = false, parts = url.split('?');
+    var addedTimestamp = false,
+      parts = url.split('?');
     //Note that i go through all of this funkiness as the params are added to the request
     //alphabetically from the angular code, so when testing query param matching, need
     //to make sure the timestamp param is in the proper position
@@ -43,55 +47,65 @@ window.SpecUtil = {
       }
     }
 
-    return new RegExp(url.replace('?', '\\?').replace('+', '\\+') +
-        (!addedTimestamp ? ((url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+') : ''));
+    return new RegExp(
+      url.replace('?', '\\?').replace('+', '\\+') +
+        (!addedTimestamp
+          ? (url.indexOf('?') < 0 ? '\\?' : '&') + 'timestamp=[0-9]+'
+          : '')
+    );
   },
 
-  setInput: function(inputElement, val) {
+  setInput: function (inputElement, val) {
     var evt = document.createEvent('HTMLEvents');
     inputElement.val(val);
 
-    inject(function($sniffer) {
+    inject(function ($sniffer) {
       var type = inputElement[0].localName;
       evt.initEvent($sniffer.hasEvent(type) ? type : 'change', false, false);
     });
     inputElement[0].dispatchEvent(evt);
   },
 
-  mockPermissionService: function($provide) {
-    $provide.factory('PermissionService', ['$q', function ($q) {
-      var deferred = $q.defer();
-      deferred.resolve();
-      function fn() {
-        return deferred.promise;
-      }
-      return {
-        isAuthorized: fn
-      };
-    }]);
+  mockPermissionService: function ($provide) {
+    $provide.factory('PermissionService', [
+      '$q',
+      function ($q) {
+        var deferred = $q.defer();
+        deferred.resolve();
+        function fn() {
+          return deferred.promise;
+        }
+        return {
+          isAuthorized: fn,
+        };
+      },
+    ]);
   },
 
-  promiseWrapper: function($q) {
-    return function(promise) {
+  promiseWrapper: function ($q) {
+    return function (promise) {
       var deferred = $q.defer();
 
-      promise.then(function() {
-        deferred.resolve.apply(deferred, arguments);
-      }, function() {
-        deferred.reject.apply(deferred, arguments);
-      });
+      promise.then(
+        function () {
+          deferred.resolve.apply(deferred, arguments);
+        },
+        function () {
+          deferred.reject.apply(deferred, arguments);
+        }
+      );
 
       return deferred.promise;
     };
   },
 
-  expectStateChangePrevented: function($scope) {
+  expectStateChangePrevented: function ($scope) {
     var event = $scope.$broadcast('pageChangeStarted');
 
     expect(event.defaultPrevented).toBeTruthy();
   },
 
-  expectStateChangeNotPrevented: function($scope) {
+  expectStateChangeNotPrevented: function ($scope) {
     var event = $scope.$broadcast('pageChangeStarted');
 
     expect(event.defaultPrevented).toBeFalsy();
@@ -108,26 +122,28 @@ window.SpecUtil = {
    *  It will create spies for all action creators passed to $ngRedux.connect().
    *  Also connect() returns a spy to enable testing of unsubscribe.
    */
-  mockNgRedux: function($provide) {
+  mockNgRedux: function ($provide) {
     var unsubscribeSpy = jasmine.createSpy('unsubscribe');
 
-    $provide.service('$ngRedux', function() {
-      this.connect = jasmine.createSpy('connect').and.callFake(function(mapStateToThis, actions) {
-        if (actions) {
-          // stub each action creator with spy
-          Object.keys(actions).forEach(function(actionCreator) {
-            // check if spy already created
-            if (actions[actionCreator].and) {
-              return;
-            }
-            spyOn(actions, actionCreator);
-          });
-        }
-        return function(vm) {
-          angular.extend(vm, actions);
-          return unsubscribeSpy;
-        };
-      });
+    $provide.service('$ngRedux', function () {
+      this.connect = jasmine
+        .createSpy('connect')
+        .and.callFake(function (mapStateToThis, actions) {
+          if (actions) {
+            // stub each action creator with spy
+            Object.keys(actions).forEach(function (actionCreator) {
+              // check if spy already created
+              if (actions[actionCreator].and) {
+                return;
+              }
+              spyOn(actions, actionCreator);
+            });
+          }
+          return function (vm) {
+            angular.extend(vm, actions);
+            return unsubscribeSpy;
+          };
+        });
     });
 
     return unsubscribeSpy;
@@ -170,7 +186,7 @@ window.SpecUtil = {
    * @param state
    * @returns {dispatch: Function, getActions: Function}
    */
-  mockReduxStore: function(state) {
+  mockReduxStore: function (state) {
     state = state || {};
     var actions = [];
 
@@ -185,8 +201,7 @@ window.SpecUtil = {
     function dispatch(action) {
       if (angular.isFunction(action)) {
         return action(dispatch, getState);
-      }
-      else {
+      } else {
         actions.push(action);
         return action;
       }
@@ -195,7 +210,7 @@ window.SpecUtil = {
     return {
       dispatch: dispatch,
       getActions: getActions,
-      getState: getState
+      getState: getState,
     };
   },
 
@@ -228,8 +243,8 @@ window.SpecUtil = {
    * @param  axios
    * @returns Function
    */
-  axiosMockerGenerator: function(axios) {
-    return function(responses) {
+  axiosMockerGenerator: function (axios) {
+    return function (responses) {
       responses = responses || {};
 
       var get = responses.get;
@@ -238,64 +253,60 @@ window.SpecUtil = {
       var del = responses.del;
 
       if (get) {
-        spyOn(axios, 'get').and.callFake(function(url) {
+        spyOn(axios, 'get').and.callFake(function (url) {
           const mock = get[url];
 
           if (typeof mock === 'function') {
             return mock();
-          }
-          else {
+          } else {
             return mock;
           }
         });
       }
 
       if (post) {
-        spyOn(axios, 'post').and.callFake(function(url) {
+        spyOn(axios, 'post').and.callFake(function (url) {
           const mock = post[url];
 
           if (typeof mock === 'function') {
             return mock();
-          }
-          else {
+          } else {
             return mock;
           }
         });
       }
 
       if (put) {
-        spyOn(axios, 'put').and.callFake(function(url) {
+        spyOn(axios, 'put').and.callFake(function (url) {
           const mock = put[url];
 
           if (typeof mock === 'function') {
             return mock();
-          }
-          else {
+          } else {
             return mock;
           }
         });
       }
 
       if (del) {
-        spyOn(axios, 'delete').and.callFake(function(url) {
+        spyOn(axios, 'delete').and.callFake(function (url) {
           const mock = del[url];
 
           if (typeof mock === 'function') {
             return mock();
-          }
-          else {
+          } else {
             return mock;
           }
         });
       }
     };
-  }
+  },
 };
 
 // custom equality tester for Sets
 // Sets are supported starting jasmine 2.6.0
 // https://github.com/jasmine/jasmine/blob/master/release_notes/2.6.0.md
-var customEqualityTesterForSets = function(as, bs) {
+var customEqualityTesterForSets = function (as, bs) {
   if (as instanceof Set && bs instanceof Set) {
     return as.size === bs.size && all(isIn(bs), as);
   }
@@ -304,7 +315,7 @@ var customEqualityTesterForSets = function(as, bs) {
 function all(pred, as) {
   var notAll = false;
   // using forEach so it works in with ES5
-  as.forEach(function(a) {
+  as.forEach(function (a) {
     notAll = notAll || !pred(a);
   });
 
@@ -318,6 +329,6 @@ function isIn(as) {
 }
 
 // customize jasmine globally for all Specs
-beforeEach(function() {
+beforeEach(function () {
   jasmine.addCustomEqualityTester(customEqualityTesterForSets);
 });

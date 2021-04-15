@@ -8,18 +8,21 @@
 export default function ApplicationsService($http, $q) {
   var deferred = null;
   return {
-    get: function() {
+    get: function () {
       if (deferred === null) {
         deferred = $q.defer();
-        $http.get(Brain.getIntegratorApplicationListUrl()).then(function(response) {
-          deferred.resolve(response.data.applicationSummaries);
-        }, function(error) {
-          deferred.reject(error);
-          deferred = null; // all future requests to retrigger
-        });
+        $http.get(Brain.getIntegratorApplicationListUrl()).then(
+          function (response) {
+            deferred.resolve(response.data.applicationSummaries);
+          },
+          function (error) {
+            deferred.reject(error);
+            deferred = null; // all future requests to retrigger
+          }
+        );
       }
       return deferred.promise;
-    }
+    },
   };
 }
 

@@ -5,10 +5,9 @@
  */
 import template from './select.application.contact.modal.html';
 
-export default
-function SelectApplicationContactService(Modal) {
+export default function SelectApplicationContactService(Modal) {
   var service = {
-    open: SelectContact
+    open: SelectContact,
   };
 
   function SelectContact(owner) {
@@ -19,10 +18,10 @@ function SelectApplicationContactService(Modal) {
       controller: 'select.application.contact.controller as vm',
       template,
       resolve: {
-        owner: function() {
+        owner: function () {
           return owner;
-        }
-      }
+        },
+      },
     }).result;
   }
 

@@ -5,5 +5,6 @@
  */
 import externalLinkModalService from './externalLinkModalService';
 
-export default angular.module('externalLinkModule', [])
-    .service('externalLinkModalService', externalLinkModalService);
+export default angular
+  .module('externalLinkModule', [])
+  .service('externalLinkModalService', externalLinkModalService);

@@ -44,11 +44,11 @@ describe('ExportButton', () => {
       tagIds: [],
       policyViolationStates: ['OPEN'],
       maxDaysOld: 30,
-      policyThreatLevelRange: '2,10'
+      policyThreatLevelRange: '2,10',
     };
     const component = getMountedComponent({ exportRequestData });
     expect(component.find('form input').prop('value')).toEqual(
-        JSON.stringify(exportRequestData)
+      JSON.stringify(exportRequestData)
     );
   });
 });

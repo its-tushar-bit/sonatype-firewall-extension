@@ -12,8 +12,8 @@ export default function PolicyEditorActionsDirective() {
     controllerAs: 'vm',
     scope: {
       actions: '=',
-      disabled: '=?editorDisabled'
+      disabled: '=?editorDisabled',
     },
-    bindToController: true
+    bindToController: true,
   };
 }

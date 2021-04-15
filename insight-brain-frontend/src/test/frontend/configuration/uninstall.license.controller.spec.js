@@ -6,30 +6,33 @@
 import productLicenseModule from '../../../main/frontend/configuration/license/ProductLicenseModule';
 
 describe('uninstall.license.controller.spec.js', function () {
-  var vm,
-      scope,
-      reloadSpy;
+  var vm, scope, reloadSpy;
 
   beforeEach(angular.mock.module(productLicenseModule.name));
 
-  beforeEach(inject(function($rootScope, $controller, $q) {
+  beforeEach(inject(function ($rootScope, $controller, $q) {
     scope = $rootScope.$new();
     reloadSpy = jasmine.createSpy('reloadSpy');
 
     vm = $controller('uninstall.license.controller', {
       $scope: scope,
-      $window: { location: { reload: reloadSpy }}
+      $window: { location: { reload: reloadSpy } },
     });
 
-    vm.formMask = {wrap: SpecUtil.promiseWrapper($q)};
+    vm.formMask = { wrap: SpecUtil.promiseWrapper($q) };
   }));
 
-  afterEach(function() {
+  afterEach(function () {
     scope.$destroy();
   });
 
-  it('sets the error variable correctly upon failure', inject(function($httpBackend, CLMLocations) {
-    $httpBackend.expectDELETE(CLMLocations.getLicenseUploadUrl()).respond(500, 'failed');
+  it('sets the error variable correctly upon failure', inject(function (
+    $httpBackend,
+    CLMLocations
+  ) {
+    $httpBackend
+      .expectDELETE(CLMLocations.getLicenseUploadUrl())
+      .respond(500, 'failed');
 
     vm.uninstall();
     $httpBackend.flush();
@@ -37,7 +40,7 @@ describe('uninstall.license.controller.spec.js', function () {
     expect(vm.submitError).toEqual('failed');
   }));
 
-  it('reloads page upon success', inject(function($httpBackend, CLMLocations) {
+  it('reloads page upon success', inject(function ($httpBackend, CLMLocations) {
     $httpBackend.expectDELETE(CLMLocations.getLicenseUploadUrl()).respond(204);
 
     vm.uninstall();

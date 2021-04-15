@@ -13,24 +13,33 @@ import removeDashes from './filters/removeDashes.filter';
 import wrapWith from './filters/wrap.with.filter';
 import angularCommonModule from '../../util/AngularCommon';
 import storesModule from '../../util/Stores';
-import {setToArray} from '../../util/jsUtil';
+import { setToArray } from '../../util/jsUtil';
 import ComponentModule from '../ComponentController';
 import ComponentDisplayModule from '../../ComponentDisplay/module';
 
-export default angular.module('dashboard.utils',
-    ['ui.router', storesModule.name, angularCommonModule.name, ComponentModule.name, ComponentDisplayModule.name])
-    .value('createDashboardDataRequestPayload', createDashboardDataRequestPayload)
-    .value('extractColumn', extractColumn)
-    .factory('ClassyBrew', ClassyBrew)
-    .factory('windowEventsFactory', windowEventsFactory)
-    .filter('emptyToEnd', emptyToEnd)
-    .filter('stageFilter', stageFilter)
-    .filter('stageTypeSort', stageTypeSort)
-    .filter('removeDashes', removeDashes)
-    .filter('wrapWith', wrapWith)
-;
+export default angular
+  .module('dashboard.utils', [
+    'ui.router',
+    storesModule.name,
+    angularCommonModule.name,
+    ComponentModule.name,
+    ComponentDisplayModule.name,
+  ])
+  .value('createDashboardDataRequestPayload', createDashboardDataRequestPayload)
+  .value('extractColumn', extractColumn)
+  .factory('ClassyBrew', ClassyBrew)
+  .factory('windowEventsFactory', windowEventsFactory)
+  .filter('emptyToEnd', emptyToEnd)
+  .filter('stageFilter', stageFilter)
+  .filter('stageTypeSort', stageTypeSort)
+  .filter('removeDashes', removeDashes)
+  .filter('wrapWith', wrapWith);
 
-export function createDashboardDataRequestPayload(filter, maxResults, sortFields) {
+export function createDashboardDataRequestPayload(
+  filter,
+  maxResults,
+  sortFields
+) {
   var params = {};
   if (sortFields && sortFields.length) {
     params.orderBy = sortFields.join();
@@ -45,12 +54,12 @@ export function createDashboardDataRequestPayload(filter, maxResults, sortFields
     params.tagIds = setToArray(filter.categories);
     params.policyViolationStates = setToArray(filter.policyViolationStates);
     params.maxDaysOld = filter.maxDaysOld;
-    params.policyThreatLevelRange = filter.policyThreatLevels && filter.policyThreatLevels.join(',');
+    params.policyThreatLevelRange =
+      filter.policyThreatLevels && filter.policyThreatLevels.join(',');
 
     if (filter.policyTypes && filter.policyTypes.size > 0) {
       params.policyThreatCategories = setToArray(filter.policyTypes).join(',');
     }
-
   }
   return params;
 }
@@ -58,8 +67,7 @@ export function createDashboardDataRequestPayload(filter, maxResults, sortFields
 export function extractColumn(orderedColumn) {
   if (orderedColumn.indexOf('-') === 0) {
     return orderedColumn.substring(1);
-  }
-  else {
+  } else {
     return orderedColumn;
   }
 }

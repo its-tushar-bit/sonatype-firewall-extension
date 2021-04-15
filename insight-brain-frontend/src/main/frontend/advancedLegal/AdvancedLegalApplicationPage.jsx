@@ -15,7 +15,7 @@ export default function AdvancedLegalApplicationPage(props) {
     // state,
     viewStateApplicationReport,
     publicId,
-    applicationReport
+    applicationReport,
   } = props;
 
   useEffect(() => {
@@ -26,110 +26,121 @@ export default function AdvancedLegalApplicationPage(props) {
     <main id="advanced-legal-application-report" className="nx-page-main">
       <h2 className="nx-h2">Attribution Report for {publicId}</h2>
 
-      <LoadWrapper loading={viewStateApplicationReport.loading}
-                   error={viewStateApplicationReport.error}
-                   retryHandler={loadApplicationReport}>
-        {applicationReport && applicationReport.components.map(component => {
-          const { licenseLegalData } = component;
+      <LoadWrapper
+        loading={viewStateApplicationReport.loading}
+        error={viewStateApplicationReport.error}
+        retryHandler={loadApplicationReport}
+      >
+        {applicationReport &&
+          applicationReport.components.map((component) => {
+            const { licenseLegalData } = component;
 
-          return (
-            <section key={component.hash} className="nx-tile">
-              <header className="nx-tile-header">
-                <div className="nx-tile-header__title">
-                  <h2 className="nx-h2">{component.displayName}</h2>
-                </div>
-              </header>
+            return (
+              <section key={component.hash} className="nx-tile">
+                <header className="nx-tile-header">
+                  <div className="nx-tile-header__title">
+                    <h2 className="nx-h2">{component.displayName}</h2>
+                  </div>
+                </header>
 
-              {licenseLegalData &&
-                <div className="nx-tile-content">
-                  {!isNilOrEmpty(licenseLegalData.effectiveLicenses) &&
-                    <section className="nx-tile">
-                      <header className="nx-tile-header">
-                        <div className="nx-tile-header__title">
-                          <h4 className="nx-h4">Licensed Under</h4>
+                {licenseLegalData && (
+                  <div className="nx-tile-content">
+                    {!isNilOrEmpty(licenseLegalData.effectiveLicenses) && (
+                      <section className="nx-tile">
+                        <header className="nx-tile-header">
+                          <div className="nx-tile-header__title">
+                            <h4 className="nx-h4">Licensed Under</h4>
+                          </div>
+                        </header>
+                        <div className="nx-tile-content">
+                          {licenseLegalData.effectiveLicenses.join(', ')}
                         </div>
-                      </header>
-                      <div className="nx-tile-content">
-                        {licenseLegalData.effectiveLicenses.join(', ')}
-                      </div>
-                    </section>
-                  }
+                      </section>
+                    )}
 
-                  {!isNilOrEmpty(licenseLegalData.copyrights) &&
-                    <section className="nx-tile">
-                      <header className="nx-tile-header">
-                        <div className="nx-tile-header__title">
-                          <h4 className="nx-h4">Copyright Statements</h4>
+                    {!isNilOrEmpty(licenseLegalData.copyrights) && (
+                      <section className="nx-tile">
+                        <header className="nx-tile-header">
+                          <div className="nx-tile-header__title">
+                            <h4 className="nx-h4">Copyright Statements</h4>
+                          </div>
+                        </header>
+                        <div className="nx-tile-content">
+                          {licenseLegalData.copyrights.map(
+                            (copyright, index) => (
+                              <p key={index}>{copyright.content}</p>
+                            )
+                          )}
                         </div>
-                      </header>
-                      <div className="nx-tile-content">
-                        {licenseLegalData.copyrights.map((copyright, index) =>
-                          <p key={index}>{copyright.content}</p>
-                        )}
-                      </div>
-                    </section>
-                  }
+                      </section>
+                    )}
 
-                  {!isNilOrEmpty(licenseLegalData.noticeFiles) > 0 &&
-                    <section className="nx-tile">
-                      <header className="nx-tile-header">
-                        <div className="nx-tile-header__title">
-                          <h4 className="nx-h4">Notice Texts</h4>
+                    {!isNilOrEmpty(licenseLegalData.noticeFiles) > 0 && (
+                      <section className="nx-tile">
+                        <header className="nx-tile-header">
+                          <div className="nx-tile-header__title">
+                            <h4 className="nx-h4">Notice Texts</h4>
+                          </div>
+                        </header>
+                        <div className="nx-tile-content">
+                          {licenseLegalData.noticeFiles.map(
+                            (noticeFile, index) => (
+                              <pre key={index}>{noticeFile.content}</pre>
+                            )
+                          )}
                         </div>
-                      </header>
-                      <div className="nx-tile-content">
-                        {licenseLegalData.noticeFiles.map((noticeFile, index) =>
-                          <pre key={index}>{noticeFile.content}</pre>
-                        )}
-                      </div>
-                    </section>
-                  }
+                      </section>
+                    )}
 
-                  {!isNilOrEmpty(licenseLegalData.licenseFiles) &&
-                    <section className="nx-tile">
-                      <header className="nx-tile-header">
-                        <div className="nx-tile-header__title">
-                          <h4 className="nx-h4">License Texts</h4>
+                    {!isNilOrEmpty(licenseLegalData.licenseFiles) && (
+                      <section className="nx-tile">
+                        <header className="nx-tile-header">
+                          <div className="nx-tile-header__title">
+                            <h4 className="nx-h4">License Texts</h4>
+                          </div>
+                        </header>
+                        <div className="nx-tile-content">
+                          {licenseLegalData.licenseFiles.map(
+                            (licenseFile, index) => (
+                              <pre key={index}>{licenseFile.content}</pre>
+                            )
+                          )}
                         </div>
-                      </header>
-                      <div className="nx-tile-content">
-                        {licenseLegalData.licenseFiles.map((licenseFile, index) =>
-                          <pre key={index}>{licenseFile.content}</pre>
-                        )}
-                      </div>
-                    </section>
-                  }
+                      </section>
+                    )}
 
-                  {isNilOrEmpty(licenseLegalData.licenseFiles) &&
-                    !isNilOrEmpty(licenseLegalData.effectiveLicenses) &&
-                    <section className="nx-tile">
-                      <header className="nx-tile-header">
-                        <div className="nx-tile-header__title">
-                          <h4 className="nx-h4">Standard License Text</h4>
-                        </div>
-                      </header>
-                      <div className="nx-tile-content">
-                        {licenseLegalData.effectiveLicenses.map((effectiveLicense, index) => {
-                          const license = applicationReport.licenseLegalMetadata
-                              .find(licenseMetadata => licenseMetadata.licenseId === effectiveLicense);
+                    {isNilOrEmpty(licenseLegalData.licenseFiles) &&
+                      !isNilOrEmpty(licenseLegalData.effectiveLicenses) && (
+                        <section className="nx-tile">
+                          <header className="nx-tile-header">
+                            <div className="nx-tile-header__title">
+                              <h4 className="nx-h4">Standard License Text</h4>
+                            </div>
+                          </header>
+                          <div className="nx-tile-content">
+                            {licenseLegalData.effectiveLicenses.map(
+                              (effectiveLicense, index) => {
+                                const license = applicationReport.licenseLegalMetadata.find(
+                                  (licenseMetadata) =>
+                                    licenseMetadata.licenseId ===
+                                    effectiveLicense
+                                );
 
-                          if (license && license.licenseText) {
-                            return (
-                              <pre key={index}>
-                                {license.licenseText}
-                              </pre>
-                            );
-                          }
-                        }
-                        )}
-                      </div>
-                    </section>
-                  }
-                </div>
-              }
-            </section>
-          );
-        })}
+                                if (license && license.licenseText) {
+                                  return (
+                                    <pre key={index}>{license.licenseText}</pre>
+                                  );
+                                }
+                              }
+                            )}
+                          </div>
+                        </section>
+                      )}
+                  </div>
+                )}
+              </section>
+            );
+          })}
       </LoadWrapper>
     </main>
   );
@@ -139,8 +150,8 @@ AdvancedLegalApplicationPage.propTypes = {
   loadApplicationReport: PropTypes.func.isRequired,
   viewStateApplicationReport: PropTypes.shape({
     loading: PropTypes.bool.isRequired,
-    error: PropTypes.string
+    error: PropTypes.string,
   }),
   publicId: PropTypes.string.isRequired,
-  applicationReport: PropTypes.object
+  applicationReport: PropTypes.object,
 };

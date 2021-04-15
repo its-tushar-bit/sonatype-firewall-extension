@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-export default
-function stageTypeSortFilter() {
+export default function stageTypeSortFilter() {
   function priority(stage) {
     var ordinal = null;
     switch (stage.stageTypeId || stage.id) {
@@ -25,9 +24,9 @@ function stageTypeSortFilter() {
     return ordinal;
   }
 
-  return function(input) {
+  return function (input) {
     if (input) {
-      return input.sort(function(a, b) {
+      return input.sort(function (a, b) {
         return priority(a) - priority(b);
       });
     }

@@ -11,8 +11,8 @@ describe('CLMContextLocation', function () {
   function setApplicationState(newAppId) {
     angular.extend(state, {
       current: {
-        name: 'application'
-      }
+        name: 'application',
+      },
     });
     appId = newAppId;
     orgId = null;
@@ -21,44 +21,52 @@ describe('CLMContextLocation', function () {
   function setOrganizationState(newOrgId) {
     angular.extend(state, {
       current: {
-        name: 'organization'
-      }
+        name: 'organization',
+      },
     });
     appId = null;
     orgId = newOrgId;
   }
 
-  beforeEach(angular.mock.module(clmContextLocation.name, function($provide) {
-    state = {};
+  beforeEach(
+    angular.mock.module(clmContextLocation.name, function ($provide) {
+      state = {};
 
-    $provide.value('ApplicationId', {
-      encoded: function() {
-        return appId;
-      }
-    });
+      $provide.value('ApplicationId', {
+        encoded: function () {
+          return appId;
+        },
+      });
 
-    $provide.value('OrganizationId', {
-      encoded: function() {
-        return orgId;
-      }
-    });
+      $provide.value('OrganizationId', {
+        encoded: function () {
+          return orgId;
+        },
+      });
 
-    $provide.value('$state', state);
-    $provide.value('baseUrl', '');
-  }));
+      $provide.value('$state', state);
+      $provide.value('baseUrl', '');
+    })
+  );
 
   it('New Triggers Global', inject(function (CLMContextLocations) {
     setApplicationState('_new_');
-    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/global/global/query');
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual(
+      '/rest/user/global/global/query'
+    );
   }));
 
   it('Application', inject(function (CLMContextLocations) {
     setApplicationState('bom1-12345678');
-    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/application/bom1-12345678/query');
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual(
+      '/rest/user/application/bom1-12345678/query'
+    );
   }));
 
   it('Organization', inject(function (CLMContextLocations) {
     setOrganizationState('bom1-12345678');
-    expect(CLMContextLocations.getFindUsersUrl()).toEqual('/rest/user/organization/bom1-12345678/query');
+    expect(CLMContextLocations.getFindUsersUrl()).toEqual(
+      '/rest/user/organization/bom1-12345678/query'
+    );
   }));
 });

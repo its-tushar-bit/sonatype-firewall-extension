@@ -11,7 +11,6 @@ import template from './submit.wrapper.directive.html';
  * the DOM content depending on the $http call with this directive.
  */
 export default function SubmitWrapper() {
-
   return {
     restrict: 'A',
     priority: 99,
@@ -24,8 +23,8 @@ export default function SubmitWrapper() {
     scope: {
       error: '=submitWrapper',
       errorMessage: '=message',
-      retry: '&'
-    }
+      retry: '&',
+    },
   };
 }
 

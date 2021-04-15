@@ -12,10 +12,16 @@ import { Messages } from '../util/CommonServices';
  * A wrapper component that renders standardized DOM for error messages, optionally with a retry button.
  */
 export default function LoadError(props) {
-  return <NxLoadError { ...props } error={Messages.getHttpErrorMessage(props.error)}/>;
+  return (
+    <NxLoadError {...props} error={Messages.getHttpErrorMessage(props.error)} />
+  );
 }
 
 LoadError.propTypes = {
   ...NxLoadError.propTypes,
-  error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object])
+  error: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.instanceOf(Error),
+    PropTypes.object,
+  ]),
 };

@@ -13,7 +13,7 @@ import {
   prop,
   pick,
   reject,
-  take
+  take,
 } from 'ramda';
 
 import { lookup, isNilOrEmpty } from '../../../../util/jsUtil';
@@ -24,7 +24,7 @@ import template from './rootAncestors.html';
 export default {
   template,
   controllerAs: 'vm',
-  controller: RootAncestorsController
+  controller: RootAncestorsController,
 };
 
 const SHOWN_ENTRIES_LIMIT = 3;
@@ -39,10 +39,14 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
       const actions = pick(['selectRootAncestor'], applicationReportActions);
       vm.unsubscribe = $ngRedux.connect(mapStateToThis, actions)(vm);
 
-      $scope.$watch('vm.selectedComponent', selectedComponent => {
+      $scope.$watch('vm.selectedComponent', (selectedComponent) => {
         if (selectedComponent) {
-          vm.rootAncestors = findRootAncestors(selectedComponent.dependencyInfo, vm.selectedReport.allEntries);
-          vm.isShowMoreLinkDisplayed = vm.rootAncestors.length > SHOWN_ENTRIES_LIMIT;
+          vm.rootAncestors = findRootAncestors(
+            selectedComponent.dependencyInfo,
+            vm.selectedReport.allEntries
+          );
+          vm.isShowMoreLinkDisplayed =
+            vm.rootAncestors.length > SHOWN_ENTRIES_LIMIT;
         }
       });
     },
@@ -56,42 +60,67 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
     },
 
     getDisplayedRootAncestors() {
-      return vm.showAll ? vm.rootAncestors : take(SHOWN_ENTRIES_LIMIT, vm.rootAncestors);
+      return vm.showAll
+        ? vm.rootAncestors
+        : take(SHOWN_ENTRIES_LIMIT, vm.rootAncestors);
     },
 
     isRootAncestorsSectionDisplayed() {
       return vm.rootAncestors && vm.rootAncestors.length > 0;
-    }
+    },
   });
 }
 
-RootAncestorsController.$inject = ['$scope', '$ngRedux', 'applicationReportActions'];
+RootAncestorsController.$inject = [
+  '$scope',
+  '$ngRedux',
+  'applicationReportActions',
+];
 
-export function mapStateToThis({applicationReport}) {
-  const {selectedReport, selectedComponentIndex, selectedRootAncestor} = applicationReport;
-  const selectedComponent = selectedRootAncestor || selectedReport.displayedEntries[selectedComponentIndex];
+export function mapStateToThis({ applicationReport }) {
+  const {
+    selectedReport,
+    selectedComponentIndex,
+    selectedRootAncestor,
+  } = applicationReport;
+  const selectedComponent =
+    selectedRootAncestor ||
+    selectedReport.displayedEntries[selectedComponentIndex];
 
   return {
     selectedReport,
-    selectedComponent
+    selectedComponent,
   };
 }
 
 // For each componentId in dependencyInfo.rootAncestors, find last matching component in allEntries.
 // Note, allEntries represent non-aggregated list so there could be multiple entries with the same componentId.
 function findRootAncestors(dependencyInfo, allEntries) {
-  if (!dependencyInfo || dependencyInfo.isDirectDependency || isNilOrEmpty(dependencyInfo.rootAncestors)) {
+  if (
+    !dependencyInfo ||
+    dependencyInfo.isDirectDependency ||
+    isNilOrEmpty(dependencyInfo.rootAncestors)
+  ) {
     return [];
   }
 
-  const allEntriesBySerializedComponentId = into({}, compose(
+  const allEntriesBySerializedComponentId = into(
+    {},
+    compose(
       reject(pipe(prop('serializedComponentIdentifier'), isNil)),
       indexBy(prop('serializedComponentIdentifier'))
-  ), allEntries);
+    ),
+    allEntries
+  );
 
   const getRootAncestorsFromAllEntries = pipe(
-      map(pipe(serializeComponentIdentifier, lookup(allEntriesBySerializedComponentId))),
-      reject(isNil)
+    map(
+      pipe(
+        serializeComponentIdentifier,
+        lookup(allEntriesBySerializedComponentId)
+      )
+    ),
+    reject(isNil)
   );
 
   return getRootAncestorsFromAllEntries(dependencyInfo.rootAncestors);

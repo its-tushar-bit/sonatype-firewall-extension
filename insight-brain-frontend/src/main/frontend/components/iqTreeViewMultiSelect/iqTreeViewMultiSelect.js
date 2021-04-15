@@ -19,10 +19,10 @@ const iqTreeViewMultiSelect = {
     onChange: '&',
     isDisabled: '<?',
     disabledTooltip: '@',
-    tooltipModifierClass: '@'
+    tooltipModifierClass: '@',
   },
   controller: IqTreeViewMultiSelectController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };
 
 export default iqTreeViewMultiSelect;
@@ -42,16 +42,18 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
   vm.getTooltipText = getTooltipText;
   vm.isComponentDisabled = isComponentDisabled;
 
-  vm.$onChanges = function({selected, providedFilterThreshold}) {
+  vm.$onChanges = function ({ selected, providedFilterThreshold }) {
     if (selected) {
       // clone original Set
       vm.selected = new Set(selected.currentValue);
     }
 
-    if (providedFilterThreshold && angular.isNumber(providedFilterThreshold.currentValue)) {
+    if (
+      providedFilterThreshold &&
+      angular.isNumber(providedFilterThreshold.currentValue)
+    ) {
       vm.filterThreshold = providedFilterThreshold.currentValue;
     }
-
   };
 
   function isComponentDisabled() {
@@ -81,21 +83,18 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
       const optionsToUpdate = fuzzyFilter(vm.available, vm.filter, 'name');
 
       if (areOptionsSelected(optionsToUpdate)) {
-        optionsToUpdate.forEach(option => selected.delete(option.id));
-      }
-      else {
-        optionsToUpdate.forEach(option => selected.add(option.id));
+        optionsToUpdate.forEach((option) => selected.delete(option.id));
+      } else {
+        optionsToUpdate.forEach((option) => selected.add(option.id));
       }
 
-      vm.onChange({selected});
-    }
-    else {
+      vm.onChange({ selected });
+    } else {
       if (areAllAvailableOptionsSelected()) {
-        vm.onChange({selected: new Set()});
-      }
-      else {
-        const allIds = vm.available.map(option => option.id);
-        vm.onChange({selected: new Set(allIds)});
+        vm.onChange({ selected: new Set() });
+      } else {
+        const allIds = vm.available.map((option) => option.id);
+        vm.onChange({ selected: new Set(allIds) });
       }
     }
   }
@@ -103,8 +102,7 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
   function allSelected() {
     if (vm.filter) {
       return areOptionsSelected(fuzzyFilter(vm.available, vm.filter, 'name'));
-    }
-    else {
+    } else {
       return areAllAvailableOptionsSelected();
     }
   }
@@ -114,19 +112,18 @@ function IqTreeViewMultiSelectController(fuzzyFilter) {
   }
 
   function areOptionsSelected(options) {
-    return !options.some(item => !vm.selected.has(item.id));
+    return !options.some((item) => !vm.selected.has(item.id));
   }
 
   function toggle(id) {
     const selected = new Set(vm.selected);
     if (selected.has(id)) {
       selected.delete(id);
-    }
-    else {
+    } else {
       selected.add(id);
     }
 
-    vm.onChange({selected, toggledId: id});
+    vm.onChange({ selected, toggledId: id });
   }
 }
 

@@ -7,11 +7,12 @@
 export const progressOptions = [
   {
     id: 'NOT_STARTED',
-    name: 'Unreviewed'
-  }, {
+    name: 'Unreviewed',
+  },
+  {
     id: 'OPEN',
-    name: 'In Progress or Completed'
-  }
+    name: 'In Progress or Completed',
+  },
 ];
 
 export const reviewStatusDisplayNames = {
@@ -19,5 +20,5 @@ export const reviewStatusDisplayNames = {
   IN_PROGRESS: 'In Progress',
   NOT_STARTED: 'Not Started',
   UNREVIEWED: 'Unreviewed',
-  COMPLETED: 'Completed'
+  COMPLETED: 'Completed',
 };

@@ -31,7 +31,9 @@
     margin-right: 8px;
   }
 
-  &:hover, &:focus, &:active {
+  &:hover,
+  &:focus,
+  &:active {
     border-color: $iq-slate;
     color: $iq-off-black;
     text-decoration: none;
@@ -41,7 +43,8 @@
     background-color: $iq-grey-2;
   }
 
-  &.disabled, &[disabled] {
+  &.disabled,
+  &[disabled] {
     background-color: $iq-grey-1;
     border-color: $iq-grey-2;
     color: $iq-grey-4;
@@ -60,7 +63,9 @@
   color: $iq-off-white;
   padding: 4px 11px;
 
-  &:hover, &:focus, &:active {
+  &:hover,
+  &:focus,
+  &:active {
     border-color: #0046b1;
     color: $iq-off-white;
   }
@@ -69,7 +74,8 @@
     background: #0046b1;
   }
 
-  &.disabled, &[disabled] {
+  &.disabled,
+  &[disabled] {
     background-color: #97cbee;
     border-color: transparent;
     color: $iq-off-white;
@@ -80,7 +86,8 @@
   background-color: transparent;
   border-color: transparent;
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     border-color: $iq-grey-4;
   }
 
@@ -89,7 +96,8 @@
     border-color: $iq-slate;
   }
 
-  &.disabled, &[disabled] {
+  &.disabled,
+  &[disabled] {
     background-color: transparent;
     border-color: transparent;
   }
@@ -100,7 +108,9 @@
   border-color: $iq-fail-color;
   color: $iq-off-white;
 
-  &:hover, &:focus, &:active {
+  &:hover,
+  &:focus,
+  &:active {
     background-color: $iq-fail-color;
     border-color: $iq-fail-color-active;
     color: $iq-off-white;

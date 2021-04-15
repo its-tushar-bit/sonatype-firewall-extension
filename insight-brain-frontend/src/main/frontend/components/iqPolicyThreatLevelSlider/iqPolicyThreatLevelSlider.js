@@ -17,10 +17,10 @@ const iqPolicyThreatLevelSlider = {
   template,
   bindings: {
     selectedRange: '<',
-    onChange: '&'
+    onChange: '&',
   },
   controller: iqPolicyThreatLevelSliderController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };
 
 export default iqPolicyThreatLevelSlider;
@@ -29,6 +29,6 @@ function iqPolicyThreatLevelSliderController() {
   var vm = this;
 
   Object.assign(vm, {
-    rangeHighlights
+    rangeHighlights,
   });
 }

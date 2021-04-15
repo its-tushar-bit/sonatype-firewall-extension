@@ -6,7 +6,7 @@
 export default function ProprietaryMatchersService($http, $q, Messages) {
   return {
     addComponentMatchers: addComponentMatchers,
-    getApplicationInfo: getApplicationInfo
+    getApplicationInfo: getApplicationInfo,
   };
 
   /**
@@ -15,14 +15,16 @@ export default function ProprietaryMatchersService($http, $q, Messages) {
    *          or rejecting with error message.
    */
   function getApplicationInfo(appId) {
-
     var url = CLM.path + 'rest/application/' + appId;
 
-    return $http.get(url).then(function(response) {
-      return response.data;
-    }, function(error) {
-      return $q.reject(Messages.getHttpErrorMessage(error));
-    });
+    return $http.get(url).then(
+      function (response) {
+        return response.data;
+      },
+      function (error) {
+        return $q.reject(Messages.getHttpErrorMessage(error));
+      }
+    );
   }
 
   /**
@@ -36,19 +38,21 @@ export default function ProprietaryMatchersService($http, $q, Messages) {
    *          or rejecting with error message.
    */
   function addComponentMatchers(ownerAppID, pathNames, regex) {
-
     var url = CLM.path + 'rest/proprietary/application/' + ownerAppID + '/add';
 
     var data = {
       paths: pathNames,
-      regex: regex
+      regex: regex,
     };
 
-    return $http.post(url, data).then(function(response) {
-      return response.data;
-    }, function(error) {
-      return $q.reject(Messages.getHttpErrorMessage(error));
-    });
+    return $http.post(url, data).then(
+      function (response) {
+        return response.data;
+      },
+      function (error) {
+        return $q.reject(Messages.getHttpErrorMessage(error));
+      }
+    );
   }
 }
 

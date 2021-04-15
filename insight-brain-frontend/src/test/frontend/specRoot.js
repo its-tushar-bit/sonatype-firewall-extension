@@ -3,7 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-const importAll = (requireContext) => { requireContext.keys().forEach(requireContext); };
+const importAll = (requireContext) => {
+  requireContext.keys().forEach(requireContext);
+};
 
 import '../../main/frontend/lib/jquery-loader';
 import 'angular';

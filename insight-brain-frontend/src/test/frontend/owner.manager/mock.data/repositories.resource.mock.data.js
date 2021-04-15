@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default {
-  getRepositoriesUrl: function() {
+  getRepositoriesUrl: function () {
     return {
       repositories: [
         {
@@ -16,9 +16,10 @@ export default {
             publicId: 'apache-snapshots',
             enabled: true,
             quarantineEnabled: false,
-            format: null
-          }
-        }, {
+            format: null,
+          },
+        },
+        {
           oldestEvalTimestamp: null,
           managerInstanceId: 'df8ed3e3784d44ca922b406359f84811',
           repository: {
@@ -27,10 +28,10 @@ export default {
             publicId: 'central',
             enabled: false,
             quarantineEnabled: false,
-            format: null
-          }
-        }
-      ]
+            format: null,
+          },
+        },
+      ],
     };
-  }
+  },
 };

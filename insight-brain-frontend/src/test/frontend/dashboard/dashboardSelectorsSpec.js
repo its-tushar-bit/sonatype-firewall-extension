@@ -3,60 +3,64 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { selectExportRequestData, selectExportUrl } from '../../../main/frontend/dashboard/dashboardSelectors';
+import {
+  selectExportRequestData,
+  selectExportUrl,
+} from '../../../main/frontend/dashboard/dashboardSelectors';
 import * as CLMLocations from '../../../main/frontend/util/CLMLocation';
 
-describe('dashboardSelectors', function() {
+describe('dashboardSelectors', function () {
   let state;
   beforeEach(() => {
     state = {
-      router: { currentState: { name: 'dashboard.overview.violations' }},
+      router: { currentState: { name: 'dashboard.overview.violations' } },
       dashboardFilter: {
         appliedFilter: {
-          'organizations': new Set(),
-          'applications': new Set(),
-          'categories': new Set(),
-          'stages': new Set(),
-          'policyTypes': new Set(),
-          'policyViolationStates': new Set(['OPEN']),
-          'maxDaysOld': 30,
-          'policyThreatLevels': [2, 10]
-        }
+          organizations: new Set(),
+          applications: new Set(),
+          categories: new Set(),
+          stages: new Set(),
+          policyTypes: new Set(),
+          policyViolationStates: new Set(['OPEN']),
+          maxDaysOld: 30,
+          policyThreatLevels: [2, 10],
+        },
       },
       dashboard: {
         applications: { sortFields: [] },
         components: { sortFields: [] },
-        violations: { sortFields: [] }
-      }
+        violations: { sortFields: [] },
+      },
     };
   });
 
   describe('selectExportRequestData', () => {
     it('combines the filters and the router slices, along with dashboard slice into a request data object', () => {
       const expected = {
-        'organizationIds': [],
-        'applicationIds': [],
-        'stageIds': [],
-        'tagIds': [],
-        'policyViolationStates': [
-          'OPEN'
-        ],
-        'maxDaysOld': 30,
-        'policyThreatLevelRange': '2,10'
+        organizationIds: [],
+        applicationIds: [],
+        stageIds: [],
+        tagIds: [],
+        policyViolationStates: ['OPEN'],
+        maxDaysOld: 30,
+        policyThreatLevelRange: '2,10',
       };
       const actual = selectExportRequestData(state);
       expect(actual).toEqual(expected);
     });
 
-    it('returns an empty object when state name is not one of the dashboard views', function() {
+    it('returns an empty object when state name is not one of the dashboard views', function () {
       state.router.currentState.name = 'Foo';
       const actual = selectExportRequestData(state);
       expect(actual).toEqual({});
     });
 
-    it('converts filters to json string with default violations sortFields', function() {
+    it('converts filters to json string with default violations sortFields', function () {
       state.router.currentState.name = 'dashboard.overview.violations';
-      state.dashboard.violations.sortFields = ['-firstOccurrenceTime', '-threatLevel'];
+      state.dashboard.violations.sortFields = [
+        '-firstOccurrenceTime',
+        '-threatLevel',
+      ];
 
       const expected = {
         applicationIds: [],
@@ -66,14 +70,14 @@ describe('dashboardSelectors', function() {
         policyThreatLevelRange: '2,10',
         policyViolationStates: ['OPEN'],
         stageIds: [],
-        tagIds: []
+        tagIds: [],
       };
 
       const actual = selectExportRequestData(state);
       expect(actual).toEqual(expected);
     });
 
-    it('converts filters to json string with default components sortFields', function() {
+    it('converts filters to json string with default components sortFields', function () {
       state.router.currentState.name = 'dashboard.overview.components';
       state.dashboard.components.sortFields = ['-score'];
 
@@ -86,16 +90,18 @@ describe('dashboardSelectors', function() {
         policyThreatLevelRange: '2,10',
         policyViolationStates: ['OPEN'],
         stageIds: [],
-        tagIds: []
+        tagIds: [],
       };
 
       const actual = selectExportRequestData(state);
       expect(actual).toEqual(expected);
     });
 
-    it('converts filters to json string with default applications sortFields', function() {
+    it('converts filters to json string with default applications sortFields', function () {
       state.router.currentState.name = 'dashboard.overview.applications';
-      state.dashboard.applications.sortFields = ['-totalApplicationRisk.totalRisk'];
+      state.dashboard.applications.sortFields = [
+        '-totalApplicationRisk.totalRisk',
+      ];
 
       const expected = {
         applicationIds: [],
@@ -105,7 +111,7 @@ describe('dashboardSelectors', function() {
         policyThreatLevelRange: '2,10',
         policyViolationStates: ['OPEN'],
         stageIds: [],
-        tagIds: []
+        tagIds: [],
       };
 
       const actual = selectExportRequestData(state);
@@ -114,7 +120,7 @@ describe('dashboardSelectors', function() {
   });
 
   // These tests...  they're not... you know, good - BigAB
-  describe('selectExportUrl', ()=> {
+  describe('selectExportUrl', () => {
     it('returns an empty string when router state current state name is not one of the dashboard views', () => {
       state.router.currentState.name = 'Foo';
       const actual = selectExportUrl(state);

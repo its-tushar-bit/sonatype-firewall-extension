@@ -3,8 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function LabelTileController($scope, $http, CLMContextLocations, SameOwnerStateNavigationService, EventNameConstant) {
+export default function LabelTileController(
+  $scope,
+  $http,
+  CLMContextLocations,
+  SameOwnerStateNavigationService,
+  EventNameConstant
+) {
   var vm = this;
   vm.ownerName = undefined;
   vm.applicableLabels = undefined;
@@ -19,23 +24,26 @@ function LabelTileController($scope, $http, CLMContextLocations, SameOwnerStateN
   $scope.$on(EventNameConstant.OWNER_UPDATED, updatedOwnerHandler);
 
   function doLoad() {
-    $http.get(CLMContextLocations.getApplicableLabelsUrl()).then(function(result) {
-      vm.applicableLabels = result.data.labelsByOwner;
-      vm.applicableLabels.forEach(function(labels, index) {
-        labels.inherited = index > 0;
-      });
+    $http.get(CLMContextLocations.getApplicableLabelsUrl()).then(
+      function (result) {
+        vm.applicableLabels = result.data.labelsByOwner;
+        vm.applicableLabels.forEach(function (labels, index) {
+          labels.inherited = index > 0;
+        });
 
-      vm.ownerName = vm.applicableLabels[0].ownerName;
-    }, function(error) {
-      vm.error = error;
-    });
+        vm.ownerName = vm.applicableLabels[0].ownerName;
+      },
+      function (error) {
+        vm.error = error;
+      }
+    );
 
     delete vm.error;
   }
 
   function editLabel(labelId, inherited) {
     if (!inherited) {
-      SameOwnerStateNavigationService.goEdit('label', {labelId: labelId});
+      SameOwnerStateNavigationService.goEdit('label', { labelId: labelId });
     }
   }
 
@@ -45,5 +53,9 @@ function LabelTileController($scope, $http, CLMContextLocations, SameOwnerStateN
 }
 
 LabelTileController.$inject = [
-  '$scope', '$http', 'CLMContextLocations', 'SameOwnerStateNavigationService', 'event.name.constant'
+  '$scope',
+  '$http',
+  'CLMContextLocations',
+  'SameOwnerStateNavigationService',
+  'event.name.constant',
 ];

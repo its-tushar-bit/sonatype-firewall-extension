@@ -26,29 +26,35 @@ import sortColumn from './widgets/sort.column.directive';
 import submitWrapper from './widgets/submit.wrapper.directive';
 import threatLevelSelector from './widgets/threat.level.selector.directive';
 
-export default angular.module('utility', [
-  'ui.router.state', 'ngAria', commonServicesModule.name, formsModule.name, utilityDirectivesModule.name,
-  utilityServicesModule.name
-]).config([
-  '$httpProvider', function($httpProvider) {
-    $httpProvider.interceptors.push('form.data.http.interceptor');
-  }
-])
-    .filter('fuzzy', FuseFilterFactory)
-    .service('cached.service.factory', CachedServiceFactory)
-    .controller('DeleteModalController', DeleteModalController)
-    .controller('DeleteModalReduxController', DeleteModalReduxController)
-    .service('DeleteModalService', DeleteModalService)
-    .constant('event.name.constant', eventNameConstant)
-    .factory('form.data.http.interceptor', FormDataHttpInterceptor)
-    .constant('owner.constant', ownerConstant)
-    .directive('ageInDaysInput', ageInDaysInput)
-    .directive('associationEditor', associationEditor)
-    .directive('colorPicker', colorPicker)
-    .directive('doubleColumnPicker', doubleColumnPicker)
-    .directive('dropdownSelector', dropdownSelector)
-    .directive('scrollspy', scrollspy)
-    .directive('sortColumn', sortColumn)
-    .directive('submitWrapper', submitWrapper)
-    .directive('threatLevelSelector', threatLevelSelector)
-;
+export default angular
+  .module('utility', [
+    'ui.router.state',
+    'ngAria',
+    commonServicesModule.name,
+    formsModule.name,
+    utilityDirectivesModule.name,
+    utilityServicesModule.name,
+  ])
+  .config([
+    '$httpProvider',
+    function ($httpProvider) {
+      $httpProvider.interceptors.push('form.data.http.interceptor');
+    },
+  ])
+  .filter('fuzzy', FuseFilterFactory)
+  .service('cached.service.factory', CachedServiceFactory)
+  .controller('DeleteModalController', DeleteModalController)
+  .controller('DeleteModalReduxController', DeleteModalReduxController)
+  .service('DeleteModalService', DeleteModalService)
+  .constant('event.name.constant', eventNameConstant)
+  .factory('form.data.http.interceptor', FormDataHttpInterceptor)
+  .constant('owner.constant', ownerConstant)
+  .directive('ageInDaysInput', ageInDaysInput)
+  .directive('associationEditor', associationEditor)
+  .directive('colorPicker', colorPicker)
+  .directive('doubleColumnPicker', doubleColumnPicker)
+  .directive('dropdownSelector', dropdownSelector)
+  .directive('scrollspy', scrollspy)
+  .directive('sortColumn', sortColumn)
+  .directive('submitWrapper', submitWrapper)
+  .directive('threatLevelSelector', threatLevelSelector);

@@ -6,46 +6,51 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
-import FirewallAutoUnquarantinePage
-  from '../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnquarantinePage';
+import FirewallAutoUnquarantinePage from '../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnquarantinePage';
 
-describe('FirewallAutoUnquarantinePageContainer', function() {
+describe('FirewallAutoUnquarantinePageContainer', function () {
   let FirewallAutoUnquarantinePageContainer,
-      loadDataMock,
-      loadReleaseQuarantineListMock,
-      loadAutoUnquarantineGridDataMock,
-      openConfigurationModalMock,
-      store,
-      state,
-      vdom;
+    loadDataMock,
+    loadReleaseQuarantineListMock,
+    loadAutoUnquarantineGridDataMock,
+    openConfigurationModalMock,
+    store,
+    state,
+    vdom;
 
-  beforeEach(function() {
+  beforeEach(function () {
     loadDataMock = jasmine.createSpy('loadDataMock').and.returnValue({
-      type: 'LOAD_FIREWALL_DATA'
+      type: 'LOAD_FIREWALL_DATA',
     });
 
-    loadReleaseQuarantineListMock = jasmine.createSpy('loadReleaseQuarantineListMock').and.returnValue({
-      type: 'LOAD_RELEASE_QUARANTINE_LIST'
-    });
+    loadReleaseQuarantineListMock = jasmine
+      .createSpy('loadReleaseQuarantineListMock')
+      .and.returnValue({
+        type: 'LOAD_RELEASE_QUARANTINE_LIST',
+      });
 
-    loadAutoUnquarantineGridDataMock = jasmine.createSpy('loadAutoUnquarantineGridDataMock').and.returnValue({
-      type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA'
-    });
+    loadAutoUnquarantineGridDataMock = jasmine
+      .createSpy('loadAutoUnquarantineGridDataMock')
+      .and.returnValue({
+        type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA',
+      });
 
-    openConfigurationModalMock = jasmine.createSpy('openConfigurationModalMock').and.returnValue({
-      type: 'OPEN_FIREWALL_CONFIGURATION'
-    });
+    openConfigurationModalMock = jasmine
+      .createSpy('openConfigurationModalMock')
+      .and.returnValue({
+        type: 'OPEN_FIREWALL_CONFIGURATION',
+      });
 
-    FirewallAutoUnquarantinePageContainer =
-        require(
-            'inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnquarantinePageContainer')({
-          '../firewallActions': {
-            loadData: loadDataMock,
-            loadReleaseQuarantineList: loadReleaseQuarantineListMock,
-            loadAutoUnquarantineGridData: loadAutoUnquarantineGridDataMock,
-            openConfigurationModal: openConfigurationModalMock
-          }
-        }).default;
+    FirewallAutoUnquarantinePageContainer = require('inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnquarantinePageContainer')(
+      {
+        '../firewallActions': {
+          loadData: loadDataMock,
+          loadReleaseQuarantineList: loadReleaseQuarantineListMock,
+          loadAutoUnquarantineGridData: loadAutoUnquarantineGridDataMock,
+          openConfigurationModal: openConfigurationModalMock,
+        },
+      }
+    ).default;
 
     state = {
       loadError: 'this is not the error',
@@ -53,10 +58,10 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
         viewState: {
           loadedStatus: false,
           isShowConfigurationModal: false,
-          loadError: null
+          loadError: null,
         },
         statusState: {
-          isEnabled: false
+          isEnabled: false,
         },
         autoUnquarantineState: {
           viewState: {
@@ -65,17 +70,17 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
             autoReleaseQuarantineCountMTD: '-',
             autoReleaseQuarantineCountYTD: '-',
             enabledPolicyConditionTypesCount: 0,
-            totalPolicyConditionTypesCount: 1
-          }
+            totalPolicyConditionTypesCount: 1,
+          },
         },
         configurationState: {
-          autoUnquarantineEnabled: false
-        }
-      }
+          autoUnquarantineEnabled: false,
+        },
+      },
     };
 
     store = configureStore()(() => state);
-    vdom = <FirewallAutoUnquarantinePageContainer store={store}/>;
+    vdom = <FirewallAutoUnquarantinePageContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -101,11 +106,11 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
           ...state.firewall.viewState,
           loadedStatus: true,
           isShowConfigurationModal: true,
-          loadError: 'error'
+          loadError: 'error',
         },
         statusState: {
           ...state.firewall.statusState,
-          isEnabled: true
+          isEnabled: true,
         },
         autoUnquarantineState: {
           ...state.firewall.autoUnquarantineState,
@@ -115,14 +120,14 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
             loadedReleaseQuarantineSummary: true,
             autoReleaseQuarantineCountMTD: 5,
             enabledPolicyConditionTypesCount: 1,
-            totalPolicyConditionTypesCount: 2
-          }
+            totalPolicyConditionTypesCount: 2,
+          },
         },
         configurationState: {
           ...state.firewall.configurationState,
-          autoUnquarantineEnabled: true
-        }
-      }
+          autoUnquarantineEnabled: true,
+        },
+      },
     };
     wrapper = shallow(vdom).dive();
 
@@ -138,16 +143,26 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
     expect(wrapper).toHaveProp('autoUnquarantineEnabled', true);
   });
 
-  it('maps action creators to props', function() {
+  it('maps action creators to props', function () {
     const wrapper = shallow(vdom).dive();
     const loadDataActionCreator = wrapper.prop('loadData');
-    const loadReleaseQuarantineListActionCreator = wrapper.prop('loadReleaseQuarantineList');
-    const loadAutoUnquarantineGridDataActionCreator = wrapper.prop('loadAutoUnquarantineGridData');
-    const openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal');
+    const loadReleaseQuarantineListActionCreator = wrapper.prop(
+      'loadReleaseQuarantineList'
+    );
+    const loadAutoUnquarantineGridDataActionCreator = wrapper.prop(
+      'loadAutoUnquarantineGridData'
+    );
+    const openConfigurationModalActionCreator = wrapper.prop(
+      'openConfigurationModal'
+    );
 
     expect(loadDataActionCreator).toEqual(jasmine.any(Function));
-    expect(loadReleaseQuarantineListActionCreator).toEqual(jasmine.any(Function));
-    expect(loadAutoUnquarantineGridDataActionCreator).toEqual(jasmine.any(Function));
+    expect(loadReleaseQuarantineListActionCreator).toEqual(
+      jasmine.any(Function)
+    );
+    expect(loadAutoUnquarantineGridDataActionCreator).toEqual(
+      jasmine.any(Function)
+    );
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
@@ -158,14 +173,14 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
     loadReleaseQuarantineListActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_FIREWALL_DATA' },
-      { type: 'LOAD_RELEASE_QUARANTINE_LIST' }
+      { type: 'LOAD_RELEASE_QUARANTINE_LIST' },
     ]);
 
     loadAutoUnquarantineGridDataActionCreator();
     expect(store.getActions()).toEqual([
       { type: 'LOAD_FIREWALL_DATA' },
       { type: 'LOAD_RELEASE_QUARANTINE_LIST' },
-      { type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA' }
+      { type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA' },
     ]);
 
     openConfigurationModalActionCreator();
@@ -173,12 +188,14 @@ describe('FirewallAutoUnquarantinePageContainer', function() {
       { type: 'LOAD_FIREWALL_DATA' },
       { type: 'LOAD_RELEASE_QUARANTINE_LIST' },
       { type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA' },
-      { type: 'OPEN_FIREWALL_CONFIGURATION' }
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
     ]);
   });
 
-  it('renders FirewallAutoUnquarantinePage component', function() {
-    const firewallAutoUnquarantinePage = shallow(vdom).find(FirewallAutoUnquarantinePage);
+  it('renders FirewallAutoUnquarantinePage component', function () {
+    const firewallAutoUnquarantinePage = shallow(vdom).find(
+      FirewallAutoUnquarantinePage
+    );
     expect(firewallAutoUnquarantinePage).toExist();
     expect(firewallAutoUnquarantinePage).toHaveProp('loadError', null);
   });

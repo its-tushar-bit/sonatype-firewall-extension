@@ -87,352 +87,446 @@ import ltgEditorTemplate from './license.threat.group/license.threat.group.edito
 import categoryEditorTemplate from './category/category.editor.view.html';
 import appCategoryEditorTemplate from './category/application.category.editor.view.html';
 
-export default
-angular.module('owner.manager.module',
-    [
-      storesModule.name, labelsModule.name, tagsModule.name, licenseThreatGroupModule.name, 'ui.bootstrap', 'ui.router',
-      angularCommonModule.name, formsModule.name, utilityModule.name, utilityDirectivesModule.name,
-      permissionServiceModule.name, policyModule.name, CLMLocationModule.name, utilityServicesModule.name,
-      validatorsModule.name, roleMembershipModule.name, moveApplicationModule.name, ProductFeaturesModule.name,
-      PolicyViolationGrandfatheringModule.name, retentionModule.name, sourceControlModule.name
-    ])
-    .component('ownerPolicyList', ownerPolicyList)
-    .controller('access.editor.controller', AccessEditorController)
-    .controller('AccessTileController', AccessTileController)
-    .directive('accessTile', AccessTile)
-    .controller('application.category.editor.controller', ApplicationCategoryEditorController)
-    .controller('ApplicationCategoryTileControllerApp', ApplicationCategoryTileControllerApp)
-    .controller('ApplicationCategoryTileControllerOrg', ApplicationCategoryTileControllerOrg)
-    .controller('category.editor.controller', CategoryEditorController)
-    .controller('label.editor.controller', LabelEditorController)
-    .controller('LabelTileController', LabelTileController)
-    .controller('license.threat.group.editor.controller', LicenseThreatGroupEditorController)
-    .controller('LicenseThreatGroupTileController', LicenseThreatGroupTileController)
-    .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController)
-    .directive('ownerDetailTreeView', OwnerDetailTreeViewDirective)
-    .directive('ownerTreeView', ownerTreeView)
-    .service('local.role.service', LocalRoleService)
-    .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
-    .service('role.mapping.service', RoleMappingService)
-    .directive('coordinatesInput', CoordinatesInput)
-    .controller('monitored.stage.editor.controller', MonitoredStageEditorController)
-    .controller('policy.editor.actions.controller', PolicyEditorActionsController)
-    .controller('policy.editor.constraints.controller', PolicyEditorConstraintsController)
-    .controller('policy.editor.controller', PolicyEditorController)
-    .controller('policy.tile.controller', PolicyTileController)
-    .directive('policyEditorActions', PolicyEditorActionsDirective)
-    .directive('policyEditorNotifications', PolicyEditorNotificationsDirective)
-    .directive('policyEditorConstraints', PolicyEditorConstraintsDirective)
-    .service('monitored.stage.service', MonitoredStageService)
-    .service('notification.webhook.service', NotificationWebhookService)
-    .controller('proprietary.config.editor.controller', ProprietaryConfigEditorController)
-    .controller('policy.editor.notifications.controller', PolicyEditorNotificationsController)
-    .controller('repositories.configuration.tile.controller', ConfigurationTileController)
-    .controller('change.application.id.controller', ChangeApplicationIdController)
-    .controller('owner.editor.controller', OwnerEditorController)
-    .service('OwnerEditorService', OwnerEditorService)
-    .directive('ownerImage', OwnerImageDirective)
-    .service('SelectApplicationContactService', SelectApplicationContactService)
-    .controller('OwnerSummaryController', OwnerSummaryController)
-    .service('evaluate.application.modal.service', EvaluateApplicationModalService)
-    .service('RevokeGrandfatheringModalService', RevokeGrandfatheringModalService)
-    .service('GrandfatherModalService', GrandfatherModalService)
-    .service('import.policy.modal.service', ImportPolicyModalService)
-    .controller('select.application.contact.controller', SelectApplicationContactController)
-    .service('change.application.id.service', ChangeApplicationIdService)
-    .controller('evaluate.application.modal.controller', EvaluateApplicationModalController)
-    .controller('RevokeGrandfatheringModalController', RevokeGrandfatheringModalController)
-    .controller('GrandfatherModalController', GrandfatherModalController)
-    .controller('import.policy.modal.controller', ImportPolicyModalController)
-    .directive('numberInputWithStringValue', NumberInputWithStringValue)
-    .directive('sameOwnerEditSref', SameOwnerEditSref)
-    .directive('sameOwnerViewSref', SameOwnerViewSref)
-    .config([
-      '$stateProvider', function($stateProvider) {
-        var ownerTypes = [
-          {
-            type: 'organization',
-            name: 'Organization',
-            id: 'organizationId'
-          },
-          {
-            type: 'application',
-            name: 'Application',
-            id: 'applicationPublicId'
-          }
-        ];
+export default angular
+  .module('owner.manager.module', [
+    storesModule.name,
+    labelsModule.name,
+    tagsModule.name,
+    licenseThreatGroupModule.name,
+    'ui.bootstrap',
+    'ui.router',
+    angularCommonModule.name,
+    formsModule.name,
+    utilityModule.name,
+    utilityDirectivesModule.name,
+    permissionServiceModule.name,
+    policyModule.name,
+    CLMLocationModule.name,
+    utilityServicesModule.name,
+    validatorsModule.name,
+    roleMembershipModule.name,
+    moveApplicationModule.name,
+    ProductFeaturesModule.name,
+    PolicyViolationGrandfatheringModule.name,
+    retentionModule.name,
+    sourceControlModule.name,
+  ])
+  .component('ownerPolicyList', ownerPolicyList)
+  .controller('access.editor.controller', AccessEditorController)
+  .controller('AccessTileController', AccessTileController)
+  .directive('accessTile', AccessTile)
+  .controller(
+    'application.category.editor.controller',
+    ApplicationCategoryEditorController
+  )
+  .controller(
+    'ApplicationCategoryTileControllerApp',
+    ApplicationCategoryTileControllerApp
+  )
+  .controller(
+    'ApplicationCategoryTileControllerOrg',
+    ApplicationCategoryTileControllerOrg
+  )
+  .controller('category.editor.controller', CategoryEditorController)
+  .controller('label.editor.controller', LabelEditorController)
+  .controller('LabelTileController', LabelTileController)
+  .controller(
+    'license.threat.group.editor.controller',
+    LicenseThreatGroupEditorController
+  )
+  .controller(
+    'LicenseThreatGroupTileController',
+    LicenseThreatGroupTileController
+  )
+  .controller('OwnerDetailTreeViewController', OwnerDetailTreeViewController)
+  .directive('ownerDetailTreeView', OwnerDetailTreeViewDirective)
+  .directive('ownerTreeView', ownerTreeView)
+  .service('local.role.service', LocalRoleService)
+  .service('SameOwnerStateNavigationService', SameOwnerStateNavigationService)
+  .service('role.mapping.service', RoleMappingService)
+  .directive('coordinatesInput', CoordinatesInput)
+  .controller(
+    'monitored.stage.editor.controller',
+    MonitoredStageEditorController
+  )
+  .controller('policy.editor.actions.controller', PolicyEditorActionsController)
+  .controller(
+    'policy.editor.constraints.controller',
+    PolicyEditorConstraintsController
+  )
+  .controller('policy.editor.controller', PolicyEditorController)
+  .controller('policy.tile.controller', PolicyTileController)
+  .directive('policyEditorActions', PolicyEditorActionsDirective)
+  .directive('policyEditorNotifications', PolicyEditorNotificationsDirective)
+  .directive('policyEditorConstraints', PolicyEditorConstraintsDirective)
+  .service('monitored.stage.service', MonitoredStageService)
+  .service('notification.webhook.service', NotificationWebhookService)
+  .controller(
+    'proprietary.config.editor.controller',
+    ProprietaryConfigEditorController
+  )
+  .controller(
+    'policy.editor.notifications.controller',
+    PolicyEditorNotificationsController
+  )
+  .controller(
+    'repositories.configuration.tile.controller',
+    ConfigurationTileController
+  )
+  .controller('change.application.id.controller', ChangeApplicationIdController)
+  .controller('owner.editor.controller', OwnerEditorController)
+  .service('OwnerEditorService', OwnerEditorService)
+  .directive('ownerImage', OwnerImageDirective)
+  .service('SelectApplicationContactService', SelectApplicationContactService)
+  .controller('OwnerSummaryController', OwnerSummaryController)
+  .service(
+    'evaluate.application.modal.service',
+    EvaluateApplicationModalService
+  )
+  .service('RevokeGrandfatheringModalService', RevokeGrandfatheringModalService)
+  .service('GrandfatherModalService', GrandfatherModalService)
+  .service('import.policy.modal.service', ImportPolicyModalService)
+  .controller(
+    'select.application.contact.controller',
+    SelectApplicationContactController
+  )
+  .service('change.application.id.service', ChangeApplicationIdService)
+  .controller(
+    'evaluate.application.modal.controller',
+    EvaluateApplicationModalController
+  )
+  .controller(
+    'RevokeGrandfatheringModalController',
+    RevokeGrandfatheringModalController
+  )
+  .controller('GrandfatherModalController', GrandfatherModalController)
+  .controller('import.policy.modal.controller', ImportPolicyModalController)
+  .directive('numberInputWithStringValue', NumberInputWithStringValue)
+  .directive('sameOwnerEditSref', SameOwnerEditSref)
+  .directive('sameOwnerViewSref', SameOwnerViewSref)
+  .config([
+    '$stateProvider',
+    function ($stateProvider) {
+      var ownerTypes = [
+        {
+          type: 'organization',
+          name: 'Organization',
+          id: 'organizationId',
+        },
+        {
+          type: 'application',
+          name: 'Application',
+          id: 'applicationPublicId',
+        },
+      ];
 
-        $stateProvider.state('management', {
+      $stateProvider
+        .state('management', {
           url: '/management',
           abstract: true,
-          template: viewTemplate
-        }).state('management.view', {
+          template: viewTemplate,
+        })
+        .state('management.view', {
           url: '/view',
           data: {
-            title: 'Management'
+            title: 'Management',
           },
           views: {
             'navigation@management': {
-              template: '<owner-tree-view></owner-tree-view>'
-            }
-          }
-        }).state('management.edit', {
+              template: '<owner-tree-view></owner-tree-view>',
+            },
+          },
+        })
+        .state('management.edit', {
           abstract: true,
-          template: '<div ui-view></div>'
-        }).state('management.view.repositories', {
+          template: '<div ui-view></div>',
+        })
+        .state('management.view.repositories', {
           url: '/repositories',
           data: {
             title: 'Repositories Management',
-            viewportSized: true
+            viewportSized: true,
           },
           views: {
             '@management': {
-              template: repoSummaryTemplate
-            }
-          }
-        }).state('management.edit.repositories', {
+              template: repoSummaryTemplate,
+            },
+          },
+        })
+        .state('management.edit.repositories', {
           url: '/edit/repositories',
           data: {
-            title: 'Repositories Management'
+            title: 'Repositories Management',
           },
           views: {
             'navigation@management': {
-              template: '<owner-detail-tree-view></owner-detail-tree-view>'
-            }
-          }
-        }).state('management.edit.repositories.add-access', {
+              template: '<owner-detail-tree-view></owner-detail-tree-view>',
+            },
+          },
+        })
+        .state('management.edit.repositories.add-access', {
           url: '/access',
           views: {
             '@management.edit': {
               controller: 'access.editor.controller',
               controllerAs: 'vm',
-              template: accessEditorTemplate
-            }
-          }
-        }).state('management.edit.repositories.edit-access', {
+              template: accessEditorTemplate,
+            },
+          },
+        })
+        .state('management.edit.repositories.edit-access', {
           url: '/access/{roleId}',
           views: {
             '@management.edit': {
               controller: 'access.editor.controller',
               controllerAs: 'vm',
-              template: accessEditorTemplate
-            }
-          }
+              template: accessEditorTemplate,
+            },
+          },
         });
 
-        ownerTypes.forEach(function(ownerType) {
-          $stateProvider.state('management.view.' + ownerType.type, {
+      ownerTypes.forEach(function (ownerType) {
+        $stateProvider
+          .state('management.view.' + ownerType.type, {
             url: '/' + ownerType.type + '/{' + ownerType.id + '}',
             data: {
               title: ownerType.name + ' Management',
-              viewportSized: true
+              viewportSized: true,
             },
             views: {
               '@management': {
-                template: summaryViewTemplate
-              }
-            }
-          }).state('management.edit.' + ownerType.type, {
+                template: summaryViewTemplate,
+              },
+            },
+          })
+          .state('management.edit.' + ownerType.type, {
             url: '/edit/' + ownerType.type + '/{' + ownerType.id + '}',
             data: {
-              title: ownerType.name + ' Management'
+              title: ownerType.name + ' Management',
             },
             views: {
               'navigation@management': {
-                template: '<owner-detail-tree-view></owner-detail-tree-view>'
-              }
-            }
-          }).state('management.edit.' + ownerType.type + '.label', {
+                template: '<owner-detail-tree-view></owner-detail-tree-view>',
+              },
+            },
+          })
+          .state('management.edit.' + ownerType.type + '.label', {
             url: '/label/{labelId}',
             data: {
-              title: ownerType.name + ' Labels'
+              title: ownerType.name + ' Labels',
             },
             views: {
               '@management.edit': {
                 controller: 'label.editor.controller',
                 controllerAs: 'vm',
-                template: labelEditorTemplate
-              }
-            }
-          }).state('management.edit.' + ownerType.type + '.create-label', {
+                template: labelEditorTemplate,
+              },
+            },
+          })
+          .state('management.edit.' + ownerType.type + '.create-label', {
             url: '/label',
             data: {
-              title: ownerType.name + ' Labels'
+              title: ownerType.name + ' Labels',
             },
             views: {
               '@management.edit': {
                 controller: 'label.editor.controller',
                 controllerAs: 'vm',
-                template: labelEditorTemplate
-              }
-            }
-          }).state('management.edit.' + ownerType.type + '.policy', {
+                template: labelEditorTemplate,
+              },
+            },
+          })
+          .state('management.edit.' + ownerType.type + '.policy', {
             url: '/policy/{policyId}',
             data: {
               title: ownerType.name + ' Policy',
-              viewportSized: true
+              viewportSized: true,
             },
             views: {
               '@management': {
                 controller: 'policy.editor.controller',
                 controllerAs: 'vm',
-                template: policyEditorTemplate
-              }
-            }
-          }).state('management.edit.' + ownerType.type + '.create-policy', {
+                template: policyEditorTemplate,
+              },
+            },
+          })
+          .state('management.edit.' + ownerType.type + '.create-policy', {
             url: '/policy',
             data: {
-              title: ownerType.name + ' Policy'
+              title: ownerType.name + ' Policy',
             },
             views: {
               '@management': {
                 controller: 'policy.editor.controller',
                 controllerAs: 'vm',
-                template: policyEditorTemplate
-              }
-            }
-          }).state('management.edit.' + ownerType.type + '.add-access', {
+                template: policyEditorTemplate,
+              },
+            },
+          })
+          .state('management.edit.' + ownerType.type + '.add-access', {
             url: '/access',
             data: {
-              title: ownerType.name + ' Access'
+              title: ownerType.name + ' Access',
             },
             views: {
               '@management.edit': {
                 controller: 'access.editor.controller',
                 controllerAs: 'vm',
-                template: accessEditorTemplate
-              }
-            }
-          }).state('management.edit.' + ownerType.type + '.edit-access', {
+                template: accessEditorTemplate,
+              },
+            },
+          })
+          .state('management.edit.' + ownerType.type + '.edit-access', {
             url: '/access/{roleId}',
             data: {
-              title: ownerType.name + ' Access'
+              title: ownerType.name + ' Access',
             },
             views: {
               '@management.edit': {
                 controller: 'access.editor.controller',
                 controllerAs: 'vm',
-                template: accessEditorTemplate
-              }
-            }
-          }).state('management.edit.' + ownerType.type + '.violation-grandfathering-policy', {
-            url: '/grandfathering',
-            data: {
-              title: ownerType.name + ' Violation Grandfathering'
+                template: accessEditorTemplate,
+              },
             },
-            views: {
-              '@management.edit': {
-                component: 'policyViolationGrandfatheringEditor'
-              }
+          })
+          .state(
+            'management.edit.' +
+              ownerType.type +
+              '.violation-grandfathering-policy',
+            {
+              url: '/grandfathering',
+              data: {
+                title: ownerType.name + ' Violation Grandfathering',
+              },
+              views: {
+                '@management.edit': {
+                  component: 'policyViolationGrandfatheringEditor',
+                },
+              },
             }
-          }).state('management.edit.' + ownerType.type + '.monitor-policy', {
+          )
+          .state('management.edit.' + ownerType.type + '.monitor-policy', {
             url: '/monitoring',
             data: {
-              title: ownerType.name + ' Continuous Monitoring'
+              title: ownerType.name + ' Continuous Monitoring',
             },
             views: {
               '@management.edit': {
                 controller: 'monitored.stage.editor.controller',
                 controllerAs: 'vm',
-                template: continuousMonitoringEditorTemplate
-              }
-            }
-          }).state('management.edit.' + ownerType.type + '.proprietary-config-policy', {
-            url: '/proprietary',
-            data: {
-              title: ownerType.name + ' Proprietary Components'
+                template: continuousMonitoringEditorTemplate,
+              },
             },
-            views: {
-              '@management.edit': {
-                controller: 'proprietary.config.editor.controller',
-                controllerAs: 'vm',
-                template: proprietaryEditorTemplate
-              }
+          })
+          .state(
+            'management.edit.' + ownerType.type + '.proprietary-config-policy',
+            {
+              url: '/proprietary',
+              data: {
+                title: ownerType.name + ' Proprietary Components',
+              },
+              views: {
+                '@management.edit': {
+                  controller: 'proprietary.config.editor.controller',
+                  controllerAs: 'vm',
+                  template: proprietaryEditorTemplate,
+                },
+              },
             }
-          }).state('management.edit.' + ownerType.type + '.edit-license-threat-group', {
-            url: '/licenseThreatGroup/{licenseThreatGroupId}',
-            data: {
-              title: ownerType.name + ' License Threat Groups'
-            },
-            views: {
-              '@management.edit': {
-                controller: 'license.threat.group.editor.controller',
-                controllerAs: 'vm',
-                template: ltgEditorTemplate,
-                clmBuildTimestamp
-              }
+          )
+          .state(
+            'management.edit.' + ownerType.type + '.edit-license-threat-group',
+            {
+              url: '/licenseThreatGroup/{licenseThreatGroupId}',
+              data: {
+                title: ownerType.name + ' License Threat Groups',
+              },
+              views: {
+                '@management.edit': {
+                  controller: 'license.threat.group.editor.controller',
+                  controllerAs: 'vm',
+                  template: ltgEditorTemplate,
+                  clmBuildTimestamp,
+                },
+              },
             }
-          }).state('management.edit.' + ownerType.type + '.edit-source-control', {
+          )
+          .state('management.edit.' + ownerType.type + '.edit-source-control', {
             url: '/source-control',
             data: {
-              title: 'Source Control'
+              title: 'Source Control',
             },
             views: {
               '@management.edit': {
-                component: 'sourceControlEditor'
-              }
-            }
+                component: 'sourceControlEditor',
+              },
+            },
           });
-        });
+      });
 
-        $stateProvider.state('management.edit.organization.category', {
+      $stateProvider
+        .state('management.edit.organization.category', {
           url: '/category/{categoryId}',
           data: {
-            title: 'Organization Category'
+            title: 'Organization Category',
           },
           views: {
             '@management.edit': {
               template: categoryEditorTemplate,
               controller: 'category.editor.controller',
-              controllerAs: 'vm'
-            }
-          }
-        }).state('management.edit.organization.create-category', {
+              controllerAs: 'vm',
+            },
+          },
+        })
+        .state('management.edit.organization.create-category', {
           url: '/category',
           data: {
-            title: 'Organization Category'
+            title: 'Organization Category',
           },
           views: {
             '@management.edit': {
               template: categoryEditorTemplate,
               controller: 'category.editor.controller',
-              controllerAs: 'vm'
-            }
-          }
-        }).state('management.edit.application.category', {
+              controllerAs: 'vm',
+            },
+          },
+        })
+        .state('management.edit.application.category', {
           data: {
-            title: 'Application Categories'
+            title: 'Application Categories',
           },
           url: '/category',
           views: {
             '@management.edit': {
               controller: 'application.category.editor.controller',
               controllerAs: 'vm',
-              template: appCategoryEditorTemplate
-            }
-          }
-        }).state('management.edit.organization.create-license-threat-group', {
+              template: appCategoryEditorTemplate,
+            },
+          },
+        })
+        .state('management.edit.organization.create-license-threat-group', {
           data: {
-            title: 'Organization License Threat Group'
+            title: 'Organization License Threat Group',
           },
           url: '/licenseThreatGroup',
           views: {
             '@management.edit': {
               controller: 'license.threat.group.editor.controller',
               controllerAs: 'vm',
-              template: ltgEditorTemplate
-            }
-          }
-        }).state('management.edit.organization.edit-data-retention', {
+              template: ltgEditorTemplate,
+            },
+          },
+        })
+        .state('management.edit.organization.edit-data-retention', {
           url: '/data-retention',
           data: {
-            title: 'Organization Data Retention'
+            title: 'Organization Data Retention',
           },
           views: {
             '@management.edit': {
-              component: 'retentionEditor'
-            }
-          }
+              component: 'retentionEditor',
+            },
+          },
         });
-      }
-    ]);
+    },
+  ]);

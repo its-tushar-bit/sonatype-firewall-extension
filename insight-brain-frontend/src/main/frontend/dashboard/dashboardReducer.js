@@ -8,15 +8,15 @@ import {
   LOAD_RESULTS_FULFILLED,
   LOAD_RESULTS_FAILED,
   SORT_RESULTS_REQUESTED,
-  SORT_RESULTS_FULFILLED
+  SORT_RESULTS_FULFILLED,
 } from './results/dashboardResultsActions';
 
 import {
   APPLY_FILTER_REQUESTED,
-  LOAD_FILTER_REQUESTED
+  LOAD_FILTER_REQUESTED,
 } from './filter/dashboardFilterActions';
 
-import {UI_ROUTER_ON_FINISH} from '../reduxUiRouter/routerActions';
+import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 const initState = {
   currentTab: 'violations',
@@ -24,25 +24,25 @@ const initState = {
     results: null,
     numResults: null,
     error: null,
-    sortFields: ['-firstOccurrenceTime', '-threatLevel']
+    sortFields: ['-firstOccurrenceTime', '-threatLevel'],
   },
   components: {
     results: null,
     numResults: null,
     classyBrew: null,
     error: null,
-    sortFields: ['-score']
+    sortFields: ['-score'],
   },
   applications: {
     results: null,
     numResults: null,
     classyBrew: null,
     error: null,
-    sortFields: ['-totalApplicationRisk.totalRisk']
-  }
+    sortFields: ['-totalApplicationRisk.totalRisk'],
+  },
 };
 
-export default function(state = initState, {type, payload}) {
+export default function (state = initState, { type, payload }) {
   switch (type) {
     case UI_ROUTER_ON_FINISH:
       return setCurrentTab(state, payload);
@@ -55,23 +55,27 @@ export default function(state = initState, {type, payload}) {
       return resetResults(state, payload);
 
     case LOAD_RESULTS_FULFILLED: {
-      const {resultsType, results, numResults, classyBrew} = payload;
-      return updateResults(state, resultsType, {results, numResults, classyBrew});
+      const { resultsType, results, numResults, classyBrew } = payload;
+      return updateResults(state, resultsType, {
+        results,
+        numResults,
+        classyBrew,
+      });
     }
 
     case LOAD_RESULTS_FAILED: {
-      const {resultsType, error} = payload;
-      return updateResults(state, resultsType, {error});
+      const { resultsType, error } = payload;
+      return updateResults(state, resultsType, { error });
     }
 
     case SORT_RESULTS_REQUESTED: {
-      const {resultsType, sortFields} = payload;
-      return updateResults(state, resultsType, {sortFields});
+      const { resultsType, sortFields } = payload;
+      return updateResults(state, resultsType, { sortFields });
     }
 
     case SORT_RESULTS_FULFILLED: {
-      const {resultsType, results} = payload;
-      return updateResults(state, resultsType, {results});
+      const { resultsType, results } = payload;
+      return updateResults(state, resultsType, { results });
     }
 
     default:
@@ -81,38 +85,38 @@ export default function(state = initState, {type, payload}) {
 
 function resetResults(state, resultsType) {
   const results = resetTabState(state[resultsType]);
-  return {...state, [resultsType]: results};
+  return { ...state, [resultsType]: results };
 }
 
 function resetTabState(tabState, resetCounters) {
   const numResults = resetCounters ? null : tabState.numResults;
-  return {...tabState, results: null, numResults: numResults, error: null};
+  return { ...tabState, results: null, numResults: numResults, error: null };
 }
 
 function resetAllTabs(state) {
   const violations = resetTabState(state.violations, true);
   const components = resetTabState(state.components, true);
   const applications = resetTabState(state.applications, true);
-  return {...state, violations, components, applications};
+  return { ...state, violations, components, applications };
 }
 
 function updateResults(state, resultsType, props) {
   const tabState = state[resultsType];
-  const newTabState = {...tabState, ...props};
-  return {...state, [resultsType]: newTabState};
+  const newTabState = { ...tabState, ...props };
+  return { ...state, [resultsType]: newTabState };
 }
 
-function setCurrentTab(state, {toState}) {
+function setCurrentTab(state, { toState }) {
   switch (toState.name) {
     case 'dashboard.overview.violations':
     case 'dashboard.violation': // violation details
-      return {...state, currentTab: 'violations'};
+      return { ...state, currentTab: 'violations' };
 
     case 'dashboard.overview.components':
-      return {...state, currentTab: 'components'};
+      return { ...state, currentTab: 'components' };
 
     case 'dashboard.overview.applications':
-      return {...state, currentTab: 'applications'};
+      return { ...state, currentTab: 'applications' };
 
     default:
       return state;

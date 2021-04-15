@@ -3,9 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $cookies, Messages, CLMContextLocations,
-                                     PolicyHierarchyStore) {
+export default function ImportPolicyModalController(
+  $rootScope,
+  $scope,
+  $q,
+  $http,
+  $window,
+  $cookies,
+  Messages,
+  CLMContextLocations,
+  PolicyHierarchyStore
+) {
   var vm = this;
 
   vm.importFile = undefined;
@@ -25,8 +33,7 @@ function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $co
 
     if (message) {
       vm.error = message;
-    }
-    else {
+    } else {
       vm.error = 'Error uploading, please check the file.';
     }
   }
@@ -44,17 +51,29 @@ function ImportPolicyModalController($rootScope, $scope, $q, $http, $window, $co
     var form = $('form[name=importPolicy]');
 
     var formData = new FormData(form[0]);
-    vm.importPolicyMask.wrap($http.post(CLMContextLocations.getImportPolicyUrl(), formData)).then(function() {
-      PolicyHierarchyStore.refresh();
-      $rootScope.$broadcast('policy.imported');
-      $scope.$close();
-    }, function(error) {
-      setError(Messages.getHttpErrorMessage(error), doSubmit);
-    });
+    vm.importPolicyMask
+      .wrap($http.post(CLMContextLocations.getImportPolicyUrl(), formData))
+      .then(
+        function () {
+          PolicyHierarchyStore.refresh();
+          $rootScope.$broadcast('policy.imported');
+          $scope.$close();
+        },
+        function (error) {
+          setError(Messages.getHttpErrorMessage(error), doSubmit);
+        }
+      );
   }
 }
 
 ImportPolicyModalController.$inject = [
-  '$rootScope', '$scope', '$q', '$http', '$window', '$cookies', 'Messages', 'CLMContextLocations',
-  'PolicyHierarchyStore'
+  '$rootScope',
+  '$scope',
+  '$q',
+  '$http',
+  '$window',
+  '$cookies',
+  'Messages',
+  'CLMContextLocations',
+  'PolicyHierarchyStore',
 ];

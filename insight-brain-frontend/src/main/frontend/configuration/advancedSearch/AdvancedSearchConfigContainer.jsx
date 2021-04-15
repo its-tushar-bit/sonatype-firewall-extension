@@ -3,16 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 
 import * as advancedSearchConfigActions from './advancedSearchConfigActions';
 import AdvancedSearchConfig from './AdvancedSearchConfig';
 
-function mapStateToProps({advancedSearchConfig}) {
+function mapStateToProps({ advancedSearchConfig }) {
   return {
     ...advancedSearchConfig.formState,
-    ...advancedSearchConfig.viewState
+    ...advancedSearchConfig.viewState,
   };
 }
 
-export default connect(mapStateToProps, advancedSearchConfigActions)(AdvancedSearchConfig);
+export default connect(
+  mapStateToProps,
+  advancedSearchConfigActions
+)(AdvancedSearchConfig);

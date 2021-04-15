@@ -14,22 +14,28 @@ function mapStateToProps({ violation, manageWaivers, router, deleteWaiver }) {
   return {
     ...pick(['activeWaivers', 'expiredWaivers', 'violationDetails'], violation),
     ...pick(['violationId'], router.currentParams),
-    ...pick([
-      'loadingManageWaiversData',
-      'loadManageWaiversDataError',
-      'hasPermissionForAppWaivers',
-      'loadingApplicableWaivers',
-      'loadApplicableWaiversError'
-    ], manageWaivers),
-    ...pick(['waiverToDelete'], deleteWaiver)
+    ...pick(
+      [
+        'loadingManageWaiversData',
+        'loadManageWaiversDataError',
+        'hasPermissionForAppWaivers',
+        'loadingApplicableWaivers',
+        'loadApplicableWaiversError',
+      ],
+      manageWaivers
+    ),
+    ...pick(['waiverToDelete'], deleteWaiver),
   };
 }
 
 const mapDispatchToProps = {
   loadManageWaiversData,
   setWaiverToDelete,
-  loadApplicableWaivers
+  loadApplicableWaivers,
 };
 
-const ListWaiversPageContainer = connect(mapStateToProps, mapDispatchToProps)(ListWaiversPage);
+const ListWaiversPageContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ListWaiversPage);
 export default ListWaiversPageContainer;

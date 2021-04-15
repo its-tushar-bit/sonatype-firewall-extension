@@ -5,9 +5,9 @@
  */
 
 const GIT_HOST_NAMES = {
-  'github': 'GitHub',
-  'bitbucket': 'Bitbucket',
-  'gitlab': 'GitLab'
+  github: 'GitHub',
+  bitbucket: 'Bitbucket',
+  gitlab: 'GitLab',
 };
 
 const displayName = (provider) => {
@@ -17,6 +17,4 @@ const displayName = (provider) => {
   return provider;
 };
 
-export {
-  displayName
-};
+export { displayName };

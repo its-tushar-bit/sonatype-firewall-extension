@@ -11,7 +11,7 @@ import {
   NxTableBody,
   NxTableCell,
   NxTableHead,
-  NxTableRow
+  NxTableRow,
 } from '@sonatype/react-shared-components';
 import { getLicenseLegalApplicationReportUrl } from '../util/CLMLocation';
 
@@ -22,7 +22,7 @@ export default function AdvancedLegalApplicationsPage(props) {
     // state
     viewStateApplications,
     applications,
-    $state
+    $state,
   } = props;
 
   useEffect(() => {
@@ -31,9 +31,11 @@ export default function AdvancedLegalApplicationsPage(props) {
 
   return (
     <main id="advanced-legal-applications" className="nx-page-main">
-      <LoadWrapper loading={viewStateApplications.loading}
-                   error={viewStateApplications.error}
-                   retryHandler={loadApplications}>
+      <LoadWrapper
+        loading={viewStateApplications.loading}
+        error={viewStateApplications.error}
+        retryHandler={loadApplications}
+      >
         <NxTable>
           <NxTableHead>
             <NxTableRow>
@@ -43,23 +45,31 @@ export default function AdvancedLegalApplicationsPage(props) {
             </NxTableRow>
           </NxTableHead>
           <NxTableBody emptyMessage="No applications found">
-            {applications.map(application =>
+            {applications.map((application) => (
               <NxTableRow key={application.id}>
                 <NxTableCell>{application.name}</NxTableCell>
                 <NxTableCell>
-                  <a href={$state.href('advancedLegalApplication', { publicId: application.publicId })}
-                     target="_blank" rel="noopener noreferrer" >
+                  <a
+                    href={$state.href('advancedLegalApplication', {
+                      publicId: application.publicId,
+                    })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     View Attribution Report
                   </a>
                 </NxTableCell>
                 <NxTableCell>
-                  <a href={getLicenseLegalApplicationReportUrl(application.id)}
-                     target="_blank" rel="noopener noreferrer" >
+                  <a
+                    href={getLicenseLegalApplicationReportUrl(application.id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Download Application Legal Data
                   </a>
                 </NxTableCell>
               </NxTableRow>
-            )}
+            ))}
           </NxTableBody>
         </NxTable>
       </LoadWrapper>
@@ -71,8 +81,8 @@ AdvancedLegalApplicationsPage.propTypes = {
   loadApplications: PropTypes.func.isRequired,
   viewStateApplications: PropTypes.shape({
     loading: PropTypes.bool.isRequired,
-    error: PropTypes.string
+    error: PropTypes.string,
   }),
   applications: PropTypes.array.isRequired,
-  $state: PropTypes.object.isRequired
+  $state: PropTypes.object.isRequired,
 };

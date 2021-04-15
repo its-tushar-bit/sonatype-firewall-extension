@@ -7,14 +7,20 @@ import React from 'react';
 import { mount, shallow } from 'enzyme';
 import LoadWrapper from '../../main/frontend/react/LoadWrapper';
 
-export const getShallowComponent = (Component, minimalProps) => function getShallowComponent(additionalProps) {
-  return shallow(<Component { ...minimalProps } { ...additionalProps } />);
-};
+export const getShallowComponent = (Component, minimalProps) =>
+  function getShallowComponent(additionalProps) {
+    return shallow(<Component {...minimalProps} {...additionalProps} />);
+  };
 
-export const getMountedComponent = (Component, minimalProps) => function getMounted(additionalProps) {
-  return mount(<Component { ...minimalProps } { ...additionalProps } />);
-};
+export const getMountedComponent = (Component, minimalProps) =>
+  function getMounted(additionalProps) {
+    return mount(<Component {...minimalProps} {...additionalProps} />);
+  };
 
-export const getLoadWrapperChildren = function getLoadWrapperChildren(pageShallowWrapper) {
-  return shallow(React.createElement(pageShallowWrapper.find(LoadWrapper).prop('children')));
+export const getLoadWrapperChildren = function getLoadWrapperChildren(
+  pageShallowWrapper
+) {
+  return shallow(
+    React.createElement(pageShallowWrapper.find(LoadWrapper).prop('children'))
+  );
 };

@@ -4,14 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import {noPayloadActionCreator, payloadParamActionCreator} from '../../util/reduxUtil';
+import {
+  noPayloadActionCreator,
+  payloadParamActionCreator,
+} from '../../util/reduxUtil';
 
 export const LABS_DATA_INSIGHTS_REQUESTED = 'LABS_DATA_INSIGHTS_REQUESTED';
 export const LABS_DATA_INSIGHTS_FULFILLED = 'LABS_DATA_INSIGHTS_FULFILLED';
 export const LABS_DATA_INSIGHTS_FAILED = 'LABS_DATA_INSIGHTS_FAILED';
 
 export function loadLabsDataInsights() {
-  return function(dispatch) {
+  return function (dispatch) {
     dispatch(loadLabsDataInsightsRequested());
 
     const script = document.createElement('script');
@@ -23,12 +26,22 @@ export function loadLabsDataInsights() {
       dispatch(loadLabsDataInsightsFulfilled());
     }
     function error() {
-      dispatch(loadLabsDataInsightsFailed('Failed to load data insights. Please try again.'));
+      dispatch(
+        loadLabsDataInsightsFailed(
+          'Failed to load data insights. Please try again.'
+        )
+      );
     }
     document.body.appendChild(script);
   };
 }
 
-const loadLabsDataInsightsRequested = noPayloadActionCreator(LABS_DATA_INSIGHTS_REQUESTED);
-const loadLabsDataInsightsFulfilled = noPayloadActionCreator(LABS_DATA_INSIGHTS_FULFILLED);
-const loadLabsDataInsightsFailed = payloadParamActionCreator(LABS_DATA_INSIGHTS_FAILED);
+const loadLabsDataInsightsRequested = noPayloadActionCreator(
+  LABS_DATA_INSIGHTS_REQUESTED
+);
+const loadLabsDataInsightsFulfilled = noPayloadActionCreator(
+  LABS_DATA_INSIGHTS_FULFILLED
+);
+const loadLabsDataInsightsFailed = payloadParamActionCreator(
+  LABS_DATA_INSIGHTS_FAILED
+);

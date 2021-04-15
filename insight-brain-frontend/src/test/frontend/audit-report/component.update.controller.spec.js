@@ -6,38 +6,40 @@
 import '../../../main/frontend/brain.client';
 import auditModule from '../../../main/frontend/audit-report/audit.module/audit.module';
 
-describe('component.update.controller', function() {
-  var scope,
-      secondaryScope,
-      promise;
+describe('component.update.controller', function () {
+  var scope, secondaryScope, promise;
 
-  beforeEach(angular.mock.module(auditModule.name, function ($provide) {
-    $provide.value('OwnerContext', {
-      ownerId: 'foo',
-      ownerType: 'repository'
-    });
-    $provide.value('componentKey', {hash: 'abcd'});
-    $provide.value('reevaluate', true);
-    $provide.value('pendoService', {
-      start: angular.noop
-    });
-  }));
+  beforeEach(
+    angular.mock.module(auditModule.name, function ($provide) {
+      $provide.value('OwnerContext', {
+        ownerId: 'foo',
+        ownerType: 'repository',
+      });
+      $provide.value('componentKey', { hash: 'abcd' });
+      $provide.value('reevaluate', true);
+      $provide.value('pendoService', {
+        start: angular.noop,
+      });
+    })
+  );
 
-  beforeEach(inject(function($rootScope, $controller, $q) {
+  beforeEach(inject(function ($rootScope, $controller, $q) {
     scope = $rootScope.$new();
 
     $controller('component.update.controller as vm', {
-      $scope: scope
+      $scope: scope,
     });
     scope.$dismiss = jasmine.createSpy('$dismiss');
 
     secondaryScope = $rootScope.$new();
 
-    var updatedSpy = jasmine.createSpy('updatedSpy').and.callFake(function (event, hash, promises) {
-      promise = $q.defer();
-      spyOn(promise.promise, 'then').and.callThrough();
-      promises.push(promise.promise);
-    });
+    var updatedSpy = jasmine
+      .createSpy('updatedSpy')
+      .and.callFake(function (event, hash, promises) {
+        promise = $q.defer();
+        spyOn(promise.promise, 'then').and.callThrough();
+        promises.push(promise.promise);
+      });
     secondaryScope.$on('component.evaluation.updated', updatedSpy);
   }));
 
@@ -47,7 +49,9 @@ describe('component.update.controller', function() {
   });
 
   it('reevaluate error', inject(function ($httpBackend) {
-    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd')).respond(404, 'failure');
+    $httpBackend
+      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd'))
+      .respond(404, 'failure');
     $httpBackend.flush();
     expect(scope.vm.error).toEqual('failure');
 
@@ -57,7 +61,9 @@ describe('component.update.controller', function() {
   }));
 
   it('update error', inject(function ($httpBackend, $timeout) {
-    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd')).respond(204);
+    $httpBackend
+      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd'))
+      .respond(204);
     $httpBackend.flush();
 
     expect(scope.vm.reevaluated).toBeTruthy();
@@ -75,7 +81,9 @@ describe('component.update.controller', function() {
   }));
 
   it('complete success', inject(function ($httpBackend, $timeout) {
-    $httpBackend.expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd')).respond(204);
+    $httpBackend
+      .expectPOST(SpecUtil.toRegExp('rest/repositories/foo/evaluate/abcd'))
+      .respond(204);
     $httpBackend.flush();
 
     expect(scope.vm.reevaluated).toBeTruthy();

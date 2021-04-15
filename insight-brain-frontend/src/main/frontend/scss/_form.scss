@@ -8,7 +8,7 @@
 
   base form typography is in _typography.scss
 */
-@import "~@sonatype/react-shared-components/scss-shared/nx-variables";
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 // Shared styles
 
@@ -134,7 +134,7 @@ $iq-form-element-wide: 395px;
     @include regular();
 
     color: $iq-slate;
-    content: " - optional";
+    content: ' - optional';
     font-style: italic;
   }
 }
@@ -162,8 +162,8 @@ $iq-form-element-wide: 395px;
 // be used, but you'll still typically want the <legend> styled the way a <label> on a text field would be.  This
 // class implements that
 fieldset {
-  &.iq-radio-group, &.iq-checkbox-group {
-
+  &.iq-radio-group,
+  &.iq-checkbox-group {
     // override browser-default "min-content"
     min-width: auto;
 
@@ -181,14 +181,14 @@ fieldset {
 
 // Text Inputs
 
-input[type=text],
-input[type=number],
-input[type=email],
-input[type=password],
-input[type=url],
+input[type='text'],
+input[type='number'],
+input[type='email'],
+input[type='password'],
+input[type='url'],
 textarea {
-
-  &.iq-text-input, &.iq-textarea {
+  &.iq-text-input,
+  &.iq-textarea {
     @include box-shadow(none);
     @include border-radius(0);
 
@@ -228,7 +228,8 @@ textarea {
     }
 
     &:disabled {
-      &, &.ng-valid.ng-dirty {
+      &,
+      &.ng-valid.ng-dirty {
         @include iq-disabled();
       }
     }
@@ -239,7 +240,8 @@ textarea {
     }
   }
 
-  &.iq-text-input--long, &.iq-textarea--long {
+  &.iq-text-input--long,
+  &.iq-textarea--long {
     width: 374px;
   }
 
@@ -468,7 +470,8 @@ dropdown-selector {
   margin-top: 0;
   margin-bottom: 13px;
 
-  > dt, > div > dt {
+  > dt,
+  > div > dt {
     @include semi-bold();
 
     color: $iq-off-black;
@@ -572,7 +575,7 @@ dropdown-selector {
     padding-right: 4px;
 
     // NOTE [type=text] was necessary to increase specificity above that of some of the styles from clm-form
-    & + input[type=text] {
+    & + input[type='text'] {
       border-left: none;
       box-shadow: none;
       border-radius: 0;
@@ -585,7 +588,8 @@ dropdown-selector {
     }
   }
 
-  .add-on:first-child, .btn:first-child {
+  .add-on:first-child,
+  .btn:first-child {
     border-radius: 0;
   }
 }
@@ -644,11 +648,13 @@ dropdown-selector {
   text-shadow: none;
 }
 
-.toggle-checkbox .toggle[disabled='disabled'], .toggle-checkbox .toggle[disabled='disabled'] .btn {
+.toggle-checkbox .toggle[disabled='disabled'],
+.toggle-checkbox .toggle[disabled='disabled'] .btn {
   border-color: $iq-light-blue;
 }
 
-.toggle-checkbox .toggle[disabled='disabled'], .toggle-checkbox .toggle[disabled='disabled'] * {
+.toggle-checkbox .toggle[disabled='disabled'],
+.toggle-checkbox .toggle[disabled='disabled'] * {
   cursor: not-allowed;
 }
 
@@ -684,19 +690,19 @@ dropdown-selector {
 }
 
 .input-popover .top {
-  margin-top: -2px
+  margin-top: -2px;
 }
 
 .input-popover .right {
-  margin-left: 2px
+  margin-left: 2px;
 }
 
 .input-popover .bottom {
-  margin-top: 2px
+  margin-top: 2px;
 }
 
 .input-popover .left {
-  margin-left: -2px
+  margin-left: -2px;
 }
 
 .input-popover .top .popover-arrow {

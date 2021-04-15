@@ -15,18 +15,18 @@ import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLe
 import { mount } from 'enzyme/build';
 import LicenseObligationsTileContainer from '../../../main/frontend/legal/obligation/LicenseObligationsTileContainer';
 
-describe('ComponentLegalOverviewPage', function() {
+describe('ComponentLegalOverviewPage', function () {
   let minimalProps,
-      loadComponentSpy,
-      loadAvailableScopesSpy,
-      getShallowComponent,
-      spy$State;
+    loadComponentSpy,
+    loadAvailableScopesSpy,
+    getShallowComponent,
+    spy$State;
 
-  beforeEach(function() {
+  beforeEach(function () {
     loadComponentSpy = jasmine.createSpy('loadComponent');
     loadAvailableScopesSpy = jasmine.createSpy('loadAvailableScopes');
     spy$State = jasmine.createSpyObj('$state', ['get', 'href']);
-    spy$State.get.and.callFake(stateName => stateName);
+    spy$State.get.and.callFake((stateName) => stateName);
     spy$State.href.and.callFake((stateName, stateParams) => {
       if (stateParams) {
         return `${stateName}-${JSON.stringify(stateParams)}`;
@@ -37,72 +37,68 @@ describe('ComponentLegalOverviewPage', function() {
     const licenseLegalMetadata = {
       0: {
         licenseName: 'license1',
-        obligations: [{
-          name: 'obligation 1',
-          obligationTexts: [
-            'text1',
-            'text2'
-          ]
-        }, {
-          name: 'obligation 2',
-          obligationTexts: [
-            'text3',
-            'text4'
-          ]
-        }]
+        obligations: [
+          {
+            name: 'obligation 1',
+            obligationTexts: ['text1', 'text2'],
+          },
+          {
+            name: 'obligation 2',
+            obligationTexts: ['text3', 'text4'],
+          },
+        ],
       },
       1: {
         licenseName: 'license2',
-        obligations: [{
-          name: 'obligation 2',
-          obligationTexts: [
-            'text5',
-            'text6'
-          ]
-        }, {
-          name: 'obligation 3',
-          obligationTexts: [
-            'text7',
-            'text8'
-          ]
-        }]
+        obligations: [
+          {
+            name: 'obligation 2',
+            obligationTexts: ['text5', 'text6'],
+          },
+          {
+            name: 'obligation 3',
+            obligationTexts: ['text7', 'text8'],
+          },
+        ],
       },
       2: {
         licenseName: 'multilicense',
-        obligations: null
-      }
+        obligations: null,
+      },
     };
 
-    const obligations = [{
-      name: 'obligation 1',
-      status: 'OPEN',
-      comment: null
-    },
-    {
-      name: 'obligation 2',
-      status: 'IGNORED',
-      comment: 'comment'
-    },
-    {
-      name: 'obligation 3',
-      status: 'FULFILLED',
-      comment: null
-    }];
+    const obligations = [
+      {
+        name: 'obligation 1',
+        status: 'OPEN',
+        comment: null,
+      },
+      {
+        name: 'obligation 2',
+        status: 'IGNORED',
+        comment: 'comment',
+      },
+      {
+        name: 'obligation 3',
+        status: 'FULFILLED',
+        comment: null,
+      },
+    ];
 
     const availableScopes = {
       values: [
         {
           id: 'ROOT_ORGANIZATION_ID',
           name: 'Root Organization',
-          label: 'Organization'
-        }
-      ]
+          label: 'Organization',
+        },
+      ],
     };
 
     const component = {
       licenseLegalData: {
-        effectiveLicenses: []
-      }
+        effectiveLicenses: [],
+      },
     };
 
     minimalProps = {
@@ -113,39 +109,74 @@ describe('ComponentLegalOverviewPage', function() {
       obligations,
       availableScopes,
       component,
-      hash: '1e48256a2341047e7d72'
+      hash: '1e48256a2341047e7d72',
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(ComponentLegalOverviewPage, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      ComponentLegalOverviewPage,
+      minimalProps
+    );
   });
 
-  it('loads the expected data using the root organization id', function() {
-    const component = mount(<ComponentLegalOverviewPage {...minimalProps} loading={true} />);
-    expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID', '1e48256a2341047e7d72');
-    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('organization', 'ROOT_ORGANIZATION_ID');
+  it('loads the expected data using the root organization id', function () {
+    const component = mount(
+      <ComponentLegalOverviewPage {...minimalProps} loading={true} />
+    );
+    expect(loadComponentSpy).toHaveBeenCalledWith(
+      'organization',
+      'ROOT_ORGANIZATION_ID',
+      '1e48256a2341047e7d72'
+    );
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith(
+      'organization',
+      'ROOT_ORGANIZATION_ID'
+    );
     component.unmount();
   });
 
-  it('loads the expected data using the organization id', function() {
-    const component = mount(<ComponentLegalOverviewPage {...{ ...minimalProps, organizationId: 'orgId' }}
-                                                        loading={true}/>);
-    expect(loadComponentSpy).toHaveBeenCalledWith('organization', 'orgId', '1e48256a2341047e7d72');
-    expect(loadAvailableScopesSpy).toHaveBeenCalledWith('organization', 'orgId');
+  it('loads the expected data using the organization id', function () {
+    const component = mount(
+      <ComponentLegalOverviewPage
+        {...{ ...minimalProps, organizationId: 'orgId' }}
+        loading={true}
+      />
+    );
+    expect(loadComponentSpy).toHaveBeenCalledWith(
+      'organization',
+      'orgId',
+      '1e48256a2341047e7d72'
+    );
+    expect(loadAvailableScopesSpy).toHaveBeenCalledWith(
+      'organization',
+      'orgId'
+    );
     component.unmount();
   });
 
-  it('loads the expected data using the application public id', function() {
-    const component = mount(<ComponentLegalOverviewPage {...{ ...minimalProps, applicationPublicId: 'appId' }}
-                                                        loading={true}/>);
-    expect(loadComponentSpy).toHaveBeenCalledWith('application', 'appId', '1e48256a2341047e7d72');
+  it('loads the expected data using the application public id', function () {
+    const component = mount(
+      <ComponentLegalOverviewPage
+        {...{ ...minimalProps, applicationPublicId: 'appId' }}
+        loading={true}
+      />
+    );
+    expect(loadComponentSpy).toHaveBeenCalledWith(
+      'application',
+      'appId',
+      '1e48256a2341047e7d72'
+    );
     expect(loadAvailableScopesSpy).toHaveBeenCalledWith('application', 'appId');
     component.unmount();
   });
 
-  it('does not load the data if there is no hash', function() {
-    const component = mount(<ComponentLegalOverviewPage loadComponent={ loadComponentSpy }
-                                                        loading={true}
-                                                        $state={ spy$State} />);
+  it('does not load the data if there is no hash', function () {
+    const component = mount(
+      <ComponentLegalOverviewPage
+        loadComponent={loadComponentSpy}
+        loading={true}
+        $state={spy$State}
+      />
+    );
     expect(loadComponentSpy).not.toHaveBeenCalled();
     expect(loadAvailableScopesSpy).not.toHaveBeenCalled();
     component.unmount();
@@ -155,20 +186,22 @@ describe('ComponentLegalOverviewPage', function() {
     const wrapper = getShallowComponent({
       ...minimalProps,
       applicationPublicId: 'appId',
-      stageTypeId: 'stage'
+      stageTypeId: 'stage',
     });
 
     const backButton = wrapper.find(NxBackButton);
     expect(backButton).toExist();
-    expect(backButton).toHaveProp('href',
-        'legalApplicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}');
+    expect(backButton).toHaveProp(
+      'href',
+      'legalApplicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
+    );
     expect(spy$State.href).toHaveBeenCalled();
   });
 
   it('renders a NxBackButton to go to the dashboard page when using app public id but no stage type id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
-      applicationPublicId: 'appId'
+      applicationPublicId: 'appId',
     });
 
     const backButton = wrapper.find(NxBackButton);
@@ -180,7 +213,7 @@ describe('ComponentLegalOverviewPage', function() {
   it('renders a NxBackButton to go to the dashboard page when using stage type id but no app public id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
-      stageTypeId: 'stage'
+      stageTypeId: 'stage',
     });
 
     const backButton = wrapper.find(NxBackButton);
@@ -192,7 +225,7 @@ describe('ComponentLegalOverviewPage', function() {
   it('renders a NxBackButton to go to the dashboard page when not using stage type id and app public id', function () {
     const wrapper = getShallowComponent({
       ...minimalProps,
-      organizationId: 'orgId'
+      organizationId: 'orgId',
     });
 
     const backButton = wrapper.find(NxBackButton);
@@ -201,36 +234,36 @@ describe('ComponentLegalOverviewPage', function() {
     expect(spy$State.href).toHaveBeenCalled();
   });
 
-  it('renders a component with the "nx-page-main" class', function() {
+  it('renders a component with the "nx-page-main" class', function () {
     expect(getShallowComponent().find('.nx-page-main')).toExist();
   });
 
-  it('renders the ComponentOverviewTile', function() {
+  it('renders the ComponentOverviewTile', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(ComponentOverviewTile)).toExist();
   });
 
-  it('renders the CopyrightStatementsTile', function() {
+  it('renders the CopyrightStatementsTile', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(CopyrightStatementsTile)).toExist();
   });
 
-  it('renders the LicenseDetailsTile', function() {
+  it('renders the LicenseDetailsTile', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(LicenseDetailsTile)).toExist();
   });
 
-  it('renders the LicenseObligationsTile', function() {
+  it('renders the LicenseObligationsTile', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(LicenseObligationsTileContainer)).toExist();
   });
 
-  it('renders the LicenseTextsTileContainer', function() {
+  it('renders the LicenseTextsTileContainer', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(LicenseTextsTileContainer)).toExist();
   });
 
-  it('renders the NoticeTextsTileContainer', function() {
+  it('renders the NoticeTextsTileContainer', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(NoticeTextsTileContainer)).toExist();
   });

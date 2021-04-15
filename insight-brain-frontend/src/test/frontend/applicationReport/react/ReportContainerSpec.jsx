@@ -7,23 +7,20 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
 
-describe('ReportContainer component', function() {
+describe('ReportContainer component', function () {
+  let ReportContainer, loadMetadataActionMock, state, store, vdom;
 
-  let ReportContainer,
-      loadMetadataActionMock,
-      state,
-      store,
-      vdom;
-
-  beforeEach(function() {
-
-    loadMetadataActionMock = jasmine.createSpy('loadReportMetadata').and.returnValue({ type: 'LOAD_DATA' });
-    ReportContainer =
-        require('inject-loader!../../../../main/frontend/applicationReport/react/ReportContainer')({
-          '../applicationReportActions': {
-            loadReportMetadata: loadMetadataActionMock
-          }
-        }).default;
+  beforeEach(function () {
+    loadMetadataActionMock = jasmine
+      .createSpy('loadReportMetadata')
+      .and.returnValue({ type: 'LOAD_DATA' });
+    ReportContainer = require('inject-loader!../../../../main/frontend/applicationReport/react/ReportContainer')(
+      {
+        '../applicationReportActions': {
+          loadReportMetadata: loadMetadataActionMock,
+        },
+      }
+    ).default;
 
     state = {
       applicationReport: {
@@ -32,13 +29,13 @@ describe('ReportContainer component', function() {
         metadata: { reportTitle: 'title' },
         selectedReport: { reportVersion: 5 },
         aggregate: true,
-        exactValueFilters: { matchState: 'unknown'},
+        exactValueFilters: { matchState: 'unknown' },
         substringFilters: {
           policyName: 'policyName',
-          derivedComponentName: 'derivedComponentName'
+          derivedComponentName: 'derivedComponentName',
         },
         pendingLoads: new Set(),
-        loadError: null
+        loadError: null,
       },
       router: {
         currentParams: {
@@ -46,15 +43,13 @@ describe('ReportContainer component', function() {
           scanId: 'scanId',
           unknownjs: true,
           embeddable: true,
-          policyViolationId: 'CVE-123'
-        }
-      }
+          policyViolationId: 'CVE-123',
+        },
+      },
     };
 
     store = configureStore()(() => state);
-    vdom = (
-      <ReportContainer store={store}/>
-    );
+    vdom = <ReportContainer store={store} />;
   });
 
   it('maps the state "ReportPage" to ReportContainer props', () => {
@@ -69,34 +64,34 @@ describe('ReportContainer component', function() {
     expect(wrapper).toHaveProp('selectedReport', { reportVersion: 5 });
     expect(wrapper).toHaveProp('aggregate', true);
     expect(wrapper).toHaveProp('loadError', null);
-    expect(wrapper).toHaveProp('exactValueFilters', { matchState: 'unknown'});
+    expect(wrapper).toHaveProp('exactValueFilters', { matchState: 'unknown' });
     expect(wrapper).toHaveProp('substringFilters', {
       policyName: 'policyName',
-      derivedComponentName: 'derivedComponentName'
+      derivedComponentName: 'derivedComponentName',
     });
   });
 
-  it('maps the loading flag as true if the metadata is not defined', function() {
+  it('maps the loading flag as true if the metadata is not defined', function () {
     state.applicationReport.metadata = null;
     store.dispatch({ type: 'ANY_ACTION' });
     const wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('loading', true);
   });
 
-  it('maps the loading flag as true if the pendingLoads set is not empty', function() {
+  it('maps the loading flag as true if the pendingLoads set is not empty', function () {
     state.applicationReport.pendingLoads = new Set(['asdf']);
     store.dispatch({ type: 'ANY_ACTION' });
     const wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('loading', true);
   });
 
-  it('maps the loading flag as false if the pendingLoads set is empty and metadata is present', function() {
+  it('maps the loading flag as false if the pendingLoads set is empty and metadata is present', function () {
     store.dispatch({ type: 'ANY_ACTION' });
     const wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('loading', false);
   });
 
-  it('maps the loading flag as false if the loadError is set', function() {
+  it('maps the loading flag as false if the loadError is set', function () {
     state.applicationReport.pendingLoads = new Set(['asdf']);
     state.applicationReport.metadata = null;
     state.applicationReport.loadError = 'foobar';

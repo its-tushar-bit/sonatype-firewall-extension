@@ -10,9 +10,9 @@ export default function ReEvaluateModalService(Modal) {
       return Modal.open({
         backdrop: 'static',
         templateUrl: 'repository-reevaluate-modal-template',
-        controller: 'repository.reevaluate.modal.controller as vm'
+        controller: 'repository.reevaluate.modal.controller as vm',
       }).result;
-    }
+    },
   };
 }
 ReEvaluateModalService.$inject = ['Modal'];

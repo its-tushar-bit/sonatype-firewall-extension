@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import "~@sonatype/react-shared-components/scss-shared/nx-container-helpers";
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
 /*
   Global icon variables
@@ -54,7 +54,8 @@ $font-families: ('sonatype-icons', 'sonatype-glyphicons');
     #{$property}: $iq-grey-2;
   }
 
-  &.grey, &.slate {
+  &.grey,
+  &.slate {
     #{$property}: $iq-slate;
   }
 
@@ -102,7 +103,8 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
   font-style: normal;
 }
 
-.sonatype-icons:before, .iq-sonatype-icons:before {
+.sonatype-icons:before,
+.iq-sonatype-icons:before {
   @include icon-font();
 
   font-family: $sonatype-icon-font-name;
@@ -113,7 +115,8 @@ $sonatype-icon-font-path: '../fonts/sonatype-icons';
 */
 $sonatype-glyphicon-font-name: 'Glyphicons';
 
-.sonatype-glyphicons:before, .iq-sonatype-glyphicons:before {
+.sonatype-glyphicons:before,
+.iq-sonatype-glyphicons:before {
   @include icon-font();
 
   font-family: $sonatype-glyphicon-font-name;
@@ -121,16 +124,14 @@ $sonatype-glyphicon-font-name: 'Glyphicons';
 
 //build out the icons
 $icon-map: (sonatype-icons, double-chevron-right, e600),
-        (sonatype-icons, double-chevron-left, e601),
-        (sonatype-icons, application, e008),
-        (sonatype-icons, policy, e60d),
-        (sonatype-icons, policy-threat-level, e611),
-        (sonatype-icons, tag, e60c),
-        (sonatype-glyphicons, stage-type, e083);
+  (sonatype-icons, double-chevron-left, e601),
+  (sonatype-icons, application, e008), (sonatype-icons, policy, e60d),
+  (sonatype-icons, policy-threat-level, e611), (sonatype-icons, tag, e60c),
+  (sonatype-glyphicons, stage-type, e083);
 
 @each $icon-type, $icon-class, $icon-color in $icon-map {
   .#{$icon-type}.#{$icon-class}:before {
-    content: #{"\"\\"}#{$icon-color + "\""};
+    content: '"#{$icon-color}"';
   }
 }
 
@@ -225,7 +226,8 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
   &.outline {
     // A single shadow is too light. We layer it multiple times to simulate a text stroke/outline
-    text-shadow: $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px;
+    text-shadow: $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px,
+      $iq-slate 0 0 1px, $iq-slate 0 0 1px, $iq-slate 0 0 1px;
   }
 
   &.fail {
@@ -327,7 +329,8 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
 .tree-view-item:not(.selected) {
   .proprietary-components-icon {
-    span:before, span:after {
+    span:before,
+    span:after {
       color: $iq-grey-2;
     }
   }
@@ -336,20 +339,20 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 .fa-stack.iq-move-to-top {
   .fa:first-child {
     font-size: 1.7em;
-    top: -3px
+    top: -3px;
   }
   .fa:last-child {
-    top: 2px
+    top: 2px;
   }
 }
 
 .fa-stack.iq-move-to-bottom {
   .fa:first-child {
     font-size: 1.7em;
-    top: 6px
+    top: 6px;
   }
   .fa:last-child {
-    top: -2px
+    top: -2px;
   }
 }
 
@@ -359,26 +362,26 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   white-space: nowrap;
 
   &:before {
-    content: "\f1b2"; // fa-cube
+    content: '\f1b2'; // fa-cube
     display: inline-block;
   }
 
   // stack using absolute positioning
   &:after {
-    content: "\f023"; // fa-lock
+    content: '\f023'; // fa-lock
     position: absolute;
   }
 
   // for filling in the shackle on the lock
   span:before {
     color: $white;
-    content: "\f111"; // fa-circle
+    content: '\f111'; // fa-circle
     position: absolute;
   }
 
   span:after {
     color: $white;
-    content: "\f023"; // fa-lock
+    content: '\f023'; // fa-lock
     position: absolute;
   }
 
@@ -425,12 +428,11 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
 
 // Begin styles from management.css
 .icon-reset-pw {
-  background-image: url("../img/icon_reset_pw.png") !important;
+  background-image: url('../img/icon_reset_pw.png') !important;
   background-position: 0px 0px;
   background-size: 14px 14px;
 }
 // End styles from management.css
-
 
 // Begin CSS from insight.css
 .emptyIconGlyph {
@@ -448,7 +450,8 @@ $icon-map: (sonatype-icons, double-chevron-right, e600),
   margin: 0 8px;
   padding: 0 2px;
 
-  + .nx-icon, + .iq-inverse-icon-wrapper {
+  + .nx-icon,
+  + .iq-inverse-icon-wrapper {
     margin-left: 0;
   }
 }

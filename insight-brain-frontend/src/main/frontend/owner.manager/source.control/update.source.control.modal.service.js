@@ -7,7 +7,7 @@ import template from './update.source.control.modal.service.html';
 
 export default function UpdateSourceControlModalService(Modal) {
   var service = {
-    updateSourceControl: UpdateSourceControl
+    updateSourceControl: UpdateSourceControl,
   };
 
   function UpdateSourceControl(continueAction, dismissOnError) {
@@ -21,13 +21,13 @@ export default function UpdateSourceControlModalService(Modal) {
         resource: angular.noop,
         resourceType: angular.noop,
         resourceName: angular.noop,
-        continueAction: function() {
+        continueAction: function () {
           return continueAction;
         },
-        dismissOnError: function() {
+        dismissOnError: function () {
           return dismissOnError;
-        }
-      }
+        },
+      },
     }).result;
   }
 

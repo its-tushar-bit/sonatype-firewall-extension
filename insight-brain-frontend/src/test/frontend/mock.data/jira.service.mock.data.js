@@ -4,36 +4,36 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 window.JiraServiceMockData = {
-  getJiraProjectsUrl: function() {
+  getJiraProjectsUrl: function () {
     return [
       {
-        'key': 'key1',
-        'name': 'Project One',
-        'issueTypes': [
+        key: 'key1',
+        name: 'Project One',
+        issueTypes: [
           {
-            'id': 1,
-            'name': 'Bug'
+            id: 1,
+            name: 'Bug',
           },
           {
-            'id': 2,
-            'name': 'Task'
-          }
-        ]
+            id: 2,
+            name: 'Task',
+          },
+        ],
       },
       {
-        'key': 'key2',
-        'name': 'Project Two',
-        'issueTypes': [
+        key: 'key2',
+        name: 'Project Two',
+        issueTypes: [
           {
-            'id': 1,
-            'name': 'Bug'
+            id: 1,
+            name: 'Bug',
           },
           {
-            'id': 3,
-            'name': 'Issue'
-          }
-        ]
-      }
+            id: 3,
+            name: 'Issue',
+          },
+        ],
+      },
     ];
-  }
+  },
 };

@@ -10,7 +10,7 @@ export default function cipVersionGraph($window) {
     template,
     controllerAs: 'vm',
     controller: 'CIPController',
-    scope: true
+    scope: true,
   };
 }
 

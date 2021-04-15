@@ -37,11 +37,11 @@ input.iq-radio__input {
     background-color: $iq-slate;
     border: 1px solid $iq-slate;
     border-radius: 50%;
-    -webkit-transform: scale(.5);
-    -moz-transform: scale(.5);
-    -ms-transform: scale(.5);
-    -o-transform: scale(.5);
-    transform: scale(.5);
+    -webkit-transform: scale(0.5);
+    -moz-transform: scale(0.5);
+    -ms-transform: scale(0.5);
+    -o-transform: scale(0.5);
+    transform: scale(0.5);
     z-index: 0;
   }
 }
@@ -52,7 +52,8 @@ input.iq-radio__input {
   display: inline-block;
 }
 
-.iq-radio__circle::before, .iq-radio__circle::after {
+.iq-radio__circle::before,
+.iq-radio__circle::after {
   content: '';
   height: 14px;
   margin-top: 2px;

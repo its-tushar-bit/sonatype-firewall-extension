@@ -15,33 +15,44 @@ export default {
     onDelete: '&',
     isSingleApplicationReport: '<',
     lastUpdated: '<',
-    monthCount: '<'
-  }
+    monthCount: '<',
+  },
 };
 
-function summaryStatementTileController(DeleteModalService, successMetricsDataService) {
-
+function summaryStatementTileController(
+  DeleteModalService,
+  successMetricsDataService
+) {
   const vm = this;
 
   vm.showNoDataMessage = undefined;
   vm.dateFormat = undefined;
   vm.delete = deleteSuccessMetrics;
 
-  vm.$onInit = function() {
+  vm.$onInit = function () {
     vm.showNoDataMessage = vm.activeApplicationCount === 0;
-    vm.dateFormat = vm.successMetricsReport.includeLatestData ? 'medium' : 'mediumDate';
+    vm.dateFormat = vm.successMetricsReport.includeLatestData
+      ? 'medium'
+      : 'mediumDate';
   };
 
   function deleteSuccessMetrics() {
-    DeleteModalService.deleteCustom('Delete Report',
-        `You are about to delete ${vm.successMetricsReport.name}. This action cannot be undone.`, 'Deleting',
-        function() {
-          return successMetricsDataService.deleteSuccessMetricsReport(vm.successMetricsReport.id);
-        }
-    ).then(function() {
+    DeleteModalService.deleteCustom(
+      'Delete Report',
+      `You are about to delete ${vm.successMetricsReport.name}. This action cannot be undone.`,
+      'Deleting',
+      function () {
+        return successMetricsDataService.deleteSuccessMetricsReport(
+          vm.successMetricsReport.id
+        );
+      }
+    ).then(function () {
       vm.onDelete();
     });
   }
 }
 
-summaryStatementTileController.$inject = ['DeleteModalService', 'successMetricsDataService'];
+summaryStatementTileController.$inject = [
+  'DeleteModalService',
+  'successMetricsDataService',
+];

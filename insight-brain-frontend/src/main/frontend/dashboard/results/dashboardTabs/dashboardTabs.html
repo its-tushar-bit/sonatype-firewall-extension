@@ -1,18 +1,36 @@
 <div class="iq-tab-bar iq-tab-bar--dashboard">
-  <a id="tab-button-newest" class="iq-tab" ui-sref-active="active" ui-sref=".violations">
-    <i class="fa fa-exclamation"></i><span>Violations</span><!--
+  <a
+    id="tab-button-newest"
+    class="iq-tab"
+    ui-sref-active="active"
+    ui-sref=".violations"
+  >
+    <i class="fa fa-exclamation"></i><span>Violations</span
+    ><!--
  --><span class="iq-counter" ng-if="vm.violationsCount !== null">
       {{vm.violationsCount}}
     </span>
   </a>
-  <a id="tab-button-component" class="iq-tab" ui-sref-active="active" ui-sref=".components">
-    <i class="fa fa-cube size-16px"></i><span>Components</span><!--
+  <a
+    id="tab-button-component"
+    class="iq-tab"
+    ui-sref-active="active"
+    ui-sref=".components"
+  >
+    <i class="fa fa-cube size-16px"></i><span>Components</span
+    ><!--
  --><span class="iq-counter" ng-if="vm.componentsCount !== null">
       {{vm.componentsCount}}
     </span>
   </a>
-  <a id="tab-button-application" class="iq-tab" ui-sref-active="active" ui-sref=".applications">
-    <i class="fa fa-terminal inverse"></i><span>Applications</span><!--
+  <a
+    id="tab-button-application"
+    class="iq-tab"
+    ui-sref-active="active"
+    ui-sref=".applications"
+  >
+    <i class="fa fa-terminal inverse"></i><span>Applications</span
+    ><!--
  --><span class="iq-counter" ng-if="vm.applicationsCount !== null">
       {{vm.applicationsCount}}
     </span>

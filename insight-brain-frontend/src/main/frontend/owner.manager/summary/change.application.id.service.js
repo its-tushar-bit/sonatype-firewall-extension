@@ -5,8 +5,7 @@
  */
 import template from './change.application.id.modal.html';
 
-export default
-function ChangeApplicationIdService(Modal) {
+export default function ChangeApplicationIdService(Modal) {
   return {
     open: function openChangeAppIdDialog(owner, siblings) {
       return Modal.open({
@@ -16,15 +15,15 @@ function ChangeApplicationIdService(Modal) {
         controller: 'change.application.id.controller as vm',
         template,
         resolve: {
-          owner: function() {
+          owner: function () {
             return owner;
           },
-          siblings: function() {
+          siblings: function () {
             return siblings;
-          }
-        }
+          },
+        },
       }).result;
-    }
+    },
   };
 }
 

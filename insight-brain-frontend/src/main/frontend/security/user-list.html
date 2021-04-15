@@ -60,10 +60,19 @@
     </div>
   </script>
   <div load-wrapper="error" reload="doLoad()">
-    <div ng-if="$state.is('users')" authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
+    <div
+      ng-if="$state.is('users')"
+      authorization-wrapper="isAuthorized"
+      class="iq-tile iq-tile--sys-prefs"
+    >
       <div expand-user-on-event="userEditClick"></div>
       <div class="iq-tile__actions">
-        <button id="user-new" type="button" class="iq-btn iq-pull-right" ng-click="newUserClick()">
+        <button
+          id="user-new"
+          type="button"
+          class="iq-btn iq-pull-right"
+          ng-click="newUserClick()"
+        >
           <i class="fa fa-plus"></i>Create User
         </button>
       </div>
@@ -73,38 +82,47 @@
         </div>
       </div>
       <div class="iq-tile-content test-user-management">
-        <h5 ng-hide="context.users">
-          <i class="icon-time"></i>Loading...
-        </h5>
+        <h5 ng-hide="context.users"><i class="icon-time"></i>Loading...</h5>
         <div class="iq-list iq-list--clickable accordion">
           <ul>
-            <li class="iq-list__item iq-list__item--expanding accordion-heading" ng-repeat="user in context.users">
+            <li
+              class="iq-list__item iq-list__item--expanding accordion-heading"
+              ng-repeat="user in context.users"
+            >
               <div class="iq-btn-group iq-pull-right">
-                <button type="button"
-                        class="iq-btn iq-btn--icon-only tm-iq-user-edit"
-                        title="Edit User"
-                        ng-disabled="context.userEditMap[user.id]"
-                        ng-click="editClick(user)">
-                    <i class="icon-pencil"></i>
-                </button><!--
-             --><button type="button"
-                        class="iq-btn iq-btn--icon-only tm-iq-user-reset-password"
-                        title="Reset Password"
-                        ng-click="resetPasswordClick(user)">
-                  <i class="icon-reset-pw"></i>
-                </button><!--
-             --><button type="button"
-                        class="iq-btn iq-btn--icon-only tm-iq-user-remove"
-                        title="Remove User"
-                        ng-click="removeClick(user)">
+                <button
+                  type="button"
+                  class="iq-btn iq-btn--icon-only tm-iq-user-edit"
+                  title="Edit User"
+                  ng-disabled="context.userEditMap[user.id]"
+                  ng-click="editClick(user)"
+                >
+                  <i class="icon-pencil"></i></button
+                ><!--
+             --><button
+                  type="button"
+                  class="iq-btn iq-btn--icon-only tm-iq-user-reset-password"
+                  title="Reset Password"
+                  ng-click="resetPasswordClick(user)"
+                >
+                  <i class="icon-reset-pw"></i></button
+                ><!--
+             --><button
+                  type="button"
+                  class="iq-btn iq-btn--icon-only tm-iq-user-remove"
+                  title="Remove User"
+                  ng-click="removeClick(user)"
+                >
                   <i class="icon-trash"></i>
                 </button>
               </div>
-              <a class="accordion-toggle user-top collapsed"
-                 ng-class="{ 'test-current-user': isCurrentUser(user) }"
-                 data-toggle="collapse"
-                 data-target="#collapse{{user.id}}"
-                 ng-click="closeUserEditForm(user)">
+              <a
+                class="accordion-toggle user-top collapsed"
+                ng-class="{ 'test-current-user': isCurrentUser(user) }"
+                data-toggle="collapse"
+                data-target="#collapse{{user.id}}"
+                ng-click="closeUserEditForm(user)"
+              >
                 <label class="iq-label iq-label--inline">
                   {{user.username}} ({{user.firstName}} {{user.lastName}})
                 </label>
@@ -114,21 +132,41 @@
               </a>
 
               <div id="collapse{{user.id}}" class="accordion-body collapse">
-                <div class="accordion-inner iq-user-details" ng-if="!context.userEditMap[user.id]">
+                <div
+                  class="accordion-inner iq-user-details"
+                  ng-if="!context.userEditMap[user.id]"
+                >
                   <dl class="iq-read-only iq-read-only--user-details">
-                    <dt>First Name:</dt><!--
-                 --><dd class="iq-read-only-data test-user-first-name">{{user.firstName}}</dd>
-                    <dt>Last Name:</dt><!--
-                 --><dd class="iq-read-only-data test-user-last-name">{{user.lastName}}</dd>
-                    <dt>E-mail Address:</dt><!--
-                 --><dd class="iq-read-only-data test-user-email">{{user.email}}</dd>
+                    <dt>First Name:</dt>
+                    <!--
+                 -->
+                    <dd class="iq-read-only-data test-user-first-name">
+                      {{user.firstName}}
+                    </dd>
+                    <dt>Last Name:</dt>
+                    <!--
+                 -->
+                    <dd class="iq-read-only-data test-user-last-name">
+                      {{user.lastName}}
+                    </dd>
+                    <dt>E-mail Address:</dt>
+                    <!--
+                 -->
+                    <dd class="iq-read-only-data test-user-email">
+                      {{user.email}}
+                    </dd>
                   </dl>
                 </div>
-                <div class="accordion-inner" ng-if="context.userEditMap[user.id]">
-                  <user-form user="user"
-                             existing-users="context.users"
-                             on-cancel="closeUserEditForm(user)"
-                             on-save="closeUserEditForm(user)">
+                <div
+                  class="accordion-inner"
+                  ng-if="context.userEditMap[user.id]"
+                >
+                  <user-form
+                    user="user"
+                    existing-users="context.users"
+                    on-cancel="closeUserEditForm(user)"
+                    on-save="closeUserEditForm(user)"
+                  >
                   </user-form>
                 </div>
               </div>

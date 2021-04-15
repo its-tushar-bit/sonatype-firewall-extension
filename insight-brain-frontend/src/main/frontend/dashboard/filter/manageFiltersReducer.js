@@ -3,7 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { append, equals, compose, curry, merge, pick, find, propEq } from 'ramda';
+import {
+  append,
+  equals,
+  compose,
+  curry,
+  merge,
+  pick,
+  find,
+  propEq,
+} from 'ramda';
 import { propSet } from '../../util/jsUtil';
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
 import defaultFilter from './defaultFilter';
@@ -21,13 +30,13 @@ import {
   HIDE_DELETE_FILTER_MODAL,
   SAVE_FILTER_OVERWRITE_REQUESTED,
   SAVE_DUPLICATE_FILTER_REQUESTED,
-  SAVE_CONFIRM_CANCELLED
+  SAVE_CONFIRM_CANCELLED,
 } from './manageFiltersActions';
 
 import {
   APPLY_FILTER_FULFILLED,
   FETCH_CURRENT_FILTER_FULFILLED,
-  SET_DISPLAY_SAVE_FILTER_MODAL
+  SET_DISPLAY_SAVE_FILTER_MODAL,
 } from './dashboardFilterActions';
 
 const initState = {
@@ -44,7 +53,7 @@ const initState = {
   filterToDelete: null,
   deleteFilterError: null,
   deleteFilterSaving: false,
-  deleteFilterSuccess: false
+  deleteFilterSuccess: false,
 };
 
 export const WARNING_NAME_IN_USE = 'nameInUseWarning';
@@ -54,7 +63,9 @@ export const WARNING_OVERWRITE = 'overwriteWarning';
  * Create a function for reducerActionMap which resets the specified properties back to their values from initState.
  * the payload parameter is ignored
  */
-const resetProps = curry((propNames, payload, state) => merge(state, pick(propNames, initState)));
+const resetProps = curry((propNames, payload, state) =>
+  merge(state, pick(propNames, initState))
+);
 
 /*
  * A map from action name to reducer function.  The reducer functions must all take two parameters: the payload and
@@ -72,23 +83,30 @@ const reducerActionMap = {
   [DELETE_FILTER_REQUESTED]: propSetConst('deleteFilterSaving', true),
   [DELETE_FILTER_FULFILLED]: deleteFilterFulfilled,
   [DELETE_FILTER_FAILED]: deleteFilterFailed,
-  [SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps(['saveFilterSaving', 'saveFilterError', 'saveFilterSuccess']),
+  [SET_DISPLAY_SAVE_FILTER_MODAL]: resetProps([
+    'saveFilterSaving',
+    'saveFilterError',
+    'saveFilterSuccess',
+  ]),
   [SELECT_FILTER_TO_DELETE]: selectFilterToDelete,
   [HIDE_DELETE_FILTER_MODAL]: resetProps(['filterToDelete']),
   [SAVE_FILTER_OVERWRITE_REQUESTED]: saveFilterOverwriteRequested,
   [SAVE_DUPLICATE_FILTER_REQUESTED]: saveDuplicateFilterRequested,
-  [SAVE_CONFIRM_CANCELLED]: saveConfirmCancelled
+  [SAVE_CONFIRM_CANCELLED]: saveConfirmCancelled,
 };
 
 function fetchSavedFiltersFulfilled(payload, state) {
-  return compose(propSet('savedFilters', payload), resetProps(['savedFilterListError'], payload))(state);
+  return compose(
+    propSet('savedFilters', payload),
+    resetProps(['savedFilterListError'], payload)
+  )(state);
 }
 
 function updateAppliedFilterName(payload, state) {
   return compose(
-      setShowDirtyAsterisk(),
-      propSetConst('appliedFilter', payload.filter, null),
-      propSetConst('appliedFilterName', payload.basedOnFilterName, null)
+    setShowDirtyAsterisk(),
+    propSetConst('appliedFilter', payload.filter, null),
+    propSetConst('appliedFilterName', payload.basedOnFilterName, null)
   )(state);
 }
 
@@ -100,7 +118,7 @@ function saveFilterFulfilled(payload, state) {
     existingDuplicateFilterName: null,
     saveFilterSuccess: true,
     showDirtyAsterisk: false,
-    saveFilterWarning: null
+    saveFilterWarning: null,
   };
 }
 
@@ -109,7 +127,7 @@ function saveFilterFailed(payload, state) {
     ...state,
     saveFilterError: payload,
     saveFilterSaving: false,
-    saveFilterSuccess: false
+    saveFilterSuccess: false,
   };
 }
 
@@ -118,7 +136,7 @@ function saveFilterOverwriteRequested(payload, state) {
     ...state,
     existingDuplicateFilterName: null,
     saveFilterError: null,
-    saveFilterWarning: WARNING_OVERWRITE
+    saveFilterWarning: WARNING_OVERWRITE,
   };
 }
 
@@ -127,7 +145,7 @@ function saveDuplicateFilterRequested(payload, state) {
     ...state,
     existingDuplicateFilterName: payload,
     saveFilterError: null,
-    saveFilterWarning: WARNING_NAME_IN_USE
+    saveFilterWarning: WARNING_NAME_IN_USE,
   };
 }
 
@@ -136,14 +154,17 @@ function saveConfirmCancelled(payload, state) {
     ...state,
     existingDuplicateFilterName: null,
     saveFilterError: null,
-    saveFilterWarning: null
+    saveFilterWarning: null,
   };
 }
 
 function selectFilterToDelete(payload, state) {
   return compose(
-      resetProps(['deleteFilterSaving', 'deleteFilterError', 'deleteFilterSuccess'], null),
-      propSet('filterToDelete', payload)
+    resetProps(
+      ['deleteFilterSaving', 'deleteFilterError', 'deleteFilterSuccess'],
+      null
+    ),
+    propSet('filterToDelete', payload)
   )(state);
 }
 
@@ -152,12 +173,12 @@ function selectFilterToDelete(payload, state) {
  */
 function deleteFilterFulfilled(payload, state) {
   const activeFilterWasDeleted = state.appliedFilterName === payload,
-      stateWithDeleteFilterSuccess = { ...state, deleteFilterSuccess: true };
+    stateWithDeleteFilterSuccess = { ...state, deleteFilterSuccess: true };
 
   if (activeFilterWasDeleted) {
     return compose(
-        setShowDirtyAsterisk(),
-        resetProps(['appliedFilterName'], null)
+      setShowDirtyAsterisk(),
+      resetProps(['appliedFilterName'], null)
     )(stateWithDeleteFilterSuccess);
   }
 
@@ -165,23 +186,28 @@ function deleteFilterFulfilled(payload, state) {
 }
 
 function deleteFilterFailed(payload, state) {
-  return resetProps(['deleteFilterSaving', 'deleteFilterSuccess'], payload,
-      { ...state, deleteFilterError: payload });
+  return resetProps(['deleteFilterSaving', 'deleteFilterSuccess'], payload, {
+    ...state,
+    deleteFilterError: payload,
+  });
 }
 
-const setShowDirtyAsterisk = () => state => {
-  const {appliedFilter, appliedFilterName, savedFilters} = state,
-      cleanFilter = appliedFilterName
-        ? find(propEq('name', appliedFilterName), savedFilters).filter
-        : filterToJson(defaultFilter),
-      showDirtyAsterisk = !equals(appliedFilter, cleanFilter);
+const setShowDirtyAsterisk = () => (state) => {
+  const { appliedFilter, appliedFilterName, savedFilters } = state,
+    cleanFilter = appliedFilterName
+      ? find(propEq('name', appliedFilterName), savedFilters).filter
+      : filterToJson(defaultFilter),
+    showDirtyAsterisk = !equals(appliedFilter, cleanFilter);
 
-  return {...state, showDirtyAsterisk};
+  return { ...state, showDirtyAsterisk };
 };
 
 /**
  * The main reducer function for this file.  Works by looking up the action type in the reducerAction map
  * and then executing the found function
  */
-const manageFiltersReducer = createReducerFromActionMap(reducerActionMap, initState);
+const manageFiltersReducer = createReducerFromActionMap(
+  reducerActionMap,
+  initState
+);
 export default manageFiltersReducer;

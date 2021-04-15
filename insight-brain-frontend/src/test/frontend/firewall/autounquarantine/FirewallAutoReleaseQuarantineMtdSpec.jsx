@@ -5,32 +5,35 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 
-describe('FirewallAutoReleaseQuarantineMtd', function() {
-  let minimalProps,
-      FirewallAutoReleaseQuarantineMtd,
-      getShallowComponent;
+describe('FirewallAutoReleaseQuarantineMtd', function () {
+  let minimalProps, FirewallAutoReleaseQuarantineMtd, getShallowComponent;
 
-  beforeEach(function() {
-    FirewallAutoReleaseQuarantineMtd = require(
-        'inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallAutoReleaseQuarantineMtd')().default;
+  beforeEach(function () {
+    FirewallAutoReleaseQuarantineMtd = require('inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallAutoReleaseQuarantineMtd')()
+      .default;
 
     minimalProps = {
-      autoReleaseQuarantineCountMTD: 1
+      autoReleaseQuarantineCountMTD: 1,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(FirewallAutoReleaseQuarantineMtd, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      FirewallAutoReleaseQuarantineMtd,
+      minimalProps
+    );
   });
 
-  it('renders a component with the "nx-card" class', function() {
+  it('renders a component with the "nx-card" class', function () {
     expect(getShallowComponent().find('.nx-card')).toExist();
   });
 
-  it('renders a card header', function() {
+  it('renders a card header', function () {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Auto Released (Month to Date)');
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText(
+      'Auto Released (Month to Date)'
+    );
   });
 
-  it('renders card content', function() {
+  it('renders card content', function () {
     const component = getShallowComponent();
     const content = component.find('.nx-card__content');
     expect(content).toExist();

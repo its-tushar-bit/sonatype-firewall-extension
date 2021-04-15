@@ -11,27 +11,30 @@ import ProxyConfig from './ProxyConfig';
 
 function mapStateToProps({ proxyConfig }) {
   return {
-    ...pick([
-      'loading',
-      'submitMaskState',
-      'submitMaskMessage',
-      'hasAllRequiredData',
-      'isDirty',
-      'isValid',
-      'mustReenterPassword',
-      'loadError',
-      'saveError',
-      'deleteError',
-      'serverData',
-      'showDeleteModal',
-      'isAuthorized',
-      'licensed'
-    ], proxyConfig),
+    ...pick(
+      [
+        'loading',
+        'submitMaskState',
+        'submitMaskMessage',
+        'hasAllRequiredData',
+        'isDirty',
+        'isValid',
+        'mustReenterPassword',
+        'loadError',
+        'saveError',
+        'deleteError',
+        'serverData',
+        'showDeleteModal',
+        'isAuthorized',
+        'licensed',
+      ],
+      proxyConfig
+    ),
     hostnameState: proxyConfig.formState.hostname,
     portState: proxyConfig.formState.port,
     usernameState: proxyConfig.formState.username,
     passwordState: proxyConfig.formState.password,
-    excludeHostsState: proxyConfig.formState.excludeHosts
+    excludeHostsState: proxyConfig.formState.excludeHosts,
   };
 }
 

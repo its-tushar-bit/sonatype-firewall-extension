@@ -22,68 +22,92 @@ export default {
     scanId: '<',
     applicationPublicId: '<',
     reloadReport: '&',
-    closeCipModal: '&'
-  }
+    closeCipModal: '&',
+  },
 };
 
 function CipTabPanelController($scope, CLMLocations, $http, Messages) {
   const vm = this;
 
   Object.assign(vm, {
-    selectedTab: 'componentInfo'
+    selectedTab: 'componentInfo',
   });
 
   function updateTabs() {
     const { selectedComponent } = vm,
-        { matchState } = selectedComponent,
-        unknown = matchState === 'unknown',
-        exact = matchState === 'exact',
-        claimed = selectedComponent.identificationSource === 'Manual';
+      { matchState } = selectedComponent,
+      unknown = matchState === 'unknown',
+      exact = matchState === 'exact',
+      claimed = selectedComponent.identificationSource === 'Manual';
 
-    vm.tabs = reject(isNil, [{
-      name: 'componentInfo',
-      displayName: 'Component Info'
-    }, {
-      name: 'policy',
-      displayName: 'Policy'
-    }, {
-      name: 'similar',
-      displayName: 'Similar'
-    }, {
-      name: 'occurrences',
-      displayName: 'Occurrences'
-    }, unknown ? null : {
-      name: 'licenses',
-      displayName: 'Licenses'
-    }, unknown || claimed ? null : {
-      name: 'vulnerabilities',
-      displayName: 'Vulnerabilities'
-    }, unknown ? null : {
-      name: 'labels',
-      displayName: 'Labels'
-    }, exact && !claimed ? null : {
-      name: 'claimComponent',
-      displayName: 'Claim'
-    }, unknown ? null : {
-      name: 'auditLog',
-      displayName: 'Audit Log'
-    }]);
+    vm.tabs = reject(isNil, [
+      {
+        name: 'componentInfo',
+        displayName: 'Component Info',
+      },
+      {
+        name: 'policy',
+        displayName: 'Policy',
+      },
+      {
+        name: 'similar',
+        displayName: 'Similar',
+      },
+      {
+        name: 'occurrences',
+        displayName: 'Occurrences',
+      },
+      unknown
+        ? null
+        : {
+            name: 'licenses',
+            displayName: 'Licenses',
+          },
+      unknown || claimed
+        ? null
+        : {
+            name: 'vulnerabilities',
+            displayName: 'Vulnerabilities',
+          },
+      unknown
+        ? null
+        : {
+            name: 'labels',
+            displayName: 'Labels',
+          },
+      exact && !claimed
+        ? null
+        : {
+            name: 'claimComponent',
+            displayName: 'Claim',
+          },
+      unknown
+        ? null
+        : {
+            name: 'auditLog',
+            displayName: 'Audit Log',
+          },
+    ]);
   }
 
   const stagesOrder = {
-    'operate': 1,
-    'release': 2,
-    'stage': 3,
-    'build': 4,
-    'develop': 5,
-    'proxy': 6
+    operate: 1,
+    release: 2,
+    stage: 3,
+    build: 4,
+    develop: 5,
+    proxy: 6,
   };
 
   const getStageOrder = (report) => {
-    return stagesOrder[report['stage']] !== undefined ? stagesOrder[report['stage']] : 7;
+    return stagesOrder[report['stage']] !== undefined
+      ? stagesOrder[report['stage']]
+      : 7;
   };
 
-  const byStage = comparator((reportA, reportB) => getStageOrder(reportA) < getStageOrder(reportB));
+  const byStage = comparator(
+    (reportA, reportB) => getStageOrder(reportA) < getStageOrder(reportB)
+  );
 
   function loadInnerSourceReportUrl() {
     if (vm.selectedComponent && vm.selectedComponent.latestReport) {
@@ -91,24 +115,38 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages) {
     }
 
     const innerSourceData = vm.selectedComponent.innerSourceData;
-    if (vm.selectedComponent.innerSource && innerSourceData && innerSourceData.ownerApplicationId) {
-      $http.get(CLMLocations.getApplicationReportsUrl(innerSourceData.ownerApplicationId))
-          .then(function(response) {
+    if (
+      vm.selectedComponent.innerSource &&
+      innerSourceData &&
+      innerSourceData.ownerApplicationId
+    ) {
+      $http
+        .get(
+          CLMLocations.getApplicationReportsUrl(
+            innerSourceData.ownerApplicationId
+          )
+        )
+        .then(
+          function (response) {
             const { data } = response;
             if (data && data.length > 0) {
               const lastInnerSourceReportData = sort(byStage, data)[0];
               vm.selectedComponent.latestReport = {
                 stage: lastInnerSourceReportData.stage,
-                url: CLMLocations.getAbsoluteUrl(lastInnerSourceReportData.latestReportHtmlUrl)
+                url: CLMLocations.getAbsoluteUrl(
+                  lastInnerSourceReportData.latestReportHtmlUrl
+                ),
               };
             }
-          }, function(response) {
+          },
+          function (response) {
             vm.error = Messages.getHttpErrorMessage(response);
-          });
+          }
+        );
     }
   }
 
-  $scope.$watch('vm.selectedComponent', function() {
+  $scope.$watch('vm.selectedComponent', function () {
     if (vm.selectedComponent) {
       updateTabs();
       loadInnerSourceReportUrl();

@@ -10,6 +10,6 @@ export default function CIPLicenseEditor() {
   return {
     template,
     controllerAs: 'vm',
-    controller: 'LicenseEditorController'
+    controller: 'LicenseEditorController',
   };
 }

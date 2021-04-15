@@ -17,14 +17,14 @@ export const extractViolationDetails = (violationDetails) => {
     constraintViolations,
     policyName,
     policyViolationId,
-    threatLevel
+    threatLevel,
   } = violationDetails;
 
   const { constraintName, reasons } = constraintViolations[0],
-      vulnerabilityId = path([0, 'reference', 'value'], reasons),
-      threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
-      componentName = getComponentName(violationDetails),
-      artifactName = getArtifactName(violationDetails);
+    vulnerabilityId = path([0, 'reference', 'value'], reasons),
+    threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
+    componentName = getComponentName(violationDetails),
+    artifactName = getArtifactName(violationDetails);
 
   return {
     componentIdentifier,
@@ -35,6 +35,6 @@ export const extractViolationDetails = (violationDetails) => {
     policyViolationId,
     reasons: map(prop('reason'), reasons),
     threatLevelCategory,
-    vulnerabilityId
+    vulnerabilityId,
   };
 };

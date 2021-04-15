@@ -16,30 +16,30 @@ function sanitizeUrlService(baseUrlService) {
   return {
     sanitize(url) {
       const baseUrl = baseUrlService.get(),
-          indexOfBaseUrl = url.indexOf(baseUrl),
-          isExternal = indexOfBaseUrl === -1;
+        indexOfBaseUrl = url.indexOf(baseUrl),
+        isExternal = indexOfBaseUrl === -1;
 
       if (isExternal) {
         return url;
-      }
-      else {
+      } else {
         const urlWithoutBase = url.substring(baseUrl.length),
-            regexResult = urlParametersRegex.exec(urlWithoutBase);
+          regexResult = urlParametersRegex.exec(urlWithoutBase);
 
         if (regexResult) {
           const [, applicationId, reportId] = regexResult,
-              hashedAppId = hash(applicationId),
-              hashedReportId = hash(reportId),
-              obfuscatedUrl =
-                  urlWithoutBase.replace(urlParametersRegex, `/rest/report/${hashedAppId}/${hashedReportId}`);
+            hashedAppId = hash(applicationId),
+            hashedReportId = hash(reportId),
+            obfuscatedUrl = urlWithoutBase.replace(
+              urlParametersRegex,
+              `/rest/report/${hashedAppId}/${hashedReportId}`
+            );
 
           return obfuscatedUrl;
-        }
-        else {
+        } else {
           return urlWithoutBase;
         }
       }
-    }
+    },
   };
 }
 

@@ -10,7 +10,17 @@ import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import template from './userMenu.html';
 import { showUserTokenModal } from './userToken/userTokenActions';
 
-function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, Modal, messages, pendoService, actions) {
+function UserMenuController(
+  $rootScope,
+  $scope,
+  $http,
+  $ngRedux,
+  CLMLocations,
+  Modal,
+  messages,
+  pendoService,
+  actions
+) {
   var vm = this;
   vm.logoutMask = undefined;
 
@@ -19,7 +29,7 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
 
   const mapDispatchToProps = {
     ...actions,
-    showUserTokenModal
+    showUserTokenModal,
   };
 
   Object.assign(vm, {
@@ -33,14 +43,18 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
     },
 
     logout() {
-      const serverLogout = () => $http['delete'](CLMLocations.getSessionLogoutUrl());
+      const serverLogout = () =>
+        $http['delete'](CLMLocations.getSessionLogoutUrl());
 
-      vm.logoutMask.wrap(pendoService.flush()
+      vm.logoutMask.wrap(
+        pendoService
+          .flush()
           // continue the logout whether the pendo flush succeeds or fails
           .then(serverLogout, serverLogout)
-          .then(function(response) {
+          .then(function (response) {
             $scope.$emit('logout', response.headers('Location'));
-          }));
+          })
+      );
     },
 
     changePassword() {
@@ -50,33 +64,39 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
         backdrop: 'static',
         keyboard: false,
         controller: [
-          '$scope', function(scope) {
+          '$scope',
+          function (scope) {
             scope.result = {};
-            scope.save = function() {
+            scope.save = function () {
               if (this.passwordForm.$valid) {
                 const { newPassword, originalPassword } = scope.result,
-                    actuallyChanged = newPassword !== originalPassword;
+                  actuallyChanged = newPassword !== originalPassword;
 
                 scope.error = null;
                 scope.submitActive = true;
 
-                $http.put(CLMLocations.getChangeMyPasswordUrl(), {
-                  oldPassword: originalPassword,
-                  newPassword
-                }).then(function() {
-                  if (actuallyChanged) {
-                    vm.passwordChanged();
-                  }
+                $http
+                  .put(CLMLocations.getChangeMyPasswordUrl(), {
+                    oldPassword: originalPassword,
+                    newPassword,
+                  })
+                  .then(
+                    function () {
+                      if (actuallyChanged) {
+                        vm.passwordChanged();
+                      }
 
-                  scope.$close();
-                }, function(error) {
-                  scope.submitActive = false;
-                  scope.error = messages.getHttpErrorMessage(error);
-                });
+                      scope.$close();
+                    },
+                    function (error) {
+                      scope.submitActive = false;
+                      scope.error = messages.getHttpErrorMessage(error);
+                    }
+                  );
               }
             };
-          }
-        ]
+          },
+        ],
       });
     },
 
@@ -93,26 +113,33 @@ function UserMenuController($rootScope, $scope, $http, $ngRedux, CLMLocations, M
 
       Modal.open({
         template: modalWrapperTemplate,
-        controller: modalController
+        controller: modalController,
       });
-    }
+    },
   });
 }
 
-function mapStateToThis({user, userToken}) {
+function mapStateToThis({ user, userToken }) {
   return {
     ...pick(['currentUser', 'shouldDisplayNotice', 'canChangePassword'], user),
-    ...pick(['isUserTokenModalVisible'], userToken)
+    ...pick(['isUserTokenModalVisible'], userToken),
   };
 }
 
 UserMenuController.$inject = [
-  '$rootScope', '$scope', '$http', '$ngRedux', 'CLMLocations', 'Modal', 'Messages',
-  'pendoService', 'userActions'
+  '$rootScope',
+  '$scope',
+  '$http',
+  '$ngRedux',
+  'CLMLocations',
+  'Modal',
+  'Messages',
+  'pendoService',
+  'userActions',
 ];
 
 export default {
   template,
   controller: UserMenuController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };

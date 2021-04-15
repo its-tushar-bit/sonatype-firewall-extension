@@ -13,7 +13,7 @@ export default module;
 
 function createTemplateFn(object) {
   object = object || {};
-  return function() {
+  return function () {
     return object;
   };
 }
@@ -21,9 +21,12 @@ function createTemplateFn(object) {
 module.constant('store.observe.type.constant', storeObserveTypesConstant);
 
 module.service('StoreFactory', [
-  '$q', '$http', '$parse', '$rootScope', 'store.observe.type.constant',
-  function($q, $http, $parse, $rootScope, StoreObserveTypeConstant) {
-
+  '$q',
+  '$http',
+  '$parse',
+  '$rootScope',
+  'store.observe.type.constant',
+  function ($q, $http, $parse, $rootScope, StoreObserveTypeConstant) {
     /**
      * Store Constructor.
      * Store represents RESTful collection resource (like '/rest/application' or '/rest/organization')
@@ -62,13 +65,15 @@ module.service('StoreFactory', [
      */
     function Store(config) {
       var store = [],
-          error = false,
-          storeDeferred = null,
-          resourceStore = this,
-          observers = [];
+        error = false,
+        storeDeferred = null,
+        resourceStore = this,
+        observers = [];
 
       config.id = config.id || 'id';
-      config.template = angular.isFunction(config.template) ? config.template : createTemplateFn(config.template);
+      config.template = angular.isFunction(config.template)
+        ? config.template
+        : createTemplateFn(config.template);
       config.relationalConfigs = config.relationalConfigs || [];
       config.transientProperties = config.transientProperties || [];
 
@@ -79,12 +84,12 @@ module.service('StoreFactory', [
       }
 
       function getErrorFn(deferred) {
-        return function(errorResponse) {
+        return function (errorResponse) {
           deferred.reject({
             data: errorResponse.data,
             status: errorResponse.status,
             headers: errorResponse.headers,
-            config: errorResponse.config
+            config: errorResponse.config,
           });
         };
       }
@@ -94,61 +99,91 @@ module.service('StoreFactory', [
 
         storeDeferred = localDeferred = $q.defer();
 
-        $http.get(config.url, {params: config.params}).then(function(response) {
-          var data = response.data;
+        $http.get(config.url, { params: config.params }).then(
+          function (response) {
+            var data = response.data;
 
-          if (localDeferred === storeDeferred) {
-            var resources = [];
+            if (localDeferred === storeDeferred) {
+              var resources = [];
 
-            if (config.dataProperty) {
-              data = data[config.dataProperty];
-            }
-
-            // NOTE: if data is not an array this will be NaN and the promise will never be resolved
-            var relationsToLoad = data.length * Object.keys(config.relationalConfigs).length;
-            var loadChildResource = function(parentResource, childResource, property) {
-              $http.get(childResource.config.url,
-                  {params: childResource.config.params}).then(function(response) {
-                childResource.$updateOriginal(response.data);
-                $parse(property).assign(parentResource, childResource);
-                relationsToLoad--;
-                checkDeferredResolve(storeDeferred, store, relationsToLoad);
-              }, function(errorResponse) {
-                error = true;
-                getErrorFn(storeDeferred)(errorResponse);
-              });
-            };
-
-            angular.forEach(data, function(obj) {
-              var resource = new Resource(obj, false);
-              resources.push(resource);
-
-              for (var relationalProperty in config.relationalConfigs) {
-                if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
-                  var relationalConfig = config.relationalConfigs[relationalProperty];
-                  var linkedResource = new LinkedResource([], angular.copy(relationalConfig));
-
-                  // URL should be a function taking the parent resource as an argument
-                  if (jQuery.isFunction(linkedResource.config.url)) {
-                    linkedResource.config.url = linkedResource.config.url(resource);
-                  }
-
-                  loadChildResource(resource, linkedResource, relationalProperty);
-                }
+              if (config.dataProperty) {
+                data = data[config.dataProperty];
               }
-            });
-            // empty the store and push all the resources
-            store.splice(0, store.length);
-            store.push.apply(store, resources);
 
-            notifyObservers(StoreObserveTypeConstant.UPDATE, resources);
-            checkDeferredResolve(storeDeferred, store, relationsToLoad);
-            storeDeferred.isResolved = true;
+              // NOTE: if data is not an array this will be NaN and the promise will never be resolved
+              var relationsToLoad =
+                data.length * Object.keys(config.relationalConfigs).length;
+              var loadChildResource = function (
+                parentResource,
+                childResource,
+                property
+              ) {
+                $http
+                  .get(childResource.config.url, {
+                    params: childResource.config.params,
+                  })
+                  .then(
+                    function (response) {
+                      childResource.$updateOriginal(response.data);
+                      $parse(property).assign(parentResource, childResource);
+                      relationsToLoad--;
+                      checkDeferredResolve(
+                        storeDeferred,
+                        store,
+                        relationsToLoad
+                      );
+                    },
+                    function (errorResponse) {
+                      error = true;
+                      getErrorFn(storeDeferred)(errorResponse);
+                    }
+                  );
+              };
+
+              angular.forEach(data, function (obj) {
+                var resource = new Resource(obj, false);
+                resources.push(resource);
+
+                for (var relationalProperty in config.relationalConfigs) {
+                  if (
+                    config.relationalConfigs.hasOwnProperty(relationalProperty)
+                  ) {
+                    var relationalConfig =
+                      config.relationalConfigs[relationalProperty];
+                    var linkedResource = new LinkedResource(
+                      [],
+                      angular.copy(relationalConfig)
+                    );
+
+                    // URL should be a function taking the parent resource as an argument
+                    if (jQuery.isFunction(linkedResource.config.url)) {
+                      linkedResource.config.url = linkedResource.config.url(
+                        resource
+                      );
+                    }
+
+                    loadChildResource(
+                      resource,
+                      linkedResource,
+                      relationalProperty
+                    );
+                  }
+                }
+              });
+              // empty the store and push all the resources
+              store.splice(0, store.length);
+              store.push.apply(store, resources);
+
+              notifyObservers(StoreObserveTypeConstant.UPDATE, resources);
+              checkDeferredResolve(storeDeferred, store, relationsToLoad);
+              storeDeferred.isResolved = true;
+            }
+          },
+          function (errorResponse) {
+            error = true;
+            getErrorFn(storeDeferred)(errorResponse);
           }
-        }, function(errorResponse) {
-          error = true;
-          getErrorFn(storeDeferred)(errorResponse);
-        });
+        );
       }
 
       function doRefreshLoad() {
@@ -162,17 +197,16 @@ module.service('StoreFactory', [
 
       function notifyObservers() {
         var args = arguments;
-        observers.forEach(function(callback) {
+        observers.forEach(function (callback) {
           try {
             callback.apply(null, args);
-          }
-          catch (e) {
+          } catch (e) {
             console.error(e, e.stack);
           }
         });
       }
 
-      resourceStore.get = function() {
+      resourceStore.get = function () {
         if (error || !storeDeferred) {
           // An error occurred previously, or the store hasn't been loaded
           error = false;
@@ -181,11 +215,11 @@ module.service('StoreFactory', [
         return storeDeferred.promise;
       };
 
-      resourceStore.peek = function() {
+      resourceStore.peek = function () {
         return store;
       };
 
-      resourceStore._removeFromStoreByIndex = function(index) {
+      resourceStore._removeFromStoreByIndex = function (index) {
         if (Number.isInteger(index) && index !== -1) {
           var resource = store[index];
           store.splice(index, 1);
@@ -193,15 +227,14 @@ module.service('StoreFactory', [
         }
       };
 
-      resourceStore.set = function(elements) {
+      resourceStore.set = function (elements) {
         storeDeferred = $q.defer();
 
         if (angular.isArray(elements)) {
-          angular.forEach(elements, function(obj) {
+          angular.forEach(elements, function (obj) {
             store.push(new Resource(obj, false));
           });
-        }
-        else {
+        } else {
           store.push(new Resource(elements, false));
         }
 
@@ -210,22 +243,22 @@ module.service('StoreFactory', [
         return store;
       };
 
-      resourceStore.observe = function(callback) {
+      resourceStore.observe = function (callback) {
         observers.push(callback);
 
         return unregister;
 
         function unregister() {
-          observers = observers.filter(function(handler) {
+          observers = observers.filter(function (handler) {
             return handler !== callback;
           });
         }
       };
 
-      resourceStore.getById = function(entityId) {
+      resourceStore.getById = function (entityId) {
         function find() {
           var result;
-          store.some(function(entity) {
+          store.some(function (entity) {
             if (entity[config.id || 'id'] === entityId) {
               result = entity;
               return true;
@@ -237,21 +270,29 @@ module.service('StoreFactory', [
         var result;
         if (storeDeferred && storeDeferred.isResolved && (result = find())) {
           return $q.when(result);
-        }
-        else {
-          var promise = (storeDeferred && storeDeferred.isResolved) ? this.refresh() : this.get();
-          return promise.then(function() {
+        } else {
+          var promise =
+            storeDeferred && storeDeferred.isResolved
+              ? this.refresh()
+              : this.get();
+          return promise.then(function () {
             var result = find();
 
             if (!result) {
-              return $q.reject('Could not find an ' + config.type + ' with ID ' + entityId + '.');
+              return $q.reject(
+                'Could not find an ' +
+                  config.type +
+                  ' with ID ' +
+                  entityId +
+                  '.'
+              );
             }
             return result;
           });
         }
       };
 
-      resourceStore.create = function(relationalConfigName) {
+      resourceStore.create = function (relationalConfigName) {
         var relationalConfig = config.relationalConfigs[relationalConfigName];
         if (relationalConfig) {
           return angular.copy(relationalConfig.template);
@@ -261,12 +302,15 @@ module.service('StoreFactory', [
         for (var property in config.relationalConfigs) {
           if (config.relationalConfigs.hasOwnProperty(property)) {
             relationalConfig = config.relationalConfigs[property];
-            $parse(property).assign(resource, new LinkedResource([], angular.copy(relationalConfig)));
+            $parse(property).assign(
+              resource,
+              new LinkedResource([], angular.copy(relationalConfig))
+            );
           }
         }
         return resource;
       };
-      resourceStore.refresh = function() {
+      resourceStore.refresh = function () {
         doRefreshLoad();
 
         return storeDeferred.promise;
@@ -274,20 +318,23 @@ module.service('StoreFactory', [
 
       function Resource(originalObject, isNew) {
         var original = null,
-            me = this;
+          me = this;
 
         me.$new = isNew;
-        me.isDirty = function() {
+        me.isDirty = function () {
           var currentProperties = [],
-              originalProperties = [],
-              match = true;
-          angular.forEach(original, function(value, key) {
+            originalProperties = [],
+            match = true;
+          angular.forEach(original, function (value, key) {
             originalProperties.push(key);
           });
           // Ignore methods we added, or that AngularJS has (prefixed with $$)
-          angular.forEach(this, function(value, key) {
-            if (!(me[key] instanceof LinkedResource) && resourceStore.objectMethods.indexOf(key) === -1 &&
-                !(key.length >= 2 && key.substring(0, 2) === '$$')) {
+          angular.forEach(this, function (value, key) {
+            if (
+              !(me[key] instanceof LinkedResource) &&
+              resourceStore.objectMethods.indexOf(key) === -1 &&
+              !(key.length >= 2 && key.substring(0, 2) === '$$')
+            ) {
               currentProperties.push(key);
             }
           });
@@ -295,7 +342,7 @@ module.service('StoreFactory', [
             return true;
           }
           var linkedDirt = false;
-          angular.forEach(this, function(value, key) {
+          angular.forEach(this, function (value, key) {
             if (me[key] instanceof LinkedResource) {
               if (me[key].isDirty()) {
                 linkedDirt = true;
@@ -309,36 +356,41 @@ module.service('StoreFactory', [
 
           currentProperties.sort();
           originalProperties.sort();
-          angular.forEach(currentProperties, function(property, index) {
+          angular.forEach(currentProperties, function (property, index) {
             if (originalProperties[index] === property) {
-              if (angular.isObject(original[property]) || angular.isArray(original[property])) {
-                match = match && angular.equals(original[property], me[property]);
-              }
-              else {
+              if (
+                angular.isObject(original[property]) ||
+                angular.isArray(original[property])
+              ) {
+                match =
+                  match && angular.equals(original[property], me[property]);
+              } else {
                 // Note: we consider undefined, empty string and null as equal
-                match = match && (original[property] === me[property] || (!original[property] && !me[property]));
+                match =
+                  match &&
+                  (original[property] === me[property] ||
+                    (!original[property] && !me[property]));
               }
-            }
-            else {
+            } else {
               match = false;
             }
           });
           return !match;
         };
 
-        me.$updateOriginal = function(updated) {
+        me.$updateOriginal = function (updated) {
           original = updated;
           angular.extend(me, angular.copy(original));
         };
 
-        me.$getOriginal = function() {
+        me.$getOriginal = function () {
           return angular.copy(original);
         };
 
-        me.$revert = function() {
+        me.$revert = function () {
           //first clean the data
-          angular.forEach(me, function(meValue, meKey) {
-            angular.forEach(original, function(origValue, origKey) {
+          angular.forEach(me, function (meValue, meKey) {
+            angular.forEach(original, function (origValue, origKey) {
               if (meKey === origKey) {
                 delete me[meKey];
               }
@@ -353,7 +405,7 @@ module.service('StoreFactory', [
           }
         };
 
-        me.$clone = function() {
+        me.$clone = function () {
           var clone = new Resource(original);
           for (var relationalProperty in config.relationalConfigs) {
             if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
@@ -362,7 +414,10 @@ module.service('StoreFactory', [
               for (var i = 0; i < originalResource.length; i++) {
                 data.push(angular.copy(originalResource[i]));
               }
-              var linkedResource = new LinkedResource(data, angular.copy(originalResource.config));
+              var linkedResource = new LinkedResource(
+                data,
+                angular.copy(originalResource.config)
+              );
               $parse(relationalProperty).assign(clone, linkedResource);
             }
           }
@@ -372,110 +427,132 @@ module.service('StoreFactory', [
         me.$updateOriginal(originalObject);
       }
 
-      Resource.prototype.$save = function() {
+      Resource.prototype.$save = function () {
         const deferred = $q.defer(),
-            me = this,
-            relationProperties = Object.keys(config.relationalConfigs),
-            propertiesToOmit = resourceStore.objectMethods.concat(relationProperties)
-                .concat(config.transientProperties),
-
-            // using object spread to avoid prototype properties
-            payload = omit(propertiesToOmit, { ...this });
+          me = this,
+          relationProperties = Object.keys(config.relationalConfigs),
+          propertiesToOmit = resourceStore.objectMethods
+            .concat(relationProperties)
+            .concat(config.transientProperties),
+          // using object spread to avoid prototype properties
+          payload = omit(propertiesToOmit, { ...this });
 
         let relationsToSave = relationProperties.length;
 
         if (me.$new) {
           // Newly created object
-          $http.post(config.url, payload, {params: config.params}).then(function(response) {
-            var data = response.data,
-                saveRelationalResource = function() {
+          $http
+            .post(config.url, payload, { params: config.params })
+            .then(function (response) {
+              var data = response.data,
+                saveRelationalResource = function () {
                   relationsToSave--;
                   checkDeferredResolve(deferred, me, relationsToSave);
                 },
-                errorRelationalResource = function(rejection) {
+                errorRelationalResource = function (rejection) {
                   deferred.reject(rejection);
                 };
 
-            for (var relationalProperty in config.relationalConfigs) {
-              if (config.relationalConfigs.hasOwnProperty(relationalProperty)) {
-                var relationalResource = $parse(relationalProperty)(me);
+              for (var relationalProperty in config.relationalConfigs) {
+                if (
+                  config.relationalConfigs.hasOwnProperty(relationalProperty)
+                ) {
+                  var relationalResource = $parse(relationalProperty)(me);
 
-                // URL function needs to be resolved using newly created object
-                if (jQuery.isFunction(relationalResource.config.url)) {
-                  relationalResource.config.url = relationalResource.config.url(data);
+                  // URL function needs to be resolved using newly created object
+                  if (jQuery.isFunction(relationalResource.config.url)) {
+                    relationalResource.config.url = relationalResource.config.url(
+                      data
+                    );
+                  }
+
+                  relationalResource
+                    .$save()
+                    .then(saveRelationalResource, errorRelationalResource);
                 }
-
-                relationalResource.$save().then(saveRelationalResource, errorRelationalResource);
               }
-            }
-            me.$new = false;
-            me.$updateOriginal(data);
-            store.push(me);
-            checkDeferredResolve(deferred, me, relationsToSave);
-          }, getErrorFn(deferred));
-        }
-        else {
+              me.$new = false;
+              me.$updateOriginal(data);
+              store.push(me);
+              checkDeferredResolve(deferred, me, relationsToSave);
+            }, getErrorFn(deferred));
+        } else {
           // Update to existing object
-          $http.put(config.url, payload, {params: config.params}).then(function(response) {
-            var properties = [],
+          $http
+            .put(config.url, payload, { params: config.params })
+            .then(function (response) {
+              var properties = [],
                 promises = [],
                 resourcesToUpdate = [me],
                 data = response.data;
 
-            angular.forEach(config.relationalConfigs, function(descriptor, relationalProperty) {
-              properties.push(relationalProperty);
-              promises.push($parse(relationalProperty)(me).$save());
-            });
+              angular.forEach(
+                config.relationalConfigs,
+                function (descriptor, relationalProperty) {
+                  properties.push(relationalProperty);
+                  promises.push($parse(relationalProperty)(me).$save());
+                }
+              );
 
-            me.$updateOriginal(data);
+              me.$updateOriginal(data);
 
-            // The current resource might be a clone, find & update the original too
-            angular.forEach(store, function(storeEntry) {
-              if (storeEntry[config.id] === me[config.id] && storeEntry !== me) {
-                storeEntry.$updateOriginal(data);
-                resourcesToUpdate.push(storeEntry);
-              }
-            });
-
-            if (promises.length > 0) {
-              $q.all(promises).then(function(results) {
-                angular.forEach(results, function(response, index) {
-                  angular.forEach(resourcesToUpdate, function(rsrc) {
-                    rsrc[properties[index]] = response;
-                  });
-                });
-                deferred.resolve(me);
-              }, function(reject) {
-                deferred.reject(reject);
+              // The current resource might be a clone, find & update the original too
+              angular.forEach(store, function (storeEntry) {
+                if (
+                  storeEntry[config.id] === me[config.id] &&
+                  storeEntry !== me
+                ) {
+                  storeEntry.$updateOriginal(data);
+                  resourcesToUpdate.push(storeEntry);
+                }
               });
-            }
-            else {
-              deferred.resolve(me);
-            }
 
-          }, getErrorFn(deferred));
+              if (promises.length > 0) {
+                $q.all(promises).then(
+                  function (results) {
+                    angular.forEach(results, function (response, index) {
+                      angular.forEach(resourcesToUpdate, function (rsrc) {
+                        rsrc[properties[index]] = response;
+                      });
+                    });
+                    deferred.resolve(me);
+                  },
+                  function (reject) {
+                    deferred.reject(reject);
+                  }
+                );
+              } else {
+                deferred.resolve(me);
+              }
+            }, getErrorFn(deferred));
         }
-        return deferred.promise.then(function(result) {
+        return deferred.promise.then(function (result) {
           notifyObservers(StoreObserveTypeConstant.UPDATE, [result]);
           $rootScope.$broadcast('resource.data.modified');
           return result;
         });
       };
 
-      Resource.prototype.$delete = function() {
+      Resource.prototype.$delete = function () {
         var deferred = $q.defer(),
-            me = this,
-            id = me[config.id];
+          me = this,
+          id = me[config.id];
 
         var queryStringIndex = config.url.indexOf('?');
-        var url = queryStringIndex > -1 ? config.url.substring(0, queryStringIndex) : config.url;
+        var url =
+          queryStringIndex > -1
+            ? config.url.substring(0, queryStringIndex)
+            : config.url;
         url = url.charAt(url.length - 1) === '/' ? url + id : url + '/' + id;
-        url = queryStringIndex > -1 ? url + config.url.substring(queryStringIndex) : url;
+        url =
+          queryStringIndex > -1
+            ? url + config.url.substring(queryStringIndex)
+            : url;
 
         if (id !== null && angular.isDefined(id)) {
-          $http['delete'](url, me, {params: config.params}).then(function() {
+          $http['delete'](url, me, { params: config.params }).then(function () {
             // remove from store
-            angular.forEach(store, function(candidate, candidateIndex) {
+            angular.forEach(store, function (candidate, candidateIndex) {
               if (candidate[config.id] === id) {
                 resourceStore._removeFromStoreByIndex(candidateIndex);
               }
@@ -483,12 +560,11 @@ module.service('StoreFactory', [
 
             deferred.resolve(true);
           }, getErrorFn(deferred));
-        }
-        else {
+        } else {
           // new resources shouldn't be part of the store
           deferred.resolve(true);
         }
-        return deferred.promise.then(function(result) {
+        return deferred.promise.then(function (result) {
           $rootScope.$broadcast('resource.data.modified');
           return result;
         });
@@ -503,7 +579,7 @@ module.service('StoreFactory', [
           this.push(originalArray[i]);
         }
 
-        me.isDirty = function() {
+        me.isDirty = function () {
           if (original.length !== this.length) {
             return true;
           }
@@ -525,7 +601,7 @@ module.service('StoreFactory', [
           return false;
         };
 
-        me.$updateOriginal = function(updated) {
+        me.$updateOriginal = function (updated) {
           original = angular.copy(updated);
           me.length = 0;
           for (var i = 0; i < original.length; i++) {
@@ -533,7 +609,7 @@ module.service('StoreFactory', [
           }
         };
 
-        me.$revert = function() {
+        me.$revert = function () {
           me.length = 0;
           for (var i = 0; i < original.length; i++) {
             me.push(original[i]);
@@ -542,9 +618,9 @@ module.service('StoreFactory', [
       }
 
       LinkedResource.prototype = [];
-      LinkedResource.prototype.$save = function() {
+      LinkedResource.prototype.$save = function () {
         var deferred = $q.defer(),
-            me = this;
+          me = this;
 
         // Relational data is saved using an array of IDs
         var relationalIDs = [];
@@ -552,36 +628,48 @@ module.service('StoreFactory', [
           var relationalIDValue = $parse(me.config.id)(me[i]);
           relationalIDs.push(relationalIDValue);
         }
-        $http.put(me.config.url, relationalIDs, {params: me.config.params}).then(function(response) {
-          me.$updateOriginal(response.data);
-          deferred.resolve(me);
-        }, getErrorFn(deferred));
+        $http
+          .put(me.config.url, relationalIDs, { params: me.config.params })
+          .then(function (response) {
+            me.$updateOriginal(response.data);
+            deferred.resolve(me);
+          }, getErrorFn(deferred));
 
         return deferred.promise;
       };
     }
 
     Store.prototype.objectMethods = [
-      'isDirty', 'config', '$updateOriginal', '$getOriginal', '$revert', '$clone', '$new'
+      'isDirty',
+      'config',
+      '$updateOriginal',
+      '$getOriginal',
+      '$revert',
+      '$clone',
+      '$new',
     ];
 
     return {
-      'getStore': function(config) {
+      getStore: function (config) {
         return new Store(config);
-      }
+      },
     };
-  }
+  },
 ]);
 
 module.service('HierarchyStoreFactory', [
-  '$http', '$q', 'StoreFactory', 'CLMContextLocations', function($http, $q, StoreFactory, CLMContextLocations) {
+  '$http',
+  '$q',
+  'StoreFactory',
+  'CLMContextLocations',
+  function ($http, $q, StoreFactory, CLMContextLocations) {
     function getErrorFn(deferred) {
-      return function(errorResponse) {
+      return function (errorResponse) {
         deferred.reject({
           data: errorResponse.data,
           status: errorResponse.status,
           headers: errorResponse.headers,
-          config: errorResponse.config
+          config: errorResponse.config,
         });
       };
     }
@@ -634,9 +722,9 @@ module.service('HierarchyStoreFactory', [
      */
     function HierarchyStore(config) {
       var storeDeferred,
-          error,
-          storeConfig = angular.copy(config),
-          store = [];
+        error,
+        storeConfig = angular.copy(config),
+        store = [];
 
       config.field = config.field || 'entitiesByOwner';
       config.storeField = config.storeField || 'entities';
@@ -646,37 +734,47 @@ module.service('HierarchyStoreFactory', [
 
         myDeferred = storeDeferred = $q.defer();
 
-        $http.get(config.url, {params: config.params}).then(function(response) {
-          var data = response.data;
-          if (storeDeferred === myDeferred) {
-            angular.forEach(data[config.field], function(owner) {
-              if (config.crudUrl) {
-                storeConfig.url = config.crudUrl(owner.ownerType,
-                    owner.ownerType === 'application' ? CLMContextLocations.getEntityId() : owner.ownerId);
-              }
+        $http.get(config.url, { params: config.params }).then(
+          function (response) {
+            var data = response.data;
+            if (storeDeferred === myDeferred) {
+              angular.forEach(data[config.field], function (owner) {
+                if (config.crudUrl) {
+                  storeConfig.url = config.crudUrl(
+                    owner.ownerType,
+                    owner.ownerType === 'application'
+                      ? CLMContextLocations.getEntityId()
+                      : owner.ownerId
+                  );
+                }
 
-              var ownerStore = StoreFactory.getStore(angular.copy(storeConfig));
-              owner[config.storeField] = ownerStore.set(owner[config.storeField]);
-              // note a consumer attempting to get/refresh on the store will not have good results
-              owner.store = ownerStore;
-            });
+                var ownerStore = StoreFactory.getStore(
+                  angular.copy(storeConfig)
+                );
+                owner[config.storeField] = ownerStore.set(
+                  owner[config.storeField]
+                );
+                // note a consumer attempting to get/refresh on the store will not have good results
+                owner.store = ownerStore;
+              });
 
-            store.splice(0, store.length);
-            store.push.apply(store, data[config.field]);
+              store.splice(0, store.length);
+              store.push.apply(store, data[config.field]);
 
-            myDeferred.resolve(store);
-            myDeferred.isResolved = true;
+              myDeferred.resolve(store);
+              myDeferred.isResolved = true;
+            }
+          },
+          function (errorResponse) {
+            getErrorFn(myDeferred)(errorResponse);
+            error = true;
           }
-
-        }, function(errorResponse) {
-          getErrorFn(myDeferred)(errorResponse);
-          error = true;
-        });
+        );
 
         return myDeferred.promise;
       }
 
-      this.get = function() {
+      this.get = function () {
         if (error || !storeDeferred) {
           // An error occurred previously, or the store hasn't been loaded
           error = false;
@@ -685,11 +783,11 @@ module.service('HierarchyStoreFactory', [
         return storeDeferred.promise;
       };
 
-      this.getById = function(entityId) {
+      this.getById = function (entityId) {
         function find() {
           var result;
-          store.some(function(hierarchyLevel) {
-            return hierarchyLevel[config.storeField].some(function(entity) {
+          store.some(function (hierarchyLevel) {
+            return hierarchyLevel[config.storeField].some(function (entity) {
               if (entity[storeConfig.id || 'id'] === entityId) {
                 result = entity;
                 return true;
@@ -702,21 +800,29 @@ module.service('HierarchyStoreFactory', [
         var result;
         if (storeDeferred && storeDeferred.isResolved && (result = find())) {
           return $q.when(result);
-        }
-        else {
-          var promise = (storeDeferred && storeDeferred.isResolved) ? this.refresh() : this.get();
-          return promise.then(function() {
+        } else {
+          var promise =
+            storeDeferred && storeDeferred.isResolved
+              ? this.refresh()
+              : this.get();
+          return promise.then(function () {
             var result = find();
 
             if (!result) {
-              return $q.reject('Could not find an ' + storeConfig.type + ' with ID ' + entityId + '.');
+              return $q.reject(
+                'Could not find an ' +
+                  storeConfig.type +
+                  ' with ID ' +
+                  entityId +
+                  '.'
+              );
             }
             return result;
           });
         }
       };
 
-      this.refresh = function() {
+      this.refresh = function () {
         error = false;
         doLoad();
         return storeDeferred.promise;
@@ -724,9 +830,9 @@ module.service('HierarchyStoreFactory', [
     }
 
     return {
-      'getStore': function(config) {
+      getStore: function (config) {
         return new HierarchyStore(config);
-      }
+      },
     };
-  }
+  },
 ]);

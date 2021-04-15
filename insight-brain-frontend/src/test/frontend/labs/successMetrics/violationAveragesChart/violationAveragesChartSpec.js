@@ -8,41 +8,48 @@ import { Component } from 'plottable';
 import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
 import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
 
-describe('violation-averages-chart component', function() {
-  beforeEach(angular.mock.module(successMetricsModule.name, legacyConfigurationModule.name));
+describe('violation-averages-chart component', function () {
+  beforeEach(
+    angular.mock.module(
+      successMetricsModule.name,
+      legacyConfigurationModule.name
+    )
+  );
 
   var getVm;
 
-  beforeEach(inject(function($componentController) {
-    getVm = function(averagesData) {
-      return $componentController('violationAveragesChart', null, { averagesData: averagesData });
+  beforeEach(inject(function ($componentController) {
+    getVm = function (averagesData) {
+      return $componentController('violationAveragesChart', null, {
+        averagesData: averagesData,
+      });
     };
   }));
 
-  it('sets the numeric values from the averagesData', function() {
+  it('sets the numeric values from the averagesData', function () {
     var averagesData = {
-          securityViolations: {
-            averageDiscovered: 5,
-            averageDiscoveredCritical: 0
-          },
-          licenseViolations: {
-            averageDiscovered: 7,
-            averageDiscoveredCritical: 1
-          },
-          qualityViolations: {
-            averageDiscovered: 15,
-            averageDiscoveredCritical: 0
-          },
-          otherViolations: {
-            averageDiscovered: 2,
-            averageDiscoveredCritical: 2
-          },
-          totalViolations: {
-            averageDiscovered: 29,
-            averageDiscoveredCritical: 3
-          }
+        securityViolations: {
+          averageDiscovered: 5,
+          averageDiscoveredCritical: 0,
         },
-        vm = getVm(averagesData);
+        licenseViolations: {
+          averageDiscovered: 7,
+          averageDiscoveredCritical: 1,
+        },
+        qualityViolations: {
+          averageDiscovered: 15,
+          averageDiscoveredCritical: 0,
+        },
+        otherViolations: {
+          averageDiscovered: 2,
+          averageDiscoveredCritical: 2,
+        },
+        totalViolations: {
+          averageDiscovered: 29,
+          averageDiscoveredCritical: 3,
+        },
+      },
+      vm = getVm(averagesData);
 
     expect(vm.averageDiscoveredSecurity).toEqual(5);
     expect(vm.averageDiscoveredLicense).toEqual(7);
@@ -57,30 +64,30 @@ describe('violation-averages-chart component', function() {
     expect(vm.averageDiscoveredTotalCritical).toEqual(3);
   });
 
-  it('sets vm.chart to a Plottable component', function() {
+  it('sets vm.chart to a Plottable component', function () {
     var averagesData = {
-          securityViolations: {
-            averageDiscovered: 5,
-            averageDiscoveredCritical: 0
-          },
-          licenseViolations: {
-            averageDiscovered: 0,
-            averageDiscoveredCritical: 7
-          },
-          qualityViolations: {
-            averageDiscovered: 15,
-            averageDiscoveredCritical: 0
-          },
-          otherViolations: {
-            averageDiscovered: 2,
-            averageDiscoveredCritical: 2
-          },
-          totalViolations: {
-            averageDiscovered: 22,
-            averageDiscoveredCritical: 9
-          }
+        securityViolations: {
+          averageDiscovered: 5,
+          averageDiscoveredCritical: 0,
         },
-        vm = getVm(averagesData);
+        licenseViolations: {
+          averageDiscovered: 0,
+          averageDiscoveredCritical: 7,
+        },
+        qualityViolations: {
+          averageDiscovered: 15,
+          averageDiscoveredCritical: 0,
+        },
+        otherViolations: {
+          averageDiscovered: 2,
+          averageDiscoveredCritical: 2,
+        },
+        totalViolations: {
+          averageDiscovered: 22,
+          averageDiscoveredCritical: 9,
+        },
+      },
+      vm = getVm(averagesData);
 
     expect(vm.chart instanceof Component).toBe(true);
   });

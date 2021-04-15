@@ -4,29 +4,36 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxTable, NxTableBody, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
+import {
+  NxTable,
+  NxTableBody,
+  NxTableHead,
+  NxTableRow,
+} from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 
-describe('DashboardViolationsTable', function() {
+describe('DashboardViolationsTable', function () {
   let minimalProps,
-      minimalPropsWithMoreResults,
-      getShallowComponent,
-      reloadSpy,
-      sortViolationsSpy,
-      DashboardViolationsTableRowMock,
-      DashboardViolationsTable;
+    minimalPropsWithMoreResults,
+    getShallowComponent,
+    reloadSpy,
+    sortViolationsSpy,
+    DashboardViolationsTableRowMock,
+    DashboardViolationsTable;
 
   beforeEach(() => {
     reloadSpy = jasmine.createSpy('reload');
     sortViolationsSpy = jasmine.createSpy('sortViolations');
-    DashboardViolationsTableRowMock = jasmine.createSpy('DashboardViolationsTableRow')
-        .and.returnValue(<div>DashboardViolationsTableRow</div>);
+    DashboardViolationsTableRowMock = jasmine
+      .createSpy('DashboardViolationsTableRow')
+      .and.returnValue(<div>DashboardViolationsTableRow</div>);
 
-    DashboardViolationsTable =
-        require('inject-loader!../../../../main/frontend/dashboard/results/violations/DashboardViolationsTable')({
-          './DashboardViolationsTableRow': DashboardViolationsTableRowMock,
-          '../../services/dashboard.data.service': { MAX_RESULTS: 3 }
-        }).default;
+    DashboardViolationsTable = require('inject-loader!../../../../main/frontend/dashboard/results/violations/DashboardViolationsTable')(
+      {
+        './DashboardViolationsTableRow': DashboardViolationsTableRowMock,
+        '../../services/dashboard.data.service': { MAX_RESULTS: 3 },
+      }
+    ).default;
 
     minimalProps = {
       reload: reloadSpy,
@@ -41,26 +48,26 @@ describe('DashboardViolationsTable', function() {
             threatLevel: 7,
             policyName: 'policyName1',
             applicationName: 'App1',
-            firstOccurrenceTime: Date.now()
+            firstOccurrenceTime: Date.now(),
           },
           {
             policyViolationId: 'policyViolationId2',
             threatLevel: 9,
             policyName: 'policyName2',
             applicationName: 'App1',
-            firstOccurrenceTime: Date.now()
+            firstOccurrenceTime: Date.now(),
           },
           {
             policyViolationId: 'policyViolationId3',
             threatLevel: 5,
             policyName: 'policyName3',
             applicationName: 'App1',
-            firstOccurrenceTime: Date.now()
-          }
+            firstOccurrenceTime: Date.now(),
+          },
         ],
         numResults: 3,
-        sortFields: ['-threatLevel', '-firstOccurrenceTime']
-      }
+        sortFields: ['-threatLevel', '-firstOccurrenceTime'],
+      },
     };
 
     minimalPropsWithMoreResults = {
@@ -74,19 +81,22 @@ describe('DashboardViolationsTable', function() {
             threatLevel: 6,
             policyName: 'policyName1',
             applicationName: 'App1',
-            firstOccurrenceTime: Date.now()
-          }
+            firstOccurrenceTime: Date.now(),
+          },
         ],
-        numResults: 4
-      }
+        numResults: 4,
+      },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(DashboardViolationsTable, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      DashboardViolationsTable,
+      minimalProps
+    );
   });
 
   it('renders a container for the table', () => {
     const component = getShallowComponent(),
-        table = component.find(NxTable);
+      table = component.find(NxTable);
 
     expect(component).toMatchSelector('.nx-scrollable');
     expect(component).toMatchSelector('.nx-table-container');
@@ -96,13 +106,13 @@ describe('DashboardViolationsTable', function() {
 
   it('renders a table header with the appropriate headers', () => {
     const component = getShallowComponent(),
-        table = component.find(NxTable),
-        headerRow = table.find(NxTableHead).find(NxTableRow),
-        threatHeaderCell = headerRow.childAt(0),
-        policyHeaderCell = headerRow.childAt(1),
-        applicationHeaderCell = headerRow.childAt(2),
-        componentHeaderCell = headerRow.childAt(3),
-        ageHeaderCell = headerRow.childAt(4);
+      table = component.find(NxTable),
+      headerRow = table.find(NxTableHead).find(NxTableRow),
+      threatHeaderCell = headerRow.childAt(0),
+      policyHeaderCell = headerRow.childAt(1),
+      applicationHeaderCell = headerRow.childAt(2),
+      componentHeaderCell = headerRow.childAt(3),
+      ageHeaderCell = headerRow.childAt(4);
 
     expect(threatHeaderCell).toExist();
     expect(policyHeaderCell).toExist();
@@ -114,9 +124,9 @@ describe('DashboardViolationsTable', function() {
   describe('NxTableBody', () => {
     it('renders violations and a message if there are more results than MAX_RESULTS', () => {
       const component = getShallowComponent(minimalPropsWithMoreResults),
-          tBody = component.find(NxTableBody),
-          tRows = tBody.children(),
-          infoBox = tRows.at(4).dive().find('#max-results-shown');
+        tBody = component.find(NxTableBody),
+        tRows = tBody.children(),
+        infoBox = tRows.at(4).dive().find('#max-results-shown');
 
       expect(tRows.length).toEqual(5);
       expect(infoBox).toHaveText('First 3 results shown');
@@ -124,12 +134,14 @@ describe('DashboardViolationsTable', function() {
 
     it('renders a needs acknowledgement message if needsAcknowledgement is true', () => {
       const component = getShallowComponent({ needsAcknowledgement: true }),
-          tBody = component.find(NxTableBody),
-          tRow = tBody.childAt(0).dive(),
-          infoBox = tRow.find('#needs-acknowledgement');
+        tBody = component.find(NxTableBody),
+        tRow = tBody.childAt(0).dive(),
+        infoBox = tRow.find('#needs-acknowledgement');
 
       expect(tBody.children().length).toEqual(1);
-      expect(infoBox).toHaveText('Select your filter criteria and click \'apply\' to see results.');
+      expect(infoBox).toHaveText(
+        "Select your filter criteria and click 'apply' to see results."
+      );
     });
 
     it('renders an empty message if the table is empty', () => {
@@ -137,20 +149,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          results: []
-        }
+          results: [],
+        },
       };
       let component, tableBody, expectedEmptyMessage;
 
       component = getShallowComponent(props);
       tableBody = component.find(NxTableBody);
-      expectedEmptyMessage = 'No data available given the applied filters and permissions.';
+      expectedEmptyMessage =
+        'No data available given the applied filters and permissions.';
 
       expect(tableBody).toHaveProp('emptyMessage', expectedEmptyMessage);
 
       component = getShallowComponent({ ...props, maxDaysOld: 7 });
       tableBody = component.find(NxTableBody);
-      expectedEmptyMessage = 'No data available in the last 7 days given the applied filters and permissions.';
+      expectedEmptyMessage =
+        'No data available in the last 7 days given the applied filters and permissions.';
 
       expect(tableBody).toHaveProp('emptyMessage', expectedEmptyMessage);
     });
@@ -160,12 +174,12 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          error: 'Something went wrong'
-        }
+          error: 'Something went wrong',
+        },
       };
       const component = getShallowComponent(props),
-          tableBody = component.find(NxTableBody),
-          retry = tableBody.prop('retryHandler');
+        tableBody = component.find(NxTableBody),
+        retry = tableBody.prop('retryHandler');
 
       expect(tableBody).toHaveProp('error', 'Something went wrong');
 
@@ -180,19 +194,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['threatLevel', '-firstOccurrenceTime']
-        }
+          sortFields: ['threatLevel', '-firstOccurrenceTime'],
+        },
       };
       let component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          threatHeaderCell = headerRow.childAt(0);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        threatHeaderCell = headerRow.childAt(0);
 
       expect(threatHeaderCell).toHaveProp('isSortable');
       expect(threatHeaderCell).toHaveProp('sortDir', 'asc');
 
       threatHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['-threatLevel', '-firstOccurrenceTime']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        '-threatLevel',
+        '-firstOccurrenceTime',
+      ]);
     });
 
     it('calls the sortViolations function with the threat column fields if clicked: asc to desc', () => {
@@ -200,19 +217,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['-threatLevel', '-firstOccurrenceTime']
-        }
+          sortFields: ['-threatLevel', '-firstOccurrenceTime'],
+        },
       };
       let component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          threatHeaderCell = headerRow.childAt(0);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        threatHeaderCell = headerRow.childAt(0);
 
       expect(threatHeaderCell).toHaveProp('isSortable');
       expect(threatHeaderCell).toHaveProp('sortDir', 'desc');
 
       threatHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['threatLevel', '-firstOccurrenceTime']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        'threatLevel',
+        '-firstOccurrenceTime',
+      ]);
     });
 
     it('calls the sortViolations function with the policy column fields if clicked: asc to desc', () => {
@@ -220,19 +240,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['policyName', '-firstOccurrenceTime']
-        }
+          sortFields: ['policyName', '-firstOccurrenceTime'],
+        },
       };
       const component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          policyHeaderCell = headerRow.childAt(1);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        policyHeaderCell = headerRow.childAt(1);
 
       expect(policyHeaderCell).toHaveProp('isSortable');
       expect(policyHeaderCell).toHaveProp('sortDir', 'asc');
 
       policyHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['-policyName', '-firstOccurrenceTime']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        '-policyName',
+        '-firstOccurrenceTime',
+      ]);
     });
 
     it('calls the sortViolations function with the policy column fields if clicked: desc to asc', () => {
@@ -240,19 +263,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['-policyName', '-firstOccurrenceTime']
-        }
+          sortFields: ['-policyName', '-firstOccurrenceTime'],
+        },
       };
       const component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          policyHeaderCell = headerRow.childAt(1);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        policyHeaderCell = headerRow.childAt(1);
 
       expect(policyHeaderCell).toHaveProp('isSortable');
       expect(policyHeaderCell).toHaveProp('sortDir', 'desc');
 
       policyHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['policyName', '-firstOccurrenceTime']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        'policyName',
+        '-firstOccurrenceTime',
+      ]);
     });
 
     it('calls the sortViolations function with the application column fields if clicked: asc to desc', () => {
@@ -260,19 +286,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['applicationName', '-threatLevel']
-        }
+          sortFields: ['applicationName', '-threatLevel'],
+        },
       };
       const component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          applicationHeaderCell = headerRow.childAt(2);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        applicationHeaderCell = headerRow.childAt(2);
 
       expect(applicationHeaderCell).toHaveProp('isSortable');
       expect(applicationHeaderCell).toHaveProp('sortDir', 'asc');
 
       applicationHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['-applicationName', '-threatLevel']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        '-applicationName',
+        '-threatLevel',
+      ]);
     });
 
     it('calls the sortViolations function with the application column fields if clicked: desc to asc', () => {
@@ -280,19 +309,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['-applicationName', '-threatLevel']
-        }
+          sortFields: ['-applicationName', '-threatLevel'],
+        },
       };
       const component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          applicationHeaderCell = headerRow.childAt(2);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        applicationHeaderCell = headerRow.childAt(2);
 
       expect(applicationHeaderCell).toHaveProp('isSortable');
       expect(applicationHeaderCell).toHaveProp('sortDir', 'desc');
 
       applicationHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['applicationName', '-threatLevel']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        'applicationName',
+        '-threatLevel',
+      ]);
     });
 
     it('calls the sortViolations function with the component column fields if clicked: asc to desc', () => {
@@ -300,19 +332,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['derivedComponentName', '-threatLevel']
-        }
+          sortFields: ['derivedComponentName', '-threatLevel'],
+        },
       };
       const component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          componentHeaderCell = headerRow.childAt(3);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        componentHeaderCell = headerRow.childAt(3);
 
       expect(componentHeaderCell).toHaveProp('isSortable');
       expect(componentHeaderCell).toHaveProp('sortDir', 'asc');
 
       componentHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['-derivedComponentName', '-threatLevel']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        '-derivedComponentName',
+        '-threatLevel',
+      ]);
     });
 
     it('calls the sortViolations function with the component column fields if clicked: desc to asc', () => {
@@ -320,19 +355,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['-derivedComponentName', '-threatLevel']
-        }
+          sortFields: ['-derivedComponentName', '-threatLevel'],
+        },
       };
       const component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          componentHeaderCell = headerRow.childAt(3);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        componentHeaderCell = headerRow.childAt(3);
 
       expect(componentHeaderCell).toHaveProp('isSortable');
       expect(componentHeaderCell).toHaveProp('sortDir', 'desc');
 
       componentHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['derivedComponentName', '-threatLevel']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        'derivedComponentName',
+        '-threatLevel',
+      ]);
     });
 
     it('calls the sortViolations function with the age column fields if clicked: desc to asc', () => {
@@ -340,19 +378,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['firstOccurrenceTime', '-threatLevel']
-        }
+          sortFields: ['firstOccurrenceTime', '-threatLevel'],
+        },
       };
       const component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          ageHeaderCell = headerRow.childAt(4);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        ageHeaderCell = headerRow.childAt(4);
 
       expect(ageHeaderCell).toHaveProp('isSortable');
       expect(ageHeaderCell).toHaveProp('sortDir', 'desc'); // age column uses inverted sort hence the flipped order.
 
       ageHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['-firstOccurrenceTime', '-threatLevel']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        '-firstOccurrenceTime',
+        '-threatLevel',
+      ]);
     });
 
     it('calls the sortViolations function with the age column fields if clicked: asc to desc', () => {
@@ -360,19 +401,22 @@ describe('DashboardViolationsTable', function() {
         ...minimalProps,
         violations: {
           ...minimalProps.violations,
-          sortFields: ['-firstOccurrenceTime', '-threatLevel']
-        }
+          sortFields: ['-firstOccurrenceTime', '-threatLevel'],
+        },
       };
       const component = getShallowComponent(props),
-          table = component.find(NxTable),
-          headerRow = table.find(NxTableHead).find(NxTableRow),
-          ageHeaderCell = headerRow.childAt(4);
+        table = component.find(NxTable),
+        headerRow = table.find(NxTableHead).find(NxTableRow),
+        ageHeaderCell = headerRow.childAt(4);
 
       expect(ageHeaderCell).toHaveProp('isSortable');
       expect(ageHeaderCell).toHaveProp('sortDir', 'asc'); // age column uses inverted sort hence the flipped order.
 
       ageHeaderCell.simulate('click');
-      expect(sortViolationsSpy).toHaveBeenCalledWith(['firstOccurrenceTime', '-threatLevel']);
+      expect(sortViolationsSpy).toHaveBeenCalledWith([
+        'firstOccurrenceTime',
+        '-threatLevel',
+      ]);
     });
   });
 });

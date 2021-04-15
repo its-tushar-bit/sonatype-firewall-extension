@@ -14,13 +14,13 @@ export default function RoleMembershipDirective() {
       originalMembers: '<',
       getCurrentMembers: '=',
       getCurrentMembersToSave: '=',
-      isDirty: '='
+      isDirty: '=',
     },
     restrict: 'E',
     template,
     controller: 'role.membership.controller',
     controllerAs: 'vm',
     transclude: true,
-    bindToController: true
+    bindToController: true,
   };
 }

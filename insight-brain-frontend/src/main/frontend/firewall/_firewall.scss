@@ -7,7 +7,8 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-table-helpers';
 
-firewall, firewall-auto-unquarantine {
+firewall,
+firewall-auto-unquarantine {
   display: contents;
 
   .nx-card {
@@ -73,7 +74,8 @@ h2.iq-firewall-table-label {
   justify-self: right;
 }
 
-.iq-firewall-table__nav-bar, .iq-firewall-table__release_btn {
+.iq-firewall-table__nav-bar,
+.iq-firewall-table__release_btn {
   grid-column: 1;
   grid-row: 1;
 }

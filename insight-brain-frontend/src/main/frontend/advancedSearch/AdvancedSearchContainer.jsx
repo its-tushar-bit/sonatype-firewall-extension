@@ -3,16 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 
 import * as advancedSearchActions from './advancedSearchActions';
 import AdvancedSearch from './AdvancedSearch';
 
-function mapStateToProps({advancedSearch}) {
+function mapStateToProps({ advancedSearch }) {
   return {
     ...advancedSearch.viewState,
     ...advancedSearch.configurationState,
-    ...advancedSearch.formState
+    ...advancedSearch.formState,
   };
 }
 

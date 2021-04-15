@@ -116,7 +116,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
   // necessary to constrain the width of the h1/h2 so its ellipsis truncation works correctly
   display: flex;
 
-  h1, h2 {
+  h1,
+  h2 {
     @extend .truncate-ellipsis;
 
     display: inline-block;
@@ -148,7 +149,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
     width: auto;
   }
 
-  &.fa-university, &.fa-database {
+  &.fa-university,
+  &.fa-database {
     font-size: 22px;
   }
 
@@ -182,7 +184,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
   padding-bottom: 5px;
 }
 
-.iq-tile__actions, .iq-page-title__actions {
+.iq-tile__actions,
+.iq-page-title__actions {
   float: right;
   margin-top: 0;
 
@@ -413,7 +416,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
         text-align: center;
         min-width: 100px;
 
-        &:hover, &:focus {
+        &:hover,
+        &:focus {
           border: 1px solid $iq-grey-4;
           color: inherit;
           padding: 7px 11px;
@@ -546,7 +550,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
       position: relative;
     }
 
-    li, tr {
+    li,
+    tr {
       border-top: 1px solid transparent;
 
       &:not(.iq-table-row) {
@@ -566,7 +571,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
           width: 7px;
         }
 
-        &:hover, &:active {
+        &:hover,
+        &:active {
           cursor: pointer;
 
           .fa-chevron-right {
@@ -574,7 +580,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
           }
         }
 
-        &:active, &:focus {
+        &:active,
+        &:focus {
           outline: 0;
         }
 
@@ -585,7 +592,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
             border-bottom-color: $iq-grey-4;
           }
 
-          + li, + tr {
+          + li,
+          + tr {
             border-top-color: $iq-grey-4;
           }
         }
@@ -598,7 +606,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
             border-bottom-color: $iq-slate;
           }
 
-          + li, + tr {
+          + li,
+          + tr {
             border-top-color: $iq-slate;
           }
         }
@@ -618,7 +627,8 @@ $iq-tile-sys-prefs-width: 1024px - 17px;
         margin-right: 8px;
       }
 
-      .repository-configuration-list__manager-id, .repository-configuration-list__enabled {
+      .repository-configuration-list__manager-id,
+      .repository-configuration-list__enabled {
         width: 1px;
         white-space: nowrap;
       }

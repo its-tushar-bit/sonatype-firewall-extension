@@ -1,53 +1,77 @@
 <div class="iq-list">
-  <h4 class="iq-list__title" ng-if="!vm.ownerPolicyList.inherited">
-    Local
-  </h4>
+  <h4 class="iq-list__title" ng-if="!vm.ownerPolicyList.inherited">Local</h4>
 
-  <h4 class="iq-list__title" ng-if="vm.ownerPolicyList.inherited && vm.ownerPolicyList.policies.length > 0">
+  <h4
+    class="iq-list__title"
+    ng-if="vm.ownerPolicyList.inherited && vm.ownerPolicyList.policies.length > 0"
+  >
     Inherited from {{vm.ownerPolicyList.ownerName}}
   </h4>
 
-  <div class="iq-list__item iq-list__item--empty"
-       ng-if="!vm.ownerPolicyList.inherited && vm.ownerPolicyList.policies.length <= 0">
+  <div
+    class="iq-list__item iq-list__item--empty"
+    ng-if="!vm.ownerPolicyList.inherited && vm.ownerPolicyList.policies.length <= 0"
+  >
     No local policies defined
   </div>
 
-  <table class="iq-table iq-table--policy-list"
-         sort="vm.sortFields"
-         on-sort-change="vm.sortFields = sortFields"
-         ng-if="vm.ownerPolicyList.policies.length > 0">
+  <table
+    class="iq-table iq-table--policy-list"
+    sort="vm.sortFields"
+    on-sort-change="vm.sortFields = sortFields"
+    ng-if="vm.ownerPolicyList.policies.length > 0"
+  >
     <thead>
       <tr class="iq-table-row" ng-if="vm.ownerPolicyList.policies.length > 0">
-        <th class="iq-cell iq-cell--header policy-list__threat-column" sort-column="-threatLevel">
+        <th
+          class="iq-cell iq-cell--header policy-list__threat-column"
+          sort-column="-threatLevel"
+        >
           THREAT
         </th>
-        <th sort-column="name, -threatLevel" class="iq-cell iq-cell--header policy-list__name-column">
+        <th
+          sort-column="name, -threatLevel"
+          class="iq-cell iq-cell--header policy-list__name-column"
+        >
           NAME
         </th>
-        <th class="iq-cell iq-cell--header policy-list__stage-column tm-stage-{{::stage.stageTypeId}}"
-            sort-column="enforcementAction['{{::stage.stageTypeId}}'], -threatLevel"
-            ng-repeat="stage in vm.actionStages"
-            ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}">
+        <th
+          class="iq-cell iq-cell--header policy-list__stage-column tm-stage-{{::stage.stageTypeId}}"
+          sort-column="enforcementAction['{{::stage.stageTypeId}}'], -threatLevel"
+          ng-repeat="stage in vm.actionStages"
+          ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}"
+        >
           {{::stage.shortName | uppercase}}
         </th>
         <th class="iq-cell iq-cell--header iq-cell--chevron"></th>
       </tr>
     </thead>
     <tbody>
-      <tr class="iq-table-row iq-clickable"
-          ng-repeat="policy in vm.ownerPolicyList.policies | orderBy:vm.sortFields"
-          ng-click="vm.onPolicyClick({policyId: policy.id})">
+      <tr
+        class="iq-table-row iq-clickable"
+        ng-repeat="policy in vm.ownerPolicyList.policies | orderBy:vm.sortFields"
+        ng-click="vm.onPolicyClick({policyId: policy.id})"
+      >
         <td class="iq-cell iq-cell--policy-list-name" colspan="2">
-          <span class="iq-threat-bar iq-threat-bar--policy-level-{{policy.threatLevel}}"></span>
+          <span
+            class="iq-threat-bar iq-threat-bar--policy-level-{{policy.threatLevel}}"
+          ></span>
           <span class="iq-policy-name">{{policy.name}}</span>
         </td>
-        <td class="iq-cell iq-cell--policy-list-stage" ng-repeat="stage in vm.actionStages"
-            ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}">
-          <i ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[stage.stageTypeId] === 'warn',
-                      'fa fa-exclamation-circle fail' :policy.enforcementAction[stage.stageTypeId] === 'fail'}"></i>
+        <td
+          class="iq-cell iq-cell--policy-list-stage"
+          ng-repeat="stage in vm.actionStages"
+          ng-class="{'iq-disabled' : !vm.isEnforcementSupportedForStage({stage: stage.stageTypeId})}"
+        >
+          <i
+            ng-class="{'fa fa-exclamation-triangle warn' : policy.enforcementAction[stage.stageTypeId] === 'warn',
+                      'fa fa-exclamation-circle fail' :policy.enforcementAction[stage.stageTypeId] === 'fail'}"
+          ></i>
           {{policy.enforcementAction[stage.stageTypeId] || 'no action'}}
         </td>
-        <td class="iq-cell iq-cell--chevron"><i class="fa fa-chevron-right"></i></td>
+        <td class="iq-cell iq-cell--chevron">
+          <i class="fa fa-chevron-right"></i>
+        </td>
       </tr>
     </tbody>
   </table>

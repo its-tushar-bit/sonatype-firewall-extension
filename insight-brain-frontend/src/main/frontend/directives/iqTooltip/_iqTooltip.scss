@@ -3,12 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-.iq-tooltip.top-left { // missing in our version of bootstrap
-  margin-top:  -3px;
+.iq-tooltip.top-left {
+  // missing in our version of bootstrap
+  margin-top: -3px;
   padding: 5px 0;
 }
 
-.iq-tooltip.top, .iq-tooltip.top-left {
+.iq-tooltip.top,
+.iq-tooltip.top-left {
   padding-top: 0;
   padding-bottom: 2px;
 }
@@ -22,12 +24,14 @@
 }
 
 .tooltip-arrow {
-  .iq-tooltip.top &, .iq-tooltip.top-left & {
+  .iq-tooltip.top &,
+  .iq-tooltip.top-left & {
     border-top-color: $iq-off-black;
     bottom: -3px;
   }
 
-  .iq-tooltip.top-left & { // missing in our version of bootstrap
+  .iq-tooltip.top-left & {
+    // missing in our version of bootstrap
     border-width: 5px 5px 0;
     bottom: 0;
   }
@@ -46,7 +50,7 @@
 
   &::after {
     border: 5px solid transparent;
-    content: "";
+    content: '';
     display: block;
     height: 0;
     position: absolute;
@@ -54,12 +58,15 @@
     bottom: 0;
     width: 0;
 
-    .iq-tooltip.top &, .iq-tooltip.bottom &, .iq-tooltip.top-left & {
+    .iq-tooltip.top &,
+    .iq-tooltip.bottom &,
+    .iq-tooltip.top-left & {
       margin-left: -5px;
       left: 50%;
     }
 
-    .iq-tooltip.top &, .iq-tooltip.top-left & {
+    .iq-tooltip.top &,
+    .iq-tooltip.top-left & {
       border-top-color: $iq-slate;
       border-bottom-width: 0;
       margin-top: -6px;
@@ -71,7 +78,8 @@
       margin-top: 1px;
     }
 
-    .iq-tooltip.right &, .iq-tooltip.left & {
+    .iq-tooltip.right &,
+    .iq-tooltip.left & {
       margin-top: -5px;
       top: 50%;
     }

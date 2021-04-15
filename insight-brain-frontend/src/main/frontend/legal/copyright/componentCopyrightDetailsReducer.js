@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {createReducerFromActionMap} from '../../util/reduxUtil';
+import { createReducerFromActionMap } from '../../util/reduxUtil';
 import {
   COPYRIGHT_CONTEXT_FULFILLED,
   COPYRIGHT_CONTEXT_REQUEST,
@@ -13,7 +13,7 @@ import {
   COPYRIGHT_DETAILS_REQUEST,
   COPYRIGHT_FILE_PATHS_FAILED,
   COPYRIGHT_FILE_PATHS_FULFILLED,
-  COPYRIGHT_FILE_PATHS_REQUEST
+  COPYRIGHT_FILE_PATHS_REQUEST,
 } from './componentCopyrightDetailsActions';
 
 const initialState = Object.freeze({
@@ -28,7 +28,7 @@ const initialState = Object.freeze({
   loadingCopyrightContext: false,
   errorCopyrightFileCounts: null,
   errorCopyrightContext: null,
-  errorFilePaths: null
+  errorFilePaths: null,
 });
 
 function loadCopyrightFilePaths(payload, state) {
@@ -36,7 +36,7 @@ function loadCopyrightFilePaths(payload, state) {
     ...state,
     errorFilePaths: null,
     loadingFilePaths: false, // don't show loading spinner when changing pages
-    filePathsPage: payload.filePathsPage
+    filePathsPage: payload.filePathsPage,
   };
 }
 
@@ -47,7 +47,7 @@ function updateCopyrightFilePaths(payload, state) {
     loadingFilePaths: false,
     filePaths: payload.filePaths.filePaths,
     totalFileMatches: payload.filePaths.totalFileMatches,
-    selectedFilePath: null
+    selectedFilePath: null,
   };
 }
 
@@ -57,7 +57,7 @@ function requestCopyrightContext(payload, state) {
     loadingCopyrightContext: true,
     errorCopyrightContext: null,
     selectedFilePath: payload.selectedFilePath,
-    copyrightContexts: []
+    copyrightContexts: [],
   };
 }
 
@@ -66,7 +66,7 @@ function updateCopyrightContext(payload, state) {
     ...state,
     errorCopyrightContext: null,
     loadingCopyrightContext: false,
-    copyrightContexts: payload.copyrightContexts
+    copyrightContexts: payload.copyrightContexts,
   };
 }
 
@@ -80,7 +80,7 @@ function requestCopyrightDetails(payload, state) {
     copyrightIndex: parseInt(payload.copyrightIndex),
     selectedCopyright: payload.copyright,
     copyrightContexts: [],
-    selectedFilePath: null
+    selectedFilePath: null,
   };
 }
 
@@ -94,7 +94,7 @@ function updateCopyrightDetails(payload, state) {
     selectedCopyright: payload.copyright,
     filePaths: payload.filePaths.filePaths,
     totalFileMatches: payload.filePaths.totalFileMatches,
-    copyrightFileCounts: payload.copyrightFileCounts
+    copyrightFileCounts: payload.copyrightFileCounts,
   };
 }
 
@@ -102,7 +102,7 @@ function failureCopyrightContext(payload, state) {
   return {
     ...state,
     errorCopyrightContext: payload.value,
-    loadingCopyrightContext: false
+    loadingCopyrightContext: false,
   };
 }
 
@@ -110,7 +110,7 @@ function failureFilePaths(payload, state) {
   return {
     ...state,
     errorFilePaths: payload.value,
-    loadingFilePaths: false
+    loadingFilePaths: false,
   };
 }
 
@@ -118,7 +118,7 @@ function failureCopyrightDetails(payload, state) {
   return {
     ...state,
     errorCopyrightFileCounts: payload.value,
-    loadingCopyrightFileCounts: false
+    loadingCopyrightFileCounts: false,
   };
 }
 
@@ -131,8 +131,11 @@ const reducerActionMap = {
   [COPYRIGHT_CONTEXT_FAILED]: failureCopyrightContext,
   [COPYRIGHT_DETAILS_REQUEST]: requestCopyrightDetails,
   [COPYRIGHT_DETAILS_FULFILLED]: updateCopyrightDetails,
-  [COPYRIGHT_DETAILS_FAILED]: failureCopyrightDetails
+  [COPYRIGHT_DETAILS_FAILED]: failureCopyrightDetails,
 };
 
-const componentCopyrightDetailsReducer = createReducerFromActionMap(reducerActionMap, initialState);
+const componentCopyrightDetailsReducer = createReducerFromActionMap(
+  reducerActionMap,
+  initialState
+);
 export default componentCopyrightDetailsReducer;

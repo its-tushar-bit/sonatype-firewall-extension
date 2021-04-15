@@ -22,57 +22,71 @@ import applicationReportRawData from './rawData/applicationReportRawData';
 import applicationReportVulnerabilities from './vulnerabilities/ApplicationReportVulnerabilities';
 import applicationReportFilter from './applicationReportFilter';
 
-export default angular.module('applicationReportModule',
-    [
-      cipModalModule.name, CLMLocationsModule.name, utilityModule.name, utilityDirectivesModule.name,
-      ComponentDisplayModule.name, selectedComponentServiceModule.name, 'ngRedux'
-    ])
-    .component('applicationReport', applicationReport)
-    .component('applicationReportFilter', applicationReportFilter)
-    .component('applicationReportRoot', applicationReportRoot)
-    .component('applicationReportResults', applicationReportResults)
-    .component('reevaluationErrorModal', reevaluationErrorModal)
-    .component('rawLicenseDisplay', rawLicenseDisplay)
-    .component('applicationReportRawData', applicationReportRawData)
-    .component('applicationReportVulnerabilities', react2angular(applicationReportVulnerabilities, [],
-        ['$ngRedux', '$state', 'applicationReportActions']))
-    .factory('applicationReportActions', applicationReportActions)
-    .config(routes);
+export default angular
+  .module('applicationReportModule', [
+    cipModalModule.name,
+    CLMLocationsModule.name,
+    utilityModule.name,
+    utilityDirectivesModule.name,
+    ComponentDisplayModule.name,
+    selectedComponentServiceModule.name,
+    'ngRedux',
+  ])
+  .component('applicationReport', applicationReport)
+  .component('applicationReportFilter', applicationReportFilter)
+  .component('applicationReportRoot', applicationReportRoot)
+  .component('applicationReportResults', applicationReportResults)
+  .component('reevaluationErrorModal', reevaluationErrorModal)
+  .component('rawLicenseDisplay', rawLicenseDisplay)
+  .component('applicationReportRawData', applicationReportRawData)
+  .component(
+    'applicationReportVulnerabilities',
+    react2angular(
+      applicationReportVulnerabilities,
+      [],
+      ['$ngRedux', '$state', 'applicationReportActions']
+    )
+  )
+  .factory('applicationReportActions', applicationReportActions)
+  .config(routes);
 
 function routes($stateProvider, $urlRouterProvider) {
   $stateProvider
-      .state('applicationReport', {
-        url: '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId',
-        abstract: true,
-        component: 'applicationReportRoot',
-        params: {
-          policyViolationId: { dynamic: true }
-        }
-      })
-      .state('applicationReport.policy', {
-        url: '/policy',
-        component: 'applicationReport',
-        data: {
-          title: 'Application Report'
-        }
-      })
-      .state('applicationReport.rawData', {
-        url: '/raw',
-        component: 'applicationReportRawData',
-        data: {
-          title: 'Application Report Raw Data'
-        }
-      })
-      .state('applicationReport.vulnerabilities', {
-        url: '/vulnerabilities',
-        component: 'applicationReportVulnerabilities',
-        data: {
-          title: 'Application Report Vulnerabilities List'
-        }
-      });
+    .state('applicationReport', {
+      url:
+        '/applicationReport/{publicId}/{scanId}?unknownjs&embeddable&policyViolationId',
+      abstract: true,
+      component: 'applicationReportRoot',
+      params: {
+        policyViolationId: { dynamic: true },
+      },
+    })
+    .state('applicationReport.policy', {
+      url: '/policy',
+      component: 'applicationReport',
+      data: {
+        title: 'Application Report',
+      },
+    })
+    .state('applicationReport.rawData', {
+      url: '/raw',
+      component: 'applicationReportRawData',
+      data: {
+        title: 'Application Report Raw Data',
+      },
+    })
+    .state('applicationReport.vulnerabilities', {
+      url: '/vulnerabilities',
+      component: 'applicationReportVulnerabilities',
+      data: {
+        title: 'Application Report Vulnerabilities List',
+      },
+    });
 
-  $urlRouterProvider.when('/applicationReport/{publicId}/{scanId}?unknownjs',
-      '/applicationReport/{publicId}/{scanId}/policy?unknownjs');
+  $urlRouterProvider.when(
+    '/applicationReport/{publicId}/{scanId}?unknownjs',
+    '/applicationReport/{publicId}/{scanId}/policy?unknownjs'
+  );
 }
 
 routes.$inject = ['$stateProvider', '$urlRouterProvider'];

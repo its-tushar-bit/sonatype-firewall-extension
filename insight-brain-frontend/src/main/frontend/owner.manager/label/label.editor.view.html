@@ -1,8 +1,10 @@
-<section id="label-editor"
-         class="iq-tile iq-tile--form-tile"
-         load-wrapper="vm.loadError"
-         loading="!vm.dirtyLabel"
-         reload="vm.doLoad()">
+<section
+  id="label-editor"
+  class="iq-tile iq-tile--form-tile"
+  load-wrapper="vm.loadError"
+  loading="!vm.dirtyLabel"
+  reload="vm.doLoad()"
+>
   <header class="iq-tile-header">
     <div class="iq-tile-header__title">
       <i class="fa size-20px fa-tag outline iq-tile-header__icon"></i>
@@ -10,61 +12,81 @@
     </div>
   </header>
   <div class="iq-tile-content">
-    <form name="vm.labelEditor"
-          class="iq-form"
-          role="form"
-          ng-submit="vm.labelEditor.$valid && vm.dirtyLabel.isDirty() && vm.save()"
-          novalidate
-          form-mask="vm.labelEditorMask"
-          mask-attach-to-body>
+    <form
+      name="vm.labelEditor"
+      class="iq-form"
+      role="form"
+      ng-submit="vm.labelEditor.$valid && vm.dirtyLabel.isDirty() && vm.save()"
+      novalidate
+      form-mask="vm.labelEditorMask"
+      mask-attach-to-body
+    >
       <div class="iq-form-group">
-        <label for="editor-label-name" class="iq-label">Component Label Name</label>
-        <input id="editor-label-name"
-               class="iq-text-input"
-               type="text"
-               name="label"
-               required
-               ng-model="vm.dirtyLabel.label"
-               ng-maxlength="50"
-               focus-input="true"
-               valid-name-characters
-               is-duplicate
-               is-duplicate-array="vm.siblings"
-               is-duplicate-id-field="id"
-               messages="{duplicate: 'Name is already in use'}"
-               clm-input>
+        <label for="editor-label-name" class="iq-label"
+          >Component Label Name</label
+        >
+        <input
+          id="editor-label-name"
+          class="iq-text-input"
+          type="text"
+          name="label"
+          required
+          ng-model="vm.dirtyLabel.label"
+          ng-maxlength="50"
+          focus-input="true"
+          valid-name-characters
+          is-duplicate
+          is-duplicate-array="vm.siblings"
+          is-duplicate-id-field="id"
+          messages="{duplicate: 'Name is already in use'}"
+          clm-input
+        />
       </div>
       <div class="iq-form-group">
         <label for="editor-label-description" class="iq-label">
           Short Description - <span class="optional">optional</span>
         </label>
-        <textarea id="editor-label-description"
-                  class="iq-textarea iq-textarea--long"
-                  name="name"
-                  rows="2"
-                  ng-model="vm.dirtyLabel.description"
-                  ng-maxlength="255"
-                  clm-input>
+        <textarea
+          id="editor-label-description"
+          class="iq-textarea iq-textarea--long"
+          name="name"
+          rows="2"
+          ng-model="vm.dirtyLabel.description"
+          ng-maxlength="255"
+          clm-input
+        >
         </textarea>
       </div>
       <div class="iq-form-group">
         <label for="editor-label-color-picker" class="iq-label">Color</label>
-        <color-picker id="editor-label-color-picker" ng-model="vm.dirtyLabel.color" required></color-picker>
+        <color-picker
+          id="editor-label-color-picker"
+          ng-model="vm.dirtyLabel.color"
+          required
+        ></color-picker>
       </div>
-      <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button type="submit"
-                class="iq-btn iq-btn--primary"
-                submit-validation
-                submit-dirty="vm.dirtyLabel.isDirty()"
-                submit-type="vm.dirtyLabel.id ? 'update' : 'create'"
-                submit-tooltip-target="body">
-          {{vm.dirtyLabel.id ? 'Update' : 'Create'}}
-        </button><!--
-     --><button id="delete-label-button"
-                class="iq-btn iq-btn--tertiary"
-                type="button"
-                ng-click="vm.deleteLabel()"
-                ng-if="vm.dirtyLabel && !vm.dirtyLabel.$new">
+      <div
+        class="iq-tile-footer"
+        submit-wrapper="vm.submitError"
+        retry="vm.save()"
+      >
+        <button
+          type="submit"
+          class="iq-btn iq-btn--primary"
+          submit-validation
+          submit-dirty="vm.dirtyLabel.isDirty()"
+          submit-type="vm.dirtyLabel.id ? 'update' : 'create'"
+          submit-tooltip-target="body"
+        >
+          {{vm.dirtyLabel.id ? 'Update' : 'Create'}}</button
+        ><!--
+     --><button
+          id="delete-label-button"
+          class="iq-btn iq-btn--tertiary"
+          type="button"
+          ng-click="vm.deleteLabel()"
+          ng-if="vm.dirtyLabel && !vm.dirtyLabel.$new"
+        >
           <i class="fa fa-trash"></i>Delete Component Label
         </button>
       </div>

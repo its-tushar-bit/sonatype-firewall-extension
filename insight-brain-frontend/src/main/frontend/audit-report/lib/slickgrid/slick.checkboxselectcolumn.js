@@ -3,11 +3,10 @@
 
   // register namespace
   $.extend(true, window, {
-    'Slick': {
-      'CheckboxSelectColumn': CheckboxSelectColumn
-    }
+    Slick: {
+      CheckboxSelectColumn: CheckboxSelectColumn,
+    },
   });
-
 
   function CheckboxSelectColumn(options) {
     var _grid;
@@ -16,7 +15,7 @@
       columnId: '_checkbox_selector',
       cssClass: null,
       toolTip: 'Select/Deselect All',
-      width: 30
+      width: 30,
     };
 
     var _options = $.extend(true, {}, _defaults, options);
@@ -38,7 +37,9 @@
 
     function handleSelectedRowsChanged() {
       var selectedRows = _grid.getSelectedRows();
-      var lookup = {}, row, i;
+      var lookup = {},
+        row,
+        i;
       for (i = 0; i < selectedRows.length; i++) {
         row = selectedRows[i];
         lookup[row] = true;
@@ -54,9 +55,17 @@
       _grid.render();
 
       if (selectedRows.length == _grid.getDataLength()) {
-        _grid.updateColumnHeader(_options.columnId, '<input type="checkbox" checked="checked">', _options.toolTip);
+        _grid.updateColumnHeader(
+          _options.columnId,
+          '<input type="checkbox" checked="checked">',
+          _options.toolTip
+        );
       } else {
-        _grid.updateColumnHeader(_options.columnId, '<input type="checkbox">', _options.toolTip);
+        _grid.updateColumnHeader(
+          _options.columnId,
+          '<input type="checkbox">',
+          _options.toolTip
+        );
       }
     }
 
@@ -64,7 +73,10 @@
       if (e.which == 32) {
         if (_grid.getColumns()[args.cell].id === _options.columnId) {
           // if editing, try to commit
-          if (!_grid.getEditorLock().isActive() || _grid.getEditorLock().commitCurrentEdit()) {
+          if (
+            !_grid.getEditorLock().isActive() ||
+            _grid.getEditorLock().commitCurrentEdit()
+          ) {
             toggleRowSelection(args.row);
           }
           e.preventDefault();
@@ -75,9 +87,15 @@
 
     function handleClick(e, args) {
       // clicking on a row select checkbox
-      if (_grid.getColumns()[args.cell].id === _options.columnId && $(e.target).is(':checkbox')) {
+      if (
+        _grid.getColumns()[args.cell].id === _options.columnId &&
+        $(e.target).is(':checkbox')
+      ) {
         // if editing, try to commit
-        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit()) {
+        if (
+          _grid.getEditorLock().isActive() &&
+          !_grid.getEditorLock().commitCurrentEdit()
+        ) {
           e.preventDefault();
           e.stopImmediatePropagation();
           return;
@@ -91,9 +109,11 @@
 
     function toggleRowSelection(row) {
       if (_selectedRowsLookup[row]) {
-        _grid.setSelectedRows($.grep(_grid.getSelectedRows(), function (n) {
-          return n != row;
-        }));
+        _grid.setSelectedRows(
+          $.grep(_grid.getSelectedRows(), function (n) {
+            return n != row;
+          })
+        );
       } else {
         _grid.setSelectedRows(_grid.getSelectedRows().concat(row));
       }
@@ -102,7 +122,10 @@
     function handleHeaderClick(e, args) {
       if (args.column.id == _options.columnId && $(e.target).is(':checkbox')) {
         // if editing, try to commit
-        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit()) {
+        if (
+          _grid.getEditorLock().isActive() &&
+          !_grid.getEditorLock().commitCurrentEdit()
+        ) {
           e.preventDefault();
           e.stopImmediatePropagation();
           return;
@@ -132,22 +155,29 @@
         resizable: false,
         sortable: false,
         cssClass: _options.cssClass,
-        formatter: checkboxSelectionFormatter
+        formatter: checkboxSelectionFormatter,
       };
     }
 
-    function checkboxSelectionFormatter(row, cell, value, columnDef, dataContext) {
+    function checkboxSelectionFormatter(
+      row,
+      cell,
+      value,
+      columnDef,
+      dataContext
+    ) {
       if (dataContext) {
-         return _selectedRowsLookup[row] ? '<input type="checkbox" checked="checked">'
-              : '<input type="checkbox">';
+        return _selectedRowsLookup[row]
+          ? '<input type="checkbox" checked="checked">'
+          : '<input type="checkbox">';
       }
       return null;
     }
 
     $.extend(this, {
-      'init': init,
-      'destroy': destroy,
-      'getColumnDefinition': getColumnDefinition
+      init: init,
+      destroy: destroy,
+      getColumnDefinition: getColumnDefinition,
     });
   }
 })(jQuery);

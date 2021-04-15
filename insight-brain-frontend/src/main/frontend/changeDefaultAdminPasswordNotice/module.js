@@ -11,9 +11,16 @@ import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 import currentUserService from '../mainHeader/userMenu/CurrentUserService';
 
-export default angular.module('changeDefaultAdminPasswordNoticeModule',
-    [CLMLocationModule.name, telemetryServiceModule.name, permissionServiceModule.name])
-    .component('changeDefaultAdminPasswordNotice', changeDefaultAdminPasswordNotice)
-    .factory('CurrentUser', currentUserService)
-    .factory('userActions', userActions)
-    .value('userReducer', userReducer);
+export default angular
+  .module('changeDefaultAdminPasswordNoticeModule', [
+    CLMLocationModule.name,
+    telemetryServiceModule.name,
+    permissionServiceModule.name,
+  ])
+  .component(
+    'changeDefaultAdminPasswordNotice',
+    changeDefaultAdminPasswordNotice
+  )
+  .factory('CurrentUser', currentUserService)
+  .factory('userActions', userActions)
+  .value('userReducer', userReducer);

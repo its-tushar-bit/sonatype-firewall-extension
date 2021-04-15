@@ -28,5 +28,5 @@ IqToggle.propTypes = {
   toggleTooltip: PropTypes.string,
   inputId: PropTypes.string,
   isChecked: PropTypes.bool.isRequired,
-  onChange: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
 };

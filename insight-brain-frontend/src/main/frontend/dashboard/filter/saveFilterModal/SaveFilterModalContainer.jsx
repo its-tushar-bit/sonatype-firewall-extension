@@ -12,20 +12,27 @@ import { Messages } from '../../../util/CommonServices';
 
 const mapDispatchToProps = {
   saveFilter,
-  cancelSaveFilter
+  cancelSaveFilter,
 };
 
 function mapStateToProps({ manageFilters }) {
   return {
-    ...pick(['appliedFilterName',
-      'existingDuplicateFilterName',
-      'saveFilterSaving',
-      'saveFilterSuccess',
-      'saveFilterWarning'
-    ], manageFilters),
-    saveError: Messages.getHttpErrorMessage(manageFilters.saveFilterError)
+    ...pick(
+      [
+        'appliedFilterName',
+        'existingDuplicateFilterName',
+        'saveFilterSaving',
+        'saveFilterSuccess',
+        'saveFilterWarning',
+      ],
+      manageFilters
+    ),
+    saveError: Messages.getHttpErrorMessage(manageFilters.saveFilterError),
   };
 }
 
-const SaveFilterModalContainer = connect(mapStateToProps, mapDispatchToProps)(SaveFilterModalContent);
+const SaveFilterModalContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SaveFilterModalContent);
 export default SaveFilterModalContainer;

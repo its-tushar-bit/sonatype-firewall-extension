@@ -8,7 +8,9 @@ import { always, curry, lensProp, set } from 'ramda';
  * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.
  * The payload is ignored and is only an argument to conform to the interface needed by reducerActionMap
  */
-export const propSetConst = curry((propName, constValue, payload, state) => set(lensProp(propName), constValue, state));
+export const propSetConst = curry((propName, constValue, payload, state) =>
+  set(lensProp(propName), constValue, state)
+);
 
 /**
  * A generic reducer function parameterized over a reducerActionMap and an initialState.
@@ -23,8 +25,8 @@ export const propSetConst = curry((propName, constValue, payload, state) => set(
 export function createReducerFromActionMap(reducerActionMap, initialState) {
   return (state = initialState, action) => {
     const type = action && action.type,
-        payload = action && action.payload,
-        reducer = type && reducerActionMap[type];
+      payload = action && action.payload,
+      reducer = type && reducerActionMap[type];
 
     return reducer ? reducer(payload, state) : state;
   };
@@ -33,9 +35,14 @@ export function createReducerFromActionMap(reducerActionMap, initialState) {
 /**
  * Some convenience functions for common, simple types of redux action creators
  */
-export const noPayloadActionCreator = type => always({ type });
-export const payloadParamActionCreator = type => payload => ({ type, payload });
-export const mappedPayloadParamActionCreator = (type, mapper) => payloadSrc => ({
+export const noPayloadActionCreator = (type) => always({ type });
+export const payloadParamActionCreator = (type) => (payload) => ({
   type,
-  payload: mapper(payloadSrc)
+  payload,
+});
+export const mappedPayloadParamActionCreator = (type, mapper) => (
+  payloadSrc
+) => ({
+  type,
+  payload: mapper(payloadSrc),
 });

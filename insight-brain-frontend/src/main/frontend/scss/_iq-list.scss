@@ -6,7 +6,8 @@
 .iq-list {
   margin: 0 0 24px 0;
 
-  ul, ol {
+  ul,
+  ol {
     list-style: none;
     margin: 0;
   }
@@ -135,7 +136,8 @@
     color: $iq-slate;
 
     &:not(.iq-list__item--empty):not(.iq-disabled):not([disabled]) {
-      &:hover, &:focus {
+      &:hover,
+      &:focus {
         background-color: $nx-color-blue-96;
         border-top: 1px solid $iq-grey-4;
         border-bottom: 1px solid $iq-grey-4;
@@ -166,7 +168,9 @@
       color: $iq-fail-color;
 
       &:not(.iq-disabled):not([disabled]) {
-        &:hover, &:focus, &:active {
+        &:hover,
+        &:focus,
+        &:active {
           background-color: $iq-fail-color-bg;
           border: 1px solid $iq-fail-color;
           color: $iq-fail-color;

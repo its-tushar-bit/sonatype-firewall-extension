@@ -126,13 +126,13 @@
 }
 
 .clm-license-status.selected {
-  background-color: #D8DBE0;
+  background-color: #d8dbe0;
 }
 
 #aiVersionChartContainer {
   background: rgb(247, 251, 254);
   border-radius: 4px;
-  border: 1px solid #D8DBE0;
+  border: 1px solid #d8dbe0;
   font-size: 0;
   height: 298px;
   padding: 2px;
@@ -140,7 +140,8 @@
   white-space: nowrap;
 }
 
-#aiVersionChartLabels, #aiVersionChartViz {
+#aiVersionChartLabels,
+#aiVersionChartViz {
   display: inline-block;
   vertical-align: top;
 }
@@ -171,13 +172,13 @@
 }
 
 #custom {
-  border: 1px #C9C9C9 solid;
+  border: 1px #c9c9c9 solid;
   border-radius: 4px;
   padding: 4px;
   margin-top: 5px;
   height: 40px;
-  color: #C9C9C9;
-  background: #EFEFEF;
+  color: #c9c9c9;
+  background: #efefef;
   width: 481px;
 }
 
@@ -189,8 +190,9 @@ form.form-horizontal .control-label {
   width: 93px;
 }
 
-#version-graph form, #version-graph form .control-group {
-  margin: 0px !important
+#version-graph form,
+#version-graph form .control-group {
+  margin: 0px !important;
 }
 
 #version-graph .alert {
@@ -211,7 +213,7 @@ form.form-horizontal .control-label {
 }
 
 .modal > form.form-horizontal {
-  margin-bottom: 0px
+  margin-bottom: 0px;
 }
 
 /* add proprietary matchers */
@@ -259,7 +261,7 @@ form.form-horizontal .control-label {
   margin-left: 2px;
 }
 
-#add-proprietary-matchers-modal input[type=checkbox] + span {
+#add-proprietary-matchers-modal input[type='checkbox'] + span {
   word-wrap: break-word;
 }
 

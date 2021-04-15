@@ -8,7 +8,7 @@ import {
   getApplicationsUrl,
   getLicenseLegalApplicationReportUrl,
   getLicenseLegalComponentUrl,
-  getOwnerHierarchyUrl
+  getOwnerHierarchyUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import {
   ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
@@ -26,7 +26,7 @@ import {
   loadApplicationReport,
   loadApplications,
   loadAvailableScopes,
-  loadComponent
+  loadComponent,
 } from '../../../main/frontend/advancedLegal/advancedLegalActions';
 import { pick } from 'ramda';
 
@@ -50,22 +50,26 @@ describe('advancedLegalActions', function () {
     });
 
     it('dispatches a ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED action with applications', function (done) {
-      const applications = [{
-        publicId: 'a'
-      },
-      {
-        publicId: 'b'
-      }];
+      const applications = [
+        {
+          publicId: 'a',
+        },
+        {
+          publicId: 'b',
+        },
+      ];
       mockAxiosCalls({
         get: {
-          [getApplicationsUrl()]: Promise.resolve({ data: applications })
-        }
+          [getApplicationsUrl()]: Promise.resolve({ data: applications }),
+        },
       });
 
       store.dispatch(loadApplications()).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED);
+        expect(actions[1].type).toBe(
+          ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED
+        );
         expect(actions[1].payload).toBe(applications);
         done();
       });
@@ -75,8 +79,8 @@ describe('advancedLegalActions', function () {
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getApplicationsUrl()]: Promise.reject(errorTest)
-        }
+          [getApplicationsUrl()]: Promise.reject(errorTest),
+        },
       });
 
       store.dispatch(loadApplications()).then(() => {
@@ -101,7 +105,9 @@ describe('advancedLegalActions', function () {
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED);
+      expect(actions[0].type).toBe(
+        ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED
+      );
       expect(actions[0].payload).toBeUndefined();
     });
 
@@ -109,18 +115,22 @@ describe('advancedLegalActions', function () {
       const applicationId = 'appId';
       const applicationReport = {
         components: [{ displayName: 'groupId : artifactId : version' }],
-        licenseLegalMetadata: [{ licenseId: 'License Test' }]
+        licenseLegalMetadata: [{ licenseId: 'License Test' }],
       };
       mockAxiosCalls({
         get: {
-          [getLicenseLegalApplicationReportUrl(applicationId)]: Promise.resolve({ data: applicationReport })
-        }
+          [getLicenseLegalApplicationReportUrl(
+            applicationId
+          )]: Promise.resolve({ data: applicationReport }),
+        },
       });
 
       store.dispatch(loadApplicationReport(applicationId)).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED);
+        expect(actions[1].type).toBe(
+          ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED
+        );
         expect(actions[1].payload).toBe(applicationReport);
         done();
       });
@@ -131,14 +141,18 @@ describe('advancedLegalActions', function () {
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getLicenseLegalApplicationReportUrl(applicationId)]: Promise.reject(errorTest)
-        }
+          [getLicenseLegalApplicationReportUrl(applicationId)]: Promise.reject(
+            errorTest
+          ),
+        },
       });
 
       store.dispatch(loadApplicationReport(applicationId)).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED);
+        expect(actions[1].type).toBe(
+          ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED
+        );
         expect(actions[1].payload).toBe(errorTest);
         done();
       });
@@ -163,12 +177,16 @@ describe('advancedLegalActions', function () {
 
     it('dispatches a ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED action with applications', function (done) {
       const componentInfo = {
-        foo: 'bar'
+        foo: 'bar',
       };
       mockAxiosCalls({
         get: {
-          [getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')]: Promise.resolve({ data: componentInfo })
-        }
+          [getLicenseLegalComponentUrl(
+            'orgOrApp',
+            'ownerId',
+            'hash'
+          )]: Promise.resolve({ data: componentInfo }),
+        },
       });
 
       store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash')).then(() => {
@@ -184,8 +202,12 @@ describe('advancedLegalActions', function () {
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getLicenseLegalComponentUrl('orgOrApp', 'ownerId', 'hash')]: Promise.reject(errorTest)
-        }
+          [getLicenseLegalComponentUrl(
+            'orgOrApp',
+            'ownerId',
+            'hash'
+          )]: Promise.reject(errorTest),
+        },
       });
 
       store.dispatch(loadComponent('orgOrApp', 'ownerId', 'hash')).then(() => {
@@ -210,7 +232,9 @@ describe('advancedLegalActions', function () {
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
+      expect(actions[0].type).toBe(
+        ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED
+      );
       expect(actions[0].payload).toBeUndefined();
     });
 
@@ -220,20 +244,30 @@ describe('advancedLegalActions', function () {
         publicId: 'ROOT_ORGANIZATION_ID',
         name: 'Root Organization',
         type: 'organization',
-        children: null
+        children: null,
       };
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.resolve({ data: payload })
-        }
+          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.resolve({
+            data: payload,
+          }),
+        },
       });
 
       store.dispatch(loadAvailableScopes('ownerType', 'ownerId')).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-        expect(actions[1].payload).toEqual(
-            { values: [{ ...pick(['type', 'id', 'publicId', 'name'], payload), label: 'Organization' }] });
+        expect(actions[1].type).toBe(
+          ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED
+        );
+        expect(actions[1].payload).toEqual({
+          values: [
+            {
+              ...pick(['type', 'id', 'publicId', 'name'], payload),
+              label: 'Organization',
+            },
+          ],
+        });
         done();
       });
     });
@@ -242,14 +276,18 @@ describe('advancedLegalActions', function () {
       const errorTest = 'Error test';
       mockAxiosCalls({
         get: {
-          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.reject(errorTest)
-        }
+          [getOwnerHierarchyUrl('ownerType', 'ownerId')]: Promise.reject(
+            errorTest
+          ),
+        },
       });
 
       store.dispatch(loadAvailableScopes('ownerType', 'ownerId')).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED);
+        expect(actions[1].type).toBe(
+          ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED
+        );
         expect(actions[1].payload).toBe(errorTest);
         done();
       });

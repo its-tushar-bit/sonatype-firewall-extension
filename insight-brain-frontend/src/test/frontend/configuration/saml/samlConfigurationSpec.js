@@ -4,16 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import samlModule from '../../../../main/frontend/configuration/saml/module';
-import {omit} from 'ramda';
+import { omit } from 'ramda';
 
-describe('samlConfiguration', function() {
+describe('samlConfiguration', function () {
   let $scope,
-      $httpBackend,
-      CLMContextLocations,
-      mockFileReader,
-      Dialog,
-      wrapReturn,
-      vm;
+    $httpBackend,
+    CLMContextLocations,
+    mockFileReader,
+    Dialog,
+    wrapReturn,
+    vm;
 
   const defaultSaml = {
     identityProviderName: 'identity provider',
@@ -25,7 +25,7 @@ describe('samlConfiguration', function() {
     emailAttributeName: 'email',
     groupsAttributeName: 'groups',
     validateResponseSignature: null,
-    validateAssertionSignature: null
+    validateAssertionSignature: null,
   };
 
   const saml1 = {
@@ -38,7 +38,7 @@ describe('samlConfiguration', function() {
     emailAttributeName: 'email1',
     groupsAttributeName: 'groups1',
     validateResponseSignature: true,
-    validateAssertionSignature: false
+    validateAssertionSignature: false,
   };
 
   const saml2 = {
@@ -51,48 +51,56 @@ describe('samlConfiguration', function() {
     emailAttributeName: 'email2',
     groupsAttributeName: 'groups2',
     validateResponseSignature: false,
-    validateAssertionSignature: true
+    validateAssertionSignature: true,
   };
 
   beforeEach(angular.mock.module(samlModule.name));
 
-  beforeEach(inject(
-      function($rootScope, _$httpBackend_, _CLMContextLocations_, _Dialog_, BaseUrl, $componentController) {
-        $scope = $rootScope.$new();
-        $httpBackend = _$httpBackend_;
-        CLMContextLocations = _CLMContextLocations_;
-        Dialog = _Dialog_;
-        spyOn(BaseUrl, 'get').and.returnValue('http://localhost');
-        mockFileReader = {
-          addEventListener: jasmine.createSpy(),
-          readAsText: function(file) {
-            // In reality a FileReader would read the content of the given file but we just pretend we did
-            this.result = file.content;
-            // Call whatever function was most recently added as an event listener (i.e. for load)
-            this.addEventListener.calls.mostRecent().args[1]();
-          },
-          abort: jasmine.createSpy()
-        };
-        spyOn(window, 'FileReader').and.returnValue(mockFileReader);
+  beforeEach(inject(function (
+    $rootScope,
+    _$httpBackend_,
+    _CLMContextLocations_,
+    _Dialog_,
+    BaseUrl,
+    $componentController
+  ) {
+    $scope = $rootScope.$new();
+    $httpBackend = _$httpBackend_;
+    CLMContextLocations = _CLMContextLocations_;
+    Dialog = _Dialog_;
+    spyOn(BaseUrl, 'get').and.returnValue('http://localhost');
+    mockFileReader = {
+      addEventListener: jasmine.createSpy(),
+      readAsText: function (file) {
+        // In reality a FileReader would read the content of the given file but we just pretend we did
+        this.result = file.content;
+        // Call whatever function was most recently added as an event listener (i.e. for load)
+        this.addEventListener.calls.mostRecent().args[1]();
+      },
+      abort: jasmine.createSpy(),
+    };
+    spyOn(window, 'FileReader').and.returnValue(mockFileReader);
 
-        // This initializes our SAML controller which creates a mockFileReader
-        vm = $componentController('samlConfiguration');
-        wrapReturn = {
-          catch: jasmine.createSpy('catch')
-        };
-        vm.samlConfigurationMask = {
-          wrap: jasmine.createSpy('wrap').and.returnValue(wrapReturn)
-        };
-      }));
+    // This initializes our SAML controller which creates a mockFileReader
+    vm = $componentController('samlConfiguration');
+    wrapReturn = {
+      catch: jasmine.createSpy('catch'),
+    };
+    vm.samlConfigurationMask = {
+      wrap: jasmine.createSpy('wrap').and.returnValue(wrapReturn),
+    };
+  }));
 
-  afterEach(function() {
+  afterEach(function () {
     $httpBackend.verifyNoOutstandingRequest();
     $httpBackend.verifyNoOutstandingExpectation();
   });
 
-  describe('load', function() {
-    it('sets the given saml values if a configuration exists', function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('load', function () {
+    it('sets the given saml values if a configuration exists', function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
 
       $scope.$digest();
 
@@ -103,8 +111,10 @@ describe('samlConfiguration', function() {
       expect(vm.saveOrDeleteError).toBeUndefined();
     });
 
-    it('sets the default saml values if no configuration exists', function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
+    it('sets the default saml values if no configuration exists', function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(404, 'not found');
 
       $scope.$digest();
 
@@ -115,8 +125,10 @@ describe('samlConfiguration', function() {
       expect(vm.saveOrDeleteError).toBeUndefined();
     });
 
-    it('sets the error message on failure', function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(400, 'bad request');
+    it('sets the error message on failure', function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(400, 'bad request');
 
       $scope.$digest();
 
@@ -128,40 +140,52 @@ describe('samlConfiguration', function() {
     });
   });
 
-  describe('readIdentityProviderMetadataXml', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('readIdentityProviderMetadataXml', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    it('does nothing if the given file is undefined', function() {
-      expect(vm.saml.identityProviderMetadataXml).toBe(saml1.identityProviderMetadataXml);
+    it('does nothing if the given file is undefined', function () {
+      expect(vm.saml.identityProviderMetadataXml).toBe(
+        saml1.identityProviderMetadataXml
+      );
 
       vm.readIdentityProviderMetadataXml();
 
-      expect(vm.saml.identityProviderMetadataXml).toBe(saml1.identityProviderMetadataXml);
+      expect(vm.saml.identityProviderMetadataXml).toBe(
+        saml1.identityProviderMetadataXml
+      );
     });
 
-    it('sets the identityProviderMetadataXml to the file content', function() {
-      expect(vm.saml.identityProviderMetadataXml).toBe(saml1.identityProviderMetadataXml);
-      let file = {content: '<xml>different</xml>'};
+    it('sets the identityProviderMetadataXml to the file content', function () {
+      expect(vm.saml.identityProviderMetadataXml).toBe(
+        saml1.identityProviderMetadataXml
+      );
+      let file = { content: '<xml>different</xml>' };
 
       vm.readIdentityProviderMetadataXml(file);
 
-      expect(mockFileReader.addEventListener.calls.mostRecent().args[0]).toBe('load');
+      expect(mockFileReader.addEventListener.calls.mostRecent().args[0]).toBe(
+        'load'
+      );
       expect(mockFileReader.result).toBe('<xml>different</xml>');
     });
   });
 
-  describe('isChanged', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('isChanged', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    it('returns true if the identityProviderName is changed', function() {
+    it('returns true if the identityProviderName is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.identityProviderName = vm.saml.identityProviderName + '2';
@@ -169,7 +193,7 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if the identityProviderMetadataXml is changed', function() {
+    it('returns true if the identityProviderMetadataXml is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.identityProviderMetadataXml = '<xml>changed</xml>';
@@ -177,7 +201,7 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if the entityId is changed', function() {
+    it('returns true if the entityId is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.entityId = vm.saml.entityId + '2';
@@ -185,15 +209,16 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if the usernameNameAttributeName is changed', function() {
+    it('returns true if the usernameNameAttributeName is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
-      vm.saml.usernameNameAttributeName = vm.saml.usernameNameAttributeName + '2';
+      vm.saml.usernameNameAttributeName =
+        vm.saml.usernameNameAttributeName + '2';
 
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if the firstNameAttributeName is changed', function() {
+    it('returns true if the firstNameAttributeName is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.firstNameAttributeName = vm.saml.firstNameAttributeName + '2';
@@ -201,7 +226,7 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if the lastNameAttributeName is changed', function() {
+    it('returns true if the lastNameAttributeName is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.lastNameAttributeName = vm.saml.lastNameAttributeName + '2';
@@ -209,7 +234,7 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if the emailAttributeName is changed', function() {
+    it('returns true if the emailAttributeName is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.emailAttributeName = vm.saml.emailAttributeName + '2';
@@ -217,7 +242,7 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if the groupsAttributeName is changed', function() {
+    it('returns true if the groupsAttributeName is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.groupsAttributeName = vm.saml.groupsAttributeName + '2';
@@ -225,7 +250,7 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if validateResponseSignature is changed', function() {
+    it('returns true if validateResponseSignature is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.validateResponseSignature = !vm.saml.validateResponseSignature;
@@ -233,7 +258,7 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns true if validateAssertionSignature is changed', function() {
+    it('returns true if validateAssertionSignature is changed', function () {
       expect(vm.isChanged()).toBe(false);
 
       vm.saml.validateAssertionSignature = !vm.saml.validateAssertionSignature;
@@ -241,7 +266,7 @@ describe('samlConfiguration', function() {
       expect(vm.isChanged()).toBe(true);
     });
 
-    it('returns false if nothing is changed', function() {
+    it('returns false if nothing is changed', function () {
       expect(vm.isChanged()).toBe(false);
       vm.saml = defaultSaml;
       expect(vm.isChanged()).toBe(true);
@@ -252,29 +277,43 @@ describe('samlConfiguration', function() {
     });
   });
 
-  describe('save', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
+  describe('save', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(404, 'not found');
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    it('sets the original saml values to the saml values on success', function() {
+    it('sets the original saml values to the saml values on success', function () {
       expect(vm.isUpdating).toBe(false);
       expect(vm.isChanged()).toBe(false);
       vm.saml = saml2;
       expect(vm.isChanged()).toBe(true);
-      $httpBackend.expectPUT(CLMContextLocations.getSamlConfigurationUrl(), function(data) {
-        expect(data).not.toBeUndefined();
-        expect(data.get('identityProviderXml')).toBe(vm.saml.identityProviderMetadataXml);
-        expect(data.get('samlConfiguration')).toBe(JSON.stringify(omit(['identityProviderMetadataXml'], vm.saml)));
-        return true;
-      }, function(headers) {
-        expect(headers).not.toBeUndefined();
-        expect(headers['Content-Type']).toBe(undefined);
-        return true;
-      }).respond(204);
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(vm.saml);
+      $httpBackend
+        .expectPUT(
+          CLMContextLocations.getSamlConfigurationUrl(),
+          function (data) {
+            expect(data).not.toBeUndefined();
+            expect(data.get('identityProviderXml')).toBe(
+              vm.saml.identityProviderMetadataXml
+            );
+            expect(data.get('samlConfiguration')).toBe(
+              JSON.stringify(omit(['identityProviderMetadataXml'], vm.saml))
+            );
+            return true;
+          },
+          function (headers) {
+            expect(headers).not.toBeUndefined();
+            expect(headers['Content-Type']).toBe(undefined);
+            return true;
+          }
+        )
+        .respond(204);
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(vm.saml);
       expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       vm.save();
@@ -295,12 +334,14 @@ describe('samlConfiguration', function() {
       expect(vm.saveOrDeleteError).toBeUndefined();
     });
 
-    it('sets the error message on failure', function() {
+    it('sets the error message on failure', function () {
       expect(vm.isUpdating).toBe(false);
       expect(vm.isChanged()).toBe(false);
       vm.saml = saml2;
       expect(vm.isChanged()).toBe(true);
-      $httpBackend.expectPUT(CLMContextLocations.getSamlConfigurationUrl()).respond(400, 'bad request');
+      $httpBackend
+        .expectPUT(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(400, 'bad request');
       expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       vm.save();
@@ -317,7 +358,9 @@ describe('samlConfiguration', function() {
 
       expect(maskArgResolvedSpy).not.toHaveBeenCalled();
       expect(maskArgFailedSpy).toHaveBeenCalled();
-      wrapReturn.catch.calls.mostRecent().args[0](maskArgFailedSpy.calls.mostRecent().args[0]);
+      wrapReturn.catch.calls
+        .mostRecent()
+        .args[0](maskArgFailedSpy.calls.mostRecent().args[0]);
       expect(vm.saml).toBe(saml2);
       expect(vm.isUpdating).toBe(false);
       expect(vm.isChanged()).toBe(true);
@@ -326,14 +369,16 @@ describe('samlConfiguration', function() {
     });
   });
 
-  describe('cancel', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('cancel', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    it('sets the saml values back to their original values', function() {
+    it('sets the saml values back to their original values', function () {
       vm.saml = saml2;
 
       vm.cancel();
@@ -342,14 +387,16 @@ describe('samlConfiguration', function() {
     });
   });
 
-  describe('delete', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('delete', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    it('sets the default saml values on confirming delete and success', function() {
+    it('sets the default saml values on confirming delete and success', function () {
       expect(vm.saml).toEqual(saml1);
       expect(vm.isUpdating).toBe(true);
       spyOn(Dialog, 'open');
@@ -357,8 +404,12 @@ describe('samlConfiguration', function() {
       vm.delete();
 
       expect(Dialog.open).toHaveBeenCalled();
-      $httpBackend.expectDELETE(CLMContextLocations.getSamlConfigurationUrl()).respond(200);
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
+      $httpBackend
+        .expectDELETE(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(200);
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(404, 'not found');
       expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       Dialog.open.calls.mostRecent().args[0].buttons[0].click();
@@ -378,7 +429,7 @@ describe('samlConfiguration', function() {
       expect(vm.saveOrDeleteError).toBeUndefined();
     });
 
-    it('sets the error message on confirming delete and failure', function() {
+    it('sets the error message on confirming delete and failure', function () {
       expect(vm.saml).toEqual(saml1);
       expect(vm.isUpdating).toBe(true);
       spyOn(Dialog, 'open');
@@ -386,7 +437,9 @@ describe('samlConfiguration', function() {
       vm.delete();
 
       expect(Dialog.open).toHaveBeenCalled();
-      $httpBackend.expectDELETE(CLMContextLocations.getSamlConfigurationUrl()).respond(404, 'not found');
+      $httpBackend
+        .expectDELETE(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(404, 'not found');
       expect(vm.samlConfigurationMask.wrap).not.toHaveBeenCalled();
 
       Dialog.open.calls.mostRecent().args[0].buttons[0].click();
@@ -403,14 +456,16 @@ describe('samlConfiguration', function() {
 
       expect(maskArgResolvedSpy).not.toHaveBeenCalled();
       expect(maskArgFailedSpy).toHaveBeenCalled();
-      wrapReturn.catch.calls.mostRecent().args[0](maskArgFailedSpy.calls.mostRecent().args[0]);
+      wrapReturn.catch.calls
+        .mostRecent()
+        .args[0](maskArgFailedSpy.calls.mostRecent().args[0]);
       expect(vm.saml).toEqual(saml1);
       expect(vm.isUpdating).toBe(true);
       expect(vm.loadError).toBeUndefined();
       expect(vm.saveOrDeleteError).toBe('not found');
     });
 
-    it('does nothing on cancel', function() {
+    it('does nothing on cancel', function () {
       expect(vm.saml).toEqual(saml1);
       expect(vm.isUpdating).toBe(true);
       spyOn(Dialog, 'open');
@@ -418,7 +473,9 @@ describe('samlConfiguration', function() {
       vm.delete();
 
       expect(Dialog.open).toHaveBeenCalled();
-      expect(Dialog.open.calls.mostRecent().args[0].buttons[1].click).toBe(undefined);
+      expect(Dialog.open.calls.mostRecent().args[0].buttons[1].click).toBe(
+        undefined
+      );
       expect(vm.saml).toEqual(saml1);
       expect(vm.isUpdating).toBe(true);
       expect(vm.loadError).toBeUndefined();
@@ -426,27 +483,33 @@ describe('samlConfiguration', function() {
     });
   });
 
-  describe('defaultsToTooltipText', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('defaultsToTooltipText', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    it('returns the expected text given a default value', function() {
+    it('returns the expected text given a default value', function () {
       let defaultValue = 'defaultValue';
-      expect(vm.defaultsToTooltipText(defaultValue)).toBe('If empty will default to "' + defaultValue + '"');
+      expect(vm.defaultsToTooltipText(defaultValue)).toBe(
+        'If empty will default to "' + defaultValue + '"'
+      );
     });
   });
 
-  describe('resetToDefaultValueIfEmpty', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('resetToDefaultValueIfEmpty', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    it('resets the given saml variable to its default value if it is empty', function() {
+    it('resets the given saml variable to its default value if it is empty', function () {
       vm.saml = {
         identityProviderMetadataXml: '',
         entityId: '',
@@ -454,7 +517,7 @@ describe('samlConfiguration', function() {
         firstNameAttributeName: '',
         lastNameAttributeName: '',
         emailAttributeName: '',
-        groupsAttributeName: ''
+        groupsAttributeName: '',
       };
 
       vm.resetToDefaultValueIfEmpty('entityId');
@@ -465,14 +528,20 @@ describe('samlConfiguration', function() {
       vm.resetToDefaultValueIfEmpty('groupsAttributeName');
 
       expect(vm.saml.entityId).toBe(defaultSaml.entityId);
-      expect(vm.saml.usernameAttributeName).toBe(defaultSaml.usernameAttributeName);
-      expect(vm.saml.firstNameAttributeName).toBe(defaultSaml.firstNameAttributeName);
-      expect(vm.saml.lastNameAttributeName).toBe(defaultSaml.lastNameAttributeName);
+      expect(vm.saml.usernameAttributeName).toBe(
+        defaultSaml.usernameAttributeName
+      );
+      expect(vm.saml.firstNameAttributeName).toBe(
+        defaultSaml.firstNameAttributeName
+      );
+      expect(vm.saml.lastNameAttributeName).toBe(
+        defaultSaml.lastNameAttributeName
+      );
       expect(vm.saml.emailAttributeName).toBe(defaultSaml.emailAttributeName);
       expect(vm.saml.groupsAttributeName).toBe(defaultSaml.groupsAttributeName);
     });
 
-    it('does not reset the given saml variable to its default value if it is not empty', function() {
+    it('does not reset the given saml variable to its default value if it is not empty', function () {
       vm.saml = saml1;
 
       vm.resetToDefaultValueIfEmpty('entityId');
@@ -491,25 +560,28 @@ describe('samlConfiguration', function() {
     });
   });
 
-  describe('downloadMetadataForIE', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('downloadMetadataForIE', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (window.navigator.msSaveBlob) {
         delete window.navigator.msSaveBlob;
       }
     });
 
-    it('calls msSaveBlob if a configuration is saved and it is IE', function() {
+    it('calls msSaveBlob if a configuration is saved and it is IE', function () {
       vm.isUpdating = true;
       window.navigator.msSaveBlob = jasmine.createSpy();
       spyOn(window, 'Blob');
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl() + '/metadata').respond(
-          '<xml>metadata</xml>');
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl() + '/metadata')
+        .respond('<xml>metadata</xml>');
 
       vm.downloadMetadataForIE();
 
@@ -519,11 +591,15 @@ describe('samlConfiguration', function() {
 
       expect(window.Blob).toHaveBeenCalledWith(['<xml>metadata</xml>']);
       expect(window.navigator.msSaveBlob).toHaveBeenCalled();
-      expect(window.navigator.msSaveBlob.calls.mostRecent().args[0]).not.toBeNull();
-      expect(window.navigator.msSaveBlob.calls.mostRecent().args[1]).toBe('metadata.xml');
+      expect(
+        window.navigator.msSaveBlob.calls.mostRecent().args[0]
+      ).not.toBeNull();
+      expect(window.navigator.msSaveBlob.calls.mostRecent().args[1]).toBe(
+        'metadata.xml'
+      );
     });
 
-    it('does nothing if a configuration is saved and it is not IE', function() {
+    it('does nothing if a configuration is saved and it is not IE', function () {
       vm.isUpdating = true;
       spyOn(window, 'Blob');
 
@@ -532,7 +608,7 @@ describe('samlConfiguration', function() {
       expect(window.Blob).not.toHaveBeenCalled();
     });
 
-    it('does nothing if a configuration is not saved and it is IE', function() {
+    it('does nothing if a configuration is not saved and it is IE', function () {
       vm.isUpdating = false;
       window.navigator.msSaveBlob = jasmine.createSpy();
 
@@ -541,7 +617,7 @@ describe('samlConfiguration', function() {
       expect(window.navigator.msSaveBlob).not.toHaveBeenCalled();
     });
 
-    it('does nothing if a configuration is not saved and it is not IE', function() {
+    it('does nothing if a configuration is not saved and it is not IE', function () {
       vm.isUpdating = false;
       spyOn(window, 'Blob');
 
@@ -551,39 +627,41 @@ describe('samlConfiguration', function() {
     });
   });
 
-  describe('shouldEnableDownloadMetadataLink', function() {
-    beforeEach(function() {
-      $httpBackend.expectGET(CLMContextLocations.getSamlConfigurationUrl()).respond(saml1);
+  describe('shouldEnableDownloadMetadataLink', function () {
+    beforeEach(function () {
+      $httpBackend
+        .expectGET(CLMContextLocations.getSamlConfigurationUrl())
+        .respond(saml1);
       $scope.$digest();
       $httpBackend.flush();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       if (window.navigator.msSaveBlob) {
         delete window.navigator.msSaveBlob;
       }
     });
 
-    it('returns true if a configuration exists and it is not IE', function() {
+    it('returns true if a configuration exists and it is not IE', function () {
       vm.isUpdating = true;
 
       expect(vm.shouldEnableDownloadMetadataLink()).toBe(true);
     });
 
-    it('returns false if a configuration exists and it is IE', function() {
+    it('returns false if a configuration exists and it is IE', function () {
       vm.isUpdating = true;
       window.navigator.msSaveBlob = jasmine.createSpy();
 
       expect(vm.shouldEnableDownloadMetadataLink()).toBe(false);
     });
 
-    it('returns false if a configuration does not exist and it is not IE', function() {
+    it('returns false if a configuration does not exist and it is not IE', function () {
       vm.isUpdating = false;
 
       expect(vm.shouldEnableDownloadMetadataLink()).toBe(false);
     });
 
-    it('returns false if a configuration does not exist and it is IE', function() {
+    it('returns false if a configuration does not exist and it is IE', function () {
       vm.isUpdating = false;
       window.navigator.msSaveBlob = jasmine.createSpy();
 

@@ -8,13 +8,15 @@ import template from './successMetricsConfiguration.html';
 var successMetricsConfiguration = {
   controller: SuccessMetricsConfigurationController,
   bindings: {
-    isAuthorized: '<'
+    isAuthorized: '<',
   },
   controllerAs: 'vm',
-  template: template
+  template: template,
 };
 
-function SuccessMetricsConfigurationController(systemConfigurationPropertyService) {
+function SuccessMetricsConfigurationController(
+  systemConfigurationPropertyService
+) {
   var vm = this;
   vm.successMetricsEnabled = undefined;
   vm.savedSuccessMetricsEnabled = undefined;
@@ -28,21 +30,27 @@ function SuccessMetricsConfigurationController(systemConfigurationPropertyServic
 
   function load() {
     vm.error = undefined;
-    systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function(response) {
-      vm.savedSuccessMetricsEnabled = response;
-      vm.successMetricsEnabled = response;
-    }).catch(function(error) {
-      vm.error = error;
-    });
+    systemConfigurationPropertyService
+      .isSuccessMetricsEnabled()
+      .then(function (response) {
+        vm.savedSuccessMetricsEnabled = response;
+        vm.successMetricsEnabled = response;
+      })
+      .catch(function (error) {
+        vm.error = error;
+      });
   }
 
   function save() {
     vm.error = undefined;
-    systemConfigurationPropertyService.saveSuccessMetricsEnabled(vm.successMetricsEnabled).then(function() {
-      vm.savedSuccessMetricsEnabled = vm.successMetricsEnabled;
-    }).catch(function(error) {
-      vm.error = error;
-    });
+    systemConfigurationPropertyService
+      .saveSuccessMetricsEnabled(vm.successMetricsEnabled)
+      .then(function () {
+        vm.savedSuccessMetricsEnabled = vm.successMetricsEnabled;
+      })
+      .catch(function (error) {
+        vm.error = error;
+      });
   }
 
   function cancel() {
@@ -50,10 +58,15 @@ function SuccessMetricsConfigurationController(systemConfigurationPropertyServic
   }
 
   function isChanged() {
-    return !angular.equals(vm.savedSuccessMetricsEnabled, vm.successMetricsEnabled);
+    return !angular.equals(
+      vm.savedSuccessMetricsEnabled,
+      vm.successMetricsEnabled
+    );
   }
 }
 
-SuccessMetricsConfigurationController.$inject = ['systemConfigurationPropertyService'];
+SuccessMetricsConfigurationController.$inject = [
+  'systemConfigurationPropertyService',
+];
 
 export default successMetricsConfiguration;

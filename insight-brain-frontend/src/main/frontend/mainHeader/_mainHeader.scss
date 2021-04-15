@@ -141,7 +141,8 @@ $main-header-nav-breakpoint: 1150px;
   height: $iq-main-header-height;
   text-align: center;
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     background-color: $main-header-highlight;
     border-color: $iq-grey-1;
     color: $main-header-color;
@@ -186,7 +187,10 @@ $main-header-nav-breakpoint: 1150px;
   line-height: 16px;
   text-align: center;
 
-  &, &:hover, &:active, &:focus {
+  &,
+  &:hover,
+  &:active,
+  &:focus {
     background: none;
     border: none;
     color: $nx-grey-1100;
@@ -247,7 +251,7 @@ $main-header-nav-breakpoint: 1150px;
     border-right: 9px solid transparent;
     border-bottom: 8px solid $header-dropdown-panel-background-color-rgba;
     border-left: 9px solid transparent;
-    content: "";
+    content: '';
     display: inline-block;
     position: absolute;
     top: -8px;
@@ -258,7 +262,7 @@ $main-header-nav-breakpoint: 1150px;
     border-right: 8px solid transparent;
     border-bottom: 8px solid $iq-off-white;
     border-left: 8px solid transparent;
-    content: "";
+    content: '';
     display: inline-block;
     position: absolute;
     top: -8px;
@@ -281,12 +285,11 @@ $main-header-nav-breakpoint: 1150px;
   width: 16px;
 
   &.exclamation {
-    background-color: #F2DEDE;
-    border: solid thin #B94A48;
-    color: #B94A48;
+    background-color: #f2dede;
+    border: solid thin #b94a48;
+    color: #b94a48;
   }
 }
-
 
 // User Menu
 .iq-dropdown--user-menu {
@@ -385,7 +388,9 @@ $main-header-nav-breakpoint: 1150px;
 
 .iq-notification__text {
   display: inline-block;
-  width: calc(100% - #{$iq-notification-age-qualifier-width + $iq-notification-age-width});
+  width: calc(
+    100% - #{$iq-notification-age-qualifier-width + $iq-notification-age-width}
+  );
   white-space: normal;
 }
 
@@ -405,7 +410,7 @@ $main-header-nav-breakpoint: 1150px;
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
     border-left: 8px solid $iq-off-white;
-    content: "";
+    content: '';
     display: inline-block;
     position: absolute;
     top: 16px;
@@ -416,7 +421,7 @@ $main-header-nav-breakpoint: 1150px;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
     border-left: 8px solid rgba(254, 254, 254, 0.2);
-    content: "";
+    content: '';
     display: inline-block;
     position: absolute;
     top: 16px;
@@ -480,7 +485,8 @@ $main-header-nav-breakpoint: 1150px;
   justify-content: flex-end;
 }
 
-system-notice, change-default-admin-password-notice {
+system-notice,
+change-default-admin-password-notice {
   align-self: stretch;
 }
 

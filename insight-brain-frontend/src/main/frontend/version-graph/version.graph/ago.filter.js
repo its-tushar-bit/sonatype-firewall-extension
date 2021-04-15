@@ -5,11 +5,11 @@
  */
 // Copied from our AngularCommon library
 export default function agoFilter() {
-  return function(date) {
+  return function (date) {
     var ago = '',
-        diff,
-        unit,
-        val;
+      diff,
+      unit,
+      val;
 
     if (!date) {
       return ago;
@@ -19,24 +19,19 @@ export default function agoFilter() {
     if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
       val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
       unit = 'year';
-    }
-    else if (diff > 30 * 24 * 60 * 60 * 1000) {
+    } else if (diff > 30 * 24 * 60 * 60 * 1000) {
       val = diff / (30 * 24 * 60 * 60 * 1000);
       unit = 'month';
-    }
-    else if (diff > 24 * 60 * 60 * 1000) {
+    } else if (diff > 24 * 60 * 60 * 1000) {
       val = diff / (24 * 60 * 60 * 1000);
       unit = 'day';
-    }
-    else if (diff > 60 * 60 * 1000) {
+    } else if (diff > 60 * 60 * 1000) {
       val = diff / (60 * 60 * 1000);
       unit = 'hour';
-    }
-    else if (diff > 60 * 1000) {
+    } else if (diff > 60 * 1000) {
       val = diff / (60 * 1000);
       unit = 'minute';
-    }
-    else {
+    } else {
       return 'seconds ago';
     }
     val = Math.floor(val);

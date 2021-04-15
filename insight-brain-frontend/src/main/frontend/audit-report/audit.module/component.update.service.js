@@ -8,7 +8,7 @@ import optionalTemplate from './component.update.optional.html';
 
 export default function ComponentUpdateService(Modal) {
   return {
-    reevaluate: function(componentKey, reevaluate) {
+    reevaluate: function (componentKey, reevaluate) {
       if (componentKey) {
         Modal.open({
           template: mainTemplate,
@@ -16,24 +16,23 @@ export default function ComponentUpdateService(Modal) {
           backdrop: 'static',
           keyboard: false,
           resolve: {
-            componentKey: function() {
+            componentKey: function () {
               return componentKey;
             },
-            reevaluate: function() {
+            reevaluate: function () {
               return reevaluate;
-            }
-          }
+            },
+          },
         });
-      }
-      else {
+      } else {
         Modal.open({
           template: optionalTemplate,
           controller: 'component.update.optional.controller as vm',
           backdrop: 'static',
-          keyboard: false
+          keyboard: false,
         });
       }
-    }
+    },
   };
 }
 

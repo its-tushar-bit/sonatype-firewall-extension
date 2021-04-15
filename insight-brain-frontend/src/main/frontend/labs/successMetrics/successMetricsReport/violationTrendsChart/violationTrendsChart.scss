@@ -13,7 +13,6 @@ $total-delta-icon-margin-right: 12px;
 $total-delta-icon-margin-left: 8px;
 
 .iq-table--violation-trends-chart-table {
-
   thead {
     .iq-table-row {
       border-top: 0;
@@ -67,7 +66,8 @@ $total-delta-icon-margin-left: 8px;
       height: $chart-height;
       min-width: 120px;
 
-      .label, .component.label {
+      .label,
+      .component.label {
         background-color: transparent;
         padding: 0;
       }
@@ -83,7 +83,8 @@ $total-delta-icon-margin-left: 8px;
 
 .iq-cell--violation-trends-chart-total-number {
   // leave space for floated delta icon = icon width + icon margins
-  margin-right: 10px + $total-delta-icon-margin-right + $total-delta-icon-margin-left;
+  margin-right: 10px + $total-delta-icon-margin-right +
+    $total-delta-icon-margin-left;
 }
 
 .iq-cell--violation-trends-chart-total-delta-icon {

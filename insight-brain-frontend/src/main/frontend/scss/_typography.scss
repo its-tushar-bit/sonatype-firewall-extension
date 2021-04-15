@@ -94,11 +94,11 @@ ul + p {
 }
 
 // Form typography
-input[type=text],
-input[type=number],
-input[type=email],
-input[type=password],
-input[type=url],
+input[type='text'],
+input[type='number'],
+input[type='email'],
+input[type='password'],
+input[type='url'],
 textarea {
   @include regular();
 
@@ -107,7 +107,8 @@ textarea {
   margin-bottom: 0px;
 }
 
-label.checkbox, label.radio {
+label.checkbox,
+label.radio {
   @include regular();
 
   font-size: 14px;

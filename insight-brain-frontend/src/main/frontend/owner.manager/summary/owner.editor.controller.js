@@ -3,15 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $http, $q, owner, ownerType, siblings,
-                               messages, CLMContextLocations, EventNameConstant) {
+export default function OwnerEditorController(
+  $scope,
+  $rootScope,
+  $state,
+  $window,
+  $cookies,
+  $http,
+  $q,
+  owner,
+  ownerType,
+  siblings,
+  messages,
+  CLMContextLocations,
+  EventNameConstant
+) {
   var vm = this,
-      deferred,
-      preventDismiss = false,
-      //default to null as that is the value we use for the 'default selection'
-      //keep in mind we aren't currently loading any data to say what the existing icon type is
-      originalIconType = null;
+    deferred,
+    preventDismiss = false,
+    //default to null as that is the value we use for the 'default selection'
+    //keep in mind we aren't currently loading any data to say what the existing icon type is
+    originalIconType = null;
 
   vm.cancel = cancel;
   vm.csrfTokenName = $http.defaults.xsrfHeaderName;
@@ -31,45 +43,47 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
   vm.siblings = siblings;
   vm.userIconPreview = undefined;
   vm.unsavedModalVisible = false;
-  const invalidCharactersMessage = 'Use valid characters: alphanumeric, "_", "." or "-"';
+  const invalidCharactersMessage =
+    'Use valid characters: alphanumeric, "_", "." or "-"';
   vm.formMessages = {
     duplicate: 'ID is already in use',
     validNameCharacters: invalidCharactersMessage,
-    noSpaces: invalidCharactersMessage
+    noSpaces: invalidCharactersMessage,
   };
 
-  $scope.$watch('vm.icon.type', function(iconType) {
+  $scope.$watch('vm.icon.type', function (iconType) {
     if (iconType !== 'source') {
       $('#icon-file').val(''); // reset
     }
 
-    vm.icon.hasRobotSource = (iconType === 'robot');
+    vm.icon.hasRobotSource = iconType === 'robot';
     if (!vm.icon.hasRobotSource) {
       vm.icon.robotHash = null;
-    }
-    else {
+    } else {
       vm.robot(vm.dirtyOwner && vm.dirtyOwner.name);
     }
   });
 
-  $scope.$watch('vm.icon.source', function() {
+  $scope.$watch('vm.icon.source', function () {
     if ($window.URL && vm.icon.source) {
-      vm.userIconPreview = $window.URL.createObjectURL($('#icon-file')[0].files[0]);
+      vm.userIconPreview = $window.URL.createObjectURL(
+        $('#icon-file')[0].files[0]
+      );
     }
   });
 
-  $scope.$on('pageChangeStarted', function(event) {
+  $scope.$on('pageChangeStarted', function (event) {
     if (isDirty() && !vm.iconWarning) {
       vm.unsavedModalVisible = true;
       event.preventDefault();
     }
   });
 
-  $scope.$on('pageChangeCanceled', function() {
+  $scope.$on('pageChangeCanceled', function () {
     vm.unsavedModalVisible = false;
   });
 
-  $scope.$on('pageChangeAccepted', function() {
+  $scope.$on('pageChangeAccepted', function () {
     if (!preventDismiss) {
       $scope.$dismiss();
     }
@@ -77,14 +91,18 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
   });
 
   function isDirty() {
-    return !(vm.icon.type === originalIconType || (!vm.icon.type && !originalIconType)) || vm.dirtyOwner.isDirty();
+    return (
+      !(
+        vm.icon.type === originalIconType ||
+        (!vm.icon.type && !originalIconType)
+      ) || vm.dirtyOwner.isDirty()
+    );
   }
 
   function fileUploadComplete(content) {
     if (angular.isString(content) && content) {
       deferred.reject(content);
-    }
-    else {
+    } else {
       deferred.resolve(vm.dirtyOwner);
     }
     deferred = null;
@@ -99,62 +117,96 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
       vm.dirtyOwner.contactInternalName = vm.dirtyOwner.contact.internalName;
     }
 
-    vm.ownerEditorMask.wrap(vm.dirtyOwner.$save().then(function(result) {
-      var form = $('#custom-icon-form'),
-          nameChanged = !vm.ownerEditor.name.$pristine,
-          iconUploadUrl = CLMContextLocations.getAddIconUrl(ownerType, result.id);
-      vm.ownerEditor.name.$setPristine();
+    vm.ownerEditorMask
+      .wrap(
+        vm.dirtyOwner.$save().then(function (result) {
+          var form = $('#custom-icon-form'),
+            nameChanged = !vm.ownerEditor.name.$pristine,
+            iconUploadUrl = CLMContextLocations.getAddIconUrl(
+              ownerType,
+              result.id
+            );
+          vm.ownerEditor.name.$setPristine();
 
-      if (vm.icon.type === '') {
-        // default icon
-        return result;
-      }
-      else if ($window.FormData) {
-        var formData = new FormData(form[0]);
-        deferred = $q.defer();
+          if (vm.icon.type === '') {
+            // default icon
+            return result;
+          } else if ($window.FormData) {
+            var formData = new FormData(form[0]);
+            deferred = $q.defer();
 
-        $http.post(iconUploadUrl, formData).then(function() {
-          deferred.resolve(result);
-        }, function(error) {
-          if (isNew || nameChanged === true) { // only show warning for new and mixed state
-            vm.iconWarning = messages.getHttpErrorMessage(error);
+            $http
+              .post(iconUploadUrl, formData)
+              .then(
+                function () {
+                  deferred.resolve(result);
+                },
+                function (error) {
+                  if (isNew || nameChanged === true) {
+                    // only show warning for new and mixed state
+                    vm.iconWarning = messages.getHttpErrorMessage(error);
+                  }
+                  deferred.reject(error);
+                }
+              )
+              .finally(function () {
+                deferred = null;
+              });
+          } else {
+            deferred = $q.defer();
+            form[0].action = iconUploadUrl;
+            form.submit();
           }
-          deferred.reject(error);
-        }).finally(function() {
-          deferred = null;
-        });
-      }
-      else {
-        deferred = $q.defer();
-        form[0].action = iconUploadUrl;
-        form.submit();
-      }
-      return deferred.promise;
-    })).then(function(updatedOwner) {
-      originalIconType = vm.icon.type;
-      $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, updatedOwner, ownerType, isNew);
-      if (isNew) {
-        $state.go('management.view.' + ownerType, ownerType === 'application' ? {
-          applicationPublicId: updatedOwner.publicId
-        } : {
-          organizationId: updatedOwner.id
-        });
-      }
-      $scope.$close();
-    }, function(error) {
-      if (!vm.iconWarning) {
-        vm.error = messages.getHttpErrorMessage(error);
-      }
-      else {
-        preventDismiss = true;
-        $rootScope.$broadcast(EventNameConstant.OWNER_UPDATED, vm.dirtyOwner, ownerType, isNew);
-        $state.go('management.view.' + ownerType, ownerType === 'application' ? {
-          applicationPublicId: vm.dirtyOwner.publicId
-        } : {
-          organizationId: vm.dirtyOwner.id
-        });
-      }
-    });
+          return deferred.promise;
+        })
+      )
+      .then(
+        function (updatedOwner) {
+          originalIconType = vm.icon.type;
+          $rootScope.$broadcast(
+            EventNameConstant.OWNER_UPDATED,
+            updatedOwner,
+            ownerType,
+            isNew
+          );
+          if (isNew) {
+            $state.go(
+              'management.view.' + ownerType,
+              ownerType === 'application'
+                ? {
+                    applicationPublicId: updatedOwner.publicId,
+                  }
+                : {
+                    organizationId: updatedOwner.id,
+                  }
+            );
+          }
+          $scope.$close();
+        },
+        function (error) {
+          if (!vm.iconWarning) {
+            vm.error = messages.getHttpErrorMessage(error);
+          } else {
+            preventDismiss = true;
+            $rootScope.$broadcast(
+              EventNameConstant.OWNER_UPDATED,
+              vm.dirtyOwner,
+              ownerType,
+              isNew
+            );
+            $state.go(
+              'management.view.' + ownerType,
+              ownerType === 'application'
+                ? {
+                    applicationPublicId: vm.dirtyOwner.publicId,
+                  }
+                : {
+                    organizationId: vm.dirtyOwner.id,
+                  }
+            );
+          }
+        }
+      );
   }
 
   function getTypeName() {
@@ -171,12 +223,11 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
     // Once the user has already generated a robot by hashing the name, continue to provide random robots
     if (!name || vm.icon.robotHash) {
       hash = Math.floor(Math.random() * 10000);
-    }
-    else {
+    } else {
       for (var i = 0; i < name.length; i++) {
         var charAtI = name.charCodeAt(i);
         /*jslint bitwise: true */
-        hash = ((hash << 5) - hash) + charAtI;
+        hash = (hash << 5) - hash + charAtI;
         hash = hash & hash;
       }
     }
@@ -190,6 +241,17 @@ function OwnerEditorController($scope, $rootScope, $state, $window, $cookies, $h
 }
 
 OwnerEditorController.$inject = [
-  '$scope', '$rootScope', '$state', '$window', '$cookies', '$http', '$q', 'owner', 'ownerType', 'siblings',
-  'Messages', 'CLMContextLocations', 'event.name.constant'
+  '$scope',
+  '$rootScope',
+  '$state',
+  '$window',
+  '$cookies',
+  '$http',
+  '$q',
+  'owner',
+  'ownerType',
+  'siblings',
+  'Messages',
+  'CLMContextLocations',
+  'event.name.constant',
 ];

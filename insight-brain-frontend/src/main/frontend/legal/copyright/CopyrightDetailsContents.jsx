@@ -7,7 +7,7 @@ import React from 'react';
 import {
   availableScopesPropType,
   componentCopyrightDetailsPropType,
-  componentPropType
+  componentPropType,
 } from '../advancedLegalPropTypes';
 import * as PropTypes from 'prop-types';
 import CopyrightDetailsOverview from './CopyrightDetailsOverview';
@@ -23,25 +23,27 @@ export default function CopyrightDetailsContents(props) {
 
     loadCopyrightContexts,
     unloadCopyrightContexts,
-    loadFilePathsOnPageUpdate
+    loadFilePathsOnPageUpdate,
   } = props;
 
   // If we're loading data or in error state than the rendering will be handled by CopyrightDetailsHeader
   // component and this component should not be rendered
-  return loading || error
-    ? null
-    : <div className="nx-scrollable nx-viewport-sized__scrollable">
+  return loading || error ? null : (
+    <div className="nx-scrollable nx-viewport-sized__scrollable">
       <CopyrightDetailsOverview
         availableScopes={availableScopes}
         component={component}
-        componentCopyrightDetails={componentCopyrightDetails}/>
+        componentCopyrightDetails={componentCopyrightDetails}
+      />
       <CopyrightFilesTile
         selectedCopyright={componentCopyrightDetails.selectedCopyright}
         loadCopyrightContexts={loadCopyrightContexts}
         hideCopyrightContext={unloadCopyrightContexts}
         componentCopyrightDetails={componentCopyrightDetails}
-        pageChange={loadFilePathsOnPageUpdate}/>
-    </div>;
+        pageChange={loadFilePathsOnPageUpdate}
+      />
+    </div>
+  );
 }
 
 CopyrightDetailsContents.propTypes = {
@@ -52,6 +54,5 @@ CopyrightDetailsContents.propTypes = {
   componentCopyrightDetails: componentCopyrightDetailsPropType,
   loadFilePathsOnPageUpdate: PropTypes.func.isRequired,
   loadCopyrightContexts: PropTypes.func.isRequired,
-  unloadCopyrightContexts: PropTypes.func.isRequired
+  unloadCopyrightContexts: PropTypes.func.isRequired,
 };
-

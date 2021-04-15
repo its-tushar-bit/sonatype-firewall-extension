@@ -22,24 +22,72 @@ export default function generateDataset() {
 
   return {
     discovered: [
-      {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: week0Discovered},
-      {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: week1Discovered},
-      {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: week2Discovered}
+      {
+        timePeriodIndex: 0,
+        timePeriodName: 'Week of Sep 10th',
+        violations: week0Discovered,
+      },
+      {
+        timePeriodIndex: 1,
+        timePeriodName: 'Week of Sep 17th',
+        violations: week1Discovered,
+      },
+      {
+        timePeriodIndex: 2,
+        timePeriodName: 'Week of Sep 24th',
+        violations: week2Discovered,
+      },
     ],
     waived: [
-      {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: week0Waived},
-      {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: week1Waived},
-      {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: week2Waived}
+      {
+        timePeriodIndex: 0,
+        timePeriodName: 'Week of Sep 10th',
+        violations: week0Waived,
+      },
+      {
+        timePeriodIndex: 1,
+        timePeriodName: 'Week of Sep 17th',
+        violations: week1Waived,
+      },
+      {
+        timePeriodIndex: 2,
+        timePeriodName: 'Week of Sep 24th',
+        violations: week2Waived,
+      },
     ],
     fixed: [
-      {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: week0Fixed},
-      {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: week1Fixed},
-      {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: week2Fixed}
+      {
+        timePeriodIndex: 0,
+        timePeriodName: 'Week of Sep 10th',
+        violations: week0Fixed,
+      },
+      {
+        timePeriodIndex: 1,
+        timePeriodName: 'Week of Sep 17th',
+        violations: week1Fixed,
+      },
+      {
+        timePeriodIndex: 2,
+        timePeriodName: 'Week of Sep 24th',
+        violations: week2Fixed,
+      },
     ],
     delta: [
-      {timePeriodIndex: 0, timePeriodName: 'Week of Sep 10th', violations: week0Delta},
-      {timePeriodIndex: 1, timePeriodName: 'Week of Sep 17th', violations: week1Delta},
-      {timePeriodIndex: 2, timePeriodName: 'Week of Sep 24th', violations: week2Delta}
-    ]
+      {
+        timePeriodIndex: 0,
+        timePeriodName: 'Week of Sep 10th',
+        violations: week0Delta,
+      },
+      {
+        timePeriodIndex: 1,
+        timePeriodName: 'Week of Sep 17th',
+        violations: week1Delta,
+      },
+      {
+        timePeriodIndex: 2,
+        timePeriodName: 'Week of Sep 24th',
+        violations: week2Delta,
+      },
+    ],
   };
 }

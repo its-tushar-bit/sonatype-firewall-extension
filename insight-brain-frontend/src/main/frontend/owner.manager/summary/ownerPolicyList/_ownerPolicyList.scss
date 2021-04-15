@@ -47,7 +47,7 @@ owner-policy-list {
 
     // Develop column
     &:nth-child(4) {
-      width: $iq-cell-develop-width
+      width: $iq-cell-develop-width;
     }
 
     // Release column
@@ -69,16 +69,14 @@ owner-policy-list {
     padding-bottom: 0;
     // values below are the values in the classes above + border
     // last value is the chevron column
-    width: calc(100% - (
-                        #{$iq-cell-proxy-width} + 1px
-                        + #{$iq-cell-build-width} + 1px
-                        + #{$iq-cell-stage-width} + 1px
-                        + #{$iq-cell-develop-width} + 1px
-                        + #{$iq-cell-release-width} + 1px
-                        + #{$iq-cell-operate-width} + 1px
-                        + 33px
-                      )
-                    );
+    width: calc(
+      100% -
+        (
+          #{$iq-cell-proxy-width} + 1px + #{$iq-cell-build-width} + 1px + #{$iq-cell-stage-width} +
+            1px + #{$iq-cell-develop-width} + 1px + #{$iq-cell-release-width} + 1px +
+            #{$iq-cell-operate-width} + 1px + 33px
+        )
+    );
   }
 
   .iq-policy-name {
@@ -100,5 +98,3 @@ owner-policy-list {
     }
   }
 }
-
-

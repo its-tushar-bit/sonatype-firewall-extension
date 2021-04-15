@@ -8,19 +8,24 @@ import template from './retentionEditor.html';
 export default {
   template: template,
   controllerAs: 'vm',
-  controller: RetentionEditorController
+  controller: RetentionEditorController,
 };
 
-function RetentionEditorController(CLMContextLocations, retentionService, $q, Messages) {
-  const DONT_PURGE = 'don\'t purge';
+function RetentionEditorController(
+  CLMContextLocations,
+  retentionService,
+  $q,
+  Messages
+) {
+  const DONT_PURGE = "don't purge";
 
   let originalRetention = {};
 
   const timeUnitMultipliers = {
-    'day': 1,
-    'week': 7,
-    'month': 30,
-    'year': 365
+    day: 1,
+    week: 7,
+    month: 30,
+    year: 365,
   };
 
   const vm = this;
@@ -55,72 +60,111 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
       if (!vm.isRootOrganization) {
         promises.push(retentionService.getRootOrganizationRetentionPolicies());
       }
-      return $q.all(promises).then(function(results) {
-        vm.applicationReportsFromServer = results[0].applicationReports;
-        vm.successMetricsFromServer = results[0].successMetrics;
-        if (!vm.isRootOrganization) {
-          vm.parentApplicationReportsFromServer = results[1].applicationReports;
-          vm.parentSuccessMetricsFromServer = results[1].successMetrics;
+      return $q.all(promises).then(
+        function (results) {
+          vm.applicationReportsFromServer = results[0].applicationReports;
+          vm.successMetricsFromServer = results[0].successMetrics;
+          if (!vm.isRootOrganization) {
+            vm.parentApplicationReportsFromServer =
+              results[1].applicationReports;
+            vm.parentSuccessMetricsFromServer = results[1].successMetrics;
+          }
+          setRetentionFormValue();
+        },
+        function (error) {
+          vm.error = Messages.getHttpErrorMessage(error);
         }
-        setRetentionFormValue();
-      }, function(error) {
-        vm.error = Messages.getHttpErrorMessage(error);
-      });
+      );
     },
 
     getParentMaxReportsAndMaxAge(stage) {
-      const parentApplicationReport = vm.parentApplicationReportsFromServer.stages[stage];
+      const parentApplicationReport =
+        vm.parentApplicationReportsFromServer.stages[stage];
       if (parentApplicationReport.enablePurging) {
         const prefix = 'keep at most ';
-        if (parentApplicationReport.maxCount && parentApplicationReport.maxAge) {
-          return prefix + parentApplicationReport.maxAge + ', ' + parentApplicationReport.maxCount + ' report' +
-              (parentApplicationReport.maxCount > 1 ? 's' : '');
+        if (
+          parentApplicationReport.maxCount &&
+          parentApplicationReport.maxAge
+        ) {
+          return (
+            prefix +
+            parentApplicationReport.maxAge +
+            ', ' +
+            parentApplicationReport.maxCount +
+            ' report' +
+            (parentApplicationReport.maxCount > 1 ? 's' : '')
+          );
         }
         if (parentApplicationReport.maxCount) {
-          return prefix + parentApplicationReport.maxCount + ' report' +
-              (parentApplicationReport.maxCount > 1 ? 's' : '');
+          return (
+            prefix +
+            parentApplicationReport.maxCount +
+            ' report' +
+            (parentApplicationReport.maxCount > 1 ? 's' : '')
+          );
         }
         if (parentApplicationReport.maxAge) {
           return prefix + parentApplicationReport.maxAge;
         }
-      }
-      else {
+      } else {
         return DONT_PURGE;
       }
     },
 
     getParentSuccessMetricsMaxAge() {
-      return vm.parentSuccessMetricsFromServer.enablePurging ? 'keep last ' +
-          vm.parentSuccessMetricsFromServer.maxAge : DONT_PURGE;
+      return vm.parentSuccessMetricsFromServer.enablePurging
+        ? 'keep last ' + vm.parentSuccessMetricsFromServer.maxAge
+        : DONT_PURGE;
     },
 
     save() {
       vm.submitError = undefined;
-      const newApplicationReports = {stages: {}};
+      const newApplicationReports = { stages: {} };
       for (const stage in vm.retention.stages) {
-        newApplicationReports.stages[stage] = toServerRetention(vm.retention.stages[stage], false);
+        newApplicationReports.stages[stage] = toServerRetention(
+          vm.retention.stages[stage],
+          false
+        );
       }
-      const newSuccessMetrics = toServerRetention(vm.retention.successMetrics, true);
-      const payload = {applicationReports: newApplicationReports, successMetrics: newSuccessMetrics};
-      vm.retentionEditorMask.wrap(retentionService.setRetentionPolicies(payload).then(vm.load, function(error) {
-        vm.submitError = Messages.getHttpErrorMessage(error);
-      }));
+      const newSuccessMetrics = toServerRetention(
+        vm.retention.successMetrics,
+        true
+      );
+      const payload = {
+        applicationReports: newApplicationReports,
+        successMetrics: newSuccessMetrics,
+      };
+      vm.retentionEditorMask.wrap(
+        retentionService
+          .setRetentionPolicies(payload)
+          .then(vm.load, function (error) {
+            vm.submitError = Messages.getHttpErrorMessage(error);
+          })
+      );
     },
 
     isDirty() {
       for (const stage in vm.retention.stages) {
-        if (isRetentionDirty(originalRetention.stages[stage], vm.retention.stages[stage])) {
+        if (
+          isRetentionDirty(
+            originalRetention.stages[stage],
+            vm.retention.stages[stage]
+          )
+        ) {
           return true;
         }
       }
-      return isRetentionDirty(originalRetention.successMetrics, vm.retention.successMetrics);
+      return isRetentionDirty(
+        originalRetention.successMetrics,
+        vm.retention.successMetrics
+      );
     },
 
     titleCase(name) {
-      return name.replace(/\b\w+/g, function(txt) {
+      return name.replace(/\b\w+/g, function (txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
       });
-    }
+    },
   });
 
   function setRetentionFormValue() {
@@ -129,8 +173,7 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
       setApplicationReportRetentionFormValues();
       setSuccessMetricsRetentionFormValue();
       originalRetention = angular.copy(vm.retention);
-    }
-    catch (e) {
+    } catch (e) {
       vm.error = e;
     }
   }
@@ -138,33 +181,43 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
   function setApplicationReportRetentionFormValues() {
     vm.retention.stages = {};
     for (const stage in vm.applicationReportsFromServer.stages) {
-      vm.retention.stages[stage] = toRetention(vm.applicationReportsFromServer.stages[stage], false);
+      vm.retention.stages[stage] = toRetention(
+        vm.applicationReportsFromServer.stages[stage],
+        false
+      );
     }
   }
 
   function setSuccessMetricsRetentionFormValue() {
-    vm.retention.successMetrics = toRetention(vm.successMetricsFromServer, true);
+    vm.retention.successMetrics = toRetention(
+      vm.successMetricsFromServer,
+      true
+    );
   }
 
   function toRetention(serverRetention, isSuccessMetrics) {
-    const retention = {formValue: getFormValue(serverRetention)};
+    const retention = { formValue: getFormValue(serverRetention) };
     if (retention.formValue !== 'custom') {
       return retention;
     }
     if (isSuccessMetrics) {
       const parsedMaxAge = parseMaxAge(serverRetention.maxAge);
       if (parsedMaxAge.timeUnit !== 'year') {
-        throw 'Unable to parse "' + parsedMaxAge.timeUnit + '" (expected years) for success metrics.';
+        throw (
+          'Unable to parse "' +
+          parsedMaxAge.timeUnit +
+          '" (expected years) for success metrics.'
+        );
       }
       retention.maxAgeInYears = parsedMaxAge.value;
-    }
-    else {
+    } else {
       retention.maxCount = serverRetention.maxCount || null;
       if (serverRetention.maxAge) {
         const parsedMaxAge = parseMaxAge(serverRetention.maxAge);
-        retention.maxAgeInDays = (parsedMaxAge.value * timeUnitMultipliers[parsedMaxAge.timeUnit]).toString();
-      }
-      else {
+        retention.maxAgeInDays = (
+          parsedMaxAge.value * timeUnitMultipliers[parsedMaxAge.timeUnit]
+        ).toString();
+      } else {
         retention.maxAgeInDays = null;
       }
     }
@@ -192,8 +245,11 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
         serverRetention.inheritPolicy = false;
         serverRetention.enablePurging = true;
         serverRetention.maxCount = retention.maxCount || null;
-        serverRetention.maxAge = isSuccessMetrics ? retention.maxAgeInYears +
-            ' year' : retention.maxAgeInDays ? retention.maxAgeInDays + ' day' : null;
+        serverRetention.maxAge = isSuccessMetrics
+          ? retention.maxAgeInYears + ' year'
+          : retention.maxAgeInDays
+          ? retention.maxAgeInDays + ' day'
+          : null;
         break;
       }
     }
@@ -216,10 +272,14 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
   function parseMaxAge(maxAge) {
     const splitMaxAge = maxAge.toLowerCase().split(/\s+/);
     const timeUnit = getTimeUnit(splitMaxAge[1]);
-    if (splitMaxAge.length !== 2 || !/^\d+$/.test(splitMaxAge[0]) || timeUnit === undefined) {
+    if (
+      splitMaxAge.length !== 2 ||
+      !/^\d+$/.test(splitMaxAge[0]) ||
+      timeUnit === undefined
+    ) {
       throw 'Unable to parse "' + maxAge + '".';
     }
-    return {value: parseInt(splitMaxAge[0], 10), timeUnit: timeUnit};
+    return { value: parseInt(splitMaxAge[0], 10), timeUnit: timeUnit };
   }
 
   function getTimeUnit(maxAgeTimeUnit) {
@@ -232,11 +292,20 @@ function RetentionEditorController(CLMContextLocations, retentionService, $q, Me
   }
 
   function isRetentionDirty(originalRetention, retention) {
-    return originalRetention !== retention && (originalRetention.formValue !== retention.formValue ||
-        (originalRetention.formValue === 'custom' && !angular.equals(originalRetention, retention)));
+    return (
+      originalRetention !== retention &&
+      (originalRetention.formValue !== retention.formValue ||
+        (originalRetention.formValue === 'custom' &&
+          !angular.equals(originalRetention, retention)))
+    );
   }
 
   vm.load();
 }
 
-RetentionEditorController.$inject = ['CLMContextLocations', 'retentionService', '$q', 'Messages'];
+RetentionEditorController.$inject = [
+  'CLMContextLocations',
+  'retentionService',
+  '$q',
+  'Messages',
+];

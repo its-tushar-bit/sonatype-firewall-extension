@@ -5,33 +5,33 @@
  */
 export default function LabelModification(Modal) {
   return {
-    add: function(label) {
+    add: function (label) {
       return Modal.open({
         backdrop: 'static',
         keyboard: false,
         templateUrl: 'add-modal-service',
         controller: 'LabelAddController',
         resolve: {
-          label: function() {
+          label: function () {
             return label;
-          }
-        }
+          },
+        },
       }).result;
     },
 
-    remove: function(label) {
+    remove: function (label) {
       return Modal.open({
         backdrop: 'static',
         keyboard: false,
         templateUrl: 'delete-modal-service',
         controller: 'LabelRemoveController',
         resolve: {
-          label: function() {
+          label: function () {
             return label;
-          }
-        }
+          },
+        },
       }).result;
-    }
+    },
   };
 }
 LabelModification.$inject = ['Modal'];

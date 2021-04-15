@@ -6,7 +6,7 @@
 import template from './revokeGrandfatheringModalService.html';
 
 export default function RevokeGrandfatheringModalService(Modal) {
-  return {open: openModal};
+  return { open: openModal };
 
   function openModal(selectedApplication) {
     return Modal.open({
@@ -16,10 +16,10 @@ export default function RevokeGrandfatheringModalService(Modal) {
       controller: 'RevokeGrandfatheringModalController as vm',
       template,
       resolve: {
-        selectedApplication: function() {
+        selectedApplication: function () {
           return selectedApplication;
-        }
-      }
+        },
+      },
     }).result;
   }
 }

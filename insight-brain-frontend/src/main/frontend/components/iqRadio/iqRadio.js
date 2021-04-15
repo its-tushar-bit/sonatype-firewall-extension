@@ -26,12 +26,12 @@ var iqRadio = {
     model: '=',
     value: '<',
     onClick: '&',
-    isRequired: '<'
+    isRequired: '<',
   },
   controller: angular.noop,
   controllerAs: 'vm',
   template: template,
-  transclude: true
+  transclude: true,
 };
 
 export default iqRadio;

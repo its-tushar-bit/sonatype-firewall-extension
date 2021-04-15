@@ -4,12 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {NxStatefulTabs, NxTab, NxTabList, NxTabPanel} from '@sonatype/react-shared-components';
+import {
+  NxStatefulTabs,
+  NxTab,
+  NxTabList,
+  NxTabPanel,
+} from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from './LegalDashboardApplicationsTab';
 import * as PropTypes from 'prop-types';
 import LegalDashboardFilterContainer from './filter/LegalDashboardFilterContainer';
 import LoadWrapper from '../../react/LoadWrapper';
-import {applicationsTabPropType} from '../advancedLegalPropTypes';
+import { applicationsTabPropType } from '../advancedLegalPropTypes';
 
 export default function LegalDashboardPage(props) {
   const {
@@ -20,13 +25,20 @@ export default function LegalDashboardPage(props) {
     loadError,
     fetchBackendPage,
     changeSortField,
-    stateGo
+    stateGo,
   } = props;
 
   return (
     <div id="legal-dashboard" className="nx-page-content">
-      <LoadWrapper loading={ loading } error={ loadError } retryHandler={ loadResults }>
-        <aside id="legal-dashboard-filter-container" className="nx-page-sidebar">
+      <LoadWrapper
+        loading={loading}
+        error={loadError}
+        retryHandler={loadResults}
+      >
+        <aside
+          id="legal-dashboard-filter-container"
+          className="nx-page-sidebar"
+        >
           <LegalDashboardFilterContainer />
         </aside>
         <main id="legal-dashboard-container" className="nx-page-main">
@@ -35,16 +47,22 @@ export default function LegalDashboardPage(props) {
           </div>
           <div className="nx-tile nx-viewport-sized__container">
             <div className="nx-tile-content nx-viewport-sized__container">
-              <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
+              <NxStatefulTabs
+                className="nx-viewport-sized__container"
+                defaultActiveTab={0}
+                onTabSelect={() => {}}
+              >
                 <NxTabList>
                   <NxTab>Applications</NxTab>
                 </NxTabList>
                 <NxTabPanel className="nx-viewport-sized__container">
-                  <LegalDashboardApplicationsTab applications = { applications }
-                                                 fetchBackendPage = { fetchBackendPage }
-                                                 filtersAreDirty = { filtersAreDirty }
-                                                 changeSortField = { changeSortField }
-                                                 stateGo = { stateGo } />
+                  <LegalDashboardApplicationsTab
+                    applications={applications}
+                    fetchBackendPage={fetchBackendPage}
+                    filtersAreDirty={filtersAreDirty}
+                    changeSortField={changeSortField}
+                    stateGo={stateGo}
+                  />
                 </NxTabPanel>
               </NxStatefulTabs>
             </div>
@@ -65,5 +83,5 @@ LegalDashboardPage.propTypes = {
   loadError: LoadWrapper.propTypes.error,
   fetchBackendPage: PropTypes.func.isRequired,
   changeSortField: PropTypes.func.isRequired,
-  stateGo: PropTypes.func.isRequired
+  stateGo: PropTypes.func.isRequired,
 };

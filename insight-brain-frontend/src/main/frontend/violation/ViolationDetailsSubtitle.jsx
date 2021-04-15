@@ -5,7 +5,11 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { faCube, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCube,
+  faSitemap,
+  faTerminal,
+} from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import { getComponentName } from '../util/componentNameUtils';
@@ -38,5 +42,5 @@ ViolationDetailsSubtitle.propTypes = {
   applicationName: PropTypes.string.isRequired,
   displayName: PropTypes.object,
   filename: PropTypes.string,
-  filenames: PropTypes.arrayOf(PropTypes.string)
+  filenames: PropTypes.arrayOf(PropTypes.string),
 };

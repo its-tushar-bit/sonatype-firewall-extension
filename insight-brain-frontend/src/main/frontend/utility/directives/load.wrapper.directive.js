@@ -14,26 +14,27 @@ export default function LoadWrapper() {
     priority: 99,
     transclude: true,
     replace: true,
-    template: '<div class="iq-load-wrapper">' +
-                '<div class="iq-spinner__wrapper" ng-if="!vm.error && vm.isLoading()">' +
-                  '<i class="fa fa-spin fa-circle-o-notch iq-spinner__icon"></i>Loading' +
-                '</div>' +
-                // ng-if is important for intial-value
-                '<div class="iq-load-wrapper__contents" ng-transclude ng-if="!vm.error && !vm.isLoading()">' +
-                '</div>' +
-                '<div load-error="vm.error" reload="vm.reload()" message="vm.errorMessage" can-retry="vm.canRetry">' +
-                '</div>' +
-            '</div>',
+    template:
+      '<div class="iq-load-wrapper">' +
+      '<div class="iq-spinner__wrapper" ng-if="!vm.error && vm.isLoading()">' +
+      '<i class="fa fa-spin fa-circle-o-notch iq-spinner__icon"></i>Loading' +
+      '</div>' +
+      // ng-if is important for intial-value
+      '<div class="iq-load-wrapper__contents" ng-transclude ng-if="!vm.error && !vm.isLoading()">' +
+      '</div>' +
+      '<div load-error="vm.error" reload="vm.reload()" message="vm.errorMessage" can-retry="vm.canRetry">' +
+      '</div>' +
+      '</div>',
     scope: {
       error: '=loadWrapper',
       errorMessage: '=message',
       loading: '=?',
       reload: '&',
-      canRetry: '=?'
+      canRetry: '=?',
     },
     controller: LoadWrapperController,
     controllerAs: 'vm',
-    bindToController: true
+    bindToController: true,
   };
 }
 

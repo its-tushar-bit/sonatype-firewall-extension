@@ -12,20 +12,38 @@ import {
   faSearch,
   faSitemap,
   faTachometerAltFast,
-  faUserAlt
+  faUserAlt,
 } from '@fortawesome/pro-regular-svg-icons';
-import {load as loadAdvancedSearchConfig} from '../configuration/advancedSearch/advancedSearchConfigActions';
-import {loadStatus as loadFirewallStatus} from '../firewall/firewallActions';
+import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
+import { loadStatus as loadFirewallStatus } from '../firewall/firewallActions';
 import template from './mainHeader.html';
-import {path} from 'ramda';
+import { path } from 'ramda';
 
 /* global angular, clmServerVersion, clmBuildTimestamp */
-function MainHeaderController($rootScope, $state, $scope, ProductFeatures, PermissionService, CurrentUser,
-                              systemConfigurationPropertyService, routeStateUtilService, $ngRedux) {
+function MainHeaderController(
+  $rootScope,
+  $state,
+  $scope,
+  ProductFeatures,
+  PermissionService,
+  CurrentUser,
+  systemConfigurationPropertyService,
+  routeStateUtilService,
+  $ngRedux
+) {
   var vm = this;
 
-  Object.assign(vm,
-      {faTachometerAltFast, faFileAlt, faSitemap, faAnalytics, faBug, faSearch, faUserAlt, faFireSmoke, faGavel});
+  Object.assign(vm, {
+    faTachometerAltFast,
+    faFileAlt,
+    faSitemap,
+    faAnalytics,
+    faBug,
+    faSearch,
+    faUserAlt,
+    faFireSmoke,
+    faGavel,
+  });
   vm.$state = $state;
   vm.isDashboardAvailable = ProductFeatures.isDashboardAvailable;
   vm.isReportsListAvailable = ProductFeatures.isReportsListAvailable;
@@ -46,7 +64,10 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   vm.isLabsDataInsightsEnabled = false;
 
   function getReleaseVersion() {
-    const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
+    const serverVersionWithoutBuildNumber = clmServerVersion.substring(
+      0,
+      clmServerVersion.indexOf('-')
+    );
     const serverVersionParts = serverVersionWithoutBuildNumber.split('.');
     // remove major version if present
     if (serverVersionParts.length === 3) {
@@ -66,40 +87,55 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   }
 
   function doLoad() {
-    const validPermissions = ['CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY', 'VIEW_ROLES',
-      'MANAGE_AUTOMATIC_APPLICATION_CREATION', 'MANAGE_AUTOMATIC_SCM_CONFIGURATION'];
+    const validPermissions = [
+      'CONFIGURE_SYSTEM',
+      'MANAGE_PROPRIETARY',
+      'VIEW_ROLES',
+      'MANAGE_AUTOMATIC_APPLICATION_CREATION',
+      'MANAGE_AUTOMATIC_SCM_CONFIGURATION',
+    ];
 
-    CurrentUser.waitForLogin().then(function() {
-      PermissionService.getValidPermissions(validPermissions).then(function(data) {
-        angular.forEach(data, function(permission) {
+    CurrentUser.waitForLogin().then(function () {
+      PermissionService.getValidPermissions(validPermissions).then(function (
+        data
+      ) {
+        angular.forEach(data, function (permission) {
           vm.permissions[permission] = true;
         });
       });
 
-      systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function(data) {
-        vm.isSuccessMetricsEnabled = data;
-      });
+      systemConfigurationPropertyService
+        .isSuccessMetricsEnabled()
+        .then(function (data) {
+          vm.isSuccessMetricsEnabled = data;
+        });
 
       const unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
       $scope.$on('$destroy', unsubscribe);
       $ngRedux.dispatch(loadAdvancedSearchConfig());
       $ngRedux.dispatch(loadFirewallStatus());
 
-      ProductFeatures.load().then(function() {
-        vm.isWebhooksSupported = ProductFeatures.isAvailable('webhooks-for-applications') ||
-            ProductFeatures.isAvailable('webhooks-for-repositories');
+      ProductFeatures.load().then(function () {
+        vm.isWebhooksSupported =
+          ProductFeatures.isAvailable('webhooks-for-applications') ||
+          ProductFeatures.isAvailable('webhooks-for-repositories');
 
-        vm.isFirewallSupported = ProductFeatures.isAvailable('firewall') &&
-            ProductFeatures.isAvailable('release-integrity');
+        vm.isFirewallSupported =
+          ProductFeatures.isAvailable('firewall') &&
+          ProductFeatures.isAvailable('release-integrity');
 
-        vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable('advanced-legal-pack');
+        vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable(
+          'advanced-legal-pack'
+        );
 
-        vm.isLabsDataInsightsEnabled = ProductFeatures.isAvailable('data-insights');
+        vm.isLabsDataInsightsEnabled = ProductFeatures.isAvailable(
+          'data-insights'
+        );
       });
     });
   }
 
-  $scope.$on('successMetricsConfigurationUpdated', function(event, newValue) {
+  $scope.$on('successMetricsConfigurationUpdated', function (event, newValue) {
     vm.isSuccessMetricsEnabled = newValue;
   });
 
@@ -116,20 +152,32 @@ function MainHeaderController($rootScope, $state, $scope, ProductFeatures, Permi
   }
 
   function shouldShowLoginButton() {
-    return !routeStateUtilService.stateRequiresAuthentication() && !isLoggedIn();
+    return (
+      !routeStateUtilService.stateRequiresAuthentication() && !isLoggedIn()
+    );
   }
 }
 
 function mapStateToThis(state) {
   return {
-    isAdvancedSearchEnabled: path(['advancedSearchConfig', 'serverData', 'isEnabled'], state),
-    isFirewallEnabled: path(['firewall', 'statusState', 'isEnabled'], state)
+    isAdvancedSearchEnabled: path(
+      ['advancedSearchConfig', 'serverData', 'isEnabled'],
+      state
+    ),
+    isFirewallEnabled: path(['firewall', 'statusState', 'isEnabled'], state),
   };
 }
 
 MainHeaderController.$inject = [
-  '$rootScope', '$state', '$scope', 'ProductFeatures', 'PermissionService', 'CurrentUser',
-  'systemConfigurationPropertyService', 'routeStateUtilService', '$ngRedux'
+  '$rootScope',
+  '$state',
+  '$scope',
+  'ProductFeatures',
+  'PermissionService',
+  'CurrentUser',
+  'systemConfigurationPropertyService',
+  'routeStateUtilService',
+  '$ngRedux',
 ];
 
 export default {
@@ -137,6 +185,6 @@ export default {
   controllerAs: 'vm',
   template,
   bindings: {
-    productEdition: '@'
-  }
+    productEdition: '@',
+  },
 };

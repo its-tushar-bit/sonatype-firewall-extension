@@ -1,60 +1,82 @@
-<div id="proprietary-config-editor"
-     class="iq-tile iq-tile--form"
-     load-wrapper="vm.loadError"
-     loading="!vm.dirtyProprietaryConfig"
-     reload="vm.doLoad()">
-  <form class="iq-form iq-form--no-padding iq-form--no-border"
-        name="vm.proprietaryConfigEditor"
-        role="form"
-        ng-submit="vm.proprietaryConfigEditor.$valid  && vm.dirtyProprietaryConfig.isDirty() && vm.save()"
-        novalidate
-        form-mask="vm.proprietaryConfigEditorMask"
-        mask-attach-to-body>
+<div
+  id="proprietary-config-editor"
+  class="iq-tile iq-tile--form"
+  load-wrapper="vm.loadError"
+  loading="!vm.dirtyProprietaryConfig"
+  reload="vm.doLoad()"
+>
+  <form
+    class="iq-form iq-form--no-padding iq-form--no-border"
+    name="vm.proprietaryConfigEditor"
+    role="form"
+    ng-submit="vm.proprietaryConfigEditor.$valid  && vm.dirtyProprietaryConfig.isDirty() && vm.save()"
+    novalidate
+    form-mask="vm.proprietaryConfigEditorMask"
+    mask-attach-to-body
+  >
     <div class="iq-tile-header iq-tile-header--hrule">
       <div class="iq-tile-header__title">
-        <img src="img/proprietary_component_20px.png" class="iq-tile-header__icon">
+        <img
+          src="img/proprietary_component_20px.png"
+          class="iq-tile-header__icon"
+        />
         <h2>Proprietary Component Configuration</h2>
       </div>
     </div>
     <div class="iq-tile-content">
       <p>
-        These entries are provided to Nexus IQ scanners and are used to help identify internal components. If a
-        specified package or file is contained within a component, it will be considered proprietary.
+        These entries are provided to Nexus IQ scanners and are used to help
+        identify internal components. If a specified package or file is
+        contained within a component, it will be considered proprietary.
       </p>
-      <div class="iq-list inherited-proprietary-component-matchers"
-           ng-repeat="owner in vm.proprietaryConfigs.slice(1).reverse()"
-           ng-if="owner.proprietaryConfig[0].packages.length > 0 || owner.proprietaryConfig[0].regexes.length > 0">
-        <h4 class="iq-list__title">
-          INHERITED FROM {{::owner.ownerName}}
-        </h4>
+      <div
+        class="iq-list inherited-proprietary-component-matchers"
+        ng-repeat="owner in vm.proprietaryConfigs.slice(1).reverse()"
+        ng-if="owner.proprietaryConfig[0].packages.length > 0 || owner.proprietaryConfig[0].regexes.length > 0"
+      >
+        <h4 class="iq-list__title">INHERITED FROM {{::owner.ownerName}}</h4>
         <ul>
-          <li class="iq-list__item" ng-repeat="matcher in owner.proprietaryConfig[0].packages">
+          <li
+            class="iq-list__item"
+            ng-repeat="matcher in owner.proprietaryConfig[0].packages"
+          >
             {{::matcher}}
           </li>
-          <li class="iq-list__item" ng-repeat="matcher in owner.proprietaryConfig[0].regexes">
+          <li
+            class="iq-list__item"
+            ng-repeat="matcher in owner.proprietaryConfig[0].regexes"
+          >
             {{::matcher}} <i class="regular">(regex)</i>
           </li>
         </ul>
       </div>
-      
+
       <div class="iq-list local-proprietary-component-matchers">
-        <h4 class="iq-list__title">
-          LOCAL
-        </h4>
-        <div class="iq-list__item iq-list__item--empty" ng-if="!vm.localMatchers || vm.localMatchers.length === 0">
+        <h4 class="iq-list__title">LOCAL</h4>
+        <div
+          class="iq-list__item iq-list__item--empty"
+          ng-if="!vm.localMatchers || vm.localMatchers.length === 0"
+        >
           No local matchers configured
         </div>
         <ul>
-          <li class="iq-list__item iq-list__item--with-modifier-icon"
-              ng-repeat="matcher in vm.localMatchers"
-              data-matcher-type="{{::matcher.type}}"
-              data-matcher-value="{{matcher.matcher}}">
-            <button class="iq-btn iq-btn--tertiary iq-btn--icon-only iq-pull-right"
-                    type="button"
-                    ng-click="vm.removeMatcher(matcher)">
+          <li
+            class="iq-list__item iq-list__item--with-modifier-icon"
+            ng-repeat="matcher in vm.localMatchers"
+            data-matcher-type="{{::matcher.type}}"
+            data-matcher-value="{{matcher.matcher}}"
+          >
+            <button
+              class="iq-btn iq-btn--tertiary iq-btn--icon-only iq-pull-right"
+              type="button"
+              ng-click="vm.removeMatcher(matcher)"
+            >
               <i class="fa fa-trash"></i>
             </button>
-            {{::matcher.matcher}} <i class="regular" ng-if="matcher.type === vm.matcherTypes.REGEX">(regex)</i>
+            {{::matcher.matcher}}
+            <i class="regular" ng-if="matcher.type === vm.matcherTypes.REGEX"
+              >(regex)</i
+            >
           </li>
         </ul>
       </div>
@@ -62,68 +84,82 @@
       <div class="iq-form-row iq-form-row--add-matcher">
         <div class="iq-form-group">
           <label for="matcher-type">Matcher Type</label>
-          <dropdown-selector id="matcher-type"
-                             class="editor-matcher-type"
-                             ng-model="vm.matcherType"
-                             name="matcher-type"
-                             options="vm.matcherTypeOptions"
-                             ng-change="vm.resetMatcher()"
-                             item-as-class="true"
-                             ng-disabled="vm.disabled">
+          <dropdown-selector
+            id="matcher-type"
+            class="editor-matcher-type"
+            ng-model="vm.matcherType"
+            name="matcher-type"
+            options="vm.matcherTypeOptions"
+            ng-change="vm.resetMatcher()"
+            item-as-class="true"
+            ng-disabled="vm.disabled"
+          >
           </dropdown-selector>
         </div>
         <div class="iq-form-group">
           <label for="matcher-value">Value</label>
-          <input clm-input
-                 id="matcher-value"
-                 class="iq-text-input editor-matcher-value"
-                 name="matcher-value"
-                 ng-if="vm.matcherType === vm.matcherTypes.PACKAGE"
-                 ng-model="vm.packageMatcher"
-                 type="text"
-                 unique-validator="vm.dirtyProprietaryConfig.packages"
-                 input-validator="vm.validatePackage"
-                 placeholder="ex. com.sonatype"
-                 messages="{
+          <input
+            clm-input
+            id="matcher-value"
+            class="iq-text-input editor-matcher-value"
+            name="matcher-value"
+            ng-if="vm.matcherType === vm.matcherTypes.PACKAGE"
+            ng-model="vm.packageMatcher"
+            type="text"
+            unique-validator="vm.dirtyProprietaryConfig.packages"
+            input-validator="vm.validatePackage"
+            placeholder="ex. com.sonatype"
+            messages="{
                    invalidPrefix: 'Invalid package prefix:<br />e.g. com.sonatype',
                    wildcards: 'Wildcards are not allowed/required for packages',
                    unique: 'Package prefix already specified'
                  }"
-                 enter-key-call="vm.addMatcher($event)">
-          <input clm-input
-                 id="matcher-value"
-                 class="iq-text-input editor-matcher-value"
-                 name="matcher-value"
-                 ng-if="vm.matcherType === vm.matcherTypes.REGEX"
-                 ng-model="vm.regexMatcher"
-                 type="text"
-                 unique-validator="vm.dirtyProprietaryConfig.regexes"
-                 placeholder="ex. com.sonatype.*"
-                 messages="{
+            enter-key-call="vm.addMatcher($event)"
+          />
+          <input
+            clm-input
+            id="matcher-value"
+            class="iq-text-input editor-matcher-value"
+            name="matcher-value"
+            ng-if="vm.matcherType === vm.matcherTypes.REGEX"
+            ng-model="vm.regexMatcher"
+            type="text"
+            unique-validator="vm.dirtyProprietaryConfig.regexes"
+            placeholder="ex. com.sonatype.*"
+            messages="{
                    unique: 'Regular Expression already specified'
                  }"
-                 enter-key-call="vm.addMatcher($event)">
+            enter-key-call="vm.addMatcher($event)"
+          />
         </div>
         <div class="iq-form-group">
-          <button id="editor-matcher-add"
-                  class="iq-btn"
-                  type="button"
-                  ng-click="vm.addMatcher()"
-                  ng-class="{ disabled: vm.isAddButtonDisabled() }"
-                  ng-disabled="vm.isAddButtonDisabled()">
+          <button
+            id="editor-matcher-add"
+            class="iq-btn"
+            type="button"
+            ng-click="vm.addMatcher()"
+            ng-class="{ disabled: vm.isAddButtonDisabled() }"
+            ng-disabled="vm.isAddButtonDisabled()"
+          >
             <i class="fa fa-plus"></i>Add
           </button>
         </div>
       </div>
     </div>
 
-    <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-      <button type="submit"
-              class="iq-btn iq-btn--primary"
-              submit-validation
-              submit-dirty="vm.dirtyProprietaryConfig.isDirty()"
-              submit-type="update"
-              submit-tooltip-target="body">
+    <div
+      class="iq-tile-footer"
+      submit-wrapper="vm.submitError"
+      retry="vm.save()"
+    >
+      <button
+        type="submit"
+        class="iq-btn iq-btn--primary"
+        submit-validation
+        submit-dirty="vm.dirtyProprietaryConfig.isDirty()"
+        submit-type="update"
+        submit-tooltip-target="body"
+      >
         Update
       </button>
     </div>

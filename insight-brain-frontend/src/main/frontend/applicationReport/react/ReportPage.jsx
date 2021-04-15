@@ -37,40 +37,56 @@ export default function ReportPage(props) {
     aggregate,
     exactValueFilters,
     substringFilters,
-    $state
+    $state,
   } = props;
 
   useEffect(() => {
     if (publicId && scanId) {
-      setReportParameters(publicId, scanId, unknownjs, embeddable, policyViolationId);
+      setReportParameters(
+        publicId,
+        scanId,
+        unknownjs,
+        embeddable,
+        policyViolationId
+      );
       loadReport();
     }
   }, [publicId, scanId]);
 
   return (
     <Fragment>
-      <ReportFilters {...({
-        $state,
-        setAggregateReportEntries,
-        setExactValueFilter,
-        exactValueFilters,
-        aggregate
-      })}/>
+      <ReportFilters
+        {...{
+          $state,
+          setAggregateReportEntries,
+          setExactValueFilter,
+          exactValueFilters,
+          aggregate,
+        }}
+      />
       <main className="nx-page-main iq-app-report">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={loadReport}>
-          <ReportTitle metadataDetails={metadata}
-                       scanId={scanId}
-                       publicId={publicId}
-                       selectedReport={selectedReport}
-                       reevaluateReport={reevaluateReport}
-                       stateGo={stateGo} />
+        <LoadWrapper
+          loading={loading}
+          error={loadError}
+          retryHandler={loadReport}
+        >
+          <ReportTitle
+            metadataDetails={metadata}
+            scanId={scanId}
+            publicId={publicId}
+            selectedReport={selectedReport}
+            reevaluateReport={reevaluateReport}
+            stateGo={stateGo}
+          />
           <ReportStatusBar selectedReport={selectedReport} />
-          <ReportContent selectedReport={selectedReport}
-                         substringFilters={substringFilters}
-                         setSorting={setSorting}
-                         sortConfiguration={sortConfiguration}
-                         setStringFieldFilter={setStringFieldFilter}
-                         setSortingParameters={setSortingParameters}/>
+          <ReportContent
+            selectedReport={selectedReport}
+            substringFilters={substringFilters}
+            setSorting={setSorting}
+            sortConfiguration={sortConfiguration}
+            setStringFieldFilter={setStringFieldFilter}
+            setSortingParameters={setSortingParameters}
+          />
         </LoadWrapper>
       </main>
     </Fragment>
@@ -80,7 +96,7 @@ export default function ReportPage(props) {
 ReportPage.propTypes = {
   $state: PropTypes.shape({
     get: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired
+    href: PropTypes.func.isRequired,
   }),
   // actions
   setReportParameters: PropTypes.func.isRequired,
@@ -103,8 +119,8 @@ ReportPage.propTypes = {
     reportTime: PropTypes.number.isRequired,
     commitHash: PropTypes.string,
     application: PropTypes.shape({
-      name: PropTypes.string.isRequired
-    })
+      name: PropTypes.string.isRequired,
+    }),
   }),
   selectedReport: PropTypes.shape({
     reportVersion: PropTypes.number.isRequired,
@@ -116,20 +132,22 @@ ReportPage.propTypes = {
     severeViolationCount: PropTypes.number.isRequired,
     moderateViolationCount: PropTypes.number.isRequired,
     nonLowViolationCount: PropTypes.number.isRequired,
-    displayedEntries: PropTypes.arrayOf(PropTypes.shape({
-      derivedComponentName: PropTypes.string,
-      policyName: PropTypes.string,
-      hash: PropTypes.string,
-      derivedDependencyType: PropTypes.string,
-      filenames: PropTypes.array,
-      displayName: PropTypes.shape({
-        name: PropTypes.string,
-        parts: PropTypes.array
-      }),
-      waived: PropTypes.bool,
-      grandfathered: PropTypes.bool,
-      policyThreatLevel: PropTypes.number
-    }))
+    displayedEntries: PropTypes.arrayOf(
+      PropTypes.shape({
+        derivedComponentName: PropTypes.string,
+        policyName: PropTypes.string,
+        hash: PropTypes.string,
+        derivedDependencyType: PropTypes.string,
+        filenames: PropTypes.array,
+        displayName: PropTypes.shape({
+          name: PropTypes.string,
+          parts: PropTypes.array,
+        }),
+        waived: PropTypes.bool,
+        grandfathered: PropTypes.bool,
+        policyThreatLevel: PropTypes.number,
+      })
+    ),
   }),
   loading: PropTypes.bool,
   loadError: LoadWrapper.propTypes.error,
@@ -137,10 +155,10 @@ ReportPage.propTypes = {
   exactValueFilters: PropTypes.object.isRequired,
   sortConfiguration: PropTypes.shape({
     sortFields: PropTypes.arrayOf(PropTypes.string),
-    dir: PropTypes.string
+    dir: PropTypes.string,
   }),
   substringFilters: PropTypes.shape({
     policyName: PropTypes.string,
-    derivedComponentName: PropTypes.string
-  })
+    derivedComponentName: PropTypes.string,
+  }),
 };

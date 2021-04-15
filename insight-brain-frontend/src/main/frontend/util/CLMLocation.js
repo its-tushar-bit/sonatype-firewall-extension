@@ -4,10 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
-import {pick} from 'ramda';
+import { pick } from 'ramda';
 
 import commonServicesModule from '../util/CommonServices';
-import {toURIParams, uriTemplate} from './urlUtil';
+import { toURIParams, uriTemplate } from './urlUtil';
 
 /**
  * Generates the url to fetch the vulnerability details of a given refId.
@@ -19,12 +19,17 @@ import {toURIParams, uriTemplate} from './urlUtil';
  * It is an object of shape `{identificationSource, ownerId, ownerType, scanId}`. If provided it will
  * save one request to HDS and instead will search directly in the third-party vulnerabilities table.
  */
-export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdPartyScanParameters) {
+export function getVulnerabilityJsonDetailUrl(
+  refId,
+  componentIdentifier,
+  thirdPartyScanParameters
+) {
   const urlWithPath = uriTemplate`/api/v2/vulnerabilities/${refId}`;
 
   const params = toURIParams({
-    componentIdentifier: componentIdentifier && JSON.stringify(componentIdentifier),
-    ...thirdPartyScanParameters
+    componentIdentifier:
+      componentIdentifier && JSON.stringify(componentIdentifier),
+    ...thirdPartyScanParameters,
   });
 
   if (params.length > 0) {
@@ -210,18 +215,27 @@ export function getFirewallReleaseQuarantineSummaryUrl() {
   return uriTemplate`/api/experimental/firewall/releaseQuarantine/summary`;
 }
 
-export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId) {
+export function getFirewallReleaseQuarantineListUrl(
+  page,
+  pageSize,
+  sortBy,
+  sortAsc,
+  policyId
+) {
   let params = toURIParams({
-    'page': page,
-    'pageSize': pageSize,
-    'sortBy': sortBy,
-    'asc': sortAsc,
-    'policyId': policyId
+    page: page,
+    pageSize: pageSize,
+    sortBy: sortBy,
+    asc: sortAsc,
+    policyId: policyId,
   });
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/experimental/firewall/components/autoReleasedFromQuarantine` + params;
+  return (
+    uriTemplate`/api/experimental/firewall/components/autoReleasedFromQuarantine` +
+    params
+  );
 }
 
 export function getFirewallQuarantineSummaryUrl() {
@@ -236,13 +250,19 @@ export const getReportBomUrl = getBrowseReportUrl('bom.json');
 
 export const getReportUnknownJsUrl = getBrowseReportUrl('unknownjs.json');
 
-export const getExpandedCoverageEmbeddableUrl = getBrowseReportUrl('index.html');
+export const getExpandedCoverageEmbeddableUrl = getBrowseReportUrl(
+  'index.html'
+);
 
-export const getReportPolicyThreatsUrl = getBrowseReportUrl('policythreats.json');
+export const getReportPolicyThreatsUrl = getBrowseReportUrl(
+  'policythreats.json'
+);
 
 export const getReportDataUrl = getBrowseReportUrl('data.json');
 
-export const getReportPartialMatchedUrl = getBrowseReportUrl('partialmatched.json');
+export const getReportPartialMatchedUrl = getBrowseReportUrl(
+  'partialmatched.json'
+);
 
 export const getDependenciesUrl = getBrowseReportUrl('dependencies.json');
 
@@ -276,7 +296,11 @@ export function getDownloadPdfUrl(applicationPublicId, scanId) {
  * @param ownerId {string}
  * @param policyViolationId {string}
  */
-export function getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViolationId) {
+export function getAddPolicyViolationWaiverUrl(
+  waiverScope,
+  ownerId,
+  policyViolationId
+) {
   return uriTemplate`/api/v2/policyWaivers/${waiverScope}/${ownerId}/${policyViolationId}`;
 }
 
@@ -322,16 +346,25 @@ export function getSaveComponentObligationAttributionUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution`;
 }
 
-export function getComponentObligationAttributionUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
+export function getComponentObligationAttributionUrl(
+  orgOrApp,
+  ownerId,
+  componentIdentifier,
+  obligationName
+) {
   if (obligationName) {
     return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution
-      ?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+      ?componentIdentifier=${JSON.stringify(
+        componentIdentifier
+      )}&obligationName=${obligationName}`;
   }
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation/attribution
     ?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
 
-export function getDeleteComponentObligationAttributionUrl(componentObligationAttributionId) {
+export function getDeleteComponentObligationAttributionUrl(
+  componentObligationAttributionId
+) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation/attribution/\
 ${componentObligationAttributionId}`;
 }
@@ -340,7 +373,11 @@ export function getSaveComponentCopyrightOverrideUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright`;
 }
 
-export function getComponentCopyrightOverrideUrl(orgOrApp, ownerId, componentIdentifier) {
+export function getComponentCopyrightOverrideUrl(
+  orgOrApp,
+  ownerId,
+  componentIdentifier
+) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/copyright\
 ?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
@@ -349,399 +386,565 @@ export function getSaveComponentObligationUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation`;
 }
 
-export function getComponentObligationUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
+export function getComponentObligationUrl(
+  orgOrApp,
+  ownerId,
+  componentIdentifier,
+  obligationName
+) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation
-    ?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;
+    ?componentIdentifier=${JSON.stringify(
+      componentIdentifier
+    )}&obligationName=${obligationName}`;
 }
 
 export function getDeleteComponentObligationsUrl(componentObligationIds) {
   const queryParams = componentObligationIds.join('&componentObligationId=');
-  return uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=` + queryParams;
+  return (
+    uriTemplate`/api/experimental/licenseLegalMetadata/component/obligation?componentObligationId=` +
+    queryParams
+  );
 }
 
 export function getSaveLegalFileUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile`;
 }
 
-export function getLegalFileUrl(orgOrApp, ownerId, componentIdentifier, legalFileType) {
+export function getLegalFileUrl(
+  orgOrApp,
+  ownerId,
+  componentIdentifier,
+  legalFileType
+) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/legalFile
-    ?componentIdentifier=${JSON.stringify(componentIdentifier)}&legalFileType=${legalFileType}`;
+    ?componentIdentifier=${JSON.stringify(
+      componentIdentifier
+    )}&legalFileType=${legalFileType}`;
 }
 
 export function getPoliciesUrl() {
   return uriTemplate`/api/v2/policies`;
 }
 
-export function getCopyrightFilePathsUrl(orgOrApp, ownerId, componentHash, componentIdentifier,
-                                         copyrightHash, pageStart, pageLength) {
+export function getCopyrightFilePathsUrl(
+  orgOrApp,
+  ownerId,
+  componentHash,
+  componentIdentifier,
+  copyrightHash,
+  pageStart,
+  pageLength
+) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
 /${copyrightHash}/filePaths?\
-componentIdentifier=${JSON.stringify(componentIdentifier)}&pageStart=${pageStart}&pageLength=${pageLength}`;
+componentIdentifier=${JSON.stringify(
+    componentIdentifier
+  )}&pageStart=${pageStart}&pageLength=${pageLength}`;
 }
 
-export function getCopyrightContextUrl(orgOrApp, ownerId, componentHash, componentIdentifier,
-                                       copyrightHash, filePath) {
+export function getCopyrightContextUrl(
+  orgOrApp,
+  ownerId,
+  componentHash,
+  componentIdentifier,
+  copyrightHash,
+  filePath
+) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
-/${copyrightHash}/context?componentIdentifier=${JSON.stringify(componentIdentifier)}&filePath=${filePath}`;
+/${copyrightHash}/context?componentIdentifier=${JSON.stringify(
+    componentIdentifier
+  )}&filePath=${filePath}`;
 }
 
-export function getCopyrightFileCountUrl(orgOrApp, ownerId, componentHash, componentIdentifier) {
+export function getCopyrightFileCountUrl(
+  orgOrApp,
+  ownerId,
+  componentHash,
+  componentIdentifier
+) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/${componentHash}/copyright\
 /fileCount?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
 
-export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
-  'BaseUrl', '$window', function(baseUrl, $window) {
-    function getUserTelemetryPrefix() {
-      const isRM = $window.clmEndpoint && $window.clmEndpoint.type === 'rm';
+export default angular
+  .module('CLMLocation', [commonServicesModule.name])
+  .factory('CLMLocations', [
+    'BaseUrl',
+    '$window',
+    function (baseUrl, $window) {
+      function getUserTelemetryPrefix() {
+        const isRM = $window.clmEndpoint && $window.clmEndpoint.type === 'rm';
 
-      // use the RM proxy endpoint if we are in RM.  The normal one will get blocked
-      return baseUrl.get() + (isRM ? '/rest/rm/user-telemetry' : '/rest/user-telemetry');
-    }
+        // use the RM proxy endpoint if we are in RM.  The normal one will get blocked
+        return (
+          baseUrl.get() +
+          (isRM ? '/rest/rm/user-telemetry' : '/rest/user-telemetry')
+        );
+      }
 
-    return {
-      getLicensesUrl: function() {
-        return baseUrl.get() + '/rest/license';
-      },
+      return {
+        getLicensesUrl: function () {
+          return baseUrl.get() + '/rest/license';
+        },
 
-      getConditionTypeUrl: function() {
-        return baseUrl.get() + '/rest/policy/conditionType';
-      },
+        getConditionTypeUrl: function () {
+          return baseUrl.get() + '/rest/policy/conditionType';
+        },
 
-      getActionStageUrl,
-      getDashboardStageUrl,
-      getCliStageUrl,
-      getApplicationsUrl,
+        getActionStageUrl,
+        getDashboardStageUrl,
+        getCliStageUrl,
+        getApplicationsUrl,
 
-      getApplicationUrl: function(applicationPublicId) {
-        return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationPublicId);
-      },
+        getApplicationUrl: function (applicationPublicId) {
+          return (
+            baseUrl.get() +
+            '/rest/application/' +
+            encodeURIComponent(applicationPublicId)
+          );
+        },
 
-      getApplicationSummariesUrl: function(nameFilter, order, page, pageSize) {
-        return baseUrl.get() + '/rest/application/services/summary?' +
-            (nameFilter ? 'nameFilter=' + encodeURIComponent(nameFilter) + '&' : '') + 'order=' +
-            encodeURIComponent(order) + '&page=' + page + '&pageSize=' + pageSize;
-      },
+        getApplicationSummariesUrl: function (
+          nameFilter,
+          order,
+          page,
+          pageSize
+        ) {
+          return (
+            baseUrl.get() +
+            '/rest/application/services/summary?' +
+            (nameFilter
+              ? 'nameFilter=' + encodeURIComponent(nameFilter) + '&'
+              : '') +
+            'order=' +
+            encodeURIComponent(order) +
+            '&page=' +
+            page +
+            '&pageSize=' +
+            pageSize
+          );
+        },
 
-      getApplicationSummaryUrl,
+        getApplicationSummaryUrl,
 
-      getOrganizationsUrl,
+        getOrganizationsUrl,
 
-      getApplicationReportsUrl,
+        getApplicationReportsUrl,
 
-      getValidateLicenseUrl: function() {
-        return baseUrl.get() + '/rest/product/license/validate';
-      },
+        getValidateLicenseUrl: function () {
+          return baseUrl.get() + '/rest/product/license/validate';
+        },
 
-      getLicenseSummaryUrl: function() {
-        return baseUrl.get() + '/rest/product/license';
-      },
+        getLicenseSummaryUrl: function () {
+          return baseUrl.get() + '/rest/product/license';
+        },
 
-      getLicenseUploadUrl: function() {
-        return baseUrl.get() + '/rest/product/license' + (!$window.FormData ? '?noFormData=true' : '');
-      },
+        getLicenseUploadUrl: function () {
+          return (
+            baseUrl.get() +
+            '/rest/product/license' +
+            (!$window.FormData ? '?noFormData=true' : '')
+          );
+        },
 
-      evaluatePolicyUrl: function(applicationPublicId, scanId) {
-        return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationPublicId) + '/evaluate?scanId=' + scanId;
-      },
+        evaluatePolicyUrl: function (applicationPublicId, scanId) {
+          return (
+            baseUrl.get() +
+            '/rest/policy/' +
+            encodeURIComponent(applicationPublicId) +
+            '/evaluate?scanId=' +
+            scanId
+          );
+        },
 
-      getUserTelemetryConfig: () => `${getUserTelemetryPrefix()}/config`,
+        getUserTelemetryConfig: () => `${getUserTelemetryPrefix()}/config`,
 
-      getUserTelemetryJavascript: () => `${getUserTelemetryPrefix()}/javascript`,
+        getUserTelemetryJavascript: () =>
+          `${getUserTelemetryPrefix()}/javascript`,
 
-      getUserTelemetryProxy: () => `${getUserTelemetryPrefix()}/events`,
+        getUserTelemetryProxy: () => `${getUserTelemetryPrefix()}/events`,
 
-      getProprietaryConfig: function() {
-        return baseUrl.get() + '/rest/config/proprietary';
-      },
+        getProprietaryConfig: function () {
+          return baseUrl.get() + '/rest/config/proprietary';
+        },
 
-      getLdapPriority: function() {
-        return baseUrl.get() + '/rest/config/ldap/priority';
-      },
+        getLdapPriority: function () {
+          return baseUrl.get() + '/rest/config/ldap/priority';
+        },
 
-      getReportUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
+        getReportUrl: (applicationPublicId, scanId) =>
+          getBaseReportUrl(applicationPublicId, scanId) +
           '/browseReport/index.html',
 
-      getSessionUrl: function() {
-        return baseUrl.get() + '/rest/user/session';
-      },
+        getSessionUrl: function () {
+          return baseUrl.get() + '/rest/user/session';
+        },
 
-      getSessionLogoutUrl: function() {
-        return baseUrl.get() + '/rest/user/session/logout';
-      },
+        getSessionLogoutUrl: function () {
+          return baseUrl.get() + '/rest/user/session/logout';
+        },
 
-      getUserUrl: function() {
-        return baseUrl.get() + '/rest/user';
-      },
+        getUserUrl: function () {
+          return baseUrl.get() + '/rest/user';
+        },
 
-      getRoleByIdUrl: function(roleId) {
-        return baseUrl.get() + '/rest/security/roles/' + roleId;
-      },
+        getRoleByIdUrl: function (roleId) {
+          return baseUrl.get() + '/rest/security/roles/' + roleId;
+        },
 
-      getRoleForNewUrl: function() {
-        return baseUrl.get() + '/rest/security/roles/new';
-      },
+        getRoleForNewUrl: function () {
+          return baseUrl.get() + '/rest/security/roles/new';
+        },
 
-      getRoleListUrl: function() {
-        return baseUrl.get() + '/rest/security/roles';
-      },
+        getRoleListUrl: function () {
+          return baseUrl.get() + '/rest/security/roles';
+        },
 
-      getPermissionUrl: function() {
-        return baseUrl.get() + '/rest/user/permissions';
-      },
+        getPermissionUrl: function () {
+          return baseUrl.get() + '/rest/user/permissions';
+        },
 
-      getChangeMyPasswordUrl: function() {
-        return baseUrl.get() + '/rest/user/password';
-      },
+        getChangeMyPasswordUrl: function () {
+          return baseUrl.get() + '/rest/user/password';
+        },
 
-      getChangePasswordUrl: function(userId) {
-        return baseUrl.get() + '/rest/user/' + userId + '/password';
-      },
+        getChangePasswordUrl: function (userId) {
+          return baseUrl.get() + '/rest/user/' + userId + '/password';
+        },
 
-      getReportMetadataUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/metadata',
+        getReportMetadataUrl: (applicationPublicId, scanId) =>
+          getBaseReportUrl(applicationPublicId, scanId) + '/metadata',
 
-      getBundleUploadUrl: function(applicationPublicId, stageId, sendNotifications) {
-        return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '?stageId=' + stageId +
-            '&sendNotifications=' + sendNotifications + (!$window.FormData ? '&noFormData=true' : '');
-      },
+        getBundleUploadUrl: function (
+          applicationPublicId,
+          stageId,
+          sendNotifications
+        ) {
+          return (
+            baseUrl.get() +
+            '/rest/scan/' +
+            encodeURIComponent(applicationPublicId) +
+            '?stageId=' +
+            stageId +
+            '&sendNotifications=' +
+            sendNotifications +
+            (!$window.FormData ? '&noFormData=true' : '')
+          );
+        },
 
-      getEvaluationStatusUrl: function(applicationPublicId, ticketId) {
-        return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '/' + ticketId;
-      },
+        getEvaluationStatusUrl: function (applicationPublicId, ticketId) {
+          return (
+            baseUrl.get() +
+            '/rest/scan/' +
+            encodeURIComponent(applicationPublicId) +
+            '/' +
+            ticketId
+          );
+        },
 
-      getOrganizationAppliedTagUrl: function(organizationId) {
-        return this.getCategoriesUrl('organization', organizationId) + '/applied';
-      },
-      getOrganizationPolicyTagUrl: function(organizationId) {
-        return this.getCategoriesUrl('organization', organizationId) + '/policy';
-      },
-      getCategoriesUrl: function(ownerType, ownerId) {
-        return baseUrl.get() + '/api/v2/applicationCategories/' + ownerType + '/' + encodeURIComponent(ownerId);
-      },
+        getOrganizationAppliedTagUrl: function (organizationId) {
+          return (
+            this.getCategoriesUrl('organization', organizationId) + '/applied'
+          );
+        },
+        getOrganizationPolicyTagUrl: function (organizationId) {
+          return (
+            this.getCategoriesUrl('organization', organizationId) + '/policy'
+          );
+        },
+        getCategoriesUrl: function (ownerType, ownerId) {
+          return (
+            baseUrl.get() +
+            '/api/v2/applicationCategories/' +
+            ownerType +
+            '/' +
+            encodeURIComponent(ownerId)
+          );
+        },
 
-      getApplicationTagUrl: function(applicationPublicId) {
-        return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
-      },
-      getApplicableOrganizationTags: function(applicationPublicId) {
-        return baseUrl.get() + '/api/v2/applicationCategories/application/' + encodeURIComponent(applicationPublicId) +
-            '/applicable';
-      },
+        getApplicationTagUrl: function (applicationPublicId) {
+          return (
+            baseUrl.get() +
+            '/rest/appliedTag/application/' +
+            encodeURIComponent(applicationPublicId)
+          );
+        },
+        getApplicableOrganizationTags: function (applicationPublicId) {
+          return (
+            baseUrl.get() +
+            '/api/v2/applicationCategories/application/' +
+            encodeURIComponent(applicationPublicId) +
+            '/applicable'
+          );
+        },
 
-      getProductFeaturesUrl,
+        getProductFeaturesUrl,
 
-      getComponentRisksUrl,
+        getComponentRisksUrl,
 
-      getComponentRisksExportUrl,
+        getComponentRisksExportUrl,
 
-      getApplicationRisksUrl,
+        getApplicationRisksUrl,
 
-      getApplicationRisksExportUrl,
+        getApplicationRisksExportUrl,
 
-      getNewestRisksUrl,
+        getNewestRisksUrl,
 
-      getNewestRisksExportUrl,
+        getNewestRisksExportUrl,
 
-      getApplicationTagsUrl,
+        getApplicationTagsUrl,
 
-      getDashboardFilters,
+        getDashboardFilters,
 
-      getDashboardSavedFilters,
+        getDashboardSavedFilters,
 
-      getDashboardComponentMatchSummaryUrl: function() {
-        return baseUrl.get() + '/rest/dashboard/components/summary';
-      },
+        getDashboardComponentMatchSummaryUrl: function () {
+          return baseUrl.get() + '/rest/dashboard/components/summary';
+        },
 
-      getComponentDetailsUrl: function(hash) {
-        return baseUrl.get() + '/rest/componentDetails/applications?hash=' + hash;
-      },
-      getComponentNameUrl: function(hash) {
-        return baseUrl.get() + '/rest/componentDetails/name?hash=' + hash;
-      },
-      getNotificationUrl: function() {
-        return baseUrl.get() + '/rest/product/notifications';
-      },
-      getNotificationViewedUrl: function() {
-        return baseUrl.get() + '/rest/product/notifications/viewed';
-      },
+        getComponentDetailsUrl: function (hash) {
+          return (
+            baseUrl.get() + '/rest/componentDetails/applications?hash=' + hash
+          );
+        },
+        getComponentNameUrl: function (hash) {
+          return baseUrl.get() + '/rest/componentDetails/name?hash=' + hash;
+        },
+        getNotificationUrl: function () {
+          return baseUrl.get() + '/rest/product/notifications';
+        },
+        getNotificationViewedUrl: function () {
+          return baseUrl.get() + '/rest/product/notifications/viewed';
+        },
 
-      /**
-       * @Since 1.17
-       */
-      getAuditReportSummary: function(repositoryId) {
-        return baseUrl.get() + '/rest/repositories/' + encodeURIComponent(repositoryId) + '/report/summary';
-      },
+        /**
+         * @Since 1.17
+         */
+        getAuditReportSummary: function (repositoryId) {
+          return (
+            baseUrl.get() +
+            '/rest/repositories/' +
+            encodeURIComponent(repositoryId) +
+            '/report/summary'
+          );
+        },
 
-      /**
-       * @Since 1.18
-       */
-      getRootOrganizationConfigMigrationUrl: function(organizationId) {
-        return baseUrl.get() + '/rest/migrate/root' + (organizationId ? '/' + organizationId : '');
-      },
+        /**
+         * @Since 1.18
+         */
+        getRootOrganizationConfigMigrationUrl: function (organizationId) {
+          return (
+            baseUrl.get() +
+            '/rest/migrate/root' +
+            (organizationId ? '/' + organizationId : '')
+          );
+        },
 
-      /**
-       * @since 1.18
-       */
-      getRepositoryReportUrl: function(repositoryId) {
-        return baseUrl.get() + '/assets/audit-report/index.html?repositoryId=' + repositoryId;
-      },
+        /**
+         * @since 1.18
+         */
+        getRepositoryReportUrl: function (repositoryId) {
+          return (
+            baseUrl.get() +
+            '/assets/audit-report/index.html?repositoryId=' +
+            repositoryId
+          );
+        },
 
-      /**
-       * @since 1.18
-       */
-      getRepositoryInfoUrl: function(repositoryId) {
-        return baseUrl.get() + '/rest/repositories/' + repositoryId;
-      },
+        /**
+         * @since 1.18
+         */
+        getRepositoryInfoUrl: function (repositoryId) {
+          return baseUrl.get() + '/rest/repositories/' + repositoryId;
+        },
 
-      /**
-       * @since 1.18
-       */
-      getRepositoryEvaluateUrl: function(repositoryId) {
-        return baseUrl.get() + '/rest/repositories/' + repositoryId + '/evaluate';
-      },
+        /**
+         * @since 1.18
+         */
+        getRepositoryEvaluateUrl: function (repositoryId) {
+          return (
+            baseUrl.get() + '/rest/repositories/' + repositoryId + '/evaluate'
+          );
+        },
 
-      /**
-       * @since 1.19.0
-       */
-      getRepositoriesUrl: function() {
-        return baseUrl.get() + '/rest/repositories/';
-      },
+        /**
+         * @since 1.19.0
+         */
+        getRepositoriesUrl: function () {
+          return baseUrl.get() + '/rest/repositories/';
+        },
 
-      /**
-       * @since 1.20.0
-       */
-      getOwnerListUrl: function() {
-        return baseUrl.get() + '/rest/sidebar';
-      },
+        /**
+         * @since 1.20.0
+         */
+        getOwnerListUrl: function () {
+          return baseUrl.get() + '/rest/sidebar';
+        },
 
-      getRequestWaiverUrl: function(policyViolationId) {
-        return `${baseUrl.get()}/api/v2/policyWaiver/${encodeURIComponent(policyViolationId)}/application`;
-      },
+        getRequestWaiverUrl: function (policyViolationId) {
+          return `${baseUrl.get()}/api/v2/policyWaiver/${encodeURIComponent(
+            policyViolationId
+          )}/application`;
+        },
 
-      getDestinationOrganizationsUrl: function(applicationId) {
-        return baseUrl.get() + '/rest/move/application/' + applicationId + '/destinations';
-      },
+        getDestinationOrganizationsUrl: function (applicationId) {
+          return (
+            baseUrl.get() +
+            '/rest/move/application/' +
+            applicationId +
+            '/destinations'
+          );
+        },
 
-      getMoveApplicationUrl: function(applicationId, organizationId) {
-        return baseUrl.get() + `/api/v2/applications/${applicationId}/move/organization/${organizationId}`;
-      },
+        getMoveApplicationUrl: function (applicationId, organizationId) {
+          return (
+            baseUrl.get() +
+            `/api/v2/applications/${applicationId}/move/organization/${organizationId}`
+          );
+        },
 
-      getIsJiraEnabledUrl: function() {
-        return baseUrl.get() + '/rest/jira/enabled';
-      },
+        getIsJiraEnabledUrl: function () {
+          return baseUrl.get() + '/rest/jira/enabled';
+        },
 
-      getJiraProjectsUrl: function() {
-        return baseUrl.get() + '/rest/jira/project';
-      },
+        getJiraProjectsUrl: function () {
+          return baseUrl.get() + '/rest/jira/project';
+        },
 
-      getWebhooksUrl: function() {
-        return baseUrl.get() + '/rest/config/webhook';
-      },
+        getWebhooksUrl: function () {
+          return baseUrl.get() + '/rest/config/webhook';
+        },
 
-      getWebhookEventTypesUrl: function() {
-        return baseUrl.get() + '/rest/config/webhook/eventTypes';
-      },
+        getWebhookEventTypesUrl: function () {
+          return baseUrl.get() + '/rest/config/webhook/eventTypes';
+        },
 
-      getSystemNoticeUrl: function() {
-        return baseUrl.get() + '/rest/config/systemNotice';
-      },
+        getSystemNoticeUrl: function () {
+          return baseUrl.get() + '/rest/config/systemNotice';
+        },
 
-      getSystemNoticeFetchUrl: function() {
-        return this.getSystemNoticeUrl() + '/fetch';
-      },
+        getSystemNoticeFetchUrl: function () {
+          return this.getSystemNoticeUrl() + '/fetch';
+        },
 
-      getRevokeGrandfatheringUrl: function(applicationPublicId) {
-        return `${baseUrl.get()}/rest/policyViolationGrandfathering/revoke/${encodeURIComponent(applicationPublicId)}`;
-      },
+        getRevokeGrandfatheringUrl: function (applicationPublicId) {
+          return `${baseUrl.get()}/rest/policyViolationGrandfathering/revoke/${encodeURIComponent(
+            applicationPublicId
+          )}`;
+        },
 
-      getGrandfatherUrl: function(applicationPublicId) {
-        const appId = encodeURIComponent(applicationPublicId);
-        return `${baseUrl.get()}/rest/policyViolationGrandfathering/grandfather/${appId}`;
-      },
+        getGrandfatherUrl: function (applicationPublicId) {
+          const appId = encodeURIComponent(applicationPublicId);
+          return `${baseUrl.get()}/rest/policyViolationGrandfathering/grandfather/${appId}`;
+        },
 
-      getSuccessMetricsConfigUrl: () => `${baseUrl.get()}/rest/successMetrics`,
+        getSuccessMetricsConfigUrl: () =>
+          `${baseUrl.get()}/rest/successMetrics`,
 
-      getSuccessMetricsChartDataUrl: successMetricsReportId =>
-        `${baseUrl.get()}/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/chartData`,
+        getSuccessMetricsChartDataUrl: (successMetricsReportId) =>
+          `${baseUrl.get()}/rest/successMetrics/report/${encodeURIComponent(
+            successMetricsReportId
+          )}/chartData`,
 
-      getSuccessMetricsComponentCountsUrl: successMetricsReportId =>
-        `${baseUrl.get()}/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/componentCounts`,
+        getSuccessMetricsComponentCountsUrl: (successMetricsReportId) =>
+          `${baseUrl.get()}/rest/successMetrics/report/${encodeURIComponent(
+            successMetricsReportId
+          )}/componentCounts`,
 
-      getSuccessMetricsReportsUrl: () => `${baseUrl.get()}/rest/successMetrics/report`,
+        getSuccessMetricsReportsUrl: () =>
+          `${baseUrl.get()}/rest/successMetrics/report`,
 
-      getSuccessMetricsReportUrl: (successMetricsId) =>
-        `${baseUrl.get()}/rest/successMetrics/report/${successMetricsId}`,
+        getSuccessMetricsReportUrl: (successMetricsId) =>
+          `${baseUrl.get()}/rest/successMetrics/report/${successMetricsId}`,
 
-      getAutomaticApplicationsConfigurationUrl: () => `${baseUrl.get()}/rest/config/automaticApplications`,
+        getAutomaticApplicationsConfigurationUrl: () =>
+          `${baseUrl.get()}/rest/config/automaticApplications`,
 
-      getAutomaticSourceControlConfigurationUrl:
-          () => `${baseUrl.get()}/rest/config/automaticScmConfiguration`,
+        getAutomaticSourceControlConfigurationUrl: () =>
+          `${baseUrl.get()}/rest/config/automaticScmConfiguration`,
 
-      getAdvancedSearchConfigUrl: () => `${baseUrl.get()}/rest/search/advanced/status`,
+        getAdvancedSearchConfigUrl: () =>
+          `${baseUrl.get()}/rest/search/advanced/status`,
 
-      getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
+        getShouldDisplayDefaultPasswordWarning: () =>
+          `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
 
-      getIsHdsReachable: () => `${baseUrl.get()}/rest/hdsPing`,
+        getIsHdsReachable: () => `${baseUrl.get()}/rest/hdsPing`,
 
-      getTelemetryUrl: () => `${baseUrl.get()}/rest/environment/stats`,
+        getTelemetryUrl: () => `${baseUrl.get()}/rest/environment/stats`,
 
-      getReportPolicyThreatsUrl: getBrowseReportUrl('policythreats.json'),
+        getReportPolicyThreatsUrl: getBrowseReportUrl('policythreats.json'),
 
-      getReportAuditLogUrl: function(appPublicId, reportId, component) {
-        const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component)),
+        getReportAuditLogUrl: function (appPublicId, reportId, component) {
+          const keyJson = JSON.stringify(
+              pick(['hash', 'componentIdentifier'], component)
+            ),
             encodedAppId = encodeURIComponent(appPublicId),
             encodedReportId = encodeURIComponent(reportId),
             encodedKeyJson = encodeURIComponent(keyJson);
 
-        return `${baseUrl.get()}/rest/report/${encodedAppId}/${encodedReportId}/auditLog/licenses.json+security.json` +
-            `?key=${encodedKeyJson}`;
-      },
+          return (
+            `${baseUrl.get()}/rest/report/${encodedAppId}/${encodedReportId}/auditLog/licenses.json+security.json` +
+            `?key=${encodedKeyJson}`
+          );
+        },
 
-      getReportReevaluateUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/reevaluatePolicy',
+        getReportReevaluateUrl: (applicationPublicId, scanId) =>
+          getBaseReportUrl(applicationPublicId, scanId) + '/reevaluatePolicy',
 
-      getReportPdfDownloadUrl: (applicationPublicId, scanId) => getBaseReportUrl(applicationPublicId, scanId) +
-          '/printReport',
+        getReportPdfDownloadUrl: (applicationPublicId, scanId) =>
+          getBaseReportUrl(applicationPublicId, scanId) + '/printReport',
 
-      getClaimComponentUrl: hash => {
-        const base = `${baseUrl.get()}/rest/component/identified`;
+        getClaimComponentUrl: (hash) => {
+          const base = `${baseUrl.get()}/rest/component/identified`;
 
-        return hash ? `${base}/${encodeURIComponent(hash)}` : base;
-      },
+          return hash ? `${base}/${encodeURIComponent(hash)}` : base;
+        },
 
-      getVulnerabilityJsonDetailUrl,
+        getVulnerabilityJsonDetailUrl,
 
-      /**
-       * @since 1.79.0
-       */
-      getSourceControlUrl: function(ownerType, ownerId) {
-        return baseUrl.get() + `/api/v2/sourceControl/${ownerType}/${ownerId}`;
-      },
+        /**
+         * @since 1.79.0
+         */
+        getSourceControlUrl: function (ownerType, ownerId) {
+          return (
+            baseUrl.get() + `/api/v2/sourceControl/${ownerType}/${ownerId}`
+          );
+        },
 
-      /**
-       * @since 1.79.0
-       */
-      getCompositeSourceControlUrl: function(ownerType, ownerId) {
-        return baseUrl.get() + `/api/v2/compositeSourceControl/${ownerType}/${ownerId}`;
-      },
+        /**
+         * @since 1.79.0
+         */
+        getCompositeSourceControlUrl: function (ownerType, ownerId) {
+          return (
+            baseUrl.get() +
+            `/api/v2/compositeSourceControl/${ownerType}/${ownerId}`
+          );
+        },
 
-      getValidateScmConfigUrl: function(ownerType, ownerId) {
-        return baseUrl.get() + `/api/v2/compositeSourceControlConfigValidator/${ownerType}/${ownerId}`;
-      },
+        getValidateScmConfigUrl: function (ownerType, ownerId) {
+          return (
+            baseUrl.get() +
+            `/api/v2/compositeSourceControlConfigValidator/${ownerType}/${ownerId}`
+          );
+        },
 
-      /**
-       * @since 1.97.0
-       */
-      getSourceControlMetricsUrl: function(ownerType, ownerId) {
-        return baseUrl.get() + `/api/v2/sourceControlMetrics/${ownerType}/${ownerId}`;
-      },
+        /**
+         * @since 1.97.0
+         */
+        getSourceControlMetricsUrl: function (ownerType, ownerId) {
+          return (
+            baseUrl.get() +
+            `/api/v2/sourceControlMetrics/${ownerType}/${ownerId}`
+          );
+        },
 
-      /**
-       * @since 1.102.0
-       */
-      getAbsoluteUrl: function(url) {
-        return baseUrl.get() + `/${url}`;
-      }
-    };
-  }
-]);
+        /**
+         * @since 1.102.0
+         */
+        getAbsoluteUrl: function (url) {
+          return baseUrl.get() + `/${url}`;
+        },
+      };
+    },
+  ]);

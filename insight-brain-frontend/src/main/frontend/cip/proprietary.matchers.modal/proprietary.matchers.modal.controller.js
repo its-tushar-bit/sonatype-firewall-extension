@@ -3,7 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function ProprietaryMatchersModalController($scope, ownerAppId, pathNames, ProprietaryMatchersService) {
+export default function ProprietaryMatchersModalController(
+  $scope,
+  ownerAppId,
+  pathNames,
+  ProprietaryMatchersService
+) {
   var vm = this;
 
   vm.addMatchersForm = undefined;
@@ -26,13 +31,13 @@ export default function ProprietaryMatchersModalController($scope, ownerAppId, p
 
   function doLoad() {
     ProprietaryMatchersService.getApplicationInfo(ownerAppId)
-        .then(function(application) {
-          vm.applicationName = application.name;
-        })
-        .catch(function() {
-          // use app id if failed to get app info
-          vm.applicationName = ownerAppId;
-        });
+      .then(function (application) {
+        vm.applicationName = application.name;
+      })
+      .catch(function () {
+        // use app id if failed to get app info
+        vm.applicationName = ownerAppId;
+      });
   }
 
   function isLoading() {
@@ -47,8 +52,7 @@ export default function ProprietaryMatchersModalController($scope, ownerAppId, p
     var index = vm.selectedPathNames.indexOf(path);
     if (index >= 0) {
       vm.selectedPathNames.splice(index, 1);
-    }
-    else {
+    } else {
       vm.selectedPathNames.push(path);
     }
   }
@@ -62,17 +66,29 @@ export default function ProprietaryMatchersModalController($scope, ownerAppId, p
       return;
     }
 
-    vm.formMask.wrap(ProprietaryMatchersService.addComponentMatchers(ownerAppId, vm.selectedPathNames, vm.regex))
-        .then(function() {
+    vm.formMask
+      .wrap(
+        ProprietaryMatchersService.addComponentMatchers(
+          ownerAppId,
+          vm.selectedPathNames,
+          vm.regex
+        )
+      )
+      .then(
+        function () {
           $scope.$close();
           delete vm.error;
-        }, function(error) {
+        },
+        function (error) {
           vm.error = error;
-        });
+        }
+      );
   }
-
 }
 
 ProprietaryMatchersModalController.$inject = [
-  '$scope', 'ownerAppId', 'pathNames', 'proprietary.matchers.service'
+  '$scope',
+  'ownerAppId',
+  'pathNames',
+  'proprietary.matchers.service',
 ];

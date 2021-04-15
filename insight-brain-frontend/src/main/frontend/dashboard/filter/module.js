@@ -17,13 +17,22 @@ import componentsModule from '../../components/module';
 import DashboardFilterContainer from './dashboardFilter/DashboardFilterContainer';
 import * as dashboardFilterActions from './dashboardFilterActions';
 
-const module = angular.module('dashboardFilter',
-    [
-      CLMLocationModule.name, storesModule.name, utilityModule.name, dashboardUtilsModule.name,
-      dashboardServicesModule.name, dashboardResultsActionsModule.name, componentsModule.name, 'ngRedux'
-    ])
-    .component('dashboardFilter', react2angular(withStoreProvider(DashboardFilterContainer), [], ['$ngRedux']))
-    .value('dashboardFilterActions', dashboardFilterActions)
-    .value('dashboardFilterReducer', dashboardFilterReducer);
+const module = angular
+  .module('dashboardFilter', [
+    CLMLocationModule.name,
+    storesModule.name,
+    utilityModule.name,
+    dashboardUtilsModule.name,
+    dashboardServicesModule.name,
+    dashboardResultsActionsModule.name,
+    componentsModule.name,
+    'ngRedux',
+  ])
+  .component(
+    'dashboardFilter',
+    react2angular(withStoreProvider(DashboardFilterContainer), [], ['$ngRedux'])
+  )
+  .value('dashboardFilterActions', dashboardFilterActions)
+  .value('dashboardFilterReducer', dashboardFilterReducer);
 
 export default module;

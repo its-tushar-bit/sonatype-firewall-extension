@@ -4,9 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-export default
-function removeDashesFilter() {
-  return function(input) {
+export default function removeDashesFilter() {
+  return function (input) {
     return input.replace('-', '');
   };
 }

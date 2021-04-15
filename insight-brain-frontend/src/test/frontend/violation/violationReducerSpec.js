@@ -5,25 +5,25 @@
  */
 import reducer from '../../../main/frontend/violation/violationReducer';
 
-describe('violationReducer', function() {
-  describe('unknown action', function() {
-    it('returns original state', function() {
-      const state = Object.freeze({foo: 'bar'});
-      const action = {type: 'UNKNOWN'};
+describe('violationReducer', function () {
+  describe('unknown action', function () {
+    it('returns original state', function () {
+      const state = Object.freeze({ foo: 'bar' });
+      const action = { type: 'UNKNOWN' };
       const newState = reducer(state, action);
       expect(newState).toBe(state);
     });
   });
 
-  describe('initial state', function() {
-    it('is used if no state is provided', function() {
-      const action = {type: 'UNKNOWN'};
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
+      const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState).not.toBeUndefined();
     });
 
-    it('has default fields', function() {
-      const action = {type: 'UNKNOWN'};
+    it('has default fields', function () {
+      const action = { type: 'UNKNOWN' };
       const newState = reducer(undefined, action);
       expect(newState.violationDetails).toBe(null);
       expect(newState.selectedViolationId).toBe(null);
@@ -36,8 +36,8 @@ describe('violationReducer', function() {
       expect(newState.expiredWaivers).toEqual([]);
     });
 
-    it('is immutable', function() {
-      const action = {type: 'UNKNOWN'};
+    it('is immutable', function () {
+      const action = { type: 'UNKNOWN' };
       const state = reducer(undefined, action);
 
       // Overall state object
@@ -68,8 +68,8 @@ describe('violationReducer', function() {
     });
   });
 
-  describe('VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED action', function() {
-    it('resets to default state and sets the loading flag to true', function() {
+  describe('VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED action', function () {
+    it('resets to default state and sets the loading flag to true', function () {
       const initialState = {
         violationDetails: {},
         selectedViolationId: '123',
@@ -78,10 +78,12 @@ describe('violationReducer', function() {
         vulnerabilityDetailsLoading: true,
         vulnerabilityDetails: {},
         vulnerabilityDetailsError: 'bla',
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       };
 
-      const newState = reducer(initialState, { type: 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED' });
+      const newState = reducer(initialState, {
+        type: 'VIOLATION_LOAD_VIOLATION_DETAILS_REQUESTED',
+      });
 
       expect(newState).toEqual({
         loading: true,
@@ -92,20 +94,22 @@ describe('violationReducer', function() {
         vulnerabilityDetails: null,
         vulnerabilityDetailsError: null,
         activeWaivers: [],
-        expiredWaivers: []
+        expiredWaivers: [],
       });
     });
   });
 
-  describe('VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED', function() {
-    it('unsets loading and violationDetailsError and sets violationDetails & activeWaivers to the payload', function() {
+  describe('VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED', function () {
+    it('unsets loading and violationDetailsError and sets violationDetails & activeWaivers to the payload', function () {
       const initialState = {
         violationDetailsError: 'baz',
         loading: true,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
-      const newState = reducer(initialState, { type: 'VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED' });
+      const newState = reducer(initialState, {
+        type: 'VIOLATION_LOAD_VIOLATION_DETAILS_FULFILLED',
+      });
 
       expect(newState.violationDetailsError).toBeNull();
       expect(newState.loading).toBe(false);
@@ -113,108 +117,108 @@ describe('violationReducer', function() {
     });
   });
 
-  describe('VIOLATION_LOAD_VIOLATION_DETAILS_FAILED', function() {
-    it('unsets the loading flag and sets the violationDetailsError to the payload', function() {
+  describe('VIOLATION_LOAD_VIOLATION_DETAILS_FAILED', function () {
+    it('unsets the loading flag and sets the violationDetailsError to the payload', function () {
       const initialState = {
         violationDetails: null,
         violationDetailsError: null,
         loading: true,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       };
 
       const newState = reducer(initialState, {
         type: 'VIOLATION_LOAD_VIOLATION_DETAILS_FAILED',
-        payload: 'ERRRRRRRRRRRRRRRRR'
+        payload: 'ERRRRRRRRRRRRRRRRR',
       });
 
       expect(newState).toEqual({
         loading: false,
         violationDetailsError: 'ERRRRRRRRRRRRRRRRR',
         violationDetails: null,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       });
     });
   });
 
-  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED action', function() {
-    it('sets vulnerabilityDetailsLoading flag to true', function() {
+  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED action', function () {
+    it('sets vulnerabilityDetailsLoading flag to true', function () {
       const initialState = {
         violationDetails: {},
         loading: false,
         violationDetailsError: 'foo',
         vulnerabilityDetailsLoading: false,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       };
 
-      const newState = reducer(initialState, { type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED' });
+      const newState = reducer(initialState, {
+        type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_REQUESTED',
+      });
 
       expect(newState).toEqual({
         violationDetails: {},
         loading: false,
         violationDetailsError: 'foo',
         vulnerabilityDetailsLoading: true,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       });
     });
   });
 
-  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED', function() {
-    it('unsets vulnerabilityDetailsError and vulnerabilityDetailsLoading and sets vulnerabilityDetails to the payload',
-        function() {
-          const initialState = {
-            vulnerabilityDetails: {},
-            vulnerabilityDetailsError: 'baz',
-            vulnerabilityDetailsLoading: true,
-            otherProp: 'asdf'
-          };
+  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED', function () {
+    it('unsets vulnerabilityDetailsError and vulnerabilityDetailsLoading and sets vulnerabilityDetails to the payload', function () {
+      const initialState = {
+        vulnerabilityDetails: {},
+        vulnerabilityDetailsError: 'baz',
+        vulnerabilityDetailsLoading: true,
+        otherProp: 'asdf',
+      };
 
-          const newState = reducer(initialState, {
-            type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED',
-            payload: { foo: 'bar' }
-          });
+      const newState = reducer(initialState, {
+        type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FULFILLED',
+        payload: { foo: 'bar' },
+      });
 
-          expect(newState).toEqual({
-            vulnerabilityDetailsLoading: false,
-            vulnerabilityDetailsError: null,
-            vulnerabilityDetails: { foo: 'bar' },
-            otherProp: 'asdf'
-          });
-        }
-    );
+      expect(newState).toEqual({
+        vulnerabilityDetailsLoading: false,
+        vulnerabilityDetailsError: null,
+        vulnerabilityDetails: { foo: 'bar' },
+        otherProp: 'asdf',
+      });
+    });
   });
 
-  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED', function() {
-    it('unsets vulnerabilityDetailsLoading flag and sets the vulnerabilityDetailsError to the payload', function() {
+  describe('VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED', function () {
+    it('unsets vulnerabilityDetailsLoading flag and sets the vulnerabilityDetailsError to the payload', function () {
       const initialState = {
         vulnerabilityDetailsLoading: true,
         vulnerabilityDetails: null,
         vulnerabilityDetailsError: null,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       };
 
       const newState = reducer(initialState, {
         type: 'VIOLATION_LOAD_VULNERABILITY_DETAILS_FAILED',
-        payload: 'ERRRRRRRRRRRRRRRRR'
+        payload: 'ERRRRRRRRRRRRRRRRR',
       });
 
       expect(newState).toEqual({
         vulnerabilityDetailsLoading: false,
         vulnerabilityDetailsError: 'ERRRRRRRRRRRRRRRRR',
         vulnerabilityDetails: null,
-        otherProp: 'asdf'
+        otherProp: 'asdf',
       });
     });
   });
 
-  describe('UI_ROUTER_ON_FINISH', function() {
-    it('resets loading to true but keeps violationDetails', function() {
+  describe('UI_ROUTER_ON_FINISH', function () {
+    it('resets loading to true but keeps violationDetails', function () {
       const currentState = {
         loading: false,
-        violationDetails: { prop: 'foo' }
+        violationDetails: { prop: 'foo' },
       };
 
       const newState = reducer(currentState, {
-        type: '@@reduxUiRouter/onFinish'
+        type: '@@reduxUiRouter/onFinish',
       });
 
       expect(newState.loading).toBe(true);
@@ -222,19 +226,19 @@ describe('violationReducer', function() {
     });
   });
 
-  describe('VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED', function() {
-    it('sets the waivers in the state', function() {
+  describe('VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED', function () {
+    it('sets the waivers in the state', function () {
       const state = {
         loading: true,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
       const newState = reducer(state, {
         type: 'VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED',
         payload: {
           violationDetails: { foo: 'bar' },
-          selectedViolationId: '123'
-        }
+          selectedViolationId: '123',
+        },
       });
 
       expect(newState.violationDetails).toEqual({ foo: 'bar' });
@@ -244,19 +248,19 @@ describe('violationReducer', function() {
     });
   });
 
-  describe('VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED', function() {
-    it('sets the waivers in the state', function() {
+  describe('VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED', function () {
+    it('sets the waivers in the state', function () {
       const state = {
         loading: true,
-        otherProp: { prop: 'foo' }
+        otherProp: { prop: 'foo' },
       };
 
       const newState = reducer(state, {
         type: 'VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED',
         payload: {
           activeWaivers: ['foo'],
-          expiredWaivers: ['bar']
-        }
+          expiredWaivers: ['bar'],
+        },
       });
 
       expect(newState.activeWaivers).toEqual(['foo']);

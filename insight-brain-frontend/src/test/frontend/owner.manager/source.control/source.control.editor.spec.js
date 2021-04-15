@@ -7,7 +7,7 @@ import sourceControlModule from '../../../../main/frontend/owner.manager/source.
 import utilityModule from '../../../../main/frontend/utility/utility.module';
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
 
-describe('source.control.editor.spec', function() {
+describe('source.control.editor.spec', function () {
   const ROOT_ORGANIZATION_ID = 'rootOrganizationId';
   const SUB_ORGANIZATION_ID = 'subOrganizationId';
   const APPLICATION_ID = 'applicationId';
@@ -15,59 +15,82 @@ describe('source.control.editor.spec', function() {
   const SSH_REPOSITORY_URL = 'ssh://a.com/b/c';
 
   let $rootScope,
-      $scope,
-      $q,
-      $componentController,
-      mockCLMContextLocations,
-      mockOrganizationStore,
-      mockApplicationStore,
-      getByIdDeferred,
-      vm,
-      mockSourceControlService,
-      getSourceControlDeferred,
-      deleteServiceResourceDefer,
-      updateUrlDefer,
-      saveResourceDefer,
-      mockDeleteService = {
-        deleteCustom: function(headerText, bodyText, maskText, continueAction) {
-          continueAction();
-          return deleteServiceResourceDefer.promise;
-        }
+    $scope,
+    $q,
+    $componentController,
+    mockCLMContextLocations,
+    mockOrganizationStore,
+    mockApplicationStore,
+    getByIdDeferred,
+    vm,
+    mockSourceControlService,
+    getSourceControlDeferred,
+    deleteServiceResourceDefer,
+    updateUrlDefer,
+    saveResourceDefer,
+    mockDeleteService = {
+      deleteCustom: function (headerText, bodyText, maskText, continueAction) {
+        continueAction();
+        return deleteServiceResourceDefer.promise;
       },
-      mockUpdateUrlService = {
-        updateSourceControl: function(continueAction) {
-          continueAction();
-          return updateUrlDefer.promise;
-        }
+    },
+    mockUpdateUrlService = {
+      updateSourceControl: function (continueAction) {
+        continueAction();
+        return updateUrlDefer.promise;
       },
-      mockSameOwnerStateNavigationService = {
-        goEdit: jasmine.createSpy()
-      },
-      $timeout,
-      mockProductFeatures,
-      loadProductFeaturesDefer;
+    },
+    mockSameOwnerStateNavigationService = {
+      goEdit: jasmine.createSpy(),
+    },
+    $timeout,
+    mockProductFeatures,
+    loadProductFeaturesDefer;
 
-  beforeEach(angular.mock.module(ownerManagerModule.name, function($provide) {
-    $provide.value('$cookies', {
-      get: angular.noop
-    });
-  }));
+  beforeEach(
+    angular.mock.module(ownerManagerModule.name, function ($provide) {
+      $provide.value('$cookies', {
+        get: angular.noop,
+      });
+    })
+  );
 
   beforeEach(angular.mock.module(sourceControlModule.name, utilityModule.name));
 
-  beforeEach(inject(function(_$rootScope_, $injector, _$componentController_, _$q_, _$timeout_) {
+  beforeEach(inject(function (
+    _$rootScope_,
+    $injector,
+    _$componentController_,
+    _$q_,
+    _$timeout_
+  ) {
     $rootScope = _$rootScope_;
     $scope = $rootScope.$new();
 
-    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations',
-        ['isOrganization', 'getEntityId', 'isApplication', 'isRootOrg']);
-    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', ['getById']);
-    mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', ['getById']);
-    mockSourceControlService = jasmine.createSpyObj('mockSourceControlService',
-        [
-          'getCompositeSourceControlRecord', 'getProviderTypes', 'deleteSourceControlRecord', 'addSourceControlRecord',
-          'updateSourceControlRecord', 'getProviderTypesMap', 'getSourceControlMetrics'
-        ]);
+    mockCLMContextLocations = jasmine.createSpyObj('CLMContextLocations', [
+      'isOrganization',
+      'getEntityId',
+      'isApplication',
+      'isRootOrg',
+    ]);
+    mockOrganizationStore = jasmine.createSpyObj('mockOrganizationStore', [
+      'getById',
+    ]);
+    mockApplicationStore = jasmine.createSpyObj('mockApplicationsStore', [
+      'getById',
+    ]);
+    mockSourceControlService = jasmine.createSpyObj(
+      'mockSourceControlService',
+      [
+        'getCompositeSourceControlRecord',
+        'getProviderTypes',
+        'deleteSourceControlRecord',
+        'addSourceControlRecord',
+        'updateSourceControlRecord',
+        'getProviderTypesMap',
+        'getSourceControlMetrics',
+      ]
+    );
     $componentController = _$componentController_;
     $q = _$q_;
     getByIdDeferred = $q.defer();
@@ -77,24 +100,27 @@ describe('source.control.editor.spec', function() {
     saveResourceDefer = $q.defer();
     loadProductFeaturesDefer = $q.defer();
     $timeout = _$timeout_;
-    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', ['isAvailable', 'load']);
+    mockProductFeatures = jasmine.createSpyObj('mockProductFeatures', [
+      'isAvailable',
+      'load',
+    ]);
     mockProductFeatures.load.and.returnValue(loadProductFeaturesDefer.promise);
-    mockProductFeatures.isAvailable.and.callFake(function(feature) {
+    mockProductFeatures.isAvailable.and.callFake(function (feature) {
       return feature === 'notifications' || feature === 'automation';
     });
   }));
 
-  describe('root organization', function() {
+  describe('root organization', function () {
     const compositeSourceControl = {
       username: {
         value: null,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       token: {
         value: null,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       ownerId: ROOT_ORGANIZATION_ID,
       id: 'ID',
@@ -103,18 +129,18 @@ describe('source.control.editor.spec', function() {
       baseBranch: {
         value: 'BASE_BRANCH',
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       enableStatusChecks: {
         value: true,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       enablePullRequests: {
         value: null,
         parentName: null,
-        parentValue: null
-      }
+        parentValue: null,
+      },
     };
 
     const sourceControlModel = {
@@ -139,30 +165,40 @@ describe('source.control.editor.spec', function() {
       enablePullRequestsInheritFrom: null,
       enableStatusChecks: true,
       enableStatusChecksInheritedValue: null,
-      enableStatusChecksInheritFrom: null
+      enableStatusChecksInheritFrom: null,
     };
 
-    beforeEach(inject(function() {
+    beforeEach(inject(function () {
       mockCLMContextLocations.isOrganization.and.returnValue(true);
       mockCLMContextLocations.isRootOrg.and.returnValue(true);
       mockCLMContextLocations.isApplication.and.returnValue(false);
       mockCLMContextLocations.getEntityId.and.returnValue(ROOT_ORGANIZATION_ID);
-      mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-      mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
+      mockSourceControlService.updateSourceControlRecord.and.returnValue(
+        saveResourceDefer.promise
+      );
+      mockSourceControlService.addSourceControlRecord.and.returnValue(
+        saveResourceDefer.promise
+      );
       mockSourceControlService.getProviderTypesMap.and.returnValue({
-        'github': 'GitHub',
-        'gitlab': 'GitLab',
-        'bitbucket': 'Bitbucket'
+        github: 'GitHub',
+        gitlab: 'GitLab',
+        bitbucket: 'Bitbucket',
       });
-      mockOrganizationStore.getById.and.callFake(function(id) {
+      mockOrganizationStore.getById.and.callFake(function (id) {
         return id === ROOT_ORGANIZATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function(ownerType, id) {
-        return ownerType === 'organization' && id === ROOT_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
-      });
-      mockSourceControlService.getSourceControlMetrics.and.callFake(function() {
-        return {'results': []};
-      });
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
+        function (ownerType, id) {
+          return ownerType === 'organization' && id === ROOT_ORGANIZATION_ID
+            ? getSourceControlDeferred.promise
+            : null;
+        }
+      );
+      mockSourceControlService.getSourceControlMetrics.and.callFake(
+        function () {
+          return { results: [] };
+        }
+      );
 
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
@@ -173,17 +209,16 @@ describe('source.control.editor.spec', function() {
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
         ProductFeatures: mockProductFeatures,
-        UpdateSourceControlModalService: mockUpdateUrlService
+        UpdateSourceControlModalService: mockUpdateUrlService,
       });
       vm.sourceControlEditor = {
-        $setPristine: function() {
-        }
+        $setPristine: function () {},
       };
-      vm.sourceControlEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.sourceControlEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
     }));
 
-    describe('doLoad', function() {
-      it('sets the proper org and app owner flags', function() {
+    describe('doLoad', function () {
+      it('sets the proper org and app owner flags', function () {
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
         expect(mockCLMContextLocations.isApplication).toHaveBeenCalled();
@@ -197,7 +232,7 @@ describe('source.control.editor.spec', function() {
           CLMContextLocations: mockCLMContextLocations,
           OrganizationStore: mockOrganizationStore,
           ApplicationStore: mockApplicationStore,
-          SourceControlService: mockSourceControlService
+          SourceControlService: mockSourceControlService,
         });
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
@@ -205,19 +240,24 @@ describe('source.control.editor.spec', function() {
         expect(vm.isOrg).toBe(false);
       });
 
-      it('loads the root org owner name and reports on success', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('loads the root org owner name and reports on success', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         $scope.$digest();
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(ROOT_ORGANIZATION_ID);
+        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(
+          ROOT_ORGANIZATION_ID
+        );
         expect(vm.ownerName).toBe('rootOrganizationName');
         expect(vm.loadError).toBeUndefined();
       });
 
-      it('sets the error message on failure for root organization owner id', function() {
-        getByIdDeferred.reject({status: 404, data: 'not found'});
+      it('sets the error message on failure for root organization owner id', function () {
+        getByIdDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
 
@@ -225,10 +265,13 @@ describe('source.control.editor.spec', function() {
         expect(vm.loadError).toEqual('not found');
       });
 
-      it('sets the error message on failure for the root organization source control', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('sets the error message on failure for the root organization source control', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.reject({status: 400, data: 'bad request'});
+        getSourceControlDeferred.reject({ status: 400, data: 'bad request' });
 
         $scope.$digest();
 
@@ -236,8 +279,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.loadError).toEqual('bad request');
       });
 
-      it('sets the source control and does not report an error for the root organization', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('sets the source control and does not report an error for the root organization', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -249,13 +295,16 @@ describe('source.control.editor.spec', function() {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
 
-      it('sets the base branch to master if empty for the root organization', function() {
+      it('sets the base branch to master if empty for the root organization', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.value = null;
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         sourceControlModelCopy.baseBranch = 'master';
 
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -269,10 +318,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('deleteSourceControl', function() {
-      it('deletes the existing entry without error', function() {
-
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('deleteSourceControl', function () {
+      it('deletes the existing entry without error', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -286,20 +337,22 @@ describe('source.control.editor.spec', function() {
         // when
         vm.deleteSourceControl();
         deleteServiceResourceDefer.resolve();
-        expect(mockSourceControlService.deleteSourceControlRecord).toHaveBeenCalledWith('organization',
-            ROOT_ORGANIZATION_ID);
+        expect(
+          mockSourceControlService.deleteSourceControlRecord
+        ).toHaveBeenCalledWith('organization', ROOT_ORGANIZATION_ID);
 
         $scope.$digest();
 
         // then
-        expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('edit-source-control');
+        expect(mockSameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith(
+          'edit-source-control'
+        );
         expect(vm.loadError).toBeUndefined();
       });
     });
 
-    describe('save', function() {
-      it('creates a new entry if source control is not configured', function() {
-
+    describe('save', function () {
+      it('creates a new entry if source control is not configured', function () {
         const expectedSourceControlForSave = {
           provider: 'github',
           username: null,
@@ -308,10 +361,13 @@ describe('source.control.editor.spec', function() {
           id: null,
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: null,
-          enableStatusChecks: true
+          enableStatusChecks: true,
         };
 
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -327,7 +383,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -336,15 +395,19 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.addSourceControlRecord).toHaveBeenCalledWith('organization',
-            ROOT_ORGANIZATION_ID, expectedSourceControlForSave);
+        expect(
+          mockSourceControlService.addSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'organization',
+          ROOT_ORGANIZATION_ID,
+          expectedSourceControlForSave
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
 
-      it('updates the existing entry if source control is configured', function() {
-
+      it('updates the existing entry if source control is configured', function () {
         const expectedSourceControlForSave = {
           provider: 'gitlab',
           username: null,
@@ -353,10 +416,13 @@ describe('source.control.editor.spec', function() {
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: null,
-          enableStatusChecks: true
+          enableStatusChecks: true,
         };
 
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -374,7 +440,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         compositeSourceControlCopy.provider = 'gitlab';
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
@@ -384,14 +453,19 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('organization',
-            ROOT_ORGANIZATION_ID, expectedSourceControlForSave);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'organization',
+          ROOT_ORGANIZATION_ID,
+          expectedSourceControlForSave
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
 
-      it('returns an error for unsuccessful save', function() {
+      it('returns an error for unsuccessful save', function () {
         const expectedSourceControlForSave = {
           provider: 'gitlab',
           username: null,
@@ -400,10 +474,13 @@ describe('source.control.editor.spec', function() {
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: null,
-          enableStatusChecks: true
+          enableStatusChecks: true,
         };
 
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -419,15 +496,20 @@ describe('source.control.editor.spec', function() {
         vm.dirtySourceControl.provider = 'gitlab';
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
-        saveResourceDefer.reject({status: '400', data: 'bad request'});
+        saveResourceDefer.reject({ status: '400', data: 'bad request' });
 
         // when
         vm.save();
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('organization',
-            ROOT_ORGANIZATION_ID, expectedSourceControlForSave);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'organization',
+          ROOT_ORGANIZATION_ID,
+          expectedSourceControlForSave
+        );
         expect(vm.submitError).toEqual('bad request');
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
@@ -435,9 +517,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isDirty', function() {
-      it('returns true when changes have been applied to provider', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('isDirty', function () {
+      it('returns true when changes have been applied to provider', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -453,8 +538,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to token', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns true when changes have been applied to token', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -470,8 +558,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to baseBranch', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns true when changes have been applied to baseBranch', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -487,8 +578,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to enablePullRequests', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns true when changes have been applied to enablePullRequests', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -505,8 +599,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns false after save', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns false after save', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -522,7 +619,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -534,8 +634,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns false after delete', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns false after delete', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -554,9 +657,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns false after load', function() {
-
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns false after load', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -571,9 +676,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isAccessTokenRequiredOnNode', function() {
-      it('should return false for root organization', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('isAccessTokenRequiredOnNode', function () {
+      it('should return false for root organization', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -582,9 +690,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('showAdvanced', function() {
-      it('should return true for root organization', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('showAdvanced', function () {
+      it('should return true for root organization', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -593,9 +704,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('showScmValidator', function() {
-      it('should return false for root organization', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('showScmValidator', function () {
+      it('should return false for root organization', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -604,9 +718,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('shouldShowAccessTokenWarning', function() {
-      it('should return false for root organization', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('shouldShowAccessTokenWarning', function () {
+      it('should return false for root organization', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -615,9 +732,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('canCollapseAdvanced', function() {
-      it('should return false for root organization', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('canCollapseAdvanced', function () {
+      it('should return false for root organization', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -626,9 +746,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isPullRequestsSupported', function() {
-      it('should return true if licence supports automation and provider is github', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('isPullRequestsSupported', function () {
+      it('should return true if licence supports automation and provider is github', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -637,8 +760,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isPullRequestsSupported()).toBeTruthy();
       });
 
-      it('should return true if licence supports automation and provider is bitbucket', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('should return true if licence supports automation and provider is bitbucket', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -646,8 +772,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isPullRequestsSupported()).toBeTruthy();
       });
 
-      it('should return true if licence supports automation and provider is gitlab', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('should return true if licence supports automation and provider is gitlab', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -656,11 +785,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.isPullRequestsSupported()).toBeTruthy();
       });
 
-      it('should return false if licence does not support automation', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('should return false if licence does not support automation', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
-        mockProductFeatures.isAvailable.and.callFake(function(feature) {
+        mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'notifications';
         });
 
@@ -672,9 +804,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('getPullRequestsNotAvailableMessage', function() {
-      it('should return message for provider if licence supports automation', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('getPullRequestsNotAvailableMessage', function () {
+      it('should return message for provider if licence supports automation', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -688,25 +823,35 @@ describe('source.control.editor.spec', function() {
         expect(vm.getPullRequestsNotAvailableMessage()).toEqual('');
       });
 
-      it('should return licencing message if licence does not support automation', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('should return licencing message if licence does not support automation', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
-        mockProductFeatures.isAvailable.and.callFake(function(feature) {
+        mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'notifications';
         });
 
         $scope.$digest();
-        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your licence');
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual(
+          'This feature is not supported by your licence'
+        );
 
         vm.dirtySourceControl.provider = 'gitlab';
-        expect(vm.getPullRequestsNotAvailableMessage()).toEqual('This feature is not supported by your licence');
+        expect(vm.getPullRequestsNotAvailableMessage()).toEqual(
+          'This feature is not supported by your licence'
+        );
       });
     });
 
-    describe('isProviderSpecifiedAndPullRequestsSupported', function() {
-      it('should return true for provider if licence supports automation', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('isProviderSpecifiedAndPullRequestsSupported', function () {
+      it('should return true for provider if licence supports automation', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -723,11 +868,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.isProviderSpecifiedAndPullRequestsSupported()).toBeFalsy();
       });
 
-      it('should return false if licence does not support automation', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('should return false if licence does not support automation', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
-        mockProductFeatures.isAvailable.and.callFake(function(feature) {
+        mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'notifications';
         });
 
@@ -742,34 +890,43 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isSourceControlSupported', function() {
-      it('returns true if notifications are supported', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('isSourceControlSupported', function () {
+      it('returns true if notifications are supported', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
-        mockProductFeatures.isAvailable.and.callFake(function(feature) {
+        mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'notifications';
         });
         $scope.$digest();
         expect(vm.isSourceControlSupported).toBeTruthy();
       });
 
-      it('returns true if automation is supported', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns true if automation is supported', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
-        mockProductFeatures.isAvailable.and.callFake(function(feature) {
+        mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'automation';
         });
         $scope.$digest();
         expect(vm.isSourceControlSupported).toBeTruthy();
       });
 
-      it('returns false if notifications and automation is not supported', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns false if notifications and automation is not supported', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
-        mockProductFeatures.isAvailable.and.callFake(function() {
+        mockProductFeatures.isAvailable.and.callFake(function () {
           return false;
         });
         $scope.$digest();
@@ -777,20 +934,26 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isAutomationSupported', function() {
-      it('returns true if automation is supported', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('isAutomationSupported', function () {
+      it('returns true if automation is supported', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
         $scope.$digest();
         expect(vm.isAutomationSupported).toBeTruthy();
       });
 
-      it('returns false if automation is not supported', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('returns false if automation is not supported', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
-        mockProductFeatures.isAvailable.and.callFake(function(feature) {
+        mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'notifications';
         });
         $scope.$digest();
@@ -798,9 +961,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('vm.loading', function() {
-      it('is set to false when all calls success', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+    describe('vm.loading', function () {
+      it('is set to false when all calls success', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -808,17 +974,20 @@ describe('source.control.editor.spec', function() {
         expect(vm.loading).toBeFalsy();
       });
 
-      it('is set to false when owner identifier cannot be retrieved', function() {
-        getByIdDeferred.reject({status: 404, data: 'not found'});
+      it('is set to false when owner identifier cannot be retrieved', function () {
+        getByIdDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
         expect(vm.loadError).toEqual('not found');
         expect(vm.loading).toBeFalsy();
       });
 
-      it('is set to false when product features cannot be retrieved', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
-        loadProductFeaturesDefer.reject({status: 404, data: 'not found'});
+      it('is set to false when product features cannot be retrieved', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
+        loadProductFeaturesDefer.reject({ status: 404, data: 'not found' });
         getSourceControlDeferred.resolve(compositeSourceControl);
 
         $scope.$digest();
@@ -826,31 +995,40 @@ describe('source.control.editor.spec', function() {
         expect(vm.loading).toBeFalsy();
       });
 
-      it('is set to false when composite source control cannot be retrieved', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('is set to false when composite source control cannot be retrieved', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.reject({status: 404, data: 'not found'});
+        getSourceControlDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
         expect(vm.loadError).toEqual('not found');
         expect(vm.loading).toBeFalsy();
       });
 
-      it('is set to true while waiting for owner identifier', function() {
+      it('is set to true while waiting for owner identifier', function () {
         $scope.$digest();
         expect(vm.loadError).toEqual(undefined);
         expect(vm.loading).toBeTruthy();
       });
 
-      it('is set to true while waiting for product features', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('is set to true while waiting for product features', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         $scope.$digest();
         expect(vm.loadError).toEqual(undefined);
         expect(vm.loading).toBeTruthy();
       });
 
-      it('is set to true while waiting for composite source control', function() {
-        getByIdDeferred.resolve({name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID});
+      it('is set to true while waiting for composite source control', function () {
+        getByIdDeferred.resolve({
+          name: 'rootOrganizationName',
+          id: ROOT_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         $scope.$digest();
         expect(vm.loadError).toEqual(undefined);
@@ -859,17 +1037,17 @@ describe('source.control.editor.spec', function() {
     });
   });
 
-  describe('organization', function() {
+  describe('organization', function () {
     const compositeSourceControl = {
       username: {
         value: null,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       token: {
         value: null,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       ownerId: SUB_ORGANIZATION_ID,
       id: 'ID',
@@ -878,18 +1056,18 @@ describe('source.control.editor.spec', function() {
       baseBranch: {
         value: 'BASE_BRANCH',
         parentName: 'Root Organization',
-        parentValue: 'PARENT_BRANCH'
+        parentValue: 'PARENT_BRANCH',
       },
       enableStatusChecks: {
         value: true,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       enablePullRequests: {
         value: null,
         parentName: 'Root Organization',
-        parentValue: true
-      }
+        parentValue: true,
+      },
     };
 
     const sourceControlModel = {
@@ -914,22 +1092,30 @@ describe('source.control.editor.spec', function() {
       enablePullRequestsInheritFrom: 'Root Organization',
       enableStatusChecks: true,
       enableStatusChecksInheritedValue: null,
-      enableStatusChecksInheritFrom: null
+      enableStatusChecksInheritFrom: null,
     };
 
-    beforeEach(inject(function() {
+    beforeEach(inject(function () {
       mockCLMContextLocations.isOrganization.and.returnValue(true);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(false);
       mockCLMContextLocations.getEntityId.and.returnValue(SUB_ORGANIZATION_ID);
-      mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-      mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-      mockOrganizationStore.getById.and.callFake(function(id) {
+      mockSourceControlService.updateSourceControlRecord.and.returnValue(
+        saveResourceDefer.promise
+      );
+      mockSourceControlService.addSourceControlRecord.and.returnValue(
+        saveResourceDefer.promise
+      );
+      mockOrganizationStore.getById.and.callFake(function (id) {
         return id === SUB_ORGANIZATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function(ownerType, id) {
-        return ownerType === 'organization' && id === SUB_ORGANIZATION_ID ? getSourceControlDeferred.promise : null;
-      });
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
+        function (ownerType, id) {
+          return ownerType === 'organization' && id === SUB_ORGANIZATION_ID
+            ? getSourceControlDeferred.promise
+            : null;
+        }
+      );
 
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
@@ -940,17 +1126,16 @@ describe('source.control.editor.spec', function() {
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
         ProductFeatures: mockProductFeatures,
-        UpdateSourceControlModalService: mockUpdateUrlService
+        UpdateSourceControlModalService: mockUpdateUrlService,
       });
       vm.sourceControlEditor = {
-        $setPristine: function() {
-        }
+        $setPristine: function () {},
       };
-      vm.sourceControlEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.sourceControlEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
     }));
 
-    describe('doLoad', function() {
-      it('sets the proper org and app owner flags', function() {
+    describe('doLoad', function () {
+      it('sets the proper org and app owner flags', function () {
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
         expect(mockCLMContextLocations.isApplication).toHaveBeenCalled();
@@ -964,7 +1149,7 @@ describe('source.control.editor.spec', function() {
           CLMContextLocations: mockCLMContextLocations,
           OrganizationStore: mockOrganizationStore,
           ApplicationStore: mockApplicationStore,
-          SourceControlService: mockSourceControlService
+          SourceControlService: mockSourceControlService,
         });
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
@@ -972,20 +1157,25 @@ describe('source.control.editor.spec', function() {
         expect(vm.isOrg).toBe(false);
       });
 
-      it('loads the owner name of the sub organization and reports on success', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('loads the owner name of the sub organization and reports on success', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
 
         $scope.$digest();
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(SUB_ORGANIZATION_ID);
+        expect(mockOrganizationStore.getById).toHaveBeenCalledWith(
+          SUB_ORGANIZATION_ID
+        );
         expect(vm.ownerName).toBe('subOrganizationName');
         expect(vm.loadError).toBeUndefined();
       });
 
-      it('sets the error message on failure for the sub organization owner id', function() {
-        getByIdDeferred.reject({status: 404, data: 'not found'});
+      it('sets the error message on failure for the sub organization owner id', function () {
+        getByIdDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
 
@@ -993,10 +1183,13 @@ describe('source.control.editor.spec', function() {
         expect(vm.loadError).toEqual('not found');
       });
 
-      it('sets the error message on failure for the sub organization source control', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('sets the error message on failure for the sub organization source control', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.reject({status: 400, data: 'bad request'});
+        getSourceControlDeferred.reject({ status: 400, data: 'bad request' });
 
         $scope.$digest();
 
@@ -1004,8 +1197,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.loadError).toEqual('bad request');
       });
 
-      it('sets the source control and does not report an error for the sub organization', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('sets the source control and does not report an error for the sub organization', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1017,14 +1213,17 @@ describe('source.control.editor.spec', function() {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
 
-      it('does not set the base branch to master if empty for the sub organization', function() {
+      it('does not set the base branch to master if empty for the sub organization', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.value = null;
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         sourceControlModelCopy.baseBranch = null;
         sourceControlModelCopy.baseBranchInherit = true;
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -1038,9 +1237,8 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('save', function() {
-      it('creates a new entry if source control is not configured', function() {
-
+    describe('save', function () {
+      it('creates a new entry if source control is not configured', function () {
         const retrievedSourceControlModel = {
           credentialsInherit: false,
           usernameInherit: false,
@@ -1063,19 +1261,19 @@ describe('source.control.editor.spec', function() {
           enablePullRequestsInheritFrom: 'Root Organization',
           enableStatusChecks: null,
           enableStatusChecksInheritedValue: null,
-          enableStatusChecksInheritFrom: null
+          enableStatusChecksInheritFrom: null,
         };
 
         const retrievedCompositeSourceControl = {
           username: {
             value: null,
             parentName: null,
-            parentValue: null
+            parentValue: null,
           },
           token: {
             value: null,
             parentName: null,
-            parentValue: null
+            parentValue: null,
           },
           ownerId: SUB_ORGANIZATION_ID,
           id: null,
@@ -1084,18 +1282,18 @@ describe('source.control.editor.spec', function() {
           baseBranch: {
             value: null,
             parentName: 'Root Organization',
-            parentValue: 'PARENT_BRANCH'
+            parentValue: 'PARENT_BRANCH',
           },
           enableStatusChecks: {
             value: null,
             parentName: null,
-            parentValue: null
+            parentValue: null,
           },
           enablePullRequests: {
             value: null,
             parentName: 'Root Organization',
-            parentValue: true
-          }
+            parentValue: true,
+          },
         };
 
         const savedSourceControl = {
@@ -1105,10 +1303,13 @@ describe('source.control.editor.spec', function() {
           ownerId: SUB_ORGANIZATION_ID,
           id: null,
           enablePullRequests: true,
-          enableStatusChecks: true
+          enableStatusChecks: true,
         };
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(retrievedCompositeSourceControl);
 
@@ -1124,7 +1325,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1133,15 +1337,19 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.addSourceControlRecord).toHaveBeenCalledWith('organization',
-            SUB_ORGANIZATION_ID, savedSourceControl);
+        expect(
+          mockSourceControlService.addSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'organization',
+          SUB_ORGANIZATION_ID,
+          savedSourceControl
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
 
-      it('updates the existing entry if source control is configured', function() {
-
+      it('updates the existing entry if source control is configured', function () {
         const savedSourceControl = {
           username: null,
           token: null,
@@ -1149,10 +1357,13 @@ describe('source.control.editor.spec', function() {
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: true,
-          enableStatusChecks: true
+          enableStatusChecks: true,
         };
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1170,7 +1381,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         compositeSourceControlCopy.enablePullRequests.value = true;
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
@@ -1180,14 +1394,19 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('organization',
-            SUB_ORGANIZATION_ID, savedSourceControl);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'organization',
+          SUB_ORGANIZATION_ID,
+          savedSourceControl
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
 
-      it('returns an error for unsuccessful save', function() {
+      it('returns an error for unsuccessful save', function () {
         const savedSourceControl = {
           username: null,
           token: null,
@@ -1195,10 +1414,13 @@ describe('source.control.editor.spec', function() {
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: true,
-          enableStatusChecks: true
+          enableStatusChecks: true,
         };
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1214,15 +1436,20 @@ describe('source.control.editor.spec', function() {
         vm.dirtySourceControl.enablePullRequests = true;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
-        saveResourceDefer.reject({status: '400', data: 'bad request'});
+        saveResourceDefer.reject({ status: '400', data: 'bad request' });
 
         // when
         vm.save();
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('organization',
-            SUB_ORGANIZATION_ID, savedSourceControl);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'organization',
+          SUB_ORGANIZATION_ID,
+          savedSourceControl
+        );
         expect(vm.submitError).toEqual('bad request');
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
@@ -1230,9 +1457,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isDirty', function() {
-      it('returns false when changes have been applied to token and inherit is true', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+    describe('isDirty', function () {
+      it('returns false when changes have been applied to token and inherit is true', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1248,8 +1478,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns false when changes have been applied to token and inherit is false', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns false when changes have been applied to token and inherit is false', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1266,8 +1499,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to tokenInherit only after token has changed', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns true when changes have been applied to tokenInherit only after token has changed', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1287,8 +1523,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true for bitbucket when changes have been applied to credentials and inherit is false', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns true for bitbucket when changes have been applied to credentials and inherit is false', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.provider = 'bitbucket';
@@ -1320,8 +1559,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to baseBranch and inherit is false', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns true when changes have been applied to baseBranch and inherit is false', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1336,8 +1578,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns false when changes have been applied to baseBranch and inherit is true', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns false when changes have been applied to baseBranch and inherit is true', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.value = null;
@@ -1352,8 +1597,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns true when changes have been applied to baseBranchInherit', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns true when changes have been applied to baseBranchInherit', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1369,8 +1617,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to enablePullRequests', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns true when changes have been applied to enablePullRequests', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1386,8 +1637,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns false after save', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns false after save', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1403,7 +1657,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1415,8 +1672,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns false after delete', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns false after delete', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1435,9 +1695,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns false after load', function() {
-
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+      it('returns false after load', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1452,13 +1714,16 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('statusChecksInheritText', function() {
-      it('should return "Inherit (Not Configured)" if not defined elsewhere', function() {
+    describe('statusChecksInheritText', function () {
+      it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enableStatusChecks.parentName = null;
         compositeSourceControlCopy.enableStatusChecks.parentValue = null;
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -1466,40 +1731,53 @@ describe('source.control.editor.spec', function() {
         expect(vm.statusChecksInheritText).toEqual('Inherit (Not Configured)');
       });
 
-      it('should return "Inherit from Org (Enabled)" if enabled on org', function() {
+      it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enableStatusChecks.parentName = 'Org';
         compositeSourceControlCopy.enableStatusChecks.parentValue = true;
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.statusChecksInheritText).toEqual('Inherit from Org (Enabled)');
+        expect(vm.statusChecksInheritText).toEqual(
+          'Inherit from Org (Enabled)'
+        );
       });
 
-      it('should return "Inherit from Org (Disabled)" if disabled on org', function() {
+      it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enableStatusChecks.parentName = 'Org';
         compositeSourceControlCopy.enableStatusChecks.parentValue = false;
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.statusChecksInheritText).toEqual('Inherit from Org (Disabled)');
+        expect(vm.statusChecksInheritText).toEqual(
+          'Inherit from Org (Disabled)'
+        );
       });
     });
 
-    describe('pullRequestsInheritText', function() {
-      it('should return "Inherit (Not Configured)" if not defined elsewhere', function() {
+    describe('pullRequestsInheritText', function () {
+      it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enablePullRequests.parentName = null;
         compositeSourceControlCopy.enablePullRequests.parentValue = null;
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -1507,40 +1785,53 @@ describe('source.control.editor.spec', function() {
         expect(vm.pullRequestsInheritText).toEqual('Inherit (Not Configured)');
       });
 
-      it('should return "Inherit from Org (Enabled)" if enabled on org', function() {
+      it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enablePullRequests.parentName = 'Org';
         compositeSourceControlCopy.enablePullRequests.parentValue = true;
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
+        expect(vm.pullRequestsInheritText).toEqual(
+          'Inherit from Org (Enabled)'
+        );
       });
 
-      it('should return "Inherit from Org (Disabled)" if disabled on org', function() {
+      it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enablePullRequests.parentName = 'Org';
         compositeSourceControlCopy.enablePullRequests.parentValue = false;
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
+        expect(vm.pullRequestsInheritText).toEqual(
+          'Inherit from Org (Disabled)'
+        );
       });
     });
 
-    describe('baseBranchInheritText', function() {
-      it('should return "Inherit (Not Configured)" if not defined elsewhere', function() {
+    describe('baseBranchInheritText', function () {
+      it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.parentName = null;
         compositeSourceControlCopy.baseBranch.parentValue = null;
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -1548,12 +1839,15 @@ describe('source.control.editor.spec', function() {
         expect(vm.baseBranchInheritText).toEqual('Inherit (Not Configured)');
       });
 
-      it('should return "Inherit from Org (value)" if set on org', function() {
+      it('should return "Inherit from Org (value)" if set on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.parentName = 'Org';
         compositeSourceControlCopy.baseBranch.parentValue = 'value';
 
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -1562,9 +1856,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('showScmValidator', function() {
-      it('should return false for an organization', function() {
-        getByIdDeferred.resolve({name: 'subOrganizationName', id: SUB_ORGANIZATION_ID});
+    describe('showScmValidator', function () {
+      it('should return false for an organization', function () {
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1574,19 +1871,19 @@ describe('source.control.editor.spec', function() {
     });
   });
 
-  describe('application', function() {
+  describe('application', function () {
     const compositeSourceControl = {
       usernameInheritedValue: null,
       credentialsInherit: false,
       username: {
         value: null,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       token: {
         value: null,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       ownerId: APPLICATION_ID,
       id: 'ID',
@@ -1595,18 +1892,18 @@ describe('source.control.editor.spec', function() {
       baseBranch: {
         value: 'BASE_BRANCH',
         parentName: 'Root Organization',
-        parentValue: 'PARENT_BRANCH'
+        parentValue: 'PARENT_BRANCH',
       },
       enableStatusChecks: {
         value: true,
         parentName: null,
-        parentValue: null
+        parentValue: null,
       },
       enablePullRequests: {
         value: null,
         parentName: 'Root Organization',
-        parentValue: true
-      }
+        parentValue: true,
+      },
     };
 
     const sourceControlModel = {
@@ -1631,22 +1928,30 @@ describe('source.control.editor.spec', function() {
       enablePullRequestsInheritFrom: 'Root Organization',
       enableStatusChecks: true,
       enableStatusChecksInheritedValue: null,
-      enableStatusChecksInheritFrom: null
+      enableStatusChecksInheritFrom: null,
     };
 
-    beforeEach(inject(function() {
+    beforeEach(inject(function () {
       mockCLMContextLocations.isOrganization.and.returnValue(false);
       mockCLMContextLocations.isRootOrg.and.returnValue(false);
       mockCLMContextLocations.isApplication.and.returnValue(true);
       mockCLMContextLocations.getEntityId.and.returnValue(APPLICATION_ID);
-      mockSourceControlService.updateSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-      mockSourceControlService.addSourceControlRecord.and.returnValue(saveResourceDefer.promise);
-      mockApplicationStore.getById.and.callFake(function(id) {
+      mockSourceControlService.updateSourceControlRecord.and.returnValue(
+        saveResourceDefer.promise
+      );
+      mockSourceControlService.addSourceControlRecord.and.returnValue(
+        saveResourceDefer.promise
+      );
+      mockApplicationStore.getById.and.callFake(function (id) {
         return id === APPLICATION_ID ? getByIdDeferred.promise : null;
       });
-      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(function(ownerType, id) {
-        return ownerType === 'application' && id === APPLICATION_ID ? getSourceControlDeferred.promise : null;
-      });
+      mockSourceControlService.getCompositeSourceControlRecord.and.callFake(
+        function (ownerType, id) {
+          return ownerType === 'application' && id === APPLICATION_ID
+            ? getSourceControlDeferred.promise
+            : null;
+        }
+      );
 
       vm = $componentController('sourceControlEditor', {
         $scope: $scope,
@@ -1657,18 +1962,17 @@ describe('source.control.editor.spec', function() {
         DeleteModalService: mockDeleteService,
         SameOwnerStateNavigationService: mockSameOwnerStateNavigationService,
         ProductFeatures: mockProductFeatures,
-        UpdateSourceControlModalService: mockUpdateUrlService
+        UpdateSourceControlModalService: mockUpdateUrlService,
       });
 
       vm.sourceControlEditor = {
-        $setPristine: function() {
-        }
+        $setPristine: function () {},
       };
-      vm.sourceControlEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.sourceControlEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
     }));
 
-    describe('doLoad', function() {
-      it('sets the proper org and app owner flags', function() {
+    describe('doLoad', function () {
+      it('sets the proper org and app owner flags', function () {
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
         expect(mockCLMContextLocations.isApplication).toHaveBeenCalled();
@@ -1682,7 +1986,7 @@ describe('source.control.editor.spec', function() {
           CLMContextLocations: mockCLMContextLocations,
           OrganizationStore: mockOrganizationStore,
           ApplicationStore: mockApplicationStore,
-          SourceControlService: mockSourceControlService
+          SourceControlService: mockSourceControlService,
         });
         expect(mockCLMContextLocations.isOrganization).toHaveBeenCalled();
         expect(mockCLMContextLocations.isRootOrg).toHaveBeenCalled();
@@ -1690,20 +1994,25 @@ describe('source.control.editor.spec', function() {
         expect(vm.isApp).toBe(false);
       });
 
-      it('loads the owner name of the application and reports on success', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('loads the owner name of the application and reports on success', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
 
         $scope.$digest();
 
         expect(mockCLMContextLocations.getEntityId).toHaveBeenCalled();
-        expect(mockApplicationStore.getById).toHaveBeenCalledWith(APPLICATION_ID);
+        expect(mockApplicationStore.getById).toHaveBeenCalledWith(
+          APPLICATION_ID
+        );
         expect(vm.ownerName).toBe('applicationName');
         expect(vm.loadError).toBeUndefined();
       });
 
-      it('sets the error message on failure for the application owner id', function() {
-        getByIdDeferred.reject({status: 404, data: 'not found'});
+      it('sets the error message on failure for the application owner id', function () {
+        getByIdDeferred.reject({ status: 404, data: 'not found' });
 
         $scope.$digest();
 
@@ -1711,10 +2020,13 @@ describe('source.control.editor.spec', function() {
         expect(vm.loadError).toEqual('not found');
       });
 
-      it('sets the error message on failure for the application source control', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('sets the error message on failure for the application source control', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.reject({status: 400, data: 'bad request'});
+        getSourceControlDeferred.reject({ status: 400, data: 'bad request' });
 
         $scope.$digest();
 
@@ -1722,8 +2034,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.loadError).toEqual('bad request');
       });
 
-      it('sets the source control and does not report an error for the application', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('sets the source control and does not report an error for the application', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1735,14 +2050,17 @@ describe('source.control.editor.spec', function() {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
 
-      it('does not ses the base branch to master if empty for the application', function() {
+      it('does not ses the base branch to master if empty for the application', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.value = null;
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         sourceControlModelCopy.baseBranch = null;
         sourceControlModelCopy.baseBranchInherit = true;
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -1756,9 +2074,8 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('save', function() {
-      it('creates a new entry if source control is not configured', function() {
-
+    describe('save', function () {
+      it('creates a new entry if source control is not configured', function () {
         const retrievedSourceControlModel = {
           usernameInheritedValue: null,
           credentialsInherit: false,
@@ -1781,19 +2098,19 @@ describe('source.control.editor.spec', function() {
           enablePullRequestsInheritFrom: 'Sub Organization',
           enableStatusChecks: null,
           enableStatusChecksInheritedValue: null,
-          enableStatusChecksInheritFrom: null
+          enableStatusChecksInheritFrom: null,
         };
 
         const retrievedCompositeSourceControl = {
           username: {
             value: null,
             parentName: null,
-            parentValue: null
+            parentValue: null,
           },
           token: {
             value: null,
             parentName: null,
-            parentValue: null
+            parentValue: null,
           },
           ownerId: APPLICATION_ID,
           id: null,
@@ -1802,18 +2119,18 @@ describe('source.control.editor.spec', function() {
           baseBranch: {
             value: null,
             parentName: 'Root Organization',
-            parentValue: 'PARENT_BRANCH'
+            parentValue: 'PARENT_BRANCH',
           },
           enableStatusChecks: {
             value: null,
             parentName: null,
-            parentValue: null
+            parentValue: null,
           },
           enablePullRequests: {
             value: null,
             parentName: 'Sub Organization',
-            parentValue: true
-          }
+            parentValue: true,
+          },
         };
 
         const savedSourceControl = {
@@ -1824,10 +2141,13 @@ describe('source.control.editor.spec', function() {
           ownerId: APPLICATION_ID,
           id: null,
           enablePullRequests: true,
-          enableStatusChecks: true
+          enableStatusChecks: true,
         };
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(retrievedCompositeSourceControl);
 
@@ -1844,7 +2164,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1853,15 +2176,19 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.addSourceControlRecord).toHaveBeenCalledWith('application',
-            APPLICATION_ID, savedSourceControl);
+        expect(
+          mockSourceControlService.addSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'application',
+          APPLICATION_ID,
+          savedSourceControl
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
 
-      it('updates the existing entry if source control is configured', function() {
-
+      it('updates the existing entry if source control is configured', function () {
         const savedSourceControl = {
           username: null,
           token: null,
@@ -1870,10 +2197,13 @@ describe('source.control.editor.spec', function() {
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: true,
           enableStatusChecks: true,
-          repositoryUrl: REPOSITORY_URL
+          repositoryUrl: REPOSITORY_URL,
         };
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1892,7 +2222,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         compositeSourceControlCopy.enablePullRequests.value = true;
         compositeSourceControlCopy.repositoryUrl = REPOSITORY_URL;
@@ -1904,15 +2237,19 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('application',
-            APPLICATION_ID, savedSourceControl);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'application',
+          APPLICATION_ID,
+          savedSourceControl
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
 
-      it('updates the existing entry if source control is configured - ssh url', function() {
-
+      it('updates the existing entry if source control is configured - ssh url', function () {
         const saveSourceControl = {
           username: null,
           token: null,
@@ -1921,10 +2258,13 @@ describe('source.control.editor.spec', function() {
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: true,
           enableStatusChecks: true,
-          repositoryUrl: SSH_REPOSITORY_URL
+          repositoryUrl: SSH_REPOSITORY_URL,
         };
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1943,7 +2283,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         compositeSourceControlCopy.enablePullRequests.value = true;
         compositeSourceControlCopy.repositoryUrl = SSH_REPOSITORY_URL;
@@ -1955,14 +2298,19 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('application',
-            APPLICATION_ID, saveSourceControl);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'application',
+          APPLICATION_ID,
+          saveSourceControl
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
 
-      it('returns an error for unsuccessful save', function() {
+      it('returns an error for unsuccessful save', function () {
         const savedSourceControl = {
           username: null,
           token: null,
@@ -1971,10 +2319,13 @@ describe('source.control.editor.spec', function() {
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: true,
           enableStatusChecks: true,
-          repositoryUrl: REPOSITORY_URL
+          repositoryUrl: REPOSITORY_URL,
         };
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1991,27 +2342,32 @@ describe('source.control.editor.spec', function() {
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
-        updateUrlDefer.reject({status: '400', data: 'bad request'});
+        updateUrlDefer.reject({ status: '400', data: 'bad request' });
         // when
         vm.save();
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('application',
-            APPLICATION_ID, savedSourceControl);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'application',
+          APPLICATION_ID,
+          savedSourceControl
+        );
         expect(vm.submitError).toEqual('bad request');
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
 
-      it('clears any SCM test results after a save', function() {
+      it('clears any SCM test results after a save', function () {
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         vm.dirtySourceControl = sourceControlModelCopy;
         vm.dirtySourceControl.enablePullRequests = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL + '-changed';
 
-        vm.scmConfigValidationResult = {'body': 'sample'};
+        vm.scmConfigValidationResult = { body: 'sample' };
 
         // when
         vm.save();
@@ -2021,8 +2377,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.scmConfigValidationResult).toBeUndefined();
       });
 
-      it('requires confirmation when URL is updated', function() {
-
+      it('requires confirmation when URL is updated', function () {
         const savedSourceControl = {
           username: null,
           token: null,
@@ -2031,10 +2386,13 @@ describe('source.control.editor.spec', function() {
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: true,
           enableStatusChecks: true,
-          repositoryUrl: REPOSITORY_URL
+          repositoryUrl: REPOSITORY_URL,
         };
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2053,7 +2411,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         compositeSourceControlCopy.enablePullRequests.value = true;
         compositeSourceControlCopy.repositoryUrl = REPOSITORY_URL;
@@ -2065,15 +2426,19 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('application',
-            APPLICATION_ID, savedSourceControl);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'application',
+          APPLICATION_ID,
+          savedSourceControl
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
 
-      it('does not require confirmation when URL is not updated', function() {
-
+      it('does not require confirmation when URL is not updated', function () {
         const savedSourceControl = {
           username: null,
           token: null,
@@ -2082,10 +2447,13 @@ describe('source.control.editor.spec', function() {
           baseBranch: 'BASE_BRANCH',
           enablePullRequests: true,
           enableStatusChecks: true,
-          repositoryUrl: REPOSITORY_URL
+          repositoryUrl: REPOSITORY_URL,
         };
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2105,7 +2473,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         compositeSourceControlCopy.enablePullRequests.value = true;
         compositeSourceControlCopy.repositoryUrl = REPOSITORY_URL;
@@ -2116,16 +2487,21 @@ describe('source.control.editor.spec', function() {
         $scope.$digest();
 
         // then
-        expect(mockSourceControlService.updateSourceControlRecord).toHaveBeenCalledWith('application',
-            APPLICATION_ID, savedSourceControl);
+        expect(
+          mockSourceControlService.updateSourceControlRecord
+        ).toHaveBeenCalledWith(
+          'application',
+          APPLICATION_ID,
+          savedSourceControl
+        );
         expect(vm.loadError).toBeUndefined();
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
     });
 
-    describe('isDirty', function() {
-      it('returns false when changes have been applied to token and inherit is true', function() {
+    describe('isDirty', function () {
+      it('returns false when changes have been applied to token and inherit is true', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = null;
         compositeSourceControlCopy.token.parentName = 'Root Organization';
@@ -2136,7 +2512,10 @@ describe('source.control.editor.spec', function() {
         sourceControlModelCopy.tokenInherit = true;
         sourceControlModelCopy.tokenInheritFrom = 'Root Organization';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2152,7 +2531,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns false when changes have been applied to token and inherit is false', function() {
+      it('returns false when changes have been applied to token and inherit is false', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = null;
         compositeSourceControlCopy.token.parentName = 'Root Organization';
@@ -2163,7 +2542,10 @@ describe('source.control.editor.spec', function() {
         sourceControlModelCopy.tokenInherit = true;
         sourceControlModelCopy.tokenInheritFrom = 'Root Organization';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2180,7 +2562,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to tokenInherit only after token has changed', function() {
+      it('returns true when changes have been applied to tokenInherit only after token has changed', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = null;
         compositeSourceControlCopy.token.parentName = 'Root Organization';
@@ -2191,7 +2573,10 @@ describe('source.control.editor.spec', function() {
         sourceControlModelCopy.tokenInherit = true;
         sourceControlModelCopy.tokenInheritFrom = 'Root Organization';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2211,7 +2596,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true for bitbucket when changes have been applied to credentials and inherit is false', function() {
+      it('returns true for bitbucket when changes have been applied to credentials and inherit is false', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.provider = 'bitbucket';
         compositeSourceControlCopy.token.value = null;
@@ -2232,7 +2617,10 @@ describe('source.control.editor.spec', function() {
         sourceControlModelCopy.usernameInheritedValue = 'username';
         sourceControlModelCopy.usernameInheritFrom = 'Root Organization';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2255,8 +2643,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to baseBranch and inherit is false', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns true when changes have been applied to baseBranch and inherit is false', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2271,8 +2662,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns false when changes have been applied to baseBranch and inherit is true', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns false when changes have been applied to baseBranch and inherit is true', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.value = null;
@@ -2287,8 +2681,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns true when changes have been applied to baseBranchInherit', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns true when changes have been applied to baseBranchInherit', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2304,8 +2701,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to enablePullRequests', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns true when changes have been applied to enablePullRequests', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2321,8 +2721,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to repositoryUrl', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns true when changes have been applied to repositoryUrl', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2338,8 +2741,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns false after save', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns false after save', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2355,7 +2761,10 @@ describe('source.control.editor.spec', function() {
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2367,8 +2776,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns false after delete', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns false after delete', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2387,9 +2799,11 @@ describe('source.control.editor.spec', function() {
         expect(vm.isDirty()).toBeFalsy();
       });
 
-      it('returns false after load', function() {
-
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns false after load', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2404,9 +2818,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isAccessTokenRequiredOnNode', function() {
-      it('should return true if token cannot be inherited', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+    describe('isAccessTokenRequiredOnNode', function () {
+      it('should return true if token cannot be inherited', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2414,11 +2831,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.isAccessTokenRequiredOnNode()).toBeTruthy();
       });
 
-      it('should return false if token can be inherited', function() {
+      it('should return false if token can be inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organizaation';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2426,11 +2846,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.isAccessTokenRequiredOnNode()).toBeFalsy();
       });
 
-      it('should return true if token is specified and not inheritable', function() {
+      it('should return true if token is specified and not inheritable', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = 'TOKEN';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2439,9 +2862,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('showScmValidator', function() {
-      it('should return false for an organization', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+    describe('showScmValidator', function () {
+      it('should return false for an organization', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2451,12 +2877,15 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isUsernameRequiredOnNode', function() {
-      it('should return true if username cannot be inherited on bitbucket', function() {
+    describe('isUsernameRequiredOnNode', function () {
+      it('should return true if username cannot be inherited on bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.provider = 'bitbucket';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2464,13 +2893,16 @@ describe('source.control.editor.spec', function() {
         expect(vm.isUsernameRequiredOnNode()).toBeTruthy();
       });
 
-      it('should return false if username can be inherited on bitbucket', function() {
+      it('should return false if username can be inherited on bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organizaation';
         compositeSourceControlCopy.username.parentName = 'Root Organizaation';
         compositeSourceControlCopy.provider = 'bitbucket';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2478,11 +2910,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.isUsernameRequiredOnNode()).toBeFalsy();
       });
 
-      it('should return true if username is not specified on bitbucket', function() {
+      it('should return true if username is not specified on bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.provider = 'bitbucket';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2490,12 +2925,15 @@ describe('source.control.editor.spec', function() {
         expect(vm.isUsernameRequiredOnNode()).toBeTruthy();
       });
 
-      it('should return true if username is specified, on bitbucket', function() {
+      it('should return true if username is specified, on bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.username.value = 'TOKEN';
         compositeSourceControlCopy.provider = 'bitbucket';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2504,9 +2942,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('showAdvanced', function() {
-      it('should return true if token cannot be inherited', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+    describe('showAdvanced', function () {
+      it('should return true if token cannot be inherited', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2514,11 +2955,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.showAdvanced).toBeTruthy();
       });
 
-      it('should return false if token is inherited', function() {
+      it('should return false if token is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organizaation';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2526,11 +2970,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.showAdvanced).toBeFalsy();
       });
 
-      it('should return false if token is specified and not inheritable', function() {
+      it('should return false if token is specified and not inheritable', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = 'TOKEN';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2538,13 +2985,16 @@ describe('source.control.editor.spec', function() {
         expect(vm.showAdvanced).toBeFalsy();
       });
 
-      it('should return false if username and token are specified and provider is bitbucket', function() {
+      it('should return false if username and token are specified and provider is bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = 'TOKEN';
         compositeSourceControlCopy.username.value = 'username';
         compositeSourceControlCopy.provider = 'bitbucket';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2552,13 +3002,16 @@ describe('source.control.editor.spec', function() {
         expect(vm.showAdvanced).toBeFalsy();
       });
 
-      it('should return true if username is specified, token is null and provider is bitbucket', function() {
+      it('should return true if username is specified, token is null and provider is bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.username.value = 'username';
         compositeSourceControlCopy.token.value = null;
         compositeSourceControlCopy.provider = 'bitbucket';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2566,7 +3019,7 @@ describe('source.control.editor.spec', function() {
         expect(vm.showAdvanced).toBeTruthy();
       });
 
-      it('should return false if username, token are inherited and provider is bitbucket', function() {
+      it('should return false if username, token are inherited and provider is bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.username.parentName = 'Root Organizaation';
         compositeSourceControlCopy.username.parentValue = 'parentuser';
@@ -2574,7 +3027,10 @@ describe('source.control.editor.spec', function() {
         compositeSourceControlCopy.token.parentName = 'Root Organization';
         compositeSourceControlCopy.token.parentValue = 'TOKEN';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2582,13 +3038,16 @@ describe('source.control.editor.spec', function() {
         expect(vm.showAdvanced).toBeFalsy();
       });
 
-      it('should return true if username (but not token) is inherited and provider is bitbucket', function() {
+      it('should return true if username (but not token) is inherited and provider is bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.username.parentName = 'Root Organizaation';
         compositeSourceControlCopy.username.parentValue = 'parentuser';
         compositeSourceControlCopy.provider = 'bitbucket';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2597,9 +3056,12 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('shouldShowAccessTokenWarning', function() {
-      it('should return true if token cannot be inherited', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+    describe('shouldShowAccessTokenWarning', function () {
+      it('should return true if token cannot be inherited', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -2607,11 +3069,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.shouldShowAccessTokenWarning).toBeTruthy();
       });
 
-      it('should return false if token is inherited', function() {
+      it('should return false if token is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organizaation';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2619,11 +3084,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.shouldShowAccessTokenWarning).toBeFalsy();
       });
 
-      it('should return false if token is specified and not inheritable', function() {
+      it('should return false if token is specified and not inheritable', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = 'TOKEN';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2632,13 +3100,16 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('canCollapseAdvanced', function() {
-      it('should return true if token and branch is inherited', function() {
+    describe('canCollapseAdvanced', function () {
+      it('should return true if token and branch is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organizaation';
         compositeSourceControlCopy.baseBranch.parentName = 'Root Organizaation';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2646,12 +3117,15 @@ describe('source.control.editor.spec', function() {
         expect(vm.canCollapseAdvanced()).toBeTruthy();
       });
 
-      it('should return true if token is specified and not inheritable and base branch is inherited', function() {
+      it('should return true if token is specified and not inheritable and base branch is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = 'TOKEN';
         compositeSourceControlCopy.baseBranch.parentName = 'Root Organizaation';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2659,12 +3133,15 @@ describe('source.control.editor.spec', function() {
         expect(vm.canCollapseAdvanced()).toBeTruthy();
       });
 
-      it('should return true if token is specified and not inheritable and base branch is specified', function() {
+      it('should return true if token is specified and not inheritable and base branch is specified', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = 'TOKEN';
         compositeSourceControlCopy.baseBranch.value = 'branch';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2672,12 +3149,15 @@ describe('source.control.editor.spec', function() {
         expect(vm.canCollapseAdvanced()).toBeTruthy();
       });
 
-      it('should return true if token is inherited and base branch is specified', function() {
+      it('should return true if token is inherited and base branch is specified', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.value = 'branch';
         compositeSourceControlCopy.token.parentName = 'Root Organization';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2685,11 +3165,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.canCollapseAdvanced()).toBeTruthy();
       });
 
-      it('should return false if token is overridden and not specified and branch is specified', function() {
+      it('should return false if token is overridden and not specified and branch is specified', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.value = 'branch';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2697,11 +3180,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.canCollapseAdvanced()).toBeFalsy();
       });
 
-      it('should return false if token is overridden and not specified and branch is inherited', function() {
+      it('should return false if token is overridden and not specified and branch is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.parent = 'Root Organization';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2709,11 +3195,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.canCollapseAdvanced()).toBeFalsy();
       });
 
-      it('should return false if branch is overridden and not specified and token is specified', function() {
+      it('should return false if branch is overridden and not specified and token is specified', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.value = 'TOKEN';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2724,11 +3213,14 @@ describe('source.control.editor.spec', function() {
         expect(vm.canCollapseAdvanced()).toBeFalsy();
       });
 
-      it('should return false if branch is overridden and not specified and token is inherited', function() {
+      it('should return false if branch is overridden and not specified and token is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organization';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2740,13 +3232,16 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('statusChecksInheritText', function() {
-      it('should return "Inherit (Not Configured)" if not defined elsewhere', function() {
+    describe('statusChecksInheritText', function () {
+      it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enableStatusChecks.parentName = null;
         compositeSourceControlCopy.enableStatusChecks.parentValue = null;
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2754,40 +3249,53 @@ describe('source.control.editor.spec', function() {
         expect(vm.statusChecksInheritText).toEqual('Inherit (Not Configured)');
       });
 
-      it('should return "Inherit from Org (Enabled)" if enabled on org', function() {
+      it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enableStatusChecks.parentName = 'Org';
         compositeSourceControlCopy.enableStatusChecks.parentValue = true;
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.statusChecksInheritText).toEqual('Inherit from Org (Enabled)');
+        expect(vm.statusChecksInheritText).toEqual(
+          'Inherit from Org (Enabled)'
+        );
       });
 
-      it('should return "Inherit from Org (Disabled)" if disabled on org', function() {
+      it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enableStatusChecks.parentName = 'Org';
         compositeSourceControlCopy.enableStatusChecks.parentValue = false;
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.statusChecksInheritText).toEqual('Inherit from Org (Disabled)');
+        expect(vm.statusChecksInheritText).toEqual(
+          'Inherit from Org (Disabled)'
+        );
       });
     });
 
-    describe('pullRequestsInheritText', function() {
-      it('should return "Inherit (Not Configured)" if not defined elsewhere', function() {
+    describe('pullRequestsInheritText', function () {
+      it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enablePullRequests.parentName = null;
         compositeSourceControlCopy.enablePullRequests.parentValue = null;
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2795,40 +3303,53 @@ describe('source.control.editor.spec', function() {
         expect(vm.pullRequestsInheritText).toEqual('Inherit (Not Configured)');
       });
 
-      it('should return "Inherit from Org (Enabled)" if enabled on org', function() {
+      it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enablePullRequests.parentName = 'Org';
         compositeSourceControlCopy.enablePullRequests.parentValue = true;
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
+        expect(vm.pullRequestsInheritText).toEqual(
+          'Inherit from Org (Enabled)'
+        );
       });
 
-      it('should return "Inherit from Org (Disabled)" if disabled on org', function() {
+      it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.enablePullRequests.parentName = 'Org';
         compositeSourceControlCopy.enablePullRequests.parentValue = false;
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
+        expect(vm.pullRequestsInheritText).toEqual(
+          'Inherit from Org (Disabled)'
+        );
       });
     });
 
-    describe('baseBranchInheritText', function() {
-      it('should return "Inherit (Not Configured)" if not defined elsewhere', function() {
+    describe('baseBranchInheritText', function () {
+      it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.parentName = null;
         compositeSourceControlCopy.baseBranch.parentValue = null;
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2836,12 +3357,15 @@ describe('source.control.editor.spec', function() {
         expect(vm.baseBranchInheritText).toEqual('Inherit (Not Configured)');
       });
 
-      it('should return "Inherit from Org (value)" if set on org', function() {
+      it('should return "Inherit from Org (value)" if set on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.parentName = 'Org';
         compositeSourceControlCopy.baseBranch.parentValue = 'value';
 
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2850,15 +3374,19 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('isSshUrl', function() {
-      it('returns true when a SSH URL is provided', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+    describe('isSshUrl', function () {
+      it('returns true when a SSH URL is provided', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
         $scope.$digest();
 
-        vm.dirtySourceControl.repositoryUrl = 'ssh://git@github.com/owner/repo.git';
+        vm.dirtySourceControl.repositoryUrl =
+          'ssh://git@github.com/owner/repo.git';
         expect(vm.isSshUrl()).toBeTruthy();
 
         vm.dirtySourceControl.repositoryUrl = 'ssh://github.com/owner/repo.git';
@@ -2868,14 +3396,18 @@ describe('source.control.editor.spec', function() {
         expect(vm.isSshUrl()).toBeTruthy();
       });
 
-      it('returns false when a non-SSH URL is provided', function() {
-        getByIdDeferred.resolve({name: 'applicationName', id: APPLICATION_ID});
+      it('returns false when a non-SSH URL is provided', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
         $scope.$digest();
 
-        vm.dirtySourceControl.repositoryUrl = 'http://github.com/owner/repo.git';
+        vm.dirtySourceControl.repositoryUrl =
+          'http://github.com/owner/repo.git';
         expect(vm.isSshUrl()).toBeFalsy();
 
         vm.dirtySourceControl.repositoryUrl = 'ss://github.com/owner/repo.git';
@@ -2898,17 +3430,23 @@ describe('source.control.editor.spec', function() {
       });
     });
 
-    describe('httpAndSshUrlPattern', function() {
-      it('matches when a valid HTTP(S) or SSH URL is provided', function() {
+    describe('httpAndSshUrlPattern', function () {
+      it('matches when a valid HTTP(S) or SSH URL is provided', function () {
         let pattern = vm.httpAndSshUrlPattern;
         expect('https://github.com/owner/repo.git'.match(pattern)).toBeTruthy();
-        expect('http://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
-        expect('https://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
-        expect('ssh://git@github.com/owner/repo.git'.match(pattern)).toBeTruthy();
+        expect(
+          'http://git@github.com/owner/repo.git'.match(pattern)
+        ).toBeTruthy();
+        expect(
+          'https://git@github.com/owner/repo.git'.match(pattern)
+        ).toBeTruthy();
+        expect(
+          'ssh://git@github.com/owner/repo.git'.match(pattern)
+        ).toBeTruthy();
         expect('git@github.com:owner/repo.git'.match(pattern)).toBeTruthy();
       });
 
-      it('does not match when an invalid HTTP(S) or SSH URL is provided', function() {
+      it('does not match when an invalid HTTP(S) or SSH URL is provided', function () {
         let pattern = vm.httpAndSshUrlPattern;
         expect('http:git@github.com/owner/repo.git'.match(pattern)).toBeFalsy();
         expect('git@gitlab.com/owner/repo.git'.match(pattern)).toBeFalsy();

@@ -11,22 +11,29 @@
  */
 import SessionSecurityModule from '../SessionSecurityModule';
 
-export default angular.module('IqHttpInterceptors', [SessionSecurityModule.name])
-    .factory('serverDateInterceptor', ['SessionSecurityService', function(SessionSecurityService) {
+export default angular
+  .module('IqHttpInterceptors', [SessionSecurityModule.name])
+  .factory('serverDateInterceptor', [
+    'SessionSecurityService',
+    function (SessionSecurityService) {
       return {
-        response: function(response) {
+        response: function (response) {
           var dateString = response.headers('Date'),
-              // built-in date parsing on any modern browser should support HTTP date format
-              serverDate = dateString ? new Date(dateString) : undefined;
+            // built-in date parsing on any modern browser should support HTTP date format
+            serverDate = dateString ? new Date(dateString) : undefined;
 
           if (serverDate) {
             SessionSecurityService.setServerDate(serverDate);
           }
 
           return response;
-        }
+        },
       };
-    }])
-    .config(['$httpProvider', function($httpProvider) {
+    },
+  ])
+  .config([
+    '$httpProvider',
+    function ($httpProvider) {
       $httpProvider.interceptors.push('serverDateInterceptor');
-    }]);
+    },
+  ]);

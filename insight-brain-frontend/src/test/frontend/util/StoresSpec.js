@@ -5,32 +5,34 @@
  */
 import stores from '../../../main/frontend/util/Stores';
 
-describe('Stores', function() {
+describe('Stores', function () {
   var getUrlSpy, cachedStore;
 
-  beforeEach(angular.mock.module(stores.name, function($provide) {
-    SpecUtil.mockNgRedux($provide);
-  }));
+  beforeEach(
+    angular.mock.module(stores.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
-  describe('CachedStore', function() {
-    beforeEach(inject(function(CachedStore) {
+  describe('CachedStore', function () {
+    beforeEach(inject(function (CachedStore) {
       getUrlSpy = jasmine.createSpy('getUrl').and.returnValue('http://foo.bar');
       var template = {
         getUrl: getUrlSpy,
-        template: {id: null}
+        template: { id: null },
       };
       cachedStore = CachedStore.get(template);
     }));
 
-    afterEach(inject(function($httpBackend) {
+    afterEach(inject(function ($httpBackend) {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
     }));
 
-    it('Creates new store', inject(function($httpBackend) {
+    it('Creates new store', inject(function ($httpBackend) {
       var data;
-      $httpBackend.expectGET('http://foo.bar').respond([{id: 'qux'}]);
-      cachedStore.get().then(function(response) {
+      $httpBackend.expectGET('http://foo.bar').respond([{ id: 'qux' }]);
+      cachedStore.get().then(function (response) {
         data = response;
       });
       $httpBackend.flush();
@@ -41,15 +43,15 @@ describe('Stores', function() {
       expect(data[0].id).toBe('qux');
     }));
 
-    it('Returns cached store', inject(function($httpBackend, $rootScope) {
-      $httpBackend.expectGET('http://foo.bar').respond([{id: 'qux'}]);
+    it('Returns cached store', inject(function ($httpBackend, $rootScope) {
+      $httpBackend.expectGET('http://foo.bar').respond([{ id: 'qux' }]);
       cachedStore.get();
       $httpBackend.flush();
 
       expect(getUrlSpy.calls.count()).toBe(1);
 
       var data;
-      cachedStore.get().then(function(response) {
+      cachedStore.get().then(function (response) {
         data = response;
       });
 
@@ -61,12 +63,10 @@ describe('Stores', function() {
     }));
   });
 
-  describe('Stage stores', function() {
-    let StageTypeStore,
-        $ngRedux,
-        $rootScope;
+  describe('Stage stores', function () {
+    let StageTypeStore, $ngRedux, $rootScope;
 
-    beforeEach(inject(function(_StageTypeStore_, _$ngRedux_, _$rootScope_) {
+    beforeEach(inject(function (_StageTypeStore_, _$ngRedux_, _$rootScope_) {
       StageTypeStore = _StageTypeStore_;
       $ngRedux = _$ngRedux_;
       $rootScope = _$rootScope_;
@@ -74,24 +74,24 @@ describe('Stores', function() {
 
     // see CLM-6352
     function createTests(storeMethod, purpose) {
-      describe(storeMethod, function() {
-        describe('when the stages are already loaded', function() {
-          it('returns a resolved promise with the already-loaded info', function(done) {
+      describe(storeMethod, function () {
+        describe('when the stages are already loaded', function () {
+          it('returns a resolved promise with the already-loaded info', function (done) {
             const stageInfo = [
               { stageTypeId: 'build', stageName: 'Build' },
-              { stageTypeId: 'stage-release', stageName: 'Stage Release' }
+              { stageTypeId: 'stage-release', stageName: 'Stage Release' },
             ];
 
             $ngRedux.dispatch = jasmine.createSpy('dispatch');
             $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
               stages: {
                 [purpose]: {
-                  stageTypes: stageInfo
-                }
-              }
+                  stageTypes: stageInfo,
+                },
+              },
             });
 
-            StageTypeStore[storeMethod]().then(function(result) {
+            StageTypeStore[storeMethod]().then(function (result) {
               expect(result.length).toBe(2);
               expect(result[0].stageTypeId).toBe('build');
               expect(result[0].stageName).toBe('Build');
@@ -104,22 +104,22 @@ describe('Stores', function() {
             $rootScope.$digest();
           });
 
-          it('returns a fresh deep copy of the objects each time it is called', function(done) {
+          it('returns a fresh deep copy of the objects each time it is called', function (done) {
             const stageInfo = [
               { stageTypeId: 'build', stageName: 'Build' },
-              { stageTypeId: 'stage-release', stageName: 'Stage Release' }
+              { stageTypeId: 'stage-release', stageName: 'Stage Release' },
             ];
 
             $ngRedux.dispatch = jasmine.createSpy('dispatch');
             $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
               stages: {
                 [purpose]: {
-                  stageTypes: stageInfo
-                }
-              }
+                  stageTypes: stageInfo,
+                },
+              },
             });
 
-            StageTypeStore[storeMethod]().then(function(result) {
+            StageTypeStore[storeMethod]().then(function (result) {
               expect(result).not.toBe(stageInfo);
               expect(result[0]).not.toBe(stageInfo[0]);
               expect(result[1]).not.toBe(stageInfo[1]);
@@ -131,38 +131,43 @@ describe('Stores', function() {
           });
         });
 
-        describe('when the stages are not already loaded', function() {
-          it('tries to fetch them and resolves the promise if successful', function(done) {
+        describe('when the stages are not already loaded', function () {
+          it('tries to fetch them and resolves the promise if successful', function (done) {
             const stageInfo = [
-                  { stageTypeId: 'build', stageName: 'Build' },
-                  { stageTypeId: 'stage-release', stageName: 'Stage Release' }
-                ],
-                unsubscribeSpy = jasmine.createSpy('unsubscribe');
+                { stageTypeId: 'build', stageName: 'Build' },
+                { stageTypeId: 'stage-release', stageName: 'Stage Release' },
+              ],
+              unsubscribeSpy = jasmine.createSpy('unsubscribe');
 
             $ngRedux.dispatch = jasmine.createSpy('dispatch');
 
             // empty at first, but has data after the dispatch
-            $ngRedux.getState = jasmine.createSpy('getState').and.returnValues({
-              stages: {
-                [purpose]: {
-                  stageTypes: null
-                }
+            $ngRedux.getState = jasmine.createSpy('getState').and.returnValues(
+              {
+                stages: {
+                  [purpose]: {
+                    stageTypes: null,
+                  },
+                },
+              },
+              {
+                stages: {
+                  [purpose]: {
+                    stageTypes: stageInfo,
+                  },
+                },
               }
-            }, {
-              stages: {
-                [purpose]: {
-                  stageTypes: stageInfo
-                }
-              }
-            });
+            );
 
             let subscription;
-            $ngRedux.subscribe = jasmine.createSpy('subscribe').and.callFake(function(fn) {
-              subscription = fn;
-              return unsubscribeSpy;
-            });
+            $ngRedux.subscribe = jasmine
+              .createSpy('subscribe')
+              .and.callFake(function (fn) {
+                subscription = fn;
+                return unsubscribeSpy;
+              });
 
-            StageTypeStore[storeMethod]().then(function(result) {
+            StageTypeStore[storeMethod]().then(function (result) {
               expect(unsubscribeSpy).toHaveBeenCalled();
 
               expect(result.length).toBe(2);
@@ -189,37 +194,42 @@ describe('Stores', function() {
             $rootScope.$digest();
           });
 
-          it('returns a fresh deep copy of the objects each time it is called', function(done) {
+          it('returns a fresh deep copy of the objects each time it is called', function (done) {
             const stageInfo = [
-                  { stageTypeId: 'build', stageName: 'Build' },
-                  { stageTypeId: 'stage-release', stageName: 'Stage Release' }
-                ],
-                unsubscribeSpy = jasmine.createSpy('unsubscribe');
+                { stageTypeId: 'build', stageName: 'Build' },
+                { stageTypeId: 'stage-release', stageName: 'Stage Release' },
+              ],
+              unsubscribeSpy = jasmine.createSpy('unsubscribe');
 
             $ngRedux.dispatch = jasmine.createSpy('dispatch');
 
             // empty at first, but has data after the dispatch
-            $ngRedux.getState = jasmine.createSpy('getState').and.returnValues({
-              stages: {
-                [purpose]: {
-                  stageTypes: null
-                }
+            $ngRedux.getState = jasmine.createSpy('getState').and.returnValues(
+              {
+                stages: {
+                  [purpose]: {
+                    stageTypes: null,
+                  },
+                },
+              },
+              {
+                stages: {
+                  [purpose]: {
+                    stageTypes: stageInfo,
+                  },
+                },
               }
-            }, {
-              stages: {
-                [purpose]: {
-                  stageTypes: stageInfo
-                }
-              }
-            });
+            );
 
             let subscription;
-            $ngRedux.subscribe = jasmine.createSpy('subscribe').and.callFake(function(fn) {
-              subscription = fn;
-              return unsubscribeSpy;
-            });
+            $ngRedux.subscribe = jasmine
+              .createSpy('subscribe')
+              .and.callFake(function (fn) {
+                subscription = fn;
+                return unsubscribeSpy;
+              });
 
-            StageTypeStore[storeMethod]().then(function(result) {
+            StageTypeStore[storeMethod]().then(function (result) {
               expect(result).not.toBe(stageInfo);
               expect(result[0]).not.toBe(stageInfo[0]);
               expect(result[1]).not.toBe(stageInfo[1]);
@@ -234,41 +244,49 @@ describe('Stores', function() {
             $rootScope.$digest();
           });
 
-          it('rejects the promise if the fetch fails', function(done) {
+          it('rejects the promise if the fetch fails', function (done) {
             const error = 'errrrrrr',
-                unsubscribeSpy = jasmine.createSpy('unsubscribe');
+              unsubscribeSpy = jasmine.createSpy('unsubscribe');
 
             $ngRedux.dispatch = jasmine.createSpy('dispatch');
 
             // empty at first, but has data after the dispatch
-            $ngRedux.getState = jasmine.createSpy('getState').and.returnValues({
-              stages: {
-                [purpose]: {
-                  stageTypes: null
-                }
+            $ngRedux.getState = jasmine.createSpy('getState').and.returnValues(
+              {
+                stages: {
+                  [purpose]: {
+                    stageTypes: null,
+                  },
+                },
+              },
+              {
+                stages: {
+                  [purpose]: {
+                    stageTypes: null,
+                    error,
+                  },
+                },
               }
-            }, {
-              stages: {
-                [purpose]: {
-                  stageTypes: null,
-                  error
-                }
-              }
-            });
+            );
 
             let subscription;
-            $ngRedux.subscribe = jasmine.createSpy('subscribe').and.callFake(function(fn) {
-              subscription = fn;
-              return unsubscribeSpy;
-            });
+            $ngRedux.subscribe = jasmine
+              .createSpy('subscribe')
+              .and.callFake(function (fn) {
+                subscription = fn;
+                return unsubscribeSpy;
+              });
 
-            StageTypeStore[storeMethod]().then(() => {}, function(err) {
-              expect(unsubscribeSpy).toHaveBeenCalled();
+            StageTypeStore[storeMethod]().then(
+              () => {},
+              function (err) {
+                expect(unsubscribeSpy).toHaveBeenCalled();
 
-              expect(err).toBe(error);
+                expect(err).toBe(error);
 
-              done();
-            });
+                done();
+              }
+            );
 
             // first immediate call, which does not resolve the promise
             expect($ngRedux.getState).toHaveBeenCalledTimes(1);

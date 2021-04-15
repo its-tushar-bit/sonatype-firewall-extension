@@ -73,7 +73,6 @@ a {
   }
 }
 
-
 // Begin styles from management.css
 .truncate-ellipsis {
   overflow: hidden;
@@ -96,7 +95,7 @@ a {
   cursor: pointer;
 }
 
-input[type="file"] {
+input[type='file'] {
   line-height: normal;
   height: auto;
 }
@@ -112,27 +111,26 @@ input[type="file"] {
 
 .page-title {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0px 1px 0px rgba(255, 255, 255, .6);
+  box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.6);
 
   .pull-right {
-    margin-bottom : 5px;
+    margin-bottom: 5px;
   }
 }
 
 .underline {
-  border-bottom: 1px solid rgba(0, 0, 0, .1);
-  box-shadow: 0px 1px 0px rgba(255, 255, 255, .6);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.6);
 }
 
 table.clm-table-stripe > tbody > tr:nth-child(odd) {
-  background-color: #E8E8E8;
+  background-color: #e8e8e8;
 }
 
 .clm-table-border-top {
   border-top: 1px solid #ddd;
 }
 // End CSS from insight.css
-
 
 .iq-load-wrapper__contents {
   display: contents;

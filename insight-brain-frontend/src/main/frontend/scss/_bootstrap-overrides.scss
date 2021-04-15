@@ -7,10 +7,11 @@
  * Styles required to override Bootstraps default styles
  * Please list the location in the app of any changes
  */
-@import "~@sonatype/react-shared-components/scss-shared/nx-variables";
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 .nx-list {
-  ul, ol {
+  ul,
+  ol {
     margin-left: 0;
   }
 }
@@ -74,7 +75,9 @@
 }
 
 .nx-text-input {
-  input[type=text], input[type=password], textarea {
+  input[type='text'],
+  input[type='password'],
+  textarea {
     background: none;
     box-shadow: none;
     border: none;
@@ -95,14 +98,15 @@
 }
 
 .nx-radio-checkbox__input {
-  &[type=checkbox], &[type=radio] {
+  &[type='checkbox'],
+  &[type='radio'] {
     margin: 0;
     width: 0;
   }
 }
 
 .nx-toggle__input {
-  &[type=checkbox]{
+  &[type='checkbox'] {
     margin: 0 0 0 29px;
     width: 0;
   }
@@ -141,7 +145,8 @@
 
 .nx-text-link,
 .nx-list__link {
-  &:hover,&:focus {
+  &:hover,
+  &:focus {
     color: inherit;
     text-decoration: none;
   }

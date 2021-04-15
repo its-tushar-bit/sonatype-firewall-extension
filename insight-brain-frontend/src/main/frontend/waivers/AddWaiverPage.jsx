@@ -36,7 +36,7 @@ export default function AddWaiverPage(props) {
     setWaiverScope,
     setApplyToAllComponents,
     setExpiryTime,
-    cancelAction
+    cancelAction,
   } = props;
 
   function load() {
@@ -66,7 +66,7 @@ export default function AddWaiverPage(props) {
       setExpiryTime,
       saveWaiver,
       cancelAction,
-      ...extractViolationDetails(violationDetails)
+      ...extractViolationDetails(violationDetails),
     };
   };
 
@@ -77,18 +77,20 @@ export default function AddWaiverPage(props) {
       </div>
 
       <section className="nx-tile">
-        { submitMaskState !== null &&
-          <NxSubmitMask success={ submitMaskState }
-                        message="Creating waiver…"
-                        successMessage="Success!" />
-        }
+        {submitMaskState !== null && (
+          <NxSubmitMask
+            success={submitMaskState}
+            message="Creating waiver…"
+            successMessage="Success!"
+          />
+        )}
 
-        <LoadWrapper loading={ loading || !violationDetails || !availableWaiverScopes }
-                     error={loadError}
-                     retryHandler={load}>
-          {() =>
-            <AddWaiverForm {...getFormProps()} />
-          }
+        <LoadWrapper
+          loading={loading || !violationDetails || !availableWaiverScopes}
+          error={loadError}
+          retryHandler={load}
+        >
+          {() => <AddWaiverForm {...getFormProps()} />}
         </LoadWrapper>
       </section>
     </main>
@@ -105,16 +107,18 @@ AddWaiverPage.propTypes = {
     ...violationDetailsPropTypes,
     constraintViolations: constraintViolationsPropType.isRequired,
     displayName: PropTypes.shape({
-      parts: PropTypes.arrayOf(PropTypes.object)
+      parts: PropTypes.arrayOf(PropTypes.object),
     }),
     filename: PropTypes.string,
-    policyViolationId: PropTypes.string.isRequired
+    policyViolationId: PropTypes.string.isRequired,
   }),
   waiverComments: PropTypes.shape({
     value: PropTypes.string.isRequired,
-    isPristine: PropTypes.bool.isRequired
+    isPristine: PropTypes.bool.isRequired,
   }).isRequired,
-  availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)),
+  availableWaiverScopes: PropTypes.arrayOf(
+    PropTypes.shape(waiverScopePropTypes)
+  ),
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes),
   applyToAllComponents: PropTypes.bool,
   expiryTime: PropTypes.string,
@@ -125,5 +129,5 @@ AddWaiverPage.propTypes = {
   setWaiverScope: PropTypes.func.isRequired,
   setApplyToAllComponents: PropTypes.func.isRequired,
   setExpiryTime: PropTypes.func.isRequired,
-  cancelAction: PropTypes.func.isRequired
+  cancelAction: PropTypes.func.isRequired,
 };

@@ -13,8 +13,8 @@ export default function PolicyEditorConstraintsDirective() {
     scope: {
       constraints: '=',
       isNewPolicy: '=',
-      disabled: '=?editorDisabled'
+      disabled: '=?editorDisabled',
     },
-    bindToController: true
+    bindToController: true,
   };
 }

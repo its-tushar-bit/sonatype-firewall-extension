@@ -5,7 +5,7 @@
  */
 var storeObserveTypesConstant = {
   UPDATE: 'update',
-  DELETE: 'delete'
+  DELETE: 'delete',
 };
 
 export default storeObserveTypesConstant;

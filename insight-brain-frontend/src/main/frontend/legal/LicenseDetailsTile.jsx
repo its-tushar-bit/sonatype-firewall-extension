@@ -7,9 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 
 export default function LicenseDetailsTile(props) {
-  const {
-    licenseNames
-  } = props;
+  const { licenseNames } = props;
 
   const isLicensePresent = () => licenseNames.length > 0;
 
@@ -22,7 +20,7 @@ export default function LicenseDetailsTile(props) {
       </header>
       <div className="nx-tile-content">
         <ul className="nx-list">
-          { isLicensePresent() ? licenseNames.map(createItem) : 'None found' }
+          {isLicensePresent() ? licenseNames.map(createItem) : 'None found'}
         </ul>
       </div>
     </section>
@@ -31,14 +29,12 @@ export default function LicenseDetailsTile(props) {
 
 const createItem = (license, index) => {
   return (
-    <li className="nx-list__item" key={ index }>
-      <span className="nx-list__text">
-        { license }
-      </span>
+    <li className="nx-list__item" key={index}>
+      <span className="nx-list__text">{license}</span>
     </li>
   );
 };
 
 LicenseDetailsTile.propTypes = {
-  licenseNames: PropTypes.arrayOf(PropTypes.string.isRequired)
+  licenseNames: PropTypes.arrayOf(PropTypes.string.isRequired),
 };

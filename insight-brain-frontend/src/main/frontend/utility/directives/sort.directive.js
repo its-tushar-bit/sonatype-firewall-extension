@@ -24,7 +24,7 @@ export default function Sort() {
     bindToController: true,
     scope: {
       sortFields: '<sort',
-      onSortChange: '&'
-    }
+      onSortChange: '&',
+    },
   };
 }

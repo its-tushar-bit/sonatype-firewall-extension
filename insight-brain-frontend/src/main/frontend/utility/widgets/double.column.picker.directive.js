@@ -17,38 +17,41 @@ export default function DoubleColumnPicker() {
       itemNameParam: '@',
       disabled: '=?ngDisabled',
       iconFn: '&?',
-      tooltipFn: '&?'
+      tooltipFn: '&?',
     },
     template,
     controller: DoubleColumnPickerController,
     controllerAs: 'vm',
     bindToController: true,
     require: '^form',
-    link: DoubleColumnPickerLink
+    link: DoubleColumnPickerLink,
   };
 
   function DoubleColumnPickerLink(scope, element, attrs, formCtrl) {
-    scope.$watch(function() {
+    scope.$watch(function () {
       return element.find('.available-list iq-checkbox').length;
     }, scope.vm.updateChecksOnFilterHandler(false));
 
-    scope.$watch(function() {
+    scope.$watch(function () {
       return element.find('.picked-list iq-checkbox').length;
     }, scope.vm.updateChecksOnFilterHandler(true));
 
-    scope.$watch(function() {
-      return formCtrl.$pristine;
-    }, function(isPristine, wasPristine) {
-      if (isPristine && !wasPristine) {
-        scope.vm.search = {};
-        scope.vm.checkAllRight = false;
-        scope.vm.checkAllLeft = false;
+    scope.$watch(
+      function () {
+        return formCtrl.$pristine;
+      },
+      function (isPristine, wasPristine) {
+        if (isPristine && !wasPristine) {
+          scope.vm.search = {};
+          scope.vm.checkAllRight = false;
+          scope.vm.checkAllLeft = false;
 
-        scope.vm.list.forEach(function(item) {
-          item.checked = false;
-        });
+          scope.vm.list.forEach(function (item) {
+            item.checked = false;
+          });
+        }
       }
-    });
+    );
   }
 }
 
@@ -71,7 +74,7 @@ function DoubleColumnPickerController($filter) {
   function checkAll(isPickedList, isChecked) {
     var filteredList = $filter('filter')(vm.list, vm.search);
 
-    vm.list.forEach(function(item) {
+    vm.list.forEach(function (item) {
       if (Boolean(item.picked) === isPickedList) {
         item.checked = filteredList.indexOf(item) > -1 ? isChecked : false;
       }
@@ -81,19 +84,21 @@ function DoubleColumnPickerController($filter) {
   function listFilter(isPickedList) {
     var filteredList = $filter('filter')(vm.list, vm.search);
 
-    return function(item) {
-      return Boolean(item.picked) === isPickedList && filteredList.indexOf(item) > -1;
+    return function (item) {
+      return (
+        Boolean(item.picked) === isPickedList && filteredList.indexOf(item) > -1
+      );
     };
   }
 
   function areAnyItemsChecked(isPickedList) {
-    return $filter('filter')(vm.list, vm.search).some(function(item) {
+    return $filter('filter')(vm.list, vm.search).some(function (item) {
       return Boolean(item.picked) === isPickedList && item.checked;
     });
   }
 
   function moveItems(isPickedList) {
-    vm.list.forEach(function(item) {
+    vm.list.forEach(function (item) {
       if (item.checked && Boolean(item.picked) === isPickedList) {
         item.picked = !item.picked;
       }
@@ -101,8 +106,7 @@ function DoubleColumnPickerController($filter) {
 
     if (isPickedList) {
       vm.checkAllRight = false;
-    }
-    else {
+    } else {
       vm.checkAllLeft = false;
     }
   }
@@ -129,7 +133,7 @@ function DoubleColumnPickerController($filter) {
   function uncheckFilteredItems(isPickedList) {
     var filteredList = $filter('filter')(vm.list, vm.search);
 
-    vm.list.forEach(function(item) {
+    vm.list.forEach(function (item) {
       if (Boolean(item.picked) === isPickedList) {
         item.checked = filteredList.indexOf(item) > -1 ? item.checked : false;
       }
@@ -139,23 +143,21 @@ function DoubleColumnPickerController($filter) {
   function updateChecksOnFilterHandler(isPickedList) {
     var checkAll = isPickedList ? 'checkAllRight' : 'checkAllLeft';
 
-    return function(newLength, oldLength) {
+    return function (newLength, oldLength) {
       if (!oldLength || newLength < oldLength) {
         if (vm[checkAll]) {
           vm.checkAll(isPickedList, true);
-        }
-        else {
+        } else {
           uncheckFilteredItems(isPickedList);
         }
-      }
-      else if (newLength > oldLength) {
+      } else if (newLength > oldLength) {
         vm[checkAll] = false;
       }
     };
   }
 
   function showTooltipOnlyOnOverflow(item) {
-    return !!vm.tooltipFn && (vm.tooltipFn({ item }) === item[vm.itemNameParam]);
+    return !!vm.tooltipFn && vm.tooltipFn({ item }) === item[vm.itemNameParam];
   }
 }
 

@@ -10,20 +10,16 @@ import * as PropTypes from 'prop-types';
 
 export default function FirewallAutoUnquarantineStatus(props) {
   // Actions
-  const {
-    openConfigurationModal
-  } = props;
+  const { openConfigurationModal } = props;
 
   //viewState
   const {
     enabledPolicyConditionTypesCount,
-    totalPolicyConditionTypesCount
+    totalPolicyConditionTypesCount,
   } = props;
 
   //configurationState
-  const {
-    autoUnquarantineEnabled
-  } = props;
+  const { autoUnquarantineEnabled } = props;
 
   return (
     <section id="firewall-auto-unquarantine-status" className="nx-card">
@@ -32,15 +28,18 @@ export default function FirewallAutoUnquarantineStatus(props) {
       </header>
       <div className="nx-card__content">
         <div className="iq-status-indicator">
-          <StatusIndicatorIcon status={autoUnquarantineEnabled}/>
+          <StatusIndicatorIcon status={autoUnquarantineEnabled} />
           <span>{autoUnquarantineEnabled ? 'Active' : 'Inactive'}</span>
         </div>
         <div className="nx-card__text">
-          releasing {enabledPolicyConditionTypesCount} of {totalPolicyConditionTypesCount} policy types
+          releasing {enabledPolicyConditionTypesCount} of{' '}
+          {totalPolicyConditionTypesCount} policy types
         </div>
       </div>
       <footer className="nx-card__footer">
-        <a className="nx-text-link" onClick={openConfigurationModal}>Configure</a>
+        <a className="nx-text-link" onClick={openConfigurationModal}>
+          Configure
+        </a>
       </footer>
     </section>
   );
@@ -50,6 +49,5 @@ FirewallAutoUnquarantineStatus.propTypes = {
   autoUnquarantineEnabled: PropTypes.bool.isRequired,
   enabledPolicyConditionTypesCount: PropTypes.number.isRequired,
   totalPolicyConditionTypesCount: PropTypes.number.isRequired,
-  openConfigurationModal: PropTypes.func.isRequired
+  openConfigurationModal: PropTypes.func.isRequired,
 };
-

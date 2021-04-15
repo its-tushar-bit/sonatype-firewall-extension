@@ -5,31 +5,33 @@
  */
 import defaultFilter from '../../../../../main/frontend/legal/dashboard/filter/defaultFilter';
 import { filterToJson } from '../../../../../main/frontend/legal/dashboard/filter/legalDashboardFilterService';
-import reduce, { WARNING_OVERWRITE, WARNING_NAME_IN_USE }
-  from '../../../../../main/frontend/legal/dashboard/filter/manageLegalFiltersReducer';
+import reduce, {
+  WARNING_OVERWRITE,
+  WARNING_NAME_IN_USE,
+} from '../../../../../main/frontend/legal/dashboard/filter/manageLegalFiltersReducer';
 
-describe('manageLegalFiltersReducer', function() {
+describe('manageLegalFiltersReducer', function () {
   let otherObject;
 
-  beforeEach(function() {
-    otherObject = {value: 'test value'};
+  beforeEach(function () {
+    otherObject = { value: 'test value' };
   });
 
-  describe('unknown action', function() {
-    it('returns original state', function() {
-      const state = Object.freeze({foo: 'bar'});
+  describe('unknown action', function () {
+    it('returns original state', function () {
+      const state = Object.freeze({ foo: 'bar' });
       const action = {
-        type: 'UNKNOWN'
+        type: 'UNKNOWN',
       };
       const newState = reduce(state, action);
       expect(newState).toBe(state);
     });
   });
 
-  describe('initial state', function() {
-    it('is used if no state is provided', function() {
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
       const action = {
-        type: 'UNKNOWN'
+        type: 'UNKNOWN',
       };
       const newState = reduce(undefined, action);
       expect(newState).not.toBeUndefined();
@@ -37,47 +39,51 @@ describe('manageLegalFiltersReducer', function() {
   });
 
   function testSetsAppliedFilterNameAndShowDirtyAsterisk(actionType) {
-    describe(actionType + ' action', function() {
+    describe(actionType + ' action', function () {
       let initState, action, filterJson;
 
-      beforeEach(function() {
+      beforeEach(function () {
         filterJson = {
           organizationFilters: ['orgId1', 'orgId2'],
-          applicationFilters: ['applicationIdZ', 'applicationIdA', 'applicationIdQ'],
+          applicationFilters: [
+            'applicationIdZ',
+            'applicationIdA',
+            'applicationIdQ',
+          ],
           stageTypeFilters: ['release', 'stage-release', 'build'],
           categoryFilters: ['tagId1', 'tagId2', null],
-          progressOptionsFilters: ['NOT_REVIEWED']
+          progressOptionsFilters: ['NOT_REVIEWED'],
         };
         initState = {
           appliedFilter: null,
           appliedFilterName: 'foo',
-          savedFilters: [{'name': 'Test1', 'filter': filterJson}],
-          other: otherObject
+          savedFilters: [{ name: 'Test1', filter: filterJson }],
+          other: otherObject,
         };
         action = {
           type: actionType,
           payload: {
             filter: filterJson,
-            basedOnFilterName: 'Test1'
-          }
+            basedOnFilterName: 'Test1',
+          },
         };
       });
 
-      it('sets the appliedFilter to the filter in the payload', function() {
+      it('sets the appliedFilter to the filter in the payload', function () {
         const state = Object.freeze(initState);
         const newState = reduce(state, action);
         expect(newState.appliedFilter).toBe(filterJson);
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets the appliedFilterName to the basedOnFilterName in the payload', function() {
+      it('sets the appliedFilterName to the basedOnFilterName in the payload', function () {
         const state = Object.freeze(initState);
         const newState = reduce(state, action);
         expect(newState.appliedFilterName).toBe('Test1');
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets the appliedFilterName to null if payload.basedOnFilterName is null', function() {
+      it('sets the appliedFilterName to null if payload.basedOnFilterName is null', function () {
         const state = Object.freeze(initState);
         action.payload.basedOnFilterName = null;
         const newState = reduce(state, action);
@@ -85,7 +91,7 @@ describe('manageLegalFiltersReducer', function() {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets showDirtyAsterisk to false if filter is same as corresponding saved filter', function() {
+      it('sets showDirtyAsterisk to false if filter is same as corresponding saved filter', function () {
         initState.showDirtyAsterisk = true;
         const state = Object.freeze(initState);
         const newState = reduce(state, action);
@@ -93,7 +99,7 @@ describe('manageLegalFiltersReducer', function() {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets showDirtyAsterisk to true if saved filter has changed', function() {
+      it('sets showDirtyAsterisk to true if saved filter has changed', function () {
         initState.showDirtyAsterisk = false;
         const state = Object.freeze(initState);
         action.payload.filter = angular.copy(filterJson);
@@ -103,7 +109,7 @@ describe('manageLegalFiltersReducer', function() {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets showDirtyAsterisk to true if filter is Default and has changed', function() {
+      it('sets showDirtyAsterisk to true if filter is Default and has changed', function () {
         initState.showDirtyAsterisk = false;
         const state = Object.freeze(initState);
         action.payload.basedOnFilterName = null;
@@ -114,7 +120,7 @@ describe('manageLegalFiltersReducer', function() {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets showDirtyAsterisk to false if filter is Default and has not changed', function() {
+      it('sets showDirtyAsterisk to false if filter is Default and has not changed', function () {
         initState.showDirtyAsterisk = true;
         const state = Object.freeze(initState);
         action.payload.basedOnFilterName = null;
@@ -126,15 +132,23 @@ describe('manageLegalFiltersReducer', function() {
     });
   }
 
-  testSetsAppliedFilterNameAndShowDirtyAsterisk('LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED');
-  testSetsAppliedFilterNameAndShowDirtyAsterisk('LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED');
+  testSetsAppliedFilterNameAndShowDirtyAsterisk(
+    'LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED'
+  );
+  testSetsAppliedFilterNameAndShowDirtyAsterisk(
+    'LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED'
+  );
 
-  describe('LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED action', function() {
-    it('sets savedFilters to the payload and sets savedFilterListError to null', function() {
-      const state = Object.freeze({ savedFilters: null, savedFilterListError: {}, other: otherObject });
+  describe('LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED action', function () {
+    it('sets savedFilters to the payload and sets savedFilterListError to null', function () {
+      const state = Object.freeze({
+        savedFilters: null,
+        savedFilterListError: {},
+        other: otherObject,
+      });
       const action = {
         type: 'LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED',
-        payload: [{ name: 'foo' }, { name: 'bar' }]
+        payload: [{ name: 'foo' }, { name: 'bar' }],
       };
       const newState = reduce(state, action);
       expect(newState.savedFilters).toEqual([{ name: 'foo' }, { name: 'bar' }]);
@@ -143,13 +157,16 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED action', function() {
-    it('sets savedFilterListError to the payload', function() {
-      const state = Object.freeze({ savedFilterListError: null, other: otherObject });
+  describe('LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED action', function () {
+    it('sets savedFilterListError to the payload', function () {
+      const state = Object.freeze({
+        savedFilterListError: null,
+        other: otherObject,
+      });
       const error = {};
       const action = {
         type: 'LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED',
-        payload: error
+        payload: error,
       };
       const newState = reduce(state, action);
       expect(newState.savedFilterListError).toBe(error);
@@ -157,9 +174,12 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED action', function() {
-    it('sets saveFilterSaving to true', function() {
-      const state = Object.freeze({ saveFilterSaving: false, other: otherObject });
+  describe('LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED action', function () {
+    it('sets saveFilterSaving to true', function () {
+      const state = Object.freeze({
+        saveFilterSaving: false,
+        other: otherObject,
+      });
       const action = { type: 'LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED' };
       const newState = reduce(state, action);
       expect(newState.saveFilterSaving).toBe(true);
@@ -167,10 +187,16 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED action', function() {
-    it('sets saveFilterError to null, saveFilterWarning to WARNING_OVERWRITE', function() {
-      const state = Object.freeze({ saveFilterError: 'xyz', saveFilterWarning: null, other: otherObject });
-      const action = { type: 'LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED' };
+  describe('LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED action', function () {
+    it('sets saveFilterError to null, saveFilterWarning to WARNING_OVERWRITE', function () {
+      const state = Object.freeze({
+        saveFilterError: 'xyz',
+        saveFilterWarning: null,
+        other: otherObject,
+      });
+      const action = {
+        type: 'LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED',
+      };
       const newState = reduce(state, action);
       expect(newState.saveFilterError).toBeNull();
       expect(newState.saveFilterWarning).toBe(WARNING_OVERWRITE);
@@ -179,15 +205,18 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED action', function() {
-    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE', function() {
+  describe('LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED action', function () {
+    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE', function () {
       const state = Object.freeze({
         existingDuplicateFilterName: null,
         saveFilterError: 'xyz',
         saveFilterWarning: null,
-        other: otherObject
+        other: otherObject,
       });
-      const action = { type: 'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED', payload: null };
+      const action = {
+        type: 'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED',
+        payload: null,
+      };
       const newState = reduce(state, action);
       expect(newState.saveFilterError).toBeNull();
       expect(newState.saveFilterWarning).toBe(WARNING_NAME_IN_USE);
@@ -195,14 +224,17 @@ describe('manageLegalFiltersReducer', function() {
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
-    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE when space in name', function() {
+    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE when space in name', function () {
       const state = Object.freeze({
         existingDuplicateFilterName: null,
         saveFilterError: 'xyz',
         saveFilterWarning: null,
-        other: otherObject
+        other: otherObject,
       });
-      const action = { type: 'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED', payload: 'Test 1' };
+      const action = {
+        type: 'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED',
+        payload: 'Test 1',
+      };
       const newState = reduce(state, action);
       expect(newState.saveFilterError).toBeNull();
       expect(newState.saveFilterWarning).toBe(WARNING_NAME_IN_USE);
@@ -210,14 +242,17 @@ describe('manageLegalFiltersReducer', function() {
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
-    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE when case is different', function() {
+    it('sets saveFilterError to null, saveFilterWarning to WARNING_NAME_IN_USE when case is different', function () {
       const state = Object.freeze({
         existingDuplicateFilterName: null,
         saveFilterError: 'xyz',
         saveFilterWarning: null,
-        other: otherObject
+        other: otherObject,
       });
-      const action = { type: 'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED', payload: 'TeSt1' };
+      const action = {
+        type: 'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED',
+        payload: 'TeSt1',
+      };
       const newState = reduce(state, action);
       expect(newState.saveFilterError).toBeNull();
       expect(newState.saveFilterWarning).toBe(WARNING_NAME_IN_USE);
@@ -226,9 +261,13 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_SAVE_CONFIRM_CANCELLED action', function() {
-    it('sets saveFilterError to null, saveFilterWarning to null', function() {
-      const state = Object.freeze({ saveFilterError: 'yyy', saveFilterWarning: 'zzz', other: otherObject });
+  describe('LEGAL_DASHBOARD_SAVE_CONFIRM_CANCELLED action', function () {
+    it('sets saveFilterError to null, saveFilterWarning to null', function () {
+      const state = Object.freeze({
+        saveFilterError: 'yyy',
+        saveFilterWarning: 'zzz',
+        other: otherObject,
+      });
       const action = { type: 'LEGAL_DASHBOARD_SAVE_CONFIRM_CANCELLED' };
       const newState = reduce(state, action);
       expect(newState.saveFilterError).toBeNull();
@@ -238,63 +277,67 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED action', function() {
-    it('sets saveFilterSuccess to true, sets appliedFilterName from the payload name, appends the payload to ' +
-        'savedFilters and resets showDirtyAsterisk', function() {
+  describe('LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED action', function () {
+    it(
+      'sets saveFilterSuccess to true, sets appliedFilterName from the payload name, appends the payload to ' +
+        'savedFilters and resets showDirtyAsterisk',
+      function () {
+        const state = Object.freeze({
+          saveFilterSaving: false,
+          showDirtyAsterisk: true,
+          appliedFilterName: 'bar',
+          savedFilters: Object.freeze([{ name: 'bar' }]),
+          saveFilterWarning: 'foo',
+          other: otherObject,
+        });
+        const action = {
+          type: 'LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED',
+          payload: { name: 'foo' },
+        };
+        const newState = reduce(state, action);
+        expect(newState.savedFilters).toEqual([
+          { name: 'bar' },
+          { name: 'foo' },
+        ]);
+        expect(newState.appliedFilterName).toBe('foo');
+        expect(newState.saveFilterSuccess).toBe(true);
+        expect(newState.showDirtyAsterisk).toBe(false);
+        expect(newState.saveFilterWarning).toBeNull();
+        expect(newState.existingDuplicateFilterName).toBeNull();
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      }
+    );
+  });
+
+  describe('LEGAL_DASHBOARD_SAVE_FILTER_FAILED action', function () {
+    it('sets saveFilterSuccess and saveFilterSaving to false, and saveFilterError to the payload', function () {
       const state = Object.freeze({
-        saveFilterSaving: false,
-        showDirtyAsterisk: true,
-        appliedFilterName: 'bar',
-        savedFilters: Object.freeze([{ name: 'bar' }]),
-        saveFilterWarning: 'foo',
-        other: otherObject
+        saveFilterSaving: true,
+        saveFilterSuccess: true,
+        saveFilterError: null,
+        other: otherObject,
       });
+      const error = {};
       const action = {
-        type: 'LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED',
-        payload: { name: 'foo' }
+        type: 'LEGAL_DASHBOARD_SAVE_FILTER_FAILED',
+        payload: error,
       };
       const newState = reduce(state, action);
-      expect(newState.savedFilters).toEqual([{ name: 'bar' }, { name: 'foo' }]);
-      expect(newState.appliedFilterName).toBe('foo');
-      expect(newState.saveFilterSuccess).toBe(true);
-      expect(newState.showDirtyAsterisk).toBe(false);
-      expect(newState.saveFilterWarning).toBeNull();
-      expect(newState.existingDuplicateFilterName).toBeNull();
+      expect(newState.saveFilterSuccess).toBe(false);
+      expect(newState.saveFilterSaving).toBe(false);
+      expect(newState.saveFilterError).toBe(error);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('LEGAL_DASHBOARD_SAVE_FILTER_FAILED action', function() {
-    it('sets saveFilterSuccess and saveFilterSaving to false, and saveFilterError to the payload',
-        function() {
-          const state = Object.freeze({
-            saveFilterSaving: true,
-            saveFilterSuccess: true,
-            saveFilterError: null,
-            other: otherObject
-          });
-          const error = {};
-          const action = {
-            type: 'LEGAL_DASHBOARD_SAVE_FILTER_FAILED',
-            payload: error
-          };
-          const newState = reduce(state, action);
-          expect(newState.saveFilterSuccess).toBe(false);
-          expect(newState.saveFilterSaving).toBe(false);
-          expect(newState.saveFilterError).toBe(error);
-          expect(newState.other).toBe(otherObject); // other properties are not modified
-        }
-    );
-  });
-
-  describe('LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL action', function() {
-    it('resets saveFilterSaving, saveFilterError and saveFilterSuccess', function() {
+  describe('LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL action', function () {
+    it('resets saveFilterSaving, saveFilterError and saveFilterSuccess', function () {
       const state = Object.freeze({
         saveFilterSaving: true,
         saveFilterSuccess: true,
         saveFilterError: true,
         warning: 'overwrite',
-        other: otherObject
+        other: otherObject,
       });
       const action = { type: 'LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL' };
       const newState = reduce(state, action);
@@ -305,9 +348,12 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED action', function() {
-    it('sets deleteFilterSaving to true', function() {
-      const state = Object.freeze({ deleteFilterSaving: false, other: otherObject });
+  describe('LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED action', function () {
+    it('sets deleteFilterSaving to true', function () {
+      const state = Object.freeze({
+        deleteFilterSaving: false,
+        other: otherObject,
+      });
       const action = { type: 'LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED' };
       const newState = reduce(state, action);
       expect(newState.deleteFilterSaving).toBe(true);
@@ -315,76 +361,97 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED action', function() {
-    it('sets deleteFilterSuccess to true', function() {
-      const state = Object.freeze({ deleteFilteSuccess: false, other: otherObject });
-      const action = { type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED', payload: 'foo' };
+  describe('LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED action', function () {
+    it('sets deleteFilterSuccess to true', function () {
+      const state = Object.freeze({
+        deleteFilteSuccess: false,
+        other: otherObject,
+      });
+      const action = {
+        type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED',
+        payload: 'foo',
+      };
       const newState = reduce(state, action);
       expect(newState.deleteFilterSuccess).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
-    describe('if deleted filter is applied filter', function() {
-      it('resets appliedFilterName', function() {
+    describe('if deleted filter is applied filter', function () {
+      it('resets appliedFilterName', function () {
         const state = Object.freeze({
           appliedFilterName: 'bar',
-          other: otherObject
+          other: otherObject,
         });
-        const action = { type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const action = {
+          type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED',
+          payload: 'bar',
+        };
         const newState = reduce(state, action);
         expect(newState.appliedFilterName).toBe(null);
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets showDirtyAsterisk to false if applied filter is same as default filter', function() {
+      it('sets showDirtyAsterisk to false if applied filter is same as default filter', function () {
         const state = Object.freeze({
           appliedFilterName: 'bar',
           appliedFilter: filterToJson(defaultFilter),
           showDirtyAsterisk: true,
-          other: otherObject
+          other: otherObject,
         });
-        const action = { type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const action = {
+          type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED',
+          payload: 'bar',
+        };
         const newState = reduce(state, action);
         expect(newState.showDirtyAsterisk).toBe(false);
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets showDirtyAsterisk to true if applied filter is different from default filter', function() {
+      it('sets showDirtyAsterisk to true if applied filter is different from default filter', function () {
         const state = Object.freeze({
           appliedFilterName: 'bar',
           appliedFilter: filterToJson(defaultFilter),
           showDirtyAsterisk: false,
-          other: otherObject
+          other: otherObject,
         });
         state.appliedFilter.minPolicyThreatLevel = 3;
-        const action = { type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const action = {
+          type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED',
+          payload: 'bar',
+        };
         const newState = reduce(state, action);
         expect(newState.showDirtyAsterisk).toBe(true);
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
     });
 
-    describe('if deleted filter is not applied filter', function() {
-      it('does not reset appliedFilterName', function() {
+    describe('if deleted filter is not applied filter', function () {
+      it('does not reset appliedFilterName', function () {
         const state = Object.freeze({
           appliedFilterName: 'baz',
           deleteFilterSuccess: false,
-          other: otherObject
+          other: otherObject,
         });
-        const action = { type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const action = {
+          type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED',
+          payload: 'bar',
+        };
         const newState = reduce(state, action);
         expect(newState.appliedFilterName).toBe('baz');
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('does not set showDirtyAsterisk to false if applied filter is same as default filter', function() {
+      it('does not set showDirtyAsterisk to false if applied filter is same as default filter', function () {
         const state = Object.freeze({
           appliedFilterName: 'baz',
           appliedFilter: filterToJson(defaultFilter),
           showDirtyAsterisk: true,
-          other: otherObject
+          other: otherObject,
         });
-        const action = { type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED', payload: 'bar' };
+        const action = {
+          type: 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED',
+          payload: 'bar',
+        };
         const newState = reduce(state, action);
         expect(newState.showDirtyAsterisk).toBe(true);
         expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -392,18 +459,18 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_DELETE_FILTER_FAILED action', function() {
-    it('resets deleteFilterSaving and deleteFilterSuccess and sets deleteFilterError to the payload', function() {
+  describe('LEGAL_DASHBOARD_DELETE_FILTER_FAILED action', function () {
+    it('resets deleteFilterSaving and deleteFilterSuccess and sets deleteFilterError to the payload', function () {
       const error = {};
       const state = Object.freeze({
         deleteFilterSaving: true,
         deleteFilterSuccess: true,
         deleteFilterError: null,
-        other: otherObject
+        other: otherObject,
       });
       const action = {
         type: 'LEGAL_DASHBOARD_DELETE_FILTER_FAILED',
-        payload: error
+        payload: error,
       };
       const newState = reduce(state, action);
       expect(newState.deleteFilterSaving).toBe(false);
@@ -413,15 +480,15 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN action', function() {
-    it('sets filtersDropdownOpen to the payload', function() {
+  describe('LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN action', function () {
+    it('sets filtersDropdownOpen to the payload', function () {
       const state = Object.freeze({
         filtersDropdownOpen: false,
-        other: otherObject
+        other: otherObject,
       });
       const action = {
         type: 'LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN',
-        payload: true
+        payload: true,
       };
       const newState = reduce(state, action);
       expect(newState.filtersDropdownOpen).toBe(true);
@@ -429,18 +496,18 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE action', function() {
-    it('resets deleteFilter flags and sets filterToDelete to the payload', function() {
+  describe('LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE action', function () {
+    it('resets deleteFilter flags and sets filterToDelete to the payload', function () {
       const state = Object.freeze({
         filterToDelete: 'foo',
         deleteFilterError: 'error',
         deleteFilterSaving: true,
         deleteFilterSuccess: true,
-        other: otherObject
+        other: otherObject,
       });
       const action = {
         type: 'LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE',
-        payload: 'bar'
+        payload: 'bar',
       };
       const newState = reduce(state, action);
       expect(newState.filterToDelete).toBe('bar');
@@ -451,14 +518,14 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL action', function() {
-    it('resets filterToDelete', function() {
+  describe('LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL action', function () {
+    it('resets filterToDelete', function () {
       const state = Object.freeze({
         filterToDelete: 'foo',
-        other: otherObject
+        other: otherObject,
       });
       const action = {
-        type: 'LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL'
+        type: 'LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL',
       };
       const newState = reduce(state, action);
       expect(newState.filterToDelete).toBeNull();
@@ -466,29 +533,29 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_DOCUMENT_CLICKED action', function() {
-    it('sets filtersDropdownOpen to false if delete filter modal is not open', function() {
+  describe('LEGAL_DASHBOARD_DOCUMENT_CLICKED action', function () {
+    it('sets filtersDropdownOpen to false if delete filter modal is not open', function () {
       const state = Object.freeze({
         filterToDelete: null,
         filtersDropdownOpen: true,
-        other: otherObject
+        other: otherObject,
       });
       const action = {
-        type: 'LEGAL_DASHBOARD_DOCUMENT_CLICKED'
+        type: 'LEGAL_DASHBOARD_DOCUMENT_CLICKED',
       };
       const newState = reduce(state, action);
       expect(newState.filtersDropdownOpen).toBe(false);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
-    it('does not set filtersDropdownOpen to false if delete filter modal is open', function() {
+    it('does not set filtersDropdownOpen to false if delete filter modal is open', function () {
       const state = Object.freeze({
         filterToDelete: 'foo',
         filtersDropdownOpen: true,
-        other: otherObject
+        other: otherObject,
       });
       const action = {
-        type: 'LEGAL_DASHBOARD_DOCUMENT_CLICKED'
+        type: 'LEGAL_DASHBOARD_DOCUMENT_CLICKED',
       };
       const newState = reduce(state, action);
       expect(newState.filtersDropdownOpen).toBe(true);
@@ -496,29 +563,29 @@ describe('manageLegalFiltersReducer', function() {
     });
   });
 
-  describe('LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED action', function() {
-    it('sets filtersDropdownOpen to false if delete filter modal is not open', function() {
+  describe('LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED action', function () {
+    it('sets filtersDropdownOpen to false if delete filter modal is not open', function () {
       const state = Object.freeze({
         filterToDelete: null,
         filtersDropdownOpen: true,
-        other: otherObject
+        other: otherObject,
       });
       const action = {
-        type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED'
+        type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED',
       };
       const newState = reduce(state, action);
       expect(newState.filtersDropdownOpen).toBe(false);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
 
-    it('does not set filtersDropdownOpen to false if delete filter modal is open', function() {
+    it('does not set filtersDropdownOpen to false if delete filter modal is open', function () {
       const state = Object.freeze({
         filterToDelete: 'foo',
         filtersDropdownOpen: true,
-        other: otherObject
+        other: otherObject,
       });
       const action = {
-        type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED'
+        type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED',
       };
       const newState = reduce(state, action);
       expect(newState.filtersDropdownOpen).toBe(true);

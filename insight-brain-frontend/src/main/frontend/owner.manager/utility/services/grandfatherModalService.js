@@ -6,7 +6,7 @@
 import template from './grandfatherModalService.html';
 
 export default function GrandfatherModalService(Modal) {
-  return {open: openModal};
+  return { open: openModal };
 
   function openModal(selectedApplication) {
     return Modal.open({
@@ -16,10 +16,10 @@ export default function GrandfatherModalService(Modal) {
       controller: 'GrandfatherModalController as vm',
       template,
       resolve: {
-        selectedApplication: function() {
+        selectedApplication: function () {
           return selectedApplication;
-        }
-      }
+        },
+      },
     }).result;
   }
 }

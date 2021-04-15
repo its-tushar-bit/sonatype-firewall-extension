@@ -10,11 +10,13 @@ import {
   NxTableBody,
   NxTableCell,
   NxTableHead,
-  NxTableRow
+  NxTableRow,
 } from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
 
-import DashboardViolationsTableRow, { violationPropTypes } from './DashboardViolationsTableRow';
+import DashboardViolationsTableRow, {
+  violationPropTypes,
+} from './DashboardViolationsTableRow';
 import { extractSortFieldName } from '../../../util/sortUtils';
 import { Messages } from '../../../util/CommonServices';
 import MaxResultsInfoRow from '../MaxResultsInfoRow';
@@ -27,29 +29,26 @@ const DEFAULT_SORT_FIELDS = [
   ['policyName', '-firstOccurrenceTime'],
   ['applicationName', '-threatLevel'],
   ['derivedComponentName', '-threatLevel'],
-  ['-firstOccurrenceTime', '-threatLevel']
+  ['-firstOccurrenceTime', '-threatLevel'],
 ];
 
 export default function DashboardViolationsTable(props) {
   const {
-        reload,
-        sortViolations,
-        stateGo,
-        maxDaysOld,
-        needsAcknowledgement,
-        violations: {
-          results,
-          numResults,
-          sortFields,
-          error
-        }
-      } = props,
-      isLoading = !error && !results && !needsAcknowledgement,
-      sortedColumn = extractSortFieldName(sortFields[0]),
-      isSortReversed = sortFields[0].includes('-'),
-      emptyMessage = 'No data available ' + (maxDaysOld ? `in the last ${maxDaysOld} days ` : '') +
-          'given the applied filters and permissions.',
-      colSpan = 6;
+      reload,
+      sortViolations,
+      stateGo,
+      maxDaysOld,
+      needsAcknowledgement,
+      violations: { results, numResults, sortFields, error },
+    } = props,
+    isLoading = !error && !results && !needsAcknowledgement,
+    sortedColumn = extractSortFieldName(sortFields[0]),
+    isSortReversed = sortFields[0].includes('-'),
+    emptyMessage =
+      'No data available ' +
+      (maxDaysOld ? `in the last ${maxDaysOld} days ` : '') +
+      'given the applied filters and permissions.',
+    colSpan = 6;
 
   const getColumnDirection = (index, sortInverted = false) => {
     if (!results || !results.length || error) {
@@ -57,10 +56,14 @@ export default function DashboardViolationsTable(props) {
     }
 
     const columnFields = DEFAULT_SORT_FIELDS[index],
-        currentColumn = extractSortFieldName(columnFields[0]),
-        isCurrentColumnSorted = sortedColumn === currentColumn,
-        isUp = isCurrentColumnSorted && (sortInverted ? isSortReversed : !isSortReversed),
-        isDown = isCurrentColumnSorted && (!sortInverted ? isSortReversed : !isSortReversed);
+      currentColumn = extractSortFieldName(columnFields[0]),
+      isCurrentColumnSorted = sortedColumn === currentColumn,
+      isUp =
+        isCurrentColumnSorted &&
+        (sortInverted ? isSortReversed : !isSortReversed),
+      isDown =
+        isCurrentColumnSorted &&
+        (!sortInverted ? isSortReversed : !isSortReversed);
 
     return isUp ? 'asc' : isDown ? 'desc' : null;
   };
@@ -72,12 +75,10 @@ export default function DashboardViolationsTable(props) {
       const column = extractSortFieldName(columnSortFields[0]);
       if (sortFields[0] !== column) {
         sortViolations([column, sortFields[1]]);
-      }
-      else {
+      } else {
         sortViolations([`-${column}`, sortFields[1]]);
       }
-    }
-    else {
+    } else {
       sortViolations(columnSortFields);
     }
   };
@@ -86,10 +87,15 @@ export default function DashboardViolationsTable(props) {
     if (!isNilOrEmpty(results)) {
       return (
         <Fragment>
-          { results.map(violation =>
-            <DashboardViolationsTableRow { ...({ stateGo, violation }) } key={violation.policyViolationId} />
+          {results.map((violation) => (
+            <DashboardViolationsTableRow
+              {...{ stateGo, violation }}
+              key={violation.policyViolationId}
+            />
+          ))}
+          {numResults > MAX_RESULTS && (
+            <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} />
           )}
-          { numResults > MAX_RESULTS && <MaxResultsInfoRow colSpan={colSpan} maxResults={MAX_RESULTS} /> }
         </Fragment>
       );
     }
@@ -101,34 +107,58 @@ export default function DashboardViolationsTable(props) {
       <NxTable className="nx-table--fixed-layout">
         <NxTableHead>
           <NxTableRow className="iq-dashboard-violation-headers">
-            <NxTableCell className="iq-size-controlled-cell"
-                         onClick={ () => doSort(0) }
-                         sortDir={ getColumnDirection(0) }
-                         isSortable>Threat</NxTableCell>
-            <NxTableCell onClick={ () => doSort(1) }
-                         sortDir={ getColumnDirection(1) }
-                         isSortable>Policy</NxTableCell>
-            <NxTableCell onClick={ () => doSort(2) }
-                         sortDir={ getColumnDirection(2) }
-                         isSortable>Application</NxTableCell>
-            <NxTableCell onClick={ () => doSort(3) }
-                         sortDir={ getColumnDirection(3) }
-                         isSortable>Component</NxTableCell>
-            <NxTableCell className="iq-size-controlled-cell"
-                         onClick={ () => doSort(4) }
-                         sortDir={ getColumnDirection(4, true) }
-                         isSortable>Age</NxTableCell>
+            <NxTableCell
+              className="iq-size-controlled-cell"
+              onClick={() => doSort(0)}
+              sortDir={getColumnDirection(0)}
+              isSortable
+            >
+              Threat
+            </NxTableCell>
+            <NxTableCell
+              onClick={() => doSort(1)}
+              sortDir={getColumnDirection(1)}
+              isSortable
+            >
+              Policy
+            </NxTableCell>
+            <NxTableCell
+              onClick={() => doSort(2)}
+              sortDir={getColumnDirection(2)}
+              isSortable
+            >
+              Application
+            </NxTableCell>
+            <NxTableCell
+              onClick={() => doSort(3)}
+              sortDir={getColumnDirection(3)}
+              isSortable
+            >
+              Component
+            </NxTableCell>
+            <NxTableCell
+              className="iq-size-controlled-cell"
+              onClick={() => doSort(4)}
+              sortDir={getColumnDirection(4, true)}
+              isSortable
+            >
+              Age
+            </NxTableCell>
             <NxTableCell chevron />
           </NxTableRow>
         </NxTableHead>
-        <NxTableBody className="iq-dashboard-violation-entries"
-                     isLoading={ isLoading }
-                     emptyMessage={ emptyMessage }
-                     error={ Messages.getHttpErrorMessage(error) }
-                     retryHandler = { reload }>
-          {
-            needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan}/> : bodyFragment()
-          }
+        <NxTableBody
+          className="iq-dashboard-violation-entries"
+          isLoading={isLoading}
+          emptyMessage={emptyMessage}
+          error={Messages.getHttpErrorMessage(error)}
+          retryHandler={reload}
+        >
+          {needsAcknowledgement ? (
+            <NeedsAcknowledgementInfoRow colSpan={colSpan} />
+          ) : (
+            bodyFragment()
+          )}
         </NxTableBody>
       </NxTable>
     </div>
@@ -145,6 +175,10 @@ DashboardViolationsTable.propTypes = {
     results: PropTypes.arrayOf(violationPropTypes),
     numResults: PropTypes.number,
     sortFields: PropTypes.arrayOf(PropTypes.string),
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object])
-  })
+    error: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.instanceOf(Error),
+      PropTypes.object,
+    ]),
+  }),
 };

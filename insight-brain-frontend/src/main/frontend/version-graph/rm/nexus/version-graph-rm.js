@@ -11,10 +11,10 @@ window.clmEndpoint = {
   selectApplication: true,
   openView: window.Eclipse_openView,
   linkTarget: '_blank',
-  path: '../../'
+  path: '../../',
 };
 
 window.CLM = {
   path: window.clmEndpoint.path + '../../',
-  assetsPath: window.clmEndpoint.path + '../'
+  assetsPath: window.clmEndpoint.path + '../',
 };

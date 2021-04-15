@@ -3,29 +3,41 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {prop} from 'ramda';
+import { prop } from 'ramda';
 
 export default function retentionService($http, CLMContextLocations) {
   return {
     getRootOrganizationRetentionPolicies,
     getRetentionPolicies,
-    setRetentionPolicies
+    setRetentionPolicies,
   };
 
   function getRootOrganizationRetentionPolicies() {
-    return $http.get(CLMContextLocations.getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID')).then(prop('data'));
+    return $http
+      .get(CLMContextLocations.getRetentionPoliciesUrl('ROOT_ORGANIZATION_ID'))
+      .then(prop('data'));
   }
 
   function getRetentionPolicies() {
-    return $http.get(CLMContextLocations.getRetentionPoliciesUrl(CLMContextLocations.getEntityId())).then(prop('data'));
+    return $http
+      .get(
+        CLMContextLocations.getRetentionPoliciesUrl(
+          CLMContextLocations.getEntityId()
+        )
+      )
+      .then(prop('data'));
   }
 
   function setRetentionPolicies(retentionPolicies) {
-    return $http.put(CLMContextLocations.getRetentionPoliciesUrl(CLMContextLocations.getEntityId()),
-        retentionPolicies).then(prop('data'));
+    return $http
+      .put(
+        CLMContextLocations.getRetentionPoliciesUrl(
+          CLMContextLocations.getEntityId()
+        ),
+        retentionPolicies
+      )
+      .then(prop('data'));
   }
 }
 
-retentionService.$inject = [
-  '$http', 'CLMContextLocations'
-];
+retentionService.$inject = ['$http', 'CLMContextLocations'];

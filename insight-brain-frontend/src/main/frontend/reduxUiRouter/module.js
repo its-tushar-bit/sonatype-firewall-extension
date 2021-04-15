@@ -8,8 +8,9 @@ import routerStateReducer from './routerStateReducer';
 import routerListener from './routerListener';
 import routerMiddleware from './routerMiddleware';
 
-export default angular.module('reduxUiRouter', [uiRouter])
-    .value('routerStateReducer', routerStateReducer) // add to angular so we can test it
-    .value('routerListener', routerListener) // add to angular so we can test it
-    .factory('routerMiddleware', routerMiddleware)
-    .run(routerListener);
+export default angular
+  .module('reduxUiRouter', [uiRouter])
+  .value('routerStateReducer', routerStateReducer) // add to angular so we can test it
+  .value('routerListener', routerListener) // add to angular so we can test it
+  .factory('routerMiddleware', routerMiddleware)
+  .run(routerListener);

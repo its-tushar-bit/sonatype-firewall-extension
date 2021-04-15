@@ -9,118 +9,173 @@
   border-bottom: 1px solid #cfd0d2;
 }
 #licenseTable div.slick-cell {
-    line-height: 28px;
+  line-height: 28px;
 }
-a { text-decoration : none }
-div.scoreCol,td.scoreCol { font-family: Arial, Helvetica, sans-serif; font-weight:bold; font-size: 18px; color: #656565}
-div.criticalScore,td.criticalScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-critical.png) 0 0 repeat-y; height:27px !important }
-div.severeScore,td.severeScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-severe.png) 0 0 repeat-y; height:27px !important }
-div.moderateScore,td.moderateScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-moderate.png) 0 0 repeat-y; height:27px !important }
-div.unspecifiedScore,td.unspecifiedScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-unspecified.png) 0 0 repeat-y; height:27px !important }
-div.noScore,td.noScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-none.png) 0 0 repeat-y; height:27px !important }
-div.ignoredScore,td.ignoredScore { padding: 4px 0px 0px 15px !important; background: transparent url(img/bg-score-ignore.png) 0 0 repeat-y; height:27px !important }
-div.nopad { padding : 0px; height:29px !important }
+a {
+  text-decoration: none;
+}
+div.scoreCol,
+td.scoreCol {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  font-size: 18px;
+  color: #656565;
+}
+div.criticalScore,
+td.criticalScore {
+  padding: 4px 0px 0px 15px !important;
+  background: transparent url(img/bg-score-critical.png) 0 0 repeat-y;
+  height: 27px !important;
+}
+div.severeScore,
+td.severeScore {
+  padding: 4px 0px 0px 15px !important;
+  background: transparent url(img/bg-score-severe.png) 0 0 repeat-y;
+  height: 27px !important;
+}
+div.moderateScore,
+td.moderateScore {
+  padding: 4px 0px 0px 15px !important;
+  background: transparent url(img/bg-score-moderate.png) 0 0 repeat-y;
+  height: 27px !important;
+}
+div.unspecifiedScore,
+td.unspecifiedScore {
+  padding: 4px 0px 0px 15px !important;
+  background: transparent url(img/bg-score-unspecified.png) 0 0 repeat-y;
+  height: 27px !important;
+}
+div.noScore,
+td.noScore {
+  padding: 4px 0px 0px 15px !important;
+  background: transparent url(img/bg-score-none.png) 0 0 repeat-y;
+  height: 27px !important;
+}
+div.ignoredScore,
+td.ignoredScore {
+  padding: 4px 0px 0px 15px !important;
+  background: transparent url(img/bg-score-ignore.png) 0 0 repeat-y;
+  height: 27px !important;
+}
+div.nopad {
+  padding: 0px;
+  height: 29px !important;
+}
 .sorting_asc span {
-    padding-right: 14px;
-    background: no-repeat right 8px;
-    /*
+  padding-right: 14px;
+  background: no-repeat right 8px;
+  /*
      * This image and sort_desc.png were found not to exist in our codebase during the webpack conversion. Brief
      * investigation revealed that these classes don't seem to be used by slickgrid anymore.  Maybe these styles are
      * from an older version of it?  See CLM-8815.
      */
-    /*background-image: url('img/sort_asc.png');*/
+  /*background-image: url('img/sort_asc.png');*/
 }
 .sorting_desc span {
-    padding-right: 14px;
-    background: no-repeat right 7px;
-    /*background-image: url('img/sort_desc.png');*/
+  padding-right: 14px;
+  background: no-repeat right 7px;
+  /*background-image: url('img/sort_desc.png');*/
 }
 .sorting_asc span {
-    /*background-image: url('img/sort_asc.png');*/
+  /*background-image: url('img/sort_asc.png');*/
 }
 .sorting_desc span {
-    /*background-image: url('img/sort_desc.png');*/
+  /*background-image: url('img/sort_desc.png');*/
 }
-.slick-header-columns input[type=checkbox] {
-	display:block;
-	margin:auto;
-	margin-top:2px;
+.slick-header-columns input[type='checkbox'] {
+  display: block;
+  margin: auto;
+  margin-top: 2px;
 }
 .slick-header-columns {
-    border-bottom : 1px solid #c9d0e2;
-    border-right : 1px solid #cfd0d2;
-	border-top:1px solid #cfd0d2;
-    background-color: #e6e6e6;
-    background-repeat: no-repeat;
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fafafc), color-stop(25%, #fafafc), to(#cfd0d2));
-    background-image: -webkit-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
-    background-image: -moz-linear-gradient(top, #fafafc, #fafafc 25%, #cfd0d2);
-    background-image: -ms-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
-    background-image: -o-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
-    background-image: linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fafafc', endColorstr='#cfd0d2', GradientType=0);
-    white-space: nowrap;
-    font-size: 12px;
-    text-align: left;
-    cursor: pointer;
-    font-weight:bold;
+  border-bottom: 1px solid #c9d0e2;
+  border-right: 1px solid #cfd0d2;
+  border-top: 1px solid #cfd0d2;
+  background-color: #e6e6e6;
+  background-repeat: no-repeat;
+  background-image: -webkit-gradient(
+    linear,
+    0 0,
+    0 100%,
+    from(#fafafc),
+    color-stop(25%, #fafafc),
+    to(#cfd0d2)
+  );
+  background-image: -webkit-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
+  background-image: -moz-linear-gradient(top, #fafafc, #fafafc 25%, #cfd0d2);
+  background-image: -ms-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
+  background-image: -o-linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
+  background-image: linear-gradient(#fafafc, #fafafc 25%, #cfd0d2);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fafafc', endColorstr='#cfd0d2', GradientType=0);
+  white-space: nowrap;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  font-weight: bold;
 }
 .slick-cell {
-    border-right: 1px solid #cfd0d2;
-    border-bottom: 1px dashed #e9e9e9;
-    font-size: 11px;
-    font-family: Arial, Helvetica, sans-serif;
-    color: #656565;
-    white-space:nowrap;
-    padding-left: 6px;
-    padding-top: 2px;
+  border-right: 1px solid #cfd0d2;
+  border-bottom: 1px dashed #e9e9e9;
+  font-size: 11px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #656565;
+  white-space: nowrap;
+  padding-left: 6px;
+  padding-top: 2px;
 }
 .slick-header-columns > div.slick-header-column {
-    border-right : 1px solid #cfd0d2;
+  border-right: 1px solid #cfd0d2;
 }
 .slick-headerrow-columns > :last-child {
-    border-right: none !important;
+  border-right: none !important;
 }
 
 div.slick-headerrow {
-    background-color: #f8f8f8;
-    border-top : 1px solid #cfd0d2;
+  background-color: #f8f8f8;
+  border-top: 1px solid #cfd0d2;
 }
 .slick-headerrow-columns {
-	border-bottom: 1px solid rgb(233, 233, 233);
+  border-bottom: 1px solid rgb(233, 233, 233);
 }
 div.slick-headerrow-column {
-    border-right : 1px solid #cfd0d2;
-    border-bottom : 1px solid #cfd0d2;
-    padding-top: 2px !important;
-	padding-bottom: 6px !important;
+  border-right: 1px solid #cfd0d2;
+  border-bottom: 1px solid #cfd0d2;
+  padding-top: 2px !important;
+  padding-bottom: 6px !important;
 }
 .odd {
-    background-color: rgba(224, 224, 224, 0.22);
-	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#33f8f8f8, endColorstr=#33f8f8f8)";
+  background-color: rgba(224, 224, 224, 0.22);
+  -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=#33f8f8f8, endColorstr=#33f8f8f8)';
 }
-.slick-row>:last-child {
-    border-right: none;
+.slick-row > :last-child {
+  border-right: none;
 }
 .slick-row > div.groupedCell {
-    padding-bottom: 2px;
-    border-bottom: 1px none transparent;
+  padding-bottom: 2px;
+  border-bottom: 1px none transparent;
 }
 .scoreCol {
-    padding-bottom: 2px;
+  padding-bottom: 2px;
 }
 div.slick-header-column-sorted {
-    border-bottom : 1px solid #b5c6e0 !important;
-    background-color: #e7eefe;
-    background-repeat: no-repeat;
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f5f9fa), color-stop(25%, #f5f9fa), to(#b5c6e0));
-    background-image: -webkit-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
-    background-image: -moz-linear-gradient(top, #f5f9fa, #f5f9fa 25%, #b5c6e0);
-    background-image: -ms-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
-    background-image: -o-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
-    background-image: linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f5f9fa', endColorstr='#b5c6e0', GradientType=0);
-    font-size: 12px;
+  border-bottom: 1px solid #b5c6e0 !important;
+  background-color: #e7eefe;
+  background-repeat: no-repeat;
+  background-image: -webkit-gradient(
+    linear,
+    0 0,
+    0 100%,
+    from(#f5f9fa),
+    color-stop(25%, #f5f9fa),
+    to(#b5c6e0)
+  );
+  background-image: -webkit-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
+  background-image: -moz-linear-gradient(top, #f5f9fa, #f5f9fa 25%, #b5c6e0);
+  background-image: -ms-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
+  background-image: -o-linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
+  background-image: linear-gradient(#f5f9fa, #f5f9fa 25%, #b5c6e0);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f5f9fa', endColorstr='#b5c6e0', GradientType=0);
+  font-size: 12px;
 }
 
 .slick-pager {
@@ -129,14 +184,38 @@ div.slick-header-column-sorted {
   border-bottom: 0 !important;
 }
 
-.ui-icon { display: block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat;width: 16px; height: 16px; background-image: url(img/ui-icons_888888_256x240.png); }
-.ui-icon-triangle-1-s { background-position: -64px 0px; }
-.ui-icon-seek-first { background-position: -80px -160px; }
-.ui-icon-seek-next { background-position: -32px -160px; }
-.ui-icon-seek-prev { background-position: -48px -160px; }
-.ui-icon-seek-end { background-position: -64px -160px; }
-.ui-icon-lightbulb { background-position: -128px -128px; }
-.ui-state-disabled { cursor: default !important;opacity: .35; filter:Alpha(Opacity=35); }
+.ui-icon {
+  display: block;
+  text-indent: -99999px;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  width: 16px;
+  height: 16px;
+  background-image: url(img/ui-icons_888888_256x240.png);
+}
+.ui-icon-triangle-1-s {
+  background-position: -64px 0px;
+}
+.ui-icon-seek-first {
+  background-position: -80px -160px;
+}
+.ui-icon-seek-next {
+  background-position: -32px -160px;
+}
+.ui-icon-seek-prev {
+  background-position: -48px -160px;
+}
+.ui-icon-seek-end {
+  background-position: -64px -160px;
+}
+.ui-icon-lightbulb {
+  background-position: -128px -128px;
+}
+.ui-state-disabled {
+  cursor: default !important;
+  opacity: 0.35;
+  filter: Alpha(Opacity=35);
+}
 
 .slick-headerrow-column {
   text-overflow: clip;
@@ -151,26 +230,36 @@ div.slick-header-column-sorted {
 
 .slick-group-toggle.expanded {
   background: url(collapse.gif) no-repeat center center;
-  cursor:pointer
+  cursor: pointer;
 }
 
 .slick-group-toggle.collapsed {
   background: url(expand.gif) no-repeat center center;
-  cursor:pointer
+  cursor: pointer;
 }
-#partialMatchedcontainer .slick-cell {cursor:pointer}
-#partialMatchedcontainer .slick-group .slick-cell{cursor:auto}
+#partialMatchedcontainer .slick-cell {
+  cursor: pointer;
+}
+#partialMatchedcontainer .slick-group .slick-cell {
+  cursor: auto;
+}
 .center {
-	text-align:center;
-	padding-left : 0px;
-	padding-right : 0px;
+  text-align: center;
+  padding-left: 0px;
+  padding-right: 0px;
 }
-#securitycontainer input[disabled],input[readonly]{cursor:auto}
-#licensecontainer input[disabled],input[readonly]{cursor:auto}
+#securitycontainer input[disabled],
+input[readonly] {
+  cursor: auto;
+}
+#licensecontainer input[disabled],
+input[readonly] {
+  cursor: auto;
+}
 
 #informationPanel .alert {
-  margin-left:10px;
-  margin-bottom:5px;
-  padding-top:0px;
-  padding-bottom:0px;
+  margin-left: 10px;
+  margin-bottom: 5px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }

@@ -5,13 +5,18 @@
  */
 import { pipe, prop, map, join } from 'ramda';
 
-const deriveComponentNameFromDisplayName = pipe(prop('parts'), map(prop('value')), join(''));
+const deriveComponentNameFromDisplayName = pipe(
+  prop('parts'),
+  map(prop('value')),
+  join('')
+);
 const deriveComponentNameFromFilenames = join(', ');
 
 export const getComponentName = ({ displayName, filename, filenames }) =>
-  displayName && deriveComponentNameFromDisplayName(displayName) ||
+  (displayName && deriveComponentNameFromDisplayName(displayName)) ||
   filename ||
-  filenames && deriveComponentNameFromFilenames(filenames) ||
+  (filenames && deriveComponentNameFromFilenames(filenames)) ||
   'Unknown';
 
-export const getArtifactName = ({ displayName, filename }) => prop('name', displayName) || filename || 'Unknown';
+export const getArtifactName = ({ displayName, filename }) =>
+  prop('name', displayName) || filename || 'Unknown';

@@ -21,7 +21,7 @@ import componentUpdateService from './component.update.service';
 
 window.CLM = {
   path: '../../',
-  assetsPath : '../'
+  assetsPath: '../',
 };
 
 function init($rootScope, ComponentUpdateService, pendoService) {
@@ -40,16 +40,30 @@ function config($compileProvider) {
 }
 config.$inject = ['$compileProvider'];
 
-export default angular.module('audit',
-    ['AngularCommon', 'UnauthenticatedResponseHttpInterceptor', 'ui.bootstrap', 'CLMLocation',
-      auditReportPendoModule.name, componentInformationPanelModule.name, legacyConfigurationModule.name,
-      componentsModule.name, reduxConfigModule.name])
-    .controller('audit.summary.controller', auditSummaryController)
-    .directive('auditThreat', auditThreatDirective)
-    .service('OwnerContext', ownerContextService)
-    .directive('repositoryViolationTableFilter', repositoryViolationTableFilterDirective)
-    .controller('component.update.controller', componentUpdateController)
-    .controller('component.update.optional.controller', componentUpdateOptionalController)
-    .service('component.update.service', componentUpdateService)
-    .run(init)
-    .config(config);
+export default angular
+  .module('audit', [
+    'AngularCommon',
+    'UnauthenticatedResponseHttpInterceptor',
+    'ui.bootstrap',
+    'CLMLocation',
+    auditReportPendoModule.name,
+    componentInformationPanelModule.name,
+    legacyConfigurationModule.name,
+    componentsModule.name,
+    reduxConfigModule.name,
+  ])
+  .controller('audit.summary.controller', auditSummaryController)
+  .directive('auditThreat', auditThreatDirective)
+  .service('OwnerContext', ownerContextService)
+  .directive(
+    'repositoryViolationTableFilter',
+    repositoryViolationTableFilterDirective
+  )
+  .controller('component.update.controller', componentUpdateController)
+  .controller(
+    'component.update.optional.controller',
+    componentUpdateOptionalController
+  )
+  .service('component.update.service', componentUpdateService)
+  .run(init)
+  .config(config);

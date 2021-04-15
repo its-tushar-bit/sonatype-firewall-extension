@@ -1,107 +1,113 @@
-<div id="cip-policy-violations" load-wrapper="error" reload="doLoad()" error-message="Unable to load policy violation data." loading="!error && !processedPolicyAlerts">
+<div
+  id="cip-policy-violations"
+  load-wrapper="error"
+  reload="doLoad()"
+  error-message="Unable to load policy violation data."
+  loading="!error && !processedPolicyAlerts"
+>
   <script type="text/ng-template" id="add-waiver-modal-tmpl">
-  <div id="add-waiver-modal">
-    <div class="iq-modal-header">
-      <h2>Add Waiver</h2>
-    </div>
-    <div class="iq-modal-content iq-scrollable">
-      <div ng-show="waiverLoading">
-        <i class="icon icon-time"></i> Loading...
+    <div id="add-waiver-modal">
+      <div class="iq-modal-header">
+        <h2>Add Waiver</h2>
       </div>
-      <div ng-show="!waiverLoading">
-        <div id="add-waiver-legacy-message" class="iq-alert iq-alert--error" ng-show="legacyReport">
-            This report has not been upgraded for the new waiver functionality introduced in release 53.
-            Re-evaluate to update and then create the waiver.
+      <div class="iq-modal-content iq-scrollable">
+        <div ng-show="waiverLoading">
+          <i class="icon icon-time"></i> Loading...
         </div>
-        <label class="iq-label">Policy</label>
-        <div id="waiver-policy-name"
-             class="cip-policy cip-policy-{{::getThreatColor(policy.threatLevel)}} cip-policy-name">
-          {{policy.name}}
-        </div>
-
-        <label class="iq-label iq-label--spaced">Constraint Name</label>
-        <div id="waiver-constraint-name">
-          <div ng-repeat="constraint in policy.constraints">{{constraint.constraintName}}</div>
-        </div>
-
-        <label class="iq-label iq-label--spaced">Conditions</label>
-        <div id="waiver-conditions">
-          <div ng-repeat="constraint in policy.constraints">
-            <div ng-repeat="condition in constraint.conditions">{{condition.conditionReason}}</div>
+        <div ng-show="!waiverLoading">
+          <div id="add-waiver-legacy-message" class="iq-alert iq-alert--error" ng-show="legacyReport">
+              This report has not been upgraded for the new waiver functionality introduced in release 53.
+              Re-evaluate to update and then create the waiver.
           </div>
-        </div>
+          <label class="iq-label">Policy</label>
+          <div id="waiver-policy-name"
+               class="cip-policy cip-policy-{{::getThreatColor(policy.threatLevel)}} cip-policy-name">
+            {{policy.name}}
+          </div>
 
-        <label class="iq-label iq-label--spaced">Scope</label>
-        <div class="radio-container">
-          <label class="radio">
-            <input type="radio"
-                   id="waiver-scope-violation-only"
-                   name="waiver-scope"
-                   ng-model="waiveViolationOnly"
-                   ng-value="true"
-                   ng-change="reset()"/>
-            This violation only
-          </label>
-          <label class="radio">
-            <input type="radio"
-                   id="waiver-scope-scoped"
-                   name="waiver-scope"
-                   ng-model="waiveViolationOnly"
-                   ng-value="false"/>
-            Scoped Waiver
-          </label>
-        </div>
+          <label class="iq-label iq-label--spaced">Constraint Name</label>
+          <div id="waiver-constraint-name">
+            <div ng-repeat="constraint in policy.constraints">{{constraint.constraintName}}</div>
+          </div>
 
-        <div id="add-waiver-scope" class="scoped-waiver-block" ng-show="!waiveViolationOnly">
-          <label class="iq-label" for="waiver-owner">Scope</label>
-          <select id="waiver-owner"
-                  name="owner"
-                  ng-model="owner"
-                  ng-change="waiver.ownerId = owner.id">
-            <option ng-repeat="waiverTarget in waiverTargets" ng-value="waiverTarget">
-              {{waiverTarget.label}} - {{waiverTarget.name}}
-            </option>
-          </select>
+          <label class="iq-label iq-label--spaced">Conditions</label>
+          <div id="waiver-conditions">
+            <div ng-repeat="constraint in policy.constraints">
+              <div ng-repeat="condition in constraint.conditions">{{condition.conditionReason}}</div>
+            </div>
+          </div>
 
+          <label class="iq-label iq-label--spaced">Scope</label>
           <div class="radio-container">
-            <label class="iq-label">Component</label>
             <label class="radio">
               <input type="radio"
-                     id="waiver-hash-component"
-                     name="waiver-hash"
-                     ng-model="waiver.hash"
-                     value="{{component.hash}}">
-              {{component.componentDisplayText}}
+                     id="waiver-scope-violation-only"
+                     name="waiver-scope"
+                     ng-model="waiveViolationOnly"
+                     ng-value="true"
+                     ng-change="reset()"/>
+              This violation only
             </label>
             <label class="radio">
               <input type="radio"
-                     id="waiver-hash-all"
-                     name="waiver-hash"
-                     ng-model="waiver.hash"
-                     ng-value="null">
-              All components
+                     id="waiver-scope-scoped"
+                     name="waiver-scope"
+                     ng-model="waiveViolationOnly"
+                     ng-value="false"/>
+              Scoped Waiver
             </label>
           </div>
-        </div>
 
-        <label class="iq-label" for="waiver-comment">Comments</label>
-        <textarea id="waiver-comment" ng-model="waiver.comment" maxlength="1000"></textarea>
+          <div id="add-waiver-scope" class="scoped-waiver-block" ng-show="!waiveViolationOnly">
+            <label class="iq-label" for="waiver-owner">Scope</label>
+            <select id="waiver-owner"
+                    name="owner"
+                    ng-model="owner"
+                    ng-change="waiver.ownerId = owner.id">
+              <option ng-repeat="waiverTarget in waiverTargets" ng-value="waiverTarget">
+                {{waiverTarget.label}} - {{waiverTarget.name}}
+              </option>
+            </select>
+
+            <div class="radio-container">
+              <label class="iq-label">Component</label>
+              <label class="radio">
+                <input type="radio"
+                       id="waiver-hash-component"
+                       name="waiver-hash"
+                       ng-model="waiver.hash"
+                       value="{{component.hash}}">
+                {{component.componentDisplayText}}
+              </label>
+              <label class="radio">
+                <input type="radio"
+                       id="waiver-hash-all"
+                       name="waiver-hash"
+                       ng-model="waiver.hash"
+                       ng-value="null">
+                All components
+              </label>
+            </div>
+          </div>
+
+          <label class="iq-label" for="waiver-comment">Comments</label>
+          <textarea id="waiver-comment" ng-model="waiver.comment" maxlength="1000"></textarea>
+        </div>
+      </div>
+      <div class="iq-modal-footer">
+        <div class="iq-alert iq-alert--error" ng-show="waiveAssignError">{{waiveAssignError}}</div>
+        <button id="waiver-submit"
+                type="button"
+                class="btn btn-primary"
+                ng-click="acceptWaiveComponent()"
+                ng-disabled="waiverSaving || legacyReport">
+          Waive
+        </button>
+        <button id="waiver-cancel" type="button" class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="waiverSaving">
+          Cancel
+        </button>
       </div>
     </div>
-    <div class="iq-modal-footer">
-      <div class="iq-alert iq-alert--error" ng-show="waiveAssignError">{{waiveAssignError}}</div>
-      <button id="waiver-submit"
-              type="button"
-              class="btn btn-primary"
-              ng-click="acceptWaiveComponent()"
-              ng-disabled="waiverSaving || legacyReport">
-        Waive
-      </button>
-      <button id="waiver-cancel" type="button" class="btn btn-dismiss" ng-click="$dismiss()" ng-disabled="waiverSaving">
-        Cancel
-      </button>
-    </div>
-  </div>
   </script>
   <script type="text/ng-template" id="view-waivers-modal-tmpl">
     <div id="component-existing-waiver-modal">
@@ -178,14 +184,24 @@
       </div>
     </div>
   </script>
-  <div style="width:100%;margin-bottom:5px;" class="clearfix">
-    <button id="view-existing-waivers" class="btn pull-right" ng-click="viewWaivers()">View Existing Waivers</button>
+  <div style="width: 100%; margin-bottom: 5px" class="clearfix">
+    <button
+      id="view-existing-waivers"
+      class="btn pull-right"
+      ng-click="viewWaivers()"
+    >
+      View Existing Waivers
+    </button>
     <div ng-if="quarantined">
       <span><i class="icon icon-ban-circle"></i> Quarantined </span>
-      <a id="release-quarantine" class="btn"
-              tooltip="{{hasQuarantiningViolations() ? 'To release: resolve all failing violations and re-evaluate the repository' : ''}}"
-              ng-class="{disabled: hasQuarantiningViolations()}"
-              ng-click="$event.preventDefault(); !hasQuarantiningViolations() && releaseQuarantine()">Release Quarantine</a>
+      <a
+        id="release-quarantine"
+        class="btn"
+        tooltip="{{hasQuarantiningViolations() ? 'To release: resolve all failing violations and re-evaluate the repository' : ''}}"
+        ng-class="{disabled: hasQuarantiningViolations()}"
+        ng-click="$event.preventDefault(); !hasQuarantiningViolations() && releaseQuarantine()"
+        >Release Quarantine</a
+      >
     </div>
   </div>
   <div class="cip-policy-wrapper">
@@ -198,20 +214,35 @@
           <th class="cip-policy-table-header waivers-column">Waivers</th>
         </tr>
       </thead>
-      <tr class="tm-cip-waiver-row" ng-repeat="policyAlert in processedPolicyAlerts">
-        <td align="left" valign="top" style="padding: 0px;" class="cip-policy cip-policy-{{::getThreatColor(policyAlert.threatLevel)}}">
+      <tr
+        class="tm-cip-waiver-row"
+        ng-repeat="policyAlert in processedPolicyAlerts"
+      >
+        <td
+          align="left"
+          valign="top"
+          style="padding: 0px"
+          class="cip-policy cip-policy-{{::getThreatColor(policyAlert.threatLevel)}}"
+        >
           <div>
             <b>{{::policyAlert.name}}</b>
           </div>
-          <ul class="actions" ng-if="::(policyAlert.actions.length || policyAlert.blocksUnquarantine)">
-            <li ng-if="::quarantined && policyAlert.blocksUnquarantine"><i>Proxy fail</i> <i class="icon icon-ban-circle"></i></li>
-            <li ng-repeat="action in policyAlert.actions"><i>{{::action.actionSummary}}</i></li>
+          <ul
+            class="actions"
+            ng-if="::(policyAlert.actions.length || policyAlert.blocksUnquarantine)"
+          >
+            <li ng-if="::quarantined && policyAlert.blocksUnquarantine">
+              <i>Proxy fail</i> <i class="icon icon-ban-circle"></i>
+            </li>
+            <li ng-repeat="action in policyAlert.actions">
+              <i>{{::action.actionSummary}}</i>
+            </li>
           </ul>
         </td>
         <td valign="top" align="left">
           <div ng-repeat="constraint in policyAlert.constraints">
             <div ng-repeat="condition in constraint.conditions">
-              <div style="color: #555555;" ng-show="$index == 0">
+              <div style="color: #555555" ng-show="$index == 0">
                 <b>{{constraint.constraintName}}</b>
               </div>
               <div ng-show="$index > 0">&nbsp;</div>
@@ -220,37 +251,48 @@
         </td>
         <td>
           <div ng-repeat="constraint in policyAlert.constraints">
-            <div ng-repeat="condition in constraint.conditions" style="color: #555555;">{{condition.conditionReason}}</div>
+            <div
+              ng-repeat="condition in constraint.conditions"
+              style="color: #555555"
+            >
+              {{condition.conditionReason}}
+            </div>
           </div>
         </td>
         <td class="waivers-column">
-          <button ng-if="!policyAlert.isRequestWaiverDisabled"
-                  ng-click="policyAlert.policyViolationId && requestWaiver(policyAlert)"
-                  ng-class="{'disabled': !policyAlert.policyViolationId}"
-                  class="btn btn-secondary tm-request-waiver-button"
-                  tooltip="{{!policyAlert.policyViolationId ?
+          <button
+            ng-if="!policyAlert.isRequestWaiverDisabled"
+            ng-click="policyAlert.policyViolationId && requestWaiver(policyAlert)"
+            ng-class="{'disabled': !policyAlert.policyViolationId}"
+            class="btn btn-secondary tm-request-waiver-button"
+            tooltip="{{!policyAlert.policyViolationId ?
                              'The feature to request a waiver is not available on old reports.
                               Re-evaluate this report to make it available' : ''}}"
-                  tooltip-append-to-body="true">
+            tooltip-append-to-body="true"
+          >
             Request
           </button>
 
-          <button ng-if="!useNewWaiverPages"
-                  type="button"
-                  class="btn btn-primary tm-waive-button"
-                  ng-click="waiveComponent(policyAlert)">
+          <button
+            ng-if="!useNewWaiverPages"
+            type="button"
+            class="btn btn-primary tm-waive-button"
+            ng-click="waiveComponent(policyAlert)"
+          >
             Waive
           </button>
 
-          <button ng-if="useNewWaiverPages"
-                  type="button"
-                  class="btn btn-primary tm-waive-button"
-                  ng-click="policyAlert.policyViolationId && waiveComponent(policyAlert)"
-                  ng-class="{'disabled': !policyAlert.policyViolationId}"
-                  tooltip="{{!policyAlert.policyViolationId ?
+          <button
+            ng-if="useNewWaiverPages"
+            type="button"
+            class="btn btn-primary tm-waive-button"
+            ng-click="policyAlert.policyViolationId && waiveComponent(policyAlert)"
+            ng-class="{'disabled': !policyAlert.policyViolationId}"
+            tooltip="{{!policyAlert.policyViolationId ?
                              'The feature to waive is not available on old reports.
                               Re-evaluate this report to make it available' : ''}}"
-                  tooltip-append-to-body="true">
+            tooltip-append-to-body="true"
+          >
             Waive
           </button>
         </td>

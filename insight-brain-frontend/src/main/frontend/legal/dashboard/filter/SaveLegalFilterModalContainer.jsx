@@ -12,20 +12,27 @@ import SaveFilterModalContent from '../../../dashboard/filter/saveFilterModal/Sa
 
 const mapDispatchToProps = {
   saveFilter,
-  cancelSaveFilter
+  cancelSaveFilter,
 };
 
 function mapStateToProps({ manageLegalFilters }) {
   return {
-    ...pick(['appliedFilterName',
-      'existingDuplicateFilterName',
-      'saveFilterSaving',
-      'saveFilterSuccess',
-      'saveFilterWarning'
-    ], manageLegalFilters),
-    saveError: Messages.getHttpErrorMessage(manageLegalFilters.saveFilterError)
+    ...pick(
+      [
+        'appliedFilterName',
+        'existingDuplicateFilterName',
+        'saveFilterSaving',
+        'saveFilterSuccess',
+        'saveFilterWarning',
+      ],
+      manageLegalFilters
+    ),
+    saveError: Messages.getHttpErrorMessage(manageLegalFilters.saveFilterError),
   };
 }
 
-const SaveLegalFilterModalContainer = connect(mapStateToProps, mapDispatchToProps)(SaveFilterModalContent);
+const SaveLegalFilterModalContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SaveFilterModalContent);
 export default SaveLegalFilterModalContainer;

@@ -13,11 +13,11 @@
 
 .role {
   .hover-buttons {
-    margin-top: 6px
+    margin-top: 6px;
   }
 
   .role-footer {
-    border-bottom: 1px solid #E8E8E8;
+    border-bottom: 1px solid #e8e8e8;
     margin-bottom: 5px;
   }
 }
@@ -40,7 +40,8 @@
   max-width: 469px;
   min-width: 469px;
 
-  form, .accordion {
+  form,
+  .accordion {
     margin: 0px;
   }
 }

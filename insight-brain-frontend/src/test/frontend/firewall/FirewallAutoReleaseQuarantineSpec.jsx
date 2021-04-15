@@ -5,40 +5,45 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 
-describe('FirewallAutoReleaseQuarantine', function() {
+describe('FirewallAutoReleaseQuarantine', function () {
   let minimalProps,
-      FirewallAutoReleaseQuarantine,
-      getShallowComponent,
-      stateMock,
-      stateHrefSpy;
+    FirewallAutoReleaseQuarantine,
+    getShallowComponent,
+    stateMock,
+    stateHrefSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     stateHrefSpy = jasmine.createSpy().and.returnValue('href');
     stateMock = {
-      href: stateHrefSpy
+      href: stateHrefSpy,
     };
 
-    FirewallAutoReleaseQuarantine = require(
-        'inject-loader!../../../main/frontend/firewall/FirewallAutoReleaseQuarantine')().default;
+    FirewallAutoReleaseQuarantine = require('inject-loader!../../../main/frontend/firewall/FirewallAutoReleaseQuarantine')()
+      .default;
 
     minimalProps = {
       autoReleaseQuarantineCountMTD: 1,
-      $state: stateMock
+      $state: stateMock,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(FirewallAutoReleaseQuarantine, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      FirewallAutoReleaseQuarantine,
+      minimalProps
+    );
   });
 
-  it('renders a component with the "nx-card" class', function() {
+  it('renders a component with the "nx-card" class', function () {
     expect(getShallowComponent().find('.nx-card')).toExist();
   });
 
-  it('renders a card header', function() {
+  it('renders a card header', function () {
     expect(getShallowComponent().find('.nx-card__header')).toExist();
-    expect(getShallowComponent().find('.nx-card__header')).toHaveText('Auto Released from Quarantine');
+    expect(getShallowComponent().find('.nx-card__header')).toHaveText(
+      'Auto Released from Quarantine'
+    );
   });
 
-  it('renders card content', function() {
+  it('renders card content', function () {
     const component = getShallowComponent();
     const content = component.find('.nx-card__content');
     expect(content).toExist();
@@ -48,7 +53,7 @@ describe('FirewallAutoReleaseQuarantine', function() {
     expect(text).toHaveText('components released month-to-date');
   });
 
-  it('renders card footer', function() {
+  it('renders card footer', function () {
     const component = getShallowComponent();
     const footer = component.find('.nx-card__footer');
     expect(footer).toExist();

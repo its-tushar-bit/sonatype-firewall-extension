@@ -5,42 +5,46 @@
  */
 import applicationReportModule from '../../../main/frontend/applicationReport/module';
 
-describe('applicationReport component', function() {
-  let controller,
-      scope,
-      modalScope,
-      mockModalService,
-      modalInstance;
+describe('applicationReport component', function () {
+  let controller, scope, modalScope, mockModalService, modalInstance;
 
-  beforeEach(angular.mock.module(applicationReportModule.name, function($provide) {
-    SpecUtil.mockNgRedux($provide);
-  }));
+  beforeEach(
+    angular.mock.module(applicationReportModule.name, function ($provide) {
+      SpecUtil.mockNgRedux($provide);
+    })
+  );
 
-  beforeEach(inject(function($componentController, $rootScope) {
+  beforeEach(inject(function ($componentController, $rootScope) {
     scope = $rootScope.$new();
     modalScope = $rootScope.$new();
 
     modalInstance = jasmine.createSpyObj('modalInstance', ['dismiss']);
 
     mockModalService = {
-      open: jasmine.createSpy('open').and.callFake(function({ controller }) {
+      open: jasmine.createSpy('open').and.callFake(function ({ controller }) {
         controller(modalScope);
 
         return modalInstance;
-      })
+      }),
     };
 
-    controller = $componentController('applicationReport', { $scope: scope, Modal: mockModalService });
+    controller = $componentController('applicationReport', {
+      $scope: scope,
+      Modal: mockModalService,
+    });
 
-    controller.formMaskController = jasmine.createSpyObj('formMaskController',
-        ['activateMask', 'showSuccessMaskBriefly', 'removeMask']);
+    controller.formMaskController = jasmine.createSpyObj('formMaskController', [
+      'activateMask',
+      'showSuccessMaskBriefly',
+      'removeMask',
+    ]);
 
     controller.exactValueFilters = {};
 
     controller.$onInit();
   }));
 
-  describe('$onInit()', function() {
+  describe('$onInit()', function () {
     it('subscribes to the redux store', () => {
       expect(controller.unsubscribe).toBeDefined();
     });
@@ -50,18 +54,20 @@ describe('applicationReport component', function() {
     });
   });
 
-  it('activates the form mask when vm.reevaluating is set to true', function() {
+  it('activates the form mask when vm.reevaluating is set to true', function () {
     expect(controller.formMaskController.activateMask).not.toHaveBeenCalled();
 
     controller.reevaluating = true;
     scope.$digest();
 
     expect(controller.formMaskController.activateMask).toHaveBeenCalled();
-    expect(controller.formMaskController.showSuccessMaskBriefly).not.toHaveBeenCalled();
+    expect(
+      controller.formMaskController.showSuccessMaskBriefly
+    ).not.toHaveBeenCalled();
     expect(controller.formMaskController.removeMask).not.toHaveBeenCalled();
   });
 
-  it('shows the success mask when vm.reevaluating is set to false if there is no reevaluationError', function() {
+  it('shows the success mask when vm.reevaluating is set to false if there is no reevaluationError', function () {
     expect(controller.formMaskController.activateMask).not.toHaveBeenCalled();
 
     controller.reevaluating = true;
@@ -73,11 +79,13 @@ describe('applicationReport component', function() {
     scope.$digest();
 
     expect(controller.formMaskController.activateMask.calls.count()).toBe(1);
-    expect(controller.formMaskController.showSuccessMaskBriefly).toHaveBeenCalled();
+    expect(
+      controller.formMaskController.showSuccessMaskBriefly
+    ).toHaveBeenCalled();
     expect(controller.formMaskController.removeMask).not.toHaveBeenCalled();
   });
 
-  it('removes the success mask when vm.reevaluating is set to false if there is a reevaluationError', function() {
+  it('removes the success mask when vm.reevaluating is set to false if there is a reevaluationError', function () {
     expect(controller.formMaskController.activateMask).not.toHaveBeenCalled();
 
     controller.reevaluating = true;
@@ -90,11 +98,13 @@ describe('applicationReport component', function() {
     scope.$digest();
 
     expect(controller.formMaskController.activateMask.calls.count()).toBe(1);
-    expect(controller.formMaskController.showSuccessMaskBriefly).not.toHaveBeenCalled();
+    expect(
+      controller.formMaskController.showSuccessMaskBriefly
+    ).not.toHaveBeenCalled();
     expect(controller.formMaskController.removeMask).toHaveBeenCalled();
   });
 
-  it('opens the reevaluation error modal when vm.reevaluationError is set to a value', function() {
+  it('opens the reevaluation error modal when vm.reevaluationError is set to a value', function () {
     controller.reevaluationError = null;
     scope.$digest();
 
@@ -106,7 +116,7 @@ describe('applicationReport component', function() {
     expect(mockModalService.open).toHaveBeenCalled();
   });
 
-  it('dismisses the reevaluation error modal when vm.reevaluationError is unset', function() {
+  it('dismisses the reevaluation error modal when vm.reevaluationError is unset', function () {
     controller.reevaluationError = 'Error!';
     scope.$digest();
 
@@ -118,7 +128,7 @@ describe('applicationReport component', function() {
     expect(modalInstance.dismiss).toHaveBeenCalled();
   });
 
-  it('dismisses the reevaluation error modal if the applicationReport is destroyed', function() {
+  it('dismisses the reevaluation error modal if the applicationReport is destroyed', function () {
     controller.reevaluationError = 'Error!';
     scope.$digest();
 
@@ -129,7 +139,7 @@ describe('applicationReport component', function() {
     expect(modalInstance.dismiss).toHaveBeenCalled();
   });
 
-  it('sets up the modal scope with a retry method that calls reevaluateReport', function() {
+  it('sets up the modal scope with a retry method that calls reevaluateReport', function () {
     controller.reevaluationError = 'Error!';
     scope.$digest();
 
@@ -141,7 +151,7 @@ describe('applicationReport component', function() {
     expect(controller.reevaluateReportCancelled).not.toHaveBeenCalled();
   });
 
-  it('sets up the modal scope with a cancel method that calls reevaluateReportCancelled', function() {
+  it('sets up the modal scope with a cancel method that calls reevaluateReportCancelled', function () {
     controller.reevaluationError = 'Error!';
     scope.$digest();
 

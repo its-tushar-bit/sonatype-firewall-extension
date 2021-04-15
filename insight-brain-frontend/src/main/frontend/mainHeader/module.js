@@ -24,19 +24,29 @@ import userDetailsModal from './userMenu/userDetailsModal';
 import reactComponentsModule from '../react/module.js';
 import UserTokenModalContainer from './userMenu/userToken/UserTokenModalContainer';
 
-export default angular.module('mainHeader',
-    [
-      'ui.router', 'ui.validate', angularCommonModule.name, CLMLocationModule.name, productFeaturesModule.name,
-      permissionServiceModule.name, 'ngSanitize', utilityServicesModule.name, telemetryServiceModule.name,
-      reactComponentsModule.name
-    ])
-    .factory('CurrentUser', currentUserService)
-    .factory('userActions', userActions)
-    .value('userReducer', userReducer)
-    .component('helpMenu', helpMenu)
-    .component('userMenu', userMenu)
-    .component('notificationsMenu', notificationsMenu)
-    .component('systemConfigurationMenu', systemConfigurationMenu)
-    .component('mainHeader', mainHeader)
-    .component('userDetailsModal', userDetailsModal)
-    .component('userTokenModal', react2angular(withStoreProvider(UserTokenModalContainer), [], ['$ngRedux']));
+export default angular
+  .module('mainHeader', [
+    'ui.router',
+    'ui.validate',
+    angularCommonModule.name,
+    CLMLocationModule.name,
+    productFeaturesModule.name,
+    permissionServiceModule.name,
+    'ngSanitize',
+    utilityServicesModule.name,
+    telemetryServiceModule.name,
+    reactComponentsModule.name,
+  ])
+  .factory('CurrentUser', currentUserService)
+  .factory('userActions', userActions)
+  .value('userReducer', userReducer)
+  .component('helpMenu', helpMenu)
+  .component('userMenu', userMenu)
+  .component('notificationsMenu', notificationsMenu)
+  .component('systemConfigurationMenu', systemConfigurationMenu)
+  .component('mainHeader', mainHeader)
+  .component('userDetailsModal', userDetailsModal)
+  .component(
+    'userTokenModal',
+    react2angular(withStoreProvider(UserTokenModalContainer), [], ['$ngRedux'])
+  );

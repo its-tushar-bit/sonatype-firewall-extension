@@ -4,187 +4,240 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global CLM */
-describe('CIP Policy Waiver tests', function() {
+describe('CIP Policy Waiver tests', function () {
   var _scope, _viewScope;
 
-  beforeEach(angular.mock.module('cip.policy.violations', 'TestComponentProvider', 'ui.router'));
+  beforeEach(
+    angular.mock.module(
+      'cip.policy.violations',
+      'TestComponentProvider',
+      'ui.router'
+    )
+  );
 
-  beforeEach(function() {
+  beforeEach(function () {
     window.CLM = {
-      path: '../brain/'
+      path: '../brain/',
     };
   });
 
-  afterEach(inject(function($httpBackend) {
+  afterEach(inject(function ($httpBackend) {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   }));
 
-  afterEach(function() {
+  afterEach(function () {
     _scope.$destroy();
   });
 
   describe('PolicyViolationsController', function () {
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope) {
+    beforeEach(inject(function ($rootScope) {
       _scope = $rootScope.$new();
     }));
 
-    describe('Current JSON data', function() {
+    describe('Current JSON data', function () {
       // setup our http backend to return what we want
-      beforeEach(inject(function($rootScope, $controller, $httpBackend) {
-        $httpBackend.expectGET(SpecUtil.toRegExp('policythreats.json')).respond({
-          version: 1,
-          aaData: [{
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'bsh',
-                classifier: '',
-                extension: 'jar',
-                groupId: 'bsh',
-                version: '1.3.0'
-              }
-            },
-            hash: '3102cdd0edd5a05afe00',
-            policyId: 'policyId',
-            policyName: 'name',
-            threatLevel: 5,
-            activeViolations: [{
-              policyId: 'policyId',
-              policyName: 'name',
-              policyThreatLevel: 5,
-              policyViolationId: 'pv1',
-              actions: [{
-                actionType: '1',
-                actionSummary: 'This is an action'
-              }, {
-                actionType: '2',
-                actionSummary: 'This is another action'
-              }],
-              constraints: [{
-                constraintId: 'c7ad07e00c4948c59651cce82163e50a',
-                constraintName: 'test3',
-                constraintOperator: 'AND',
-                conditions: [{
-                  conditionType: 'AgeInDays',
-                  conditionSummary: 'Age older than 1825',
-                  conditionReason: 'Age was 7 years, 8 months and 17 days'
-                }, {
-                  conditionType: 'AgeInDays',
-                  conditionSummary: 'Age older than 730',
-                  conditionReason: 'Age was 7 years, 8 months and 17 days'
-                }]
-              }]
-            }]
-          }, {
-            componentIdentifier: {
-              format: 'maven',
-              coordinates: {
-                artifactId: 'bsh',
-                classifier: '',
-                extension: 'jar',
-                groupId: 'bsh',
-                version: '1.3.0'
-              }
-            },
-            hash: '3102cdd0edd5a05afe00',
-            policyId: 'policyId2',
-            policyName: 'name2',
-            threatLevel: 7,
-            activeViolations: [{
-              policyId: 'policyId2',
-              policyName: 'name2',
-              policyThreatLevel: 7,
-              policyViolationId: 'pv2',
-              actions: [{
-                actionType: '1',
-                actionSummary: 'This is an action'
-              }, {
-                actionType: '1',
-                actionSummary: 'This is an action'
-              }],
-              constraints: [{
-                constraintId: 'd7ad07e00c4948c59651cce82163e50a',
-                constraintName: 'test4',
-                constraintOperator: 'AND',
-                conditions: [{
-                  conditionType: 'AgeInDays',
-                  conditionSummary: 'Age older than 1825',
-                  conditionReason: 'Age was 7 years, 8 months and 17 days'
-                }, {
-                  conditionType: 'AgeInDays',
-                  conditionSummary: 'Age older than 730',
-                  conditionReason: 'Age was 7 years, 8 months and 17 days'
-                }]
-              }]
-            }]
-          }]
-        });
+      beforeEach(inject(function ($rootScope, $controller, $httpBackend) {
+        $httpBackend
+          .expectGET(SpecUtil.toRegExp('policythreats.json'))
+          .respond({
+            version: 1,
+            aaData: [
+              {
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'bsh',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'bsh',
+                    version: '1.3.0',
+                  },
+                },
+                hash: '3102cdd0edd5a05afe00',
+                policyId: 'policyId',
+                policyName: 'name',
+                threatLevel: 5,
+                activeViolations: [
+                  {
+                    policyId: 'policyId',
+                    policyName: 'name',
+                    policyThreatLevel: 5,
+                    policyViolationId: 'pv1',
+                    actions: [
+                      {
+                        actionType: '1',
+                        actionSummary: 'This is an action',
+                      },
+                      {
+                        actionType: '2',
+                        actionSummary: 'This is another action',
+                      },
+                    ],
+                    constraints: [
+                      {
+                        constraintId: 'c7ad07e00c4948c59651cce82163e50a',
+                        constraintName: 'test3',
+                        constraintOperator: 'AND',
+                        conditions: [
+                          {
+                            conditionType: 'AgeInDays',
+                            conditionSummary: 'Age older than 1825',
+                            conditionReason:
+                              'Age was 7 years, 8 months and 17 days',
+                          },
+                          {
+                            conditionType: 'AgeInDays',
+                            conditionSummary: 'Age older than 730',
+                            conditionReason:
+                              'Age was 7 years, 8 months and 17 days',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                componentIdentifier: {
+                  format: 'maven',
+                  coordinates: {
+                    artifactId: 'bsh',
+                    classifier: '',
+                    extension: 'jar',
+                    groupId: 'bsh',
+                    version: '1.3.0',
+                  },
+                },
+                hash: '3102cdd0edd5a05afe00',
+                policyId: 'policyId2',
+                policyName: 'name2',
+                threatLevel: 7,
+                activeViolations: [
+                  {
+                    policyId: 'policyId2',
+                    policyName: 'name2',
+                    policyThreatLevel: 7,
+                    policyViolationId: 'pv2',
+                    actions: [
+                      {
+                        actionType: '1',
+                        actionSummary: 'This is an action',
+                      },
+                      {
+                        actionType: '1',
+                        actionSummary: 'This is an action',
+                      },
+                    ],
+                    constraints: [
+                      {
+                        constraintId: 'd7ad07e00c4948c59651cce82163e50a',
+                        constraintName: 'test4',
+                        constraintOperator: 'AND',
+                        conditions: [
+                          {
+                            conditionType: 'AgeInDays',
+                            conditionSummary: 'Age older than 1825',
+                            conditionReason:
+                              'Age was 7 years, 8 months and 17 days',
+                          },
+                          {
+                            conditionType: 'AgeInDays',
+                            conditionSummary: 'Age older than 730',
+                            conditionReason:
+                              'Age was 7 years, 8 months and 17 days',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          });
 
         $controller('PolicyViolationsController', {
-          $scope: _scope
+          $scope: _scope,
         });
 
         $httpBackend.flush();
       }));
 
-      it('Validate loaded', function() {
+      it('Validate loaded', function () {
         //policyId2 first as we need to account for sorting
-        expect(_scope.processedPolicyAlerts).toEqual([{
-          id: 'policyId2',
-          name: 'name2',
-          policyViolationId: 'pv2',
-          threatLevel: 7,
-          hash: '3102cdd0edd5a05afe00',
-          constraints: [{
-            constraintId: 'd7ad07e00c4948c59651cce82163e50a',
-            constraintName: 'test4',
-            constraintOperator: 'AND',
-            conditions: [{
-              conditionType: 'AgeInDays',
-              conditionSummary: 'Age older than 1825',
-              conditionReason: 'Age was 7 years, 8 months and 17 days'
-            }, {
-              conditionType: 'AgeInDays',
-              conditionSummary: 'Age older than 730',
-              conditionReason: 'Age was 7 years, 8 months and 17 days'
-            }]
-          }],
-          constraintFactsJson: undefined,
-          actions: [{
-            actionType: '1',
-            actionSummary: 'This is an action'
-          }]
-        }, {
-          id: 'policyId',
-          name: 'name',
-          policyViolationId: 'pv1',
-          threatLevel: 5,
-          hash: '3102cdd0edd5a05afe00',
-          constraints: [{
-            constraintId: 'c7ad07e00c4948c59651cce82163e50a',
-            constraintName: 'test3',
-            constraintOperator: 'AND',
-            conditions: [{
-              conditionType: 'AgeInDays',
-              conditionSummary: 'Age older than 1825',
-              conditionReason: 'Age was 7 years, 8 months and 17 days'
-            }, {
-              conditionType: 'AgeInDays',
-              conditionSummary: 'Age older than 730',
-              conditionReason: 'Age was 7 years, 8 months and 17 days'
-            }]
-          }],
-          constraintFactsJson: undefined,
-          actions: [{
-            actionType: '1',
-            actionSummary: 'This is an action'
-          }, {
-            actionType: '2',
-            actionSummary: 'This is another action'
-          }]
-        }]);
+        expect(_scope.processedPolicyAlerts).toEqual([
+          {
+            id: 'policyId2',
+            name: 'name2',
+            policyViolationId: 'pv2',
+            threatLevel: 7,
+            hash: '3102cdd0edd5a05afe00',
+            constraints: [
+              {
+                constraintId: 'd7ad07e00c4948c59651cce82163e50a',
+                constraintName: 'test4',
+                constraintOperator: 'AND',
+                conditions: [
+                  {
+                    conditionType: 'AgeInDays',
+                    conditionSummary: 'Age older than 1825',
+                    conditionReason: 'Age was 7 years, 8 months and 17 days',
+                  },
+                  {
+                    conditionType: 'AgeInDays',
+                    conditionSummary: 'Age older than 730',
+                    conditionReason: 'Age was 7 years, 8 months and 17 days',
+                  },
+                ],
+              },
+            ],
+            constraintFactsJson: undefined,
+            actions: [
+              {
+                actionType: '1',
+                actionSummary: 'This is an action',
+              },
+            ],
+          },
+          {
+            id: 'policyId',
+            name: 'name',
+            policyViolationId: 'pv1',
+            threatLevel: 5,
+            hash: '3102cdd0edd5a05afe00',
+            constraints: [
+              {
+                constraintId: 'c7ad07e00c4948c59651cce82163e50a',
+                constraintName: 'test3',
+                constraintOperator: 'AND',
+                conditions: [
+                  {
+                    conditionType: 'AgeInDays',
+                    conditionSummary: 'Age older than 1825',
+                    conditionReason: 'Age was 7 years, 8 months and 17 days',
+                  },
+                  {
+                    conditionType: 'AgeInDays',
+                    conditionSummary: 'Age older than 730',
+                    conditionReason: 'Age was 7 years, 8 months and 17 days',
+                  },
+                ],
+              },
+            ],
+            constraintFactsJson: undefined,
+            actions: [
+              {
+                actionType: '1',
+                actionSummary: 'This is an action',
+              },
+              {
+                actionType: '2',
+                actionSummary: 'This is another action',
+              },
+            ],
+          },
+        ]);
       });
 
       it('Open Add Waiver', inject(function (Modal) {
@@ -197,8 +250,8 @@ describe('CIP Policy Waiver tests', function() {
           backdrop: 'static',
           keyboard: false,
           resolve: {
-            policy: jasmine.any(Function)
-          }
+            policy: jasmine.any(Function),
+          },
         });
       }));
 
@@ -210,7 +263,7 @@ describe('CIP Policy Waiver tests', function() {
           templateUrl: 'view-waivers-modal-tmpl',
           controller: 'ViewWaiverController',
           backdrop: 'static',
-          keyboard: false
+          keyboard: false,
         });
       }));
 
@@ -224,20 +277,26 @@ describe('CIP Policy Waiver tests', function() {
           backdrop: 'static',
           keyboard: false,
           resolve: {
-            policy: jasmine.any(Function)
-          }
+            policy: jasmine.any(Function),
+          },
         });
       }));
     });
 
-    describe('Legacy JSON data', function() {
+    describe('Legacy JSON data', function () {
       // setup our http backend to return what we want
-      beforeEach(inject(function($rootScope, $controller, $httpBackend) {
-        $httpBackend.expectGET(SpecUtil.toRegExp('policythreats.json')).respond({});
-        $httpBackend.expectGET(SpecUtil.toRegExp('../brain/rest/policy/actionType')).respond([{
-          id: '1',
-          summary: 'test'
-        }]);
+      beforeEach(inject(function ($rootScope, $controller, $httpBackend) {
+        $httpBackend
+          .expectGET(SpecUtil.toRegExp('policythreats.json'))
+          .respond({});
+        $httpBackend
+          .expectGET(SpecUtil.toRegExp('../brain/rest/policy/actionType'))
+          .respond([
+            {
+              id: '1',
+              summary: 'test',
+            },
+          ]);
         $httpBackend.expectGET(SpecUtil.toRegExp('policyalerts.json')).respond({
           aaData: [
             {
@@ -261,108 +320,122 @@ describe('CIP Policy Waiver tests', function() {
                           {
                             conditionTypeId: 'AgeInDays',
                             summary: 'Age older than 1825',
-                            reason: 'Age was 7 years, 8 months and 17 days'
+                            reason: 'Age was 7 years, 8 months and 17 days',
                           },
                           {
                             conditionTypeId: 'AgeInDays',
                             summary: 'Age older than 730',
-                            reason: 'Age was 7 years, 8 months and 17 days'
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
+                            reason: 'Age was 7 years, 8 months and 17 days',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
               },
-              actions: [{
-                actionTypeId: '1'
-              }]
-            }
-          ]
+              actions: [
+                {
+                  actionTypeId: '1',
+                },
+              ],
+            },
+          ],
         });
 
         $controller('PolicyViolationsController', {
           $scope: _scope,
           PolicyViolationData: {
             hash: '3102cdd0edd5a05afe00',
-            appId: 'bom1-12345678'
-          }
+            appId: 'bom1-12345678',
+          },
         });
 
         $httpBackend.flush();
       }));
 
-      it('Validate loaded', function() {
-        expect(_scope.processedPolicyAlerts).toEqual([{
-          id: 'policyId',
-          name: 'name',
-          policyViolationId: 'pv1',
-          threatLevel: 5,
-          groupId: 'bsh',
-          artifactId: 'bsh',
-          version: '1.3.0',
-          hash: '3102cdd0edd5a05afe00',
-          constraints: [{
-            constraintId: 'c7ad07e00c4948c59651cce82163e50a',
-            constraintName: 'test3',
-            constraintOperator: 'AND',
-            conditions: [{
-              conditionType: 'AgeInDays',
-              conditionSummary: 'Age older than 1825',
-              conditionReason: 'Age was 7 years, 8 months and 17 days'
-            }, {
-              conditionType: 'AgeInDays',
-              conditionSummary: 'Age older than 730',
-              conditionReason: 'Age was 7 years, 8 months and 17 days'
-            }]
-          }],
-          actions: [{
-            actionSummary: 'test'
-          }]
-        }]);
+      it('Validate loaded', function () {
+        expect(_scope.processedPolicyAlerts).toEqual([
+          {
+            id: 'policyId',
+            name: 'name',
+            policyViolationId: 'pv1',
+            threatLevel: 5,
+            groupId: 'bsh',
+            artifactId: 'bsh',
+            version: '1.3.0',
+            hash: '3102cdd0edd5a05afe00',
+            constraints: [
+              {
+                constraintId: 'c7ad07e00c4948c59651cce82163e50a',
+                constraintName: 'test3',
+                constraintOperator: 'AND',
+                conditions: [
+                  {
+                    conditionType: 'AgeInDays',
+                    conditionSummary: 'Age older than 1825',
+                    conditionReason: 'Age was 7 years, 8 months and 17 days',
+                  },
+                  {
+                    conditionType: 'AgeInDays',
+                    conditionSummary: 'Age older than 730',
+                    conditionReason: 'Age was 7 years, 8 months and 17 days',
+                  },
+                ],
+              },
+            ],
+            actions: [
+              {
+                actionSummary: 'test',
+              },
+            ],
+          },
+        ]);
       });
     });
   });
 
   describe('AddWaiverController', function () {
-
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+    beforeEach(inject(function ($rootScope, $controller, $httpBackend) {
       _scope = $rootScope.$new();
       _scope.$close = angular.noop;
       _scope.$dismiss = angular.noop;
 
-      $httpBackend.expectGET(
-          SpecUtil.toRegExp('../brain/rest/policyWaiver/application/bom1-12345678/applicable/context/policyId')
-      ).respond({
-        id: 'orgId',
-        name: 'org',
-        type: 'organization',
-        children: [
-          {
-            id: 'bom1-12345678',
-            name: 'app',
-            type: 'application',
-            children: null
-          }
-        ]
-      });
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            '../brain/rest/policyWaiver/application/bom1-12345678/applicable/context/policyId'
+          )
+        )
+        .respond({
+          id: 'orgId',
+          name: 'org',
+          type: 'organization',
+          children: [
+            {
+              id: 'bom1-12345678',
+              name: 'app',
+              type: 'application',
+              children: null,
+            },
+          ],
+        });
 
       $controller('AddWaiverController', {
         $scope: _scope,
         PolicyViolationData: {
           hash: '3102cdd0edd5a05afe00',
-          appId: 'bom1-12345678'
+          appId: 'bom1-12345678',
         },
         policy: {
           id: 'policyId',
-          constraintFactsJson: 'constraint-facts-json'
-        }
+          constraintFactsJson: 'constraint-facts-json',
+        },
       });
       $httpBackend.flush();
     }));
 
-    it('Test waive policy at org level', inject(function($httpBackend) {
+    it('Test waive policy at org level', inject(function ($httpBackend) {
       var modalSpy = spyOn(_scope, '$close');
 
       _scope.$apply(function () {
@@ -371,13 +444,18 @@ describe('CIP Policy Waiver tests', function() {
         _scope.owner.type = 'organization';
       });
 
-      $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/organization/orgId'), {
-        hash: '3102cdd0edd5a05afe00',
-        ownerId: 'orgId',
-        policyId: 'policyId',
-        comment: 'this is my comment!',
-        constraintFactsJson: 'constraint-facts-json'
-      }).respond({});
+      $httpBackend
+        .expectPOST(
+          SpecUtil.toRegExp('../brain/rest/policyWaiver/organization/orgId'),
+          {
+            hash: '3102cdd0edd5a05afe00',
+            ownerId: 'orgId',
+            policyId: 'policyId',
+            comment: 'this is my comment!',
+            constraintFactsJson: 'constraint-facts-json',
+          }
+        )
+        .respond({});
 
       expect(_scope.legacyReport).toBe(false);
 
@@ -387,7 +465,7 @@ describe('CIP Policy Waiver tests', function() {
       expect(modalSpy).toHaveBeenCalled();
     }));
 
-    it('Test waive policy at app level', inject(function($httpBackend) {
+    it('Test waive policy at app level', inject(function ($httpBackend) {
       var modalSpy = spyOn(_scope, '$close');
 
       _scope.$apply(function () {
@@ -396,13 +474,20 @@ describe('CIP Policy Waiver tests', function() {
         _scope.owner.type = 'application';
       });
 
-      $httpBackend.expectPOST(SpecUtil.toRegExp('../brain/rest/policyWaiver/application/bom1-12345678'), {
-        hash: '3102cdd0edd5a05afe00',
-        ownerId: 'bom1-12345678',
-        policyId: 'policyId',
-        comment: 'this is my comment!',
-        constraintFactsJson: 'constraint-facts-json'
-      }).respond({});
+      $httpBackend
+        .expectPOST(
+          SpecUtil.toRegExp(
+            '../brain/rest/policyWaiver/application/bom1-12345678'
+          ),
+          {
+            hash: '3102cdd0edd5a05afe00',
+            ownerId: 'bom1-12345678',
+            policyId: 'policyId',
+            comment: 'this is my comment!',
+            constraintFactsJson: 'constraint-facts-json',
+          }
+        )
+        .respond({});
 
       expect(_scope.legacyReport).toBe(false);
 
@@ -414,14 +499,14 @@ describe('CIP Policy Waiver tests', function() {
   });
 
   describe('Legacy AddWaiverController', function () {
-
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller, $httpBackend) {
+    beforeEach(inject(function ($rootScope, $controller, $httpBackend) {
       _scope = $rootScope.$new();
       _scope.$close = angular.noop;
       _scope.$dismiss = angular.noop;
 
-      const expectedUrl = '../brain/rest/policyWaiver/application/bom1-12345678/applicable/context/policyId';
+      const expectedUrl =
+        '../brain/rest/policyWaiver/application/bom1-12345678/applicable/context/policyId';
       $httpBackend.expectGET(SpecUtil.toRegExp(expectedUrl)).respond({
         id: 'orgId',
         name: 'org',
@@ -431,25 +516,25 @@ describe('CIP Policy Waiver tests', function() {
             id: 'bom1-12345678',
             name: 'app',
             type: 'application',
-            children: null
-          }
-        ]
+            children: null,
+          },
+        ],
       });
 
       $controller('AddWaiverController', {
         $scope: _scope,
         PolicyViolationData: {
           hash: '3102cdd0edd5a05afe00',
-          appId: 'bom1-12345678'
+          appId: 'bom1-12345678',
         },
         policy: {
-          id: 'policyId'
-        }
+          id: 'policyId',
+        },
       });
       $httpBackend.flush();
     }));
 
-    it('Test waive policy without constraintFactsJson present', function() {
+    it('Test waive policy without constraintFactsJson present', function () {
       _scope.$apply(function () {
         _scope.waiver.ownerId = 'orgId';
         _scope.waiver.comment = 'this is my comment!';
@@ -461,40 +546,44 @@ describe('CIP Policy Waiver tests', function() {
   });
 
   describe('ViewWaiverController', function () {
-
     // setup our http backend to return what we want
-    beforeEach(inject(function($rootScope, $controller) {
+    beforeEach(inject(function ($rootScope, $controller) {
       _viewScope = $rootScope.$new();
       $controller('ViewWaiverController', {
         $scope: _viewScope,
-        global: {}
+        global: {},
       });
     }));
 
-    it('Validate data in scope', inject(function($httpBackend) {
-      $httpBackend.expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/bom1-12345678/component/3102cdd0edd5a05afe00')
-      ).respond({
-        waiversByOwner: [
-          {
-            ownerId: 'bom1-12345678',
-            ownerName: 'ownerName',
-            ownerType: 'application',
-            waivers: [
-              {
-                id: 'id',
-                hash: '1234',
-                policyId: 'policyId',
-                policyName: 'policyName',
-                constraintId: null,
-                ownerId: 'bom1-12345678',
-                comment: 'some comment',
-                createTime: 1375366539817
-              }
-            ]
-          }
-        ]
-      });
+    it('Validate data in scope', inject(function ($httpBackend) {
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            CLM.path +
+              'rest/policyWaiver/application/bom1-12345678/component/3102cdd0edd5a05afe00'
+          )
+        )
+        .respond({
+          waiversByOwner: [
+            {
+              ownerId: 'bom1-12345678',
+              ownerName: 'ownerName',
+              ownerType: 'application',
+              waivers: [
+                {
+                  id: 'id',
+                  hash: '1234',
+                  policyId: 'policyId',
+                  policyName: 'policyName',
+                  constraintId: null,
+                  ownerId: 'bom1-12345678',
+                  comment: 'some comment',
+                  createTime: 1375366539817,
+                },
+              ],
+            },
+          ],
+        });
       $httpBackend.flush();
 
       expect(_viewScope.waivers.length).toEqual(1);
@@ -508,37 +597,47 @@ describe('CIP Policy Waiver tests', function() {
       expect(_viewScope.waivers[0].createTime).toEqual(1375366539817);
     }));
 
-    it('Validate delete waiver', inject(function($httpBackend) {
-      $httpBackend.expectGET(
-          SpecUtil.toRegExp(CLM.path + 'rest/policyWaiver/application/bom1-12345678/component/3102cdd0edd5a05afe00')
-      ).respond({
-        waiversByOwner: [
-          {
-            ownerId: 'bom1-12345678',
-            ownerName: 'ownerName',
-            ownerType: 'application',
-            waivers: [
-              {
-                id: 'id',
-                hash: '1234',
-                policyId: 'policyId',
-                policyName: 'policyName',
-                constraintId: null,
-                ownerId: 'bom1-12345678',
-                comment: 'some comment',
-                createTime: 1375366539817
-              }
-            ]
-          }
-        ]
-      });
+    it('Validate delete waiver', inject(function ($httpBackend) {
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            CLM.path +
+              'rest/policyWaiver/application/bom1-12345678/component/3102cdd0edd5a05afe00'
+          )
+        )
+        .respond({
+          waiversByOwner: [
+            {
+              ownerId: 'bom1-12345678',
+              ownerName: 'ownerName',
+              ownerType: 'application',
+              waivers: [
+                {
+                  id: 'id',
+                  hash: '1234',
+                  policyId: 'policyId',
+                  policyName: 'policyName',
+                  constraintId: null,
+                  ownerId: 'bom1-12345678',
+                  comment: 'some comment',
+                  createTime: 1375366539817,
+                },
+              ],
+            },
+          ],
+        });
       $httpBackend.flush();
 
       _viewScope.remove(_viewScope.waivers[0]);
       expect(_viewScope.confirmDelete).toEqual(_viewScope.waivers[0]);
 
-      $httpBackend.expectDELETE(SpecUtil.toRegExp(CLM.path + 'api/v2/policyWaivers/application/bom1-12345678/id'))
-          .respond(200);
+      $httpBackend
+        .expectDELETE(
+          SpecUtil.toRegExp(
+            CLM.path + 'api/v2/policyWaivers/application/bom1-12345678/id'
+          )
+        )
+        .respond(200);
       _viewScope.removeWaiver();
       $httpBackend.flush();
       expect(_viewScope.confirmDelete).toEqual(null);
@@ -546,8 +645,8 @@ describe('CIP Policy Waiver tests', function() {
     }));
   });
 
-  describe('RequestWaiverController', function() {
-    beforeEach(inject(function($rootScope, $controller) {
+  describe('RequestWaiverController', function () {
+    beforeEach(inject(function ($rootScope, $controller) {
       _scope = $rootScope.$new();
       _scope.$close = angular.noop;
       _scope.$dismiss = angular.noop;
@@ -571,28 +670,31 @@ describe('CIP Policy Waiver tests', function() {
                   conditionReason: 'Condition Reason #1',
                   conditionSummary: 'Condition Summary',
                   conditionTriggerReference: null,
-                  conditionType: 'Condition Type'
+                  conditionType: 'Condition Type',
                 },
                 {
                   conditionReason: 'Condition Reason #2',
                   conditionSummary: 'Condition Summary',
                   conditionTriggerReference: null,
-                  conditionType: 'Condition Type'
-                }
-              ]
-            }
+                  conditionType: 'Condition Type',
+                },
+              ],
+            },
           ],
-          constraintFactsJson: 'constraint-facts-json'
-        }
+          constraintFactsJson: 'constraint-facts-json',
+        },
       });
     }));
 
-    it('Validates data in scope', function() {
+    it('Validates data in scope', function () {
       expect(_scope.policy.id).toEqual('123');
       expect(_scope.policy.policyViolationId).toEqual('v1');
       expect(_scope.policy.name).toEqual('License-Banned');
       expect(_scope.policy.threatLevel).toEqual(10);
-      expect(_scope.conditionReasons).toEqual(['Condition Reason #1', 'Condition Reason #2']);
+      expect(_scope.conditionReasons).toEqual([
+        'Condition Reason #1',
+        'Condition Reason #2',
+      ]);
       expect(_scope.getThreatColor(_scope.policy.threatLevel)).toEqual('red');
     });
   });

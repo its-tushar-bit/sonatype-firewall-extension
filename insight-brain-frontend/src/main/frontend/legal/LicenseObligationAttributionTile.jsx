@@ -11,12 +11,15 @@ import {
   NxFormGroup,
   NxModal,
   NxTextInput,
-  nxTextInputStateHelpers
+  nxTextInputStateHelpers,
 } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { availableScopesPropType, licenseObligationPropType } from './advancedLegalPropTypes';
+import {
+  availableScopesPropType,
+  licenseObligationPropType,
+} from './advancedLegalPropTypes';
 import ObligationStatusComponent from './shared/ObligationStatusComponent';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
@@ -42,36 +45,53 @@ export default function LicenseObligationAttributionTile(props) {
     error,
     saveAttributionSubmitMask,
     showAttributionModal,
-    existingObligation
+    existingObligation,
   } = props;
   const isAttributionPresent = () => id !== null;
-  const isAttributionDirty = () => attributionText !== originalAttributionText || scope !== originalScope;
+  const isAttributionDirty = () =>
+    attributionText !== originalAttributionText || scope !== originalScope;
   const isDirty = () => isAttributionDirty() || isObligationDirty();
-  const isValid = () => isDirty() && (isAttributionPresent() || attributionText);
-  const validationErrorMessage = isAttributionPresent() ? 'Must change attribution text or scope.' :
-    'Must add attribution text.';
-  const [attributionTextInput, setAttributionTextInput] = useState(initialState(attributionText));
+  const isValid = () =>
+    isDirty() && (isAttributionPresent() || attributionText);
+  const validationErrorMessage = isAttributionPresent()
+    ? 'Must change attribution text or scope.'
+    : 'Must add attribution text.';
+  const [attributionTextInput, setAttributionTextInput] = useState(
+    initialState(attributionText)
+  );
   const isAdditionalAttribution = name === null;
-  const title = isAdditionalAttribution ? 'Additional Attribution' : 'Attribution for "' + name + '"';
+  const title = isAdditionalAttribution
+    ? 'Additional Attribution'
+    : 'Attribution for "' + name + '"';
   const editOrAdd = isAttributionPresent() ? 'Edit' : 'Add';
-  const toId = s => s.toLowerCase().replace(/\s+/g, '-');
+  const toId = (s) => s.toLowerCase().replace(/\s+/g, '-');
 
   function isObligationDirty() {
-    return existingObligation && existingObligation.status !== existingObligation.originalStatus;
+    return (
+      existingObligation &&
+      existingObligation.status !== existingObligation.originalStatus
+    );
   }
 
   const resetExistingObligation = () => {
     if (existingObligation) {
-      setObligationStatus({ name: existingObligation.name, value: existingObligation.originalStatus });
-      setObligationScope({ name: existingObligation.name, value: existingObligation.originalScope });
+      setObligationStatus({
+        name: existingObligation.name,
+        value: existingObligation.originalStatus,
+      });
+      setObligationScope({
+        name: existingObligation.name,
+        value: existingObligation.originalScope,
+      });
     }
   };
 
   const getSubmitMaskState = () => {
-    const nullIfUndef = (b) => b === undefined ? null : b;
+    const nullIfUndef = (b) => (b === undefined ? null : b);
     const mainSubmitMaskState = nullIfUndef(saveAttributionSubmitMask);
-    const obligationSubmitMaskState = existingObligation ? nullIfUndef(
-        existingObligation.saveObligationSubmitMask) : null;
+    const obligationSubmitMaskState = existingObligation
+      ? nullIfUndef(existingObligation.saveObligationSubmitMask)
+      : null;
     if (mainSubmitMaskState === null) {
       return obligationSubmitMaskState;
     }
@@ -82,18 +102,25 @@ export default function LicenseObligationAttributionTile(props) {
   };
 
   const setObligationScopeIfNeeded = (event) => {
-    if (existingObligation && existingObligation.status !== existingObligation.originalStatus) {
-      setObligationScope({ name: existingObligation.name, value: event.target.value });
+    if (
+      existingObligation &&
+      existingObligation.status !== existingObligation.originalStatus
+    ) {
+      setObligationScope({
+        name: existingObligation.name,
+        value: event.target.value,
+      });
     }
   };
 
   const onObligationChange = (value) => {
     setObligationStatus({ name: existingObligation.name, value });
     if (value === existingObligation.originalStatus) {
-      setObligationScope(
-          { name: existingObligation.name, value: existingObligation.originalScope });
-    }
-    else {
+      setObligationScope({
+        name: existingObligation.name,
+        value: existingObligation.originalScope,
+      });
+    } else {
       setObligationScope({ name: existingObligation.name, value: scope });
     }
   };
@@ -103,86 +130,124 @@ export default function LicenseObligationAttributionTile(props) {
       obligationName: name,
       existingObligation,
       isAttributionDirty: isAttributionDirty(),
-      isObligationDirty: isObligationDirty()
+      isObligationDirty: isObligationDirty(),
     });
   };
 
   const createAttributionModal = () => {
-    return <NxModal id="edit-attribution-modal"
-                    onClose={ () => {resetExistingObligation(); cancelAttributionModal({ name });} }>
-      <NxForm onCancel={ () => {resetExistingObligation(); cancelAttributionModal({ name });} }
-              submitBtnText="Save"
-              onSubmit={ () => trySave(name) }
-              submitError={ error || (existingObligation ? existingObligation.error : false) }
-              submitMaskState={ getSubmitMaskState() }
-              validationErrors={ isValid() ? undefined : validationErrorMessage }>
-        <header className="nx-modal-header">
-          <h2 className="nx-h2">
-            { editOrAdd + ' ' + title }
-          </h2>
-        </header>
-        <div className="nx-modal-content">
-          <NxFormGroup label="Attribution Text"
-                       sublabel={ isAdditionalAttribution ?
-                         'Enter any additional information that needs to be included in the attribution report.' :
-                         'Enter information that needs to be included in the attribution report to fulfill the ' +
-                         'related obligation.' }
-                       isRequired>
-            <NxTextInput type="textarea"
-                         { ...attributionTextInput }
-                         onChange={ payload => {
-                           setAttributionText({ name, value: payload });
-                           setAttributionTextInput(userInput(null, payload));
-                         } }
-              />
-          </NxFormGroup>
-          { existingObligation &&
-            (<ObligationStatusComponent existingObligation={ existingObligation } onChange={ onObligationChange }/>)
+    return (
+      <NxModal
+        id="edit-attribution-modal"
+        onClose={() => {
+          resetExistingObligation();
+          cancelAttributionModal({ name });
+        }}
+      >
+        <NxForm
+          onCancel={() => {
+            resetExistingObligation();
+            cancelAttributionModal({ name });
+          }}
+          submitBtnText="Save"
+          onSubmit={() => trySave(name)}
+          submitError={
+            error || (existingObligation ? existingObligation.error : false)
           }
-          <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
-            <select id="edit-attribution-scope-selection"
-                    className="nx-form-select nx-form-select--long"
-                    value={ scope }
-                    onChange={ payload => {
-                      setAttributionScope({ name, value: payload.currentTarget.value });
-                      setObligationScopeIfNeeded(payload);
-                    } }>
-              { availableScopes.values.map(createScopeOption) }
-            </select>
-          </NxFormGroup>
-        </div>
-      </NxForm>
-    </NxModal>;
+          submitMaskState={getSubmitMaskState()}
+          validationErrors={isValid() ? undefined : validationErrorMessage}
+        >
+          <header className="nx-modal-header">
+            <h2 className="nx-h2">{editOrAdd + ' ' + title}</h2>
+          </header>
+          <div className="nx-modal-content">
+            <NxFormGroup
+              label="Attribution Text"
+              sublabel={
+                isAdditionalAttribution
+                  ? 'Enter any additional information that needs to be included in the attribution report.'
+                  : 'Enter information that needs to be included in the attribution report to fulfill the ' +
+                    'related obligation.'
+              }
+              isRequired
+            >
+              <NxTextInput
+                type="textarea"
+                {...attributionTextInput}
+                onChange={(payload) => {
+                  setAttributionText({ name, value: payload });
+                  setAttributionTextInput(userInput(null, payload));
+                }}
+              />
+            </NxFormGroup>
+            {existingObligation && (
+              <ObligationStatusComponent
+                existingObligation={existingObligation}
+                onChange={onObligationChange}
+              />
+            )}
+            <NxFormGroup label="Scope" sublabel="Apply changes to" isRequired>
+              <select
+                id="edit-attribution-scope-selection"
+                className="nx-form-select nx-form-select--long"
+                value={scope}
+                onChange={(payload) => {
+                  setAttributionScope({
+                    name,
+                    value: payload.currentTarget.value,
+                  });
+                  setObligationScopeIfNeeded(payload);
+                }}
+              >
+                {availableScopes.values.map(createScopeOption)}
+              </select>
+            </NxFormGroup>
+          </div>
+        </NxForm>
+      </NxModal>
+    );
   };
 
-  const createScopeOption = value => {
-    return <option key={ value.id } value={ value.id }>{ value.label } - { value.name }</option>;
+  const createScopeOption = (value) => {
+    return (
+      <option key={value.id} value={value.id}>
+        {value.label} - {value.name}
+      </option>
+    );
   };
 
-  const classes = classnames('nx-tile-content', { 'license-no-legal-elements-text': !isAttributionPresent() });
+  const classes = classnames('nx-tile-content', {
+    'license-no-legal-elements-text': !isAttributionPresent(),
+  });
 
   return (
-    <section id={ isAdditionalAttribution ? 'additional-attribution-tile' : toId(name) + '-attribution-tile' }
-             className="nx-tile license-obligation-attribution-tile">
+    <section
+      id={
+        isAdditionalAttribution
+          ? 'additional-attribution-tile'
+          : toId(name) + '-attribution-tile'
+      }
+      className="nx-tile license-obligation-attribution-tile"
+    >
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">
-            { title }
-          </h2>
+          <h2 className="nx-h2">{title}</h2>
         </div>
         <div className="nx-tile__actions">
-          <NxButton variant="tertiary" onClick={ () => {
-            setAttributionTextInput(initialState(attributionText));
-            setShowAttributionModal({ name, value: true });
-          } }>
-            <NxFontAwesomeIcon icon={ isAttributionPresent() ? faPen : faPlus }/>
-            <span>{ editOrAdd }</span>
+          <NxButton
+            variant="tertiary"
+            onClick={() => {
+              setAttributionTextInput(initialState(attributionText));
+              setShowAttributionModal({ name, value: true });
+            }}
+          >
+            <NxFontAwesomeIcon icon={isAttributionPresent() ? faPen : faPlus} />
+            <span>{editOrAdd}</span>
           </NxButton>
         </div>
-        { showAttributionModal && createAttributionModal() }
+        {showAttributionModal && createAttributionModal()}
       </header>
-      <div className={ classes }>
-        { isAttributionPresent() ? originalAttributionText : 'None added' }
+      <div className={classes}>
+        {isAttributionPresent() ? originalAttributionText : 'None added'}
       </div>
     </section>
   );
@@ -206,5 +271,5 @@ LicenseObligationAttributionTile.propTypes = {
   showAttributionModal: PropTypes.bool.isRequired,
   existingObligation: licenseObligationPropType,
   setObligationStatus: PropTypes.func.isRequired,
-  setObligationScope: PropTypes.func.isRequired
+  setObligationScope: PropTypes.func.isRequired,
 };

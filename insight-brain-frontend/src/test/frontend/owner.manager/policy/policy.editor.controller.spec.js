@@ -10,47 +10,65 @@ import PolicyResourceMockData from '../mock.data/policy.resource.mock.data';
 import TagResourceMockData from '../mock.data/tag.resource.mock.data';
 import { any, propEq } from 'ramda';
 
-describe('policy.editor.controller.spec.js', function() {
+describe('policy.editor.controller.spec.js', function () {
   var $state;
 
-  beforeEach(angular.mock.module(ownerManagerModule.name, legacyConfigurationModule.name, function($provide) {
-    $provide.value('$cookies', {
-      get: angular.noop
-    });
+  beforeEach(
+    angular.mock.module(
+      ownerManagerModule.name,
+      legacyConfigurationModule.name,
+      function ($provide) {
+        $provide.value('$cookies', {
+          get: angular.noop,
+        });
 
-    $state = {
-      current: {
-        name: ''
-      },
-      params: {},
-      reload: angular.noop
-    };
-    $provide.value('$state', $state);
-    $provide.value('$stateParams', $state.params);
-  }));
+        $state = {
+          current: {
+            name: '',
+          },
+          params: {},
+          reload: angular.noop,
+        };
+        $provide.value('$state', $state);
+        $provide.value('$stateParams', $state.params);
+      }
+    )
+  );
 
   function createTests(type, storeName, owner) {
-
     var vm,
-        $q,
-        scope,
-        $timeout,
-        CLMContextLocations,
-        deleteServiceResourceDefer,
-        isApp = type === 'application',
-        mockDeleteService,
-        mockCategoryOwners,
-        mockPolicyTags,
-        $httpBackend,
-        SameOwnerStateNavigationService = {
-          goEdit: angular.noop
-        },
-        mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
-        mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(PolicyResourceMockData
-            .getApplicablePolicies(type, owner.id, owner.name), 'policiesByOwner'),
-        mockPolicy = ResourceUtils().createMockResource();
+      $q,
+      scope,
+      $timeout,
+      CLMContextLocations,
+      deleteServiceResourceDefer,
+      isApp = type === 'application',
+      mockDeleteService,
+      mockCategoryOwners,
+      mockPolicyTags,
+      $httpBackend,
+      SameOwnerStateNavigationService = {
+        goEdit: angular.noop,
+      },
+      mockPolicyStore = StoreUtils().createMockStore('PolicyHierarchyStore'),
+      mockPolicyStoreData = StoreUtils().createMockHierarchyStoreData(
+        PolicyResourceMockData.getApplicablePolicies(
+          type,
+          owner.id,
+          owner.name
+        ),
+        'policiesByOwner'
+      ),
+      mockPolicy = ResourceUtils().createMockResource();
 
-    beforeEach(inject(function($rootScope, _$q_, _$timeout_, _$httpBackend_, _CLMContextLocations_, CLMLocations) {
+    beforeEach(inject(function (
+      $rootScope,
+      _$q_,
+      _$timeout_,
+      _$httpBackend_,
+      _CLMContextLocations_,
+      CLMLocations
+    ) {
       scope = $rootScope.$new();
       $q = _$q_;
       $timeout = _$timeout_;
@@ -60,41 +78,45 @@ describe('policy.editor.controller.spec.js', function() {
       deleteServiceResourceDefer = $q.defer();
 
       mockDeleteService = {
-        deleteResource: function() {
+        deleteResource: function () {
           return deleteServiceResourceDefer.promise;
-        }
+        },
       };
 
-      mockCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl(type, owner.id);
+      mockCategoryOwners = TagResourceMockData.getApplicationCategoriesUrl(
+        type,
+        owner.id
+      );
       mockPolicyTags = TagResourceMockData.getPolicyTagUrl();
       spyOn(CLMContextLocations, 'isApplication').and.returnValue(isApp);
-      spyOn(CLMContextLocations, 'getEntityId').and.returnValue(isApp ? owner.publicId : owner.id);
+      spyOn(CLMContextLocations, 'getEntityId').and.returnValue(
+        isApp ? owner.publicId : owner.id
+      );
       $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
 
       $state.current.name = type;
       if (type === 'application') {
         $state.params.applicationPublicId = owner.publicId;
-      }
-      else if (type === 'organization') {
+      } else if (type === 'organization') {
         $state.params.organizationId = owner.id;
       }
     }));
 
-    afterEach(function() {
+    afterEach(function () {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
     });
 
-    it('Creates new on load', inject(function($controller) {
-      vm = $controller('policy.editor.controller', {$scope: scope});
+    it('Creates new on load', inject(function ($controller) {
+      vm = $controller('policy.editor.controller', { $scope: scope });
 
       resolveLoadData(mockPolicyStoreData, undefined);
 
       expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
     }));
 
-    it('Captures siblings', inject(function($controller) {
-      vm = $controller('policy.editor.controller', {$scope: scope});
+    it('Captures siblings', inject(function ($controller) {
+      vm = $controller('policy.editor.controller', { $scope: scope });
 
       resolveLoadData(mockPolicyStoreData, undefined);
 
@@ -102,23 +124,25 @@ describe('policy.editor.controller.spec.js', function() {
       expect(vm.siblings).toContain(mockPolicyStoreData[0].policies[0]);
     }));
 
-    it('Updates siblings list after creating new', inject(function($controller) {
-      vm = $controller('policy.editor.controller', {$scope: scope});
+    it('Updates siblings list after creating new', inject(function (
+      $controller
+    ) {
+      vm = $controller('policy.editor.controller', { $scope: scope });
 
       resolveLoadData(mockPolicyStoreData, undefined);
 
       mockPolicy.id = 123;
       mockPolicy.$new = true;
-      mockPolicy.isDirty = function() {
+      mockPolicy.isDirty = function () {
         return true;
       };
 
       vm.dirtyPolicy = mockPolicy;
       vm.policyEditor = {
         $valid: true,
-        $setPristine: angular.noop
+        $setPristine: angular.noop,
       };
-      vm.policyEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.policyEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
 
       vm.save();
       resolveSaveData('123');
@@ -126,23 +150,25 @@ describe('policy.editor.controller.spec.js', function() {
       expect(mockPolicyStoreData[0].store.create).toHaveBeenCalled();
     }));
 
-    it('$state.reload called after creating new', inject(function($controller) {
-      vm = $controller('policy.editor.controller', {$scope: scope});
+    it('$state.reload called after creating new', inject(function (
+      $controller
+    ) {
+      vm = $controller('policy.editor.controller', { $scope: scope });
 
       resolveLoadData(mockPolicyStoreData, undefined);
 
       mockPolicy.id = 123;
       mockPolicy.$new = true;
-      mockPolicy.isDirty = function() {
+      mockPolicy.isDirty = function () {
         return true;
       };
 
       vm.dirtyPolicy = mockPolicy;
       vm.policyEditor = {
         $valid: true,
-        $setPristine: angular.noop
+        $setPristine: angular.noop,
       };
-      vm.policyEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.policyEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
 
       spyOn($state, 'reload');
       vm.save();
@@ -151,56 +177,67 @@ describe('policy.editor.controller.spec.js', function() {
       expect($state.reload).toHaveBeenCalled();
     }));
 
-    it('Finds match with URL parameter', inject(function($controller) {
+    it('Finds match with URL parameter', inject(function ($controller) {
       $state.params.policyId = '456';
 
-      vm = $controller('policy.editor.controller', {$scope: scope});
+      vm = $controller('policy.editor.controller', { $scope: scope });
       mockPolicy.id = '456';
       mockPolicy.ownerId = owner.id;
 
-      resolveLoadData([{
-        policies: [mockPolicy, {id: '123'}],
-        policyTags: [],
-        store: {create: angular.noop},
-        ownerType: type,
-        ownerId: owner.id
-      }], '456');
+      resolveLoadData(
+        [
+          {
+            policies: [mockPolicy, { id: '123' }],
+            policyTags: [],
+            store: { create: angular.noop },
+            ownerType: type,
+            ownerId: owner.id,
+          },
+        ],
+        '456'
+      );
 
       expect(vm.dirtyPolicy.$clone).toHaveBeenCalled();
       expect(vm.dirtyPolicy.id).toBe('456');
     }));
 
-    it('Errors if no match found', inject(function($controller) {
+    it('Errors if no match found', inject(function ($controller) {
       $state.params.policyId = '456';
 
-      vm = $controller('policy.editor.controller', {$scope: scope});
+      vm = $controller('policy.editor.controller', { $scope: scope });
 
-      resolveLoadData([{
-        policies: [{id: '123'}, {id: '123'}],
-        policyTags: [],
-        store: {create: angular.noop},
-        ownerType: type,
-        ownerId: owner.id
-      }], '456', true);
+      resolveLoadData(
+        [
+          {
+            policies: [{ id: '123' }, { id: '123' }],
+            policyTags: [],
+            store: { create: angular.noop },
+            ownerType: type,
+            ownerId: owner.id,
+          },
+        ],
+        '456',
+        true
+      );
 
       expect(vm.dirtyPolicy).toBeUndefined();
       expect(vm.loadError).toBe('some error');
     }));
 
-    it('Unsuccessful save sets error message', inject(function($controller) {
-      vm = $controller('policy.editor.controller', {$scope: scope});
+    it('Unsuccessful save sets error message', inject(function ($controller) {
+      vm = $controller('policy.editor.controller', { $scope: scope });
 
       resolveLoadData(mockPolicyStoreData);
 
-      mockPolicy.isDirty = function() {
+      mockPolicy.isDirty = function () {
         return true;
       };
 
       vm.dirtyPolicy = mockPolicy;
       vm.policyEditor = {
-        $valid: true
+        $valid: true,
       };
-      vm.policyEditorMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.policyEditorMask = { wrap: SpecUtil.promiseWrapper($q) };
 
       vm.save();
       mockPolicy.rejectSave('dagnabbit');
@@ -209,55 +246,71 @@ describe('policy.editor.controller.spec.js', function() {
       expect(vm.submitError).toBe('dagnabbit');
     }));
 
-    it('After delete goes to create new policy', inject(function($controller) {
+    it('After delete goes to create new policy', inject(function ($controller) {
       $state.params.policyId = '1';
 
       spyOn(SameOwnerStateNavigationService, 'goEdit');
       vm = $controller('policy.editor.controller', {
         $scope: scope,
         SameOwnerStateNavigationService: SameOwnerStateNavigationService,
-        DeleteModalService: mockDeleteService
+        DeleteModalService: mockDeleteService,
       });
 
       mockPolicy.id = '1';
-      resolveLoadData([{
-        policies: [mockPolicy, {id: '123'}],
-        policyTags: [],
-        store: {create: angular.noop},
-        ownerType: type,
-        ownerId: owner.id
-      }], '1');
+      resolveLoadData(
+        [
+          {
+            policies: [mockPolicy, { id: '123' }],
+            policyTags: [],
+            store: { create: angular.noop },
+            ownerType: type,
+            ownerId: owner.id,
+          },
+        ],
+        '1'
+      );
 
       vm.deletePolicy();
       deleteServiceResourceDefer.resolve();
       $timeout.flush();
 
-      expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith('create-policy');
+      expect(SameOwnerStateNavigationService.goEdit).toHaveBeenCalledWith(
+        'create-policy'
+      );
       expect(mockPolicy.$revert).toHaveBeenCalled();
     }));
 
-    it('Properly loads categories', inject(function($controller) {
+    it('Properly loads categories', inject(function ($controller) {
       $state.params.policyId = '456';
 
-      vm = $controller('policy.editor.controller', {$scope: scope});
+      vm = $controller('policy.editor.controller', { $scope: scope });
       mockPolicy.id = '456';
 
-      resolveLoadData([{
-        policies: [mockPolicy, {id: '123'}],
-        policyTags: [],
-        store: {create: angular.noop},
-        ownerType: type,
-        ownerId: owner.id,
-        ownerName: owner.name
-      }], '456');
+      resolveLoadData(
+        [
+          {
+            policies: [mockPolicy, { id: '123' }],
+            policyTags: [],
+            store: { create: angular.noop },
+            ownerType: type,
+            ownerId: owner.id,
+            ownerName: owner.name,
+          },
+        ],
+        '456'
+      );
 
       if (!isApp) {
         expect(vm.owner.name).toEqual(owner.name);
         expect(vm.categories.length).toBe(3);
-        var mockOrgCategories = mockCategoryOwners.applicationCategoriesByOwner[0].applicationCategories;
-        var mockRootCategories = mockCategoryOwners.applicationCategoriesByOwner[1].applicationCategories;
+        var mockOrgCategories =
+          mockCategoryOwners.applicationCategoriesByOwner[0]
+            .applicationCategories;
+        var mockRootCategories =
+          mockCategoryOwners.applicationCategoriesByOwner[1]
+            .applicationCategories;
 
-        mockOrgCategories.forEach(function(category, index) {
+        mockOrgCategories.forEach(function (category, index) {
           expect(vm.categories[index].name).toEqual(category.name);
           expect(vm.categories[index].id).toEqual(category.id);
           expect(vm.categories[index].color).toEqual(category.color);
@@ -267,49 +320,53 @@ describe('policy.editor.controller.spec.js', function() {
         expect(vm.categories[2].color).toEqual(mockRootCategories[0].color);
 
         expect(vm.hasPolicyCategories).toBeTruthy();
-      }
-      else {
+      } else {
         expect(vm.categories.length).toBe(0);
         expect(vm.hasPolicyCategories).toBeFalsy();
       }
     }));
 
-    it('Sets readOnly', inject(function($controller) {
+    it('Sets readOnly', inject(function ($controller) {
       $state.params.policyId = '456';
 
-      vm = $controller('policy.editor.controller', {$scope: scope});
+      vm = $controller('policy.editor.controller', { $scope: scope });
       mockPolicy.id = '456';
 
       expect(vm.readOnly).toBeUndefined();
 
-      resolveLoadData([{
-        policies: [mockPolicy, {id: '123'}],
-        policyTags: [],
-        store: {create: angular.noop},
-        ownerType: type,
-        ownerId: owner.id
-      }], '456');
+      resolveLoadData(
+        [
+          {
+            policies: [mockPolicy, { id: '123' }],
+            policyTags: [],
+            store: { create: angular.noop },
+            ownerType: type,
+            ownerId: owner.id,
+          },
+        ],
+        '456'
+      );
 
       expect(vm.readOnly).toBeDefined();
     }));
 
-    describe('Page Changes', function() {
-      beforeEach(inject(function($controller) {
+    describe('Page Changes', function () {
+      beforeEach(inject(function ($controller) {
         vm = $controller('policy.editor.controller', {
-          $scope: scope
+          $scope: scope,
         });
 
         resolveLoadData(mockPolicyStoreData, undefined);
       }));
 
-      it('clean', function() {
+      it('clean', function () {
         spyOn(vm, 'isPolicyDirty').and.returnValue(false);
 
         SpecUtil.expectStateChangeNotPrevented(scope);
         expect(vm.isPolicyDirty).toHaveBeenCalled();
       });
 
-      it('dirty', function() {
+      it('dirty', function () {
         spyOn(vm, 'isPolicyDirty').and.returnValue(true);
 
         SpecUtil.expectStateChangePrevented(scope);
@@ -318,34 +375,43 @@ describe('policy.editor.controller.spec.js', function() {
     });
 
     if (!isApp) {
-      it('Proper ownerName and ownerType get set loading heirarchy', inject(function($controller) {
+      it('Proper ownerName and ownerType get set loading heirarchy', inject(function (
+        $controller
+      ) {
         $state.params.policyId = '456';
 
-        vm = $controller('policy.editor.controller', {$scope: scope});
+        vm = $controller('policy.editor.controller', { $scope: scope });
         mockPolicy.id = '456';
 
-        resolveLoadData([{
-          ownerId: '1',
-          ownerName: 'appName',
-          ownerType: 'application',
-          policies: [{id: '123'}],
-          policyTags: [],
-          store: {create: angular.noop}
-        }, {
-          ownerId: owner.id,
-          ownerName: 'orgName',
-          ownerType: 'organization',
-          policies: [mockPolicy],
-          policyTags: [],
-          store: {create: angular.noop}
-        }, {
-          ownerId: 'ROOT_ORGANIZATION_ID',
-          ownerName: 'rootOrgName',
-          ownerType: 'organization',
-          policies: [{id: '789'}],
-          policyTags: [],
-          store: {create: angular.noop}
-        }], '456');
+        resolveLoadData(
+          [
+            {
+              ownerId: '1',
+              ownerName: 'appName',
+              ownerType: 'application',
+              policies: [{ id: '123' }],
+              policyTags: [],
+              store: { create: angular.noop },
+            },
+            {
+              ownerId: owner.id,
+              ownerName: 'orgName',
+              ownerType: 'organization',
+              policies: [mockPolicy],
+              policyTags: [],
+              store: { create: angular.noop },
+            },
+            {
+              ownerId: 'ROOT_ORGANIZATION_ID',
+              ownerName: 'rootOrgName',
+              ownerType: 'organization',
+              policies: [{ id: '789' }],
+              policyTags: [],
+              store: { create: angular.noop },
+            },
+          ],
+          '456'
+        );
 
         expect(vm.owner.name).toBe('orgName');
         expect(vm.isOrgOwner).toBe(true);
@@ -357,11 +423,11 @@ describe('policy.editor.controller.spec.js', function() {
 
       if (policyId) {
         var found = false;
-        policyStoreData.some(function(owner) {
-          owner.policies.some(function(policy) {
+        policyStoreData.some(function (owner) {
+          owner.policies.some(function (policy) {
             if (policy.id === policyId) {
               mockPolicyStore.resolveGetById(policy);
-              return found = true;
+              return (found = true);
             }
           });
         });
@@ -370,14 +436,22 @@ describe('policy.editor.controller.spec.js', function() {
         }
       }
 
-      const respondWithCategories = !expectError && (!isApp || policyStoreData.length > 1 &&
-              any(propEq('id', policyId), policyStoreData[1].policies));
+      const respondWithCategories =
+        !expectError &&
+        (!isApp ||
+          (policyStoreData.length > 1 &&
+            any(propEq('id', policyId), policyStoreData[1].policies)));
       if (respondWithCategories) {
-        $httpBackend.expectGET(CLMContextLocations.getCategoriesUrl() + isApp ? '' : '/applicable').respond(
-            mockCategoryOwners);
+        $httpBackend
+          .expectGET(
+            CLMContextLocations.getCategoriesUrl() + isApp ? '' : '/applicable'
+          )
+          .respond(mockCategoryOwners);
 
         if (policyId) {
-          $httpBackend.expectGET(CLMContextLocations.getPolicyTagUrl(mockPolicy.id)).respond(mockPolicyTags);
+          $httpBackend
+            .expectGET(CLMContextLocations.getPolicyTagUrl(mockPolicy.id))
+            .respond(mockPolicyTags);
         }
       }
       $timeout.flush();
@@ -387,7 +461,9 @@ describe('policy.editor.controller.spec.js', function() {
     function resolveSaveData(policyId) {
       mockPolicy.resolveSave();
       if (!isApp) {
-        $httpBackend.expectPUT(CLMContextLocations.getPolicyTagUrl(policyId)).respond(mockPolicyTags);
+        $httpBackend
+          .expectPUT(CLMContextLocations.getPolicyTagUrl(policyId))
+          .respond(mockPolicyTags);
       }
       $timeout.flush();
       if (!isApp) {

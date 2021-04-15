@@ -28,7 +28,8 @@
       text-align: center;
       text-decoration: none;
 
-      &:hover, &:focus {
+      &:hover,
+      &:focus {
         background-color: $iq-blue-light;
         border-color: $iq-blue-light;
         background-image: none; // removes gradient applied by Bootstrap
@@ -41,7 +42,9 @@
     }
 
     &.active a {
-      &, &:hover, &:focus {
+      &,
+      &:hover,
+      &:focus {
         background-color: $iq-blue-light;
         border-color: $iq-blue-light;
         background-image: none; // removes gradient applied by Bootstrap

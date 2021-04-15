@@ -7,43 +7,45 @@
 
 window.messageTemplate = {
   type: 'error',
-  msg: 'Something bad happened!'
+  msg: 'Something bad happened!',
 };
 window.AngularUtils = {
-  alphaSort: function(array, descending, sortProperty) {
+  alphaSort: function (array, descending, sortProperty) {
     if (array) {
-      array.sort(function(a, b) {
-        var aProp = sortProperty ? a[sortProperty] : a, bProp = sortProperty ? b[sortProperty] : b;
+      array.sort(function (a, b) {
+        var aProp = sortProperty ? a[sortProperty] : a,
+          bProp = sortProperty ? b[sortProperty] : b;
         if (aProp < bProp) {
           return descending ? 1 : -1;
-        }
-        else if (aProp > bProp) {
+        } else if (aProp > bProp) {
           return descending ? -1 : 1;
-        }
-        else {
+        } else {
           return 0;
         }
       });
     }
   },
-  hasFlash: function() {
+  hasFlash: function () {
     try {
-      if (new ActiveXObject('ShockwaveFlash.ShockwaveFlash')) { return true; }
-    }
-    catch (e) {
-      if (navigator.mimeTypes['application/x-shockwave-flash'] !== undefined) { return true; }
+      if (new ActiveXObject('ShockwaveFlash.ShockwaveFlash')) {
+        return true;
+      }
+    } catch (e) {
+      if (navigator.mimeTypes['application/x-shockwave-flash'] !== undefined) {
+        return true;
+      }
     }
     return false;
   },
-  endsWith: function(str, check) {
+  endsWith: function (str, check) {
     return str.indexOf(check, str.length - check.length) > -1;
   },
-  formatPercentage: function(count, total, decimalCount) {
+  formatPercentage: function (count, total, decimalCount) {
     if (!total) {
       return '0';
     }
 
-    return (count / total * 100).toFixed(decimalCount ? decimalCount : 0);
+    return ((count / total) * 100).toFixed(decimalCount ? decimalCount : 0);
   },
   /**
    * Format a message suitable for the clmAlerts directive
@@ -52,30 +54,37 @@ window.AngularUtils = {
    * @returns {*}
    * @since 1.12
    */
-  toAlert: function(msg, type) {
-    return angular.extend({}, window.messageTemplate, type ? {type: type, msg: msg} : {msg: msg});
-  }
+  toAlert: function (msg, type) {
+    return angular.extend(
+      {},
+      window.messageTemplate,
+      type ? { type: type, msg: msg } : { msg: msg }
+    );
+  },
 };
 
 window.AngularStateUtils = {
-  toParentStateIfNewItem: function(scope) {
+  toParentStateIfNewItem: function (scope) {
     if (scope.$state.current.name.indexOf('.new') > -1) {
       scope.$state.go(scope.$state.current.parent);
     }
   },
-  fnOnNewItemState: function(scope, fn) {
-    scope.$watch('$state.current.name', function(value) {
+  fnOnNewItemState: function (scope, fn) {
+    scope.$watch('$state.current.name', function (value) {
       if (value.indexOf('.new') > -1) {
         fn();
       }
     });
   },
-  toNewItemState: function(scope) {
+  toNewItemState: function (scope) {
     //if user clicks new while the new state is already active
     //(or multiple events are fired causing this method to be called multiple times)
     //it will now only act once, rather than generating multiple .new suffixes
-    if (scope.$state.current.name && !window.AngularUtils.endsWith(scope.$state.current.name, '.new')) {
+    if (
+      scope.$state.current.name &&
+      !window.AngularUtils.endsWith(scope.$state.current.name, '.new')
+    ) {
       scope.$state.go(scope.$state.current.name + '.new');
     }
-  }
+  },
 };

@@ -10,6 +10,10 @@ import clmLocationModule from '../../util/CLMLocation';
 import pendoService from '../../pendo/pendoService';
 import sanitizeUrlService from './sanitizeUrlService';
 
-export default angular.module('cipLoaderPendoModule', [commonServicesModule.name, clmLocationModule.name])
-    .service('pendoService', pendoService)
-    .service('sanitizeUrlService', sanitizeUrlService);
+export default angular
+  .module('cipLoaderPendoModule', [
+    commonServicesModule.name,
+    clmLocationModule.name,
+  ])
+  .service('pendoService', pendoService)
+  .service('sanitizeUrlService', sanitizeUrlService);

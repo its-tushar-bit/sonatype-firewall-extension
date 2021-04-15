@@ -10,7 +10,7 @@ import {
   NxTableRow,
   NxTableCell,
   NxTableBody,
-  NxFilterInput
+  NxFilterInput,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import ReportTableRow from './ReportTableRow';
@@ -18,17 +18,17 @@ import { propOr } from 'ramda';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
-  sortingOrder: ['policyThreatLevel', 'policyName', 'derivedComponentName']
+  sortingOrder: ['policyThreatLevel', 'policyName', 'derivedComponentName'],
 };
 
 const policyNameSettings = {
   key: 'policyName',
-  sortingOrder: ['policyName', '-policyThreatLevel', 'derivedComponentName']
+  sortingOrder: ['policyName', '-policyThreatLevel', 'derivedComponentName'],
 };
 
 const componentNameSettings = {
   key: 'derivedComponentName',
-  sortingOrder: ['derivedComponentName', '-policyThreatLevel', 'policyName']
+  sortingOrder: ['derivedComponentName', '-policyThreatLevel', 'policyName'],
 };
 
 const getDirection = (sortConfig, key) => {
@@ -36,26 +36,30 @@ const getDirection = (sortConfig, key) => {
 };
 
 export default function ReportContent(props) {
-
   const {
     selectedReport,
     substringFilters,
     sortConfiguration,
     setSortingParameters,
     setSorting,
-    setStringFieldFilter
+    setStringFieldFilter,
   } = props;
-  const displayedEntries = selectedReport ? selectedReport.displayedEntries : [];
-  const getSubstringFiltersProp = propName => propOr('', propName, substringFilters);
+  const displayedEntries = selectedReport
+    ? selectedReport.displayedEntries
+    : [];
+  const getSubstringFiltersProp = (propName) =>
+    propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
-  const derivedComponentNameFilter = getSubstringFiltersProp('derivedComponentName');
+  const derivedComponentNameFilter = getSubstringFiltersProp(
+    'derivedComponentName'
+  );
 
   function requestSort(settings) {
     let direction = 'asc';
     if (
       sortConfiguration &&
-        sortConfiguration.key === settings.key &&
-        sortConfiguration.dir === 'asc'
+      sortConfiguration.key === settings.key &&
+      sortConfiguration.dir === 'asc'
     ) {
       direction = 'desc';
     }
@@ -78,9 +82,15 @@ export default function ReportContent(props) {
     setStringFieldFilter('derivedComponentName', filter);
   };
 
-  const dirPolicyThreatLevel = getDirection(sortConfiguration, 'policyThreatLevel');
+  const dirPolicyThreatLevel = getDirection(
+    sortConfiguration,
+    'policyThreatLevel'
+  );
   const dirPolicyName = getDirection(sortConfiguration, 'policyName');
-  const dirComponentName = getDirection(sortConfiguration, 'derivedComponentName');
+  const dirComponentName = getDirection(
+    sortConfiguration,
+    'derivedComponentName'
+  );
 
   return (
     <section className="nx-tile iq-app-report__results-table-tile">
@@ -88,33 +98,45 @@ export default function ReportContent(props) {
         <NxTable className="nx-table--scrollable nx-table--fixed-layout">
           <NxTableHead>
             <NxTableRow>
-              <NxTableCell className="iq-app-report__threat-cell"
-                           isSortable
-                           sortDir={dirPolicyThreatLevel}
-                           onClick={() => requestSort(policyThreatLevelSettings)}>
+              <NxTableCell
+                className="iq-app-report__threat-cell"
+                isSortable
+                sortDir={dirPolicyThreatLevel}
+                onClick={() => requestSort(policyThreatLevelSettings)}
+              >
                 Threat
               </NxTableCell>
-              <NxTableCell className="iq-app-report__policy-name-cell"
-                           isSortable
-                           sortDir={dirPolicyName}
-                           onClick={() => requestSort(policyNameSettings)}>
+              <NxTableCell
+                className="iq-app-report__policy-name-cell"
+                isSortable
+                sortDir={dirPolicyName}
+                onClick={() => requestSort(policyNameSettings)}
+              >
                 Policy
               </NxTableCell>
-              <NxTableCell className="iq-app-report__component-name-cell"
-                           isSortable
-                           sortDir={dirComponentName}
-                           onClick={() => requestSort(componentNameSettings)}>
+              <NxTableCell
+                className="iq-app-report__component-name-cell"
+                isSortable
+                sortDir={dirComponentName}
+                onClick={() => requestSort(componentNameSettings)}
+              >
                 Component
               </NxTableCell>
             </NxTableRow>
             <NxTableRow className="nx-table-row--filter-header">
               <NxTableCell colSpan={2}>
-                <NxFilterInput placeholder="policy name" onChange={filterPolicyName} value={policyNameFilter} />
+                <NxFilterInput
+                  placeholder="policy name"
+                  onChange={filterPolicyName}
+                  value={policyNameFilter}
+                />
               </NxTableCell>
               <NxTableCell>
-                <NxFilterInput placeholder="component name"
-                               onChange={filterDerivedComponentName}
-                               value={derivedComponentNameFilter} />
+                <NxFilterInput
+                  placeholder="component name"
+                  onChange={filterDerivedComponentName}
+                  value={derivedComponentNameFilter}
+                />
               </NxTableCell>
             </NxTableRow>
           </NxTableHead>
@@ -128,33 +150,35 @@ export default function ReportContent(props) {
 }
 
 const createRow = (component, index) => {
-  return <ReportTableRow key={ index } index={ index } component={ component }/>;
+  return <ReportTableRow key={index} index={index} component={component} />;
 };
 
 ReportContent.propTypes = {
   selectedReport: PropTypes.shape({
-    displayedEntries: PropTypes.arrayOf(PropTypes.shape({
-      derivedComponentName: PropTypes.string,
-      policyName: PropTypes.string,
-      hash: PropTypes.string,
-      derivedDependencyType: PropTypes.string,
-      waived: PropTypes.bool,
-      filenames: PropTypes.array,
-      grandfathered: PropTypes.bool,
-      policyThreatLevel: PropTypes.number
-    }))
+    displayedEntries: PropTypes.arrayOf(
+      PropTypes.shape({
+        derivedComponentName: PropTypes.string,
+        policyName: PropTypes.string,
+        hash: PropTypes.string,
+        derivedDependencyType: PropTypes.string,
+        waived: PropTypes.bool,
+        filenames: PropTypes.array,
+        grandfathered: PropTypes.bool,
+        policyThreatLevel: PropTypes.number,
+      })
+    ),
   }),
   sortConfiguration: PropTypes.shape({
     sortFields: PropTypes.arrayOf(PropTypes.string),
     dir: PropTypes.string,
-    key: PropTypes.string
+    key: PropTypes.string,
   }),
   substringFilters: PropTypes.shape({
     policyName: PropTypes.string,
-    derivedComponentName: PropTypes.string
+    derivedComponentName: PropTypes.string,
   }),
   // actions
   setSorting: PropTypes.func,
   setSortingParameters: PropTypes.func,
-  setStringFieldFilter: PropTypes.func
+  setStringFieldFilter: PropTypes.func,
 };

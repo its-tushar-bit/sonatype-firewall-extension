@@ -8,17 +8,23 @@ import template from './systemNotice.html';
 function systemNoticeController(systemNoticeService, $scope) {
   var vm = this;
 
-  vm.$onInit = function() {
-    systemNoticeService.getSystemNotice().then(function(response) {
-      vm.systemNotice = response;
-    }).catch(function() {
-      vm.systemNotice = systemNoticeService.getDefaultSystemNotice();
-    });
+  vm.$onInit = function () {
+    systemNoticeService
+      .getSystemNotice()
+      .then(function (response) {
+        vm.systemNotice = response;
+      })
+      .catch(function () {
+        vm.systemNotice = systemNoticeService.getDefaultSystemNotice();
+      });
   };
 
-  $scope.$on('systemNoticeUpdated', function(systemNoticeUpdated, systemNotice) {
-    vm.systemNotice = systemNotice;
-  });
+  $scope.$on(
+    'systemNoticeUpdated',
+    function (systemNoticeUpdated, systemNotice) {
+      vm.systemNotice = systemNotice;
+    }
+  );
 }
 
 systemNoticeController.$inject = ['systemNoticeService', '$scope'];
@@ -26,5 +32,5 @@ systemNoticeController.$inject = ['systemNoticeService', '$scope'];
 export default {
   template,
   controller: systemNoticeController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };

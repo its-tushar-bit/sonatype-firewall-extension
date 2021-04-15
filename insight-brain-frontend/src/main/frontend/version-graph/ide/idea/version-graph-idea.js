@@ -10,11 +10,10 @@ window.clmEndpoint = {
   viewDetails: true,
   openView: window.IDEA_openView,
   linkTarget: '_self',
-  path: '../../'
+  path: '../../',
 };
 
 window.CLM = {
   path: window.clmEndpoint.path + '../../',
-  assetsPath: window.clmEndpoint.path + '../'
+  assetsPath: window.clmEndpoint.path + '../',
 };
-

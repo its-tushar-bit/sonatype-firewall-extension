@@ -1,9 +1,10 @@
 <h3 class="iq-chart-title">Mean Time to Resolution by Month</h3>
 <p class="iq-chart__averages">
-  This data represents the average age of violations that were resolved each month in {{::vm.activeApplicationCount}}
-  application{{::(vm.activeApplicationCount === 1 ? '' : 's')}} over the past {{::vm.monthCount}}
-  month{{::(vm.monthCount === 1 ? '' : 's')}}. A violation that does not reappear in a subsequent evaluation is
-  considered resolved.
+  This data represents the average age of violations that were resolved each
+  month in {{::vm.activeApplicationCount}}
+  application{{::(vm.activeApplicationCount === 1 ? '' : 's')}} over the past
+  {{::vm.monthCount}} month{{::(vm.monthCount === 1 ? '' : 's')}}. A violation
+  that does not reappear in a subsequent evaluation is considered resolved.
 </p>
 <div class="iq-chart iq-chart--mttr">
   <iq-render-plottable chart="vm.mttrChart"></iq-render-plottable>

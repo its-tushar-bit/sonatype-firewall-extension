@@ -22,11 +22,13 @@
   color: #fefefe;
 }
 
-.clm-btn.clm-btn-primary.disabled, .clm-btn.clm-btn-primary[disabled] {
+.clm-btn.clm-btn-primary.disabled,
+.clm-btn.clm-btn-primary[disabled] {
   background-color: #97cbee;
 }
 
-.clm-btn.clm-btn-primary:hover:not(.disabled):not([disabled]), .clm-btn.clm-btn-primary:focus:not(.disabled):not([disabled]) {
+.clm-btn.clm-btn-primary:hover:not(.disabled):not([disabled]),
+.clm-btn.clm-btn-primary:focus:not(.disabled):not([disabled]) {
   border-color: #006bbf;
 }
 
@@ -40,11 +42,13 @@
   border-color: #831d1d;
 }
 
-.clm-btn.clm-btn-error.disabled, .clm-btn.clm-btn-error[disabled] {
+.clm-btn.clm-btn-error.disabled,
+.clm-btn.clm-btn-error[disabled] {
   background-color: #dd9595;
 }
 
-.clm-btn.clm-btn-error:hover:not(.disabled):not([disabled]), .clm-btn.clm-btn-error:focus:not(.disabled):not([disabled]) {
+.clm-btn.clm-btn-error:hover:not(.disabled):not([disabled]),
+.clm-btn.clm-btn-error:focus:not(.disabled):not([disabled]) {
   border-color: #5c0000;
 }
 

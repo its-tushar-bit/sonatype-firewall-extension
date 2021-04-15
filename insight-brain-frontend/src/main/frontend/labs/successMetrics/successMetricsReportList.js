@@ -10,11 +10,16 @@ import template from './successMetricsReportList.html';
 export default {
   template,
   controller: successMetricsReportController,
-  controllerAs: 'vm'
+  controllerAs: 'vm',
 };
 
-function successMetricsReportController($state, $q, systemConfigurationPropertyService, successMetricsDataService,
-                                        Modal) {
+function successMetricsReportController(
+  $state,
+  $q,
+  systemConfigurationPropertyService,
+  successMetricsDataService,
+  Modal
+) {
   const vm = this;
 
   vm.loaded = false;
@@ -31,14 +36,17 @@ function successMetricsReportController($state, $q, systemConfigurationPropertyS
 
     $q.all([
       successMetricsDataService.getSuccessMetricsReportsForCurrentUser(),
-      systemConfigurationPropertyService.checkSuccessMetricsEnabled()
-    ]).then(function([successMetricsReports]) {
-      vm.successMetricsReports = successMetricsReports;
-    }).catch(function(error) {
-      vm.error = error;
-    }).finally(function() {
-      vm.loaded = true;
-    });
+      systemConfigurationPropertyService.checkSuccessMetricsEnabled(),
+    ])
+      .then(function ([successMetricsReports]) {
+        vm.successMetricsReports = successMetricsReports;
+      })
+      .catch(function (error) {
+        vm.error = error;
+      })
+      .finally(function () {
+        vm.loaded = true;
+      });
   }
 
   function goToCharts(successMetricsReportId) {
@@ -55,18 +63,26 @@ function successMetricsReportController($state, $q, systemConfigurationPropertyS
 
     const modalPromise = Modal.open({
       template: modalWrapperTemplate,
-      controller: modalController
+      controller: modalController,
     }).result;
 
-    modalPromise.then(function(successMetricsReport) {
+    modalPromise.then(function (successMetricsReport) {
       vm.successMetricsReports.push(successMetricsReport);
     });
   }
 
   function hasDisabledError() {
-    return vm.error === systemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE;
+    return (
+      vm.error ===
+      systemConfigurationPropertyService.SUCCESS_METRICS_DISABLED_MESSAGE
+    );
   }
 }
 
-successMetricsReportController.$inject =
-  ['$state', '$q', 'systemConfigurationPropertyService', 'successMetricsDataService', 'Modal'];
+successMetricsReportController.$inject = [
+  '$state',
+  '$q',
+  'systemConfigurationPropertyService',
+  'successMetricsDataService',
+  'Modal',
+];

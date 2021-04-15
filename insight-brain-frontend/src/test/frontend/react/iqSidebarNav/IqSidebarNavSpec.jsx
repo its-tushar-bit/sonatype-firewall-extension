@@ -13,7 +13,7 @@ import {
   faMicroscope,
   faSearch,
   faShieldCheck,
-  faSitemap
+  faSitemap,
 } from '@fortawesome/pro-solid-svg-icons';
 
 import * as enzymeUtils from '../../enzymeUtils';
@@ -21,30 +21,30 @@ import IqSidebarNav from '../../../../main/frontend/react/iqSidebarNav/IqSidebar
 import {
   NxGlobalSidebarNavigation,
   NxGlobalSidebarNavigationLink,
-  NxStatefulGlobalSidebar
+  NxStatefulGlobalSidebar,
 } from '@sonatype/react-shared-components';
 import IqSidebarNavFooter from '../../../../main/frontend/react/iqSidebarNav/IqSidebarNavFooter';
 
-describe('IqSidebarNav', function() {
+describe('IqSidebarNav', function () {
   let getShallowComponent, hrefSpy, includesSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     hrefSpy = jasmine.createSpy('href').and.callFake((args) => `href-${args}`);
     includesSpy = jasmine.createSpy('includes').and.returnValue(false);
 
     spyOn(React, 'useContext').and.returnValue({
       href: hrefSpy,
-      includes: includesSpy
+      includes: includesSpy,
     });
 
     getShallowComponent = enzymeUtils.getShallowComponent(IqSidebarNav, {});
   });
 
-  it('renders an NxStatefulGlobalSidebar with props', function() {
+  it('renders an NxStatefulGlobalSidebar with props', function () {
     let component, statefulGlobalSidebar;
 
-    component = getShallowComponent(),
-    statefulGlobalSidebar = component.find(NxStatefulGlobalSidebar);
+    (component = getShallowComponent()),
+      (statefulGlobalSidebar = component.find(NxStatefulGlobalSidebar));
 
     expect(component).toExist();
     expect(statefulGlobalSidebar).toExist();
@@ -58,32 +58,60 @@ describe('IqSidebarNav', function() {
     component = getShallowComponent({ productEdition: 'mockProductEdition' });
     statefulGlobalSidebar = component.find(NxStatefulGlobalSidebar);
 
-    expect(statefulGlobalSidebar).toHaveProp('logoAltText', 'mockProductEdition');
+    expect(statefulGlobalSidebar).toHaveProp(
+      'logoAltText',
+      'mockProductEdition'
+    );
   });
 
-  it('renders an IqSidebarNavFooter if both productEdition and releaseVersion are specified', function() {
+  it('renders an IqSidebarNavFooter if both productEdition and releaseVersion are specified', function () {
     expect(getShallowComponent().find(IqSidebarNavFooter)).not.toExist();
 
-    expect(getShallowComponent({ productEdition: 'mockProductEdition' }).find(IqSidebarNavFooter)).not.toExist();
-    expect(getShallowComponent({ releaseVersion: '10x' }).find(IqSidebarNavFooter))
-        .not.toExist();
+    expect(
+      getShallowComponent({ productEdition: 'mockProductEdition' }).find(
+        IqSidebarNavFooter
+      )
+    ).not.toExist();
+    expect(
+      getShallowComponent({ releaseVersion: '10x' }).find(IqSidebarNavFooter)
+    ).not.toExist();
 
-    expect(getShallowComponent({ productEdition: 'mockProductEdition', releaseVersion: '10x' })
-        .find(IqSidebarNavFooter)).toExist();
+    expect(
+      getShallowComponent({
+        productEdition: 'mockProductEdition',
+        releaseVersion: '10x',
+      }).find(IqSidebarNavFooter)
+    ).toExist();
   });
 
-  describe('NxGlobalSidebarNavigation', function() {
-    it('renders NxGlobalSidebarNavigation if logged-in', function() {
-      expect(getShallowComponent().find(NxGlobalSidebarNavigation)).not.toExist();
-      expect(getShallowComponent({ isLoggedIn: false }).find(NxGlobalSidebarNavigation)).not.toExist();
-      expect(getShallowComponent({ isLoggedIn: true }).find(NxGlobalSidebarNavigation)).toExist();
+  describe('NxGlobalSidebarNavigation', function () {
+    it('renders NxGlobalSidebarNavigation if logged-in', function () {
+      expect(
+        getShallowComponent().find(NxGlobalSidebarNavigation)
+      ).not.toExist();
+      expect(
+        getShallowComponent({ isLoggedIn: false }).find(
+          NxGlobalSidebarNavigation
+        )
+      ).not.toExist();
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          NxGlobalSidebarNavigation
+        )
+      ).toExist();
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed', function() {
-      expect(getShallowComponent({ isLoggedIn: true }).find('#dashboard-navigation-button'))
-          .not.toExist();
+    it('renders an NxGlobalSidebarNavigationLink for the dashboard if allowed', function () {
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          '#dashboard-navigation-button'
+        )
+      ).not.toExist();
 
-      const component = getShallowComponent({ isLoggedIn: true, isDashboardAvailable: true });
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isDashboardAvailable: true,
+      });
       const navLink = component.find('#dashboard-navigation-button');
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
@@ -93,11 +121,17 @@ describe('IqSidebarNav', function() {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for orgs & policies if allowed', function() {
-      expect(getShallowComponent({ isLoggedIn: true }).find('#policies-navigation-button'))
-          .not.toExist();
+    it('renders an NxGlobalSidebarNavigationLink for orgs & policies if allowed', function () {
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          '#policies-navigation-button'
+        )
+      ).not.toExist();
 
-      const component = getShallowComponent({ isLoggedIn: true, isLicensed: true });
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isLicensed: true,
+      });
       const navLink = component.find('#policies-navigation-button');
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
@@ -107,11 +141,17 @@ describe('IqSidebarNav', function() {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for reports if allowed', function() {
-      expect(getShallowComponent({ isLoggedIn: true }).find('#reporting-navigation-button'))
-          .not.toExist();
+    it('renders an NxGlobalSidebarNavigationLink for reports if allowed', function () {
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          '#reporting-navigation-button'
+        )
+      ).not.toExist();
 
-      const component = getShallowComponent({ isLoggedIn: true, isReportsListAvailable: true });
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isReportsListAvailable: true,
+      });
       const navLink = component.find('#reporting-navigation-button');
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
@@ -121,11 +161,17 @@ describe('IqSidebarNav', function() {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for success metrics if allowed', function() {
-      expect(getShallowComponent({ isLoggedIn: true }).find('#labs-navigation-button'))
-          .not.toExist();
+    it('renders an NxGlobalSidebarNavigationLink for success metrics if allowed', function () {
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          '#labs-navigation-button'
+        )
+      ).not.toExist();
 
-      const component = getShallowComponent({ isLoggedIn: true, isSuccessMetricsEnabled: true });
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isSuccessMetricsEnabled: true,
+      });
       const navLink = component.find('#labs-navigation-button');
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
@@ -135,11 +181,17 @@ describe('IqSidebarNav', function() {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for vulnerability search if allowed', function() {
-      expect(getShallowComponent({ isLoggedIn: true }).find('#vulnerability-navigation-button'))
-          .not.toExist();
+    it('renders an NxGlobalSidebarNavigationLink for vulnerability search if allowed', function () {
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          '#vulnerability-navigation-button'
+        )
+      ).not.toExist();
 
-      const component = getShallowComponent({ isLoggedIn: true, isLicensed: true });
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isLicensed: true,
+      });
       const navLink = component.find('#vulnerability-navigation-button');
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
@@ -149,11 +201,18 @@ describe('IqSidebarNav', function() {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for advanced search if allowed', function() {
-      expect(getShallowComponent({ isLoggedIn: true }).find('#search-navigation-button'))
-          .not.toExist();
+    it('renders an NxGlobalSidebarNavigationLink for advanced search if allowed', function () {
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          '#search-navigation-button'
+        )
+      ).not.toExist();
 
-      const component = getShallowComponent({ isLoggedIn: true, isLicensed: true, isAdvancedSearchEnabled: true });
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isLicensed: true,
+        isAdvancedSearchEnabled: true,
+      });
       const navLink = component.find('#search-navigation-button');
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
@@ -163,11 +222,18 @@ describe('IqSidebarNav', function() {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for firewalll if allowed', function() {
-      expect(getShallowComponent({ isLoggedIn: true }).find('#firewall-navigation-button'))
-          .not.toExist();
+    it('renders an NxGlobalSidebarNavigationLink for firewalll if allowed', function () {
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          '#firewall-navigation-button'
+        )
+      ).not.toExist();
 
-      const component = getShallowComponent({ isLoggedIn: true, isFirewallEnabled: true, isLicensed: true });
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isFirewallEnabled: true,
+        isLicensed: true,
+      });
       const navLink = component.find('#firewall-navigation-button');
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
@@ -177,11 +243,18 @@ describe('IqSidebarNav', function() {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for legal if allowed', function() {
-      expect(getShallowComponent({ isLoggedIn: true }).find('#advanced-legal-navigation-button'))
-          .not.toExist();
+    it('renders an NxGlobalSidebarNavigationLink for legal if allowed', function () {
+      expect(
+        getShallowComponent({ isLoggedIn: true }).find(
+          '#advanced-legal-navigation-button'
+        )
+      ).not.toExist();
 
-      const component = getShallowComponent({ isLoggedIn: true, isLicensed: true, isLegalEnabled: true });
+      const component = getShallowComponent({
+        isLoggedIn: true,
+        isLicensed: true,
+        isLegalEnabled: true,
+      });
       const navLink = component.find('#advanced-legal-navigation-button');
 
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
@@ -191,9 +264,9 @@ describe('IqSidebarNav', function() {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    describe('selected state', function() {
+    describe('selected state', function () {
       let renderAllLinks;
-      beforeEach(function() {
+      beforeEach(function () {
         renderAllLinks = enzymeUtils.getShallowComponent(IqSidebarNav, {
           isLoggedIn: true,
           isLicensed: true,
@@ -202,74 +275,119 @@ describe('IqSidebarNav', function() {
           isSuccessMetricsEnabled: true,
           isAdvancedSearchEnabled: true,
           isFirewallEnabled: true,
-          isLegalEnabled: true
+          isLegalEnabled: true,
         });
       });
 
-      it('renders Dashboard link as selected when state matches', function() {
-        includesSpy.and.callFake(state => state === 'dashboard');
-        expect(renderAllLinks().find('#dashboard-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Dashboard link as selected when state matches', function () {
+        includesSpy.and.callFake((state) => state === 'dashboard');
+        expect(
+          renderAllLinks().find('#dashboard-navigation-button')
+        ).toHaveProp('isSelected', true);
       });
 
-      it('renders Orgs and Policies link as selected when state matches', function() {
-        includesSpy.and.callFake(state => state === 'management');
-        expect(renderAllLinks().find('#policies-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Orgs and Policies link as selected when state matches', function () {
+        includesSpy.and.callFake((state) => state === 'management');
+        expect(renderAllLinks().find('#policies-navigation-button')).toHaveProp(
+          'isSelected',
+          true
+        );
       });
 
-      it('renders Reports link as selected when state matches', function() {
-        includesSpy.and.callFake(state => state === 'violations');
-        expect(renderAllLinks().find('#reporting-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Reports link as selected when state matches', function () {
+        includesSpy.and.callFake((state) => state === 'violations');
+        expect(
+          renderAllLinks().find('#reporting-navigation-button')
+        ).toHaveProp('isSelected', true);
       });
 
-      it('renders Success Metrics link as selected when state matches', function() {
-        includesSpy.and.callFake(state => state === 'labs');
-        expect(renderAllLinks().find('#labs-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Success Metrics link as selected when state matches', function () {
+        includesSpy.and.callFake((state) => state === 'labs');
+        expect(renderAllLinks().find('#labs-navigation-button')).toHaveProp(
+          'isSelected',
+          true
+        );
       });
 
-      it('renders Vulnerability Search link as selected when the state matches vulnerabilitySearch', function() {
-        includesSpy.and.callFake(state => state === 'vulnerabilitySearch');
-        expect(renderAllLinks().find('#vulnerability-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Vulnerability Search link as selected when the state matches vulnerabilitySearch', function () {
+        includesSpy.and.callFake((state) => state === 'vulnerabilitySearch');
+        expect(
+          renderAllLinks().find('#vulnerability-navigation-button')
+        ).toHaveProp('isSelected', true);
       });
 
-      it('renders Vulnerability Search link as selected when the state matches vulnerabilitySearchDetail', function() {
-        includesSpy.and.callFake(state => state === 'vulnerabilitySearchDetail');
-        expect(renderAllLinks().find('#vulnerability-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Vulnerability Search link as selected when the state matches vulnerabilitySearchDetail', function () {
+        includesSpy.and.callFake(
+          (state) => state === 'vulnerabilitySearchDetail'
+        );
+        expect(
+          renderAllLinks().find('#vulnerability-navigation-button')
+        ).toHaveProp('isSelected', true);
       });
 
-      it('renders Advanced Search link as selected when the state matches', function() {
-        includesSpy.and.callFake(state => state === 'advancedSearch');
-        expect(renderAllLinks().find('#search-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Advanced Search link as selected when the state matches', function () {
+        includesSpy.and.callFake((state) => state === 'advancedSearch');
+        expect(renderAllLinks().find('#search-navigation-button')).toHaveProp(
+          'isSelected',
+          true
+        );
       });
 
-      it('renders Firewall link as selected when the state matches firewall', function() {
-        includesSpy.and.callFake(state => state === 'firewall');
-        expect(renderAllLinks().find('#firewall-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Firewall link as selected when the state matches firewall', function () {
+        includesSpy.and.callFake((state) => state === 'firewall');
+        expect(renderAllLinks().find('#firewall-navigation-button')).toHaveProp(
+          'isSelected',
+          true
+        );
       });
 
-      it('renders Firewall link as selected when the state matches firewallAutoUnquarantine', function() {
-        includesSpy.and.callFake(state => state === 'firewallAutoUnquarantine');
-        expect(renderAllLinks().find('#firewall-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Firewall link as selected when the state matches firewallAutoUnquarantine', function () {
+        includesSpy.and.callFake(
+          (state) => state === 'firewallAutoUnquarantine'
+        );
+        expect(renderAllLinks().find('#firewall-navigation-button')).toHaveProp(
+          'isSelected',
+          true
+        );
       });
 
-      it('renders Legal link as selected when the state matches', function() {
-        includesSpy.and.callFake(state => state === 'legalDashboard');
-        expect(renderAllLinks().find('#advanced-legal-navigation-button')).toHaveProp('isSelected', true);
+      it('renders Legal link as selected when the state matches', function () {
+        includesSpy.and.callFake((state) => state === 'legalDashboard');
+        expect(
+          renderAllLinks().find('#advanced-legal-navigation-button')
+        ).toHaveProp('isSelected', true);
       });
     });
   });
 
-  describe('product logo handling', function() {
-    it('gets product logo using to the supplied productEdiction prop', function() {
-      expect(getShallowComponent({ productEdition: 'Firewall' })).toHaveProp('logoImg', 'images/nexus_firewall.svg');
-      expect(getShallowComponent({ productEdition: 'Lifecycle' })).toHaveProp('logoImg', 'images/nexus_lifecycle.svg');
-      expect(getShallowComponent({ productEdition: 'Lifecycle Foundation' }))
-          .toHaveProp('logoImg', 'images/nexus_lifecycle.svg');
-      expect(getShallowComponent({ productEdition: 'Auditor' })).toHaveProp('logoImg', 'images/nexus_auditor.svg');
+  describe('product logo handling', function () {
+    it('gets product logo using to the supplied productEdiction prop', function () {
+      expect(getShallowComponent({ productEdition: 'Firewall' })).toHaveProp(
+        'logoImg',
+        'images/nexus_firewall.svg'
+      );
+      expect(getShallowComponent({ productEdition: 'Lifecycle' })).toHaveProp(
+        'logoImg',
+        'images/nexus_lifecycle.svg'
+      );
+      expect(
+        getShallowComponent({ productEdition: 'Lifecycle Foundation' })
+      ).toHaveProp('logoImg', 'images/nexus_lifecycle.svg');
+      expect(getShallowComponent({ productEdition: 'Auditor' })).toHaveProp(
+        'logoImg',
+        'images/nexus_auditor.svg'
+      );
     });
 
-    it('gets a default logo if the supplied productEdition is not a known product', function() {
-      expect(getShallowComponent()).toHaveProp('logoImg', 'images/sonatype.svg');
-      expect(getShallowComponent({ productEdition: 'whatever' })).toHaveProp('logoImg', 'images/sonatype.svg');
+    it('gets a default logo if the supplied productEdition is not a known product', function () {
+      expect(getShallowComponent()).toHaveProp(
+        'logoImg',
+        'images/sonatype.svg'
+      );
+      expect(getShallowComponent({ productEdition: 'whatever' })).toHaveProp(
+        'logoImg',
+        'images/sonatype.svg'
+      );
     });
   });
 });

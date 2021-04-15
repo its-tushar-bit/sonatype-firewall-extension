@@ -6,14 +6,19 @@
     <h4 class="iq-list__title">Best Match</h4>
     <ul>
       <li id="cip-most-similar-component" class="iq-list__item">
-        <component-display component="vm.mostSimilarComponent"></component-display>
+        <component-display
+          component="vm.mostSimilarComponent"
+        ></component-display>
       </li>
     </ul>
   </div>
   <div ng-if="vm.otherSimilarComponents.length > 0" class="iq-list">
     <h4 class="iq-list__title">Other Matches</h4>
     <ul id="cip-other-similar-components">
-      <li ng-repeat="component in vm.otherSimilarComponents" class="iq-list__item">
+      <li
+        ng-repeat="component in vm.otherSimilarComponents"
+        class="iq-list__item"
+      >
         <component-display component="component"></component-display>
       </li>
     </ul>

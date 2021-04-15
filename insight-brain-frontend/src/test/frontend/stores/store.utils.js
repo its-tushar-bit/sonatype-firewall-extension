@@ -3,10 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-window.StoreUtils = function() {
+window.StoreUtils = function () {
   var me = {
     createMockStore: createMockStore,
-    createMockHierarchyStoreData: createMockHierarchyStoreData
+    createMockHierarchyStoreData: createMockHierarchyStoreData,
   };
 
   function createMockStore(storeName) {
@@ -15,9 +15,9 @@ window.StoreUtils = function() {
 
   function MockStore(storeName) {
     var promises,
-        me = this,
-        store,
-        $q;
+      me = this,
+      store,
+      $q;
 
     me.resolveGet = resolvePromise('get');
     me.rejectGet = rejectPromise('get');
@@ -34,7 +34,9 @@ window.StoreUtils = function() {
     me.resolveRemove = resolvePromise('remove');
 
     beforeEach(inject([
-      storeName, '$q', function(_store_, _$q_) {
+      storeName,
+      '$q',
+      function (_store_, _$q_) {
         store = _store_;
         $q = _$q_;
         promises = {
@@ -44,7 +46,7 @@ window.StoreUtils = function() {
           getApplied: $q.defer(),
           save: $q.defer(),
           remove: $q.defer(),
-          refresh: $q.defer()
+          refresh: $q.defer(),
         };
 
         for (var key in promises) {
@@ -55,13 +57,13 @@ window.StoreUtils = function() {
             }
           }
         }
-      }
+      },
     ]));
 
     function resolvePromise(promiseName) {
-      return function(value) {
+      return function (value) {
         if (!promises) {
-          throw 'Promises not defined. Make sure to call resolve in an \'it\'';
+          throw "Promises not defined. Make sure to call resolve in an 'it'";
         }
 
         expect(promises[promiseName].promise.then).toHaveBeenCalled();
@@ -71,9 +73,9 @@ window.StoreUtils = function() {
     }
 
     function rejectPromise(promiseName) {
-      return function(value) {
+      return function (value) {
         if (!promises) {
-          throw 'Promises not defined. Make sure to call resolve in an \'it\'';
+          throw "Promises not defined. Make sure to call resolve in an 'it'";
         }
 
         promises[promiseName].reject(value);
@@ -89,8 +91,8 @@ window.StoreUtils = function() {
   }
 
   function createMockHierarchyStoreData(data, field) {
-    data[field].forEach(function(owner) {
-      owner.store = {create: jasmine.createSpy().and.returnValue({})};
+    data[field].forEach(function (owner) {
+      owner.store = { create: jasmine.createSpy().and.returnValue({}) };
     });
 
     return data[field];

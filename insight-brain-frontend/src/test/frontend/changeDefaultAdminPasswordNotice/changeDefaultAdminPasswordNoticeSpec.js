@@ -8,9 +8,14 @@ import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/chang
 describe('changeDefaultAdminPasswordNotice component', () => {
   let vm;
 
-  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name, ($provide) => {
-    SpecUtil.mockNgRedux($provide);
-  }));
+  beforeEach(
+    angular.mock.module(
+      changeDefaultAdminPasswordNoticeModule.name,
+      ($provide) => {
+        SpecUtil.mockNgRedux($provide);
+      }
+    )
+  );
 
   beforeEach(inject(($componentController) => {
     vm = $componentController('changeDefaultAdminPasswordNotice');

@@ -5,10 +5,10 @@
  */
 /*global angular */
 export default function namePartFilter() {
-  return function(input) {
+  return function (input) {
     if (angular.isArray(input)) {
       var result = [];
-      angular.forEach(input, function(part) {
+      angular.forEach(input, function (part) {
         if (part.field) {
           result.push(part);
         }

@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function LdapServerListController(ldapStore, isAuthorized, LdapServerOrderingModal) {
+export default function LdapServerListController(
+  ldapStore,
+  isAuthorized,
+  LdapServerOrderingModal
+) {
   var vm = this;
 
   vm.doLoad = doLoad;
@@ -22,15 +26,18 @@ export default function LdapServerListController(ldapStore, isAuthorized, LdapSe
   }
 
   function handleStoreLoad(promise) {
-    promise.then(function(results) {
-      vm.ldapList = results;
-    }, function(error) {
-      vm.error = error;
-    });
+    promise.then(
+      function (results) {
+        vm.ldapList = results;
+      },
+      function (error) {
+        vm.error = error;
+      }
+    );
   }
 
   function reorder() {
-    LdapServerOrderingModal.open().then(function() {
+    LdapServerOrderingModal.open().then(function () {
       vm.ldapList = undefined;
       handleStoreLoad(ldapStore.refresh());
     });
@@ -38,5 +45,7 @@ export default function LdapServerListController(ldapStore, isAuthorized, LdapSe
 }
 
 LdapServerListController.$inject = [
-  'LdapConfigurationStore', 'isAuthorized', 'LdapServerOrderingModal'
+  'LdapConfigurationStore',
+  'isAuthorized',
+  'LdapServerOrderingModal',
 ];

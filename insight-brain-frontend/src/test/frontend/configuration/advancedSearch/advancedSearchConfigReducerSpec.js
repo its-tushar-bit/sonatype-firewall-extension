@@ -6,21 +6,21 @@
 
 import reduce from '../../../../main/frontend/configuration/advancedSearch/advancedSearchConfigReducer';
 
-describe('advancedSearchConfigReducer', function() {
+describe('advancedSearchConfigReducer', function () {
   let otherObject;
 
-  beforeEach(function() {
-    otherObject = {value: 'test value'};
+  beforeEach(function () {
+    otherObject = { value: 'test value' };
   });
 
-  describe('initial state', function() {
-    it('is used if no state is provided', function() {
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
       const action = { type: 'UNKNOWN' };
       const newState = reduce(undefined, action);
       expect(newState).not.toBeUndefined();
     });
 
-    it('has default fields', function() {
+    it('has default fields', function () {
       const action = { type: 'UNKNOWN' };
       const newState = reduce(undefined, action);
 
@@ -45,29 +45,29 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('unknown action', function() {
-    it('returns original state', function() {
-      const state = Object.freeze({foo: 'bar'});
+  describe('unknown action', function () {
+    it('returns original state', function () {
+      const state = Object.freeze({ foo: 'bar' });
       const action = {
-        type: 'UNKNOWN'
+        type: 'UNKNOWN',
       };
       const newState = reduce(state, action);
       expect(newState).toBe(state);
     });
   });
 
-  describe('ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED action', function() {
-    it('sets submitMaskState to false', function() {
+  describe('ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED action', function () {
+    it('sets submitMaskState to false', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          submitMaskState: null
-        }
+          submitMaskState: null,
+        },
       });
 
       const newState = reduce(state, {
-        type: 'ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED'
+        type: 'ADVANCED_SEARCH_CONFIG_SAVE_REQUESTED',
       });
 
       expect(newState.viewState.submitMaskState).toBe(false);
@@ -78,18 +78,18 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED action', function() {
-    it('sets submitMaskState to true', function() {
+  describe('ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED action', function () {
+    it('sets submitMaskState to true', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          submitMaskState: false
-        }
+          submitMaskState: false,
+        },
       });
 
       const newState = reduce(state, {
-        type: 'ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED'
+        type: 'ADVANCED_SEARCH_CONFIG_SAVE_FULFILLED',
       });
 
       expect(newState.viewState.submitMaskState).toBe(true);
@@ -100,19 +100,19 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_CONFIG_SAVE_FAILED action', function() {
-    it('sets submitMaskState to null', function() {
+  describe('ADVANCED_SEARCH_CONFIG_SAVE_FAILED action', function () {
+    it('sets submitMaskState to null', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          submitMaskState: true
+          submitMaskState: true,
         },
-        formState: {}
+        formState: {},
       });
 
       const newState = reduce(state, {
-        type: 'ADVANCED_SEARCH_CONFIG_SAVE_FAILED'
+        type: 'ADVANCED_SEARCH_CONFIG_SAVE_FAILED',
       });
 
       expect(newState.viewState.submitMaskState).toBeNull();
@@ -123,18 +123,18 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE action', function() {
-    it('sets submitMaskState to null', function() {
+  describe('ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE action', function () {
+    it('sets submitMaskState to null', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          submitMaskState: true
-        }
+          submitMaskState: true,
+        },
       });
 
       const newState = reduce(state, {
-        type: 'ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE'
+        type: 'ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE',
       });
 
       expect(newState.viewState.submitMaskState).toBeNull();
@@ -145,15 +145,15 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING action', function() {
-    it('sets that polling is started', function() {
+  describe('ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING action', function () {
+    it('sets that polling is started', function () {
       const state = Object.freeze({
         other: otherObject,
-        currentlyPolling: false
+        currentlyPolling: false,
       });
       const newState = reduce(state, {
         type: 'ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING',
-        payload: true
+        payload: true,
       });
       expect(newState.currentlyPolling).toBeTruthy();
       // other properties are not modified
@@ -161,17 +161,17 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_TRIGGER_RE_INDEX action', function() {
-    it('sets that a full index is triggered', function() {
+  describe('ADVANCED_SEARCH_TRIGGER_RE_INDEX action', function () {
+    it('sets that a full index is triggered', function () {
       const state = Object.freeze({
         other: otherObject,
         formState: {
           other: otherObject,
-          isFullIndexTriggered: false
-        }
+          isFullIndexTriggered: false,
+        },
       });
       const newState = reduce(state, {
-        type: 'ADVANCED_SEARCH_TRIGGER_RE_INDEX'
+        type: 'ADVANCED_SEARCH_TRIGGER_RE_INDEX',
       });
       expect(newState.formState.isFullIndexTriggered).toBeTruthy();
       // other properties are not modified
@@ -180,18 +180,18 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_RE_INDEX_FAILED action', function() {
-    it('sets the reIndexError and that a full index is not triggered', function() {
+  describe('ADVANCED_SEARCH_RE_INDEX_FAILED action', function () {
+    it('sets the reIndexError and that a full index is not triggered', function () {
       const state = Object.freeze({
         other: otherObject,
         formState: {
           other: otherObject,
-          isFullIndexTriggered: true
-        }
+          isFullIndexTriggered: true,
+        },
       });
       const newState = reduce(state, {
         type: 'ADVANCED_SEARCH_RE_INDEX_FAILED',
-        payload: 'some error'
+        payload: 'some error',
       });
       expect(newState.formState.isFullIndexTriggered).toBeFalsy();
       expect(newState.viewState.reIndexError).toBe('some error');
@@ -201,29 +201,29 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_POLL_STATE_SUCCESS action', function() {
-    it('updates the state and sets the pollError to null', function() {
+  describe('ADVANCED_SEARCH_POLL_STATE_SUCCESS action', function () {
+    it('updates the state and sets the pollError to null', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
-          pollError: 'error!'
+          pollError: 'error!',
         },
         formState: {
           isEnabled: true,
           lastIndexTime: null,
-          isFullIndexTriggered: false
+          isFullIndexTriggered: false,
         },
-        serverData: otherObject
+        serverData: otherObject,
       });
       const payload = {
         isEnabled: false,
         lastIndexTime: 'some time',
-        isFullIndexTriggered: true
+        isFullIndexTriggered: true,
       };
       const newState = reduce(state, {
         type: 'ADVANCED_SEARCH_POLL_STATE_SUCCESS',
-        payload: payload
+        payload: payload,
       });
       expect(newState.viewState.pollError).toBeNull();
       expect(newState.formState).not.toBeNull();
@@ -237,43 +237,41 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_POLL_STATE_FAILED action', function() {
-    it('updates the state, sets that a full index is not triggered, sets the pollError, and that polling is stopped',
-        function() {
-          const state = Object.freeze({
-            other: otherObject,
-            formState: {
-              other: otherObject,
-              isFullIndexTriggered: true
-            },
-            viewState: {
-              other: otherObject,
-              pollError: null
-            },
-            currentlyPolling: true
-          });
-          const newState = reduce(state, {
-            type: 'ADVANCED_SEARCH_POLL_STATE_FAILED',
-            payload: 'error!'
-          });
-          expect(newState.viewState.pollError).toBe('error!');
-          expect(newState.currentlyPolling).toBeFalsy();
-          expect(newState.formState.isFullIndexTriggered).toBeFalsy();
-          // other properties are not modified
-          expect(newState.other).toBe(otherObject);
-          expect(newState.formState.other).toBe(otherObject);
-          expect(newState.viewState.other).toBe(otherObject);
-        }
-    );
-  });
-
-  describe('ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED action', function() {
-    it('updates to the initial state', function() {
+  describe('ADVANCED_SEARCH_POLL_STATE_FAILED action', function () {
+    it('updates the state, sets that a full index is not triggered, sets the pollError, and that polling is stopped', function () {
       const state = Object.freeze({
-        other: otherObject
+        other: otherObject,
+        formState: {
+          other: otherObject,
+          isFullIndexTriggered: true,
+        },
+        viewState: {
+          other: otherObject,
+          pollError: null,
+        },
+        currentlyPolling: true,
       });
       const newState = reduce(state, {
-        type: 'ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED'
+        type: 'ADVANCED_SEARCH_POLL_STATE_FAILED',
+        payload: 'error!',
+      });
+      expect(newState.viewState.pollError).toBe('error!');
+      expect(newState.currentlyPolling).toBeFalsy();
+      expect(newState.formState.isFullIndexTriggered).toBeFalsy();
+      // other properties are not modified
+      expect(newState.other).toBe(otherObject);
+      expect(newState.formState.other).toBe(otherObject);
+      expect(newState.viewState.other).toBe(otherObject);
+    });
+  });
+
+  describe('ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED action', function () {
+    it('updates to the initial state', function () {
+      const state = Object.freeze({
+        other: otherObject,
+      });
+      const newState = reduce(state, {
+        type: 'ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED',
       });
       // formState
       expect(newState.formState.isEnabled).toBeFalsy();
@@ -294,20 +292,20 @@ describe('advancedSearchConfigReducer', function() {
       expect(newState.currentlyPolling).toBeFalsy();
     });
 
-    it('does not modify an existing currentlyPolling', function() {
+    it('does not modify an existing currentlyPolling', function () {
       const state = Object.freeze({
         other: otherObject,
-        currentlyPolling: true
+        currentlyPolling: true,
       });
       const newState = reduce(state, {
-        type: 'ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED'
+        type: 'ADVANCED_SEARCH_CONFIG_LOAD_REQUESTED',
       });
       expect(newState.currentlyPolling).toBeTruthy();
     });
   });
 
-  describe('ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED action', function() {
-    it('updates the state and sets the error to null', function() {
+  describe('ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED action', function () {
+    it('updates the state and sets the error to null', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
@@ -316,19 +314,19 @@ describe('advancedSearchConfigReducer', function() {
           loadError: 'error!',
           saveError: 'error!',
           reIndexError: 'error!',
-          pollError: 'error!'
+          pollError: 'error!',
         },
         formState: otherObject,
-        serverData: otherObject
+        serverData: otherObject,
       });
       const payload = {
         isEnabled: false,
         lastIndexTime: 'some time',
-        isFullIndexTriggered: true
+        isFullIndexTriggered: true,
       };
       const newState = reduce(state, {
         type: 'ADVANCED_SEARCH_CONFIG_LOAD_FULFILLED',
-        payload: payload
+        payload: payload,
       });
       expect(newState.viewState.loading).toBeFalsy();
       expect(newState.viewState.loadError).toBeNull();
@@ -343,19 +341,19 @@ describe('advancedSearchConfigReducer', function() {
     });
   });
 
-  describe('ADVANCED_SEARCH_CONFIG_LOAD_FAILED action', function() {
-    it('updates the state and sets the loadError to the payload', function() {
+  describe('ADVANCED_SEARCH_CONFIG_LOAD_FAILED action', function () {
+    it('updates the state and sets the loadError to the payload', function () {
       const state = Object.freeze({
         other: otherObject,
         viewState: {
           other: otherObject,
           loading: true,
-          loadError: null
-        }
+          loadError: null,
+        },
       });
       const newState = reduce(state, {
         type: 'ADVANCED_SEARCH_CONFIG_LOAD_FAILED',
-        payload: 'error!'
+        payload: 'error!',
       });
       expect(newState.viewState.loading).toBeFalsy();
       expect(newState.viewState.loadError).toBe('error!');

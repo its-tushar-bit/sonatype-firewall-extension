@@ -5,13 +5,12 @@
  */
 import unsavedChangesModalModule from '../../../main/frontend/unsavedChangesModal/module';
 
-describe('UnsavedChangesModalService', function() {
-  let $rootScope,
-      unsavedChangesModalService;
+describe('UnsavedChangesModalService', function () {
+  let $rootScope, unsavedChangesModalService;
 
   beforeEach(angular.mock.module(unsavedChangesModalModule.name));
 
-  beforeEach(inject(function(_$rootScope_, _unsavedChangesModalService_) {
+  beforeEach(inject(function (_$rootScope_, _unsavedChangesModalService_) {
     unsavedChangesModalService = _unsavedChangesModalService_;
     $rootScope = _$rootScope_;
   }));
@@ -26,14 +25,18 @@ describe('UnsavedChangesModalService', function() {
 
   it('opens the unsaved changes modal when you call open()', () => {
     unsavedChangesModalService.open();
-    expect(document.querySelector('#unsaved-changes-modal-wrapper .nx-modal')).toBeTruthy();
+    expect(
+      document.querySelector('#unsaved-changes-modal-wrapper .nx-modal')
+    ).toBeTruthy();
   });
 
   it('does not open multiple copies of the unsaved changes modal', () => {
     const promise1 = unsavedChangesModalService.open();
     const promise2 = unsavedChangesModalService.open();
     expect(promise1).toBe(promise2);
-    expect(document.querySelectorAll('#unsaved-changes-modal-wrapper').length).toEqual(1);
+    expect(
+      document.querySelectorAll('#unsaved-changes-modal-wrapper').length
+    ).toEqual(1);
     expect(document.getElementsByClassName('nx-modal').length).toEqual(1);
   });
 
@@ -42,12 +45,18 @@ describe('UnsavedChangesModalService', function() {
     const cancelSpy = jasmine.createSpy();
     unsavedChangesModalService.open().then(continueSpy).catch(cancelSpy);
 
-    const unsavedChangesModal = document.getElementById('unsaved-changes-modal-wrapper');
-    const continueButton = unsavedChangesModal.querySelector('#unsaved-changes-modal-continue-button');
+    const unsavedChangesModal = document.getElementById(
+      'unsaved-changes-modal-wrapper'
+    );
+    const continueButton = unsavedChangesModal.querySelector(
+      '#unsaved-changes-modal-continue-button'
+    );
     continueButton.click();
 
     $rootScope.$digest();
-    expect(document.getElementById('unsaved-changes-modal-wrapper')).toBeFalsy();
+    expect(
+      document.getElementById('unsaved-changes-modal-wrapper')
+    ).toBeFalsy();
     expect(document.getElementById('unsaved-changes-modal')).toBeFalsy();
     expect(continueSpy).toHaveBeenCalled();
     expect(cancelSpy).not.toHaveBeenCalled();
@@ -58,12 +67,18 @@ describe('UnsavedChangesModalService', function() {
     const cancelSpy = jasmine.createSpy();
     unsavedChangesModalService.open().then(continueSpy).catch(cancelSpy);
 
-    const unsavedChangesModal = document.getElementById('unsaved-changes-modal-wrapper');
-    const cancelButton = unsavedChangesModal.querySelector('#unsaved-changes-modal-cancel-button');
+    const unsavedChangesModal = document.getElementById(
+      'unsaved-changes-modal-wrapper'
+    );
+    const cancelButton = unsavedChangesModal.querySelector(
+      '#unsaved-changes-modal-cancel-button'
+    );
     cancelButton.click();
 
     $rootScope.$digest();
-    expect(document.getElementById('unsaved-changes-modal-wrapper')).toBeFalsy();
+    expect(
+      document.getElementById('unsaved-changes-modal-wrapper')
+    ).toBeFalsy();
     expect(document.getElementById('unsaved-changes-modal')).toBeFalsy();
     expect(continueSpy).not.toHaveBeenCalled();
     expect(cancelSpy).toHaveBeenCalled();

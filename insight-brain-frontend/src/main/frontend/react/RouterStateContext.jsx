@@ -13,6 +13,5 @@ const RouterStateContext = React.createContext({ href: () => null });
 export default RouterStateContext;
 
 export const routerPropType = PropTypes.shape({
-  href: PropTypes.func.isRequired
+  href: PropTypes.func.isRequired,
 });
-

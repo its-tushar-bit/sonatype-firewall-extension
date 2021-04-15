@@ -11,22 +11,29 @@ import {
   NxTableBody,
   NxTableCell,
   NxTableHead,
-  NxTableRow
+  NxTableRow,
 } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import LegalDashboardComponentRow from './LegalDashboardComponentRow';
 
-export default function LegalDashboardComponentsTab({ components, filtersAreDirty }) {
+export default function LegalDashboardComponentsTab({
+  components,
+  filtersAreDirty,
+}) {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 5;
   const rows = slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE, components);
 
-  const emptyMessage = 'No components found given the applied filters and permissions.';
+  const emptyMessage =
+    'No components found given the applied filters and permissions.';
 
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-      { filtersAreDirty && <div className="form-mask" /> }
-      <NxTable id="legal-dashboard-applications-table" className="legal-dashboard-table">
+      {filtersAreDirty && <div className="form-mask" />}
+      <NxTable
+        id="legal-dashboard-applications-table"
+        className="legal-dashboard-table"
+      >
         <NxTableHead>
           <NxTableRow>
             <NxTableCell>Component</NxTableCell>
@@ -36,21 +43,25 @@ export default function LegalDashboardComponentsTab({ components, filtersAreDirt
           </NxTableRow>
         </NxTableHead>
         <NxTableBody emptyMessage={emptyMessage}>
-          { rows.map((row, index) => <LegalDashboardComponentRow key = { index } row={ row } />) }
+          {rows.map((row, index) => (
+            <LegalDashboardComponentRow key={index} row={row} />
+          ))}
         </NxTableBody>
       </NxTable>
-      { components && components.length > 0 &&
+      {components && components.length > 0 && (
         <div className="nx-table-container__footer">
-          <NxPagination pageCount={Math.ceil(components.length / PAGE_SIZE)}
-                        currentPage={page}
-                        onChange={setPage}/>
+          <NxPagination
+            pageCount={Math.ceil(components.length / PAGE_SIZE)}
+            currentPage={page}
+            onChange={setPage}
+          />
         </div>
-      }
+      )}
     </div>
   );
 }
 
 LegalDashboardComponentsTab.propTypes = {
   components: PropTypes.any,
-  filtersAreDirty: PropTypes.bool
+  filtersAreDirty: PropTypes.bool,
 };

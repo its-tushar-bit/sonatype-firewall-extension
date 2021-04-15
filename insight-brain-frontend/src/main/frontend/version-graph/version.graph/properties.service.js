@@ -24,10 +24,10 @@ export default function PropertiesService(Coordinates) {
     getStageId: function () {
       return properties.stageId;
     },
-    getDependencyType: function() {
+    getDependencyType: function () {
       return properties.dependencyType;
     },
-    isInnerSource: function() {
+    isInnerSource: function () {
       return properties.innerSource;
     },
     reset: function () {
@@ -51,15 +51,15 @@ export default function PropertiesService(Coordinates) {
     setStageId: function (stageId) {
       properties.stageId = stageId;
     },
-    setDependencyType: function(dependencyType) {
+    setDependencyType: function (dependencyType) {
       properties.dependencyType = dependencyType;
     },
-    setInnerSource: function(innerSource) {
+    setInnerSource: function (innerSource) {
       properties.innerSource = innerSource;
     },
     isUnknown: function () {
       return (properties.matchState || '').toLowerCase() === 'unknown';
-    }
+    },
   };
 }
 

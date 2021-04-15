@@ -12,11 +12,13 @@ import { deleteWaiver, hideDeleteWaiverModal } from '../waiverActions';
 const mapDispatchToProps = { deleteWaiver, hideDeleteWaiverModal };
 
 const mapStateToProps = ({ deleteWaiver }) =>
-  pick([
-    'deleteWaiverSaving',
-    'deleteWaiverError',
-    'waiverToDelete'
-  ], deleteWaiver);
+  pick(
+    ['deleteWaiverSaving', 'deleteWaiverError', 'waiverToDelete'],
+    deleteWaiver
+  );
 
-const DeleteWaiverModalContainer = connect(mapStateToProps, mapDispatchToProps)(DeleteWaiverModal);
+const DeleteWaiverModalContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DeleteWaiverModal);
 export default DeleteWaiverModalContainer;

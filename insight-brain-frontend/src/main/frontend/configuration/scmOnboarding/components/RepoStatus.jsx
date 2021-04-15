@@ -5,24 +5,23 @@
  */
 
 import React from 'react';
-import {NxBinaryDonutChart} from '@sonatype/react-shared-components';
+import { NxBinaryDonutChart } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import {repositoryPropType} from '../ScmOnboarding';
+import { repositoryPropType } from '../ScmOnboarding';
 
 /*
  Component that displays the status of the import of repositories
  */
 export default function RepoStatus(props) {
-  const {
-    repositories,
-    totalRepositories
-  } = props;
+  const { repositories, totalRepositories } = props;
 
   function importPercentage() {
     if (!repositories || totalRepositories === 0) {
       return 0;
     }
-    return Math.round(((totalRepositories - repositories.length) / totalRepositories) * 100.0);
+    return Math.round(
+      ((totalRepositories - repositories.length) / totalRepositories) * 100.0
+    );
   }
 
   const repositoryCount = repositories ? repositories.length : 0;
@@ -31,15 +30,24 @@ export default function RepoStatus(props) {
   return (
     <div className="iq-scmonboarding-stats">
       <div id="iq-scmonbording-stats-repocount">
-        <span id="repository-count" className="iq-caption_text iq-scmonboarding-stats-highlight">
+        <span
+          id="repository-count"
+          className="iq-caption_text iq-scmonboarding-stats-highlight"
+        >
           {repositoryCount}
         </span>
         <span>Repositories found</span>
       </div>
       <div>
-        <NxBinaryDonutChart id="scm-imported-donut-chart" percent={importPercentage()}
-                            aria-label={`${importPercentage()}% imported`} />
-        <span id="scm-already-imported" className='iq-caption_text iq-scmonboarding-stats-highlight'>
+        <NxBinaryDonutChart
+          id="scm-imported-donut-chart"
+          percent={importPercentage()}
+          aria-label={`${importPercentage()}% imported`}
+        />
+        <span
+          id="scm-already-imported"
+          className="iq-caption_text iq-scmonboarding-stats-highlight"
+        >
           {alreadyImportedCount}
         </span>
         <span>imported</span>
@@ -50,5 +58,5 @@ export default function RepoStatus(props) {
 
 RepoStatus.propTypes = {
   repositories: PropTypes.arrayOf(PropTypes.shape(repositoryPropType)),
-  totalRepositories: PropTypes.number
+  totalRepositories: PropTypes.number,
 };

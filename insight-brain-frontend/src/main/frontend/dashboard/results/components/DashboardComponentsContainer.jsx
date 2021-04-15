@@ -16,15 +16,18 @@ function mapStateToProps({ dashboard, dashboardFilter }) {
     results: dashboard,
     filterLoading: loading,
     needsAcknowledgement,
-    filtersAreDirty
+    filtersAreDirty,
   };
 }
 
 const mapDispatchToProps = {
   loadResults,
   sortResults,
-  stateGo
+  stateGo,
 };
 
-const DashboardComponentsContainer = connect(mapStateToProps, mapDispatchToProps)(DashboardComponents);
+const DashboardComponentsContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DashboardComponents);
 export default DashboardComponentsContainer;

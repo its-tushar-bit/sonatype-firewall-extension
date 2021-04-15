@@ -17,16 +17,19 @@ import iqRenderPlottable from './iqRenderPlottable/iqRenderPlottable';
 import coverageDonut from './coverageDonut';
 import externalLink from './externalLink/externalLink';
 
-export default angular.module('components', [utilityModule.name, utilityDirectivesModule.name])
-    .component('iqCheckbox', iqCheckbox)
-    .component('iqRadio', iqRadio)
-    .component('iqBackButton', iqBackButton)
-    .component('iqPolicyThreatLevelSlider', iqPolicyThreatLevelSlider)
-    .component('iqTreeViewMultiSelect', iqTreeViewMultiSelect)
-    .component('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
-    .component('iqTreeViewPolicyThreatLevelSlider', iqTreeViewPolicyThreatLevelSlider)
-    .component('iqOrgAppPickerAngular', iqOrgAppPickerAngular)
-    .component('externalLink', externalLink)
-    .directive('iqRenderPlottable', iqRenderPlottable)
-    .directive('coverageDonut', coverageDonut)
-;
+export default angular
+  .module('components', [utilityModule.name, utilityDirectivesModule.name])
+  .component('iqCheckbox', iqCheckbox)
+  .component('iqRadio', iqRadio)
+  .component('iqBackButton', iqBackButton)
+  .component('iqPolicyThreatLevelSlider', iqPolicyThreatLevelSlider)
+  .component('iqTreeViewMultiSelect', iqTreeViewMultiSelect)
+  .component('iqTreeViewRadioSelect', iqTreeViewRadioSelect)
+  .component(
+    'iqTreeViewPolicyThreatLevelSlider',
+    iqTreeViewPolicyThreatLevelSlider
+  )
+  .component('iqOrgAppPickerAngular', iqOrgAppPickerAngular)
+  .component('externalLink', externalLink)
+  .directive('iqRenderPlottable', iqRenderPlottable)
+  .directive('coverageDonut', coverageDonut);

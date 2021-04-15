@@ -21,7 +21,7 @@ import {
   ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE,
   ADVANCED_SEARCH_POLL_STATE_SUCCESS,
   ADVANCED_SEARCH_POLL_STATE_FAILED,
-  ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING
+  ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING,
 } from './advancedSearchConfigActions';
 
 const initialState = Object.freeze({
@@ -30,7 +30,7 @@ const initialState = Object.freeze({
   formState: {
     isEnabled: false,
     lastIndexTime: null,
-    isFullIndexTriggered: false
+    isFullIndexTriggered: false,
   },
   // Everything but data. State of the view.
   // Is the page being loaded? Is the submitMask being shown?
@@ -42,20 +42,23 @@ const initialState = Object.freeze({
     pollError: null,
     submitMaskState: null,
     submitMaskMessage: null,
-    isDirty: false
+    isDirty: false,
   },
   // State of data in server side.
   // Same shape with formState.
   serverData: null,
-  currentlyPolling: false
+  currentlyPolling: false,
 });
 
-const clearedErrors = pick(['loadError', 'saveError', 'reIndexError', 'pollError'], initialState.viewState);
+const clearedErrors = pick(
+  ['loadError', 'saveError', 'reIndexError', 'pollError'],
+  initialState.viewState
+);
 
 function loadRequested(payload, state) {
   return {
     ...initialState,
-    currentlyPolling: state.currentlyPolling
+    currentlyPolling: state.currentlyPolling,
   };
 }
 
@@ -65,10 +68,10 @@ function loadFulfilled(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      ...clearedErrors
+      ...clearedErrors,
     },
     formState: payload,
-    serverData: payload
+    serverData: payload,
   };
 }
 
@@ -78,8 +81,8 @@ function loadFailed(payload, state) {
     viewState: {
       ...state.viewState,
       loading: false,
-      loadError: payload
-    }
+      loadError: payload,
+    },
   };
 }
 
@@ -90,8 +93,8 @@ function saveRequested(payload, state) {
       ...state.viewState,
       submitMaskState: false,
       submitMaskMessage: 'Saving',
-      ...clearedErrors
-    }
+      ...clearedErrors,
+    },
   };
 }
 
@@ -102,9 +105,9 @@ function saveFulfilled(payload, state) {
       ...state.viewState,
       submitMaskState: true,
       isDirty: false,
-      ...clearedErrors
+      ...clearedErrors,
     },
-    serverData: state.formState
+    serverData: state.formState,
   };
 }
 
@@ -114,12 +117,12 @@ function saveFailed(payload, state) {
     viewState: {
       ...state.viewState,
       saveError: payload,
-      submitMaskState: null
+      submitMaskState: null,
     },
     formState: {
       ...state.formState,
-      isEnabled: !state.formState.isEnabled
-    }
+      isEnabled: !state.formState.isEnabled,
+    },
   };
 }
 
@@ -132,8 +135,8 @@ function setIsAdvancedSearchEnabled(payload, state) {
     ...state,
     formState: {
       ...state.formState,
-      isEnabled: !state.formState.isEnabled
-    }
+      isEnabled: !state.formState.isEnabled,
+    },
   });
 }
 
@@ -142,12 +145,12 @@ function triggerReIndex(payload, state) {
     ...state,
     formState: {
       ...state.formState,
-      isFullIndexTriggered: true
+      isFullIndexTriggered: true,
     },
     viewState: {
       ...state.viewState,
-      ...clearedErrors
-    }
+      ...clearedErrors,
+    },
   };
 }
 
@@ -156,12 +159,12 @@ function advancedSearchReIndexFailed(payload, state) {
     ...state,
     formState: {
       ...state.formState,
-      isFullIndexTriggered: false
+      isFullIndexTriggered: false,
     },
     viewState: {
       ...state.viewState,
-      reIndexError: payload
-    }
+      reIndexError: payload,
+    },
   };
 }
 
@@ -170,8 +173,8 @@ function isDirty(state) {
     ...state,
     viewState: {
       ...state.viewState,
-      isDirty: state.formState.isEnabled !== state.serverData.isEnabled
-    }
+      isDirty: state.formState.isEnabled !== state.serverData.isEnabled,
+    },
   };
 }
 
@@ -181,8 +184,8 @@ function resetForm(payload, state) {
     formState: state.serverData,
     viewState: {
       ...state.viewState,
-      isDirty: false
-    }
+      isDirty: false,
+    },
   };
 }
 
@@ -191,14 +194,14 @@ function pollStateSuccess(payload, state) {
     ...state,
     viewState: {
       ...state.viewState,
-      pollError: null
+      pollError: null,
     },
     formState: {
       ...state.formState,
       lastIndexTime: payload.lastIndexTime,
-      isFullIndexTriggered: payload.isFullIndexTriggered
+      isFullIndexTriggered: payload.isFullIndexTriggered,
     },
-    serverData: payload
+    serverData: payload,
   };
 }
 
@@ -207,20 +210,20 @@ function pollStateFailed(payload, state) {
     ...state,
     formState: {
       ...state.formState,
-      isFullIndexTriggered: false
+      isFullIndexTriggered: false,
     },
     viewState: {
       ...state.viewState,
-      pollError: payload
+      pollError: payload,
     },
-    currentlyPolling: false
+    currentlyPolling: false,
   };
 }
 
 function updateCurrentlyPolling(payload, state) {
   return {
     ...state,
-    currentlyPolling: payload
+    currentlyPolling: payload,
   };
 }
 
@@ -238,7 +241,7 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_CONFIG_SAVE_SUBMIT_MASK_TIMER_DONE]: resetSubmitMaskState,
   [ADVANCED_SEARCH_POLL_STATE_SUCCESS]: pollStateSuccess,
   [ADVANCED_SEARCH_POLL_STATE_FAILED]: pollStateFailed,
-  [ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING]: updateCurrentlyPolling
+  [ADVANCED_SEARCH_UPDATE_CURRENTLY_POLLING]: updateCurrentlyPolling,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

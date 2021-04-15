@@ -5,9 +5,8 @@
  */
 import template from './evaluate.application.modal.html';
 
-export default
-function EvaluateApplicationModalService(Modal) {
-  return {open: openModal};
+export default function EvaluateApplicationModalService(Modal) {
+  return { open: openModal };
 
   function openModal(selectedApplication) {
     return Modal.open({
@@ -16,10 +15,10 @@ function EvaluateApplicationModalService(Modal) {
       template,
       controller: 'evaluate.application.modal.controller as vm',
       resolve: {
-        selectedApplication: function() {
+        selectedApplication: function () {
           return selectedApplication;
-        }
-      }
+        },
+      },
     }).result;
   }
 }

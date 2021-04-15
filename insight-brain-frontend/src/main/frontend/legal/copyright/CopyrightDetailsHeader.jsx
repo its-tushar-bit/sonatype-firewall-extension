@@ -21,16 +21,19 @@ export default function CopyrightDetailsHeader(props) {
     copyrightIndex,
     $state,
 
-    loadComponentAndCopyrightDetails
+    loadComponentAndCopyrightDetails,
   } = props;
 
   const backUrl = () => {
-    const state = ownerType === 'organization'
-      ? 'organizationComponentLegalOverview'
-      : 'applicationComponentLegalOverview';
+    const state =
+      ownerType === 'organization'
+        ? 'organizationComponentLegalOverview'
+        : 'applicationComponentLegalOverview';
     const params = {
-      [ownerType === 'organization' ? 'organizationId' : 'applicationPublicId']: ownerId,
-      'hash': hash
+      [ownerType === 'organization'
+        ? 'organizationId'
+        : 'applicationPublicId']: ownerId,
+      hash: hash,
     };
     return $state.href($state.get(state), params);
   };
@@ -41,17 +44,15 @@ export default function CopyrightDetailsHeader(props) {
 
   useEffect(load, [ownerType, ownerId, hash, copyrightIndex]);
 
-  return <LoadWrapper loading={loading}
-                      error={error}
-                      retryHandler={load}>
-    <NxBackButton href={backUrl()} targetPageTitle='Component Obligations'/>
-    <div className="nx-page-title">
-      <h1 className="nx-h1">
-        Copyrights
-      </h1>
-      {createSubtitle(availableScopes)}
-    </div>
-  </LoadWrapper>;
+  return (
+    <LoadWrapper loading={loading} error={error} retryHandler={load}>
+      <NxBackButton href={backUrl()} targetPageTitle="Component Obligations" />
+      <div className="nx-page-title">
+        <h1 className="nx-h1">Copyrights</h1>
+        {createSubtitle(availableScopes)}
+      </div>
+    </LoadWrapper>
+  );
 }
 
 CopyrightDetailsHeader.propTypes = {
@@ -64,5 +65,5 @@ CopyrightDetailsHeader.propTypes = {
   availableScopes: availableScopesPropType,
   $state: PropTypes.object.isRequired,
 
-  loadComponentAndCopyrightDetails: PropTypes.func.isRequired
+  loadComponentAndCopyrightDetails: PropTypes.func.isRequired,
 };

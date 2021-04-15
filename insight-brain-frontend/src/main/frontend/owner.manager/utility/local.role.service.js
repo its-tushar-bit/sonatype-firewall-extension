@@ -6,27 +6,25 @@
 export default function LocalRoleService() {
   return {
     getRolesWithLocalMembers: getRolesWithLocalMembers,
-    getRolesWithoutLocalMembers: getRolesWithoutLocalMembers
+    getRolesWithoutLocalMembers: getRolesWithoutLocalMembers,
   };
 
   function getRolesWithLocalMembers(membersByRoles) {
     if (membersByRoles) {
-      return membersByRoles.filter(function(membersByRole) {
+      return membersByRoles.filter(function (membersByRole) {
         return membersByRole.membersByOwner[0].members.length > 0;
       });
-    }
-    else {
+    } else {
       return [];
     }
   }
 
   function getRolesWithoutLocalMembers(membersByRoles) {
     if (membersByRoles) {
-      return membersByRoles.filter(function(membersByRole) {
+      return membersByRoles.filter(function (membersByRole) {
         return membersByRole.membersByOwner[0].members.length === 0;
       });
-    }
-    else {
+    } else {
       return [];
     }
   }

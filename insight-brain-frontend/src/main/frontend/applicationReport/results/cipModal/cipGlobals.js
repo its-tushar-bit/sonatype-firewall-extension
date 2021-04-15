@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import {toURIParams} from '../../../util/urlUtil';
+import { toURIParams } from '../../../util/urlUtil';
 
 window.CLM = {
   path: '../',
-  assetsPath: '../assets/'
+  assetsPath: '../assets/',
 };
 
 // CIP config
@@ -19,25 +19,86 @@ window.clmEndpoint = {
   openView: angular.noop,
   linkTarget: '_blank',
   path: window.CLM.assetsPath + '/version-graph/',
-  canAddProprietary: true
+  canAddProprietary: true,
 };
 
 window.Brain = {
   // used by Component Info tab
   ci: {
-    getComponentListUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname,
-                        identificationSource, scanId, stageId, dependencyType) {
-      const url = window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId) +
-          '/allVersions';
-      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname,
-          identificationSource, scanId, stageId, dependencyType);
+    getComponentListUrl(
+      ownerType,
+      ownerId,
+      componentType,
+      hash,
+      matchState,
+      proprietary,
+      coordinates,
+      pathname,
+      identificationSource,
+      scanId,
+      stageId,
+      dependencyType
+    ) {
+      const url =
+        window.CLM.path +
+        'rest/ci/componentDetails/' +
+        ownerType +
+        '/' +
+        encodeURIComponent(ownerId) +
+        '/allVersions';
+      return (
+        url +
+        '?' +
+        toParams(
+          componentType,
+          hash,
+          matchState,
+          proprietary,
+          coordinates,
+          pathname,
+          identificationSource,
+          scanId,
+          stageId,
+          dependencyType
+        )
+      );
     },
-    getComponentUrl(ownerType, ownerId, componentType, hash, matchState, proprietary, coordinates, pathname,
-                    identificationSource, scanId, dependencyType) {
-      const url = window.CLM.path + 'rest/ci/componentDetails/' + ownerType + '/' + encodeURIComponent(ownerId);
-      return url + '?' + toParams(componentType, hash, matchState, proprietary, coordinates, pathname,
-          identificationSource, scanId, undefined, dependencyType);
-    }
+    getComponentUrl(
+      ownerType,
+      ownerId,
+      componentType,
+      hash,
+      matchState,
+      proprietary,
+      coordinates,
+      pathname,
+      identificationSource,
+      scanId,
+      dependencyType
+    ) {
+      const url =
+        window.CLM.path +
+        'rest/ci/componentDetails/' +
+        ownerType +
+        '/' +
+        encodeURIComponent(ownerId);
+      return (
+        url +
+        '?' +
+        toParams(
+          componentType,
+          hash,
+          matchState,
+          proprietary,
+          coordinates,
+          pathname,
+          identificationSource,
+          scanId,
+          undefined,
+          dependencyType
+        )
+      );
+    },
   },
 
   /**
@@ -45,10 +106,23 @@ window.Brain = {
    *
    * @since 1.66.0
    */
-  getSuggestedRemediationUrlForApplication: function (internalApplicationId, identificationSource, scanId) {
-    let url = window.CLM.path + 'api/v2/components/remediation/application/' +
-        encodeURIComponent(internalApplicationId);
-    return url + '?' + toURIParams({identificationSource: identificationSource, scanId: scanId});
+  getSuggestedRemediationUrlForApplication: function (
+    internalApplicationId,
+    identificationSource,
+    scanId
+  ) {
+    let url =
+      window.CLM.path +
+      'api/v2/components/remediation/application/' +
+      encodeURIComponent(internalApplicationId);
+    return (
+      url +
+      '?' +
+      toURIParams({
+        identificationSource: identificationSource,
+        scanId: scanId,
+      })
+    );
   },
 
   /**
@@ -57,13 +131,28 @@ window.Brain = {
    * @since 1.66.0
    */
   getInternalApplicationIdUrlForApplicationId: function (applicationId) {
-    return window.CLM.path + 'api/v2/applications?publicId=' + encodeURIComponent(applicationId);
-  }
+    return (
+      window.CLM.path +
+      'api/v2/applications?publicId=' +
+      encodeURIComponent(applicationId)
+    );
+  },
 };
 
-function toParams(componentType, hash, matchState, proprietary, coordinates, pathname, identificationSource, scanId,
-                  stageId, dependencyType) {
-  const componentIdentifier = coordinates && JSON.stringify({ format: componentType, coordinates });
+function toParams(
+  componentType,
+  hash,
+  matchState,
+  proprietary,
+  coordinates,
+  pathname,
+  identificationSource,
+  scanId,
+  stageId,
+  dependencyType
+) {
+  const componentIdentifier =
+    coordinates && JSON.stringify({ format: componentType, coordinates });
   return toURIParams({
     componentIdentifier,
     hash,
@@ -73,6 +162,6 @@ function toParams(componentType, hash, matchState, proprietary, coordinates, pat
     identificationSource,
     scanId,
     stageId,
-    dependencyType
+    dependencyType,
   });
 }

@@ -5,19 +5,24 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import LicensesModal from '../../../../../main/frontend/legal/files/licenses/LicensesModal';
-import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxForm,
+  NxTextInput,
+  NxToggle,
+} from '@sonatype/react-shared-components';
 
-describe('LicensesModal', function() {
+describe('LicensesModal', function () {
   let getShallowComponent,
-      minimalProps,
-      cancelLicensesModalSpy,
-      setLicenseContentSpy,
-      setLicenseStatusSpy,
-      addLicenseSpy,
-      setLicensesScopeSpy,
-      saveLicensesSpy;
+    minimalProps,
+    cancelLicensesModalSpy,
+    setLicenseContentSpy,
+    setLicenseStatusSpy,
+    addLicenseSpy,
+    setLicensesScopeSpy,
+    saveLicensesSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     cancelLicensesModalSpy = jasmine.createSpy('cancelLicensesModalSpy');
     setLicenseContentSpy = jasmine.createSpy('setLicenseContentSpy');
     setLicenseStatusSpy = jasmine.createSpy('setLicenseStatusSpy');
@@ -37,8 +42,12 @@ describe('LicensesModal', function() {
         values: [
           { id: 'appId', name: 'app', label: 'Application' },
           { id: 'orgId', name: 'org', label: 'Organization' },
-          { id: 'ROOT_ORGANIZATION_ID', name: 'Root Organization', label: 'Organization' }
-        ]
+          {
+            id: 'ROOT_ORGANIZATION_ID',
+            name: 'Root Organization',
+            label: 'Organization',
+          },
+        ],
       },
       licenses: [
         {
@@ -49,7 +58,7 @@ describe('LicensesModal', function() {
           content: 'content1',
           originalStatus: 'enabled',
           status: 'enabled',
-          isPristine: true
+          isPristine: true,
         },
         {
           id: null,
@@ -59,22 +68,25 @@ describe('LicensesModal', function() {
           content: '',
           originalStatus: 'disabled',
           status: 'disabled',
-          isPristine: false
-        }
+          isPristine: false,
+        },
       ],
       error: 'error',
-      submitMaskState: 'submitMaskState'
+      submitMaskState: 'submitMaskState',
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(LicensesModal, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      LicensesModal,
+      minimalProps
+    );
   });
 
-  it('renders no license texts found if there are no licenses', function() {
+  it('renders no license texts found if there are no licenses', function () {
     const wrapper = getShallowComponent({ licenses: [] });
     const noLicenseTextsRow = wrapper.find('tbody tr');
     expect(noLicenseTextsRow).toHaveText('No license texts found');
   });
 
-  it('renders license contents', function() {
+  it('renders license contents', function () {
     const wrapper = getShallowComponent();
     const licenseContents = wrapper.find(NxTextInput);
     expect(licenseContents.length).toBe(2);
@@ -86,16 +98,22 @@ describe('LicensesModal', function() {
     expect(licenseContents.at(1).prop('isPristine')).toBeFalsy();
   });
 
-  it('sets a license content to the input value when typed', function() {
+  it('sets a license content to the input value when typed', function () {
     const wrapper = getShallowComponent();
     const licenseContents = wrapper.find(NxTextInput);
     licenseContents.at(0).simulate('change', '');
-    expect(setLicenseContentSpy.calls.mostRecent().args[0]).toEqual({ index: 0, value: '' });
+    expect(setLicenseContentSpy.calls.mostRecent().args[0]).toEqual({
+      index: 0,
+      value: '',
+    });
     licenseContents.at(1).simulate('change', 'content2');
-    expect(setLicenseContentSpy.calls.mostRecent().args[0]).toEqual({ index: 1, value: 'content2' });
+    expect(setLicenseContentSpy.calls.mostRecent().args[0]).toEqual({
+      index: 1,
+      value: 'content2',
+    });
   });
 
-  it('renders license statuses', function() {
+  it('renders license statuses', function () {
     const wrapper = getShallowComponent();
     const licenseStatuses = wrapper.find(NxToggle);
     expect(licenseStatuses.length).toBe(2);
@@ -105,30 +123,36 @@ describe('LicensesModal', function() {
     expect(licenseStatuses.at(1)).toHaveText('Excluded');
   });
 
-  it('sets a license status to its opposite value when the toggle is clicked', function() {
+  it('sets a license status to its opposite value when the toggle is clicked', function () {
     const wrapper = getShallowComponent();
     const licenseStatuses = wrapper.find(NxToggle);
     licenseStatuses.at(0).simulate('change');
-    expect(setLicenseStatusSpy.calls.mostRecent().args[0]).toEqual({ index: 0, value: 'disabled' });
+    expect(setLicenseStatusSpy.calls.mostRecent().args[0]).toEqual({
+      index: 0,
+      value: 'disabled',
+    });
     licenseStatuses.at(1).simulate('change');
-    expect(setLicenseStatusSpy.calls.mostRecent().args[0]).toEqual({ index: 1, value: 'enabled' });
+    expect(setLicenseStatusSpy.calls.mostRecent().args[0]).toEqual({
+      index: 1,
+      value: 'enabled',
+    });
   });
 
-  it('adds a license when the add license button is clicked', function() {
+  it('adds a license when the add license button is clicked', function () {
     const wrapper = getShallowComponent();
     const addLicenseButton = wrapper.find(NxButton);
     addLicenseButton.simulate('click');
     expect(addLicenseSpy).toHaveBeenCalled();
   });
 
-  it('selects the given licenses scope', function() {
+  it('selects the given licenses scope', function () {
     const wrapper = getShallowComponent();
     const licensesScope = wrapper.find('select');
     expect(licensesScope.length).toBe(1);
     expect(licensesScope.at(0).prop('value')).toEqual('ROOT_ORGANIZATION_ID');
   });
 
-  it('has the licenses scope options', function() {
+  it('has the licenses scope options', function () {
     const wrapper = getShallowComponent();
     const licensesScopeOptions = wrapper.find('option');
     expect(licensesScopeOptions.length).toBe(3);
@@ -136,18 +160,22 @@ describe('LicensesModal', function() {
     expect(licensesScopeOptions.at(0)).toHaveText('Application - app');
     expect(licensesScopeOptions.at(1).prop('value')).toEqual('orgId');
     expect(licensesScopeOptions.at(1)).toHaveText('Organization - org');
-    expect(licensesScopeOptions.at(2).prop('value')).toEqual('ROOT_ORGANIZATION_ID');
-    expect(licensesScopeOptions.at(2)).toHaveText('Organization - Root Organization');
+    expect(licensesScopeOptions.at(2).prop('value')).toEqual(
+      'ROOT_ORGANIZATION_ID'
+    );
+    expect(licensesScopeOptions.at(2)).toHaveText(
+      'Organization - Root Organization'
+    );
   });
 
-  it('sets the licenses scope to the selected value when changed', function() {
+  it('sets the licenses scope to the selected value when changed', function () {
     const wrapper = getShallowComponent();
     const licensesScope = wrapper.find('select');
     licensesScope.simulate('change', { currentTarget: { value: 'appId' } });
     expect(setLicensesScopeSpy).toHaveBeenCalledWith('appId');
   });
 
-  it('has a validation error if a custom license has no content', function() {
+  it('has a validation error if a custom license has no content', function () {
     const wrapper = getShallowComponent({
       licenses: [
         ...minimalProps.licenses,
@@ -157,15 +185,17 @@ describe('LicensesModal', function() {
           originalContent: '',
           content: '',
           status: 'disabled',
-          isPristine: true
-        }
-      ]
+          isPristine: true,
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
-    expect(form.prop('validationErrors')).toBe('A custom license must have text.');
+    expect(form.prop('validationErrors')).toBe(
+      'A custom license must have text.'
+    );
   });
 
-  it('has a validation error if there has been no changes', function() {
+  it('has a validation error if there has been no changes', function () {
     const wrapper = getShallowComponent({
       licenses: [
         {
@@ -176,21 +206,23 @@ describe('LicensesModal', function() {
           content: 'content1',
           originalStatus: 'enabled',
           status: 'enabled',
-          isPristine: true
-        }
-      ]
+          isPristine: true,
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
-    expect(form.prop('validationErrors')).toBe('Must add a new license or change the content or status of a license.');
+    expect(form.prop('validationErrors')).toBe(
+      'Must add a new license or change the content or status of a license.'
+    );
   });
 
-  it('has no validation error if the scope has changed', function() {
+  it('has no validation error if the scope has changed', function () {
     const wrapper = getShallowComponent({ scope: 'appId' });
     const form = wrapper.find(NxForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
-  it('has no validation error if a custom license was added with content', function() {
+  it('has no validation error if a custom license was added with content', function () {
     const wrapper = getShallowComponent({
       licenses: [
         {
@@ -199,15 +231,15 @@ describe('LicensesModal', function() {
           originalContent: '',
           content: 'content',
           originalStatus: 'enabled',
-          status: 'enabled'
-        }
-      ]
+          status: 'enabled',
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
-  it('has no validation error if the content has changed', function() {
+  it('has no validation error if the content has changed', function () {
     const wrapper = getShallowComponent({
       licenses: [
         {
@@ -217,15 +249,15 @@ describe('LicensesModal', function() {
           originalContent: 'content1',
           content: 'updatedContent1',
           originalStatus: 'enabled',
-          status: 'enabled'
-        }
-      ]
+          status: 'enabled',
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
     expect(form.prop('validationErrors')).toBeUndefined();
   });
 
-  it('has no validation error if the status has changed', function() {
+  it('has no validation error if the status has changed', function () {
     const wrapper = getShallowComponent({
       licenses: [
         {
@@ -235,9 +267,9 @@ describe('LicensesModal', function() {
           originalContent: 'content1',
           content: 'content1',
           originalStatus: 'enabled',
-          status: 'disabled'
-        }
-      ]
+          status: 'disabled',
+        },
+      ],
     });
     const form = wrapper.find(NxForm);
     expect(form.prop('validationErrors')).toBeUndefined();

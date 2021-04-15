@@ -14,48 +14,56 @@ import {
   NxTableBody,
   NxTableCell,
   NxTableHead,
-  NxTableRow
+  NxTableRow,
 } from '@sonatype/react-shared-components';
 import moment from 'moment';
 import ComponentDisplay from '../../../main/frontend/ComponentDisplay/ReactComponentDisplay';
 import NxExternalLink from '../../../main/frontend/react/NxExternalLink';
 
-describe('ListWaiversTable', function() {
+describe('ListWaiversTable', function () {
   let minimalProps,
-      ListWaiversTable,
-      violationDetailsMock,
-      getShallowComponent,
-      setWaiverToDeleteSpy;
+    ListWaiversTable,
+    violationDetailsMock,
+    getShallowComponent,
+    setWaiverToDeleteSpy;
 
-  beforeEach(function() {
+  beforeEach(function () {
     setWaiverToDeleteSpy = jasmine.createSpy('setWaiverToDelete');
-    ListWaiversTable = require('inject-loader!../../../main/frontend/waivers/ListWaiversTable')().default;
+    ListWaiversTable = require('inject-loader!../../../main/frontend/waivers/ListWaiversTable')()
+      .default;
 
     violationDetailsMock = {
       filename: 'filename',
-      constraintViolations: [{
-        constraintName: 'constraint name',
-        reasons: [{
-          reason: 'reason',
-          reference: {
-            value: 'CVE-67890'
-          }
-        }]
-      }],
+      constraintViolations: [
+        {
+          constraintName: 'constraint name',
+          reasons: [
+            {
+              reason: 'reason',
+              reference: {
+                value: 'CVE-67890',
+              },
+            },
+          ],
+        },
+      ],
       policyName: 'policyName',
       policyViolationId: 'policyViolationId',
-      threatLevel: 5
+      threatLevel: 5,
     };
 
     minimalProps = {
       loading: false,
-      setWaiverToDelete: setWaiverToDeleteSpy
+      setWaiverToDelete: setWaiverToDeleteSpy,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversTable, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      ListWaiversTable,
+      minimalProps
+    );
   });
 
-  it('renders an NxTable with header', function() {
+  it('renders an NxTable with header', function () {
     const component = getShallowComponent();
     const table = component.find(NxTable);
     expect(table).toExist();
@@ -65,41 +73,43 @@ describe('ListWaiversTable', function() {
     expect(tableHeaderCells.length).toBe(6);
   });
 
-  it('sets the emptyMessage on NxTableBody including a link to the waivers help docs', function() {
+  it('sets the emptyMessage on NxTableBody including a link to the waivers help docs', function () {
     const component = getShallowComponent();
     const tableBody = component.find(NxTableBody);
 
     expect(tableBody).toHaveProp('emptyMessage');
 
     const emptyMessageShallowRender = shallow(tableBody.prop('emptyMessage'));
-    expect(emptyMessageShallowRender.find(NxExternalLink))
-        .toHaveProp('href', 'https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers');
+    expect(emptyMessageShallowRender.find(NxExternalLink)).toHaveProp(
+      'href',
+      'https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers'
+    );
   });
 
-  it('sets the isLoading on NxTableBody', function() {
+  it('sets the isLoading on NxTableBody', function () {
     const component = getShallowComponent({
-      loadingApplicableWaivers: true
+      loadingApplicableWaivers: true,
     });
     const tableBody = component.find(NxTableBody);
     expect(tableBody).toHaveProp('isLoading', true);
   });
 
-  it('sets the error on NxTableBody', function() {
+  it('sets the error on NxTableBody', function () {
     const component = getShallowComponent({
       loadApplicableWaiversError: {
         response: {
-          data: 'load waivers error'
-        }
-      }
+          data: 'load waivers error',
+        },
+      },
     });
     const tableBody = component.find(NxTableBody);
     expect(tableBody).toHaveProp('error', 'load waivers error');
   });
 
-  it('sets the retryHandler on NxTableBody', function() {
+  it('sets the retryHandler on NxTableBody', function () {
     const reloadApplicableWaiversSpy = jasmine.createSpy();
     const component = getShallowComponent({
-      reloadApplicableWaivers: reloadApplicableWaiversSpy
+      reloadApplicableWaivers: reloadApplicableWaiversSpy,
     });
     const tableBody = component.find(NxTableBody);
     expect(tableBody).toHaveProp('retryHandler', reloadApplicableWaiversSpy);
@@ -117,11 +127,19 @@ describe('ListWaiversTable', function() {
     expect(icon.prop('icon')).toEqual(faTrashAlt);
   };
 
-  const assertWaiverTableRow = (tableRow, dateCreated, scope, components, expiration, comments, isExpired, waiver) => {
+  const assertWaiverTableRow = (
+    tableRow,
+    dateCreated,
+    scope,
+    components,
+    expiration,
+    comments,
+    isExpired,
+    waiver
+  ) => {
     if (isExpired) {
       expect(tableRow).toHaveClassName('list-waivers-row--expired');
-    }
-    else {
+    } else {
       expect(tableRow).not.toHaveClassName('list-waivers-row--expired');
     }
 
@@ -133,8 +151,7 @@ describe('ListWaiversTable', function() {
     if (components) {
       let componentCell = tableCells.at(2).childAt(0).find(ComponentDisplay);
       expect(componentCell).toHaveProp('component', components);
-    }
-    else {
+    } else {
       expect(tableCells.at(2).childAt(0).text()).toBe('All');
     }
 
@@ -143,47 +160,56 @@ describe('ListWaiversTable', function() {
     assertDeleteWaiverBtn(tableCells.at(5), waiver);
   };
 
-  it('renders an NxTableBody with active and expired waivers sorted by createTime desc', function() {
-    const baselineDate = moment('2020-10-05T19:56:17.509+0000', 'YYYY-MM-DDThh:mm:ss.SSS+0000');
+  it('renders an NxTableBody with active and expired waivers sorted by createTime desc', function () {
+    const baselineDate = moment(
+      '2020-10-05T19:56:17.509+0000',
+      'YYYY-MM-DDThh:mm:ss.SSS+0000'
+    );
     moment.now = () => baselineDate;
 
-    const activeWaivers = [{
-      policyWaiverId: '1',
-      comment: 'comment1',
-      createTime: baselineDate,
-      expiryTime: baselineDate.clone().add(7, 'days'),
-      hash: null,
-      scopeOwnerType: 'root_organization',
-      scopeOwnerName: 'Root Organization'
-    }, {
-      policyWaiverId: '2',
-      comment: 'comment2',
-      createTime: baselineDate.clone().add(2, 'days'),
-      hash: '1e48256a2341047e7d72',
-      scopeOwnerType: 'application',
-      scopeOwnerName: 'test'
-    }];
-    const expiredWaivers = [{
-      policyWaiverId: '3',
-      comment: 'comment3',
-      createTime: baselineDate.clone().add(10, 'days'),
-      expiryTime: baselineDate.clone().subtract(1, 'year'),
-      hash: '1e48256a2341047e7d72',
-      scopeOwnerType: 'root_organization',
-      scopeOwnerName: 'Root Organization'
-    }, {
-      comment: 'comment4',
-      policyWaiverId: '4',
-      createTime: baselineDate.clone().add(13, 'days'),
-      expiryTime: baselineDate.clone().subtract(1, 'month'),
-      hash: '1e48256a2341047e7d72',
-      scopeOwnerType: 'organization',
-      scopeOwnerName: 'suborg'
-    }];
+    const activeWaivers = [
+      {
+        policyWaiverId: '1',
+        comment: 'comment1',
+        createTime: baselineDate,
+        expiryTime: baselineDate.clone().add(7, 'days'),
+        hash: null,
+        scopeOwnerType: 'root_organization',
+        scopeOwnerName: 'Root Organization',
+      },
+      {
+        policyWaiverId: '2',
+        comment: 'comment2',
+        createTime: baselineDate.clone().add(2, 'days'),
+        hash: '1e48256a2341047e7d72',
+        scopeOwnerType: 'application',
+        scopeOwnerName: 'test',
+      },
+    ];
+    const expiredWaivers = [
+      {
+        policyWaiverId: '3',
+        comment: 'comment3',
+        createTime: baselineDate.clone().add(10, 'days'),
+        expiryTime: baselineDate.clone().subtract(1, 'year'),
+        hash: '1e48256a2341047e7d72',
+        scopeOwnerType: 'root_organization',
+        scopeOwnerName: 'Root Organization',
+      },
+      {
+        comment: 'comment4',
+        policyWaiverId: '4',
+        createTime: baselineDate.clone().add(13, 'days'),
+        expiryTime: baselineDate.clone().subtract(1, 'month'),
+        hash: '1e48256a2341047e7d72',
+        scopeOwnerType: 'organization',
+        scopeOwnerName: 'suborg',
+      },
+    ];
     const props = {
       activeWaivers,
       expiredWaivers,
-      violationDetails: violationDetailsMock
+      violationDetails: violationDetailsMock,
     };
 
     const component = getShallowComponent(props);
@@ -191,13 +217,45 @@ describe('ListWaiversTable', function() {
     expect(tableBody).not.toHaveClassName('nx-cell--empty');
     const tableRows = tableBody.find(NxTableRow);
     expect(tableRows.length).toBe(4);
-    assertWaiverTableRow(tableRows.at(0), '10/07/2020', 'Application - test', violationDetailsMock, 'Does not expire',
-        'comment2', false, activeWaivers[1]);
-    assertWaiverTableRow(tableRows.at(1), '10/05/2020', 'Root Organization', null, 'in 7 days', 'comment1',
-        false, activeWaivers[0]);
-    assertWaiverTableRow(tableRows.at(2), '10/18/2020', 'Organization - suborg', violationDetailsMock, 'a month ago',
-        'comment4', true, expiredWaivers[1]);
-    assertWaiverTableRow(tableRows.at(3), '10/15/2020', 'Root Organization', violationDetailsMock, 'a year ago',
-        'comment3', true, expiredWaivers[0]);
+    assertWaiverTableRow(
+      tableRows.at(0),
+      '10/07/2020',
+      'Application - test',
+      violationDetailsMock,
+      'Does not expire',
+      'comment2',
+      false,
+      activeWaivers[1]
+    );
+    assertWaiverTableRow(
+      tableRows.at(1),
+      '10/05/2020',
+      'Root Organization',
+      null,
+      'in 7 days',
+      'comment1',
+      false,
+      activeWaivers[0]
+    );
+    assertWaiverTableRow(
+      tableRows.at(2),
+      '10/18/2020',
+      'Organization - suborg',
+      violationDetailsMock,
+      'a month ago',
+      'comment4',
+      true,
+      expiredWaivers[1]
+    );
+    assertWaiverTableRow(
+      tableRows.at(3),
+      '10/15/2020',
+      'Root Organization',
+      violationDetailsMock,
+      'a year ago',
+      'comment3',
+      true,
+      expiredWaivers[0]
+    );
   });
 });

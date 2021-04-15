@@ -7,9 +7,13 @@
 import reportViolationsModule from './report/ReportViolationsController';
 import template from './report/violations/report-list.html';
 
-export default angular.module('ReportModule',
-    ['ui.router', reportViolationsModule.name],
-    ['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
+export default angular.module(
+  'ReportModule',
+  ['ui.router', reportViolationsModule.name],
+  [
+    '$stateProvider',
+    '$urlRouterProvider',
+    function ($stateProvider, $urlRouterProvider) {
       $urlRouterProvider.when('/reports', '/reports/violations');
       $stateProvider.state('violations', {
         url: '/reports/violations',
@@ -17,7 +21,9 @@ export default angular.module('ReportModule',
         controller: 'ReportViolationsController',
         controllerAs: 'vm',
         data: {
-          title: 'Report Violations'
-        }
+          title: 'Report Violations',
+        },
       });
-    }]);
+    },
+  ]
+);

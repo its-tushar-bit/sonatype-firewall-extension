@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {always, equals, lensPath, not, over} from 'ramda';
+import { always, equals, lensPath, not, over } from 'ramda';
 
-import {createReducerFromActionMap} from '../../util/reduxUtil';
+import { createReducerFromActionMap } from '../../util/reduxUtil';
 import {
   FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE,
   FIREWALL_LOAD_CONFIGURATION_FULFILLED,
@@ -13,9 +13,9 @@ import {
   FIREWALL_SAVE_CONFIGURATION_FAILED,
   FIREWALL_SAVE_CONFIGURATION_FULFILLED,
   FIREWALL_SAVE_CONFIGURATION_REQUESTED,
-  FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED
+  FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED,
 } from '../firewallActions';
-import {pathSet} from '../../util/jsUtil';
+import { pathSet } from '../../util/jsUtil';
 
 export const INTEGRITY_RATING_POLICY_TYPE_ID = 'IntegrityRating';
 
@@ -23,14 +23,24 @@ const initialState = Object.freeze({
   viewState: Object.freeze({
     submitMaskSuccessState: null,
     saveConfigurationError: null,
-    isDirty: false
+    isDirty: false,
   }),
   serverState: Object.freeze({
-    conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]
+    conditionTypes: [
+      {
+        id: INTEGRITY_RATING_POLICY_TYPE_ID,
+        autoReleaseQuarantineEnabled: false,
+      },
+    ],
   }),
   formState: Object.freeze({
-    conditionTypes: [{'id': INTEGRITY_RATING_POLICY_TYPE_ID, 'autoReleaseQuarantineEnabled': false}]
-  })
+    conditionTypes: [
+      {
+        id: INTEGRITY_RATING_POLICY_TYPE_ID,
+        autoReleaseQuarantineEnabled: false,
+      },
+    ],
+  }),
 });
 
 const saveConfigurationRequested = (_, state) => ({
@@ -38,8 +48,8 @@ const saveConfigurationRequested = (_, state) => ({
   viewState: {
     ...state.viewState,
     submitMaskSuccessState: false,
-    saveConfigurationError: null
-  }
+    saveConfigurationError: null,
+  },
 });
 
 const saveConfigurationFulfilled = (payload, state) => ({
@@ -47,8 +57,8 @@ const saveConfigurationFulfilled = (payload, state) => ({
   viewState: {
     ...state.viewState,
     saveConfigurationError: null,
-    submitMaskSuccessState: true
-  }
+    submitMaskSuccessState: true,
+  },
 });
 
 const saveConfigurationFailed = (payload, state) => ({
@@ -56,32 +66,47 @@ const saveConfigurationFailed = (payload, state) => ({
   viewState: {
     ...state.viewState,
     submitMaskSuccessState: null,
-    saveConfigurationError: payload
-  }
+    saveConfigurationError: payload,
+  },
 });
 
 const loadConfigurationFulfilled = (payload, state) => ({
   ...state,
   viewState: {
     ...state.viewState,
-    isDirty: false
+    isDirty: false,
   },
   serverState: {
-    conditionTypes: payload
+    conditionTypes: payload,
   },
   formState: {
-    conditionTypes: payload
-  }
+    conditionTypes: payload,
+  },
 });
 
 const toggleAutoUnquarantineEnabled = (payload, state) => {
-  const index = state.formState.conditionTypes.findIndex(element => element.id === payload);
-  const newState = over(lensPath(['formState', 'conditionTypes', index, 'autoReleaseQuarantineEnabled']), not, state);
+  const index = state.formState.conditionTypes.findIndex(
+    (element) => element.id === payload
+  );
+  const newState = over(
+    lensPath([
+      'formState',
+      'conditionTypes',
+      index,
+      'autoReleaseQuarantineEnabled',
+    ]),
+    not,
+    state
+  );
   return updatedComputedProps(newState);
 };
 
 const updatedComputedProps = (state) => {
-  return pathSet(['viewState', 'isDirty'], isConfigurationChanged(state), state);
+  return pathSet(
+    ['viewState', 'isDirty'],
+    isConfigurationChanged(state),
+    state
+  );
 };
 
 const configurationSaveMaskTimerDone = (_, state) => ({
@@ -89,8 +114,8 @@ const configurationSaveMaskTimerDone = (_, state) => ({
   viewState: {
     ...state.viewState,
     submitMaskSuccessState: null,
-    saveConfigurationError: null
-  }
+    saveConfigurationError: null,
+  },
 });
 
 const reducerActionMap = {
@@ -100,13 +125,16 @@ const reducerActionMap = {
   [FIREWALL_LOAD_CONFIGURATION_REQUESTED]: always(initialState),
   [FIREWALL_LOAD_CONFIGURATION_FULFILLED]: loadConfigurationFulfilled,
   [FIREWALL_TOGGLE_AUTO_UNQUARANTINE_ENABLED]: toggleAutoUnquarantineEnabled,
-  [FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE]: configurationSaveMaskTimerDone
+  [FIREWALL_CONFIGURATION_SAVE_MASK_TIMER_DONE]: configurationSaveMaskTimerDone,
 };
 
 function isConfigurationChanged(state) {
-  const {formState, serverState} = state;
+  const { formState, serverState } = state;
   return !equals(formState, serverState);
 }
 
-const firewallConfigurationModalReducer = createReducerFromActionMap(reducerActionMap, initialState);
+const firewallConfigurationModalReducer = createReducerFromActionMap(
+  reducerActionMap,
+  initialState
+);
 export default firewallConfigurationModalReducer;

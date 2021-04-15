@@ -12,15 +12,21 @@ import * as legalDashboardActions from './legalDashboardActions';
 
 function mapStateToProps({ legalDashboard, legalDashboardFilter }) {
   return {
-    ...pick(['applications', 'components', 'loading', 'loadError'], legalDashboard),
-    ...pick(['filtersAreDirty'], legalDashboardFilter)
+    ...pick(
+      ['applications', 'components', 'loading', 'loadError'],
+      legalDashboard
+    ),
+    ...pick(['filtersAreDirty'], legalDashboardFilter),
   };
 }
 
 const mapDispatchToProps = {
   ...legalDashboardActions,
-  stateGo
+  stateGo,
 };
 
-const LegalDashboardContainer = connect(mapStateToProps, mapDispatchToProps)(LegalDashboardPage);
+const LegalDashboardContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LegalDashboardPage);
 export default LegalDashboardContainer;

@@ -11,7 +11,7 @@ import {
   NxButton,
   NxFieldset,
   NxTextInput,
-  NxRadio
+  NxRadio,
 } from '@sonatype/react-shared-components';
 
 import ViolationExclamation from '../react/ViolationExclamation';
@@ -44,7 +44,7 @@ export default function AddWaiverForm(props) {
     setExpiryTime,
     saveWaiver,
     vulnerabilityId,
-    cancelAction
+    cancelAction,
   } = props;
 
   const onSubmit = (evt) => {
@@ -54,13 +54,20 @@ export default function AddWaiverForm(props) {
     const { value } = waiverComments;
     const expiration = expiryTime === 'never' ? null : parseInt(expiryTime, 10);
 
-    saveWaiver(policyViolationId, type, id, value, applyToAllComponents, expiration);
+    saveWaiver(
+      policyViolationId,
+      type,
+      id,
+      value,
+      applyToAllComponents,
+      expiration
+    );
   };
 
   const onVulnerabilityDetailsClick = () => {
     openVulnerabilityDetailsModal({
       vulnerabilityId: vulnerabilityId,
-      componentIdentifier
+      componentIdentifier,
     });
   };
 
@@ -74,11 +81,15 @@ export default function AddWaiverForm(props) {
   };
 
   const onExpiryTimeChange = (event) => {
-    const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
+    const value =
+      event.currentTarget.value === 'never' ? null : event.currentTarget.value;
     setExpiryTime(value);
   };
 
-  const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
+  const policyClassnames = classnames(
+    'iq-threat-level',
+    `iq-threat-level--${threatLevelCategory}`
+  );
 
   const expirationTimes = [
     { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead
@@ -87,39 +98,39 @@ export default function AddWaiverForm(props) {
     { name: '30 Days', value: '30' },
     { name: '60 Days', value: '60' },
     { name: '90 Days', value: '90' },
-    { name: '120 Days', value: '120' }
+    { name: '120 Days', value: '120' },
   ];
 
   return (
     <form className="nx-form iq-add-waiver-form" onSubmit={onSubmit}>
-      { /* Component-Info Section */}
+      {/* Component-Info Section */}
       <header className="nx-tile-header iq-add-waiver-form__component">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">
-            <ArtifactNameDisplay { ...{ artifactName } } />
+            <ArtifactNameDisplay {...{ artifactName }} />
           </h2>
         </div>
-        <div className="nx-tile-header__subtitle">{ componentName }</div>
+        <div className="nx-tile-header__subtitle">{componentName}</div>
       </header>
 
       <div className="nx-tile-content">
-        { /* Policy Info */ }
+        {/* Policy Info */}
         <div className="nx-form-group iq-add-waiver-form__policy iq-read-only">
           <label className="nx-label">
             <span className="nx-label__text">Policy</span>
           </label>
           <div className="iq-read-only-data">
-            <ViolationExclamation threatLevelCategory={ threatLevelCategory } />
-            <span className={ policyClassnames }>{ policyName }</span>
+            <ViolationExclamation threatLevelCategory={threatLevelCategory} />
+            <span className={policyClassnames}>{policyName}</span>
           </div>
         </div>
 
-        { /* Constraint Info */ }
+        {/* Constraint Info */}
         <div className="nx-form-group iq-add-waiver-form__constraint iq-read-only">
           <label className="nx-label">
             <span className="nx-label__text">Constraint Name</span>
           </label>
-          <div className="iq-read-only-data">{ constraintName }</div>
+          <div className="iq-read-only-data">{constraintName}</div>
         </div>
 
         {/* Conditions */}
@@ -128,78 +139,105 @@ export default function AddWaiverForm(props) {
             <span className="nx-label__text">Conditions</span>
           </label>
           <div className="iq-read-only-data iq-read-only-data--vertical">
-            {reasons && reasons.map((reason, index) =>
-              <span key={index}>{reason}</span>
-            )}
+            {reasons &&
+              reasons.map((reason, index) => <span key={index}>{reason}</span>)}
           </div>
         </div>
 
-        { vulnerabilityId &&
-        <div className="nx-form-group iq-add-waiver-form__vulnerability_details_link">
-          <a onClick={ onVulnerabilityDetailsClick }>
-            See Security Vulnerability Details
-          </a>
-          <VulnerabilityDetailsModalContainer />
-        </div>
-        }
+        {vulnerabilityId && (
+          <div className="nx-form-group iq-add-waiver-form__vulnerability_details_link">
+            <a onClick={onVulnerabilityDetailsClick}>
+              See Security Vulnerability Details
+            </a>
+            <VulnerabilityDetailsModalContainer />
+          </div>
+        )}
 
-        { /* Scope */ }
-        <NxFieldset className="iq-add-waiver-form__scope" label="Scope" isRequired>
-          { availableWaiverScopes && availableWaiverScopes.map(({ id, name, label }) =>
-            <NxRadio name="add-waiver-target"
-                     value={id}
-                     isChecked={selectedWaiverScope.id === id}
-                     key={id}
-                     onChange={handleScopeChange}>
-              {label} - {name}
-            </NxRadio>
-          )}
+        {/* Scope */}
+        <NxFieldset
+          className="iq-add-waiver-form__scope"
+          label="Scope"
+          isRequired
+        >
+          {availableWaiverScopes &&
+            availableWaiverScopes.map(({ id, name, label }) => (
+              <NxRadio
+                name="add-waiver-target"
+                value={id}
+                isChecked={selectedWaiverScope.id === id}
+                key={id}
+                onChange={handleScopeChange}
+              >
+                {label} - {name}
+              </NxRadio>
+            ))}
         </NxFieldset>
 
-        { /* Components */ }
-        <NxFieldset className="iq-add-waiver-form__components" label="Components" isRequired>
-          <NxRadio name="add-waiver-components"
-                   value={componentName}
-                   isChecked={!applyToAllComponents}
-                   onChange={handleComponentsChange}>
-            { componentName }
+        {/* Components */}
+        <NxFieldset
+          className="iq-add-waiver-form__components"
+          label="Components"
+          isRequired
+        >
+          <NxRadio
+            name="add-waiver-components"
+            value={componentName}
+            isChecked={!applyToAllComponents}
+            onChange={handleComponentsChange}
+          >
+            {componentName}
           </NxRadio>
-          <NxRadio name="add-waiver-components"
-                   value={ALL_COMPONENTS}
-                   isChecked={!!applyToAllComponents}
-                   onChange={handleComponentsChange}>
+          <NxRadio
+            name="add-waiver-components"
+            value={ALL_COMPONENTS}
+            isChecked={!!applyToAllComponents}
+            onChange={handleComponentsChange}
+          >
             All Components
           </NxRadio>
         </NxFieldset>
 
-        { /* Expiry time */ }
-        <NxFieldset className="iq-add-waiver-form__expiryTime" label="Waiver Expiration" isRequired>
-          <select id="waiver-expiration-select"
-                  onChange={onExpiryTimeChange}
-                  value={expiryTime || ''}>
-            {expirationTimes.map(({ name, value }, index) =>
-              <option key={index} value={value}>{name}</option>
-            )}
+        {/* Expiry time */}
+        <NxFieldset
+          className="iq-add-waiver-form__expiryTime"
+          label="Waiver Expiration"
+          isRequired
+        >
+          <select
+            id="waiver-expiration-select"
+            onChange={onExpiryTimeChange}
+            value={expiryTime || ''}
+          >
+            {expirationTimes.map(({ name, value }, index) => (
+              <option key={index} value={value}>
+                {name}
+              </option>
+            ))}
           </select>
         </NxFieldset>
 
-        { /* Comments */}
+        {/* Comments */}
         <div className="nx-form-group iq-add-waiver-form__comments">
           <label className="nx-label nx-label--optional">
             <span className="nx-label__text">Comments</span>
-            <NxTextInput type="textarea"
-                         maxLength={1000}
-                         { ...waiverComments }
-                         onChange={ setWaiverComment } />
+            <NxTextInput
+              type="textarea"
+              maxLength={1000}
+              {...waiverComments}
+              onChange={setWaiverComment}
+            />
           </label>
         </div>
       </div>
 
-      { /* Actions */ }
+      {/* Actions */}
       <footer className="nx-footer">
-        {
-          submitError && <LoadError error={submitError} titleMessage="An error occurred saving the waiver." />
-        }
+        {submitError && (
+          <LoadError
+            error={submitError}
+            titleMessage="An error occurred saving the waiver."
+          />
+        )}
         <div className="nx-btn-bar">
           <NxButton type="button" id="add-waiver-cancel" onClick={cancelAction}>
             Cancel
@@ -218,7 +256,7 @@ export const waiverScopePropTypes = {
   id: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired
+  type: PropTypes.string.isRequired,
 };
 
 AddWaiverForm.propTypes = {
@@ -232,9 +270,11 @@ AddWaiverForm.propTypes = {
   threatLevelCategory: ViolationExclamation.propTypes.threatLevelCategory,
   waiverComments: PropTypes.shape({
     value: PropTypes.string.isRequired,
-    isPristine: PropTypes.bool.isRequired
+    isPristine: PropTypes.bool.isRequired,
   }).isRequired,
-  availableWaiverScopes: PropTypes.arrayOf(PropTypes.shape(waiverScopePropTypes)).isRequired,
+  availableWaiverScopes: PropTypes.arrayOf(
+    PropTypes.shape(waiverScopePropTypes)
+  ).isRequired,
   selectedWaiverScope: PropTypes.shape(waiverScopePropTypes).isRequired,
   expiryTime: PropTypes.string,
   submitError: PropTypes.instanceOf(Error),
@@ -246,5 +286,5 @@ AddWaiverForm.propTypes = {
   openVulnerabilityDetailsModal: PropTypes.func.isRequired,
   vulnerabilityId: PropTypes.string,
   cancelAction: PropTypes.func.isRequired,
-  componentIdentifier: PropTypes.object
+  componentIdentifier: PropTypes.object,
 };

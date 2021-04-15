@@ -4,16 +4,22 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './gettingStarted.html';
-import {VISITED_ACTION} from './gettingStartedUsageTelemetryService';
+import { VISITED_ACTION } from './gettingStartedUsageTelemetryService';
 
 export default {
   controller: GettingStartedController,
   controllerAs: 'vm',
-  template: template
+  template: template,
 };
 
-function GettingStartedController($q, $rootScope, $http, PermissionService, CLMLocations,
-                                  gettingStartedUsageTelemetryService) {
+function GettingStartedController(
+  $q,
+  $rootScope,
+  $http,
+  PermissionService,
+  CLMLocations,
+  gettingStartedUsageTelemetryService
+) {
   const vm = this;
 
   Object.assign(vm, {
@@ -33,19 +39,24 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
       firePageVisitedEvent();
       vm.error = undefined;
 
-      loadDataForAllUsers().then(results => {
-        vm.validPermissions = results[0];
-        vm.shouldDisplayHdsUnreachable = !results[1].data.alive;
-        vm.hdsUnreachableErrorMessage = results[1].data.errorMessage;
-        vm.hdsUnreachableIncidentId = results[1].data.incidentId;
-        return isAdmin() ? $http.get(CLMLocations.getLicenseSummaryUrl()) : null;
-      }).then(result => {
-        if (result) {
-          vm.license = result.data;
-        }
-      }).catch(error => {
-        vm.error = error;
-      });
+      loadDataForAllUsers()
+        .then((results) => {
+          vm.validPermissions = results[0];
+          vm.shouldDisplayHdsUnreachable = !results[1].data.alive;
+          vm.hdsUnreachableErrorMessage = results[1].data.errorMessage;
+          vm.hdsUnreachableIncidentId = results[1].data.incidentId;
+          return isAdmin()
+            ? $http.get(CLMLocations.getLicenseSummaryUrl())
+            : null;
+        })
+        .then((result) => {
+          if (result) {
+            vm.license = result.data;
+          }
+        })
+        .catch((error) => {
+          vm.error = error;
+        });
     },
 
     isLoading() {
@@ -53,12 +64,15 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
     },
 
     isDataLoaded() {
-      return vm.validPermissions !== undefined && !(isAdmin() && vm.license === undefined);
+      return (
+        vm.validPermissions !== undefined &&
+        !(isAdmin() && vm.license === undefined)
+      );
     },
 
     isAuthorizedToViewSystemSetup() {
       return vm.validPermissions.length > 0;
-    }
+    },
   });
 
   function isAdmin() {
@@ -67,8 +81,11 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
 
   function loadDataForAllUsers() {
     const promises = [
-      PermissionService.getValidPermissions(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']),
-      $http.get(CLMLocations.getIsHdsReachable())
+      PermissionService.getValidPermissions([
+        'CONFIGURE_SYSTEM',
+        'ADD_APPLICATION',
+      ]),
+      $http.get(CLMLocations.getIsHdsReachable()),
     ];
     return $q.all(promises);
   }
@@ -79,5 +96,10 @@ function GettingStartedController($q, $rootScope, $http, PermissionService, CLML
 }
 
 GettingStartedController.$inject = [
-  '$q', '$rootScope', '$http', 'PermissionService', 'CLMLocations', 'gettingStartedUsageTelemetryService'
+  '$q',
+  '$rootScope',
+  '$http',
+  'PermissionService',
+  'CLMLocations',
+  'gettingStartedUsageTelemetryService',
 ];

@@ -6,11 +6,8 @@
 
 import React from 'react';
 import * as enzymeUtils from '../../../enzymeUtils';
-import {
-  NxFilterInput
-} from '@sonatype/react-shared-components';
-import DropdownFilterInput from
-  '../../../../../main/frontend/configuration/scmOnboarding/components/DropdownFilterInput';
+import { NxFilterInput } from '@sonatype/react-shared-components';
+import DropdownFilterInput from '../../../../../main/frontend/configuration/scmOnboarding/components/DropdownFilterInput';
 
 describe('DropdownFilterInput', function () {
   let container;
@@ -19,9 +16,12 @@ describe('DropdownFilterInput', function () {
     label: 'dropdown',
     isOpen: false,
     onToggleCollapse: () => {},
-    isElementFiltered: () => true
+    isElementFiltered: () => true,
   };
-  const getShallowComponent = enzymeUtils.getShallowComponent(DropdownFilterInput, minimalProps);
+  const getShallowComponent = enzymeUtils.getShallowComponent(
+    DropdownFilterInput,
+    minimalProps
+  );
 
   beforeEach(() => {
     container = document.createElement('div');
@@ -38,8 +38,12 @@ describe('DropdownFilterInput', function () {
   it('filtering is called when a single child is passed', () => {
     // given an dropdown that is open
     const filterFn = jasmine.createSpy('filterFn'),
-        child = <button>foo</button>,
-        component = getShallowComponent({ filterFn, isOpen: true, children: [child] });
+      child = <button>foo</button>,
+      component = getShallowComponent({
+        filterFn,
+        isOpen: true,
+        children: [child],
+      });
 
     // when the filter is updated
     expect(component.find(NxFilterInput)).toExist();
@@ -52,8 +56,12 @@ describe('DropdownFilterInput', function () {
   it('filtering is called when multiple children are passed', () => {
     // given an dropdown that is open
     const filterFn = jasmine.createSpy('filterFn'),
-        children = [<button key="1">foo</button>, <button key="2">bar</button>],
-        component = getShallowComponent({ filterFn, isOpen: true, children: [children] });
+      children = [<button key="1">foo</button>, <button key="2">bar</button>],
+      component = getShallowComponent({
+        filterFn,
+        isOpen: true,
+        children: [children],
+      });
 
     // when the filter is updated
     expect(component.find(NxFilterInput)).toExist();

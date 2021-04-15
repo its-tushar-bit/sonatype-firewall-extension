@@ -6,25 +6,24 @@
 import roleMembershipModule from '../../../main/frontend/role.membership/role.membership.module';
 import accessMockData from '../stores/access/access.mock.data';
 
-describe('role.membership.controller.spec.js', function() {
-
-  var vm,
-      scope,
-      $httpBackend,
-      $rootScope,
-      $q,
-      CLMContextLocations;
+describe('role.membership.controller.spec.js', function () {
+  var vm, scope, $httpBackend, $rootScope, $q, CLMContextLocations;
 
   beforeEach(angular.mock.module(roleMembershipModule.name));
 
-  beforeEach(inject(function(_$rootScope_, _$httpBackend_, _$q_, _CLMContextLocations_) {
+  beforeEach(inject(function (
+    _$rootScope_,
+    _$httpBackend_,
+    _$q_,
+    _CLMContextLocations_
+  ) {
     $httpBackend = _$httpBackend_;
     $rootScope = _$rootScope_;
     $q = _$q_;
     CLMContextLocations = _CLMContextLocations_;
   }));
 
-  afterEach(function() {
+  afterEach(function () {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
 
@@ -39,40 +38,45 @@ describe('role.membership.controller.spec.js', function() {
    * constructor function runs
    */
   function createController(controllerProps) {
-    inject(function($controller, $rootScope) {
+    inject(function ($controller, $rootScope) {
       scope = $rootScope.$new();
 
-      vm = $controller('role.membership.controller', { $scope: scope }, controllerProps);
+      vm = $controller(
+        'role.membership.controller',
+        { $scope: scope },
+        controllerProps
+      );
       scope.vm = vm;
 
       vm.accessEditorSearch = {
-        $setPristine: jasmine.createSpy('$setPristine')
+        $setPristine: jasmine.createSpy('$setPristine'),
       };
       vm.accessEditor = {
-        $setPristine: jasmine.createSpy('$setPristine')
+        $setPristine: jasmine.createSpy('$setPristine'),
       };
       vm.accessEditorAddGroup = {
-        $setPristine: jasmine.createSpy('$setPristine')
+        $setPristine: jasmine.createSpy('$setPristine'),
       };
 
       $rootScope.$digest();
     });
   }
 
-  it('sets vm.members', function() {
+  it('sets vm.members', function () {
     createController({
-      originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members
+      originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0]
+        .membersByOwner[0].members,
     });
 
     expect(vm.members.length).toBe(2);
-    vm.members.forEach(function(member) {
+    vm.members.forEach(function (member) {
       expect(member.picked).toBe(true);
     });
   });
 
-  it('updates vm.members when vm.originalMembers is set to a different object', function() {
+  it('updates vm.members when vm.originalMembers is set to a different object', function () {
     createController({
-      originalMembers: []
+      originalMembers: [],
     });
 
     expect(vm.members.length).toBe(0);
@@ -81,30 +85,31 @@ describe('role.membership.controller.spec.js', function() {
     $rootScope.$digest();
 
     expect(vm.members.length).toBe(2);
-    vm.members.forEach(function(member) {
+    vm.members.forEach(function (member) {
       expect(member.picked).toBe(true);
     });
   });
 
-  describe('search', function() {
-    beforeEach(function() {
+  describe('search', function () {
+    beforeEach(function () {
       createController({
-        originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members
+        originalMembers: accessMockData.getMoreRoleMappings().membersByRole[0]
+          .membersByOwner[0].members,
       });
 
-      vm.accessEditorSearchMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.accessEditorSearchMask = { wrap: SpecUtil.promiseWrapper($q) };
       vm.query = 'testSearch';
-
     });
 
     function doSearch() {
       vm.search();
 
-      $httpBackend.expectGET(CLMContextLocations.getFindUsersUrl() + '?q=testSearch')
-          .respond(accessMockData.getQueryResults());
+      $httpBackend
+        .expectGET(CLMContextLocations.getFindUsersUrl() + '?q=testSearch')
+        .respond(accessMockData.getQueryResults());
     }
 
-    it('sets search in progress flag', function() {
+    it('sets search in progress flag', function () {
       expect(vm.searchInProgress).toBeFalsy();
 
       doSearch();
@@ -114,8 +119,8 @@ describe('role.membership.controller.spec.js', function() {
       expect(vm.searchInProgress).toBeFalsy();
     });
 
-    it('adds search users to the members array without re-adding or unpicking pre-existing picked members', function() {
-      vm.members.some(function(member) {
+    it('adds search users to the members array without re-adding or unpicking pre-existing picked members', function () {
+      vm.members.some(function (member) {
         if (member.internalName === 'userTest1') {
           member.picked = true;
           return true;
@@ -129,7 +134,7 @@ describe('role.membership.controller.spec.js', function() {
       expect(vm.members.length).toBe(5);
 
       //wouldn't be true if the members list was just wiped out and reset from search results
-      var userTest1Exists = vm.members.some(function(member) {
+      var userTest1Exists = vm.members.some(function (member) {
         if (member.internalName === 'userTest1') {
           expect(member.picked).toBe(true);
           return true;
@@ -139,21 +144,23 @@ describe('role.membership.controller.spec.js', function() {
     });
   });
 
-  it('creates correct tooltip message', function() {
+  it('creates correct tooltip message', function () {
     createController();
 
-    expect(vm.getTooltip({realm: 'foo'})).toBe('foo');
-    expect(vm.getTooltip({realm: 'foo', email: 'test@test.com'})).toBe('foo\ntest@test.com');
+    expect(vm.getTooltip({ realm: 'foo' })).toBe('foo');
+    expect(vm.getTooltip({ realm: 'foo', email: 'test@test.com' })).toBe(
+      'foo\ntest@test.com'
+    );
     // existing LDAP entry but connection is down so no realm/email
-    expect(vm.getTooltip({displayName: 'test'})).toBe(null);
+    expect(vm.getTooltip({ displayName: 'test' })).toBe(null);
   });
 
   describe('typical cases', function () {
-    beforeEach(function() {
+    beforeEach(function () {
       createController();
     });
 
-    it('correctly determines whether a group exists', function() {
+    it('correctly determines whether a group exists', function () {
       expect(vm.groupExists('foo')).toBeFalsy();
       vm.newGroupName = 'foo';
       vm.addGroup();
@@ -162,27 +169,29 @@ describe('role.membership.controller.spec.js', function() {
       expect(vm.groupExists('foo')).toBeTruthy();
     });
 
-    it('adds an added group to the list of members', function() {
+    it('adds an added group to the list of members', function () {
       vm.newGroupName = 'foo';
       vm.addGroup();
 
-      expect(vm.members).toEqual([{
-        displayName: 'foo',
-        email: null,
-        internalName: 'foo',
-        type: 'GROUP'
-      }]);
+      expect(vm.members).toEqual([
+        {
+          displayName: 'foo',
+          email: null,
+          internalName: 'foo',
+          type: 'GROUP',
+        },
+      ]);
 
       expect(vm.accessEditorAddGroup.$setPristine).toHaveBeenCalled();
     });
   });
 
-  describe('makeEditorPristine', function() {
-    beforeEach(function() {
+  describe('makeEditorPristine', function () {
+    beforeEach(function () {
       createController();
     });
 
-    it('deletes newGroupName, query, and searchError', function() {
+    it('deletes newGroupName, query, and searchError', function () {
       vm.newGroupName = 'test';
       vm.query = 'test';
       vm.searchError = 'test';
@@ -194,7 +203,7 @@ describe('role.membership.controller.spec.js', function() {
       expect(vm.searchError).toBeUndefined();
     });
 
-    it('calls $setPristine on the accessEditor, accessEditorSearch, and accessEditorAddGroup', function() {
+    it('calls $setPristine on the accessEditor, accessEditorSearch, and accessEditorAddGroup', function () {
       vm.makeEditorPristine();
 
       expect(vm.accessEditor.$setPristine).toHaveBeenCalled();
@@ -203,12 +212,13 @@ describe('role.membership.controller.spec.js', function() {
     });
   });
 
-  it('sets isDirty when the currentMembers have a different set of names from the originalMembers', function() {
-    var originalMembers = accessMockData.getMoreRoleMappings().membersByRole[0].membersByOwner[0].members;
+  it('sets isDirty when the currentMembers have a different set of names from the originalMembers', function () {
+    var originalMembers = accessMockData.getMoreRoleMappings().membersByRole[0]
+      .membersByOwner[0].members;
 
     createController({ originalMembers: originalMembers });
 
-    vm.members = originalMembers.map(function(member) {
+    vm.members = originalMembers.map(function (member) {
       var copy = angular.copy(member);
       copy.picked = true;
       return copy;
@@ -226,12 +236,12 @@ describe('role.membership.controller.spec.js', function() {
     expect(vm.isDirty()).toBe(false);
   });
 
-  describe('getCurrentMembers', function() {
-    beforeEach(function() {
+  describe('getCurrentMembers', function () {
+    beforeEach(function () {
       createController();
     });
 
-    it('returns an empty list if the members is empty or undefined', function() {
+    it('returns an empty list if the members is empty or undefined', function () {
       vm.members = undefined;
       expect(vm.getCurrentMembers()).toEqual([]);
 
@@ -239,47 +249,58 @@ describe('role.membership.controller.spec.js', function() {
       expect(vm.getCurrentMembers()).toEqual([]);
     });
 
-    it('returns the members who have their `picked` property set to true', function() {
-      var members = [{
-        picked: true
-      }, {
-        picked: false
-      }, {
-        picked: true
-      }];
+    it('returns the members who have their `picked` property set to true', function () {
+      var members = [
+        {
+          picked: true,
+        },
+        {
+          picked: false,
+        },
+        {
+          picked: true,
+        },
+      ];
       vm.members = members.slice();
 
       expect(vm.getCurrentMembers().length).toBe(2);
       expect(vm.getCurrentMembers()[0]).toBe(members[0]);
       expect(vm.getCurrentMembers()[1]).toBe(members[2]);
 
-      members = [{
-        picked: false
-      }, {
-        picked: false
-      }, {
-        picked: false
-      }];
+      members = [
+        {
+          picked: false,
+        },
+        {
+          picked: false,
+        },
+        {
+          picked: false,
+        },
+      ];
       vm.members = members.slice();
 
       expect(vm.getCurrentMembers()).toEqual([]);
     });
   });
 
-  describe('getIconName', function() {
+  describe('getIconName', function () {
     var mapping = {
       USER: 'fa-user',
-      GROUP: 'fa-group'
+      GROUP: 'fa-group',
     };
 
-    beforeEach(function() {
+    beforeEach(function () {
       createController();
     });
 
-    Object.keys(mapping).forEach(function(type) {
-      it('returns ' + mapping[type] + ' if the item has a ' + type + ' type', function() {
-        expect(vm.getIconName({type: type})).toBe(mapping[type]);
-      });
+    Object.keys(mapping).forEach(function (type) {
+      it(
+        'returns ' + mapping[type] + ' if the item has a ' + type + ' type',
+        function () {
+          expect(vm.getIconName({ type: type })).toBe(mapping[type]);
+        }
+      );
     });
   });
 });

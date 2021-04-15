@@ -7,7 +7,7 @@ var eventNameConstant = {
   RELOAD_OWNER_SUMMARY_DATA: 'reload.owner.summary.data',
   RELOAD_OWNER_TREE_DATA: 'reload.owner.tree.data',
   OWNER_UPDATED: 'owner.updated',
-  UPDATE_SCROLLSPY: 'update.scrollspy'
+  UPDATE_SCROLLSPY: 'update.scrollspy',
 };
 
 export default eventNameConstant;

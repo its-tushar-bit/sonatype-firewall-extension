@@ -5,21 +5,23 @@
  */
 import utilityModule from '../../../../main/frontend/utility/utility.module';
 
-describe('delete.modal.controller.spec.js', function() {
+describe('delete.modal.controller.spec.js', function () {
   beforeEach(angular.mock.module(utilityModule.name));
 
   var vm,
-      resource = ResourceUtils().createMockResource(),
-      $timeout,
-      scope,
-      continueAction,
-      continueActionDeferred;
+    resource = ResourceUtils().createMockResource(),
+    $timeout,
+    scope,
+    continueAction,
+    continueActionDeferred;
 
-  beforeEach(inject(function($controller, $rootScope, $q, _$timeout_) {
+  beforeEach(inject(function ($controller, $rootScope, $q, _$timeout_) {
     scope = $rootScope.$new();
     scope.$close = jasmine.createSpy();
     continueActionDeferred = $q.defer();
-    continueAction = jasmine.createSpy().and.returnValue(continueActionDeferred.promise);
+    continueAction = jasmine
+      .createSpy()
+      .and.returnValue(continueActionDeferred.promise);
 
     vm = $controller('DeleteModalController', {
       $scope: scope,
@@ -30,21 +32,21 @@ describe('delete.modal.controller.spec.js', function() {
       bodyText: null,
       maskText: null,
       continueAction: null,
-      dismissOnError: null
+      dismissOnError: null,
     });
 
     scope.$dismiss = jasmine.createSpy('$dismiss');
 
     $timeout = _$timeout_;
-    vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
+    vm.deleteResourceMask = { wrap: SpecUtil.promiseWrapper($q) };
   }));
 
-  it('sets resource metadata', function() {
+  it('sets resource metadata', function () {
     expect(vm.resourceType).toBe('foo');
     expect(vm.resourceName).toBe('bar');
   });
 
-  it('deletes a resource', function() {
+  it('deletes a resource', function () {
     vm.deleteResource();
     expect(resource.$delete).toHaveBeenCalled();
 
@@ -54,7 +56,7 @@ describe('delete.modal.controller.spec.js', function() {
     expect(vm.error).toBeUndefined();
   });
 
-  it('handles a delete error', function() {
+  it('handles a delete error', function () {
     vm.deleteResource();
     expect(resource.$delete).toHaveBeenCalled();
 
@@ -64,9 +66,10 @@ describe('delete.modal.controller.spec.js', function() {
     expect(vm.error).toBe('qux');
   });
 
-  it('calls custom continue action', function() {
-    inject(function($controller, $q) {
-      vm = $controller('DeleteModalController', {$scope: scope,
+  it('calls custom continue action', function () {
+    inject(function ($controller, $q) {
+      vm = $controller('DeleteModalController', {
+        $scope: scope,
         resourceType: null,
         resourceName: null,
         resource: null,
@@ -74,9 +77,10 @@ describe('delete.modal.controller.spec.js', function() {
         bodyText: 'body',
         maskText: 'mask',
         continueAction: continueAction,
-        dismissOnError: null});
+        dismissOnError: null,
+      });
 
-      vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.deleteResourceMask = { wrap: SpecUtil.promiseWrapper($q) };
     });
     vm.deleteResource();
     expect(continueAction).toHaveBeenCalled();
@@ -90,9 +94,10 @@ describe('delete.modal.controller.spec.js', function() {
     expect(vm.error).toBeUndefined();
   });
 
-  it('handles a delete error from custom action', function() {
-    inject(function($controller, $q) {
-      vm = $controller('DeleteModalController', {$scope: scope,
+  it('handles a delete error from custom action', function () {
+    inject(function ($controller, $q) {
+      vm = $controller('DeleteModalController', {
+        $scope: scope,
         resourceType: null,
         resourceName: null,
         resource: null,
@@ -100,9 +105,10 @@ describe('delete.modal.controller.spec.js', function() {
         bodyText: 'body',
         maskText: 'mask',
         continueAction: continueAction,
-        dismissOnError: null});
+        dismissOnError: null,
+      });
 
-      vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.deleteResourceMask = { wrap: SpecUtil.promiseWrapper($q) };
       scope.$dismiss = jasmine.createSpy();
     });
     vm.deleteResource();
@@ -115,9 +121,10 @@ describe('delete.modal.controller.spec.js', function() {
     expect(scope.$dismiss).not.toHaveBeenCalled();
   });
 
-  it('handles a delete error width dismiss on error from custom action', function() {
-    inject(function($controller, $q) {
-      vm = $controller('DeleteModalController', {$scope: scope,
+  it('handles a delete error width dismiss on error from custom action', function () {
+    inject(function ($controller, $q) {
+      vm = $controller('DeleteModalController', {
+        $scope: scope,
         resourceType: null,
         resourceName: null,
         resource: null,
@@ -125,9 +132,10 @@ describe('delete.modal.controller.spec.js', function() {
         bodyText: 'body',
         maskText: 'mask',
         continueAction: continueAction,
-        dismissOnError: true});
+        dismissOnError: true,
+      });
 
-      vm.deleteResourceMask = {wrap: SpecUtil.promiseWrapper($q)};
+      vm.deleteResourceMask = { wrap: SpecUtil.promiseWrapper($q) };
       scope.$dismiss = jasmine.createSpy();
     });
     vm.deleteResource();

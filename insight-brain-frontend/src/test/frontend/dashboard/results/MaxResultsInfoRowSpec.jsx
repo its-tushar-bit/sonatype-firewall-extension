@@ -7,11 +7,14 @@ import * as enzymeUtils from '../../enzymeUtils';
 import MaxResultsInfoRow from '../../../../main/frontend/dashboard/results/MaxResultsInfoRow';
 import { NxTableCell } from '@sonatype/react-shared-components';
 
-describe('MaxResultsInfoRowSpec', function() {
+describe('MaxResultsInfoRowSpec', function () {
   let getShallowComponent;
 
-  beforeEach(function() {
-    getShallowComponent = enzymeUtils.getShallowComponent(MaxResultsInfoRow, { colSpan: 6, maxResults: 10 });
+  beforeEach(function () {
+    getShallowComponent = enzymeUtils.getShallowComponent(MaxResultsInfoRow, {
+      colSpan: 6,
+      maxResults: 10,
+    });
   });
 
   it('renders a component', () => {

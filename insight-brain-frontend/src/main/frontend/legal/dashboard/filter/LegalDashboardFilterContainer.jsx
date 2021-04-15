@@ -12,20 +12,26 @@ import * as legalDashboardFilterActions from './legalDashboardFilterActions';
 function mapStateToProps({ manageLegalFilters, legalDashboardFilter }) {
   return {
     ...legalDashboardFilter,
-    ...pick([
-      'appliedFilterName',
-      'showDirtyAsterisk',
-      'showSaveFilterModal',
-      'savedFilters',
-      'filtersDropdownOpen'
-    ], manageLegalFilters)
+    ...pick(
+      [
+        'appliedFilterName',
+        'showDirtyAsterisk',
+        'showSaveFilterModal',
+        'savedFilters',
+        'filtersDropdownOpen',
+      ],
+      manageLegalFilters
+    ),
   };
 }
 
 const mapDispatchToProps = {
   ...manageLegalFiltersActions,
-  ...legalDashboardFilterActions
+  ...legalDashboardFilterActions,
 };
 
-const LegalDashboardFilterContainer = connect(mapStateToProps, mapDispatchToProps)(LegalDashboardFilter);
+const LegalDashboardFilterContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LegalDashboardFilter);
 export default LegalDashboardFilterContainer;

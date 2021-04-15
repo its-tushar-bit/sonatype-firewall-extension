@@ -3,13 +3,33 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default
-function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, OwnerEditor, ApplicationStore,
-                                OrganizationStore, CLMLocations, CLMContextLocations, StageTypeStore,
-                                DeleteModalService, SelectApplicationContactService, EvaluateApplicationModalService,
-                                ImportPolicyModalService, ownerConstant, MoveApplicationModal, EventNameConstant,
-                                ChangeApplicationIdService, PermissionService, RevokeGrandfatheringModalService,
-                                GrandfatherModalService, PolicyViolationGrandfatheringService, ProductFeatures) {
+export default function OwnerSummaryController(
+  $state,
+  $scope,
+  $rootScope,
+  $q,
+  $http,
+  $window,
+  OwnerEditor,
+  ApplicationStore,
+  OrganizationStore,
+  CLMLocations,
+  CLMContextLocations,
+  StageTypeStore,
+  DeleteModalService,
+  SelectApplicationContactService,
+  EvaluateApplicationModalService,
+  ImportPolicyModalService,
+  ownerConstant,
+  MoveApplicationModal,
+  EventNameConstant,
+  ChangeApplicationIdService,
+  PermissionService,
+  RevokeGrandfatheringModalService,
+  GrandfatherModalService,
+  PolicyViolationGrandfatheringService,
+  ProductFeatures
+) {
   var vm = this;
 
   vm.error = undefined;
@@ -41,19 +61,24 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   vm.isEvaluateApplicationAvailable = undefined;
 
   var siblings,
-      stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
-      type = vm.isApp ? ownerConstant.APPLICATION_TYPE : ownerConstant.ORGANIZATION_TYPE,
-      id = $state.params[stateIdField];
+    stateIdField = vm.isApp ? 'applicationPublicId' : 'organizationId',
+    type = vm.isApp
+      ? ownerConstant.APPLICATION_TYPE
+      : ownerConstant.ORGANIZATION_TYPE,
+    id = $state.params[stateIdField];
 
   vm.doLoad();
 
   if (vm.isApp) {
-    $scope.$on('reload.app.report.data', function() {
-      $http.get(CLMLocations.getApplicationSummaryUrl(id)).then(function(result) {
-        vm.applicationSummary = result.data;
-      }, function(error) {
-        vm.error = error;
-      });
+    $scope.$on('reload.app.report.data', function () {
+      $http.get(CLMLocations.getApplicationSummaryUrl(id)).then(
+        function (result) {
+          vm.applicationSummary = result.data;
+        },
+        function (error) {
+          vm.error = error;
+        }
+      );
     });
 
     $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, doLoad);
@@ -61,7 +86,11 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
 
   function doLoad() {
     var store = vm.isApp ? ApplicationStore : OrganizationStore,
-        promises = [store[vm.error ? 'refresh' : 'get'](), store.getById(id), ProductFeatures.load()];
+      promises = [
+        store[vm.error ? 'refresh' : 'get'](),
+        store.getById(id),
+        ProductFeatures.load(),
+      ];
 
     if (vm.isApp) {
       promises.push(StageTypeStore.getDashboardStages());
@@ -69,38 +98,50 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
       promises.push(PolicyViolationGrandfatheringService.getGrandfathering());
     }
 
-    $q.all(promises).then(function(results) {
-      siblings = results[0];
-      vm.owner = results[1];
-      vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
-      vm.isEvaluateApplicationAvailable = ProductFeatures.isEvaluateApplicationAvailable();
+    $q.all(promises).then(
+      function (results) {
+        siblings = results[0];
+        vm.owner = results[1];
+        vm.isGrandfatheringSupported = ProductFeatures.isAvailable(
+          'policy-grandfathering'
+        );
+        vm.isEvaluateApplicationAvailable = ProductFeatures.isEvaluateApplicationAvailable();
 
-      if (vm.isApp) {
-        vm.stages = results[3];
-        vm.applicationSummary = results[4].data;
-        vm.owner.contact = vm.applicationSummary.contact;
-        vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
-        getAppChangePermissions();
-        getAppEvaluatePermissions();
+        if (vm.isApp) {
+          vm.stages = results[3];
+          vm.applicationSummary = results[4].data;
+          vm.owner.contact = vm.applicationSummary.contact;
+          vm.isGrandfatheringEnabled = results[5].calculatedEnabled;
+          getAppChangePermissions();
+          getAppEvaluatePermissions();
+        }
+      },
+      function (error) {
+        vm.error = error;
       }
-    }, function(error) {
-      vm.error = error;
-    });
+    );
 
     delete vm.error;
   }
 
   function getAppChangePermissions() {
-    PermissionService.isContextAuthorized(['WRITE'], 'application', vm.owner.id).then(function(hasPermission) {
+    PermissionService.isContextAuthorized(
+      ['WRITE'],
+      'application',
+      vm.owner.id
+    ).then(function (hasPermission) {
       vm.hasPermissionToChangeAppId = hasPermission;
     });
   }
 
   function getAppEvaluatePermissions() {
-    PermissionService.isContextAuthorized(['EVALUATE_APPLICATION'], 'application', vm.owner.id)
-        .then(function(hasPermission) {
-          vm.hasPermissionToEvaluateApp = hasPermission;
-        });
+    PermissionService.isContextAuthorized(
+      ['EVALUATE_APPLICATION'],
+      'application',
+      vm.owner.id
+    ).then(function (hasPermission) {
+      vm.hasPermissionToEvaluateApp = hasPermission;
+    });
   }
 
   function edit() {
@@ -132,7 +173,11 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   }
 
   function deleteOwner() {
-    DeleteModalService.deleteResource(vm.getResourceTypeName(), vm.owner.name, vm.owner).then(function() {
+    DeleteModalService.deleteResource(
+      vm.getResourceTypeName(),
+      vm.owner.name,
+      vm.owner
+    ).then(function () {
       $rootScope.$broadcast('owner.deleted', vm.owner, type);
       vm.goToParentView();
     });
@@ -160,27 +205,33 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
 
   function openReport(stage) {
     if (vm.applicationSummary.policyEvaluations[stage.stageTypeId]) {
-      $window.open($state.href('applicationReport.policy', {
-        publicId: vm.applicationSummary.publicId,
-        scanId: vm.applicationSummary.policyEvaluations[stage.stageTypeId].scanId
-      }), '_blank');
+      $window.open(
+        $state.href('applicationReport.policy', {
+          publicId: vm.applicationSummary.publicId,
+          scanId:
+            vm.applicationSummary.policyEvaluations[stage.stageTypeId].scanId,
+        }),
+        '_blank'
+      );
     }
   }
 
   function goToParentView() {
     if (!vm.isApp) {
-      $state.go('management.view.organization', {organizationId: vm.owner.parentOrganizationId});
-    }
-    else {
-      $state.go('management.view.organization', {organizationId: vm.owner.organizationId});
+      $state.go('management.view.organization', {
+        organizationId: vm.owner.parentOrganizationId,
+      });
+    } else {
+      $state.go('management.view.organization', {
+        organizationId: vm.owner.organizationId,
+      });
     }
   }
 
   function getDisabledGrandfatherTooltipMessage() {
     if (!vm.isGrandfatheringSupported) {
       return 'Policy Violation Grandfathering is not supported by your license';
-    }
-    else if (!vm.isGrandfatheringEnabled) {
+    } else if (!vm.isGrandfatheringEnabled) {
       return 'Grandfathering is not enabled for this application.';
     }
 
@@ -190,8 +241,7 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
   function getDisabledEvaluateTooltipMessage() {
     if (!vm.hasPermissionToEvaluateApp && vm.isEvaluateApplicationAvailable) {
       return 'Insufficient permissions to evaluate application';
-    }
-    else if (!vm.isEvaluateApplicationAvailable) {
+    } else if (!vm.isEvaluateApplicationAvailable) {
       return 'Evaluate application is not supported by your license.';
     }
 
@@ -200,10 +250,29 @@ function OwnerSummaryController($state, $scope, $rootScope, $q, $http, $window, 
 }
 
 OwnerSummaryController.$inject = [
-  '$state', '$scope', '$rootScope', '$q', '$http', '$window', 'OwnerEditorService', 'ApplicationStore',
-  'OrganizationStore', 'CLMLocations', 'CLMContextLocations', 'StageTypeStore', 'DeleteModalService',
-  'SelectApplicationContactService', 'evaluate.application.modal.service', 'import.policy.modal.service',
-  'owner.constant', 'move.application.modal.service', 'event.name.constant', 'change.application.id.service',
-  'PermissionService', 'RevokeGrandfatheringModalService', 'GrandfatherModalService',
-  'policyViolationGrandfatheringService', 'ProductFeatures'
+  '$state',
+  '$scope',
+  '$rootScope',
+  '$q',
+  '$http',
+  '$window',
+  'OwnerEditorService',
+  'ApplicationStore',
+  'OrganizationStore',
+  'CLMLocations',
+  'CLMContextLocations',
+  'StageTypeStore',
+  'DeleteModalService',
+  'SelectApplicationContactService',
+  'evaluate.application.modal.service',
+  'import.policy.modal.service',
+  'owner.constant',
+  'move.application.modal.service',
+  'event.name.constant',
+  'change.application.id.service',
+  'PermissionService',
+  'RevokeGrandfatheringModalService',
+  'GrandfatherModalService',
+  'policyViolationGrandfatheringService',
+  'ProductFeatures',
 ];

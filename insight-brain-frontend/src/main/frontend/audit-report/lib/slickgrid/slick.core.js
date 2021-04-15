@@ -7,15 +7,15 @@
 (function ($) {
   // register namespace
   $.extend(true, window, {
-    "Slick": {
-      "Event": Event,
-      "EventData": EventData,
-      "EventHandler": EventHandler,
-      "Range": Range,
-      "NonDataRow": NonDataItem,
-      "Group": Group,
-      "GroupTotals": GroupTotals,
-      "EditorLock": EditorLock,
+    Slick: {
+      Event: Event,
+      EventData: EventData,
+      EventHandler: EventHandler,
+      Range: Range,
+      NonDataRow: NonDataItem,
+      Group: Group,
+      GroupTotals: GroupTotals,
+      EditorLock: EditorLock,
 
       /***
        * A global singleton editor lock.
@@ -23,8 +23,8 @@
        * @static
        * @constructor
        */
-      "GlobalEditorLock": new EditorLock()
-    }
+      GlobalEditorLock: new EditorLock(),
+    },
   });
 
   /***
@@ -69,7 +69,7 @@
      */
     this.isImmediatePropagationStopped = function () {
       return isImmediatePropagationStopped;
-    }
+    };
   }
 
   /***
@@ -122,7 +122,12 @@
       scope = scope || this;
 
       var returnValue;
-      for (var i = 0; i < handlers.length && !(e.isPropagationStopped() || e.isImmediatePropagationStopped()); i++) {
+      for (
+        var i = 0;
+        i < handlers.length &&
+        !(e.isPropagationStopped() || e.isImmediatePropagationStopped());
+        i++
+      ) {
         returnValue = handlers[i].call(scope, e, args);
       }
 
@@ -136,7 +141,7 @@
     this.subscribe = function (event, handler) {
       handlers.push({
         event: event,
-        handler: handler
+        handler: handler,
       });
       event.subscribe(handler);
     };
@@ -144,8 +149,7 @@
     this.unsubscribe = function (event, handler) {
       var i = handlers.length;
       while (i--) {
-        if (handlers[i].event === event &&
-            handlers[i].handler === handler) {
+        if (handlers[i].event === event && handlers[i].handler === handler) {
           handlers.splice(i, 1);
           event.unsubscribe(handler);
           return;
@@ -159,7 +163,7 @@
         handlers[i].event.unsubscribe(handlers[i].handler);
       }
       handlers = [];
-    }
+    };
   }
 
   /***
@@ -227,8 +231,12 @@
      * @return {Boolean}
      */
     this.contains = function (row, cell) {
-      return row >= this.fromRow && row <= this.toRow &&
-          cell >= this.fromCell && cell <= this.toCell;
+      return (
+        row >= this.fromRow &&
+        row <= this.toRow &&
+        cell >= this.fromCell &&
+        cell <= this.toCell
+      );
     };
 
     /***
@@ -238,14 +246,22 @@
      */
     this.toString = function () {
       if (this.isSingleCell()) {
-        return "(" + this.fromRow + ":" + this.fromCell + ")";
+        return '(' + this.fromRow + ':' + this.fromCell + ')';
+      } else {
+        return (
+          '(' +
+          this.fromRow +
+          ':' +
+          this.fromCell +
+          ' - ' +
+          this.toRow +
+          ':' +
+          this.toCell +
+          ')'
+        );
       }
-      else {
-        return "(" + this.fromRow + ":" + this.fromCell + " - " + this.toRow + ":" + this.toCell + ")";
-      }
-    }
+    };
   }
-
 
   /***
    * A base class that all special / non-data rows (like Group and GroupTotals) derive from.
@@ -255,7 +271,6 @@
   function NonDataItem() {
     this.__nonDataRow = true;
   }
-
 
   /***
    * Information about a group of rows.
@@ -312,9 +327,11 @@
    * @param group {Group} Group instance to compare to.
    */
   Group.prototype.equals = function (group) {
-    return this.value === group.value &&
-        this.count === group.count &&
-        this.collapsed === group.collapsed;
+    return (
+      this.value === group.value &&
+      this.count === group.count &&
+      this.collapsed === group.collapsed
+    );
   };
 
   /***
@@ -358,7 +375,9 @@
      * @return {Boolean}
      */
     this.isActive = function (editController) {
-      return (editController ? activeEditController === editController : activeEditController !== null);
+      return editController
+        ? activeEditController === editController
+        : activeEditController !== null;
     };
 
     /***
@@ -368,17 +387,18 @@
      * @param editController {EditController} edit controller acquiring the lock
      */
     this.activate = function (editController) {
-      if (editController === activeEditController) { // already activated?
+      if (editController === activeEditController) {
+        // already activated?
         return;
       }
       if (activeEditController !== null) {
         throw "SlickGrid.EditorLock.activate: an editController is still active, can't activate another editController";
       }
       if (!editController.commitCurrentEdit) {
-        throw "SlickGrid.EditorLock.activate: editController must implement .commitCurrentEdit()";
+        throw 'SlickGrid.EditorLock.activate: editController must implement .commitCurrentEdit()';
       }
       if (!editController.cancelCurrentEdit) {
-        throw "SlickGrid.EditorLock.activate: editController must implement .cancelCurrentEdit()";
+        throw 'SlickGrid.EditorLock.activate: editController must implement .cancelCurrentEdit()';
       }
       activeEditController = editController;
     };
@@ -391,7 +411,7 @@
      */
     this.deactivate = function (editController) {
       if (activeEditController !== editController) {
-        throw "SlickGrid.EditorLock.deactivate: specified editController is not the currently active one";
+        throw 'SlickGrid.EditorLock.deactivate: specified editController is not the currently active one';
       }
       activeEditController = null;
     };
@@ -405,7 +425,9 @@
      * @return {Boolean}
      */
     this.commitCurrentEdit = function () {
-      return (activeEditController ? activeEditController.commitCurrentEdit() : true);
+      return activeEditController
+        ? activeEditController.commitCurrentEdit()
+        : true;
     };
 
     /***
@@ -416,9 +438,9 @@
      * @return {Boolean}
      */
     this.cancelCurrentEdit = function cancelCurrentEdit() {
-      return (activeEditController ? activeEditController.cancelCurrentEdit() : true);
+      return activeEditController
+        ? activeEditController.cancelCurrentEdit()
+        : true;
     };
   }
 })(jQuery);
-
-

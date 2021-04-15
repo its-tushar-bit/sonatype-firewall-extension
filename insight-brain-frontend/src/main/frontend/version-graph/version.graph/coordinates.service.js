@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-export default function() {
+export default function () {
   var selected = null,
-      coordinates = null,
-      format = null,
-      identificationSource = null;
+    coordinates = null,
+    format = null,
+    identificationSource = null;
   return {
     get: function () {
       return coordinates;
@@ -33,13 +33,12 @@ export default function() {
     setSelected: function (c) {
       if (c && coordinates && c.version === coordinates.version) {
         selected = null;
-      }
-      else {
+      } else {
         selected = c;
       }
     },
     isOriginalVersion: function () {
       return (this.get() || {}).version === (this.getSelected() || {}).version;
-    }
+    },
   };
 }

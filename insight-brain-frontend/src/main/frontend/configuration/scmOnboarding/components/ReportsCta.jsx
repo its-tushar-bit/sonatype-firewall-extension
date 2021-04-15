@@ -10,7 +10,7 @@ import NxButton from '@sonatype/react-shared-components/components/NxButton/NxBu
 /*
  The "Go to Reports" Call To Action
  */
-export default function ReportsCta({$state, id}) {
+export default function ReportsCta({ $state, id }) {
   const reportHref = $state.href($state.get('violations'), {});
 
   const goToReports = () => {
@@ -18,11 +18,7 @@ export default function ReportsCta({$state, id}) {
   };
 
   return (
-    <NxButton
-        id={id}
-        type="button"
-        variant="secondary"
-        onClick={goToReports}>
+    <NxButton id={id} type="button" variant="secondary" onClick={goToReports}>
       Go To Reports
     </NxButton>
   );
@@ -30,5 +26,5 @@ export default function ReportsCta({$state, id}) {
 
 ReportsCta.propTypes = {
   $state: PropTypes.object.isRequired,
-  id: PropTypes.string.isRequired
+  id: PropTypes.string.isRequired,
 };

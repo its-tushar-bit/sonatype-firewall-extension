@@ -6,19 +6,19 @@
 function SelectedComponent() {
   var selectedComponent = null;
   return {
-    get: function() {
+    get: function () {
       return selectedComponent;
     },
-    toggle: function(component) {
+    toggle: function (component) {
       if (component === selectedComponent) {
         selectedComponent = null;
-      }
-      else {
+      } else {
         selectedComponent = component;
       }
-    }
+    },
   };
 }
 
-export default angular.module('selectedComponentService', [])
-    .service('SelectedComponent', SelectedComponent);
+export default angular
+  .module('selectedComponentService', [])
+  .service('SelectedComponent', SelectedComponent);

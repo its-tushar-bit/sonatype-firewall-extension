@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 export default {
-  getApplicationSummaryUrl: function() {
+  getApplicationSummaryUrl: function () {
     return {
       id: 'fakeId',
       name: 'fakeName',
@@ -12,20 +12,20 @@ export default {
       organizationName: 'fakeOrgName',
       publicId: 'fakePublicId',
       policyEvaluations: {
-        build: {id: 'fakePolicyEvaluationId', scanId: 'fakeScanId'},
-        'stage-release': {id: 'fakePolicyEvaluationId', scanId: 'fakeScanId'},
-        release: {id: 'fakePolicyEvaluationId', scanId: 'fakeScanId'}
-      }
+        build: { id: 'fakePolicyEvaluationId', scanId: 'fakeScanId' },
+        'stage-release': { id: 'fakePolicyEvaluationId', scanId: 'fakeScanId' },
+        release: { id: 'fakePolicyEvaluationId', scanId: 'fakeScanId' },
+      },
     };
   },
-  getApplicationUrl: function() {
+  getApplicationUrl: function () {
     return {
       contact: null,
       id: 'fakeId',
       name: 'fakeName',
       organizationId: 'fakeOrdId',
       organizationName: 'fakeOrgName',
-      publicId: 'fakePublicId'
+      publicId: 'fakePublicId',
     };
-  }
+  },
 };

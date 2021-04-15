@@ -5,25 +5,26 @@
  */
 import validators from '../../../main/frontend/util/Validators';
 
-describe('ValidatorsSpec', function() {
-
+describe('ValidatorsSpec', function () {
   beforeEach(angular.mock.module(validators.name));
 
-  describe('Unique Validator', function() {
+  describe('Unique Validator', function () {
     var scope, element, formController;
-    beforeEach(inject(function($rootScope, $compile) {
+    beforeEach(inject(function ($rootScope, $compile) {
       scope = angular.extend($rootScope, {
         model: {
-          value: ''
+          value: '',
         },
-        array: ['foo']
+        array: ['foo'],
       });
-      element = $compile('<form><input name="input" type="text" unique-validator="array" ng-model="model.value">' +
-          '</form>')(scope);
+      element = $compile(
+        '<form><input name="input" type="text" unique-validator="array" ng-model="model.value">' +
+          '</form>'
+      )(scope);
       formController = element.controller('form');
     }));
 
-    it('is invalid when a duplicate entry is input', function() {
+    it('is invalid when a duplicate entry is input', function () {
       scope.$apply(function () {
         formController.input.$setViewValue('foo');
       });
@@ -32,7 +33,7 @@ describe('ValidatorsSpec', function() {
       expect(formController.input.$error.unique).toBeTruthy();
     });
 
-    it('is valid when a duplicate entry is changed to non duplicate', function() {
+    it('is valid when a duplicate entry is changed to non duplicate', function () {
       scope.$apply(function () {
         formController.input.$setViewValue('foo');
       });
@@ -46,7 +47,7 @@ describe('ValidatorsSpec', function() {
       expect(formController.input.$error.unique).toBeFalsy();
     });
 
-    it('is valid when the duplicate entry is removed from the array', function() {
+    it('is valid when the duplicate entry is removed from the array', function () {
       scope.$apply(function () {
         formController.input.$setViewValue('foo');
       });
@@ -61,32 +62,42 @@ describe('ValidatorsSpec', function() {
     });
   });
 
-  describe('Input Validator', function() {
+  describe('Input Validator', function () {
     var testCases = [true, false];
 
-    angular.forEach(testCases, function(testCase) {
-      it('Supports a ' + testCase + ' validator', inject(function($rootScope, $compile) {
-        var scope = angular.extend($rootScope, {
-          model: {
-            value: ''
-          },
-          validator: jasmine.createSpy().and.returnValue({
-            validity: testCase
-          })
-        });
-        var element =
-          $compile('<form><input name="input" type="text" input-validator="validator" ng-model="model.value">' +
-              '</form>')(scope);
+    angular.forEach(testCases, function (testCase) {
+      it(
+        'Supports a ' + testCase + ' validator',
+        inject(function ($rootScope, $compile) {
+          var scope = angular.extend($rootScope, {
+            model: {
+              value: '',
+            },
+            validator: jasmine.createSpy().and.returnValue({
+              validity: testCase,
+            }),
+          });
+          var element = $compile(
+            '<form><input name="input" type="text" input-validator="validator" ng-model="model.value">' +
+              '</form>'
+          )(scope);
 
-        var formController = element.controller('form');
+          var formController = element.controller('form');
 
-        scope.$apply(function () {
-          formController.input.$setViewValue('foo');
-        });
-        expect(formController.$valid)[testCase ? 'toBeTruthy' : 'toBeFalsy']();
-        expect(formController.input.$valid)[testCase ? 'toBeTruthy' : 'toBeFalsy']();
-        expect(formController.input.$error.validity)[!testCase ? 'toBeTruthy' : 'toBeFalsy']();
-      }));
+          scope.$apply(function () {
+            formController.input.$setViewValue('foo');
+          });
+          expect(formController.$valid)[
+            testCase ? 'toBeTruthy' : 'toBeFalsy'
+          ]();
+          expect(formController.input.$valid)[
+            testCase ? 'toBeTruthy' : 'toBeFalsy'
+          ]();
+          expect(formController.input.$error.validity)[
+            !testCase ? 'toBeTruthy' : 'toBeFalsy'
+          ]();
+        })
+      );
     });
   });
 });

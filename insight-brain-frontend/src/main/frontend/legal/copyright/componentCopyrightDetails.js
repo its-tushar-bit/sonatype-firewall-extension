@@ -13,5 +13,5 @@ export default {
           <ui-view></ui-view>
         </div>
       </main>
-  `
+  `,
 };

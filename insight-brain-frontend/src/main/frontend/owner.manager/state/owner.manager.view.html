@@ -1,7 +1,9 @@
 <div class="nx-page-sidebar" ui-view="navigation"></div>
-<div id="owner-manager-main"
-     class="nx-page-main"
-     ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized }">
+<div
+  id="owner-manager-main"
+  class="nx-page-main"
+  ng-class="{ 'nx-viewport-sized': $state.$current.data.viewportSized }"
+>
   <root-organization-migrate></root-organization-migrate>
   <ui-view></ui-view>
 </div>

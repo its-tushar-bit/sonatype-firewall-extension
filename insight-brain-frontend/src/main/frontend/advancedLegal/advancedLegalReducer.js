@@ -16,9 +16,12 @@ import {
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
 } from './advancedLegalActions';
-import { ACTIONABLE_OBLIGATIONS, TEXT_BASED_OBLIGATIONS } from '../legal/advancedLegalConstants';
+import {
+  ACTIONABLE_OBLIGATIONS,
+  TEXT_BASED_OBLIGATIONS,
+} from '../legal/advancedLegalConstants';
 import { COPYRIGHT_OVERRIDE_SAVE_FULFILLED } from '../legal/copyright/copyrightOverrideFormActions';
 import { lensPath, over } from 'ramda';
 import { advancedLegalObligationReducerActionMap } from '../legal/obligation/advancedLegalObligationReducer';
@@ -27,22 +30,22 @@ import { advancedLegalFileReducerActionMap } from '../legal/files/advancedLegalF
 const initialState = {
   viewStateApplications: {
     loading: false,
-    error: null
+    error: null,
   },
   applications: [],
   viewStateApplicationReport: {
     loading: false,
-    error: null
+    error: null,
   },
   applicationReport: null,
   component: {
     loading: false,
-    error: null
+    error: null,
   },
   availableScopes: {
     loading: false,
-    error: null
-  }
+    error: null,
+  },
 };
 
 function loadApplicationsRequested() {
@@ -50,8 +53,8 @@ function loadApplicationsRequested() {
     ...initialState,
     viewStateApplications: {
       loading: true,
-      error: null
-    }
+      error: null,
+    },
   };
 }
 
@@ -60,9 +63,9 @@ function loadApplicationsFulfilled(payload, state) {
     ...state,
     viewStateApplications: {
       ...state.viewStateApplications,
-      loading: false
+      loading: false,
     },
-    applications: payload
+    applications: payload,
   };
 }
 
@@ -72,8 +75,8 @@ function loadApplicationsFailed(payload, state) {
     viewStateApplications: {
       ...state.viewStateApplications,
       loading: false,
-      error: payload
-    }
+      error: payload,
+    },
   };
 }
 
@@ -82,9 +85,9 @@ function loadApplicationReportRequested(_, state) {
     ...state,
     viewStateApplicationReport: {
       loading: true,
-      error: null
+      error: null,
     },
-    applicationReport: null
+    applicationReport: null,
   };
 }
 
@@ -93,9 +96,9 @@ function loadApplicationReportFulfilled(payload, state) {
     ...state,
     viewStateApplicationReport: {
       ...state.viewStateApplicationReport,
-      loading: false
+      loading: false,
     },
-    applicationReport: payload
+    applicationReport: payload,
   };
 }
 
@@ -105,8 +108,8 @@ function loadApplicationReportFailed(payload, state) {
     viewStateApplicationReport: {
       ...state.viewStateApplicationReport,
       loading: false,
-      error: payload
-    }
+      error: payload,
+    },
   };
 }
 
@@ -115,45 +118,47 @@ function loadComponentRequested() {
     ...initialState,
     component: {
       loading: true,
-      error: null
-    }
+      error: null,
+    },
   };
 }
 
 function loadComponentFulfilled(payload, state) {
-  const newObligations = payload.component.licenseLegalData.obligations.map(obligation => {
-    const status = obligation.status || 'OPEN';
-    const comment = obligation.comment || '';
-    const ownerId = obligation.ownerId || 'ROOT_ORGANIZATION_ID';
-    return {
-      ...obligation,
-      status,
-      originalStatus: status,
-      comment,
-      originalComment: comment,
-      ownerId,
-      originalOwnerId: ownerId,
-      showObligationModal: false,
-      error: null,
-      saveObligationSubmitMask: null
-    };
-  }).sort((o1, o2) => {
-    const o1Index = ACTIONABLE_OBLIGATIONS.indexOf(o1.name);
-    const o2Index = ACTIONABLE_OBLIGATIONS.indexOf(o2.name);
-    if (o1Index === -1 && o2Index === -1) {
-      return o1.name.localeCompare(o2.name);
-    }
-    if (o2Index === -1) {
-      return -1;
-    }
-    if (o1Index === -1) {
-      return 1;
-    }
-    return o1Index - o2Index;
-  });
+  const newObligations = payload.component.licenseLegalData.obligations
+    .map((obligation) => {
+      const status = obligation.status || 'OPEN';
+      const comment = obligation.comment || '';
+      const ownerId = obligation.ownerId || 'ROOT_ORGANIZATION_ID';
+      return {
+        ...obligation,
+        status,
+        originalStatus: status,
+        comment,
+        originalComment: comment,
+        ownerId,
+        originalOwnerId: ownerId,
+        showObligationModal: false,
+        error: null,
+        saveObligationSubmitMask: null,
+      };
+    })
+    .sort((o1, o2) => {
+      const o1Index = ACTIONABLE_OBLIGATIONS.indexOf(o1.name);
+      const o2Index = ACTIONABLE_OBLIGATIONS.indexOf(o2.name);
+      if (o1Index === -1 && o2Index === -1) {
+        return o1.name.localeCompare(o2.name);
+      }
+      if (o2Index === -1) {
+        return -1;
+      }
+      if (o1Index === -1) {
+        return 1;
+      }
+      return o1Index - o2Index;
+    });
 
   const getAttributionOrNew = (attributions, obligationName) => {
-    const attribution = attributions.find(a => {
+    const attribution = attributions.find((a) => {
       return a.obligationName === obligationName;
     });
     if (attribution === undefined) {
@@ -166,7 +171,7 @@ function loadComponentFulfilled(payload, state) {
         originalOwnerId: 'ROOT_ORGANIZATION_ID',
         showAttributionModal: false,
         error: null,
-        saveAttributionSubmitMask: null
+        saveAttributionSubmitMask: null,
       };
     }
     return {
@@ -175,33 +180,46 @@ function loadComponentFulfilled(payload, state) {
       originalOwnerId: attribution.ownerId,
       showAttributionModal: false,
       error: null,
-      saveAttributionSubmitMask: null
+      saveAttributionSubmitMask: null,
     };
   };
 
   const newAttributions = [
     ...newObligations
-        .filter(obligation => TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0)
-        .map(obligation => getAttributionOrNew(payload.component.licenseLegalData.attributions, obligation.name)),
-    getAttributionOrNew(payload.component.licenseLegalData.attributions, null)
+      .filter(
+        (obligation) => TEXT_BASED_OBLIGATIONS.indexOf(obligation.name) >= 0
+      )
+      .map((obligation) =>
+        getAttributionOrNew(
+          payload.component.licenseLegalData.attributions,
+          obligation.name
+        )
+      ),
+    getAttributionOrNew(payload.component.licenseLegalData.attributions, null),
   ];
 
-  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(noticeFile => ({
-    ...noticeFile,
-    originalContent: noticeFile.content,
-    originalStatus: noticeFile.status,
-    isPristine: true
-  }));
-  const newLicenseFiles = payload.component.licenseLegalData.licenseFiles.map(licenseFile => ({
-    ...licenseFile,
-    originalContent: licenseFile.content,
-    originalStatus: licenseFile.status,
-    isPristine: true
-  }));
-  const componentNoticesScopeOwnerId = payload.component.licenseLegalData.componentNoticesScopeOwnerId ||
-            'ROOT_ORGANIZATION_ID';
-  const componentLicensesScopeOwnerId = payload.component.licenseLegalData.componentLicensesScopeOwnerId ||
-            'ROOT_ORGANIZATION_ID';
+  const newNoticeFiles = payload.component.licenseLegalData.noticeFiles.map(
+    (noticeFile) => ({
+      ...noticeFile,
+      originalContent: noticeFile.content,
+      originalStatus: noticeFile.status,
+      isPristine: true,
+    })
+  );
+  const newLicenseFiles = payload.component.licenseLegalData.licenseFiles.map(
+    (licenseFile) => ({
+      ...licenseFile,
+      originalContent: licenseFile.content,
+      originalStatus: licenseFile.status,
+      isPristine: true,
+    })
+  );
+  const componentNoticesScopeOwnerId =
+    payload.component.licenseLegalData.componentNoticesScopeOwnerId ||
+    'ROOT_ORGANIZATION_ID';
+  const componentLicensesScopeOwnerId =
+    payload.component.licenseLegalData.componentLicensesScopeOwnerId ||
+    'ROOT_ORGANIZATION_ID';
   const newLicenseLegalData = {
     ...payload.component.licenseLegalData,
     showNoticesModal: false,
@@ -217,7 +235,7 @@ function loadComponentFulfilled(payload, state) {
     licensesError: null,
     saveLicensesSubmitMask: null,
     obligations: newObligations,
-    attributions: newAttributions
+    attributions: newAttributions,
   };
   return {
     ...state,
@@ -227,9 +245,9 @@ function loadComponentFulfilled(payload, state) {
       ...payload,
       component: {
         ...payload.component,
-        licenseLegalData: newLicenseLegalData
-      }
-    }
+        licenseLegalData: newLicenseLegalData,
+      },
+    },
   };
 }
 
@@ -238,8 +256,8 @@ function loadComponentFailed(payload, state) {
     ...state,
     component: {
       loading: false,
-      error: payload
-    }
+      error: payload,
+    },
   };
 }
 
@@ -248,8 +266,8 @@ function loadAvailableScopesRequested(_, state) {
     ...state,
     availableScopes: {
       loading: true,
-      error: null
-    }
+      error: null,
+    },
   };
 }
 
@@ -259,8 +277,8 @@ function loadAvailableScopesFulfilled(payload, state) {
     availableScopes: {
       loading: false,
       error: null,
-      ...payload
-    }
+      ...payload,
+    },
   };
 }
 
@@ -269,20 +287,25 @@ function loadAvailableScopesFailed(payload, state) {
     ...state,
     availableScopes: {
       loading: false,
-      error: payload
-    }
+      error: payload,
+    },
   };
 }
 
 function saveCopyrightOverrideFulfilled(payload, state) {
-  return over(lensPath(['component', 'component', 'licenseLegalData']), lld => ({
-    ...lld,
-    componentCopyrightId: payload.id,
-    componentCopyrightScopeOwnerId: payload.componentCopyrightScopeOwnerId,
-    componentCopyrightLastUpdatedByUsername: payload.componentCopyrightLastUpdatedByUsername,
-    componentCopyrightLastUpdatedAt: payload.componentCopyrightLastUpdatedAt,
-    copyrights: payload.copyrightOverrides
-  }), state);
+  return over(
+    lensPath(['component', 'component', 'licenseLegalData']),
+    (lld) => ({
+      ...lld,
+      componentCopyrightId: payload.id,
+      componentCopyrightScopeOwnerId: payload.componentCopyrightScopeOwnerId,
+      componentCopyrightLastUpdatedByUsername:
+        payload.componentCopyrightLastUpdatedByUsername,
+      componentCopyrightLastUpdatedAt: payload.componentCopyrightLastUpdatedAt,
+      copyrights: payload.copyrightOverrides,
+    }),
+    state
+  );
 }
 
 const reducerActionMap = {
@@ -300,8 +323,11 @@ const reducerActionMap = {
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED]: loadAvailableScopesFailed,
   [COPYRIGHT_OVERRIDE_SAVE_FULFILLED]: saveCopyrightOverrideFulfilled,
   ...advancedLegalObligationReducerActionMap,
-  ...advancedLegalFileReducerActionMap
+  ...advancedLegalFileReducerActionMap,
 };
 
-const advancedLegalReducer = createReducerFromActionMap(reducerActionMap, initialState);
+const advancedLegalReducer = createReducerFromActionMap(
+  reducerActionMap,
+  initialState
+);
 export default advancedLegalReducer;

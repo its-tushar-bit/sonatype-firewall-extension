@@ -6,11 +6,10 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import ReportStatusBar from '../../../../main/frontend/applicationReport/react/ReportStatusBar';
 
-describe('ReportStatusBar component', function() {
+describe('ReportStatusBar component', function () {
   let getShallowComponent;
 
-  beforeEach(function() {
-
+  beforeEach(function () {
     const minimalProps = {
       selectedReport: {
         knownArtifactCount: 1,
@@ -20,19 +19,22 @@ describe('ReportStatusBar component', function() {
         criticalViolationCount: 1,
         severeViolationCount: 2,
         moderateViolationCount: 3,
-        nonLowViolationCount: 0
-      }
+        nonLowViolationCount: 0,
+      },
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(ReportStatusBar, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(
+      ReportStatusBar,
+      minimalProps
+    );
   });
 
-  it('renders a tile', function() {
+  it('renders a tile', function () {
     const shallowComponent = getShallowComponent();
     expect(shallowComponent).toMatchSelector('.nx-tile');
   });
 
-  it('renders a div for threats', function() {
+  it('renders a div for threats', function () {
     const shallowComponent = getShallowComponent();
     const indicator = shallowComponent.find('.iq-threat-indicators');
     const critical = shallowComponent.find('.iq-threat-indicator.critical');
@@ -48,7 +50,7 @@ describe('ReportStatusBar component', function() {
     expect(moderate).toHaveText('3');
   });
 
-  it('renders a div for violations counts', function() {
+  it('renders a div for violations counts', function () {
     const shallowComponent = getShallowComponent();
     const indicator = shallowComponent.find('.iq-threat-indicators');
     const captionText = indicator.find('.iq-caption').find('h3');
@@ -59,7 +61,7 @@ describe('ReportStatusBar component', function() {
     expect(captionSubtext).toHaveText('Affecting 1 component');
   });
 
-  it('renders a div for coverage', function() {
+  it('renders a div for coverage', function () {
     const shallowComponent = getShallowComponent();
     const indicator = shallowComponent.find('.iq-coverage-indicator');
     const captionText = indicator.find('.iq-caption').find('h3');
@@ -70,7 +72,7 @@ describe('ReportStatusBar component', function() {
     expect(captionSubtext).toHaveText('50% of all components identified');
   });
 
-  it('renders a div for grandfathering', function() {
+  it('renders a div for grandfathering', function () {
     const shallowComponent = getShallowComponent();
     const indicator = shallowComponent.find('.iq-grandfathering-indicator');
     const captionText = indicator.find('.iq-caption').find('h3');

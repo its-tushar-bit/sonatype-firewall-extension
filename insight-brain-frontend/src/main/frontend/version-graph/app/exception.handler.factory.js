@@ -13,14 +13,14 @@ function defaultLogFn(message) {
 }
 
 var logQueue = [],
-    logFn = defaultLogFn;
+  logFn = defaultLogFn;
 
 $.extend(true, window, {
-  'Insight': {
+  Insight: {
     /**
      * @since 1.12
      */
-    'setLogger' : function (newLogFn) {
+    setLogger: function (newLogFn) {
       // iterate over each exception
       $.each(logQueue, function (index, args) {
         setTimeout(function () {
@@ -35,11 +35,11 @@ $.extend(true, window, {
      * Resets the logger to the default, used for testing.
      * @since 1.12
      */
-    'resetLogger' : function () {
+    resetLogger: function () {
       logQueue = [];
       logFn = defaultLogFn;
-    }
-  }
+    },
+  },
 });
 
 export default function exceptionHandler() {

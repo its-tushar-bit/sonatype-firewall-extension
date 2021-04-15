@@ -10,7 +10,10 @@ import { gotoNewVulnerability, loadSidebarNav } from './sidebarNavListActions';
 import SidebarNavList from './SidebarNavList';
 
 function mapStateToProps({ sidebarNavList, router, violation }) {
-  let props = pick(['data', 'error', 'loading', 'contentType', 'backButtonStateName'], sidebarNavList);
+  let props = pick(
+    ['data', 'error', 'loading', 'contentType', 'backButtonStateName'],
+    sidebarNavList
+  );
 
   if (!props.contentType) {
     const currentStateName = router.currentState.name;
@@ -22,7 +25,7 @@ function mapStateToProps({ sidebarNavList, router, violation }) {
             loading: false,
             contentType: 'violations',
             backButtonStateName: 'dashboard.overview.violations',
-            error: null
+            error: null,
           };
         }
         break;
@@ -32,13 +35,13 @@ function mapStateToProps({ sidebarNavList, router, violation }) {
     ...props,
     stateParams: router.currentParams,
     // dont scroll to selection if we're coming from an entry in the sidebar (same parent state)
-    scrollToSelection: router.currentState.name !== router.prevState.name
+    scrollToSelection: router.currentState.name !== router.prevState.name,
   };
 }
 
 const mapDispatchToProps = {
   loadSidebarNav,
-  gotoNewVulnerability
+  gotoNewVulnerability,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SidebarNavList);

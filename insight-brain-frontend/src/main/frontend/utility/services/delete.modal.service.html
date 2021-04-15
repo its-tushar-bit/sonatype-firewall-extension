@@ -1,15 +1,23 @@
 <div id="delete-modal">
   <div class="iq-modal-header">
     <h2>
-      <i class="fa size-20px fa-trash"></i> {{vm.headerText || 'Delete ' + vm.resourceType}}
+      <i class="fa size-20px fa-trash"></i> {{vm.headerText || 'Delete ' +
+      vm.resourceType}}
     </h2>
   </div>
-  <form name="deleteResourceForm" ng-submit="vm.deleteResource()" form-mask="vm.deleteResourceMask"
-        mask-message="{{vm.maskText || 'Deleting'}}">
+  <form
+    name="deleteResourceForm"
+    ng-submit="vm.deleteResource()"
+    form-mask="vm.deleteResourceMask"
+    mask-message="{{vm.maskText || 'Deleting'}}"
+  >
     <div class="iq-modal-content">
       <div class="iq-alert">
         <i class="fa fa-warning"></i>
-        <span ng-if="!vm.bodyText">You are about to permanently remove {{ ::vm.resourceName }}. This action cannot be undone.</span>
+        <span ng-if="!vm.bodyText"
+          >You are about to permanently remove {{ ::vm.resourceName }}. This
+          action cannot be undone.</span
+        >
         <span ng-if="vm.bodyText">{{ ::vm.bodyText }}</span>
       </div>
     </div>

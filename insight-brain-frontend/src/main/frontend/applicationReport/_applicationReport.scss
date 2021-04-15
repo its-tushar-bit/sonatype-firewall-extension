@@ -3,22 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import "results/cipModal/cipModal";
-@import "rawData/applicationReportRawData";
+@import 'results/cipModal/cipModal';
+@import 'rawData/applicationReportRawData';
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
 $iq-application-report-policy-threat-level-width: 90px;
 $iq-application-report-policy-name-width: 225px;
-$iq-application-report-policy-name-filter-width:
-  $iq-application-report-policy-threat-level-width
-  + $iq-application-report-policy-name-width;
+$iq-application-report-policy-name-filter-width: $iq-application-report-policy-threat-level-width +
+  $iq-application-report-policy-name-width;
 
 $iq-application-report-vulnerability-security-issue-width: 130px;
 $iq-application-report-vulnerability-cvss-issue-width: 100px;
 $iq-application-report-vulnerability-threat-level-width: 62px;
 
-application-report-root, application-report, application-report-results, application-report-vulnerabilities {
+application-report-root,
+application-report,
+application-report-results,
+application-report-vulnerabilities {
   display: contents;
 }
 
@@ -92,7 +94,10 @@ tbody .iq-cell--application-report-policy-threat-level {
 }
 
 .iq-cell--application-report-component-display {
-  width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
+  width: calc(
+    100% - #{$iq-application-report-policy-threat-level-width +
+      $iq-application-report-policy-name-width}
+  );
   min-width: 0;
 }
 
@@ -113,11 +118,13 @@ tbody .iq-cell--application-report-component-display {
 }
 
 .iq-cell--application-report-component-name-filter {
-  width: calc(100% - #{$iq-application-report-policy-threat-level-width + $iq-application-report-policy-name-width});
+  width: calc(
+    100% - #{$iq-application-report-policy-threat-level-width +
+      $iq-application-report-policy-name-width}
+  );
 }
 
 #application-report-vulnerabilities {
-
   .nx-page-main {
     display: flex;
     flex-direction: column;
@@ -127,7 +134,8 @@ tbody .iq-cell--application-report-component-display {
     margin-top: 0;
   }
 
-  .nx-tile, .nx-tile-content {
+  .nx-tile,
+  .nx-tile-content {
     display: flex;
     flex-direction: column;
     flex-shrink: 1;
@@ -201,4 +209,3 @@ tbody .iq-cell--application-report-component-display {
     margin-top: 6px;
   }
 }
-

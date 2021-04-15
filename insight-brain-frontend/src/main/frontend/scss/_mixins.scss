@@ -8,7 +8,7 @@
   border-color: transparent transparent #fff transparent;
   border-style: solid;
   border-width: 0 5px 5px 5px;
-  content: "";
+  content: '';
   height: 0;
   margin-left: -5px;
   position: absolute;
@@ -31,18 +31,18 @@
 
 @mixin flex($values) {
   -webkit-box-flex: $values;
-  -moz-box-flex:  $values;
-  -webkit-flex:  $values;
-  -ms-flex:  $values;
-  flex:  $values;
+  -moz-box-flex: $values;
+  -webkit-flex: $values;
+  -ms-flex: $values;
+  flex: $values;
 }
 
 /*
   Tables with a fixed header
  */
 @mixin table-fixed-widths($numColumns) {
-  .iq-table--fixed__header, .iq-table--fixed__content {
-
+  .iq-table--fixed__header,
+  .iq-table--fixed__content {
     .iq-cell {
       width: calc(100% / #{$numColumns});
 
@@ -66,7 +66,10 @@
 
       // fixes problem in IE11 where the last column wraps when all of the columns are exactly equal
       .iq-cell:last-child {
-        width: calc(((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - #{$iq-scrollbar-width} - 1px);
+        width: calc(
+          ((100% + #{$iq-scrollbar-width}) / #{$numColumns}) - #{$iq-scrollbar-width} -
+            1px
+        );
       }
     }
   }

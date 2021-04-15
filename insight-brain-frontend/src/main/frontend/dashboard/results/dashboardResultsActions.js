@@ -8,7 +8,7 @@ import {
   getNewestRisks,
   getApplicationRisks,
   getComponentRisks,
-  MAX_RESULTS
+  MAX_RESULTS,
 } from '../services/dashboard.data.service';
 import dashboardServicesModule from '../services/module';
 
@@ -21,14 +21,14 @@ export const SORT_RESULTS_FULFILLED = 'SORT_RESULTS_FULFILLED';
 function loadResultsFulfilled(resultsType, results, numResults, classyBrew) {
   return {
     type: LOAD_RESULTS_FULFILLED,
-    payload: { resultsType, results, numResults, classyBrew }
+    payload: { resultsType, results, numResults, classyBrew },
   };
 }
 
 function loadResultsFailed(resultsType, error) {
   return {
     type: LOAD_RESULTS_FAILED,
-    payload: { resultsType, error }
+    payload: { resultsType, error },
   };
 }
 
@@ -36,18 +36,20 @@ export function loadResults(resultsType) {
   return (dispatch, getState) => {
     dispatch({
       type: LOAD_RESULTS_REQUESTED,
-      payload: resultsType
+      payload: resultsType,
     });
 
     return fetchResults(resultsType, getState())
-        .then(data => {
-          const { results, numResults, classyBrew } = data;
-          dispatch(loadResultsFulfilled(resultsType, results, numResults, classyBrew));
-        })
-        .catch(error => {
-          dispatch(loadResultsFailed(resultsType, error));
-          return Promise.reject(error);
-        });
+      .then((data) => {
+        const { results, numResults, classyBrew } = data;
+        dispatch(
+          loadResultsFulfilled(resultsType, results, numResults, classyBrew)
+        );
+      })
+      .catch((error) => {
+        dispatch(loadResultsFailed(resultsType, error));
+        return Promise.reject(error);
+      });
   };
 }
 
@@ -55,7 +57,7 @@ export function sortResults(resultsType, sortFields) {
   return (dispatch, getState) => {
     dispatch({
       type: SORT_RESULTS_REQUESTED,
-      payload: {resultsType, sortFields}
+      payload: { resultsType, sortFields },
     });
 
     const dashboardState = getState().dashboard;
@@ -63,8 +65,7 @@ export function sortResults(resultsType, sortFields) {
     const numResults = dashboardState[resultsType].numResults;
     if (!results || numResults > MAX_RESULTS) {
       return dispatch(loadResults(resultsType));
-    }
-    else {
+    } else {
       // sort results in frontend
       const sorted = sortItemsByFields(sortFields, results);
       dispatch(sortResultsFulfilled(resultsType, sorted));
@@ -76,7 +77,7 @@ export function sortResults(resultsType, sortFields) {
 function sortResultsFulfilled(resultsType, results) {
   return {
     type: SORT_RESULTS_FULFILLED,
-    payload: {resultsType, results}
+    payload: { resultsType, results },
   };
 }
 
@@ -102,5 +103,6 @@ function getServiceMethod(resultsType) {
   }
 }
 
-export default angular.module('dashboardResultsActionsModule', [dashboardServicesModule.name])
-    .value('dashboardResultsActions', { loadResults, sortResults });
+export default angular
+  .module('dashboardResultsActionsModule', [dashboardServicesModule.name])
+  .value('dashboardResultsActions', { loadResults, sortResults });

@@ -8,6 +8,7 @@ import selectedComponentServiceModule from '../../services/selectedComponentServ
 import componentInformationPanelDirective from './componentInformationPanelDirective';
 import cipTabPaneDirective from './cipTabPaneDirective';
 
-export default angular.module('cipTabsWidgetModule', [selectedComponentServiceModule.name])
-    .directive('componentInformationPanel', componentInformationPanelDirective)
-    .directive('cipTabPane', cipTabPaneDirective);
+export default angular
+  .module('cipTabsWidgetModule', [selectedComponentServiceModule.name])
+  .directive('componentInformationPanel', componentInformationPanelDirective)
+  .directive('cipTabPane', cipTabPaneDirective);

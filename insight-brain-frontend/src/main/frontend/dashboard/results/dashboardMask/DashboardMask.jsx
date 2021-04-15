@@ -10,13 +10,11 @@ import { NxInfoAlert } from '@sonatype/react-shared-components';
 export default function DashboardMask() {
   return (
     <div className="form-mask iq-dashboard-form-mask">
-      <NxInfoAlert>
-        Please apply or revert filter to see results.
-      </NxInfoAlert>
+      <NxInfoAlert>Please apply or revert filter to see results.</NxInfoAlert>
     </div>
   );
 }
 
 DashboardMask.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
 };

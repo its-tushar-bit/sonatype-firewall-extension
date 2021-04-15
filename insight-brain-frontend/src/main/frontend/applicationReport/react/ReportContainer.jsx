@@ -9,25 +9,36 @@ import { connect } from 'react-redux';
 import ReportPage from './ReportPage';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 
-function mapStateToProps({applicationReport, router}) {
+function mapStateToProps({ applicationReport, router }) {
   return {
-    ...pick([
-      'metadata',
-      'selectedReport',
-      'sortConfiguration',
-      'aggregate',
-      'exactValueFilters',
-      'substringFilters',
-      'loadError'
-    ], applicationReport),
-    ...pick(['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'], router.currentParams),
-    loading: !applicationReport.loadError && (!!applicationReport.pendingLoads.size || !applicationReport.metadata)
+    ...pick(
+      [
+        'metadata',
+        'selectedReport',
+        'sortConfiguration',
+        'aggregate',
+        'exactValueFilters',
+        'substringFilters',
+        'loadError',
+      ],
+      applicationReport
+    ),
+    ...pick(
+      ['publicId', 'scanId', 'unknownjs', 'embeddable', 'policyViolationId'],
+      router.currentParams
+    ),
+    loading:
+      !applicationReport.loadError &&
+      (!!applicationReport.pendingLoads.size || !applicationReport.metadata),
   };
 }
 
 const mapDispatchToProps = { ...applicationReportActions, stateGo };
 
-const ReportPageContainer = connect(mapStateToProps, mapDispatchToProps)(ReportPage);
+const ReportPageContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ReportPage);
 export default ReportPageContainer;
 
 ReportPageContainer.propTypes = pick(['$state'], ReportPage.propTypes);

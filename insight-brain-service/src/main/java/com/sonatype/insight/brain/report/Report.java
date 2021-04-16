@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
-import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
@@ -672,9 +671,9 @@ public final class Report
     augmentDependenciesGraph(dependenciesJsonData);
     saveReportEntry(reportFile, DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
 
-    ReportInnerSource
-        .processDependencyTree(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application,
-            telemetrySender);
+    DependencyResolver
+        .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application, telemetrySender)
+        .resolve();
 
     saveReportEntry(reportFile, DATA_JSON_FILENAME, dataJson);
     saveReportEntry(reportFile, SUMMARY_JSON_FILENAME, summaryJsonData);

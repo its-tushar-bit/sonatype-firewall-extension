@@ -168,6 +168,35 @@
       "name" : "xstream"
     }
   }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "test.zip" ],
+    "pathnames" : [ "binary.jar/test.zip" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "abc0f2d90f1bb02a4abc",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1342015544000,
+    "lastModifiedEntryTime" : 1342015296000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null
+  }, {
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {

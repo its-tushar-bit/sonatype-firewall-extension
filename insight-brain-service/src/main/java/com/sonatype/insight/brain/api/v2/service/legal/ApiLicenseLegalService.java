@@ -73,7 +73,6 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -457,9 +456,8 @@ public class ApiLicenseLegalService
     Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(application.getId()).stream()
         .map(InnerSourceComponent::getPackageUrl)
         .collect(Collectors.toSet());
-    latestRawReport.components.removeIf(component -> component.componentIdentifier != null && innerSourcePackageUrls
-        .contains(ReportInnerSource.getVersionlessPackageUrl(component.componentIdentifier.toComponentIdentifier())
-            .getPackageUrl()));
+    latestRawReport.components.removeIf(component -> LegalComponentIdentifierUtil
+        .isComponentAKnownInnerSource(innerSourcePackageUrls, component.componentIdentifier.toComponentIdentifier()));
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
         getReportMultiLicenses(latestRawReport);
     Set<ApiLicenseDTO> multiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
@@ -1175,8 +1173,8 @@ public class ApiLicenseLegalService
       Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(dto.applicationId).stream()
           .map(InnerSourceComponent::getPackageUrl)
           .collect(Collectors.toSet());
-      componentLicenses.removeIf(c -> c.getComponentIdentifier() != null && innerSourcePackageUrls
-          .contains(ReportInnerSource.getVersionlessPackageUrl(c.getComponentIdentifier()).getPackageUrl()));
+      componentLicenses.removeIf(c -> LegalComponentIdentifierUtil
+          .isComponentAKnownInnerSource(innerSourcePackageUrls, c.getComponentIdentifier()));
 
       applicationIdStageTypeIdComponentLicensesMap.put(dto.applicationId, dto.stageTypeId, componentLicenses);
       // Collect all licenses to make a single HDS call instead of one per component

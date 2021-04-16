@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.api.v2.dto.legal.LicenseLegalApplicationCompon
 import com.sonatype.insight.brain.api.v2.dto.legal.LicenseObligationReviewStatus;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
-import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -38,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
@@ -436,7 +436,7 @@ public class LegalApplicationDashboardServiceTest
     Application app = tempEntity.newApplicationWithParent();
     ComponentIdentifier notInnerSource = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ComponentIdentifier innerSource = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
-    tempEntity.newInnerSourceComponent(ReportInnerSource.getVersionlessPackageUrl(innerSource).getPackageUrl(), app);
+    tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(innerSource).getPackageUrl(), app);
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash", notInnerSource);
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", innerSource);
 

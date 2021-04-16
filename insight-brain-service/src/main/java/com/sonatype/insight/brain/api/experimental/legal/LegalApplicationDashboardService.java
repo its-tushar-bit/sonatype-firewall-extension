@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
@@ -132,8 +131,8 @@ public class LegalApplicationDashboardService
     Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(application.getId()).stream()
         .map(InnerSourceComponent::getPackageUrl)
         .collect(Collectors.toSet());
-    applicationComponents.removeIf(c -> c.getComponentIdentifier() != null && innerSourcePackageUrls
-        .contains(ReportInnerSource.getVersionlessPackageUrl(c.getComponentIdentifier()).getPackageUrl()));
+    applicationComponents.removeIf(c -> LegalComponentIdentifierUtil
+        .isComponentAKnownInnerSource(innerSourcePackageUrls, c.getComponentIdentifier()));
 
     Set<String> licenseIdsFound = getLicenseIds(applicationComponents);
     Map<String, Set<String>> obligationNamesByLicenseId = getLicenseObligationsFromHds(licenseIdsFound);

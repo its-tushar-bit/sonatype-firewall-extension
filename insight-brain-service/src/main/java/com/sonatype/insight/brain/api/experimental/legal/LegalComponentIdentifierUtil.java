@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.api.experimental.legal;
 
+import java.util.Set;
 import java.util.TreeMap;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 public class LegalComponentIdentifierUtil
 {
@@ -19,5 +22,16 @@ public class LegalComponentIdentifierUtil
     coordinates.remove(ComponentIdentifier.MAVEN_CLASSIFIER);
     coordinates.remove(ComponentIdentifier.MAVEN_EXTENSION);
     return new ComponentIdentifier(componentIdentifier.getFormat(), coordinates);
+  }
+
+  public static boolean isComponentAKnownInnerSource(
+      Set<String> innerSourcePackageUrls,
+      ComponentIdentifier componentIdentifier)
+  {
+    if (componentIdentifier != null) {
+      PackageUrlIdentifier versionlessPackageUrl = InnerSourceUtils.getVersionlessPackageUrl(componentIdentifier);
+      return versionlessPackageUrl != null && innerSourcePackageUrls.contains(versionlessPackageUrl.getPackageUrl());
+    }
+    return false;
   }
 }

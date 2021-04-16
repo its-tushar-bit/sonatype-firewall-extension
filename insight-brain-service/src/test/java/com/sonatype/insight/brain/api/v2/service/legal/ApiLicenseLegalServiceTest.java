@@ -69,7 +69,6 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
-import com.sonatype.insight.brain.innersource.ReportInnerSource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.Organization;
@@ -94,6 +93,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -412,7 +412,7 @@ public class ApiLicenseLegalServiceTest
         BuildStageType.ID, "hash1", componentIdentifier1);
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier2);
     tempEntity.newInnerSourceComponent(
-        ReportInnerSource.getVersionlessPackageUrl(innerSourceComponent.getComponentIdentifier()).getPackageUrl(),
+        InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent.getComponentIdentifier()).getPackageUrl(),
         new ApplicationDAO().getById(policyEvaluation.getApplicationId()));
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto = apiLicenseLegalService
@@ -2354,7 +2354,7 @@ public class ApiLicenseLegalServiceTest
         FileUtils.copyURLToFile(getClass().getResource("/" + getClass().getSimpleName() + "/report/" + filename), file);
       }
       if (new InnerSourceComponentDAO().getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
-        tempEntity.newInnerSourceComponent(ReportInnerSource.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
+        tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
             .getPackageUrl(), new ApplicationDAO().getById(evaluation.getApplicationId()));
       }
     }

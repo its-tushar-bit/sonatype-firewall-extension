@@ -1,38 +1,31 @@
-<iq-sidebar-nav
-  current-state="vm.$state.current"
-  product-edition="vm.productEdition"
-  release-version="vm.getReleaseVersion()"
-  is-logged-in="!!vm.isLoggedIn()"
-  is-licensed="vm.isLicensed()"
-  is-dashboard-available="vm.isDashboardAvailable()"
-  is-reports-list-available="vm.isReportsListAvailable()"
-  is-success-metrics-enabled="vm.isSuccessMetricsEnabled"
-  is-advanced-search-enabled="vm.isAdvancedSearchEnabled"
-  is-firewall-enabled="vm.isFirewallEnabled && vm.isFirewallSupported"
-  is-legal-enabled="vm.isAdvancedLegalPackSupported"
->
+<iq-sidebar-nav current-state="vm.$state.current"
+                product-edition="vm.productEdition"
+                release-version="vm.getReleaseVersion()"
+                is-logged-in="!!vm.isLoggedIn()"
+                is-licensed="vm.isLicensed()"
+                is-dashboard-available="vm.isDashboardAvailable()"
+                is-reports-list-available="vm.isReportsListAvailable()"
+                is-success-metrics-enabled="vm.isSuccessMetricsEnabled"
+                is-advanced-search-enabled="vm.isAdvancedSearchEnabled"
+                is-firewall-enabled="vm.isFirewallEnabled && vm.isFirewallSupported"
+                is-legal-enabled="vm.isAdvancedLegalPackSupported">
 </iq-sidebar-nav>
 <div class="iq-nav-bar--system" ng-if="vm.isLoggedIn()">
   <help-menu></help-menu>
   <notifications-menu></notifications-menu>
-  <system-configuration-menu
-    ng-if="vm.hasAnyPermission() || vm.isLabsDataInsightsEnabled"
-    permissions="vm.permissions"
-    is-webhooks-supported="vm.isWebhooksSupported"
-    is-labs-data-insights-enabled="vm.isLabsDataInsightsEnabled"
-  >
+  <system-configuration-menu ng-if="vm.hasAnyPermission() || vm.isLabsDataInsightsEnabled"
+                             permissions="vm.permissions"
+                             is-webhooks-supported="vm.isWebhooksSupported"
+                             is-labs-data-insights-enabled="vm.isLabsDataInsightsEnabled">
   </system-configuration-menu>
   <user-menu></user-menu>
 </div>
 <div class="iq-login-button-container">
-  <button
-    id="login-header-btn"
-    class="iq-btn iq-btn--main-header iq-pull-right"
-    ng-if="vm.shouldShowLoginButton()"
-    ng-click="vm.login()"
-  >
-    <nx-font-awesome-icon icon="vm.faUserAlt"></nx-font-awesome-icon
-    ><!--
+  <button id="login-header-btn"
+          class="iq-btn iq-btn--main-header iq-pull-right"
+          ng-if="vm.shouldShowLoginButton()"
+          ng-click="vm.login()">
+    <nx-font-awesome-icon icon="vm.faUserAlt"></nx-font-awesome-icon><!--
  --><span class="iq-btn__content--main-header">Login</span>
   </button>
 </div>

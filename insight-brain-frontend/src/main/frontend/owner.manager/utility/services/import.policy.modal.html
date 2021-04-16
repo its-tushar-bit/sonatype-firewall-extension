@@ -2,17 +2,15 @@
   <div class="iq-modal-header">
     <h2>Import Policies</h2>
   </div>
-  <form
-    class="iq-form iq-form--no-padding iq-form--no-border"
-    name="importPolicy"
-    ng-submit="vm.doSubmit($event)"
-    form-mask="vm.importPolicyMask"
-    mask-message="Importing"
-  >
+  <form class="iq-form iq-form--no-padding iq-form--no-border"
+        name="importPolicy"
+        ng-submit="vm.doSubmit($event)"
+        form-mask="vm.importPolicyMask"
+        mask-message="Importing">
     <div class="iq-modal-content">
       <div class="iq-form-group">
         <label for="importFile" class="iq-label">Policies File</label>
-        <input type="file" file-model="vm.importFile" id="import-file" name="file" accept=".json" />
+        <input type="file" file-model="vm.importFile" id="import-file" name="file" accept=".json">
       </div>
       <div ng-if="!vm.error" class="iq-alert">
         <i class="fa fa-warning"></i><strong>Note:</strong> Importing policies is <strong>destructive</strong>, all
@@ -22,20 +20,18 @@
     </div>
     <div class="iq-modal-footer" ng-class="{ 'iq-error' : vm.error }">
       <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{vm.error}}</div>
-      <button
-        ng-if="!vm.error"
-        id="import-policy-upload"
-        class="iq-btn iq-btn--primary"
-        type="submit"
-        ng-disabled="!vm.importFile"
-      >
-        Import</button
-      ><!--
+      <button ng-if="!vm.error"
+              id="import-policy-upload"
+              class="iq-btn iq-btn--primary"
+              type="submit"
+              ng-disabled="!vm.importFile">
+        Import
+      </button><!--
    --><button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" ng-click="vm.retry()">
-        <i class="fa fa-refresh"></i>Retry</button
-      ><!--
+        <i class="fa fa-refresh"></i>Retry
+      </button><!--
    --><button id="import-policy-cancel" class="iq-btn" type="button" ng-click="$close()">Cancel</button>
     </div>
-    <input type="hidden" name="{{vm.csrfTokenName}}" value="{{vm.csrfTokenValue}}" />
+    <input type="hidden" name="{{vm.csrfTokenName}}" value="{{vm.csrfTokenValue}}"/>
   </form>
 </div>

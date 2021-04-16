@@ -5,10 +5,8 @@
     </div>
     <div class="iq-tile-header__subtitle">
       Read about license features in our
-      <getting-started-doc-link
-        href="http://links.sonatype.com/products/nxiq/doc/licensing-and-features"
-        link-text="feature matrix."
-      >
+      <getting-started-doc-link href="http://links.sonatype.com/products/nxiq/doc/licensing-and-features"
+                                link-text="feature matrix.">
       </getting-started-doc-link>
     </div>
   </header>
@@ -19,22 +17,17 @@
         <dd class="iq-read-only-data" ng-repeat="product in ::vm.license.products">{{::product}}</dd>
       </dl>
       <dl class="iq-grid-col iq-license-info iq-read-only">
+
         <div ng-if="::vm.userLimits.length > 0">
           <dt>Licensed Developers</dt>
           <dd class="iq-read-only-data">
             <span id="license-licensed-developers" ng-if="::vm.userLimits.length === 1">
               {{::vm.userLimits[0].count}}
             </span>
-            <dl
-              class="iq-license-info__nested-definitions"
-              ng-if="::vm.userLimits.length !== 1"
-              id="license-licensed-developers"
-            >
+            <dl class="iq-license-info__nested-definitions" ng-if="::vm.userLimits.length !== 1" id="license-licensed-developers">
               <div ng-repeat="limit in vm.userLimits">
-                <dt>{{::limit.name}}</dt>
-                <!--
-             -->
-                <dd>{{::limit.count}}</dd>
+                <dt>{{::limit.name}}</dt><!--
+             --><dd>{{::limit.count}}</dd>
               </div>
             </dl>
           </dd>

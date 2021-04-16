@@ -1,10 +1,8 @@
-<section
-  id="continuous-monitoring-editor"
-  class="iq-tile"
-  load-wrapper="vm.loadError"
-  loading="!vm.stages"
-  reload="vm.doLoad()"
->
+<section id="continuous-monitoring-editor"
+         class="iq-tile"
+         load-wrapper="vm.loadError"
+         loading="!vm.stages"
+         reload="vm.doLoad()">
   <div ng-if="vm.isMonitoringSupported">
     <header class="iq-tile-header">
       <div class="iq-tile-header__title">
@@ -12,39 +10,30 @@
         <h2>Continuous Monitoring</h2>
       </div>
       <div class="iq-tile-header__subtitle">
-        Each day the latest scan from this stage will be evaluated. Notifications for new violations can be configured
-        per policy.
+        Each day the latest scan from this stage will be evaluated.
+        Notifications for new violations can be configured per policy.
       </div>
     </header>
-    <form
-      name="vm.continousMonitoringEditor"
-      class="iq-form"
-      role="form"
-      ng-submit="vm.isDirty() && vm.save()"
-      novalidate
-      form-mask="vm.continuousMonitoringEditorMask"
-      mask-attach-to-body
-    >
+    <form name="vm.continousMonitoringEditor"
+          class="iq-form"
+          role="form"
+          ng-submit="vm.isDirty() && vm.save()"
+          novalidate
+          form-mask="vm.continuousMonitoringEditorMask"
+          mask-attach-to-body>
       <fieldset class="iq-radio-group iq-form-group">
         <legend class="iq-label">Monitoring Stage</legend>
-        <iq-radio
-          ng-repeat="stage in vm.stages"
-          model="vm.monitoredStage"
-          value="stage"
-          class="tm-stage-{{::stage.stageTypeId}}"
-        >
+        <iq-radio ng-repeat="stage in vm.stages" model="vm.monitoredStage" value="stage" class="tm-stage-{{::stage.stageTypeId}}">
           {{::stage.stageName}}
         </iq-radio>
       </fieldset>
       <footer class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-        <button
-          type="submit"
-          class="iq-btn iq-btn--primary"
-          submit-validation
-          submit-dirty="vm.isDirty()"
-          submit-tooltip-target="body"
-          submit-type="update"
-        >
+        <button type="submit"
+                class="iq-btn iq-btn--primary"
+                submit-validation
+                submit-dirty="vm.isDirty()"
+                submit-tooltip-target="body"
+                submit-type="update">
           Update
         </button>
       </footer>

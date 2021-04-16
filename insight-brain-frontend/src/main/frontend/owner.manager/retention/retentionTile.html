@@ -1,11 +1,9 @@
-<div
-  id="owner-pill-retention"
-  class="iq-tile"
-  ng-if="vm.isOrganization"
-  load-wrapper="vm.error"
-  loading="!vm.applicationReports"
-  reload="vm.load()"
->
+<div id="owner-pill-retention"
+     class="iq-tile"
+     ng-if="vm.isOrganization"
+     load-wrapper="vm.error"
+     loading="!vm.applicationReports"
+     reload="vm.load()">
   <div class="iq-tile__actions">
     <button id="edit-retention-button" class="iq-btn iq-btn--tertiary" same-owner-edit-sref="edit-data-retention">
       <i class="fa fa-edit"></i>Edit
@@ -16,7 +14,9 @@
       <i class="fa fa-archive size-20px slate iq-tile-header__icon"></i>
       <h2>Data Retention</h2>
     </div>
-    <div class="iq-tile-header__subtitle">applying to {{vm.ownerName}}</div>
+    <div class="iq-tile-header__subtitle">
+      applying to {{vm.ownerName}}
+    </div>
   </div>
   <h4 class="iq-list__title">Application Reports</h4>
   <table class="iq-table">

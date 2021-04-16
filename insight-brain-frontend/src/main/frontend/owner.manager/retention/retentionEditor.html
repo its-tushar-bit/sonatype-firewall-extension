@@ -5,48 +5,35 @@
       <h2>Data Retention</h2>
     </div>
   </div>
-  <form
-    id="retention-editor"
-    class="iq-form iq-form--no-padding iq-form--no-border"
-    name="retentionForm"
-    role="form"
-    ng-submit="vm.isDirty() && vm.save()"
-    form-mask="vm.retentionEditorMask"
-    mask-attach-to-body
-  >
-    <div
-      class="iq-tile-content"
-      load-wrapper="vm.error"
-      loading="!vm.parentApplicationReportsFromServer && !vm.applicationReportsFromServer"
-      reload="vm.load()"
-    >
+  <form id="retention-editor"
+        class="iq-form iq-form--no-padding iq-form--no-border"
+        name="retentionForm"
+        role="form"
+        ng-submit="vm.isDirty() && vm.save()"
+        form-mask="vm.retentionEditorMask"
+        mask-attach-to-body>
+    <div class="iq-tile-content"
+         load-wrapper="vm.error"
+         loading="!vm.parentApplicationReportsFromServer && !vm.applicationReportsFromServer"
+         reload="vm.load()">
       <h3 class="iq-tile__section-header">Application Reports</h3>
-      <div
-        class="iq-form-group"
-        ng-repeat="(stage, retention) in vm.retention.stages"
-        id="retention-editor-{{::stage}}"
-      >
+      <div class="iq-form-group"
+           ng-repeat="(stage, retention) in vm.retention.stages"
+           id="retention-editor-{{::stage}}">
         <fieldset class="iq-form-group iq-radio-group">
           <legend class="iq-label" for="retention-editor-inherit-{{::stage}}">{{::vm.titleCase(stage)}}</legend>
-          <iq-radio
-            id="retention-editor-inherit-{{::stage}}"
-            ng-if="!vm.isRootOrganization"
-            model="retention.formValue"
-            value="'inherit'"
-            ><!--
+          <iq-radio id="retention-editor-inherit-{{::stage}}"
+                    ng-if="!vm.isRootOrganization"
+                    model="retention.formValue"
+                    value="'inherit'"><!--
          -->Inherit ({{::vm.getParentMaxReportsAndMaxAge(stage)}})<!--
-       --></iq-radio
-          >
-          <iq-radio id="retention-editor-disable-{{::stage}}" model="retention.formValue" value="'dontPurge'"
-            ><!--
+       --></iq-radio>
+          <iq-radio id="retention-editor-disable-{{::stage}}" model="retention.formValue" value="'dontPurge'"><!--
          -->Don't Purge<!--
-       --></iq-radio
-          >
-          <iq-radio id="retention-editor-custom-{{::stage}}" model="retention.formValue" value="'custom'"
-            ><!--
+       --></iq-radio>
+          <iq-radio id="retention-editor-custom-{{::stage}}" model="retention.formValue" value="'custom'"><!--
          -->Custom<!--
-       --></iq-radio
-          >
+       --></iq-radio>
         </fieldset>
         <div class="iq-form-row" ng-if="retention.formValue === 'custom'">
           <div class="iq-form-group iq-form-group--inputs-prefix">
@@ -54,12 +41,10 @@
           </div>
           <div class="iq-form-group">
             <label class="iq-label">Max Age</label>
-            <age-in-days-input
-              name="{{::stage}}"
-              ng-model="retention.maxAgeInDays"
-              is-required="!retention.maxCount"
-              max="{{::vm.MAX_APPLICATION_REPORT_AGE_IN_DAYS}}"
-            >
+            <age-in-days-input name="{{::stage}}"
+                               ng-model="retention.maxAgeInDays"
+                               is-required="!retention.maxCount"
+                               max="{{::vm.MAX_APPLICATION_REPORT_AGE_IN_DAYS}}">
             </age-in-days-input>
           </div>
           <div class="iq-form-group iq-form-group--inputs-prefix">
@@ -67,77 +52,62 @@
           </div>
           <div class="iq-form-group">
             <label class="iq-label" for="{{::(stage + '-max-number-input')}}">Max Number of Reports</label>
-            <input
-              id="{{::(stage + '-max-number-input')}}"
-              name="{{::(stage + '-count-input')}}"
-              class="iq-text-input"
-              ng-model="retention.maxCount"
-              ng-required="!retention.maxAgeInDays"
-              clm-input
-              type="number"
-              min="{{::vm.MIN_APPLICATION_REPORTS}}"
-              max="{{::vm.MAX_APPLICATION_REPORTS}}"
-            />
+            <input id="{{::(stage + '-max-number-input')}}"
+                   name="{{::(stage + '-count-input')}}"
+                   class="iq-text-input"
+                   ng-model="retention.maxCount"
+                   ng-required="!retention.maxAgeInDays"
+                   clm-input
+                   type="number"
+                   min="{{::vm.MIN_APPLICATION_REPORTS}}"
+                   max="{{::vm.MAX_APPLICATION_REPORTS}}">
           </div>
         </div>
       </div>
       <h3 class="iq-tile__section-header">Success Metrics</h3>
       <div id="retention-editor-success-metrics" class="iq-form-group">
         <fieldset class="iq-form-group iq-radio-group">
-          <iq-radio
-            id="retention-editor-inherit-success-metrics"
-            ng-if="!vm.isRootOrganization"
-            model="vm.retention.successMetrics.formValue"
-            value="'inherit'"
-            ><!--
+          <iq-radio id="retention-editor-inherit-success-metrics"
+                    ng-if="!vm.isRootOrganization"
+                    model="vm.retention.successMetrics.formValue"
+                    value="'inherit'"><!--
          -->Inherit ({{::vm.getParentSuccessMetricsMaxAge()}})<!--
-       --></iq-radio
-          >
-          <iq-radio
-            id="retention-editor-disable-success-metrics"
-            model="vm.retention.successMetrics.formValue"
-            value="'dontPurge'"
-            ><!--
+       --></iq-radio>
+          <iq-radio id="retention-editor-disable-success-metrics"
+                    model="vm.retention.successMetrics.formValue"
+                    value="'dontPurge'"><!--
          -->Don't Purge<!--
-       --></iq-radio
-          >
-          <iq-radio
-            id="retention-editor-custom-success-metrics"
-            model="vm.retention.successMetrics.formValue"
-            value="'custom'"
-            ><!--
+       --></iq-radio>
+          <iq-radio id="retention-editor-custom-success-metrics"
+                    model="vm.retention.successMetrics.formValue"
+                    value="'custom'"><!--
          -->Custom<!--
-       --></iq-radio
-          >
+       --></iq-radio>
           <div class="iq-form-row" ng-if="vm.retention.successMetrics.formValue === 'custom'">
             <div class="iq-form-group">
               <label class="iq-label" for="success-metrics-max-age-input">Max Age in Years</label>
-              <input
-                id="success-metrics-max-age-input"
-                name="success-metrics-age-input"
-                class="iq-text-input"
-                ng-model="vm.retention.successMetrics.maxAgeInYears"
-                ng-required="true"
-                clm-input
-                type="number"
-                min="{{::vm.MIN_SUCCESS_METRICS_AGE_IN_YEARS}}"
-                max="{{::vm.MAX_SUCCESS_METRICS_AGE_IN_YEARS}}"
-              />
+              <input id="success-metrics-max-age-input"
+                     name="success-metrics-age-input"
+                     class="iq-text-input"
+                     ng-model="vm.retention.successMetrics.maxAgeInYears"
+                     ng-required="true"
+                     clm-input
+                     type="number"
+                     min="{{::vm.MIN_SUCCESS_METRICS_AGE_IN_YEARS}}"
+                     max="{{::vm.MAX_SUCCESS_METRICS_AGE_IN_YEARS}}">
             </div>
           </div>
         </fieldset>
       </div>
     </div>
     <div class="iq-tile-footer" submit-wrapper="vm.submitError" retry="vm.save()">
-      <button
-        id="save-retention-button"
-        class="iq-btn iq-btn--primary"
-        type="submit"
-        submit-validation
-        submit-dirty="vm.isDirty()"
-        submit-tooltip-target="body"
-        submit-type="update"
-      >
+      <button id="save-retention-button"
+              class="iq-btn iq-btn--primary"
+              type="submit"
+              submit-validation
+              submit-dirty="vm.isDirty()"
+              submit-tooltip-target="body"
+              submit-type="update">
         Update
       </button>
     </div>

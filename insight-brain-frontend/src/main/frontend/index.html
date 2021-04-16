@@ -7,35 +7,35 @@
 
 -->
 <html lang="en" ng-app="managementApp" ng-strict-di class="nx-html">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title ng-bind="'IQ Server' + ($state.current.data.title ? ' - ' + $state.current.data.title : '')">
-      IQ Server - Management
-    </title>
-    <link rel="shortcut icon" href="favicon.ico?CLM_BUILD_TIMESTAMP" />
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title ng-bind="'IQ Server' + ($state.current.data.title ? ' - ' + $state.current.data.title : '')">IQ Server - Management</title>
+    <link rel='shortcut icon' href='favicon.ico?CLM_BUILD_TIMESTAMP'/>
 
-    <link href="style-1.css?CLM_BUILD_TIMESTAMP" rel="stylesheet" />
-    <link href="style-2.css?CLM_BUILD_TIMESTAMP" rel="stylesheet" />
-    <link href="style-3.css?CLM_BUILD_TIMESTAMP" rel="stylesheet" />
+  <link href="style-1.css?CLM_BUILD_TIMESTAMP" rel="stylesheet">
+  <link href="style-2.css?CLM_BUILD_TIMESTAMP" rel="stylesheet">
+  <link href="style-3.css?CLM_BUILD_TIMESTAMP" rel="stylesheet">
 
-    <script src="bundle.js?CLM_BUILD_TIMESTAMP"></script>
-  </head>
-  <body class="nx-body" ng-csp="no-unsafe-eval">
-    <div class="nx-page">
-      <system-notice ng-if="!error"></system-notice>
-      <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>
-      <div id="iq-content" class="nx-page-content nx-page-content--full-width">
-        <main-header ng-if="!$state.params.embeddable" product-edition="{{productEdition}}"> </main-header>
-        <ui-view ng-if="!error"></ui-view>
-        <div class="nx-page-main nx-page-main--error" ng-if="error">
-          <div ng-cloak class="iq-alert iq-alert--error">
-            <i class="fa fa-warning"></i><strong>Error</strong>
-            <p>An unrecoverable error has occurred while loading the page.</p>
-            <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
-          </div>
+  <script src="bundle.js?CLM_BUILD_TIMESTAMP"></script>
+
+</head>
+<body class="nx-body" ng-csp="no-unsafe-eval">
+  <div class="nx-page">
+    <system-notice ng-if="!error"></system-notice>
+    <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>
+    <div id="iq-content" class="nx-page-content nx-page-content--full-width" >
+      <main-header ng-if="!$state.params.embeddable" product-edition="{{productEdition}}">
+      </main-header>
+      <ui-view ng-if="!error"></ui-view>
+      <div class="nx-page-main nx-page-main--error" ng-if="error">
+        <div ng-cloak class="iq-alert iq-alert--error">
+          <i class="fa fa-warning"></i><strong>Error</strong>
+          <p>An unrecoverable error has occurred while loading the page.</p>
+          <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+</body>
 </html>

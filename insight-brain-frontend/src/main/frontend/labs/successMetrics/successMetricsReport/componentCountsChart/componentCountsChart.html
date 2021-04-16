@@ -6,34 +6,25 @@
   components per application.
 </p>
 <p ng-if="vm.isSingleApplicationReport" class="iq-chart__averages">
-  This data is based on the latest Lifecycle evaluations.
-  <strong>{{::vm.singleApplicationName}}</strong> contains
-  <span class="iq-chart__display-number">{{::vm.componentData.componentsPerApplication}}</span>
-  components.
+  This data is based on the latest Lifecycle evaluations. <strong>{{::vm.singleApplicationName}}</strong> contains
+  <span class="iq-chart__display-number">{{::vm.componentData.componentsPerApplication}}</span> components.
 </p>
 <div ng-if="vm.componentData.componentsInTheMostApplications.length > 0 && !vm.isSingleApplicationReport">
-  <h3 class="iq-chart-title iq-chart-title--component-counts">
-    Components currently used across the most applications
-  </h3>
+  <h3 class="iq-chart-title iq-chart-title--component-counts">Components currently used across the most applications</h3>
   <div class="iq-chart iq-chart--component-counts iq-chart--horizontal-bar">
     <div id="component-in-most-applications" class="iq-chart__labels--horizontal-bar">
-      <div
-        class="iq-chart__bar-label iq-chart__bar-label--component-counts"
-        ng-repeat="component in vm.componentData.componentsInTheMostApplications"
-        ng-if="vm.showRow(component.componentDisplayName)"
-      >
-        <span
-          iq-tooltip
-          tooltip-only-on-overflow="true"
-          tooltip-text="{{::component.componentDisplayName}}"
-          tooltip-attach-to-body
-          tooltip-class="iq-chart__bar-label-tooltip--component-counts"
-        >
+      <div class="iq-chart__bar-label iq-chart__bar-label--component-counts"
+           ng-repeat="component in vm.componentData.componentsInTheMostApplications"
+           ng-if="vm.showRow(component.componentDisplayName)">
+        <span iq-tooltip
+              tooltip-only-on-overflow="true"
+              tooltip-text="{{::component.componentDisplayName}}"
+              tooltip-attach-to-body
+              tooltip-class="iq-chart__bar-label-tooltip--component-counts">
           <strong>{{$index + 1}}.</strong> {{component.componentDisplayName}}
         </span>
         <span>
-          <strong class="iq-chart__highlight iq-chart__highlight--component-counts">{{component.count}}</strong
-          ><!--
+          <strong class="iq-chart__highlight iq-chart__highlight--component-counts">{{component.count}}</strong><!--
        -->applications
         </span>
       </div>
@@ -42,28 +33,21 @@
   </div>
 </div>
 <div ng-if="vm.componentData.componentsWithTheMostViolations.length > 0">
-  <h3 class="iq-chart-title iq-chart-title--component-counts">
-    Components currently raising the most policy violations
-  </h3>
+  <h3 class="iq-chart-title iq-chart-title--component-counts">Components currently raising the most policy violations</h3>
   <div class="iq-chart iq-chart--component-counts iq-chart--horizontal-bar">
     <div id="component-with-most-violations" class="iq-chart__labels--horizontal-bar">
-      <div
-        class="iq-chart__bar-label iq-chart__bar-label--component-counts"
-        ng-repeat="component in vm.componentData.componentsWithTheMostViolations"
-        ng-if="vm.showRow(component.componentDisplayName)"
-      >
-        <span
-          iq-tooltip
-          tooltip-only-on-overflow="true"
-          tooltip-text="{{::component.componentDisplayName}}"
-          tooltip-attach-to-body
-          tooltip-class="iq-chart__bar-label-tooltip--component-counts"
-        >
+      <div class="iq-chart__bar-label iq-chart__bar-label--component-counts"
+           ng-repeat="component in vm.componentData.componentsWithTheMostViolations"
+           ng-if="vm.showRow(component.componentDisplayName)">
+        <span iq-tooltip
+              tooltip-only-on-overflow="true"
+              tooltip-text="{{::component.componentDisplayName}}"
+              tooltip-attach-to-body
+              tooltip-class="iq-chart__bar-label-tooltip--component-counts">
           <strong>{{$index + 1}}.</strong> {{component.componentDisplayName}}
         </span>
         <span>
-          <strong class="iq-chart__highlight iq-chart__highlight--component-counts">{{component.count}}</strong
-          ><!--
+          <strong class="iq-chart__highlight iq-chart__highlight--component-counts">{{component.count}}</strong><!--
        -->violations
         </span>
       </div>

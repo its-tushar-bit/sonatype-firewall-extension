@@ -5,65 +5,58 @@
         <h2>Automatic Applications</h2>
       </div>
     </div>
-    <div class="iq-tile-content" load-wrapper="vm.error" loading="!vm.loaded" reload="vm.load()">
+    <div class="iq-tile-content"
+         load-wrapper="vm.error"
+         loading="!vm.loaded"
+         reload="vm.load()">
       <p id="automatic-applications-explanation" class="iq-system-config-explanation">
         Here you can configure automatic creation of applications. You can enable or disable automatic creation of
-        applications using the toggle. You will also need to specify a parent organization for any automatically-created
-        applications.
+        applications using the toggle. You will also need to specify a parent organization for any
+        automatically-created applications.
       </p>
-      <form
-        name="vm.automaticApplicationsConfigurationForm"
-        class="iq-form iq-form--no-border iq-form--no-padding"
-        form-mask="vm.automaticApplicationsConfigurationFormMask"
-        mask-attach-to-body
-        ng-submit="vm.save()"
-      >
+      <form name="vm.automaticApplicationsConfigurationForm"
+            class="iq-form iq-form--no-border iq-form--no-padding"
+            form-mask="vm.automaticApplicationsConfigurationFormMask"
+            mask-attach-to-body
+            ng-submit="vm.save()">
         <div id="automatic-applications-toggle-control-group" class="iq-form-group">
           <label class="iq-label" for="automatic-applications-toggle">Automatic Application Creation</label>
           <div id="automatic-applications-toggle-checkbox" class="toggle-checkbox">
-            <input
-              id="automatic-applications-toggle"
-              type="checkbox"
-              toggle-checkbox
-              data-on="Enabled"
-              data-off="Disabled"
-              ng-model="vm.automaticApplicationCreationEnabled"
-            />
+            <input id="automatic-applications-toggle"
+                   type="checkbox"
+                   toggle-checkbox
+                   data-on="Enabled"
+                   data-off="Disabled"
+                   ng-model="vm.automaticApplicationCreationEnabled">
           </div>
         </div>
         <div id="automatic-applications-organization-control-group" class="iq-form-group">
           <label class="iq-label" for="automatic-applications-organization">Parent Organization</label>
-          <dropdown-selector
-            id="automatic-applications-organization"
-            name="automatic-applications-organization"
-            options="vm.organizationOptions"
-            ng-model="vm.automaticApplicationCreationOrganizationId"
-            option-name-param="name"
-            option-value-param="id"
-            clm-input
-            ng-required="vm.automaticApplicationCreationEnabled"
-            empty-option-string="-- Select Organization --"
-            no-options-string="No parent organizations found"
-            messages="{required: 'Please select organization'}"
-          >
+          <dropdown-selector id="automatic-applications-organization"
+                             name="automatic-applications-organization"
+                             options="vm.organizationOptions"
+                             ng-model="vm.automaticApplicationCreationOrganizationId"
+                             option-name-param="name" 
+                             option-value-param="id" 
+                             clm-input
+                             ng-required="vm.automaticApplicationCreationEnabled"
+                             empty-option-string="-- Select Organization --"
+                             no-options-string="No parent organizations found"
+                             messages="{required: 'Please select organization'}">
           </dropdown-selector>
         </div>
         <div class="iq-tile-footer">
-          <button
-            id="automatic-applications-update"
-            class="iq-btn iq-btn--primary"
-            submit-validation
-            submit-dirty="vm.isChanged()"
-            submit-type="'update'"
-          >
-            Update</button
-          ><!--
-       --><button
-            id="automatic-applications-cancel"
-            class="iq-btn iq-btn--tertiary"
-            ng-disabled="!vm.isChanged()"
-            ng-click="vm.cancel()"
-          >
+          <button id="automatic-applications-update"
+                  class="iq-btn iq-btn--primary"
+                  submit-validation
+                  submit-dirty="vm.isChanged()"
+                  submit-type="'update'">
+            Update
+          </button><!--
+       --><button id="automatic-applications-cancel"
+                  class="iq-btn iq-btn--tertiary"
+                  ng-disabled="!vm.isChanged()"
+                  ng-click="vm.cancel()">
             Cancel
           </button>
         </div>

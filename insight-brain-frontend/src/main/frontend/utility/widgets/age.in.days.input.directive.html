@@ -1,22 +1,18 @@
 <div class="age-in-days-input">
-  <input
-    class="iq-text-input iq-text-input--age-input"
-    name="{{vm.name}}-age-input"
-    ng-model="vm.ageInDaysModelCtrl.$viewValue"
-    ng-required="vm.isRequired()"
-    clm-input
-    type="number"
-    min="1"
-    ng-max="vm.formatMax()"
-    name="ageInput"
-    ng-change="vm.ageInDaysModelCtrl.$setViewValue(vm.ageInDaysModelCtrl.$viewValue)"
-  />
-  <dropdown-selector
-    ng-model="vm.modifier"
-    option-value-param="modifier"
-    options="vm.modifierTypes"
-    name="{{vm.name}}-age-modifier"
-    option-name-param="name"
-  >
+  <input class="iq-text-input iq-text-input--age-input"
+         name="{{vm.name}}-age-input"
+         ng-model="vm.ageInDaysModelCtrl.$viewValue"
+         ng-required="vm.isRequired()"
+         clm-input
+         type="number"
+         min="1"
+         ng-max="vm.formatMax()"
+         name="ageInput"
+         ng-change="vm.ageInDaysModelCtrl.$setViewValue(vm.ageInDaysModelCtrl.$viewValue)">
+  <dropdown-selector ng-model="vm.modifier"
+                     option-value-param="modifier"
+                     options="vm.modifierTypes"
+                     name="{{vm.name}}-age-modifier"
+                     option-name-param="name">
   </dropdown-selector>
 </div>

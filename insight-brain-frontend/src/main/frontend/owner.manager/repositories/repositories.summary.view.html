@@ -1,8 +1,7 @@
 <div id="repositories-summary">
   <div class="nx-page-title iq-page-title">
     <h1 class="nx-h1">
-      <i class="fa fa-database nx-page-title__page-icon"></i
-      ><!--
+      <i class="fa fa-database nx-page-title__page-icon"></i><!--
    --><span>Repositories</span>
     </h1>
   </div>
@@ -18,17 +17,13 @@
   </ul>
 </div>
 <div class="iq-tile-scroll-container nx-viewport-sized__scrollable" scrollspy="#repositories-summary">
-  <div
-    id="repositories-pill-configuration"
-    class="iq-tile"
-    ng-controller="repositories.configuration.tile.controller as vm"
-  >
-    <div
-      load-wrapper="vm.error"
-      loading="!vm.repositories"
-      reload="vm.doLoad()"
-      error-message="Unable to load repositories."
-    >
+  <div id="repositories-pill-configuration"
+       class="iq-tile"
+       ng-controller="repositories.configuration.tile.controller as vm">
+    <div load-wrapper="vm.error"
+         loading="!vm.repositories"
+         reload="vm.doLoad()"
+         error-message="Unable to load repositories.">
       <div class="iq-tile-header">
         <div class="iq-tile-header__title">
           <i class="fa fa-sliders size-20px inverse iq-tile-header__icon"></i>
@@ -37,28 +32,26 @@
       </div>
       <div class="iq-tile-content">
         <div class="iq-list" ng-if="vm.repositories.length <= 0">
-          <div class="iq-list__item iq-list__item--empty">There are no repositories registered with the server.</div>
+          <div class="iq-list__item iq-list__item--empty">
+            There are no repositories registered with the server.
+          </div>
         </div>
-        <table
-          sort="vm.sortFields"
-          on-sort-change="vm.sortFields = sortFields"
-          class="iq-table repository-configuration-list"
-          cols="3"
-          ng-if="vm.repositories.length > 0"
-        >
+        <table sort="vm.sortFields"
+               on-sort-change="vm.sortFields = sortFields"
+               class="iq-table repository-configuration-list"
+               cols="3"
+               ng-if="vm.repositories.length > 0">
           <thead>
             <tr class="iq-table-row">
-              <th sort-column="repository.publicId" class="iq-cell iq-cell--header">REPOSITORY</th>
-              <th
-                sort-column="managerInstanceId, repository.publicId"
-                class="iq-cell iq-cell--header repository-configuration-list__manager-id"
-              >
+              <th sort-column="repository.publicId" class="iq-cell iq-cell--header">
+                REPOSITORY
+              </th>
+              <th sort-column="managerInstanceId, repository.publicId"
+                  class="iq-cell iq-cell--header repository-configuration-list__manager-id">
                 REPOSITORY MANAGER
               </th>
-              <th
-                sort-column="-repository.enabled, repository.publicId"
-                class="iq-cell iq-cell--header repository-configuration-list__enabled"
-              >
+              <th sort-column="-repository.enabled, repository.publicId"
+                  class="iq-cell iq-cell--header repository-configuration-list__enabled">
                 STATUS
               </th>
               <th class="iq-cell iq-cell--header iq-cell--btn-icon iq-cell--header--noborder"></th>
@@ -73,16 +66,13 @@
               </td>
               <td class="iq-cell repository-configuration-list__manager-id">{{repository.managerInstanceId}}</td>
               <td class="iq-cell repository-configuration-list__enabled">
-                <i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i
-                ><!--
+                <i class="fa" ng-class="repository.repository.enabled ? 'fa-check-circle' : 'fa-times-circle'"></i><!--
              -->{{repository.repository.enabled ? 'Enabled' : 'Disabled'}}
               </td>
               <td class="iq-cell iq-cell--btn-icon">
-                <button
-                  type="button"
-                  class="iq-btn iq-btn--tertiary iq-btn--icon-only"
-                  ng-click="vm.removeRepository(repository)"
-                >
+                <button type="button"
+                        class="iq-btn iq-btn--tertiary iq-btn--icon-only"
+                        ng-click="vm.removeRepository(repository)">
                   <i class="fa fa-trash"></i>
                 </button>
               </td>

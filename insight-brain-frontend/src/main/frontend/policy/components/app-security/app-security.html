@@ -25,7 +25,9 @@
           <div load-error="error" reload="doLoad()"></div>
           <div expand-role-on-event="roleEditClick"></div>
           <div ng-show="!context && !error">
-            <h5><i class="icon-time"></i> Loading...</h5>
+            <h5>
+              <i class="icon-time"></i> Loading...
+            </h5>
           </div>
           <div class="iq-list-header fade" ng-class="{in : context && !error}">
             <div clm-alerts="alerts"></div>
@@ -34,54 +36,41 @@
           </div>
           <div class="iq-list">
             <ul class="accordion">
-              <li
-                class="iq-list__item iq-list__item--expanding"
-                ng-repeat="role in context.roles"
-                id="{{::role.roleId}}"
-              >
+              <li class="iq-list__item iq-list__item--expanding"
+                  ng-repeat="role in context.roles"
+                  id="{{::role.roleId}}">
                 <div ng-if="!editMode">
-                  <div class="iq-list__row--admin-role">{{role.roleName}}</div>
+                  <div class="iq-list__row--admin-role">
+                    {{role.roleName}}
+                  </div>
                   <div class="iq-list__row--admin-member expandable">
                     <div class="iq-list__actions">
-                      <button
-                        type="button"
-                        class="btn btn-icon-only"
-                        title="Edit Role"
-                        ng-click="$parent.editMode = true;$parent.expanded = true;"
-                        ng-disabled="editMode"
-                      >
+                      <button type="button"
+                              class="btn btn-icon-only"
+                              title="Edit Role"
+                              ng-click="$parent.editMode = true;$parent.expanded = true;"
+                              ng-disabled="editMode">
                         <i class="fa fa-fw fa-pencil"></i>
                       </button>
                     </div>
-                    <div
-                      ng-repeat="grouping in groupings"
-                      ng-if="showGrouping(grouping, role.membersByOwner)"
-                      ng-class="{'role-footer' : !$last}"
-                    >
-                      <div
-                        class="member-list"
-                        ng-repeat="mapping in role.membersByOwner"
-                        ng-if="mapping.members.length > 0"
-                        ng-class="{'inherited inherited-section' : $last && role.membersByOwner.length > 1 }"
-                        ng-init="isLastMapping = $last"
-                      >
+                    <div ng-repeat="grouping in groupings"
+                         ng-if="showGrouping(grouping, role.membersByOwner)"
+                         ng-class="{'role-footer' : !$last}">
+                      <div class="member-list"
+                           ng-repeat="mapping in role.membersByOwner" 
+                           ng-if="mapping.members.length > 0"
+                           ng-class="{'inherited inherited-section' : $last && role.membersByOwner.length > 1 }"
+                           ng-init="isLastMapping = $last">
                         <span ng-if="$first">
                           <i class="glyphicons-sonatype small" ng-class="grouping.icon"></i>
                         </span>
-                        <span
-                          ng-if="$parent.expanded && $last && role.membersByOwner.length > 1 && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members)"
-                          tooltip="Inherited from parent"
-                          tooltip-placement="bottom"
-                        >
-                          <img src="img/icon-elbow-up-gray.png" class="inherited-icon" alt="Inherited" />
+                        <span ng-if="$parent.expanded && $last && role.membersByOwner.length > 1 && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members)"
+                              tooltip="Inherited from parent"
+                              tooltip-placement="bottom">
+                          <img src="img/icon-elbow-up-gray.png" class="inherited-icon" alt="Inherited">
                         </span>
-                        <span
-                          ng-repeat="member in mapping.members | filter: { type: grouping.type } | orderBy:'displayName'"
-                        >
-                          {{member.displayName}}<span
-                            ng-show="!$last || (!isLastMapping && !expanded && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members))"
-                            >,</span
-                          >
+                        <span ng-repeat="member in mapping.members | filter: { type: grouping.type } | orderBy:'displayName'">
+                          {{member.displayName}}<span ng-show="!$last || (!isLastMapping && !expanded && showGrouping(grouping, role.membersByOwner[role.membersByOwner.length - 1].members))">,</span>
                         </span>
                       </div>
                     </div>
@@ -97,11 +86,9 @@
                         <i class="fa fa-fw fa-pencil"></i>
                       </button>
                     </div>
-                    <app-security-editor
-                      role="role"
-                      group-search-enabled="context.groupSearchEnabled"
-                      hide="$parent.editMode = false"
-                    >
+                    <app-security-editor role="role"
+                                         group-search-enabled="context.groupSearchEnabled"
+                                         hide="$parent.editMode = false">
                     </app-security-editor>
                   </div>
                 </div>

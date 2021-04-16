@@ -7,10 +7,10 @@
             <i class="icon icon-plus"></i> Add a Webhook
           </button>
         </div>
-        <div class="iq-tile-header">
+        <div class="iq-tile-header">        
           <div class="iq-tile-header__title">
             <div class="iq-tile-header__icon">
-              <img src="img/webhooks_20px.png" alt="Webhooks" />
+              <img src="img/webhooks_20px.png" alt="Webhooks">
             </div>
             <h2>Webhooks</h2>
           </div>
@@ -24,22 +24,17 @@
               <li class="iq-list__item iq-list__item--empty" ng-if="vm.webhooks.length <= 0">
                 No webhooks are defined
               </li>
-              <li
-                class="iq-list__item"
-                ng-repeat="webhook in vm.webhooks"
-                ui-sref="webhooks.edit({webhookId: webhook.id})"
-              >
+              <li class="iq-list__item"
+                  ng-repeat="webhook in vm.webhooks"
+                  ui-sref="webhooks.edit({webhookId: webhook.id})">
                 <i class="fa fa-chevron-right iq-pull-right"></i>
                 <span class="webhook-url">
-                  <img src="img/webhooks_16px.png" class="webhook-icon" alt="Webhooks" />{{::(webhook.description ?
-                  webhook.description : webhook.url)}}
+                  <img src="img/webhooks_16px.png" class="webhook-icon" alt="Webhooks">{{::(webhook.description ? webhook.description : webhook.url)}}
                 </span>
                 <p class="iq-list__subtext">
-                  <span
-                    ng-repeat="eventType in webhook.eventTypes"
-                    class="webhook-event-types"
-                    ng-class="{'iq-list__item--disabled': vm.isEventTypeDisabled(eventType)}"
-                  >
+                  <span ng-repeat="eventType in webhook.eventTypes"
+                        class="webhook-event-types"
+                        ng-class="{'iq-list__item--disabled': vm.isEventTypeDisabled(eventType)}">
                     <i class="fa fa-circle size-10px" title="{{::eventType}}"></i>{{::eventType}}
                   </span>
                 </p>

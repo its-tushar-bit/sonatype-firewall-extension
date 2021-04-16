@@ -1,12 +1,10 @@
 <div id="ldap-checkusermapping-modal">
   <div class="iq-modal-header">
     <h2>Verify LDAP Field Mappings</h2>
-    <span
-      class="icon-question-sign"
-      data-popover="{{infoText}}"
-      data-popover-placement="left"
-      data-popover-trigger="mouseenter"
-    ></span>
+    <span class="icon-question-sign"
+          data-popover="{{infoText}}"
+          data-popover-placement="left"
+          data-popover-trigger="mouseenter"></span>
   </div>
   <div class="iq-modal-content iq-scrollable modal-ldap-user-list">
     <table class="iq-table">
@@ -21,16 +19,24 @@
       <tbody>
         <tr class="iq-table-row" ng-repeat="user in users | orderBy: ['-fieldCount', 'username']">
           <td class="iq-cell modal-ldap-user-list__username-column">
-            <span iq-tooltip tooltip-text="{{::user.username}}"> {{::user.username}} </span>
+            <span iq-tooltip tooltip-text="{{::user.username}}">
+              {{::user.username}}
+            </span>
           </td>
           <td class="iq-cell modal-ldap-user-list__name-column">
-            <span iq-tooltip tooltip-text="{{::user.realName}}"> {{::user.realName}} </span>
+            <span iq-tooltip tooltip-text="{{::user.realName}}">
+              {{::user.realName}}
+            </span>
           </td>
           <td class="iq-cell modal-ldap-user-list__email-column">
-            <span iq-tooltip tooltip-text="{{::user.email}}"> {{::user.email}} </span>
+            <span iq-tooltip tooltip-text="{{::user.email}}">
+              {{::user.email}}
+            </span>
           </td>
           <td class="iq-cell modal-ldap-user-list__groups-column">
-            <span iq-tooltip tooltip-text="{{::user.membership}}"> {{::user.membership}} </span>
+            <span iq-tooltip tooltip-text="{{::user.membership}}">
+              {{::user.membership}}
+            </span>
           </td>
         </tr>
       </tbody>

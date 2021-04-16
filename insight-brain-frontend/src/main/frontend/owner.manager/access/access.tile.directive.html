@@ -1,15 +1,13 @@
 <div class="iq-tile">
   <div load-wrapper="vm.error" loading="!(vm.ownerName)" reload="vm.doLoad()">
     <div class="iq-tile__actions">
-      <button
-        id="add-role-button"
-        ng-class="{disabled: !vm.rolesWithoutLocalMembersExist}"
-        class="iq-btn iq-btn--tertiary"
-        data-tooltip="{{ vm.rolesWithoutLocalMembersExist ? '' : 'All of the available roles are already associated with ' + vm.ownerName + '.' }}"
-        data-tooltip-placement="top"
-        data-tooltip-append-to-body="true"
-        ng-click="vm.addAccess()"
-      >
+      <button id="add-role-button"
+              ng-class="{disabled: !vm.rolesWithoutLocalMembersExist}"
+              class="iq-btn iq-btn--tertiary"
+              data-tooltip="{{ vm.rolesWithoutLocalMembersExist ? '' : 'All of the available roles are already associated with ' + vm.ownerName + '.' }}"
+              data-tooltip-placement="top"
+              data-tooltip-append-to-body="true"
+              ng-click="vm.addAccess()">
         <i class="fa fa-plus"></i>Add a Role
       </button>
     </div>
@@ -18,7 +16,9 @@
         <i class="fa fa-key size-20px slate iq-tile-header__icon"></i>
         <h2>Access</h2>
       </div>
-      <div class="iq-tile-header__subtitle">{{vm.ownerName}} users by role</div>
+      <div class="iq-tile-header__subtitle">
+        {{vm.ownerName}} users by role
+      </div>
     </div>
     <div class="iq-tile-content">
       <div class="iq-list" ng-repeat="memberOwner in vm.membersByRole[0].membersByOwner">
@@ -30,19 +30,15 @@
           No local access configured
         </div>
         <table class="iq-table iq-table--access-list" ng-if="memberOwner.hasMembers">
-          <tr
-            class="iq-table-row"
-            ng-class="{'iq-clickable' : !memberOwner.inherited}"
-            ng-repeat="role in vm.membersByRole | filter:vm.filterRolesWithMembers($parent.$index)"
-            ng-click="vm.editAccess(role.roleId, memberOwner.inherited)"
-          >
+          <tr class="iq-table-row"
+              ng-class="{'iq-clickable' : !memberOwner.inherited}"
+              ng-repeat="role in vm.membersByRole | filter:vm.filterRolesWithMembers($parent.$index)"
+              ng-click="vm.editAccess(role.roleId, memberOwner.inherited)">
             <td class="iq-cell iq-cell--access-role">{{role.roleName}}</td>
             <td class="iq-cell iq-cell--access-members iq-read-only-data">
               <span ng-repeat="member in role.membersByOwner[$parent.$index].members">
-                <i
-                  class="fa size-16px slate"
-                  ng-class="{'fa-user' : member.type === 'USER', 'fa-users' : member.type === 'GROUP' }"
-                ></i>
+                <i class="fa size-16px slate"
+                   ng-class="{'fa-user' : member.type === 'USER', 'fa-users' : member.type === 'GROUP' }"></i>
                 {{member.displayName}}
               </span>
             </td>

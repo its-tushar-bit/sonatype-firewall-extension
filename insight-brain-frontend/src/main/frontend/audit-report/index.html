@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Audit Report</title>
 
-    <link href="../style-1.css?CLM_BUILD_TIMESTAMP" rel="stylesheet" />
-    <link href="../style-2.css?CLM_BUILD_TIMESTAMP" rel="stylesheet" />
+    <link href="../style-1.css?CLM_BUILD_TIMESTAMP" rel="stylesheet">
+    <link href="../style-2.css?CLM_BUILD_TIMESTAMP" rel="stylesheet">
 
-    <link href="../cip.css?CLM_BUILD_TIMESTAMP" rel="stylesheet" />
-    <link type="text/css" href="../audit-report.css?CLM_BUILD_TIMESTAMP" rel="stylesheet" />
+    <link href="../cip.css?CLM_BUILD_TIMESTAMP" rel="stylesheet"/>
+    <link type="text/css" href="../audit-report.css?CLM_BUILD_TIMESTAMP" rel="stylesheet"/>
 
     <script src="../external.js?CLM_BUILD_TIMESTAMP"></script>
     <script src="../brain.client.js?CLM_BUILD_TIMESTAMP"></script>
@@ -19,49 +19,38 @@
   <body ng-app="audit" id="audit-report" ng-cloak ng-csp="no-unsafe-eval">
     <div>
       <div ng-controller="audit.summary.controller">
-        <div
-          id="summary"
-          load-wrapper="error"
-          reload="doLoad()"
-          error-message="Unable to load summary data."
-          loading="loadActive"
-        >
+        <div id="summary" load-wrapper="error" reload="doLoad()" error-message="Unable to load summary data."
+             loading="loadActive">
           <div class="row">
             <div class="span5">
-              <span
-                coverage-donut="percentKnownComponents"
-                alt="{{percentKnownComponents}}% of Components Recognized as Open Source"
-              ></span>
-              <span class="header-container">
-                <div class="value_lrg">{{knownComponentCount}}</div>
-                <div class="label_med">COMPONENT{{knownComponentCount > 1 ? 'S' : ''}} IDENTIFIED</div>
-                <div class="label_sml">
-                  <span class="value_sml">{{percentKnownComponents}}%</span> OF ALL COMPONENTS ARE IDENTIFIED
-                </div>
-              </span>
+              <span coverage-donut="percentKnownComponents"
+                    alt="{{percentKnownComponents}}% of Components Recognized as Open Source"></span>
+                  <span class="header-container">
+                    <div class="value_lrg">{{knownComponentCount}}</div>
+                    <div class="label_med">COMPONENT{{knownComponentCount > 1 ? 'S' : ''}} IDENTIFIED</div>
+                    <div class="label_sml"><span class="value_sml">{{percentKnownComponents}}%</span> OF ALL COMPONENTS ARE
+                      IDENTIFIED
+                    </div>
+                  </span>
             </div>
             <div class="span21">
-              <div
-                class="violation-container"
-                tooltip="A policy alert advises you of components that violate one or more policies within the repository."
-                tooltip-placement="bottom"
-              >
+              <div class="violation-container"
+                   tooltip="A policy alert advises you of components that violate one or more policies within the repository."
+                   tooltip-placement="bottom">
                 <div id="policyViolationContainer" ng-if="policyViolationCount > 0">
                   <div class="value_lrg pval">
-                    <span class="pv-red" ng-if="criticalComponentCount">
-                      <span class="bdg">{{criticalComponentCount}}</span>
-                    </span>
-                    <span class="pv-orange" ng-if="severeComponentCount">
-                      <span class="bdg">{{severeComponentCount}}</span>
-                    </span>
-                    <span class="pv-yellow" ng-if="moderateComponentCount">
-                      <span class="bdg">{{moderateComponentCount}}</span>
-                    </span>
+                        <span class="pv-red" ng-if="criticalComponentCount">
+                          <span class="bdg">{{criticalComponentCount}}</span>
+                        </span>
+                        <span class="pv-orange" ng-if="severeComponentCount">
+                          <span class="bdg">{{severeComponentCount}}</span>
+                        </span>
+                        <span class="pv-yellow" ng-if="moderateComponentCount">
+                          <span class="bdg">{{moderateComponentCount}}</span>
+                        </span>
                   </div>
                   <div class="label_med">POLICY ALERT{{policyViolationCount > 0 ? 'S' : ''}}</div>
-                  <div class="label_sml">
-                    AFFECTING
-                    <span class="value_sml">{{affectedComponentCount}}</span>
+                  <div class="label_sml">AFFECTING <span class="value_sml">{{affectedComponentCount}}</span>
                     COMPONENT{{affectedComponentCount > 0 ? 'S' : ''}}
                   </div>
                 </div>
@@ -81,7 +70,7 @@
         </div>
       </div>
 
-      <div id="componentcontainer" style="width: 100%; padding-top: 5px" audit-threat></div>
+      <div id="componentcontainer" style="width:100%;padding-top:5px" audit-threat></div>
     </div>
   </body>
 </html>

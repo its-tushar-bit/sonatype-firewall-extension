@@ -1,10 +1,6 @@
 <span class="threat-level-selector dropdown">
-  <a
-    class="selected-threat-level threat-level-background {{vm.threatType}}-threat-level-{{vm.threatLevelModel}}"
-    ng-class="{disabled: vm.disabled}"
-    data-toggle="dropdown"
-    >{{vm.threatLevelModel}}</a
-  ><!--
+  <a class="selected-threat-level threat-level-background {{vm.threatType}}-threat-level-{{vm.threatLevelModel}}"
+     ng-class="{disabled: vm.disabled}" data-toggle="dropdown">{{vm.threatLevelModel}}</a><!--
   --><a class="caret-button" ng-class="{disabled: vm.disabled}" data-toggle="dropdown"><span class="caret"></span></a>
   <ul class="dropdown-menu">
     <li ng-repeat="threatLevel in vm.threatLevels" ng-click="vm.selectLevel(threatLevel)">

@@ -3,22 +3,16 @@
 </div>
 <div class="iq-modal-content">
   <div id="request-waiver-explanatory-text" class="iq-alert iq-alert--info">
-    <i class="fa size-16px fa-info-circle" aria-hidden="true"></i>To request a waiver, please share the Policy Violation
-    ID and sample curl command (found below) with the approver.
-    <a
-      href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers#Waivers-RequestingaWaivertobeAdded"
-      target="_blank"
-      rel="noopener"
-    >
-      Learn about automating waiver requests.
-    </a>
-    You can also share the link to the violation details page where a waiver can be added.
+    <i class="fa size-16px fa-info-circle" aria-hidden="true"></i>To request a waiver, please share the Policy Violation ID and sample curl command (found below) with the approver. 
+    <a href="https://help.sonatype.com/iqserver/reporting/application-composition-report/waivers#Waivers-RequestingaWaivertobeAdded"
+      target="_blank" rel=noopener>
+   Learn about automating waiver requests.
+ </a> You can also share the link to the violation details page where a waiver can be added. 
+    
   </div>
   <label class="iq-label request-waiver-modal-section">Policy</label>
-  <div
-    id="request-waiver-policy-name"
-    class="cip-policy cip-policy-{{::getThreatColor(policy.threatLevel)}} cip-policy-name"
-  >
+  <div id="request-waiver-policy-name"
+       class="cip-policy cip-policy-{{::getThreatColor(policy.threatLevel)}} cip-policy-name">
     {{policy.name}}
   </div>
   <label class="iq-label iq-label--spaced request-waiver-modal-section">Constraint Name</label>
@@ -31,45 +25,39 @@
   </div>
   <label class="iq-label iq-label--spaced request-waiver-modal-section">
     Policy Violation ID
-    <button
-      id="copy-policy-violation-id"
-      copy-to-clipboard="policy.policyViolationId"
-      class="iq-btn iq-btn--icon-only"
-      tooltip="Copy id to clipboard"
-      copied-tooltip
-    >
+    <button id="copy-policy-violation-id"
+            copy-to-clipboard="policy.policyViolationId"
+            class="iq-btn iq-btn--icon-only"
+            tooltip="Copy id to clipboard"
+            copied-tooltip>
       <i class="fa fa-clipboard fa-fw" title="Copy violation id to clipboard"></i>
     </button>
   </label>
-  <div id="request-waiver-policy-violation-id" class="visual-testing-ignore">{{policy.policyViolationId}}</div>
+  <div id="request-waiver-policy-violation-id" class="visual-testing-ignore">
+    {{policy.policyViolationId}}
+  </div>
 
   <label class="iq-label iq-label--spaced request-waiver-modal-section">
     Policy Violation Details Page
-    <button
-      id="copy-policy-violation-page-url"
-      copy-to-clipboard="policyViolationPageUrl"
-      class="iq-btn iq-btn--icon-only"
-      tooltip="Copy link to clipboard"
-      copied-tooltip
-    >
+    <button id="copy-policy-violation-page-url"
+            copy-to-clipboard="policyViolationPageUrl"
+            class="iq-btn iq-btn--icon-only"
+            tooltip="Copy link to clipboard"
+            copied-tooltip>
       <i class="fa fa-clipboard fa-fw" title="Copy violation details link to clipboard"></i>
     </button>
   </label>
   <div class="visual-testing-ignore request-waiver-policy-violation-page-link">
-    <a target="_blank" rel="noopener" ui-sref="sidebarView.violation({id:policy.policyViolationId})"
-      >{{policyViolationPageUrl}}</a
-    >
+    <a target="_blank" rel=noopener ui-sref="sidebarView.violation({id:policy.policyViolationId})">{{policyViolationPageUrl}}</a>
   </div>
 
   <label class="iq-label iq-label--spaced request-waiver-modal-section">
     CURL Example
-    <button
-      id="copy-curl-example"
-      copy-to-clipboard="curlExample"
-      class="iq-btn iq-btn--icon-only"
-      tooltip="Copy curl to clipboard"
-      copied-tooltip
-    >
+    <button id="copy-curl-example"
+            copy-to-clipboard="curlExample"
+            class="iq-btn iq-btn--icon-only"
+            tooltip="Copy curl to clipboard"
+            copied-tooltip>
       <i class="fa fa-clipboard fa-fw"></i>
     </button>
   </label>

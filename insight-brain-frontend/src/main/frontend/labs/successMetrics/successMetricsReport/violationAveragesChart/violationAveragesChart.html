@@ -1,27 +1,19 @@
-<h3 class="iq-chart-title">
-  Average Number of Violations Discovered Per Month{{::(vm.isSingleApplicationReport ? '' : ', Per Application')}}
-</h3>
+<h3 class="iq-chart-title">Average Number of Violations Discovered Per Month{{::(vm.isSingleApplicationReport ? '' : ', Per Application')}}</h3>
 <p class="iq-chart__averages">
   Lifecycle performed an <strong>average</strong> of
-  <span class="iq-chart__display-number" id="average-evaluations"
-    ><!--
+  <span class="iq-chart__display-number" id="average-evaluations"><!--
  -->{{::vm.averageEvaluationsRounded}}<!--
---></span
-  >
+--></span>
   evaluation{{::(vm.averageEvaluationsRounded === 1 ? '' : 's')}} per month on {{::vm.activeApplicationCount}}
-  application{{::(vm.isSingleApplicationReport ? '' : 's')}} over the past {{::vm.monthCount}} {{::(vm.monthCount === 1
-  ? 'month' : 'months')}}. Lifecycle found an <strong>average</strong> of
-  <span class="iq-chart__display-number" id="average-policy-violations"
-    ><!--
+  application{{::(vm.isSingleApplicationReport ? '' : 's')}} over the past {{::vm.monthCount}}
+  {{::(vm.monthCount === 1 ? 'month' : 'months')}}. Lifecycle found an <strong>average</strong> of
+  <span class="iq-chart__display-number" id="average-policy-violations"><!--
  -->{{::vm.averageDiscoveredTotal | number: 0}}<!--
---></span
-  >
+--></span>
   policy violations{{::(vm.isSingleApplicationReport ? ',' : ' per application,')}}
-  <span class="iq-chart__display-number" id="average-critical-policy-violations"
-    ><!--
+  <span class="iq-chart__display-number" id="average-critical-policy-violations"><!--
  -->{{::vm.averageDiscoveredTotalCritical | number: 0}}<!--
---></span
-  >
+--></span>
   of which were <strong>critical</strong>.
 </p>
 <div class="iq-chart iq-chart--violation-averages iq-chart--horizontal-bar">

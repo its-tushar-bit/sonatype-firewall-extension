@@ -3,11 +3,9 @@
 </div>
 <div authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
   <h2 id="user-title" class="page-title">New User</h2>
-  <user-form
-    existing-users="context.users"
-    on-cancel="closeUserCreateForm()"
-    on-save="closeUserCreateForm()"
-    class="container users"
-  >
+  <user-form existing-users="context.users"
+             on-cancel="closeUserCreateForm()"
+             on-save="closeUserCreateForm()"
+             class="container users">
   </user-form>
 </div>

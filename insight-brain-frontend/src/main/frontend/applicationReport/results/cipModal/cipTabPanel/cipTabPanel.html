@@ -1,67 +1,48 @@
-<div
-  id="informationPanel"
-  class="iq-cip-tab-panel"
-  ng-class="vm.selectedComponent.innerSource ? 'iq-cip-tab-panel__inner-source' : ''"
->
+<div id="informationPanel" class="iq-cip-tab-panel" ng-class="vm.selectedComponent.innerSource ? 'iq-cip-tab-panel__inner-source' : ''">
   <div ng-if="vm.selectedComponent.innerSource" class="iq-grid-row iq-grid-row__inner-source-info">
     <div class="iq-grid-col iq-grid-col--33">
       <h3>{{vm.selectedComponent.innerSourceData.ownerApplicationName}}</h3>
       <em>InnerSource</em>
-      <p>
-        <a
-          class="tm-inner-source-report"
-          title="View Latest Report"
-          href="{{vm.selectedComponent.latestReport.url}}"
-          target="_blank"
-        >
-          View Latest Report</a
-        >
-      </p>
+      <p><a class="tm-inner-source-report" title="View Latest Report" href="{{vm.selectedComponent.latestReport.url}}" target="_blank">
+        View Latest Report</a></p>
     </div>
     <div class="iq-grid-col iq-grid-col--67">
       <div class="iq-alert iq-alert--info">
-        <i class="fa fa-info-circle"></i>InnerSource components are software components that are developed internally
+        <i class='fa fa-info-circle'></i>InnerSource components are software components that are developed internally
         and shared with other internal projects.
       </div>
     </div>
   </div>
 
   <div class="iq-tab-bar">
-    <a
-      ng-repeat="tab in vm.tabs"
-      ng-click="vm.selectedTab = tab.name"
-      id="cip-tab-{{::tab.name}}"
-      class="iq-tab"
-      ng-class="{ active: vm.selectedTab === tab.name }"
-    >
+    <a ng-repeat="tab in vm.tabs"
+       ng-click="vm.selectedTab = tab.name"
+       id="cip-tab-{{::tab.name}}"
+       class="iq-tab"
+       ng-class="{ active: vm.selectedTab === tab.name }">
       {{::tab.displayName}}
     </a>
   </div>
-  <div
-    ng-switch="vm.selectedTab"
-    class="tab-content"
-    ng-class="vm.selectedComponent &&
-        vm.selectedComponent.innerSource ? 'tab-content__inner-source' : ''"
-  >
+  <div ng-switch="vm.selectedTab" class="tab-content" ng-class="vm.selectedComponent &&
+        vm.selectedComponent.innerSource ? 'tab-content__inner-source' : ''">
     <div ng-switch-when="componentInfo" information-panel></div>
-    <div
-      ng-switch-when="policy"
-      cip-policy-violations
-      close-cip-modal="vm.closeCipModal()"
-      use-new-waiver-pages="true"
-    ></div>
+    <div ng-switch-when="policy"
+         cip-policy-violations
+         close-cip-modal="vm.closeCipModal()"
+         use-new-waiver-pages="true">
+    </div>
     <cip-similar ng-switch-when="similar" similar-components="vm.selectedComponent.matchDetails"></cip-similar>
     <cip-occurrences ng-switch-when="occurrences" pathnames="vm.selectedComponent.pathnames"></cip-occurrences>
     <div ng-switch-when="licenses" cip-license-editor></div>
     <div ng-switch-when="vulnerabilities" cip-vulnerability-editor></div>
     <div ng-switch-when="labels" cip-label-editor></div>
-    <cip-claim-component ng-switch-when="claimComponent" component="vm.selectedComponent"> </cip-claim-component>
-    <cip-audit
-      ng-switch-when="auditLog"
-      scan-id="vm.scanId"
-      application-public-id="vm.applicationPublicId"
-      component="vm.selectedComponent"
-    >
+    <cip-claim-component ng-switch-when="claimComponent"
+                         component="vm.selectedComponent">
+    </cip-claim-component>
+    <cip-audit ng-switch-when="auditLog"
+               scan-id="vm.scanId"
+               application-public-id="vm.applicationPublicId"
+               component="vm.selectedComponent">
     </cip-audit>
   </div>
 </div>

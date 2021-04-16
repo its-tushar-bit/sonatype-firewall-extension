@@ -67,10 +67,10 @@
     <div class="iq-tile-content" load-wrapper="vm.loadError" loading="!vm.isLoaded()" reload="vm.$onInit()">
       <div ng-show="!vm.loadError && vm.isLoaded()">
         <p id="license-install-guideline" ng-if="!vm.license">
-          To continue, locate your license key, and use the "Install License" button below to install it. This is a file
-          with extension ".lic", which will have been emailed to one or more technical contacts in your organization. If
-          you have issues locating or installing your license key, contact
-          <a href="mailto:support@sonatype.com">support</a>.
+          To continue, locate your license key, and use the "Install License" button below to install it.
+          This is a file with extension ".lic", which will have been emailed to one or more technical
+          contacts in your organization. If you have issues locating or installing your license key,
+          contact <a href="mailto:support@sonatype.com">support</a>.
         </p>
         <p id="license-proxy-guideline" ng-if="!vm.license">
           If you need to configure a Proxy Server, use either the public REST API or the
@@ -87,22 +87,20 @@
           </dl>
           <dl class="iq-grid-col iq-license-info iq-read-only">
             <dt>License Type(s)</dt>
-            <dd class="license-product iq-read-only-data" ng-repeat="product in vm.license.products">{{::product}}</dd>
+            <dd class="license-product iq-read-only-data" ng-repeat="product in vm.license.products">
+              {{::product}}
+            </dd>
             <dt ng-if="vm.displayUserLimits">Licensed Developers</dt>
             <dd ng-if="vm.displayUserLimits" class="iq-read-only-data">
               <span id="license-licensed-developers" ng-if="vm.userLimits.length === 1">
                 {{::vm.userLimits[0].count}}
               </span>
-              <dl
-                id="license-licensed-developers"
-                class="iq-license-info__nested-definitions"
-                ng-if="vm.userLimits.length !== 1"
-              >
+              <dl id="license-licensed-developers"
+                  class="iq-license-info__nested-definitions"
+                  ng-if="vm.userLimits.length !== 1">
                 <div ng-repeat="limit in vm.userLimits">
-                  <dt>{{::limit.name}}</dt>
-                  <!--
-               -->
-                  <dd>{{::limit.count}}</dd>
+                  <dt>{{::limit.name}}</dt><!--
+               --><dd>{{::limit.count}}</dd>
                 </div>
               </dl>
             </dd>
@@ -129,12 +127,7 @@
         <i class="fa fa-warning"></i>{{::vm.submitError}}
       </div>
       <span ng-if="vm.isLoaded()" ng-include="'install-license-form'"></span>
-      <button
-        ng-if="vm.license"
-        id="uninstall-license"
-        class="iq-btn iq-btn--tertiary"
-        ng-click="vm.viewUninstallLicense()"
-      >
+      <button ng-if="vm.license" id="uninstall-license" class="iq-btn iq-btn--tertiary" ng-click="vm.viewUninstallLicense()">
         <i class="fa fa-trash"></i>Uninstall License
       </button>
     </div>

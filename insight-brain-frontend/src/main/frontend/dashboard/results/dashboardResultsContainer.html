@@ -14,11 +14,10 @@ but with the current structure of the page the title had to be wrapped in load-w
     <div class="nx-page-title iq-page-title">
       <h1 class="nx-h1">Results</h1>
       <div class="nx-btn-bar">
-        <dashboard-results-export-button></dashboard-results-export-button>
+      	<dashboard-results-export-button></dashboard-results-export-button>
         <button id="filter-toggle" class="btn" ng-click="vm.toggleFilterSidebar(!vm.filterSidebarOpen)">
           <i class="fa fa-filter"></i>Filter:
-          <span id="filter-toggle-dirty-asterisk" ng-show="vm.showDirtyAsterisk">*</span
-          ><!--
+          <span id="filter-toggle-dirty-asterisk" ng-show="vm.showDirtyAsterisk">*</span><!--
           -->{{vm.appliedFilterName || vm.DEFAULT_FILTER_NAME}}
         </button>
       </div>

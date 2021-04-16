@@ -1,22 +1,18 @@
 <div class="nx-page-main" authorization-wrapper="vm.isAuthorized">
-  <div
-    id="saml-configuration"
-    class="iq-tile iq-tile--sys-prefs"
-    form-mask="vm.samlConfigurationMask"
-    mask-attach-to-body
-  >
+  <div id="saml-configuration"
+       class="iq-tile iq-tile--sys-prefs"
+       form-mask="vm.samlConfigurationMask"
+       mask-attach-to-body>
     <div class="iq-tile-header iq-tile-header--hrule">
       <div class="iq-tile__actions">
-        <a
-          id="saml-iq-server-metadata"
-          class="iq-btn iq-btn--tertiary"
-          ng-href="{{vm.shouldEnableDownloadMetadataLink() ? vm.defaultSaml.entityId : ''}}"
-          ng-click="vm.downloadMetadataForIE()"
-          ng-class="{'disabled': !vm.isUpdating}"
-          iq-tooltip="!vm.isUpdating"
-          tooltip-text="Nothing to download until a SAML configuration is saved"
-          download
-        >
+        <a id="saml-iq-server-metadata"
+           class="iq-btn iq-btn--tertiary"
+           ng-href="{{vm.shouldEnableDownloadMetadataLink() ? vm.defaultSaml.entityId : ''}}"
+           ng-click="vm.downloadMetadataForIE()"
+           ng-class="{'disabled': !vm.isUpdating}"
+           iq-tooltip="!vm.isUpdating"
+           tooltip-text="Nothing to download until a SAML configuration is saved"
+           download>
           <i class="fa fa-download"></i> Download IQ Server Metadata
         </a>
       </div>
@@ -24,10 +20,8 @@
         <h2>SAML</h2>
       </div>
       <div class="iq-tile-header__subtitle">
-        <i
-          ng-class="{'fa-check-circle': vm.isUpdating, 'fa-times-circle in gray 2': !vm.isUpdating}"
-          class="fa size-16px"
-        ></i>
+        <i ng-class="{'fa-check-circle': vm.isUpdating, 'fa-times-circle in gray 2': !vm.isUpdating}"
+           class="fa size-16px"></i>
         is {{vm.isUpdating ? '' : 'not'}} configured
       </div>
     </div>
@@ -43,56 +37,48 @@
         Once configured this will become the default way to sign in to IQ Server.
       </p>
       <p class="iq-system-config-explanation">
-        <a
-          id="saml-feedback-link"
-          target="_blank"
-          rel="noreferrer"
-          href="http://links.sonatype.com/products/nxiq/feedback/saml"
-        >
+        <a id="saml-feedback-link"
+           target="_blank"
+           rel="noreferrer"
+           href="http://links.sonatype.com/products/nxiq/feedback/saml">
           Feedback is welcome.
         </a>
       </p>
       <form name="saml-configurator" class="iq-form iq-form--no-padding iq-form--no-border" ng-submit="vm.save()">
         <div id="saml-identity-provider-name-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-identity-provider-name">Identity Provider Name - Displayed at Login</label>
-          <input
-            clm-input
-            iq-tooltip
-            tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.identityProviderName)}}"
-            ng-blur="vm.resetToDefaultValueIfEmpty('identityProviderName')"
-            class="iq-text-input iq-text-input--long"
-            name="saml-identity-provider-name"
-            id="saml-identity-provider-name"
-            ng-model="vm.saml.identityProviderName"
-            ng-maxlength="200"
-            type="text"
-          />
+          <input clm-input
+                 iq-tooltip
+                 tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.identityProviderName)}}"
+                 ng-blur="vm.resetToDefaultValueIfEmpty('identityProviderName')"
+                 class="iq-text-input iq-text-input--long"
+                 name="saml-identity-provider-name"
+                 id="saml-identity-provider-name"
+                 ng-model="vm.saml.identityProviderName"
+                 ng-maxlength="200"
+                 type="text">
         </div>
         <div id="saml-identity-provider-metadata-xml-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-identity-provider-metadata-xml">Identity Provider Metadata XML</label>
           <label for="saml-identity-provider-metadata-xml-load" class="iq-btn">Load XML File</label>
-          <input
-            class="iq-input-file--hidden"
-            type="file"
-            on-file-change-saml="vm.readIdentityProviderMetadataXml(file)"
-            id="saml-identity-provider-metadata-xml-load"
-            name="saml-identity-provider-metadata-xml-load"
-            ng-required="false"
-            accept=".xml"
-          />
+          <input class="iq-input-file--hidden"
+                 type="file"
+                 on-file-change-saml="vm.readIdentityProviderMetadataXml(file)"
+                 id="saml-identity-provider-metadata-xml-load"
+                 name="saml-identity-provider-metadata-xml-load"
+                 ng-required="false"
+                 accept=".xml">
           <span>or paste your XML below</span>
-          <textarea
-            id="saml-identity-provider-metadata-xml"
-            name="saml-identity-provider-metadata-xml"
-            class="iq-textarea iq-textarea--tall iq-textarea--saml"
-            rows="10"
-            autocapitalize="none"
-            autocomplete="off"
-            spellcheck="false"
-            ng-required="!vm.saml.identityProviderMetadataXml"
-            ng-model="vm.saml.identityProviderMetadataXml"
-          >
-          </textarea>
+          <textarea id="saml-identity-provider-metadata-xml"
+                    name="saml-identity-provider-metadata-xml"
+                    class="iq-textarea iq-textarea--tall iq-textarea--saml"
+                    rows="10"
+                    autocapitalize="none"
+                    autocomplete="off"
+                    spellcheck="false"
+                    ng-required="!vm.saml.identityProviderMetadataXml"
+                    ng-model="vm.saml.identityProviderMetadataXml">
+            </textarea>
         </div>
         <div class="iq-alert iq-alert--info">
           <i class="fa fa-info-circle"></i>Your identity provider metadata XML must contain a signing key to use
@@ -100,128 +86,110 @@
         </div>
         <div id="saml-validate-response-signature-control-group" class="iq-form-group">
           <label class="iq-label" for="select-validate-response-signature">Validate Response Signature</label>
-          <dropdown-selector
-            id="select-validate-response-signature"
-            class="iq-dropdown-selector--long"
-            name="select-validate-response-signature"
-            ng-model="vm.saml.validateResponseSignature"
-            options="vm.validateSignatureOptions"
-            option-name-param="name"
-            option-value-param="value"
-            clm-input
-          >
+          <dropdown-selector id="select-validate-response-signature"
+                             class="iq-dropdown-selector--long"
+                             name="select-validate-response-signature"
+                             ng-model="vm.saml.validateResponseSignature"
+                             options="vm.validateSignatureOptions"
+                             option-name-param="name"
+                             option-value-param="value"
+                             clm-input>
           </dropdown-selector>
         </div>
         <div id="saml-validate-assertion-signature-control-group" class="iq-form-group">
           <label class="iq-label" for="select-validate-assertion-signature">Validate Assertion Signature</label>
-          <dropdown-selector
-            id="select-validate-assertion-signature"
-            class="iq-dropdown-selector--long"
-            name="select-validate-assertion-signature"
-            ng-model="vm.saml.validateAssertionSignature"
-            options="vm.validateSignatureOptions"
-            option-name-param="name"
-            option-value-param="value"
-            clm-input
-          >
+          <dropdown-selector id="select-validate-assertion-signature"
+                             class="iq-dropdown-selector--long"
+                             name="select-validate-assertion-signature"
+                             ng-model="vm.saml.validateAssertionSignature"
+                             options="vm.validateSignatureOptions"
+                             option-name-param="name"
+                             option-value-param="value"
+                             clm-input>
           </dropdown-selector>
         </div>
         <div id="saml-entity-id-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-entity-id">Entity ID</label>
-          <input
-            clm-input
-            iq-tooltip
-            tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.entityId)}}"
-            ng-blur="vm.resetToDefaultValueIfEmpty('entityId')"
-            class="iq-text-input iq-text-input--long"
-            name="saml-entity-id"
-            id="saml-entity-id"
-            ng-model="vm.saml.entityId"
-            type="text"
-          />
+          <input clm-input
+                 iq-tooltip
+                 tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.entityId)}}"
+                 ng-blur="vm.resetToDefaultValueIfEmpty('entityId')"
+                 class="iq-text-input iq-text-input--long"
+                 name="saml-entity-id"
+                 id="saml-entity-id"
+                 ng-model="vm.saml.entityId"
+                 type="text">
         </div>
         <div id="saml-username-attribute-name-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-username-attribute-name">Username Attribute</label>
-          <input
-            clm-input
-            iq-tooltip
-            tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.usernameAttributeName)}}"
-            ng-blur="vm.resetToDefaultValueIfEmpty('usernameAttributeName')"
-            class="iq-text-input iq-text-input--long"
-            name="saml-username-attribute-name"
-            id="saml-username-attribute-name"
-            ng-model="vm.saml.usernameAttributeName"
-            type="text"
-          />
+          <input clm-input
+                 iq-tooltip
+                 tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.usernameAttributeName)}}"
+                 ng-blur="vm.resetToDefaultValueIfEmpty('usernameAttributeName')"
+                 class="iq-text-input iq-text-input--long"
+                 name="saml-username-attribute-name"
+                 id="saml-username-attribute-name"
+                 ng-model="vm.saml.usernameAttributeName"
+                 type="text">
         </div>
         <div id="saml-first-name-attribute-name-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-first-name-attribute-name">First Name Attribute</label>
-          <input
-            clm-input
-            iq-tooltip
-            tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.firstNameAttributeName)}}"
-            ng-blur="vm.resetToDefaultValueIfEmpty('firstNameAttributeName')"
-            class="iq-text-input iq-text-input--long"
-            name="saml-first-name-attribute-name"
-            id="saml-first-name-attribute-name"
-            ng-model="vm.saml.firstNameAttributeName"
-            type="text"
-          />
+          <input clm-input
+                 iq-tooltip
+                 tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.firstNameAttributeName)}}"
+                 ng-blur="vm.resetToDefaultValueIfEmpty('firstNameAttributeName')"
+                 class="iq-text-input iq-text-input--long"
+                 name="saml-first-name-attribute-name"
+                 id="saml-first-name-attribute-name"
+                 ng-model="vm.saml.firstNameAttributeName"
+                 type="text">
         </div>
         <div id="saml-last-name-attribute-name-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-last-name-attribute-name">Last Name Attribute</label>
-          <input
-            clm-input
-            iq-tooltip
-            tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.lastNameAttributeName)}}"
-            ng-blur="vm.resetToDefaultValueIfEmpty('lastNameAttributeName')"
-            class="iq-text-input iq-text-input--long"
-            name="saml-last-name-attribute-name"
-            id="saml-last-name-attribute-name"
-            ng-model="vm.saml.lastNameAttributeName"
-            type="text"
-          />
+          <input clm-input
+                 iq-tooltip
+                 tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.lastNameAttributeName)}}"
+                 ng-blur="vm.resetToDefaultValueIfEmpty('lastNameAttributeName')"
+                 class="iq-text-input iq-text-input--long"
+                 name="saml-last-name-attribute-name"
+                 id="saml-last-name-attribute-name"
+                 ng-model="vm.saml.lastNameAttributeName"
+                 type="text">
         </div>
         <div id="saml-email-attribute-name-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-email-attribute-name">Email Attribute</label>
-          <input
-            clm-input
-            iq-tooltip
-            tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.emailAttributeName)}}"
-            ng-blur="vm.resetToDefaultValueIfEmpty('emailAttributeName')"
-            class="iq-text-input iq-text-input--long"
-            name="saml-email-attribute-name"
-            id="saml-email-attribute-name"
-            ng-model="vm.saml.emailAttributeName"
-            type="text"
-          />
+          <input clm-input
+                 iq-tooltip
+                 tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.emailAttributeName)}}"
+                 ng-blur="vm.resetToDefaultValueIfEmpty('emailAttributeName')"
+                 class="iq-text-input iq-text-input--long"
+                 name="saml-email-attribute-name"
+                 id="saml-email-attribute-name"
+                 ng-model="vm.saml.emailAttributeName"
+                 type="text">
         </div>
         <div id="saml-groups-attribute-name-control-group" class="iq-form-group">
           <label class="iq-label" for="saml-groups-attribute-name">Groups Attribute</label>
-          <input
-            clm-input
-            iq-tooltip
-            tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.groupsAttributeName)}}"
-            ng-blur="vm.resetToDefaultValueIfEmpty('groupsAttributeName')"
-            class="iq-text-input iq-text-input--long"
-            name="saml-groups-attribute-name"
-            id="saml-groups-attribute-name"
-            ng-model="vm.saml.groupsAttributeName"
-            type="text"
-          />
+          <input clm-input
+                 iq-tooltip
+                 tooltip-text="{{vm.defaultsToTooltipText(vm.defaultSaml.groupsAttributeName)}}"
+                 ng-blur="vm.resetToDefaultValueIfEmpty('groupsAttributeName')"
+                 class="iq-text-input iq-text-input--long"
+                 name="saml-groups-attribute-name"
+                 id="saml-groups-attribute-name"
+                 ng-model="vm.saml.groupsAttributeName"
+                 type="text">
         </div>
         <div class="iq-tile-footer">
           <div ng-cloak ng-if="vm.saveOrDeleteError" class="iq-alert iq-alert--error">
             <i class="fa fa-warning"></i>{{vm.saveOrDeleteError}}
           </div>
-          <button
-            id="saml-save"
-            class="iq-btn iq-btn--primary"
-            submit-validation
-            submit-dirty="vm.isChanged()"
-            submit-tooltip-target="body"
-            submit-type="vm.isUpdating ? 'update' : 'save'"
-          >
+          <button id="saml-save"
+                  class="iq-btn iq-btn--primary"
+                  submit-validation
+                  submit-dirty="vm.isChanged()"
+                  submit-tooltip-target="body"
+                  submit-type="vm.isUpdating ? 'update' : 'save'">
             {{vm.isUpdating ? 'Update' : 'Save'}}
           </button>
           <button id="saml-cancel" type="button" class="iq-btn" ng-disabled="!vm.isChanged()" ng-click="vm.cancel()">

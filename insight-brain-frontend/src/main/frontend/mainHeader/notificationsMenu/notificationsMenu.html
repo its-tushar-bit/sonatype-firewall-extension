@@ -1,10 +1,8 @@
 <div id="notification-menu" class="iq-dropdown iq-dropdown--notifications">
-  <a
-    id="notification-dropdown-toggle"
-    class="iq-dropdown-toggle iq-dropdown-toggle--main-header"
-    data-toggle="dropdown"
-    ng-click="vm.clearSelected()"
-  >
+  <a id="notification-dropdown-toggle"
+     class="iq-dropdown-toggle iq-dropdown-toggle--main-header"
+     data-toggle="dropdown"
+     ng-click="vm.clearSelected()">
     <nx-font-awesome-icon icon="vm.faInbox" size="'2x'"></nx-font-awesome-icon>
     <div ng-if="unreadNotificationCount" class="iq-count-circle iq-pull-right" ng-class="{'exclamation': errorText}">
       {{unreadNotificationCount}}
@@ -12,19 +10,27 @@
   </a>
   <div class="dropdown-menu iq-dropdown-menu iq-dropdown-menu--main-header">
     <h4 class="iq-dropdown-menu__title">Notifications</h4>
-    <div class="alert alert-info" ng-if="loading && !errorText">Loading notification content from server...</div>
-    <div class="alert alert-danger" ng-if="errorText">{{errorText}}</div>
+    <div class="alert alert-info" ng-if="loading && !errorText">
+      Loading notification content from server...
+    </div>
+    <div class="alert alert-danger" ng-if="errorText">
+      {{errorText}}
+    </div>
     <div class="iq-scrollable">
-      <div
-        ng-if="!errorText && !loading"
-        ng-repeat="notification in notifications"
-        ng-click="vm.openDetail(notification); $event.stopPropagation();"
-        class="iq-dropdown-menu__link--main-header iq-notification"
-        ng-class="{'viewed': notification.viewed, 'selected': selectedNotification == notification}"
-      >
-        <div class="iq-notification__age">{{notification.age ? notification.age : '&nbsp;'}}</div>
-        <div class="iq-notification__age-qualifier">{{notification.ageQualifier}}</div>
-        <div class="iq-notification__text">{{::notification.summaryText}}</div>
+      <div ng-if="!errorText && !loading"
+           ng-repeat="notification in notifications"
+           ng-click="vm.openDetail(notification); $event.stopPropagation();"
+           class="iq-dropdown-menu__link--main-header iq-notification"
+           ng-class="{'viewed': notification.viewed, 'selected': selectedNotification == notification}">
+        <div class="iq-notification__age">
+          {{notification.age ? notification.age : '&nbsp;'}}
+        </div>
+        <div class="iq-notification__age-qualifier">
+          {{notification.ageQualifier}}
+        </div>
+        <div class="iq-notification__text">
+          {{::notification.summaryText}}
+        </div>
       </div>
     </div>
     <!-- Here we want to call stopPropagation() only if the hostname is not available i.e. something other than a link

@@ -1,148 +1,142 @@
-<div ng-controller="ClaimComponentController" class="claimComponent">
-  <div ng-show="createError" class="alert alert-error">
+<div ng-controller="ClaimComponentController" class='claimComponent'>
+  <div ng-show='createError' class='alert alert-error'>
     <h4>Error</h4>
     <p>{{createError}}</p>
     <p>
-      <button type="button" class="btn btn-danger btn-error" ng-click="createError = null">
-        <i class="icon-white icon-arrow-left"></i> Back
+      <button type='button' class='btn btn-danger btn-error' ng-click='createError = null'>
+        <i class='icon-white  icon-arrow-left'></i> Back
       </button>
     </p>
   </div>
-  <div class="well" ng-hide="createSuccess || createError">
+  <div class='well' ng-hide='createSuccess || createError'>
     <form name="claimForm" novalidate disablenav>
       <table>
         <tr>
           <td>
-            <div class="form-horizontal">
-              <div
-                id="cip-claim-group-id"
-                class="control-group"
-                ng-class="{ error : submitted && claimForm.groupId.$error.required }"
-              >
-                <label class="control-label">Group ID</label>
-                <div class="controls">
-                  <input name="groupId" class="input-xlarge" type="text" ng-model="claimData.groupId" required />
+            <div class='form-horizontal'>
+              <div id="cip-claim-group-id"
+                   class='control-group'
+                   ng-class='{ error : submitted && claimForm.groupId.$error.required }'>
+                <label class='control-label'>Group ID</label>
+                <div class='controls'>
+                  <input name="groupId"
+                         class="input-xlarge"
+                         type="text"
+                         ng-model="claimData.groupId"
+                         required/>
                 </div>
               </div>
-              <div
-                id="cip-claim-artifact-id"
-                class="control-group"
-                ng-class="{ error : submitted && claimForm.artifactId.$error.required }"
-              >
-                <label class="control-label">Artifact ID</label>
-                <div class="controls">
-                  <input name="artifactId" class="input-xlarge" type="text" ng-model="claimData.artifactId" required />
+              <div id="cip-claim-artifact-id"
+                   class='control-group'
+                   ng-class='{ error : submitted && claimForm.artifactId.$error.required }'>
+                <label class='control-label'>Artifact ID</label>
+                <div class='controls'>
+                  <input name="artifactId"
+                         class="input-xlarge"
+                         type="text"
+                         ng-model="claimData.artifactId"
+                         required/>
                 </div>
               </div>
-              <div
-                id="cip-claim-version"
-                class="control-group"
-                ng-class="{ error : submitted && claimForm.version.$error.required }"
-              >
-                <label class="control-label">Version</label>
+              <div id="cip-claim-version"
+                   class='control-group'
+                   ng-class='{ error : submitted && claimForm.version.$error.required }'>
+                <label class='control-label'>Version</label>
 
-                <div class="controls">
-                  <input name="version" class="input-xlarge" type="text" ng-model="claimData.version" required />
+                <div class='controls'>
+                  <input name="version"
+                         class="input-xlarge"
+                         type="text"
+                         ng-model="claimData.version"
+                         required/>
                 </div>
               </div>
-              <div id="cip-claim-classifier" class="control-group">
-                <label class="control-label">Classifier</label>
+              <div id="cip-claim-classifier" class='control-group'>
+                <label class='control-label'>Classifier</label>
 
-                <div class="controls">
-                  <input name="classifier" class="input-xlarge" type="text" ng-model="claimData.classifier" />
+                <div class='controls'>
+                  <input name="classifier" class="input-xlarge" type="text" ng-model="claimData.classifier"/>
                 </div>
               </div>
             </div>
           </td>
           <td>
-            <div class="form-horizontal">
-              <div
-                id="cip-claim-extension"
-                class="control-group"
-                ng-class="{ error : submitted && claimForm.extension.$error.required }"
-              >
-                <label class="control-label">Extension</label>
+            <div class='form-horizontal'>
+              <div id="cip-claim-extension"
+                   class='control-group'
+                   ng-class='{ error : submitted && claimForm.extension.$error.required }'>
+                <label class='control-label'>Extension</label>
 
-                <div class="controls">
-                  <input name="extension" class="input-xlarge" type="text" ng-model="claimData.extension" required />
+                <div class='controls'>
+                  <input name="extension"
+                         class="input-xlarge"
+                         type="text"
+                         ng-model="claimData.extension"
+                         required/>
                 </div>
               </div>
-              <div
-                id="cip-claim-created-date"
-                class="control-group"
-                ng-class="{ error : claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern }"
-              >
-                <label class="control-label">Created</label>
+              <div id="cip-claim-created-date"
+                   class='control-group'
+                   ng-class='{ error : claimForm.createTimeText.$dirty && claimForm.createTimeText.$error.pattern }'>
+                <label class='control-label'>Created</label>
 
-                <div class="controls">
+                <div class='controls'>
                   <div class="input-append date" clm-datepicker>
-                    <input
-                      class="span2"
-                      name="createTimeText"
-                      type="text"
-                      ng-model="claimData.createTimeText"
-                      ng-pattern="/^(0?[1-9]|1[012])\/(0?[1-9]|[12][0-9]|3[01])\/(199\d|[2-9]\d{3})$/"
-                    /><!--
+                    <input class="span2"
+                           name="createTimeText"
+                           type="text"
+                           ng-model="claimData.createTimeText"
+                           ng-pattern="/^(0?[1-9]|1[012])\/(0?[1-9]|[12][0-9]|3[01])\/(199\d|[2-9]\d{3})$/"><!--
                  --><span class="add-on"><i class="icon-calendar"></i></span>
                   </div>
                 </div>
               </div>
-              <div id="cip-claim-comment" class="control-group">
-                <label class="control-label">Comment</label>
+              <div id="cip-claim-comment" class='control-group'>
+                <label class='control-label'>Comment</label>
 
-                <div class="controls">
-                  <textarea
-                    name="comment"
-                    class="input-xlarge"
-                    ng-model="claimData.comment"
-                    style="height: 86px"
-                  ></textarea>
+                <div class='controls'>
+                  <textarea name="comment"
+                            class="input-xlarge"
+                            ng-model="claimData.comment"
+                            style="height: 86px;"></textarea>
                 </div>
               </div>
             </div>
           </td>
         </tr>
         <tr>
-          <td class="validation-error">{{getValidationMessage()}}</td>
+          <td class='validation-error'>{{getValidationMessage()}}</td>
           <td>
-            <div class="controls" style="text-align: right">
-              <button
-                id="cip-claim-revoke"
-                type="none"
-                class="btn btn-danger btn-error"
-                ng-show="claimData.identificationSource === 'Manual'"
-                ng-click="revokeClaimSubmit()"
-              >
+            <div class='controls' style='text-align: right;'>
+              <button id="cip-claim-revoke"
+                      type="none"
+                      class="btn btn-danger btn-error"
+                      ng-show="claimData.identificationSource === 'Manual'"
+                      ng-click="revokeClaimSubmit()">
                 Revoke Claim
               </button>
-              <button
-                id="cip-claim-cancel"
-                type="none"
-                class="btn"
-                ng-show="claimData.identificationSource === 'Manual'"
-                ng-disabled="!claimForm.$dirty"
-                ng-click="resetClaimData()"
-              >
+              <button id="cip-claim-cancel"
+                      type="none"
+                      class="btn"
+                      ng-show="claimData.identificationSource === 'Manual'"
+                      ng-disabled="!claimForm.$dirty"
+                      ng-click="resetClaimData()">
                 Cancel
               </button>
-              <button
-                id="cip-claim-update"
-                type="none"
-                class="btn btn-primary"
-                ng-show="claimData.identificationSource === 'Manual'"
-                ng-disabled="!claimForm.$dirty"
-                ng-click="claimUpdateSubmit()"
-              >
+              <button id="cip-claim-update"
+                      type="none"
+                      class="btn btn-primary"
+                      ng-show="claimData.identificationSource === 'Manual'"
+                      ng-disabled="!claimForm.$dirty"
+                      ng-click="claimUpdateSubmit()">
                 Update
               </button>
-              <button
-                id="cip-claim-submit"
-                type="none"
-                class="btn btn-primary"
-                ng-show="claimData.identificationSource !== 'Manual'"
-                ng-disabled="disableSubmit || !claimForm.$dirty"
-                ng-click="claimSubmit()"
-              >
+              <button id="cip-claim-submit"
+                      type="none"
+                      class="btn btn-primary"
+                      ng-show="claimData.identificationSource !== 'Manual'"
+                      ng-disabled="disableSubmit || !claimForm.$dirty"
+                      ng-click="claimSubmit()">
                 Claim
               </button>
             </div>

@@ -1,12 +1,12 @@
 <div load-wrapper="vm.error" loading="vm.auditRecords === undefined" reload="vm.doLoad()">
-  <p ng-if="vm.auditRecords.length === 0">No changes were found for this component.</p>
+  <p ng-if="vm.auditRecords.length === 0">
+    No changes were found for this component.
+  </p>
   <div class="iq-scrollable">
-    <table
-      class="iq-table iq-table--audit-log visual-testing-ignore"
-      ng-if="vm.auditRecords.length > 0"
-      sort="[vm.sort]"
-      on-sort-change="vm.onSortChange(sortFields)"
-    >
+    <table class="iq-table iq-table--audit-log visual-testing-ignore"
+           ng-if="vm.auditRecords.length > 0"
+           sort="[vm.sort]"
+           on-sort-change="vm.onSortChange(sortFields)">
       <thead>
         <tr class="iq-table-row">
           <th id="audit-date-column-header" class="iq-cell iq-cell--header iq-clickable" sort-column="time">Date</th>

@@ -6,38 +6,32 @@
     <div class="iq-modal-content">
       <div class="iq-form-group">
         <label class="iq-label" for="username">Username</label>
-        <input
-          clm-input
-          class="iq-text-input"
-          type="text"
-          id="username"
-          name="username"
-          ng-model="ldapCredentials.username"
-          required
-          focus-input="true"
-        />
+        <input clm-input
+               class="iq-text-input"
+               type="text"
+               id="username"
+               name="username"
+               ng-model="ldapCredentials.username"
+               required
+               focus-input="true">
       </div>
       <div class="iq-form-group">
         <label class="iq-label" for="password">Password</label>
-        <input
-          clm-input
-          class="iq-text-input"
-          type="password"
-          name="password"
-          ng-model="ldapCredentials.password"
-          required
-        />
+        <input clm-input
+               class="iq-text-input"
+               type="password"
+               name="password"
+               ng-model="ldapCredentials.password"
+               required>
       </div>
     </div>
     <div class="iq-modal-footer">
       <div clm-alerts="alerts"></div>
-      <button
-        class="iq-btn iq-btn--primary"
-        ng-disabled="ldapCheckLogin.$invalid || testInProgress"
-        ng-click="testLogin()"
-      >
-        Test Login</button
-      ><!--
+      <button class="iq-btn iq-btn--primary"
+              ng-disabled="ldapCheckLogin.$invalid || testInProgress"
+              ng-click="testLogin()">
+        Test Login
+      </button><!--
    --><button class="iq-btn" id="check-login-cancel" ng-click="$close()">Close</button>
     </div>
   </form>

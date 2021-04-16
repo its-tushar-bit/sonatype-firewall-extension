@@ -1,44 +1,44 @@
 <div id="move-app-modal" ng-hide="vm.isHidden">
-  <div class="iq-modal-header">
-    <h2><i class="fa fa-arrows"></i>Move Application</h2>
+
+  <div class='iq-modal-header'>
+    <h2>
+      <i class="fa fa-arrows"></i>Move Application
+    </h2>
   </div>
 
-  <form
-    name="vm.moveApplicationForm"
-    ng-submit="vm.save()"
-    form-mask="vm.formMask"
-    mask-message="Updating the application, this may take a few minutes"
-  >
+  <form name="vm.moveApplicationForm"
+        ng-submit="vm.save()"
+        form-mask="vm.formMask"
+        mask-message="Updating the application, this may take a few minutes">
+
     <div class="iq-modal-content" ng-if="!vm.loadError" load-wrapper loading="vm.isLoading()">
       <div class="iq-form-group">
-        <label class="iq-label" for="select-parent-organization"> New Parent Organization </label>
-        <dropdown-selector
-          id="select-parent-organization"
-          name="select-parent-organization"
-          ng-model="vm.selectedOrganization"
-          options="vm.organizations"
-          option-name-param="name"
-          empty-option-string="{{vm.currentOrganizationName}}"
-          class="move-application-dropdown"
-          required
-          clm-input
-          messages="{required: 'Please select organization'}"
-        >
+        <label class="iq-label" for="select-parent-organization">
+          New Parent Organization
+        </label>
+        <dropdown-selector id="select-parent-organization"
+                           name="select-parent-organization"
+                           ng-model="vm.selectedOrganization"
+                           options="vm.organizations"
+                           option-name-param="name"
+                           empty-option-string="{{vm.currentOrganizationName}}"
+                           class="move-application-dropdown"
+                           required
+                           clm-input
+                           messages="{required: 'Please select organization'}">
         </dropdown-selector>
       </div>
     </div>
 
     <div class="iq-modal-footer" ng-class="{ error : vm.getError() }">
       <div ng-if="vm.getError()" class="iq-alert"><i class="fa fa-warning"></i>{{::vm.getError()}}</div>
-      <button
-        ng-if="!vm.getError()"
-        class="iq-btn iq-btn--primary"
-        type="submit"
-        ng-disabled="vm.isLoading()"
-        submit-validation
-        submit-type="Move"
-        submit-dirty="vm.selectedOrganization"
-      >
+      <button ng-if="!vm.getError()"
+              class="iq-btn iq-btn--primary"
+              type="submit"
+              ng-disabled="vm.isLoading()"
+              submit-validation
+              submit-type="Move"
+              submit-dirty="vm.selectedOrganization">
         Move
       </button>
       <button ng-if="vm.saveError" class="iq-btn iq-btn--error" type="submit">
@@ -47,14 +47,13 @@
       <button id="dismiss-btn" class="iq-btn" type="button" ng-click="$dismiss()">
         {{vm.loadError ? "OK" : "Cancel"}}
       </button>
-      <button
-        ng-if="vm.incompatibilities"
-        class="iq-btn iq-btn--tertiary"
-        type="button"
-        ng-click="vm.showIncompatibilities()"
-      >
+      <button ng-if="vm.incompatibilities"
+              class="iq-btn iq-btn--tertiary"
+              type="button"
+              ng-click="vm.showIncompatibilities()">
         Details
       </button>
     </div>
+
   </form>
 </div>

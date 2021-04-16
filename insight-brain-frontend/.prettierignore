@@ -2,3 +2,4 @@ target/
 node/
 node_modules/
 src/main/component-gallery
+*.html

@@ -1,82 +1,78 @@
 <section id="add-success-metrics-report" form-mask="vm.maskController">
   <header class="iq-modal-header">
-    <h2><i class="fa fa-flask"></i>Add Report</h2>
+    <h2>
+      <i class="fa fa-flask"></i>Add Report
+    </h2>
   </header>
-  <form
-    name="vm.addSuccessMetricsReportForm"
-    class="iq-form iq-form--no-padding iq-form--no-border"
-    novalidate
-    ng-submit="vm.onSubmit()"
-  >
+  <form name="vm.addSuccessMetricsReportForm"
+        class="iq-form iq-form--no-padding iq-form--no-border"
+        novalidate
+        ng-submit="vm.onSubmit()">
     <div class="iq-modal-content iq-scrollable" load-wrapper loading="!vm.loaded" reload="vm.$onInit">
-      <div class="iq-form-group">
-        <label class="iq-label" for="add-success-metrics-report-name">Name</label>
-        <input
-          id="add-success-metrics-report-name"
-          class="iq-text-input"
-          name="name"
-          type="text"
-          ng-model="vm.name"
-          focus-input="true"
-          autofocus
-          clm-input
-          ng-required="true"
-          has-whitespace-validator
-          valid-name-characters
-          is-duplicate
-          is-duplicate-array="vm.existingReports"
-          is-duplicate-id-field="name"
-          messages="{duplicate: 'Name is already in use'}"
-        />
-      </div>
-      <fieldset class="iq-radio-group iq-form-group">
-        <legend class="iq-label">Aggregation data</legend>
-        <iq-radio id="add-success-metrics-monthly" model="vm.includeLatestData" value="false">
-          only full calendar weeks and months
-        </iq-radio>
-        <iq-radio id="add-success-metrics-latest" model="vm.includeLatestData" value="true">
-          including most recent evaluations
-        </iq-radio>
-        <div class="iq-alert" id="add-success-metrics-perf-warning" ng-if="vm.includeLatestData">
-          <i class="fa fa-warning"></i
-          ><!--
-         -->Data for incomplete months and weeks will skew averages. May be slow for large data sets.
+        <div class="iq-form-group">
+          <label class="iq-label" for="add-success-metrics-report-name">Name</label>
+          <input id="add-success-metrics-report-name"
+                 class="iq-text-input"
+                 name="name"
+                 type="text"
+                 ng-model="vm.name"
+                 focus-input="true"
+                 autofocus
+                 clm-input
+                 ng-required="true"
+                 has-whitespace-validator
+                 valid-name-characters
+                 is-duplicate
+                 is-duplicate-array="vm.existingReports"
+                 is-duplicate-id-field="name"
+                 messages="{duplicate: 'Name is already in use'}">
         </div>
-      </fieldset>
-      <fieldset class="iq-radio-group iq-form-group">
-        <legend class="iq-label">Scope</legend>
-        <iq-radio id="add-success-metrics-report-all-applications" model="vm.isAllApplications" value="true"
-          ><!--
+        <fieldset class="iq-radio-group iq-form-group">
+          <legend class="iq-label">Aggregation data</legend>
+          <iq-radio id="add-success-metrics-monthly" model="vm.includeLatestData" value="false">
+            only full calendar weeks and months
+          </iq-radio>
+          <iq-radio id="add-success-metrics-latest" model="vm.includeLatestData" value="true">
+            including most recent evaluations
+          </iq-radio>
+          <div class="iq-alert" id="add-success-metrics-perf-warning" ng-if="vm.includeLatestData">
+            <i class="fa fa-warning"></i><!--
+         -->Data for incomplete months and weeks will skew averages. May be slow for large data sets.
+          </div>
+        </fieldset>
+        <fieldset class="iq-radio-group iq-form-group">
+          <legend class="iq-label">Scope</legend>
+          <iq-radio id="add-success-metrics-report-all-applications" model="vm.isAllApplications" value="true"><!--
          --><i class="fa fa-globe"></i> all applications
-        </iq-radio>
-        <iq-radio id="add-success-metrics-report-custom" model="vm.isAllApplications" value="false">custom</iq-radio>
-        <iq-org-app-picker-angular
-          ng-if="!vm.isAllApplications"
-          organizations="vm.organizations"
-          applications="vm.applications"
-          selected-applications="vm.selectedApplications"
-          selected-organizations="vm.selectedOrganizations"
-          on-change="vm.onOrgAppSelectionChange(selectedOrganizations, selectedApplications)"
-        >
-        </iq-org-app-picker-angular>
-      </fieldset>
+          </iq-radio>
+          <iq-radio id="add-success-metrics-report-custom" model="vm.isAllApplications" value="false">custom</iq-radio>
+          <iq-org-app-picker-angular ng-if="!vm.isAllApplications"
+                             organizations="vm.organizations"
+                             applications="vm.applications"
+                             selected-applications="vm.selectedApplications"
+                             selected-organizations="vm.selectedOrganizations"
+                             on-change="vm.onOrgAppSelectionChange(selectedOrganizations, selectedApplications)">
+          </iq-org-app-picker-angular>
+        </fieldset>
     </div>
     <footer class="iq-modal-footer" ng-class="{ 'iq-error' : vm.error }">
       <div ng-if="vm.error" class="iq-alert iq-alert--error">
         <i class="fa fa-warning"></i>{{::vm.getErrorMessage()}}
       </div>
 
-      <button
-        id="add-success-metrics-report-submit-btn"
-        class="iq-btn"
-        ng-class="{ 'iq-btn--error': vm.error, 'iq-btn--primary': !vm.error }"
-        submit-validation
-        submit-type="create"
-        submit-dirty="vm.isCreateEnabled()"
-      >
-        <span ng-if="!vm.error"> Create </span>
-        <span ng-if="vm.error"> <i class="fa fa-refresh"></i>Retry </span></button
-      ><!--
+      <button id="add-success-metrics-report-submit-btn"
+              class="iq-btn"
+              ng-class="{ 'iq-btn--error': vm.error, 'iq-btn--primary': !vm.error }"
+              submit-validation
+              submit-type="create"
+              submit-dirty="vm.isCreateEnabled()">
+        <span ng-if="!vm.error">
+          Create
+        </span>
+        <span ng-if="vm.error">
+          <i class="fa fa-refresh"></i>Retry
+        </span>
+      </button><!--
    --><button type="button" id="add-success-metrics-report-cancel-btn" class="iq-btn" ng-click="vm.dismiss()">
         Cancel
       </button>

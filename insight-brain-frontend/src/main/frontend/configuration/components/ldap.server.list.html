@@ -1,15 +1,13 @@
 <div class="nx-page-main" authorization-wrapper="vm.isAuthorized">
   <div id="ldap-server-list" class="iq-tile iq-tile--sys-prefs">
-    <div load-wrapper="vm.error" loading="!vm.ldapList" reload="vm.doLoad()">
+    <div load-wrapper='vm.error' loading='!vm.ldapList' reload='vm.doLoad()'>
       <div class="iq-tile__actions">
-        <button
-          class="iq-btn iq-btn--tertiary"
-          id="reorder-ldap-button"
-          ng-click="vm.reorder()"
-          ng-disabled="vm.ldapList.length <= 1"
-        >
-          <i class="fa fa-pencil"></i>Reorder List</button
-        ><!--
+        <button class="iq-btn iq-btn--tertiary"
+                id="reorder-ldap-button"
+                ng-click="vm.reorder()"
+                ng-disabled="vm.ldapList.length <= 1">
+          <i class="fa fa-pencil"></i>Reorder List
+        </button><!--
      --><button class="iq-btn iq-btn--tertiary" id="add-ldap-button" ui-sref="create-ldap">
           <i class="fa fa-plus"></i>Add a Server
         </button>
@@ -18,7 +16,9 @@
         <div class="iq-tile-header__title">
           <h2>LDAP Servers</h2>
         </div>
-        <div class="iq-tile-header__subtitle">will be queried in the order listed</div>
+        <div class="iq-tile-header__subtitle">
+            will be queried in the order listed
+        </div>
       </div>
     </div>
     <div class="iq-tile-content">
@@ -27,11 +27,9 @@
           <li class="iq-list__item iq-list__item--empty" ng-if="vm.ldapList.length <= 0">
             No LDAP servers are defined
           </li>
-          <li
-            class="iq-list__item"
-            ng-repeat="ldap in vm.ldapList | orderBy:priority"
-            ui-sref="edit-ldap({ldapId: ldap.id})"
-          >
+          <li class="iq-list__item"
+              ng-repeat="ldap in vm.ldapList | orderBy:priority"
+              ui-sref="edit-ldap({ldapId: ldap.id})">
             <i class="fa fa-chevron-right iq-pull-right"></i>
             {{::ldap.name}}
           </li>

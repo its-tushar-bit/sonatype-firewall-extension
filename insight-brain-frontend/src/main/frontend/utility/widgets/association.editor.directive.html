@@ -1,32 +1,22 @@
-<div
-  id="association-editor"
-  class="iq-association-editor"
-  ng-class="{'iq-association-editor--multi-column': vm.items.length >= 10}"
->
-  <iq-checkbox
-    ng-if="!vm.isRadioButton"
-    ng-repeat="item in vm.items"
-    on-click="vm.toggleSelected(item, vm.checkboxParam)"
-    is-checked="item[vm.checkboxParam]"
-    is-disabled="vm.disabled"
-    ><!--
- --><hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon
-    ><!--
- --><i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i
-    ><!--
- --><span class="iq-association-editor__description">{{::item[vm.description] }}</span> </iq-checkbox
-  ><!--
---><iq-radio
-    ng-if="vm.isRadioButton"
-    ng-repeat="item in vm.items"
-    model="vm.selected"
-    value="item"
-    is-disabled="vm.disabled"
-    ><!--
- --><hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon
-    ><!--
- --><i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i
-    ><!--
+<div id="association-editor"
+     class="iq-association-editor"
+     ng-class="{'iq-association-editor--multi-column': vm.items.length >= 10}">
+  <iq-checkbox ng-if="!vm.isRadioButton"
+               ng-repeat="item in vm.items"
+               on-click="vm.toggleSelected(item, vm.checkboxParam)"
+               is-checked="item[vm.checkboxParam]"
+               is-disabled="vm.disabled"><!--
+ --><hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon><!--
+ --><i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i><!--
+ --><span class="iq-association-editor__description">{{::item[vm.description] }}</span>
+  </iq-checkbox><!--
+--><iq-radio ng-if="vm.isRadioButton"
+             ng-repeat="item in vm.items"
+             model="vm.selected"
+             value="item"
+             is-disabled="vm.disabled"><!--
+ --><hexagon ng-if="vm.icon === 'hexagon'" class="{{::item.color }} size-16px"></hexagon><!--
+ --><i ng-if="vm.icon !== 'hexagon'" class="fa {{::vm.icon}} {{::item.color || 'slate'}}"></i><!--
  --><span class="iq-association-editor__description">{{::item[vm.description]}}</span>
   </iq-radio>
 </div>

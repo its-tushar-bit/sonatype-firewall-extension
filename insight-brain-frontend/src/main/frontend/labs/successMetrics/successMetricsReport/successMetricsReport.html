@@ -1,21 +1,17 @@
 <iq-back-button state="labs.successMetrics"></iq-back-button>
-<div
-  class="tile-container tile-scroll-container iq-tile-scroll-container--success-metrics"
-  load-wrapper="vm.error"
-  loading="!vm.loaded"
-  reload="vm.doLoad()"
-  message="vm.hasDisabledError() ? 'Error:' : undefined"
-  can-retry="!vm.hasDisabledError()"
->
+<div class="tile-container tile-scroll-container iq-tile-scroll-container--success-metrics"
+     load-wrapper="vm.error"
+     loading="!vm.loaded"
+     reload="vm.doLoad()"
+     message="vm.hasDisabledError() ? 'Error:' : undefined"
+     can-retry="!vm.hasDisabledError()">
   <div class="iq-tile iq-tile--chart">
-    <summary-statement-tile
-      active-application-count="vm.activeApplicationCount"
-      success-metrics-report="vm.successMetricsReport"
-      on-delete="vm.goToList()"
-      is-single-application-report="vm.isSingleApplicationReport"
-      last-updated="vm.lastUpdated"
-      month-count="vm.monthCount"
-    >
+    <summary-statement-tile active-application-count="vm.activeApplicationCount"
+                            success-metrics-report="vm.successMetricsReport"
+                            on-delete="vm.goToList()"
+                            is-single-application-report="vm.isSingleApplicationReport"
+                            last-updated="vm.lastUpdated"
+                            month-count="vm.monthCount">
     </summary-statement-tile>
   </div>
   <div ng-if="vm.activeApplicationCount !== 0">
@@ -28,33 +24,28 @@
       </violations-by-category-chart>
     </div>
     <div class="iq-tile iq-tile--chart">
-      <violation-averages-chart
-        averages-data="vm.averagesData"
-        is-single-application-report="vm.isSingleApplicationReport"
-        active-application-count="vm.activeApplicationCount"
-        month-count="vm.monthCount"
-      >
+      <violation-averages-chart averages-data="vm.averagesData"
+                                is-single-application-report="vm.isSingleApplicationReport"
+                                active-application-count="vm.activeApplicationCount"
+                                month-count="vm.monthCount">
       </violation-averages-chart>
     </div>
     <div ng-if="!vm.isMttrDisabled()" class="iq-tile iq-tile--chart">
-      <mttr-chart
-        mttr-data="vm.mttrData"
-        active-application-count="vm.activeApplicationCount"
-        month-count="vm.monthCount"
-      >
+      <mttr-chart mttr-data="vm.mttrData"
+                  active-application-count="vm.activeApplicationCount"
+                  month-count="vm.monthCount">
       </mttr-chart>
     </div>
     <div ng-if="!vm.isSingleApplicationReport" class="iq-tile iq-tile--chart">
-      <application-counts-chart application-counts-data="vm.applicationCountsData" month-count="vm.monthCount">
+      <application-counts-chart application-counts-data="vm.applicationCountsData"
+                                month-count="vm.monthCount">
       </application-counts-chart>
     </div>
     <div class="iq-tile iq-tile--chart">
-      <component-counts-chart
-        component-data="vm.componentCountsData"
-        is-single-application-report="vm.isSingleApplicationReport"
-        single-application-name="vm.singleApplicationName"
-        active-application-count="vm.activeApplicationCount"
-      >
+      <component-counts-chart component-data="vm.componentCountsData"
+                              is-single-application-report="vm.isSingleApplicationReport"
+                              single-application-name="vm.singleApplicationName"
+                              active-application-count="vm.activeApplicationCount">
       </component-counts-chart>
     </div>
   </div>

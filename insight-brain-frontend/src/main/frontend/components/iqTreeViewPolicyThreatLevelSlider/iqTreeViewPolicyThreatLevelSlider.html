@@ -7,7 +7,8 @@
     <div class="iq-tree-view__text">Policy Threat Level</div>
   </a>
   <div class="iq-tree-view__children" ng-if="vm.isExpanded">
-    <iq-policy-threat-level-slider selected-range="vm.selectedRange" on-change="vm.onChange({value})">
+    <iq-policy-threat-level-slider selected-range="vm.selectedRange"
+                                   on-change="vm.onChange({value})">
     </iq-policy-threat-level-slider>
   </div>
 </div>

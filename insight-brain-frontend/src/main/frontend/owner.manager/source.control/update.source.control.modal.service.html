@@ -1,27 +1,28 @@
 <div id="update-source-control-url-modal">
   <div class="iq-modal-header">
-    <h2><i class="fa size-20px fa-warning"></i> Update Source Control Repository URL</h2>
+    <h2>
+      <i class="fa size-20px fa-warning"></i> Update Source Control Repository URL
+    </h2>
   </div>
-  <form
-    name="updateSourceControlModal"
-    ng-submit="vm.updateSourceControl()"
-    form-mask="vm.updateSourceControlMask"
-    mask-message="Updating"
-  >
+  <form name="updateSourceControlModal" ng-submit="vm.updateSourceControl()" form-mask="vm.updateSourceControlMask"
+        mask-message='Updating'>
     <div class="iq-modal-content">
       <div class="iq-alert">
         <i class="fa fa-warning"></i>
-        <span
-          >Changing the repository URL will reset source control data for this application. Are you sure you want<!--
-         -->
-          to continue?</span
-        >
+        <span>Changing the repository URL will reset source control data for this application. Are you sure you want<!--
+         --> to continue?</span>
       </div>
     </div>
     <div class="iq-modal-footer" ng-class="{ error : vm.error }">
-      <div ng-if="vm.error" class="iq-alert iq-alert--error"><i class="fa fa-warning"></i>{{ vm.error }}</div>
-      <button ng-if="!vm.error" class="iq-btn iq-btn--primary" type="submit">Continue</button>
-      <button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit"><i class="fa fa-refresh"></i>Retry</button>
+      <div ng-if="vm.error" class="iq-alert iq-alert--error">
+        <i class="fa fa-warning"></i>{{ vm.error }}
+      </div>
+      <button ng-if="!vm.error" class="iq-btn iq-btn--primary" type="submit">
+        Continue
+      </button>
+      <button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit">
+        <i class="fa fa-refresh"></i>Retry
+      </button>
       <button class="iq-btn" type="button" ng-click="$dismiss()">Cancel</button>
     </div>
   </form>

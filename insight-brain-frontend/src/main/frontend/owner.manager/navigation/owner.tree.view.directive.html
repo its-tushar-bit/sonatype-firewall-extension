@@ -1,130 +1,103 @@
 <div class="iq-tree-view iq-owner-tree-view">
-  <div class="iq-owner-tree-view__header">Organizations and Applications</div>
+  <div class="iq-owner-tree-view__header">
+    Organizations and Applications
+  </div>
   <div load-wrapper="vm.error" loading="!vm.organizations" reload="vm.doLoad()">
     <div class="iq-owner-tree-view__filter search input-prepend">
       <span class="add-on">
-        <i
-          role="button"
-          class="fa fa-filter"
-          ng-class="{ 'fa-filter': !vm.filter.value, 'fa-times': vm.filter.value }"
-          ng-click="vm.filter.value = ''"
-        ></i>
+        <i role="button" class="fa fa-filter"
+           ng-class="{ 'fa-filter': !vm.filter.value, 'fa-times': vm.filter.value }"
+           ng-click="vm.filter.value = ''"></i>
       </span>
-      <input type="text" ng-model="vm.filter.value" autocomplete="off" placeholder="App or Org Name" />
+      <input type="text" ng-model="vm.filter.value" autocomplete="off" placeholder="App or Org Name">
     </div>
     <p class="iq-owner-tree-view__min-filter-message" ng-if="vm.filter.value && vm.filter.value.length < 3">
       Enter at least three characters to begin filtering
     </p>
-    <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">Filter Results</h4>
-    <a
-      id="owner-tree-view-root-org-row"
-      class="iq-tree-view__trigger iq-owner-tree-view__row"
-      ng-if="vm.rootOrganization"
-      ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
-      ui-sref="management.view.organization({organizationId: vm.rootOrganization.id})"
-    >
-      <i class="fa fa-globe fa-lg iq-owner-tree-view__icon"></i
-      ><!--
+    <h4 ng-if="vm.filter.value && vm.filter.value.length >= 3">
+      Filter Results
+    </h4>
+    <a id="owner-tree-view-root-org-row"
+       class="iq-tree-view__trigger iq-owner-tree-view__row"
+       ng-if="vm.rootOrganization"
+       ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
+       ui-sref="management.view.organization({organizationId: vm.rootOrganization.id})">
+      <i class="fa fa-globe fa-lg iq-owner-tree-view__icon"></i><!--
    --><span class="iq-tree-view__text">{{vm.rootOrganization.name}}</span>
     </a>
-    <div
-      class="iq-owner-tree-view__new-organization"
-      ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }"
-    >
+    <div class="iq-owner-tree-view__new-organization"
+         ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: vm.rootOrganization.id}) }">
       <button class="iq-btn iq-btn--text-only" ng-click="vm.createOrganization()">
         <i class="fa fa-plus"></i>Add New Org
       </button>
     </div>
     <div id="owner-tree-view-owner-rows" class="iq-tree-view__children">
-      <a
-        id="owner-tree-view-repositories-row"
-        class="iq-tree-view__child iq-owner-tree-view__row iq-owner-tree-view__row--repositories"
-        ui-sref-active="selected"
-        ng-if="vm.showRepositories"
-        ui-sref="management.view.repositories"
-      >
+      <a id="owner-tree-view-repositories-row"
+         class="iq-tree-view__child iq-owner-tree-view__row iq-owner-tree-view__row--repositories"
+         ui-sref-active="selected"
+         ng-if="vm.showRepositories"
+         ui-sref="management.view.repositories">
         <div class="iq-tree-view__twisty">
           <span class="iq-tree-view__twisty-icon empty"></span>
-        </div>
-        <!--
-     --><i class="fa fa-database iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"></i
-        ><!--
+        </div><!--
+     --><i class="fa fa-database iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"></i><!--
      --><span class="iq-tree-view__text">Repositories</span>
       </a>
-      <div
-        class="iq-tree-view__child iq-tree-view iq-owner-tree-view__row--organization"
-        ng-repeat="organization in vm.organizations | orderBy:'name'"
-        ng-if="organization.isVisible"
-      >
-        <a
-          class="iq-tree-view__trigger iq-owner-tree-view__row"
-          ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: organization.id}),
+      <div class="iq-tree-view__child iq-tree-view iq-owner-tree-view__row--organization"
+           ng-repeat="organization in vm.organizations | orderBy:'name'"
+           ng-if="organization.isVisible">
+        <a class="iq-tree-view__trigger iq-owner-tree-view__row"
+           ng-class="{ selected : vm.$state.includes('management.view.organization', {organizationId: organization.id}),
                disabled : organization.synthetic,
                'child-selected' : vm.selectedParentOrganization.id == organization.id }"
-          ng-click="organization.isExpanded = true;
+           ng-click="organization.isExpanded = true;
                vm.goToOrganizationIfNotSynthetic(organization);"
-          iq-tooltip
-          tooltip-text="{{organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
-          tooltip-attach-to-body="true"
-          tooltip-class="entity-item-tooltip"
-          tooltip-only-on-overflow="{{!organization.synthetic}}"
-        >
+           iq-tooltip
+           tooltip-text="{{organization.synthetic ? 'You do not have permission to view this organization.' : organization.name }}"
+           tooltip-attach-to-body="true"
+           tooltip-class="entity-item-tooltip"
+           tooltip-only-on-overflow="{{!organization.synthetic}}">
           <div class="iq-tree-view__twisty" ng-click="vm.handleOrganizationTwistyClick($event, organization)">
-            <span
-              class="iq-tree-view__twisty-icon"
-              ng-class="{ empty: organization.applications.length == 0,
+            <span class="iq-tree-view__twisty-icon"
+                  ng-class="{ empty: organization.applications.length == 0,
                       expand: organization.applications.length > 0 && !organization.isExpanded,
-                      collapse: organization.applications.length > 0 && organization.isExpanded }"
-            ></span>
-          </div>
-          <!--
-       --><i class="fa fa-sitemap iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"></i
-          ><!--
-       --><span class="iq-tree-view__text"
-            ><!--
+                      collapse: organization.applications.length > 0 && organization.isExpanded }"></span>
+          </div><!--
+       --><i class="fa fa-sitemap iq-owner-tree-view__icon iq-owner-tree-view__icon--14px"></i><!--
+       --><span class="iq-tree-view__text"><!--
          -->{{organization.name}}<!--
-       --></span
-          >
+       --></span>
         </a>
-        <div
-          class="iq-owner-tree-view__new-application"
-          ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }"
-        >
-          <button
-            class="iq-btn iq-btn--text-only"
-            ng-click="$event.preventDefault(); $event.stopPropagation(); vm.createApplication(organization);"
-          >
+        <div class="iq-owner-tree-view__new-application"
+             ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }">
+          <button class="iq-btn iq-btn--text-only"
+                  ng-click="$event.preventDefault(); $event.stopPropagation(); vm.createApplication(organization);">
             <i class="fa fa-plus"></i> Add New App
           </button>
         </div>
-        <div
-          class="iq-owner-tree-view__import-applications"
-          ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }"
-        >
-          <a class="iq-link__import-applications" ui-sref="scmOnboardingOrg({ organizationId: organization.id })">
+        <div class="iq-owner-tree-view__import-applications"
+             ng-class="{ hide : !vm.$state.includes('management.view.organization', {organizationId: organization.id}) }">
+          <a
+            class="iq-link__import-applications"
+            ui-sref="scmOnboardingOrg({ organizationId: organization.id })" >
             <i class="fa fa-cloud-download"></i> Import Applications
           </a>
         </div>
         <div class="iq-tree-view__children" ng-if="organization.isExpanded">
-          <a
-            class="iq-tree-view__child iq-owner-tree-view__row iq-owner-tree-view__row--child"
-            ng-repeat="application in organization.applications | orderBy:'name'"
-            ng-if="organization.isExpanded && application.isVisible"
-            ui-sref="management.view.application({applicationPublicId: application.publicId})"
-            ng-class="{ selected : vm.$state.includes('management.view.application', {applicationPublicId: application.publicId}) }"
-            iq-tooltip
-            tooltip-text="{{application.name}}"
-            tooltip-attach-to-body="true"
-            tooltip-class="entity-item-tooltip"
-            tooltip-only-on-overflow="true"
-          >
-            <i class="fa fa-terminal iq-owner-tree-view__icon iq-owner-tree-view__icon--12px fa-border"></i
-            ><!--
-         --><span class="iq-tree-view__text"
-              ><!--
+          <a class="iq-tree-view__child iq-owner-tree-view__row iq-owner-tree-view__row--child"
+             ng-repeat="application in organization.applications | orderBy:'name'"
+             ng-if="organization.isExpanded && application.isVisible"
+             ui-sref="management.view.application({applicationPublicId: application.publicId})"
+             ng-class="{ selected : vm.$state.includes('management.view.application', {applicationPublicId: application.publicId}) }"
+             iq-tooltip
+             tooltip-text="{{application.name}}"
+             tooltip-attach-to-body="true"
+             tooltip-class="entity-item-tooltip"
+             tooltip-only-on-overflow="true">
+            <i class="fa fa-terminal iq-owner-tree-view__icon iq-owner-tree-view__icon--12px fa-border"></i><!--
+         --><span class="iq-tree-view__text"><!--
            -->{{application.name}}<!--
-         --></span
-            >
+         --></span>
           </a>
         </div>
       </div>

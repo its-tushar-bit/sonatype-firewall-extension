@@ -1,50 +1,34 @@
 <div class="nx-page-main iq-legacy-report-container nx-viewport-sized">
   <div class="container container--repo-report nx-viewport-sized__container">
-    <div style="width: 990px; margin: auto" class="nx-viewport-sized__container">
-      <div
-        class="nx-viewport-sized__container"
-        load-wrapper="vm.error"
-        reload="vm.doLoad()"
-        error-message="Unable to load repository data."
-        loading="!vm.repository"
-      >
-        <h3 id="report-title">
+    <div style="width:990px; margin:auto" class="nx-viewport-sized__container">
+      <div class="nx-viewport-sized__container"
+           load-wrapper="vm.error"
+           reload="vm.doLoad()"
+           error-message="Unable to load repository data."
+           loading="!vm.repository">
+        <h3 id='report-title'>
           <div id="report-title-left">
-            <div>Repository results for <em>{{vm.repository.publicId}}</em></div>
-            <div
-              ng-if="vm.repository.oldestEvalTimestamp"
-              class="last-eval"
-              ng-attr-title="{{vm.repository.oldestEvalTimestamp | date:'medium'}}"
-            >
+            <div>
+              Repository results for <em>{{vm.repository.publicId}}</em>
+            </div>
+            <div ng-if="vm.repository.oldestEvalTimestamp" class="last-eval" ng-attr-title="{{vm.repository.oldestEvalTimestamp | date:'medium'}}">
               Oldest evaluation {{vm.repository.oldestEvalTimestamp | ago}}
             </div>
           </div>
           <div id="report-title-right">
-            <button
-              class="btn btn-primary"
-              title="Re-evaluate Policy"
-              ng-click="vm.reEvaluatePolicy()"
-              id="reevaluate-policy"
-            >
+            <button class="btn btn-primary" title="Re-evaluate Policy" ng-click="vm.reEvaluatePolicy()" id="reevaluate-policy">
               <i class="icon-white icon-refresh"></i>
             </button>
           </div>
         </h3>
-        <div id="evaluation-report-container" class="nx-viewport-sized__container">
-          <iframe
-            class="nx-viewport-sized__scrollable"
-            ng-src="{{vm.reportUrl}}"
-            width="100%"
-            border="0"
-            frameborder="0"
-            scrolling="yes"
-            style="overflow: auto"
-          >
+        <div id='evaluation-report-container' class="nx-viewport-sized__container">
+          <iframe class="nx-viewport-sized__scrollable" ng-src="{{vm.reportUrl}}" width="100%" border="0"
+                  frameborder="0" scrolling="yes" style="overflow:auto;">
           </iframe>
         </div>
       </div>
     </div>
-    <script type="text/ng-template" id="repository-reevaluate-modal-template">
+    <script type='text/ng-template' id='repository-reevaluate-modal-template'>
       <div id="repository-reevaluate-modal">
         <div class="iq-modal-header">
           <h2>Re-evaluate policy</h2>

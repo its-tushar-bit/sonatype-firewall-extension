@@ -1,53 +1,45 @@
 <div id="ldap-server-ordering-modal">
   <div class="iq-modal-header">
-    <h2><i class="fa fa-pencil size-20px"></i>Reorder LDAP Servers</h2>
+    <h2>
+      <i class="fa fa-pencil size-20px"></i>Reorder LDAP Servers
+    </h2>
   </div>
-  <form
-    name="vm.ldapOrderForm"
-    role="form"
-    ng-submit="vm.save()"
-    class="iq-form iq-form--no-padding iq-form--no-border"
-    form-mask="vm.ldapOrderForm"
-  >
+  <form name="vm.ldapOrderForm"
+        role="form"
+        ng-submit="vm.save()"
+        class="iq-form iq-form--no-padding iq-form--no-border"
+        form-mask="vm.ldapOrderForm">
     <div class="iq-modal-content iq-scrollable">
       <div class="iq-pull-right iq-ldap-ordering-buttons">
-        <button
-          class="iq-btn iq-btn--icon-only iq-btn--tertiary"
-          type="button"
-          id="move-to-first"
-          ng-click="vm.moveToFirst(vm.selected)"
-          ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === 0"
-        >
+        <button class="iq-btn iq-btn--icon-only iq-btn--tertiary"
+                type="button"
+                id="move-to-first"
+                ng-click="vm.moveToFirst(vm.selected)"
+                ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === 0">
           <span class="fa-stack iq-move-to-top">
             <i class="fa fa-angle-up fa-stack-2x"></i>
             <i class="fa fa-arrow-up fa-stack-1x"></i>
           </span>
         </button>
-        <button
-          class="iq-btn iq-btn--icon-only iq-btn--tertiary"
-          type="button"
-          id="move-up"
-          ng-click="vm.moveUp(vm.selected)"
-          ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === 0"
-        >
+        <button class="iq-btn iq-btn--icon-only iq-btn--tertiary"
+                type="button"
+                id="move-up"
+                ng-click="vm.moveUp(vm.selected)"
+                ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === 0">
           <i class="fa fa-arrow-up"></i>
         </button>
-        <button
-          class="iq-btn iq-btn--icon-only iq-btn--tertiary"
-          type="button"
-          id="move-down"
-          ng-click="vm.moveDown(vm.selected)"
-          ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === vm.store.length - 1"
-        >
+        <button class="iq-btn iq-btn--icon-only iq-btn--tertiary"
+                type="button"
+                id="move-down"
+                ng-click="vm.moveDown(vm.selected)"
+                ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === vm.store.length - 1">
           <i class="fa fa-arrow-down"></i>
         </button>
-        <button
-          class="iq-btn iq-btn--icon-only iq-btn--tertiary"
-          type="button"
-          id="move-to-last"
-          ng-click="vm.moveToLast(vm.selected)"
-          ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === vm.store.length - 1"
-        >
+        <button class="iq-btn iq-btn--icon-only iq-btn--tertiary"
+                type="button"
+                id="move-to-last"
+                ng-click="vm.moveToLast(vm.selected)"
+                ng-disabled="!vm.selected || vm.store.indexOf(vm.selected) === vm.store.length - 1">
           <span class="fa-stack iq-move-to-bottom">
             <i class="fa fa-angle-down fa-stack-2x"></i>
             <i class="fa fa-arrow-down fa-stack-1x"></i>
@@ -56,14 +48,11 @@
       </div>
       <div class="iq-list iq-list--clickable">
         <ul>
-          <li
-            class="iq-list__item"
-            ng-repeat="server in vm.store"
-            ng-click="vm.selected = server"
-            ng-class="{selected: server === vm.selected}"
-          >
-            <span class="iq-ldap-server-order">{{$index + 1}}</span
-            ><!--
+          <li class="iq-list__item"
+              ng-repeat="server in vm.store"
+              ng-click="vm.selected = server"
+              ng-class="{selected: server === vm.selected}">
+            <span class="iq-ldap-server-order">{{$index + 1}}</span><!--
          --><span class="iq-ldap-server-name">{{::server.name}}</span>
           </li>
         </ul>
@@ -71,19 +60,17 @@
     </div>
     <div class="iq-modal-footer" ng-class="{error : vm.error}">
       <div ng-if="vm.error" class="iq-alert iq-alert--warning"><i class="fa fa-warning"></i>{{vm.error}}</div>
-      <button
-        ng-if="!vm.error"
-        class="iq-btn iq-btn--primary"
-        type="submit"
-        submit-validation
-        submit-dirty="vm.isDirty()"
-        submit-type="update"
-      >
-        Save</button
-      ><!--
+      <button ng-if="!vm.error"
+              class="iq-btn iq-btn--primary"
+              type="submit"
+              submit-validation
+              submit-dirty="vm.isDirty()"
+              submit-type="update">
+        Save
+      </button><!--
    --><button ng-if="vm.error" class="iq-btn iq-btn--error" type="submit" submit-validation submit-dirty="vm.isDirty()">
-        <i class="fa fa-refresh"></i>Retry</button
-      ><!--
+        <i class="fa fa-refresh"></i>Retry
+      </button><!--
    --><button class="iq-btn" type="button" ng-click="vm.cancel()">Cancel</button>
     </div>
   </form>

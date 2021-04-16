@@ -1,4 +1,3 @@
-<!-- prettier-ignore -->
 <div id="access-editor"
      class="iq-tile iq-tile--form-tile"
      load-wrapper="vm.loadError"
@@ -56,8 +55,11 @@
       </div>
     </role-membership>
   </div>
-<div ng-if="vm.availableRoles && vm.availableRoles.length === 0 && vm.isNew">
-  <div class="iq-tile iq-alert iq-alert--error">
-    <div class="iq-tile-content"><i class="fa fa-warning"></i>No roles available.</div>
+  <div ng-if="vm.availableRoles && vm.availableRoles.length === 0 && vm.isNew">
+    <div class="iq-tile iq-alert iq-alert--error">
+      <div class="iq-tile-content">
+        <i class="fa fa-warning"></i>No roles available.
+      </div>
+    </div>
   </div>
 </div>

@@ -18,66 +18,56 @@
   </thead>
   <tbody>
     <tr class="iq-table-row iq-table-row--violation-trends-chart-deltas">
-      <td class="iq-cell iq-cell--violation-trends-row-label">
-        <h4>Deltas</h4>
-      </td>
+      <td class="iq-cell iq-cell--violation-trends-row-label"><h4>Deltas</h4></td>
       <td class="iq-cell iq-cell--violation-trends-chart-total">
-        <div
-          ng-if="::vm.totals.totalDelta !== 0"
-          class="iq-pull-right iq-cell--violation-trends-chart-total-delta-icon"
-        >
-          <i
-            class="iq-violation-trends__delta-icon fa"
-            ng-class="::vm.totals.totalDelta > 0 ? 'fa-caret-up' : 'fa-caret-down'"
-          >
+        <div ng-if="::vm.totals.totalDelta !== 0"
+             class="iq-pull-right iq-cell--violation-trends-chart-total-delta-icon">
+          <i class="iq-violation-trends__delta-icon fa"
+             ng-class="::vm.totals.totalDelta > 0 ? 'fa-caret-up' : 'fa-caret-down'">
           </i>
         </div>
-        <div class="iq-cell--violation-trends-chart-total-number">{{::vm.totals.totalDelta | abs}}</div>
+        <div class="iq-cell--violation-trends-chart-total-number">
+          {{::vm.totals.totalDelta | abs}}
+        </div>
       </td>
       <td class="iq-cell iq-cell--violation-trends-chart" rowspan="4">
         <div class="iq-violation-trends__chart">
-          <render-combined-trends-chart id="iq-violation-trends-all" data="vm.data.all" statistics="vm.data.statistics">
+          <render-combined-trends-chart id="iq-violation-trends-all"
+                                        data="vm.data.all"
+                                        statistics="vm.data.statistics">
           </render-combined-trends-chart>
         </div>
       </td>
       <td class="iq-cell iq-cell--violation-trends-gutter" rowspan="4"></td>
       <td class="iq-cell iq-cell--violation-trends-chart" rowspan="4">
         <div class="iq-violation-trends__chart">
-          <render-combined-trends-chart
-            id="iq-violation-trends-security"
-            data="vm.data.security"
-            statistics="vm.data.statistics"
-          >
+          <render-combined-trends-chart id="iq-violation-trends-security"
+                                        data="vm.data.security"
+                                        statistics="vm.data.statistics">
           </render-combined-trends-chart>
         </div>
       </td>
       <td class="iq-cell iq-cell--violation-trends-chart" rowspan="4">
         <div class="iq-violation-trends__chart">
-          <render-combined-trends-chart
-            id="iq-violation-trends-license"
-            data="vm.data.license"
-            statistics="vm.data.statistics"
-          >
+          <render-combined-trends-chart id="iq-violation-trends-license"
+                                        data="vm.data.license"
+                                        statistics="vm.data.statistics">
           </render-combined-trends-chart>
         </div>
       </td>
       <td class="iq-cell iq-cell--violation-trends-chart" rowspan="4">
         <div class="iq-violation-trends__chart">
-          <render-combined-trends-chart
-            id="iq-violation-trends-quality"
-            data="vm.data.quality"
-            statistics="vm.data.statistics"
-          >
+          <render-combined-trends-chart id="iq-violation-trends-quality"
+                                        data="vm.data.quality"
+                                        statistics="vm.data.statistics">
           </render-combined-trends-chart>
         </div>
       </td>
       <td class="iq-cell iq-cell--violation-trends-chart" rowspan="4">
         <div class="iq-violation-trends__chart">
-          <render-combined-trends-chart
-            id="iq-violation-trends-other"
-            data="vm.data.other"
-            statistics="vm.data.statistics"
-          >
+          <render-combined-trends-chart id="iq-violation-trends-other"
+                                        data="vm.data.other"
+                                        statistics="vm.data.statistics">
           </render-combined-trends-chart>
         </div>
       </td>
@@ -89,17 +79,13 @@
       </td>
     </tr>
     <tr class="iq-table-row iq-table-row--violation-trends-chart-waived">
-      <td class="iq-cell iq-cell--violation-trends-row-label">
-        <h4>Waived</h4>
-      </td>
+      <td class="iq-cell iq-cell--violation-trends-row-label"><h4>Waived</h4></td>
       <td class="iq-cell iq-cell--violation-trends-chart-total">
         <div class="iq-cell--violation-trends-chart-total-number">{{::vm.totals.totalWaived}}</div>
       </td>
     </tr>
     <tr class="iq-table-row iq-table-row--violation-trends-chart-fixed">
-      <td class="iq-cell iq-cell--violation-trends-row-label">
-        <h4>Fixed</h4>
-      </td>
+      <td class="iq-cell iq-cell--violation-trends-row-label"><h4>Fixed</h4></td>
       <td class="iq-cell iq-cell--violation-trends-chart-total">
         <div class="iq-cell--violation-trends-chart-total-number">{{::vm.totals.totalFixed}}</div>
       </td>

@@ -1,5 +1,9 @@
 <div class="role-membership">
-  <form name="vm.accessEditorSearch" class="iq-form" role="form" novalidate ng-submit="vm.search()">
+  <form name="vm.accessEditorSearch"
+        class="iq-form"
+        role="form"
+        novalidate
+        ng-submit="vm.search()">
     <div class="iq-form-group">
       <label for="{{vm.role.roleId}}access-user-search-input" class="iq-label">
         Search Users
@@ -7,29 +11,24 @@
           use &lsquo;*&rsquo; as wildcard (ex. &lsquo;Isa*&rsquo; matches &lsquo;Isaac Asimov&rsquo;)
         </div>
         <div class="iq-sub-label test-group-search-warning" ng-if="!vm.groupSearchEnabled">
-          <i class="fa fa-info-circle size-16px"></i
-          ><!--
+          <i class="fa fa-info-circle size-16px"></i><!--
        -->One or more LDAP servers have group search disabled, which will affect your results
         </div>
       </label>
-      <input
-        id="{{vm.role.roleId}}access-user-search-input"
-        class="iq-text-input test-search-input"
-        type="text"
-        name="search"
-        ng-model="vm.query"
-        ng-maxlength="200"
-        ng-disabled="vm.searchInProgress"
-        clm-input
-      /><!--
-   --><button
-        class="iq-btn iq-btn--inline test-search-button"
-        type="submit"
-        submit-validation
-        submit-dirty="vm.query"
-        ng-disabled="vm.searchInProgress"
-        submit-type="search"
-      >
+      <input id="{{vm.role.roleId}}access-user-search-input"
+             class="iq-text-input test-search-input"
+             type="text"
+             name="search"
+             ng-model="vm.query"
+             ng-maxlength="200"
+             ng-disabled="vm.searchInProgress"
+             clm-input><!--
+   --><button class="iq-btn iq-btn--inline test-search-button"
+              type="submit"
+              submit-validation
+              submit-dirty="vm.query"
+              ng-disabled="vm.searchInProgress"
+              submit-type="search">
         Search
       </button>
     </div>
@@ -38,56 +37,52 @@
     </div>
   </form>
 
-  <form
-    name="vm.accessEditorAddGroup"
-    class="iq-form"
-    role="form"
-    ng-if="!vm.groupSearchEnabled"
-    novalidate
-    ng-submit="vm.addGroup();"
-  >
+  <form name="vm.accessEditorAddGroup"
+        class="iq-form"
+        role="form"
+        ng-if="!vm.groupSearchEnabled"
+        novalidate
+        ng-submit="vm.addGroup();">
     <div class="iq-form-group">
       <label for="{{vm.role.roleId}}access-add-group-input" class="iq-label">
         Associate Group
         <div class="iq-sub-label">requires an exact match of the group name</div>
       </label>
-      <input
-        id="{{vm.role.roleId}}access-add-group-input"
-        class="iq-text-input test-add-group-input"
-        type="text"
-        name="add"
-        ng-model="vm.newGroupName"
-        ng-maxlength="200"
-        ng-disabled="vm.searchInProgress"
-        clm-input
-      /><!--
-   --><button
-        class="iq-btn iq-btn--inline test-add-group-button"
-        type="submit"
-        ng-disabled="vm.searchInProgress || !vm.newGroupName || vm.groupExists(vm.newGroupName)"
-      >
+      <input id="{{vm.role.roleId}}access-add-group-input"
+             class="iq-text-input test-add-group-input"
+             type="text"
+             name="add"
+             ng-model="vm.newGroupName"
+             ng-maxlength="200"
+             ng-disabled="vm.searchInProgress"
+             clm-input/><!--
+   --><button class="iq-btn iq-btn--inline test-add-group-button"
+              type="submit"
+              ng-disabled="vm.searchInProgress || !vm.newGroupName || vm.groupExists(vm.newGroupName)">
         Add
       </button>
     </div>
   </form>
 
-  <form name="vm.accessEditor" class="iq-form" role="form" novalidate ng-submit="vm.save()">
-    <input type="hidden" ng-model="vm.role" required />
+  <form name="vm.accessEditor"
+        class="iq-form"
+        role="form"
+        novalidate
+        ng-submit="vm.save()">
+    <input type="hidden" ng-model="vm.role" required>
     <div class="iq-form-group">
       <label>Associated Users</label>
-      <double-column-picker
-        class="wide"
-        list="vm.members"
-        hide-filter="true"
-        left-column-name="Available"
-        right-column-name="Associated"
-        item-name-param="displayName"
-        icon-fn="vm.getIconName(item)"
-        tooltip-fn="vm.getTooltip(item)"
-        form-mask="vm.accessEditorSearchMask"
-        mask-message="Searching"
-        mask-skip-success
-      >
+      <double-column-picker class="wide"
+                            list="vm.members"
+                            hide-filter="true"
+                            left-column-name="Available"
+                            right-column-name="Associated"
+                            item-name-param="displayName"
+                            icon-fn="vm.getIconName(item)"
+                            tooltip-fn="vm.getTooltip(item)"
+                            form-mask="vm.accessEditorSearchMask"
+                            mask-message="Searching"
+                            mask-skip-success>
       </double-column-picker>
     </div>
     <!-- Form submittal buttons included via transclusion -->

@@ -173,7 +173,7 @@ tbody .iq-cell--application-report-component-display {
   max-width: 850px;
 }
 
-#application-report-sidebar {
+.iq-report-filters {
   $top-nav-height: 72px;
   $sidebar-width: 344px;
 
@@ -186,6 +186,7 @@ tbody .iq-cell--application-report-component-display {
   box-sizing: border-box;
   height: calc(100% - #{$top-nav-height});
   width: $sidebar-width;
+  overflow-y: auto;
   padding: $nx-spacing-l;
   z-index: 1040; // behind the CIP but above all else
 }

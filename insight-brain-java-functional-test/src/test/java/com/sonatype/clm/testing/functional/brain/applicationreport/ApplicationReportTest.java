@@ -34,6 +34,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitie
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -495,6 +496,21 @@ public class ApplicationReportTest
 
     headers.componentNameFilterInput().shouldBe(Condition.empty);
     violations.shouldHaveSize(64);
+  }
+
+  @Test
+  public void testFiltering_Scroll() {
+    reportPage.filterToggle().click();
+
+    reportPage.filterPanel().proprietaryFilter().twisty().click();
+    reportPage.filterPanel().matchStateFilter().twisty().click();
+    reportPage.filterPanel().violationStateFilter().twisty().click();
+    reportPage.filterPanel().dependencyTypeFilter().twisty().click();
+
+    PolicyTypeFilter policyTypeFilter = reportPage.filterPanel().policyTypeFilter();
+    policyTypeFilter.twisty().click();
+    ScrollUtil.scrollIntoView(policyTypeFilter.twisty());
+    policyTypeFilter.other().shouldBe(visible);
   }
 
   @Test

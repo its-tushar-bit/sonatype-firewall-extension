@@ -52,6 +52,7 @@ module.exports = {
     'no-console': isProd ? ['error', { allow: ['warn', 'error'] }] : 'off',
     'no-debugger': isProd ? 'error' : 'off',
     'deprecate/member-expression': ['error', { name: 'angular.merge', use: 'ramdajs deep merge methods' }],
+    'prettier/prettier': ['error', { endOfLine: 'auto' }],
   },
   settings: {
     react: {

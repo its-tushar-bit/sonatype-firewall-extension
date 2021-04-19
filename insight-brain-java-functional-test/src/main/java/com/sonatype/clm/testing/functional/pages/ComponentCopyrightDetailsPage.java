@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -38,6 +39,14 @@ public final class ComponentCopyrightDetailsPage
 
   public static CopyrightList copyrightList() {
     return new CopyrightList();
+  }
+
+  public static CopyrightEditor copyrightEditor() {
+    return new CopyrightEditor();
+  }
+
+  public static SelenideElement copyrightEditButton() {
+    return $("copyright-details-header button.nx-btn--tertiary");
   }
 
   public static class CopyrightOverview
@@ -112,12 +121,38 @@ public final class ComponentCopyrightDetailsPage
       return $(String.format("ul li:nth-child(%d)", index));
     }
 
+    public SelenideElement text(final int index) {
+      return itemAt(index).$(".nx-list__text");
+    }
+
+    public ElementsCollection texts() {
+      return $("ul").findAll(".nx-list__text");
+    }
+
     public SelenideElement attributionInclusion(final int index) {
       return itemAt(index).$("div.nx-list__subtext p:nth-child(1)");
     }
 
     public SelenideElement getItemFileCount(final int index) {
       return itemAt(index).$("div.nx-list__subtext p:nth-child(2)");
+    }
+  }
+
+  public static class CopyrightEditor
+      extends BasicElement<CopyrightEditor>
+  {
+    private static final String COPYRIGHT_EDITOR_MODAL_SELECTOR = "copyright-details-header div.nx-modal-backdrop";
+
+    public CopyrightEditor() {
+      super(COPYRIGHT_EDITOR_MODAL_SELECTOR);
+    }
+
+    public SelenideElement copyrightText(final int index) {
+      return $(String.format("td:nth-child(%d) input[type=text]", index));
+    }
+
+    public SelenideElement saveButton() {
+      return $("button.nx-form__submit-btn");
     }
   }
 }

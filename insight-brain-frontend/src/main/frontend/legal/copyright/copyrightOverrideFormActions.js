@@ -10,6 +10,7 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { isScopeOverride } from '../legalUtility';
 import { saveObligation } from '../obligation/advancedLegalObligationActions';
+import { refreshCopyrightDetails } from './componentCopyrightDetailsActions';
 
 export const COPYRIGHT_OVERRIDE_SAVE_REQUESTED = 'COPYRIGHT_OVERRIDE_SAVE_REQUESTED';
 export const COPYRIGHT_OVERRIDE_SAVE_FULFILLED = 'COPYRIGHT_OVERRIDE_SAVE_FULFILLED';
@@ -70,6 +71,7 @@ export function saveCopyrightOverride({
                 componentCopyrightLastUpdatedAt: getResponsePayload.data.componentCopyrightDTO.lastUpdatedAt,
               };
               dispatch(saveFulfilled(descriptiveResponse));
+              dispatch(refreshCopyrightDetails());
               isObligationDirty
                 ? saveObligation(existingObligation.name)(dispatch, getState)
                 : startSaveCopyrightOverrideSubmitMaskDoneTimer(dispatch);

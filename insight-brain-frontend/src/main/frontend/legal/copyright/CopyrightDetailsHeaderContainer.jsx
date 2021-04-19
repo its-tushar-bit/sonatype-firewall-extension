@@ -8,8 +8,9 @@ import { pick } from 'ramda';
 import CopyrightDetailsHeader from './CopyrightDetailsHeader';
 import { loadComponentAndCopyrightDetails } from './componentCopyrightDetailsActions';
 import { copyrightDetailsStateName } from './copyrightDetailsUtils';
+import { setDisplayCopyrightOverrideModal } from './copyrightOverrideFormActions';
 
-function mapStateToProps({ advancedLegal, componentCopyrightDetails, router }) {
+function mapStateToProps({ advancedLegal, componentCopyrightDetails, copyrightOverrides, router }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
 
@@ -22,11 +23,13 @@ function mapStateToProps({ advancedLegal, componentCopyrightDetails, router }) {
     error: component.error || availableScopes.error || componentCopyrightDetails.errorCopyrightFileCounts,
     availableScopes,
     ...pick(['hash', 'ownerType', 'ownerId', 'copyrightIndex'], routerParams),
+    ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides),
   };
 }
 
 const mapDispatchToProps = {
   loadComponentAndCopyrightDetails,
+  setDisplayCopyrightOverrideModal,
 };
 
 const CopyrightDetailsHeaderContainer = connect(mapStateToProps, mapDispatchToProps)(CopyrightDetailsHeader);

@@ -23,8 +23,14 @@ import {
   getSaveComponentCopyrightOverrideUrl,
   getComponentObligationUrl,
   getSaveComponentObligationUrl,
+  getCopyrightFilePathsUrl,
+  getCopyrightFileCountUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 import { pathSet } from '@sonatype/react-shared-components/util/jsUtil';
+import {
+  COPYRIGHT_DETAILS_FULFILLED,
+  COPYRIGHT_DETAILS_REQUEST,
+} from '../../../../main/frontend/legal/copyright/componentCopyrightDetailsActions';
 
 describe('copyrightOverrideFormAction', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -36,6 +42,7 @@ describe('copyrightOverrideFormAction', function () {
         component: {
           component: {
             componentIdentifier: 'componentIdentifier',
+            hash: 'componentHash',
             licenseLegalData: {
               componentCopyrightId: 'componentCopyrightId',
               obligations: [
@@ -346,6 +353,132 @@ describe('copyrightOverrideFormAction', function () {
           expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_FAILED);
           expect(actions[1].payload).toBe('error');
           done();
+        });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(COPYRIGHT_OVERRIDE_SAVE_REQUESTED);
+    });
+
+    it('dispatches COPYRIGHT_DETAILS_REQUEST and COPYRIGHT_DETAILS_FULFILLED when copyright details view is active', function (done) {
+      const testState = {
+        ...initialState,
+        router: {
+          currentParams: { copyrightIndex: 1, ownerType: 'organization', ownerId: 'org' },
+        },
+      };
+      testState.advancedLegal.component.component.licenseLegalData = {
+        copyrights: [{ originalContentHash: 'copyright_hash_1' }, { originalContentHash: 'copyright_hash_2' }],
+      };
+      store = SpecUtil.mockReduxStore(testState);
+      mockAxiosCalls({
+        post: {
+          [getSaveComponentCopyrightOverrideUrl('organization', 'org')]: Promise.resolve({
+            data: {
+              data: 'dataPOST',
+            },
+          }),
+          [getSaveComponentObligationUrl('organization', 'org')]: Promise.resolve({
+            data: {
+              data: 'dataPOST2',
+            },
+          }),
+        },
+        get: {
+          [getComponentCopyrightOverrideUrl('organization', 'org', 'componentIdentifier')]: Promise.resolve({
+            data: {
+              componentCopyrightDTO: {
+                data: 'dataGET',
+                lastUpdatedByUsername: 'admin',
+                lastUpdatedAt: 1618873200000,
+              },
+              ownerId: 'realOwner',
+            },
+          }),
+          [getComponentObligationUrl(
+            'organization',
+            'org',
+            'componentIdentifier',
+            'Inclusion of Copyright'
+          )]: Promise.resolve({
+            data: {
+              id: 'id',
+              comment: 'comment',
+              status: 'OPEN',
+              ownerId: 'realOwner',
+              lastUpdatedByUsername: 'admin',
+              lastUpdatedAt: 1618873200000,
+            },
+          }),
+          [getCopyrightFileCountUrl('organization', 'org', 'componentHash', 'componentIdentifier')]: Promise.resolve({
+            data: {
+              path1: 5,
+              path2: 10,
+            },
+          }),
+          [getCopyrightFilePathsUrl(
+            'organization',
+            'org',
+            'componentHash',
+            'componentIdentifier',
+            'copyright_hash_2',
+            0,
+            15
+          )]: Promise.resolve({
+            data: ['path1/file1', 'path2/file2', 'path3/file3'],
+          }),
+        },
+      });
+      store
+        .dispatch(
+          saveCopyrightOverride({
+            copyrights: copyrights,
+            scopeOwnerId: 'org',
+            existingObligation: {
+              name: 'Inclusion of Copyright',
+              status: 'FULFILLED',
+            },
+            isCopyrightsDirty: true,
+            isObligationDirty: false,
+          })
+        )
+        .then(() => {
+          setTimeout(() => {
+            const actions = store.getActions();
+            expect(actions.length).toBe(5);
+            expect(actions[1].type).toBe(COPYRIGHT_OVERRIDE_SAVE_FULFILLED);
+            expect(actions[1].payload).toEqual({
+              data: 'dataGET',
+              lastUpdatedByUsername: 'admin',
+              lastUpdatedAt: 1618873200000,
+              componentCopyrightScopeOwnerId: 'realOwner',
+              componentCopyrightLastUpdatedByUsername: 'admin',
+              componentCopyrightLastUpdatedAt: 1618873200000,
+            });
+            expect(actions[2].type).toBe(COPYRIGHT_DETAILS_REQUEST);
+            expect(actions[2].payload).toEqual({
+              copyrightIndex: 1,
+              copyright: {
+                originalContentHash: 'copyright_hash_2',
+              },
+              loadingCopyrightFileCounts: true,
+              loadingFilePaths: true,
+            });
+            expect(actions[3].type).toBe(COPYRIGHT_DETAILS_FULFILLED);
+            expect(actions[3].payload).toEqual({
+              copyrightIndex: 1,
+              copyright: {
+                originalContentHash: 'copyright_hash_2',
+              },
+              filePaths: ['path1/file1', 'path2/file2', 'path3/file3'],
+              copyrightFileCounts: {
+                path1: 5,
+                path2: 10,
+              },
+            });
+            expect(actions[4].type).toBe(COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE);
+            done();
+          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         });
 
       const actions = store.getActions();

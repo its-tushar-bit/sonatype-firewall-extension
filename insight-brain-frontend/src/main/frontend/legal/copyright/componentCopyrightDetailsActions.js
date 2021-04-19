@@ -34,6 +34,17 @@ export const copyrightContextsRequest = payloadParamActionCreator(COPYRIGHT_CONT
 export const copyrightContextFulfilled = payloadParamActionCreator(COPYRIGHT_CONTEXT_FULFILLED);
 export const copyrightContextFailed = payloadParamActionCreator(COPYRIGHT_CONTEXT_FAILED);
 
+export function refreshCopyrightDetails() {
+  return (dispatch, getState) => {
+    const currentParams = getState().router && getState().router.currentParams;
+    return (
+      currentParams &&
+      currentParams.copyrightIndex &&
+      requestLoadCopyrightDetails(dispatch, getState(), currentParams.copyrightIndex)
+    );
+  };
+}
+
 export function loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex) {
   return (dispatch, getState) => {
     const component = getState().advancedLegal.component.component;

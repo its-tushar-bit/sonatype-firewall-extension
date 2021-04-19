@@ -36,7 +36,6 @@ export default function CopyrightDetailsContents(props) {
         componentCopyrightDetails={componentCopyrightDetails}
       />
       <CopyrightFilesTile
-        selectedCopyright={componentCopyrightDetails.selectedCopyright}
         loadCopyrightContexts={loadCopyrightContexts}
         hideCopyrightContext={unloadCopyrightContexts}
         componentCopyrightDetails={componentCopyrightDetails}

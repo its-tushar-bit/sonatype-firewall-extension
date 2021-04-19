@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ComponentCopyrightDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ComponentCopyrightDetailsPage.CopyrightEditor;
 import com.sonatype.clm.testing.functional.pages.ComponentCopyrightDetailsPage.CopyrightFilePaths;
 import com.sonatype.clm.testing.functional.pages.ComponentCopyrightDetailsPage.CopyrightList;
 import com.sonatype.clm.testing.functional.pages.ComponentCopyrightDetailsPage.CopyrightOverview;
@@ -18,11 +19,13 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
+import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.textsInAnyOrder;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 
@@ -105,5 +108,26 @@ public class CopyrightDetailsTest
 
     copyrightList.attributionInclusion(3).shouldHave(text("Included in attribution report"));
     copyrightList.getItemFileCount(3).shouldHave(text("Found in 2 files"));
+  }
+
+  @Test
+  public void testEditCopyright() {
+    refreshOrOpen(ComponentCopyrightDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+
+    final SelenideElement copyrightEditButton = ComponentCopyrightDetailsPage.copyrightEditButton();
+    copyrightEditButton.click();
+
+    final CopyrightEditor editorModal = ComponentCopyrightDetailsPage.copyrightEditor();
+    editorModal.copyrightText(1).setValue("Copyright SomeDeveloper 2017  Test test test");
+    editorModal.saveButton().click();
+
+    final CopyrightList copyrightList = ComponentCopyrightDetailsPage.copyrightList();
+    copyrightList.texts().shouldHave(textsInAnyOrder(
+        "Copyright SomeDeveloper 2018-2019 All Right reserved",
+        "Copyright SomeDeveloper 2019-2020",
+        "Copyright SomeDeveloper 2017 Test test test"));
+
+    final CopyrightOverview copyrightOverview = ComponentCopyrightDetailsPage.copyrightOverview();
+    copyrightOverview.getCopyrightText().shouldHave(text("Copyright SomeDeveloper 2017 Test test test"));
   }
 }

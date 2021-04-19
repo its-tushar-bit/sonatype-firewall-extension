@@ -25,10 +25,6 @@ override.tf
 .terraform
 terraform.tfvars
 __pycache__
-nexus-iq-tools/automation/java/*.class
-nexus-iq-tools/automation/java/*.jar
-nexus-iq-tools/testsuite/iqperf.auto.tfvars
-nexus-iq-tools/testsuite/run_aws_test.config
 
 # config file for tsc-based javascript editing plugins
 jsconfig.json

@@ -174,4 +174,46 @@ public class ComponentLegalOverviewPage
       return child(".nx-tile-content");
     }
   }
+
+  public static Obligations obligations() {
+    return new Obligations();
+  }
+
+  public static class Obligations
+      extends BasicElement<Obligations>
+  {
+    private static final String LICENSE_OBLIGATIONS_TILE = "#license-obligations-tile";
+
+    Obligations() {
+      super(ROOT, LICENSE_OBLIGATIONS_TILE);
+    }
+
+    public ObligationElement at(int index) {
+      return new ObligationElement(childSelector(".nx-tile-content--accordion-container details", nthChild(index + 1)));
+    }
+
+    public ElementsCollection all() {
+      return children(".nx-accordion__summary-wrapper");
+    }
+  }
+
+  public static class ObligationElement
+      extends BasicElement<ObligationElement>
+  {
+    ObligationElement(String selector) {
+      super(selector);
+    }
+
+    public String getObligationName() {
+      return child("h3.nx-accordion__header-title").innerText();
+    }
+
+    public String getObligationStatus() {
+      return child("button.nx-segmented-btn__main-btn span").innerText();
+    }
+  }
+
+  public static SelenideElement resolveAllObligationsButton() {
+    return $("#mark-all-obligations-resolved");
+  }
 }

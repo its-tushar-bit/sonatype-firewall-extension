@@ -110,6 +110,15 @@ public class ComponentObligationDAO
   }
 
   public List<ComponentObligation> getByOwnerIdAndComponentIdentifier(
+      String ownerId,
+      ComponentIdentifier componentIdentifier)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByOwnerIdAndComponentIdentifier(tx, ownerId, componentIdentifier);
+    }
+  }
+
+  public List<ComponentObligation> getByOwnerIdAndComponentIdentifier(
       TransactionContext tx,
       String ownerId,
       ComponentIdentifier componentIdentifier)

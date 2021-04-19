@@ -6,6 +6,7 @@
 import React, { Fragment, useState } from 'react';
 import {
   NxAccordion,
+  NxButton,
   NxFontAwesomeIcon,
   NxOverflowTooltip,
   NxSegmentedButton,
@@ -17,15 +18,18 @@ import { faCheckCircle, faExclamationTriangle, faMinusCircle } from '@fortawesom
 import * as PropTypes from 'prop-types';
 import LicenseObligationModalContainer from './LicenseObligationModalContainer';
 import { find, propEq } from 'ramda';
+import AllLicenseObligationsModalContainer from './AllLicenseObligationsModalContainer';
 
 export default function LicenseObligationsTile(props) {
   const {
     // actions
     setObligationStatus,
     setShowObligationModal,
+    setShowAllObligationsModal,
     // state
     licenseObligations,
     licenseLegalMetadata,
+    showAllObligationsModal,
   } = props;
 
   const isObligationPresent = () => licenseObligations.length > 0;
@@ -164,6 +168,21 @@ export default function LicenseObligationsTile(props) {
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">License Obligations</h2>
         </div>
+        <div className="nx-btn-bar">
+          <NxButton
+            id="mark-all-obligations-resolved"
+            variant="tertiary"
+            onClick={() => setShowAllObligationsModal(true)}
+          >
+            <span>Mark all as Fulfilled</span>
+          </NxButton>
+        </div>
+        {showAllObligationsModal && (
+          <AllLicenseObligationsModalContainer
+            key={'all-license-obligations-modal'}
+            createObligationStatusIcon={createObligationStatusIcon}
+          />
+        )}
       </header>
       <div className="nx-tile-content nx-tile-content--accordion-container">
         {isObligationPresent() ? licenseObligations.map(createItem) : 'None found'}
@@ -186,6 +205,8 @@ export default function LicenseObligationsTile(props) {
 LicenseObligationsTile.propTypes = {
   setObligationStatus: PropTypes.func.isRequired,
   setShowObligationModal: PropTypes.func.isRequired,
+  setShowAllObligationsModal: PropTypes.func.isRequired,
   licenseObligations: licenseObligationsPropTypes,
   licenseLegalMetadata: licenseLegalMetadataPropType,
+  showAllObligationsModal: PropTypes.bool,
 };

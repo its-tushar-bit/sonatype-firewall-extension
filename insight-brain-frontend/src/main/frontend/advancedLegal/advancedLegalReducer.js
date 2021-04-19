@@ -220,6 +220,9 @@ function loadComponentFulfilled(payload, state) {
     saveLicensesSubmitMask: null,
     obligations: newObligations,
     attributions: newAttributions,
+    showAllObligationsModal: false,
+    saveAllObligationsSubmitMask: null,
+    saveAllObligationsError: null,
   };
   return {
     ...state,

@@ -347,6 +347,12 @@ describe('CLMLocation.js', function () {
     );
   });
 
+  it('should return the save component obligations url', function () {
+    expect(CLMLocation.getSaveComponentObligationsUrl('ownerType', 'ownerId')).toBe(
+      '/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligations'
+    );
+  });
+
   it('should return the get component obligation url', function () {
     const componentIdentifier = {
       format: 'maven',

@@ -5,19 +5,25 @@
  */
 import { connect } from 'react-redux';
 
-import { setObligationStatus, setShowObligationModal } from './advancedLegalObligationActions';
+import {
+  setObligationStatus,
+  setShowAllObligationsModal,
+  setShowObligationModal,
+} from './advancedLegalObligationActions';
 import LicenseObligationsTile from './LicenseObligationsTile';
 
 function mapStateToProps({ advancedLegal }) {
   return {
     licenseObligations: advancedLegal.component.component.licenseLegalData.obligations,
     licenseLegalMetadata: advancedLegal.component.licenseLegalMetadata,
+    showAllObligationsModal: advancedLegal.component.component.licenseLegalData.showAllObligationsModal,
   };
 }
 
 const mapDispatchToProps = {
   setObligationStatus,
   setShowObligationModal,
+  setShowAllObligationsModal,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(LicenseObligationsTile);

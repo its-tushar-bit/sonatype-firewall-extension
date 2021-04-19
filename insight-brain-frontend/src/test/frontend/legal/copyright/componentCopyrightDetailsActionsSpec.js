@@ -75,7 +75,6 @@ describe('ComponentCopyrightDetailsAction', function () {
       store.dispatch(loadComponentAndCopyrightDetails('organization', 'org', 'componentHash', 1));
 
       const actions = store.getActions();
-      console.log(actions);
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(COPYRIGHT_DETAILS_REQUEST);
     });
@@ -236,7 +235,6 @@ describe('ComponentCopyrightDetailsAction', function () {
       store.dispatch(loadCopyrightContexts('path/file.js'));
 
       const actions = store.getActions();
-      console.log(actions);
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(COPYRIGHT_CONTEXT_REQUEST);
       expect(actions[0].payload).toEqual({ selectedFilePath: 'path/file.js' });

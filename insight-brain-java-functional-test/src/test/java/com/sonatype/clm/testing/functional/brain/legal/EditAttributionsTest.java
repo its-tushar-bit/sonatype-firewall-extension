@@ -121,8 +121,9 @@ public class EditAttributionsTest
         Organization.ROOT_ORGANIZATION_ID, componentIdentifier, Collections.singleton(null))).isEmpty();
     refreshOrOpen(ComponentLegalOverviewPage.url(app, "033e7a20b23ea284d474"));
     Attribution attribution = ComponentLegalOverviewPage.attribution(null);
-    attribution.button().click();
+    attribution.button().shouldHave(Condition.text("Add")).click();
     EditAttributionModal editAttributionModal = new EditAttributionModal();
+    editAttributionModal.shouldBe(Condition.visible);
     assertButton(editAttributionModal.cancel(), true, null);
     assertButton(editAttributionModal.save(), false, "Must add attribution text.");
     editAttributionModal.attributionText().setValue("test");

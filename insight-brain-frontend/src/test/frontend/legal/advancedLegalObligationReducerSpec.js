@@ -8,6 +8,9 @@ import reduce from '../../../main/frontend/advancedLegal/advancedLegalReducer.js
 import {
   ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL,
   ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL,
+  ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_FAILED,
+  ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_REQUESTED,
+  ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED,
   ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED,
   ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED,
@@ -21,6 +24,7 @@ import {
   ADVANCED_LEGAL_SET_OBLIGATION_COMMENT,
   ADVANCED_LEGAL_SET_OBLIGATION_SCOPE,
   ADVANCED_LEGAL_SET_OBLIGATION_STATUS,
+  ADVANCED_LEGAL_SET_SHOW_ALL_OBLIGATIONS_MODAL,
   ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL,
   ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL,
 } from '../../../main/frontend/legal/obligation/advancedLegalObligationActions.js';
@@ -32,15 +36,15 @@ describe('advancedLegalObligationReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
-              attributions: [{ obligationName: 'obligation1' }],
+              obligations: [{ name: 'Must State Changes' }, { name: 'obligation2' }],
+              attributions: [{ obligationName: 'Must State Changes' }],
             },
           },
         },
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT,
-        payload: { name: 'obligation1', value: 'content' },
+        payload: { name: 'Must State Changes', value: 'content' },
       });
       const attribution1 = newState.component.component.licenseLegalData.attributions[0];
       expect(attribution1.content).toBe('content');
@@ -54,15 +58,15 @@ describe('advancedLegalObligationReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
-              attributions: [{ obligationName: 'obligation1' }],
+              obligations: [{ name: 'Must State Changes' }, { name: 'obligation2' }],
+              attributions: [{ obligationName: 'Must State Changes' }],
             },
           },
         },
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE,
-        payload: { name: 'obligation1', value: 'ownerId' },
+        payload: { name: 'Must State Changes', value: 'ownerId' },
       });
       const attribution1 = newState.component.component.licenseLegalData.attributions[0];
       expect(attribution1.ownerId).toBe('ownerId');
@@ -76,7 +80,7 @@ describe('advancedLegalObligationReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
+              obligations: [{ name: 'Must State Changes' }, { name: 'obligation2' }],
               attributions: [],
             },
           },
@@ -84,7 +88,7 @@ describe('advancedLegalObligationReducer', function () {
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL,
-        payload: { name: 'obligation1', value: true },
+        payload: { name: 'Must State Changes', value: true },
       });
       const attribution1 = newState.component.component.licenseLegalData.attributions[0];
       expect(attribution1.showAttributionModal).toBeTruthy();
@@ -99,7 +103,7 @@ describe('advancedLegalObligationReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
+              obligations: [{ name: 'Must State Changes' }, { name: 'obligation2' }],
               attributions: [],
             },
           },
@@ -107,7 +111,7 @@ describe('advancedLegalObligationReducer', function () {
       };
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED,
-        payload: { name: 'obligation1' },
+        payload: { name: 'Must State Changes' },
       });
       const attribution1 = newState.component.component.licenseLegalData.attributions[0];
       expect(attribution1.error).toBeNull();
@@ -122,7 +126,7 @@ describe('advancedLegalObligationReducer', function () {
         component: {
           component: {
             licenseLegalData: {
-              obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
+              obligations: [{ name: 'Must State Changes' }, { name: 'obligation2' }],
               attributions: [],
             },
           },
@@ -131,7 +135,7 @@ describe('advancedLegalObligationReducer', function () {
       const newState = reduce(state, {
         type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED,
         payload: {
-          name: 'obligation1',
+          name: 'Must State Changes',
           value: { id: 'id', content: 'content', ownerId: 'ownerId' },
         },
       });
@@ -156,7 +160,7 @@ describe('advancedLegalObligationReducer', function () {
           component: {
             component: {
               licenseLegalData: {
-                obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
+                obligations: [{ name: 'Must State Changes' }, { name: 'obligation2' }],
                 attributions: [],
               },
             },
@@ -164,7 +168,7 @@ describe('advancedLegalObligationReducer', function () {
         };
         const newState = reduce(state, {
           type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED,
-          payload: { name: 'obligation1', value: 'error' },
+          payload: { name: 'Must State Changes', value: 'error' },
         });
         const attribution1 = newState.component.component.licenseLegalData.attributions[0];
         expect(attribution1.error).toBe('error');
@@ -183,7 +187,7 @@ describe('advancedLegalObligationReducer', function () {
           component: {
             component: {
               licenseLegalData: {
-                obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
+                obligations: [{ name: 'Must State Changes' }, { name: 'obligation2' }],
                 attributions: [],
               },
             },
@@ -191,7 +195,7 @@ describe('advancedLegalObligationReducer', function () {
         };
         const newState = reduce(state, {
           type: ADVANCED_LEGAL_SAVE_ATTRIBUTION_SUBMIT_MASK_DONE,
-          payload: { name: 'obligation1' },
+          payload: { name: 'Must State Changes' },
         });
         const attribution1 = newState.component.component.licenseLegalData.attributions[0];
         expect(attribution1.saveAttributionSubmitMask).toBeNull();
@@ -210,10 +214,10 @@ describe('advancedLegalObligationReducer', function () {
           component: {
             component: {
               licenseLegalData: {
-                obligations: [{ name: 'obligation1' }, { name: 'obligation2' }],
+                obligations: [{ name: 'Must State Changes' }, { name: 'obligation2' }],
                 attributions: [
                   {
-                    obligationName: 'obligation1',
+                    obligationName: 'Must State Changes',
                     originalContent: 'originalContent',
                     originalOwnerId: 'originalOwnerId',
                   },
@@ -224,7 +228,7 @@ describe('advancedLegalObligationReducer', function () {
         };
         const newState = reduce(state, {
           type: ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL,
-          payload: { name: 'obligation1' },
+          payload: { name: 'Must State Changes' },
         });
         const attribution1 = newState.component.component.licenseLegalData.attributions[0];
         expect(attribution1.content).toBe('originalContent');
@@ -468,5 +472,91 @@ describe('advancedLegalObligationReducer', function () {
         expect(obligation2).toEqual({ name: 'obligation2' });
       }
     );
+  });
+
+  describe('ADVANCED_LEGAL_SET_SHOW_ALL_OBLIGATIONS_MODAL action', function () {
+    it('sets error to null and showObligationModal to the payload of the matching obligation', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              showAllObligationsModal: false,
+              saveAllObligationsSubmitMask: null,
+              saveAllObligationsError: null,
+            },
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_SHOW_ALL_OBLIGATIONS_MODAL,
+        payload: true,
+      });
+      const licenseLegalData = newState.component.component.licenseLegalData;
+      expect(licenseLegalData.showAllObligationsModal).toBeTruthy();
+      expect(licenseLegalData.saveAllObligationsSubmitMask).toBeNull();
+      expect(licenseLegalData.saveAllObligationsError).toBeNull();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_REQUESTED action', function () {
+    it('sets error and saveAllObligationsSubmitMask to false', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              saveAllObligationsSubmitMask: null,
+              saveAllObligationsError: 'some error',
+            },
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_REQUESTED,
+      });
+
+      expect(newState.component.component.licenseLegalData.saveAllObligationsError).toBeNull();
+      expect(newState.component.component.licenseLegalData.saveAllObligationsSubmitMask).toBeFalsy();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED action', function () {
+    it('sets saveAllObligationsError to null, saveAllObligationsSubmitMask to true', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              saveAllObligationsSubmitMask: false,
+              saveAllObligationsError: 'some error',
+            },
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED,
+      });
+      expect(newState.component.component.licenseLegalData.saveAllObligationsSubmitMask).toBeTruthy();
+      expect(newState.component.component.licenseLegalData.saveAllObligationsError).toBeNull();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_FAILED action', function () {
+    it('sets saveAllObligationsError to null, saveAllObligationsSubmitMask to true', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              saveAllObligationsError: null,
+              saveAllObligationsSubmitMask: false,
+            },
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_FAILED,
+        payload: { value: 'my error' },
+      });
+      expect(newState.component.component.licenseLegalData.saveAllObligationsSubmitMask).toBeNull();
+      expect(newState.component.component.licenseLegalData.saveAllObligationsError).toBe('my error');
+    });
   });
 });

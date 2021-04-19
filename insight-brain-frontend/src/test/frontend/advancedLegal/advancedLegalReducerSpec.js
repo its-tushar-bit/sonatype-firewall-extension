@@ -353,6 +353,9 @@ describe('advancedLegalReducer', function () {
         ],
         licensesError: null,
         saveLicensesSubmitMask: null,
+        showAllObligationsModal: false,
+        saveAllObligationsSubmitMask: null,
+        saveAllObligationsError: null,
       });
     });
 

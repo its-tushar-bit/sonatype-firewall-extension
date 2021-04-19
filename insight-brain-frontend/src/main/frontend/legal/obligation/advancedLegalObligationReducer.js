@@ -4,8 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
+  ADVANCED_LEGAL_CANCEL_ALL_OBLIGATIONS_MODAL,
   ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL,
   ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL,
+  ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_FAILED,
+  ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_REQUESTED,
+  ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUBMIT_MASK_DONE,
+  ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_ATTRIBUTION_FAILED,
   ADVANCED_LEGAL_SAVE_ATTRIBUTION_FULFILLED,
   ADVANCED_LEGAL_SAVE_ATTRIBUTION_REQUESTED,
@@ -19,13 +24,21 @@ import {
   ADVANCED_LEGAL_SET_OBLIGATION_COMMENT,
   ADVANCED_LEGAL_SET_OBLIGATION_SCOPE,
   ADVANCED_LEGAL_SET_OBLIGATION_STATUS,
+  ADVANCED_LEGAL_SET_SHOW_ALL_OBLIGATIONS_MODAL,
   ADVANCED_LEGAL_SET_SHOW_ATTRIBUTION_MODAL,
   ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL,
 } from './advancedLegalObligationActions';
 import { __, find, findIndex, lensPath, merge, over, propEq } from 'ramda';
 import { saveNoticesSubmitMaskDone, saveLicensesSubmitMaskDone } from '../files/advancedLegalFileReducer';
+import { TEXT_BASED_OBLIGATIONS } from '../advancedLegalConstants';
+
+const updateLicenseLegalData = (newLicenseLegalData, state) =>
+  over(lensPath(['component', 'component', 'licenseLegalData']), merge(__, newLicenseLegalData), state);
 
 function updateAttribution(newAttribution, obligationName, state) {
+  if (obligationName !== null && !TEXT_BASED_OBLIGATIONS.indexOf(obligationName) === -1) {
+    return state;
+  }
   const attributionIndex = findIndex(
     propEq('obligationName', obligationName),
     state.component.component.licenseLegalData.attributions
@@ -225,6 +238,64 @@ function cancelObligationModal(payload, state) {
   );
 }
 
+function setShowAllObligationsModal(payload, state) {
+  return updateLicenseLegalData(
+    {
+      showAllObligationsModal: payload,
+    },
+    state
+  );
+}
+
+function cancelAllObligationsModal(payload, state) {
+  return updateLicenseLegalData(
+    {
+      showAllObligationsModal: false,
+    },
+    state
+  );
+}
+
+function saveAllObligationsRequested(payload, state) {
+  return updateLicenseLegalData(
+    {
+      saveAllObligationsSubmitMask: false,
+      saveAllObligationsError: null,
+    },
+    state
+  );
+}
+
+function saveAllObligationsSucceeded(payload, state) {
+  return updateLicenseLegalData(
+    {
+      saveAllObligationsSubmitMask: true,
+      saveAllObligationsError: null,
+    },
+    state
+  );
+}
+
+function saveAllObligationsFailed(payload, state) {
+  return updateLicenseLegalData(
+    {
+      saveAllObligationsError: payload.value,
+      saveAllObligationsSubmitMask: null,
+    },
+    state
+  );
+}
+
+function saveAllObligationsSubmitMaskDone(payload, state) {
+  return updateLicenseLegalData(
+    {
+      saveAllObligationsSubmitMask: null,
+      showAllObligationsModal: false,
+    },
+    state
+  );
+}
+
 export const advancedLegalObligationReducerActionMap = {
   [ADVANCED_LEGAL_SET_ATTRIBUTION_TEXT]: setAttributionText,
   [ADVANCED_LEGAL_SET_ATTRIBUTION_SCOPE]: setAttributionScope,
@@ -238,6 +309,12 @@ export const advancedLegalObligationReducerActionMap = {
   [ADVANCED_LEGAL_SET_OBLIGATION_COMMENT]: setObligationComment,
   [ADVANCED_LEGAL_SET_OBLIGATION_SCOPE]: setObligationScope,
   [ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL]: setShowObligationModal,
+  [ADVANCED_LEGAL_SET_SHOW_ALL_OBLIGATIONS_MODAL]: setShowAllObligationsModal,
+  [ADVANCED_LEGAL_CANCEL_ALL_OBLIGATIONS_MODAL]: cancelAllObligationsModal,
+  [ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_REQUESTED]: saveAllObligationsRequested,
+  [ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUCCEEDED]: saveAllObligationsSucceeded,
+  [ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_FAILED]: saveAllObligationsFailed,
+  [ADVANCED_LEGAL_SAVE_ALL_OBLIGATIONS_SUBMIT_MASK_DONE]: saveAllObligationsSubmitMaskDone,
   [ADVANCED_LEGAL_SAVE_OBLIGATION_REQUESTED]: saveObligationRequested,
   [ADVANCED_LEGAL_SAVE_OBLIGATION_SUCCEEDED]: saveObligationSucceeded,
   [ADVANCED_LEGAL_SAVE_OBLIGATION_FAILED]: saveObligationFailed,

@@ -349,6 +349,10 @@ export function getSaveComponentObligationUrl(orgOrApp, ownerId) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation`;
 }
 
+export function getSaveComponentObligationsUrl(orgOrApp, ownerId) {
+  return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligations`;
+}
+
 export function getComponentObligationUrl(orgOrApp, ownerId, componentIdentifier, obligationName) {
   return uriTemplate`/api/experimental/licenseLegalMetadata/${orgOrApp}/${ownerId}/component/obligation
     ?componentIdentifier=${JSON.stringify(componentIdentifier)}&obligationName=${obligationName}`;

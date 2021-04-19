@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -222,37 +223,62 @@ public class PolicyMonitor
 
     List<Repository> repositories = new RepositoryDAO().getAll();
     for (Repository repository : repositories) {
-      PolicyMonitoring policyMonitoring = null;
-      for (Owner owner : ownerDAO.walkHierarchy(repository)) {
-        policyMonitoring = policyMonitoringsByOwnerId.get(owner.getId());
-        if (policyMonitoring != null) {
-          break;
+      try (ClusterLock clusterLock = ClusterLock.createForRepositoryReevaluation(repository)) {
+        if (clusterLock.tryLock()) {
+          log.debug("Starting re-evaluation for repository {}:{} ({})", repository.getRepositoryManagerId(),
+              repository.getPublicId(), repository.getId());
+          reevaluateRepository(policyMonitoringsByOwnerId, autoUnquarantineEnabledConditionTypes, ownerDAO, repository);
+        }
+        else {
+          log.debug("Skipping, re-evaluation for repository {}:{} ({}) is already in progress",
+              repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
+          clusterLock.unlock();
         }
       }
-
-      if (policyMonitoring == null || !policyMonitoring.getStageTypeId().equals(ProxyStageType.ID)) {
-        continue;
+      catch (Exception e) {
+        log.error("An error occurred while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
+            repository.getPublicId(), repository.getId(), e);
+        AuditData.get().setException(e);
       }
-
-      log.debug("Getting quarantined components supporting auto un-quarantine of repository {}", repository.getName());
-      List<RepositoryComponent> applicableQuarantinedComponents =
-          getApplicableQuarantinedComponents(repository, autoUnquarantineEnabledConditionTypes);
-      if (applicableQuarantinedComponents.isEmpty()) {
-        continue;
-      }
-
-      log.debug("Starting re-evaluation for {} repository components", applicableQuarantinedComponents.size());
-      Iterator<RepositoryComponent> componentIterator = applicableQuarantinedComponents.iterator();
-      int totalUnquarantineCount = 0;
-      while (componentIterator.hasNext()) {
-        try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_REPOSITORY)) {
-          totalUnquarantineCount += autoUnquarantineComponents(repository, componentIterator);
-        }
-      }
-      log.info("Auto un-quarantined {} components of repository {}:{} ({})", totalUnquarantineCount,
-          repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
     }
     log.info("Finished policy monitoring repositories in {} ms", System.currentTimeMillis() - start);
+  }
+
+  private void reevaluateRepository(
+      final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId,
+      final Set<String> autoUnquarantineEnabledConditionTypes,
+      final OwnerDAO ownerDAO,
+      final Repository repository)
+  {
+    PolicyMonitoring policyMonitoring = null;
+    for (Owner owner : ownerDAO.walkHierarchy(repository)) {
+      policyMonitoring = policyMonitoringsByOwnerId.get(owner.getId());
+      if (policyMonitoring != null) {
+        break;
+      }
+    }
+
+    if (policyMonitoring == null || !policyMonitoring.getStageTypeId().equals(ProxyStageType.ID)) {
+      return;
+    }
+
+    log.debug("Getting quarantined components supporting auto un-quarantine of repository {}", repository.getName());
+    List<RepositoryComponent> applicableQuarantinedComponents =
+        getApplicableQuarantinedComponents(repository, autoUnquarantineEnabledConditionTypes);
+    if (applicableQuarantinedComponents.isEmpty()) {
+      return;
+    }
+
+    log.debug("Starting re-evaluation for {} repository components", applicableQuarantinedComponents.size());
+    Iterator<RepositoryComponent> componentIterator = applicableQuarantinedComponents.iterator();
+    int totalUnquarantineCount = 0;
+    while (componentIterator.hasNext()) {
+      try (AuditSession session = auditRecorder.recordSystemEvent(AuditEvent.EVALUATE_REPOSITORY)) {
+        totalUnquarantineCount += autoUnquarantineComponents(repository, componentIterator);
+      }
+    }
+    log.info("Auto un-quarantined {} components of repository {}:{} ({})", totalUnquarantineCount,
+        repository.getRepositoryManagerId(), repository.getPublicId(), repository.getId());
   }
 
   private int autoUnquarantineComponents(

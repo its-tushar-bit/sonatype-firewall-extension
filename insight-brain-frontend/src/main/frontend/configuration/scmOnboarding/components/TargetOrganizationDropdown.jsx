@@ -33,14 +33,14 @@ export default function TargetOrganizationDropdown(props) {
     });
   }
 
-  const filterFn = (orgButton, filterValue) => {
+  const filterFn = (orgAnchor, filterValue) => {
     if (!filterValue) {
       return true;
     }
-    if (!orgButton || !orgButton.props || !orgButton.props.children) {
+    if (!orgAnchor || !orgAnchor.props || !orgAnchor.props.children) {
       return false;
     }
-    return orgButton.props.children.toLowerCase().includes(filterValue.toLowerCase());
+    return orgAnchor.props.children.toLowerCase().includes(filterValue.toLowerCase());
   };
 
   return (
@@ -64,7 +64,9 @@ export default function TargetOrganizationDropdown(props) {
             href={$state.href('scmOnboardingOrg', {
               organizationId: org.organization.id,
             })}
-            className={getOptionClassNames(selectedOrganization && selectedOrganization.organization.id === org.id)}
+            className={getOptionClassNames(
+              selectedOrganization && selectedOrganization.organization.id === org.organization.id
+            )}
           >
             {org.organization.name}
           </a>

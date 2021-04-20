@@ -11,10 +11,8 @@ import NxButton from '@sonatype/react-shared-components/components/NxButton/NxBu
  The "Go to Reports" Call To Action
  */
 export default function ReportsCta({ $state, id }) {
-  const reportHref = $state.href($state.get('violations'), {});
-
   const goToReports = () => {
-    window.location = reportHref;
+    $state.go('violations');
   };
 
   return (

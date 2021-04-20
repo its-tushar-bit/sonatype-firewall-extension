@@ -27,16 +27,14 @@ export default function LabsDataInsights(props) {
   }, []);
 
   return (
-    <React.Fragment>
-      {loadError && (
-        <main id="labs-data-insights-container" className="nx-page-main">
-          <LoadWrapper loading={loadingLabsDataInsights} error={loadError} retryHandler={() => load()} />
-        </main>
-      )}
-      {/* Putting the labs-container div outside the load wrapper as we load a script in data insights actions and need
-      this visible for the script to append an iframe before loading is finished */}
-      {!loadError && <div id="labs-container"></div>}
-    </React.Fragment>
+    <div id="labs-data-insights-dashboard" className="nx-page-content">
+      <main id="labs-data-insights-container" className="nx-page-main">
+        <LoadWrapper loading={loadingLabsDataInsights} error={loadError} retryHandler={() => load()} />
+        {/* Putting the labs-container div outside the load wrapper as we load a script in data insights actions
+         and need this visible for the script to append an iframe before loading is finished */}
+        {!loadError && <div id="labs-container"></div>}
+      </main>
+    </div>
   );
 }
 

@@ -14,12 +14,17 @@ import {
   getFirewallReleaseQuarantineSummaryUrl,
   getFirewallQuarantineSummaryUrl,
   getFirewallReleaseQuarantineListUrl,
+  getFirewallQuarantineListUrl,
   getPoliciesUrl,
 } from '../util/CLMLocation';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
-const loadDataRequested = noPayloadActionCreator(FIREWALL_LOAD_DATA_REQUESTED);
+const loadFirewallDataRequested = noPayloadActionCreator(FIREWALL_LOAD_DATA_REQUESTED);
+
+export const FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED = 'FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED';
+
+const loadAutoUnquarantineDataRequested = noPayloadActionCreator(FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED);
 
 export const FIREWALL_LOAD_STATUS_REQUESTED = 'FIREWALL_LOAD_STATUS_REQUESTED';
 export const FIREWALL_LOAD_STATUS_FULFILLED = 'FIREWALL_LOAD_STATUS_FULFILLED';
@@ -72,6 +77,14 @@ const loadReleaseQuarantineListRequested = noPayloadActionCreator(FIREWALL_RELEA
 const loadReleaseQuarantineListFulfilled = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED);
 const loadReleaseQuarantineListFailed = payloadParamActionCreator(FIREWALL_RELEASE_QUARANTINE_LIST_FAILED);
 
+export const FIREWALL_QUARANTINE_LIST_REQUESTED = 'FIREWALL_QUARANTINE_LIST_REQUESTED';
+export const FIREWALL_QUARANTINE_LIST_FULFILLED = 'FIREWALL_QUARANTINE_LIST_FULFILLED';
+export const FIREWALL_QUARANTINE_LIST_FAILED = 'FIREWALL_QUARANTINE_LIST_FAILED';
+
+const loadQuarantineListRequested = noPayloadActionCreator(FIREWALL_QUARANTINE_LIST_REQUESTED);
+const loadQuarantineListFulfilled = payloadParamActionCreator(FIREWALL_QUARANTINE_LIST_FULFILLED);
+const loadQuarantineListFailed = payloadParamActionCreator(FIREWALL_QUARANTINE_LIST_FAILED);
+
 export const FIREWALL_POLICIES_REQUESTED = 'FIREWALL_POLICIES_REQUESTED';
 export const FIREWALL_POLICIES_FULFILLED = 'FIREWALL_POLICIES_FULFILLED';
 export const FIREWALL_POLICIES_FAILED = 'FIREWALL_POLICIES_FAILED';
@@ -84,6 +97,14 @@ export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE = 'FIREWALL_AUTO_UNQUARANT
 export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING';
 export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER';
 
+export const FIREWALL_QUARANTINE_GRID_SET_PAGE = 'FIREWALL_QUARANTINE_GRID_SET_PAGE';
+export const FIREWALL_QUARANTINE_GRID_SET_SORTING = 'FIREWALL_QUARANTINE_GRID_SET_SORTING';
+export const FIREWALL_QUARANTINE_GRID_SET_FILTER = 'FIREWALL_QUARANTINE_GRID_SET_FILTER';
+
+const quarantineGridSetPage = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_PAGE);
+const quarantineGridSetSorting = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_SORTING);
+const quarantineGridSetFilter = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_FILTER);
+
 export const FIREWALL_QUARANTINE_SUMMARY_REQUESTED = 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED';
 export const FIREWALL_QUARANTINE_SUMMARY_FULFILLED = 'FIREWALL_QUARANTINE_SUMMARY_FULFILLED';
 export const FIREWALL_QUARANTINE_SUMMARY_FAILED = 'FIREWALL_QUARANTINE_SUMMARY_FAILED';
@@ -92,13 +113,26 @@ const quarantineSummaryRequested = noPayloadActionCreator(FIREWALL_QUARANTINE_SU
 const quarantineSummaryFulfilled = payloadParamActionCreator(FIREWALL_QUARANTINE_SUMMARY_FULFILLED);
 const quarantineSummaryFailed = payloadParamActionCreator(FIREWALL_QUARANTINE_SUMMARY_FAILED);
 
-export function loadData() {
-  return function (dispatch) {
-    dispatch(loadDataRequested());
+export function loadFirewallData() {
+  return (dispatch) => {
+    dispatch(loadFirewallDataRequested());
     dispatch(loadStatus());
     dispatch(loadConfiguration());
     dispatch(loadReleaseQuarantineSummary());
     dispatch(loadQuarantineSummary());
+    dispatch(loadQuarantineList());
+    dispatch(loadPolicies());
+  };
+}
+
+export function loadAutoUnquarantineData() {
+  return (dispatch) => {
+    dispatch(loadAutoUnquarantineDataRequested());
+    dispatch(loadStatus());
+    dispatch(loadConfiguration());
+    dispatch(loadReleaseQuarantineSummary());
+    dispatch(loadReleaseQuarantineList());
+    dispatch(loadPolicies());
   };
 }
 
@@ -127,13 +161,6 @@ export function loadReleaseQuarantineSummary() {
       .catch((error) => {
         dispatch(loadReleaseQuarantineSummaryFailed(Messages.getHttpErrorMessage(error)));
       });
-  };
-}
-
-export function loadAutoUnquarantineGridData() {
-  return (dispatch) => {
-    dispatch(loadReleaseQuarantineList());
-    dispatch(loadPolicies());
   };
 }
 
@@ -253,5 +280,45 @@ export function setAutoUnquarantineGridPolicyFilter(policyId) {
   return {
     type: FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER,
     payload: { policyId: policyId },
+  };
+}
+
+export function loadQuarantineList() {
+  return function (dispatch, getState) {
+    let gridState = getState().firewall.quarantineGridState,
+      apiPage = gridState.currentPage ? gridState.currentPage + 1 : 1,
+      filterValue = gridState.filterPolicy ? gridState.filterPolicy.id : null,
+      sortAsc = gridState.sortDir === null ? gridState.sortDir : gridState.sortDir === 'asc';
+
+    dispatch(loadQuarantineListRequested());
+    return axios
+      .get(getFirewallQuarantineListUrl(apiPage, gridState.pageSize, gridState.sortField, sortAsc, filterValue))
+      .then(({ data }) => {
+        dispatch(loadQuarantineListFulfilled(data));
+      })
+      .catch((error) => {
+        dispatch(loadQuarantineListFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
+export function setQuarantineGridPage(page) {
+  return (dispatch) => {
+    dispatch(quarantineGridSetPage({ currentPage: page }));
+    dispatch(loadQuarantineList());
+  };
+}
+
+export function setQuarantineGridSorting(sortDir, sortField) {
+  return (dispatch) => {
+    dispatch(quarantineGridSetSorting({ sortDir: sortDir, sortField: sortField }));
+    dispatch(loadQuarantineList());
+  };
+}
+
+export function setQuarantineGridPolicyFilter(policy) {
+  return (dispatch) => {
+    dispatch(quarantineGridSetFilter({ policy: policy }));
+    dispatch(loadQuarantineList());
   };
 }

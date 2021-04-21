@@ -224,6 +224,20 @@ export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sort
   return uriTemplate`/api/experimental/firewall/components/autoReleasedFromQuarantine` + params;
 }
 
+export function getFirewallQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId) {
+  let params = toURIParams({
+    page: page,
+    pageSize: pageSize,
+    sortBy: sortBy,
+    asc: sortAsc,
+    policyId: policyId,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/api/experimental/firewall/components/quarantined` + params;
+}
+
 export function getFirewallQuarantineSummaryUrl() {
   return uriTemplate`/api/experimental/firewall/quarantine/summary`;
 }

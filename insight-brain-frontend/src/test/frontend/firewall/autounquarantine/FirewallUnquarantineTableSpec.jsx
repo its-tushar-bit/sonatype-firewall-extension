@@ -17,7 +17,6 @@ describe('FirewallUnquarantineTable', function () {
 
     minimalProps = {
       loadedReleaseQuarantineList: true,
-      loadedPolicies: true,
       releaseQuarantinePageCount: 1,
       pageSize: 2,
       currentPage: 0,
@@ -87,7 +86,7 @@ describe('FirewallUnquarantineTable', function () {
       expect(
         tableBody.containsMatchingElement([
           <NxTableRow key="1">
-            <NxTableCell key="1" className="iq-firewall-grid-component">
+            <NxTableCell key="1">
               <NxOverflowTooltip title="test-component">
                 <div className="nx-truncate-ellipsis">test-component</div>
               </NxOverflowTooltip>
@@ -112,7 +111,7 @@ describe('FirewallUnquarantineTable', function () {
       expect(
         tableBody.containsMatchingElement([
           <NxTableRow key="1">
-            <NxTableCell key="1" className="iq-firewall-grid-component">
+            <NxTableCell key="1">
               <NxOverflowTooltip title="test-component">
                 <div className="nx-truncate-ellipsis">test-component2</div>
               </NxOverflowTooltip>

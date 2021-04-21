@@ -15,7 +15,7 @@ import FirewallUnquarantineTable from '../../../../main/frontend/firewall/autoun
 describe('FirewallAutoUnquarantinePage', function () {
   let minimalProps,
     FirewallAutoUnquarantinePage,
-    loadDataSpy,
+    loadAutoUnquarantineDataSpy,
     openConfigurationModalSpy,
     stateMock,
     getShallowComponent,
@@ -32,7 +32,7 @@ describe('FirewallAutoUnquarantinePage', function () {
       }
     ).default;
 
-    loadDataSpy = jasmine.createSpy('loadData');
+    loadAutoUnquarantineDataSpy = jasmine.createSpy('loadAutoUnquarantineData');
     openConfigurationModalSpy = jasmine.createSpy('openConfigurationModal');
     stateMock = jasmine.createSpy('state');
 
@@ -49,7 +49,7 @@ describe('FirewallAutoUnquarantinePage', function () {
       totalPolicyConditionTypesCount: 4,
       autoUnquarantineEnabled: false,
       $state: stateMock,
-      loadData: loadDataSpy,
+      loadAutoUnquarantineData: loadAutoUnquarantineDataSpy,
       openConfigurationModal: openConfigurationModalSpy,
     };
 
@@ -158,14 +158,14 @@ describe('FirewallAutoUnquarantinePage', function () {
     expect(loadWrapper).toHaveProp('error', 'The Firewall feature is disabled');
   });
 
-  it('calls loadData when the LoadWrapper retryHandler is invoked', function () {
+  it('calls loadAutoUnquarantineData when the LoadWrapper retryHandler is invoked', function () {
     const loadWrapper = getShallowComponent().find(LoadWrapper),
       retryHandler = loadWrapper.prop('retryHandler');
 
-    expect(loadDataSpy).not.toHaveBeenCalled();
+    expect(loadAutoUnquarantineDataSpy).not.toHaveBeenCalled();
 
     retryHandler();
 
-    expect(loadDataSpy).toHaveBeenCalled();
+    expect(loadAutoUnquarantineDataSpy).toHaveBeenCalled();
   });
 });

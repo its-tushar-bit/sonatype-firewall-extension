@@ -106,12 +106,27 @@ h2.iq-firewall-table-label {
 }
 
 // Firewall component grid column
-.iq-firewall-grid-component {
-  .nx-truncate-ellipsis {
-    width: 450px;
-  }
-}
-
 .iq-firewall-auto-unquarantine-table {
   height: pagination-table-height(12, 1);
+}
+
+// Firewall Quarantine Grid
+.iq-firewall-quarantine-table {
+  height: pagination-table-height(14, 1);
+
+  .iq-cell--threat {
+    width: 90px;
+  }
+
+  .iq-cell--policy-type {
+    width: 320px;
+  }
+
+  .iq-cell--quarantine-date {
+    width: 190px;
+  }
+
+  .iq-cell--repository {
+    width: 160px;
+  }
 }

@@ -6,7 +6,14 @@
 import { connect } from 'react-redux';
 import Firewall from './Firewall';
 import { pick } from 'ramda';
-import { loadData, openConfigurationModal } from './firewallActions';
+import {
+  loadFirewallData,
+  openConfigurationModal,
+  loadQuarantineList,
+  setQuarantineGridSorting,
+  setQuarantineGridPolicyFilter,
+  setQuarantineGridPage,
+} from './firewallActions';
 
 function mapStateToProps({ firewall }) {
   return {
@@ -34,11 +41,17 @@ function mapStateToProps({ firewall }) {
       ],
       firewall.quarantineSummaryState.viewState
     ),
+    ...firewall.quarantineGridState,
+    ...firewall.policiesState,
   };
 }
 
 const mapDispatchToProps = {
-  loadData,
+  loadFirewallData,
+  loadQuarantineList,
+  setQuarantineGridPage,
+  setQuarantineGridSorting,
+  setQuarantineGridPolicyFilter,
   openConfigurationModal,
 };
 

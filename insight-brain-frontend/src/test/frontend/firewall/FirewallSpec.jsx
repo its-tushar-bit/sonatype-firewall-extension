@@ -15,7 +15,7 @@ import FirewallQuarantineTable from '../../../main/frontend/firewall/FirewallQua
 describe('Firewall', function () {
   let minimalProps,
     Firewall,
-    loadDataSpy,
+    loadFirewallDataSpy,
     openConfigurationModalSpy,
     stateMock,
     getShallowComponent,
@@ -30,7 +30,7 @@ describe('Firewall', function () {
       './config/FirewallConfigurationModalContainer': FirewallConfigurationModalMock,
     }).default;
 
-    loadDataSpy = jasmine.createSpy('loadData');
+    loadFirewallDataSpy = jasmine.createSpy('loadFirewallData');
     openConfigurationModalSpy = jasmine.createSpy('openConfigurationModal');
     stateMock = jasmine.createSpy('state');
 
@@ -52,7 +52,7 @@ describe('Firewall', function () {
       totalComponentCount: 7,
       quarantinedComponentCount: 8,
       $state: stateMock,
-      loadData: loadDataSpy,
+      loadFirewallData: loadFirewallDataSpy,
       openConfigurationModal: openConfigurationModalSpy,
     };
 
@@ -172,14 +172,14 @@ describe('Firewall', function () {
     expect(loadWrapper).toHaveProp('error', 'The Firewall feature is disabled');
   });
 
-  it('calls loadData when the LoadWrapper retryHandler is invoked', function () {
+  it('calls loadFirewallData when the LoadWrapper retryHandler is invoked', function () {
     const loadWrapper = getShallowComponent().find(LoadWrapper),
       retryHandler = loadWrapper.prop('retryHandler');
 
-    expect(loadDataSpy).not.toHaveBeenCalled();
+    expect(loadFirewallDataSpy).not.toHaveBeenCalled();
 
     retryHandler();
 
-    expect(loadDataSpy).toHaveBeenCalled();
+    expect(loadFirewallDataSpy).toHaveBeenCalled();
   });
 });

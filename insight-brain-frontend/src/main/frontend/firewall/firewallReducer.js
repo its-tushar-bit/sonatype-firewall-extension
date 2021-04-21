@@ -17,9 +17,16 @@ import {
   FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED,
   FIREWALL_RELEASE_QUARANTINE_LIST_FAILED,
   FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED,
+  FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER,
+  FIREWALL_QUARANTINE_LIST_REQUESTED,
+  FIREWALL_QUARANTINE_LIST_FAILED,
+  FIREWALL_QUARANTINE_LIST_FULFILLED,
+  FIREWALL_QUARANTINE_GRID_SET_PAGE,
+  FIREWALL_QUARANTINE_GRID_SET_SORTING,
+  FIREWALL_QUARANTINE_GRID_SET_FILTER,
   FIREWALL_POLICIES_REQUESTED,
   FIREWALL_POLICIES_FULFILLED,
   FIREWALL_POLICIES_FAILED,
@@ -31,7 +38,7 @@ import {
   FIREWALL_QUARANTINE_SUMMARY_FULFILLED,
   FIREWALL_QUARANTINE_SUMMARY_FAILED,
 } from './firewallActions';
-import { __, always, lensPath, over, merge } from 'ramda';
+import { __, always, lensPath, lensProp, over, merge } from 'ramda';
 import { pathSet } from '../util/jsUtil';
 
 const initialState = Object.freeze({
@@ -58,7 +65,6 @@ const initialState = Object.freeze({
     autoUnquarantineGridState: Object.freeze({
       loadedReleaseQuarantineList: false,
       loadAutoUnquarantineGridError: null,
-      loadedPolicies: false,
       releaseQuarantineList: [],
       releaseQuarantinePageCount: 0,
       pageSize: 12,
@@ -66,8 +72,11 @@ const initialState = Object.freeze({
       sortDir: null,
       sortField: null,
       filterPolicyId: '',
-      policies: [],
     }),
+  }),
+  policiesState: Object.freeze({
+    loadedPolicies: false,
+    policies: [],
   }),
   configurationState: Object.freeze({
     autoUnquarantineEnabled: false,
@@ -82,6 +91,17 @@ const initialState = Object.freeze({
       totalComponentCount: 0,
       quarantinedComponentCount: 0,
     }),
+  }),
+  quarantineGridState: Object.freeze({
+    loadQuarantineGridError: null,
+    loadedQuarantineList: false,
+    quarantineList: [],
+    quarantinePageCount: 0,
+    pageSize: 12,
+    currentPage: null,
+    sortDir: null,
+    sortField: null,
+    filterPolicy: null,
   }),
 });
 
@@ -163,6 +183,7 @@ const loadReleaseQuarantineListRequested = (_, state) =>
     lensPath(['autoUnquarantineState', 'autoUnquarantineGridState']),
     merge(__, {
       loadedReleaseQuarantineList: false,
+      loadAutoUnquarantineGridError: null,
     }),
     state
   );
@@ -172,6 +193,7 @@ const loadReleaseQuarantineListFulfilled = (payload, state) =>
     lensPath(['autoUnquarantineState', 'autoUnquarantineGridState']),
     merge(__, {
       loadedReleaseQuarantineList: true,
+      loadAutoUnquarantineGridError: null,
       releaseQuarantineList: payload.results,
       releaseQuarantinePageCount: payload.pageCount,
       currentPage: payload.pageCount === 0 ? null : payload.page - 1,
@@ -181,6 +203,10 @@ const loadReleaseQuarantineListFulfilled = (payload, state) =>
 
 const loadReleaseQuarantineListFailed = (payload, state) => ({
   ...state,
+  viewState: {
+    ...state.viewState,
+    loadError: state.viewState.loadError || payload,
+  },
   autoUnquarantineState: {
     ...state.autoUnquarantineState,
     autoUnquarantineGridState: {
@@ -194,7 +220,7 @@ const loadReleaseQuarantineListFailed = (payload, state) => ({
 
 const loadPoliciesRequested = (_, state) =>
   over(
-    lensPath(['autoUnquarantineState', 'autoUnquarantineGridState']),
+    lensProp('policiesState'),
     merge(__, {
       loadedPolicies: false,
     }),
@@ -203,7 +229,7 @@ const loadPoliciesRequested = (_, state) =>
 
 const loadPoliciesFulfilled = (payload, state) =>
   over(
-    lensPath(['autoUnquarantineState', 'autoUnquarantineGridState']),
+    lensPath(['policiesState']),
     merge(__, {
       loadedPolicies: true,
       policies: payload.policies.filter((policy) => policy.ownerId === 'ROOT_ORGANIZATION_ID'),
@@ -213,13 +239,9 @@ const loadPoliciesFulfilled = (payload, state) =>
 
 const loadPoliciesFailed = (payload, state) => ({
   ...state,
-  autoUnquarantineState: {
-    ...state.autoUnquarantineState,
-    autoUnquarantineGridState: {
-      ...state.autoUnquarantineState.autoUnquarantineGridState,
-      loadedPolicies: true,
-      policies: [],
-    },
+  policiesState: {
+    loadedPolicies: true,
+    policies: [],
   },
 });
 
@@ -363,6 +385,66 @@ const quarantineSummaryFailed = (payload, state) => ({
   },
 });
 
+const loadQuarantineListRequested = (_, state) =>
+  over(
+    lensPath(['quarantineGridState']),
+    merge(__, {
+      loadedQuarantineList: false,
+      loadQuarantineGridError: null,
+    }),
+    state
+  );
+
+const loadQuarantineListFulfilled = (payload, state) =>
+  over(
+    lensPath(['quarantineGridState']),
+    merge(__, {
+      loadedQuarantineList: true,
+      quarantineList: payload.results,
+      quarantinePageCount: payload.pageCount,
+      currentPage: payload.pageCount === 0 ? null : payload.page - 1,
+    }),
+    state
+  );
+
+const loadQuarantineListFailed = (payload, state) => ({
+  ...state,
+  quarantineGridState: {
+    ...state.quarantineGridState,
+    loadQuarantineGridError: payload,
+    loadedQuarantineList: true,
+    quarantineList: [],
+  },
+});
+
+const setQuarantineGridPage = (payload, state) =>
+  over(
+    lensPath(['quarantineGridState']),
+    merge(__, {
+      currentPage: payload.currentPage,
+    }),
+    state
+  );
+
+const setQuarantineGridSorting = (payload, state) =>
+  over(
+    lensPath(['quarantineGridState']),
+    merge(__, {
+      sortDir: payload.sortDir,
+      sortField: payload.sortField,
+    }),
+    state
+  );
+
+const setQuarantineGridPolicyFilter = (payload, state) =>
+  over(
+    lensPath(['quarantineGridState']),
+    merge(__, {
+      filterPolicy: payload.policy,
+    }),
+    state
+  );
+
 const reducerActionMap = {
   [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
   [FIREWALL_LOAD_STATUS_REQUESTED]: loadStatusRequested,
@@ -379,9 +461,16 @@ const reducerActionMap = {
   [FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED]: loadReleaseQuarantineListRequested,
   [FIREWALL_RELEASE_QUARANTINE_LIST_FAILED]: loadReleaseQuarantineListFailed,
   [FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED]: loadReleaseQuarantineListFulfilled,
+  [FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED]: always(initialState),
   [FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE]: setAutoUnquarantineGridPage,
   [FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING]: setAutoUnquarantineGridSorting,
   [FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER]: setAutoUnquarantineGridPolicyFilter,
+  [FIREWALL_QUARANTINE_LIST_REQUESTED]: loadQuarantineListRequested,
+  [FIREWALL_QUARANTINE_LIST_FAILED]: loadQuarantineListFailed,
+  [FIREWALL_QUARANTINE_LIST_FULFILLED]: loadQuarantineListFulfilled,
+  [FIREWALL_QUARANTINE_GRID_SET_PAGE]: setQuarantineGridPage,
+  [FIREWALL_QUARANTINE_GRID_SET_SORTING]: setQuarantineGridSorting,
+  [FIREWALL_QUARANTINE_GRID_SET_FILTER]: setQuarantineGridPolicyFilter,
   [FIREWALL_POLICIES_REQUESTED]: loadPoliciesRequested,
   [FIREWALL_POLICIES_FAILED]: loadPoliciesFailed,
   [FIREWALL_POLICIES_FULFILLED]: loadPoliciesFulfilled,

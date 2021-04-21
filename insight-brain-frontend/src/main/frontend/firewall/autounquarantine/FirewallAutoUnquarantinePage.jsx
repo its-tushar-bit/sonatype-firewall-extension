@@ -16,7 +16,7 @@ import FirewallAutoReleaseQuarantineYtd from './FirewallAutoReleaseQuarantineYtd
 
 export default function FirewallAutoUnquarantinePage(props) {
   // Actions
-  const { loadData } = props;
+  const { loadAutoUnquarantineData } = props;
 
   // viewState
   const { loadedStatus, isShowConfigurationModal, loadError } = props;
@@ -40,12 +40,12 @@ export default function FirewallAutoUnquarantinePage(props) {
   const error = determineError(loadedStatus, isEnabled, loadError);
 
   useEffect(() => {
-    loadData();
+    loadAutoUnquarantineData();
   }, []);
 
   return (
     <main id="firewall-auto-unquarantine-page" className="nx-page-main">
-      <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadData}>
+      <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadAutoUnquarantineData}>
         <BackButton stateName="firewall" $state={$state} text="Back to Quarantine" />
         {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
         <div className="nx-page-title">
@@ -76,7 +76,7 @@ function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfig
 }
 
 FirewallAutoUnquarantinePage.propTypes = {
-  loadData: PropTypes.func.isRequired,
+  loadAutoUnquarantineData: PropTypes.func.isRequired,
   loadedStatus: PropTypes.bool.isRequired,
   autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
   autoReleaseQuarantineCountYTD: PropTypes.string.isRequired,

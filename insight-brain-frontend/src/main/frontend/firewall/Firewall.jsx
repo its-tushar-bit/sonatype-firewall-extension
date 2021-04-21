@@ -17,7 +17,7 @@ import FirewallAutoUnquarantineStatus from './FirewallAutoUnquarantineStatus';
 
 export default function Firewall(props) {
   // Actions
-  const { loadData } = props;
+  const { loadFirewallData } = props;
 
   // viewState
   const { loadedStatus, isShowConfigurationModal, loadError } = props;
@@ -44,13 +44,13 @@ export default function Firewall(props) {
   const error = determineError(loadedStatus, isEnabled, loadError);
 
   useEffect(() => {
-    loadData();
+    loadFirewallData();
   }, []);
 
   return (
     <main id="firewall-page" className="nx-page-main">
       {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
-      <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadData}>
+      <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadFirewallData}>
         <FirewallStatus {...props} />
         <div className="nx-card-container nx-card-container--no-wrap">
           <FirewallQuarantineStatus {...props} />
@@ -61,7 +61,7 @@ export default function Firewall(props) {
             $state={$state}
           />
         </div>
-        <FirewallQuarantineTable />
+        <FirewallQuarantineTable {...props} />
       </LoadWrapper>
     </main>
   );
@@ -81,7 +81,7 @@ function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfig
 }
 
 Firewall.propTypes = {
-  loadData: PropTypes.func.isRequired,
+  loadFirewallData: PropTypes.func.isRequired,
   loadedStatus: PropTypes.bool.isRequired,
   autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
   loadedReleaseQuarantineSummary: PropTypes.bool.isRequired,

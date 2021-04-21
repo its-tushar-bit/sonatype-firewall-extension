@@ -115,6 +115,18 @@ public class FirewallPageComponents
     public SelenideElement header() {
       return child(FirewallPage.CHILD_HEADER_CSS_CLASS);
     }
+
+    public SelenideElement tableBody() {
+      return child("#iq-firewall-quarantine-table-body");
+    }
+
+    public ElementsCollection tableBodyRows() {
+      return tableBody().findAll("tr");
+    }
+
+    public SelenideElement quarantineTimeHeader() {
+      return child("#quarantineTime-header");
+    }
   }
 
   public static class FirewallAutoUnquarantineYtd
@@ -165,7 +177,7 @@ public class FirewallPageComponents
     }
 
     public ElementsCollection tableBodyRows() {
-      return tableBody().findAll(".iq-firewall-grid-component");
+      return tableBody().findAll("tr");
     }
 
     public SelenideElement quarantineTimeHeader() {

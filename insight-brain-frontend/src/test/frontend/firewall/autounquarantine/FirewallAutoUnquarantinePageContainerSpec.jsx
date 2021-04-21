@@ -10,25 +10,20 @@ import FirewallAutoUnquarantinePage from '../../../../main/frontend/firewall/aut
 
 describe('FirewallAutoUnquarantinePageContainer', function () {
   let FirewallAutoUnquarantinePageContainer,
-    loadDataMock,
+    loadAutoUnquarantineDataMock,
     loadReleaseQuarantineListMock,
-    loadAutoUnquarantineGridDataMock,
     openConfigurationModalMock,
     store,
     state,
     vdom;
 
   beforeEach(function () {
-    loadDataMock = jasmine.createSpy('loadDataMock').and.returnValue({
-      type: 'LOAD_FIREWALL_DATA',
+    loadAutoUnquarantineDataMock = jasmine.createSpy('loadAutoUnquarantineDataMock').and.returnValue({
+      type: 'AUTO_UNQUARANTINE_LOAD_DATA_REQUESTED',
     });
 
     loadReleaseQuarantineListMock = jasmine.createSpy('loadReleaseQuarantineListMock').and.returnValue({
       type: 'LOAD_RELEASE_QUARANTINE_LIST',
-    });
-
-    loadAutoUnquarantineGridDataMock = jasmine.createSpy('loadAutoUnquarantineGridDataMock').and.returnValue({
-      type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA',
     });
 
     openConfigurationModalMock = jasmine.createSpy('openConfigurationModalMock').and.returnValue({
@@ -38,9 +33,8 @@ describe('FirewallAutoUnquarantinePageContainer', function () {
     FirewallAutoUnquarantinePageContainer = require('inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallAutoUnquarantinePageContainer')(
       {
         '../firewallActions': {
-          loadData: loadDataMock,
+          loadAutoUnquarantineData: loadAutoUnquarantineDataMock,
           loadReleaseQuarantineList: loadReleaseQuarantineListMock,
-          loadAutoUnquarantineGridData: loadAutoUnquarantineGridDataMock,
           openConfigurationModal: openConfigurationModalMock,
         },
       }
@@ -138,37 +132,30 @@ describe('FirewallAutoUnquarantinePageContainer', function () {
   });
 
   it('maps action creators to props', function () {
-    const wrapper = shallow(vdom).dive();
-    const loadDataActionCreator = wrapper.prop('loadData');
-    const loadReleaseQuarantineListActionCreator = wrapper.prop('loadReleaseQuarantineList');
-    const loadAutoUnquarantineGridDataActionCreator = wrapper.prop('loadAutoUnquarantineGridData');
-    const openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal');
+    const wrapper = shallow(vdom).dive(),
+      loadAutoUnquarantineDataActionCreator = wrapper.prop('loadAutoUnquarantineData'),
+      loadReleaseQuarantineListActionCreator = wrapper.prop('loadReleaseQuarantineList'),
+      openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal');
 
-    expect(loadDataActionCreator).toEqual(jasmine.any(Function));
+    expect(loadAutoUnquarantineDataActionCreator).toEqual(jasmine.any(Function));
     expect(loadReleaseQuarantineListActionCreator).toEqual(jasmine.any(Function));
-    expect(loadAutoUnquarantineGridDataActionCreator).toEqual(jasmine.any(Function));
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
-    loadDataActionCreator();
-    expect(store.getActions()).toEqual([{ type: 'LOAD_FIREWALL_DATA' }]);
+    loadAutoUnquarantineDataActionCreator();
+    expect(store.getActions()).toEqual([{ type: 'AUTO_UNQUARANTINE_LOAD_DATA_REQUESTED' }]);
 
     loadReleaseQuarantineListActionCreator();
-    expect(store.getActions()).toEqual([{ type: 'LOAD_FIREWALL_DATA' }, { type: 'LOAD_RELEASE_QUARANTINE_LIST' }]);
-
-    loadAutoUnquarantineGridDataActionCreator();
     expect(store.getActions()).toEqual([
-      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'AUTO_UNQUARANTINE_LOAD_DATA_REQUESTED' },
       { type: 'LOAD_RELEASE_QUARANTINE_LIST' },
-      { type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA' },
     ]);
 
     openConfigurationModalActionCreator();
     expect(store.getActions()).toEqual([
-      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'AUTO_UNQUARANTINE_LOAD_DATA_REQUESTED' },
       { type: 'LOAD_RELEASE_QUARANTINE_LIST' },
-      { type: 'LOAD_AUTO_UNQUARANTINE_GRID_DATA' },
       { type: 'OPEN_FIREWALL_CONFIGURATION' },
     ]);
   });

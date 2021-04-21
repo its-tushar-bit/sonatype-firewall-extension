@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import * as PropTypes from 'prop-types';
 import {
   NxPagination,
@@ -20,7 +20,6 @@ export default function FirewallUnquarantineTable(props) {
   // Actions
   const {
     loadReleaseQuarantineList,
-    loadAutoUnquarantineGridData,
     setAutoUnquarantineGridPage,
     setAutoUnquarantineGridSorting,
     setAutoUnquarantineGridPolicyFilter,
@@ -38,11 +37,6 @@ export default function FirewallUnquarantineTable(props) {
     sortField,
     filterPolicyId,
   } = props;
-
-  useEffect(() => {
-    // Load first page with no sorting or filtering and the policies for filtering.
-    loadAutoUnquarantineGridData();
-  }, []);
 
   function setCurrentPage(newPage) {
     setAutoUnquarantineGridPage(newPage);
@@ -141,7 +135,7 @@ export default function FirewallUnquarantineTable(props) {
 
               return (
                 <NxTableRow key={index}>
-                  <NxTableCell className="iq-firewall-grid-component">
+                  <NxTableCell>
                     <NxOverflowTooltip title={row.displayName}>
                       <div className="nx-truncate-ellipsis">{row.displayName}</div>
                     </NxOverflowTooltip>
@@ -178,14 +172,12 @@ export default function FirewallUnquarantineTable(props) {
 }
 
 FirewallUnquarantineTable.propTypes = {
-  loadAutoUnquarantineGridData: PropTypes.func.isRequired,
   loadReleaseQuarantineList: PropTypes.func.isRequired,
-  loadAutoUnquarantineGridError: PropTypes.string.isRequired,
+  loadAutoUnquarantineGridError: PropTypes.string,
   setAutoUnquarantineGridPage: PropTypes.func.isRequired,
   setAutoUnquarantineGridSorting: PropTypes.func.isRequired,
   setAutoUnquarantineGridPolicyFilter: PropTypes.func.isRequired,
   loadedReleaseQuarantineList: PropTypes.bool.isRequired,
-  loadedPolicies: PropTypes.bool.isRequired,
   releaseQuarantinePageCount: PropTypes.number.isRequired,
   releaseQuarantineList: PropTypes.array.isRequired,
   policies: PropTypes.array.isRequired,

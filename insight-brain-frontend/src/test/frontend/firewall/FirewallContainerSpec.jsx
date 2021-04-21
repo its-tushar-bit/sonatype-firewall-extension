@@ -9,10 +9,10 @@ import configureStore from 'redux-mock-store';
 import Firewall from '../../../main/frontend/firewall/Firewall';
 
 describe('FirewallContainer', function () {
-  let FirewallContainer, loadDataMock, openConfigurationModalMock, store, state, vdom;
+  let FirewallContainer, loadFirewallDataMock, openConfigurationModalMock, loadQuarantineListMock, store, state, vdom;
 
   beforeEach(function () {
-    loadDataMock = jasmine.createSpy('loadDataMock').and.returnValue({
+    loadFirewallDataMock = jasmine.createSpy('loadFirewallDataMock').and.returnValue({
       type: 'LOAD_FIREWALL_DATA',
     });
 
@@ -20,10 +20,15 @@ describe('FirewallContainer', function () {
       type: 'OPEN_FIREWALL_CONFIGURATION',
     });
 
+    loadQuarantineListMock = jasmine.createSpy('loadQuarantineListMock').and.returnValue({
+      type: 'LOAD_QUARANTINE_LIST',
+    });
+
     FirewallContainer = require('inject-loader!../../../main/frontend/firewall/FirewallContainer')({
       './firewallActions': {
-        loadData: loadDataMock,
+        loadFirewallData: loadFirewallDataMock,
         openConfigurationModal: openConfigurationModalMock,
+        loadQuarantineList: loadQuarantineListMock,
       },
     }).default;
 
@@ -151,24 +156,34 @@ describe('FirewallContainer', function () {
   });
 
   it('maps action creators to props', function () {
-    const wrapper = shallow(vdom).dive();
-    const loadDataActionCreator = wrapper.prop('loadData');
-    const openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal');
+    const wrapper = shallow(vdom).dive(),
+      loadFirewallDataActionCreator = wrapper.prop('loadFirewallData'),
+      openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal'),
+      loadQuarantineListActionCreator = wrapper.prop('loadQuarantineList');
 
-    expect(loadDataActionCreator).toEqual(jasmine.any(Function));
+    expect(loadFirewallDataActionCreator).toEqual(jasmine.any(Function));
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
+    expect(loadQuarantineListActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
-    loadDataActionCreator();
+    loadFirewallDataActionCreator();
     expect(store.getActions()).toEqual([{ type: 'LOAD_FIREWALL_DATA' }]);
 
+    loadQuarantineListActionCreator();
+    expect(store.getActions()).toEqual([{ type: 'LOAD_FIREWALL_DATA' }, { type: 'LOAD_QUARANTINE_LIST' }]);
+
     openConfigurationModalActionCreator();
-    expect(store.getActions()).toEqual([{ type: 'LOAD_FIREWALL_DATA' }, { type: 'OPEN_FIREWALL_CONFIGURATION' }]);
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_QUARANTINE_LIST' },
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
+    ]);
   });
 
   it('renders Firewall component', function () {
     const firewall = shallow(vdom).find(Firewall);
+
     expect(firewall).toExist();
     expect(firewall).toHaveProp('loadError', null);
   });

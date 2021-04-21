@@ -5,19 +5,33 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.Date;
+
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantine;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
+import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.texts;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
@@ -29,6 +43,11 @@ public class FirewallPageTest
   private final FirewallPage page = new FirewallPage();
 
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    setupData();
+  }
 
   @Before
   public void before() {
@@ -46,6 +65,32 @@ public class FirewallPageTest
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
 
     hardreset();
+  }
+
+  public static void setupData() {
+    Policy policy = staticTempEntity.newPolicy();
+    RepositoryManager repositoryManager = staticTempEntity.newRepositoryManager("1");
+    Repository repository = staticTempEntity.newRepository(repositoryManager, "central", true, false);
+
+    ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
+    Date date1 = Date.from(LocalDateTime.now().withDayOfMonth(1).toInstant(offset));
+    Date date2 = Date.from(LocalDateTime.now().withDayOfMonth(2).toInstant(offset));
+
+    RepositoryComponent repositoryComponent1 = staticTempEntity.newRepositoryComponent(repository.getId(),
+        "g:a:1", date1, null, true);
+    staticTempEntity.newRepositoryPolicyViolation(repositoryComponent1, policy.getId());
+
+    RepositoryComponent repositoryComponent2 = staticTempEntity.newRepositoryComponent(repository.getId(),
+        "g:a:2", date2, null, true);
+    staticTempEntity.newRepositoryPolicyViolation(repositoryComponent2, policy.getId());
+
+    RepositoryComponent repositoryComponent3 = staticTempEntity.newRepositoryComponent(repository.getId(),
+        "g:a:3", date1, date1, false);
+    staticTempEntity.newRepositoryPolicyViolation(repositoryComponent3, policy.getId());
+
+    RepositoryComponent repositoryComponent4 = staticTempEntity.newRepositoryComponent(repository.getId(),
+        "g:a:4", date2, date2, false);
+    staticTempEntity.newRepositoryPolicyViolation(repositoryComponent4, policy.getId());
   }
 
   @Test
@@ -134,5 +179,46 @@ public class FirewallPageTest
 
     // verify firewall page loads
     waitUntilUrl(FirewallAutoUnquarantinePage.url());
+  }
+
+  @Test
+  public void testFirewallQuarantineTable_TableBodyCount() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    page.firewallQuarantineTable().tableBodyRows().shouldHaveSize(2);
+    page.firewallQuarantineTable().tableBodyRows().shouldHave(texts("g : a : v", "g : a : v"));
+
+    eyesWatcher.eyesCheck("Quarantine Grid visible with data");
+  }
+
+  @Test
+  public void testFirewallQuarantineTable_Sorting() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
+
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+
+    SelenideElement quarantineTimeHeader = page.firewallQuarantineTable().quarantineTimeHeader();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date unsorted"));
+    quarantineTimeHeader.click();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date ascending"));
+    quarantineTimeHeader.click();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date descending"));
+    quarantineTimeHeader.click();
+
+    quarantineTimeHeader.shouldHave(
+        attribute("aria-label", "Quarantine Date unsorted"));
   }
 }

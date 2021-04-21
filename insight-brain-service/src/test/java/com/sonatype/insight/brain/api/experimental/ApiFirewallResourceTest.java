@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSumm
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.PolicyViolationTestHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
@@ -74,112 +73,6 @@ public class ApiFirewallResourceTest
     // and value is present
     ApiFirewallReleaseQuarantineSummaryDTO dto = response.getBody(ApiFirewallReleaseQuarantineSummaryDTO.class);
     assertThat(dto.autoReleaseQuarantineCountMTD).isZero();
-  }
-
-  @Test
-  public void testGetFirewallConfiguration() throws Exception {
-    // when GETing config
-    HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.CONFIGURATION_PATH).get();
-
-    // then result is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
-
-    // and value is present
-    FirewallConfigurationDTO firewallConfigurationDTO = response.getBody(FirewallConfigurationDTO.class);
-    assertThat(firewallConfigurationDTO.autoUnquarantineEnabled).isFalse();
-  }
-
-  @Test
-  public void testSetFirewallConfiguration_Enabled() throws Exception {
-    FirewallConfigurationDTO firewallConfigurationDTO = new FirewallConfigurationDTO();
-    firewallConfigurationDTO.autoUnquarantineEnabled = true;
-
-    // when SETing config
-    HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.CONFIGURATION_PATH)
-            .body(firewallConfigurationDTO).put();
-
-    // then result is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
-
-    // and value is present
-    firewallConfigurationDTO = response.getBody(FirewallConfigurationDTO.class);
-    assertThat(firewallConfigurationDTO.autoUnquarantineEnabled).isTrue();
-  }
-
-  @Test
-  public void testSetFirewallConfiguration_Disabled() throws Exception {
-    FirewallConfigurationDTO firewallConfigurationDTO = new FirewallConfigurationDTO();
-    firewallConfigurationDTO.autoUnquarantineEnabled = false;
-
-    // when SETing config
-    HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.CONFIGURATION_PATH)
-            .body(firewallConfigurationDTO).put();
-
-    // then result is OK
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK_200);
-
-    // and value is present
-    firewallConfigurationDTO = response.getBody(FirewallConfigurationDTO.class);
-    assertThat(firewallConfigurationDTO.autoUnquarantineEnabled).isFalse();
-  }
-
-  @Test
-  public void testGetFirewallConfiguration_FeatureFlagDisabled() throws Exception {
-    //disable feature flag
-    initServer(
-        config -> config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false)));
-
-    // when SETing config
-    HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.CONFIGURATION_PATH).get();
-
-    // then result is bad request 400
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
-  }
-
-  @Test
-  public void testSetFirewallConfiguration_FeatureFlagDisabled() throws Exception {
-    //disable feature flag
-    initServer(
-        config -> config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false)));
-
-    // when SETing config
-    HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.CONFIGURATION_PATH)
-            .body(new FirewallConfigurationDTO()).put();
-
-    // then result is bad request 400
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
-  }
-
-  @Test
-  public void testGetFirewallConfiguration_MissingLicensedFeature() throws Exception {
-    // setup remove firewall feature
-    getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL);
-
-    // when GETing config
-    HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.CONFIGURATION_PATH).get();
-
-    // then result is payment required 402
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED_402);
-  }
-
-  @Test
-  public void testSetFirewallConfiguration_MissingLicensedFeature() throws Exception {
-    // setup remove firewall feature
-    getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL);
-
-    // when SETing config
-    HttpResponse response =
-        restRequest().path(ApiFirewallResource.RESOURCE_PATH, ApiFirewallResource.CONFIGURATION_PATH)
-            .body(new FirewallConfigurationDTO()).put();
-
-    // then result is payment required 402
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED_402);
   }
 
   @Test

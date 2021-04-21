@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSumm
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.experimental.dto.PaginationResponseBuilder;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -98,22 +97,6 @@ public class ApiFirewallResource
       final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
   {
     return apiFirewallService.setReleaseQuarantineConfig(apiFirewallReleaseQuarantineConfigDTOS);
-  }
-
-  /**
-   * @since 1.106.0
-   */
-  @GET
-  @Path(CONFIGURATION_PATH)
-  public FirewallConfigurationDTO getFirewallConfiguration() {
-    return apiFirewallService.getFirewallConfiguration();
-  }
-
-  @PUT
-  @Path(CONFIGURATION_PATH)
-  @Audited(AuditEvent.CONFIGURE_CONTINUOUS_MONITORING)
-  public FirewallConfigurationDTO setFirewallConfiguration(final FirewallConfigurationDTO firewallConfigurationDTO) {
-    return apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO);
   }
 
   @GET

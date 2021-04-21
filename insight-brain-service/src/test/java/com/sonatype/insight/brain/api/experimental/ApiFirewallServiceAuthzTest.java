@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
@@ -117,61 +116,6 @@ public class ApiFirewallServiceAuthzTest
   public void testSetFirewallAutoUnquarantineConfig_Unauthenticated() {
     assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
         apiFirewallService.setReleaseQuarantineConfig(null));
-  }
-
-  @Test
-  public void testGetFirewallConfiguration_Authorized() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-    grantGlobalPermission(Permission.READ);
-
-    FirewallConfigurationDTO firewallConfigurationDTO = apiFirewallService.getFirewallConfiguration();
-
-    assertThat(firewallConfigurationDTO).isNotNull();
-  }
-
-  @Test
-  public void testGetFirewallConfiguration_Unauthenticated() {
-    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
-        apiFirewallService.getFirewallConfiguration());
-  }
-
-  @Test
-  public void testGetFirewallConfiguration_Unauthorized() {
-    login();
-    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
-        apiFirewallService.getFirewallConfiguration());
-  }
-
-  @Test
-  public void testSetFirewallConfiguration_Authorized() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-    grantGlobalPermission(Permission.READ);
-    grantGlobalPermission(Permission.WRITE);
-    FirewallConfigurationDTO firewallConfigurationDTO = new FirewallConfigurationDTO();
-    firewallConfigurationDTO.autoUnquarantineEnabled = true;
-
-    firewallConfigurationDTO = apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO);
-
-    assertThat(firewallConfigurationDTO).isNotNull();
-  }
-
-  @Test
-  public void testSetFirewallConfiguration_Unauthenticated() {
-    FirewallConfigurationDTO firewallConfigurationDTO = new FirewallConfigurationDTO();
-    firewallConfigurationDTO.autoUnquarantineEnabled = true;
-
-    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() ->
-        apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO));
-  }
-
-  @Test
-  public void testSetFirewallConfiguration_Unauthorized() {
-    login();
-
-    FirewallConfigurationDTO firewallConfigurationDTO = new FirewallConfigurationDTO();
-    firewallConfigurationDTO.autoUnquarantineEnabled = true;
-    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() ->
-        apiFirewallService.setFirewallConfiguration(firewallConfigurationDTO));
   }
 
   @Test

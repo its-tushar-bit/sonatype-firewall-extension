@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSumm
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiPageResult;
-import com.sonatype.insight.brain.api.experimental.dto.FirewallConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -31,7 +30,6 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoUnquarantinePolicyConditionTypeDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
@@ -39,7 +37,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.ConditionType;
-import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -70,8 +67,6 @@ public class ApiFirewallService
 
   private final InsightConfig insightConfig;
 
-  private final PolicyMonitoringDAO policyMonitoringDAO;
-
   private final ProductLicense productLicense;
 
   private final RepositoryComponentDAO repositoryComponentDAO;
@@ -87,7 +82,6 @@ public class ApiFirewallService
   @Inject
   public ApiFirewallService(
       final InsightConfig insightConfig,
-      final PolicyMonitoringDAO policyMonitoringDAO,
       final ProductLicense productLicense,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryDAO repositoryDAO,
@@ -96,44 +90,12 @@ public class ApiFirewallService
       final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO)
   {
     this.insightConfig = insightConfig;
-    this.policyMonitoringDAO = policyMonitoringDAO;
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryDAO = repositoryDAO;
     this.apiPolicyViolationAdapter = apiPolicyViolationAdapter;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.autoUnquarantinePolicyConditionTypeDAO = autoUnquarantinePolicyConditionTypeDAO;
-  }
-
-  @Authorize(permission = Permission.READ)
-  public FirewallConfigurationDTO getFirewallConfiguration() {
-    checkExperimentalFeatureFlag();
-
-    checkProductLicense();
-
-    FirewallConfigurationDTO firewallConfigurationDTO = new FirewallConfigurationDTO();
-    firewallConfigurationDTO.autoUnquarantineEnabled =
-        null != policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
-    return firewallConfigurationDTO;
-  }
-
-  @Authorize(permission = Permission.WRITE)
-  public FirewallConfigurationDTO setFirewallConfiguration(final FirewallConfigurationDTO firewallConfigurationDTO) {
-    checkExperimentalFeatureFlag();
-
-    checkProductLicense();
-
-    final PolicyMonitoring existingPolicyMonitoring = policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID);
-    if (null != existingPolicyMonitoring && !firewallConfigurationDTO.autoUnquarantineEnabled) {
-      executeWithAuditSession(() -> policyMonitoringDAO.delete(existingPolicyMonitoring));
-    }
-    else if (null == existingPolicyMonitoring && firewallConfigurationDTO.autoUnquarantineEnabled) {
-      PolicyMonitoring policyMonitoring = new PolicyMonitoring();
-      policyMonitoring.setStageTypeId(StageTypes.PROXY.getId());
-      policyMonitoring.setOwnerId(REPOSITORY_CONTAINER_ID);
-      executeWithAuditSession(() -> policyMonitoringDAO.insert(policyMonitoring));
-    }
-    return getFirewallConfiguration();
   }
 
   private void executeWithAuditSession(Runnable runnable) {

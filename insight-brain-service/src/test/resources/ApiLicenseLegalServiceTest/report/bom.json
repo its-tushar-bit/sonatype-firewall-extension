@@ -883,5 +883,29 @@
       "ownerApplicationName" : "inner-producer-evaluate",
       "ownerApplicationId" : "34ebc21cfe1f4c1898c1c51470201ae4"
     }
+  },
+  {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "ext-beautify.js" ],
+    "pathnames" : [ "full.jar/WebGoat-6.0.1/js/ace/ext-beautify.js" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b89762362568f60b24c7",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1413088368000,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "WebGoat-6.0.1.war"
+      } ],
+      "name" : "WebGoat-6.0.1.war"
+    }
   }]
 }

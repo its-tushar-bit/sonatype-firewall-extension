@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -939,6 +940,7 @@ public class ApiLicenseLegalServiceTest
       throws Exception
   {
     ComponentIdentifier[] expectedComponentIdentifiers = rawReport.components.stream()
+        .filter(c -> c.componentIdentifier != null)
         .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
         .map(component -> component.componentIdentifier.toComponentIdentifier()).toArray(ComponentIdentifier[]::new);
     LicenseMetadataDTO[] licenseMetadata = getContent(licenseMetadataResource, LicenseMetadataDTO[].class);
@@ -2130,12 +2132,14 @@ public class ApiLicenseLegalServiceTest
       String[] expectedLicenseIds)
   {
     assertThat(components).hasSize((int) rawReport.components.stream()
+        .filter(c -> c.componentIdentifier != null)
         .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER)).count());
     List<Collection<String>> licenseIds = licenseIdArgumentCaptor.getAllValues();
     assertThat(licenseIds).hasSize(1);
     assertThat(licenseIds.get(0)).containsExactlyInAnyOrder(expectedLicenseIds);
     Set<String> expectedLicenseLegalMetadataLicenseIds = new LinkedHashSet<>(Arrays.asList(expectedLicenseIds));
     expectedLicenseLegalMetadataLicenseIds.addAll(rawReport.components.stream()
+        .filter(c -> c.componentIdentifier != null)
         .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
         .flatMap(component -> Stream.concat(Stream.concat(component.licenseData.declaredLicenses.stream(),
             component.licenseData.observedLicenses.stream()),
@@ -2371,12 +2375,14 @@ public class ApiLicenseLegalServiceTest
     expectedAttributes.put(ApplicationLicenseUsageTelemetry.ATTRIBUTE_NAME, new ApplicationLicenseUsageTelemetry(
         application.getPublicId(),
         rawReport.components.stream()
-            .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
+            .filter(c -> Objects.isNull(c.componentIdentifier) ||
+                !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
             .map(component -> component.hash)
             .filter(StringUtils::isNotBlank)
             .collect(Collectors.toCollection(LinkedHashSet::new)),
         rawReport.components.stream()
-            .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
+            .filter(c -> Objects.isNull(c.componentIdentifier) ||
+                !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
             .filter(component -> component.licenseData != null)
             .map(component -> component.licenseData)
             .flatMap(licenseData -> Stream.concat(

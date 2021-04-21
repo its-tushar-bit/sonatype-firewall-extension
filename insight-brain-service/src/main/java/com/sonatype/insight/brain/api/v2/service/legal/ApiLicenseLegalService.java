@@ -456,8 +456,11 @@ public class ApiLicenseLegalService
     Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(application.getId()).stream()
         .map(InnerSourceComponent::getPackageUrl)
         .collect(Collectors.toSet());
-    latestRawReport.components.removeIf(component -> LegalComponentIdentifierUtil
-        .isComponentAKnownInnerSource(innerSourcePackageUrls, component.componentIdentifier.toComponentIdentifier()));
+    latestRawReport.components
+        .removeIf(component ->
+            Objects.nonNull(component.componentIdentifier) &&
+                LegalComponentIdentifierUtil.isComponentAKnownInnerSource(innerSourcePackageUrls,
+                    component.componentIdentifier.toComponentIdentifier()));
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
         getReportMultiLicenses(latestRawReport);
     Set<ApiLicenseDTO> multiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()

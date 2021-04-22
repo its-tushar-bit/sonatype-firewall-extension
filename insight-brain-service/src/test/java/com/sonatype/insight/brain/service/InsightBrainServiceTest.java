@@ -280,7 +280,7 @@ public class InsightBrainServiceTest
 
   @Test
   @ManualServerInit
-  public void testConfigWithHttp_SuggestsUpdateConfig() throws Exception {
+  public void testConfigWithHttp_SuggestsUpdateConfig() {
     assertThatThrownBy(() -> {
       initServer(new Configurator()
       {
@@ -293,7 +293,8 @@ public class InsightBrainServiceTest
           return InsightBrainService.class.getResource("/InsightBrainServiceTest/config-with-http.yml").getFile();
         }
       });
-    }).isInstanceOf(RuntimeException.class).hasMessage(ConfigurationChecker.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
+    }).isInstanceOf(RuntimeException.class)
+        .hasStackTraceContaining(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
   }
 
   @Test

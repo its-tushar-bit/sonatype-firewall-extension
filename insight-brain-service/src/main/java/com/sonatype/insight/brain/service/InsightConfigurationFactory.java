@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.validation.Validator;
 
@@ -19,12 +22,16 @@ import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.access.spi.IAccessEvent;
+import com.fasterxml.jackson.databind.JsonMappingException.Reference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.collect.Sets;
 import io.dropwizard.configuration.ConfigurationException;
+import io.dropwizard.configuration.ConfigurationParsingException;
 import io.dropwizard.configuration.ConfigurationSourceProvider;
 import io.dropwizard.configuration.YamlConfigurationFactory;
 import io.dropwizard.logging.AbstractAppenderFactory;
@@ -49,10 +56,33 @@ public class InsightConfigurationFactory
 
   static final Duration DEFAULT_IDLE_TIMEOUT = Duration.minutes(15);
 
-  public InsightConfigurationFactory(final Class<InsightConfig> klass,
-                                     final Validator validator,
-                                     final ObjectMapper objectMapper,
-                                     final String propertyPrefix)
+  @SuppressWarnings("checkstyle:LineLength")
+  static final String SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE =
+      "\n=================================================================================================================" +
+          "\nYour configuration file contains properties that are only compatible with Nexus IQ Server version 1.42 and lower." +
+          "\nUpdate your configuration file to be compatible with this version of Nexus IQ Server." +
+          "\nRefer to our configuration update guide at:" +
+          "\nhttps://help.sonatype.com/display/NXIQ/Updating+your+Nexus+IQ+Server+Configuration." +
+          "\n=================================================================================================================";
+
+  private static final Set<String> DROPWIZARD_062_PROPERTIES = Sets
+      .newHashSet("http", "logging.console", "logging.file", "logging.syslog");
+
+  @SuppressWarnings("checkstyle:LineLength")
+  static final String NO_CONFIGURATION_EXCEPTION_MESSAGE =
+      "\n=================================================================================================================" +
+          "\nNo configuration file was specified/found." +
+          "\nYou must provide the path to your configuration file." +
+          "\nRefer to our help documentation at:" +
+          "\nhttps://help.sonatype.com/display/NXIQ/IQ+Server+Installation" +
+          "\nhttps://help.sonatype.com/display/NXIQ/Configuring" +
+          "\n=================================================================================================================";
+
+  public InsightConfigurationFactory(
+      final Class<InsightConfig> klass,
+      final Validator validator,
+      final ObjectMapper objectMapper,
+      final String propertyPrefix)
   {
     super(klass, validator, objectMapper, propertyPrefix);
   }
@@ -61,10 +91,32 @@ public class InsightConfigurationFactory
   public InsightConfig build(ConfigurationSourceProvider provider, String path)
       throws IOException, ConfigurationException
   {
-    InsightConfig insightConfig = super.build(provider, path);
-    setDefaultRequestLogSettings(insightConfig);
-    setDefaultLogSettings(insightConfig);
-    return insightConfig;
+    if (!new File(path).exists()) {
+      throw new RuntimeException(NO_CONFIGURATION_EXCEPTION_MESSAGE);
+    }
+    try {
+      InsightConfig insightConfig = super.build(provider, path);
+      setDefaultRequestLogSettings(insightConfig);
+      setDefaultLogSettings(insightConfig);
+      return insightConfig;
+    }
+    catch (ConfigurationParsingException e) {
+      if (e.getCause() instanceof UnrecognizedPropertyException &&
+          DROPWIZARD_062_PROPERTIES.contains(pathToString(((UnrecognizedPropertyException) e.getCause()).getPath()))) {
+        throw new RuntimeException(SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE, e);
+      }
+      throw e;
+    }
+  }
+
+  private String pathToString(Collection<Reference> references) {
+    return
+        references == null ? null : references.stream().map(Reference::getFieldName).collect(Collectors.joining("."));
+  }
+
+  @Override
+  public InsightConfig build() throws IOException, ConfigurationException {
+    throw new RuntimeException(NO_CONFIGURATION_EXCEPTION_MESSAGE);
   }
 
   private void setDefaultRequestLogSettings(InsightConfig insightConfig) {
@@ -105,8 +157,9 @@ public class InsightConfigurationFactory
         .forEach(abtractAppenderFactory -> abtractAppenderFactory.setLogFormat(logFormat));
   }
 
-  private void setDefaultRequestLogFilterFactory(Collection<? extends AppenderFactory<IAccessEvent>> appenderFactories,
-                                                 FilterFactory<IAccessEvent> filterFactory)
+  private void setDefaultRequestLogFilterFactory(
+      Collection<? extends AppenderFactory<IAccessEvent>> appenderFactories,
+      FilterFactory<IAccessEvent> filterFactory)
   {
     for (AppenderFactory<IAccessEvent> appenderFac : appenderFactories) {
       AbstractAppenderFactory<IAccessEvent> appenderFactory = (AbstractAppenderFactory<IAccessEvent>) appenderFac;

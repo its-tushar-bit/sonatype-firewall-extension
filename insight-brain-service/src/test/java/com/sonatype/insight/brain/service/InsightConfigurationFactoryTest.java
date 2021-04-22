@@ -17,6 +17,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.configuration.ConfigurationFactory;
+import io.dropwizard.configuration.ConfigurationParsingException;
 import io.dropwizard.jackson.Jackson;
 import io.dropwizard.jetty.ConnectorFactory;
 import io.dropwizard.jetty.HttpConnectorFactory;
@@ -44,12 +45,13 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class InsightConfigurationFactoryTest
 {
   private static final List<Class<?>> CONSOLE_FILE_SYSLOG_CLASSES = Arrays
       .asList(ConsoleAppenderFactory.class, FileAppenderFactory.class, SyslogAppenderFactory.class);
-  
+
   private static final int DROPWIZARD_HTTPS_PORT = new HttpsConnectorFactory().getPort();
 
   @ClassRule
@@ -361,6 +363,72 @@ public class InsightConfigurationFactoryTest
     assertThat(fileAppenderFactory.getArchivedFileCount()).isEqualTo(5);
   }
 
+  @Test
+  public void testBuild_NoArguments() {
+    InsightBrainService insightBrainService = new InsightBrainService();
+    Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(insightBrainService);
+    insightBrainService.initialize(bootstrap);
+    ConfigurationFactory<InsightConfig> configurationFactory = bootstrap.getConfigurationFactoryFactory()
+        .create(InsightConfig.class, bootstrap.getValidatorFactory().getValidator(), bootstrap.getObjectMapper(), "dw");
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(configurationFactory::build)
+        .withMessage(InsightConfigurationFactory.NO_CONFIGURATION_EXCEPTION_MESSAGE);
+  }
+
+  @Test
+  public void testBuild_MissingConfigurationFile() {
+    InsightBrainService insightBrainService = new InsightBrainService();
+    Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(insightBrainService);
+    insightBrainService.initialize(bootstrap);
+    ConfigurationFactory<InsightConfig> configurationFactory = bootstrap.getConfigurationFactoryFactory()
+        .create(InsightConfig.class, bootstrap.getValidatorFactory().getValidator(), bootstrap.getObjectMapper(), "dw");
+
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> configurationFactory.build(bootstrap.getConfigurationSourceProvider(), "doesNotExist"))
+        .withMessage(InsightConfigurationFactory.NO_CONFIGURATION_EXCEPTION_MESSAGE);
+  }
+
+  @Test
+  public void testBuild_ConfigWithHttp_SuggestsUpdateConfig() {
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> build("config-with-http.yml"))
+        .withMessage(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
+  }
+
+  @Test
+  public void testBuild_ConfigWithLoggingConsole_SuggestsUpdateConfig() {
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> build("config-with-logging-console.yml"))
+        .withMessage(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
+  }
+
+  @Test
+  public void testBuild_ConfigWithLoggingFile_SuggestsUpdateConfig() {
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> build("config-with-logging-file.yml"))
+        .withMessage(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
+  }
+
+  @Test
+  public void testBuild_ConfigWithLoggingSyslog_SuggestsUpdateConfig() {
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(() -> build("config-with-logging-syslog.yml"))
+        .withMessage(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE);
+  }
+
+  @Test
+  public void testBuild_ConfigWithOtherUnknown_DoesNotSuggestUpdateConfig() {
+    assertThatExceptionOfType(ConfigurationParsingException.class)
+        .isThrownBy(() -> build("config-with-other-unknown.yml")).satisfies(e -> assertThat(e.getMessage())
+        .isNotEqualTo(InsightConfigurationFactory.SUGGEST_UPDATE_CONFIG_EXCEPTION_MESSAGE));
+  }
+
+  @Test
+  public void testBuild_ConfigWithServer_DoesNotThrowException() throws Exception {
+    build("config-with-server.yml");
+  }
+
   private static InsightConfig build(String filename) throws Exception {
     String configResource = filename;
     if (!configResource.startsWith("/")) {
@@ -387,9 +455,10 @@ public class InsightConfigurationFactoryTest
     assertAppenderFactories(appenderFactories, CONSOLE_FILE_SYSLOG_CLASSES, formats);
   }
 
-  private void assertAppenderFactories(List<? extends AppenderFactory<?>> appenderFactories,
-                                       List<Class<?>> appenderFactoryClasses,
-                                       List<String> formats)
+  private void assertAppenderFactories(
+      List<? extends AppenderFactory<?>> appenderFactories,
+      List<Class<?>> appenderFactoryClasses,
+      List<String> formats)
   {
     for (int index = 0; index < appenderFactories.size(); index++) {
       assertThat(appenderFactories.get(index)).isInstanceOf(appenderFactoryClasses.get(index));
@@ -404,10 +473,11 @@ public class InsightConfigurationFactoryTest
     return (DefaultServerFactory) serverFactory;
   }
 
-  private void assertConnector(List<ConnectorFactory> connectors,
-                               Class<? extends HttpConnectorFactory> cls,
-                               int port,
-                               Duration idleTimeout)
+  private void assertConnector(
+      List<ConnectorFactory> connectors,
+      Class<? extends HttpConnectorFactory> cls,
+      int port,
+      Duration idleTimeout)
   {
     assertThat(connectors).hasSize(1);
     assertThat(connectors.get(0)).isInstanceOf(cls);
@@ -419,8 +489,9 @@ public class InsightConfigurationFactoryTest
   /**
    * assert that all appenders on this request log have a filter factory of the specified class
    */
-  private void assertAppenderFactoryFilterFactories(LogbackAccessRequestLogFactory requestLogFactory,
-                                                    Class<?> filterFactoryClass)
+  private void assertAppenderFactoryFilterFactories(
+      LogbackAccessRequestLogFactory requestLogFactory,
+      Class<?> filterFactoryClass)
   {
     for (AppenderFactory<?> appenderFac : requestLogFactory.getAppenders()) {
       AbstractAppenderFactory<?> appenderFactory = (AbstractAppenderFactory<?>) appenderFac;

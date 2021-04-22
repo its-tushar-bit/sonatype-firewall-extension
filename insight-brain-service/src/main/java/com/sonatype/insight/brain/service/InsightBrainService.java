@@ -113,7 +113,7 @@ public class InsightBrainService
         System.exit(1);
       }
 
-      new InsightBrainService().run(args.length > 0 ? args : new String[] { "server" });
+      new InsightBrainService().run(args);
     }
     catch (Throwable t) {
       // Try to log to stderr before trying the standard logging because the standard logging may not be operational at
@@ -167,9 +167,8 @@ public class InsightBrainService
         printVersion();
 
         String configArg = namespace.getString("file");
-        InsightBrainService.configFile = configArg != null ? new File(configArg).getAbsoluteFile() : null;
-        log.info("Configuration file: {}",
-            InsightBrainService.configFile != null ? InsightBrainService.configFile : "(none)");
+        InsightBrainService.configFile = new File(configArg).getAbsoluteFile();
+        log.info("Configuration file: {}", InsightBrainService.configFile);
         super.run(bootstrap, namespace, configuration);
       }
 
@@ -190,7 +189,6 @@ public class InsightBrainService
     initialize(bootstrap);
     CustomMetrics.registerMetrics(bootstrap.getMetricRegistry());
 
-    new ConfigurationChecker().check(arguments, bootstrap);
     final Cli cli = new Cli(new JarLocation(this.getClass()), bootstrap, System.out, System.err);
     cli.run(arguments);
   }

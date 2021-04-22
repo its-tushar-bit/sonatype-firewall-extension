@@ -3,32 +3,49 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import { NxStatefulTabs, NxTab, NxTabList, NxTabPanel } from '@sonatype/react-shared-components';
+import React, { useEffect } from 'react';
+import {
+  NxButton,
+  NxFontAwesomeIcon,
+  NxStatefulTabs,
+  NxTab,
+  NxTabList,
+  NxTabPanel,
+} from '@sonatype/react-shared-components';
 import LegalDashboardApplicationsTab from './LegalDashboardApplicationsTab';
 import * as PropTypes from 'prop-types';
 import LegalDashboardFilterContainer from './filter/LegalDashboardFilterContainer';
 import LoadWrapper from '../../react/LoadWrapper';
 import { applicationsTabPropType } from '../advancedLegalPropTypes';
+import { faFilter } from '@fortawesome/pro-solid-svg-icons';
+import { DEFAULT_FILTER_NAME } from './filter/defaultFilter';
 
 export default function LegalDashboardPage(props) {
   const {
+    appliedFilterName,
     applications,
     filtersAreDirty,
+    loadFilter,
     loadResults,
     loading,
     loadError,
     fetchBackendPage,
     changeSortField,
     stateGo,
+    toggleFilterSidebar,
+    filterSidebarOpen,
+    showDirtyAsterisk,
   } = props;
+
+  useEffect(() => {
+    loadFilter();
+    loadResults('applications');
+  }, []);
 
   return (
     <div id="legal-dashboard" className="nx-page-content">
+      {filterSidebarOpen && <LegalDashboardFilterContainer />}
       <LoadWrapper loading={loading} error={loadError} retryHandler={loadResults}>
-        <aside id="legal-dashboard-filter-container" className="nx-page-sidebar">
-          <LegalDashboardFilterContainer />
-        </aside>
         <main id="legal-dashboard-container" className="nx-page-main">
           <div className="nx-page-title nx-page-title__actions">
             <h1 className="nx-h1">Legal Obligations</h1>
@@ -40,6 +57,19 @@ export default function LegalDashboardPage(props) {
                   <NxTab>Applications</NxTab>
                 </NxTabList>
                 <NxTabPanel className="nx-viewport-sized__container">
+                  <div className="nx-btn-bar">
+                    <NxButton
+                      id="filter-toggle"
+                      className="btn"
+                      onClick={() => toggleFilterSidebar(!filterSidebarOpen)}
+                    >
+                      <NxFontAwesomeIcon icon={faFilter} />
+                      <span>
+                        Filter: {showDirtyAsterisk && <span id="filter-toggle-dirty-asterisk">*</span>}
+                        {appliedFilterName || DEFAULT_FILTER_NAME}
+                      </span>
+                    </NxButton>
+                  </div>
                   <LegalDashboardApplicationsTab
                     applications={applications}
                     fetchBackendPage={fetchBackendPage}
@@ -58,9 +88,11 @@ export default function LegalDashboardPage(props) {
 }
 
 LegalDashboardPage.propTypes = {
+  appliedFilterName: PropTypes.string,
   applications: applicationsTabPropType,
   components: PropTypes.any,
   filtersAreDirty: PropTypes.bool,
+  loadFilter: PropTypes.func,
   loadResults: PropTypes.func,
   isAuthorized: PropTypes.bool,
   loading: PropTypes.bool.isRequired,
@@ -68,4 +100,7 @@ LegalDashboardPage.propTypes = {
   fetchBackendPage: PropTypes.func.isRequired,
   changeSortField: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
+  toggleFilterSidebar: PropTypes.func.isRequired,
+  filterSidebarOpen: PropTypes.bool,
+  showDirtyAsterisk: PropTypes.bool,
 };

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { compose, curry, equals, find, indexBy, map, merge, pick, prop, propEq, sortBy, uniqBy } from 'ramda';
-import { propSet, pathSet, lookup } from '../../../util/jsUtil';
+import { lookup, pathSet, propSet } from '../../../util/jsUtil';
 import { uncategorizedCategory } from '../../../dashboard/filter/staticFilterEntries';
 import {
   LEGAL_DASHBOARD_APPLY_FILTER_CANCELLED,
@@ -20,17 +20,18 @@ import {
   LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL,
   LEGAL_DASHBOARD_TOGGLE_APPS_AND_ORGS,
   LEGAL_DASHBOARD_TOGGLE_FILTER,
+  LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR,
 } from './legalDashboardFilterActions';
 import defaultFilter from './defaultFilter';
 import { progressOptions } from '../legalDashboardConstants';
 
 const initState = Object.freeze({
+  filterSideBarOpen: false,
   loading: true,
   loadError: null,
   applyFilterError: null,
   loadErrorFilterName: null,
   filtersAreDirty: false,
-  needsAcknowledgement: false,
   isViolationsTab: false,
   showAgeFilter: false,
   showSaveFilterModal: false,
@@ -61,17 +62,13 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
       return setAvailable(state, payload);
 
     case LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED:
-      return compose(
-        applyFilter(payload),
-        propSet('needsAcknowledgement', payload.needsAcknowledgement),
-        propSet('loading', false)
-      )(state);
+      return compose(applyFilter(payload), propSet('loading', false))(state);
 
     case LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED:
       return resetProps(['applyFilterError', 'loadErrorFilterName'], state);
 
     case LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED: {
-      return compose(applyFilter(payload), propSet('needsAcknowledgement', false))(state);
+      return compose(applyFilter(payload))(state);
     }
 
     case LEGAL_DASHBOARD_APPLY_FILTER_FAILED:
@@ -94,6 +91,14 @@ export default function dashboardFilterReducer(state = initState, { type, payloa
 
     case LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL:
       return { ...state, showSaveFilterModal: payload };
+
+    case LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR:
+      return state.filterSidebarOpen && state.filtersAreDirty
+        ? state
+        : {
+            ...state,
+            filterSidebarOpen: payload,
+          };
 
     default:
       return state;

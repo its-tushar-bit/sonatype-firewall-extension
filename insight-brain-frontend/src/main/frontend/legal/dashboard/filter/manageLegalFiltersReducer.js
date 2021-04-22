@@ -3,30 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { append, equals, compose, curry, merge, pick, find, propEq } from 'ramda';
+import { append, compose, curry, equals, find, merge, pick, propEq } from 'ramda';
 import { propSet } from '../../../util/jsUtil';
 import { createReducerFromActionMap, propSetConst } from '../../../util/reduxUtil';
 import {
+  LEGAL_DASHBOARD_DELETE_FILTER_FAILED,
+  LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED,
+  LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED,
   LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED,
   LEGAL_DASHBOARD_FETCH_SAVED_FILTERS_FAILED,
-  LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED,
-  LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED,
-  LEGAL_DASHBOARD_SAVE_FILTER_FAILED,
-  LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED,
-  LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED,
-  LEGAL_DASHBOARD_DELETE_FILTER_FAILED,
-  LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN,
-  LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE,
   LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL,
-  LEGAL_DASHBOARD_DOCUMENT_CLICKED,
-  LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED,
-  LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED,
   LEGAL_DASHBOARD_SAVE_CONFIRM_CANCELLED,
+  LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED,
+  LEGAL_DASHBOARD_SAVE_FILTER_FAILED,
+  LEGAL_DASHBOARD_SAVE_FILTER_FULFILLED,
+  LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED,
+  LEGAL_DASHBOARD_SAVE_FILTER_REQUESTED,
+  LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE,
 } from './manageLegalFiltersActions';
 
 import {
   LEGAL_DASHBOARD_APPLY_FILTER_FULFILLED,
-  LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED,
   LEGAL_DASHBOARD_FETCH_CURRENT_FILTER_FULFILLED,
   LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL,
 } from './legalDashboardFilterActions';
@@ -44,7 +41,6 @@ const initState = {
   appliedFilterName: null,
   existingDuplicateFilterName: null,
   showDirtyAsterisk: false,
-  filtersDropdownOpen: false,
   filterToDelete: null,
   deleteFilterError: null,
   deleteFilterSaving: false,
@@ -81,33 +77,22 @@ const reducerActionMap = {
     'saveFilterError',
     'saveFilterSuccess',
   ]),
-  [LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN]: propSet('filtersDropdownOpen'),
   [LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE]: selectFilterToDelete,
   [LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL]: resetProps(['filterToDelete']),
-  [LEGAL_DASHBOARD_DOCUMENT_CLICKED]: closeFiltersMenuIfNeeded,
-  [LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED]: closeFiltersMenuIfNeeded,
   [LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED]: saveFilterOverwriteRequested,
   [LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED]: saveDuplicateFilterRequested,
   [LEGAL_DASHBOARD_SAVE_CONFIRM_CANCELLED]: saveConfirmCancelled,
 };
-
-function closeFiltersMenuIfNeeded(payload, state) {
-  // don't close Filters Menu while Delete Filter modal is open
-  if (state.filterToDelete) {
-    return state;
-  }
-
-  return { ...state, filtersDropdownOpen: false };
-}
 
 function fetchSavedFiltersFulfilled(payload, state) {
   return compose(propSet('savedFilters', payload), resetProps(['savedFilterListError'], payload))(state);
 }
 
 function updateAppliedFilterName(payload, state) {
+  const filter = payload && payload.filter ? payload.filter : filterToJson(defaultFilter);
   return compose(
     setShowDirtyAsterisk(),
-    propSetConst('appliedFilter', payload.filter, null),
+    propSetConst('appliedFilter', filter, null),
     propSetConst('appliedFilterName', payload.basedOnFilterName, null)
   )(state);
 }

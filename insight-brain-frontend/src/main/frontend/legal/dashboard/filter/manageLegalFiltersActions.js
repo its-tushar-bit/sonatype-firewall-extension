@@ -22,8 +22,6 @@ export const LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL = 'LEGAL_DASHBOARD_HIDE_DE
 export const LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED = 'LEGAL_DASHBOARD_DELETE_FILTER_REQUESTED';
 export const LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED = 'LEGAL_DASHBOARD_DELETE_FILTER_FULFILLED';
 export const LEGAL_DASHBOARD_DELETE_FILTER_FAILED = 'LEGAL_DASHBOARD_DELETE_FILTER_FAILED';
-export const LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN = 'LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN';
-export const LEGAL_DASHBOARD_DOCUMENT_CLICKED = 'LEGAL_DASHBOARD_DOCUMENT_CLICKED';
 export const LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED = 'LEGAL_DASHBOARD_SAVE_FILTER_OVERWRITE_REQUESTED';
 export const LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED = 'LEGAL_DASHBOARD_SAVE_DUPLICATE_FILTER_REQUESTED';
 export const LEGAL_DASHBOARD_SAVE_CONFIRM_CANCELLED = 'LEGAL_DASHBOARD_SAVE_CONFIRM_CANCELLED';
@@ -116,8 +114,6 @@ export function cancelSaveFilter() {
 
 export const selectFilterToDelete = payloadParamActionCreator(LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE);
 export const hideDeleteFilterModal = noPayloadActionCreator(LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL);
-export const toggleFiltersDropdown = payloadParamActionCreator(LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN);
-export const handleDocumentClick = noPayloadActionCreator(LEGAL_DASHBOARD_DOCUMENT_CLICKED);
 
 export function deleteFilter(filterName) {
   return (dispatch) => {
@@ -137,7 +133,6 @@ export function deleteFilter(filterName) {
           payload: filterName,
         });
         setTimeout(() => {
-          dispatch(toggleFiltersDropdown(false));
           dispatch(hideDeleteFilterModal());
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 

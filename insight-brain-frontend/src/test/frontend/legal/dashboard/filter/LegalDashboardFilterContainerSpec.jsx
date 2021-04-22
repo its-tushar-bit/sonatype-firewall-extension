@@ -16,9 +16,7 @@ describe('LegalDashboardFilterContainerSpec', function () {
       manageLegalFilters: {
         appliedFilterName: 'appliedFilterName',
         showDirtyAsterisk: 'showDirtyAsterisk',
-        showSaveFilterModal: 'showSaveFilterModal',
         savedFilters: 'savedFilters',
-        filtersDropdownOpen: 'filtersDropdownOpen',
       },
       legalDashboardFilter: {
         foo: 'bar',
@@ -46,9 +44,7 @@ describe('LegalDashboardFilterContainerSpec', function () {
     let wrapper = shallow(vdom).dive();
     expect(wrapper).toHaveProp('appliedFilterName', 'appliedFilterName');
     expect(wrapper).toHaveProp('showDirtyAsterisk', 'showDirtyAsterisk');
-    expect(wrapper).toHaveProp('showSaveFilterModal', 'showSaveFilterModal');
     expect(wrapper).toHaveProp('savedFilters', 'savedFilters');
-    expect(wrapper).toHaveProp('filtersDropdownOpen', 'filtersDropdownOpen');
     expect(wrapper).toHaveProp('foo', 'bar');
   });
 

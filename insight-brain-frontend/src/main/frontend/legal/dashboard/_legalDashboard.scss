@@ -10,6 +10,18 @@ legal-dashboard {
   display: contents;
 }
 
+.legal-dashboard-container {
+  padding-bottom: 0;
+
+  // to allow sidebar min-width
+  flex-shrink: 1;
+
+  .nx-page-title {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 .legal-dashboard-table {
   .nx-cell {
     vertical-align: middle;

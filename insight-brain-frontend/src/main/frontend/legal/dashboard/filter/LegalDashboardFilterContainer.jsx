@@ -12,10 +12,7 @@ import * as legalDashboardFilterActions from './legalDashboardFilterActions';
 function mapStateToProps({ manageLegalFilters, legalDashboardFilter }) {
   return {
     ...legalDashboardFilter,
-    ...pick(
-      ['appliedFilterName', 'showDirtyAsterisk', 'showSaveFilterModal', 'savedFilters', 'filtersDropdownOpen'],
-      manageLegalFilters
-    ),
+    ...pick(['appliedFilterName', 'showDirtyAsterisk', 'savedFilters'], manageLegalFilters),
   };
 }
 

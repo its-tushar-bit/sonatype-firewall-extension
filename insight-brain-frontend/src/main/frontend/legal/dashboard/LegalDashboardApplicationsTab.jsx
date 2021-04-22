@@ -19,6 +19,7 @@ import { applicationsTabPropType } from '../advancedLegalPropTypes';
 import { DASHBOARD } from '../advancedLegalConstants';
 import { isNilOrEmpty } from '../../util/jsUtil';
 import { Messages } from '../../util/CommonServices';
+import DashboardMask from '../../dashboard/results/dashboardMask/DashboardMask';
 
 export default function LegalDashboardApplicationsTab({
   applications,
@@ -73,7 +74,7 @@ export default function LegalDashboardApplicationsTab({
 
   return (
     <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-      {filtersAreDirty && <div className="form-mask" />}
+      {filtersAreDirty && <DashboardMask />}
       <NxTable id="legal-dashboard-applications-table" className="legal-dashboard-table">
         <NxTableHead>
           <NxTableRow>

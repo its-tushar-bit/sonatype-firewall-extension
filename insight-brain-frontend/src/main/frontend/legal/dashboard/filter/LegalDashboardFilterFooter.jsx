@@ -13,14 +13,13 @@ export default function LegalDashboardFilterFooter(props) {
   const {
     applyFilterError,
     filtersAreDirty,
-    needsAcknowledgement,
     setDisplaySaveFilterModal,
     revert,
     onApplyCurrentFilter,
     onCancelApplyFilter,
   } = props;
 
-  const applyBtnDisabled = !filtersAreDirty && !needsAcknowledgement,
+  const applyBtnDisabled = !filtersAreDirty,
     revertBtnClassnames = classnames({ disabled: !filtersAreDirty }),
     applyBtnClassnames = classnames({ disabled: applyBtnDisabled }),
     saveBtnClassnames = classnames({ disabled: filtersAreDirty }),
@@ -35,16 +34,22 @@ export default function LegalDashboardFilterFooter(props) {
         return;
       }
       onApplyCurrentFilter();
+    },
+    handleRevertBtnClick = () => {
+      if (!filtersAreDirty) {
+        return;
+      }
+      revert();
     };
 
   const footerHTML = (
-    <div className="nx-btn-bar dashboard-filter-footer-btns">
+    <div className="nx-btn-bar legal-dashboard-filter-footer-btns">
       <NxButton
         id="legal-dashboard-filter-revert"
         variant="tertiary"
         className={revertBtnClassnames}
         disabled={!filtersAreDirty}
-        onClick={revert}
+        onClick={handleRevertBtnClick}
       >
         Revert
       </NxButton>
@@ -92,12 +97,11 @@ export default function LegalDashboardFilterFooter(props) {
     </NxErrorAlert>
   );
 
-  return <footer className="dashboard-filter-footer">{applyFilterError ? footerErrorHTML : footerHTML}</footer>;
+  return <footer className="legal-dashboard-filter-footer">{applyFilterError ? footerErrorHTML : footerHTML}</footer>;
 }
 LegalDashboardFilterFooter.propTypes = {
   applyFilterError: PropTypes.string,
   filtersAreDirty: PropTypes.bool,
-  needsAcknowledgement: PropTypes.bool,
   setDisplaySaveFilterModal: PropTypes.func.isRequired,
   revert: PropTypes.func.isRequired,
   onApplyCurrentFilter: PropTypes.func.isRequired,

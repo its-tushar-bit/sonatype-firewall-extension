@@ -13,14 +13,14 @@ describe('LegalDashboardFilterFooter', function () {
 
   it('renders a section with the footer classes', function () {
     const fullFilter = getShallowComponent(),
-      footer = fullFilter.find('.dashboard-filter-footer');
+      footer = fullFilter.find('.legal-dashboard-filter-footer');
 
     expect(footer).toExist();
   });
 
   it('renders buttons', function () {
     const fullFilter = getShallowComponent(),
-      footer = fullFilter.find('.dashboard-filter-footer'),
+      footer = fullFilter.find('.legal-dashboard-filter-footer'),
       applyBtn = footer.find('#legal-dashboard-filter-apply').dive(),
       revertBtn = footer.find('#legal-dashboard-filter-revert').dive(),
       saveBtn = footer.find('#legal-dashboard-filter-save').dive();
@@ -30,42 +30,22 @@ describe('LegalDashboardFilterFooter', function () {
     expect(saveBtn).toHaveClassName('nx-btn');
   });
 
-  it('changes disabled class in apply button depending on filtersAreDirty and needsAcknowledgement', function () {
+  it('changes disabled class in apply button depending on filtersAreDirty', function () {
     let fullFilter, footer, applyBtn;
 
-    // !needsAcknowledgement && !filtersAreDirty
+    // !filtersAreDirty
     fullFilter = getShallowComponent({
-      needsAcknowledgement: false,
       filtersAreDirty: false,
     });
-    footer = fullFilter.find('.dashboard-filter-footer');
+    footer = fullFilter.find('.legal-dashboard-filter-footer');
     applyBtn = footer.find('#legal-dashboard-filter-apply');
     expect(applyBtn).toHaveClassName('disabled');
 
-    // needsAcknowledgement && !filtersAreDirty
+    // filtersAreDirty
     fullFilter = getShallowComponent({
-      needsAcknowledgement: true,
-      filtersAreDirty: false,
-    });
-    footer = fullFilter.find('.dashboard-filter-footer');
-    applyBtn = footer.find('#legal-dashboard-filter-apply');
-    expect(applyBtn).not.toHaveClassName('disabled');
-
-    // needsAcknowledgement && filtersAreDirty
-    fullFilter = getShallowComponent({
-      needsAcknowledgement: true,
       filtersAreDirty: true,
     });
-    footer = fullFilter.find('.dashboard-filter-footer');
-    applyBtn = footer.find('#legal-dashboard-filter-apply');
-    expect(applyBtn).not.toHaveClassName('disabled');
-
-    // !needsAcknowledgement && filtersAreDirty
-    fullFilter = getShallowComponent({
-      needsAcknowledgement: false,
-      filtersAreDirty: true,
-    });
-    footer = fullFilter.find('.dashboard-filter-footer');
+    footer = fullFilter.find('.legal-dashboard-filter-footer');
     applyBtn = footer.find('#legal-dashboard-filter-apply');
     expect(applyBtn).not.toHaveClassName('disabled');
   });
@@ -84,12 +64,12 @@ describe('LegalDashboardFilterFooter', function () {
     let fullFilter, footer, revertBtn;
 
     fullFilter = getShallowComponent({ filtersAreDirty: false });
-    footer = fullFilter.find('.dashboard-filter-footer');
+    footer = fullFilter.find('.legal-dashboard-filter-footer');
     revertBtn = footer.find('#legal-dashboard-filter-revert');
     expect(revertBtn).toHaveClassName('disabled');
 
     fullFilter = getShallowComponent({ filtersAreDirty: true });
-    footer = fullFilter.find('.dashboard-filter-footer');
+    footer = fullFilter.find('.legal-dashboard-filter-footer');
     revertBtn = footer.find('#legal-dashboard-filter-revert');
     expect(revertBtn).not.toHaveClassName('disabled');
   });
@@ -103,7 +83,6 @@ describe('LegalDashboardFilterFooter', function () {
     it('calls onApplyCurrentFilter callback if filters are dirty', function () {
       const shallowRender = getShallowComponent({
         filtersAreDirty: true,
-        needsAcknowledgement: false,
         onApplyCurrentFilter,
       });
 
@@ -111,21 +90,9 @@ describe('LegalDashboardFilterFooter', function () {
       expect(onApplyCurrentFilter).toHaveBeenCalled();
     });
 
-    it('calls onApplyCurrentFilter if filters are not dirty but needs acknowledgement', function () {
+    it("doesn't call onApplyCurrentFilter if filters are not dirty", function () {
       const shallowRender = getShallowComponent({
         filtersAreDirty: false,
-        needsAcknowledgement: true,
-        onApplyCurrentFilter,
-      });
-
-      shallowRender.find('#legal-dashboard-filter-apply').simulate('click');
-      expect(onApplyCurrentFilter).toHaveBeenCalled();
-    });
-
-    it("doesn't call onApplyCurrentFilter if filters are not dirty and doesn't need acknowledgement", function () {
-      const shallowRender = getShallowComponent({
-        filtersAreDirty: false,
-        needsAcknowledgement: false,
         onApplyCurrentFilter,
       });
 
@@ -146,7 +113,7 @@ describe('LegalDashboardFilterFooter', function () {
         onApplyCurrentFilter,
       });
 
-      const footer = shallowRender.find('.dashboard-filter-footer');
+      const footer = shallowRender.find('.legal-dashboard-filter-footer');
       const noErrorSaveButton = footer.find('#legal-dashboard-filter-save');
       const errorFooter = footer.find(NxErrorAlert);
 
@@ -157,12 +124,11 @@ describe('LegalDashboardFilterFooter', function () {
     it('retries to apply filters if you click the filter error retry button', function () {
       const shallowRender = getShallowComponent({
         applyFilterError: true,
-        filtersAreDirty: false,
-        needsAcknowledgement: true,
+        filtersAreDirty: true,
         onApplyCurrentFilter,
       });
 
-      const footer = shallowRender.find('.dashboard-filter-footer');
+      const footer = shallowRender.find('.legal-dashboard-filter-footer');
       const noErrorSaveButton = footer.find('#legal-dashboard-filter-save');
       const errorFooter = footer.find(NxErrorAlert);
 
@@ -179,12 +145,11 @@ describe('LegalDashboardFilterFooter', function () {
       const shallowRender = getShallowComponent({
         applyFilterError: true,
         filtersAreDirty: false,
-        needsAcknowledgement: true,
         onApplyCurrentFilter,
         onCancelApplyFilter: onApplyCancelSpy,
       });
 
-      const footer = shallowRender.find('.dashboard-filter-footer');
+      const footer = shallowRender.find('.legal-dashboard-filter-footer');
       const noErrorSaveButton = footer.find('#legal-dashboard-filter-save');
       const errorFooter = footer.find(NxErrorAlert);
 
@@ -202,7 +167,7 @@ describe('LegalDashboardFilterFooter', function () {
         onApplyCurrentFilter,
       });
 
-      const footer = shallowRender.find('.dashboard-filter-footer');
+      const footer = shallowRender.find('.legal-dashboard-filter-footer');
       const noErrorSaveButton = footer.find('#legal-dashboard-filter-save');
       const errorFooter = footer.find(NxErrorAlert);
 
@@ -212,12 +177,19 @@ describe('LegalDashboardFilterFooter', function () {
   });
 
   describe('Revert button onClick handler', function () {
-    it('calls revert callback', function () {
+    it('calls revert callback if filtersAreDirty is true', function () {
+      const revert = jasmine.createSpy('revert'),
+        shallowRender = getShallowComponent({ revert, filtersAreDirty: true });
+
+      shallowRender.find('#legal-dashboard-filter-revert').simulate('click');
+      expect(revert).toHaveBeenCalled();
+    });
+    it('does not call revert callback if filtersAreDirty is false', function () {
       const revert = jasmine.createSpy('revert'),
         shallowRender = getShallowComponent({ revert });
 
       shallowRender.find('#legal-dashboard-filter-revert').simulate('click');
-      expect(revert).toHaveBeenCalled();
+      expect(revert).not.toHaveBeenCalled();
     });
   });
 

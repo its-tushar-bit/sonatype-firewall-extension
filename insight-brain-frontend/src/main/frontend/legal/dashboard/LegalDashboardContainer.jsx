@@ -9,16 +9,19 @@ import { pick } from 'ramda';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import LegalDashboardPage from './LegalDashboardPage';
 import * as legalDashboardActions from './legalDashboardActions';
+import * as legalDashboardFilterActions from './filter/legalDashboardFilterActions';
 
-function mapStateToProps({ legalDashboard, legalDashboardFilter }) {
+function mapStateToProps({ legalDashboard, legalDashboardFilter, manageLegalFilters }) {
   return {
     ...pick(['applications', 'components', 'loading', 'loadError'], legalDashboard),
-    ...pick(['filtersAreDirty'], legalDashboardFilter),
+    ...pick(['filtersAreDirty', 'filterSidebarOpen'], legalDashboardFilter),
+    ...pick(['appliedFilterName', 'showDirtyAsterisk'], manageLegalFilters),
   };
 }
 
 const mapDispatchToProps = {
   ...legalDashboardActions,
+  ...legalDashboardFilterActions,
   stateGo,
 };
 

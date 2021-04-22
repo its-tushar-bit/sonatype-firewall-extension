@@ -45,10 +45,7 @@ describe('LegalDashboardPage', function () {
     expect(loadWrapper).toHaveProp('retryHandler', loadResultsSpy);
   });
 
-  it('renders an aside and a main', function () {
-    let sidebar = getShallowComponent().find('aside.nx-page-sidebar');
-    expect(sidebar).toExist();
-    expect(sidebar.find(LegalDashboardFilterContainerMock)).toExist();
+  it('renders a main', function () {
     expect(getShallowComponent().find('main.nx-page-main')).toExist();
   });
 

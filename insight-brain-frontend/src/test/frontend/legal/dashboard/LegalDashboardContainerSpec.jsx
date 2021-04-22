@@ -21,6 +21,11 @@ describe('LegalDashboardContainerSpec', function () {
       },
       legalDashboardFilter: {
         filtersAreDirty: false,
+        filterSidebarOpen: false,
+      },
+      manageLegalFilters: {
+        appliedFilterName: 'appliedFilterName',
+        showDirtyAsterisk: 'showDirtyAsterisk',
       },
     };
 
@@ -48,7 +53,11 @@ describe('LegalDashboardContainerSpec', function () {
     expect(wrapper).toHaveProp('components', 'components');
     expect(wrapper).toHaveProp('loading', 'loading');
     expect(wrapper).toHaveProp('loadError', 'loadError');
+    expect(wrapper).toHaveProp('loadError', 'loadError');
     expect(wrapper).toHaveProp('filtersAreDirty', false);
+    expect(wrapper).toHaveProp('filterSidebarOpen', false);
+    expect(wrapper).toHaveProp('appliedFilterName', 'appliedFilterName');
+    expect(wrapper).toHaveProp('showDirtyAsterisk', 'showDirtyAsterisk');
   });
 
   it('correctly maps the action creators to the LegalDashboardContainer props', function () {

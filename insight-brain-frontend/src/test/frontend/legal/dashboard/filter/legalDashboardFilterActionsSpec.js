@@ -29,7 +29,6 @@ describe('legalDashboardFilterActions', function () {
     name: '',
     basedOnFilterName: 'Test1',
     filter: 'filter data',
-    needsAcknowledgement: false,
   };
 
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -38,9 +37,7 @@ describe('legalDashboardFilterActions', function () {
     [getOrganizationsUrl()]: Promise.resolve({ data: 'organizations data' }),
     [getApplicationTagsUrl()]: Promise.resolve({ data: 'tag data' }),
     [getLegalDashboardFilters()]: Promise.resolve({ data: filterJson }),
-    [getLegalDashboardSavedFilters()]: Promise.resolve({
-      data: 'saved filters data',
-    }),
+    [getLegalDashboardSavedFilters()]: Promise.resolve({ data: 'saved filters data' }),
   };
 
   const initialState = {

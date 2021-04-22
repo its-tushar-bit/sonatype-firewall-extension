@@ -452,10 +452,8 @@ describe('manageLegalFilterActions', function () {
         expect(actions.length).toBe(3);
 
         setTimeout(function () {
-          expect(actions.length).toBe(5);
-          expect(actions[3].type).toBe('LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN');
-          expect(actions[3].payload).toBe(false);
-          expect(actions[4].type).toBe('LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL');
+          expect(actions.length).toBe(4);
+          expect(actions[3].type).toBe('LEGAL_DASHBOARD_HIDE_DELETE_FILTER_MODAL');
 
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);

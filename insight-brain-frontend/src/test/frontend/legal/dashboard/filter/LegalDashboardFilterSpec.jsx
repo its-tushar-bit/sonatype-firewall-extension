@@ -7,14 +7,12 @@ import { uncategorizedCategory } from '../../../../../main/frontend/dashboard/fi
 import * as enzymeUtils from '../../../enzymeUtils';
 import LegalDashboardFilterFooter from '../../../../../main/frontend/legal/dashboard/filter/LegalDashboardFilterFooter';
 import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
-import { mount } from 'enzyme/build';
 import React from 'react';
 import { NxErrorAlert } from '@sonatype/react-shared-components';
 import ManageFiltersDropdown from '../../../../../main/frontend/dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
 
 describe('LegalDashboardFilter', function () {
   let getShallowComponent,
-    getMountedComponent,
     loadFilterSpy,
     minimalProps,
     SaveLegalFilterModalContainerMock,
@@ -83,8 +81,6 @@ describe('LegalDashboardFilter', function () {
       savedFilters,
       applyDefaultFilter: jasmine.createSpy('applyDefaultFilter'),
       applySavedFilter: jasmine.createSpy('applySavedFilter'),
-      toggleFiltersDropdown: jasmine.createSpy('toggleFiltersDropdown'),
-      handleDocumentClick: jasmine.createSpy('handleDocumentClick'),
     };
 
     SaveLegalFilterModalContainerMock = jasmine
@@ -103,20 +99,13 @@ describe('LegalDashboardFilter', function () {
     ).default;
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardFilter, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(LegalDashboardFilter, minimalProps);
-  });
-
-  it('fires the loadFilter action', function () {
-    const component = mount(<LegalDashboardFilter {...minimalProps} />);
-    expect(loadFilterSpy).toHaveBeenCalled();
-    component.unmount();
   });
 
   describe('apply named filter error', function () {
     it('is rendered within the header if loadErrorFilterName is not null', function () {
       const props = { loadErrorFilterName: 'filter 1234' },
         shallowRender = getShallowComponent(props),
-        header = shallowRender.find('.dashboard-filter-header');
+        header = shallowRender.find('.legal-dashboard-filter-header');
 
       expect(header).toContainReact(<NxErrorAlert>Failed to load filter 1234</NxErrorAlert>);
     });
@@ -136,12 +125,20 @@ describe('LegalDashboardFilter', function () {
           showDirtyAsterisk: true,
         },
         shallowRender = getShallowComponent(props),
-        header = shallowRender.find('.dashboard-filter-header');
+        header = shallowRender.find('.legal-dashboard-filter-header');
 
-      expect(header.childAt(0)).toMatchSelector('h3.nx-h3');
-      expect(header.childAt(0)).toHaveText('Filter');
+      expect(header.childAt(0).find('.legal-dashboard-filter-header__title-text')).toHaveText('Filter');
 
-      expect(header.childAt(1).find(ManageFiltersDropdown)).toExist();
+      expect(header.childAt(1)).toContainReact(
+        <ManageFiltersDropdown
+          appliedFilterName="some filter"
+          showDirtyAsterisk={true}
+          savedFilters={savedFilters}
+          applyDefaultFilter={minimalProps.applyDefaultFilter}
+          applySavedFilter={minimalProps.applySavedFilter}
+          DeleteFilterModal={DeleteLegalFilterModalContainerMock}
+        />
+      );
     });
 
     it('does not render ManageFiltersDropdown if loading', function () {
@@ -150,10 +147,10 @@ describe('LegalDashboardFilter', function () {
           showDirtyAsterisk: true,
           loading: true,
         },
-        mountedRender = getMountedComponent(props),
-        header = mountedRender.find('.dashboard-filter-header');
+        shallowRender = getShallowComponent(props),
+        header = shallowRender.find('.legal-dashboard-filter-header');
 
-      expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
+      expect(header).not.toContainMatchingElement(ManageFiltersDropdown);
     });
 
     it('does not render ManageFiltersDropdown if loadError', function () {
@@ -162,10 +159,10 @@ describe('LegalDashboardFilter', function () {
           showDirtyAsterisk: true,
           loadError: 'Error',
         },
-        mountedRender = getMountedComponent(props),
-        header = mountedRender.find('.dashboard-filter-header');
+        shallowRender = getShallowComponent(props),
+        header = shallowRender.find('legal-dashboard-filter-header');
 
-      expect(header.find('.iq-manage-filters-dropdown')).not.toExist();
+      expect(header).not.toContainMatchingElement(ManageFiltersDropdown);
     });
   });
 
@@ -173,7 +170,6 @@ describe('LegalDashboardFilter', function () {
     const props = {
         applyFilterError: 'err',
         filtersAreDirty: true,
-        needsAcknowledgement: true,
         setDisplaySaveFilterModal: jasmine.createSpy('setDisplaySaveFilterModal'),
         revert: jasmine.createSpy('revert'),
         applyFilterCancelled: () => {},
@@ -184,7 +180,6 @@ describe('LegalDashboardFilter', function () {
     expect(filterFooter).toExist();
     expect(filterFooter).toHaveProp('applyFilterError', props.applyFilterError);
     expect(filterFooter).toHaveProp('filtersAreDirty', props.filtersAreDirty);
-    expect(filterFooter).toHaveProp('needsAcknowledgement', props.needsAcknowledgement);
     expect(filterFooter).toHaveProp('revert', props.revert);
     expect(filterFooter).toHaveProp('setDisplaySaveFilterModal', props.setDisplaySaveFilterModal);
     expect(filterFooter).toHaveProp('onApplyCurrentFilter', jasmine.any(Function));
@@ -253,12 +248,15 @@ describe('LegalDashboardFilter', function () {
       expect(loadWrapperElement).toHaveProp('loading', true);
     });
 
-    it('passes loadFilter to loadWrapper as its retryHandler prop', function () {
+    it('passes retryHandler to LoadWrapper that calls loadFilter with no args', function () {
       const fullFilter = getShallowComponent({ loading: true }),
         loadWrapperElement = fullFilter.find(LoadWrapper);
 
       expect(loadWrapperElement).toHaveProp('loading', true);
-      expect(loadWrapperElement).toHaveProp('retryHandler', loadFilterSpy);
+      loadWrapperElement.prop('retryHandler')();
+      expect(loadFilterSpy).toHaveBeenCalled();
+      expect(loadFilterSpy.calls.count()).toEqual(1);
+      expect(loadFilterSpy.calls.argsFor(0)).toEqual([]);
     });
   });
 

@@ -67,6 +67,16 @@ describe('manageLegalFiltersReducer', function () {
 
       it('sets the appliedFilter to the filter in the payload', function () {
         const state = Object.freeze(initState);
+        const newState = reduce(state, {
+          type: actionType,
+          payload: {},
+        });
+        expect(newState.appliedFilter).toEqual(filterToJson(defaultFilter));
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets the appliedFilter to the default filter if the payload has no filter', function () {
+        const state = Object.freeze(initState);
         const newState = reduce(state, action);
         expect(newState.appliedFilter).toBe(filterJson);
         expect(newState.other).toBe(otherObject); // other properties are not modified
@@ -469,22 +479,6 @@ describe('manageLegalFiltersReducer', function () {
     });
   });
 
-  describe('LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN action', function () {
-    it('sets filtersDropdownOpen to the payload', function () {
-      const state = Object.freeze({
-        filtersDropdownOpen: false,
-        other: otherObject,
-      });
-      const action = {
-        type: 'LEGAL_DASHBOARD_TOGGLE_FILTERS_DROPDOWN',
-        payload: true,
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
   describe('LEGAL_DASHBOARD_SELECT_FILTER_TO_DELETE action', function () {
     it('resets deleteFilter flags and sets filterToDelete to the payload', function () {
       const state = Object.freeze({
@@ -518,66 +512,6 @@ describe('manageLegalFiltersReducer', function () {
       };
       const newState = reduce(state, action);
       expect(newState.filterToDelete).toBeNull();
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('LEGAL_DASHBOARD_DOCUMENT_CLICKED action', function () {
-    it('sets filtersDropdownOpen to false if delete filter modal is not open', function () {
-      const state = Object.freeze({
-        filterToDelete: null,
-        filtersDropdownOpen: true,
-        other: otherObject,
-      });
-      const action = {
-        type: 'LEGAL_DASHBOARD_DOCUMENT_CLICKED',
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-
-    it('does not set filtersDropdownOpen to false if delete filter modal is open', function () {
-      const state = Object.freeze({
-        filterToDelete: 'foo',
-        filtersDropdownOpen: true,
-        other: otherObject,
-      });
-      const action = {
-        type: 'LEGAL_DASHBOARD_DOCUMENT_CLICKED',
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-  });
-
-  describe('LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED action', function () {
-    it('sets filtersDropdownOpen to false if delete filter modal is not open', function () {
-      const state = Object.freeze({
-        filterToDelete: null,
-        filtersDropdownOpen: true,
-        other: otherObject,
-      });
-      const action = {
-        type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED',
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
-    });
-
-    it('does not set filtersDropdownOpen to false if delete filter modal is open', function () {
-      const state = Object.freeze({
-        filterToDelete: 'foo',
-        filtersDropdownOpen: true,
-        other: otherObject,
-      });
-      const action = {
-        type: 'LEGAL_DASHBOARD_APPLY_FILTER_REQUESTED',
-      };
-      const newState = reduce(state, action);
-      expect(newState.filtersDropdownOpen).toBe(true);
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });
   });

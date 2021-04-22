@@ -3,8 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useEffect } from 'react';
-import { NxErrorAlert, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
+import React, { Fragment, useRef } from 'react';
+import {
+  NxButton,
+  NxErrorAlert,
+  NxFontAwesomeIcon,
+  NxStatefulTreeViewMultiSelect,
+  NxTooltip,
+} from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../react/LoadWrapper';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import Hexagon from '../../../react/Hexagon';
@@ -12,9 +18,13 @@ import * as PropTypes from 'prop-types';
 import { curryN } from 'ramda';
 import LegalDashboardFilterFooter from './LegalDashboardFilterFooter';
 import ManageFiltersDropdown from '../../../dashboard/filter/manageFiltersDropdown/ManageFiltersDropdown';
+import { filterToJson } from './legalDashboardFilterService';
+import classnames from 'classnames';
+import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
+import useClickAway from '../../../react/useClickAway';
+import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 import SaveLegalFilterModalContainer from './SaveLegalFilterModalContainer';
 import DeleteLegalFilterModalContainer from './DeleteLegalFilterModalContainer';
-import { filterToJson } from './legalDashboardFilterService';
 
 export default function LegalDashboardFilter(props) {
   const {
@@ -24,10 +34,8 @@ export default function LegalDashboardFilter(props) {
     applyFilterError,
     showDirtyAsterisk,
     filtersAreDirty,
-    needsAcknowledgement,
     showSaveFilterModal,
     savedFilters,
-    filtersDropdownOpen,
 
     // filter items
     organizations,
@@ -50,27 +58,55 @@ export default function LegalDashboardFilter(props) {
     toggleAppsAndOrgs,
     applyDefaultFilter,
     applySavedFilter,
-    toggleFiltersDropdown,
     selectFilterToDelete,
-    handleDocumentClick,
+    toggleFilterSidebar,
   } = props;
-
-  useEffect(() => {
-    loadFilter();
-  }, []);
 
   const curriedToggleFilter = curryN(2, toggleFilter);
   const onCategoriesChange = curriedToggleFilter('categories');
   const onStagesChange = curriedToggleFilter('stages');
   const onProgressOptionsChange = curriedToggleFilter('progressOptions');
+  const ref = useRef(null);
 
   const applicationCategoryTooltip = (prop) => (prop && prop.owner && `in ${prop.owner}`) || '';
 
+  useClickAway(ref, () => toggleFilterSidebar(false));
+  useEscapeKeyStack(true, () => toggleFilterSidebar(false));
+
+  function handleCloseBtnClick() {
+    if (filtersAreDirty) {
+      return;
+    }
+    toggleFilterSidebar(false);
+  }
+
+  function handleRetry() {
+    // Note: no args is passed to loadFilter()
+    // loadFilter() action expects resultsType string or null
+    // If we pass loadFilter function directly to retryHandler, it will be passed the event object,
+    // which will break the logic in loadFilter() action.
+    loadFilter();
+  }
+
+  const closeFilterBtnTooltip = filtersAreDirty ? 'Please apply or revert filter' : '';
+
   return (
-    <Fragment>
+    <aside ref={ref} className="legal-dashboard-filter-container nx-viewport-sized">
       {showSaveFilterModal && <SaveLegalFilterModalContainer />}
-      <header className="dashboard-filter-header" id="dashboard-filter-header">
-        <h3 className="nx-h3">Filter</h3>
+      <header className="legal-dashboard-filter-header">
+        <div className="legal-dashboard-filter-header__title">
+          <h3 className="nx-h3 legal-dashboard-filter-header__title-text">Filter</h3>
+          <NxTooltip id="legal-dashboard-filter-close-btn-tooltip" placement="top-end" title={closeFilterBtnTooltip}>
+            <NxButton
+              id="legal-dashboard-filter-close-btn"
+              onClick={handleCloseBtnClick}
+              variant="icon-only"
+              className={classnames({ disabled: filtersAreDirty })}
+            >
+              <NxFontAwesomeIcon icon={faArrowToRight} />
+            </NxButton>
+          </NxTooltip>
+        </div>
         {!loading && !loadError && (
           <ManageFiltersDropdown
             {...{
@@ -79,18 +115,15 @@ export default function LegalDashboardFilter(props) {
               savedFilters,
               applyDefaultFilter,
               applySavedFilter,
-              filtersDropdownOpen,
-              toggleFiltersDropdown,
               selectFilterToDelete,
-              handleDocumentClick,
               DeleteFilterModal: DeleteLegalFilterModalContainer,
             }}
           />
         )}
         {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
       </header>
-      <div className="dashboard-filter nx-viewport-sized__scrollable">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={loadFilter}>
+      <div className="legal-dashboard-filter nx-viewport-sized__scrollable">
+        <LoadWrapper loading={loading} error={loadError} retryHandler={handleRetry}>
           {() => (
             <Fragment>
               <IqOrgAppPicker
@@ -142,14 +175,13 @@ export default function LegalDashboardFilter(props) {
         {...{
           applyFilterError,
           filtersAreDirty,
-          needsAcknowledgement,
           setDisplaySaveFilterModal,
           revert,
           onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
           onCancelApplyFilter: applyFilterCancelled,
         }}
       />
-    </Fragment>
+    </aside>
   );
 }
 
@@ -159,7 +191,6 @@ LegalDashboardFilter.propTypes = {
   loadErrorFilterName: PropTypes.string,
   applyFilterError: PropTypes.string,
   filtersAreDirty: PropTypes.bool,
-  needsAcknowledgement: PropTypes.bool,
   showAgeFilter: PropTypes.bool,
   showSaveFilterModal: PropTypes.bool,
   organizations: PropTypes.array,

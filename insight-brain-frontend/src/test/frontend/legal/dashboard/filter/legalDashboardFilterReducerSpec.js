@@ -272,15 +272,6 @@ describe('legalDashboardFilterReducer', function () {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('sets needsAcknowledgement', function () {
-        initState.needsAcknowledgement = false;
-        action.payload.needsAcknowledgement = true;
-        var state = Object.freeze(initState);
-        var newState = legalDashboardFilterReducer(state, action);
-        expect(newState.needsAcknowledgement).toBe(true);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
-      });
-
       testApplyFilter();
     });
 
@@ -293,14 +284,6 @@ describe('legalDashboardFilterReducer', function () {
             basedOnFilterName: 'Test1',
           },
         };
-      });
-
-      it('always resets needsAcknowledgement', function () {
-        initState.needsAcknowledgement = true;
-        var state = Object.freeze(initState);
-        var newState = legalDashboardFilterReducer(state, action);
-        expect(newState.needsAcknowledgement).toBe(false);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
       testApplyFilter();

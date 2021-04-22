@@ -8,6 +8,7 @@ import { NxPagination, NxTable, NxTableCell, NxTableHead } from '@sonatype/react
 import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationsTab';
 import LegalDashboardApplicationRow from '../../../../main/frontend/legal/dashboard/LegalDashboardApplicationRow';
 import { DASHBOARD } from '../../../../main/frontend/legal/advancedLegalConstants';
+import DashboardMask from '../../../../main/frontend/dashboard/results/dashboardMask/DashboardMask';
 
 describe('LegalDashboardApplicationsTab component', function () {
   let getShallowComponent;
@@ -62,7 +63,7 @@ describe('LegalDashboardApplicationsTab component', function () {
 
   it('displays the mask if filtersAreDirty is true', function () {
     const wrapper = getShallowComponent({ filtersAreDirty: true });
-    let mask = wrapper.find('.form-mask');
+    let mask = wrapper.find(DashboardMask);
     expect(mask).toExist();
   });
 

@@ -62,7 +62,7 @@ public class InsightConfigurationFactory
           "\nYour configuration file contains properties that are only compatible with Nexus IQ Server version 1.42 and lower." +
           "\nUpdate your configuration file to be compatible with this version of Nexus IQ Server." +
           "\nRefer to our configuration update guide at:" +
-          "\nhttps://help.sonatype.com/display/NXIQ/Updating+your+Nexus+IQ+Server+Configuration." +
+          "\nhttps://links.sonatype.com/products/nxiq/doc/updating-your-configuration" +
           "\n=================================================================================================================";
 
   private static final Set<String> DROPWIZARD_062_PROPERTIES = Sets
@@ -74,8 +74,8 @@ public class InsightConfigurationFactory
           "\nNo configuration file was specified/found." +
           "\nYou must provide the path to your configuration file." +
           "\nRefer to our help documentation at:" +
-          "\nhttps://help.sonatype.com/display/NXIQ/IQ+Server+Installation" +
-          "\nhttps://help.sonatype.com/display/NXIQ/Configuring" +
+          "\nhttps://links.sonatype.com/products/nxiq/doc/iq-server-installation" +
+          "\nhttps://links.sonatype.com/products/nxiq/doc/configuring" +
           "\n=================================================================================================================";
 
   public InsightConfigurationFactory(

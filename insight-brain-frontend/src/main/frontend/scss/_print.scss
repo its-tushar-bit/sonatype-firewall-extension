@@ -64,6 +64,7 @@
     border: none !important;
     display: block !important;
     padding: 0 !important;
+    margin: 0 !important;
   }
 
   #main-header-buttons,
@@ -75,6 +76,57 @@
 
   .nx-cell--header {
     border-left-style: none !important;
+  }
+
+  .nx-global-sidebar {
+    padding: 0 !important;
+  }
+
+  .iq-nav-bar--system,
+  .nx-global-sidebar__toggle,
+  .iq-sidebar-nav-footer__powered {
+    border: none !important;
+    padding: 0 !important;
+    display: none !important;
+  }
+
+  .iq-sidebar-nav-footer {
+    flex-direction: row !important;
+    align-items: start !important;
+    padding: 0 0 0 46px !important;
+    margin: 0 !important;
+    white-space: nowrap;
+    margin-bottom: 24px !important;
+  }
+
+  .iq-sidebar-nav-footer__product-info {
+    height: auto !important;
+    order: 2;
+  }
+
+  .iq-sidebar-nav-footer__product-info:before {
+    content: ' | ';
+    white-space: pre;
+  }
+
+  .nx-global-sidebar__product-info {
+    order: 1;
+  }
+
+  .iq-sidebar-nav-footer__created,
+  .nx-global-sidebar__header,
+  .nx-global-sidebar.closed,
+  .nx-global-sidebar__expanded-content {
+    margin: 0 !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    overflow: unset !important;
+  }
+
+  .nx-global-sidebar__logo {
+    height: 46px !important;
+    filter: invert(1);
+    max-width: none !important;
   }
 
   #application-report-vulnerabilities {
@@ -89,6 +141,11 @@
 
     .nx-tile-content {
       display: block;
+      padding: 0 !important;
+    }
+
+    .nx-tile-header {
+      padding: 0 !important;
     }
   }
 

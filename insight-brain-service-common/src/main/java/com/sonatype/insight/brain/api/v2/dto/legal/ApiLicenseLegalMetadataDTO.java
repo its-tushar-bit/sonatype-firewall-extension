@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
+import com.sonatype.insight.license.dto.model.LicenseThreatGroupDTO;
 
 /**
  * @since 1.101
@@ -23,6 +24,10 @@ public class ApiLicenseLegalMetadataDTO
 
   public Set<LicenseObligationDTO> obligations = new HashSet<>();
 
+  public LicenseThreatGroupDTO threatGroup;
+
+  public boolean isMulti = false;
+
   public ApiLicenseLegalMetadataDTO() {
     // for jackson
   }
@@ -31,11 +36,13 @@ public class ApiLicenseLegalMetadataDTO
       String licenseId,
       String licenseName,
       String licenseText,
-      Set<LicenseObligationDTO> obligations)
+      Set<LicenseObligationDTO> obligations,
+      LicenseThreatGroupDTO threatGroup)
   {
     this.licenseId = licenseId;
     this.licenseName = licenseName;
     this.licenseText = licenseText;
     this.obligations = obligations;
+    this.threatGroup = threatGroup;
   }
 }

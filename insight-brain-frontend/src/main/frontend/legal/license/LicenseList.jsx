@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React, { Fragment } from 'react';
+import { licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
+import classnames from 'classnames';
+import * as PropTypes from 'prop-types';
+import { NxThreatIndicator } from '@sonatype/react-shared-components';
+import { isMultiLicense } from './componentLicenseDetailsActions';
+
+export default function LicenseList(props) {
+  const { ownerType, ownerId, hash, componentLicenseDetails, licenseLegalMetadata, $state } = props;
+
+  const selectedLicense = parseInt(componentLicenseDetails.licenseIndex);
+
+  const licenseItem = (item, index) => (
+    <li key={index} className="nx-list__item nx-list__item--link">
+      <a
+        href={$state.href('componentLicenseDetails', { ownerType, ownerId, hash, licenseIndex: index })}
+        className={listLinkClass(index)}
+      >
+        <span className="nx-list__text nx-truncate-ellipsis">{item}</span>
+        <span className="nx-list__subtext">{licenseThreat(item)}</span>
+      </a>
+    </li>
+  );
+
+  const licenseThreat = (licenseName) => {
+    const license = licenseLegalMetadata.find((licenseMetadata) => licenseMetadata.licenseId === licenseName);
+    if (!license || !license.threatGroup) {
+      return <span />;
+    }
+    return (
+      <Fragment>
+        <NxThreatIndicator policyThreatLevel={license.threatGroup.threatLevel} />
+        <span>{license.threatGroup.name}</span>
+      </Fragment>
+    );
+  };
+
+  const listLinkClass = (index) => classnames('nx-list__link', { selected: index === selectedLicense });
+
+  function makeListItem(item, index) {
+    if (isMultiLicense(licenseLegalMetadata, item)) {
+      return null;
+    } else {
+      return licenseItem(item, index);
+    }
+  }
+
+  const listItems = licenseLegalMetadata.map((l, i) => makeListItem(l.licenseId, i));
+
+  return (
+    <aside className="nx-scrollable nx-viewport-sized__scrollable">
+      <ul className="nx-list nx-list--clickable">{listItems}</ul>
+    </aside>
+  );
+}
+
+LicenseList.propTypes = {
+  componentLicenseDetails: PropTypes.object,
+  ownerType: PropTypes.string,
+  ownerId: PropTypes.string,
+  hash: PropTypes.string,
+  licenseLegalMetadata: licenseLegalMetadataPropType,
+  $state: PropTypes.object.isRequired,
+};

@@ -11,6 +11,7 @@ import componentCopyrightDetails from './copyright/componentCopyrightDetails';
 import CopyrightDetailsHeaderContainer from './copyright/CopyrightDetailsHeaderContainer';
 import CopyrightListContainer from './copyright/CopyrightListContainer';
 import CopyrightDetailsContentsContainer from './copyright/CopyrightDetailsContentsContainer';
+import ComponentLicenseDetailsContainer from './license/ComponentLicenseDetailsContainer';
 
 export default angular
   .module('legalModule', [])
@@ -31,6 +32,10 @@ export default angular
   .component(
     'copyrightDetailsContents',
     react2angular(withStoreProvider(CopyrightDetailsContentsContainer), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'componentLicenseDetails',
+    react2angular(withStoreProvider(ComponentLicenseDetailsContainer), [], ['$ngRedux', '$state'])
   )
   .config(routes);
 
@@ -81,6 +86,13 @@ function routes($stateProvider) {
       component: 'copyrightDetailsContents',
       data: {
         title: 'Copyright Details',
+      },
+    })
+    .state('componentLicenseDetails', {
+      url: '/legal/{ownerType}/{ownerId}/component/{hash}/licenses/{licenseIndex}',
+      component: 'componentLicenseDetails',
+      data: {
+        title: 'Component - License Details',
       },
     });
 }

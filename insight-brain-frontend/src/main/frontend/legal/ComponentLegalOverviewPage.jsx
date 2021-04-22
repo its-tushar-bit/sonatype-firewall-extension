@@ -106,7 +106,14 @@ export default function ComponentLegalOverviewPage(props) {
             />
             <LicenseObligationsTileContainer />
             <div id="component-legal-overview-details-right">
-              <LicenseDetailsTile licenseNames={licenseNames} />
+              <LicenseDetailsTile
+                licenseNames={licenseNames}
+                licenseLegalMetadata={licenseLegalMetadata}
+                ownerType={ownerType}
+                ownerId={ownerId}
+                hash={hash}
+                $state={$state}
+              />
               <CopyrightStatementsTile
                 component={component}
                 availableScopes={availableScopes}

@@ -331,6 +331,7 @@ public class LegalReportBuilder
         LicenseMetadataDTO licenseMetadataDTO = licenseMetadataById.get(license.getId());
         licenseLegalMetadata.licenseText = licenseMetadataDTO.getLicenseText();
         licenseLegalMetadata.obligations = licenseMetadataDTO.getLicenseObligations();
+        licenseLegalMetadata.threatGroup = licenseMetadataDTO.getLicenseThreatGroup();
       }
       allLicenseLegalMetadata.add(licenseLegalMetadata);
       licenseIds.add(license.getId());
@@ -340,6 +341,7 @@ public class LegalReportBuilder
         ApiLicenseLegalMetadataDTO licenseLegalMetadata = new ApiLicenseLegalMetadataDTO();
         licenseLegalMetadata.licenseId = multiLicense.licenseId;
         licenseLegalMetadata.licenseName = multiLicense.licenseName;
+        licenseLegalMetadata.isMulti = true;
         allLicenseLegalMetadata.add(licenseLegalMetadata);
       }
     }

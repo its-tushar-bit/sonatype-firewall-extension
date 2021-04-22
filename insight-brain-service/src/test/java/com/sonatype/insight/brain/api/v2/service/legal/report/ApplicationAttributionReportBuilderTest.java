@@ -124,7 +124,7 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.licenseLegalMetadata = new HashSet<>();
     ApiLicenseLegalMetadataDTO licenseLegalMetadataDTO =
         new ApiLicenseLegalMetadataDTO("LicenseOne", "LicenseOneName", "License One Standard License Text",
-            new HashSet<>());
+            new HashSet<>(), null);
     reportDTO.licenseLegalMetadata.add(licenseLegalMetadataDTO);
 
     String content = reportBuilder.generateLegalApplicationAttributionReport(application, BuildStageType.ID);

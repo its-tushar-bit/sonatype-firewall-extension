@@ -143,6 +143,24 @@ describe('coordinates.input.directive.spec', function () {
       expect(directiveScope.vm.coordinates.extension).toEqual('tar.gz');
     });
 
+    it('name, version specific values', function () {
+      initialize('pypi:MarkupSafe:1.1.0::');
+      expect(directiveScope.vm.coordinates.format).toEqual('pypi');
+      expect(directiveScope.vm.coordinates.name).toEqual('MarkupSafe');
+      expect(directiveScope.vm.coordinates.version).toEqual('1.1.0');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('');
+      expect(directiveScope.vm.coordinates.extension).toEqual('');
+    });
+
+    it('name, version, qualifier specific values', function () {
+      initialize('pypi:MarkupSafe:1.1.0:q');
+      expect(directiveScope.vm.coordinates.format).toEqual('pypi');
+      expect(directiveScope.vm.coordinates.name).toEqual('MarkupSafe');
+      expect(directiveScope.vm.coordinates.version).toEqual('1.1.0');
+      expect(directiveScope.vm.coordinates.qualifier).toEqual('q');
+      expect(directiveScope.vm.coordinates.extension).toBeUndefined();
+    });
+
     it('name, version, extension wildcard values', function () {
       initialize('pypi:*:*::*');
       expect(directiveScope.vm.coordinates.format).toEqual('pypi');

@@ -1177,12 +1177,15 @@ public abstract class AbstractPolicyEditorTest
     coordsCondition.extension().val("*");
     toggleAndCheckSave(coordsCondition.name());
     toggleAndCheckSave(coordsCondition.version());
-    toggleAndCheckSave(coordsCondition.extension());
-    // With everything set to wildcard, if we set qualifier to empty we can still save
+    // With everything set to wildcard, if we set extension and qualifier to empty we can still save
+    coordsCondition.extension().val("");
     coordsCondition.qualifier().val("");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
     // With everything set to wildcard, if we set qualifier back to a wildcard we can still save
     coordsCondition.qualifier().val("*");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to wildcard, if we set extension back to a wildcard we can still save
+    coordsCondition.extension().val("*");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
     // With everything set to specific values, if we set any except qualifier to empty we can't save
     coordsCondition.name().val("MarkupSafe");
@@ -1191,14 +1194,18 @@ public abstract class AbstractPolicyEditorTest
     coordsCondition.extension().val("tar.gz");
     toggleAndCheckSave(coordsCondition.name());
     toggleAndCheckSave(coordsCondition.version());
-    toggleAndCheckSave(coordsCondition.extension());
     // With everything set to specific values, if we set qualifier to empty we can still save
     coordsCondition.qualifier().val("");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
+    // With everything set to specific values, if we set extension to empty we can still save
+    coordsCondition.extension().val("");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
     // With everything set to specific values, if we set qualifier back to a specific value we can still save
     coordsCondition.qualifier().val("cp37");
     PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
-
+    // With everything set to specific values, if we set extension back to a specific value we can still save
+    coordsCondition.extension().val("tar.gz");
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
     DropdownConditionEditSection labelCondition =
         addDropdownCondition(newConstraint, LabelConditionType.class, 4, conditionTypesOptionMap);
     labelCondition.operator().selectedItem().shouldHave(text("is"));

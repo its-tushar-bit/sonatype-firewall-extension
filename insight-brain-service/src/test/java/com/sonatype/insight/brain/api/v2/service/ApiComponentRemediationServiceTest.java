@@ -333,10 +333,7 @@ public class ApiComponentRemediationServiceTest
 
   @Test
   public void testGetSuggestedRemediationForComponent_Pypi_NoExt() {
-    ApiComponentDTOV2 component = createComponent(PYPI_COORDINATES_NO_EXT);
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> service.getSuggestedRemediationForComponent(component, OwnerType.APPLICATION, app.getId(),
-            DevelopStageType.ID)).withMessage("The following coordinates are missing for given format: [extension]");
+    assertSuggestedRemediationForComponent_ThirdParty(PYPI_COORDINATES_NO_EXT);
   }
 
   @Test

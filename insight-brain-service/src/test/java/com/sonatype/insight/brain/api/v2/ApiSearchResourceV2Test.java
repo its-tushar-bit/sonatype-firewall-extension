@@ -562,6 +562,23 @@ public class ApiSearchResourceV2Test
   }
 
   @Test
+  public void testSearchComponent_PypiNullExtension() throws Exception {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createPypiCoordinates(
+        "PyYAML", "3.11", "WIN32-py3.2", null);
+    HttpResponse response =
+        searchRequest(Stage.ID_BUILD).with(hash("1249e25aebb15358bedd")).with(coords(componentIdentifier)).get();
+    assertResponseStatus(200, response);
+    ApiSearchResultsDTOV2 results = response.getBody(ApiSearchResultsDTOV2.class);
+    assertThat(results).isNotNull();
+    assertThat(results.results).isEmpty();
+    assertThat(results.criteria).isNotNull();
+    assertThat(results.criteria.stageId).isEqualTo(Stage.ID_BUILD);
+    assertThat(results.criteria.hash).isEqualTo("1249e25aebb15358bedd");
+    assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(results.criteria.componentIdentifier))
+        .isEqualTo(ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "WIN32-py3.2", "*"));
+  }
+
+  @Test
   public void testSearchComponent_AppWithoutAnyReports() throws Exception {
     tempEntity.newApplicationWithParent("search-app-1");
 

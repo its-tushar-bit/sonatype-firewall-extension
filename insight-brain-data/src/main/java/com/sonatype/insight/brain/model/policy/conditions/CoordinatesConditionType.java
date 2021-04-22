@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.CoordinatesV
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import com.google.common.collect.ImmutableSet;
 import org.codehaus.plexus.util.StringUtils;
 
 public class CoordinatesConditionType
@@ -32,7 +33,7 @@ public class CoordinatesConditionType
   static {
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_MAVEN, Collections.singleton(5));
     FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_ANAME, Collections.singleton(2));
-    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_PYPI, Collections.singleton(3));
+    FORMAT_TO_OPTIONAL_COORDINATE_INDEXES.put(ComponentIdentifier.FORMAT_PYPI, ImmutableSet.of(3, 4));
   }
 
   public static final String ID = "Coordinates";

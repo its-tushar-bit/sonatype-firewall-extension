@@ -485,6 +485,30 @@ public class CoordinatesConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_MatchPyPiCoordinates_OptionalCoordinates() {
+    Constraint constraint = createConstraint("match", ComponentIdentifier.FORMAT_PYPI + ":PyYaMl:1::");
+    List<Constraint> constraints = Arrays.asList(constraint);
+
+    Policy policy = new Policy("PolicyId1", "Policy Name 1");
+    policy.setConstraints(constraints);
+    policy.setAction(BuildStageType.ID, FailActionType.ID);
+
+    List<Component> components = new ArrayList<>();
+    Component component =
+        ComponentFactory.forCoordinates(ComponentIdentifier.FORMAT_PYPI, "pyyaml", "1", "", "");
+    components.add(component);
+
+    List<PolicyAlert> policyAlerts = evaluate(policy, components);
+    assertThat(policyAlerts).hasSize(1);
+    assertFactCounts(1, 1, policyAlerts.get(0));
+    assertContainsPolicyAlert(component, policy, constraint, FailActionType.ID, CoordinatesConditionType.ID,
+        policyAlerts);
+    String actualReason = policyAlerts.get(0).getTrigger().getComponentFacts().get(0).getConstraintFacts().get(0)
+        .getConditionFacts().get(0).getReason();
+    assertThat(actualReason).isEqualTo("Coordinates were pyyaml 1 (match PyYaMl 1)");
+  }
+
+  @Test
   public void testEvaluate_EscapeUnsafeCharacter() {
     String artifactId = "\\\"\r\n\t'";
     Policy policy = new Policy("PolicyId1", "Policy Name 1");

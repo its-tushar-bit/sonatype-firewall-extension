@@ -65,7 +65,7 @@ export default function DashboardFilterFooter(props) {
       <NxTooltip
         id="dashboard-filter-apply-tooltip"
         placement="top-end"
-        title={filtersAreDirty ? '' : 'There are no changes to update.'}
+        title={needsAcknowledgement || filtersAreDirty ? '' : 'There are no changes to update.'}
       >
         <NxButton
           id="dashboard-filter-apply"

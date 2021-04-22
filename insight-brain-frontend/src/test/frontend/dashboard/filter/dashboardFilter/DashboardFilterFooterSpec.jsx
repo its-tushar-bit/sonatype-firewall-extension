@@ -81,6 +81,16 @@ describe('DashboardFilter footer', function () {
     expect(applyBtn).toHaveClassName('disabled');
   });
 
+  it('adds an empty tooltip to the apply btn if it is enabled and needs acknowledgement is true', function () {
+    const fullFilter = getShallowComponent({ filtersAreDirty: false, needsAcknowledgement: true }),
+      applyBtnTooltip = fullFilter.find('#dashboard-filter-apply-tooltip'),
+      applyBtn = applyBtnTooltip.find(NxButton);
+
+    expect(applyBtnTooltip).toHaveTagName('NxTooltip');
+    expect(applyBtnTooltip).toHaveProp('title', '');
+    expect(applyBtn).not.toHaveClassName('disabled');
+  });
+
   it('disables the revert button if the filters are not dirty', function () {
     let fullFilter, footer, revertBtn;
 

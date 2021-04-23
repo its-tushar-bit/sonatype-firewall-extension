@@ -49,7 +49,7 @@ export default function ResultsTable(props) {
   const maxRowsPerPage = 15;
 
   const filteredRepos = useMemo(
-    () => (repositories === null ? null : repositories.filter(isRepositorySelectedByFilter)),
+    () => (repositories === null ? null : repositories.filter(isRepositorySelectedByFilters)),
     [repositories, filters]
   );
 
@@ -122,12 +122,16 @@ export default function ResultsTable(props) {
     setSortingParameters(settings.key, sortingOrder, direction);
   }
 
-  function isRepositorySelectedByFilter(repository) {
+  function isRepositorySelectedByFilters(repository) {
     return (
-      repository.project.includes(filters.project) &&
-      repository.namespace.includes(filters.namespace) &&
-      repository.description.includes(filters.description)
+      isRepositorySelectedByFilter(repository, 'project', filters.project) &&
+      isRepositorySelectedByFilter(repository, 'namespace', filters.namespace) &&
+      isRepositorySelectedByFilter(repository, 'description', filters.description)
     );
+  }
+
+  function isRepositorySelectedByFilter(repository, filterName, filterValue) {
+    return repository[filterName].toLowerCase().includes(filterValue.toLowerCase());
   }
 
   function toggleSelectAll() {
@@ -138,7 +142,9 @@ export default function ResultsTable(props) {
   function changeFilter(filterName, filterValue) {
     setFilters(propSet(filterName, filterValue, filters));
     setSelectedRepositories(
-      repositories.filter((repo) => repo[filterName].includes(filterValue) && selectedRepositories.includes(repo))
+      repositories.filter(
+        (repo) => isRepositorySelectedByFilter(repo, filterName, filterValue) && selectedRepositories.includes(repo)
+      )
     );
 
     // when filters change, always reset to the first page

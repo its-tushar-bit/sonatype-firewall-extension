@@ -241,7 +241,7 @@ describe('ResultsTable', function () {
   });
 
   describe('filters', () => {
-    const repositories = ['aaaa', 'bbbb', 'aabb'].map((prefix) => createRepo(prefix));
+    const repositories = ['aaaa', 'bbbb', 'aabb', 'BBBB', 'ABBB'].map((prefix) => createRepo(prefix));
     const setSelectedRepositories = jasmine.createSpy('setSelectedRepositories');
     const selectedRepositories = [];
 
@@ -267,13 +267,25 @@ describe('ResultsTable', function () {
         expect(component.find(RepositoryRow).length).toBe(1);
         expect(component.find(RepositoryRow).prop('repo')).toEqual(repositories[0]);
 
-        // when the filter matches multipel repos
+        // when the filter matches multiple repos
         filterInput.simulate('change', 'aa');
 
         // then repository rows with the matching repos are generated
         expect(component.find(RepositoryRow).length).toBe(2);
         expect(component.find(RepositoryRow).first().prop('repo')).toEqual(repositories[0]);
         expect(component.find(RepositoryRow).last().prop('repo')).toEqual(repositories[2]);
+
+        // when filter matches multiple repos using case-insensitive match
+        filterInput.simulate('change', 'bb');
+
+        // then every repo containing bb case-insensitively is shown
+        expect(component.find(RepositoryRow).length).toBe(4);
+        expect(component.find(RepositoryRow).map((row) => row.prop('repo').httpCloneUrl)).toEqual([
+          'url-bbbb',
+          'url-aabb',
+          'url-BBBB',
+          'url-ABBB',
+        ]);
       });
 
       it('deselects filtered-out components when filtering by ' + filterName, () => {
@@ -304,6 +316,18 @@ describe('ResultsTable', function () {
 
         // then everything is deselected
         expect(setSelectedRepositories).toHaveBeenCalledWith([]);
+
+        // when filter matches multiple repos using case-insensitive match
+        setSelectedRepositories.calls.reset();
+        filterInput.simulate('change', 'bb');
+
+        // then filtered-out repos are deselected (all except the first don't contain 'bb' or 'BB')
+        expect(setSelectedRepositories).toHaveBeenCalledWith([
+          repositories[1],
+          repositories[2],
+          repositories[3],
+          repositories[4],
+        ]);
       });
     });
   });

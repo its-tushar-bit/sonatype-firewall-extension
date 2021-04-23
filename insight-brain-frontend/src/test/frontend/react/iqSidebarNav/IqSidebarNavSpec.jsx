@@ -208,7 +208,7 @@ describe('IqSidebarNav', function () {
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
       expect(navLink).toHaveProp('icon', faGavel);
       expect(navLink).toHaveProp('text', 'Legal');
-      expect(navLink).toHaveProp('href', 'href-legalDashboard');
+      expect(navLink).toHaveProp('href', 'href-legal.dashboard');
       expect(navLink).toHaveProp('isSelected', false);
     });
 
@@ -273,7 +273,7 @@ describe('IqSidebarNav', function () {
       });
 
       it('renders Legal link as selected when the state matches', function () {
-        includesSpy.and.callFake((state) => state === 'legalDashboard');
+        includesSpy.and.callFake((state) => state === 'legal');
         expect(renderAllLinks().find('#advanced-legal-navigation-button')).toHaveProp('isSelected', true);
       });
     });

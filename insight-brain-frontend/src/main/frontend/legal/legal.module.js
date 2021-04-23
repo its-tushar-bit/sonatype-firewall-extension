@@ -11,10 +11,15 @@ import componentCopyrightDetails from './copyright/componentCopyrightDetails';
 import CopyrightDetailsHeaderContainer from './copyright/CopyrightDetailsHeaderContainer';
 import CopyrightListContainer from './copyright/CopyrightListContainer';
 import CopyrightDetailsContentsContainer from './copyright/CopyrightDetailsContentsContainer';
+import LegalDashboardContainer from './dashboard/LegalDashboardContainer';
 import ComponentLicenseDetailsContainer from './license/ComponentLicenseDetailsContainer';
 
 export default angular
   .module('legalModule', [])
+  .component(
+    'legalDashboard',
+    react2angular(withStoreProvider(LegalDashboardContainer), ['isAuthorized'], ['$ngRedux'])
+  )
   .component(
     'componentLegalOverview',
     react2angular(withStoreProvider(ComponentLegalOverviewContainer), [], ['$ngRedux', '$state'])
@@ -41,54 +46,64 @@ export default angular
 
 function routes($stateProvider) {
   $stateProvider
-    .state('componentLegalOverview', {
+    .state('legal', {
+      abstract: true,
+    })
+    .state('legal.dashboard', {
+      url: '/legal/dashboard',
+      component: 'legalDashboard',
+      data: {
+        title: 'Legal Dashboard',
+      },
+    })
+    .state('legal.componentOverview', {
       url: '/legal/component/{hash}',
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',
       },
     })
-    .state('organizationComponentLegalOverview', {
+    .state('legal.organizationComponentOverview', {
       url: '/legal/organization/{organizationId}/component/{hash}',
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',
       },
     })
-    .state('applicationComponentLegalOverview', {
+    .state('legal.applicationComponentOverview', {
       url: '/legal/application/{applicationPublicId}/component/{hash}',
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',
       },
     })
-    .state('applicationStageTypeComponentLegalOverview', {
+    .state('legal.applicationStageTypeComponentOverview', {
       url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}/component/{hash}',
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',
       },
     })
-    .state('legalApplicationDetails', {
+    .state('legal.applicationDetails', {
       url: '/legal/application/{applicationPublicId}/stage/{stageTypeId}',
       component: 'legalApplicationDetails',
       data: {
         title: 'Application Details',
       },
     })
-    .state('componentCopyrightDetails', {
+    .state('legal.componentCopyrightDetails', {
       url: '/legal/{ownerType}/{ownerId}/component/{hash}/copyrights',
       component: 'componentCopyrightDetails',
       abstract: true,
     })
-    .state('componentCopyrightDetails.copyrightDetails', {
+    .state('legal.componentCopyrightDetails.copyrightDetails', {
       url: '/{copyrightIndex}',
       component: 'copyrightDetailsContents',
       data: {
         title: 'Copyright Details',
       },
     })
-    .state('componentLicenseDetails', {
+    .state('legal.componentLicenseDetails', {
       url: '/legal/{ownerType}/{ownerId}/component/{hash}/licenses/{licenseIndex}',
       component: 'componentLicenseDetails',
       data: {

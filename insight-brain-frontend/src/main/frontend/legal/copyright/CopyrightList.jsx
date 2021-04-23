@@ -44,7 +44,7 @@ export default function CopyrightList(props) {
       ? component.licenseLegalData.copyrights.map((item, index) => (
           <li key={index} className="nx-list__item nx-list__item--link">
             <a
-              href={$state.href('componentCopyrightDetails.copyrightDetails', {
+              href={$state.href('legal.componentCopyrightDetails.copyrightDetails', {
                 ownerType,
                 ownerId,
                 hash,

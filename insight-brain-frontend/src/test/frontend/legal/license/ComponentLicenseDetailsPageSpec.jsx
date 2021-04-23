@@ -65,7 +65,7 @@ describe('ComponentLicenseDetailsPage', function () {
     expect(backButton).toExist();
     expect(backButton).toHaveProp(
       'href',
-      'organizationComponentLegalOverview-{"organizationId":"org","hash":"fooHash"}'
+      'legal.organizationComponentOverview-{"organizationId":"org","hash":"fooHash"}'
     );
     expect($state.href).toHaveBeenCalled();
   });

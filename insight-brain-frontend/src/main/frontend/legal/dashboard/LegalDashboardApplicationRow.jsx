@@ -17,7 +17,7 @@ export default function LegalDashboardApplicationRow({ row, stateGo }) {
   const scanTimeDisplay = (row.lastScanTime ? terseAgo(row.lastScanTime) + ' - ' : '') + row.stageTypeName;
 
   function goToApplicationDetailsPage() {
-    stateGo('legalApplicationDetails', {
+    stateGo('legal.applicationDetails', {
       applicationPublicId: row.applicationPublicId,
       stageTypeId: row.stageTypeId,
     });

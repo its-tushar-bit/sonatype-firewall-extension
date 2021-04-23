@@ -51,7 +51,7 @@ function IqSidebarNav(props) {
   const vulnSearchHref = uiRouterState.href('vulnerabilitySearch');
   const advSearchHref = uiRouterState.href('advancedSearch');
   const firewallHref = uiRouterState.href('firewall');
-  const legalHref = uiRouterState.href('legalDashboard');
+  const legalHref = uiRouterState.href('legal.dashboard');
 
   const isSelected = (entryName) => {
     return uiRouterState.includes(entryName);
@@ -137,7 +137,7 @@ function IqSidebarNav(props) {
           )}
           {isLicensed && isLegalEnabled && (
             <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('legalDashboard')}
+              isSelected={isSelected('legal')}
               id="advanced-legal-navigation-button"
               icon={faGavel}
               text="Legal"

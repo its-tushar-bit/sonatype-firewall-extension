@@ -156,7 +156,7 @@ describe('ComponentLegalOverviewPage', function () {
     expect(backButton).toExist();
     expect(backButton).toHaveProp(
       'href',
-      'legalApplicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
+      'legal.applicationDetails-{"applicationPublicId":"appId","stageTypeId":"stage"}'
     );
     expect(spy$State.href).toHaveBeenCalled();
   });
@@ -169,7 +169,7 @@ describe('ComponentLegalOverviewPage', function () {
 
     const backButton = wrapper.find(NxBackButton);
     expect(backButton).toExist();
-    expect(backButton).toHaveProp('href', 'legalDashboard');
+    expect(backButton).toHaveProp('href', 'legal.dashboard');
     expect(spy$State.href).toHaveBeenCalled();
   });
 
@@ -181,7 +181,7 @@ describe('ComponentLegalOverviewPage', function () {
 
     const backButton = wrapper.find(NxBackButton);
     expect(backButton).toExist();
-    expect(backButton).toHaveProp('href', 'legalDashboard');
+    expect(backButton).toHaveProp('href', 'legal.dashboard');
     expect(spy$State.href).toHaveBeenCalled();
   });
 
@@ -193,7 +193,7 @@ describe('ComponentLegalOverviewPage', function () {
 
     const backButton = wrapper.find(NxBackButton);
     expect(backButton).toExist();
-    expect(backButton).toHaveProp('href', 'legalDashboard');
+    expect(backButton).toHaveProp('href', 'legal.dashboard');
     expect(spy$State.href).toHaveBeenCalled();
   });
 

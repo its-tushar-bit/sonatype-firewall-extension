@@ -80,11 +80,11 @@ export default function ComponentLegalOverviewPage(props) {
 
   const backHref =
     applicationPublicId && stageTypeId
-      ? $state.href($state.get('legalApplicationDetails'), {
+      ? $state.href($state.get('legal.applicationDetails'), {
           applicationPublicId: applicationPublicId,
           stageTypeId: stageTypeId,
         })
-      : $state.href($state.get('legalDashboard'));
+      : $state.href($state.get('legal.dashboard'));
 
   return (
     <main className="nx-page-main">

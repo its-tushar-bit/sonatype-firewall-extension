@@ -22,7 +22,7 @@ export default function LegalApplicationDetailsComponentRow({ applicationPublicI
     !isNilOrEmpty(licenses) && reviewTotalCount === 0 ? '- / -' : `${reviewCompletedCount} / ${reviewTotalCount}`;
 
   function goToComponentPage() {
-    stateGo('applicationStageTypeComponentLegalOverview', {
+    stateGo('legal.applicationStageTypeComponentOverview', {
       applicationPublicId: applicationPublicId,
       stageTypeId: stageTypeId,
       hash: hash,

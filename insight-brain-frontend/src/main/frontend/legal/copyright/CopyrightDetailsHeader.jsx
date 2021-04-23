@@ -30,7 +30,7 @@ export default function CopyrightDetailsHeader(props) {
 
   const backUrl = () => {
     const state =
-      ownerType === 'organization' ? 'organizationComponentLegalOverview' : 'applicationComponentLegalOverview';
+      ownerType === 'organization' ? 'legal.organizationComponentOverview' : 'legal.applicationComponentOverview';
     const params = {
       [ownerType === 'organization' ? 'organizationId' : 'applicationPublicId']: ownerId,
       hash: hash,

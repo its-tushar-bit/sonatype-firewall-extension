@@ -36,7 +36,7 @@ export default function LicenseDetailsTile(props) {
       <li className="nx-list__item nx-list__item--link" key={index}>
         <a
           className="nx-list__link"
-          href={$state.href('componentLicenseDetails', {
+          href={$state.href('legal.componentLicenseDetails', {
             ownerType,
             ownerId,
             hash,

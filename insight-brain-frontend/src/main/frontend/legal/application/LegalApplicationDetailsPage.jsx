@@ -45,7 +45,7 @@ export default function LegalApplicationDetailsPage(props) {
         error={application.error || stageType.error}
         retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
       >
-        <BackButton stateName="legalDashboard" $state={$state} text="Back to Dashboard" />
+        <BackButton stateName="legal.dashboard" $state={$state} text="Back to Dashboard" />
         <div className="nx-page-title">
           <h1 className="nx-h1">{application.name} Obligations</h1>
           <div className="nx-btn-bar">

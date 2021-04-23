@@ -58,7 +58,7 @@ describe('LegalDashboardApplicationRow component', function () {
   it('links to the application details page', function () {
     const tableRow = getShallowComponent().find(NxTableRow);
     tableRow.simulate('click');
-    expect(stateGoSpy).toHaveBeenCalledWith('legalApplicationDetails', {
+    expect(stateGoSpy).toHaveBeenCalledWith('legal.applicationDetails', {
       applicationPublicId: 'app ID 1',
       stageTypeId: 'build',
     });

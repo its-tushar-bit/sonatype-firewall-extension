@@ -107,7 +107,7 @@ describe('LegalApplicationDetailsPage', function () {
     const backButton = getShallowComponent().find(BackButton);
 
     expect(backButton).toExist();
-    expect(backButton).toHaveProp('stateName', 'legalDashboard');
+    expect(backButton).toHaveProp('stateName', 'legal.dashboard');
     expect(backButton).toHaveProp('$state', stateSpy);
   });
 

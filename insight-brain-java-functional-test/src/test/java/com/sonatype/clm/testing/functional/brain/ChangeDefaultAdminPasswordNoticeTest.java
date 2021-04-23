@@ -62,6 +62,9 @@ public class ChangeDefaultAdminPasswordNoticeTest
   public void testChangeDefaultAdminPasswordNotice_defaultUser() {
     loginAsAdmin();
 
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    eyesWatcher.eyesCheck("DefaultAdminPasswordNotice with dashboard filter");
+
     assertNotice(visible, text("Click your username"));
 
     User admin = userDAO.getByUsername("admin");
@@ -80,7 +83,6 @@ public class ChangeDefaultAdminPasswordNoticeTest
     testCLMServer.getCLMServer().getConfiguration().setEnableDefaultPasswordWarning(false);
     refresh();
     assertNotice(hidden);
-    eyesWatcher.eyesCheck();
   }
 
   @Test

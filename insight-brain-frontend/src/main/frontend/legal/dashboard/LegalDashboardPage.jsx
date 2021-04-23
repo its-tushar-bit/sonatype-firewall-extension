@@ -43,47 +43,41 @@ export default function LegalDashboardPage(props) {
   }, []);
 
   return (
-    <div id="legal-dashboard" className="nx-page-content">
-      {filterSidebarOpen && <LegalDashboardFilterContainer />}
+    <main id="legal-dashboard-container" className="nx-page-main">
       <LoadWrapper loading={loading} error={loadError} retryHandler={loadResults}>
-        <main id="legal-dashboard-container" className="nx-page-main">
-          <div className="nx-page-title nx-page-title__actions">
-            <h1 className="nx-h1">Legal Obligations</h1>
+        {filterSidebarOpen && <LegalDashboardFilterContainer />}
+        <div className="nx-page-title nx-page-title__actions">
+          <h1 className="nx-h1">Legal Obligations</h1>
+        </div>
+        <div className="nx-tile nx-viewport-sized__container">
+          <div className="nx-tile-content nx-viewport-sized__container">
+            <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
+              <NxTabList>
+                <NxTab>Applications</NxTab>
+              </NxTabList>
+              <NxTabPanel className="nx-viewport-sized__container">
+                <div className="nx-btn-bar">
+                  <NxButton id="filter-toggle" className="btn" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
+                    <NxFontAwesomeIcon icon={faFilter} />
+                    <span>
+                      Filter: {showDirtyAsterisk && <span id="filter-toggle-dirty-asterisk">*</span>}
+                      {appliedFilterName || DEFAULT_FILTER_NAME}
+                    </span>
+                  </NxButton>
+                </div>
+                <LegalDashboardApplicationsTab
+                  applications={applications}
+                  fetchBackendPage={fetchBackendPage}
+                  filtersAreDirty={filtersAreDirty}
+                  changeSortField={changeSortField}
+                  stateGo={stateGo}
+                />
+              </NxTabPanel>
+            </NxStatefulTabs>
           </div>
-          <div className="nx-tile nx-viewport-sized__container">
-            <div className="nx-tile-content nx-viewport-sized__container">
-              <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
-                <NxTabList>
-                  <NxTab>Applications</NxTab>
-                </NxTabList>
-                <NxTabPanel className="nx-viewport-sized__container">
-                  <div className="nx-btn-bar">
-                    <NxButton
-                      id="filter-toggle"
-                      className="btn"
-                      onClick={() => toggleFilterSidebar(!filterSidebarOpen)}
-                    >
-                      <NxFontAwesomeIcon icon={faFilter} />
-                      <span>
-                        Filter: {showDirtyAsterisk && <span id="filter-toggle-dirty-asterisk">*</span>}
-                        {appliedFilterName || DEFAULT_FILTER_NAME}
-                      </span>
-                    </NxButton>
-                  </div>
-                  <LegalDashboardApplicationsTab
-                    applications={applications}
-                    fetchBackendPage={fetchBackendPage}
-                    filtersAreDirty={filtersAreDirty}
-                    changeSortField={changeSortField}
-                    stateGo={stateGo}
-                  />
-                </NxTabPanel>
-              </NxStatefulTabs>
-            </div>
-          </div>
-        </main>
+        </div>
       </LoadWrapper>
-    </div>
+    </main>
   );
 }
 

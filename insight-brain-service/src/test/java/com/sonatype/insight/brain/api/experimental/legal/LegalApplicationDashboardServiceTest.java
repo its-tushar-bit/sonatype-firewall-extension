@@ -434,11 +434,19 @@ public class LegalApplicationDashboardServiceTest
   @Test
   public void testGetLicenseLegalApplicationDashboard_IgnoresInnerSourceComponents() {
     Application app = tempEntity.newApplicationWithParent();
+    Application otherApp = tempEntity.newApplicationWithParent();
+
     ComponentIdentifier notInnerSource = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
-    ComponentIdentifier innerSource = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
-    tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(innerSource).getPackageUrl(), app);
+    ComponentIdentifier appInnerSource = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
+    ComponentIdentifier otherAppInnerSource = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
+
+    tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(appInnerSource).getPackageUrl(), app);
+    tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(otherAppInnerSource).getPackageUrl(),
+        otherApp);
+
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash", notInnerSource);
-    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", innerSource);
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", appInnerSource);
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash3", otherAppInnerSource);
 
     List<ApiLicenseLegalApplicationComponentDTO> result =
         legalApplicationDashboardService.getLicenseLegalApplicationDashboard(app.getPublicId(), null);

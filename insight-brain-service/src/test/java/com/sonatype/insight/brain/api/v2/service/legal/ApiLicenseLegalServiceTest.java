@@ -405,16 +405,28 @@ public class ApiLicenseLegalServiceTest
   @Test
   public void testGetLicenseLegalApplicationsDashboard_IgnoresInnerSourceComponents() {
     Application app = tempEntity.newApplicationWithParent();
+    Application otherApp = tempEntity.newApplicationWithParent();
+
     PolicyEvaluation policyEvaluation =
         tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, tempEntity.uuid(), new Date());
+
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
-    ApplicationComponent innerSourceComponent = tempEntity.newApplicationComponent(app.getId(),
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
+
+    ApplicationComponent innerSourceComponent1 = tempEntity.newApplicationComponent(app.getId(),
         BuildStageType.ID, "hash1", componentIdentifier1);
+    ApplicationComponent innerSourceComponent2 = tempEntity.newApplicationComponent(app.getId(),
+        BuildStageType.ID, "hash3", componentIdentifier3);
+
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier2);
+
     tempEntity.newInnerSourceComponent(
-        InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent.getComponentIdentifier()).getPackageUrl(),
-        new ApplicationDAO().getById(policyEvaluation.getApplicationId()));
+        InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent1.getComponentIdentifier()).getPackageUrl(),
+        app);
+    tempEntity.newInnerSourceComponent(
+        InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent2.getComponentIdentifier()).getPackageUrl(),
+        otherApp);
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto = apiLicenseLegalService
         .getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, null, 1, 10);

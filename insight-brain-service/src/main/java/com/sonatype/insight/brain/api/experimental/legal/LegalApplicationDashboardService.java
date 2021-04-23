@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
@@ -44,12 +45,14 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -122,25 +125,31 @@ public class LegalApplicationDashboardService
         isEmpty(stageTypeIds) ? StageTypes.getAll().stream().map(StageType::getId).collect(Collectors.toSet())
             : stageTypeIds;
 
-    List<ApplicationComponentLicensesDTO> applicationComponents = applicationComponentLicenseDAO
+    List<ApplicationComponentLicensesDTO> applicationComponentLicensesDTOS = applicationComponentLicenseDAO
         .getApplicationComponentEffectiveLicenses(application.getId(), stageTypeIdsToCheck);
-    if (isEmpty(applicationComponents)) {
+    if (isEmpty(applicationComponentLicensesDTOS)) {
       return Collections.emptyList();
     }
 
-    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(application.getId()).stream()
+    Set<PackageUrlIdentifier> componentPurls = applicationComponentLicensesDTOS.stream()
+        .map(ac -> InnerSourceUtils.getVersionlessPackageUrl(ac.getComponentIdentifier()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByPackageUrls(componentPurls).stream()
         .map(InnerSourceComponent::getPackageUrl)
         .collect(Collectors.toSet());
-    applicationComponents.removeIf(c -> LegalComponentIdentifierUtil
+
+    applicationComponentLicensesDTOS.removeIf(c -> LegalComponentIdentifierUtil
         .isComponentAKnownInnerSource(innerSourcePackageUrls, c.getComponentIdentifier()));
 
-    Set<String> licenseIdsFound = getLicenseIds(applicationComponents);
+    Set<String> licenseIdsFound = getLicenseIds(applicationComponentLicensesDTOS);
     Map<String, Set<String>> obligationNamesByLicenseId = getLicenseObligationsFromHds(licenseIdsFound);
     Map<String, String> licenseNamesByLicenseId = getLicenseNames(licenseIdsFound);
-    List<ApiLicenseLegalApplicationComponentDTO> result = new ArrayList<>(applicationComponents.size());
+    List<ApiLicenseLegalApplicationComponentDTO> result = new ArrayList<>(applicationComponentLicensesDTOS.size());
 
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
-      for (ApplicationComponentLicensesDTO componentLicensesDTO : applicationComponents) {
+      for (ApplicationComponentLicensesDTO componentLicensesDTO : applicationComponentLicensesDTOS) {
         if (componentLicensesDTO.getComponentIdentifier() == null) {
           continue;
         }

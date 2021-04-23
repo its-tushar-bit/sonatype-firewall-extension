@@ -102,6 +102,7 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -453,14 +454,8 @@ public class ApiLicenseLegalService
   private ApiLicenseLegalApplicationReportDTO getApplicationReportFromReportRawData(
       final Owner application, final ApiReportRawDataDTOV2 latestRawReport)
   {
-    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(application.getId()).stream()
-        .map(InnerSourceComponent::getPackageUrl)
-        .collect(Collectors.toSet());
-    latestRawReport.components
-        .removeIf(component ->
-            Objects.nonNull(component.componentIdentifier) &&
-                LegalComponentIdentifierUtil.isComponentAKnownInnerSource(innerSourcePackageUrls,
-                    component.componentIdentifier.toComponentIdentifier()));
+    filterInnerSourceComponents(latestRawReport);
+
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
         getReportMultiLicenses(latestRawReport);
     Set<ApiLicenseDTO> multiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
@@ -523,6 +518,23 @@ public class ApiLicenseLegalService
             multiLicenses,
             licenses,
             licenseMetadataById);
+  }
+
+  private void filterInnerSourceComponents(final ApiReportRawDataDTOV2 latestRawReport) {
+    Set<PackageUrlIdentifier> componentPurls = latestRawReport.components.stream()
+        .filter(c -> Objects.nonNull(c.componentIdentifier))
+        .map(c -> InnerSourceUtils.getVersionlessPackageUrl(c.componentIdentifier.toComponentIdentifier()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByPackageUrls(componentPurls).stream()
+        .map(InnerSourceComponent::getPackageUrl)
+        .collect(Collectors.toSet());
+
+    latestRawReport.components.removeIf(c ->
+        Objects.nonNull(c.componentIdentifier) &&
+            LegalComponentIdentifierUtil
+                .isComponentAKnownInnerSource(innerSourcePackageUrls, c.componentIdentifier.toComponentIdentifier()));
   }
 
   /**
@@ -1170,18 +1182,16 @@ public class ApiLicenseLegalService
     Map<String, Map<ComponentIdentifier, Set<String>>> applicationIdAddressedObligationsMap = new HashMap<>();
 
     for (ApiLicenseLegalApplicationDashboardDTO dto : result) {
-      List<ApplicationComponentLicensesDTO> componentLicenses = applicationComponentLicenseDAO
+
+      List<ApplicationComponentLicensesDTO> applicationComponentLicensesDTOS = applicationComponentLicenseDAO
           .getApplicationComponentEffectiveLicenses(dto.applicationId, Sets.newHashSet(dto.stageTypeId));
 
-      Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByApplicationId(dto.applicationId).stream()
-          .map(InnerSourceComponent::getPackageUrl)
-          .collect(Collectors.toSet());
-      componentLicenses.removeIf(c -> LegalComponentIdentifierUtil
-          .isComponentAKnownInnerSource(innerSourcePackageUrls, c.getComponentIdentifier()));
+      filterInnerSourceComponents(applicationComponentLicensesDTOS);
 
-      applicationIdStageTypeIdComponentLicensesMap.put(dto.applicationId, dto.stageTypeId, componentLicenses);
+      applicationIdStageTypeIdComponentLicensesMap
+          .put(dto.applicationId, dto.stageTypeId, applicationComponentLicensesDTOS);
       // Collect all licenses to make a single HDS call instead of one per component
-      licenseIdsFound.addAll(componentLicenses.stream()
+      licenseIdsFound.addAll(applicationComponentLicensesDTOS.stream()
           .flatMap(component -> component.getLicenses().stream())
           .collect(Collectors.toSet()));
 
@@ -1204,6 +1214,22 @@ public class ApiLicenseLegalService
       dto.componentsReviewedCount = getComponentsReviewedCount(componentLicenses, licenseIdObligationNamesMap,
           applicationIdAddressedObligationsMap.get(dto.applicationId));
     }
+  }
+
+  private void filterInnerSourceComponents(
+      final List<ApplicationComponentLicensesDTO> applicationComponentLicensesDTOS)
+  {
+    Set<PackageUrlIdentifier> componentPurls = applicationComponentLicensesDTOS.stream()
+        .map(ac -> InnerSourceUtils.getVersionlessPackageUrl(ac.getComponentIdentifier()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByPackageUrls(componentPurls).stream()
+        .map(InnerSourceComponent::getPackageUrl)
+        .collect(Collectors.toSet());
+
+    applicationComponentLicensesDTOS.removeIf(c -> LegalComponentIdentifierUtil
+        .isComponentAKnownInnerSource(innerSourcePackageUrls, c.getComponentIdentifier()));
   }
 
   private int getComponentsReviewedCount(

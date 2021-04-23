@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,6 +82,23 @@ public class InnerSourceComponentDAOTest
     InnerSourceComponent innerSourceComponent = dao.getByPackageUrl(purl);
     assertThat(innerSourceComponent).isNotNull();
     assertInnerSourceComponent(innerSourceComponent1, innerSourceComponent);
+  }
+
+  @Test
+  public void testGetByPurls() {
+    PackageUrlIdentifier purl1 = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.0");
+    PackageUrlIdentifier purl2 = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.1");
+
+    InnerSourceComponent innerSourceComponent1 = tempEntity.newInnerSourceComponent(purl1.getPackageUrl(), application);
+    InnerSourceComponent innerSourceComponent2 = tempEntity.newInnerSourceComponent(purl2.getPackageUrl(), application);
+
+    tempEntity.newInnerSourceComponent("pkg:maven/inner/source@2.0.0", application);
+
+    List<InnerSourceComponent> innerSourceComponents = dao.getByPackageUrls(Sets.newHashSet(purl1, purl2));
+
+    assertThat(innerSourceComponents).hasSize(2);
+    assertInnerSourceComponent(innerSourceComponent1, innerSourceComponents.get(0));
+    assertInnerSourceComponent(innerSourceComponent2, innerSourceComponents.get(1));
   }
 
   private void assertInnerSourceComponent(

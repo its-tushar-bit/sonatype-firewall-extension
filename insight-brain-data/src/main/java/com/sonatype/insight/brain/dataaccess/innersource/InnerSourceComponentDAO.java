@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.dataaccess.innersource;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
@@ -45,6 +47,15 @@ public class InnerSourceComponentDAO
       String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
           " WHERE entity.packageUrl=?1";
       return get(tx, sQuery, packageUrl.getPackageUrl());
+    }
+  }
+
+  public List<InnerSourceComponent> getByPackageUrls(Set<PackageUrlIdentifier> packageUrls) {
+    try (TransactionContext tx = createTransactionContext()) {
+      String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
+          " WHERE entity.packageUrl IN (?1)";
+      return getList(tx, sQuery,
+          packageUrls.stream().map(PackageUrlIdentifier::getPackageUrl).collect(Collectors.toList()));
     }
   }
 }

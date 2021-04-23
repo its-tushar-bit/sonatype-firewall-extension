@@ -93,41 +93,11 @@ describe('FirewallUnquarantineTable', function () {
             </NxTableCell>
             <NxTableCell key="2">{quarantineDate}</NxTableCell>,
             <NxTableCell key="3">
-              <NxOverflowTooltip title="Security-Medium">
-                <div className="nx-truncate-ellipsis">Security-Medium</div>
-              </NxOverflowTooltip>
-            </NxTableCell>
-            <NxTableCell key="4">
               <NxOverflowTooltip title="central">
                 <div className="nx-truncate-ellipsis">central</div>
               </NxOverflowTooltip>
             </NxTableCell>
-            <NxTableCell key="5">{dateCleared}</NxTableCell>
-          </NxTableRow>,
-        ])
-      ).toBeTruthy();
-
-      // contains a row of data with no policy violations
-      expect(
-        tableBody.containsMatchingElement([
-          <NxTableRow key="1">
-            <NxTableCell key="1">
-              <NxOverflowTooltip title="test-component">
-                <div className="nx-truncate-ellipsis">test-component2</div>
-              </NxOverflowTooltip>
-            </NxTableCell>
-            <NxTableCell key="2">{quarantineDate}</NxTableCell>,
-            <NxTableCell key="3">
-              <NxOverflowTooltip title="">
-                <div className="nx-truncate-ellipsis"></div>
-              </NxOverflowTooltip>
-            </NxTableCell>
-            <NxTableCell key="4">
-              <NxOverflowTooltip title="central">
-                <div className="nx-truncate-ellipsis">central</div>
-              </NxOverflowTooltip>
-            </NxTableCell>
-            <NxTableCell key="5">{dateCleared}</NxTableCell>
+            <NxTableCell key="4">{dateCleared}</NxTableCell>
           </NxTableRow>,
         ])
       ).toBeTruthy();

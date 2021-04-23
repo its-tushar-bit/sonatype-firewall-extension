@@ -18,12 +18,7 @@ import {
 
 export default function FirewallUnquarantineTable(props) {
   // Actions
-  const {
-    loadReleaseQuarantineList,
-    setAutoUnquarantineGridPage,
-    setAutoUnquarantineGridSorting,
-    setAutoUnquarantineGridPolicyFilter,
-  } = props;
+  const { loadReleaseQuarantineList, setAutoUnquarantineGridPage, setAutoUnquarantineGridSorting } = props;
 
   // autoUnquarantineState.autoUnquarantineGridState
   const {
@@ -31,11 +26,9 @@ export default function FirewallUnquarantineTable(props) {
     loadAutoUnquarantineGridError,
     releaseQuarantinePageCount,
     releaseQuarantineList,
-    policies,
     currentPage,
     sortDir,
     sortField,
-    filterPolicyId,
   } = props;
 
   function setCurrentPage(newPage) {
@@ -47,13 +40,6 @@ export default function FirewallUnquarantineTable(props) {
     let nextSortDir = sortField === columnId ? getNextSortDir(sortDir) : getNextSortDir(null);
 
     setAutoUnquarantineGridSorting(nextSortDir, columnId);
-    loadReleaseQuarantineList();
-  }
-
-  function setPolicyIdFilter(event) {
-    let policyId = event.currentTarget.value;
-
-    setAutoUnquarantineGridPolicyFilter(policyId);
     loadReleaseQuarantineList();
   }
 
@@ -69,20 +55,12 @@ export default function FirewallUnquarantineTable(props) {
     return sortDir === null ? 'asc' : sortDir === 'asc' ? 'desc' : null;
   }
 
-  function getHighestPolicyViolationName(policyViolations) {
-    const reducer = (policy, currentValue) =>
-      policy.threatLevel > currentValue.threatLevel || policy.policyId === filterPolicyId ? policy : currentValue;
-
-    return policyViolations.length === 0 ? '' : policyViolations.reduce(reducer).policyName;
-  }
-
   return (
     <div className="nx-table-container iq-firewall-auto-unquarantine-table">
       <NxTable id="pagination-filter-table">
         <NxTableHead>
           <NxTableRow>
             <NxTableCell>Component</NxTableCell>
-            <NxTableCell>Policy Type</NxTableCell>
             <NxTableCell
               id="quarantineTime-header"
               isSortable
@@ -101,26 +79,6 @@ export default function FirewallUnquarantineTable(props) {
               Date Cleared
             </NxTableCell>
           </NxTableRow>
-
-          <NxTableRow isFilterHeader>
-            <NxTableCell />
-            <NxTableCell>
-              <select className="nx-form-select" onChange={setPolicyIdFilter} value={filterPolicyId}>
-                {/* Effectively clears the filter. */}
-                <option value={''}></option>
-
-                {policies &&
-                  policies.map((policy) => (
-                    <option key={policy.id} value={policy.id}>
-                      {policy.name}
-                    </option>
-                  ))}
-              </select>
-            </NxTableCell>
-            <NxTableCell />
-            <NxTableCell />
-            <NxTableCell />
-          </NxTableRow>
         </NxTableHead>
 
         <NxTableBody
@@ -131,18 +89,11 @@ export default function FirewallUnquarantineTable(props) {
         >
           {releaseQuarantineList &&
             releaseQuarantineList.map((row, index) => {
-              let policyViolationName = getHighestPolicyViolationName(row.policyViolations);
-
               return (
                 <NxTableRow key={index}>
                   <NxTableCell>
                     <NxOverflowTooltip title={row.displayName}>
                       <div className="nx-truncate-ellipsis">{row.displayName}</div>
-                    </NxOverflowTooltip>
-                  </NxTableCell>
-                  <NxTableCell>
-                    <NxOverflowTooltip title={policyViolationName}>
-                      <div className="nx-truncate-ellipsis">{policyViolationName}</div>
                     </NxOverflowTooltip>
                   </NxTableCell>
                   <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
@@ -176,14 +127,11 @@ FirewallUnquarantineTable.propTypes = {
   loadAutoUnquarantineGridError: PropTypes.string,
   setAutoUnquarantineGridPage: PropTypes.func.isRequired,
   setAutoUnquarantineGridSorting: PropTypes.func.isRequired,
-  setAutoUnquarantineGridPolicyFilter: PropTypes.func.isRequired,
   loadedReleaseQuarantineList: PropTypes.bool.isRequired,
   releaseQuarantinePageCount: PropTypes.number.isRequired,
   releaseQuarantineList: PropTypes.array.isRequired,
-  policies: PropTypes.array.isRequired,
   pageSize: PropTypes.number.isRequired,
   currentPage: PropTypes.number,
   sortDir: PropTypes.string,
   sortField: PropTypes.string,
-  filterPolicyId: PropTypes.string,
 };

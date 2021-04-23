@@ -11,7 +11,6 @@ import {
   loadReleaseQuarantineList,
   openConfigurationModal,
   setAutoUnquarantineGridSorting,
-  setAutoUnquarantineGridPolicyFilter,
   setAutoUnquarantineGridPage,
 } from '../firewallActions';
 
@@ -41,7 +40,6 @@ const mapDispatchToProps = {
   loadReleaseQuarantineList,
   setAutoUnquarantineGridPage,
   setAutoUnquarantineGridSorting,
-  setAutoUnquarantineGridPolicyFilter,
   openConfigurationModal,
 };
 

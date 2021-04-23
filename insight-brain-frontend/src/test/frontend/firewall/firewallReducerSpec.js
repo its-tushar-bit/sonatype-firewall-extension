@@ -52,7 +52,6 @@ describe('firewallReducer', function () {
       expect(newState.autoUnquarantineState.autoUnquarantineGridState.currentPage).toBeNull();
       expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortDir).toBeNull();
       expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortField).toBeNull();
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.filterPolicyId).toBe('');
 
       //policiesState
       expect(newState.policiesState.loadedPolicies).toBe(false);
@@ -943,30 +942,6 @@ describe('firewallReducer', function () {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
             sortField: 'testSort',
             sortDir: 'asc',
-          },
-        },
-      });
-    });
-  });
-
-  describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER action', function () {
-    let initialState = reduce();
-
-    it('updates the state', function () {
-      let payload = { policyId: '456' };
-
-      expect(
-        reduce(initialState, {
-          type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER',
-          payload: payload,
-        })
-      ).toEqual({
-        ...initialState,
-        autoUnquarantineState: {
-          ...initialState.autoUnquarantineState,
-          autoUnquarantineGridState: {
-            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
-            filterPolicyId: payload.policyId,
           },
         },
       });

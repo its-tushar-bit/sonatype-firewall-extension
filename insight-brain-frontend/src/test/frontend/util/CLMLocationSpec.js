@@ -419,8 +419,7 @@ describe('CLMLocation.js', function () {
       page = 1,
       pageSize = 12,
       sortBy = 'quarantineTime',
-      sortAsc = false,
-      policyId = 'testId';
+      sortAsc = false;
 
     // Test required params
     expect(CLMLocation.getFirewallReleaseQuarantineListUrl(page, pageSize)).toBe(
@@ -428,8 +427,8 @@ describe('CLMLocation.js', function () {
     );
 
     // Test optional params
-    expect(CLMLocation.getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId)).toBe(
-      urlStart + `page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&asc=${sortAsc}&policyId=${policyId}`
+    expect(CLMLocation.getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc)).toBe(
+      urlStart + `page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&asc=${sortAsc}`
     );
   });
 

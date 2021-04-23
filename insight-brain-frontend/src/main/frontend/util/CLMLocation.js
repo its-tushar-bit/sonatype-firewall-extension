@@ -210,13 +210,12 @@ export function getFirewallReleaseQuarantineSummaryUrl() {
   return uriTemplate`/api/experimental/firewall/releaseQuarantine/summary`;
 }
 
-export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc, policyId) {
+export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc) {
   let params = toURIParams({
     page: page,
     pageSize: pageSize,
     sortBy: sortBy,
     asc: sortAsc,
-    policyId: policyId,
   });
 
   params = params.length === 0 ? '' : '?' + params;

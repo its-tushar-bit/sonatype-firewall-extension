@@ -95,7 +95,6 @@ const loadPoliciesFailed = payloadParamActionCreator(FIREWALL_POLICIES_FAILED);
 
 export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE';
 export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING';
-export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER';
 
 export const FIREWALL_QUARANTINE_GRID_SET_PAGE = 'FIREWALL_QUARANTINE_GRID_SET_PAGE';
 export const FIREWALL_QUARANTINE_GRID_SET_SORTING = 'FIREWALL_QUARANTINE_GRID_SET_SORTING';
@@ -132,7 +131,6 @@ export function loadAutoUnquarantineData() {
     dispatch(loadConfiguration());
     dispatch(loadReleaseQuarantineSummary());
     dispatch(loadReleaseQuarantineList());
-    dispatch(loadPolicies());
   };
 }
 
@@ -168,12 +166,11 @@ export function loadReleaseQuarantineList() {
   return function (dispatch, getState) {
     let gridState = getState().firewall.autoUnquarantineState.autoUnquarantineGridState,
       apiPage = gridState.currentPage ? gridState.currentPage + 1 : 1,
-      filterValue = gridState.filterPolicyId === '' ? null : gridState.filterPolicyId,
       sortAsc = gridState.sortDir === null ? gridState.sortDir : gridState.sortDir === 'asc';
 
     dispatch(loadReleaseQuarantineListRequested());
     return axios
-      .get(getFirewallReleaseQuarantineListUrl(apiPage, gridState.pageSize, gridState.sortField, sortAsc, filterValue))
+      .get(getFirewallReleaseQuarantineListUrl(apiPage, gridState.pageSize, gridState.sortField, sortAsc))
       .then(({ data }) => {
         dispatch(loadReleaseQuarantineListFulfilled(data));
       })
@@ -273,13 +270,6 @@ export function setAutoUnquarantineGridSorting(sortDir, sortField) {
   return {
     type: FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
     payload: { sortDir: sortDir, sortField: sortField },
-  };
-}
-
-export function setAutoUnquarantineGridPolicyFilter(policyId) {
-  return {
-    type: FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER,
-    payload: { policyId: policyId },
   };
 }
 

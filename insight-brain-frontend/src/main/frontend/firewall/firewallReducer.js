@@ -20,7 +20,6 @@ import {
   FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
-  FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER,
   FIREWALL_QUARANTINE_LIST_REQUESTED,
   FIREWALL_QUARANTINE_LIST_FAILED,
   FIREWALL_QUARANTINE_LIST_FULFILLED,
@@ -71,7 +70,6 @@ const initialState = Object.freeze({
       currentPage: null,
       sortDir: null,
       sortField: null,
-      filterPolicyId: '',
     }),
   }),
   policiesState: Object.freeze({
@@ -260,15 +258,6 @@ const setAutoUnquarantineGridSorting = (payload, state) =>
     merge(__, {
       sortDir: payload.sortDir,
       sortField: payload.sortField,
-    }),
-    state
-  );
-
-const setAutoUnquarantineGridPolicyFilter = (payload, state) =>
-  over(
-    lensPath(['autoUnquarantineState', 'autoUnquarantineGridState']),
-    merge(__, {
-      filterPolicyId: payload.policyId,
     }),
     state
   );
@@ -464,7 +453,6 @@ const reducerActionMap = {
   [FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED]: always(initialState),
   [FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE]: setAutoUnquarantineGridPage,
   [FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING]: setAutoUnquarantineGridSorting,
-  [FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER]: setAutoUnquarantineGridPolicyFilter,
   [FIREWALL_QUARANTINE_LIST_REQUESTED]: loadQuarantineListRequested,
   [FIREWALL_QUARANTINE_LIST_FAILED]: loadQuarantineListFailed,
   [FIREWALL_QUARANTINE_LIST_FULFILLED]: loadQuarantineListFulfilled,

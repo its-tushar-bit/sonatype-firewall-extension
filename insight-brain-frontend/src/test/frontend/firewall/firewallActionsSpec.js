@@ -26,7 +26,6 @@ import {
   FIREWALL_RELEASE_QUARANTINE_LIST_FAILED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
-  FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER,
   FIREWALL_POLICIES_REQUESTED,
   FIREWALL_POLICIES_FULFILLED,
   FIREWALL_POLICIES_FAILED,
@@ -50,7 +49,6 @@ import {
   loadPolicies,
   loadQuarantineSummary,
   setAutoUnquarantineGridPage,
-  setAutoUnquarantineGridPolicyFilter,
   setAutoUnquarantineGridSorting,
   loadQuarantineList,
   setQuarantineGridPage,
@@ -101,7 +99,6 @@ describe('firewallActions', function () {
             currentPage: null,
             sortDir: null,
             sortField: null,
-            filterPolicyId: '',
           }),
         }),
         quarantineGridState: Object.freeze({
@@ -741,19 +738,6 @@ describe('firewallActions', function () {
         sortDir: sortDir,
         sortField: sortField,
       });
-    });
-  });
-
-  describe('setAutoUnquarantineGridPolicyFilter', function () {
-    it('immediately dispatches actions to set the policy ID filter for the auto unquarantine grid', function () {
-      let policyId = 123;
-
-      store.dispatch(setAutoUnquarantineGridPolicyFilter(policyId));
-
-      const actions = store.getActions();
-      expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(FIREWALL_AUTO_UNQUARANTINE_GRID_SET_FILTER);
-      expect(actions[0].payload).toEqual({ policyId: policyId });
     });
   });
 

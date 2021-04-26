@@ -18,11 +18,13 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -70,6 +72,8 @@ public class ApiSourceControlService
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final OwnerDAO ownerDAO;
+
   private final ApplicationDAO applicationDAO;
 
   private final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
@@ -90,6 +94,7 @@ public class ApiSourceControlService
   public ApiSourceControlService(
       final PlexusCipher plexusCipher,
       final SourceControlDAO sourceControlDAO,
+      final OwnerDAO ownerDAO,
       final ApplicationDAO applicationDAO,
       final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO,
       final ApiSourceControlAdapter apiSourceControlAdapter,
@@ -101,6 +106,7 @@ public class ApiSourceControlService
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
+    this.ownerDAO = ownerDAO;
     this.applicationDAO = applicationDAO;
     this.automaticSourceControlConfigurationDAO = automaticSourceControlConfigurationDAO;
     this.apiSourceControlAdapter = apiSourceControlAdapter;
@@ -184,7 +190,7 @@ public class ApiSourceControlService
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
     if (null == sourceControl) {
       throw new NotFoundException(String.format(
-          "Cannot find SourceControl for %s with id: %s", ownerType, ownerId));
+          "Cannot find SourceControl for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
     setTokenValueForReturn(sourceControl);
     sendSourceControlTelemetryData(METHOD.GET_BY_OWNER_ID, ownerId);
@@ -208,7 +214,7 @@ public class ApiSourceControlService
     // fail if there's already a sourcecontrol in place for the owner
     if (null != sourceControlDAO.getByOwnerId(ownerId)) {
       throw new BadRequestException(String.format(
-          "SourceControl already exists for %s with id: %s", ownerType, ownerId));
+          "SourceControl already exists for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
     convertRepositoryUrlIfNeeded(sourceControl);
 
@@ -231,7 +237,7 @@ public class ApiSourceControlService
     SourceControl storedSourceControl = sourceControlDAO.getByOwnerId(sourceControlDTO.ownerId);
     if (null == storedSourceControl) {
       throw new NotFoundException(String.format(
-          "Cannot find SourceControl for %s with id: %s", ownerType, ownerId));
+          "Cannot find SourceControl for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
 
     SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
@@ -273,7 +279,7 @@ public class ApiSourceControlService
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
     if (null == sourceControl) {
       throw new NotFoundException(String.format(
-          "Cannot find SourceControl for %s with id: %s", ownerType, ownerId));
+          "Cannot find SourceControl for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
     sourceControlDAO.delete(sourceControl);
     auditSourceControl(sourceControl);
@@ -287,6 +293,14 @@ public class ApiSourceControlService
     }
     decryptToken(sourceControl);
     return sourceControl;
+  }
+
+  private String getPublicOwnerId(final String ownerId) {
+    Owner owner = ownerDAO.getById(ownerId);
+    if (owner != null) {
+      return owner.getPublicId();
+    }
+    return ownerId;
   }
 
   @VisibleForTesting

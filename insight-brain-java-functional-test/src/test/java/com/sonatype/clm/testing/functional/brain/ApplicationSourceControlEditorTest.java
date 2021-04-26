@@ -515,7 +515,7 @@ public class ApplicationSourceControlEditorTest
 
     final ErrorBox errorBox = PAGE.error();
     errorBox.retryButton().shouldBe(visible, enabled);
-    errorBox.shouldHave(text("SourceControl already exists for application with id: " + application.getId()));
+    errorBox.shouldHave(text("SourceControl already exists for application with id: " + application.getPublicId()));
     assertSourceControl(application.getId(), REPOSITORY_URL, null, null);
 
     eyesWatcher.eyesCheck("Source Control Editor update Failed");

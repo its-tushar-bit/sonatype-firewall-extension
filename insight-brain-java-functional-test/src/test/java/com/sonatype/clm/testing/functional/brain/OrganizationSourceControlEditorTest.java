@@ -246,7 +246,7 @@ public class OrganizationSourceControlEditorTest
 
     final ErrorBox errorBox = PAGE.error();
     errorBox.retryButton().shouldBe(visible, enabled);
-    errorBox.shouldHave(text("SourceControl already exists for organization with id: " + organization.getId()));
+    errorBox.shouldHave(text("SourceControl already exists for organization with id: " + organization.getPublicId()));
     assertSourceControl(organization.getId(), null, null, null);
 
     //Delete the entry to resolve error condition

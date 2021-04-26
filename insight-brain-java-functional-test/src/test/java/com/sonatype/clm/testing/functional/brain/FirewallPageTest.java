@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantine;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -77,20 +78,22 @@ public class FirewallPageTest
     Date date2 = Date.from(LocalDateTime.now().withDayOfMonth(2).toInstant(offset));
 
     RepositoryComponent repositoryComponent1 = staticTempEntity.newRepositoryComponent(repository.getId(),
-        "g:a:1", date1, null, true);
+        "g:a:1", date1, date1, true);
     staticTempEntity.newRepositoryPolicyViolation(repositoryComponent1, policy.getId());
 
     RepositoryComponent repositoryComponent2 = staticTempEntity.newRepositoryComponent(repository.getId(),
-        "g:a:2", date2, null, true);
+        "g:a:2", date2, date2, true);
     staticTempEntity.newRepositoryPolicyViolation(repositoryComponent2, policy.getId());
 
     RepositoryComponent repositoryComponent3 = staticTempEntity.newRepositoryComponent(repository.getId(),
-        "g:a:3", date1, date1, false);
-    staticTempEntity.newRepositoryPolicyViolation(repositoryComponent3, policy.getId());
+        "g:a:3", date1, null, false);
+    staticTempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent3.getPathname(), false,
+        FailActionType.ID, policy.getId(), policy.getName(), repositoryComponent3.getComponentIdentifier());
 
     RepositoryComponent repositoryComponent4 = staticTempEntity.newRepositoryComponent(repository.getId(),
-        "g:a:4", date2, date2, false);
-    staticTempEntity.newRepositoryPolicyViolation(repositoryComponent4, policy.getId());
+        "g:a:4", date2, null, false);
+    staticTempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent4.getPathname(), false,
+        FailActionType.ID, policy.getId(), policy.getName(), repositoryComponent4.getComponentIdentifier());
   }
 
   @Test
@@ -138,7 +141,7 @@ public class FirewallPageTest
     FirewallAutoUnquarantine firewallAutoUnquarantine = page.firewallAutoReleaseQuarantine();
     firewallAutoUnquarantine.shouldBe(visible);
     firewallAutoUnquarantine.shouldBe(visible);
-    firewallAutoUnquarantine.cardContent().shouldBe(Condition.text("0"));
+    firewallAutoUnquarantine.cardContent().shouldBe(Condition.text("2"));
     firewallAutoUnquarantine.autoUnquarantineLink().shouldBe(visible);
   }
 

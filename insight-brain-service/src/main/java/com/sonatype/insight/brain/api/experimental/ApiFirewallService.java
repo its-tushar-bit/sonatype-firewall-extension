@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.experimental.dto.ApiFirewallReleaseQuarantineConfigDTO;
@@ -285,10 +286,10 @@ public class ApiFirewallService
 
       // find and add all policy violations for this repository component
       List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO
-          .getByRepositoryIdAndPathname(component.getRepositoryId(), component.getPathname());
+          .getByRepositoryIdAndPathnameAndAction(component.getRepositoryId(), component.getPathname(), Action.ID_FAIL);
       for (RepositoryPolicyViolation policyViolation : violations) {
         final ApiPolicyViolationDTOV2 policyViolationDTO = apiPolicyViolationAdapter.convert(policyViolation);
-        apiFirewallComponentDTO.policyViolations.add(policyViolationDTO);
+        apiFirewallComponentDTO.quarantinePolicyViolations.add(policyViolationDTO);
       }
 
       result.getResults().add(apiFirewallComponentDTO);

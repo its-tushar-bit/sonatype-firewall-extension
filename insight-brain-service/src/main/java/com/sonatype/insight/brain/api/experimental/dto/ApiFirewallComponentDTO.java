@@ -24,5 +24,5 @@ public class ApiFirewallComponentDTO
   @ApiDateFormat
   public Date dateCleared;
 
-  public List<ApiPolicyViolationDTOV2> policyViolations = new ArrayList<>();
+  public List<ApiPolicyViolationDTOV2> quarantinePolicyViolations = new ArrayList<>();
 }

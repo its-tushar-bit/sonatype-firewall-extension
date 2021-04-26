@@ -204,12 +204,21 @@ public class RepositoryComponentDAO
     validateFirewallRepositoryComponentFilter(filter);
     StringBuilder sQuery = new StringBuilder(selectStatement + " FROM RepositoryComponent component");
 
-    // FILTER
-    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
+    if (queryRequiresPolicyViolations(filter)) {
       sQuery.append(" , RepositoryPolicyViolation policyViolation"
           + " WHERE component.repositoryId = policyViolation.repositoryId"
-          + " AND component.pathname = policyViolation.pathname"
-          + " AND policyViolation.policyId=?1");
+          + " AND component.pathname = policyViolation.pathname");
+    }
+
+    // only load components with fail violations for quarantine results
+    if (FirewallComponentFilterState.QUARANTINE == filter.firewallComponentFilterState) {
+      sQuery.append(" AND policyViolation.actionTypeId = 'fail'"
+          + " AND policyViolation.active = true");
+    }
+
+    // FILTER
+    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
+      sQuery.append(" AND policyViolation.policyId=?1");
     }
 
     sQuery.append(getFirewallComponentStateClause(filter));
@@ -217,10 +226,15 @@ public class RepositoryComponentDAO
     return sQuery.toString();
   }
 
+  private static boolean queryRequiresPolicyViolations(FirewallRepositoryComponentFilter filter) {
+    return filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)
+        || FirewallComponentFilterState.QUARANTINE == filter.firewallComponentFilterState;
+  }
+
   private static String getFirewallComponentStateClause(
       final FirewallRepositoryComponentFilter filter)
   {
-    String prefix = filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID) ? "AND" : "WHERE";
+    String prefix = queryRequiresPolicyViolations(filter) ? "AND" : "WHERE";
 
     switch (filter.firewallComponentFilterState) {
       case AUDIT:

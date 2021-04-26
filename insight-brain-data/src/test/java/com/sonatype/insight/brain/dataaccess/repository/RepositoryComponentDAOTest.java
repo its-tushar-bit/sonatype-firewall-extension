@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -720,6 +721,11 @@ public class RepositoryComponentDAOTest
         component2.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased3", false, "policy_id_2", "policy_2",
         component3.getComponentIdentifier());
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined1", false, FailActionType.ID,
+        "policy_id_2", "policy_2", component2.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined2", false, FailActionType.ID,
+        "policy_id_2", "policy_2", component3.getComponentIdentifier());
   }
 
   private void assertComponentForFirewall(

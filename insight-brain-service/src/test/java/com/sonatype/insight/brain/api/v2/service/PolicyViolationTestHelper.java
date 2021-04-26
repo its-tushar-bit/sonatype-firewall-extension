@@ -47,7 +47,7 @@ public class PolicyViolationTestHelper
     return tempEntity.newRepositoryPolicyViolation(policyViolation);
   }
 
-  public static void createPolicyViolationWaived(
+  public static RepositoryPolicyViolation createPolicyViolationWaived(
       Policy policy,
       RepositoryComponent component, final TemporaryEntity tempEntity)
   {
@@ -67,6 +67,8 @@ public class PolicyViolationTestHelper
     policyViolation.setPolicyWaiverId("waiver1");
     policyViolation.setWaiveTime(new Date());
     tempEntity.newRepositoryPolicyViolation(policyViolation);
+
+    return policyViolation;
   }
 
   public static void createPolicyViolationWarn(

@@ -48,7 +48,7 @@ describe('FirewallQuarantineTable', function () {
           repository: 'central',
           quarantineDate: '2018-09-30T03:10:35.754+0000',
           dateCleared: null,
-          policyViolations: [
+          quarantinePolicyViolations: [
             {
               policyId: 'test-policy-id',
               policyName: 'Security-Medium',

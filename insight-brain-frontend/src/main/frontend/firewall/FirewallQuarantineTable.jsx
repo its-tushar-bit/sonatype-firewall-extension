@@ -153,7 +153,7 @@ export default function FirewallQuarantineTable(props) {
           >
             {quarantineList &&
               quarantineList.map((row, index) => {
-                let policyViolation = getHighestPolicyViolation(row.policyViolations);
+                let policyViolation = getHighestPolicyViolation(row.quarantinePolicyViolations);
 
                 return (
                   <NxTableRow key={index}>

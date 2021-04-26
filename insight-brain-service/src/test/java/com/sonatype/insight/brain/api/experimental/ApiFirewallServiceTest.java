@@ -481,6 +481,8 @@ public class ApiFirewallServiceTest
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june2nd2020, june3rd2020, true);
     final RepositoryComponent component3 =
         tempEntity.newRepositoryComponent(repository.getId(), "/quarantined3", june3rd2020, june4th2020, true);
+    final RepositoryComponent component4 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined4", june3rd2020, june4th2020, true);
 
     // CREATE POLICY VIOLATION
     RepositoryPolicyViolation policyViolation1 = PolicyViolationTestHelper
@@ -489,8 +491,14 @@ public class ApiFirewallServiceTest
     RepositoryPolicyViolation policyViolation2 = PolicyViolationTestHelper
         .createPolicyViolationFail(policy2, component2, tempEntity);
 
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined3", false, "policy_id_3", "policy_3",
-        component3.getComponentIdentifier());
+    // a non-failing violation should not be included in results
+    PolicyViolationTestHelper.createPolicyViolationWarn(policy2, component2, tempEntity);
+
+    // a waived violation should be included in results
+    PolicyViolationTestHelper.createPolicyViolationWaived(policy2, component3, tempEntity);
+
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined4", false, "policy_id_3", "policy_3",
+        component4.getComponentIdentifier());
 
     final FirewallSortableField sortField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
     final FirewallRepositoryComponentFilter filter =
@@ -501,7 +509,7 @@ public class ApiFirewallServiceTest
     final ApiPageResult<ApiFirewallComponentDTO> unquarantineList = apiFirewallService.getComponents(filter);
 
     // VERIFY
-    assertThat(unquarantineList.getTotal()).isEqualTo(3);
+    assertThat(unquarantineList.getTotal()).isEqualTo(4);
     assertThat(unquarantineList.getResults()).hasSize(2);
 
     final ApiFirewallComponentDTO componentDTO1 = unquarantineList.getResults().get(0);
@@ -666,9 +674,9 @@ public class ApiFirewallServiceTest
     assertThat(componentDTO.repository).isEqualTo("repo1");
     assertThat(componentDTO.dateCleared).isEqualTo(dateCleared);
     assertThat(componentDTO.quarantineDate).isEqualTo(quarantineDate);
-    assertThat(componentDTO.policyViolations).hasSize(1);
+    assertThat(componentDTO.quarantinePolicyViolations).hasSize(1);
     PolicyViolationTestHelper
-        .assertApiPolicyViolationDTOV2(componentDTO.policyViolations.get(0), expectedPolicyViolation);
+        .assertApiPolicyViolationDTOV2(componentDTO.quarantinePolicyViolations.get(0), expectedPolicyViolation);
   }
 
   static void assertRepositoryComponentZeroViolations(
@@ -677,7 +685,7 @@ public class ApiFirewallServiceTest
       final Date dateCleared)
   {
     assertRepositoryComponent(componentDTO, quarantineDate, dateCleared);
-    assertThat(componentDTO.policyViolations).isEmpty();
+    assertThat(componentDTO.quarantinePolicyViolations).isEmpty();
   }
 
   static void assertRepositoryComponent(

@@ -1124,6 +1124,23 @@ describe('firewallReducer', function () {
     });
   });
 
+  describe('FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED action', function () {
+    let initialState = reduce();
+
+    it('updates the state', function () {
+      let lastUpdated = new Date(),
+        payload = { lastUpdated: lastUpdated };
+
+      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED', payload: payload })).toEqual({
+        ...initialState,
+        quarantineGridState: {
+          ...initialState.quarantineGridState,
+          lastUpdated: lastUpdated,
+        },
+      });
+    });
+  });
+
   describe('FIREWALL_LOAD_DATA_REQUESTED action', function () {
     it('updates to the initial state', function () {
       const state = Object.freeze({

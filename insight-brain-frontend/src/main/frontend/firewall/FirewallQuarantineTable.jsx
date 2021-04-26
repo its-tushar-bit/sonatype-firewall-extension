@@ -7,6 +7,8 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import {
+  NxButton,
+  NxFontAwesomeIcon,
   NxPagination,
   NxTable,
   NxTableBody,
@@ -17,9 +19,11 @@ import {
   NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 
+import { faSync } from '@fortawesome/pro-solid-svg-icons';
+
 export default function FirewallQuarantineTable(props) {
   // actions
-  const { setQuarantineGridPage, setQuarantineGridSorting, setQuarantineGridPolicyFilter } = props;
+  const { loadQuarantineList, setQuarantineGridPage, setQuarantineGridSorting, setQuarantineGridPolicyFilter } = props;
 
   // quarantineState.quarantineGridState
   const {
@@ -31,6 +35,7 @@ export default function FirewallQuarantineTable(props) {
     sortDir,
     sortField,
     filterPolicy,
+    lastUpdated,
   } = props;
 
   // policiesState
@@ -76,100 +81,119 @@ export default function FirewallQuarantineTable(props) {
   }
 
   return (
-    <div id="firewall-quarantine-table" className="nx-table-container iq-firewall-quarantine-table">
-      <NxTable id="pagination-firewall-quarantine-table" className="nx-table--fixed-layout">
-        <NxTableHead>
-          <NxTableRow>
-            <NxTableCell isNumeric className="iq-cell--threat">
-              Threat
-            </NxTableCell>
-            <NxTableCell className="iq-cell--policy-type">Policy Type</NxTableCell>
-            <NxTableCell
-              id="quarantineTime-header"
-              className="iq-cell--quarantine-date"
-              isSortable
-              sortDir={sortField === 'quarantineTime' ? sortDir : null}
-              onClick={() => sortPage('quarantineTime')}
-            >
-              Quarantine Date
-            </NxTableCell>
-            <NxTableCell>Component</NxTableCell>
-            <NxTableCell className="iq-cell--repository">Repository</NxTableCell>
-          </NxTableRow>
+    <section id="firewall-quarantine-table">
+      <header className="iq-firewall-table-header nx-page-title">
+        <h2 className="nx-h2 iq-firewall-table-label">Quarantine</h2>
+        <div className="iq-firewall-table__time">
+          {lastUpdated && 'Updated ' + lastUpdated.toLocaleTimeString() + ' ' + lastUpdated.toLocaleDateString()}
+        </div>
+        <div className="nx-btn-bar">
+          <NxButton
+            id="firewall-quarantine-table--refresh-button"
+            variant="tertiary"
+            onClick={() => loadQuarantineList()}
+          >
+            <NxFontAwesomeIcon icon={faSync} />
+            <span>Refresh</span>
+          </NxButton>
+        </div>
+      </header>
 
-          <NxTableRow isFilterHeader>
-            <NxTableCell />
-            <NxTableCell>
-              <select
-                className="nx-form-select"
-                onChange={(event) => setQuarantineGridPolicyFilter(event.currentTarget.value)}
-                value={filterPolicy}
+      <div className="nx-table-container iq-firewall-quarantine-table">
+        <NxTable id="pagination-firewall-quarantine-table" className="nx-table--fixed-layout">
+          <NxTableHead>
+            <NxTableRow>
+              <NxTableCell isNumeric className="iq-cell--threat">
+                Threat
+              </NxTableCell>
+              <NxTableCell className="iq-cell--policy-type">Policy Type</NxTableCell>
+              <NxTableCell
+                id="quarantineTime-header"
+                className="iq-cell--quarantine-date"
+                isSortable
+                sortDir={sortField === 'quarantineTime' ? sortDir : null}
+                onClick={() => sortPage('quarantineTime')}
               >
-                {/* Effectively clears the filter. */}
-                <option value={''}></option>
+                Quarantine Date
+              </NxTableCell>
+              <NxTableCell>Component</NxTableCell>
+              <NxTableCell className="iq-cell--repository">Repository</NxTableCell>
+            </NxTableRow>
 
-                {policies &&
-                  policies.map((policy) => (
-                    <option key={policy.id} value={policy.id}>
-                      {policy.name}
-                    </option>
-                  ))}
-              </select>
-            </NxTableCell>
-            <NxTableCell />
-            <NxTableCell />
-            <NxTableCell />
-          </NxTableRow>
-        </NxTableHead>
+            <NxTableRow isFilterHeader>
+              <NxTableCell />
+              <NxTableCell>
+                <select
+                  className="nx-form-select"
+                  onChange={(event) => setQuarantineGridPolicyFilter(event.currentTarget.value)}
+                  value={filterPolicy}
+                >
+                  {/* Effectively clears the filter. */}
+                  <option value={''}></option>
 
-        <NxTableBody
-          id="iq-firewall-quarantine-table-body"
-          emptyMessage="No data found."
-          error={loadQuarantineGridError}
-          isLoading={!loadedQuarantineList}
-        >
-          {quarantineList &&
-            quarantineList.map((row, index) => {
-              let policyViolation = getHighestPolicyViolation(row.policyViolations);
+                  {policies &&
+                    policies.map((policy) => (
+                      <option key={policy.id} value={policy.id}>
+                        {policy.name}
+                      </option>
+                    ))}
+                </select>
+              </NxTableCell>
+              <NxTableCell />
+              <NxTableCell />
+              <NxTableCell />
+            </NxTableRow>
+          </NxTableHead>
 
-              return (
-                <NxTableRow key={index}>
-                  <NxTableCell isNumeric>
-                    <NxThreatIndicator policyThreatLevel={policyViolation.threatLevel} />
-                    <span>{policyViolation.threatLevel}</span>
-                  </NxTableCell>
-                  <NxTableCell className="iq-policy-cell">
-                    <NxOverflowTooltip title={policyViolation.policyName}>
-                      <div className="nx-truncate-ellipsis">{policyViolation.policyName}</div>
-                    </NxOverflowTooltip>
-                  </NxTableCell>
-                  <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
-                  <NxTableCell>
-                    <NxOverflowTooltip title={row.displayName}>
-                      <div className="nx-truncate-ellipsis">{row.displayName}</div>
-                    </NxOverflowTooltip>
-                  </NxTableCell>
-                  <NxTableCell>
-                    <NxOverflowTooltip title={row.repository}>
-                      <div className="nx-truncate-ellipsis">{row.repository}</div>
-                    </NxOverflowTooltip>
-                  </NxTableCell>
-                </NxTableRow>
-              );
-            })}
-        </NxTableBody>
-      </NxTable>
+          <NxTableBody
+            id="iq-firewall-quarantine-table-body"
+            emptyMessage="No data found."
+            error={loadQuarantineGridError}
+            isLoading={!loadedQuarantineList}
+          >
+            {quarantineList &&
+              quarantineList.map((row, index) => {
+                let policyViolation = getHighestPolicyViolation(row.policyViolations);
 
-      <div className="nx-table-container__footer">
-        <NxPagination
-          className="iq-firewall-table__nav-bar"
-          aria-controls="pagination-firewall-quarantine-table"
-          pageCount={quarantinePageCount}
-          currentPage={currentPage}
-          onChange={setQuarantineGridPage}
-        />
+                return (
+                  <NxTableRow key={index}>
+                    <NxTableCell isNumeric>
+                      <NxThreatIndicator policyThreatLevel={policyViolation.threatLevel} />
+                      <span>{policyViolation.threatLevel}</span>
+                    </NxTableCell>
+                    <NxTableCell className="iq-policy-cell">
+                      <NxOverflowTooltip title={policyViolation.policyName}>
+                        <div className="nx-truncate-ellipsis">{policyViolation.policyName}</div>
+                      </NxOverflowTooltip>
+                    </NxTableCell>
+                    <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
+                    <NxTableCell>
+                      <NxOverflowTooltip title={row.displayName}>
+                        <div className="nx-truncate-ellipsis">{row.displayName}</div>
+                      </NxOverflowTooltip>
+                    </NxTableCell>
+                    <NxTableCell>
+                      <NxOverflowTooltip title={row.repository}>
+                        <div className="nx-truncate-ellipsis">{row.repository}</div>
+                      </NxOverflowTooltip>
+                    </NxTableCell>
+                  </NxTableRow>
+                );
+              })}
+          </NxTableBody>
+        </NxTable>
+
+        <div className="nx-table-container__footer">
+          <NxPagination
+            className="iq-firewall-table__nav-bar"
+            aria-controls="pagination-firewall-quarantine-table"
+            pageCount={quarantinePageCount}
+            currentPage={currentPage}
+            onChange={setQuarantineGridPage}
+          />
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -187,5 +211,6 @@ FirewallQuarantineTable.propTypes = {
   currentPage: PropTypes.number,
   sortDir: PropTypes.string,
   sortField: PropTypes.string,
-  filterPolicy: PropTypes.string,
+  filterPolicy: PropTypes.object,
+  lastUpdated: PropTypes.object,
 };

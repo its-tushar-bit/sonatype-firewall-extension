@@ -39,6 +39,7 @@ import {
   FIREWALL_QUARANTINE_GRID_SET_PAGE,
   FIREWALL_QUARANTINE_GRID_SET_SORTING,
   FIREWALL_QUARANTINE_GRID_SET_FILTER,
+  FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
   loadConfiguration,
   loadReleaseQuarantineSummary,
   loadReleaseQuarantineList,
@@ -54,6 +55,7 @@ import {
   setQuarantineGridPage,
   setQuarantineGridPolicyFilter,
   setQuarantineGridSorting,
+  setQuarantineGridLastUpdated,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -111,6 +113,7 @@ describe('firewallActions', function () {
           sortDir: null,
           sortField: null,
           filterPolicyId: '',
+          lastUpdated: null,
         }),
         policiesState: Object.freeze({
           loadedPolicies: false,
@@ -765,7 +768,16 @@ describe('firewallActions', function () {
     });
 
     describe('after a successful GET call', function () {
-      let defaultParams = '?page=1&pageSize=12';
+      let defaultParams = '?page=1&pageSize=12',
+        lastUpdated = new Date();
+
+      beforeEach(function () {
+        jasmine.clock().install();
+      });
+
+      afterEach(function () {
+        jasmine.clock().uninstall();
+      });
 
       it('dispatches FIREWALL_QUARANTINE_LIST_FULFILLED action', function (done) {
         mockAxiosCalls({
@@ -774,13 +786,17 @@ describe('firewallActions', function () {
           },
         });
 
+        jasmine.clock().mockDate(lastUpdated);
+
         store.dispatch(loadQuarantineList()).then(() => {
           actions = store.getActions();
-          expect(actions.length).toBe(2);
+          expect(actions.length).toBe(3);
           expect(actions[0].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
           expect(actions[0].payload).toBeUndefined();
           expect(actions[1].type).toBe(FIREWALL_QUARANTINE_LIST_FULFILLED);
           expect(actions[1].payload).toEqual(payload);
+          expect(actions[2].type).toBe(FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED);
+          expect(actions[2].payload).toEqual({ lastUpdated: lastUpdated });
           done();
         });
 
@@ -857,6 +873,19 @@ describe('firewallActions', function () {
       expect(actions[0].payload.policy).toEqual(jasmine.any(String));
       expect(actions[1].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
       expect(actions[1].payload).toBeUndefined();
+    });
+  });
+
+  describe('setQuarantineGridLastUpdated', function () {
+    it('immediately dispatches actions to set the last updated timestamp for the quarantine grid', function () {
+      let lastUpdated = new Date();
+
+      store.dispatch(setQuarantineGridLastUpdated(lastUpdated));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED);
+      expect(actions[0].payload).toEqual({ lastUpdated: lastUpdated });
     });
   });
 

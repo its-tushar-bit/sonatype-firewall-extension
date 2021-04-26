@@ -99,6 +99,7 @@ export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING = 'FIREWALL_AUTO_UNQUAR
 export const FIREWALL_QUARANTINE_GRID_SET_PAGE = 'FIREWALL_QUARANTINE_GRID_SET_PAGE';
 export const FIREWALL_QUARANTINE_GRID_SET_SORTING = 'FIREWALL_QUARANTINE_GRID_SET_SORTING';
 export const FIREWALL_QUARANTINE_GRID_SET_FILTER = 'FIREWALL_QUARANTINE_GRID_SET_FILTER';
+export const FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED = 'FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED';
 
 const quarantineGridSetPage = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_PAGE);
 const quarantineGridSetSorting = payloadParamActionCreator(FIREWALL_QUARANTINE_GRID_SET_SORTING);
@@ -285,6 +286,7 @@ export function loadQuarantineList() {
       .get(getFirewallQuarantineListUrl(apiPage, gridState.pageSize, gridState.sortField, sortAsc, filterValue))
       .then(({ data }) => {
         dispatch(loadQuarantineListFulfilled(data));
+        dispatch(setQuarantineGridLastUpdated(new Date()));
       })
       .catch((error) => {
         dispatch(loadQuarantineListFailed(Messages.getHttpErrorMessage(error)));
@@ -310,5 +312,12 @@ export function setQuarantineGridPolicyFilter(policy) {
   return (dispatch) => {
     dispatch(quarantineGridSetFilter({ policy: policy }));
     dispatch(loadQuarantineList());
+  };
+}
+
+export function setQuarantineGridLastUpdated(lastUpdated) {
+  return {
+    type: FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
+    payload: { lastUpdated: lastUpdated },
   };
 }

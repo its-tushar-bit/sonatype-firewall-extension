@@ -26,6 +26,7 @@ import {
   FIREWALL_QUARANTINE_GRID_SET_PAGE,
   FIREWALL_QUARANTINE_GRID_SET_SORTING,
   FIREWALL_QUARANTINE_GRID_SET_FILTER,
+  FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
   FIREWALL_POLICIES_REQUESTED,
   FIREWALL_POLICIES_FULFILLED,
   FIREWALL_POLICIES_FAILED,
@@ -99,7 +100,8 @@ const initialState = Object.freeze({
     currentPage: null,
     sortDir: null,
     sortField: null,
-    filterPolicy: '',
+    filterPolicy: null,
+    lastUpdated: null,
   }),
 });
 
@@ -434,6 +436,15 @@ const setQuarantineGridPolicyFilter = (payload, state) =>
     state
   );
 
+const setQuarantineGridLastUpdated = (payload, state) =>
+  over(
+    lensPath(['quarantineGridState']),
+    merge(__, {
+      lastUpdated: payload.lastUpdated,
+    }),
+    state
+  );
+
 const reducerActionMap = {
   [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
   [FIREWALL_LOAD_STATUS_REQUESTED]: loadStatusRequested,
@@ -459,6 +470,7 @@ const reducerActionMap = {
   [FIREWALL_QUARANTINE_GRID_SET_PAGE]: setQuarantineGridPage,
   [FIREWALL_QUARANTINE_GRID_SET_SORTING]: setQuarantineGridSorting,
   [FIREWALL_QUARANTINE_GRID_SET_FILTER]: setQuarantineGridPolicyFilter,
+  [FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED]: setQuarantineGridLastUpdated,
   [FIREWALL_POLICIES_REQUESTED]: loadPoliciesRequested,
   [FIREWALL_POLICIES_FAILED]: loadPoliciesFailed,
   [FIREWALL_POLICIES_FULFILLED]: loadPoliciesFulfilled,

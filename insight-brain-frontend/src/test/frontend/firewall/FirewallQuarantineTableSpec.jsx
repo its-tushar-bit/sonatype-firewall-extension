@@ -15,13 +15,28 @@ import {
 import * as enzymeUtils from '../enzymeUtils';
 
 describe('FirewallQuarantineTable', function () {
-  let minimalProps, FirewallQuarantineTable, getShallowComponent;
+  let minimalProps,
+    FirewallQuarantineTable,
+    getShallowComponent,
+    loadQuarantineList,
+    setQuarantineGridPage,
+    setQuarantineGridSorting,
+    setQuarantineGridPolicyFilter;
 
   beforeEach(function () {
     FirewallQuarantineTable = require('inject-loader!../../../main/frontend/firewall/FirewallQuarantineTable')()
       .default;
 
+    loadQuarantineList = jasmine.createSpy('loadQuarantineList');
+    setQuarantineGridPage = jasmine.createSpy('setQuarantineGridPage');
+    setQuarantineGridSorting = jasmine.createSpy('setQuarantineGridSorting');
+    setQuarantineGridPolicyFilter = jasmine.createSpy('setQuarantineGridPolicyFilter');
+
     minimalProps = {
+      loadQuarantineList: loadQuarantineList,
+      setQuarantineGridPage: setQuarantineGridPage,
+      setQuarantineGridSorting: setQuarantineGridSorting,
+      setQuarantineGridPolicyFilter: setQuarantineGridPolicyFilter,
       loadedQuarantineList: true,
       loadedPolicies: true,
       quarantinePageCount: 1,
@@ -106,6 +121,21 @@ describe('FirewallQuarantineTable', function () {
           </NxTableCell>,
         ])
       ).toBeTruthy();
+    });
+  });
+
+  describe('Quarantine grid last updated', () => {
+    it('calls the loadQuarantineList when the refresh button is clicked', () => {
+      // when the results table is rendered
+      let component = getShallowComponent(),
+        initialLabel = component.find('.iq-firewall-table__time').text(),
+        refreshButton = component.find('#firewall-quarantine-table--refresh-button');
+
+      expect(initialLabel).toEqual('');
+
+      refreshButton.simulate('click');
+
+      expect(loadQuarantineList).toHaveBeenCalled();
     });
   });
 });

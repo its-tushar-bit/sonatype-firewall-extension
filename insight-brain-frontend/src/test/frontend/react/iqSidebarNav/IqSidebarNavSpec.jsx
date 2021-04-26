@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { faBars, faArrowToLeft } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -15,18 +15,20 @@ import {
   faShieldCheck,
   faSitemap,
 } from '@fortawesome/pro-solid-svg-icons';
+import * as preferenceStoreFunctions from '../../../../main/frontend/util/preferenceStore';
 
 import * as enzymeUtils from '../../enzymeUtils';
 import IqSidebarNav from '../../../../main/frontend/react/iqSidebarNav/IqSidebarNav';
 import {
+  NxButton,
+  NxGlobalSidebar,
   NxGlobalSidebarNavigation,
   NxGlobalSidebarNavigationLink,
-  NxStatefulGlobalSidebar,
 } from '@sonatype/react-shared-components';
 import IqSidebarNavFooter from '../../../../main/frontend/react/iqSidebarNav/IqSidebarNavFooter';
 
 describe('IqSidebarNav', function () {
-  let getShallowComponent, hrefSpy, includesSpy;
+  let getShallowComponent, getMountedComponent, hrefSpy, includesSpy;
 
   beforeEach(function () {
     hrefSpy = jasmine.createSpy('href').and.callFake((args) => `href-${args}`);
@@ -38,26 +40,82 @@ describe('IqSidebarNav', function () {
     });
 
     getShallowComponent = enzymeUtils.getShallowComponent(IqSidebarNav, {});
+    getMountedComponent = enzymeUtils.getMountedComponent(IqSidebarNav, {});
   });
 
-  it('renders an NxStatefulGlobalSidebar with props', function () {
-    let component, statefulGlobalSidebar;
+  describe('renders an NxGlobalSidebar', function () {
+    const { setLeftNavigationOpen } = preferenceStoreFunctions;
+    const deleteSideBarOpenStoredPreference = () => {
+      localStorage.removeItem('leftNavigation.isOpen');
+    };
 
-    (component = getShallowComponent()), (statefulGlobalSidebar = component.find(NxStatefulGlobalSidebar));
+    beforeEach(function () {
+      deleteSideBarOpenStoredPreference();
+    });
 
-    expect(component).toExist();
-    expect(statefulGlobalSidebar).toExist();
-    expect(statefulGlobalSidebar).toHaveProp('isDefaultOpen', true);
-    expect(statefulGlobalSidebar).toHaveProp('toggleOpenIcon', faArrowToLeft);
-    expect(statefulGlobalSidebar).toHaveProp('toggleCloseIcon', faBars);
-    expect(statefulGlobalSidebar).toHaveProp('logoImg');
-    expect(statefulGlobalSidebar).toHaveProp('logoAltText', undefined);
-    expect(statefulGlobalSidebar).toHaveProp('logoLink', '#');
+    it('renders an NxGlobalSidebar with props', function () {
+      let component, globalSidebar;
 
-    component = getShallowComponent({ productEdition: 'mockProductEdition' });
-    statefulGlobalSidebar = component.find(NxStatefulGlobalSidebar);
+      (component = getShallowComponent()), (globalSidebar = component.find(NxGlobalSidebar));
 
-    expect(statefulGlobalSidebar).toHaveProp('logoAltText', 'mockProductEdition');
+      expect(component).toExist();
+      expect(globalSidebar).toExist();
+      expect(globalSidebar).toHaveProp('isOpen', true);
+      expect(globalSidebar).toHaveProp('onToggleClick', jasmine.any(Function));
+      expect(globalSidebar).toHaveProp('toggleOpenIcon', faArrowToLeft);
+      expect(globalSidebar).toHaveProp('toggleCloseIcon', faBars);
+      expect(globalSidebar).toHaveProp('logoImg');
+      expect(globalSidebar).toHaveProp('logoAltText', undefined);
+      expect(globalSidebar).toHaveProp('logoLink', '#');
+
+      component = getShallowComponent({ productEdition: 'mockProductEdition' });
+      globalSidebar = component.find(NxGlobalSidebar);
+
+      expect(globalSidebar).toHaveProp('logoAltText', 'mockProductEdition');
+    });
+
+    it('renders the NxGlobalSidebar open if there are no previous preferences set', function () {
+      const component = getShallowComponent(),
+        globalSidebar = component.find(NxGlobalSidebar);
+
+      expect(globalSidebar).toExist();
+      expect(globalSidebar).toHaveProp('isOpen', true);
+    });
+
+    it('renders the NxGlobalSidebar open if this was the set preference previously', function () {
+      setLeftNavigationOpen(true);
+
+      const component = getShallowComponent(),
+        globalSidebar = component.find(NxGlobalSidebar);
+
+      expect(globalSidebar).toExist();
+      expect(globalSidebar).toHaveProp('isOpen', true);
+    });
+
+    it('renders the NxGlobalSidebar closed if this was the set preference previously', function () {
+      setLeftNavigationOpen(false);
+
+      const component = getShallowComponent(),
+        globalSidebar = component.find(NxGlobalSidebar);
+
+      expect(globalSidebar).toExist();
+      expect(globalSidebar).toHaveProp('isOpen', false);
+    });
+
+    it('saves the NxGlobalSidebar open state preference when collapsing or opening it', function () {
+      setLeftNavigationOpen(false);
+      const preferenceStoreSpy = spyOn(preferenceStoreFunctions, 'setLeftNavigationOpen');
+
+      const component = getMountedComponent({ logoAltText: 'product version -' }),
+        sidebar = component.find(NxGlobalSidebar),
+        toggleButton = sidebar.find(NxButton);
+
+      toggleButton.simulate('click');
+      expect(preferenceStoreSpy).toHaveBeenCalledWith(true);
+
+      toggleButton.simulate('click');
+      expect(preferenceStoreSpy).toHaveBeenCalledWith(false);
+    });
   });
 
   it('renders an IqSidebarNavFooter if both productEdition and releaseVersion are specified', function () {

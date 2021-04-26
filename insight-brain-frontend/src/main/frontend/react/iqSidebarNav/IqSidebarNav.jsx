@@ -3,14 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import {
-  NxStatefulGlobalSidebar,
+  NxGlobalSidebar,
   NxGlobalSidebarNavigation,
   NxGlobalSidebarNavigationLink,
+  useToggle,
 } from '@sonatype/react-shared-components';
-import { faBars, faArrowToLeft } from '@fortawesome/pro-regular-svg-icons';
+import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
 import {
   faChartArea,
   faFileChartLine,
@@ -26,9 +27,12 @@ import RouterStateContext from '../RouterStateContext';
 import IqSidebarNavFooter from './IqSidebarNavFooter';
 
 import { getProductLogo } from '../../util/productLogoUtils';
+import { isLeftNavigationOpen, setLeftNavigationOpen } from '../../util/preferenceStore';
 
 function IqSidebarNav(props) {
   const uiRouterState = useContext(RouterStateContext);
+  const [isOpen, toggleOpen] = useToggle(isLeftNavigationOpen());
+
   const {
     productEdition,
     releaseVersion,
@@ -60,9 +64,14 @@ function IqSidebarNav(props) {
   const isVulnerabilitySearchSelected = isSelected('vulnerabilitySearch') || isSelected('vulnerabilitySearchDetail');
   const isFirewallSelected = isSelected('firewall') || isSelected('firewallAutoUnquarantine');
 
+  useEffect(() => {
+    setLeftNavigationOpen(isOpen);
+  }, [isOpen]);
+
   return (
-    <NxStatefulGlobalSidebar
-      isDefaultOpen={true}
+    <NxGlobalSidebar
+      isOpen={isOpen}
+      onToggleClick={toggleOpen}
       toggleOpenIcon={faArrowToLeft}
       toggleCloseIcon={faBars}
       logoImg={logo}
@@ -149,7 +158,7 @@ function IqSidebarNav(props) {
       {productEdition && releaseVersion && (
         <IqSidebarNavFooter productName={productEdition} releaseNumber={releaseVersion} />
       )}
-    </NxStatefulGlobalSidebar>
+    </NxGlobalSidebar>
   );
 }
 

@@ -257,6 +257,7 @@ public abstract class AbstractFunctionalTest
   @After
   public final void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
+    tryOpenSidebarNav();
     TaskScheduler taskScheduler = testCLMServer.getCLMServer().getInstance(TaskScheduler.class);
     if (taskScheduler != null) {
       taskScheduler.standby();
@@ -278,6 +279,19 @@ public abstract class AbstractFunctionalTest
       closeOtherWindows();
       return true;
     });
+  }
+
+  private void tryOpenSidebarNav() {
+    try {
+      // restore sidebar to open state if available
+      if (MainHeader.sidebar().is(visible)) {
+        MainHeader.openNavigationSidebar();
+      }
+    }
+    catch (RuntimeException unexpectedException) {
+      // there might be an element interfering with the click but since we are not sure of it's nature we'll ignore
+      log.debug("Attempted to return the header to open but failed", unexpectedException);
+    }
   }
 
   @SuppressWarnings("unchecked")

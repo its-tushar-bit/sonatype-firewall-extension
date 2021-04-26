@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -85,6 +86,12 @@ public abstract class AbstractSummaryViewTest
     this.currentOwner = currentOwner;
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
     OwnerSummaryPage.summaryTile().name().shouldHave(text(currentOwner.getName()));
+  }
+
+  @After
+  public void afterEach() {
+    // This ensures no open modals that might interfere with further logic are open after each test
+    refresh();
   }
 
   @Test

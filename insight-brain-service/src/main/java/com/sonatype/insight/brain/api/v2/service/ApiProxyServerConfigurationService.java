@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,6 +24,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import org.apache.commons.lang.StringUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -35,6 +37,10 @@ public class ApiProxyServerConfigurationService
     implements Job
 {
   private static final Logger log = LoggerFactory.getLogger(ApiProxyServerConfigurationService.class);
+
+  // based on https://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
+  private static final Pattern HOSTNAME_PATTERN = Pattern.compile(
+      "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$");
 
   // Visible for testing
   static final String TASK_NAME = "ProxyServerConfiguration";
@@ -107,6 +113,10 @@ public class ApiProxyServerConfigurationService
       }
     }
 
+    if (StringUtils.isBlank(configurationDTO.hostname) ||
+        !HOSTNAME_PATTERN.matcher(configurationDTO.hostname).matches()) {
+      throw new BadRequestException("Invalid hostname provided for the proxy server");
+    }
     proxyServerConfiguration.setHostname(configurationDTO.hostname);
     proxyServerConfiguration.setPort(configurationDTO.port);
     proxyServerConfiguration.setUsername(configurationDTO.username);

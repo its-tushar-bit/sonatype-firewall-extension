@@ -313,6 +313,29 @@ public class ApiProxyServerConfigurationServiceTest
   }
 
   @Test
+  public void testSetConfiguration_Update_InvalidHostname() {
+    testInvalidHostname("invalid/host/name");
+  }
+
+  @Test
+  public void testSetConfiguration_Update_NullHostname() {
+    testInvalidHostname(null);
+  }
+
+  private void testInvalidHostname(String hostname) {
+    ApiProxyServerConfigurationDTO configurationDTO = new ApiProxyServerConfigurationDTO();
+    configurationDTO.hostname = hostname;
+    configurationDTO.port = 1;
+    configurationDTO.username = "smtpuser";
+    configurationDTO.password = "mysecret".toCharArray();
+    configurationDTO.passwordIsIncluded = true;
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      proxyServerConfigurationService.setConfiguration(configurationDTO);
+    }).withMessageContaining("Invalid hostname provided for the proxy server");
+  }
+
+  @Test
   public void testSetConfiguration_Update_PasswordNotIncluded_HostnameUnchanged_PortChanged() {
     char[] encryptedPassword = passwordHandler.encryptPassword("smtppass".toCharArray());
     ProxyServerConfiguration proxyServerConfiguration = new ProxyServerConfiguration();

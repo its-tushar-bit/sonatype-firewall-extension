@@ -57,21 +57,23 @@ export default function FirewallUnquarantineTable(props) {
 
   return (
     <div className="nx-table-container iq-firewall-auto-unquarantine-table">
-      <NxTable id="pagination-filter-table">
+      <NxTable id="pagination-filter-table" className="nx-table--fixed-layout">
         <NxTableHead>
           <NxTableRow>
             <NxTableCell>Component</NxTableCell>
             <NxTableCell
               id="quarantineTime-header"
+              className="iq-cell--quarantine-date"
               isSortable
               sortDir={sortField === 'quarantineTime' ? sortDir : null}
               onClick={() => sortPage('quarantineTime')}
             >
               Quarantine Date
             </NxTableCell>
-            <NxTableCell>Repository</NxTableCell>
+            <NxTableCell className="iq-cell--repository">Repository</NxTableCell>
             <NxTableCell
               id="releaseQuarantineTime-header"
+              className="iq-cell--date-cleared"
               isSortable
               sortDir={sortField === 'releaseQuarantineTime' ? sortDir : null}
               onClick={() => sortPage('releaseQuarantineTime')}

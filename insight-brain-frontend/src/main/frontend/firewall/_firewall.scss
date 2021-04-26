@@ -108,11 +108,23 @@ h2.iq-firewall-table-label {
 // Firewall component grid column
 .iq-firewall-auto-unquarantine-table {
   height: pagination-table-height(12, 1);
+
+  .iq-cell--date-cleared {
+    width: 170px;
+  }
+
+  .iq-cell--quarantine-date {
+    width: 190px;
+  }
+
+  .iq-cell--repository {
+    width: 160px;
+  }
 }
 
 // Firewall Quarantine Grid
 .iq-firewall-quarantine-table {
-  height: pagination-table-height(14, 1);
+  height: pagination-table-height(12, 1);
 
   .iq-cell--threat {
     width: 90px;

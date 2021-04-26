@@ -34,16 +34,24 @@ import static org.awaitility.Awaitility.await;
 public class ApiThirdPartyScanResourceTest
     extends AbstractResourceTest
 {
-  private HttpRequest scanBomRequest(String applicationId, String source, String stageId, String bom) {
+  private HttpRequest scanBomRequest(String applicationId, String source, String stageId) {
     return restRequest()
         .path(PublicApiPaths.THIRD_PARTY_SCAN_PATH, ApiThirdPartyScanResource.SCAN_COMPONENTS)
         .parameter(applicationId, source)
-        .query("stageId", stageId)
-        .body(bom, MediaType.APPLICATION_XML);
+        .query("stageId", stageId);
   }
 
   @Test
-  public void testScanComponentAndGetScanStatus() throws Exception {
+  public void testScanComponentAndGetScanStatus_Cyclone_Xml_v1_1() throws Exception {
+    testScanComponentAndGetScanStatus("valid_bom.xml", MediaType.APPLICATION_XML);
+  }
+
+  @Test
+  public void testScanComponentAndGetScanStatus_Cyclone_Xml_v1_2() throws Exception {
+    testScanComponentAndGetScanStatus("valid_bom_1_2.xml", MediaType.APPLICATION_XML);
+  }
+
+  public void testScanComponentAndGetScanStatus(String fileName, String mediaType) throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 
     // Simulate that the report is available
@@ -52,9 +60,11 @@ public class ApiThirdPartyScanResourceTest
     scanReceipt.setScanId(scanId);
     mockScanReceipt(scanReceipt);
 
-    String bom = getBomFile("valid_bom.xml");
+    String bom = getBomFile(fileName);
     String testClientUserAgent = "testClientUserAgent";
-    HttpResponse response = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD, bom) //
+    HttpRequest scanBomRequest = scanBomRequest(app.getId(), "clair", Stage.ID_BUILD);
+    scanBomRequest.body(bom, mediaType);
+    HttpResponse response = scanBomRequest //
         .header(DefaultHdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
         .post();
     assertResponseStatus(202, response);

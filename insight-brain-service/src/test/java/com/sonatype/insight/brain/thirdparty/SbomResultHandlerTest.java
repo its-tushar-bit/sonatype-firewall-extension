@@ -11,7 +11,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -37,15 +39,30 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Extension;
+import org.cyclonedx.model.Extension.ExtensionType;
 import org.cyclonedx.model.Hash;
+import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
+import org.cyclonedx.model.vulnerability.Rating;
+import org.cyclonedx.model.vulnerability.Vulnerability10;
+import org.cyclonedx.model.vulnerability.Vulnerability10.ScoreSource;
+import org.cyclonedx.model.vulnerability.Vulnerability10.Severity;
 import org.cyclonedx.parsers.Parser;
 import org.cyclonedx.parsers.XmlParser;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Spy;
 
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.*;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.ATTACK_VECTOR_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.FORMAT_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.IDENTIFICATION_SOURCE_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.LINK_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.NAME_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.PURL_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.REFID_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -71,7 +88,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_filterContent_newThirdPartyFileMultipleEntries() throws Exception {
-    String sbomContent = getSbomFile("sbom-multiple-components.xml");
+    String sbomContent = getSbomXmlFile("sbom-multiple-components.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("clair-bom.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -90,7 +107,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_veryLongIdentificationSource() throws Exception {
-    String sbomContent = getSbomFile("sbom-multiple-components.xml");
+    String sbomContent = getSbomXmlFile("sbom-multiple-components.xml");
     String identificationSource = "identification-source-very-long";
     ThirdPartyScanContent content =
         new ThirdPartyScanContent(identificationSource + "-bom.xml", null, null, null,
@@ -106,7 +123,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_priorityPurl_Then_Sha1_Then_Coordinates() throws Exception {
-    String sbomContent = getSbomFile("sbom-component-purl-hashes-coordinates-components.xml");
+    String sbomContent = getSbomXmlFile("sbom-component-purl-hashes-coordinates-components.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -134,7 +151,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_filterContent_hashes() throws Exception {
-    String sbomContent = getSbomFile("sbom-component-hashes-components.xml");
+    String sbomContent = getSbomXmlFile("sbom-component-hashes-components.xml");
     ThirdPartyScanContent content =
         new ThirdPartyScanContent("clair-bom.xml", null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -160,7 +177,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities() throws Exception {
-    String sbomContent = getSbomFile("sbom-vulnerabilities.xml");
+    String sbomContent = getSbomXmlFile("sbom-vulnerabilities.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -186,7 +203,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_withLicense() throws Exception {
-    String sbomContent = getSbomFile("sbom-license.xml");
+    String sbomContent = getSbomXmlFile("sbom-license.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -214,7 +231,7 @@ public class SbomResultHandlerTest
   
   @Test
   public void testHandleAndFilterContents_withComponentDuplicatedLicenseAndVulnerability() throws Exception {
-    String sbomContent = getSbomFile("sbom-duplicated-component-license-vulnerability.xml");
+    String sbomContent = getSbomXmlFile("sbom-duplicated-component-license-vulnerability.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -243,7 +260,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_lengthFormat() throws Exception {
-    String sbomContent = getSbomFile("sbom-long-purl-format.xml");
+    String sbomContent = getSbomXmlFile("sbom-long-purl-format.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -265,25 +282,25 @@ public class SbomResultHandlerTest
  
   @Test
   public void testHandleAndFilterContents_ignoreUnsupportedLicenseExpressions() throws Exception {
-    String sbomContent = getSbomFile("sbom-license-expression.xml");
+    String sbomContent = getSbomXmlFile("sbom-license-expression.xml");
     assertNoLicense(sbomContent);
   }
 
   @Test
   public void testHandleAndFilterContents_licenseMissingId() throws Exception {
-    String sbomContent = getSbomFile("sbom-license-no-id.xml");
+    String sbomContent = getSbomXmlFile("sbom-license-no-id.xml");
     assertNoLicense(sbomContent);
   }
 
   @Test
   public void testHandleAndFilterContents_missingLicenses() throws Exception {
-    String sbomContent = getSbomFile("sbom-missing-licenses.xml");
+    String sbomContent = getSbomXmlFile("sbom-missing-licenses.xml");
     assertNoLicense(sbomContent);
   }
 
   @Test
   public void testHandleAndFilterContents_emptyLicenses() throws Exception {
-    String sbomContent = getSbomFile("sbom-empty-licenses.xml");
+    String sbomContent = getSbomXmlFile("sbom-empty-licenses.xml");
     assertNoLicense(sbomContent);
   }
 
@@ -312,7 +329,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_optionalValues() throws Exception {
-    String sbomContent = getSbomFile("sbom-vulnerabilities-optional-values.xml");
+    String sbomContent = getSbomXmlFile("sbom-vulnerabilities-optional-values.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -338,7 +355,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_noSeverity() throws Exception {
-    String sbomContent = getSbomFile("sbom-vulnerabilities-no-severity.xml");
+    String sbomContent = getSbomXmlFile("sbom-vulnerabilities-no-severity.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -363,7 +380,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_invalidVulnerabilities() throws Exception {
-    String sbomContent = getSbomFile("sbom-vulnerabilities-invalid-vulnerabilities.xml");
+    String sbomContent = getSbomXmlFile("sbom-vulnerabilities-invalid-vulnerabilities.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -387,8 +404,46 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_withVulnerabilities_missingFields() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-vulnerabilities-missing-fields.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    Bom filteredSbom = assertFilteredSbomFile(filteredContent, 5);
+
+    List<Component> components = filteredSbom.getComponents();
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(5);
+
+    try (TransactionContext tx = thirdPartyCoordinateSecurityDAO.createTransactionContext()) {
+      assertSecurityCoordinates(coordinates.get(0), components.get(0), thirdPartyFile, tx, 0);
+      assertSecurityCoordinates(coordinates.get(1), components.get(1), thirdPartyFile, tx, 0);
+      assertSecurityCoordinates(coordinates.get(2), components.get(2), thirdPartyFile, tx, 1);
+      assertSecurityCoordinates(coordinates.get(3), components.get(3), thirdPartyFile, tx, 1);
+      assertSecurityCoordinates(coordinates.get(4), components.get(4), thirdPartyFile, tx, 1);
+    }
+  }
+
+  private void assertSecurityCoordinates(
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate,
+      Component component,
+      ThirdPartyFile thirdPartyFile,
+      TransactionContext tx,
+      int coordinatesSecuritySize)
+  {
+    assertThirdPartyFileCoordinate(component, thirdPartyFile, thirdPartyFileCoordinate);
+    List<ThirdPartyCoordinateSecurity> coordinatesSecurity =
+        thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
+    assertThat(coordinatesSecurity).hasSize(coordinatesSecuritySize);
+  }
+
+  @Test
   public void testHandleAndFilterContents_withoutVulnerabilities() throws Exception {
-    String sbomContent = getSbomFile("sbom-no-vulnerabilities.xml");
+    String sbomContent = getSbomXmlFile("sbom-no-vulnerabilities.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -413,7 +468,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_duplicatedVulnerabilities() throws Exception {
-    String sbomContent = getSbomFile("sbom-duplicated-vulnerabilities.xml");
+    String sbomContent = getSbomXmlFile("sbom-duplicated-vulnerabilities.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -435,7 +490,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_repeatedComponents() throws Exception {
-    String sbomContent = getSbomFile("sbom-repeated-components.xml");
+    String sbomContent = getSbomXmlFile("sbom-repeated-components.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -449,7 +504,7 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_nullContent() throws Exception {
+  public void testHandleAndFilterContents_nullContent() {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, null);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -461,7 +516,7 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testHandleAndFilterContents_emptyContent() throws Exception {
+  public void testHandleAndFilterContents_emptyContent() {
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, "");
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
@@ -474,13 +529,28 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_invalidSbom() throws Exception {
-    String sbomContent = getSbomFile("scan-with-invalid-sbom-data-cli.xml");
-    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    testHandleAndFilterContents_invalid_sbom(getSbomXmlFile("scan-with-invalid-sbom-data-cli.xml"),
+        "scan-with-invalid-sbom-data-cli.xml");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalidSbom_Xml_v1_2() throws Exception {
+    testHandleAndFilterContents_invalid_sbom(getSbomXmlFile("scan-with-invalid-sbom-v1_2.xml"),
+        "scan-with-invalid-sbom-v1_2.xml");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_invalidSbom_Json() throws Exception {
+    testHandleAndFilterContents_invalid_sbom(getSbomJsonFile("sbom-invalid.json"), "sbom-invalid.json");
+  }
+
+  private void testHandleAndFilterContents_invalid_sbom(String sbomContent, String path) throws Exception {
+    ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> sbomResultHandler.handleAndFilterContents(content, thirdPartyFile))
-        .withMessage("Error filtering sbom file");
+        .withMessage("Error filtering sbom file " + path);
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(0);
@@ -488,7 +558,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_sbomNestedComponents() throws Exception {
-    String sbomContent = getSbomFile("scan-with-sbom-nested-component.xml");
+    String sbomContent = getSbomXmlFile("scan-with-sbom-nested-component.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -498,7 +568,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_sbom_coords_no_purl() throws Exception {
-    String sbomContent = getSbomFile("scan-with-sbom-coords-no-purl.xml");
+    String sbomContent = getSbomXmlFile("scan-with-sbom-coords-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -508,17 +578,19 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_sbom_no_name_and_version_no_purl() throws Exception {
-    String sbomContent = getSbomFile("scan-with-sbom-no-name-and-version-no-purl.xml");
+    String sbomContent = getSbomXmlFile("scan-with-sbom-no-name-and-version-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
     assertThat(filteredContent).isNotNull();
-    assertFilteredSbomFile(filteredContent, 0);
+    Bom bom = getBom(filteredContent);
+    assertThat(bom).isNotNull();
+    assertThat(bom.getComponents()).isNull();
   }
 
   @Test
   public void testHandleAndFilterContents_sbom_no_name_no_purl() throws Exception {
-    String sbomContent = getSbomFile("scan-with-sbom-no-name-no-purl.xml");
+    String sbomContent = getSbomXmlFile("scan-with-sbom-no-name-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -528,7 +600,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_invalidPurl_invalidCoords() throws Exception {
-    String sbomContent = getSbomFile("sbom-invalid-purl-invalid-coords.xml");
+    String sbomContent = getSbomXmlFile("sbom-invalid-purl-invalid-coords.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -542,7 +614,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_invalidPurl_validCoords() throws Exception {
-    String sbomContent = getSbomFile("sbom-invalid-purl-valid-coords.xml");
+    String sbomContent = getSbomXmlFile("sbom-invalid-purl-valid-coords.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -556,7 +628,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_validPurl_noMandatoryValue() throws Exception {
-    String sbomContent = getSbomFile("sbom-invalid-valid-purl-no-mandatory-value.xml");
+    String sbomContent = getSbomXmlFile("sbom-invalid-valid-purl-no-mandatory-value.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -572,7 +644,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_unknownFormatPurl() throws Exception {
-    String sbomContent = getSbomFile("sbom-unknow-format-purl.xml");
+    String sbomContent = getSbomXmlFile("sbom-unknow-format-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -601,7 +673,7 @@ public class SbomResultHandlerTest
 
   @Test
   public void testHandleAndFilterContents_truncate() throws Exception {
-    String sbomContent = getSbomFile("sbom-truncate-coordinates-for-hds.xml");
+    String sbomContent = getSbomXmlFile("sbom-truncate-coordinates-for-hds.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
@@ -628,19 +700,26 @@ public class SbomResultHandlerTest
 
     ThirdPartyCoordinateSecurity coordinateSecurity =
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(coordinate.getId()).get(0);
+    assertThat(coordinateSecurity.getSeverityDescription()).isNull();
+    assertThat(coordinateSecurity.getRatingMethod()).isNull();
     assertThat(coordinateSecurity.getLink()).hasSize(LINK_MAX_LENGTH);
-    assertThat(coordinateSecurity.getSeverityDescription()).hasSize(SEVERITY_DESCRIPTION_MAX_LENGTH);
     assertThat(coordinateSecurity.getRefId()).hasSize(REFID_MAX_LENGTH);
     assertThat(coordinateSecurity.getVulnerabilitySource()).hasSize(VULNERABILITY_SOURCE_MAX_LENGTH);
-    assertThat(coordinateSecurity.getSeverityDescription()).hasSize(SEVERITY_DESCRIPTION_MAX_LENGTH);
     assertThat(coordinateSecurity.getAttackVector()).hasSize(ATTACK_VECTOR_MAX_LENGTH);
-    assertThat(coordinateSecurity.getRatingMethod()).hasSize(RATING_METHOD_MAX_LENGTH);
     assertThat(coordinateSecurity.getRefId()).hasSize(REFID_MAX_LENGTH);
   }
 
-  private String getSbomFile(final String fileName) throws Exception {
-    URL resource = getClass().getResource("/SbomResultsHandlerTest/" + fileName);
+  private String getSbomFile(final String fileType, final String fileName) throws Exception {
+    URL resource = getClass().getResource("/SbomResultsHandlerTest/" + fileType + "/" + fileName);
     return new String(Files.readAllBytes(Paths.get(resource.toURI())));
+  }
+
+  private String getSbomXmlFile(final String fileName) throws Exception {
+    return getSbomFile("xml", fileName);
+  }
+
+  private String getSbomJsonFile(final String fileName) throws Exception {
+    return getSbomFile("json", fileName);
   }
 
   private Bom assertFilteredSbomFile(String content, int expectedComponentCount) throws Exception {
@@ -656,6 +735,123 @@ public class SbomResultHandlerTest
       assertThat(component.getType()).isNotNull();
     }
     return bom;
+  }
+
+  @Test
+  public void testParseFilesV11AndV12() throws Exception {
+    ThirdPartyScanContent contentV11 =
+        new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-simple-v1-1.xml"));
+    Bom bomV11 = sbomResultHandler.parseBom(contentV11);
+    ThirdPartyScanContent contentV12 =
+        new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-simple-v1-2.xml"));
+    Bom bomV12 = sbomResultHandler.parseBom(contentV12);
+    ThirdPartyScanContent contentJson =
+        new ThirdPartyScanContent(null, null, null, null, getSbomJsonFile("sbom-simple.json"));
+    Bom bomJson = sbomResultHandler.parseBom(contentJson);
+    assertThat(bomV11).isNotNull();
+    assertThat(bomV11.getSpecVersion()).isEqualTo("1.1");
+    assertThat(bomV12).isNotNull();
+    assertThat(bomV12.getSpecVersion()).isEqualTo("1.2");
+    assertThat(bomJson).isNotNull();
+    assertThat(bomJson.getSpecVersion()).isEqualTo("1.2");
+    assertThat(bomV11.getComponents()).hasSameElementsAs(bomV12.getComponents())
+        .hasSameElementsAs(bomJson.getComponents());
+  }
+
+  @Test
+  public void testParseFilesV11AndV12WithLicenses() throws Exception {
+    ThirdPartyScanContent contentV11 =
+        new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-licenses-v1-1.xml"));
+    Bom bomV11 = sbomResultHandler.parseBom(contentV11);
+    ThirdPartyScanContent contentV12 =
+        new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-licenses-v1-2.xml"));
+    Bom bomV12 = sbomResultHandler.parseBom(contentV12);
+    ThirdPartyScanContent contentJson =
+        new ThirdPartyScanContent(null, null, null, null, getSbomJsonFile("sbom-licenses.json"));
+    Bom bomJson = sbomResultHandler.parseBom(contentJson);
+    assertThat(bomV11).isNotNull();
+    assertThat(bomV12).isNotNull();
+    assertThat(bomJson).isNotNull();
+    assertThat(bomV11.getComponents()).hasSameElementsAs(bomV12.getComponents())
+        .hasSameElementsAs(bomJson.getComponents());
+  }
+
+  @Test
+  public void testParseXmlFilesV11AndV12WithVulnerabilities() throws Exception {
+    ThirdPartyScanContent contentV11 =
+        new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-vulnerabilities.xml"));
+    Bom bomV11 = sbomResultHandler.parseBom(contentV11);
+    ThirdPartyScanContent contentV12 =
+        new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-vulnerabilities-v1_2.xml"));
+    Bom bomV12 = sbomResultHandler.parseBom(contentV12);
+    assertThat(bomV11).isNotNull();
+    assertThat(bomV12).isNotNull();
+    assertThat(bomV11.getComponents()).allSatisfy(component -> assertVulnerabilities(component));
+    assertThat(bomV12.getComponents()).allSatisfy(component -> assertVulnerabilities(component));
+  }
+
+  @Test
+  public void testHandleAndFilterContents_only_coordinates_hash_purl() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-license-vulnerability.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+
+    // check filtered content (will be sent to HDS) has only coordinates, hash or purl
+    Bom filteredSbom = getBom(filteredContent);
+    assertThat(filteredSbom).isNotNull();
+    List<Component> components = filteredSbom.getComponents();
+    assertThat(components).hasSize(2)
+        .allSatisfy(component -> {
+          assertThat(component.getExtensions()).isNull();
+          assertThat(component.getLicenseChoice()).isNull();
+          assertThat(component.getName()).isNotNull();
+          assertThat(component.getVersion()).isNotNull();
+          assertThat(component.getType()).isNotNull();
+        });
+    Component component1 = components.get(0);
+    Component component2 = components.get(1);
+    assertThat(component1.getName()).isEqualTo("jackson-databind");
+    assertThat(component2.getName()).isEqualTo("tomcat-catalina");
+    assertThat(component1.getVersion()).isEqualTo("2.9.9");
+    assertThat(component2.getVersion()).isEqualTo("9.0.14");
+    assertThat(component1.getPurl()).isEqualTo("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
+    assertThat(component2.getPurl()).isNull();
+    assertThat(component2.getHashes()).hasSize(1);
+    assertThat(component2.getHashes().get(0).getAlgorithm()).isEqualTo(Algorithm.SHA1.getSpec());
+    assertThat(component2.getHashes().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
+
+  }
+
+  private void assertVulnerabilities(Component component) {
+    Map<String, Extension> extensions = component.getExtensions();
+    assertThat(extensions).isNotEmpty().containsKey(ExtensionType.VULNERABILITIES.getTypeName());
+    Extension vulnerabilityExtension = extensions.get(ExtensionType.VULNERABILITIES.getTypeName());
+    assertThat(vulnerabilityExtension.getExtensionType()).isEqualTo(ExtensionType.VULNERABILITIES);
+    assertThat(vulnerabilityExtension.getNamespaceURI()).isEqualTo(Vulnerability10.NAMESPACE_URI);
+    assertThat(vulnerabilityExtension.getPrefix()).isEqualTo(Vulnerability10.PREFIX);
+    assertThat(vulnerabilityExtension.getExtensions()).isNotEmpty().hasSize(1);
+    Consumer<Vulnerability10> vulnerabilitiesRequirement = vulnerability -> {
+      assertThat(vulnerability.getId()).isEqualTo("CVE-2018-7489");
+      assertThat(vulnerability.getRef()).isEqualTo("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9");
+      assertThat(vulnerability.getCwes()).hasSize(2);
+      assertThat(vulnerability.getCwes().get(0).getText()).isEqualTo(184);
+      assertThat(vulnerability.getCwes().get(1).getText()).isEqualTo(502);
+      assertThat(vulnerability.getRatings()).hasSize(1);
+      Rating rating = vulnerability.getRatings().get(0);
+      assertThat(rating.getMethod()).isEqualTo(ScoreSource.CVSSv3);
+      assertThat(rating.getSeverity()).isEqualTo(Severity.CRITICAL);
+      assertThat(rating.getVector()).isEqualTo("AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H");
+      assertThat(rating.getScore().getBase()).isEqualTo(9.8);
+      assertThat(rating.getScore().getExploitability()).isEqualTo(3.0);
+      assertThat(rating.getScore().getImpact()).isEqualTo(5.9);
+      assertThat(vulnerability.getDescription()).isNotEmpty();
+      assertThat(vulnerability.getAdvisories()).hasSize(4);
+      assertThat(vulnerability.getRecommendations()).hasSize(1);
+    };
+    assertThat(vulnerabilityExtension.getExtensions()).allSatisfy(extensibleType ->
+        assertThat(extensibleType).isInstanceOfSatisfying(Vulnerability10.class, vulnerabilitiesRequirement)
+    );
   }
 
   private Bom getBom(String content) throws ParseException {

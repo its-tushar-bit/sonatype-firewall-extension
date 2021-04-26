@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.codehaus.plexus.util.FileUtils;
+import org.cyclonedx.CycloneDxSchema.Version;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,35 +55,35 @@ public class ApiCycloneDxServiceV2AuthzTest
   public void testGetByScanId_Authorized() throws Exception {
     createReportAndPolicyEvaluation();
     grantReadPermission(app.getId());
-    service.getByScanId(app.getId(), scanId);
+    service.getByScanId(app.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_11);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetByScanId_Unauthorized() {
     login();
-    service.getByScanId(app.getId(), scanId);
+    service.getByScanId(app.getId(), scanId, MediaType.APPLICATION_JSON, Version.VERSION_12);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetByScanId_Unauthenticated() {
-    service.getByScanId("fakeappid", scanId);
+    service.getByScanId("fakeappid", scanId, MediaType.APPLICATION_XML, Version.VERSION_11);
   }
 
   @Test
   public void testGetLatest_Authorized() throws Exception {
     createReportAndPolicyEvaluation();
     grantReadPermission(app.getId());
-    service.getLatest(app.getId(), BuildStageType.ID);
+    service.getLatest(app.getId(), BuildStageType.ID, MediaType.APPLICATION_JSON, Version.VERSION_12);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetLatest_Unauthorized() {
     login();
-    service.getLatest(app.getId(), BuildStageType.ID);
+    service.getLatest(app.getId(), BuildStageType.ID, MediaType.APPLICATION_XML, Version.VERSION_11);
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetLatest_Unauthenticated() {
-    service.getLatest(app.getId(), BuildStageType.ID);
+    service.getLatest(app.getId(), BuildStageType.ID, MediaType.APPLICATION_XML, Version.VERSION_11);
   }
 }

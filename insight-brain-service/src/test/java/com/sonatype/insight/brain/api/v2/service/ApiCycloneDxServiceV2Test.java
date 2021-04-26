@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.model.Application;
@@ -22,16 +23,16 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.cyclonedx.BomParserFactory;
+import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
-import org.cyclonedx.model.Component.Scope;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
 import org.cyclonedx.parsers.Parser;
-import org.cyclonedx.parsers.XmlParser;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -79,30 +80,45 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void testGetByScanId_unknownApplicationId() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getByScanId("fake-app", "fake-scan-id");
+      service.getByScanId("fake-app", "fake-scan-id", "application/xml", Version.VERSION_11);
     }).withMessageContaining("Could not find an application with ID fake-app");
   }
 
   @Test
   public void testGetByScanId_unknownScanId() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getByScanId(application.getId(), "fake-scan-id");
+      service.getByScanId(application.getId(), "fake-scan-id", "application/xml", Version.VERSION_11);
     }).withMessageContaining("Could not find a report with ID fake-scan-id");
   }
 
   @Test
-  public void testGetByScanId() throws Exception {
+  public void testGetByScanId_Xml() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_11);
+  }
+
+  @Test
+  public void testGetByScanId_Xml_V1_2() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_XML, Version.VERSION_12);
+  }
+
+  @Test
+  public void testGetByScanId_Json() throws Exception {
+    testGetByScanId(MediaType.APPLICATION_JSON, Version.VERSION_12);
+  }
+
+  private void testGetByScanId(String contentType, Version version) throws Exception {
     createReportAndPolicyEvaluation();
-    Response response = service.getByScanId(application.getId(), scanId);
-    assertBom(response);
+    Response response = service.getByScanId(application.getId(), scanId, contentType, version);
+    assertBom(response, version);
   }
 
   @Test
   public void testGetByScanId_npmComponent() throws Exception {
     createNpmComponentReportAndPolicyEvaluation();
-    Response response = service.getByScanId(application.getId(), scanId);
-
-    Bom bom = new XmlParser().parse(response.getEntity().toString().getBytes(StandardCharsets.UTF_8));
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_11);
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
 
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
     assertThat(bom.getExternalReferences()).hasSize(1);
@@ -116,41 +132,57 @@ public class ApiCycloneDxServiceV2Test
   @Test
   public void testGetLatest_unknownApplicationId() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getLatest("fake-app", ReleaseStageType.ID);
+      service.getLatest("fake-app", ReleaseStageType.ID, "application/xml", Version.VERSION_11);
     }).withMessageContaining("Could not find an application with ID fake-app");
   }
 
   @Test
   public void testGetLatest_noScanInStage() {
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getLatest(application.getId(), ReleaseStageType.ID);
+      service.getLatest(application.getId(), ReleaseStageType.ID, "application/xml", Version.VERSION_11);
     }).withMessageContaining("Unable to locate a scan for " + application.getId() + " in stage release");
   }
 
   @Test
-  public void testGetLatest() throws Exception {
-    createReportAndPolicyEvaluation();
-    Response response = service.getLatest(application.getId(), BuildStageType.ID);
-    assertBom(response);
+  public void testGetLatest_Xml() throws Exception {
+    testGetLatest(MediaType.APPLICATION_XML, false, Version.VERSION_11);
   }
 
-  private void assertBom(Response response) throws ParseException {
-    Parser parser = new XmlParser();
-    Bom bom = parser.parse(response.getEntity().toString().getBytes(StandardCharsets.UTF_8));
+  @Test
+  public void testGetLatest_Xml_V1_2() throws Exception {
+    testGetLatest(MediaType.APPLICATION_XML, false, Version.VERSION_12);
+  }
 
+  @Test
+  public void testGetLatest_Json() throws Exception {
+    testGetLatest(MediaType.APPLICATION_JSON, true, Version.VERSION_12);
+  }
+
+  public void testGetLatest(String contenType, boolean isJson, Version version) throws Exception {
+    createReportAndPolicyEvaluation();
+    Response response = service.getLatest(application.getId(), BuildStageType.ID, contenType, version);
+    assertBom(response, version);
+  }
+
+  private void assertBom(Response response, Version version) throws ParseException {
+    byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    Bom bom = parser.parse(bytes);
+
+    assertThat(bom.getSpecVersion()).isEqualTo(version.getVersionString());
     assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     Component component = createComponent(null, "jQuery", "3.4.1", "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21",
-        "CC0-1.0", "MIT", "Not-Supported");
-
+        "CC0-1.0", "CDDL-1.1", "MIT");
     component.addComponent(createComponent(null, "jQuery", "3.2.1", "pkg:nuget/jQuery@3.2.1", "0babbbd2c221d24484f5",
-        true, "CC0-1.0", "MIT", "Not-Supported"));
+        true, "CC0-1.0", "CDDL-1.1", "MIT"));
+
     component.addComponent(createComponent(null, "knockout.validation", "2.0.0-Pre",
         "pkg:a-name/knockout.validation@2.0.0-Pre", "7c9933a349f37d5f3131", "MPL-1.1", "LGPL-2.1", "Apache-1.1",
         "Apache-1.0", "LGPL-3.0", "Apache-2.0"));
-
     assertThat(bom.getComponents()).contains(component);
+
   }
 
   private String toUuid(final String scanId) {
@@ -183,7 +215,6 @@ public class ApiCycloneDxServiceV2Test
     component.setName(name);
     component.setVersion(version);
     component.setPurl(packageUrl);
-    component.setScope(Scope.REQUIRED);
     component.setModified(modified);
 
     component.addHash(new Hash(Algorithm.SHA1, hashStr));
@@ -192,6 +223,12 @@ public class ApiCycloneDxServiceV2Test
     for (String licenseName : licenses) {
       License license = new License();
       license.setId(licenseName);
+      if ("Not-Supported".equals(licenseName)) {
+        license.setName("Not Supported");
+      }
+      else {
+        license.setName(licenseName);
+      }
       licenseChoice.addLicense(license);
     }
     component.setLicenseChoice(licenseChoice);

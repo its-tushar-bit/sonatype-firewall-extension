@@ -249,7 +249,7 @@ public class ThirdPartyScanResultsProcessorTest
         getClass().getResource("/ThirdPartyResultsProcessorTest/" + expectedFileName);
     File expectedFile = new File(resource.toURI());
     File actualFile = getScanXMLFile(scanFile);
-    XmlAssert.assertThat(actualFile).and(expectedFile).areIdentical();
+    XmlAssert.assertThat(actualFile).and(expectedFile).areIdentical().ignoreWhitespace();
   }
 
   private void assertEmptyItemElement(File scanFile) throws Exception {
@@ -361,7 +361,6 @@ public class ThirdPartyScanResultsProcessorTest
       assertThat(component.getName()).isNotNull();
       assertThat(component.getVersion()).isNotNull();
       assertThat(component.getType()).isNotNull();
-      assertThat(component.getScope()).isNotNull();
       if (optionalValuesPresent) {
         assertThat(component.getPurl()).isNotNull();
       }

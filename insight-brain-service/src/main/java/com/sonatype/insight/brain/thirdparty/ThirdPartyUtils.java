@@ -5,18 +5,14 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.Reader;
+import java.util.Map;
 
-import org.codehaus.plexus.util.xml.pull.MXParser;
-import org.codehaus.plexus.util.xml.pull.XmlPullParser;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import com.google.common.collect.ImmutableMap;
+import org.cyclonedx.CycloneDxSchema.Version;
 
 public final class ThirdPartyUtils
 {
-  public static XmlPullParser getXmlParser(Reader reader) throws XmlPullParserException {
-    XmlPullParser parser = new MXParser();
-    parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-    parser.setInput(reader);
-    return parser;
-  }
+  public static final Map<String, Version> CYCLONEDX_ACCEPTED_VERSIONS = ImmutableMap
+      .of(Version.VERSION_11.getVersionString(), Version.VERSION_11,
+          Version.VERSION_12.getVersionString(), Version.VERSION_12);
 }

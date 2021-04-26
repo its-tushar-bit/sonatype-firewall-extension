@@ -74,10 +74,24 @@ public class ApiThirdPartyScanServiceTest
   }
 
   @Test
-  public void testScanComponents()
+  public void testScanComponents_bom_v1_1() throws Exception {
+    testScanComponents("valid_bom.xml");
+  }
+
+  @Test
+  public void testScanComponents_bom_v1_2() throws Exception {
+    testScanComponents("valid_bom_1_2.xml");
+  }
+
+  @Test
+  public void testScanComponents_bom_json() throws Exception {
+    testScanComponents("valid_bom.json");
+  }
+
+  public void testScanComponents(String fileName)
       throws Exception
   {
-    String bom = getBomFile("valid_bom.xml");
+    String bom = getBomFile(fileName);
 
     ApiThirdPartyScanTicketDTO scanResult =
         thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
@@ -130,7 +144,16 @@ public class ApiThirdPartyScanServiceTest
   }
 
   @Test
-  public void testGetScanStatus_Completed_Counters() throws Exception {
+  public void testGetScanStatus_Completed_Counters_Xml() throws Exception {
+    testGetScanStatus_Completed_Counters("valid_bom.xml");
+  }
+
+  @Test
+  public void testGetScanStatus_Completed_Counters_Json() throws Exception {
+    testGetScanStatus_Completed_Counters("valid_bom.json");
+  }
+
+  public void testGetScanStatus_Completed_Counters(String fileName) throws Exception {
     ApiEvaluationResultCounterDTO componentsAffected = new ApiEvaluationResultCounterDTO();
     componentsAffected.critical = 1;
     componentsAffected.moderate = 3;
@@ -139,7 +162,7 @@ public class ApiThirdPartyScanServiceTest
     openPolicyViolations.critical = 0;
     openPolicyViolations.moderate = 1;
     openPolicyViolations.severe = 10;
-    testGetScanStatus_Completed(null, "None", componentsAffected, openPolicyViolations, 5);
+    testGetScanStatus_Completed(null, "None", componentsAffected, openPolicyViolations, 5, fileName);
   }
 
   private void testGetScanStatus_Completed(String actionId, String policyAction) throws Exception {
@@ -151,7 +174,7 @@ public class ApiThirdPartyScanServiceTest
     openPolicyViolations.critical = 0;
     openPolicyViolations.moderate = 0;
     openPolicyViolations.severe = 0;
-    testGetScanStatus_Completed(actionId, policyAction, componentsAffected, openPolicyViolations, 0);
+    testGetScanStatus_Completed(actionId, policyAction, componentsAffected, openPolicyViolations, 0, "valid_bom.xml");
   }
 
   private void testGetScanStatus_Completed(
@@ -159,7 +182,8 @@ public class ApiThirdPartyScanServiceTest
       String policyAction,
       ApiEvaluationResultCounterDTO componentsAffected,
       ApiEvaluationResultCounterDTO openPolicyViolations,
-      Integer grandfatheredPolicyViolations) throws Exception
+      Integer grandfatheredPolicyViolations,
+      String fileName) throws Exception
   {
     String scanId = "testScan";
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
@@ -195,7 +219,7 @@ public class ApiThirdPartyScanServiceTest
     when(mockPolicyEvaluateService.pollEvaluationResult(app.getPublicId(), scanId))
         .thenReturn(pollingResult);
 
-    String bom = getBomFile("valid_bom.xml");
+    String bom = getBomFile(fileName);
 
     thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
 
@@ -293,6 +317,30 @@ public class ApiThirdPartyScanServiceTest
     assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
       thirdPartyScanService.scanComponents(app.getId(), "clair", "invalidStage", bom, null);
     }).withMessage("Invalid stage id=invalidStage");
+  }
+
+  @Test
+  public void testScanComponents_Invalid_Content_Xml_v1_1() throws Exception {
+    testScanComponents_Invalid_Content("invalid_bom.xml");
+  }
+
+  @Test
+  public void testScanComponents_Invalid_Content_Xml_v1_2() throws Exception {
+    testScanComponents_Invalid_Content("invalid_bom_1_2.xml");
+  }
+
+  @Test
+  public void testScanComponents_Invalid_Content_Json() throws Exception {
+    testScanComponents_Invalid_Content("invalid_bom.json");
+  }
+
+  private void testScanComponents_Invalid_Content(String fileName) throws Exception {
+    String bom = getBomFile(fileName);
+    ApiThirdPartyScanTicketDTO scanResult =
+        thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+    assertThat(scanResult).isNotNull();
+    assertThat(scanResult.statusUrl).isNotNull();
+    assertThat(new URI(scanResult.statusUrl)).isNotNull();
   }
 
   private void assertApiPolicy(ApiPolicyAction action1, ApiPolicyAction action2, ApiPolicyAction result) {

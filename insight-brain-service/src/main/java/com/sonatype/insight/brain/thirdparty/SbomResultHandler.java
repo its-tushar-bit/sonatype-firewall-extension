@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,13 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -31,7 +27,6 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLice
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
-import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -39,18 +34,29 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.pull.XmlPullParser;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.cyclonedx.BomGeneratorFactory;
-import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.BomParserFactory;
+import org.cyclonedx.exception.GeneratorException;
+import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
+import org.cyclonedx.model.ExtensibleType;
+import org.cyclonedx.model.Extension;
 import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
+import org.cyclonedx.model.License;
+import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.vulnerability.Rating;
+import org.cyclonedx.model.vulnerability.Vulnerability10;
+import org.cyclonedx.model.vulnerability.Vulnerability10.Advisory;
+import org.cyclonedx.model.vulnerability.Vulnerability10.Recommendation;
+import org.cyclonedx.model.vulnerability.Vulnerability10.Source;
+import org.cyclonedx.parsers.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +75,8 @@ public class SbomResultHandler
 
   private static final String MISSING_COMPONENT_NAME = "[Not Provided]";
 
+  private static final String VULNERABILITY_KEY = "vulnerabilities";
+
   private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
 
   private final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO = new ThirdPartyFileCoordinateDAO();
@@ -78,58 +86,50 @@ public class SbomResultHandler
   private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO = new ThirdPartyCoordinateLicenseDAO();
 
   @Override
-  public String handleAndFilterContents(ThirdPartyScanContent content, ThirdPartyFile thirdPartyFile) {
+  public String handleAndFilterContents(
+      ThirdPartyScanContent content,
+      ThirdPartyFile thirdPartyFile)
+  {
     try {
       if (!StringUtils.isBlank(content.getContent())) {
-        Bom sbom = new Bom();
+        Bom sourceBom = parseBom(content);
+        Bom targetBom = new Bom();
         log.info("Processing SBOM content");
-        processSbom(content, sbom, thirdPartyFile);
-
-        if (sbom.getComponents() != null && sbom.getComponents().isEmpty()) {
+        processSbom(content, sourceBom, targetBom, thirdPartyFile);
+        if (targetBom.getComponents() != null && targetBom.getComponents().isEmpty()) {
           return content.getContent();
         }
         else {
-          return generateFilteredSbom(sbom);
+          return generateFilteredSbom(sourceBom.getSpecVersion(), targetBom);
         }
       }
       return content.getContent();
     }
     catch (Exception e) {
-      throw new RuntimeException("Error filtering sbom file", e);
+      throw new RuntimeException("Error filtering sbom file " + content.getPath(), e);
     }
+  }
+
+  //visible for testing
+  Bom parseBom(final ThirdPartyScanContent content) throws ParseException {
+    byte[] bytes = content.getContent().getBytes(StandardCharsets.UTF_8);
+    Parser parser = BomParserFactory.createParser(bytes);
+    return parser.parse(bytes);
   }
 
   private void processSbom(
       ThirdPartyScanContent content,
-      Bom sbom,
-      ThirdPartyFile thirdPartyFile) throws XmlPullParserException, IOException
+      Bom generateBomFromFile,
+      Bom targetBom,
+      ThirdPartyFile thirdPartyFile) throws MalformedPackageURLException
   {
     final Map<String, String> hashFileCoordinateIdMap = new HashMap<>();
-    Stack<String> elementNameStack = new Stack<>();
-    XmlPullParser parser = ThirdPartyUtils.getXmlParser(new StringReader(content.getContent()));
-
     String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(content.getPath()));
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
-      int eventType = parser.getEventType();
-      while (eventType != XmlPullParser.END_DOCUMENT) {
-        if (eventType == XmlPullParser.START_TAG) {
-          String elementName = parser.getName();
-          if ("component".equals(elementName)) {
-            processComponent(parser, thirdPartyFile.getId(), sbom, hashFileCoordinateIdMap, identificationSource, tx);
-          }
-          else {
-            elementNameStack.push(elementName);
-          }
-        }
-        else if (eventType == XmlPullParser.END_TAG) {
-          String beginName = elementNameStack.pop();
-          String endName = parser.getName();
-          if (!beginName.equals(endName)) {
-            throw new XmlPullParserException("End tag '" + endName + "' does not match start tag '" + beginName + "'.");
-          }
-        }
-        eventType = parser.next();
+      for (Component component : generateBomFromFile.getComponents()) {
+        processComponent(component, thirdPartyFile.getId(), targetBom, hashFileCoordinateIdMap, identificationSource,
+            tx);
       }
       tx.commit();
     }
@@ -149,99 +149,76 @@ public class SbomResultHandler
   }
 
   private void processComponent(
-      XmlPullParser parser,
+      Component component,
       String thirdPartyFileId,
-      Bom sbom,
-      Map<String, String> hashFileCoordinateIdMap,
-      String identificationSource,
-      TransactionContext tx)
-  {
-    try {
-      Xpp3Dom component = Xpp3Util.loadElement("component", parser);
-      processComponent(component, thirdPartyFileId, sbom, hashFileCoordinateIdMap, identificationSource, tx);
-    }
-    catch (InvalidPackageURLException | InvalidComponentIdentifierException e) {
-      log.error("Error processing SBOM component, invalid purl", e);
-    }
-    catch (XmlPullParserException e) {
-      log.error("Error parsing SBOM component, invalid XML file", e);
-    }
-    catch (Exception e) {
-      log.error("Error processing SBOM component", e);
-    }
-  }
-
-  private void processComponent(
-      Xpp3Dom component,
-      String thirdPartyFileId,
-      Bom sbom,
+      Bom targetBom,
       Map<String, String> hashFileCoordinateIdMap,
       String identificationSource,
       TransactionContext tx) throws MalformedPackageURLException
   {
-    String packageUrl = getValueFromTag(component, "purl");
+    String packageUrl = component.getPurl();
     try {
       if (StringUtils.isNotBlank(packageUrl)) {
         PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl);
         if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
-          processPurlComponent(component, packageUrlIdentifier, thirdPartyFileId, sbom,
+          processPurlComponent(component, packageUrlIdentifier, thirdPartyFileId, targetBom,
               hashFileCoordinateIdMap, identificationSource, tx);
         }
         else {
           log.warn("PackageUrl is not valid {}", packageUrl);
-          processComponentFromHashOrCoordinates(thirdPartyFileId, sbom, hashFileCoordinateIdMap, identificationSource,
-              tx, component);
+          processComponentFromHashOrCoordinates(thirdPartyFileId, targetBom, hashFileCoordinateIdMap,
+              identificationSource, tx, component);
         }
       }
       else {
-        processComponentFromHashOrCoordinates(thirdPartyFileId, sbom, hashFileCoordinateIdMap, identificationSource, tx,
-            component);
+        processComponentFromHashOrCoordinates(thirdPartyFileId, targetBom, hashFileCoordinateIdMap,
+            identificationSource, tx, component);
       }
     }
     catch (InvalidPackageURLException e) {
       log.warn("Fallback to coordinates due to invalid purl: {}", packageUrl);
-      processComponentFromHashOrCoordinates(thirdPartyFileId, sbom, hashFileCoordinateIdMap, identificationSource, tx,
-          component);
+      processComponentFromHashOrCoordinates(thirdPartyFileId, targetBom, hashFileCoordinateIdMap, identificationSource,
+          tx, component);
     }
   }
 
   private void processComponentFromHashOrCoordinates(
       final String thirdPartyFileId,
-      final Bom sbom,
+      final Bom targetBom,
       final Map<String, String> hashFileCoordinateIdMap,
       final String identificationSource,
       final TransactionContext tx,
-      final Xpp3Dom component) throws MalformedPackageURLException
+      final Component component) throws MalformedPackageURLException
   {
-    String name = getValueFromTag(component, "name");
-    name = StringUtils.isBlank(name) ? MISSING_COMPONENT_NAME : name;
-    String version = getValueFromTag(component, "version");
+    String name = StringUtils.isNotBlank(component.getName()) ? component.getName() : MISSING_COMPONENT_NAME;
+    String version = component.getVersion();
+    Component sbomComponent = createComponent(component, name, version);
 
-    if (StringUtils.isNoneBlank(name, version)) {
+    if (StringUtils.isNotBlank(version)) {
       String sha1 = getSha1(component);
       if (StringUtils.isNotBlank(sha1)) {
-        processSha1Component(createComponent(component, name, version),
-            StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH), sbom);
+        processSha1Component(sbomComponent,
+            StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH), targetBom);
       }
       else {
         PackageUrlIdentifier packageUrlIdentifier =
-            new PackageUrlIdentifier(getPackageUrlFromCoordinates(component, name, version));
-        processPurlComponent(component, packageUrlIdentifier, thirdPartyFileId, sbom,
+            new PackageUrlIdentifier(getPackageUrlFromCoordinates(component, name));
+        processPurlComponent(sbomComponent, packageUrlIdentifier, thirdPartyFileId, targetBom,
             hashFileCoordinateIdMap, identificationSource, tx);
       }
     }
   }
 
-  private String getPackageUrlFromCoordinates(Xpp3Dom component, String name, String version)
+  private String getPackageUrlFromCoordinates(Component component, String  name)
       throws MalformedPackageURLException
   {
-    String group = getValueFromTag(component, "group");
-    String publisher = getValueFromTag(component, "publisher");
+    String group = component.getGroup();
+    String publisher = component.getPublisher();
 
     PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL()
-        .withType(component.getAttribute("type"))
+        .withType(component.getType().getTypeName())
         .withName(name)
-        .withVersion(version);
+        .withVersion(component.getVersion());
     if (StringUtils.isNotBlank(group)) {
       packageURLBuilder.withNamespace(group);
     }
@@ -251,17 +228,23 @@ public class SbomResultHandler
     return packageURLBuilder.build().toString();
   }
 
-  private String getSha1(Xpp3Dom component) {
-    List<Xpp3Dom> hashes = getValuesFromTag(component, "hashes");
-    Xpp3Dom alg = hashes.stream().filter(h -> h.getAttribute("alg").equals("SHA-1")).findFirst().orElse(null);
-    return alg != null ? alg.getValue() : null;
+  private String getSha1(Component component) {
+    List<Hash> hashes = component.getHashes();
+    if (hashes != null) {
+      return hashes.stream()
+          .filter(h -> Algorithm.SHA1.getSpec().equals(h.getAlgorithm()))
+          .findFirst()
+          .map(Hash::getValue)
+          .orElse(null);
+    }
+    return null;
   }
 
   private void processPurlComponent(
-      Xpp3Dom component,
+      Component component,
       PackageUrlIdentifier packageUrlIdentifier,
       String thirdPartyFileId,
-      Bom sbom,
+      Bom targetBom,
       Map<String, String> hashFileCoordinateIdMap,
       String identificationSource,
       TransactionContext tx)
@@ -271,21 +254,21 @@ public class SbomResultHandler
     Component sbomComponent =
         createComponent(component, packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion());
     sbomComponent.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
-    saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier, identificationSource, component, sbom,
-        sbomComponent, tx);
+    saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier, identificationSource, targetBom,
+        sbomComponent, component, tx);
   }
 
-  private Component createComponent(Xpp3Dom component, String name, String version) {
+  private Component createComponent(Component component, String name, String version) {
     Component sbomComponent = new Component();
-    sbomComponent.setType(Component.Type.valueOf(component.getAttribute("type").toUpperCase()));
+    sbomComponent.setType(component.getType());
     sbomComponent.setName(name);
     sbomComponent.setVersion(version);
     return sbomComponent;
   }
 
-  private void processSha1Component(Component sbomComponent, String sha1, Bom sbom) {
-    sbomComponent.setHashes(Arrays.asList(new Hash(Algorithm.SHA1, sha1)));
-    sbom.addComponent(sbomComponent);
+  private void processSha1Component(Component sbomComponent, String sha1, Bom targetBom) {
+    sbomComponent.setHashes(Collections.singletonList(new Hash(Algorithm.SHA1, sha1)));
+    targetBom.addComponent(sbomComponent);
   }
 
   private ComponentIdentifier resolveComponentIdentifier(PackageUrlIdentifier packageUrlIdentifier) {
@@ -317,9 +300,9 @@ public class SbomResultHandler
       Map<String, String> hashFileCoordinateIdMap,
       ComponentIdentifier componentIdentifier,
       String identificationSource,
-      Xpp3Dom component,
-      Bom sbom,
+      Bom targetBom,
       Component sbomComponent,
+      Component component,
       TransactionContext tx)
   {
     String fakeHash = ThirdPartyScanResultUtils.hash(
@@ -330,148 +313,134 @@ public class SbomResultHandler
       fileCoordinate.setPackageUrl(sbomComponent.getPurl());
       thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
       hashFileCoordinateIdMap.put(fakeHash, fileCoordinate.getId());
-      saveLicenses(component.getChild("licenses"), fileCoordinate.getId(), sbomComponent.getPurl(), tx);
-      saveVulnerabilities(component.getChild("vulnerabilities"), fileCoordinate.getId(), tx);
-      sbom.addComponent(sbomComponent);
+      saveLicenses(component.getLicenseChoice(), fileCoordinate.getId(), sbomComponent.getPurl(), tx);
+      saveVulnerabilities(component.getExtensions(), fileCoordinate.getId(), tx);
+      targetBom.addComponent(sbomComponent);
     }
   }
 
-  private void saveVulnerabilities(Xpp3Dom vulnerabilities, String fileCoordinateId, TransactionContext tx) {
-    Set<String> vulnerabilityMap = new HashSet<>();
-    if (vulnerabilities != null) {
-      for (Xpp3Dom vulnerability : vulnerabilities.getChildren()) {
-        if (vulnerability != null && vulnerability.getChild("id") != null) {
-          String refId = vulnerability.getChild("id").getValue();
-          if (StringUtils.isNotBlank(refId) && !vulnerabilityMap.contains(refId)) {
-            saveVulnerability(vulnerability, fileCoordinateId, refId, tx);
-            vulnerabilityMap.add(refId);
+  private void saveVulnerabilities(
+      Map<String, Extension> extensions,
+      String fileCoordinateId,
+      TransactionContext tx)
+  {
+    if (MapUtils.isNotEmpty(extensions)) {
+      Extension vulnerabilityExtension = extensions.get(VULNERABILITY_KEY);
+      if (vulnerabilityExtension != null && CollectionUtils.isNotEmpty(vulnerabilityExtension.getExtensions())) {
+        Set<String> vulnerabilityMap = new HashSet<>();
+        for (ExtensibleType extensibleType : vulnerabilityExtension.getExtensions()) {
+          if (extensibleType instanceof Vulnerability10) {
+            Vulnerability10 vulnerability = (Vulnerability10) extensibleType;
+            String refId = vulnerability.getId();
+            if (StringUtils.isNotBlank(refId) && !vulnerabilityMap.contains(refId)) {
+              saveVulnerability(vulnerability, fileCoordinateId, tx);
+              vulnerabilityMap.add(refId);
+            }
           }
         }
       }
     }
   }
 
-  private void saveVulnerability(Xpp3Dom vulnerability, String fileCoordinateId, String refId, TransactionContext tx) {
-    boolean validVulnerability = false;
+  private void saveVulnerability(Vulnerability10 vulnerability, String fileCoordinateId, TransactionContext tx) {
     ThirdPartyCoordinateSecurity coordinateSecurity = new ThirdPartyCoordinateSecurity();
 
-    Xpp3Dom ratingsElements = vulnerability.getChild("ratings");
-    if (ratingsElements != null) {
-      Xpp3Dom[] ratings = ratingsElements.getChildren();
-      if (ratings != null && ratings.length > 0) {
-        Xpp3Dom rating = ratings[0];
-
-        coordinateSecurity.setAttackVector(getTruncatedAttackVector(getValueFromTag(rating, "vector")));
-        coordinateSecurity.setRatingMethod(getTruncatedRatingMethod(getValueFromTag(rating, "method")));
-        coordinateSecurity.setSeverityDescription(getTruncatedSeverityDescription(getValueFromTag(rating, "severity")));
-
-        Xpp3Dom score = rating.getChild("score");
-        if (score != null) {
-          String severityValue = getValueFromTag(score, "base");
-          if (StringUtils.isNotBlank(severityValue)) {
-            float severity = Float.parseFloat(severityValue);
-            coordinateSecurity.setSeverity(severity);
-            validVulnerability = true;
+    List<Rating> ratingsElements = vulnerability.getRatings();
+    if (CollectionUtils.isNotEmpty(ratingsElements)) {
+      Rating rating = ratingsElements.get(0);
+      Double baseScore = getBaseScore(rating);
+      if (baseScore != null) {
+        coordinateSecurity.setSeverity(baseScore.floatValue());
+        if (rating.getVector() != null) {
+          coordinateSecurity.setAttackVector(getTruncatedAttackVector(rating.getVector()));
+        }
+        if (rating.getMethod() != null) {
+          coordinateSecurity.setRatingMethod(getTruncatedRatingMethod(rating.getMethod().name()));
+        }
+        if (rating.getSeverity() != null) {
+          coordinateSecurity
+              .setSeverityDescription(getTruncatedSeverityDescription(rating.getSeverity().getSeverityName()));
+        }
+        coordinateSecurity.setFileCoordinateId(fileCoordinateId);
+        if (vulnerability.getCwes() != null) {
+          coordinateSecurity.setCwes(
+              vulnerability.getCwes().stream().filter(cwe -> cwe.getText() != null).map(cwe -> cwe.getText().toString())
+                  .collect(Collectors.joining()));
+        }
+        if (vulnerability.getRecommendations() != null) {
+          coordinateSecurity.setRecommendations(
+              vulnerability.getRecommendations().stream().map(Recommendation::getText).collect(Collectors.joining()));
+        }
+        if (vulnerability.getAdvisories() != null) {
+          coordinateSecurity.setAdvisories(
+              vulnerability.getAdvisories().stream().map(Advisory::getText).collect(Collectors.joining()));
+        }
+        Source source = vulnerability.getSource();
+        if (source != null) {
+          coordinateSecurity.setVulnerabilitySource(getTruncatedVulnerabilitySource(source.getName()));
+          if (source.getUrl() != null) {
+            coordinateSecurity.setLink(getTruncatedLink(source.getUrl().toString()));
           }
         }
+        coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
+        coordinateSecurity.setDescription(vulnerability.getDescription());
+
+        thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
       }
     }
+  }
 
-    if (validVulnerability) {
-      coordinateSecurity.setFileCoordinateId(fileCoordinateId);
-      Xpp3Dom cwes = vulnerability.getChild("cwes");
-      coordinateSecurity.setCwes(getList(cwes));
-
-      Xpp3Dom recommendations = vulnerability.getChild("recommendations");
-      coordinateSecurity.setRecommendations(getList(recommendations));
-
-      Xpp3Dom advisories = vulnerability.getChild("advisories");
-      coordinateSecurity.setAdvisories(getList(advisories));
-
-      Xpp3Dom source = vulnerability.getChild("source");
-      if (source != null) {
-        coordinateSecurity.setVulnerabilitySource(getTruncatedVulnerabilitySource(source.getAttribute("name")));
-        coordinateSecurity.setLink(getTruncatedLink(getValueFromTag(source, "url")));
+  private Double getBaseScore(final Rating rating) {
+    if (rating.getScore() != null) {
+      Double scoreBase = rating.getScore().getBase();
+      if (scoreBase != null && scoreBase > 0) {
+        return scoreBase;
       }
-      coordinateSecurity.setRefId(getTruncatedRefId(refId));
-      coordinateSecurity.setDescription(getValueFromTag(vulnerability, "description"));
-
-      thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
     }
+    return null;
   }
 
   private void saveLicenses(
-      Xpp3Dom licenses,
+      LicenseChoice licenseChoice,
       String fileCoordinateId,
       String packageUrl,
       TransactionContext tx)
   {
-    Set<String> licenseMap = new HashSet<>();
-    if (licenses != null) {
-      Xpp3Dom[] children = licenses.getChildren();
-      if (children.length > 0 ) {
-        for (Xpp3Dom license : licenses.getChildren()) {
-          if (license != null) {
-            Xpp3Dom licenseInfo = license.getChild("id");
-            if (licenseInfo != null) {
-              String licenseId = licenseInfo.getValue();
-              if (StringUtils.isNotBlank(licenseId) && !licenseMap.contains(licenseId)) {
-                saveLicense(license, fileCoordinateId, licenseId, tx);
-                licenseMap.add(licenseId);
-              }
-            }
-            else {
-              log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl);
-            }
+    if (licenseChoice == null) {
+      log.debug("No licenses provided for Component with packageUrl {}", packageUrl);
+    }
+    else {
+      if (CollectionUtils.isEmpty(licenseChoice.getLicenses())) {
+        log.debug("Found empty licenses element for Component with packageUrl {}", packageUrl);
+      }
+      else {
+        for (License license : licenseChoice.getLicenses()) {
+          if (StringUtils.isNotBlank(license.getId())) {
+            saveLicense(license, fileCoordinateId, tx);
+          }
+          else {
+            log.debug("Component with packageUrl {} has license with null/empty ID", packageUrl);
           }
         }
       }
-      else {
-        log.debug("Found empty licenses element for Component with packageUrl {}", packageUrl);
-      }
-    }
-    else {
-      log.debug("No licenses provided for Component with packageUrl {}", packageUrl);
     }
   }
 
-  private void saveLicense(Xpp3Dom license, String fileCoordinateId, String licenseId, TransactionContext tx) {
+  private void saveLicense(License license, String fileCoordinateId, TransactionContext tx) {
     ThirdPartyCoordinateLicense coordinateLicense = new ThirdPartyCoordinateLicense();
     coordinateLicense.setFileCoordinateId(fileCoordinateId);
 
-    coordinateLicense.setLicenseId(licenseId);
-    coordinateLicense.setName(getValueFromTag(license, "name"));
-    coordinateLicense.setUrl(getValueFromTag(license, "url"));
+    coordinateLicense.setLicenseId(license.getId());
+    coordinateLicense.setName(license.getName());
+    coordinateLicense.setUrl(license.getUrl());
     thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
   }
 
-  private String getValueFromTag(Xpp3Dom element, String name) {
-    if (element.getChild(name) != null) {
-      return element.getChild(name).getValue();
-    }
-    return null;
-  }
-
-  private List<Xpp3Dom> getValuesFromTag(Xpp3Dom element, String name) {
-    if (element.getChild(name) != null) {
-      return Arrays.asList(element.getChild(name).getChildren());
-    }
-    return Collections.emptyList();
-  }
-
-  private String getList(Xpp3Dom element) {
-    if (element != null) {
-      StringBuilder list = new StringBuilder();
-      for (Xpp3Dom child : element.getChildren()) {
-        list.append(child.getValue()).append(ThirdPartySecurityVulnerabilityRenderer.LIST_SEPARATOR);
-      }
-      return list.toString();
-    }
-    return null;
-  }
-
-  private String generateFilteredSbom(Bom sbom) throws ParserConfigurationException, TransformerException {
-    BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_11, sbom);
+  private String generateFilteredSbom(String specVersion, Bom sbom)
+      throws ParserConfigurationException, GeneratorException
+  {
+    BomXmlGenerator generator =
+        BomGeneratorFactory.createXml(ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(specVersion), sbom);
     generator.generate();
     return generator.toXmlString();
   }

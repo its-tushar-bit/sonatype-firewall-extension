@@ -24,7 +24,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
@@ -49,6 +48,8 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
+import org.cyclonedx.exception.GeneratorException;
+import org.cyclonedx.generators.json.BomJsonGenerator;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
@@ -89,24 +90,34 @@ public class ApiCycloneDxServiceV2
   }
 
   @Authorize(permission = Permission.READ)
-  public Response getByScanId(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId, String scanId) {
+  public Response getByScanId(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+      String scanId,
+      String acceptType,
+      Version version)
+  {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
 
-    return getByScanId(application, scanId);
+    return getByScanId(application, scanId, acceptType, version);
   }
 
   @Authorize(permission = Permission.READ)
-  public Response getLatest(@AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId, String stageId) {
+  public Response getLatest(
+      @AuthzContext(AuthzContext.Key.APPLICATION_ID) String applicationId,
+      String stageId,
+      String acceptType,
+      Version version)
+  {
     Application application = applicationHelper.getApplicationByIdNotNull(applicationId);
     PolicyEvaluation evaluation = policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageId);
     if (evaluation == null) {
       throw new NotFoundException("Unable to locate a scan for " + applicationId + " in stage " + stageId);
     }
 
-    return getByScanId(application, evaluation.getScanId());
+    return getByScanId(application, evaluation.getScanId(), acceptType, version);
   }
 
-  private Response getByScanId(Application application, String scanId) {
+  private Response getByScanId(Application application, String scanId, String acceptType, Version version) {
     AuditData.get().setReportId(scanId);
     try {
       ApiReportRawDataDTOV2 data = apiReportDataServiceV2.getDataNoAuth(application.getPublicId(), scanId);
@@ -127,15 +138,21 @@ public class ApiCycloneDxServiceV2
       createBomComponents(data.components.stream().filter(c -> !MatchState.UNKNOWN.getId().equals(c.matchState))
           .collect(Collectors.toList())).forEach(bom::addComponent);
 
-      BomXmlGenerator generator = BomGeneratorFactory.createXml(Version.VERSION_11, bom);
+      if (MediaType.APPLICATION_JSON.equals(acceptType)) {
+        BomJsonGenerator generator = BomGeneratorFactory.createJson(Version.VERSION_12, bom);
+        return Response.ok(generator.toJsonString(), MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                "Content-Disposition: attachment; filename=\"" + application.getPublicId() + '-' + scanId + ".json\"")
+            .build();
+      }
+      BomXmlGenerator generator = BomGeneratorFactory.createXml(version, bom);
       generator.generate();
-
       return Response.ok(generator.toXmlString(), MediaType.APPLICATION_XML)
           .header(HttpHeaders.CONTENT_DISPOSITION,
               "Content-Disposition: attachment; filename=\"" + application.getPublicId() + '-' + scanId + ".xml\"")
           .build();
     }
-    catch (IOException | ParserConfigurationException | TransformerException e) {
+    catch (IOException | ParserConfigurationException | GeneratorException e) {
       throw new InternalServerException("An error occurred generating report", e);
     }
   }
@@ -253,9 +270,7 @@ public class ApiCycloneDxServiceV2
       bomComponent.setLicenseChoice(new LicenseChoice());
       bomComponent.getLicenseChoice().setLicenses(new ArrayList<>(licenses));
     }
-    if (MatchState.SIMILAR.getId().equals(reportComponent.matchState)) {
-      bomComponent.setModified(true);
-    }
+    bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
     if (reportComponent.hash != null) {
       bomComponent.addHash(new Hash(Algorithm.SHA1, reportComponent.hash));
     }

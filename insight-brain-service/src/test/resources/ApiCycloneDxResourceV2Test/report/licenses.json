@@ -12,7 +12,7 @@
     "version" : null,
     "hash" : "5408e54a94044d1f1f21",
     "declaredLicenses" : [ "CC0-1.0", "MIT" ],
-    "observedLicenses" : [ "CDDL-1.1" ],
+    "observedLicenses" : [ "Not Supported" ],
     "effectiveLicenses" : [ "CC0-1.0", "MIT" ],
     "securityCounters" : {
       "Critical" : 1,
@@ -37,9 +37,9 @@
     "artifactId" : null,
     "version" : null,
     "hash" : "7c9933a349f37d5f3131",
-    "declaredLicenses" : [ "Apache-1.0", "Apache-1.1", "Apache-2.0", "LGPL-2.1", "MPL-1.1" ],
-    "observedLicenses" : [ "Apache-2.0 or LGPL-2.1+ or MPL-1.1" ],
-    "effectiveLicenses" : [ "LGPL-2.1", "MPL-1.1" ],
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "MIT" ],
     "securityCounters" : {
       "Critical" : 0,
       "Severe" : 0,
@@ -63,7 +63,7 @@
     "version" : null,
     "hash" : "0babbbd2c221d24484f5",
     "declaredLicenses" : [ "CC0-1.0", "MIT" ],
-    "observedLicenses" : [ "CDDL-1.1" ],
+    "observedLicenses" : [ "Not Supported" ],
     "effectiveLicenses" : [ "CC0-1.0", "MIT" ],
     "securityCounters" : {
       "Critical" : 1,

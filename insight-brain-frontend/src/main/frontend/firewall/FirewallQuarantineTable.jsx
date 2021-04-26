@@ -7,7 +7,6 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import {
-  NxDropdown,
   NxPagination,
   NxTable,
   NxTableBody,
@@ -16,12 +15,9 @@ import {
   NxTableRow,
   NxOverflowTooltip,
   NxThreatIndicator,
-  useToggle,
 } from '@sonatype/react-shared-components';
 
 export default function FirewallQuarantineTable(props) {
-  const [isOpen, onToggleCollapse] = useToggle(false);
-
   // actions
   const { setQuarantineGridPage, setQuarantineGridSorting, setQuarantineGridPolicyFilter } = props;
 
@@ -68,7 +64,7 @@ export default function FirewallQuarantineTable(props) {
       let policyViolation = policyViolations[i];
 
       // If we match filter criteria, that takes precedence so break the loop.
-      if (filterPolicy && filterPolicy.id === policyViolation.policyId) {
+      if (filterPolicy === policyViolation.policyId) {
         chosenViolation = policyViolation;
         break;
       } else if (policyViolation.threatLevel > chosenViolation.threatLevel) {
@@ -104,26 +100,21 @@ export default function FirewallQuarantineTable(props) {
           <NxTableRow isFilterHeader>
             <NxTableCell />
             <NxTableCell>
-              <NxDropdown
-                label={filterPolicy ? filterPolicy.name : ''}
-                isOpen={isOpen}
-                onToggleCollapse={onToggleCollapse}
+              <select
+                className="nx-form-select"
+                onChange={(event) => setQuarantineGridPolicyFilter(event.currentTarget.value)}
+                value={filterPolicy}
               >
-                <button onClick={() => setQuarantineGridPolicyFilter(null)} className="nx-dropdown-button">
-                  <span>&nbsp;</span>
-                </button>
+                {/* Effectively clears the filter. */}
+                <option value={''}></option>
 
                 {policies &&
                   policies.map((policy) => (
-                    <button
-                      key={policy.id}
-                      onClick={() => setQuarantineGridPolicyFilter(policy)}
-                      className="nx-dropdown-button"
-                    >
-                      <span>{policy.name}</span>
-                    </button>
+                    <option key={policy.id} value={policy.id}>
+                      {policy.name}
+                    </option>
                   ))}
-              </NxDropdown>
+              </select>
             </NxTableCell>
             <NxTableCell />
             <NxTableCell />
@@ -196,5 +187,5 @@ FirewallQuarantineTable.propTypes = {
   currentPage: PropTypes.number,
   sortDir: PropTypes.string,
   sortField: PropTypes.string,
-  filterPolicy: PropTypes.object,
+  filterPolicy: PropTypes.string,
 };

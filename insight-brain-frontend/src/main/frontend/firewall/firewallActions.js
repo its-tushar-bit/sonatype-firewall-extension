@@ -277,7 +277,7 @@ export function loadQuarantineList() {
   return function (dispatch, getState) {
     let gridState = getState().firewall.quarantineGridState,
       apiPage = gridState.currentPage ? gridState.currentPage + 1 : 1,
-      filterValue = gridState.filterPolicy ? gridState.filterPolicy.id : null,
+      filterValue = gridState.filterPolicy === '' ? null : gridState.filterPolicy,
       sortAsc = gridState.sortDir === null ? gridState.sortDir : gridState.sortDir === 'asc';
 
     dispatch(loadQuarantineListRequested());

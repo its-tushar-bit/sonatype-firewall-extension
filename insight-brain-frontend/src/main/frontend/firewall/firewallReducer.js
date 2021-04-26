@@ -99,7 +99,7 @@ const initialState = Object.freeze({
     currentPage: null,
     sortDir: null,
     sortField: null,
-    filterPolicy: null,
+    filterPolicy: '',
   }),
 });
 

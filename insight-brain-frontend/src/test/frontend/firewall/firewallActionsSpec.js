@@ -846,7 +846,7 @@ describe('firewallActions', function () {
 
   describe('setQuarantineGridPolicyFilter', function () {
     it('immediately dispatches actions to set the policy ID filter for the quarantine grid', function () {
-      let policy = { policy: { id: '456', name: 'test-name' } };
+      let policy = { policy: '456' };
 
       store.dispatch(setQuarantineGridPolicyFilter(policy.policy));
 
@@ -854,6 +854,7 @@ describe('firewallActions', function () {
       expect(actions.length).toBe(2);
       expect(actions[0].type).toBe(FIREWALL_QUARANTINE_GRID_SET_FILTER);
       expect(actions[0].payload).toEqual(policy);
+      expect(actions[0].payload.policy).toEqual(jasmine.any(String));
       expect(actions[1].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
       expect(actions[1].payload).toBeUndefined();
     });

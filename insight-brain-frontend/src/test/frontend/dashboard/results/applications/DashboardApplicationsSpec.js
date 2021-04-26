@@ -66,6 +66,11 @@ describe('DashboardApplications', function () {
     expect(mask).toExist();
   });
 
+  it('does not render a form mask if filters are dirty and needs acknowledgement', () => {
+    const dashBoardApplications = getShallowComponent({ filtersAreDirty: true, needsAcknowledgement: true });
+    expect(dashBoardApplications.find(DashboardMask)).not.toExist();
+  });
+
   it('loads applications results on render if the filter is not loading and does not need acknowledgment', function () {
     const dashboardApplicationsProps = {
       filterLoading: false,

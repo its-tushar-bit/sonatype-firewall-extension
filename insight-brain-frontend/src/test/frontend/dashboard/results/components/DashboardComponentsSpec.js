@@ -60,6 +60,17 @@ describe('DashboardComponents', function () {
     expect(mask).toExist();
   });
 
+  it('does not render a mask over the table when filters are dirty and needs acknowledgement', function () {
+    const dashboardComponentProps = {
+      filtersAreDirty: true,
+      needsAcknowledgement: true,
+    };
+
+    const dashBoardComponents = getShallowComponent(dashboardComponentProps),
+      mask = dashBoardComponents.find(DashboardMask);
+    expect(mask).not.toExist();
+  });
+
   it('loads component results on render if the filter is not loading and does not need acknowledgment', function () {
     const dashboardComponentProps = {
       filterLoading: false,

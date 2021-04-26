@@ -59,12 +59,16 @@ describe('DashboardViolations', function () {
 
   it('renders a form mask if filters are dirty', () => {
     const component = getShallowComponent({ filtersAreDirty: true });
-
     expect(component.find(DashboardMask)).toExist();
   });
 
-  it('does not render a form mask if filters are dirty', () => {
+  it('does not render a form mask if filters are not dirty', () => {
     const component = getShallowComponent({ filtersAreDirty: false });
+    expect(component.find('.form-mask')).not.toExist();
+  });
+
+  it('does not render a form mask if filters are dirty and needs acknowledgement', () => {
+    const component = getMountedComponent({ filtersAreDirty: true, needsAcknowledgement: true });
     expect(component.find('.form-mask')).not.toExist();
   });
 

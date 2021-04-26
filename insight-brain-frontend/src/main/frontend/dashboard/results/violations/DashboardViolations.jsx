@@ -46,7 +46,7 @@ export default function DashboardViolations(props) {
 
   return (
     <div id="dashboard-violations" className="iq-dashboard-violations nx-viewport-sized__container">
-      {filtersAreDirty && <DashboardMask />}
+      {filtersAreDirty && !needsAcknowledgement && <DashboardMask />}
       <DashboardViolationsTable {...tableProps} />
     </div>
   );

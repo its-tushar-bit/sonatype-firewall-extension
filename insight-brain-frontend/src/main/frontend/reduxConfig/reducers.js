@@ -60,12 +60,12 @@ export default combineReducers({
   advancedLegal: advancedLegalReducer,
   legalDashboard: legalDashboardReducer,
   legalDashboardFilter: legalDashboardFilterReducer,
+  legalApplicationDetails: legalApplicationDetailsReducer,
   copyrightOverrides: copyrightOverrideReducer,
   componentCopyrightDetails: componentCopyrightDetailsReducer,
   componentLicenseDetails: componentLicenseDetailsReducer,
   firewall: firewallReducer,
   firewallConfigurationModal: firewallConfigurationModalReducer,
   manageLegalFilters: manageLegalFiltersReducer,
-  legalApplicationDetails: legalApplicationDetailsReducer,
   labsDataInsights: labsDataInsightsReducer,
 });

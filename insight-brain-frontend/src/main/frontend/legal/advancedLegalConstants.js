@@ -63,3 +63,5 @@ export const EFFECTIVELY_UNSPECIFIED_LICENSES = [
   'UNSPECIFIED',
   'Not-Supported',
 ];
+
+export const NO_LICENSE_THREAT_GROUP_ASSIGNED = 'No LTG Assigned';

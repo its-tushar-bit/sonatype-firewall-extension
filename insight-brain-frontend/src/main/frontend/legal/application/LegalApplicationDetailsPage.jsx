@@ -3,11 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
+import { chain, map, pipe, prop, uniq } from 'ramda';
 import {
   NxButton,
+  NxFilterInput,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -16,7 +18,9 @@ import {
 } from '@sonatype/react-shared-components';
 import { Messages } from '../../util/CommonServices';
 import BackButton from '../../react/BackButton';
+import { getLicenseThreatGroupsFromLicense } from '../legalUtility';
 import LegalApplicationDetailsComponentRow from './LegalApplicationDetailsComponentRow';
+import LegalApplicationDetailsFilterContainer from './filter/LegalApplicationDetailsFilterContainer';
 
 export default function LegalApplicationDetailsPage(props) {
   const {
@@ -25,8 +29,12 @@ export default function LegalApplicationDetailsPage(props) {
     application,
     stageType,
     components,
+    componentFilter,
+    licenseFilter,
     $state,
     loadApplication,
+    changeComponentNameFilter,
+    changeLicenseNameFilter,
     stateGo,
   } = props;
 
@@ -38,56 +46,94 @@ export default function LegalApplicationDetailsPage(props) {
 
   const reportUrl = `/api/v2/licenseLegalMetadata/application/${applicationPublicId}/stage/${stageTypeId}/report`;
 
+  const getLicenseThreatGroupsFromComponents = pipe(
+    chain(prop('licenses')),
+    chain(getLicenseThreatGroupsFromLicense),
+    map(prop('licenseThreatGroupName')),
+    uniq
+  );
+
+  const errorLoading = application.error || stageType.error;
+
   return (
-    <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
-      <LoadWrapper
-        loading={application.loading || stageType.loading}
-        error={application.error || stageType.error}
-        retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
-      >
-        <BackButton stateName="legal.dashboard" $state={$state} text="Back to Dashboard" />
-        <div className="nx-page-title">
-          <h1 className="nx-h1">{application.name} Obligations</h1>
-          <div className="nx-btn-bar">
-            <NxButton variant="primary" onClick={() => window.open(reportUrl, '_blank')}>
-              Create Attribution Report
-            </NxButton>
+    <Fragment>
+      {!errorLoading && (
+        <aside id="legal-application-details-filter-container" className="nx-page-sidebar nx-viewport-sized">
+          <BackButton stateName="legal.dashboard" $state={$state} text="Back to Dashboard" />
+          <LegalApplicationDetailsFilterContainer
+            licenseThreatGroups={getLicenseThreatGroupsFromComponents(components.filteredResults)}
+          />
+        </aside>
+      )}
+      <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
+        <LoadWrapper
+          loading={application.loading || stageType.loading}
+          error={errorLoading}
+          retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
+        >
+          <div className="nx-page-title">
+            <h1 className="nx-h1">{application.name} Obligations</h1>
+            <div className="nx-btn-bar">
+              <NxButton variant="primary" onClick={() => window.open(reportUrl, '_blank')}>
+                Create Attribution Report
+              </NxButton>
+            </div>
+            <div className="nx-page-title__description">
+              <div className="nx-tile-header__subtitle">{stageType.name} Stage</div>
+            </div>
           </div>
-          <div className="nx-page-title__description">
-            <div className="nx-tile-header__subtitle">{stageType.name} Stage</div>
+          <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+            <NxTable id="legal-application-details-table" className="legal-dashboard-table">
+              <NxTableHead>
+                <NxTableRow>
+                  <NxTableCell>Component</NxTableCell>
+                  <NxTableCell>Licenses</NxTableCell>
+                  <NxTableCell className="legal-application-details-table-review-progress">
+                    Completed Obligations
+                  </NxTableCell>
+                  <NxTableCell className="legal-application-details-table-review-status">Review Status</NxTableCell>
+                </NxTableRow>
+              </NxTableHead>
+              <NxTableBody
+                emptyMessage="No components found"
+                isLoading={components.loading}
+                error={Messages.getHttpErrorMessage(components.error)}
+              >
+                <NxTableRow key="__filter">
+                  <NxTableCell>
+                    <NxFilterInput
+                      id="legal-application-component-filter"
+                      value={componentFilter || ''}
+                      placeholder="Filter components"
+                      onChange={(newVal) => changeComponentNameFilter({ filter: newVal })}
+                    />
+                  </NxTableCell>
+                  <NxTableCell>
+                    <NxFilterInput
+                      id="legal-application-license-filter"
+                      value={licenseFilter || ''}
+                      placeholder="Filter licenses"
+                      onChange={(newVal) => changeLicenseNameFilter({ filter: newVal })}
+                    />
+                  </NxTableCell>
+                  <NxTableCell />
+                  <NxTableCell />
+                </NxTableRow>
+                {components.filteredResults.map((row, index) => (
+                  <LegalApplicationDetailsComponentRow
+                    key={index}
+                    applicationPublicId={applicationPublicId}
+                    stageTypeId={stageTypeId}
+                    row={row}
+                    stateGo={stateGo}
+                  />
+                ))}
+              </NxTableBody>
+            </NxTable>
           </div>
-        </div>
-        <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-          <NxTable id="legal-application-details-table" className="legal-dashboard-table">
-            <NxTableHead>
-              <NxTableRow>
-                <NxTableCell>Component</NxTableCell>
-                <NxTableCell>Licenses</NxTableCell>
-                <NxTableCell className="legal-application-details-table-review-progress">
-                  Completed Obligations
-                </NxTableCell>
-                <NxTableCell className="legal-application-details-table-review-status">Review Status</NxTableCell>
-              </NxTableRow>
-            </NxTableHead>
-            <NxTableBody
-              emptyMessage="No components found"
-              isLoading={components.loading}
-              error={Messages.getHttpErrorMessage(components.error)}
-            >
-              {components.results.map((row, index) => (
-                <LegalApplicationDetailsComponentRow
-                  key={index}
-                  applicationPublicId={applicationPublicId}
-                  stageTypeId={stageTypeId}
-                  row={row}
-                  stateGo={stateGo}
-                />
-              ))}
-            </NxTableBody>
-          </NxTable>
-        </div>
-      </LoadWrapper>
-    </main>
+        </LoadWrapper>
+      </main>
+    </Fragment>
   );
 }
 
@@ -105,11 +151,15 @@ LegalApplicationDetailsPage.propTypes = {
     error: LoadWrapper.propTypes.error,
   }),
   components: PropTypes.shape({
-    results: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
+    filteredResults: PropTypes.arrayOf(LegalApplicationDetailsComponentRow.propTypes.row),
     loading: PropTypes.bool,
     error: LoadWrapper.propTypes.error,
   }),
+  componentFilter: PropTypes.string,
+  licenseFilter: PropTypes.string,
   $state: PropTypes.object.isRequired,
   loadApplication: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
+  changeComponentNameFilter: PropTypes.func.isRequired,
+  changeLicenseNameFilter: PropTypes.func.isRequired,
 };

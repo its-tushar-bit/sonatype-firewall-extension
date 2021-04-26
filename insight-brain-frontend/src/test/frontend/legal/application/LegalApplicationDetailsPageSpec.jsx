@@ -9,6 +9,7 @@ import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 import BackButton from '../../../../main/frontend/react/BackButton';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
 import LegalApplicationDetailsComponentRow from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
+import LegalApplicationDetailsFilterContainer from '../../../../main/frontend/legal/application/filter/LegalApplicationDetailsFilterContainer';
 
 describe('LegalApplicationDetailsPage', function () {
   let minimalProps, loadApplicationSpy, stateSpy, getShallowComponent;
@@ -30,11 +31,20 @@ describe('LegalApplicationDetailsPage', function () {
         loading: false,
       },
       components: {
-        results: [
+        filteredResults: [
           {
             displayName: 'g1 : a1 : v1',
             hash: 'some-hash-1',
-            licenses: [],
+            licenses: [
+              {
+                licenseName: 'lic1',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'ltg1a' }, { licenseThreatGroupName: 'ltg1b' }],
+              },
+              {
+                licenseName: 'lic2',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'ltg2' }],
+              },
+            ],
             reviewCompletedCount: 0,
             reviewStatus: 'COMPLETED',
             reviewTotalCount: 0,
@@ -42,7 +52,20 @@ describe('LegalApplicationDetailsPage', function () {
           {
             displayName: 'g2 : a2 : v2',
             hash: 'some-hash-2',
-            licenses: [],
+            licenses: [
+              {
+                licenseName: 'lic1',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'ltg1c' }],
+              },
+              {
+                licenseName: 'lic3',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'newLtg' }],
+              },
+              {
+                licenseName: 'lic4',
+                licenseThreatGroups: [{ licenseThreatGroupName: 'newLtg' }],
+              },
+            ],
             reviewCompletedCount: 1,
             reviewStatus: 'IN_PROGRESS',
             reviewTotalCount: 10,
@@ -111,6 +134,50 @@ describe('LegalApplicationDetailsPage', function () {
     expect(backButton).toHaveProp('$state', stateSpy);
   });
 
+  it('renders an aside with a LegalApplicationDetailsFilterContainer, ', function () {
+    const aside = getShallowComponent().find('aside#legal-application-details-filter-container');
+    expect(aside).toExist();
+    expect(aside.find(LegalApplicationDetailsFilterContainer)).toExist();
+  });
+
+  it('correctly passes the licenseThreatGroups to the LegalApplicationDetailsFilterContainer, ', function () {
+    const expectedLTGs = ['ltg1a', 'ltg1b', 'ltg2', 'ltg1c', 'newLtg'];
+    const filterContainer = getShallowComponent().find(LegalApplicationDetailsFilterContainer);
+    expect(filterContainer).toHaveProp('licenseThreatGroups', expectedLTGs);
+  });
+
+  it('includes the "No LTG Assigned" value to the LegalApplicationDetailsFilterContainer, ', function () {
+    const components = {
+      ...minimalProps.components,
+      filteredResults: [
+        {
+          displayName: 'g1 : a1 : v1',
+          hash: 'some-hash-1',
+          licenses: [
+            {
+              licenseName: 'lic1',
+              licenseThreatGroups: [{ licenseThreatGroupName: 'ltg1a' }, { licenseThreatGroupName: 'ltg1b' }],
+            },
+          ],
+        },
+        {
+          displayName: 'g2 : a2 : v2',
+          hash: 'some-hash-2',
+          licenses: [
+            {
+              licenseName: 'lic2',
+            },
+          ],
+        },
+      ],
+    };
+    minimalProps = { ...minimalProps, components: components };
+
+    const expectedLTGs = ['ltg1a', 'ltg1b', 'No LTG Assigned'];
+    const filterContainer = getShallowComponent(minimalProps).find(LegalApplicationDetailsFilterContainer);
+    expect(filterContainer).toHaveProp('licenseThreatGroups', expectedLTGs);
+  });
+
   it('renders a main', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find('main.nx-page-main')).toExist();
@@ -156,7 +223,7 @@ describe('LegalApplicationDetailsPage', function () {
     let rows = wrapper.find(NxTable).find(LegalApplicationDetailsComponentRow);
     expect(rows).toExist();
     expect(rows.length).toEqual(2);
-    expect(rows.at(0)).toHaveProp('row', minimalProps.components.results[0]);
-    expect(rows.at(1)).toHaveProp('row', minimalProps.components.results[1]);
+    expect(rows.at(0)).toHaveProp('row', minimalProps.components.filteredResults[0]);
+    expect(rows.at(1)).toHaveProp('row', minimalProps.components.filteredResults[1]);
   });
 });

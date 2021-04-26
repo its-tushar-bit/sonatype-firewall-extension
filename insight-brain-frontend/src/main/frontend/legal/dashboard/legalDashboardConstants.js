@@ -15,6 +15,25 @@ export const progressOptions = [
   },
 ];
 
+export const expandedProgressOptions = [
+  {
+    id: 'UNREVIEWED',
+    name: 'Unreviewed',
+  },
+  {
+    id: 'IN_PROGRESS',
+    name: 'In Progress',
+  },
+  {
+    id: 'FLAGGED',
+    name: 'Flagged',
+  },
+  {
+    id: 'COMPLETED',
+    name: 'Completed',
+  },
+];
+
 export const reviewStatusDisplayNames = {
   FLAGGED: 'Flagged',
   IN_PROGRESS: 'In Progress',

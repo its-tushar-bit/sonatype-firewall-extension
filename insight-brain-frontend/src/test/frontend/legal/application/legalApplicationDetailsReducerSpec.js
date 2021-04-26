@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import { NO_LICENSE_THREAT_GROUP_ASSIGNED } from '../../../../main/frontend/legal/advancedLegalConstants';
 import legalApplicationDetailsReducer from '../../../../main/frontend/legal/application/legalApplicationDetailsReducer';
 import {
   LEGAL_APPLICATION_DETAILS_LOAD_APP_FAILED,
@@ -16,6 +17,11 @@ import {
   LEGAL_APPLICATION_DETAILS_LOAD_STAGE_FULFILLED,
   LEGAL_APPLICATION_DETAILS_LOAD_STAGE_REQUESTED,
 } from '../../../../main/frontend/legal/application/legalApplicationDetailsActions';
+import {
+  LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
+  LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER,
+  LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+} from '../../../../main/frontend/legal/application/filter/legalApplicationDetailsFilterActions';
 
 const otherObject = { value: 'test value' };
 
@@ -37,8 +43,22 @@ describe('legalApplicationDetailsReducer', function () {
       });
       expect(newState.components).toEqual({
         results: [],
+        filteredResults: [],
         error: null,
         loading: false,
+      });
+      expect(newState.componentFilter).toEqual('');
+      expect(newState.licenseFilter).toEqual('');
+      expect(newState.reviewStatusFilter).toEqual([]);
+      expect(newState.licenseThreatGroupFilter).toEqual([]);
+      expect(newState.sort).toEqual({
+        column: 'component',
+        sortOrder: 'asc',
+      });
+      expect(newState.page).toEqual(1);
+      expect(newState.selected).toEqual({
+        progressOptions: new Set(),
+        licenseThreatGroups: new Set(),
       });
     });
   });
@@ -69,6 +89,7 @@ describe('legalApplicationDetailsReducer', function () {
         },
         components: {
           results: [],
+          filteredResults: [],
           error: 'some error',
           loading: true,
         },
@@ -87,6 +108,7 @@ describe('legalApplicationDetailsReducer', function () {
       });
       expect(newState.components).toEqual({
         results: [],
+        filteredResults: [],
         error: null,
         loading: false,
       });
@@ -246,6 +268,7 @@ describe('legalApplicationDetailsReducer', function () {
       const newState = legalApplicationDetailsReducer(state, action);
       expect(newState.components).toEqual({
         results: [1, 2, 3],
+        filteredResults: [1, 2, 3],
         error: null,
         loading: false,
       });
@@ -274,6 +297,345 @@ describe('legalApplicationDetailsReducer', function () {
         loading: false,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('filter states', function () {
+    describe('unknown action', function () {
+      it('returns original state', function () {
+        const state = Object.freeze({ foo: 'bar' });
+        const action = {
+          type: 'UNKNOWN',
+        };
+        const newState = legalApplicationDetailsReducer(state, action);
+        expect(newState).toBe(state);
+      });
+    });
+
+    describe('LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER action', function () {
+      let initState;
+
+      beforeEach(function () {
+        initState = {
+          other: otherObject,
+          components: {
+            results: [
+              {
+                hash: 'hash1',
+                licenses: [
+                  { licenseThreatGroups: [{ licenseThreatGroupName: 'group1' }] },
+                  { licenseThreatGroups: [{ licenseThreatGroupName: 'group2' }] },
+                ],
+                reviewStatus: 'status1',
+              },
+              {
+                hash: 'hash2',
+                licenses: [
+                  {
+                    licenseThreatGroups: [{ licenseThreatGroupName: 'group1' }, { licenseThreatGroupName: 'group3' }],
+                  },
+                ],
+                reviewStatus: 'status2',
+              },
+              {
+                hash: 'hash3',
+                licenses: [{ licenseThreatGroups: [] }],
+                reviewStatus: 'status3',
+              },
+            ],
+            filteredResults: [],
+            error: null,
+            loading: false,
+          },
+          filtersAreDirty: false,
+          appliedFilter: {},
+          selected: Object.freeze({
+            progressOptions: new Set(),
+            licenseThreatGroups: new Set(),
+          }),
+        };
+      });
+
+      it('sets selected progressOptions', function () {
+        const state = Object.freeze(initState);
+        let action = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'progressOptions',
+            selectedIds: new Set(['status1', 'status2']),
+          },
+        };
+        let newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.selected.progressOptions).toBe(action.payload.selectedIds);
+        expect(newState.components.filteredResults.length).toBe(2);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.components.filteredResults[1].hash).toBe('hash2');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'progressOptions',
+            selectedIds: new Set(['status1']),
+          },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.selected.progressOptions).toBe(action.payload.selectedIds);
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'progressOptions',
+            selectedIds: new Set(['status2']),
+          },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.selected.progressOptions).toBe(action.payload.selectedIds);
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash2');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('sets selected license threat groups', function () {
+        const state = Object.freeze(initState);
+        let action = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'licenseThreatGroups',
+            selectedIds: new Set(['group1', 'group2', 'group3', 'group4']),
+          },
+        };
+        let newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.selected.licenseThreatGroups).toBe(action.payload.selectedIds);
+        expect(newState.components.filteredResults.length).toBe(2);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.components.filteredResults[1].hash).toBe('hash2');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'licenseThreatGroups',
+            selectedIds: new Set(['group1']),
+          },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.selected.licenseThreatGroups).toBe(action.payload.selectedIds);
+        expect(newState.components.filteredResults.length).toBe(2);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.components.filteredResults[1].hash).toBe('hash2');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'licenseThreatGroups',
+            selectedIds: new Set(['group2']),
+          },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.selected.licenseThreatGroups).toBe(action.payload.selectedIds);
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'licenseThreatGroups',
+            selectedIds: new Set(['group3']),
+          },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.selected.licenseThreatGroups).toBe(action.payload.selectedIds);
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash2');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'licenseThreatGroups',
+            selectedIds: new Set([NO_LICENSE_THREAT_GROUP_ASSIGNED]),
+          },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.selected.licenseThreatGroups).toBe(action.payload.selectedIds);
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash3');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+    });
+
+    describe('LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER and LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER actions', function () {
+      let initState;
+
+      beforeEach(function () {
+        initState = {
+          other: otherObject,
+          components: {
+            results: [
+              {
+                hash: 'hash1',
+                displayName: 'org.component1',
+                licenses: [
+                  { licenseName: 'Apache', licenseThreatGroups: [{ licenseThreatGroupName: 'group1' }] },
+                  { licenseName: 'GPL', licenseThreatGroups: [{ licenseThreatGroupName: 'group2' }] },
+                ],
+                reviewStatus: 'status1',
+              },
+              {
+                hash: 'hash2',
+                displayName: 'com.component2',
+                licenses: [
+                  {
+                    licenseName: 'GPL-3',
+                    licenseThreatGroups: [{ licenseThreatGroupName: 'group1' }, { licenseThreatGroupName: 'group3' }],
+                  },
+                ],
+                reviewStatus: 'status2',
+              },
+              {
+                displayName: 'org.component3',
+                hash: 'hash3',
+                licenses: [{ licenseName: 'MIT', licenseThreatGroups: [] }],
+                reviewStatus: 'status3',
+              },
+            ],
+            filteredResults: [],
+            error: null,
+            loading: false,
+          },
+          filtersAreDirty: false,
+          appliedFilter: {},
+          selected: Object.freeze({
+            progressOptions: new Set(),
+            licenseThreatGroups: new Set(),
+          }),
+        };
+      });
+
+      it('filters by component name', function () {
+        const state = Object.freeze(initState);
+        let action = {
+          type: LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
+          payload: { filter: 'org' },
+        };
+        let newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.components.filteredResults.length).toBe(2);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.components.filteredResults[1].hash).toBe('hash3');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
+          payload: { filter: 'com.' },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash2');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
+          payload: { filter: '' },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.components.filteredResults.length).toBe(3);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.components.filteredResults[1].hash).toBe('hash2');
+        expect(newState.components.filteredResults[2].hash).toBe('hash3');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('filters by license name', function () {
+        const state = Object.freeze(initState);
+        let action = {
+          type: LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER,
+          payload: { filter: 'gpl' },
+        };
+        let newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.components.filteredResults.length).toBe(2);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.components.filteredResults[1].hash).toBe('hash2');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER,
+          payload: { filter: 'apa' },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action = {
+          type: LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER,
+          payload: { filter: '' },
+        };
+        newState = legalApplicationDetailsReducer(state, action);
+        expect(newState.components.filteredResults.length).toBe(3);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.components.filteredResults[1].hash).toBe('hash2');
+        expect(newState.components.filteredResults[2].hash).toBe('hash3');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('filters by component and license name', function () {
+        const state = Object.freeze(initState);
+        let action1 = {
+          type: LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER,
+          payload: { filter: 'gpl' },
+        };
+        let action2 = {
+          type: LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
+          payload: { filter: 'org.' },
+        };
+        let newState = legalApplicationDetailsReducer(state, action1);
+        newState = legalApplicationDetailsReducer(newState, action2);
+
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+
+        action1 = {
+          type: LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER,
+          payload: { filter: 'apa' },
+        };
+        action2 = {
+          type: LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
+          payload: { filter: 'com.' },
+        };
+        newState = legalApplicationDetailsReducer(state, action1);
+        newState = legalApplicationDetailsReducer(newState, action2);
+
+        expect(newState.components.filteredResults.length).toBe(0);
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      it('filters by component name and LTG', function () {
+        const state = Object.freeze(initState);
+        let action1 = {
+          type: LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
+          payload: { filter: 'org.' },
+        };
+        let action2 = {
+          type: LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
+          payload: {
+            filterName: 'progressOptions',
+            selectedIds: new Set(['status1']),
+          },
+        };
+        let newState = legalApplicationDetailsReducer(state, action1);
+        newState = legalApplicationDetailsReducer(newState, action2);
+
+        expect(newState.components.filteredResults.length).toBe(1);
+        expect(newState.components.filteredResults[0].hash).toBe('hash1');
+        expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
     });
   });
 });

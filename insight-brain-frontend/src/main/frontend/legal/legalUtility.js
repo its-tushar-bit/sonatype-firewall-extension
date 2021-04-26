@@ -8,6 +8,8 @@ import { findIndex, propEq } from 'ramda';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faGlobe, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
+import { isNilOrEmpty } from '../util/jsUtil';
+import { NO_LICENSE_THREAT_GROUP_ASSIGNED } from './advancedLegalConstants';
 
 export function isScopeOverride(originalOwnerId, ownerId, availableScopeValues) {
   const originalOwnerLevel = findIndex(propEq('id', originalOwnerId), availableScopeValues);
@@ -36,4 +38,10 @@ export function createSubtitle(availableScopes) {
       })}
     </div>
   );
+}
+
+export function getLicenseThreatGroupsFromLicense(license) {
+  return isNilOrEmpty(license.licenseThreatGroups)
+    ? [{ licenseThreatGroupName: NO_LICENSE_THREAT_GROUP_ASSIGNED }]
+    : license.licenseThreatGroups;
 }

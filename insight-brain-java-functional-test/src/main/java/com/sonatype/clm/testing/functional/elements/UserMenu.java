@@ -9,36 +9,34 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Selenide.$;
-
 public class UserMenu
     extends BasicElement<UserMenu>
 {
   public UserMenu() {
-    super("#user-menu");
+    super("#menu-bar");
   }
 
   public SelenideElement userName() {
-    return $("#user-name");
+    return child("#user-name");
   }
 
   public SelenideElement dropdownToggle() {
-    return $("#user-menu-dropdown-toggle");
+    return child("#user-menu-dropdown button");
   }
 
   public SelenideElement changePassword() {
-    return $("#change-password");
+    return child("#change-password");
   }
 
   public SelenideElement manageUserToken() {
-    return $("#user-token-management");
+    return child("#user-token-management");
   }
 
   public SelenideElement userDetails() {
-    return $("#user-details");
+    return child("#user-details");
   }
 
   public SelenideElement logout() {
-    return $("#logout");
+    return child("#logout");
   }
 }

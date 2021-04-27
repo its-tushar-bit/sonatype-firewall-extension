@@ -15,15 +15,11 @@ public class NotificationMenu
     extends BasicElement<NotificationMenu>
 {
   public NotificationMenu() {
-    super("#notification-menu");
+    super(".iq-notifications-menu-button");
   }
 
   public SelenideElement notificationCount() {
     return child(".iq-count-circle");
-  }
-
-  public SelenideElement dropdown() {
-    return child("#notification-dropdown-toggle");
   }
 
   public NotificationListItem notificationListItem(int index) {
@@ -31,7 +27,7 @@ public class NotificationMenu
   }
 
   public SelenideElement detailBody() {
-    return child("#detail-html-container div");
+    return child(".iq-dropdown-submenu .iq-dropdown-submenu__container");
   }
 
   public SelenideElement detailHeader() {

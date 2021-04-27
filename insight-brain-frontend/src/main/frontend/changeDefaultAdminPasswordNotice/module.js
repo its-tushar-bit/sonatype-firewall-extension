@@ -9,13 +9,15 @@ import telemetryServiceModule from '../services/telemetryService';
 import permissionServiceModule from '../util/PermissionService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
-import currentUserService from '../mainHeader/userMenu/CurrentUserService';
+import currentUserService from '../user/CurrentUserService';
+import pendoModule from '../pendo/module';
 
 export default angular
   .module('changeDefaultAdminPasswordNoticeModule', [
     CLMLocationModule.name,
     telemetryServiceModule.name,
     permissionServiceModule.name,
+    pendoModule.name,
   ])
   .component('changeDefaultAdminPasswordNotice', changeDefaultAdminPasswordNotice)
   .factory('CurrentUser', currentUserService)

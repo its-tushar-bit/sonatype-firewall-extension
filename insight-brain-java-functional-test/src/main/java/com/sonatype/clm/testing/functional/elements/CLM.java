@@ -7,6 +7,8 @@ package com.sonatype.clm.testing.functional.elements;
 
 import com.codeborne.selenide.Condition;
 
+import static com.codeborne.selenide.Condition.and;
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 
 public class CLM
@@ -22,4 +24,14 @@ public class CLM
   public static final Condition SELECTED = cssClass("selected");
 
   public static final Condition IQ_DISABLED = cssClass("iq-disabled");
+
+  public static final Condition RSC_DISABLED = and(
+      "is disabled",
+      cssClass("disabled"),
+      attribute("aria-disabled", "true" )
+  );
+
+  public static final Condition CSS_SIDEBAR_OPEN = cssClass("open");
+
+  public static final Condition CSS_SIDEBAR_CLOSED = cssClass("closed");
 }

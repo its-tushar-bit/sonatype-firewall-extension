@@ -59,13 +59,13 @@ public class SuccessMetricsConfigurationTest
     String successMetricsChartsPageUrl = SuccessMetricsReportPage.url(successMetricsReport.getId());
 
     systemConfigMenu.dropdownToggle().click();
-    systemConfigMenu.successMetrics().parent().shouldNotHave(cssClass("active"));
+    systemConfigMenu.successMetrics().shouldNotHave(cssClass("active"));
     systemConfigMenu.successMetrics().shouldBe(visible).shouldHave(text("Success Metrics")).click();
     waitUntilUrl(SuccessMetricsConfigurationPage.url());
 
     // check configuration menu entry is selected
     systemConfigMenu.dropdownToggle().click();
-    systemConfigMenu.successMetrics().parent().shouldHave(cssClass("active"));
+    systemConfigMenu.successMetrics().shouldHave(cssClass("active"));
 
     // close the menu
     systemConfigMenu.dropdownToggle().click();

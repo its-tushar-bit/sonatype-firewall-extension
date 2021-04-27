@@ -4,25 +4,21 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { react2angular } from 'react2angular';
-
 import withStoreProvider from '../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import utilityServicesModule from '../utility/services/utility.services.module';
+import pendoModule from '../pendo/module';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import permissionServiceModule from '../util/PermissionService';
 import productFeaturesModule from '../util/ProductFeatures';
 import telemetryServiceModule from '../services/telemetryService';
-import currentUserService from './userMenu/CurrentUserService';
-import helpMenu from './helpMenu/helpMenu';
-import userMenu from './userMenu/userMenu';
-import notificationsMenu from './notificationsMenu/notificationsMenu';
-import systemConfigurationMenu from './systemConfigurationMenu/systemConfigurationMenu';
-import mainHeader from './mainHeader';
+import currentUserService from '../user/CurrentUserService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
-import userDetailsModal from './userMenu/userDetailsModal';
 import reactComponentsModule from '../react/module.js';
-import UserTokenModalContainer from './userMenu/userToken/UserTokenModalContainer';
+import MenuBar from './MenuBar/MenuBar.jsx';
+import mainHeader from './mainHeader';
 
 export default angular
   .module('mainHeader', [
@@ -36,14 +32,25 @@ export default angular
     utilityServicesModule.name,
     telemetryServiceModule.name,
     reactComponentsModule.name,
+    pendoModule.name,
   ])
   .factory('CurrentUser', currentUserService)
   .factory('userActions', userActions)
   .value('userReducer', userReducer)
-  .component('helpMenu', helpMenu)
-  .component('userMenu', userMenu)
-  .component('notificationsMenu', notificationsMenu)
-  .component('systemConfigurationMenu', systemConfigurationMenu)
   .component('mainHeader', mainHeader)
-  .component('userDetailsModal', userDetailsModal)
-  .component('userTokenModal', react2angular(withStoreProvider(UserTokenModalContainer), [], ['$ngRedux']));
+  .component(
+    'menuBar',
+    react2angular(
+      withStoreProvider(withRouterStateProvider(MenuBar)),
+      [
+        'majorMinorVersion',
+        'permissions',
+        'isWebhooksSupported',
+        'isLabsDataInsightsEnabled',
+        'login',
+        'isLoggedIn',
+        'shouldShowLoginButton',
+      ],
+      ['$ngRedux', 'userActions', '$state']
+    )
+  );

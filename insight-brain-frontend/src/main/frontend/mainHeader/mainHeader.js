@@ -19,7 +19,8 @@ import { loadStatus as loadFirewallStatus } from '../firewall/firewallActions';
 import template from './mainHeader.html';
 import { path } from 'ramda';
 
-/* global angular, clmServerVersion, clmBuildTimestamp */
+/* global clmServerVersion */
+const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
 function MainHeaderController(
   $rootScope,
   $state,
@@ -62,6 +63,7 @@ function MainHeaderController(
   vm.isFirewallEnabled = false;
   vm.isAdvancedLegalPackSupported = false;
   vm.isLabsDataInsightsEnabled = false;
+  vm.majorMinorVersion = globalMajorMinorVersion;
 
   function getReleaseVersion() {
     const serverVersionWithoutBuildNumber = clmServerVersion.substring(0, clmServerVersion.indexOf('-'));
@@ -94,9 +96,11 @@ function MainHeaderController(
 
     CurrentUser.waitForLogin().then(function () {
       PermissionService.getValidPermissions(validPermissions).then(function (data) {
+        const perms = {};
         angular.forEach(data, function (permission) {
-          vm.permissions[permission] = true;
+          perms[permission] = true;
         });
+        vm.permissions = perms;
       });
 
       systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function (data) {

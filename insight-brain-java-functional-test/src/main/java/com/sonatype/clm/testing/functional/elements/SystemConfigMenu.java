@@ -9,6 +9,8 @@ import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
+
 public class SystemConfigMenu
     extends BasicElement<SystemConfigMenu>
 {
@@ -17,62 +19,62 @@ public class SystemConfigMenu
   }
 
   public SelenideElement dropdownToggle() {
-    return child("#system-configuration-menu-dropdown-toggle");
+    return $("#system-configuration-menu > button");
   }
 
   public SelenideElement users() {
-    return child("#system-configuration-users a");
+    return $("#system-configuration-users");
   }
 
   public SelenideElement roles() {
-    return child("#system-configuration-roles a");
+    return $("#system-configuration-roles");
   }
 
   public SelenideElement administrators() {
-    return child("#system-configuration-administrators a");
+    return $("#system-configuration-administrators");
   }
 
   public SelenideElement productLicense() {
-    return child("#system-configuration-product-license a");
+    return $("#system-configuration-product-license");
   }
 
   public SelenideElement ldap() {
-    return child("#system-configuration-ldap a");
+    return $("#system-configuration-ldap");
   }
 
   public SelenideElement webhooks() {
-    return child("#system-configuration-webhooks a");
+    return child("#system-configuration-webhooks");
   }
 
   public SelenideElement systemNotice() {
-    return child("#system-configuration-system-notice a");
+    return child("#system-configuration-system-notice");
   }
 
   public SelenideElement successMetrics() {
-    return child("#system-configuration-success-metrics a");
+    return child("#system-configuration-success-metrics");
   }
 
   public SelenideElement automaticApplications() {
-    return child("#system-configuration-automatic-applications a");
+    return child("#system-configuration-automatic-applications");
   }
 
   public SelenideElement emailConfiguration() {
-    return child("#system-configuration-email a");
+    return child("#system-configuration-email");
   }
 
   public SelenideElement proxyConfiguration() {
-    return child("#system-configuration-proxy a");
+    return child("#system-configuration-proxy");
   }
 
   public SelenideElement advancedSearchConfiguration() {
-    return child("#system-configuration-advanced-search a");
+    return child("#system-configuration-advanced-search");
   }
 
   public SelenideElement scmOnboarding() {
-    return child("#system-configuration-scm-onboarding a");
+    return child("#system-configuration-scm-onboarding");
   }
 
   public SelenideElement dataInsights() {
-    return child("#system-labs-data-insights a");
+    return child("#system-labs-data-insights");
   }
 }

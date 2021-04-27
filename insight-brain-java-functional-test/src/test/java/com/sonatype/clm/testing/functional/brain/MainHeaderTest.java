@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
@@ -33,8 +34,8 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.google.common.collect.ImmutableMap.of;
-import static com.sonatype.clm.testing.functional.elements.MainHeader.CSS_SIDEBAR_CLOSED;
-import static com.sonatype.clm.testing.functional.elements.MainHeader.CSS_SIDEBAR_OPEN;
+import static com.sonatype.clm.testing.functional.elements.CLM.CSS_SIDEBAR_CLOSED;
+import static com.sonatype.clm.testing.functional.elements.CLM.CSS_SIDEBAR_OPEN;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
 
 public class MainHeaderTest
@@ -59,6 +60,40 @@ public class MainHeaderTest
   public void testLoggedInUserName() {
     MainHeader.userMenu().dropdownToggle().click();
     MainHeader.userMenu().userName().shouldBe(visible).shouldHave(text("Admin BuiltIn"));
+  }
+
+  @Test
+  public void testUserMenuLinks() {
+    UserMenu userMenu = MainHeader.userMenu();
+    userMenu.changePassword().shouldNotBe(visible);
+    userMenu.manageUserToken().shouldNotBe(visible);
+    userMenu.userDetails().shouldNotBe(visible);
+    userMenu.logout().shouldNotBe(visible);
+
+    userMenu.dropdownToggle().shouldBe(visible).click();
+    userMenu.changePassword().shouldBe(visible);
+    userMenu.manageUserToken().shouldBe(visible);
+    userMenu.userDetails().shouldBe(visible);
+    userMenu.logout().shouldBe(visible);
+  }
+
+  @Test
+  public void testLoginButton() {
+    LoginModal loginModal = new LoginModal();
+    logout();
+
+    MainHeader.loginButton().shouldNotBe(visible);
+    loginModal.vulnerabilityLookupLink().click();
+
+    MainHeader.loginButton().shouldBe(visible).click();
+    loginModal.shouldBe(visible);
+    MainHeader.loginButton().shouldBe(visible);
+
+    loginAsAdmin();
+    MainHeader.loginButton().shouldNotBe(visible);
+
+    logout();
+    MainHeader.loginButton().shouldNotBe(visible);
   }
 
   @Test
@@ -148,25 +183,6 @@ public class MainHeaderTest
   public void testNavigation_ToVulnerabilityDetails() {
     MainHeader.vulnerabilityDetailsNavigationButton().click();
     waitUntilUrl(VulnerabilitySearchPage.url());
-  }
-
-  @Test
-  public void testLoginButton() {
-    LoginModal loginModal = new LoginModal();
-    logout();
-
-    MainHeader.loginButton().shouldNotBe(visible);
-    loginModal.vulnerabilityLookupLink().click();
-
-    MainHeader.loginButton().shouldBe(visible).click();
-    loginModal.shouldBe(visible);
-    MainHeader.loginButton().shouldBe(visible);
-
-    loginAsAdmin();
-    MainHeader.loginButton().shouldNotBe(visible);
-
-    logout();
-    MainHeader.loginButton().shouldNotBe(visible);
   }
 
   @Test

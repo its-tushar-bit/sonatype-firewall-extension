@@ -10,22 +10,15 @@
                 is-firewall-enabled="vm.isFirewallEnabled && vm.isFirewallSupported"
                 is-legal-enabled="vm.isAdvancedLegalPackSupported">
 </iq-sidebar-nav>
-<div class="iq-nav-bar--system" ng-if="vm.isLoggedIn()">
-  <help-menu></help-menu>
-  <notifications-menu></notifications-menu>
-  <system-configuration-menu ng-if="vm.hasAnyPermission() || vm.isLabsDataInsightsEnabled"
-                             permissions="vm.permissions"
-                             is-webhooks-supported="vm.isWebhooksSupported"
-                             is-labs-data-insights-enabled="vm.isLabsDataInsightsEnabled">
-  </system-configuration-menu>
-  <user-menu></user-menu>
-</div>
-<div class="iq-login-button-container">
-  <button id="login-header-btn"
-          class="iq-btn iq-btn--main-header iq-pull-right"
-          ng-if="vm.shouldShowLoginButton()"
-          ng-click="vm.login()">
-    <nx-font-awesome-icon icon="vm.faUserAlt"></nx-font-awesome-icon><!--
- --><span class="iq-btn__content--main-header">Login</span>
-  </button>
+<div class="iq-nav-bar--system">
+  <menu-bar 
+    permissions="vm.permissions"
+    is-webhooks-supported="vm.isWebhooksSupported"
+    major-minor-version="vm.majorMinorVersion"
+    is-labs-data-insights-enabled="vm.isLabsDataInsightsEnabled"
+    is-logged-in="!!vm.isLoggedIn()"
+    should-show-login-button="vm.shouldShowLoginButton()"
+    login="vm.login"
+    >
+  </menu-bar>
 </div>

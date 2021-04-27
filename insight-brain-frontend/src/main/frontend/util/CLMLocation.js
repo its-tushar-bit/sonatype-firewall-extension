@@ -413,6 +413,14 @@ export function getCopyrightFileCountUrl(orgOrApp, ownerId, componentHash, compo
 /fileCount?componentIdentifier=${JSON.stringify(componentIdentifier)}`;
 }
 
+export function getNotificationUrl() {
+  return uriTemplate`/rest/product/notifications`;
+}
+
+export function getNotificationViewedUrl() {
+  return uriTemplate`/rest/product/notifications/viewed`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -603,12 +611,10 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getComponentNameUrl: function (hash) {
         return baseUrl.get() + '/rest/componentDetails/name?hash=' + hash;
       },
-      getNotificationUrl: function () {
-        return baseUrl.get() + '/rest/product/notifications';
-      },
-      getNotificationViewedUrl: function () {
-        return baseUrl.get() + '/rest/product/notifications/viewed';
-      },
+
+      getNotificationUrl,
+
+      getNotificationViewedUrl,
 
       /**
        * @Since 1.17

@@ -3,15 +3,30 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useContext } from 'react';
 import * as PropTypes from 'prop-types';
 
 /*
  * Context to propagate the angular ui router inside deep nested components, without propagating this as props
  */
-const RouterStateContext = React.createContext({ href: () => null });
+const RouterStateContext = React.createContext({ href: () => null, includes: () => false });
 export default RouterStateContext;
 
 export const routerPropType = PropTypes.shape({
   href: PropTypes.func.isRequired,
+  includes: PropTypes.func.isRequired,
 });
+
+export function RouterStateProvider({ value, children }) {
+  return <RouterStateContext.Provider value={value}>{children}</RouterStateContext.Provider>;
+}
+
+RouterStateProvider.propTypes = {
+  value: routerPropType,
+  children: PropTypes.node,
+};
+
+export const useRouterState = () => {
+  const routerState = useContext(RouterStateContext);
+  return routerState;
+};

@@ -57,7 +57,7 @@ public class NotificationTest
     NotificationMenu notificationMenu = new NotificationMenu();
     notificationMenu.notificationCount().shouldHave(text("2"));
 
-    notificationMenu.dropdown().click();
+    notificationMenu.click();
 
     notificationMenu.notificationListItem(0).age().shouldHave(text("10"));
     notificationMenu.notificationListItem(0).ageLabel().shouldHave(text("minutes ago"));

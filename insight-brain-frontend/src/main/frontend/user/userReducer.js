@@ -5,7 +5,14 @@
  */
 
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
-import { LOAD_USER_FULFILLED, DEFAULT_ADMIN_PASSWORD_CHANGED } from './userActions';
+import {
+  LOAD_USER_FULFILLED,
+  DEFAULT_ADMIN_PASSWORD_CHANGED,
+  CHANGE_PASSWORD_REQUESTED,
+  CHANGE_PASSWORD_FULFILLED,
+  CHANGE_PASSWORD_FAILED,
+  CHANGE_PASSWORD_STATUS_RESET,
+} from './userActions';
 
 // Initial User state
 const initialState = Object.freeze({
@@ -13,6 +20,8 @@ const initialState = Object.freeze({
   isDefaultUser: false,
   shouldDisplayNotice: false,
   canChangePassword: false,
+  changePasswordStatus: 'idle', // 'pending', 'success', 'failure'
+  changePasswordErrorMessage: null,
 });
 
 /**
@@ -21,6 +30,10 @@ const initialState = Object.freeze({
 const reducerActionMap = {
   [DEFAULT_ADMIN_PASSWORD_CHANGED]: propSetConst('shouldDisplayNotice', false),
   [LOAD_USER_FULFILLED]: loadCurrentUser,
+  [CHANGE_PASSWORD_REQUESTED]: setChangePasswordStatus('pending'),
+  [CHANGE_PASSWORD_FULFILLED]: setChangePasswordStatus('success'),
+  [CHANGE_PASSWORD_STATUS_RESET]: setChangePasswordStatus('idle'),
+  [CHANGE_PASSWORD_FAILED]: setChangePasswordFailure,
 };
 
 function loadCurrentUser({ currentUser, shouldDisplayWarning }, state) {
@@ -30,6 +43,22 @@ function loadCurrentUser({ currentUser, shouldDisplayWarning }, state) {
     canChangePassword: currentUser && currentUser.internalUser,
     isDefaultUser: currentUser && currentUser.username === 'admin',
     shouldDisplayNotice: shouldDisplayWarning,
+  };
+}
+
+function setChangePasswordStatus(status) {
+  return (action, state) => ({
+    ...state,
+    changePasswordStatus: status,
+    changePasswordErrorMessage: null,
+  });
+}
+
+function setChangePasswordFailure(action, state) {
+  return {
+    ...state,
+    changePasswordStatus: 'failure',
+    changePasswordErrorMessage: action.message,
   };
 }
 

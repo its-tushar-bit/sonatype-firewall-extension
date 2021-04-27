@@ -3,12 +3,32 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import pendoModule from '../../../main/frontend/pendo/module';
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
 
 describe('userActions', function () {
-  let userActions, initialState, CLMLocations, telemetryService, CurrentUser, $httpBackend, $rootScope, loginDeferred;
+  let userActions,
+    initialState,
+    CLMLocations,
+    telemetryService,
+    CurrentUser,
+    $httpBackend,
+    $rootScope,
+    loginDeferred,
+    pendoDeferred,
+    pendoServiceMock;
 
   beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
+
+  beforeEach(
+    angular.mock.module(pendoModule.name, function ($provide) {
+      pendoServiceMock = jasmine.createSpyObj('pendoService', ['flush']);
+
+      $provide.service('pendoService', function () {
+        return pendoServiceMock;
+      });
+    })
+  );
 
   beforeEach(inject((
     $q,
@@ -27,10 +47,12 @@ describe('userActions', function () {
     CurrentUser = _CurrentUser_;
 
     loginDeferred = $q.defer();
+    pendoDeferred = $q.defer();
 
     spyOn(telemetryService, 'submitData');
     spyOn(CurrentUser, 'waitForLogin').and.returnValue(loginDeferred.promise);
     spyOn($rootScope, '$broadcast').and.callThrough();
+    spyOn($rootScope, '$emit').and.callThrough();
 
     initialState = {
       user: {
@@ -54,10 +76,10 @@ describe('userActions', function () {
         const store = SpecUtil.mockReduxStore(initialState);
         store.dispatch(userActions.passwordChanged());
 
-        expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0]).toEqual({
-          type: 'DEFAULT_ADMIN_PASSWORD_CHANGED',
-        });
+        const defaultAdminPasswordChangedAction = store
+          .getActions()
+          .find((action) => action.type === 'DEFAULT_ADMIN_PASSWORD_CHANGED');
+        expect(defaultAdminPasswordChangedAction).toEqual({ type: 'DEFAULT_ADMIN_PASSWORD_CHANGED' });
       }
     );
 
@@ -70,17 +92,26 @@ describe('userActions', function () {
         const store = SpecUtil.mockReduxStore(initialState);
         store.dispatch(userActions.passwordChanged());
 
-        expect(store.getActions().length).toBe(0);
+        const defaultAdminPasswordChangedAction = store
+          .getActions()
+          .find((action) => action.type === 'DEFAULT_ADMIN_PASSWORD_CHANGED');
+
+        expect(defaultAdminPasswordChangedAction).toBeUndefined();
       }
     );
 
     it('should NOT dispatch the action if the password was not the default', () => {
       initialState.user.shouldDisplayNotice = false;
+      initialState.user.isDefaultUser = true;
+
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(userActions.passwordChanged());
 
+      const defaultAdminPasswordChangedAction = store
+        .getActions()
+        .find((action) => action.type === 'DEFAULT_ADMIN_PASSWORD_CHANGED');
       //No action is dispatched.
-      expect(store.getActions().length).toBe(0);
+      expect(defaultAdminPasswordChangedAction).toBeUndefined();
     });
 
     it('should fire telemetry if the password was changed from default' + 'and the user is THE default admin', () => {
@@ -578,6 +609,58 @@ describe('userActions', function () {
 
       expect(successSpy).toHaveBeenCalled();
       expect(telemetryService.submitData).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('logout()', function () {
+    it('provides the ability to log out by hitting a logout api endpoint with a delete request', function () {
+      const store = SpecUtil.mockReduxStore(initialState);
+      pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
+      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
+
+      store.dispatch(userActions.logout());
+      $rootScope.$digest();
+      pendoDeferred.resolve();
+
+      expect($httpBackend.flush).not.toThrow();
+    });
+
+    it('still logs out if the pendo promise is rejected', function () {
+      const store = SpecUtil.mockReduxStore(initialState);
+      pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
+      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
+
+      store.dispatch(userActions.logout());
+      $rootScope.$digest();
+      pendoDeferred.reject();
+
+      expect($httpBackend.flush).not.toThrow();
+    });
+
+    it(`doesn't log out from the server before the pendo promise completes`, function () {
+      const store = SpecUtil.mockReduxStore(initialState);
+      pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
+      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
+
+      store.dispatch(userActions.logout());
+      $rootScope.$digest();
+      $httpBackend.verifyNoOutstandingRequest();
+
+      pendoDeferred.resolve();
+      expect($httpBackend.flush).not.toThrow();
+    });
+
+    it(`provides the ability to log out for reverse proxy`, function () {
+      const store = SpecUtil.mockReduxStore(initialState);
+      pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
+      var headers = { Location: 'http://localhost/logout' };
+      $httpBackend.whenDELETE(CLMLocations.getSessionLogoutUrl()).respond(204, '', headers);
+      store.dispatch(userActions.logout());
+      pendoDeferred.resolve();
+      $rootScope.$digest();
+      $httpBackend.flush();
+      $rootScope.$digest();
+      expect($rootScope.$emit).toHaveBeenCalledWith('logout', headers.Location);
     });
   });
 });

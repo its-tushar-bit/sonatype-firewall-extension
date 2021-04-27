@@ -23,7 +23,7 @@ import addWaiverReducer from '../waivers/addWaiverReducer';
 import manageWaiversReducer from '../waivers/manageWaiversReducer';
 import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
 import deleteWaiverReducer from '../waivers/deleteWaiverModal/deleteWaiverReducer';
-import userTokenReducer from '../mainHeader/userMenu/userToken/userTokenReducer';
+import userTokenReducer from '../mainHeader/MenuBar/UserMenu/UserToken/userTokenReducer';
 import advancedLegalReducer from '../advancedLegal/advancedLegalReducer';
 import legalDashboardReducer from '../legal/dashboard/legalDashboardReducer';
 import legalDashboardFilterReducer from '../legal/dashboard/filter/legalDashboardFilterReducer';
@@ -35,6 +35,7 @@ import componentLicenseDetailsReducer from '../legal/license/componentLicenseDet
 import manageLegalFiltersReducer from '../legal/dashboard/filter/manageLegalFiltersReducer';
 import legalApplicationDetailsReducer from '../legal/application/legalApplicationDetailsReducer';
 import labsDataInsightsReducer from '../configuration/labsDataInsights/labsDataInsightsReducer';
+import notificationsReducer from '../mainHeader/MenuBar/NotificationsMenu/notificationsReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -68,4 +69,5 @@ export default combineReducers({
   firewallConfigurationModal: firewallConfigurationModalReducer,
   manageLegalFilters: manageLegalFiltersReducer,
   labsDataInsights: labsDataInsightsReducer,
+  notifications: notificationsReducer,
 });

@@ -4,13 +4,31 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { always, propEq } from 'ramda';
+import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-export const DEFAULT_ADMIN_PASSWORD_CHANGED = 'DEFAULT_ADMIN_PASSWORD_CHANGED';
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
 export const LOAD_USER_FAILED = 'LOAD_USER_FAILED';
 
-function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetryService, PermissionService) {
+export const USER_LOGGED_OUT = 'USER_LOGGED_OUT';
+
+export const CHANGE_PASSWORD_REQUESTED = 'CHANGE_PASSWORD_REQUESTED';
+export const CHANGE_PASSWORD_FULFILLED = 'CHANGE_PASSWORD_FULFILLED';
+export const CHANGE_PASSWORD_FAILED = 'CHANGE_PASSWORD_FAILED';
+export const CHANGE_PASSWORD_STATUS_RESET = 'CHANGE_PASSWORD_STATUS_RESET';
+export const DEFAULT_ADMIN_PASSWORD_CHANGED = 'DEFAULT_ADMIN_PASSWORD_CHANGED';
+
+function userActions(
+  $rootScope,
+  $q,
+  $http,
+  CurrentUser,
+  CLMLocations,
+  telemetryService,
+  PermissionService,
+  messages,
+  pendoService
+) {
   function fetchUser() {
     const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning(),
       shouldDisplayWarningPromise = PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true)
@@ -64,6 +82,44 @@ function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetry
     };
   }
 
+  function logout() {
+    return (dispatch) => {
+      dispatch({ type: USER_LOGGED_OUT });
+      const serverLogout = () => $http.delete(CLMLocations.getSessionLogoutUrl());
+      pendoService
+        .flush()
+        // continue the logout whether the pendo flush succeeds or fails
+        .then(serverLogout, serverLogout)
+        .then(function (response) {
+          $rootScope.$emit('logout', response.headers('Location'));
+        });
+    };
+  }
+
+  function changePassword({ oldPassword, newPassword }) {
+    return (dispatch) => {
+      dispatch({ type: CHANGE_PASSWORD_REQUESTED });
+      $http
+        .put(CLMLocations.getChangeMyPasswordUrl(), { oldPassword, newPassword })
+        .then(() => {
+          dispatch({ type: CHANGE_PASSWORD_FULFILLED });
+          dispatch(passwordChanged());
+        })
+        .catch((err) => {
+          dispatch({
+            type: CHANGE_PASSWORD_FAILED,
+            payload: {
+              message: messages.getHttpErrorMessage(err),
+            },
+          });
+        });
+    };
+  }
+
+  function resetChangedPasswordStatus() {
+    return (dispatch) => dispatch({ type: CHANGE_PASSWORD_STATUS_RESET });
+  }
+
   function dispatchDefaultAdminPasswordChanged(dispatch) {
     fireTelemetryEventPasswordChanged();
     dispatch({ type: DEFAULT_ADMIN_PASSWORD_CHANGED });
@@ -73,6 +129,9 @@ function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetry
 
   function passwordChanged() {
     return (dispatch, getState) => {
+      setTimeout(() => {
+        dispatch(resetChangedPasswordStatus());
+      }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       const { user } = getState();
       if (user.shouldDisplayNotice && user.isDefaultUser) {
         dispatchDefaultAdminPasswordChanged(dispatch);
@@ -105,6 +164,8 @@ function userActions($rootScope, $q, $http, CurrentUser, CLMLocations, telemetry
 
   return {
     loadUser,
+    logout,
+    changePassword,
     passwordChanged,
     passwordChangedForUser,
   };
@@ -117,5 +178,7 @@ userActions.$inject = [
   'CLMLocations',
   'telemetryService',
   'PermissionService',
+  'Messages',
+  'pendoService',
 ];
 export default userActions;

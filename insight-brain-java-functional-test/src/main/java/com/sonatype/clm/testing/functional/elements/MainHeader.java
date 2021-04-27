@@ -5,17 +5,12 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
 
 public class MainHeader
 {
-  public static final Condition CSS_SIDEBAR_OPEN = Condition.cssClass("open");
-
-  public static final Condition CSS_SIDEBAR_CLOSED = Condition.cssClass("closed");
-
   public static SelenideElement get() {
     return $("main-header");
   }
@@ -38,7 +33,7 @@ public class MainHeader
 
   public static void closeNavigationSidebar() {
     SelenideElement sidebarToggle = toggleNavigationButton();
-    if (sidebar().has(CSS_SIDEBAR_CLOSED)) {
+    if (sidebar().has(CLM.CSS_SIDEBAR_CLOSED)) {
       return;
     }
 
@@ -47,7 +42,7 @@ public class MainHeader
 
   public static void openNavigationSidebar() {
     SelenideElement sidebarToggle = toggleNavigationButton();
-    if (sidebar().has(CSS_SIDEBAR_OPEN)) {
+    if (sidebar().has(CLM.CSS_SIDEBAR_OPEN)) {
       return;
     }
 
@@ -103,6 +98,6 @@ public class MainHeader
   }
 
   public static SelenideElement loginButton() {
-    return $("#login-header-btn");
+    return $("#header-login-button");
   }
 }

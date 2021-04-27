@@ -14,13 +14,13 @@ import com.sonatype.insight.brain.model.security.User;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.appear;
-import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.sonatype.clm.testing.functional.elements.CLM.RSC_DISABLED;
 
 public class ChangePasswordTest
     extends AbstractFunctionalTest
@@ -36,17 +36,17 @@ public class ChangePasswordTest
 
     ChangePasswordModal modal = new ChangePasswordModal();
     modal.should(appear);
-    modal.ok().shouldBe(disabled);
+    modal.ok().shouldBe(RSC_DISABLED);
 
     modal.oldPassword().setValue("unsecret");
-    modal.ok().shouldBe(disabled);
+    modal.ok().shouldBe(RSC_DISABLED);
 
     modal.newPassword().setValue("newsecret");
-    modal.ok().shouldBe(disabled);
+    modal.ok().shouldBe(RSC_DISABLED);
 
     modal.newPasswordValidate().setValue("newsecretdoesntmatch");
-    popoverViolations(modal.newPasswordValidate()).should(appear).shouldHave(text("Passwords must match!"));
-    modal.ok().shouldBe(disabled);
+    modal.formValidationErrors().findBy(visible).shouldHave(text("New Password and Confirmation must match"));
+    modal.ok().shouldBe(RSC_DISABLED);
 
     modal.newPasswordValidate().setValue("newsecret");
     popoverViolations(modal.newPasswordValidate()).shouldNot(exist);

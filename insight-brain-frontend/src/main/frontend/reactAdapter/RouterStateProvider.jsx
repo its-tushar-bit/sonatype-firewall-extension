@@ -5,22 +5,22 @@
  */
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import RouterStateContext, { routerPropType } from '../react/RouterStateContext';
+import { RouterStateProvider, routerPropType } from '../react/RouterStateContext';
 
 export default function withRouterStateProvider(WrappedComponent) {
-  function RouterStateProvider({ $state, ...props }) {
+  function WithRouterStateProvider({ $state, ...props }) {
     return (
-      <RouterStateContext.Provider value={$state}>
+      <RouterStateProvider value={$state}>
         <WrappedComponent {...props} />
-      </RouterStateContext.Provider>
+      </RouterStateProvider>
     );
   }
 
-  RouterStateProvider.displayName = `withRouterStateProvider(${getDisplayName(WrappedComponent)})`;
-  RouterStateProvider.propTypes = {
+  WithRouterStateProvider.displayName = `withRouterStateProvider(${getDisplayName(WrappedComponent)})`;
+  WithRouterStateProvider.propTypes = {
     $state: routerPropType,
   };
-  return RouterStateProvider;
+  return WithRouterStateProvider;
 }
 
 withRouterStateProvider.propTypes = {

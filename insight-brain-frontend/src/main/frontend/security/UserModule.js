@@ -9,6 +9,7 @@ import resourceModule from '../Resource';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
 import utilityModule from '../utility/utility.module';
+import pendoModule from '../pendo/module';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import permissionServiceModule from '../util/PermissionService';
 import ApplicationSecurityModule from '../policy/AppSecurityController';
@@ -58,6 +59,7 @@ export const UserModule = angular
       utilityModule.name,
       utilityDirectivesModule.name,
       telemetryServiceModule.name,
+      pendoModule.name,
     ],
     [
       '$stateProvider',

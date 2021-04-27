@@ -1,0 +1,100 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+$iq-notification-age-qualifier-width: 67px;
+$iq-notification-age-width: 43px;
+
+.iq-notifications-menu-button {
+  position: relative;
+
+  .iq-dropdown-menu {
+    padding-bottom: 8px;
+    right: -80px;
+    left: auto;
+    width: 360px;
+
+    &::before {
+      right: 87px;
+      left: inherit;
+    }
+
+    &::after {
+      right: 88px;
+      left: inherit;
+    }
+  }
+
+  .iq-scrollable {
+    max-height: 318px;
+  }
+}
+
+.iq-count-circle {
+  @include bold();
+  @include border-radius(50%);
+  pointer-events: none;
+
+  background-color: $iq-off-white;
+  color: $iq-off-black;
+  font-size: 10px;
+  height: 16px;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  text-align: center;
+  width: 16px;
+
+  &.exclamation {
+    background-color: #f2dede;
+    border: solid thin #b94a48;
+    color: #b94a48;
+  }
+}
+
+.iq-notification {
+  background-color: $iq-off-white;
+  color: $iq-off-black;
+  cursor: auto;
+  min-height: 36px;
+  line-height: 18px;
+  padding: 8px;
+
+  &.selected {
+    background-color: $iq-grey-1;
+  }
+
+  &.viewed {
+    color: $iq-slate;
+  }
+}
+
+.iq-notification__age {
+  box-sizing: border-box;
+  float: left;
+  font-size: 20px;
+  line-height: 20px;
+  padding-right: 8px;
+  text-align: right;
+  width: $iq-notification-age-width;
+}
+
+.iq-notification__age-qualifier {
+  box-sizing: border-box;
+  float: left;
+  padding-right: 16px;
+  text-align: left;
+  white-space: normal;
+  width: $iq-notification-age-qualifier-width;
+}
+
+.iq-notification__text {
+  display: inline-block;
+  width: calc(
+          100% - #{$iq-notification-age-qualifier-width + $iq-notification-age-width}
+  );
+  white-space: normal;
+}
+

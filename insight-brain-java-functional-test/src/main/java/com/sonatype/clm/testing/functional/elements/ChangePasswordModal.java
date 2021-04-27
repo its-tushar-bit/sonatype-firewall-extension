@@ -8,8 +8,10 @@ package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.ElementsCollection;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class ChangePasswordModal
     extends BasicElement<ChangePasswordModal>
@@ -30,15 +32,19 @@ public class ChangePasswordModal
     return $("#confirm-password");
   }
 
+  public ElementsCollection formValidationErrors() {
+    return $$(".nx-text-input__invalid-message");
+  }
+
   public SelenideElement invalidCredentialsError() {
     return $("#change-password-error");
   }
 
   public SelenideElement ok() {
-    return $("#change-password-submit");
+    return $("#change-password-modal .nx-form__submit-btn");
   }
 
   public SelenideElement cancel() {
-    return $("#change-password-cancel");
+    return $("#change-password-modal .nx-form__cancel-btn");
   }
 }

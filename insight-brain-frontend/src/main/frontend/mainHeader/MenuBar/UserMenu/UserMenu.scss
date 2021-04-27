@@ -1,0 +1,28 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import './UserToken/userToken';
+
+.iq-user-name {
+  @include nx-truncate-ellipsis;
+  display: block;
+  margin-top: 4px;
+  max-width: 200px;
+}
+
+.user-details {
+  padding: $iq-spacing-md 0;
+
+  dt {
+    font-size: 18px;
+    margin-bottom: $iq-spacing-xs;
+  }
+
+  dd {
+    margin: auto;
+    margin-bottom: $iq-spacing-md;
+  }
+}

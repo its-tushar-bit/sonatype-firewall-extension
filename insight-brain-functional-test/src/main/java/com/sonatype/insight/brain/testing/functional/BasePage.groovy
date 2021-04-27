@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.testing.functional
 
 import com.sonatype.insight.brain.testing.functional.modules.HelpModule
 import com.sonatype.insight.brain.testing.functional.modules.LoginModule
-import com.sonatype.insight.brain.testing.functional.modules.SystemConfigModule
-import com.sonatype.insight.brain.testing.functional.modules.UserOptionsModule
 
 import geb.Page
 
@@ -20,9 +18,7 @@ abstract class BasePage
 {
   static content = {
     login { module LoginModule }
-    userOptions { module UserOptionsModule }
     helpLinks { module HelpModule }
-    systemConfig(required: false) { module SystemConfigModule }
     unsavedModal { $('#unsaved-modal') }
   }
 }

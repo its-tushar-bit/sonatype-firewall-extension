@@ -35,7 +35,6 @@
 @import '../configuration/ldap/ldap';
 @import 'reports';
 @import '../mainHeader/mainHeader';
-@import '../mainHeader/userMenu/userDetailsModal';
 @import '../utility/services/loginModal';
 @import '../react/iqViolationExclamation';
 
@@ -82,7 +81,6 @@
 @import '../applicationReport/react/report';
 @import '../configuration/advancedSearch/advancedSearchConfig';
 @import '../sidebarNav/sidebarNav';
-@import '../mainHeader/userMenu/userToken/userToken';
 @import '../legal/componentLegalOverview';
 @import '../legal/copyright/componentCopyrightDetails';
 @import '../legal/license/componentLicenseDetails';

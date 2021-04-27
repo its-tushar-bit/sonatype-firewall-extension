@@ -31,7 +31,7 @@ import {
   SCM_ONBOARDING_ADD_ORGANIZATION_FAILED,
   SCM_ONBOARDING_SET_IS_NEW_ORGANIZATION_MODAL_VISIBLE,
 } from './scmOnboardingActions';
-import { sortItemsByFields } from '../../util/sortUtils';
+import { caseInsensitiveComparator, sortItemsByFieldsWithComparator } from '../../util/sortUtils';
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { validateHostUrl } from './utils/validators';
 import { hasValidationErrors } from '../../util/validationUtil';
@@ -367,7 +367,11 @@ function loadRepositoriesRequested(payload, state) {
 
 function loadRepositoriesFulfilled(payload, state) {
   const repos = payload.availableRepositories
-    ? sortItemsByFields(state.sortConfiguration.sortingOrder, payload.availableRepositories)
+    ? sortItemsByFieldsWithComparator(
+        caseInsensitiveComparator,
+        state.sortConfiguration.sortingOrder,
+        payload.availableRepositories
+      )
     : [];
   return payload.status === 'SUCCESS'
     ? {
@@ -463,7 +467,7 @@ function setSortingParameters(payload, state) {
   // set sortConfiguration and sort repositories
   return over(
     lensPath(['formState', 'repositories']),
-    sortItemsByFields(sortFields),
+    sortItemsByFieldsWithComparator(caseInsensitiveComparator, sortFields),
     propSet('sortConfiguration', payload, state)
   );
 }

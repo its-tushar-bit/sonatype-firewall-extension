@@ -10,34 +10,18 @@ import { isNilOrEmpty } from './jsUtil';
 /**
  * Return a list of the given items sorted by the specified properties, optionally in reverse
  */
-export const sortItemsByFields = curry(function sortItemsByFields(sortFields, entries) {
+export const sortItemsByFieldsWithComparator = curry(function sortItemsByFieldsWithComparator(
+  comparator,
+  sortFields,
+  entries
+) {
   if (!isNilOrEmpty(sortFields)) {
     const sorters = sortFields.map((f) => {
       const reverse = f.indexOf('-') === 0,
         sortProperty = f.match(/(\w|\.)+/)[0],
         lens = lensPath(sortProperty.split('.')),
         propGetter = view(lens),
-        sortFn = (a, b) => {
-          const aProp = propGetter(a),
-            bProp = propGetter(b);
-
-          if (aProp === bProp) {
-            return 0;
-          }
-          if (aProp === undefined) {
-            return -1;
-          }
-          if (bProp === undefined) {
-            return 1;
-          }
-          if (aProp < bProp) {
-            return -1;
-          }
-          if (aProp > bProp) {
-            return 1;
-          }
-          return 0;
-        };
+        sortFn = (a, b) => comparator(propGetter(a), propGetter(b));
       return reverse ? flip(sortFn) : sortFn;
     });
     return sortWith(sorters, entries);
@@ -45,6 +29,38 @@ export const sortItemsByFields = curry(function sortItemsByFields(sortFields, en
     return entries;
   }
 });
+
+/**
+ * Compares parameters a and b using the JavaScript greater-than and less-than operators.
+ */
+export const defaultComparator = (a, b) => {
+  if (a === b) {
+    return 0;
+  }
+  if (a === undefined) {
+    return -1;
+  }
+  if (b === undefined) {
+    return 1;
+  }
+  if (a < b) {
+    return -1;
+  }
+  if (a > b) {
+    return 1;
+  }
+  return 0;
+};
+
+/**
+ * Same as defaultComparator but case insensitive.
+ */
+export const caseInsensitiveComparator = (a, b) => defaultComparator(a.toLowerCase(), b.toLowerCase());
+
+/**
+ * Returns sorted fields compared using the JavaScript greater-than and less-than operators.
+ */
+export const sortItemsByFields = sortItemsByFieldsWithComparator(defaultComparator);
 
 export const extractSortFieldName = (orderedField) => {
   if (orderedField && orderedField.indexOf('-') === 0) {

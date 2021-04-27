@@ -5,7 +5,13 @@
  */
 import { map, props } from 'ramda';
 
-import { sortItemsByFields, sortColumn, getColumnDirection } from '../../../main/frontend/util/sortUtils';
+import {
+  sortItemsByFields,
+  sortColumn,
+  getColumnDirection,
+  defaultComparator,
+  sortItemsByFieldsWithComparator,
+} from '../../../main/frontend/util/sortUtils';
 
 describe('sortUtils specs', function () {
   describe('sortItemsByFields', function () {
@@ -422,6 +428,19 @@ describe('sortUtils specs', function () {
     it('returns null if column name does not match current column', function () {
       let sortDir = getColumnDirection('colName', false, 'foobar');
       expect(sortDir).toEqual(null);
+    });
+  });
+
+  describe('custom comparator', () => {
+    const fields = ['value'];
+    const data = [{ value: 'e' }, { value: 'c' }, { value: 'B' }, { value: 'D' }, { value: 'a' }];
+
+    it('sorts ignoring case', () => {
+      const caseInsensitiveComparator = (a, b) => defaultComparator(a.toLowerCase(), b.toLowerCase());
+
+      const actual = sortItemsByFieldsWithComparator(caseInsensitiveComparator, fields, data);
+
+      expect(actual.map((a) => a.value)).toEqual(['a', 'B', 'c', 'D', 'e']);
     });
   });
 });

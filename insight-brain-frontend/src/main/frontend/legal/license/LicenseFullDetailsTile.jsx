@@ -28,9 +28,11 @@ export default function LicenseFullDetailsTile(props) {
     const color = selectableColors[colorIndex % selectableColors.length];
     const classes = `license-full-details__obligation-text--${color}`;
     return (
-      <q className={classes} key={index} onClick={partial(setHighlight, [licenseObligationLicenseText])}>
-        {licenseObligationLicenseText}
-      </q>
+      <dd className="nx-read-only__data">
+        <q className={classes} key={index} onClick={partial(setHighlight, [licenseObligationLicenseText])}>
+          {licenseObligationLicenseText}
+        </q>
+      </dd>
     );
   };
 
@@ -51,14 +53,14 @@ export default function LicenseFullDetailsTile(props) {
    * @param string Input snippet to be escaped
    */
   function escapeTextSnippetForRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/(\n| )+/g, '[ \\n]+');
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/(\n| )+/g, '[ \\r\\n]+');
   }
 
   function highlightInText(context, toHighlight) {
     if (!context) {
       return 'Nothing found';
     }
-    const reg = new RegExp(escapeTextSnippetForRegExp(toHighlight));
+    const reg = new RegExp(escapeTextSnippetForRegExp(toHighlight), 'm');
     const match = reg.exec(context);
     if (!match || !match[0]) {
       return context;
@@ -96,7 +98,7 @@ export default function LicenseFullDetailsTile(props) {
                 return (
                   <div key={index}>
                     <dt className="nx-read-only__label">{obligation.name}</dt>
-                    <dd className="nx-read-only__data">{texts}</dd>
+                    {texts}
                   </div>
                 );
               })}

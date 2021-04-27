@@ -88,12 +88,12 @@ public class FirewallPageTest
     RepositoryComponent repositoryComponent3 = staticTempEntity.newRepositoryComponent(repository.getId(),
         "g:a:3", date1, null, false);
     staticTempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent3.getPathname(), false,
-        FailActionType.ID, policy.getId(), policy.getName(), repositoryComponent3.getComponentIdentifier());
+        FailActionType.ID, policy.getId(), "policyName", repositoryComponent3.getComponentIdentifier());
 
     RepositoryComponent repositoryComponent4 = staticTempEntity.newRepositoryComponent(repository.getId(),
         "g:a:4", date2, null, false);
     staticTempEntity.newRepositoryPolicyViolation(repository.getId(), 5, repositoryComponent4.getPathname(), false,
-        FailActionType.ID, policy.getId(), policy.getName(), repositoryComponent4.getComponentIdentifier());
+        FailActionType.ID, policy.getId(), "policyName", repositoryComponent4.getComponentIdentifier());
   }
 
   @Test

@@ -128,6 +128,8 @@ public class FirewallPageTest
     page.firewallAutoReleaseQuarantine().shouldBe(visible);
     page.firewallQuarantineTable().shouldBe(visible);
     page.firewallConfigurationModal().shouldBe(hidden);
+
+    eyesWatcher.eyesCheck("Auto unquarantine feature is set.");
   }
 
   @Test
@@ -164,6 +166,8 @@ public class FirewallPageTest
     page.firewallConfigurationModal().autoUnquarantineToggleIntegrityRating().shouldBe(visible);
     page.firewallConfigurationModal().autoUnquarantineCheckBoxIntegrityRating().shouldNotBe(checked);
 
+    eyesWatcher.eyesCheck("Firewall configuration modal is present.");
+
     page.firewallConfigurationModal().cancelButton().click();
     page.firewallConfigurationModal().shouldBe(hidden);
   }
@@ -182,6 +186,8 @@ public class FirewallPageTest
 
     // verify firewall page loads
     waitUntilUrl(FirewallAutoUnquarantinePage.url());
+
+    eyesWatcher.eyesCheck("Auto unquarantine page is visible after nav link clicked.");
   }
 
   @Test

@@ -16,6 +16,12 @@ describe('DashboardComponents', function () {
       loadResults: jasmine.createSpy('loadResults'),
       sortResults: jasmine.createSpy('sortResults'),
       stateGo: jasmine.createSpy('stateGo'),
+      results: {
+        components: {
+          results: ['hash1', 'hash2'],
+          sortFields: ['-score'],
+        },
+      },
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardComponents, minimalProps);
@@ -24,9 +30,6 @@ describe('DashboardComponents', function () {
 
   it('renders a DashboardComponentsTable with the appropriate props', function () {
     const dashboardComponentProps = {
-      results: {
-        components: ['hash1', 'hash2'],
-      },
       needsAcknowledgement: true,
     };
 
@@ -34,7 +37,10 @@ describe('DashboardComponents', function () {
       table = dashBoardComponents.find(DashboardComponentsTable);
 
     expect(table).toExist();
-    expect(table).toHaveProp('componentResults', ['hash1', 'hash2']);
+    expect(table).toHaveProp('componentResults', {
+      results: ['hash1', 'hash2'],
+      sortFields: ['-score'],
+    });
     expect(table).toHaveProp('needsAcknowledgement', true);
     expect(table).toHaveProp('reload', jasmine.any(Function));
     expect(table).toHaveProp('sortComponents', jasmine.any(Function));
@@ -71,16 +77,41 @@ describe('DashboardComponents', function () {
     expect(mask).not.toExist();
   });
 
+  it('does not render a mask over the table when filters are dirty but there are no results', function () {
+    const dashboardComponentProps = {
+      filtersAreDirty: true,
+      results: {
+        components: {
+          results: null,
+        },
+      },
+    };
+
+    const dashBoardComponents = getShallowComponent(dashboardComponentProps),
+      mask = dashBoardComponents.find(DashboardMask);
+    expect(mask).not.toExist();
+  });
+
+  it('renders a mask over the table when there are no results but there is an error', function () {
+    const dashboardComponentProps = {
+      filtersAreDirty: true,
+      results: {
+        components: {
+          results: null,
+          error: 'error',
+        },
+      },
+    };
+
+    const dashBoardComponents = getShallowComponent(dashboardComponentProps),
+      mask = dashBoardComponents.find(DashboardMask);
+    expect(mask).toExist();
+  });
+
   it('loads component results on render if the filter is not loading and does not need acknowledgment', function () {
     const dashboardComponentProps = {
       filterLoading: false,
       needsAcknowledgement: false,
-      results: {
-        components: {
-          results: ['hash1', 'hash2'],
-          sortFields: ['-score'],
-        },
-      },
     };
 
     getMountedComponent(dashboardComponentProps);
@@ -91,12 +122,6 @@ describe('DashboardComponents', function () {
     const dashboardComponentProps = {
       filterLoading: true,
       needsAcknowledgement: false,
-      results: {
-        components: {
-          results: ['hash1', 'hash2'],
-          sortFields: ['-score'],
-        },
-      },
     };
 
     getMountedComponent(dashboardComponentProps);
@@ -107,12 +132,6 @@ describe('DashboardComponents', function () {
     const dashboardComponentProps = {
       filterLoading: false,
       needsAcknowledgement: true,
-      results: {
-        components: {
-          results: ['hash1', 'hash2'],
-          sortFields: ['-score'],
-        },
-      },
     };
 
     getMountedComponent(dashboardComponentProps);

@@ -15,6 +15,13 @@ describe('DashboardApplications', function () {
     minimalProps = {
       loadResults: jasmine.createSpy('loadResults'),
       sortResults: jasmine.createSpy('sortResults'),
+      applicationResults: {
+        results: [
+          { applicationId: 'app1', totalApplicationRisk: {}, stageRisks: [] },
+          { applicationId: 'app2', totalApplicationRisk: {}, stageRisks: [] },
+        ],
+        sortFields: ['-totalApplicationRisk.totalRisk'],
+      },
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(DashboardApplications, minimalProps);
@@ -71,17 +78,31 @@ describe('DashboardApplications', function () {
     expect(dashBoardApplications.find(DashboardMask)).not.toExist();
   });
 
+  it('does not render a mask over the table when filters are dirty but there are no results', () => {
+    const dashBoardApplications = getShallowComponent({
+      filtersAreDirty: true,
+      applicationResults: {
+        results: null,
+      },
+    });
+    expect(dashBoardApplications.find(DashboardMask)).not.toExist();
+  });
+
+  it('renders a mask over the table when there are no results but there is an error', () => {
+    const dashBoardApplications = getShallowComponent({
+      filtersAreDirty: true,
+      applicationResults: {
+        results: null,
+        error: 'error',
+      },
+    });
+    expect(dashBoardApplications.find(DashboardMask)).toExist();
+  });
+
   it('loads applications results on render if the filter is not loading and does not need acknowledgment', function () {
     const dashboardApplicationsProps = {
       filterLoading: false,
       needsAcknowledgement: false,
-      applicationResults: {
-        results: [
-          { applicationId: 'app1', totalApplicationRisk: {}, stageRisks: [] },
-          { applicationId: 'app2', totalApplicationRisk: {}, stageRisks: [] },
-        ],
-        sortFields: ['-totalApplicationRisk.totalRisk'],
-      },
     };
 
     getMountedComponent(dashboardApplicationsProps);
@@ -92,13 +113,6 @@ describe('DashboardApplications', function () {
     const dashboardApplicationsProps = {
       filterLoading: true,
       needsAcknowledgement: false,
-      applicationResults: {
-        results: [
-          { applicationId: 'app1', totalApplicationRisk: {}, stageRisks: [] },
-          { applicationId: 'app2', totalApplicationRisk: {}, stageRisks: [] },
-        ],
-        sortFields: ['-totalApplicationRisk.totalRisk'],
-      },
     };
 
     getMountedComponent(dashboardApplicationsProps);
@@ -109,13 +123,6 @@ describe('DashboardApplications', function () {
     const dashboardApplicationsProps = {
       filterLoading: false,
       needsAcknowledgement: true,
-      applicationResults: {
-        results: [
-          { applicationId: 'app1', totalApplicationRisk: {}, stageRisks: [] },
-          { applicationId: 'app2', totalApplicationRisk: {}, stageRisks: [] },
-        ],
-        sortFields: ['-totalApplicationRisk.totalRisk'],
-      },
     };
 
     getMountedComponent(dashboardApplicationsProps);

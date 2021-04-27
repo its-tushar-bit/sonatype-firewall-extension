@@ -23,6 +23,7 @@ export default function DashboardViolations(props) {
       appliedFilter: { maxDaysOld },
     } = props,
     violations = results && results[VIOLATIONS_RESULTS_TYPE],
+    isLoading = !violations.results && !violations.error,
     sortViolations = partial(sortResults, [VIOLATIONS_RESULTS_TYPE]);
 
   const doLoad = () => {
@@ -46,7 +47,7 @@ export default function DashboardViolations(props) {
 
   return (
     <div id="dashboard-violations" className="iq-dashboard-violations nx-viewport-sized__container">
-      {filtersAreDirty && !needsAcknowledgement && <DashboardMask />}
+      {filtersAreDirty && !needsAcknowledgement && !isLoading && <DashboardMask />}
       <DashboardViolationsTable {...tableProps} />
     </div>
   );

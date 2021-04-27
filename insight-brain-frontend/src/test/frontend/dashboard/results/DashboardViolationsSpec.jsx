@@ -72,6 +72,33 @@ describe('DashboardViolations', function () {
     expect(component.find('.form-mask')).not.toExist();
   });
 
+  it('does not render a mask over the table when filters are dirty but there are no results', () => {
+    const component = getMountedComponent({
+      filtersAreDirty: true,
+      results: {
+        violations: {
+          results: null,
+          sortFields: ['field'],
+        },
+      },
+    });
+    expect(component.find('.form-mask')).not.toExist();
+  });
+
+  it('renders a mask over the table when there are no results but there is an error', () => {
+    const component = getMountedComponent({
+      filtersAreDirty: true,
+      results: {
+        violations: {
+          results: null,
+          error: 'error',
+          sortFields: ['field'],
+        },
+      },
+    });
+    expect(component.find('.form-mask')).toExist();
+  });
+
   it('renders a DashboardViolationsTable component', () => {
     const component = getShallowComponent(),
       table = component.find(DashboardViolationsTable);

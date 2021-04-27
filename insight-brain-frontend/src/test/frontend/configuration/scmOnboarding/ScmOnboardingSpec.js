@@ -6,7 +6,6 @@
 
 import * as enzymeUtils from '../../enzymeUtils';
 import ScmOnboarding from '../../../../main/frontend/configuration/scmOnboarding/ScmOnboarding';
-import { NxBackButton } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -26,17 +25,6 @@ describe('ScmOnboarding', function () {
     minimalProps = { $state: mock$State };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ScmOnboarding, minimalProps);
-  });
-
-  describe('back button', () => {
-    it('is configured with correct urls', () => {
-      const component = getShallowComponent(),
-        backButton = component.find(NxBackButton);
-
-      // expect params to match expected values
-      expect(backButton.props().href).toEqual('routerUrl');
-      expect(backButton.props().targetPageTitle).toEqual('title');
-    });
   });
 
   describe('load wrapper', () => {

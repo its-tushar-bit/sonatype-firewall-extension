@@ -6,7 +6,6 @@
 import React, { useEffect, Fragment } from 'react';
 
 import * as PropTypes from 'prop-types';
-import { NxBackButton } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../react/LoadWrapper';
 import RepositoryPane from './components/RepositoryPane';
 import ReportsCta from './components/ReportsCta';
@@ -49,12 +48,6 @@ export default function ScmOnboarding(props) {
 
   return (
     <main id="scm-onboarding-container" className="nx-page-main">
-      <NxBackButton
-        href={$state.href($state.get('management.view.organization'), {
-          organizationId: preselectedOrganizationId,
-        })}
-        targetPageTitle={$state.get('management.view.organization').data.title}
-      />
       {
         <LoadWrapper loading={loadingPage} error={pageError} retryHandler={load}>
           <ImportStatusModal {...props} />

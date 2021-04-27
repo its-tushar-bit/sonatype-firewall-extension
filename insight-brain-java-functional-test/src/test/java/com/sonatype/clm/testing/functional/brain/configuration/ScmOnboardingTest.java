@@ -524,9 +524,6 @@ public class ScmOnboardingTest
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
-    // then the page title block is populated
-    scmOnboardingPage.backButton().shouldBe(text("Back to Organization Management"));
-
     // NOTE the missing space before the org name is deliberate. In the UI there is an icon there with
     // appropriate margins.
     scmOnboardingPage.onboardingPageTitle().shouldBe(visible)

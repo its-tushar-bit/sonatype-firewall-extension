@@ -157,10 +157,6 @@ public class ScmOnboardingPage
     return child("#scm-already-imported");
   }
 
-  public SelenideElement backButton() {
-    return child(".nx-back-button");
-  }
-
   public SelenideElement onboardingPageTitle() {
     return child(".iq-scmonboarding-title");
   }

@@ -8,7 +8,7 @@
 make(
     useEventSpy: false,
     javaVersion: 'Java 8',
-    mavenVersion: 'Maven 3.2.x',
+    mavenVersion: 'Maven 3.6.x',
     mavenOptions: '-D skipTests -D skip-functional-test',
     downstreamJobName: 'extra-tests',
     artifactsForDownstream: '.zion/repository/com/sonatype/insight/brain/**',

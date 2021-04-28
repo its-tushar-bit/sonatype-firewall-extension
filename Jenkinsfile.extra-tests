@@ -8,7 +8,7 @@
 String agentLabel = InsightConstants.AGENT_LABEL
 
 def testConfig(String mavenOptions, String pomFile = null, String javaVersion = 'Java 8') {
-  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.2.x', useEventSpy: false,
+  return mavenCommon(javaVersion: javaVersion, mavenVersion: 'Maven 3.6.x', useEventSpy: false,
       pomFile: pomFile, mavenOptions: mavenOptions)
 }
 

@@ -567,13 +567,19 @@ public class ComponentInfoService
       final String scanId)
   {
     if (isThirdPartyIdentificationSource(identificationSource)) {
-      for (int i = 0; i < componentDetailsList.getList().size(); i++) {
-        ComponentDetails componentDetails = componentDetailsList.getList().get(i);
+      if (CollectionUtils.isEmpty(componentDetailsList.getList())) {
+        componentDetailsList.getList()
+            .add(thirdPartyComponentDAO.resolveComponentDetails(owner.getId(), identifier, scanId));
+      }
+      else {
+        for (int i = 0; i < componentDetailsList.getList().size(); i++) {
+          ComponentDetails componentDetails = componentDetailsList.getList().get(i);
 
-        if (Objects.equals(identifier, componentDetails.getComponentIdentifier())) {
-          componentDetailsList.getList()
-              .set(i, thirdPartyComponentDAO.resolveComponentDetails(owner.getId(), identifier, scanId));
-          break;
+          if (Objects.equals(identifier, componentDetails.getComponentIdentifier())) {
+            componentDetailsList.getList()
+                .set(i, thirdPartyComponentDAO.resolveComponentDetails(owner.getId(), identifier, scanId));
+            break;
+          }
         }
       }
     }

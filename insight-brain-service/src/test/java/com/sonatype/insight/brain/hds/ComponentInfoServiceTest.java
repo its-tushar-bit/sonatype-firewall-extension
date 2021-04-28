@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -1684,6 +1685,24 @@ public class ComponentInfoServiceTest
         application.getPublicId(), MAVEN_A1_COORDINATES, httpRequestMock, IdentificationSource.CLAIR.getId(), scanId);
 
     assertGetLicensesResults(license, retrievedLicenses);
+  }
+
+  @Test
+  public void testGetComponentDetailsList_KnownFormat_ThirdParty_NoHdsResults() {
+    Application app = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    String scanId = "scanId";
+    ComponentDetailsList componentDetailsList = new ComponentDetailsList();
+    componentDetailsList.setList(new ArrayList<>());
+    mockHdsGetComponentDetailsList(componentDetailsList, componentIdentifier);
+    ComponentDetails componentDetails = new ComponentDetails();
+    when(thirdPartyComponentDAO.resolveComponentDetails(app.getId(), componentIdentifier, scanId))
+        .thenReturn(componentDetails);
+
+    ComponentDetailsList result =
+        componentInfoService.getComponentDetailsList(componentIdentifier, app, "third-party", scanId);
+
+    assertThat(result.getList()).containsExactly(componentDetails);
   }
 
   private void assertGetLicensesResults(final License license, final ComponentLicenses retrievedLicenses) {

@@ -12,7 +12,7 @@ import LoginButton from './LoginButton/LoginButton';
 import NotificationsMenuContainer from './NotificationsMenu/NotificationsMenuContainer';
 
 export const MenuBar = ({
-  majorMinorVersion,
+  majorMinorVersion = '',
   userActions,
   permissions = {},
   isWebhooksSupported = false,

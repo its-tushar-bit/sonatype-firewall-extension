@@ -92,9 +92,6 @@ $iq-notification-age-width: 43px;
 
 .iq-notification__text {
   display: inline-block;
-  width: calc(
-          100% - #{$iq-notification-age-qualifier-width + $iq-notification-age-width}
-  );
+  width: calc(100% - #{$iq-notification-age-qualifier-width + $iq-notification-age-width});
   white-space: normal;
 }
-

@@ -15,6 +15,7 @@ import { GETTING_STARTED_STATE } from './configuration/gettingStarted/module';
 import { REDIRECTED_ACTION, DEPARTED_ACTION } from './configuration/gettingStarted/gettingStartedUsageTelemetryService';
 import SessionSecurityModule from './SessionSecurityModule';
 import mainHeaderModule from './mainHeader/module';
+import navigationContainer from './navigationContainer/module';
 import ReportModule from './ReportApp';
 import dashboardModule from './dashboard/dashboard.module';
 import Report from './report/ReportController';
@@ -49,6 +50,7 @@ export const InitModule = angular
       ReportModule.name,
       Report.name,
       mainHeaderModule.name,
+      navigationContainer.name,
       'ngRoute',
       unauthenticatedResponseHttpInterceptor.name,
       'xeditable',

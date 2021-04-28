@@ -25,8 +25,10 @@
     <system-notice ng-if="!error"></system-notice>
     <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>
     <div id="iq-content" class="nx-page-content nx-page-content--full-width" >
-      <main-header ng-if="!$state.params.embeddable" product-edition="{{productEdition}}">
-      </main-header>
+      <div class="iq-content-only">
+        <navigation-container ng-if="!$state.params.embeddable" product-edition={{productEdition}}></navigation-container>
+        <main-header ng-if="!$state.params.embeddable"></main-header>
+      </div>
       <ui-view ng-if="!error"></ui-view>
       <div class="nx-page-main nx-page-main--error" ng-if="error">
         <div ng-cloak class="iq-alert iq-alert--error">

@@ -92,6 +92,21 @@ In the browser, you can additionally filter the tests that you see by adding a m
 
 `http://localhost:8235/?spec=dashboard`
 
+#### Linting and Formatting
+
+We use **[ESLint](https://eslint.org/)** and **[Prettier](https://prettier.io/)** for linting and formatting.
+
+Both have plugins for all the major IDEs and Editors which very much enhance developer experience:
+
+- https://eslint.org/docs/user-guide/integrations
+- https://prettier.io/ under **Editor Support**
+
+_Suggestion: installing the plugin for your IDE of choice and configuring prettier to format the files on every save is actually very nice when you get used to it._
+
+The files are auto-formatted in a pre-commit hook, so after commiting files will change to match the prettier formatting style after every commit.
+
+If you need to run the formatter on your files manually you can run `yarn format -- ./path/to/files` if nessecary.
+
 #### Re-installing packages with yarn
 
 If you've already run the Maven build, you **don't** need to explicitly install yarn dependencies - they've already been installed!

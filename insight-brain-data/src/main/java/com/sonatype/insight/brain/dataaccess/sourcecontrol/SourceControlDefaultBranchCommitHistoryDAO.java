@@ -12,9 +12,14 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SourceControlDefaultBranchCommitHistoryDAO
     extends AbstractOperationalSqlDAO<SourceControlDefaultBranchCommitHistory>
 {
+  private static final Logger log = LoggerFactory.getLogger(SourceControlDefaultBranchCommitHistoryDAO.class);
+
   private static final int DELETE_BATCH_SIZE = 100;
 
   private static final String SELECT_ENTITY = "SELECT entity FROM SourceControlDefaultBranchCommitHistory entity ";
@@ -106,11 +111,14 @@ public class SourceControlDefaultBranchCommitHistoryDAO
     }
   }
 
-  public void deleteByApplicationIdBeforeCommitTime(
+  private void deleteByApplicationIdBeforeCommitTime(
       final TransactionContext tx,
       final String applicationId,
       final Date commitTime)
   {
+    log.debug("Deleting SourceControlDefaultBranchCommitHistory for application id {} before {}.", applicationId,
+        commitTime);
+
     List<SourceControlDefaultBranchCommitHistory> commitHistoryList = getList(
         tx, SELECT_ENTITY + "WHERE entity.applicationId=?1 AND entity.commitTime < ?2", applicationId, commitTime);
     for (SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory : commitHistoryList) {
@@ -129,7 +137,7 @@ public class SourceControlDefaultBranchCommitHistoryDAO
     }
   }
 
-  public void deleteByPolicyEvaluationId(final String id) {
+  void deleteByPolicyEvaluationId(final String id) {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
       deleteByPolicyEvaluationId(tx, id);
@@ -137,8 +145,10 @@ public class SourceControlDefaultBranchCommitHistoryDAO
     }
   }
 
-  public void deleteByPolicyEvaluationId(final TransactionContext tx, final String id) {
-    for (SourceControlDefaultBranchCommitHistory commitHistory : getByPolicyEvaluationId(tx, id)) {
+  public void deleteByPolicyEvaluationId(final TransactionContext tx, final String policyEvaluationId) {
+    log.debug("Deleting SourceControlDefaultBranchCommitHistory for policy evaluation id {}.", policyEvaluationId);
+
+    for (SourceControlDefaultBranchCommitHistory commitHistory : getByPolicyEvaluationId(tx, policyEvaluationId)) {
       delete(tx, commitHistory);
     }
   }
@@ -148,11 +158,16 @@ public class SourceControlDefaultBranchCommitHistoryDAO
       final TransactionContext tx,
       final SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory)
   {
+    log.debug("Updating SourceControlDefaultBranchCommitHistory with id {} for application id {}.",
+        defaultBranchCommitHistory.getId(), defaultBranchCommitHistory.getApplicationId());
+
     defaultBranchCommitHistory.setUpdateTime(new Date());
     super.update(tx, defaultBranchCommitHistory);
   }
 
   public int deleteAllBeforeDate(final Date cutoffDate) {
+    log.debug("Deleting all SourceControlDefaultBranchCommitHistory before {}.", cutoffDate);
+
     String sQuery = "SELECT entity.id FROM SourceControlDefaultBranchCommitHistory entity" +
         " WHERE entity.updateTime < ?1 OR (entity.updateTime is null AND entity.createTime < ?2)";
     int deletedRows = 0;
@@ -172,6 +187,8 @@ public class SourceControlDefaultBranchCommitHistoryDAO
   public final void delete(TransactionContext tx, SourceControlDefaultBranchCommitHistory entity) {
     // WARNING: Don't add any business logic to this method because, for performance reasons,
     // we bypass this method when deleting all expired entities.
+    log.debug("Deleting SourceControlDefaultBranchCommitHistory with id {} for application id {}.", entity.getId(),
+        entity.getApplicationId());
     super.delete(tx, entity);
   }
 

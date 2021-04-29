@@ -130,12 +130,18 @@ public class OrganizationService
       throw new BadRequestException("The root organization cannot be deleted.");
     }
 
+    log.info("Deleting organization '{}' with id {}.", organization.getName(), organization.getId());
+
     // cascade to applications first
     for (Application application : new ApplicationDAO().getByOrganizationId(tx, organization.getId())) {
+      log.info("Deleting application '{}' with id {}.", application.getName(), application.getId());
+
       applicationCleaner.delete(tx, application);
       try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.DELETE_APPLICATION, false)) {
         AuditData.get().setApplicationWithDetails(application).setParentOrganization(organization);
       }
+
+      log.info("Deleted application '{}' with id {}.", application.getName(), application.getId());
     }
 
     File organizationIconDirectory = new File(work.getOrganizationIconDir(), organization.getId());
@@ -148,5 +154,7 @@ public class OrganizationService
 
     // delete organization last, this way the operation can be retried later if anything goes wrong
     organizationDAO.delete(tx, organization);
+
+    log.info("Deleted organization '{}' with id {}.", organization.getName(), organization.getId());
   }
 }

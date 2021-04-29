@@ -59,7 +59,7 @@ public class GitApiFactoryTest
     when(insightConfig.getSourceControl()).thenReturn(null);
     assertThatThrownBy(() -> {
       new GitApiFactory(insightConfig);
-    }).isInstanceOf(NullPointerException.class).hasMessageContaining("sourceControl in InSightConfig cannot be null");
+    }).isInstanceOf(NullPointerException.class).hasMessageContaining("sourceControl in InsightConfig cannot be null");
   }
 
   @Test

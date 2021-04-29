@@ -38,7 +38,7 @@ public class GitApiFactory
   @Inject
   public GitApiFactory(final InsightConfig insightConfig) {
     this.sourceControlConfig = Objects
-        .requireNonNull(insightConfig.getSourceControl(), "sourceControl in InSightConfig cannot be null");
+        .requireNonNull(insightConfig.getSourceControl(), "sourceControl in InsightConfig cannot be null");
   }
 
   public GitApi createGitApi(final GitRepositoryInfo gitInfo) {

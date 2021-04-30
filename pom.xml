@@ -650,12 +650,6 @@
         <groupId>com.sonatype.insight.scan</groupId>
         <artifactId>insight-scanner-archive</artifactId>
         <version>${insight-scanner.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.github.package-url</groupId>
-            <artifactId>packageurl-java</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.scan</groupId>

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.io.File;
 
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -41,6 +42,8 @@ public class GitApiFactoryTest
   @Mock
   private SourceControlConfig sourceControlConfig;
 
+  private InsightWork insightWork;
+
   private final GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("localhost", null, "token",
       SourceControlProvider.GITHUB, "master", true, true);
 
@@ -49,16 +52,17 @@ public class GitApiFactoryTest
   @Before
   public void setup() {
     when(insightConfig.getSourceControl()).thenReturn(sourceControlConfig);
+    insightWork = new InsightWork(insightConfig);
 
     // Note usage of spy in order to override isNativeGitAvailable
-    gitApiFactory = spy(new GitApiFactory(insightConfig));
+    gitApiFactory = spy(new GitApiFactory(insightConfig, insightWork));
   }
 
   @Test
   public void test_badInstantiation() {
     when(insightConfig.getSourceControl()).thenReturn(null);
     assertThatThrownBy(() -> {
-      new GitApiFactory(insightConfig);
+      new GitApiFactory(insightConfig, insightWork);
     }).isInstanceOf(NullPointerException.class).hasMessageContaining("sourceControl in InsightConfig cannot be null");
   }
 

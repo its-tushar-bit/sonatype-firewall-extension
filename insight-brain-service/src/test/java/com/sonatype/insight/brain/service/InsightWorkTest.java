@@ -190,4 +190,10 @@ public class InsightWorkTest
       }).withMessage("Invalid value: " + invalidValue);
     }
   }
+
+  @Test
+  public void testGetTemporaryDirectory() {
+    File file = work.getTemporaryDirectory();
+    assertThat(file).isNotNull();
+  }
 }

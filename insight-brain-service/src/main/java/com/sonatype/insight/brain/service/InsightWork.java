@@ -120,4 +120,11 @@ public class InsightWork
     IdValidationUtils.validate(appId);
     return new File(insightConfig.getSourceControl().getCloneDirectory(), appId);
   }
+
+  /**
+   * @since 1.114
+   */
+  public File getTemporaryDirectory() {
+    return new File(insightConfig.getSonatypeWork(), "temp");
+  }
 }

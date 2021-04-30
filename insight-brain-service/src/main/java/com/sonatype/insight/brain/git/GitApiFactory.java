@@ -12,6 +12,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -35,10 +36,13 @@ public class GitApiFactory
 
   private final SourceControlConfig sourceControlConfig;
 
+  private final InsightWork insightWork;
+
   @Inject
-  public GitApiFactory(final InsightConfig insightConfig) {
+  public GitApiFactory(final InsightConfig insightConfig, InsightWork insightWork) {
     this.sourceControlConfig = Objects
         .requireNonNull(insightConfig.getSourceControl(), "sourceControl in InsightConfig cannot be null");
+    this.insightWork = insightWork;
   }
 
   public GitApi createGitApi(final GitRepositoryInfo gitInfo) {
@@ -55,7 +59,10 @@ public class GitApiFactory
               "use {} implementation", messageSuffix, JGIT);
           return new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
         }
-        return new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username, gitExecutable);
+        NativeGitApi nativeGitApi =
+            new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username, gitExecutable);
+        nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
+        return nativeGitApi;
       }
       else {
         log.error("Unknown option '{}' for configuration 'sourceControl.gitImplementation'. Available options: {}, {}",
@@ -63,9 +70,13 @@ public class GitApiFactory
       }
     }
 
-    return isNativeGitAvailable(gitExecutable) ?
-        new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username, gitExecutable) :
-        new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
+    if (isNativeGitAvailable(gitExecutable)) {
+      NativeGitApi nativeGitApi =
+          new NativeGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username, gitExecutable);
+      nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
+      return nativeGitApi;
+    }
+    return new JGitApi(gitInfo.repositoryUrl, gitInfo.token, gitInfo.username);
   }
 
   /**

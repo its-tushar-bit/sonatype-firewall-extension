@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -24,9 +26,12 @@ import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import com.google.inject.Binder;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 
@@ -45,6 +50,9 @@ public class SuccessMetricsPurgerTest
   @Inject
   private PolicyViolationDAO policyViolationDAO;
 
+  @Mock
+  private TaskScheduler taskSchedulerMock;
+
   private ZonedDateTime now = ZonedDateTime.now();
 
   private Date monthsAgo(int months) {
@@ -54,6 +62,12 @@ public class SuccessMetricsPurgerTest
   private void fixViolation(PolicyViolation violation, PolicyEvaluation evaluation) {
     violation.setFixTime(evaluation.getTime());
     policyViolationDAO.update(violation);
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
+    super.configure(binder);
   }
 
   @Test
@@ -153,5 +167,11 @@ public class SuccessMetricsPurgerTest
     JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
     successMetricsPurgerSpy.execute(mockJobExecutionContext);
     verify(successMetricsPurgerSpy).purgeSuccessMetrics();
+  }
+
+  @Test
+  public void testExecute_AdminTask() {
+    successMetricsPurger.execute(null, new PrintWriter(new StringWriter()));
+    verify(taskSchedulerMock).triggerTaskNow(SuccessMetricsPurger.NAME, null);
   }
 }

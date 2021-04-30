@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.successmetrics;
 
+import java.io.PrintWriter;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -25,7 +26,9 @@ import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 
+import com.google.common.collect.ImmutableMultimap;
 import io.dropwizard.lifecycle.Managed;
+import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -36,6 +39,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 @DisallowConcurrentExecution
 public class SuccessMetricsPurger
+    extends Task
     implements Managed, Job
 {
   public static final String NAME = "SuccessMetricsPurger";
@@ -62,6 +66,7 @@ public class SuccessMetricsPurger
       PolicyViolationDAO policyViolationDAO,
       TaskScheduler taskScheduler)
   {
+    super("purgeObsoleteSuccessMetrics");
     this.dataRetentionPolicyDAO = dataRetentionPolicyDAO;
     this.applicationDAO = applicationDAO;
     this.ownerDAO = ownerDAO;
@@ -82,6 +87,16 @@ public class SuccessMetricsPurger
   @Override
   public void stop() {
     // noop
+  }
+
+  /**
+   * @since 1.114
+   */
+  @Override
+  public void execute(ImmutableMultimap<String, String> parameters, PrintWriter output) {
+    log.debug("Triggering purging of obsolete success metrics");
+    taskScheduler.triggerTaskNow(NAME, null);
+    output.println("Triggered purging of obsolete success merics");
   }
 
   @Override

@@ -4,11 +4,19 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import cipModalModule from '../../../../main/frontend/applicationReport/results/cipModal/module';
+import componentDisplayModule from '../../../../main/frontend/ComponentDisplay/module';
 
 describe('cipTabPanel', function () {
-  let $componentController, $httpBackend, CLMLocations;
+  let $componentController, $httpBackend, CLMLocations, ownerContext;
+  ownerContext = { ownerType: 'application' };
 
   beforeEach(angular.mock.module(cipModalModule.name));
+
+  beforeEach(
+    angular.mock.module(componentDisplayModule.name, function ($provide) {
+      $provide.value('OwnerContext', ownerContext);
+    })
+  );
 
   beforeEach(inject(function (_$componentController_, _$httpBackend_, _CLMLocations_) {
     $componentController = _$componentController_;
@@ -97,16 +105,93 @@ describe('cipTabPanel', function () {
       expect(controller.selectedComponent.latestReport).toBeUndefined();
     });
 
-    ['exact', 'similar'].forEach(function (matchState) {
-      it(`updates vm.tabs to include tabs for non-unknown components if the matchState is ${matchState}`, function () {
-        // first set a matchState that should not include the additional tabs
-        controller.selectedComponent = { matchState: 'unknown' };
+    it('sets vm.selectedTab to the name of the first tab if its previous value is not present in vm.tabs', function () {
+      controller.selectedComponent = { matchState: 'exact' };
+      $scope.$digest();
+      controller.selectedTab = 'vulnerabilities';
+
+      controller.selectedComponent = { matchState: 'similar' };
+      $scope.$digest();
+
+      expect(controller.selectedTab).toBe('vulnerabilities');
+
+      controller.selectedComponent = { matchState: 'unknown' };
+      $scope.$digest();
+
+      expect(controller.selectedTab).toBe('componentInfo');
+    });
+
+    describe('for applications', function () {
+      beforeEach(function () {
+        ownerContext.ownerType = 'application';
+      });
+
+      ['exact', 'similar'].forEach(function (matchState) {
+        it(`updates vm.tabs to include tabs for non-unknown components if the matchState is ${matchState}`, function () {
+          // first set a matchState that should not include the additional tabs
+          controller.selectedComponent = { matchState: 'unknown' };
+          $scope.$digest();
+
+          expect(controller.tabs.length).toBeLessThan(8);
+
+          // then set a matchState that should
+          controller.selectedComponent = { matchState };
+          $scope.$digest();
+
+          expect(controller.tabs).toContain({
+            name: 'componentInfo',
+            displayName: 'Component Info',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'policy',
+            displayName: 'Policy',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'similar',
+            displayName: 'Similar',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'occurrences',
+            displayName: 'Occurrences',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'licenses',
+            displayName: 'Licenses',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'vulnerabilities',
+            displayName: 'Vulnerabilities',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'labels',
+            displayName: 'Labels',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'auditLog',
+            displayName: 'Audit Log',
+          });
+        });
+      });
+
+      it('updates vm.tabs to not include tabs for non-unknown components if the matchState is unknown', function () {
+        // first set a matchState that should include all tabs
+        controller.selectedComponent = { matchState: 'exact' };
         $scope.$digest();
 
-        expect(controller.tabs.length).toBeLessThan(8);
+        expect(controller.tabs).toContain({
+          name: 'licenses',
+          displayName: 'Licenses',
+        });
 
-        // then set a matchState that should
-        controller.selectedComponent = { matchState };
+        // then set a matchState that should clear out the additional tabs
+        controller.selectedComponent = { matchState: 'unknown' };
         $scope.$digest();
 
         expect(controller.tabs).toContain({
@@ -129,86 +214,50 @@ describe('cipTabPanel', function () {
           displayName: 'Occurrences',
         });
 
-        expect(controller.tabs).toContain({
+        expect(controller.tabs).not.toContain({
           name: 'licenses',
           displayName: 'Licenses',
         });
 
-        expect(controller.tabs).toContain({
+        expect(controller.tabs).not.toContain({
           name: 'vulnerabilities',
           displayName: 'Vulnerabilities',
         });
 
-        expect(controller.tabs).toContain({
+        expect(controller.tabs).not.toContain({
           name: 'labels',
           displayName: 'Labels',
         });
 
-        expect(controller.tabs).toContain({
+        expect(controller.tabs).not.toContain({
           name: 'auditLog',
           displayName: 'Audit Log',
         });
       });
-    });
 
-    it('updates vm.tabs to not include tabs for non-unknown components if the matchState is unknown', function () {
-      // first set a matchState that should include all tabs
-      controller.selectedComponent = { matchState: 'exact' };
-      $scope.$digest();
+      ['unknown', 'similar'].forEach(function (matchState) {
+        it(`updates vm.tabs to include the Claim tab if the matchState is ${matchState}`, function () {
+          // first set a matchState that should not include the additional tabs
+          controller.selectedComponent = { matchState: 'exact' };
+          $scope.$digest();
 
-      expect(controller.tabs).toContain({
-        name: 'licenses',
-        displayName: 'Licenses',
+          expect(controller.tabs).not.toContain({
+            name: 'claimComponent',
+            displayName: 'Claim',
+          });
+
+          // then set a matchState that should
+          controller.selectedComponent = { matchState };
+          $scope.$digest();
+
+          expect(controller.tabs).toContain({
+            name: 'claimComponent',
+            displayName: 'Claim',
+          });
+        });
       });
 
-      // then set a matchState that should clear out the additional tabs
-      controller.selectedComponent = { matchState: 'unknown' };
-      $scope.$digest();
-
-      expect(controller.tabs).toContain({
-        name: 'componentInfo',
-        displayName: 'Component Info',
-      });
-
-      expect(controller.tabs).toContain({
-        name: 'policy',
-        displayName: 'Policy',
-      });
-
-      expect(controller.tabs).toContain({
-        name: 'similar',
-        displayName: 'Similar',
-      });
-
-      expect(controller.tabs).toContain({
-        name: 'occurrences',
-        displayName: 'Occurrences',
-      });
-
-      expect(controller.tabs).not.toContain({
-        name: 'licenses',
-        displayName: 'Licenses',
-      });
-
-      expect(controller.tabs).not.toContain({
-        name: 'vulnerabilities',
-        displayName: 'Vulnerabilities',
-      });
-
-      expect(controller.tabs).not.toContain({
-        name: 'labels',
-        displayName: 'Labels',
-      });
-
-      expect(controller.tabs).not.toContain({
-        name: 'auditLog',
-        displayName: 'Audit Log',
-      });
-    });
-
-    ['unknown', 'similar'].forEach(function (matchState) {
-      it(`updates vm.tabs to include the Claim tab if the matchState is ${matchState}`, function () {
-        // first set a matchState that should not include the additional tabs
+      it('updates vm.tabs to include the Claim tab if the matchState is exact and identificationSource is Manual', function () {
         controller.selectedComponent = { matchState: 'exact' };
         $scope.$digest();
 
@@ -217,8 +266,10 @@ describe('cipTabPanel', function () {
           displayName: 'Claim',
         });
 
-        // then set a matchState that should
-        controller.selectedComponent = { matchState };
+        controller.selectedComponent = {
+          matchState: 'exact',
+          identificationSource: 'Manual',
+        };
         $scope.$digest();
 
         expect(controller.tabs).toContain({
@@ -226,64 +277,236 @@ describe('cipTabPanel', function () {
           displayName: 'Claim',
         });
       });
-    });
 
-    it('updates vm.tabs to include the Claim tab if the matchState is exact and identificationSource is Manual', function () {
-      controller.selectedComponent = { matchState: 'exact' };
-      $scope.$digest();
+      it('updates vm.tabs to not include the Vulnerabilities tab if the identificationSource is Manual', function () {
+        controller.selectedComponent = { matchState: 'exact' };
+        $scope.$digest();
 
-      expect(controller.tabs).not.toContain({
-        name: 'claimComponent',
-        displayName: 'Claim',
-      });
+        expect(controller.tabs).toContain({
+          name: 'vulnerabilities',
+          displayName: 'Vulnerabilities',
+        });
 
-      controller.selectedComponent = {
-        matchState: 'exact',
-        identificationSource: 'Manual',
-      };
-      $scope.$digest();
+        controller.selectedComponent = {
+          matchState: 'exact',
+          identificationSource: 'Manual',
+        };
+        $scope.$digest();
 
-      expect(controller.tabs).toContain({
-        name: 'claimComponent',
-        displayName: 'Claim',
-      });
-    });
-
-    it('updates vm.tabs to not include the Vulnerabilities tab if the identificationSource is Manual', function () {
-      controller.selectedComponent = { matchState: 'exact' };
-      $scope.$digest();
-
-      expect(controller.tabs).toContain({
-        name: 'vulnerabilities',
-        displayName: 'Vulnerabilities',
-      });
-
-      controller.selectedComponent = {
-        matchState: 'exact',
-        identificationSource: 'Manual',
-      };
-      $scope.$digest();
-
-      expect(controller.tabs).not.toContain({
-        name: 'vulnerabilities',
-        displayName: 'Vulnerabilities',
+        expect(controller.tabs).not.toContain({
+          name: 'vulnerabilities',
+          displayName: 'Vulnerabilities',
+        });
       });
     });
 
-    it('sets vm.selectedTab to the name of the first tab if its previous value is not present in vm.tabs', function () {
-      controller.selectedComponent = { matchState: 'exact' };
-      $scope.$digest();
-      controller.selectedTab = 'vulnerabilities';
+    describe('for repositories', function () {
+      beforeEach(function () {
+        ownerContext.ownerType = 'repository';
+      });
 
-      controller.selectedComponent = { matchState: 'similar' };
-      $scope.$digest();
+      ['exact', 'similar'].forEach(function (matchState) {
+        it(`updates vm.tabs to include tabs for non-unknown components if the matchState is ${matchState}`, function () {
+          // first set a matchState that should not include the additional tabs
+          controller.selectedComponent = { matchState: 'unknown' };
+          $scope.$digest();
 
-      expect(controller.selectedTab).toBe('vulnerabilities');
+          expect(controller.tabs.length).toBeLessThan(8);
 
-      controller.selectedComponent = { matchState: 'unknown' };
-      $scope.$digest();
+          // then set a matchState that should
+          controller.selectedComponent = { matchState };
+          $scope.$digest();
 
-      expect(controller.selectedTab).toBe('componentInfo');
+          expect(controller.tabs).toContain({
+            name: 'componentInfo',
+            displayName: 'Component Info',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'policy',
+            displayName: 'Policy',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'similar',
+            displayName: 'Similar',
+          });
+
+          expect(controller.tabs).not.toContain({
+            name: 'occurrences',
+            displayName: 'Occurrences',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'licenses',
+            displayName: 'Licenses',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'vulnerabilities',
+            displayName: 'Vulnerabilities',
+          });
+
+          expect(controller.tabs).toContain({
+            name: 'labels',
+            displayName: 'Labels',
+          });
+
+          expect(controller.tabs).not.toContain({
+            name: 'auditLog',
+            displayName: 'Audit Log',
+          });
+        });
+      });
+
+      it('updates vm.tabs to not include tabs for non-unknown components if the matchState is unknown', function () {
+        // first set a matchState that should include all tabs
+        controller.selectedComponent = { matchState: 'exact' };
+        $scope.$digest();
+
+        expect(controller.tabs).toContain({
+          name: 'licenses',
+          displayName: 'Licenses',
+        });
+
+        // then set a matchState that should clear out the additional tabs
+        controller.selectedComponent = { matchState: 'unknown' };
+        $scope.$digest();
+
+        expect(controller.tabs).toContain({
+          name: 'componentInfo',
+          displayName: 'Component Info',
+        });
+
+        expect(controller.tabs).toContain({
+          name: 'policy',
+          displayName: 'Policy',
+        });
+
+        expect(controller.tabs).toContain({
+          name: 'similar',
+          displayName: 'Similar',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'occurrences',
+          displayName: 'Occurrences',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'licenses',
+          displayName: 'Licenses',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'vulnerabilities',
+          displayName: 'Vulnerabilities',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'labels',
+          displayName: 'Labels',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'auditLog',
+          displayName: 'Audit Log',
+        });
+      });
+
+      ['unknown', 'similar'].forEach(function (matchState) {
+        it(`updates vm.tabs to include the Claim tab if the matchState is ${matchState}`, function () {
+          // first set a matchState that should not include the additional tabs
+          controller.selectedComponent = { matchState: 'exact' };
+          $scope.$digest();
+
+          expect(controller.tabs).not.toContain({
+            name: 'claimComponent',
+            displayName: 'Claim',
+          });
+
+          // then set a matchState that should
+          controller.selectedComponent = { matchState };
+          $scope.$digest();
+
+          expect(controller.tabs).toContain({
+            name: 'claimComponent',
+            displayName: 'Claim',
+          });
+
+          expect(controller.tabs).not.toContain({
+            name: 'occurrences',
+            displayName: 'Occurrences',
+          });
+
+          expect(controller.tabs).not.toContain({
+            name: 'auditLog',
+            displayName: 'Audit Log',
+          });
+        });
+      });
+
+      it('updates vm.tabs to include the Claim tab if the matchState is exact and identificationSource is Manual', function () {
+        controller.selectedComponent = { matchState: 'exact' };
+        $scope.$digest();
+
+        expect(controller.tabs).not.toContain({
+          name: 'claimComponent',
+          displayName: 'Claim',
+        });
+
+        controller.selectedComponent = {
+          matchState: 'exact',
+          identificationSource: 'Manual',
+        };
+        $scope.$digest();
+
+        expect(controller.tabs).toContain({
+          name: 'claimComponent',
+          displayName: 'Claim',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'occurrences',
+          displayName: 'Occurrences',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'auditLog',
+          displayName: 'Audit Log',
+        });
+      });
+
+      it('updates vm.tabs to not include the Vulnerabilities tab if the identificationSource is Manual', function () {
+        controller.selectedComponent = { matchState: 'exact' };
+        $scope.$digest();
+
+        expect(controller.tabs).toContain({
+          name: 'vulnerabilities',
+          displayName: 'Vulnerabilities',
+        });
+
+        controller.selectedComponent = {
+          matchState: 'exact',
+          identificationSource: 'Manual',
+        };
+        $scope.$digest();
+
+        expect(controller.tabs).not.toContain({
+          name: 'vulnerabilities',
+          displayName: 'Vulnerabilities',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'occurrences',
+          displayName: 'Occurrences',
+        });
+
+        expect(controller.tabs).not.toContain({
+          name: 'auditLog',
+          displayName: 'Audit Log',
+        });
+      });
     });
   });
 });

@@ -26,7 +26,7 @@ export default {
   },
 };
 
-function CipTabPanelController($scope, CLMLocations, $http, Messages) {
+function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerContext) {
   const vm = this;
 
   Object.assign(vm, {
@@ -38,7 +38,8 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages) {
       { matchState } = selectedComponent,
       unknown = matchState === 'unknown',
       exact = matchState === 'exact',
-      claimed = selectedComponent.identificationSource === 'Manual';
+      claimed = selectedComponent.identificationSource === 'Manual',
+      isRepository = OwnerContext.ownerType === 'repository';
 
     vm.tabs = reject(isNil, [
       {
@@ -53,10 +54,12 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages) {
         name: 'similar',
         displayName: 'Similar',
       },
-      {
-        name: 'occurrences',
-        displayName: 'Occurrences',
-      },
+      isRepository
+        ? null
+        : {
+            name: 'occurrences',
+            displayName: 'Occurrences',
+          },
       unknown
         ? null
         : {
@@ -81,13 +84,15 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages) {
             name: 'claimComponent',
             displayName: 'Claim',
           },
-      unknown
+      unknown || isRepository
         ? null
         : {
             name: 'auditLog',
             displayName: 'Audit Log',
           },
     ]);
+
+    vm.useNewWaiverPages = OwnerContext.ownerType !== 'repository';
   }
 
   const stagesOrder = {
@@ -142,4 +147,4 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages) {
   });
 }
 
-CipTabPanelController.$inject = ['$scope', 'CLMLocations', '$http', 'Messages'];
+CipTabPanelController.$inject = ['$scope', 'CLMLocations', '$http', 'Messages', 'OwnerContext'];

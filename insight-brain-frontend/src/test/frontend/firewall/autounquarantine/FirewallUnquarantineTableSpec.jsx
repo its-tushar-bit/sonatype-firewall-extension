@@ -9,20 +9,23 @@ import { NxTable, NxTableBody, NxTableCell, NxOverflowTooltip, NxTableRow } from
 import * as enzymeUtils from '../../enzymeUtils';
 
 describe('FirewallUnquarantineTable', function () {
-  let minimalProps, FirewallUnquarantineTable, getShallowComponent;
+  let minimalProps, FirewallUnquarantineTable, getShallowComponent, selectReleaseQuarantineComponentSpy;
+
+  selectReleaseQuarantineComponentSpy = jasmine.createSpy('selectReleaseQuarantineComponent');
 
   beforeEach(function () {
     FirewallUnquarantineTable = require('inject-loader!../../../../main/frontend/firewall/autounquarantine/FirewallUnquarantineTable')()
       .default;
 
     minimalProps = {
+      selectReleaseQuarantineComponent: selectReleaseQuarantineComponentSpy,
       loadedReleaseQuarantineList: true,
       releaseQuarantinePageCount: 1,
       pageSize: 2,
       currentPage: 0,
       releaseQuarantineList: [
         {
-          displayName: 'test-component',
+          componentDisplayText: 'test-component',
           repository: 'central',
           quarantineDate: '2018-09-30T03:10:35.754+0000',
           dateCleared: '2018-10-16T18:45:59.967+0000',
@@ -85,7 +88,7 @@ describe('FirewallUnquarantineTable', function () {
       // contains a row of normal data
       expect(
         tableBody.containsMatchingElement([
-          <NxTableRow key="1">
+          <NxTableRow key="1" isClickable="true" onClick={selectReleaseQuarantineComponentSpy(1)}>
             <NxTableCell key="1">
               <NxOverflowTooltip title="test-component">
                 <div className="nx-truncate-ellipsis">test-component</div>
@@ -101,6 +104,18 @@ describe('FirewallUnquarantineTable', function () {
           </NxTableRow>,
         ])
       ).toBeTruthy();
+    });
+
+    it('dispatches the selectReleaseQuarantineComponentSpy action when a row is clicked', () => {
+      // when the results table is rendered, find the first row
+      let component = getShallowComponent(),
+        table = component.find(NxTable),
+        tableBody = table.find(NxTableBody),
+        rows = tableBody.find(NxTableRow);
+
+      // then clicking on the row dispatches selectReleaseQuarantineComponentSpy with the correct index
+      rows.at(0).simulate('click');
+      expect(selectReleaseQuarantineComponentSpy).toHaveBeenCalledWith(1);
     });
   });
 });

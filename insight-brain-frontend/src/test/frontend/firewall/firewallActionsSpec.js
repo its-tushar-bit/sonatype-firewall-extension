@@ -56,6 +56,11 @@ import {
   setQuarantineGridPolicyFilter,
   setQuarantineGridSorting,
   setQuarantineGridLastUpdated,
+  selectQuarantineComponent,
+  FIREWALL_SELECT_COMPONENT,
+  FIREWALL_CIP_MODAL_SHOW,
+  selectReleaseQuarantineComponent,
+  selectComponent,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -84,6 +89,12 @@ describe('firewallActions', function () {
   beforeEach(function () {
     state = {
       firewall: Object.freeze({
+        cip: Object.freeze({
+          showCipModal: false,
+          selectedComponent: null,
+          selectedComponentIndex: null,
+          displayedEntries: [],
+        }),
         viewState: Object.freeze({
           loadedStatus: false,
           loadStatusError: null,
@@ -909,6 +920,90 @@ describe('firewallActions', function () {
       expect(actions[5].payload).toBeUndefined();
       expect(actions[6].type).toBe(FIREWALL_POLICIES_REQUESTED);
       expect(actions[6].payload).toBeUndefined();
+    });
+  });
+
+  describe('selectQuarantineComponent', function () {
+    it('immediately dispatches actions to set the selected component and show the CIP modal', function () {
+      let components = [{ componentDisplayTex: 'text' }];
+      state = {
+        firewall: Object.freeze({
+          quarantineGridState: Object.freeze({
+            quarantineList: components,
+          }),
+        }),
+      };
+
+      store = SpecUtil.mockReduxStore(state);
+      store.dispatch(selectQuarantineComponent(0));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(2);
+      expect(actions[0].type).toBe(FIREWALL_SELECT_COMPONENT);
+      expect(actions[0].payload).toEqual({
+        component: components[0],
+        componentIndex: 0,
+        components: components,
+      });
+      expect(actions[1].type).toBe(FIREWALL_CIP_MODAL_SHOW);
+      expect(actions[1].payload).toBeUndefined();
+    });
+  });
+
+  describe('selectReleaseQuarantineComponent', function () {
+    it('immediately dispatches actions to set the selected component and show the CIP modal', function () {
+      let components = [{ componentDisplayTex: 'text' }];
+      state = {
+        firewall: Object.freeze({
+          autoUnquarantineState: Object.freeze({
+            autoUnquarantineGridState: Object.freeze({
+              releaseQuarantineList: components,
+            }),
+          }),
+        }),
+      };
+
+      store = SpecUtil.mockReduxStore(state);
+      store.dispatch(selectReleaseQuarantineComponent(0));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(2);
+      expect(actions[0].type).toBe(FIREWALL_SELECT_COMPONENT);
+      expect(actions[0].payload).toEqual({
+        component: components[0],
+        componentIndex: 0,
+        components: components,
+      });
+      expect(actions[1].type).toBe(FIREWALL_CIP_MODAL_SHOW);
+      expect(actions[1].payload).toBeUndefined();
+    });
+  });
+
+  describe('selectComponent', function () {
+    it('immediately dispatches actions to set the selected component', function () {
+      let components = [{ componentDisplayTex: 'text' }];
+      state = {
+        firewall: Object.freeze({
+          cip: Object.freeze({
+            showCipModal: false,
+            selectedComponent: null,
+            selectedComponentIndex: null,
+            displayedEntries: components,
+          }),
+        }),
+      };
+
+      store = SpecUtil.mockReduxStore(state);
+      store.dispatch(selectComponent(0));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_SELECT_COMPONENT);
+      expect(actions[0].payload).toEqual({
+        components: components,
+        componentIndex: 0,
+        component: components[0],
+      });
     });
   });
 });

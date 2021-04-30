@@ -25,8 +25,7 @@ import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
 import reportModule from './applicationReport/react/module';
 import advancedLegalModule from './advancedLegal/module';
-import FirewallContainer from './firewall/FirewallContainer';
-import FirewallAutoUnquarantinePageContainer from './firewall/autounquarantine/FirewallAutoUnquarantinePageContainer';
+import firewallModule from './firewall/module';
 
 export default angular
   .module('managementApp', [
@@ -49,38 +48,19 @@ export default angular
     waiversModule.name,
     reportModule.name,
     advancedLegalModule.name,
+    firewallModule.name,
   ])
   .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
-  .component('firewall', react2angular(withStoreProvider(FirewallContainer), [], ['$ngRedux', '$state']))
-  .component(
-    'firewallAutoUnquarantine',
-    react2angular(withStoreProvider(FirewallAutoUnquarantinePageContainer), [], ['$ngRedux', '$state'])
-  )
   .config(routes);
 
 function routes($stateProvider) {
-  $stateProvider
-    .state('advancedSearch', {
-      component: 'advancedSearch',
-      url: '/advancedSearch',
-      data: {
-        title: 'Advanced Search',
-      },
-    })
-    .state('firewall', {
-      component: 'firewall',
-      url: '/firewall',
-      data: {
-        title: 'Firewall',
-      },
-    })
-    .state('firewallAutoUnquarantine', {
-      component: 'firewallAutoUnquarantine',
-      url: '/firewall/autoReleaseQuarantine',
-      data: {
-        title: 'Auto Unquarantine',
-      },
-    });
+  $stateProvider.state('advancedSearch', {
+    component: 'advancedSearch',
+    url: '/advancedSearch',
+    data: {
+      title: 'Advanced Search',
+    },
+  });
 }
 
 routes.$inject = ['$stateProvider'];

@@ -68,6 +68,12 @@ describe('firewallReducer', function () {
 
       //configurationState
       expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
+
+      //cip
+      expect(newState.cip.showCipModal).toBe(false);
+      expect(newState.cip.selectedComponent).toBeNull();
+      expect(newState.cip.selectedComponentIndex).toBeNull();
+      expect(newState.cip.displayedEntries).toEqual([]);
     });
   });
 
@@ -845,7 +851,10 @@ describe('firewallReducer', function () {
       let payload = {
         pageCount: 1,
         page: 1,
-        results: [{ test: 'testVal' }, { test: 'testVal' }],
+        results: [
+          { displayName: 'testVal', other: 'other' },
+          { displayName: 'testVal', other: 'other' },
+        ],
       };
 
       expect(
@@ -860,7 +869,10 @@ describe('firewallReducer', function () {
           autoUnquarantineGridState: {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
             loadedReleaseQuarantineList: true,
-            releaseQuarantineList: payload.results,
+            releaseQuarantineList: [
+              { componentDisplayText: 'testVal', other: 'other' },
+              { componentDisplayText: 'testVal', other: 'other' },
+            ],
             releaseQuarantinePageCount: payload.pageCount,
             currentPage: payload.pageCount - 1,
           },
@@ -967,14 +979,24 @@ describe('firewallReducer', function () {
     let initialState = reduce();
 
     it('updates the state', function () {
-      let payload = { pageCount: 1, page: 1, results: [{ test: 'testVal' }, { test: 'testVal' }] };
+      let payload = {
+        pageCount: 1,
+        page: 1,
+        results: [
+          { displayName: 'testVal', other: 'other' },
+          { displayName: 'testVal', other: 'other' },
+        ],
+      };
 
       expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_LIST_FULFILLED', payload: payload })).toEqual({
         ...initialState,
         quarantineGridState: {
           ...initialState.quarantineGridState,
           loadedQuarantineList: true,
-          quarantineList: payload.results,
+          quarantineList: [
+            { componentDisplayText: 'testVal', other: 'other' },
+            { componentDisplayText: 'testVal', other: 'other' },
+          ],
           quarantinePageCount: payload.pageCount,
           currentPage: 0,
         },
@@ -1183,6 +1205,75 @@ describe('firewallReducer', function () {
       expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(0);
       expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(0);
       expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(0);
+    });
+  });
+
+  describe('FIREWALL_SELECT_COMPONENT action', function () {
+    let initialState = {
+      cip: {
+        selectedComponent: null,
+        selectedComponentIndex: null,
+        displayedEntries: [],
+      },
+    };
+
+    it('updates the state with the selected component, index and all entries', function () {
+      let component = { componentDisplayText: 'text' },
+        components = [component],
+        componentIndex = 0,
+        payload = { component: component, components: components, componentIndex: componentIndex };
+
+      expect(reduce(initialState, { type: 'FIREWALL_SELECT_COMPONENT', payload: payload })).toEqual({
+        ...initialState,
+        cip: {
+          ...initialState.cip,
+          selectedComponent: component,
+          selectedComponentIndex: componentIndex,
+          displayedEntries: components,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_CIP_MODAL_SHOW action', function () {
+    let initialState = {
+      cip: {
+        showCipModal: false,
+      },
+    };
+
+    it('updates the state and sets showCipModal to true', function () {
+      expect(reduce(initialState, { type: 'FIREWALL_CIP_MODAL_SHOW' })).toEqual({
+        ...initialState,
+        cip: {
+          ...initialState.cip,
+          showCipModal: true,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_CIP_MODAL_CLOSED action', function () {
+    let initialState = {
+      cip: {
+        showCipModal: true,
+        selectedComponent: 'selectedComponent',
+        selectedComponentIndex: 0,
+        displayedEntries: ['selectedComponent'],
+      },
+    };
+
+    it('updates the state and sets showCipModal to false and clears component fields', function () {
+      expect(reduce(initialState, { type: 'FIREWALL_CIP_MODAL_CLOSED' })).toEqual({
+        ...initialState,
+        cip: {
+          ...initialState.cip,
+          showCipModal: false,
+          selectedComponent: null,
+          selectedComponentIndex: null,
+          displayedEntries: [],
+        },
+      });
     });
   });
 });

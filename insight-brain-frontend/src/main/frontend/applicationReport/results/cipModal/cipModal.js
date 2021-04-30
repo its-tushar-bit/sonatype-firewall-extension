@@ -7,30 +7,30 @@
 import template from './cipModal.html';
 
 export default {
-  template,
+  template: template,
   controller: CipModalController,
   controllerAs: 'vm',
   bindings: {
     dismiss: '&',
+    stageId: '<',
+    selectedComponent: '<',
+    selectedComponentIndex: '<',
+    selectComponent: '<',
+    entriesCount: '<',
+    unselectRootAncestor: '&',
+    selectedRootAncestor: '<',
+    previousComponent: '<',
+    selectedReport: '<',
+    metadata: '<',
   },
 };
 
-function CipModalController(
-  $ngRedux,
-  $scope,
-  applicationReportActions,
-  SelectedComponent,
-  Coordinates,
-  ComponentUtil,
-  Properties
-) {
+function CipModalController($ngRedux, $scope, SelectedComponent, Coordinates, ComponentUtil, Properties) {
   const vm = this;
 
   Object.assign(vm, {
     $onInit() {
-      vm.unsubscribeFromReduxStore = $ngRedux.connect(mapStateToThis, applicationReportActions)(vm);
-
-      Properties.setStageId(vm.metadata.stageId);
+      Properties.setStageId(vm.stageId);
 
       $scope.$watch('vm.selectedComponent', function (selectedComponent) {
         if (selectedComponent) {
@@ -43,10 +43,6 @@ function CipModalController(
         // un-select component so that watchers are triggered when the same component is selected again
         SelectedComponent.toggle();
       });
-    },
-
-    $onDestroy() {
-      vm.unsubscribeFromReduxStore();
     },
 
     previous() {
@@ -64,14 +60,10 @@ function CipModalController(
     isNextDisabled() {
       return vm.selectedComponentIndex >= getLastIndex();
     },
-
-    reloadReportAndHandleError() {
-      return vm.reloadReport().catch(() => vm.dismiss());
-    },
   });
 
   function getLastIndex() {
-    return vm.selectedReport.displayedEntries.length - 1;
+    return vm.entriesCount - 1;
   }
 
   // set up global state required by version graph (see ci-version-graph.js)
@@ -97,31 +89,4 @@ function CipModalController(
   }
 }
 
-export function mapStateToThis({ applicationReport }) {
-  let { selectedReport, selectedComponentIndex, selectedRootAncestor, metadata, selectedComponent } = applicationReport;
-  let previousComponent = null;
-
-  if (selectedRootAncestor) {
-    previousComponent = selectedComponent;
-    selectedComponent = selectedRootAncestor;
-  }
-
-  return {
-    selectedReport,
-    selectedComponent,
-    selectedComponentIndex,
-    selectedRootAncestor,
-    previousComponent,
-    metadata,
-  };
-}
-
-CipModalController.$inject = [
-  '$ngRedux',
-  '$scope',
-  'applicationReportActions',
-  'SelectedComponent',
-  'Coordinates',
-  'ComponentUtil',
-  'Properties',
-];
+CipModalController.$inject = ['$ngRedux', '$scope', 'SelectedComponent', 'Coordinates', 'ComponentUtil', 'Properties'];

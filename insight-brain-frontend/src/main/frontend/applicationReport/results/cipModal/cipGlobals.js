@@ -117,6 +117,20 @@ window.Brain = {
   getInternalApplicationIdUrlForApplicationId: function (applicationId) {
     return window.CLM.path + 'api/v2/applications?publicId=' + encodeURIComponent(applicationId);
   },
+
+  /**
+   * @since version 1.114.0
+   */
+  getComponentReevaluationUrl: function (owner, hash) {
+    return window.CLM.path + 'rest/repositories/' + owner.ownerId + '/evaluate/' + hash;
+  },
+
+  /**
+   * @since 1.114.0
+   */
+  getRepositoryEvaluateUrl: function (owner) {
+    return window.CLM.path + 'rest/repositories/' + owner.ownerId + '/evaluate';
+  },
 };
 
 function toParams(

@@ -283,6 +283,12 @@ public class ApiFirewallService
       apiFirewallComponentDTO.repository = repositoryMap.get(component.getRepositoryId()).getPublicId();
       apiFirewallComponentDTO.dateCleared = component.getUnquarantineTime();
       apiFirewallComponentDTO.quarantineDate = component.getQuarantineTime();
+      apiFirewallComponentDTO.componentIdentifier = component.getComponentIdentifier();
+      apiFirewallComponentDTO.hash = component.getHash();
+      apiFirewallComponentDTO.matchState = component.getMatchStateId();
+      apiFirewallComponentDTO.pathname = component.getPathname();
+      apiFirewallComponentDTO.repositoryId = component.getRepositoryId();
+      apiFirewallComponentDTO.quarantined = component.isQuarantined();
 
       // find and add all policy violations for this repository component
       List<RepositoryPolicyViolation> violations = repositoryPolicyViolationDAO

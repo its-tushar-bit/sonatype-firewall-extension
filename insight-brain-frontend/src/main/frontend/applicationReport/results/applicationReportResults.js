@@ -44,6 +44,7 @@ function ApplicationReportResultsController(
         if (reportParameters) {
           OwnerContext.setOwnerId(reportParameters.appId);
           OwnerContext.setScanId(reportParameters.scanId);
+          OwnerContext.setOwnerType('application');
         }
       });
 

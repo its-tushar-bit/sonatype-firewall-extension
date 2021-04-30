@@ -11,6 +11,7 @@ import {
   NxTableCell,
   NxOverflowTooltip,
   NxThreatIndicator,
+  NxTableRow,
 } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 
@@ -21,7 +22,10 @@ describe('FirewallQuarantineTable', function () {
     loadQuarantineList,
     setQuarantineGridPage,
     setQuarantineGridSorting,
-    setQuarantineGridPolicyFilter;
+    setQuarantineGridPolicyFilter,
+    selectQuarantineComponentSpy;
+
+  selectQuarantineComponentSpy = jasmine.createSpy('selectQuarantineComponent');
 
   beforeEach(function () {
     FirewallQuarantineTable = require('inject-loader!../../../main/frontend/firewall/FirewallQuarantineTable')()
@@ -33,6 +37,7 @@ describe('FirewallQuarantineTable', function () {
     setQuarantineGridPolicyFilter = jasmine.createSpy('setQuarantineGridPolicyFilter');
 
     minimalProps = {
+      selectQuarantineComponent: selectQuarantineComponentSpy,
       loadQuarantineList: loadQuarantineList,
       setQuarantineGridPage: setQuarantineGridPage,
       setQuarantineGridSorting: setQuarantineGridSorting,
@@ -44,7 +49,7 @@ describe('FirewallQuarantineTable', function () {
       currentPage: 0,
       quarantineList: [
         {
-          displayName: 'test-component',
+          componentDisplayText: 'test-component',
           repository: 'central',
           quarantineDate: '2018-09-30T03:10:35.754+0000',
           dateCleared: null,
@@ -98,29 +103,46 @@ describe('FirewallQuarantineTable', function () {
 
       // then it contains the repository
       expect(
-        tableBody.containsAllMatchingElements([
-          <NxTableCell key="1" isNumeric>
-            <NxThreatIndicator policyThreatLevel={5} />
-            <span>{5}</span>
-          </NxTableCell>,
-          <NxTableCell key="2">
-            <NxOverflowTooltip title="test-component">
-              <div className="nx-truncate-ellipsis">test-component</div>
-            </NxOverflowTooltip>
-          </NxTableCell>,
-          <NxTableCell key="3">{quarantineDate}</NxTableCell>,
-          <NxTableCell key="4">
-            <NxOverflowTooltip title="Security-Medium">
-              <div className="nx-truncate-ellipsis">Security-Medium</div>
-            </NxOverflowTooltip>
-          </NxTableCell>,
-          <NxTableCell key="5">
-            <NxOverflowTooltip title="central">
-              <div className="nx-truncate-ellipsis">central</div>
-            </NxOverflowTooltip>
-          </NxTableCell>,
+        tableBody.containsMatchingElement([
+          <NxTableRow key="1" isClickable="true" onClick={selectQuarantineComponentSpy(1)}>
+            <NxTableCell key="1" isNumeric>
+              <NxThreatIndicator policyThreatLevel={5} />
+              <span>{5}</span>
+            </NxTableCell>
+            ,
+            <NxTableCell key="2">
+              <NxOverflowTooltip title="test-component">
+                <div className="nx-truncate-ellipsis">test-component</div>
+              </NxOverflowTooltip>
+            </NxTableCell>
+            ,<NxTableCell key="3">{quarantineDate}</NxTableCell>,
+            <NxTableCell key="4">
+              <NxOverflowTooltip title="Security-Medium">
+                <div className="nx-truncate-ellipsis">Security-Medium</div>
+              </NxOverflowTooltip>
+            </NxTableCell>
+            ,
+            <NxTableCell key="5">
+              <NxOverflowTooltip title="central">
+                <div className="nx-truncate-ellipsis">central</div>
+              </NxOverflowTooltip>
+            </NxTableCell>
+            ,
+          </NxTableRow>,
         ])
       ).toBeTruthy();
+    });
+
+    it('dispatches the selectQuarantineComponent action when a row is clicked', () => {
+      // when the results table is rendered, find the first row
+      let component = getShallowComponent(),
+        table = component.find(NxTable),
+        tableBody = table.find(NxTableBody),
+        row = tableBody.find(NxTableRow);
+
+      // then clicking on the row dispatches selectQuarantineComponentSpy with the correct index
+      row.simulate('click');
+      expect(selectQuarantineComponentSpy).toHaveBeenCalledWith(1);
     });
   });
 

@@ -34,6 +34,7 @@ import '../../../audit-report/slickgrid/filter';
 import '../../../audit-report/slickgrid/sort';
 
 import cipModal from './cipModal';
+import applicationReportCipModal from './applicationReportCipModal';
 import cipOccurrences from './cipOccurrences/cipOccurrences';
 import cipSimilar from './cipSimilar/cipSimilar';
 import cipAudit from './cipAudit/cipAudit';
@@ -54,6 +55,7 @@ export default angular
     CLMLocationModule.name,
   ])
   .component('cipModal', cipModal)
+  .component('applicationReportCipModal', applicationReportCipModal)
   .component('cipOccurrences', cipOccurrences)
   .component('cipSimilar', cipSimilar)
   .component('cipAudit', cipAudit)
@@ -65,7 +67,7 @@ export default angular
 // context service needed for CIP
 function OwnerContext() {
   return {
-    ownerType: 'application',
+    ownerType: null,
     ownerId: null,
     scanId: null,
     setOwnerId(id) {
@@ -73,6 +75,9 @@ function OwnerContext() {
     },
     setScanId(scanId) {
       this.scanId = scanId;
+    },
+    setOwnerType(ownerType) {
+      this.ownerType = ownerType;
     },
   };
 }

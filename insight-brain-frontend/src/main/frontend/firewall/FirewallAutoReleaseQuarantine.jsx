@@ -25,8 +25,8 @@ export default function FirewallAutoReleaseQuarantine(props) {
         <div className="nx-card__text">components released month-to-date</div>
       </div>
       <footer className="nx-card__footer">
-        <a href={$state.href('firewallAutoUnquarantine')} className="nx-text-link">
-          View Auto Unquarantine
+        <a href={$state.href('firewall.firewallAutoUnquarantinePage')} className="nx-text-link">
+          View Auto Release Quarantine
         </a>
       </footer>
     </section>

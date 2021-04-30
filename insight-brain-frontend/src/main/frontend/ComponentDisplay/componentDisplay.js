@@ -18,7 +18,7 @@ export default {
   controller: ComponentDisplayController,
 };
 
-function ComponentDisplayController($scope) {
+function ComponentDisplayController($scope, OwnerContext) {
   const vm = this;
 
   Object.assign(vm, {
@@ -27,7 +27,12 @@ function ComponentDisplayController($scope) {
 
     $onInit() {
       $scope.$watchGroup(
-        ['vm.component.displayName', 'vm.component.filename', 'vm.component.filenames'],
+        [
+          'vm.component.displayName',
+          'vm.component.filename',
+          'vm.component.filenames',
+          'vm.component.componentDisplayText',
+        ],
         vm.updateDisplay
       );
       vm.updateDisplay();
@@ -35,14 +40,19 @@ function ComponentDisplayController($scope) {
 
     updateDisplay() {
       if (vm.component) {
-        vm.componentName = getComponentName(vm.component);
+        if (OwnerContext.ownerType === 'repository') {
+          vm.componentName = vm.component.componentDisplayText;
+          vm.isFilenameOrUnknown = false;
+        } else {
+          vm.componentName = getComponentName(vm.component);
+          vm.isFilenameOrUnknown = isFilenameOrUnknown(vm.component);
+        }
         vm.ownerApplicationName = vm.component.ownerApplicationName || null;
         vm.innerSourceTDIndicator = vm.component.innerSourceTDIndicator;
         vm.dependencyType = vm.component.dependencyType || null;
-        vm.isFilenameOrUnknown = isFilenameOrUnknown(vm.component);
       }
     },
   });
 }
 
-ComponentDisplayController.$inject = ['$scope'];
+ComponentDisplayController.$inject = ['$scope', 'OwnerContext'];

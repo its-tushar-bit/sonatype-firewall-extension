@@ -94,7 +94,7 @@
       <div ng-show='!isUnknown && !errorMessage'>
         <div class="cip-box">
           <div id="version-graph-container" ng-show="loaded">
-            <root-ancestors></root-ancestors>
+            <root-ancestors ng-if="isApplicationOwnerContext()"></root-ancestors>
             <div id="suggested-remediation-version-links"
                  ng-controller="ComponentController"
                  ng-show="loaded && isApplicationOwnerContext() && isRecommendationsAvailable()">

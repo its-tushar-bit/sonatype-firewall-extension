@@ -6,42 +6,51 @@
 
 import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
-  FIREWALL_LOAD_CONFIGURATION_FAILED,
-  FIREWALL_LOAD_CONFIGURATION_FULFILLED,
-  FIREWALL_LOAD_STATUS_FAILED,
-  FIREWALL_LOAD_STATUS_FULFILLED,
-  FIREWALL_SAVE_CONFIGURATION_FULFILLED,
-  FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
-  FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED,
-  FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED,
-  FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED,
-  FIREWALL_RELEASE_QUARANTINE_LIST_FAILED,
-  FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED,
   FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
-  FIREWALL_QUARANTINE_LIST_REQUESTED,
-  FIREWALL_QUARANTINE_LIST_FAILED,
-  FIREWALL_QUARANTINE_LIST_FULFILLED,
-  FIREWALL_QUARANTINE_GRID_SET_PAGE,
-  FIREWALL_QUARANTINE_GRID_SET_SORTING,
+  FIREWALL_CIP_MODAL_CLOSED,
+  FIREWALL_CIP_MODAL_SHOW,
+  FIREWALL_LOAD_CONFIGURATION_FAILED,
+  FIREWALL_LOAD_CONFIGURATION_FULFILLED,
+  FIREWALL_LOAD_CONFIGURATION_REQUESTED,
+  FIREWALL_LOAD_DATA_REQUESTED,
+  FIREWALL_LOAD_STATUS_FAILED,
+  FIREWALL_LOAD_STATUS_FULFILLED,
+  FIREWALL_LOAD_STATUS_REQUESTED,
+  FIREWALL_POLICIES_FAILED,
+  FIREWALL_POLICIES_FULFILLED,
+  FIREWALL_POLICIES_REQUESTED,
   FIREWALL_QUARANTINE_GRID_SET_FILTER,
   FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
-  FIREWALL_POLICIES_REQUESTED,
-  FIREWALL_POLICIES_FULFILLED,
-  FIREWALL_POLICIES_FAILED,
-  FIREWALL_LOAD_DATA_REQUESTED,
-  FIREWALL_LOAD_CONFIGURATION_REQUESTED,
-  FIREWALL_LOAD_STATUS_REQUESTED,
-  FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED,
-  FIREWALL_QUARANTINE_SUMMARY_REQUESTED,
-  FIREWALL_QUARANTINE_SUMMARY_FULFILLED,
+  FIREWALL_QUARANTINE_GRID_SET_PAGE,
+  FIREWALL_QUARANTINE_GRID_SET_SORTING,
+  FIREWALL_QUARANTINE_LIST_FAILED,
+  FIREWALL_QUARANTINE_LIST_FULFILLED,
+  FIREWALL_QUARANTINE_LIST_REQUESTED,
   FIREWALL_QUARANTINE_SUMMARY_FAILED,
+  FIREWALL_QUARANTINE_SUMMARY_FULFILLED,
+  FIREWALL_QUARANTINE_SUMMARY_REQUESTED,
+  FIREWALL_RELEASE_QUARANTINE_LIST_FAILED,
+  FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED,
+  FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED,
+  FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED,
+  FIREWALL_SAVE_CONFIGURATION_FULFILLED,
+  FIREWALL_SELECT_COMPONENT,
+  FIREWALL_SET_SHOW_CONFIGURATION_MODAL,
 } from './firewallActions';
-import { __, always, lensPath, lensProp, over, merge } from 'ramda';
+import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet } from '../util/jsUtil';
 
 const initialState = Object.freeze({
+  cip: Object.freeze({
+    showCipModal: false,
+    selectedComponent: null,
+    selectedComponentIndex: null,
+    displayedEntries: [],
+  }),
   viewState: Object.freeze({
     loadedStatus: false,
     loadStatusError: null,
@@ -188,13 +197,15 @@ const loadReleaseQuarantineListRequested = (_, state) =>
     state
   );
 
+const renameKey = curry((oldKey, newKey, obj) => assoc(newKey, prop(oldKey, obj), dissoc(oldKey, obj)));
+
 const loadReleaseQuarantineListFulfilled = (payload, state) =>
   over(
     lensPath(['autoUnquarantineState', 'autoUnquarantineGridState']),
     merge(__, {
       loadedReleaseQuarantineList: true,
       loadAutoUnquarantineGridError: null,
-      releaseQuarantineList: payload.results,
+      releaseQuarantineList: payload.results.map((result) => renameKey('displayName', 'componentDisplayText', result)),
       releaseQuarantinePageCount: payload.pageCount,
       currentPage: payload.pageCount === 0 ? null : payload.page - 1,
     }),
@@ -391,7 +402,7 @@ const loadQuarantineListFulfilled = (payload, state) =>
     lensPath(['quarantineGridState']),
     merge(__, {
       loadedQuarantineList: true,
-      quarantineList: payload.results,
+      quarantineList: payload.results.map((result) => renameKey('displayName', 'componentDisplayText', result)),
       quarantinePageCount: payload.pageCount,
       currentPage: payload.pageCount === 0 ? null : payload.page - 1,
     }),
@@ -445,6 +456,40 @@ const setQuarantineGridLastUpdated = (payload, state) =>
     state
   );
 
+function setSelectedComponent(payload, state) {
+  return {
+    ...state,
+    cip: {
+      ...state.cip,
+      selectedComponent: payload.component,
+      selectedComponentIndex: payload.componentIndex,
+      displayedEntries: payload.components,
+    },
+  };
+}
+
+function cipModalClosed(_, state) {
+  return {
+    ...state,
+    cip: {
+      showCipModal: false,
+      selectedComponent: null,
+      selectedComponentIndex: null,
+      displayedEntries: [],
+    },
+  };
+}
+
+function cipModalShow(_, state) {
+  return {
+    ...state,
+    cip: {
+      ...state.cip,
+      showCipModal: true,
+    },
+  };
+}
+
 const reducerActionMap = {
   [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
   [FIREWALL_LOAD_STATUS_REQUESTED]: loadStatusRequested,
@@ -477,6 +522,9 @@ const reducerActionMap = {
   [FIREWALL_QUARANTINE_SUMMARY_REQUESTED]: quarantineSummaryRequested,
   [FIREWALL_QUARANTINE_SUMMARY_FULFILLED]: quarantineSummaryFulfilled,
   [FIREWALL_QUARANTINE_SUMMARY_FAILED]: quarantineSummaryFailed,
+  [FIREWALL_SELECT_COMPONENT]: setSelectedComponent,
+  [FIREWALL_CIP_MODAL_CLOSED]: cipModalClosed,
+  [FIREWALL_CIP_MODAL_SHOW]: cipModalShow,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

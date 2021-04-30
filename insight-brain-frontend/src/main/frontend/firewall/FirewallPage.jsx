@@ -15,7 +15,7 @@ import * as PropTypes from 'prop-types';
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
 import FirewallAutoUnquarantineStatus from './FirewallAutoUnquarantineStatus';
 
-export default function Firewall(props) {
+export default function FirewallPage(props) {
   // Actions
   const { loadFirewallData } = props;
 
@@ -80,7 +80,7 @@ function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfig
   return loadedStatus && loadedReleaseQuarantineSummary && loadedConfiguration && loadedQuarantineSummary;
 }
 
-Firewall.propTypes = {
+FirewallPage.propTypes = {
   loadFirewallData: PropTypes.func.isRequired,
   loadedStatus: PropTypes.bool.isRequired,
   autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,

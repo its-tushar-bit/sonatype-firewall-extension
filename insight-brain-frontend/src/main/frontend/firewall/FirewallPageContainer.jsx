@@ -4,12 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import Firewall from './Firewall';
+import FirewallPage from './FirewallPage';
 import { pick } from 'ramda';
 import {
   loadFirewallData,
   openConfigurationModal,
   loadQuarantineList,
+  selectQuarantineComponent,
   setQuarantineGridSorting,
   setQuarantineGridPolicyFilter,
   setQuarantineGridPage,
@@ -53,6 +54,7 @@ const mapDispatchToProps = {
   setQuarantineGridSorting,
   setQuarantineGridPolicyFilter,
   openConfigurationModal,
+  selectQuarantineComponent,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Firewall);
+export default connect(mapStateToProps, mapDispatchToProps)(FirewallPage);

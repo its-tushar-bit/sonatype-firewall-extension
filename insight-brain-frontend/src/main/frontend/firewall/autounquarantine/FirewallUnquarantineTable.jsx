@@ -18,7 +18,12 @@ import {
 
 export default function FirewallUnquarantineTable(props) {
   // Actions
-  const { loadReleaseQuarantineList, setAutoUnquarantineGridPage, setAutoUnquarantineGridSorting } = props;
+  const {
+    loadReleaseQuarantineList,
+    setAutoUnquarantineGridPage,
+    setAutoUnquarantineGridSorting,
+    selectReleaseQuarantineComponent,
+  } = props;
 
   // autoUnquarantineState.autoUnquarantineGridState
   const {
@@ -92,10 +97,10 @@ export default function FirewallUnquarantineTable(props) {
           {releaseQuarantineList &&
             releaseQuarantineList.map((row, index) => {
               return (
-                <NxTableRow key={index}>
+                <NxTableRow isClickable={true} key={index} onClick={() => selectReleaseQuarantineComponent(index)}>
                   <NxTableCell>
-                    <NxOverflowTooltip title={row.displayName}>
-                      <div className="nx-truncate-ellipsis">{row.displayName}</div>
+                    <NxOverflowTooltip title={row.componentDisplayText}>
+                      <div className="nx-truncate-ellipsis">{row.componentDisplayText}</div>
                     </NxOverflowTooltip>
                   </NxTableCell>
                   <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
@@ -136,4 +141,5 @@ FirewallUnquarantineTable.propTypes = {
   currentPage: PropTypes.number,
   sortDir: PropTypes.string,
   sortField: PropTypes.string,
+  selectReleaseQuarantineComponent: PropTypes.func.isRequired,
 };

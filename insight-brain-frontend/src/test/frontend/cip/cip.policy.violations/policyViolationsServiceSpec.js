@@ -13,6 +13,11 @@ describe('PolicyViolationsService', function () {
         set: angular.noop,
       });
 
+      $provide.value('OwnerContext', {
+        ownerId: 'some-application-id',
+        ownerType: 'application',
+      });
+
       $state = {
         params: {},
       };

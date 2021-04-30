@@ -94,7 +94,7 @@ public class PublicApiPaths
   public static final String ADVANCED_SEARCH_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "search/advanced";
 
   public static final String LABEL_RESOURCE_PATH =
-      API_VERSION_PATH_V2 + "labels/{ownerType: application|organization|repository}/{ownerId}";
+      API_VERSION_PATH_V2 + "labels/{ownerType: application|organization|repository|repository_container}/{ownerId}";
 
   public static final String APPLICATION_CATEGORY_RESOURCE_PATH = API_VERSION_PATH_V2 + "applicationCategories";
 

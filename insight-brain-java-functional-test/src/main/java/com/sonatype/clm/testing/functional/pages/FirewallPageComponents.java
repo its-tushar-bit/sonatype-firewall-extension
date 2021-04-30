@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -187,5 +188,9 @@ public class FirewallPageComponents
     public SelenideElement releaseQuarantineTimeHeader() {
       return child("#releaseQuarantineTime-header");
     }
+  }
+
+  public static CipModal cipModal() {
+    return new CipModal("#cip-modal");
   }
 }

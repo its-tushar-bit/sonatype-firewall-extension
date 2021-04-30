@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import applicationReportModule from '../../../../main/frontend/applicationReport/module';
-import { mapStateToThis } from '../../../../main/frontend/applicationReport/results/cipModal/cipModal';
 
 describe('cipModal', function () {
   let vm, scope, SelectedComponent, Coordinates, ComponentUtil, Properties;
@@ -32,9 +31,8 @@ describe('cipModal', function () {
       $scope: scope,
     });
     scope.vm = vm;
-    vm.metadata = {
-      stageId: 'test-stage-id',
-    };
+    vm.selectComponent = jasmine.createSpy('selectComponent');
+    vm.stageId = 'test-stage-id';
     spyOn(Properties, 'setStageId');
     vm.$onInit();
   }));
@@ -182,14 +180,6 @@ describe('cipModal', function () {
     });
   });
 
-  describe('$onDestroy()', function () {
-    it('unsubscribes from redux store', function () {
-      expect(vm.unsubscribeFromReduxStore).not.toHaveBeenCalled();
-      vm.$onDestroy();
-      expect(vm.unsubscribeFromReduxStore).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('previous()', function () {
     it('selects component with previous index', function () {
       vm.selectedComponentIndex = 1;
@@ -223,9 +213,7 @@ describe('cipModal', function () {
 
   describe('isNextDisabled()', function () {
     beforeEach(function () {
-      vm.selectedReport = {
-        displayedEntries: ['foo', 'bar'],
-      };
+      vm.entriesCount = 2;
     });
     it('returns true if selectedComponentIndex is last index', function () {
       vm.selectedComponentIndex = 1;
@@ -238,59 +226,6 @@ describe('cipModal', function () {
     it('returns false if selectedComponentIndex is less than last index', function () {
       vm.selectedComponentIndex = 0;
       expect(vm.isNextDisabled()).toBe(false);
-    });
-  });
-
-  describe('mapStateToThis', () => {
-    describe('when selectedRootAncestor is not set', function () {
-      it('sets selectedComponent using selectedComponentIndex and does not set previousComponent', function () {
-        const selectedComponent = { foo: 'bar' };
-        const state = {
-          applicationReport: {
-            selectedRootAncestor: null,
-            selectedComponentIndex: 1,
-            selectedComponent: selectedComponent,
-            selectedReport: {
-              displayedEntries: [{}, selectedComponent, {}],
-            },
-          },
-        };
-
-        const output = mapStateToThis(state);
-        expect(output.selectedComponent).toBe(selectedComponent);
-        expect(output.previousComponent).toBeNull();
-      });
-    });
-
-    describe('when selectedRootAncestor is set', function () {
-      it('sets selectedComponent to selectedRootAncestor and sets previousComponent using selectedComponentIndex', function () {
-        const selectedComponent = {
-          displayName: {
-            parts: [
-              { field: 'Group', value: 'org.springframework' },
-              { value: ' : ' },
-              { field: 'Artifact', value: 'spring-expression' },
-              { value: ' : ' },
-              { field: 'Version', value: '3.2.4.RELEASE' },
-            ],
-          },
-        };
-        const selectedRootAncestor = { foo: 'baz' };
-        const state = {
-          applicationReport: {
-            selectedRootAncestor,
-            selectedComponentIndex: 0,
-            selectedComponent: selectedComponent,
-            selectedReport: {
-              displayedEntries: [selectedComponent],
-            },
-          },
-        };
-
-        const output = mapStateToThis(state);
-        expect(output.selectedComponent).toBe(selectedRootAncestor);
-        expect(output.previousComponent).toBe(selectedComponent);
-      });
     });
   });
 });

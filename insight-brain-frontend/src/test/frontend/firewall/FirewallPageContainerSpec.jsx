@@ -6,10 +6,17 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 import configureStore from 'redux-mock-store';
-import Firewall from '../../../main/frontend/firewall/Firewall';
+import FirewallPage from '../../../main/frontend/firewall/FirewallPage';
 
-describe('FirewallContainer', function () {
-  let FirewallContainer, loadFirewallDataMock, openConfigurationModalMock, loadQuarantineListMock, store, state, vdom;
+describe('FirewallPageContainer', function () {
+  let FirewallPageContainer,
+    loadFirewallDataMock,
+    openConfigurationModalMock,
+    loadQuarantineListMock,
+    selectQuarantineComponentMock,
+    store,
+    state,
+    vdom;
 
   beforeEach(function () {
     loadFirewallDataMock = jasmine.createSpy('loadFirewallDataMock').and.returnValue({
@@ -24,11 +31,16 @@ describe('FirewallContainer', function () {
       type: 'LOAD_QUARANTINE_LIST',
     });
 
-    FirewallContainer = require('inject-loader!../../../main/frontend/firewall/FirewallContainer')({
+    selectQuarantineComponentMock = jasmine.createSpy('selectQuarantineComponentMock').and.returnValue({
+      type: 'SELECT_QUARANTINE_COMPONENT',
+    });
+
+    FirewallPageContainer = require('inject-loader!../../../main/frontend/firewall/FirewallPageContainer')({
       './firewallActions': {
         loadFirewallData: loadFirewallDataMock,
         openConfigurationModal: openConfigurationModalMock,
         loadQuarantineList: loadQuarantineListMock,
+        selectQuarantineComponent: selectQuarantineComponentMock,
       },
     }).default;
 
@@ -69,7 +81,7 @@ describe('FirewallContainer', function () {
     };
 
     store = configureStore()(() => state);
-    vdom = <FirewallContainer store={store} />;
+    vdom = <FirewallPageContainer store={store} />;
   });
 
   it('maps the state slice to props', () => {
@@ -159,11 +171,13 @@ describe('FirewallContainer', function () {
     const wrapper = shallow(vdom).dive(),
       loadFirewallDataActionCreator = wrapper.prop('loadFirewallData'),
       openConfigurationModalActionCreator = wrapper.prop('openConfigurationModal'),
-      loadQuarantineListActionCreator = wrapper.prop('loadQuarantineList');
+      loadQuarantineListActionCreator = wrapper.prop('loadQuarantineList'),
+      selectQuarantineComponentActionCreator = wrapper.prop('selectQuarantineComponent');
 
     expect(loadFirewallDataActionCreator).toEqual(jasmine.any(Function));
     expect(openConfigurationModalActionCreator).toEqual(jasmine.any(Function));
     expect(loadQuarantineListActionCreator).toEqual(jasmine.any(Function));
+    expect(selectQuarantineComponentActionCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
 
@@ -179,12 +193,20 @@ describe('FirewallContainer', function () {
       { type: 'LOAD_QUARANTINE_LIST' },
       { type: 'OPEN_FIREWALL_CONFIGURATION' },
     ]);
+
+    selectQuarantineComponentActionCreator();
+    expect(store.getActions()).toEqual([
+      { type: 'LOAD_FIREWALL_DATA' },
+      { type: 'LOAD_QUARANTINE_LIST' },
+      { type: 'OPEN_FIREWALL_CONFIGURATION' },
+      { type: 'SELECT_QUARANTINE_COMPONENT' },
+    ]);
   });
 
   it('renders Firewall component', function () {
-    const firewall = shallow(vdom).find(Firewall);
+    const firewallPage = shallow(vdom).find(FirewallPage);
 
-    expect(firewall).toExist();
-    expect(firewall).toHaveProp('loadError', null);
+    expect(firewallPage).toExist();
+    expect(firewallPage).toHaveProp('loadError', null);
   });
 });

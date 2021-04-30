@@ -41,7 +41,8 @@ describe('applicationReportResults', function () {
       expect(vm.unsubscribe).toBeDefined();
     });
 
-    it('watches vm.reportParameters and sets OwnerId and ScanId in OwnerContext', function () {
+    it('watches vm.reportParameters and sets OwnerType, OwnerId and ScanId in OwnerContext', function () {
+      spyOn(OwnerContext, 'setOwnerType');
       spyOn(OwnerContext, 'setOwnerId');
       spyOn(OwnerContext, 'setScanId');
       vm.reportParameters = {
@@ -49,6 +50,7 @@ describe('applicationReportResults', function () {
         scanId: 'test-scan-23424iufg',
       };
       scope.$digest();
+      expect(OwnerContext.setOwnerType).toHaveBeenCalledWith('application');
       expect(OwnerContext.setOwnerId).toHaveBeenCalledWith('test-application-23424iufg');
       expect(OwnerContext.setScanId).toHaveBeenCalledWith('test-scan-23424iufg');
     });

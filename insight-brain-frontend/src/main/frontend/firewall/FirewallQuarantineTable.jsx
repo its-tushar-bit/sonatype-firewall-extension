@@ -10,12 +10,12 @@ import {
   NxButton,
   NxFontAwesomeIcon,
   NxPagination,
+  NxOverflowTooltip,
   NxTable,
   NxTableBody,
   NxTableCell,
   NxTableHead,
   NxTableRow,
-  NxOverflowTooltip,
   NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 
@@ -23,7 +23,13 @@ import { faSync } from '@fortawesome/pro-solid-svg-icons';
 
 export default function FirewallQuarantineTable(props) {
   // actions
-  const { loadQuarantineList, setQuarantineGridPage, setQuarantineGridSorting, setQuarantineGridPolicyFilter } = props;
+  const {
+    loadQuarantineList,
+    setQuarantineGridPage,
+    setQuarantineGridSorting,
+    setQuarantineGridPolicyFilter,
+    selectQuarantineComponent,
+  } = props;
 
   // quarantineState.quarantineGridState
   const {
@@ -156,7 +162,7 @@ export default function FirewallQuarantineTable(props) {
                 let policyViolation = getHighestPolicyViolation(row.quarantinePolicyViolations);
 
                 return (
-                  <NxTableRow key={index}>
+                  <NxTableRow isClickable={true} key={index} onClick={() => selectQuarantineComponent(index)}>
                     <NxTableCell isNumeric>
                       <NxThreatIndicator policyThreatLevel={policyViolation.threatLevel} />
                       <span>{policyViolation.threatLevel}</span>
@@ -168,8 +174,8 @@ export default function FirewallQuarantineTable(props) {
                     </NxTableCell>
                     <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
                     <NxTableCell>
-                      <NxOverflowTooltip title={row.displayName}>
-                        <div className="nx-truncate-ellipsis">{row.displayName}</div>
+                      <NxOverflowTooltip title={row.componentDisplayText}>
+                        <div className="nx-truncate-ellipsis">{row.componentDisplayText}</div>
                       </NxOverflowTooltip>
                     </NxTableCell>
                     <NxTableCell>
@@ -213,4 +219,5 @@ FirewallQuarantineTable.propTypes = {
   sortField: PropTypes.string,
   filterPolicy: PropTypes.object,
   lastUpdated: PropTypes.object,
+  selectQuarantineComponent: PropTypes.func.isRequired,
 };

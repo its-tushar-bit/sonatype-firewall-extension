@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiLabelResourceTest
@@ -156,6 +157,66 @@ public class ApiLabelResourceTest
   }
 
   @Test
+  public void testRepositoryContainerCRUD() throws Exception {
+    HttpRequest request = restRequest(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID);
+
+    // Get all labels
+    HttpResponse response = request.get();
+    assertResponseStatus(200, response);
+    ApiLabelDTO[] labels = response.getBody(ApiLabelDTO[].class);
+    assertThat(labels).isEmpty();
+
+    // Add a label
+    ApiLabelDTO labelDTO = new ApiLabelDTO("MyLabel", "My Description", "light-green");
+
+    response = request.body(labelDTO).post();
+    assertResponseStatus(200, response);
+    labelDTO = response.getBody(ApiLabelDTO.class);
+
+    assertLabel(REPOSITORY_CONTAINER_ID, OwnerType.REPOSITORY_CONTAINER, "MyLabel", "My Description", Color.light_green,
+        labelDTO);
+
+    // Get all labels
+    response = request.get();
+    assertResponseStatus(200, response);
+    labels = response.getBody(ApiLabelDTO[].class);
+    assertThat(labels).hasSize(1);
+    assertLabel(REPOSITORY_CONTAINER_ID, OwnerType.REPOSITORY_CONTAINER, "MyLabel", "My Description", Color.light_green,
+        labels[0]);
+
+    // Update a label
+    labelDTO.label = "MyUpdatedLabel";
+    labelDTO.description = "Description Update";
+    labelDTO.color = "light-green";
+    response = request.body(labelDTO).put();
+    assertResponseStatus(200, response);
+    labelDTO = response.getBody(ApiLabelDTO.class);
+
+    assertLabel(REPOSITORY_CONTAINER_ID, OwnerType.REPOSITORY_CONTAINER, "MyUpdatedLabel", "Description Update",
+        Color.light_green,
+        labelDTO);
+
+    // Get all labels
+    response = request.get();
+    assertResponseStatus(200, response);
+    labels = response.getBody(ApiLabelDTO[].class);
+    assertThat(labels).hasSize(1);
+    assertLabel(REPOSITORY_CONTAINER_ID, OwnerType.REPOSITORY_CONTAINER, "MyUpdatedLabel", "Description Update",
+        Color.light_green,
+        labels[0]);
+
+    // Delete a label
+    response = request.subpath(labelDTO.id).delete();
+    assertResponseStatus(204, response);
+
+    // Get all labels
+    response = request.get();
+    assertResponseStatus(200, response);
+    labels = response.getBody(ApiLabelDTO[].class);
+    assertThat(labels).isEmpty();
+  }
+
+  @Test
   public void testGetApplicableLabels() throws Exception {
     // Create an organization and an application
     Organization org = tempEntity.newOrganization("testGetApplicableLabelsOrg");
@@ -197,6 +258,15 @@ public class ApiLabelResourceTest
     assertLabelsByOwner(repository, 0, applicableLabels.labelsByOwner.get(0));
     assertLabelsByOwner(RepositoryContainer.SINGLETON, 0, applicableLabels.labelsByOwner.get(1));
     assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(2));
+
+    // Verify the applicable labels for the repository container
+    response = restRequest(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID).path("applicable").get();
+    assertResponseStatus(200, response);
+    applicableLabels = response.getBody(ApplicableLabels.class);
+    // One for the repositoryContainer, and one for the root org
+    assertThat(applicableLabels.labelsByOwner).hasSize(2);
+    assertLabelsByOwner(RepositoryContainer.SINGLETON, 0, applicableLabels.labelsByOwner.get(0));
+    assertLabelsByOwner(parentOrg, 0, applicableLabels.labelsByOwner.get(1));
 
     // Create a label for the application
     Label appLabel = tempEntity.newLabel(app.getId(), "testGetApplicableLabels_App_label");
@@ -322,7 +392,7 @@ public class ApiLabelResourceTest
     assertThat(context.getChildren()).hasSize(1);
     context = context.getChildren().get(0);
     assertThat(context).isNotNull();
-    assertThat(context.getId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(context.getId()).isEqualTo(REPOSITORY_CONTAINER_ID);
     assertThat(context.getName()).isEqualTo(RepositoryContainer.SINGLETON.getName());
     assertThat(context.getType()).isEqualTo(OwnerType.REPOSITORY_CONTAINER);
     assertThat(context.getChildren()).hasSize(1);

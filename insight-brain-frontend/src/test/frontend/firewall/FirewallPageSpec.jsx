@@ -12,7 +12,7 @@ import FirewallAutoReleaseQuarantine from '../../../main/frontend/firewall/Firew
 import FirewallQuarantine from '../../../main/frontend/firewall/FirewallQuarantine';
 import FirewallQuarantineTable from '../../../main/frontend/firewall/FirewallQuarantineTable';
 
-describe('Firewall', function () {
+describe('FirewallPage', function () {
   let minimalProps,
     Firewall,
     loadFirewallDataSpy,
@@ -26,7 +26,7 @@ describe('Firewall', function () {
       .createSpy('FirewallConfigurationModalMock')
       .and.returnValue(<div>FirewallConfigurationModal</div>);
 
-    Firewall = require('inject-loader!../../../main/frontend/firewall/Firewall')({
+    Firewall = require('inject-loader!../../../main/frontend/firewall/FirewallPage')({
       './config/FirewallConfigurationModalContainer': FirewallConfigurationModalMock,
     }).default;
 

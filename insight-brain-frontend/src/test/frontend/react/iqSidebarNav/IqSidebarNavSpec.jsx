@@ -236,7 +236,7 @@ describe('IqSidebarNav', function () {
       expect(navLink).toHaveProp('isSelected', false);
     });
 
-    it('renders an NxGlobalSidebarNavigationLink for firewalll if allowed', function () {
+    it('renders an NxGlobalSidebarNavigationLink for firewall if allowed', function () {
       expect(getShallowComponent({ isLoggedIn: true }).find('#firewall-navigation-button')).not.toExist();
 
       const component = getShallowComponent({
@@ -249,7 +249,7 @@ describe('IqSidebarNav', function () {
       expect(navLink).toMatchSelector(NxGlobalSidebarNavigationLink);
       expect(navLink).toHaveProp('icon', faShieldCheck);
       expect(navLink).toHaveProp('text', 'Firewall');
-      expect(navLink).toHaveProp('href', 'href-firewall');
+      expect(navLink).toHaveProp('href', 'href-firewall.firewallPage');
       expect(navLink).toHaveProp('isSelected', false);
     });
 

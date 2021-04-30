@@ -49,8 +49,9 @@ describe('FirewallAutoReleaseQuarantine', function () {
     const footer = component.find('.nx-card__footer');
     expect(footer).toExist();
     const link = component.find('.nx-text-link');
-    expect(link).toHaveText('View Auto Unquarantine');
+    expect(link).toHaveText('View Auto Release Quarantine');
+    expect(link).toHaveProp('href', 'href');
     link.simulate('click');
-    expect(stateHrefSpy).toHaveBeenCalledWith('firewallAutoUnquarantine');
+    expect(stateHrefSpy).toHaveBeenCalledWith('firewall.firewallAutoUnquarantinePage');
   });
 });

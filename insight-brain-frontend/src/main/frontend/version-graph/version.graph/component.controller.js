@@ -254,7 +254,7 @@ export default function ComponentController(
   };
 
   $scope.canShowAddProprietary = function () {
-    if (!clmEndpoint.canAddProprietary || Properties.getProprietary()) {
+    if (!clmEndpoint.canAddProprietary || Properties.getProprietary() || OwnerContext.ownerType === 'repository') {
       return false;
     }
     // don't show if there are no pathNames

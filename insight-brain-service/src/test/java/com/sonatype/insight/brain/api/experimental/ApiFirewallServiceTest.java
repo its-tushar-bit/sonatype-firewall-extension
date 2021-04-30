@@ -669,8 +669,8 @@ public class ApiFirewallServiceTest
       final Date quarantineDate,
       final Date dateCleared)
   {
-    assertRepositoryComponent(componentDTO, quarantineDate, dateCleared);
     assertThat(componentDTO.displayName).isEqualTo("g : a : v");
+    assertRepositoryComponent(componentDTO, quarantineDate, dateCleared);
     assertThat(componentDTO.repository).isEqualTo("repo1");
     assertThat(componentDTO.dateCleared).isEqualTo(dateCleared);
     assertThat(componentDTO.quarantineDate).isEqualTo(quarantineDate);

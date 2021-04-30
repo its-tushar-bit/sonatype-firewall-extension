@@ -65,6 +65,7 @@ describe('FirewallAutoUnquarantinePage', function () {
     const backButton = component.find(BackButton);
     expect(backButton).toExist();
     expect(backButton).toHaveProp('text', 'Back to Quarantine');
+    expect(backButton).toHaveProp('stateName', 'firewall.firewallPage');
     expect(backButton).toHaveProp('$state', stateMock);
   });
 

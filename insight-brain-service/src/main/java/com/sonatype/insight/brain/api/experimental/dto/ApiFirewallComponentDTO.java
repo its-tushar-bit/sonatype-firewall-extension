@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.json.store.ApiDateFormat;
 
@@ -25,4 +26,16 @@ public class ApiFirewallComponentDTO
   public Date dateCleared;
 
   public List<ApiPolicyViolationDTOV2> quarantinePolicyViolations = new ArrayList<>();
+
+  public ComponentIdentifier componentIdentifier;
+
+  public String pathname;
+
+  public String hash;
+
+  public String matchState;
+
+  public String repositoryId;
+
+  public boolean quarantined;
 }

@@ -927,7 +927,8 @@ var clmEndpointTemplate = {
         var scope = null,
           properties,
           proprietaryModal,
-          selectedComponent;
+          selectedComponent,
+          ownerContext;
 
         beforeEach(function () {
           clmEndpoint.selectApplication = true;
@@ -941,12 +942,11 @@ var clmEndpointTemplate = {
 
           inject(function ($controller, $rootScope, Properties) {
             properties = Properties;
+            ownerContext = { ownerId: 'testParentApplication' };
             scope = $rootScope.$new();
             $controller('ComponentController', {
               $scope: scope,
-              OwnerContext: {
-                ownerId: 'testParentApplication',
-              },
+              OwnerContext: ownerContext,
             });
           });
         });
@@ -989,6 +989,12 @@ var clmEndpointTemplate = {
               it('returns  true if component is not marked as proprietary', function () {
                 properties.setProprietary(false);
                 expect(scope.canShowAddProprietary()).toBe(true);
+              });
+
+              it('returns false if ownerType is repository', function () {
+                properties.setProprietary(false);
+                ownerContext.ownerType = 'repository';
+                expect(scope.canShowAddProprietary()).toBe(false);
               });
             });
           });

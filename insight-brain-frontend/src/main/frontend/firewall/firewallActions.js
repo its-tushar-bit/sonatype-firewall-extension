@@ -7,7 +7,6 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { Messages } from '../util/CommonServices';
 import {
   getFirewallConfigurationUrl,
   getFirewallStatusUrl,
@@ -17,6 +16,7 @@ import {
   getFirewallQuarantineListUrl,
   getPoliciesUrl,
 } from '../util/CLMLocation';
+import { Messages } from '../util/CommonServices';
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -319,5 +319,39 @@ export function setQuarantineGridLastUpdated(lastUpdated) {
   return {
     type: FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
     payload: { lastUpdated: lastUpdated },
+  };
+}
+
+export const FIREWALL_SELECT_COMPONENT = 'FIREWALL_SELECT_COMPONENT';
+const setSelectedComponent = payloadParamActionCreator(FIREWALL_SELECT_COMPONENT);
+
+export const FIREWALL_CIP_MODAL_CLOSED = 'FIREWALL_CIP_MODAL_CLOSED';
+export const FIREWALL_CIP_MODAL_SHOW = 'FIREWALL_CIP_MODAL_SHOW';
+export const cipModalClosed = noPayloadActionCreator(FIREWALL_CIP_MODAL_CLOSED);
+export const cipModalShow = noPayloadActionCreator(FIREWALL_CIP_MODAL_SHOW);
+
+export function selectQuarantineComponent(componentIndex) {
+  return (dispatch, getState) => {
+    let components = getState().firewall.quarantineGridState.quarantineList;
+    let component = components[componentIndex];
+    dispatch(setSelectedComponent({ component, componentIndex, components }));
+    dispatch(cipModalShow());
+  };
+}
+
+export function selectReleaseQuarantineComponent(componentIndex) {
+  return (dispatch, getState) => {
+    let components = getState().firewall.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantineList;
+    let component = components[componentIndex];
+    dispatch(setSelectedComponent({ component, componentIndex, components }));
+    dispatch(cipModalShow());
+  };
+}
+
+export function selectComponent(componentIndex) {
+  return (dispatch, getState) => {
+    let components = getState().firewall.cip.displayedEntries;
+    let component = components[componentIndex];
+    dispatch(setSelectedComponent({ component, componentIndex, components }));
   };
 }

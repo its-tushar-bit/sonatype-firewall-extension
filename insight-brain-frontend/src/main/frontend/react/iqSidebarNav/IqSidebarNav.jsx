@@ -54,7 +54,7 @@ function IqSidebarNav(props) {
   const successMetricsHref = uiRouterState.href('labs.successMetrics');
   const vulnSearchHref = uiRouterState.href('vulnerabilitySearch');
   const advSearchHref = uiRouterState.href('advancedSearch');
-  const firewallHref = uiRouterState.href('firewall');
+  const firewallHref = uiRouterState.href('firewall.firewallPage');
   const legalHref = uiRouterState.href('legal.dashboard');
 
   const isSelected = (entryName) => {

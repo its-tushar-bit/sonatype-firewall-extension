@@ -52,8 +52,8 @@ The members of `@iq-on-call-devs` are rotated weekly on Sundays, see [the member
 ## Requirements ##
 
 This project requires the following local installs:
-1. Java 8
-2. Maven 3.3.9 (note: newer versions may not work)
+1. Java 8 (if you use a version of Maven that has a newer JDK, you'll want to point JAVA_HOME to your Java 8 install)
+2. Maven 3.6.x (note: it is possible newer versions may not work though 3.8.1 seems to work)
 
 Be sure to configure both Maven and npm to use RSO (https://repository.sonatype.org) as the source for packages. You will need to use your own personal user credentials for RSO (instructions for how to do this are included in the following Maven RSO instructions):
 

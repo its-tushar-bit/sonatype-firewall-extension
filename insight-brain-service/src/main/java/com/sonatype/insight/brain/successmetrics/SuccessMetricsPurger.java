@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.successmetrics;
 
 import java.io.PrintWriter;
+import java.time.Duration;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -15,6 +16,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.persistence.OptimisticLockException;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -43,6 +45,8 @@ public class SuccessMetricsPurger
     implements Managed, Job
 {
   public static final String NAME = "SuccessMetricsPurger";
+
+  private static final int MAX_RETRIES = 10;
 
   private static final Logger log = LoggerFactory.getLogger(SuccessMetricsPurger.class);
 
@@ -121,13 +125,34 @@ public class SuccessMetricsPurger
     log.debug("Purging obsolete success metrics from {} applications", applications.size());
     int purgedApplications = 0;
     for (Application application : applications) {
-      if (purgeSuccessMetrics(application)) {
-        purgedApplications++;
+      for (int retry = 0; retry <= MAX_RETRIES; retry++) {
+        try {
+          if (purgeSuccessMetrics(application)) {
+            purgedApplications++;
+          }
+          break;
+        }
+        catch (OptimisticLockException e) {
+          // This exception occurs usually when the embedded database is under too much load from concurrent queries.
+          // To avoid having to start over the entire purging task, we retry to get this purging run completed.
+          if (retry >= MAX_RETRIES) {
+            throw e;
+          }
+          Duration delay = getDelayForRetry(retry);
+          log.debug("Failed to purge obsolete success metrics for application {}, retrying in {}",
+              application.getName(), delay, retry == 0 ? e : null);
+          try {
+            Thread.sleep(delay.toMillis());
+          }
+          catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            e.addSuppressed(ex);
+            throw e;
+          }
+        }
       }
     }
-    if (purgedApplications > 0) {
-      log.info("Purged obsolete success metrics from {} applications", purgedApplications);
-    }
+    log.info("Purged obsolete success metrics from {} applications", purgedApplications);
   }
 
   private boolean purgeSuccessMetrics(Application application) {
@@ -161,5 +186,9 @@ public class SuccessMetricsPurger
     int maxAgeInYears = Math.max(1, dataRetentionPolicy.getMaxAgeInDays() / 365);
     return Date
         .from(ZonedDateTime.now().withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS).minusYears(maxAgeInYears).toInstant());
+  }
+
+  Duration getDelayForRetry(int retry) {
+    return Duration.ofSeconds(1 << retry);
   }
 }

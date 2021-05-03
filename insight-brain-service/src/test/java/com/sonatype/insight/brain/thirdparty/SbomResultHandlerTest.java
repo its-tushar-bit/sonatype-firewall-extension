@@ -404,6 +404,17 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_Sbom_Version_1_0() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom_1_0.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent("sbom_1_0.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> {
+      sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    }).withMessage("Error filtering sbom file sbom_1_0.xml");
+  }
+
+  @Test
   public void testHandleAndFilterContents_withVulnerabilities_missingFields() throws Exception {
     String sbomContent = getSbomXmlFile("sbom-vulnerabilities-missing-fields.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);

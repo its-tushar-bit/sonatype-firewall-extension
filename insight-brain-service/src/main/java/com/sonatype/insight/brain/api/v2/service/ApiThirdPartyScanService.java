@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -42,6 +43,7 @@ import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.application.ScannerDriver;
@@ -50,6 +52,8 @@ import com.sonatype.insight.scan.model.ItemContentType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
+import org.cyclonedx.exception.ParseException;
+import org.cyclonedx.model.Bom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,6 +129,15 @@ public class ApiThirdPartyScanService
   private void validateSbom(final String sbom) {
     if (StringUtils.isBlank(sbom)) {
       throw new BadRequestException("sbom content is null or empty");
+    }
+    try {
+      Bom bom = ThirdPartyUtils.parseBom(sbom);
+      if (ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(bom.getSpecVersion()) == null) {
+        throw new NotAcceptableException("Cyclone version " + bom.getSpecVersion() + " is not supported");
+      }
+    }
+    catch (ParseException e) {
+      throw new BadRequestException("sbom content cannot be parsed", e);
     }
   }
 

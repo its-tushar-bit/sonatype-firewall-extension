@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiEvaluationResultCounterDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiThirdPartyScanService.ApiPolicyAction;
+import com.sonatype.insight.brain.dataaccess.NotAcceptableException;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -71,6 +72,14 @@ public class ApiThirdPartyScanServiceTest
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent();
+  }
+
+  @Test
+  public void testScanComponents_bom_v1_0() throws Exception {
+    String bom = getBomFile("valid_bom_1_0.xml");
+    assertThatExceptionOfType(NotAcceptableException.class).isThrownBy(() -> {
+      thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
+    }).withMessage("Cyclone version 1.0 is not supported");
   }
 
   @Test
@@ -331,7 +340,18 @@ public class ApiThirdPartyScanServiceTest
 
   @Test
   public void testScanComponents_Invalid_Content_Json() throws Exception {
-    testScanComponents_Invalid_Content("invalid_bom.json");
+    String bom = getBomFile("invalid_bom.json");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+    }).withMessage("sbom content cannot be parsed");
+  }
+
+  @Test
+  public void testScanComponents_Invalid_Content_Xml() throws Exception {
+    String bom = getBomFile("invalid_xml_bom.xml");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
+    }).withMessage("sbom content cannot be parsed");
   }
 
   private void testScanComponents_Invalid_Content(String fileName) throws Exception {

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +38,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.BomGeneratorFactory;
-import org.cyclonedx.BomParserFactory;
+import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.GeneratorException;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.generators.xml.BomXmlGenerator;
@@ -56,7 +55,6 @@ import org.cyclonedx.model.vulnerability.Vulnerability10;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Advisory;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Recommendation;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Source;
-import org.cyclonedx.parsers.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,10 +109,13 @@ public class SbomResultHandler
   }
 
   //visible for testing
-  Bom parseBom(final ThirdPartyScanContent content) throws ParseException {
-    byte[] bytes = content.getContent().getBytes(StandardCharsets.UTF_8);
-    Parser parser = BomParserFactory.createParser(bytes);
-    return parser.parse(bytes);
+  Bom parseBom(final ThirdPartyScanContent content) throws ParseException, RuntimeException {
+    Bom bom = ThirdPartyUtils.parseBom(content.getContent());
+    Version version = ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(bom.getSpecVersion());
+    if (version == null) {
+      throw new RuntimeException("Cyclone " + bom.getSpecVersion() + " version is not supported");
+    }
+    return bom;
   }
 
   private void processSbom(

@@ -1,0 +1,73 @@
+{
+  "_readme": [
+    "This file locks the dependencies of your project to a known state",
+    "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+    "This file is @generated automatically"
+  ],
+  "hash": "8ca6b6b80bab36b5287b4292abee988f",
+  "packages": [
+    {
+      "name": "bower-asset/bootstrap",
+      "version": "v3.2.0",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/twbs/bootstrap.git",
+        "reference": "c068162161154a4b85110ea1e7dd3d7897ce2b72"
+      },
+      "dist": {
+        "type": "zip",
+        "url": "https://api.github.com/repos/twbs/bootstrap/zipball/c068162161154a4b85110ea1e7dd3d7897ce2b72",
+        "reference": "c068162161154a4b85110ea1e7dd3d7897ce2b72",
+        "shasum": ""
+      },
+      "require": {
+        "bower-asset/jquery": ">=1.9.0"
+      },
+      "type": "bower-asset-library",
+      "extra": {
+        "bower-asset-main": [
+          "less/bootstrap.less",
+          "dist/css/bootstrap.css",
+          "dist/js/bootstrap.js",
+          "dist/fonts/glyphicons-halflings-regular.eot",
+          "dist/fonts/glyphicons-halflings-regular.svg",
+          "dist/fonts/glyphicons-halflings-regular.ttf",
+          "dist/fonts/glyphicons-halflings-regular.woff"
+        ],
+        "bower-asset-ignore": [
+          ".*",
+          "_config.yml",
+          "CNAME",
+          "composer.json",
+          "CONTRIBUTING.md",
+          "docs",
+          "js/tests",
+          "test-infra"
+        ]
+      },
+      "description": "The most popular front-end framework for developing responsive, mobile first projects on the web.",
+      "keywords": [
+        "css",
+        "framework",
+        "front-end",
+        "js",
+        "less",
+        "mobile-first",
+        "responsive",
+        "web"
+      ]
+    }
+  ],
+  "aliases": [],
+  "minimum-stability": "dev",
+  "stability-flags": {
+    "bower-asset/jquery-ui": 0
+  },
+  "prefer-stable": false,
+  "platform": {
+    "php": ">=5.4.0",
+    "ext-mbstring": "*",
+    "lib-pcre": "*"
+  },
+  "platform-dev": []
+}

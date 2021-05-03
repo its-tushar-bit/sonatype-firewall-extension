@@ -1,0 +1,35 @@
+PATH
+  remote: https://github.com/org1/repo1.git
+  specs:
+    gem1 (1.10.0)
+      gem2 (= 3.0.0)
+      gem3 (= 6.0)
+
+GIT
+  remote: https://github.com/org2/repo2.git
+  revision: b2ee978af7d49f0fb0e7271c6ac074dfb4d39353
+  specs:
+    gem4 (0.10.0)
+      gem5 (>= 3.0.0, < 5.0)
+      gem6 (>= 3.2.6, < 6.0)
+
+GEM
+  remote: https://rubygems.org/
+  remote: https://rails-assets.org/
+  specs:
+    gem7 (5.0.7.2)
+      gem7a (= 5.0.7.2)
+      gem7b (>= 1.2, < 3.0)
+      gem7c (~> 0.6.1)
+    gem12 (1.1.0)
+    gem13 (0.12.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  gem1 (~> 2.2.0)
+  gem2
+
+BUNDLED WITH
+   1.17.1

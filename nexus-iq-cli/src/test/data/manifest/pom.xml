@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.test</groupId>
+  <artifactId>test</artifactId>
+  <version>2.26.3-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>insight-test</module>
+  </modules>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <animal-sniffer-signature>java18</animal-sniffer-signature>
+    <slf4j.version>1.7.30</slf4j.version>
+    <logback-classic.version>1.2.3</logback-classic.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.sonatype.insight.scan</groupId>
+      <artifactId>insight-test-reverse-proxy</artifactId>
+      <version>2.26.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.sisu</groupId>
+      <artifactId>org.eclipse.sisu.inject</artifactId>
+      <version>0.3.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>4.2.0</version>
+      <classifier>no_aop</classifier>
+    </dependency>
+  </dependencies>
+</project>

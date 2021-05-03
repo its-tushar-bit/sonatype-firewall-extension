@@ -1122,6 +1122,7 @@
               <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/bom-1.1.xsd</exclude>
               <exclude>**/src/main/resources/com/sonatype/insight/brain/cyclonedx/spdx.xsd</exclude>
               <exclude>**/rst/**</exclude>
+              <exclude>**/src/test/data/manifest/*</exclude>
             </excludes>
           </configuration>
         </plugin>

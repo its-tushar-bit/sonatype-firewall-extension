@@ -293,6 +293,28 @@ public abstract class DefaultPolicyEvaluatorTest
   }
 
   @Test
+  public void testRun_Scan_Manifest() throws Exception {
+    tempEntity.newApplicationWithParent("the-app-id");
+    List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
+        "src/test/data/manifest/");
+    withTestRunner(params)
+        .doPolicyEvaluationRun();
+
+    File scanFile = findScanFile();
+    Scan scan = scanReader.read(scanFile);
+    assertThat(scan).isNotNull();
+
+    assertThat(scan.getItems()).hasSize(21).allSatisfy(item -> {
+          assertThat(item.getPath()).isNotNull();
+          assertThat(item.getSha1()).isNotNull();
+          assertThat(item.getContentType()).isNotNull();
+          assertThat(item.getContent()).isNotNull();
+        }
+    );
+  }
+
+  @Test
   public void testRun_ScanWithBaseDirAdjustsComponentPath() throws Exception {
     // given an application
     Application app = tempEntity.newApplicationWithParent("the-app-id");

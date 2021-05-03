@@ -25,7 +25,7 @@ describe('LicenseObligationAttributionTile component', function () {
       saveAttribution: saveAttributionSpy,
       setShowAttributionModal: setShowAttributionModalSpy,
       id: null,
-      name: 'License Obligation Name',
+      name: 'Must State Changes',
       originalAttributionText: '',
       attributionText: '',
       availableScopes: {
@@ -48,7 +48,12 @@ describe('LicenseObligationAttributionTile component', function () {
 
   it('renders a header with a label matching the license obligation name', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('.nx-h2')).toHaveText('Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-h2')).toHaveText('Stated Changes');
+  });
+
+  it('renders Additional Attributions header if there is not a name', function () {
+    const wrapper = getShallowComponent({ name: null });
+    expect(wrapper.find('.nx-h2')).toHaveText('Additional Attributions');
   });
 
   it('renders an Add button if there is no attribution', function () {
@@ -63,7 +68,7 @@ describe('LicenseObligationAttributionTile component', function () {
 
   it('renders an Add modal title if there is no attribution', function () {
     const wrapper = getShallowComponent({ showAttributionModal: true });
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Stated Changes');
   });
 
   it('renders an Edit modal title if there is an attribution', function () {
@@ -71,11 +76,16 @@ describe('LicenseObligationAttributionTile component', function () {
       id: 'id',
       showAttributionModal: true,
     });
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Edit Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-modal-header')).toHaveText('Edit Stated Changes');
   });
 
-  it('renders `None added` as content if there is no attribution', function () {
+  it('renders appropriate text if there is no attribution', function () {
     const wrapper = getShallowComponent();
+    expect(wrapper.find('.nx-tile-content')).toHaveText('No attribution for stated changes added');
+  });
+
+  it('renders `None added` as content if there is no attribution and no name', function () {
+    const wrapper = getShallowComponent({ name: null });
     expect(wrapper.find('.nx-tile-content')).toHaveText('None added');
   });
 
@@ -90,7 +100,7 @@ describe('LicenseObligationAttributionTile component', function () {
 
   it('renders the modal with root org data', function () {
     const wrapper = getShallowComponent({ showAttributionModal: true });
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Stated Changes');
     expect(wrapper.find(NxTextInput)).toHaveProp('value', '');
     let select = wrapper.find('select');
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
@@ -115,7 +125,7 @@ describe('LicenseObligationAttributionTile component', function () {
       showAttributionModal: true,
     };
     const wrapper = getShallowComponent(orgData);
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Stated Changes');
     expect(wrapper.find(NxTextInput)).toHaveProp('value', 'Some obligation attribution text.');
     let select = wrapper.find('select');
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');
@@ -142,7 +152,7 @@ describe('LicenseObligationAttributionTile component', function () {
       showAttributionModal: true,
     };
     const wrapper = getShallowComponent(appData);
-    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Attribution for "License Obligation Name"');
+    expect(wrapper.find('.nx-modal-header')).toHaveText('Add Stated Changes');
     expect(wrapper.find(NxTextInput)).toHaveProp('value', 'Some obligation attribution text.');
     let select = wrapper.find('select');
     expect(select).toHaveProp('value', 'ROOT_ORGANIZATION_ID');

@@ -73,8 +73,12 @@ public class ApplicationAttributionReportBuilderTest
         .add(new ApiLicenseLegalFileDTO("id2", "path2", "DISABLED", "hash4", ComponentLegalPartStatus.DISABLED));
 
     List<ComponentObligationAttributionDTO> attributions = new ArrayList<>();
-    attributions
-        .add(new ComponentObligationAttributionDTO("id", "owner", "Must State Changes", "myAttributionContent"));
+    attributions.add(
+        new ComponentObligationAttributionDTO("id", "owner", "Must State Changes", "myAttributionContent"));
+    attributions.add(
+        new ComponentObligationAttributionDTO("id", "owner", "Inclusion of Install Instructions", "attribution 2"));
+    attributions.add(new ComponentObligationAttributionDTO("id", "owner", "Must Give Credit", "attribution 3"));
+    attributions.add(new ComponentObligationAttributionDTO("id", "owner", null, "attribution 4"));
 
     ApiLicenseLegalDataDTO licenseLegalData1 = new ApiLicenseLegalDataDTO();
     licenseLegalData1.copyrights = copyrights1;

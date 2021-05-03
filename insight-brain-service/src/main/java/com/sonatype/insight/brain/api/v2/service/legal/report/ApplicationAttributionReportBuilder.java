@@ -50,9 +50,15 @@ public class ApplicationAttributionReportBuilder
   public String generateLegalApplicationAttributionReport(@AuthzContext(Key.OWNER) Owner application, String stageId) {
     ApiLicenseLegalApplicationReportDTO applicationReportDTO =
         apiLicenseLegalService.getLicenseLegalApplicationReport(application, stageId);
-    Map<String, Object> contextMap = new HashMap<>(2);
+    Map<String, String> obligationNameMap = new HashMap<>(4);
+    obligationNameMap.put("Must State Changes", "Stated Changes");
+    obligationNameMap.put("Inclusion of Install Instructions", "Install Instructions");
+    obligationNameMap.put("Must Give Credit", "Give Credit");
+    obligationNameMap.put(null, "Additional Attributions");
+    Map<String, Object> contextMap = new HashMap<>(3);
     contextMap.put("applicationReport", applicationReportDTO);
     contextMap.put("applicationPublicId", application.getPublicId());
+    contextMap.put("obligationNameMap", obligationNameMap);
     return templateEngine.process("application_attribution_report", new Context(Locale.getDefault(), contextMap));
   }
 }

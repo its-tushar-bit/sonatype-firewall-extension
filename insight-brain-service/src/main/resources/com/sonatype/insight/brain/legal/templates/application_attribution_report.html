@@ -159,8 +159,10 @@
   <div th:if="${component.licenseLegalData.attributions != null &&
           #lists.size(component.licenseLegalData.attributions) > 0}">
     <h4>Attributions</h4>
-    <div th:each="attribution: ${component.licenseLegalData.attributions}">
-      <h5 th:text="${attribution.obligationName}"></h5>
+    <div th:each="attribution: ${component.licenseLegalData.attributions}"
+         th:with="obligationName=${#maps.containsKey(obligationNameMap,attribution.obligationName) ?
+                    obligationNameMap.get(attribution.obligationName) : attribution.obligationName}">
+      <h5 th:text="${obligationName}"></h5>
       <div class="containerBox">
         <pre th:text="${attribution.content}" class="fileContent"></pre>
       </div>

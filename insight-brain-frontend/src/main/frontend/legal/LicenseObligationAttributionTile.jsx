@@ -18,6 +18,7 @@ import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { availableScopesPropType, licenseObligationPropType } from './advancedLegalPropTypes';
 import ObligationStatusComponent from './shared/ObligationStatusComponent';
+import { ATTRIBUTION_DISPLAY_MAP } from './advancedLegalConstants';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -52,10 +53,14 @@ export default function LicenseObligationAttributionTile(props) {
     ? 'Must change attribution text or scope.'
     : 'Must add attribution text.';
   const [attributionTextInput, setAttributionTextInput] = useState(initialState(attributionText));
-  const isAdditionalAttribution = name === null;
-  const title = isAdditionalAttribution ? 'Additional Attribution' : 'Attribution for "' + name + '"';
+
+  const attributionConstantsMap = ATTRIBUTION_DISPLAY_MAP[name] || [];
+
+  const isAdditionalAttribution = attributionConstantsMap.length === 0;
+  const title = isAdditionalAttribution ? 'Additional Attributions' : attributionConstantsMap['headerTitle'];
+  const emptyMessage = isAdditionalAttribution ? 'None added' : attributionConstantsMap['emptyMessage'];
   const editOrAdd = isAttributionPresent() ? 'Edit' : 'Add';
-  const toId = (s) => s.toLowerCase().replace(/\s+/g, '-');
+  const toId = (s) => (s ? s.toLowerCase().replace(/\s+/g, '-') : '');
 
   function isObligationDirty() {
     return existingObligation && existingObligation.status !== existingObligation.originalStatus;
@@ -222,7 +227,7 @@ export default function LicenseObligationAttributionTile(props) {
         </div>
         {showAttributionModal && createAttributionModal()}
       </header>
-      <div className={classes}>{isAttributionPresent() ? originalAttributionText : 'None added'}</div>
+      <div className={classes}>{isAttributionPresent() ? originalAttributionText : emptyMessage}</div>
     </section>
   );
 }

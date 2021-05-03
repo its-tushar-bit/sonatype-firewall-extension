@@ -65,3 +65,18 @@ export const EFFECTIVELY_UNSPECIFIED_LICENSES = [
 ];
 
 export const NO_LICENSE_THREAT_GROUP_ASSIGNED = 'No LTG Assigned';
+
+export const ATTRIBUTION_DISPLAY_MAP = {
+  'Must Give Credit': {
+    headerTitle: 'Give Credit',
+    emptyMessage: 'No attribution for giving credit added',
+  },
+  'Must State Changes': {
+    headerTitle: 'Stated Changes',
+    emptyMessage: 'No attribution for stated changes added',
+  },
+  'Inclusion of Install Instructions': {
+    headerTitle: 'Install Instructions',
+    emptyMessage: 'No attribution for install instructions added',
+  },
+};

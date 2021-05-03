@@ -46,7 +46,8 @@ $dropdown-menu-box-shadow: 0 2px 6px 2px rgba(87, 87, 87, 0.1);
   top: 100%;
   left: 0;
   min-width: 160px;
-  z-index: 1000;
+  // avoid being overlapped by the dashboard filters.
+  z-index: 1071;
 
   > :first-child {
     margin-top: 8px;

@@ -6,8 +6,13 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.CLM;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters;
+import com.sonatype.clm.testing.functional.elements.DashboardFilters.AgeFilter;
+import com.sonatype.clm.testing.functional.elements.HelpMenu;
 import com.sonatype.clm.testing.functional.elements.LoginModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -31,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.google.common.collect.ImmutableMap.of;
@@ -107,6 +113,34 @@ public class MainHeaderTest
         testCLMServer.getCLMServer().getInstance(ProductLicenseService.class).validateLicense().productEdition
             + " release " + version;
     MainHeader.productVersion().shouldHave(text(productVersion));
+  }
+
+  @Test
+  public void testSystemDropdowns() {
+    refreshOrOpen(DashboardPage.urlToViolations());
+
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    AgeFilter ageFilter = DashboardFilters.ageFilter();
+    ageFilter.shouldBe(visible);
+    ageFilter.twisty().click();
+    ageFilter.past90days().shouldNotBe(selected).click();
+    DashboardFilters.closeButton().shouldBe(CLM.DISABLED);
+    DashboardPage.violationsView().results().mask().shouldBe(visible);
+
+    UserMenu userMenu = MainHeader.userMenu();
+    userMenu.dropdownToggle().click();
+    userMenu.userDetails().shouldBe(visible);
+    userMenu.logout().shouldBe(visible);
+
+    SystemConfigMenu sysConfigMenu = MainHeader.systemConfigMenu();
+    sysConfigMenu.dropdownToggle().click();
+    sysConfigMenu.successMetrics().shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Top Nav Dropdown not hidden");
+
+    HelpMenu helpMenu = MainHeader.helpMenu();
+    helpMenu.dropdownToggle().click();
+    helpMenu.supportLink().shouldBe(visible);
   }
 
   @Test

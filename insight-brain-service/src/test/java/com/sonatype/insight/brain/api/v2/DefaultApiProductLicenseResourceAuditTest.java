@@ -3,20 +3,21 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.product.license;
+package com.sonatype.insight.brain.api.v2;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
 
-public class ProductLicenseResourceAuditTest
+public class DefaultApiProductLicenseResourceAuditTest
     extends AbstractAuditTest
 {
   @Test
@@ -44,7 +45,7 @@ public class ProductLicenseResourceAuditTest
 
   @Test
   public void testUninstallLicense_Unauthorized() throws Exception {
-    restRequest().path(ProductLicenseResource.RESOURCE_PATH).with(unauthorizedUser()).delete();
+    restRequest().path(PublicApiPaths.PRODUCT_LICENSE_RESOURCE_PATH).with(unauthorizedUser()).delete();
 
     assertAuditLog(AuditEvent.UNINSTALL_LICENSE, "unauthorized");
   }

@@ -346,7 +346,7 @@ describe('ProductLicense', function () {
       expect(modalOpenSpy).toHaveBeenCalled();
 
       // trigger success
-      $httpBackend.expectPOST(SpecUtil.toRegExp('/rest/product/license')).respond(501, 'failure');
+      $httpBackend.expectPOST(SpecUtil.toRegExp('/api/v2/product/license')).respond(501, 'failure');
       modalResultSpy.calls.mostRecent().args[0]();
       $httpBackend.flush();
 

@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.hds.ScanUploader;
@@ -47,7 +48,6 @@ import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
-import com.sonatype.insight.brain.product.license.ProductLicenseResource;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
@@ -382,8 +382,7 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected HttpRequest licenseRequest(Object licenseFile) {
-    HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.RESOURCE_PATH)
-        .csrfToken("nonce", null, "nonce");
+    HttpRequest request = HttpRequest.to(getRestBaseUrl()).path(PublicApiPaths.PRODUCT_LICENSE_RESOURCE_PATH);
     request.part("file", "sonatype.lic", licenseFile);
     return request;
   }
@@ -395,7 +394,9 @@ public abstract class AbstractBrainServiceTest
   }
 
   protected void uninstallLicense() throws Exception {
-    HttpRequest.to(getRestBaseUrl()).path(ProductLicenseResource.RESOURCE_PATH).delete();
+    HttpResponse response =
+        HttpRequest.to(getRestBaseUrl()).path(PublicApiPaths.PRODUCT_LICENSE_RESOURCE_PATH).delete();
+    assertResponseStatus(204, response);
     productlicenseWasUninstalled = true;
 
     assertThat(licenseManager.isValid()).isFalse();

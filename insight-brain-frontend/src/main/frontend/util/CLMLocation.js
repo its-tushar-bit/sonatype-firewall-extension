@@ -479,7 +479,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       },
 
       getLicenseUploadUrl: function () {
-        return baseUrl.get() + '/rest/product/license' + (!$window.FormData ? '?noFormData=true' : '');
+        return baseUrl.get() + '/api/v2/product/license';
       },
 
       evaluatePolicyUrl: function (applicationPublicId, scanId) {

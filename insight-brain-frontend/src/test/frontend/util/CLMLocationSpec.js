@@ -106,14 +106,6 @@ describe('CLMLocation.js', function () {
     });
   });
 
-  it('Test noFormData added to license upload', function () {
-    var formData = $window.FormData || 'mock';
-    $window.FormData = null;
-    expect(CLMLocationsService.getLicenseUploadUrl()).toMatch(/.*noFormData=true/);
-    $window.FormData = formData;
-    expect(CLMLocationsService.getLicenseUploadUrl()).not.toMatch(/.*noFormData=true/);
-  });
-
   // map of user-telemetry method names and their respective unique postfixes
   var userTelemetryLocations = {
     getUserTelemetryConfig: 'config',

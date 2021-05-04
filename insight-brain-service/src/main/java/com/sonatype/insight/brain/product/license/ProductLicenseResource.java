@@ -5,31 +5,14 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import java.io.InputStream;
-import java.util.concurrent.Callable;
-
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.security.AntiCsrfFilter;
-import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 
 import com.codahale.metrics.annotation.Timed;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Path(ProductLicenseResource.RESOURCE_PATH)
 @Named
@@ -42,41 +25,9 @@ public class ProductLicenseResource
 
   private final ProductLicenseService productLicenseService;
 
-  private final NgUploadResponseGenerator ngUploadResponseGenerator;
-
   @Inject
-  public ProductLicenseResource(ProductLicenseService productLicenseService,
-                                NgUploadResponseGenerator ngUploadResponseGenerator)
-  {
+  public ProductLicenseResource(ProductLicenseService productLicenseService) {
     this.productLicenseService = productLicenseService;
-    this.ngUploadResponseGenerator = ngUploadResponseGenerator;
-  }
-
-  @POST
-  @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Produces(MediaType.TEXT_PLAIN)
-  @UnlicensedPath
-  @Audited(AuditEvent.INSTALL_LICENSE)
-  public Response installLicense(@FormDataParam("file") final InputStream is,
-                                 @FormDataParam("file") FormDataContentDisposition fileDetail,
-                                 @FormDataParam(AntiCsrfFilter.CSRF_HEADER_NAME) String csrfToken,
-                                 @Context HttpHeaders headers,
-                                 @QueryParam("noFormData") boolean noFormData) throws Exception
-  {
-    return ngUploadResponseGenerator.run(csrfToken, headers, noFormData, new Callable<Void>()
-    {
-      @Override
-      public Void call() throws Exception {
-        productLicenseService.installLicense(is, fileDetail.getFileName());
-        return null;
-      }
-    });
-  }
-
-  @DELETE
-  @Audited(AuditEvent.UNINSTALL_LICENSE)
-  public void uninstallLicense() throws Exception {
-    productLicenseService.uninstallLicense();
   }
 
   @GET

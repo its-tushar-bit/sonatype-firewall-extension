@@ -99,10 +99,12 @@ public class PublicApiPaths
   public static final String APPLICATION_CATEGORY_RESOURCE_PATH = API_VERSION_PATH_V2 + "applicationCategories";
 
   public static final String CONFIG_FEATURES_PATH = EXPERIMENTAL_PATH + "config/features";
-  
+
   public static final String LICENSE_LEGAL_RESOURCE_PATH = EXPERIMENTAL_PATH + "licenseLegalMetadata";
 
   public static final String LICENSE_LEGAL_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "licenseLegalMetadata";
 
   public static final String PING_RESOURCE_PATH = "/ping";
+
+  public static final String PRODUCT_LICENSE_RESOURCE_PATH = API_VERSION_PATH_V2 + "product/license";
 }

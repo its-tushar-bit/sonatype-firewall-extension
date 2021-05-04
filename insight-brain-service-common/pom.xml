@@ -95,6 +95,11 @@
       <version>${lucene.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-multipart</artifactId>
+    </dependency>
+
   </dependencies>
 
 </project>

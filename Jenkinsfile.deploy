@@ -55,6 +55,16 @@ pipeline {
         }
       }
     }
+    stage('Check internal RPM was published') {
+      when {
+        expression {'Staging' == params?.environment}
+      }
+      steps {
+        build job: 'ops-utility/check-rpm-published', propagate: true, wait: true, parameters: [
+            [$class: 'StringParameterValue', name: 'RPM_NAME', value: getIqServerRpmNameFromVersion(getVersionFromBuildName(env.releaseBuild_NAME))]
+        ]
+      }
+    }
     stage('Update iq-server latest version') {
       steps {
         updateLatestVersionTable(params.environment, 'IQ_SERVER', getVersionFromBuildName(env.releaseBuild_NAME))

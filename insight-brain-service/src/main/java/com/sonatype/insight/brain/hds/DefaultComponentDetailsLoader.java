@@ -34,9 +34,8 @@ public class DefaultComponentDetailsLoader extends ComponentDetailsLoader
   protected Component getComponent(ComponentDetails componentDetails) {
     Component component = componentDAO.getComponent(componentDetails);
     if (proprietaryComponentNameDetector != null) {
-      String conflictingProprietaryName =
-          proprietaryComponentNameDetector.findProprietaryComponentName(component.getComponentIdentifier());
-      component.setConflictingProprietaryName(conflictingProprietaryName != null ? conflictingProprietaryName : "");
+      component.setConflictingProprietaryName(
+          proprietaryComponentNameDetector.findProprietaryComponentName(component.getComponentIdentifier()));
     }
     return component;
   }

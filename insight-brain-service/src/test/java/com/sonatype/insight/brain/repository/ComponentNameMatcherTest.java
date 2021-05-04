@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.repository;
 import java.util.Arrays;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 
 import org.junit.Test;
@@ -16,10 +17,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ComponentNameMatcherTest
 {
+  private static final String REPOSITORY_MANAGER_INSTANCE_ID = "repoManId";
+
+  private static final String REPOSITORY_PUBLIC_ID = "repoId";
+
   private ProprietaryComponentNamePattern newNamePattern(String format, String namePattern) {
     ProprietaryComponentNamePattern pattern = new ProprietaryComponentNamePattern();
     pattern.setFormat(format);
     pattern.setNamePattern(namePattern);
+    pattern.setRepositoryManagerInstanceId(REPOSITORY_MANAGER_INSTANCE_ID);
+    pattern.setRepositoryPublicId(REPOSITORY_PUBLIC_ID);
     return pattern;
   }
 
@@ -27,7 +34,15 @@ public class ComponentNameMatcherTest
     ProprietaryComponentNamePattern pattern = new ProprietaryComponentNamePattern();
     pattern.setFormat(format);
     pattern.setNamespacePattern(namespacePattern);
+    pattern.setRepositoryManagerInstanceId(REPOSITORY_MANAGER_INSTANCE_ID);
+    pattern.setRepositoryPublicId(REPOSITORY_PUBLIC_ID);
     return pattern;
+  }
+
+  private void assertMatch(ProprietaryComponentName conflict, String namePattern) {
+    assertThat(conflict.getProprietaryNamePattern()).isEqualTo(namePattern);
+    assertThat(conflict.getRepositoryManagerInstanceId()).isEqualTo(REPOSITORY_MANAGER_INSTANCE_ID);
+    assertThat(conflict.getRepositoryPublicId()).isEqualTo(REPOSITORY_PUBLIC_ID);
   }
 
   @Test
@@ -40,7 +55,7 @@ public class ComponentNameMatcherTest
   public void testFindMatch_Namespace_ExactMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
         Arrays.asList(newNamespacePattern(ComponentIdentifier.FORMAT_NPM, "@sonatype")));
-    assertThat(matcher.findMatch("@sonatype", "cli")).isEqualTo("@sonatype/*");
+    assertMatch(matcher.findMatch("@sonatype", "cli"), "@sonatype/*");
     assertThat(matcher.findMatch("@sonatypeNOThere", "cli")).isNull();
   }
 
@@ -48,8 +63,8 @@ public class ComponentNameMatcherTest
   public void testFindMatch_Namespace_PrefixMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
         Arrays.asList(newNamespacePattern(ComponentIdentifier.FORMAT_NPM, "@sonatype*")));
-    assertThat(matcher.findMatch("@sonatype", "cli")).isEqualTo("@sonatype*/*");
-    assertThat(matcher.findMatch("@sonatypeTOO", "cli")).isEqualTo("@sonatype*/*");
+    assertMatch(matcher.findMatch("@sonatype", "cli"), "@sonatype*/*");
+    assertMatch(matcher.findMatch("@sonatypeTOO", "cli"), "@sonatype*/*");
     assertThat(matcher.findMatch("@sonatyp", "cli")).isNull();
   }
 
@@ -59,14 +74,14 @@ public class ComponentNameMatcherTest
         Arrays.asList(newNamespacePattern(ComponentIdentifier.FORMAT_MAVEN, "org.sonatype.sub.*"),
             newNamespacePattern(ComponentIdentifier.FORMAT_MAVEN, "org.sonatype.*"),
             newNamespacePattern(ComponentIdentifier.FORMAT_MAVEN, "org.sonatype.sub.id.*")));
-    assertThat(matcher.findMatch("org.sonatype.sub.id", "cli")).isEqualTo("org.sonatype.*/*");
+    assertMatch(matcher.findMatch("org.sonatype.sub.id", "cli"), "org.sonatype.*/*");
   }
 
   @Test
   public void testFindMatch_Name_ExactMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
         Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "cli")));
-    assertThat(matcher.findMatch(null, "cli")).isEqualTo("cli");
+    assertMatch(matcher.findMatch(null, "cli"), "cli");
     assertThat(matcher.findMatch("@scope", "cli")).isNull();
   }
 
@@ -74,7 +89,7 @@ public class ComponentNameMatcherTest
   public void testFindMatch_Name_PrefixMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
         Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "sonatype-*")));
-    assertThat(matcher.findMatch(null, "sonatype-cli")).isEqualTo("sonatype-*");
+    assertMatch(matcher.findMatch(null, "sonatype-cli"), "sonatype-*");
     assertThat(matcher.findMatch(null, "sonademo-cli")).isNull();
     assertThat(matcher.findMatch(null, "sonatype")).isNull();
     assertThat(matcher.findMatch("@scope", "sonatype-cli")).isNull();
@@ -84,7 +99,7 @@ public class ComponentNameMatcherTest
   public void testFindMatch_Name_SuffixMatch() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NPM,
         Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NPM, "*-sonatype")));
-    assertThat(matcher.findMatch(null, "cli-sonatype")).isEqualTo("*-sonatype");
+    assertMatch(matcher.findMatch(null, "cli-sonatype"), "*-sonatype");
     assertThat(matcher.findMatch(null, "cli-demotype")).isNull();
     assertThat(matcher.findMatch(null, "sonatype")).isNull();
     assertThat(matcher.findMatch("@scope", "cli-sonatype")).isNull();
@@ -94,8 +109,8 @@ public class ComponentNameMatcherTest
   public void testFindMatch_Maven_AutoPrefixMatchForGroupId() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_MAVEN,
         Arrays.asList(newNamespacePattern(ComponentIdentifier.FORMAT_MAVEN, "org.sonatype")));
-    assertThat(matcher.findMatch("org.sonatype", "cli")).isEqualTo("org.sonatype/*");
-    assertThat(matcher.findMatch("org.sonatype.sub.id", "cli")).isEqualTo("org.sonatype.*/*");
+    assertMatch(matcher.findMatch("org.sonatype", "cli"), "org.sonatype/*");
+    assertMatch(matcher.findMatch("org.sonatype.sub.id", "cli"), "org.sonatype.*/*");
     assertThat(matcher.findMatch("org.sonatypeNOThere", "cli")).isNull();
   }
 
@@ -103,27 +118,27 @@ public class ComponentNameMatcherTest
   public void testFindMatch_Pypi_CaseInsensitive() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_PYPI,
         Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_PYPI, "Cli")));
-    assertThat(matcher.findMatch(null, "cli")).isEqualTo("cli");
-    assertThat(matcher.findMatch(null, "CLI")).isEqualTo("cli");
+    assertMatch(matcher.findMatch(null, "cli"), "cli");
+    assertMatch(matcher.findMatch(null, "CLI"), "cli");
   }
 
   @Test
   public void testFindMatch_Nuget_CaseInsensitive() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_NUGET,
         Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_NUGET, "Cli")));
-    assertThat(matcher.findMatch(null, "cli")).isEqualTo("cli");
-    assertThat(matcher.findMatch(null, "CLI")).isEqualTo("cli");
+    assertMatch(matcher.findMatch(null, "cli"), "cli");
+    assertMatch(matcher.findMatch(null, "CLI"), "cli");
   }
 
   @Test
   public void testFindMatch_Pypi_Normalization() {
     ComponentNameMatcher matcher = new ComponentNameMatcher(ComponentIdentifier.FORMAT_PYPI,
         Arrays.asList(newNamePattern(ComponentIdentifier.FORMAT_PYPI, "Sonatype-Cli")));
-    assertThat(matcher.findMatch(null, "sonatype-cli")).isEqualTo("sonatype-cli");
-    assertThat(matcher.findMatch(null, "sonatype-CLI")).isEqualTo("sonatype-cli");
-    assertThat(matcher.findMatch(null, "sonatype.CLI")).isEqualTo("sonatype-cli");
-    assertThat(matcher.findMatch(null, "sonatype_CLI")).isEqualTo("sonatype-cli");
-    assertThat(matcher.findMatch(null, "sonatype..--__CLI")).isEqualTo("sonatype-cli");
+    assertMatch(matcher.findMatch(null, "sonatype-cli"), "sonatype-cli");
+    assertMatch(matcher.findMatch(null, "sonatype-CLI"), "sonatype-cli");
+    assertMatch(matcher.findMatch(null, "sonatype.CLI"), "sonatype-cli");
+    assertMatch(matcher.findMatch(null, "sonatype_CLI"), "sonatype-cli");
+    assertMatch(matcher.findMatch(null, "sonatype..--__CLI"), "sonatype-cli");
   }
 
   @Test

@@ -8,8 +8,10 @@ package com.sonatype.insight.brain.model.policy.conditions;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
@@ -57,12 +59,14 @@ public class ProprietaryNameConflictConditionType
 
   @Override
   public String explainMatch(final Condition condition, final MatchFact matchFact) {
-    String conflict = matchFact.getComponent().getConflictingProprietaryName();
-    if (conflict.isEmpty()) {
-      return "Component name does not conflict with any proprietary component";
+    Optional<ProprietaryComponentName> conflict = matchFact.getComponent().getConflictingProprietaryName();
+    if (conflict.isPresent()) {
+      ProprietaryComponentName name = conflict.get();
+      return "Component name conflicts with proprietary component " + name.getProprietaryNamePattern() + " from "
+          + name.getRepositoryPublicId();
     }
     else {
-      return "Component name conflicts with proprietary component " + conflict;
+      return "Component name does not conflict with any proprietary component";
     }
   }
 
@@ -83,7 +87,7 @@ public class ProprietaryNameConflictConditionType
 
   @Override
   protected boolean internalEvaluateCondition(Component component, String operator, String value) {
-    boolean conflictPresent = !component.getConflictingProprietaryName().isEmpty();
+    boolean conflictPresent = component.getConflictingProprietaryName().isPresent();
     return OP_IS_PRESENT.equals(operator) ? conflictPresent : !conflictPresent;
   }
 }

@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
@@ -37,6 +38,12 @@ public class ProprietaryComponentNameDetectorTest
     repoManId = tempEntity.newRepositoryManager().getInstanceId();
   }
 
+  private void assertMatch(ProprietaryComponentName conflict, String namePattern) {
+    assertThat(conflict.getProprietaryNamePattern()).isEqualTo(namePattern);
+    assertThat(conflict.getRepositoryManagerInstanceId()).isEqualTo(repoManId);
+    assertThat(conflict.getRepositoryPublicId()).isEqualTo(repoId);
+  }
+
   @Test
   public void testFindProprietaryComponentName() {
     proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
@@ -44,12 +51,10 @@ public class ProprietaryComponentNameDetectorTest
     proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
         .withNamespacePattern("@sonatype").withRepository(repoManId, repoId));
 
-    assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")))
-            .isEqualTo("sonatype*");
-    assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")))
-            .isEqualTo("@sonatype/*");
+    assertMatch(proprietaryComponentNameDetector
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
+    assertMatch(proprietaryComponentNameDetector
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")), "@sonatype/*");
     assertThat(proprietaryComponentNameDetector
         .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("NOTsonatype-cli", "99"))).isNull();
     assertThat(proprietaryComponentNameDetector
@@ -60,27 +65,24 @@ public class ProprietaryComponentNameDetectorTest
   public void testFindProprietaryComponentName_Namespacing_Maven() {
     proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_MAVEN)
         .withNamespacePattern("org.sonatype").withRepository(repoManId, repoId));
-    assertThat(proprietaryComponentNameDetector.findProprietaryComponentName(
-        ComponentIdentifier.createMavenCoordinates("org.sonatype", "test", "1.0", "", "jar")))
-            .isEqualTo("org.sonatype/*");
+    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(
+        ComponentIdentifier.createMavenCoordinates("org.sonatype", "test", "1.0", "", "jar")), "org.sonatype/*");
   }
 
   @Test
   public void testFindProprietaryComponentName_Namespacing_Npm() {
     proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NPM)
         .withNamespacePattern("@sonatype").withRepository(repoManId, repoId));
-    assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@sonatype/test", "1.0")))
-            .isEqualTo("@sonatype/*");
+    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(
+        ComponentIdentifier.createNpmCoordinates("@sonatype/test", "1.0")), "@sonatype/*");
   }
 
   @Test
   public void testFindProprietaryComponentName_Namespacing_Nuget() {
     proprietaryComponentNamePatternDAO.insert(new ProprietaryComponentNamePattern(ComponentIdentifier.FORMAT_NUGET)
         .withNamePattern("Sonatype.*").withRepository(repoManId, repoId));
-    assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(ComponentIdentifier.createNugetCoordinates("Sonatype.Type", "1.0")))
-            .isEqualTo("sonatype.*");
+    assertMatch(proprietaryComponentNameDetector.findProprietaryComponentName(
+        ComponentIdentifier.createNugetCoordinates("Sonatype.Type", "1.0")), "sonatype.*");
   }
 
   @Test
@@ -102,12 +104,10 @@ public class ProprietaryComponentNameDetectorTest
         .extracting(ProprietaryComponentNamePattern::getId)
         .containsExactlyInAnyOrder(pattern1.getId(), pattern2.getId());
 
-    assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")))
-            .isEqualTo("sonatype*");
-    assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")))
-            .isEqualTo("@sonatype/*");
+    assertMatch(proprietaryComponentNameDetector
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
+    assertMatch(proprietaryComponentNameDetector
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "999")), "@sonatype/*");
     assertThat(proprietaryComponentNameDetector
         .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("NOTsonatype-cli", "99"))).isNull();
     assertThat(proprietaryComponentNameDetector
@@ -128,9 +128,8 @@ public class ProprietaryComponentNameDetectorTest
         .withNamePattern("sonatype*").withRepository(repoManId, repoId);
     proprietaryComponentNamePatternDAO.insert(pattern);
 
-    assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")))
-            .isEqualTo("sonatype*");
+    assertMatch(proprietaryComponentNameDetector
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
 
     proprietaryComponentNameDetector.removePatterns(repoManId, repoId);
 
@@ -148,9 +147,8 @@ public class ProprietaryComponentNameDetectorTest
         .withNamespacePattern("@sonatype").withRepository(repoManId, repoId + "-other");
     proprietaryComponentNamePatternDAO.insert(pattern2);
 
-    assertThat(proprietaryComponentNameDetector
-        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")))
-            .isEqualTo("sonatype*");
+    assertMatch(proprietaryComponentNameDetector
+        .findProprietaryComponentName(ComponentIdentifier.createNpmCoordinates("sonatype-cli", "999")), "sonatype*");
 
     proprietaryComponentNameDetector.removePatterns(repoManId, "*");
 

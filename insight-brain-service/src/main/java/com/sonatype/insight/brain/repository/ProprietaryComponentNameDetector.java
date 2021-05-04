@@ -17,6 +17,7 @@ import javax.persistence.PersistenceException;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -40,7 +41,7 @@ public class ProprietaryComponentNameDetector
     this.proprietaryComponentNamePatternDAO = proprietaryComponentNamePatternDAO;
   }
 
-  public String findProprietaryComponentName(ComponentIdentifier componentIdentifier) {
+  public ProprietaryComponentName findProprietaryComponentName(ComponentIdentifier componentIdentifier) {
     if (componentIdentifier == null) {
       return null;
     }
@@ -50,7 +51,7 @@ public class ProprietaryComponentNameDetector
     return findProprietaryComponentName(componentIdentifier.getFormat(), namespace, name);
   }
 
-  private String findProprietaryComponentName(String format, String namespace, String name) {
+  private ProprietaryComponentName findProprietaryComponentName(String format, String namespace, String name) {
     return getMatcher(format).findMatch(namespace, name);
   }
 

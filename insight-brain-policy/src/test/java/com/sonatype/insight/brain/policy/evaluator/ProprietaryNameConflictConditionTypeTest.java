@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -45,15 +46,14 @@ public class ProprietaryNameConflictConditionTypeTest
     List<Component> components = new ArrayList<>();
 
     Component component1 = new Component(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "1.0"));
-    component1.setConflictingProprietaryName("@sonatype/*");
+    component1.setConflictingProprietaryName(new ProprietaryComponentName("@sonatype/*", "repo-man-id", "repo-id"));
     components.add(component1);
 
     Component component2 = new Component(ComponentIdentifier.createNpmCoordinates("cli", "1.1"));
-    component2.setConflictingProprietaryName("");
+    component2.setConflictingProprietaryName(null);
     components.add(component2);
 
     Component component3 = new Component();
-    component3.setConflictingProprietaryName(null);
     components.add(component3);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
@@ -64,7 +64,7 @@ public class ProprietaryNameConflictConditionTypeTest
         ProprietaryNameConflictConditionType.ID, policyAlerts);
     assertThat(conditionFacts).hasSize(1);
     assertThat(conditionFacts.get(0).getReason())
-        .isEqualTo("Component name conflicts with proprietary component @sonatype/*");
+        .isEqualTo("Component name conflicts with proprietary component @sonatype/* from repo-id");
     assertNotContainsPolicyAlert(component2, policy, constraint, FailActionType.ID,
         ProprietaryNameConflictConditionType.ID, policyAlerts);
     assertNotContainsPolicyAlert(component3, policy, constraint, FailActionType.ID,
@@ -79,15 +79,14 @@ public class ProprietaryNameConflictConditionTypeTest
     List<Component> components = new ArrayList<>();
 
     Component component1 = new Component(ComponentIdentifier.createNpmCoordinates("@sonatype/cli", "1.0"));
-    component1.setConflictingProprietaryName("@sonatype/*");
+    component1.setConflictingProprietaryName(new ProprietaryComponentName("@sonatype/*", "repo-man-id", "repo-id"));
     components.add(component1);
 
     Component component2 = new Component(ComponentIdentifier.createNpmCoordinates("cli", "1.1"));
-    component2.setConflictingProprietaryName("");
+    component2.setConflictingProprietaryName(null);
     components.add(component2);
 
     Component component3 = new Component();
-    component3.setConflictingProprietaryName(null);
     components.add(component3);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);

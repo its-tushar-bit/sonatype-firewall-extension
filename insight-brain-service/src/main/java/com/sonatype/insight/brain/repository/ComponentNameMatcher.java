@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Locale;
@@ -17,6 +18,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.model.component.ProprietaryComponentName;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 
 /**
@@ -27,6 +29,8 @@ import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePatte
 class ComponentNameMatcher
 {
   private static final Pattern PYPI_TO_DASH_REGEX = Pattern.compile("[-_.]+");
+
+  private static final char SEP = ':';
 
   private final long createTime = System.currentTimeMillis();
 
@@ -155,7 +159,7 @@ class ComponentNameMatcher
       ProprietaryComponentNamePattern pattern,
       Map<String, Collection<String>> sourcesByValue)
   {
-    String source = pattern.getRepositoryManagerInstanceId() + ':' + pattern.getRepositoryPublicId();
+    String source = pattern.getRepositoryManagerInstanceId() + SEP + pattern.getRepositoryPublicId();
     Collection<String> sources = sourcesByValue.computeIfAbsent(value, key -> new CopyOnWriteArrayList<>());
     if (sources.contains(source)) {
       return false;
@@ -165,35 +169,37 @@ class ComponentNameMatcher
     return true;
   }
 
-  public String findMatch(String namespace, String name) {
+  public ProprietaryComponentName findMatch(String namespace, String name) {
     if (namespace != null) {
       namespace = normalizer.apply(namespace);
-      if (namespaces.containsKey(namespace)) {
-        return namespace + "/*";
+      Collection<String> repos = namespaces.get(namespace);
+      if (repos != null) {
+        return newMatch(namespace + "/*", repos);
       }
-      String prefixMatch = getPrefixMatch(namespace, namespacePrefixesByLength);
+      Map.Entry<String, Collection<String>> prefixMatch = getPrefixMatch(namespace, namespacePrefixesByLength);
       if (prefixMatch != null) {
-        return prefixMatch + "*/*";
+        return newMatch(prefixMatch.getKey() + "*/*", prefixMatch.getValue());
       }
     }
     else if (name != null) {
       name = normalizer.apply(name);
-      if (names.containsKey(name)) {
-        return name;
+      Collection<String> repos = names.get(name);
+      if (repos != null) {
+        return newMatch(name, repos);
       }
-      String prefixMatch = getPrefixMatch(name, namePrefixesByLength);
+      Map.Entry<String, Collection<String>> prefixMatch = getPrefixMatch(name, namePrefixesByLength);
       if (prefixMatch != null) {
-        return prefixMatch + "*";
+        return newMatch(prefixMatch.getKey() + "*", prefixMatch.getValue());
       }
-      String suffixMatch = getSuffixMatch(name, nameSuffixesByLength);
+      Map.Entry<String, Collection<String>> suffixMatch = getSuffixMatch(name, nameSuffixesByLength);
       if (suffixMatch != null) {
-        return "*" + suffixMatch;
+        return newMatch("*" + suffixMatch.getKey(), suffixMatch.getValue());
       }
     }
     return null;
   }
 
-  private static String getPrefixMatch(
+  private static Map.Entry<String, Collection<String>> getPrefixMatch(
       String value,
       SortedMap<Integer, Map<String, Collection<String>>> prefixesByLength)
   {
@@ -201,9 +207,10 @@ class ComponentNameMatcher
       int prefixLength = entry.getKey();
       if (value.length() >= prefixLength) {
         String prefix = value.substring(0, prefixLength);
-        Map<String, ?> prefixes = entry.getValue();
-        if (prefixes.containsKey(prefix)) {
-          return prefix;
+        Map<String, Collection<String>> prefixes = entry.getValue();
+        Collection<String> repos = prefixes.get(prefix);
+        if (repos != null) {
+          return new SimpleEntry<>(prefix, repos);
         }
       }
       else {
@@ -213,7 +220,7 @@ class ComponentNameMatcher
     return null;
   }
 
-  private static String getSuffixMatch(
+  private static Map.Entry<String, Collection<String>> getSuffixMatch(
       String value,
       SortedMap<Integer, Map<String, Collection<String>>> suffixesByLength)
   {
@@ -221,9 +228,10 @@ class ComponentNameMatcher
       int suffixLength = entry.getKey();
       if (value.length() >= suffixLength) {
         String suffix = value.substring(value.length() - suffixLength);
-        Map<String, ?> suffixes = entry.getValue();
-        if (suffixes.containsKey(suffix)) {
-          return suffix;
+        Map<String, Collection<String>> suffixes = entry.getValue();
+        Collection<String> repos = suffixes.get(suffix);
+        if (repos != null) {
+          return new SimpleEntry<>(suffix, repos);
         }
       }
       else {
@@ -231,6 +239,15 @@ class ComponentNameMatcher
       }
     }
     return null;
+  }
+
+  private static ProprietaryComponentName newMatch(String namePattern, Collection<String> sourceRepositories) {
+    String source =
+        sourceRepositories.isEmpty() ? "[unknown]" + SEP + "[unknown]" : sourceRepositories.iterator().next();
+    int sep = source.indexOf(SEP);
+    String repoManId = source.substring(0, sep);
+    String repoId = source.substring(sep + 1);
+    return new ProprietaryComponentName(namePattern, repoManId, repoId);
   }
 
   public long getCreateTime() {

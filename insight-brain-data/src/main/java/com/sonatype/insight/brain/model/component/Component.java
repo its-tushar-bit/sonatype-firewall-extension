@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -65,7 +66,7 @@ public class Component
 
   private boolean proprietary;
 
-  private String conflictingProprietaryName;
+  private Optional<ProprietaryComponentName> conflictingProprietaryName;
 
   private IdentificationSource identificationSource = IdentificationSource.SONATYPE;
 
@@ -335,14 +336,14 @@ public class Component
   }
 
   /**
-   * @return {@code null} if unknown/inapplicable, {@code ""} if no conflict, otherwise conflicting name.
+   * @return {@code null} if unknown/inapplicable, empty if no conflict, otherwise conflicting name.
    */
-  public String getConflictingProprietaryName() {
+  public Optional<ProprietaryComponentName> getConflictingProprietaryName() {
     return conflictingProprietaryName;
   }
 
-  public void setConflictingProprietaryName(String conflictingProprietaryName) {
-    this.conflictingProprietaryName = conflictingProprietaryName;
+  public void setConflictingProprietaryName(ProprietaryComponentName conflictingProprietaryName) {
+    this.conflictingProprietaryName = Optional.ofNullable(conflictingProprietaryName);
   }
 
   public IdentificationSource getIdentificationSource() {

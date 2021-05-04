@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { faUserCircle } from '@fortawesome/pro-solid-svg-icons';
 import { MenuButton, MenuTitle } from '../MenuButton/MenuButton';
@@ -34,7 +34,7 @@ const UserMenu = ({
   });
 
   return (
-    <Fragment>
+    <div id="user-menu">
       <MenuButton icon={faUserCircle} iconSize="2x" id="user-menu-dropdown" iconLabel="Manage User Account">
         <MenuTitle>
           Current User:
@@ -87,7 +87,7 @@ const UserMenu = ({
       {isUserDetailsModalVisible && (
         <UserDetailsModal user={user} onClose={() => setIsUserDetailsModalVisible(false)} />
       )}
-    </Fragment>
+    </div>
   );
 };
 

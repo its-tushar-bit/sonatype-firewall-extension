@@ -8,12 +8,10 @@ package com.sonatype.insight.brain.api.v2;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -68,8 +66,7 @@ public class ApiCycloneDxResourceV2
   public Response getLatest(
       @PathParam("applicationId") String applicationId,
       @PathParam("stageId") String stageId,
-      @PathParam("cdxVersion") String cycloneDxVersion,
-      @Context HttpServletRequest request)
+      @PathParam("cdxVersion") String cycloneDxVersion)
   {
     return apiCycloneDxService.getLatest(applicationId, stageId, MediaType.APPLICATION_XML,
         ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(cycloneDxVersion));
@@ -94,8 +91,7 @@ public class ApiCycloneDxResourceV2
   public Response getByReportId(
       @PathParam("applicationId") String applicationId,
       @PathParam("reportId") String reportId,
-      @PathParam("cdxVersion") String cycloneDxVersion,
-      @Context HttpServletRequest request)
+      @PathParam("cdxVersion") String cycloneDxVersion)
   {
     return apiCycloneDxService
         .getByScanId(applicationId, reportId, MediaType.APPLICATION_XML,

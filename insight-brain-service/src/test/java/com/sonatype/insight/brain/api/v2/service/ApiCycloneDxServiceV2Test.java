@@ -145,22 +145,22 @@ public class ApiCycloneDxServiceV2Test
 
   @Test
   public void testGetLatest_Xml() throws Exception {
-    testGetLatest(MediaType.APPLICATION_XML, false, Version.VERSION_11);
+    testGetLatest(MediaType.APPLICATION_XML, Version.VERSION_11);
   }
 
   @Test
   public void testGetLatest_Xml_V1_2() throws Exception {
-    testGetLatest(MediaType.APPLICATION_XML, false, Version.VERSION_12);
+    testGetLatest(MediaType.APPLICATION_XML, Version.VERSION_12);
   }
 
   @Test
   public void testGetLatest_Json() throws Exception {
-    testGetLatest(MediaType.APPLICATION_JSON, true, Version.VERSION_12);
+    testGetLatest(MediaType.APPLICATION_JSON, Version.VERSION_12);
   }
 
-  public void testGetLatest(String contenType, boolean isJson, Version version) throws Exception {
+  public void testGetLatest(String contentType, Version version) throws Exception {
     createReportAndPolicyEvaluation();
-    Response response = service.getLatest(application.getId(), BuildStageType.ID, contenType, version);
+    Response response = service.getLatest(application.getId(), BuildStageType.ID, contentType, version);
     assertBom(response, version);
   }
 

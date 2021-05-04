@@ -15,6 +15,7 @@ const mapDispatchToProps = (dispatch, { userActions }) =>
       loadUser: userActions.loadUser,
       onLogout: userActions.logout,
       onChangePassword: userActions.changePassword,
+      resetPasswordStatus: userActions.resetChangedPasswordStatus,
       onManageUserToken: showUserTokenModal,
     },
     dispatch
@@ -41,6 +42,7 @@ UserMenuContainer.propTypes = {
     loadUser: PropTypes.func,
     logout: PropTypes.func,
     changePassword: PropTypes.func,
+    resetPasswordStatus: PropTypes.func,
   }),
 };
 

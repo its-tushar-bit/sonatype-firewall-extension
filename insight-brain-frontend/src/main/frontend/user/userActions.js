@@ -168,6 +168,7 @@ function userActions(
     changePassword,
     passwordChanged,
     passwordChangedForUser,
+    resetChangedPasswordStatus,
   };
 }
 userActions.$inject = [

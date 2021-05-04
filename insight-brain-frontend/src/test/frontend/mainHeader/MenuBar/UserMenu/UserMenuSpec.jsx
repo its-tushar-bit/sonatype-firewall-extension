@@ -25,6 +25,7 @@ describe('UserMenu', function () {
       onLogout: jasmine.createSpy(),
       canChangePassword: false,
       onChangePassword: jasmine.createSpy(),
+      resetPasswordStatus: jasmine.createSpy(),
       changePasswordStatus: 'idle',
       changePasswordErrorMessage: undefined,
       onManageUserToken: jasmine.createSpy(),
@@ -154,6 +155,29 @@ describe('UserMenu', function () {
       expect(component.find(ChangePasswordModal)).not.toExist();
 
       component.unmount();
+    });
+
+    it('resets the user change password state when opening and closing the change password modal', () => {
+      const resetPasswordStatus = jasmine.createSpy();
+      const component = getMountedComponent({ canChangePassword: true, resetPasswordStatus }),
+        menuTrigger = component.find('button');
+      expect(resetPasswordStatus).toHaveBeenCalledTimes(1); // component mount
+
+      menuTrigger.simulate('click');
+      const changePasswordMenuItem = component.find('#change-password');
+      changePasswordMenuItem.simulate('click');
+      expect(resetPasswordStatus).toHaveBeenCalledTimes(2); // change password modal mount
+
+      let changePasswordModal = component.find(ChangePasswordModal);
+      expect(changePasswordModal).toExist();
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      component.update();
+
+      changePasswordModal = component.find(ChangePasswordModal);
+      expect(changePasswordModal).not.toExist();
+
+      expect(resetPasswordStatus).toHaveBeenCalledTimes(3); // change password modal unmount
     });
   });
 });

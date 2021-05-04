@@ -20,6 +20,7 @@ const UserMenu = ({
   onLogout,
   canChangePassword,
   onChangePassword,
+  resetPasswordStatus,
   changePasswordStatus,
   changePasswordErrorMessage,
   onManageUserToken,
@@ -32,6 +33,10 @@ const UserMenu = ({
   useStateTransition(changePasswordStatus, 'success', 'idle', () => {
     setIsChangePasswordModalVisible(false);
   });
+
+  useEffect(() => {
+    resetPasswordStatus();
+  }, [isChangePasswordModalVisible]);
 
   return (
     <div id="user-menu">
@@ -103,6 +108,7 @@ UserMenu.propTypes = {
   onManageUserToken: PropTypes.func,
   onOpenUserDetails: PropTypes.func,
   onChangePassword: PropTypes.func,
+  resetPasswordStatus: PropTypes.func,
   changePasswordStatus: PropTypes.oneOf(['idle', 'pending', 'success', 'failure']),
   changePasswordErrorMessage: PropTypes.string,
 };

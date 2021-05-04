@@ -90,6 +90,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDataDAO;
@@ -180,6 +181,7 @@ import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
@@ -341,6 +343,8 @@ public class TemporaryEntity
 
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
+  private final SourceControlPullRequestDAO sourceControlPullRequestDAO = new SourceControlPullRequestDAO();
+
   private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
 
   private final ThirdPartyFileDAO thirdPartyFileDAO = new ThirdPartyFileDAO();
@@ -449,6 +453,8 @@ public class TemporaryEntity
 
   private Collection<SourceControl> sourceControls;
 
+  private Collection<SourceControlPullRequest> sourceControlPullRequests;
+
   private Collection<SystemConfigurationProperty> systemConfigurationProperties;
 
   private Collection<SamlConfiguration> samlConfigurations;
@@ -496,6 +502,7 @@ public class TemporaryEntity
     successMetricsReports = new ArrayList<>();
     successMetricsReportDatas = new ArrayList<>();
     sourceControls = new ArrayList<>();
+    sourceControlPullRequests = new ArrayList<>();
     systemConfigurationProperties = new ArrayList<>();
     samlConfigurations = new ArrayList<>();
     thirdPartyFileConfigurations = new ArrayList<>();
@@ -553,6 +560,7 @@ public class TemporaryEntity
     delete(successMetricsReportDatas, successMetricsReportDataDAO);
     delete(successMetricsReports, successMetricsReportDAO);
     delete(sourceControls, sourceControlDAO);
+    delete(sourceControlPullRequests, sourceControlPullRequestDAO);
     delete(systemConfigurationProperties, systemConfigurationPropertyDAO);
     delete(samlConfigurations, entity -> samlConfigurationDAO.getById(entity.getId()),
         samlConfiguration -> samlConfigurationDAO.delete());
@@ -2921,5 +2929,26 @@ public class TemporaryEntity
         new AutoUnquarantinePolicyConditionType(conditionTypeId);
     autoUnquarantinePolicyConditionTypeDAO.insert(autoUnquarantinePolicyConditionType);
     return autoUnquarantinePolicyConditionType;
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest() {
+    return newSourceControlPullRequest("http://localhost/" + uuid(), 1, uuid(), uuid(), new Date(), new Date(),
+        new Date());
+  }
+
+  public SourceControlPullRequest newSourceControlPullRequest(
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String branchName,
+      Date createTime,
+      Date lastCheckTime,
+      Date lastDetectedUpdateTime)
+  {
+    SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest(repositoryUrl, pullRequestId,
+        headCommitHash, branchName, createTime, lastCheckTime, lastDetectedUpdateTime);
+    sourceControlPullRequestDAO.insert(sourceControlPullRequest);
+    sourceControlPullRequests.add(sourceControlPullRequest);
+    return sourceControlPullRequest;
   }
 }

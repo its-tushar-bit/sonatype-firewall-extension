@@ -57,6 +57,7 @@
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControl</class>
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent</class>
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory</class>
+    <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest</class>
     <class>com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment</class>
     <class>com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternal</class>
     <class>com.sonatype.insight.brain.model.security.UserToken</class>

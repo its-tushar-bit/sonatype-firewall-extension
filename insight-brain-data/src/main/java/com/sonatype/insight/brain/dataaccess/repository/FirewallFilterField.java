@@ -26,6 +26,6 @@ public class FirewallFilterField
 
   public enum FirewallFilterableField
   {
-    POLICY_ID
+    QUARANTINE_POLICY_ID
   }
 }

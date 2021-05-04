@@ -7,13 +7,13 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import {
+  NxOverflowTooltip,
   NxPagination,
   NxTable,
   NxTableBody,
   NxTableCell,
   NxTableHead,
   NxTableRow,
-  NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 
 export default function FirewallUnquarantineTable(props) {
@@ -44,7 +44,7 @@ export default function FirewallUnquarantineTable(props) {
   function sortPage(columnId) {
     let nextSortDir = sortField === columnId ? getNextSortDir(sortDir) : getNextSortDir(null);
 
-    setAutoUnquarantineGridSorting(nextSortDir, columnId);
+    setAutoUnquarantineGridSorting(nextSortDir, nextSortDir === null ? null : columnId);
     loadReleaseQuarantineList();
   }
 

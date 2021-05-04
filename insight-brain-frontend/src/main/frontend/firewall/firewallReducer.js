@@ -109,7 +109,7 @@ const initialState = Object.freeze({
     currentPage: null,
     sortDir: null,
     sortField: null,
-    filterPolicy: null,
+    filterPolicy: undefined,
     lastUpdated: null,
   }),
 });
@@ -271,6 +271,10 @@ const setAutoUnquarantineGridSorting = (payload, state) =>
     merge(__, {
       sortDir: payload.sortDir,
       sortField: payload.sortField,
+      loadedReleaseQuarantineList: false,
+      releaseQuarantineList: [],
+      releaseQuarantinePageCount: 0,
+      currentPage: null,
     }),
     state
   );
@@ -434,6 +438,10 @@ const setQuarantineGridSorting = (payload, state) =>
     merge(__, {
       sortDir: payload.sortDir,
       sortField: payload.sortField,
+      currentPage: null,
+      loadedQuarantineList: false,
+      quarantineList: [],
+      quarantinePageCount: 0,
     }),
     state
   );
@@ -443,6 +451,10 @@ const setQuarantineGridPolicyFilter = (payload, state) =>
     lensPath(['quarantineGridState']),
     merge(__, {
       filterPolicy: payload.policy,
+      currentPage: null,
+      loadedQuarantineList: false,
+      quarantineList: [],
+      quarantinePageCount: 0,
     }),
     state
   );

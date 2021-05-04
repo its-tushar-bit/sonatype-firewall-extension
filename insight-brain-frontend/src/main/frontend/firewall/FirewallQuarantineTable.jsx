@@ -9,8 +9,8 @@ import * as PropTypes from 'prop-types';
 import {
   NxButton,
   NxFontAwesomeIcon,
-  NxPagination,
   NxOverflowTooltip,
+  NxPagination,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -50,7 +50,7 @@ export default function FirewallQuarantineTable(props) {
   function sortPage(columnId) {
     let nextSortDir = sortField === columnId ? getNextSortDir(sortDir) : getNextSortDir(null);
 
-    setQuarantineGridSorting(nextSortDir, columnId);
+    setQuarantineGridSorting(nextSortDir, nextSortDir === null ? null : columnId);
   }
 
   /**
@@ -164,12 +164,14 @@ export default function FirewallQuarantineTable(props) {
                 return (
                   <NxTableRow isClickable={true} key={index} onClick={() => selectQuarantineComponent(index)}>
                     <NxTableCell isNumeric>
-                      <NxThreatIndicator policyThreatLevel={policyViolation.threatLevel} />
-                      <span>{policyViolation.threatLevel}</span>
+                      <NxThreatIndicator policyThreatLevel={policyViolation ? policyViolation.threatLevel : 0} />
+                      <span>{policyViolation ? policyViolation.threatLevel : 0}</span>
                     </NxTableCell>
                     <NxTableCell className="iq-policy-cell">
-                      <NxOverflowTooltip title={policyViolation.policyName}>
-                        <div className="nx-truncate-ellipsis">{policyViolation.policyName}</div>
+                      <NxOverflowTooltip title={policyViolation ? policyViolation.policyName : 'None'}>
+                        <div className="nx-truncate-ellipsis">
+                          {policyViolation ? policyViolation.policyName : 'None'}
+                        </div>
                       </NxOverflowTooltip>
                     </NxTableCell>
                     <NxTableCell>{new Date(row.quarantineDate).toLocaleDateString()}</NxTableCell>
@@ -217,7 +219,7 @@ FirewallQuarantineTable.propTypes = {
   currentPage: PropTypes.number,
   sortDir: PropTypes.string,
   sortField: PropTypes.string,
-  filterPolicy: PropTypes.object,
+  filterPolicy: PropTypes.string,
   lastUpdated: PropTypes.object,
   selectQuarantineComponent: PropTypes.func.isRequired,
 };

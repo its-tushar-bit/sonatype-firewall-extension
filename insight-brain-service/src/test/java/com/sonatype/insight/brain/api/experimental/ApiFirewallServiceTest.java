@@ -494,7 +494,7 @@ public class ApiFirewallServiceTest
     // a non-failing violation should not be included in results
     PolicyViolationTestHelper.createPolicyViolationWarn(policy2, component2, tempEntity);
 
-    // a waived violation should be included in results
+    // a waived violation should not be included in results
     PolicyViolationTestHelper.createPolicyViolationWaived(policy2, component3, tempEntity);
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined4", false, "policy_id_3", "policy_3",
@@ -502,7 +502,7 @@ public class ApiFirewallServiceTest
 
     final FirewallSortableField sortField = FirewallSortableField.RELEASE_QUARANTINE_TIME;
     final FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, sortField, true,
+        new FirewallRepositoryComponentFilter(1, 10, FirewallComponentFilterState.UNQUARANTINE_AUTO, sortField, true,
             Collections.emptyList());
 
     // EXECUTE
@@ -510,13 +510,19 @@ public class ApiFirewallServiceTest
 
     // VERIFY
     assertThat(unquarantineList.getTotal()).isEqualTo(4);
-    assertThat(unquarantineList.getResults()).hasSize(2);
+    assertThat(unquarantineList.getResults()).hasSize(4);
 
     final ApiFirewallComponentDTO componentDTO1 = unquarantineList.getResults().get(0);
     assertRepositoryComponentWithOnePolicyViolation(policyViolation1, componentDTO1, june1st2020, june2nd2020);
 
     final ApiFirewallComponentDTO componentDTO2 = unquarantineList.getResults().get(1);
     assertRepositoryComponentWithOnePolicyViolation(policyViolation2, componentDTO2, june2nd2020, june3rd2020);
+
+    final ApiFirewallComponentDTO componentDTO3 = unquarantineList.getResults().get(2);
+    assertRepositoryComponentZeroViolations(componentDTO3, june3rd2020, june4th2020);
+
+    final ApiFirewallComponentDTO componentDTO4 = unquarantineList.getResults().get(3);
+    assertRepositoryComponentZeroViolations(componentDTO4, june3rd2020, june4th2020);
   }
 
   @Test

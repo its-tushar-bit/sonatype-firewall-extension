@@ -147,7 +147,7 @@ public class ApiFirewallResource
   {
     List<FirewallFilterField> filterFields = new ArrayList<>();
     if (!StringUtils.isEmpty(policyId)) {
-      filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, policyId));
+      filterFields.add(new FirewallFilterField(FirewallFilterableField.QUARANTINE_POLICY_ID, policyId));
     }
 
     final FirewallSortableField sortableField = sortBy == null ? defaultSortableField : initializeSortField(sortBy);

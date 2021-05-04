@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.db.DataSourceFactory;
 import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
+import com.sonatype.insight.brain.model.policy.actions.WarnActionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -356,7 +357,7 @@ public class RepositoryComponentDAOTest
     // EXECUTE
     final List<RepositoryComponent> autoUnquarantined = dao.getFirewallRepositoryComponents(filter);
 
-    // ASSERTION
+    // ASSERTION - Both components should be returned, regardless of whether a failed violation is present
     assertThat(autoUnquarantined).isNotEmpty();
     assertThat(autoUnquarantined.size()).isEqualTo(2);
     assertComponentForFirewall(autoUnquarantined.get(0), "/quarantined1", june5th2020, null, null);
@@ -496,20 +497,20 @@ public class RepositoryComponentDAOTest
 
     // FILTER BY POLICY NAME
     final ArrayList<FirewallFilterField> filterFields = new ArrayList<>();
-    filterFields.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, "policy_id_2"));
+    filterFields.add(new FirewallFilterField(FirewallFilterableField.QUARANTINE_POLICY_ID, "policy_id_2"));
     FirewallRepositoryComponentFilter filter =
-        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
+        new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.QUARANTINE, null, true,
             filterFields);
 
     // EXECUTE
-    final List<RepositoryComponent> autoUnquarantinedFiltered = dao.getFirewallRepositoryComponents(filter);
+    final List<RepositoryComponent> quarantinedFiltered = dao.getFirewallRepositoryComponents(filter);
 
-    // ASSERTION
-    assertThat(autoUnquarantinedFiltered).isNotEmpty();
-    assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(2);
-    assertThat(autoUnquarantinedFiltered.size()).isEqualTo(2);
-    assertComponentForFirewall(autoUnquarantinedFiltered.get(0), "/autoreleased3", june3rd2020, june4th2020, true);
-    assertComponentForFirewall(autoUnquarantinedFiltered.get(1), "/autoreleased2", june2nd2020, june3rd2020, true);
+    // ASSERTION - only the component with failed policy violation should be returned
+    // Warn action type or waived fail action type should not be returned
+    assertThat(quarantinedFiltered).isNotEmpty();
+    assertThat(dao.getTotalFirewallRepositoryComponents(filter)).isEqualTo(1);
+    assertThat(quarantinedFiltered.size()).isEqualTo(1);
+    assertComponentForFirewall(quarantinedFiltered.get(0), "/quarantined1", june5th2020, null, null);
   }
 
   @Test
@@ -574,7 +575,7 @@ public class RepositoryComponentDAOTest
 
     // FILTER BY UNQUARANTINE_AUTO COMPONENT
     final ArrayList<FirewallFilterField> filterFieldsInvalid = new ArrayList<>();
-    filterFieldsInvalid.add(new FirewallFilterField(FirewallFilterableField.POLICY_ID, "policy_5"));
+    filterFieldsInvalid.add(new FirewallFilterField(FirewallFilterableField.QUARANTINE_POLICY_ID, "policy_5"));
     FirewallRepositoryComponentFilter filter =
         new FirewallRepositoryComponentFilter(1, 2, FirewallComponentFilterState.UNQUARANTINE_AUTO, null, true,
             filterFieldsInvalid);
@@ -710,22 +711,27 @@ public class RepositoryComponentDAOTest
             .newRepositoryComponent(repository.getId(), "/autoreleased3", june3rd2020, june4th2020, june6th2020, true);
     tempEntity
         .newRepositoryComponent(repository.getId(), "/autoreleased4", june4th2020, june5th2020, june5th2020, true);
-    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june5th2020, null, june4th2020, false);
-    tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june6th2020, null, june3rd2020, false);
+    final RepositoryComponent component5 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined1", june5th2020, null, june4th2020, false);
+    final RepositoryComponent component6 =
+        tempEntity.newRepositoryComponent(repository.getId(), "/quarantined2", june6th2020, null, june3rd2020, false);
     tempEntity.newRepositoryComponent(repository.getId(), "/manualreleased1", june7th2020, june8th2020, june2nd2020,
         false);
     tempEntity.newRepositoryComponent(repository.getId(), "/audit1", null, null, june1st2020, false);
 
     // CREATE POLICY VIOLATION
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased2", false, "policy_id_2", "policy_2",
-        component2.getComponentIdentifier());
+    tempEntity
+        .newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased2", false, "policy_id_2", "policy_2",
+            component2.getComponentIdentifier());
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/autoreleased3", false, "policy_id_2", "policy_2",
         component3.getComponentIdentifier());
 
     tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined1", false, FailActionType.ID,
-        "policy_id_2", "policy_2", component2.getComponentIdentifier());
-    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined2", false, FailActionType.ID,
-        "policy_id_2", "policy_2", component3.getComponentIdentifier());
+        "policy_id_2", "policy_2", component5.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined2", false, WarnActionType.ID,
+        "policy_id_2", "policy_2", component6.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(repository.getId(), 5, "/quarantined2", true, FailActionType.ID,
+        "policy_id_2", "policy_2", component6.getComponentIdentifier());
   }
 
   private void assertComponentForFirewall(

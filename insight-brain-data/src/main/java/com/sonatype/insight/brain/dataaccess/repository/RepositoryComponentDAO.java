@@ -177,8 +177,8 @@ public class RepositoryComponentDAO
       final javax.persistence.Query paginationQuery =
           createPaginationQuery(tx, sQuery.toString(), offset, filter.pageSize);
 
-      if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
-        paginationQuery.setParameter(1, filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID));
+      if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.QUARANTINE_POLICY_ID)) {
+        paginationQuery.setParameter(1, filter.getFilterFieldsMap().get(FirewallFilterableField.QUARANTINE_POLICY_ID));
       }
 
       return paginationQuery.getResultList();
@@ -190,8 +190,8 @@ public class RepositoryComponentDAO
     List<Object> parameters = new ArrayList<>();
 
     // FILTER
-    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
-      parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.POLICY_ID));
+    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.QUARANTINE_POLICY_ID)) {
+      parameters.add(filter.getFilterFieldsMap().get(FirewallFilterableField.QUARANTINE_POLICY_ID));
     }
 
     return getSingle(Long.class, sQuery, parameters.toArray());
@@ -207,18 +207,11 @@ public class RepositoryComponentDAO
     if (queryRequiresPolicyViolations(filter)) {
       sQuery.append(" , RepositoryPolicyViolation policyViolation"
           + " WHERE component.repositoryId = policyViolation.repositoryId"
-          + " AND component.pathname = policyViolation.pathname");
-    }
-
-    // only load components with fail violations for quarantine results
-    if (FirewallComponentFilterState.QUARANTINE == filter.firewallComponentFilterState) {
-      sQuery.append(" AND policyViolation.actionTypeId = 'fail'"
-          + " AND policyViolation.active = true");
-    }
-
-    // FILTER
-    if (filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)) {
-      sQuery.append(" AND policyViolation.policyId=?1");
+          + " AND component.pathname = policyViolation.pathname"
+          + " AND policyViolation.actionTypeId = 'fail'"
+          + " AND policyViolation.active = true"
+          + " AND policyViolation.policyId=?1"
+          + " AND policyViolation.isWaived = false");
     }
 
     sQuery.append(getFirewallComponentStateClause(filter));
@@ -227,8 +220,7 @@ public class RepositoryComponentDAO
   }
 
   private static boolean queryRequiresPolicyViolations(FirewallRepositoryComponentFilter filter) {
-    return filter.getFilterFieldsMap().containsKey(FirewallFilterableField.POLICY_ID)
-        || FirewallComponentFilterState.QUARANTINE == filter.firewallComponentFilterState;
+    return filter.getFilterFieldsMap().containsKey(FirewallFilterableField.QUARANTINE_POLICY_ID);
   }
 
   private static String getFirewallComponentStateClause(

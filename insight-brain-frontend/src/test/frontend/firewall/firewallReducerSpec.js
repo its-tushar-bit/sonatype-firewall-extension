@@ -936,8 +936,18 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING action', function () {
-    let initialState = reduce();
-
+    let initialState = {
+      autoUnquarantineState: {
+        autoUnquarantineGridState: {
+          sortField: null,
+          sortDir: null,
+          currentPage: 1,
+          loadedReleaseQuarantineList: true,
+          releaseQuarantineList: [{ test: 'test' }],
+          releaseQuarantinePageCount: 5,
+        },
+      },
+    };
     it('updates the state', function () {
       let payload = { sortField: 'testSort', sortDir: 'asc' };
 
@@ -954,6 +964,10 @@ describe('firewallReducer', function () {
             ...initialState.autoUnquarantineState.autoUnquarantineGridState,
             sortField: 'testSort',
             sortDir: 'asc',
+            currentPage: null,
+            loadedReleaseQuarantineList: false,
+            releaseQuarantineList: [],
+            releaseQuarantinePageCount: 0,
           },
         },
       });
@@ -1052,7 +1066,16 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_QUARANTINE_GRID_SET_SORTING action', function () {
-    let initialState = reduce();
+    let initialState = {
+      quarantineGridState: {
+        sortField: null,
+        sortDir: null,
+        currentPage: 1,
+        loadedQuarantineList: true,
+        quarantineList: [{ test: 'test' }],
+        quarantinePageCount: 5,
+      },
+    };
 
     it('updates the state', function () {
       let payload = { sortField: 'testSort', sortDir: 'asc' };
@@ -1063,13 +1086,25 @@ describe('firewallReducer', function () {
           ...initialState.quarantineGridState,
           sortField: 'testSort',
           sortDir: 'asc',
+          currentPage: null,
+          loadedQuarantineList: false,
+          quarantineList: [],
+          quarantinePageCount: 0,
         },
       });
     });
   });
 
   describe('FIREWALL_QUARANTINE_GRID_SET_FILTER action', function () {
-    let initialState = reduce();
+    let initialState = {
+      quarantineGridState: {
+        filterPolicy: null,
+        currentPage: 1,
+        loadedQuarantineList: true,
+        quarantineList: [{ test: 'test' }],
+        quarantinePageCount: 5,
+      },
+    };
 
     it('updates the state', function () {
       let payload = { policy: { id: '456', name: 'test-name' } };
@@ -1079,6 +1114,10 @@ describe('firewallReducer', function () {
         quarantineGridState: {
           ...initialState.quarantineGridState,
           filterPolicy: payload.policy,
+          currentPage: null,
+          loadedQuarantineList: false,
+          quarantineList: [],
+          quarantinePageCount: 0,
         },
       });
     });

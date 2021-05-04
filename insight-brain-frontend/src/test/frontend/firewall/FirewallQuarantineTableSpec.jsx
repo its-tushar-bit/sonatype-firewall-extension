@@ -6,12 +6,12 @@
 
 import React from 'react';
 import {
+  NxOverflowTooltip,
   NxTable,
   NxTableBody,
   NxTableCell,
-  NxOverflowTooltip,
-  NxThreatIndicator,
   NxTableRow,
+  NxThreatIndicator,
 } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../enzymeUtils';
 
@@ -119,6 +119,55 @@ describe('FirewallQuarantineTable', function () {
             <NxTableCell key="4">
               <NxOverflowTooltip title="Security-Medium">
                 <div className="nx-truncate-ellipsis">Security-Medium</div>
+              </NxOverflowTooltip>
+            </NxTableCell>
+            ,
+            <NxTableCell key="5">
+              <NxOverflowTooltip title="central">
+                <div className="nx-truncate-ellipsis">central</div>
+              </NxOverflowTooltip>
+            </NxTableCell>
+            ,
+          </NxTableRow>,
+        ])
+      ).toBeTruthy();
+    });
+
+    it('renders a row within table when no violations are present', () => {
+      // when the results table is rendered
+      let component = getShallowComponent({
+          quarantineList: [
+            {
+              componentDisplayText: 'test-component',
+              repository: 'central',
+              quarantineDate: '2018-09-30T03:10:35.754+0000',
+              dateCleared: null,
+              quarantinePolicyViolations: [],
+            },
+          ],
+        }),
+        table = component.find(NxTable),
+        tableBody = table.find(NxTableBody),
+        quarantineDate = new Date(minimalProps.quarantineList[0].quarantineDate).toLocaleDateString();
+
+      // then it contains the repository
+      expect(
+        tableBody.containsMatchingElement([
+          <NxTableRow key="1" isClickable="true" onClick={selectQuarantineComponentSpy(1)}>
+            <NxTableCell key="1" isNumeric>
+              <NxThreatIndicator policyThreatLevel={0} />
+              <span>{0}</span>
+            </NxTableCell>
+            ,
+            <NxTableCell key="2">
+              <NxOverflowTooltip title="test-component">
+                <div className="nx-truncate-ellipsis">test-component</div>
+              </NxOverflowTooltip>
+            </NxTableCell>
+            ,<NxTableCell key="3">{quarantineDate}</NxTableCell>,
+            <NxTableCell key="4">
+              <NxOverflowTooltip title="Security-Medium">
+                <div className="nx-truncate-ellipsis">None</div>
               </NxOverflowTooltip>
             </NxTableCell>
             ,

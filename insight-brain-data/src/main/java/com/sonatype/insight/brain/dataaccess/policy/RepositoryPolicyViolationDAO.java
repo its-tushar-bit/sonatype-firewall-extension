@@ -74,22 +74,6 @@ public class RepositoryPolicyViolationDAO
     return getList(sQuery, repositoryId, pathname, actionTypeId);
   }
 
-  /**
-   * @since 1.113
-   */
-  public List<RepositoryPolicyViolation> getByRepositoryIdAndPathnameAndAction(
-      String repositoryId,
-      String pathname,
-      String actionTypeId)
-  {
-    String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
-        " WHERE entity.repositoryId=?1" + //
-        " AND entity.pathname=?2" + //
-        " AND entity.actionTypeId=?3" + //
-        " AND entity.active=true";
-    return getList(sQuery, repositoryId, pathname, actionTypeId);
-  }
-
   public List<RepositoryPolicyViolation> getByRepositoryId(String repositoryId) {
     String sQuery = "SELECT entity FROM RepositoryPolicyViolation entity" + //
         " WHERE entity.repositoryId=?1";

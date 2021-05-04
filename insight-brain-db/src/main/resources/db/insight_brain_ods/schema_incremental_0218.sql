@@ -1,10 +1,4 @@
 -- Since 1.114
-ALTER TABLE source_control_pull_request_comment
-  DROP CONSTRAINT source_control_pull_request_uk;
-
-ALTER TABLE source_control_pull_request_comment
-  ADD CONSTRAINT source_control_pull_request_comment_uk UNIQUE (application_id, component_hash, pull_request_id);
-
 CREATE TABLE source_control_pull_request
 (
   source_control_pull_request_id varchar(50) NOT NULL,
@@ -16,5 +10,6 @@ CREATE TABLE source_control_pull_request
   last_check_time timestamp NOT NULL,
   last_detected_update_time timestamp NOT NULL,
   CONSTRAINT source_control_pull_request_pk PRIMARY KEY (source_control_pull_request_id),
-  CONSTRAINT source_control_pull_request_uk UNIQUE (repository_url_lowercase, pull_request_id)
+  -- The "source_control_pull_request_uk" name is taken by a constraint incorrectly named in schema_incremental_0171
+  CONSTRAINT source_control_pull_request_uk1 UNIQUE (repository_url, pull_request_id)
 );

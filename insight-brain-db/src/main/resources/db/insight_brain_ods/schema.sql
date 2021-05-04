@@ -816,7 +816,8 @@ CREATE TABLE source_control_pull_request
   last_check_time timestamp NOT NULL,
   last_detected_update_time timestamp NOT NULL,
   CONSTRAINT source_control_pull_request_pk PRIMARY KEY (source_control_pull_request_id),
-  CONSTRAINT source_control_pull_request_uk UNIQUE (repository_url, pull_request_id)
+  -- The "source_control_pull_request_uk" name is taken by a constraint incorrectly named in schema_incremental_0171
+  CONSTRAINT source_control_pull_request_uk1 UNIQUE (repository_url, pull_request_id)
 );
 
 -- Since 1.96

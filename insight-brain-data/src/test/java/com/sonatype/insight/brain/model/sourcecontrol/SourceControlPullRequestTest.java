@@ -18,32 +18,32 @@ public class SourceControlPullRequestTest
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest(" testRepositoryUrl ", 1,
         "testCommitHash", "testVranchName", new Date(), new Date(), new Date());
 
-    assertThat(sourceControlPullRequest.getRepositoryUrlLowercase()).isEqualTo("testrepositoryurl");
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("testrepositoryurl");
   }
 
   @Test
-  public void testSetRepositoryUrlLowercase() {
+  public void testSetRepositoryUrl() {
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest();
-    sourceControlPullRequest.setRepositoryUrlLowercase(" testRepositoryUrl ");
+    sourceControlPullRequest.setRepositoryUrl(" testRepositoryUrl ");
 
-    assertThat(sourceControlPullRequest.getRepositoryUrlLowercase()).isEqualTo("testrepositoryurl");
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("testrepositoryurl");
   }
 
   @Test
   public void testSetRepositoryUrl_Null() {
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest();
-    sourceControlPullRequest.setRepositoryUrlLowercase("testRepositoryUrl");
+    sourceControlPullRequest.setRepositoryUrl("testRepositoryUrl");
 
-    sourceControlPullRequest.setRepositoryUrlLowercase(null);
-    assertThat(sourceControlPullRequest.getRepositoryUrlLowercase()).isNull();
+    sourceControlPullRequest.setRepositoryUrl(null);
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isNull();
   }
 
   @Test
   public void testSetRepositoryUrl_WhiteSpace() {
     SourceControlPullRequest sourceControlPullRequest = new SourceControlPullRequest();
-    sourceControlPullRequest.setRepositoryUrlLowercase("testRepositoryUrl");
+    sourceControlPullRequest.setRepositoryUrl("testRepositoryUrl");
 
-    sourceControlPullRequest.setRepositoryUrlLowercase("     ");
-    assertThat(sourceControlPullRequest.getRepositoryUrlLowercase()).isNull();
+    sourceControlPullRequest.setRepositoryUrl("     ");
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isNull();
   }
 }

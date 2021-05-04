@@ -29,8 +29,8 @@ public class SourceControlPullRequest
   @Column(name = "source_control_pull_request_id")
   private String id;
 
-  @Column(name = "repository_url_lowercase")
-  private String repositoryUrlLowercase;
+  @Column(name = "repository_url")
+  private String repositoryUrl;
 
   @Column(name = "pull_request_id")
   private int pullRequestId;
@@ -62,7 +62,7 @@ public class SourceControlPullRequest
       Date lastCheckTime,
       Date lastDetectedUpdateTime)
   {
-    setRepositoryUrlLowercase(repositoryUrl);
+    setRepositoryUrl(repositoryUrl);
     this.pullRequestId = pullRequestId;
     this.headCommitHash = headCommitHash;
     this.branchName = branchName;
@@ -81,21 +81,19 @@ public class SourceControlPullRequest
     this.id = id;
   }
 
-  public String getRepositoryUrlLowercase() {
-    return repositoryUrlLowercase;
+  public String getRepositoryUrl() {
+    return repositoryUrl;
   }
 
-  public void setRepositoryUrlLowercase(String repositoryUrl) {
+  public void setRepositoryUrl(String repositoryUrl) {
     if (StringUtils.isBlank(repositoryUrl)) {
       repositoryUrl = null;
     }
 
     if (repositoryUrl != null) {
-      repositoryUrlLowercase = repositoryUrl.trim().toLowerCase(Locale.ENGLISH);
+      repositoryUrl = repositoryUrl.trim().toLowerCase(Locale.ENGLISH);
     }
-    else {
-      repositoryUrlLowercase = null;
-    }
+    this.repositoryUrl = repositoryUrl;
   }
 
   public int getPullRequestId() {

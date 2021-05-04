@@ -6,10 +6,11 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
-import java.util.Locale;
+import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
+import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
 
@@ -39,9 +40,7 @@ public class SourceControlPullRequestDAOTest
     String id = sourceControlPullRequest.getId();
     sourceControlPullRequest = dao.getById(id);
     assertThat(sourceControlPullRequest.getId()).isEqualTo(id);
-    assertThat(sourceControlPullRequest.getRepositoryUrlLowercase()).isEqualTo(repositoryUrlLowercase);
-    assertThat(sourceControlPullRequest.getRepositoryUrlLowercase())
-        .isEqualTo(repositoryUrl.toLowerCase(Locale.ENGLISH));
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo(repositoryUrlLowercase);
     assertThat(sourceControlPullRequest.getPullRequestId()).isEqualTo(pullRequestId);
     assertThat(sourceControlPullRequest.getHeadCommitHash()).isEqualTo(headCommitHash);
     assertThat(sourceControlPullRequest.getBranchName()).isEqualTo(branchName);
@@ -78,5 +77,26 @@ public class SourceControlPullRequestDAOTest
 
     tempEntity.newSourceControlPullRequest();
     assertThat(dao.getAll()).hasSize(2);
+  }
+
+  @Test
+  public void testDeleteByRepositoryUrl() {
+    // Given 3 pull requests, of which two have the same repository URL (case insensitive)
+    SourceControlPullRequest sourceControlPullRequest = tempEntity.newSourceControlPullRequest("testRepositoryUrl1", 1,
+        "testHeadCommitHash1", "testBranchName1", new Date(), new Date(), new Date());
+    tempEntity.newSourceControlPullRequest("testRepositoryUrl2", 1, "testHeadCommitHash2", "testBranchName2",
+        new Date(), new Date(), new Date());
+    tempEntity.newSourceControlPullRequest("TESTRepositoryUrl2", 2, "testHeadCommitHash3", "testBranchName3",
+        new Date(), new Date(), new Date());
+
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRepositoryUrl(tx, "testRepositoryUrl2");
+      tx.commit();
+    }
+
+    List<SourceControlPullRequest> sourceControlPullRequests = dao.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    assertThat(sourceControlPullRequests.get(0).getId()).isEqualTo(sourceControlPullRequest.getId());
   }
 }

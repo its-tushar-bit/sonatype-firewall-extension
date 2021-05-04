@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SourceControlDAOTest
     extends AbstractDbDAOTest
 {
-  private static final String VALID_URL = "https://example.com/organization/project";
+  private static final String VALID_URL = "https://example.com/organization/Project";
 
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
@@ -454,6 +455,8 @@ public class SourceControlDAOTest
 
   @Test
   public void testCRUD() {
+    assertThat(VALID_URL.toLowerCase(Locale.ENGLISH)).isNotEqualTo(VALID_URL);
+
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
@@ -466,7 +469,7 @@ public class SourceControlDAOTest
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getOwnerId()).isEqualTo(app.getId());
-    assertThat(sourceControl.getRepositoryUrl()).isEqualTo(VALID_URL);
+    assertThat(sourceControl.getRepositoryUrl()).isEqualTo(VALID_URL.toLowerCase(Locale.ENGLISH));
     assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("bar");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");
@@ -952,5 +955,33 @@ public class SourceControlDAOTest
     assertThat(appsWithDefaultTokens)
         .extracting(SourceControl::getId)
         .containsOnly(scApp1a.getId());
+  }
+
+  @Test
+  public void testDelete_NullEntity() {
+    // Should not throw an exception
+    sourceControlDAO.delete(null);
+  }
+
+  @Test
+  public void testDelete_CascadesToPullRequests() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // And two source controls (for two apps) with the same repository URL
+    Application app1 = tempEntity.newApplicationWithParent();
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
+    SourceControl sourceControl1 = tempEntity.newSourceControl(app1.getId(), VALID_URL);
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
+        new Date());
+
+    // Then delete should not cascade to pull requests (because there are two source control records with the same
+    // repository URL).
+    sourceControlDAO.delete(sourceControl);
+    assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
+
+    // Then delete should cascade to pull requests (because there is only one source control record left with that
+    // repository URL).
+    sourceControlDAO.delete(sourceControl1);
+    assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(0);
   }
 }

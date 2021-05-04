@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.sourcecontrol;
 
 import java.util.Date;
+import java.util.Locale;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -80,7 +81,7 @@ public class SourceControl
       final String baseBranch)
   {
     this.ownerId = ownerId;
-    this.repositoryUrl = repositoryUrl;
+    setRepositoryUrl(repositoryUrl);
     this.username = username;
     this.token = token;
     this.provider = provider;
@@ -111,7 +112,10 @@ public class SourceControl
     return repositoryUrl;
   }
 
-  public void setRepositoryUrl(final String repositoryUrl) {
+  public void setRepositoryUrl(String repositoryUrl) {
+    if (repositoryUrl != null) {
+      repositoryUrl = repositoryUrl.toLowerCase(Locale.ENGLISH);
+    }
     this.repositoryUrl = repositoryUrl;
   }
 

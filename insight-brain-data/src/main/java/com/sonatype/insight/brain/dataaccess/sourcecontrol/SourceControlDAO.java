@@ -5,8 +5,10 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -149,8 +151,8 @@ public class SourceControlDAO
   }
 
   public List<SourceControl> getByRepositoryOwnerAndName(String repositoryOwnerAndName) {
-    return getList("SELECT entity FROM SourceControl entity WHERE UPPER(entity.repositoryUrl) LIKE ?1",
-        "%/" + repositoryOwnerAndName.toUpperCase() + '%');
+    return getList("SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl LIKE ?1",
+        "%/" + repositoryOwnerAndName.toLowerCase(Locale.ENGLISH) + '%');
   }
 
   @Override
@@ -284,6 +286,35 @@ public class SourceControlDAO
     if (existing != null) {
       delete(tx, existing);
     }
+  }
+
+  @Override
+  public void delete(TransactionContext tx, SourceControl entity) {
+    if (entity == null) {
+      return;
+    }
+
+    // Cascade to SourceControlPullRequest
+    if (!StringUtils.isBlank(entity.getRepositoryUrl())) {
+      List<SourceControl> sourceControlsWithSameRepositoryUrl = getByRepositoryUrl(tx, entity.getRepositoryUrl());
+      if (sourceControlsWithSameRepositoryUrl.size() == 1) {
+        // This is the only SourceControl with this repository URL.
+        // Delete all SourceControlPullRequests for this repository URL.
+        new SourceControlPullRequestDAO().deleteByRepositoryUrl(tx, entity.getRepositoryUrl());
+      }
+    }
+    
+    super.delete(tx, entity);
+  }
+
+  private List<SourceControl> getByRepositoryUrl(TransactionContext tx, String repositoryUrl) {
+    if (repositoryUrl == null) {
+      return Collections.emptyList();
+    }
+
+    repositoryUrl = repositoryUrl.toLowerCase(Locale.ENGLISH);
+    String sQuery = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl=?1";
+    return getList(tx, sQuery, repositoryUrl);
   }
 
   public SourceControl getByOwnerId(final String ownerId) {

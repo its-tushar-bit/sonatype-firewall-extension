@@ -9,7 +9,7 @@ import { availableScopesPropType } from '../advancedLegalPropTypes';
 import LoadWrapper from '../../react/LoadWrapper';
 import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
-import { createSubtitle } from '../legalUtility';
+import { backToComponentOverviewUrl, createSubtitle } from '../legalUtility';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
 
 export default function CopyrightDetailsHeader(props) {
@@ -20,6 +20,7 @@ export default function CopyrightDetailsHeader(props) {
     ownerType,
     ownerId,
     hash,
+    stageTypeId,
     copyrightIndex,
     $state,
     showEditCopyrightOverrideModal,
@@ -27,16 +28,6 @@ export default function CopyrightDetailsHeader(props) {
     loadComponentAndCopyrightDetails,
     setDisplayCopyrightOverrideModal,
   } = props;
-
-  const backUrl = () => {
-    const state =
-      ownerType === 'organization' ? 'legal.organizationComponentOverview' : 'legal.applicationComponentOverview';
-    const params = {
-      [ownerType === 'organization' ? 'organizationId' : 'applicationPublicId']: ownerId,
-      hash: hash,
-    };
-    return $state.href($state.get(state), params);
-  };
 
   function load() {
     loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex);
@@ -46,7 +37,10 @@ export default function CopyrightDetailsHeader(props) {
 
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
-      <NxBackButton href={backUrl()} targetPageTitle="Component Obligations" />
+      <NxBackButton
+        href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
+        targetPageTitle="Component Obligations"
+      />
       <div className="nx-page-title">
         <h1 className="nx-h1">Copyrights</h1>
         {createSubtitle(availableScopes)}
@@ -65,9 +59,10 @@ export default function CopyrightDetailsHeader(props) {
 CopyrightDetailsHeader.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
-  ownerType: PropTypes.string,
-  ownerId: PropTypes.string,
+  ownerType: PropTypes.string.isRequired,
+  ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string,
+  stageTypeId: PropTypes.string,
   copyrightIndex: PropTypes.string,
   availableScopes: availableScopesPropType,
   $state: PropTypes.object.isRequired,

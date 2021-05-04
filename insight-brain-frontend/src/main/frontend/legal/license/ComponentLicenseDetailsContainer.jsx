@@ -20,7 +20,7 @@ function mapStateToProps({ advancedLegal, componentLicenseDetails, router }) {
     componentLicenseDetails,
     licenseLegalMetadata,
     ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'licenseIndex'], router.currentParams),
+    ...pick(['hash', 'ownerType', 'ownerId', 'licenseIndex', 'stageTypeId'], router.currentParams),
   };
 }
 

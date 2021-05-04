@@ -103,8 +103,27 @@ function routes($stateProvider) {
         title: 'Copyright Details',
       },
     })
+    .state('legal.stageTypeComponentCopyrightDetails', {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/copyrights',
+      component: 'componentCopyrightDetails',
+      abstract: true,
+    })
+    .state('legal.stageTypeComponentCopyrightDetails.copyrightDetails', {
+      url: '/{copyrightIndex}',
+      component: 'copyrightDetailsContents',
+      data: {
+        title: 'Copyright Details',
+      },
+    })
     .state('legal.componentLicenseDetails', {
       url: '/legal/{ownerType}/{ownerId}/component/{hash}/licenses/{licenseIndex}',
+      component: 'componentLicenseDetails',
+      data: {
+        title: 'Component - License Details',
+      },
+    })
+    .state('legal.stageTypeComponentLicenseDetails', {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/licenses/{licenseIndex}',
       component: 'componentLicenseDetails',
       data: {
         title: 'Component - License Details',

@@ -10,9 +10,12 @@ import * as PropTypes from 'prop-types';
 import { licenseLegalMetadataPropType } from './advancedLegalPropTypes';
 
 export default function LicenseDetailsTile(props) {
-  const { licenseNames, licenseLegalMetadata, ownerType, ownerId, hash, $state } = props;
+  const { licenseNames, licenseLegalMetadata, ownerType, ownerId, hash, stageTypeId, $state } = props;
 
   const isLicensePresent = () => licenseNames.length > 0;
+
+  const licenseDetailsTargetState = () =>
+    stageTypeId ? 'legal.stageTypeComponentLicenseDetails' : 'legal.componentLicenseDetails';
 
   /**
    * Find the index of the license in licenseMetadata.
@@ -27,8 +30,7 @@ export default function LicenseDetailsTile(props) {
       return corrected;
     }
     // Must be a multilicense
-    const correctedAgain = licenseLegalMetadata.findIndex((license) => licenseName.startsWith(license.licenseName));
-    return correctedAgain;
+    return licenseLegalMetadata.findIndex((license) => licenseName.startsWith(license.licenseName));
   }
 
   const createItem = (license, index) => {
@@ -36,10 +38,11 @@ export default function LicenseDetailsTile(props) {
       <li className="nx-list__item nx-list__item--link" key={index}>
         <a
           className="nx-list__link"
-          href={$state.href('legal.componentLicenseDetails', {
+          href={$state.href(licenseDetailsTargetState(), {
             ownerType,
             ownerId,
             hash,
+            stageTypeId,
             licenseIndex: findTrueLicenseIndex(index),
           })}
         >
@@ -72,5 +75,6 @@ LicenseDetailsTile.propTypes = {
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string.isRequired,
+  stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

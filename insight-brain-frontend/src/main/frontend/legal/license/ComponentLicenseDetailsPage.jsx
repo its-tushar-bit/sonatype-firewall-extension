@@ -8,7 +8,7 @@ import { availableScopesPropType, licenseLegalMetadataPropType, componentPropTyp
 import LoadWrapper from '../../react/LoadWrapper';
 import { NxBackButton } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
-import { createSubtitle } from '../legalUtility';
+import { backToComponentOverviewUrl, createSubtitle } from '../legalUtility';
 import LicenseList from './LicenseList';
 import ComponentLicenseOverviewTile from './ComponentLicenseOverviewTile';
 import LicenseFullDetailsTile from './LicenseFullDetailsTile';
@@ -21,6 +21,7 @@ export default function ComponentLicenseDetailsPage(props) {
     ownerType,
     ownerId,
     hash,
+    stageTypeId,
     licenseIndex,
     component,
     componentLicenseDetails,
@@ -35,20 +36,13 @@ export default function ComponentLicenseDetailsPage(props) {
 
   useEffect(load, [ownerType, ownerId, hash, licenseIndex]);
 
-  const backUrl = () => {
-    const state =
-      ownerType === 'organization' ? 'legal.organizationComponentOverview' : 'legal.applicationComponentOverview';
-    const params = {
-      [ownerType === 'organization' ? 'organizationId' : 'applicationPublicId']: ownerId,
-      hash,
-    };
-    return $state.href($state.get(state), params);
-  };
-
   return (
     <main className="nx-page-main nx-viewport-sized">
       <LoadWrapper loading={loading} error={error} retryHandler={load}>
-        <NxBackButton href={backUrl()} targetPageTitle="Component Obligations" />
+        <NxBackButton
+          href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
+          targetPageTitle="Component Obligations"
+        />
         <div className="nx-page-title">
           <h1 className="nx-h1">Licenses</h1>
           {createSubtitle(availableScopes)}
@@ -77,9 +71,10 @@ ComponentLicenseDetailsPage.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
   availableScopes: availableScopesPropType,
-  ownerType: PropTypes.string,
-  ownerId: PropTypes.string,
+  ownerType: PropTypes.string.isRequired,
+  ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string,
+  stageTypeId: PropTypes.string,
   licenseIndex: PropTypes.string,
   component: componentPropType,
   componentLicenseDetails: PropTypes.object,

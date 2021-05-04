@@ -112,6 +112,7 @@ export default function ComponentLegalOverviewPage(props) {
                 ownerType={ownerType}
                 ownerId={ownerId}
                 hash={hash}
+                stageTypeId={stageTypeId}
                 $state={$state}
               />
               <CopyrightStatementsTile
@@ -120,6 +121,7 @@ export default function ComponentLegalOverviewPage(props) {
                 ownerType={ownerType}
                 ownerId={ownerId}
                 hash={hash}
+                stageTypeId={stageTypeId}
                 $state={$state}
                 showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
                 setDisplayCopyrightOverrideModal={setDisplayCopyrightOverrideModal}

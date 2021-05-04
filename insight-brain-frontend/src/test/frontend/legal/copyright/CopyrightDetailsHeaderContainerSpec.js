@@ -10,8 +10,9 @@ import { shallow } from 'enzyme';
 import { copyrightState } from './copyrightCommonState';
 import CopyrightDetailsHeader from '../../../../main/frontend/legal/copyright/CopyrightDetailsHeader';
 import { copyrightDetailsStateName } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
+import { mergeDeepRight } from 'ramda';
 
-describe('CopyrightDetailsHeader', function () {
+describe('CopyrightDetailsHeaderContainer', function () {
   let store, state, vdom, CopyrightDetailsHeaderContainer, loadComponentAndCopyrightDetailsMock;
 
   beforeEach(function () {
@@ -38,6 +39,21 @@ describe('CopyrightDetailsHeader', function () {
     expect(wrapper).toHaveProp('hash', 'fooHash');
     expect(wrapper).toHaveProp('ownerType', 'organization');
     expect(wrapper).toHaveProp('ownerId', 'org');
+    expect(wrapper).not.toHaveProp('stageTypeId');
+    expect(wrapper).toHaveProp('copyrightIndex', '12');
+  });
+
+  it('maps the state slice to props with stageTypeId routing', () => {
+    store = configureStore()(() => mergeDeepRight(state, { router: { currentParams: { stageTypeId: 'build' } } }));
+    vdom = <CopyrightDetailsHeaderContainer store={store} />;
+
+    let wrapper = shallow(vdom).dive();
+    expect(wrapper).toHaveProp('loading', 'loading');
+    expect(wrapper).toHaveProp('error', 'error');
+    expect(wrapper).toHaveProp('hash', 'fooHash');
+    expect(wrapper).toHaveProp('ownerType', 'organization');
+    expect(wrapper).toHaveProp('ownerId', 'org');
+    expect(wrapper).toHaveProp('stageTypeId', 'build');
     expect(wrapper).toHaveProp('copyrightIndex', '12');
   });
 

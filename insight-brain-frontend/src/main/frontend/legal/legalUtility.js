@@ -40,6 +40,20 @@ export function createSubtitle(availableScopes) {
   );
 }
 
+export function backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash) {
+  let state =
+    ownerType === 'organization' ? 'legal.organizationComponentOverview' : 'legal.applicationComponentOverview';
+  const params = {
+    [ownerType === 'organization' ? 'organizationId' : 'applicationPublicId']: ownerId,
+    hash: hash,
+  };
+  if (stageTypeId && ownerType === 'application') {
+    state = 'legal.applicationStageTypeComponentOverview';
+    params.stageTypeId = stageTypeId;
+  }
+  return $state.href($state.get(state), params);
+}
+
 export function getLicenseThreatGroupsFromLicense(license) {
   return isNilOrEmpty(license.licenseThreatGroups)
     ? [{ licenseThreatGroupName: NO_LICENSE_THREAT_GROUP_ASSIGNED }]

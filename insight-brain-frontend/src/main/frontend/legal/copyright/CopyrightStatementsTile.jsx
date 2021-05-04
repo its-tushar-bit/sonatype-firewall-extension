@@ -17,6 +17,7 @@ export default function CopyrightStatementsTile(props) {
     ownerType,
     ownerId,
     hash,
+    stageTypeId,
     $state,
 
     //actions
@@ -30,15 +31,21 @@ export default function CopyrightStatementsTile(props) {
 
   const noDataText = () => (component.licenseLegalData.copyrights.length > 0 ? 'None enabled' : 'None found');
 
+  const copyrightDetailsTargetState = () =>
+    stageTypeId
+      ? 'legal.stageTypeComponentCopyrightDetails.copyrightDetails'
+      : 'legal.componentCopyrightDetails.copyrightDetails';
+
   const createItem = (copyright, index) => {
     return (
       <li className="nx-list__item nx-list__item--link" key={index}>
         <a
           className="nx-list__link"
-          href={$state.href('legal.componentCopyrightDetails.copyrightDetails', {
+          href={$state.href(copyrightDetailsTargetState(), {
             ownerType,
             ownerId,
             hash,
+            stageTypeId,
             copyrightIndex: index,
           })}
         >
@@ -85,5 +92,6 @@ CopyrightStatementsTile.propTypes = {
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string.isRequired,
+  stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

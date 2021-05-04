@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { backToComponentOverviewUrl } from '../../../main/frontend/legal/legalUtility';
+
 const { isScopeOverride, getLicenseThreatGroupsFromLicense } = require('../../../main/frontend/legal/legalUtility');
 describe('legalUtility', function () {
   const availableScopeValues = [{ id: 'appId' }, { id: 'orgId' }, { id: 'ROOT_ORGANIZATION_ID' }];
@@ -44,6 +46,49 @@ describe('legalUtility', function () {
         { licenseThreatGroupName: 'No LTG Assigned' },
       ]);
       expect(getLicenseThreatGroupsFromLicense({})).toEqual([{ licenseThreatGroupName: 'No LTG Assigned' }]);
+    });
+  });
+
+  describe('backToComponentOverviewUrl', function () {
+    const state = {
+      href: (stateName, params) => {
+        return { name: stateName, params };
+      },
+      get: (state) => state,
+    };
+
+    it('returns a state for org component overview', function () {
+      const url = backToComponentOverviewUrl(state, 'organization', 'org', undefined, 'hash');
+      expect(url).toEqual({
+        name: 'legal.organizationComponentOverview',
+        params: {
+          organizationId: 'org',
+          hash: 'hash',
+        },
+      });
+    });
+
+    it('returns a state for application component overview', function () {
+      const url = backToComponentOverviewUrl(state, 'application', 'app', undefined, 'hash');
+      expect(url).toEqual({
+        name: 'legal.applicationComponentOverview',
+        params: {
+          applicationPublicId: 'app',
+          hash: 'hash',
+        },
+      });
+    });
+
+    it('returns a state for application component overview for a given stage', function () {
+      const url = backToComponentOverviewUrl(state, 'application', 'app', 'build', 'hash');
+      expect(url).toEqual({
+        name: 'legal.applicationStageTypeComponentOverview',
+        params: {
+          applicationPublicId: 'app',
+          hash: 'hash',
+          stageTypeId: 'build',
+        },
+      });
     });
   });
 });

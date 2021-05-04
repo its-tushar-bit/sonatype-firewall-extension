@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Purges pull request comment records older than 6 months. It runs avery day at 2:00 AM.
+ * Purges pull request comment records older than 6 months. It runs every day at 2:00 AM.
  */
 @Named
 @Singleton

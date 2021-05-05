@@ -787,6 +787,14 @@ public class InsightConfig
   @Max(60 * 60) // 1 hour
   private int socketTimeoutInSeconds = 60 * 3;
 
+  /**
+   * @since 1.114
+   */
+  @JsonProperty
+  @NotNull
+  @Min(0)
+  private int pullRequestDetailsUpdateIntervalInSeconds = 60;
+
   public int getConnectTimeoutInSeconds() {
     return connectTimeoutInSeconds;
   }
@@ -943,5 +951,13 @@ public class InsightConfig
     public String getFlag() {
       return flag;
     }
+  }
+
+  public int getPullRequestDetailsUpdateIntervalInSeconds() {
+    return pullRequestDetailsUpdateIntervalInSeconds;
+  }
+
+  public void setPullRequestDetailsUpdateIntervalInSeconds(int pullRequestDetailsUpdateIntervalInSeconds) {
+    this.pullRequestDetailsUpdateIntervalInSeconds = pullRequestDetailsUpdateIntervalInSeconds;
   }
 }

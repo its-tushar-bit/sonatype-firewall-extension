@@ -332,12 +332,6 @@ public class ApplicationDAO
     // Cascade to policies
     new PolicyDAO().deleteByOwnerId(tx, application.getId());
 
-    // Cascade to membership mappings
-    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
-    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, application.getId())) {
-      membershipMappingDAO.delete(tx, membershipMapping);
-    }
-
     // Cascade to owned entities
     new OwnerDAO().cascadeDelete(tx, application);
 
@@ -377,6 +371,12 @@ public class ApplicationDAO
     }
 
     super.delete(tx, application);
+
+    // Cascade to membership mappings
+    MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
+    for (MembershipMapping membershipMapping : membershipMappingDAO.getByContextId(tx, application.getId())) {
+      membershipMappingDAO.delete(tx, membershipMapping);
+    }
 
     // Cascade to aggregation tables. These are in a separate database and therefore use a separate transaction.
     PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();

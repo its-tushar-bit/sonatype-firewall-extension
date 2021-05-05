@@ -339,6 +339,8 @@ public class ScanPolicyEvaluator
         TransactionContext tx = policyEvaluationDAO.createTransactionContext()) {
       clusterLock.lock();
       tx.begin();
+      boolean isPolicyViolationGrandfatheringEnabled =
+          policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(tx, app.getId());
       // Persist the policy evaluation
       boolean isReevaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(tx, appId, scanId) != null;
       AuditData.get().setIsReevaluation(isReevaluation);
@@ -399,7 +401,8 @@ public class ScanPolicyEvaluator
         }
       }
 
-      setGrandfatheredPolicyViolations(tx, app, policies, policyEvaluation.getTime(), results.allViolations);
+      setGrandfatheredPolicyViolations(tx, isPolicyViolationGrandfatheringEnabled, app, policies,
+          policyEvaluation.getTime(), results.allViolations);
 
       ApplicationPolicyViolationLogger policyViolationLogger =
           policyViolationLoggerFactory.newLogger(policyEvaluation.getTime(), app);
@@ -541,15 +544,16 @@ public class ScanPolicyEvaluator
    * If this is not the first policy evaluation, then it marks policy violations as grandfathered based on the
    * existing grandfathered policy violations (across all stages).
    */
-  private void setGrandfatheredPolicyViolations(TransactionContext tx,
-                                                Application app,
-                                                List<Policy> policies,
-                                                Date policyEvaluationTime,
-                                                List<PolicyViolation> policyViolations)
+  private void setGrandfatheredPolicyViolations(
+      TransactionContext tx,
+      boolean isPolicyViolationGrandfatheringEnabled,
+      Application app,
+      List<Policy> policies,
+      Date policyEvaluationTime,
+      List<PolicyViolation> policyViolations)
   {
     // The check if this is the first evaluation can be expensive. Do it only if grandfathering is enabled.
-    if (policyViolationGrandfatheringService.isPolicyViolationGrandfatheringEnabled(tx, app.getId())
-        && isFirstEvaluation(tx, app)) {
+    if (isPolicyViolationGrandfatheringEnabled && isFirstEvaluation(tx, app)) {
       if (!productLicense.hasFeature(LicensedFeature.POLICY_GRANDFATHERING)) {
         log.debug("Not grandfathering violations in the first evaluation for application {}, " +
             "license does not support policy violation grandfathering.", app.getId());

@@ -17,12 +17,11 @@ import {
   licenseLegalMetadataPropType,
   licenseObligationsPropType,
 } from './advancedLegalPropTypes';
-import { find, flip, map, pipe, prop, propEq } from 'ramda';
 import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './obligation/LicenseObligationsTileContainer';
 import NoticeTextsTileContainer from './files/notices/NoticeTextsTileContainer';
 import LicenseTextsTileContainer from './files/licenses/LicenseTextsTileContainer';
-import { createSubtitle } from './legalUtility';
+import { createSubtitle, getComponentEffectiveLicenseNamesAndIds } from './legalUtility';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -65,10 +64,7 @@ export default function ComponentLegalOverviewPage(props) {
   const ownerType = applicationPublicId ? 'application' : 'organization';
   const ownerId = applicationPublicId || organizationId || 'ROOT_ORGANIZATION_ID';
 
-  const getLicenseNames = (effectiveLicenses) =>
-    map(pipe(propEq('licenseId'), flip(find)(licenseLegalMetadata), prop('licenseName')), effectiveLicenses);
-
-  const licenseNames = component && getLicenseNames(component.licenseLegalData.effectiveLicenses);
+  const licenses = getComponentEffectiveLicenseNamesAndIds(component, licenseLegalMetadata);
 
   const isTextBasedObligation = (licenseObligation) => {
     return TEXT_BASED_OBLIGATIONS.indexOf(licenseObligation.name) >= 0;
@@ -101,13 +97,19 @@ export default function ComponentLegalOverviewPage(props) {
             <ComponentOverviewTile
               applicationPublicId={applicationPublicId}
               component={component}
-              licenseNames={licenseNames}
+              licenses={licenses}
               $state={$state}
             />
-            <LicenseObligationsTileContainer />
+            <LicenseObligationsTileContainer
+              ownerType={ownerType}
+              ownerId={ownerId}
+              hash={hash}
+              stageTypeId={stageTypeId}
+              $state={$state}
+            />
             <div id="component-legal-overview-details-right">
               <LicenseDetailsTile
-                licenseNames={licenseNames}
+                component={component}
                 licenseLegalMetadata={licenseLegalMetadata}
                 ownerType={ownerType}
                 ownerId={ownerId}

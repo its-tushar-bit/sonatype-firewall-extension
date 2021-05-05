@@ -12,7 +12,7 @@ import { NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
 import { inc, prop, reduceBy } from 'ramda';
 
 export default function ComponentOverviewTile(props) {
-  const { applicationPublicId, component, licenseNames, $state } = props;
+  const { applicationPublicId, component, licenses, $state } = props;
 
   const licenseLegalData = component.licenseLegalData;
   const obligations = component.licenseLegalData.obligations;
@@ -182,7 +182,7 @@ export default function ComponentOverviewTile(props) {
               <div className="license-component-overview__licenses">
                 <dt className="nx-read-only__label">Licenses</dt>
                 <dd id="component-overview-tile-licenses" className="nx-read-only__data license-names">
-                  {licenseNames.join(', ')}
+                  {licenses.map((l) => l.licenseName).join(', ')}
                 </dd>
               </div>
               <div className="license-component-overview__highest-threat">
@@ -216,7 +216,12 @@ export default function ComponentOverviewTile(props) {
 ComponentOverviewTile.propTypes = {
   applicationPublicId: PropTypes.string,
   component: componentPropType,
-  licenseNames: PropTypes.arrayOf(PropTypes.string.isRequired),
+  licenses: PropTypes.arrayOf(
+    PropTypes.shape({
+      licenseId: PropTypes.string.isRequired,
+      licenseName: PropTypes.string.isRequired,
+    })
+  ),
   $state: PropTypes.shape({
     get: PropTypes.func.isRequired,
     href: PropTypes.func.isRequired,

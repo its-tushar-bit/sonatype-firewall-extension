@@ -19,6 +19,7 @@ import * as PropTypes from 'prop-types';
 import LicenseObligationModalContainer from './LicenseObligationModalContainer';
 import { find, propEq } from 'ramda';
 import AllLicenseObligationsModalContainer from './AllLicenseObligationsModalContainer';
+import { findSingleLicenseIndex } from '../legalUtility';
 
 export default function LicenseObligationsTile(props) {
   const {
@@ -30,9 +31,17 @@ export default function LicenseObligationsTile(props) {
     licenseObligations,
     licenseLegalMetadata,
     showAllObligationsModal,
+    ownerType,
+    ownerId,
+    hash,
+    stageTypeId,
+    $state,
   } = props;
 
   const isObligationPresent = () => licenseObligations.length > 0;
+
+  const licenseDetailsTargetState = () =>
+    stageTypeId ? 'legal.stageTypeComponentLicenseDetails' : 'legal.componentLicenseDetails';
 
   const createObligationStatusIcon = (obligationStatus) => {
     switch (obligationStatus) {
@@ -110,11 +119,24 @@ export default function LicenseObligationsTile(props) {
 
   const createItemContent = (licenseObligation, licenseWithObligations) => {
     return (
-      <div key={licenseWithObligations.licenseName + '-' + licenseObligation.name}>
+      <div key={licenseWithObligations.licenseName + '-' + licenseObligation.name} className="license-obligation-item">
         <h4 className="nx-h4">{licenseWithObligations.licenseName} — License Obligation Text</h4>
         {find(propEq('name', licenseObligation.name), licenseWithObligations.obligations).obligationTexts.map(
           createItemContentTexts
         )}
+        <div className="license-obligation-view-full-license">
+          <a
+            href={$state.href(licenseDetailsTargetState(), {
+              ownerType,
+              ownerId,
+              hash,
+              stageTypeId,
+              licenseIndex: findSingleLicenseIndex(licenseWithObligations.licenseId, licenseLegalMetadata),
+            })}
+          >
+            View full license text
+          </a>
+        </div>{' '}
       </div>
     );
   };
@@ -209,4 +231,9 @@ LicenseObligationsTile.propTypes = {
   licenseObligations: licenseObligationsPropTypes,
   licenseLegalMetadata: licenseLegalMetadataPropType,
   showAllObligationsModal: PropTypes.bool,
+  ownerType: PropTypes.string.isRequired,
+  ownerId: PropTypes.string.isRequired,
+  hash: PropTypes.string.isRequired,
+  stageTypeId: PropTypes.string,
+  $state: PropTypes.object.isRequired,
 };

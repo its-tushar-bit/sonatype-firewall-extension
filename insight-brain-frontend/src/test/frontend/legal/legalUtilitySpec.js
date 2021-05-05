@@ -3,7 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { backToComponentOverviewUrl } from '../../../main/frontend/legal/legalUtility';
+import {
+  findSingleLicenseIndex,
+  getComponentEffectiveLicenseNamesAndIds,
+  backToComponentOverviewUrl,
+} from '../../../main/frontend/legal/legalUtility';
 
 const { isScopeOverride, getLicenseThreatGroupsFromLicense } = require('../../../main/frontend/legal/legalUtility');
 describe('legalUtility', function () {
@@ -46,6 +50,78 @@ describe('legalUtility', function () {
         { licenseThreatGroupName: 'No LTG Assigned' },
       ]);
       expect(getLicenseThreatGroupsFromLicense({})).toEqual([{ licenseThreatGroupName: 'No LTG Assigned' }]);
+    });
+  });
+
+  describe('getComponentEffectiveLicenseNames', function () {
+    const licenseLegalMetadata = [
+      {
+        licenseId: 'License-1.0',
+        licenseName: 'License-1.0 Name',
+      },
+      {
+        licenseId: 'License-2.0',
+        licenseName: 'License-2.0 Name',
+      },
+      {
+        licenseId: 'License-1.0-License-2.0',
+        licenseName: 'License-1.0 or License-2.0',
+      },
+      {
+        licenseId: 'LicenseNotOnComponent',
+        licenseName: 'LicenseNotOnComponent Name',
+      },
+    ];
+
+    const component = {
+      licenseLegalData: {
+        effectiveLicenses: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
+      },
+    };
+    it('returns license names', function () {
+      expect(getComponentEffectiveLicenseNamesAndIds(component, licenseLegalMetadata)).toEqual([
+        {
+          licenseId: 'License-1.0',
+          licenseName: 'License-1.0 Name',
+        },
+        {
+          licenseId: 'License-2.0',
+          licenseName: 'License-2.0 Name',
+        },
+        {
+          licenseId: 'License-1.0-License-2.0',
+          licenseName: 'License-1.0 or License-2.0',
+        },
+      ]);
+    });
+  });
+
+  describe('findSingleLicenseIndex', function () {
+    const licenseLegalMetadata = [
+      {
+        licenseId: 'License-1.0',
+        licenseName: 'License-1.0 Name',
+        isMulti: false,
+      },
+      {
+        licenseId: 'License-2.0',
+        licenseName: 'License-2.0 Name',
+        isMulti: false,
+      },
+      {
+        licenseId: 'License-1.0-License-2.0',
+        licenseName: 'License-1.0 Name or License-2.0 Name',
+        isMulti: true,
+      },
+    ];
+
+    it('return single license index', function () {
+      expect(findSingleLicenseIndex('License-1.0 Name', licenseLegalMetadata)).toEqual(0);
+      expect(findSingleLicenseIndex('License-2.0 Name', licenseLegalMetadata)).toEqual(1);
+    });
+
+    it('return multi license index', function () {
+      expect(findSingleLicenseIndex('License-1.0 Name or License-2.0 Name', licenseLegalMetadata)).toEqual(0);
     });
   });
 

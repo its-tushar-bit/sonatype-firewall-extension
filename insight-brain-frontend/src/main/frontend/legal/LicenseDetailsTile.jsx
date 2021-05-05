@@ -7,31 +7,16 @@ import React from 'react';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faAngleRight } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
-import { licenseLegalMetadataPropType } from './advancedLegalPropTypes';
+import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
+import { findSingleLicenseIndex, getComponentEffectiveLicenseNamesAndIds } from './legalUtility';
 
 export default function LicenseDetailsTile(props) {
-  const { licenseNames, licenseLegalMetadata, ownerType, ownerId, hash, stageTypeId, $state } = props;
+  const { component, licenseLegalMetadata, ownerType, ownerId, hash, stageTypeId, $state } = props;
 
-  const isLicensePresent = () => licenseNames.length > 0;
-
+  const licenses = getComponentEffectiveLicenseNamesAndIds(component, licenseLegalMetadata);
+  const isLicensePresent = () => licenses.length > 0;
   const licenseDetailsTargetState = () =>
     stageTypeId ? 'legal.stageTypeComponentLicenseDetails' : 'legal.componentLicenseDetails';
-
-  /**
-   * Find the index of the license in licenseMetadata.
-   * According to PM, if user clicked on a multi-license in the list we should select the first license in the multi.
-   */
-  function findTrueLicenseIndex(index) {
-    const licenseName = licenseNames[index];
-    const corrected = licenseLegalMetadata.findIndex(
-      (license) => !license.isMulti && license.licenseName === licenseName
-    );
-    if (corrected !== -1) {
-      return corrected;
-    }
-    // Must be a multilicense
-    return licenseLegalMetadata.findIndex((license) => licenseName.startsWith(license.licenseName));
-  }
 
   const createItem = (license, index) => {
     return (
@@ -43,10 +28,10 @@ export default function LicenseDetailsTile(props) {
             ownerId,
             hash,
             stageTypeId,
-            licenseIndex: findTrueLicenseIndex(index),
+            licenseIndex: findSingleLicenseIndex(license.licenseId, licenseLegalMetadata),
           })}
         >
-          <span className="nx-list__text">{license}</span>
+          <span className="nx-list__text">{license.licenseName}</span>
           <NxFontAwesomeIcon icon={faAngleRight} className="nx-chevron" />
         </a>
       </li>
@@ -61,16 +46,14 @@ export default function LicenseDetailsTile(props) {
         </div>
       </header>
       <div className="nx-tile-content">
-        <ul className="nx-list nx-list--clickable">
-          {isLicensePresent() ? licenseNames.map(createItem) : 'None found'}
-        </ul>
+        <ul className="nx-list nx-list--clickable">{isLicensePresent() ? licenses.map(createItem) : 'None found'}</ul>
       </div>
     </section>
   );
 }
 
 LicenseDetailsTile.propTypes = {
-  licenseNames: PropTypes.arrayOf(PropTypes.string.isRequired),
+  component: componentPropType,
   licenseLegalMetadata: licenseLegalMetadataPropType,
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,

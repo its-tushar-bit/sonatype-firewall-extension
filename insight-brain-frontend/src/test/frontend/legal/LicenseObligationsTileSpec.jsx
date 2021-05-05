@@ -17,7 +17,8 @@ describe('LicenseObligationsTile component', function () {
     setShowObligationModal,
     licenseObligations,
     availableScopes,
-    licenseLegalMetadata;
+    licenseLegalMetadata,
+    $state;
 
   beforeEach(function () {
     setObligationStatus = jasmine.createSpy('setObligationStatus');
@@ -25,6 +26,16 @@ describe('LicenseObligationsTile component', function () {
     setObligationScope = jasmine.createSpy('setObligationScope');
     saveObligation = jasmine.createSpy('saveObligation');
     setShowObligationModal = jasmine.createSpy('setShowObligationModal');
+
+    $state = jasmine.createSpyObj('$state', ['get', 'href']);
+    $state.get.and.callFake((stateName) => stateName);
+    $state.href.and.callFake((stateName, stateParams) => {
+      if (stateParams) {
+        return `${stateName}-${JSON.stringify(stateParams)}`;
+      }
+      return stateName;
+    });
+
     licenseObligations = [
       {
         name: 'obligation 1',
@@ -58,6 +69,7 @@ describe('LicenseObligationsTile component', function () {
     };
     licenseLegalMetadata = [
       {
+        licenseId: 'license1',
         licenseName: 'license1',
         obligations: [
           { name: 'obligation 1', obligationTexts: ['text1', 'text2'] },
@@ -65,6 +77,7 @@ describe('LicenseObligationsTile component', function () {
         ],
       },
       {
+        licenseId: 'license2',
         licenseName: 'license2',
         obligations: [
           { name: 'obligation 2', obligationTexts: ['text5', 'text6'] },
@@ -72,10 +85,14 @@ describe('LicenseObligationsTile component', function () {
         ],
       },
       {
+        licenseId: 'license3',
         licenseName: 'license3',
         obligations: [{ name: 'obligation 4', obligationTexts: ['text9'] }],
       },
     ];
+    const ownerType = 'app';
+    const ownerId = 'appId';
+    const hash = 'hash';
     const minimalProps = {
       setObligationStatus,
       setObligationComment,
@@ -85,6 +102,10 @@ describe('LicenseObligationsTile component', function () {
       licenseObligations,
       availableScopes,
       licenseLegalMetadata,
+      ownerType,
+      ownerId,
+      hash,
+      $state,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(LicenseObligationsTile, minimalProps);
   });
@@ -150,6 +171,27 @@ describe('LicenseObligationsTile component', function () {
     licenseObligationSections.forEach((node1, index1) => {
       node1.find('blockquote').forEach((node2, index2) => {
         expect(node2).toHaveText(expectedObligationLicenseTexts[index1][index2]);
+      });
+    });
+  });
+
+  it('renders the license obligation license texts view full license link`', function () {
+    const wrapper = getShallowComponent();
+    const licenseObligationSections = wrapper.find(NxStatefulAccordion);
+    const expectedLicenseIndex = [[0], [0, 1], [1], [2]];
+    licenseObligationSections.forEach((node1, index1) => {
+      node1.find('div.license-obligation-view-full-license').forEach((node2, index2) => {
+        const expectedIndex = expectedLicenseIndex[index1][index2];
+        expect(node2).toHaveText('View full license text');
+        const licenseLink = node2.find('a');
+        expect(licenseLink).toExist();
+        expect(licenseLink).toHaveProp(
+          'href',
+          'legal.componentLicenseDetails-{"ownerType":"app","ownerId":"appId","hash":"hash","licenseIndex":' +
+            expectedIndex +
+            '}'
+        );
+        expect($state.href).toHaveBeenCalled();
       });
     });
   });

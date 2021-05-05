@@ -59,3 +59,37 @@ export function getLicenseThreatGroupsFromLicense(license) {
     ? [{ licenseThreatGroupName: NO_LICENSE_THREAT_GROUP_ASSIGNED }]
     : license.licenseThreatGroups;
 }
+
+/**
+ * Find the index of the single license in licenseMetadata.
+ * If user clicked on a multi-license in the list we should select the first license in the multi.
+ */
+export function findSingleLicenseIndex(licenseId, licenseLegalMetadata) {
+  const corrected = licenseLegalMetadata.findIndex((license) => !license.isMulti && license.licenseId === licenseId);
+  if (corrected !== -1) {
+    return corrected;
+  }
+
+  // Must be a multilicense
+  return licenseLegalMetadata.findIndex((license) => !license.isMulti && licenseId.startsWith(license.licenseId));
+}
+
+/**
+ * Given a component and the licenseLegalMetadata, returns an array of the license name and id from the component's
+ * effective license IDs.
+ *  example:
+ * [{
+ *    licenseId: id,
+ *    licenseName: name
+ *  }]
+ */
+export function getComponentEffectiveLicenseNamesAndIds(component, licenseLegalMetadata) {
+  return component
+    ? licenseLegalMetadata
+        .filter((l) => component.licenseLegalData.effectiveLicenses.includes(l.licenseId))
+        .map((l) => ({
+          licenseId: l.licenseId,
+          licenseName: l.licenseName,
+        }))
+    : [];
+}

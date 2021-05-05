@@ -30,8 +30,9 @@ describe('ComponentLegalOverviewPage', function () {
       return stateName;
     });
 
-    const licenseLegalMetadata = {
-      0: {
+    const licenseLegalMetadata = [
+      {
+        licenseId: 'license1',
         licenseName: 'license1',
         obligations: [
           {
@@ -44,7 +45,8 @@ describe('ComponentLegalOverviewPage', function () {
           },
         ],
       },
-      1: {
+      {
+        licenseId: 'license2',
         licenseName: 'license2',
         obligations: [
           {
@@ -57,11 +59,12 @@ describe('ComponentLegalOverviewPage', function () {
           },
         ],
       },
-      2: {
+      {
+        licenseId: 'multilicense',
         licenseName: 'multilicense',
         obligations: null,
       },
-    };
+    ];
 
     const obligations = [
       {

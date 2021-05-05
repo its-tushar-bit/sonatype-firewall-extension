@@ -20,15 +20,27 @@ describe('LicenseDetailsTile component', function () {
     });
     const licenseLegalMetadata = [
       {
+        licenseId: 'License-1.0',
         licenseName: 'License-1.0',
       },
       {
+        licenseId: 'License-2.0',
         licenseName: 'License-2.0',
+      },
+      {
+        licenseId: 'License-1.0-License-2.0',
+        licenseName: 'License-1.0 or License-2.0',
       },
     ];
 
+    const component = {
+      licenseLegalData: {
+        effectiveLicenses: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
+      },
+    };
+
     const minimalProps = {
-      licenseNames: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
+      component,
       licenseLegalMetadata,
       $state,
     };
@@ -47,7 +59,7 @@ describe('LicenseDetailsTile component', function () {
     expect(licenseSpans.length).toBe(3);
     expect(licenseSpans.at(0)).toHaveText('License-1.0');
     expect(licenseSpans.at(1)).toHaveText('License-2.0');
-    expect(licenseSpans.at(2)).toHaveText('License-1.0-License-2.0');
+    expect(licenseSpans.at(2)).toHaveText('License-1.0 or License-2.0');
   });
 
   it('renders None found if there are no licenses', function () {
@@ -64,7 +76,7 @@ describe('LicenseDetailsTile component', function () {
     expect(licenseSpans.length).toBe(3);
     expect(licenseSpans.at(0)).toHaveText('License-1.0<NxFontAwesomeIcon />');
     expect(licenseSpans.at(1)).toHaveText('License-2.0<NxFontAwesomeIcon />');
-    expect(licenseSpans.at(2)).toHaveText('License-1.0-License-2.0<NxFontAwesomeIcon />');
+    expect(licenseSpans.at(2)).toHaveText('License-1.0 or License-2.0<NxFontAwesomeIcon />');
     expect($state.href).toHaveBeenCalled();
     expect(licenseSpans.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
   });

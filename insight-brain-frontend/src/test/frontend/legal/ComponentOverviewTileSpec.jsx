@@ -45,7 +45,11 @@ describe('ComponentOverviewTile', function () {
           { stageName: 'Operate', scanId: null, scanDate: null },
         ],
       },
-      licenseNames: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
+      licenses: [
+        { licenseId: 'License-1.0', licenseName: 'License 1.0' },
+        { licenseId: 'License-2.0', licenseName: 'License 2.0' },
+        { licenseId: 'License-1.0-License-2.0', licenseName: 'License 1.0 or License 2.0' },
+      ],
       $state,
     };
     ComponentOverviewTile = require('inject-loader!../../../main/frontend/legal/ComponentOverviewTile')({
@@ -765,7 +769,7 @@ describe('ComponentOverviewTile', function () {
   it('renders the licenses', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find('#component-overview-tile-licenses')).toHaveText(
-      'License-1.0, License-2.0, License-1.0-License-2.0'
+      'License 1.0, License 2.0, License 1.0 or License 2.0'
     );
   });
 

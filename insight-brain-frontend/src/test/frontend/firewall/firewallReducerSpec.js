@@ -3,567 +3,339 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import reduce from '../../../main/frontend/firewall/firewallReducer';
 
 describe('firewallReducer', function () {
-  let otherObject;
-
-  beforeEach(function () {
-    otherObject = { value: 'test value' };
+  const defaultState = Object.freeze({
+    cip: Object.freeze({
+      showCipModal: false,
+      selectedComponent: null,
+      selectedComponentIndex: null,
+      displayedEntries: [],
+    }),
+    viewState: Object.freeze({
+      loadedStatus: false,
+      loadStatusError: null,
+      isShowConfigurationModal: false,
+      loadError: null,
+    }),
+    statusState: Object.freeze({
+      isEnabled: false,
+    }),
+    autoUnquarantineState: Object.freeze({
+      viewState: Object.freeze({
+        loadedConfiguration: false,
+        loadConfigurationError: null,
+        loadedReleaseQuarantineSummary: false,
+        loadReleaseQuarantineSummaryError: null,
+        autoReleaseQuarantineCountMTD: '-',
+        autoReleaseQuarantineCountYTD: '-',
+        enabledPolicyConditionTypesCount: 0,
+        totalPolicyConditionTypesCount: 0,
+      }),
+      autoUnquarantineGridState: Object.freeze({
+        loadedReleaseQuarantineList: false,
+        loadAutoUnquarantineGridError: null,
+        releaseQuarantineList: [],
+        releaseQuarantinePageCount: 0,
+        pageSize: 12,
+        currentPage: null,
+        sortDir: null,
+        sortField: null,
+      }),
+    }),
+    policiesState: Object.freeze({
+      loadedPolicies: false,
+      policies: [],
+    }),
+    configurationState: Object.freeze({
+      autoUnquarantineEnabled: false,
+    }),
+    quarantineSummaryState: Object.freeze({
+      viewState: Object.freeze({
+        loadedQuarantineSummary: false,
+        loadQuarantineSummaryError: null,
+        quarantineEnabled: false,
+        quarantineEnabledRepositoryCount: 0,
+        repositoryCount: 0,
+        totalComponentCount: 0,
+        quarantinedComponentCount: 0,
+      }),
+    }),
+    quarantineGridState: Object.freeze({
+      loadQuarantineGridError: null,
+      loadedQuarantineList: false,
+      quarantineList: [],
+      quarantinePageCount: 0,
+      pageSize: 12,
+      currentPage: null,
+      sortDir: null,
+      sortField: null,
+      filterPolicy: undefined,
+      lastUpdated: null,
+    }),
   });
 
   describe('initial state', function () {
     it('is used if no state is provided', function () {
-      const action = { type: 'UNKNOWN' };
-      const newState = reduce(undefined, action);
+      const action = { type: 'UNKNOWN' },
+        newState = reduce(undefined, action);
+
       expect(newState).not.toBeUndefined();
     });
 
     it('has default fields', function () {
-      const action = { type: 'UNKNOWN' };
-      const newState = reduce(undefined, action);
+      const action = { type: 'UNKNOWN' },
+        newState = reduce(undefined, action);
 
-      // viewState
-      expect(newState.viewState.loadedStatus).toBe(false);
-      expect(newState.viewState.loadStatusError).toBeNull();
-      expect(newState.viewState.isShowConfigurationModal).toBe(false);
-      expect(newState.viewState.loadError).toBe(null);
-
-      //statusState
-      expect(newState.statusState.isEnabled).toBe(false);
-
-      //autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe(null);
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
-      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
-
-      //autoUnquarantineState.autoUnquarantinedGridState
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadedReleaseQuarantineList).toBe(false);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.loadAutoUnquarantineGridError).toBeNull();
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantineList).toEqual([]);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantinePageCount).toBe(0);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.pageSize).toBe(12);
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.currentPage).toBeNull();
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortDir).toBeNull();
-      expect(newState.autoUnquarantineState.autoUnquarantineGridState.sortField).toBeNull();
-
-      //policiesState
-      expect(newState.policiesState.loadedPolicies).toBe(false);
-      expect(newState.policiesState.policies).toEqual([]);
-
-      //quarantineSummaryState.viewState
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(0);
-
-      //configurationState
-      expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
-
-      //cip
-      expect(newState.cip.showCipModal).toBe(false);
-      expect(newState.cip.selectedComponent).toBeNull();
-      expect(newState.cip.selectedComponentIndex).toBeNull();
-      expect(newState.cip.displayedEntries).toEqual([]);
+      expect(newState).toEqual(defaultState);
     });
   });
 
   describe('unknown action', function () {
     it('returns original state', function () {
-      const state = Object.freeze({ foo: 'bar' });
-      const action = {
-        type: 'UNKNOWN',
-      };
-      const newState = reduce(state, action);
+      const state = Object.freeze({ foo: 'bar' }),
+        newState = reduce(state, { type: 'UNKNOWN' });
+
       expect(newState).toBe(state);
     });
   });
 
   describe('FIREWALL_LOAD_STATUS_REQUESTED action', function () {
-    it('updates the state', function () {
-      const state = Object.freeze({
-        other: otherObject,
+    let minimumState = {};
+
+    it('resets the state used for the firewall status', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_STATUS_REQUESTED' })).toEqual({
+        ...minimumState,
         viewState: {
-          other: otherObject,
-          loadedStatus: true,
-          loadStatusError: 'Error!',
+          ...minimumState.viewState,
+          loadedStatus: false,
+          loadStatusError: null,
         },
-        statusState: otherObject,
-        autoUnquarantineState: otherObject,
-        configurationState: otherObject,
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_STATUS_REQUESTED',
-      });
-      // viewState
-      expect(newState.viewState.loadedStatus).toBe(false);
-      expect(newState.viewState.loadStatusError).toBeNull();
-      expect(newState.viewState.other).toBe(otherObject);
-
-      //statusState
-      expect(newState.statusState).toBe(otherObject);
-
-      //autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState).toBe(otherObject);
-
-      //configurationState
-      expect(newState.configurationState).toBe(otherObject);
-
-      //other
-      expect(newState.other).toBe(otherObject);
     });
   });
 
   describe('FIREWALL_LOAD_STATUS_FULFILLED action', function () {
+    let minimumState = {};
+
     it('updates the state, sets the load error to null and sets enabled flag from payload', function () {
-      const state = Object.freeze({
-        other: otherObject,
+      const payload = { experimentalFeatures: { firewallAutoUnquarantine: true } };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_STATUS_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
         viewState: {
-          other: otherObject,
-          loadedStatus: false,
-          loadStatusError: 'error!',
+          ...minimumState.viewState,
+          loadedStatus: true,
         },
         statusState: {
-          isEnabled: false,
-          other: otherObject,
-        },
-        autoUnquarantineState: {
-          other: otherObject,
-        },
-        configurationState: {
-          other: otherObject,
-        },
-        quarantineSummaryState: {
-          other: otherObject,
-          viewState: {
-            other: otherObject,
-          },
+          ...minimumState.statusState,
+          isEnabled: true,
         },
       });
-      const payload = {
-        experimentalFeatures: { firewallAutoUnquarantine: true },
-      };
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_STATUS_FULFILLED',
-        payload: payload,
-      });
-      expect(newState.viewState.loadedStatus).toBe(true);
-      expect(newState.viewState.loadStatusError).toBeNull();
-      //statusState
-      expect(newState.statusState.isEnabled).toBe(true);
-      // other properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.statusState.other).toEqual(otherObject);
-      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
   });
 
   describe('FIREWALL_LOAD_STATUS_FAILED action', function () {
+    let minimumState = { viewState: { loadError: null } };
+
     it('updates the state and sets the loadStatusError to the payload', function () {
-      const state = Object.freeze({
-        other: otherObject,
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_STATUS_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
         viewState: {
-          other: otherObject,
-          loadedStatus: false,
-          loadStatusError: null,
-          loadError: null,
-        },
-        statusState: {
-          isEnabled: false,
-          other: otherObject,
-        },
-        autoUnquarantineState: {
-          other: otherObject,
-        },
-        configurationState: {
-          other: otherObject,
-        },
-        quarantineSummaryState: {
-          other: otherObject,
-          viewState: {
-            other: otherObject,
-          },
+          ...minimumState.viewState,
+          loadedStatus: true,
+          loadStatusError: 'error!',
+          loadError: 'error!',
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_STATUS_FAILED',
-        payload: 'error!',
-      });
-      expect(newState.viewState.loadedStatus).toBe(true);
-      expect(newState.viewState.loadStatusError).toBe('error!');
-      expect(newState.viewState.loadStatusError).toBe('error!');
-      //configurationState
-      expect(newState.statusState.isEnabled).toBe(false);
-      // other properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.statusState.other).toEqual(otherObject);
-      expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
 
     it('does not update loadError if it exists', function () {
-      const state = Object.freeze({
+      let newState = reduce(minimumState, { type: 'FIREWALL_LOAD_STATUS_FAILED', payload: 'old error!' });
+
+      expect(reduce(newState, { type: 'FIREWALL_LOAD_STATUS_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
         viewState: {
-          loadedStatus: false,
-          loadStatusError: null,
+          ...minimumState.viewState,
+          loadedStatus: true,
+          loadStatusError: 'error!',
           loadError: 'old error!',
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_STATUS_FAILED',
-        payload: 'error!',
-      });
-      expect(newState.viewState.loadedStatus).toBe(true);
-      expect(newState.viewState.loadStatusError).toBe('error!');
-      expect(newState.viewState.loadError).toBe('old error!');
     });
   });
 
   describe('FIREWALL_SET_SHOW_CONFIGURATION_MODAL action', function () {
+    let minimumState = {};
+
     it('updates the state and sets the isShowConfigurationModal to the payload', function () {
-      const state = Object.freeze({
-        other: otherObject,
+      expect(reduce(minimumState, { type: 'FIREWALL_SET_SHOW_CONFIGURATION_MODAL', payload: true })).toEqual({
+        ...minimumState,
         viewState: {
-          other: otherObject,
-          isShowConfigurationModal: false,
-        },
-        statusState: {
-          other: otherObject,
-        },
-        autoUnquarantineState: {
-          other: otherObject,
-        },
-        configurationState: {
-          other: otherObject,
-        },
-        quarantineSummaryState: {
-          other: otherObject,
-          viewState: {
-            other: otherObject,
-          },
+          ...minimumState.viewState,
+          isShowConfigurationModal: true,
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_SET_SHOW_CONFIGURATION_MODAL',
-        payload: true,
-      });
-      //viewState
-      expect(newState.viewState.isShowConfigurationModal).toBe(true);
-      // other properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.statusState.other).toEqual(otherObject);
-      expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
   });
 
   describe('FIREWALL_SAVE_CONFIGURATION_FULFILLED action', function () {
-    it('updates the state', function () {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: {
-          other: otherObject,
-        },
-        statusState: {
-          other: otherObject,
-        },
+    let minimumState = {
+      autoUnquarantineState: {
+        viewState: {},
+      },
+    };
+
+    it('updates the state with the enabled and total policy condition counts', function () {
+      const payload = [{ id: 'IntegrityRating', autoReleaseQuarantineEnabled: true }];
+
+      expect(reduce(minimumState, { type: 'FIREWALL_SAVE_CONFIGURATION_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
         autoUnquarantineState: {
-          other: otherObject,
+          ...minimumState.autoUnquarantineState,
           viewState: {
-            other: otherObject,
-            enabledPolicyConditionTypesCount: 0,
+            ...minimumState.autoUnquarantineState.viewState,
+            enabledPolicyConditionTypesCount: 1,
+            totalPolicyConditionTypesCount: 1,
           },
         },
         configurationState: {
-          other: otherObject,
-          autoUnquarantineEnabled: false,
-        },
-        quarantineSummaryState: {
-          other: otherObject,
-          viewState: {
-            other: otherObject,
-          },
+          ...minimumState.configurationState,
+          autoUnquarantineEnabled: true,
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_SAVE_CONFIGURATION_FULFILLED',
-        payload: [{ id: 'IntegrityRating', autoReleaseQuarantineEnabled: true }],
-      });
-      // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
-
-      // configurationState
-      expect(newState.configurationState.autoUnquarantineEnabled).toBe(true);
-
-      // other properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toBe(otherObject);
-      expect(newState.statusState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
-      expect(newState.configurationState.other).toBeUndefined();
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
   });
 
   describe('FIREWALL_LOAD_CONFIGURATION_REQUESTED action', function () {
-    it('updates the state', function () {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: otherObject,
-        statusState: otherObject,
+    let minimumState = {
+      autoUnquarantineState: {
+        viewState: {},
+      },
+    };
+
+    it('resets the state used for firewall configuration', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_CONFIGURATION_REQUESTED' })).toEqual({
+        ...minimumState,
         autoUnquarantineState: {
-          other: otherObject,
+          ...minimumState.autoUnquarantineState,
           viewState: {
-            other: otherObject,
-            loadedConfiguration: true,
-            loadConfigurationError: 'error!',
+            ...minimumState.autoUnquarantineState.viewState,
+            loadedConfiguration: false,
+            loadConfigurationError: null,
           },
         },
-        configurationState: otherObject,
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_CONFIGURATION_REQUESTED',
-      });
-      // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
-      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.other).toBe(otherObject);
-
-      //viewState
-      expect(newState.viewState).toBe(otherObject);
-      //statusState
-      expect(newState.statusState).toBe(otherObject);
-      //configurationState
-      expect(newState.configurationState).toBe(otherObject);
-      //other
-      expect(newState.other).toBe(otherObject);
     });
   });
 
   describe('FIREWALL_LOAD_CONFIGURATION_FULFILLED action', function () {
+    let minimumState = {
+      autoUnquarantineState: {
+        viewState: {},
+      },
+    };
+
     it('updates the state', function () {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: {
-          other: otherObject,
-        },
-        statusState: {
-          other: otherObject,
-        },
+      let payload = [{ autoReleaseQuarantineEnabled: true }, { autoReleaseQuarantineEnabled: false }];
+
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_CONFIGURATION_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
         autoUnquarantineState: {
-          other: otherObject,
+          ...minimumState.autoUnquarantineState,
           viewState: {
-            other: otherObject,
-            loadedConfiguration: false,
-            loadConfigurationError: 'error!',
-            enabledPolicyConditionTypesCount: 0,
-            totalPolicyConditionTypesCount: 0,
+            ...minimumState.autoUnquarantineState.viewState,
+            loadedConfiguration: true,
+            enabledPolicyConditionTypesCount: 1,
+            totalPolicyConditionTypesCount: 2,
           },
         },
         configurationState: {
-          other: otherObject,
-          autoUnquarantineEnabled: false,
-        },
-        quarantineSummaryState: {
-          other: otherObject,
-          viewState: {
-            other: otherObject,
-          },
+          ...minimumState.configurationState,
+          autoUnquarantineEnabled: true,
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_CONFIGURATION_FULFILLED',
-        payload: [{ autoReleaseQuarantineEnabled: true }, { autoReleaseQuarantineEnabled: false }],
-      });
-
-      // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
-      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(1);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(2);
-
-      // configurationState
-      expect(newState.configurationState).toEqual({
-        autoUnquarantineEnabled: true,
-      });
-
-      // properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toBe(otherObject);
-      expect(newState.statusState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
   });
 
   describe('FIREWALL_LOAD_CONFIGURATION_FAILED action', function () {
+    let minimumState = {
+      viewState: {},
+      autoUnquarantineState: {
+        viewState: {},
+      },
+    };
+
     it('updates the state', function () {
-      const state = Object.freeze({
-        other: otherObject,
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_CONFIGURATION_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
         viewState: {
-          other: otherObject,
-          loadError: null,
-        },
-        statusState: {
-          other: otherObject,
+          ...minimumState.viewState,
+          loadError: 'error!',
         },
         autoUnquarantineState: {
-          other: otherObject,
+          ...minimumState.autoUnquarantineState,
           viewState: {
-            other: otherObject,
-            loadedConfiguration: false,
-            loadConfigurationError: null,
-          },
-        },
-        configurationState: {
-          other: otherObject,
-        },
-        quarantineSummaryState: {
-          other: otherObject,
-          viewState: {
-            other: otherObject,
+            ...minimumState.autoUnquarantineState.viewState,
+            loadedConfiguration: true,
+            loadConfigurationError: 'error!',
           },
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_CONFIGURATION_FAILED',
-        payload: 'error!',
-      });
-
-      // viewState
-      expect(newState.viewState.loadError).toBe('error!');
-
-      // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
-
-      // properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toBe(otherObject);
-      expect(newState.statusState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
-      expect(newState.configurationState.other).toBe(otherObject);
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
     });
 
     it('does not update loadError if it exists', function () {
-      const state = Object.freeze({
+      let newState = reduce(minimumState, { type: 'FIREWALL_LOAD_CONFIGURATION_FAILED', payload: 'old error!' });
+
+      expect(reduce(newState, { type: 'FIREWALL_LOAD_CONFIGURATION_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
         viewState: {
+          ...minimumState.viewState,
           loadError: 'old error!',
         },
         autoUnquarantineState: {
+          ...minimumState.autoUnquarantineState,
           viewState: {
-            loadedConfiguration: false,
-            loadConfigurationError: null,
+            ...minimumState.autoUnquarantineState.viewState,
+            loadedConfiguration: true,
+            loadConfigurationError: 'error!',
           },
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_CONFIGURATION_FAILED',
-        payload: 'error!',
-      });
-
-      // viewState
-      expect(newState.viewState.loadError).toBe('old error!');
-
-      // autoUnquarantineState
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBe('error!');
     });
   });
 
   describe('FIREWALL_QUARANTINE_SUMMARY_REQUESTED action', function () {
-    it('updates to the initial state', function () {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: {
-          other: otherObject,
-        },
-        statusState: {
-          other: otherObject,
-        },
-        autoUnquarantineState: {
-          other: otherObject,
-        },
-        configurationState: {
-          other: otherObject,
-        },
+    let minimumState = {
+      quarantineSummaryState: {
+        viewState: {},
+      },
+    };
+
+    it('resets the state used by firewall quarantine summary', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED' })).toEqual({
+        ...minimumState,
         quarantineSummaryState: {
-          other: otherObject,
+          ...minimumState.quarantineSummaryState,
           viewState: {
-            other: otherObject,
-            loadedQuarantineSummary: true,
-            loadQuarantineSummaryError: 'error!',
+            ...minimumState.quarantineSummaryState.viewState,
+            loadedQuarantineSummary: false,
+            loadQuarantineSummaryError: null,
           },
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_QUARANTINE_SUMMARY_REQUESTED',
-      });
-
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
-      expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
-      // other properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.statusState.other).toEqual(otherObject);
-      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
     });
   });
 
   describe('FIREWALL_QUARANTINE_SUMMARY_FULFILLED action', function () {
+    let minimumState = {
+      quarantineSummaryState: {
+        viewState: {},
+      },
+    };
+
     it('updates the state, sets the load error to null and sets enabled flag from payload', function () {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: {
-          other: otherObject,
-        },
-        statusState: {
-          other: otherObject,
-        },
-        autoUnquarantineState: {
-          other: otherObject,
-        },
-        configurationState: {
-          other: otherObject,
-        },
-        quarantineSummaryState: {
-          other: otherObject,
-          viewState: {
-            other: otherObject,
-            loadedQuarantineSummary: false,
-            loadQuarantineSummaryError: null,
-            quarantineEnabled: null,
-            repositoryCount: null,
-            quarantineEnabledRepositoryCount: null,
-            totalComponentCount: null,
-            quarantinedComponentCount: null,
-          },
-        },
-      });
       const payload = {
         quarantineEnabled: true,
         repositoryCount: 5,
@@ -571,272 +343,190 @@ describe('firewallReducer', function () {
         totalComponentCount: 10,
         quarantinedComponentCount: 3,
       };
-      const newState = reduce(state, {
-        type: 'FIREWALL_QUARANTINE_SUMMARY_FULFILLED',
-        payload: payload,
-      });
 
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(true);
-      expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(5);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(2);
-      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(10);
-      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(3);
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
-      expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
-      // other properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.statusState.other).toEqual(otherObject);
-      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_SUMMARY_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
+        quarantineSummaryState: {
+          ...minimumState.quarantineSummaryState,
+          viewState: {
+            ...minimumState.quarantineSummaryState.viewState,
+            loadedQuarantineSummary: true,
+            quarantineEnabled: true,
+            repositoryCount: 5,
+            quarantineEnabledRepositoryCount: 2,
+            totalComponentCount: 10,
+            quarantinedComponentCount: 3,
+          },
+        },
+      });
     });
   });
 
   describe('FIREWALL_QUARANTINE_SUMMARY_FAILED action', function () {
+    let minimumState = {
+      viewState: {},
+      quarantineSummaryState: {
+        viewState: {},
+      },
+    };
+
     it('updates the state and sets the loadStatusError to the payload', function () {
-      const state = Object.freeze({
-        other: otherObject,
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_SUMMARY_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
         viewState: {
-          other: otherObject,
-          loadError: null,
-        },
-        statusState: {
-          other: otherObject,
-        },
-        autoUnquarantineState: {
-          other: otherObject,
-        },
-        configurationState: {
-          other: otherObject,
+          ...minimumState.viewState,
+          loadError: 'error!',
         },
         quarantineSummaryState: {
-          other: otherObject,
+          ...minimumState.quarantineSummaryState,
           viewState: {
-            other: otherObject,
-            loadedQuarantineSummary: false,
+            ...minimumState.quarantineSummaryState.viewState,
+            loadedQuarantineSummary: true,
+            loadQuarantineSummaryError: 'error!',
           },
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_QUARANTINE_SUMMARY_FAILED',
-        payload: 'error!',
-      });
-
-      // viewState
-      expect(newState.viewState.loadError).toBe('error!');
-
-      // newState.quarantineSummaryState
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe('error!');
-      expect(newState.quarantineSummaryState.other).toBe(otherObject);
-      expect(newState.quarantineSummaryState.viewState.other).toBe(otherObject);
-      // other properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toEqual(otherObject);
-      expect(newState.statusState.other).toEqual(otherObject);
-      expect(newState.autoUnquarantineState.other).toEqual(otherObject);
-      expect(newState.configurationState.other).toEqual(otherObject);
     });
 
     it('does not update loadError if it exists', function () {
-      const state = Object.freeze({
+      let newState = reduce(minimumState, {
+        type: 'FIREWALL_QUARANTINE_SUMMARY_FAILED',
+        payload: 'old error!',
+      });
+
+      expect(reduce(newState, { type: 'FIREWALL_QUARANTINE_SUMMARY_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
         viewState: {
+          ...minimumState.viewState,
           loadError: 'old error!',
         },
         quarantineSummaryState: {
+          ...minimumState.quarantineSummaryState,
           viewState: {
-            loadedQuarantineSummary: false,
+            ...minimumState.quarantineSummaryState.viewState,
+            loadedQuarantineSummary: true,
+            loadQuarantineSummaryError: 'error!',
           },
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_QUARANTINE_SUMMARY_FAILED',
-        payload: 'error!',
-      });
-
-      // viewState
-      expect(newState.viewState.loadError).toBe('old error!');
-
-      // newState.quarantineSummaryState
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(true);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe('error!');
     });
   });
 
   describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED action', function () {
-    it('updates the state', function () {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: otherObject,
-        statusState: otherObject,
+    let minimumState = {
+      autoUnquarantineState: {
+        viewState: {},
+      },
+    };
+
+    it('resets the state used for release quarantine summary', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED' })).toEqual({
+        ...minimumState,
         autoUnquarantineState: {
+          ...minimumState.autoUnquarantineState,
           viewState: {
-            other: otherObject,
-            loadedReleaseQuarantineSummary: true,
-            loadReleaseQuarantineSummaryError: 'Error!',
+            ...minimumState.autoUnquarantineState.viewState,
+            loadedReleaseQuarantineSummary: false,
+            loadReleaseQuarantineSummaryError: null,
           },
-          other: otherObject,
         },
-        configurationState: otherObject,
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_REQUESTED',
-      });
-
-      // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBeNull();
-      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
-
-      // viewState
-      expect(newState.viewState).toBe(otherObject);
-      // autoUnquarantineState
-      expect(newState.autoUnquarantineState.other).toBe(otherObject);
-      // statusState
-      expect(newState.statusState).toBe(otherObject);
-      // configurationState
-      expect(newState.configurationState).toBe(otherObject);
-      //other
-      expect(newState.other).toBe(otherObject);
     });
   });
 
   describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED action', function () {
+    let minimumState = {
+      autoUnquarantineState: {
+        viewState: {},
+      },
+    };
+
     it('updates the state', function () {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: {
-          other: otherObject,
-        },
-        statusState: {
-          other: otherObject,
-        },
-        autoUnquarantineState: {
-          other: otherObject,
-          viewState: {
-            other: otherObject,
-            loadedReleaseQuarantineSummary: false,
-            loadReleaseQuarantineSummaryError: null,
-            autoReleaseQuarantineCountMTD: '-',
+      let payload = { autoReleaseQuarantineCountMTD: 0, autoReleaseQuarantineCountYTD: 1 };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED', payload: payload })).toEqual(
+        {
+          ...minimumState,
+          autoUnquarantineState: {
+            ...minimumState.autoUnquarantineState,
+            viewState: {
+              ...minimumState.autoUnquarantineState.viewState,
+              loadedReleaseQuarantineSummary: true,
+              autoReleaseQuarantineCountMTD: '0',
+              autoReleaseQuarantineCountYTD: '1',
+            },
           },
-        },
-        configurationState: {
-          other: otherObject,
-        },
-      });
-      const newState = reduce(state, {
-        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FULFILLED',
-        payload: {
-          autoReleaseQuarantineCountMTD: 0,
-          autoReleaseQuarantineCountYTD: 1,
-        },
-      });
-
-      // viewState
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('0');
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('1');
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBeNull();
-
-      // properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toBe(otherObject);
-      expect(newState.statusState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
-      expect(newState.configurationState.other).toBe(otherObject);
+        }
+      );
     });
   });
 
   describe('FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED action', function () {
+    let minimumState = {
+      viewState: {},
+      autoUnquarantineState: {
+        viewState: {},
+      },
+    };
+
     it('updates the state', function () {
-      const state = Object.freeze({
-        other: otherObject,
+      expect(reduce(minimumState, { type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
         viewState: {
-          other: otherObject,
-          loadError: null,
-        },
-        statusState: {
-          other: otherObject,
+          ...minimumState.viewState,
+          loadError: 'error!',
         },
         autoUnquarantineState: {
-          other: otherObject,
+          ...minimumState.autoUnquarantineState,
           viewState: {
-            other: otherObject,
-            loadedReleaseQuarantineSummary: false,
-            loadReleaseQuarantineSummaryError: null,
-            autoReleaseQuarantineCountMTD: '-',
+            ...minimumState.autoUnquarantineState.viewState,
+            loadedReleaseQuarantineSummary: true,
+            loadReleaseQuarantineSummaryError: 'error!',
           },
         },
-        configurationState: {
-          other: otherObject,
-        },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED',
-        payload: 'error',
-      });
-
-      // viewState
-      expect(newState.viewState.loadError).toBe('error');
-
-      // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe('error');
-
-      // properties are not modified
-      expect(newState.other).toBe(otherObject);
-      expect(newState.viewState.other).toBe(otherObject);
-      expect(newState.statusState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.other).toBe(otherObject);
-      expect(newState.autoUnquarantineState.viewState.other).toBe(otherObject);
-      expect(newState.configurationState.other).toBe(otherObject);
     });
 
     it('it does not update loadError if it exists', function () {
-      const state = Object.freeze({
+      let newState = reduce(minimumState, {
+        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED',
+        payload: 'old error!',
+      });
+
+      expect(reduce(newState, { type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED', payload: 'error!' })).toEqual({
+        ...minimumState,
         viewState: {
-          other: otherObject,
+          ...minimumState.viewState,
           loadError: 'old error!',
         },
         autoUnquarantineState: {
+          ...minimumState.autoUnquarantineState,
           viewState: {
-            loadedReleaseQuarantineSummary: false,
-            loadReleaseQuarantineSummaryError: null,
+            ...minimumState.autoUnquarantineState.viewState,
+            loadedReleaseQuarantineSummary: true,
+            loadReleaseQuarantineSummaryError: 'error!',
           },
         },
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_RELEASE_QUARANTINE_SUMMARY_FAILED',
-        payload: 'error',
-      });
-
-      // viewState
-      expect(newState.viewState.loadError).toBe('old error!');
-
-      // autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(true);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe('error');
     });
   });
 
   describe('FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED action', function () {
-    let initialState = reduce();
+    let minimumState = {
+      autoUnquarantineState: {
+        autoUnquarantineGridState: {},
+      },
+    };
 
     it('updates the state', function () {
-      expect(
-        reduce(initialState, {
-          type: 'FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED',
-        })
-      ).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_REQUESTED' })).toEqual({
+        ...minimumState,
         autoUnquarantineState: {
-          ...initialState.autoUnquarantineState,
+          ...minimumState.autoUnquarantineState,
           autoUnquarantineGridState: {
-            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            ...minimumState.autoUnquarantineState.autoUnquarantineGridState,
             loadedReleaseQuarantineList: false,
+            loadAutoUnquarantineGridError: null,
             releaseQuarantineList: [],
           },
         },
@@ -845,7 +535,11 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED action', function () {
-    let initialState = reduce();
+    let minimumState = {
+      autoUnquarantineState: {
+        autoUnquarantineGridState: {},
+      },
+    };
 
     it('updates the state', function () {
       let payload = {
@@ -857,17 +551,12 @@ describe('firewallReducer', function () {
         ],
       };
 
-      expect(
-        reduce(initialState, {
-          type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED',
-          payload: payload,
-        })
-      ).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
         autoUnquarantineState: {
-          ...initialState.autoUnquarantineState,
+          ...minimumState.autoUnquarantineState,
           autoUnquarantineGridState: {
-            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            ...minimumState.autoUnquarantineState.autoUnquarantineGridState,
             loadedReleaseQuarantineList: true,
             releaseQuarantineList: [
               { componentDisplayText: 'testVal', other: 'other' },
@@ -882,26 +571,26 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_RELEASE_QUARANTINE_LIST_FAILED action', function () {
-    let initialState = reduce();
+    let minimumState = {
+      viewState: {},
+      autoUnquarantineState: {
+        autoUnquarantineGridState: {},
+      },
+    };
 
     it('updates the state', function () {
       let payload = 'error!';
 
-      expect(
-        reduce(initialState, {
-          type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FAILED',
-          payload: payload,
-        })
-      ).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_RELEASE_QUARANTINE_LIST_FAILED', payload: payload })).toEqual({
+        ...minimumState,
         viewState: {
-          ...initialState.viewState,
+          ...minimumState.viewState,
           loadError: 'error!',
         },
         autoUnquarantineState: {
-          ...initialState.autoUnquarantineState,
+          ...minimumState.autoUnquarantineState,
           autoUnquarantineGridState: {
-            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            ...minimumState.autoUnquarantineState.autoUnquarantineGridState,
             loadAutoUnquarantineGridError: payload,
             loadedReleaseQuarantineList: true,
             releaseQuarantineList: [],
@@ -912,22 +601,21 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE action', function () {
-    let initialState = reduce();
+    let minimumState = {
+      autoUnquarantineState: {
+        autoUnquarantineGridState: {},
+      },
+    };
 
     it('updates the state', function () {
       let payload = { currentPage: 123 };
 
-      expect(
-        reduce(initialState, {
-          type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE',
-          payload,
-        })
-      ).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE', payload })).toEqual({
+        ...minimumState,
         autoUnquarantineState: {
-          ...initialState.autoUnquarantineState,
+          ...minimumState.autoUnquarantineState,
           autoUnquarantineGridState: {
-            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            ...minimumState.autoUnquarantineState.autoUnquarantineGridState,
             currentPage: payload.currentPage,
           },
         },
@@ -936,32 +624,21 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING action', function () {
-    let initialState = {
+    let minimumState = {
       autoUnquarantineState: {
-        autoUnquarantineGridState: {
-          sortField: null,
-          sortDir: null,
-          currentPage: 1,
-          loadedReleaseQuarantineList: true,
-          releaseQuarantineList: [{ test: 'test' }],
-          releaseQuarantinePageCount: 5,
-        },
+        autoUnquarantineGridState: {},
       },
     };
+
     it('updates the state', function () {
       let payload = { sortField: 'testSort', sortDir: 'asc' };
 
-      expect(
-        reduce(initialState, {
-          type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING',
-          payload: payload,
-        })
-      ).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING', payload: payload })).toEqual({
+        ...minimumState,
         autoUnquarantineState: {
-          ...initialState.autoUnquarantineState,
+          ...minimumState.autoUnquarantineState,
           autoUnquarantineGridState: {
-            ...initialState.autoUnquarantineState.autoUnquarantineGridState,
+            ...minimumState.autoUnquarantineState.autoUnquarantineGridState,
             sortField: 'testSort',
             sortDir: 'asc',
             currentPage: null,
@@ -974,23 +651,8 @@ describe('firewallReducer', function () {
     });
   });
 
-  describe('FIREWALL_QUARANTINE_LIST_REQUESTED action', function () {
-    let initialState = reduce();
-
-    it('updates the state', function () {
-      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_LIST_REQUESTED' })).toEqual({
-        ...initialState,
-        quarantineGridState: {
-          ...initialState.quarantineGridState,
-          loadedQuarantineList: false,
-          loadQuarantineGridError: null,
-        },
-      });
-    });
-  });
-
   describe('FIREWALL_QUARANTINE_LIST_FULFILLED action', function () {
-    let initialState = reduce();
+    let minimumState = {};
 
     it('updates the state', function () {
       let payload = {
@@ -1002,10 +664,10 @@ describe('firewallReducer', function () {
         ],
       };
 
-      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_LIST_FULFILLED', payload: payload })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_LIST_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
         quarantineGridState: {
-          ...initialState.quarantineGridState,
+          ...minimumState.quarantineGridState,
           loadedQuarantineList: true,
           quarantineList: [
             { componentDisplayText: 'testVal', other: 'other' },
@@ -1018,10 +680,10 @@ describe('firewallReducer', function () {
 
       payload = { pageCount: 0, page: 0, results: [] };
 
-      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_LIST_FULFILLED', payload: payload })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_LIST_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
         quarantineGridState: {
-          ...initialState.quarantineGridState,
+          ...minimumState.quarantineGridState,
           loadedQuarantineList: true,
           quarantineList: payload.results,
           quarantinePageCount: payload.pageCount,
@@ -1032,15 +694,15 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_QUARANTINE_LIST_FAILED action', function () {
-    let initialState = reduce();
+    let minimumState = {};
 
     it('updates the state', function () {
       let payload = 'error!';
 
-      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_LIST_FAILED', payload: payload })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_LIST_FAILED', payload: payload })).toEqual({
+        ...minimumState,
         quarantineGridState: {
-          ...initialState.quarantineGridState,
+          ...minimumState.quarantineGridState,
           loadQuarantineGridError: payload,
           loadedQuarantineList: true,
           quarantineList: [],
@@ -1050,15 +712,15 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_QUARANTINE_GRID_SET_PAGE action', function () {
-    let initialState = reduce();
+    let minimumState = {};
 
     it('updates the state', function () {
       let payload = { currentPage: 123 };
 
-      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_GRID_SET_PAGE', payload })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_PAGE', payload })).toEqual({
+        ...minimumState,
         quarantineGridState: {
-          ...initialState.quarantineGridState,
+          ...minimumState.quarantineGridState,
           currentPage: payload.currentPage,
         },
       });
@@ -1066,24 +728,15 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_QUARANTINE_GRID_SET_SORTING action', function () {
-    let initialState = {
-      quarantineGridState: {
-        sortField: null,
-        sortDir: null,
-        currentPage: 1,
-        loadedQuarantineList: true,
-        quarantineList: [{ test: 'test' }],
-        quarantinePageCount: 5,
-      },
-    };
+    let minimumState = {};
 
     it('updates the state', function () {
       let payload = { sortField: 'testSort', sortDir: 'asc' };
 
-      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_GRID_SET_SORTING', payload: payload })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_SORTING', payload: payload })).toEqual({
+        ...minimumState,
         quarantineGridState: {
-          ...initialState.quarantineGridState,
+          ...minimumState.quarantineGridState,
           sortField: 'testSort',
           sortDir: 'asc',
           currentPage: null,
@@ -1096,23 +749,15 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_QUARANTINE_GRID_SET_FILTER action', function () {
-    let initialState = {
-      quarantineGridState: {
-        filterPolicy: null,
-        currentPage: 1,
-        loadedQuarantineList: true,
-        quarantineList: [{ test: 'test' }],
-        quarantinePageCount: 5,
-      },
-    };
+    let minimumState = {};
 
     it('updates the state', function () {
       let payload = { policy: { id: '456', name: 'test-name' } };
 
-      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_GRID_SET_FILTER', payload: payload })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_FILTER', payload: payload })).toEqual({
+        ...minimumState,
         quarantineGridState: {
-          ...initialState.quarantineGridState,
+          ...minimumState.quarantineGridState,
           filterPolicy: payload.policy,
           currentPage: null,
           loadedQuarantineList: false,
@@ -1124,13 +769,14 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_POLICIES_REQUESTED action', function () {
-    let initialState = reduce();
+    let minimumState = { policiesState: {} };
 
     it('updates the state', function () {
-      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_REQUESTED' })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_POLICIES_REQUESTED' })).toEqual({
+        ...minimumState,
         policiesState: {
-          ...initialState.policiesState,
+          ...minimumState.policiesState,
+          loadedPolicies: false,
           policies: [],
         },
       });
@@ -1138,7 +784,7 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_POLICIES_FULFILLED action', function () {
-    let initialState = reduce();
+    let minimumState = {};
 
     it('updates the state', function () {
       let payload = {
@@ -1154,15 +800,10 @@ describe('firewallReducer', function () {
         ],
       };
 
-      expect(
-        reduce(initialState, {
-          type: 'FIREWALL_POLICIES_FULFILLED',
-          payload: payload,
-        })
-      ).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_POLICIES_FULFILLED', payload: payload })).toEqual({
+        ...minimumState,
         policiesState: {
-          ...initialState.policiesState,
+          ...minimumState.policiesState,
           loadedPolicies: true,
           policies: [{ name: 'testName', ownerId: 'ROOT_ORGANIZATION_ID' }],
         },
@@ -1171,13 +812,13 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_POLICIES_FAILED action', function () {
-    let initialState = reduce();
+    let minimumState = {};
 
     it('updates the state', function () {
-      expect(reduce(initialState, { type: 'FIREWALL_POLICIES_FAILED' })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_POLICIES_FAILED' })).toEqual({
+        ...minimumState,
         policiesState: {
-          ...initialState.policiesState,
+          ...minimumState.policiesState,
           loadedPolicies: true,
           policies: [],
         },
@@ -1186,16 +827,16 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED action', function () {
-    let initialState = reduce();
+    let minimumState = {};
 
     it('updates the state', function () {
       let lastUpdated = new Date(),
         payload = { lastUpdated: lastUpdated };
 
-      expect(reduce(initialState, { type: 'FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED', payload: payload })).toEqual({
-        ...initialState,
+      expect(reduce(minimumState, { type: 'FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED', payload: payload })).toEqual({
+        ...minimumState,
         quarantineGridState: {
-          ...initialState.quarantineGridState,
+          ...minimumState.quarantineGridState,
           lastUpdated: lastUpdated,
         },
       });
@@ -1203,47 +844,12 @@ describe('firewallReducer', function () {
   });
 
   describe('FIREWALL_LOAD_DATA_REQUESTED action', function () {
+    let minimumState = {};
+
     it('updates to the initial state', function () {
-      const state = Object.freeze({
-        other: otherObject,
-        viewState: otherObject,
-        statusState: otherObject,
-        autoUnquarantineState: otherObject,
-        configurationState: otherObject,
+      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_DATA_REQUESTED' })).toEqual({
+        ...defaultState,
       });
-      const newState = reduce(state, {
-        type: 'FIREWALL_LOAD_DATA_REQUESTED',
-      });
-      // viewState
-      expect(newState.viewState.loadedStatus).toBe(false);
-      expect(newState.viewState.loadStatusError).toBeNull();
-      expect(newState.viewState.isShowConfigurationModal).toBe(false);
-      expect(newState.viewState.loadError).toBe(null);
-
-      //statusState
-      expect(newState.statusState.isEnabled).toBe(false);
-
-      //autoUnquarantineState.viewState
-      expect(newState.autoUnquarantineState.viewState.loadedReleaseQuarantineSummary).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadReleaseQuarantineSummaryError).toBe(null);
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountMTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.autoReleaseQuarantineCountYTD).toBe('-');
-      expect(newState.autoUnquarantineState.viewState.loadedConfiguration).toBe(false);
-      expect(newState.autoUnquarantineState.viewState.loadConfigurationError).toBeNull();
-      expect(newState.autoUnquarantineState.viewState.enabledPolicyConditionTypesCount).toBe(0);
-      expect(newState.autoUnquarantineState.viewState.totalPolicyConditionTypesCount).toBe(0);
-
-      //configurationState
-      expect(newState.configurationState.autoUnquarantineEnabled).toBe(false);
-
-      //quarantineSummaryState.viewState
-      expect(newState.quarantineSummaryState.viewState.loadedQuarantineSummary).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.loadQuarantineSummaryError).toBe(null);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabled).toBe(false);
-      expect(newState.quarantineSummaryState.viewState.quarantineEnabledRepositoryCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.repositoryCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.totalComponentCount).toBe(0);
-      expect(newState.quarantineSummaryState.viewState.quarantinedComponentCount).toBe(0);
     });
   });
 

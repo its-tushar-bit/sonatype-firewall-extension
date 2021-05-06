@@ -56,7 +56,6 @@ const saveConfigurationFulfilled = (payload, state) => ({
   ...state,
   viewState: {
     ...state.viewState,
-    saveConfigurationError: null,
     submitMaskSuccessState: true,
   },
 });

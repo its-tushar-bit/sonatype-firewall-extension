@@ -129,7 +129,6 @@ const loadStatusFulfilled = (payload, state) => ({
   viewState: {
     ...state.viewState,
     loadedStatus: true,
-    loadStatusError: null,
   },
   statusState: {
     ...state.statusState,
@@ -164,7 +163,6 @@ const loadReleaseQuarantineSummaryFulfilled = (payload, state) => ({
     viewState: {
       ...state.autoUnquarantineState.viewState,
       loadedReleaseQuarantineSummary: true,
-      loadReleaseQuarantineSummaryError: null,
       autoReleaseQuarantineCountMTD: payload.autoReleaseQuarantineCountMTD.toString(),
       autoReleaseQuarantineCountYTD: payload.autoReleaseQuarantineCountYTD.toString(),
     },
@@ -193,6 +191,7 @@ const loadReleaseQuarantineListRequested = (_, state) =>
     merge(__, {
       loadedReleaseQuarantineList: false,
       loadAutoUnquarantineGridError: null,
+      releaseQuarantineList: [],
     }),
     state
   );
@@ -204,7 +203,6 @@ const loadReleaseQuarantineListFulfilled = (payload, state) =>
     lensPath(['autoUnquarantineState', 'autoUnquarantineGridState']),
     merge(__, {
       loadedReleaseQuarantineList: true,
-      loadAutoUnquarantineGridError: null,
       releaseQuarantineList: payload.results.map((result) => renameKey('displayName', 'componentDisplayText', result)),
       releaseQuarantinePageCount: payload.pageCount,
       currentPage: payload.pageCount === 0 ? null : payload.page - 1,
@@ -234,6 +232,7 @@ const loadPoliciesRequested = (_, state) =>
     lensProp('policiesState'),
     merge(__, {
       loadedPolicies: false,
+      policies: [],
     }),
     state
   );
@@ -319,7 +318,6 @@ const loadConfigurationFulfilled = (payload, state) => ({
     viewState: {
       ...state.autoUnquarantineState.viewState,
       loadedConfiguration: true,
-      loadConfigurationError: null,
       enabledPolicyConditionTypesCount: numberOfEnabledPolicyConditionTypesCount(payload),
       totalPolicyConditionTypesCount: payload.length,
     },

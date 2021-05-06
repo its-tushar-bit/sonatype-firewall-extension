@@ -24,9 +24,11 @@ import com.sonatype.clm.testing.functional.elements.DashboardViolations;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxPolicyThreatLevelFilter;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.ChangePasswordModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
@@ -1014,6 +1016,21 @@ public class DashboardFilterTest
     manage.dropdownMenu().option(1).deleteFilterButton().shouldBe(visible).click();
     DashboardFilters.deleteFilterDialog().continueButton().click();
     manage.dropdownMenu().shouldBe(visible);
+  }
+
+  @Test
+  public void testDisplayModalOverFilter() {
+    DashboardPage.filterToggle().shouldBe(visible).click();
+    DashboardFilters.filterContainer().shouldBe(visible);
+    setSomeFilterValues();
+
+    MainHeader.userMenu().dropdownToggle().click();
+    MainHeader.userMenu().changePassword().click();
+
+    ChangePasswordModal modal = new ChangePasswordModal();
+    modal.shouldBe(visible);
+
+    eyesWatcher.eyesCheck("Modal Overlay is on top of Dashboard filter");
   }
 
   private void assertNeedsAcknowledgementPostFilterState(String filterName) {

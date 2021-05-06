@@ -61,7 +61,7 @@ public class ApiSearchServiceV2Test
             ComponentIdentifier.createMavenCoordinates("org.apache.httpcomponents", "httpcore", "4.4.6"));
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
 
-    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report", tempDir),
+    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report-1", tempDir),
         insightWork);
 
     ApiSearchResultsDTOV2 result = apiSearchServiceV2
@@ -70,8 +70,8 @@ public class ApiSearchServiceV2Test
 
     assertThat(result).isNotNull();
     assertThat(result.results.get(0).dependencyData.directDependency).isFalse();
-    assertThat(result.results.get(0).dependencyData.parentComponentPurl)
-        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
+    assertThat(result.results.get(0).dependencyData.parentComponentPurls)
+        .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
     assertThat(result.results.get(0).dependencyData.innerSource).isFalse();
     assertThat(result.results.get(0).dependencyData).hasFieldOrProperty("innerSourceData");
     assertThat(result.results.get(0).dependencyData.innerSourceData.getOwnerApplicationId())
@@ -84,10 +84,37 @@ public class ApiSearchServiceV2Test
             "pkg:maven/org.apache.httpcomponents/httpcore@4.4.6");
     assertThat(result).isNotNull();
     assertThat(result.results.get(0).dependencyData.directDependency).isFalse();
-    assertThat(result.results.get(0).dependencyData.parentComponentPurl)
-        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar");
+    assertThat(result.results.get(0).dependencyData.parentComponentPurls)
+        .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar");
     assertThat(result.results.get(0).dependencyData.innerSource).isFalse();
     assertThat(JsonUtils.writeUnformatted(result)).doesNotContain("innerSourceData");
+  }
+
+  @Test
+  public void testSearchComponent_InnerSourceData_WithEnabledComponentSearchApiWithInnerSource_MultipleParentPurls()
+      throws Exception
+  {
+    insightConfig
+        .setExperimentalFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
+    Application application = tempEntity.newApplicationWithParent();
+    ApplicationComponent appComponent = tempEntity
+        .newApplicationComponent(application.getId(), BuildStageType.ID, "0f5a654e4675769c716e",
+            ComponentIdentifier.createMavenCoordinates("com.fasterxml.jackson.core", "jackson-core", "2.9.8"));
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
+    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report-2", tempDir),
+        insightWork);
+
+    ApiSearchResultsDTOV2 result = apiSearchServiceV2
+        .searchComponent(BuildStageType.ID, appComponent.getHash(), appComponent.getComponentIdentifier(),
+            "pkg:maven/com.fasterxml.jackson.core/jackson-core@2.9.8");
+
+    assertThat(result).isNotNull();
+    assertThat(result.results).hasSize(1);
+    assertThat(result.results.get(0).dependencyData).isNotNull();
+    assertThat(result.results.get(0).dependencyData.parentComponentPurls).containsExactlyInAnyOrder(
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+    );
   }
 
   @Test
@@ -101,7 +128,7 @@ public class ApiSearchServiceV2Test
         .newApplicationComponent(application.getId(), BuildStageType.ID, "2b8e230d2ab644e4ecaa",
             ComponentIdentifier.createMavenCoordinates("xmlpull", "xmlpull", "1.1.3.1"));
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan-id");
-    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report", tempDir),
+    createReportFile(application.getId(), "scan-id", zipReportDir("/ApiSearchServiceV2Test/report-1", tempDir),
         insightWork);
 
     ApiSearchResultsDTOV2 result = apiSearchServiceV2

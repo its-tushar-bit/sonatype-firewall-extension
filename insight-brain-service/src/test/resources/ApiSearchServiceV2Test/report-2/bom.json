@@ -1,0 +1,81 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-core",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.8"
+        }
+      },
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-core",
+      "version": "2.9.8",
+      "filenames": [
+        "jackson-core-2.9.8.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.fasterxml.jackson.core:jackson-core:jar:2.9.8"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "0f5a654e4675769c716e",
+      "relativePopularity": 0.76,
+      "createTime": 1544908773000,
+      "lastModifiedTime": 1614253376000,
+      "lastModifiedEntryTime": 1544879952000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.fasterxml.jackson.core"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "jackson-core"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.9.8"
+          }
+        ],
+        "name": "jackson-core"
+      },
+      "directDependency": false,
+      "innerSource": false,
+      "parentComponentPurls": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+      ]
+    }
+  ]
+}

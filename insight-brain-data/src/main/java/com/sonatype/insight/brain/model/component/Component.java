@@ -92,7 +92,7 @@ public class Component
 
   private Boolean innerSource;
 
-  private String parentComponentPurl;
+  private Set<String> parentComponentPurls;
 
   public Component() {
   }
@@ -471,11 +471,11 @@ public class Component
     this.innerSource = innerSource;
   }
 
-  public String getParentComponentPurl() {
-    return parentComponentPurl;
+  public Set<String> getParentComponentPurls() {
+    return parentComponentPurls;
   }
 
-  public void setParentComponentPurl(final String parentComponentPurl) {
-    this.parentComponentPurl = parentComponentPurl;
+  public void setParentComponentPurls(final Set<String> parentComponentPurls) {
+    this.parentComponentPurls = parentComponentPurls;
   }
 }

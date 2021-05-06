@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -36,6 +37,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +60,10 @@ public class DependencyResolver
   public static final String MATCH_STATE = "matchState";
 
   private static final String FIELD_DIRECT_DEPENDENCY = "directDependency";
+
+  private static final String FIELD_INNER_SOURCE = "innerSource";
+
+  private static final String FIELD_INNER_SOURCE_DATA = "innerSourceData";
 
   private final JsonNode dependenciesJson;
 
@@ -389,17 +395,19 @@ public class DependencyResolver
   {
     findBomComponent(componentId)
         .ifPresent(bomObjectNode -> {
-          //At the moment we don't support multiple parents. So if a certain dependency found in multiple positions
-          //of a tree we keep the first resolved relationship
-          if (bomObjectNode.get(FIELD_DIRECT_DEPENDENCY) == null) {
-            bomObjectNode.put(FIELD_DIRECT_DEPENDENCY, isDirect);
-            bomObjectNode.put("innerSource", isInnerSource);
-            if (!isDirect && parentComponentId != null) {
-              bomObjectNode.put("parentComponentPurl", PackageUrlIdentifier.toPackageUrl(parentComponentId));
+          bomObjectNode
+              .put(FIELD_DIRECT_DEPENDENCY, bomObjectNode.path(FIELD_DIRECT_DEPENDENCY).asBoolean(false) || isDirect);
+          bomObjectNode
+              .put(FIELD_INNER_SOURCE, bomObjectNode.path(FIELD_INNER_SOURCE).asBoolean(false) || isInnerSource);
+          if (!isDirect && parentComponentId != null) {
+            if (bomObjectNode.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD).isMissingNode()) {
+              bomObjectNode.putArray(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
             }
-            if (innerSourceData != null) {
-              bomObjectNode.set("innerSourceData", JsonUtils.asTree(innerSourceData));
-            }
+            ((ArrayNode) bomObjectNode.get(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD))
+                .add(PackageUrlIdentifier.toPackageUrl(parentComponentId));
+          }
+          if (innerSourceData != null && bomObjectNode.path(FIELD_INNER_SOURCE_DATA).isMissingNode()) {
+            bomObjectNode.set(FIELD_INNER_SOURCE_DATA, JsonUtils.asTree(innerSourceData));
           }
         });
   }

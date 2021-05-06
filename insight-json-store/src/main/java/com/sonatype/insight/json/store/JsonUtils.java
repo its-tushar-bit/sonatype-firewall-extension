@@ -14,7 +14,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory.Feature;
@@ -213,5 +215,25 @@ public final class JsonUtils
       }
     }
     return result;
+  }
+
+  public static Set<String> getStringSetFromArray(JsonNode jsonNode) {
+    if (jsonNode.isArray() && !jsonNode.isEmpty()) {
+      Set<String> result = new LinkedHashSet<>();
+      for (JsonNode child : jsonNode) {
+        result.add(child.asText());
+      }
+      return result;
+    }
+    return null;
+  }
+
+  public static String getTypeToString(JsonNode jsonNode, Class<?> type) {
+    try {
+      return JsonUtils.asPojo(jsonNode, type).toString();
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e.getMessage(), e);
+    }
   }
 }

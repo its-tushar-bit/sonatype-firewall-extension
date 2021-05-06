@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.ide.MatchedComponent;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -23,7 +24,9 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.json.store.JsonUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -225,5 +228,16 @@ public class ComponentDAOTest
     assertThat(component.getObservedMultiLicenseIds())
         .containsExactlyInAnyOrder("Apache-2.0-GPL-3.0", "Apache-2.0-GPL-2.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
+  }
+
+  @Test
+  public void testGetTypeToString_ComponentDisplayName() {
+    ComponentDisplayName componentDisplayName = new ComponentDisplayName();
+    componentDisplayName.add("field1", "value1");
+    componentDisplayName.add(",");
+    componentDisplayName.add("field2", "value2");
+    JsonNode jsonNode = JsonUtils.asTree(componentDisplayName);
+
+    assertThat(JsonUtils.getTypeToString(jsonNode, ComponentDisplayName.class)).isEqualTo("value1,value2");
   }
 }

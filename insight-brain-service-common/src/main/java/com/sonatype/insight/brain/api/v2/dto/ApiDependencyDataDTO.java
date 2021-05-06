@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.Set;
+
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -19,7 +21,7 @@ public class ApiDependencyDataDTO
   public Boolean innerSource;
 
   @JsonInclude(Include.NON_NULL)
-  public String parentComponentPurl;
+  public Set<String> parentComponentPurls;
 
   @JsonInclude(Include.NON_NULL)
   public InnerSourceData innerSourceData;

@@ -59,7 +59,7 @@
     },
     "directDependency" : false,
     "innerSource" : false,
-    "parentComponentPurl" : "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar",
+    "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"],
     "innerSourceData" : {
       "ownerApplicationName" : "insight-scanner-archive",
       "ownerApplicationId" : "06260dc1e0f34f97892d325fcdf1fdb3",
@@ -125,7 +125,7 @@
     },
     "directDependency" : false,
     "innerSource" : false,
-    "parentComponentPurl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar"
+    "parentComponentPurls" : ["pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar"]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -186,7 +186,7 @@
     },
     "directDependency" : false,
     "innerSource" : false,
-    "parentComponentPurl" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar"
+    "parentComponentPurls" : ["pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar"]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -310,7 +310,7 @@
     },
     "directDependency" : false,
     "innerSource" : false,
-    "parentComponentPurl" : "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar",
+    "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"],
     "innerSourceData" : {
       "ownerApplicationName" : "insight-module-model",
       "ownerApplicationId" : "7509f572645749eba3e19b826e111c8b",
@@ -376,7 +376,7 @@
     },
     "directDependency" : false,
     "innerSource" : false,
-    "parentComponentPurl" : "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar",
+    "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"],
     "innerSourceData" : {
       "ownerApplicationName" : "insight-module-model",
       "ownerApplicationId" : "7509f572645749eba3e19b826e111c8b",
@@ -442,7 +442,7 @@
     },
     "directDependency" : false,
     "innerSource" : false,
-    "parentComponentPurl" : "pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar"
+    "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar"]
   }, {
     "componentIdentifier" : null,
     "groupId" : null,

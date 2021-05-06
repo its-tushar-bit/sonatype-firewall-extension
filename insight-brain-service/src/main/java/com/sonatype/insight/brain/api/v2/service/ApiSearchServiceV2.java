@@ -217,7 +217,7 @@ public class ApiSearchServiceV2
         for (Component component : components) {
           if (candidateHash.equals(component.getHash())) {
             dependencyData.innerSourceData = component.getInnerSourceData();
-            dependencyData.parentComponentPurl = component.getParentComponentPurl();
+            dependencyData.parentComponentPurls = component.getParentComponentPurls();
             dependencyData.directDependency = component.getDirectDependency();
             dependencyData.innerSource = component.getInnerSource();
             return dependencyData;

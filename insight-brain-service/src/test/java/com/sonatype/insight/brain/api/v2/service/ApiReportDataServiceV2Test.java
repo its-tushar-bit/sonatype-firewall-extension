@@ -192,7 +192,7 @@ public class ApiReportDataServiceV2Test
         "moderate");
     assertThat(component.dependencyData.directDependency).isTrue();
     assertThat(component.dependencyData.innerSource).isTrue();
-    assertThat(component.dependencyData.parentComponentPurl).isNull();
+    assertThat(component.dependencyData.parentComponentPurls).isNull();
     assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
     assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
         .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
@@ -209,8 +209,8 @@ public class ApiReportDataServiceV2Test
     assertThat(component.displayName).isEqualTo("com.google.code.gson : gson : 2.8.1");
     assertThat(component.dependencyData.directDependency).isFalse();
     assertThat(component.dependencyData.innerSource).isFalse();
-    assertThat(component.dependencyData.parentComponentPurl)
-        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    assertThat(component.dependencyData.parentComponentPurls)
+        .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
     assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
     assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
         .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
@@ -232,6 +232,22 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.innerSourceData).isNull();
 
     config.getExperimentalFeatures().clear();
+  }
+
+  @Test
+  public void testGetRawData_DependencyDataConfigEnabled_MultipleParentPurls() throws Exception {
+    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
+    makeReport("report-3");
+
+    ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
+
+    assertThat(data).isNotNull();
+    assertThat(data.components).hasSize(1);
+    assertThat(data.components.get(0).dependencyData).isNotNull();
+    assertThat(data.components.get(0).dependencyData.parentComponentPurls).containsExactlyInAnyOrder(
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.8?type=jar",
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+    );
   }
 
   @Test
@@ -294,8 +310,8 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData).isNotNull();
     assertThat(component.dependencyData.directDependency).isFalse();
     assertThat(component.dependencyData.innerSource).isFalse();
-    assertThat(component.dependencyData.parentComponentPurl)
-        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    assertThat(component.dependencyData.parentComponentPurls)
+        .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
     assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
     assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
         .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
@@ -310,7 +326,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData).isNotNull();
     assertThat(component.dependencyData.directDependency).isTrue();
     assertThat(component.dependencyData.innerSource).isTrue();
-    assertThat(component.dependencyData.parentComponentPurl).isNull();
+    assertThat(component.dependencyData.parentComponentPurls).isNull();
     assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
     assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
         .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");

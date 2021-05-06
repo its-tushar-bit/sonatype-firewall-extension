@@ -61,6 +61,10 @@ public class ComponentDAO
 {
   private static final String DIRECT_DEPENDENCY_FIELD = "directDependency";
 
+  public static final String PARENT_COMPONENT_PURLS_FIELD = "parentComponentPurls";
+
+  public static final String DISPLAY_NAME_FIELD = "displayName";
+
   private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   private LicenseThreatGroupDAO licenseThreatGroupDAO = new LicenseThreatGroupDAO();
@@ -229,7 +233,8 @@ public class ComponentDAO
           for (JsonNode aggregateFileNode : componentJson.path("aggregateFiles")) {
             addAggregateFile(aggregateFileNode, component);
           }
-          component.setDisplayName(getDisplayName(componentJson));
+          component.setDisplayName(JsonUtils.getTypeToString(componentJson.path(DISPLAY_NAME_FIELD),
+              ComponentDisplayName.class));
           if (!matchState.equals(MatchState.UNKNOWN)) {
             component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
 
@@ -292,10 +297,8 @@ public class ComponentDAO
             component.setInnerSource(innerSourceNode.asBoolean());
           }
 
-          JsonNode parentComponentPurlNode = componentJson.get("parentComponentPurl");
-          if (parentComponentPurlNode != null) {
-            component.setParentComponentPurl(parentComponentPurlNode.asText());
-          }
+          component.setParentComponentPurls(
+              JsonUtils.getStringSetFromArray(componentJson.path(PARENT_COMPONENT_PURLS_FIELD)));
 
           bomComponents.components.add(component);
         }
@@ -304,7 +307,7 @@ public class ComponentDAO
 
     return bomComponents;
   }
-  
+
   private void setAnalyzerFeatures(JsonNode analyzerFeaturesNode, Component component) {
     try {
       if (analyzerFeaturesNode != null) {
@@ -347,15 +350,6 @@ public class ComponentDAO
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
-    }
-  }
-
-  public static String getDisplayName(JsonNode componentNode) {
-    try {
-      return JsonUtils.asPojo(componentNode.path("displayName"), ComponentDisplayName.class).toString();
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e.getMessage(), e);
     }
   }
 

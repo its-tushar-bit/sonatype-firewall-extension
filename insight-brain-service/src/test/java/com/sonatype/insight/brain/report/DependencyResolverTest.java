@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,6 +25,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceReportUsageTelemetry;
@@ -233,7 +235,7 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson,summaryJson, app, telemetrySender).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
     List<JsonNode> bomInnerSourceParent = new ArrayList<>();
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
@@ -551,11 +553,12 @@ public class DependencyResolverTest
         ComponentIdentifier.createMavenCoordinates("com.innersource", "known-transitive3", "1.0.0-SNAPSHOT", "", "jar");
 
     assertBomNodeDependencyInfo(bomJson, knownDirect, true, null);
-    assertBomNodeDependencyInfo(bomJson, knownTransitive1, false, knownDirect);
-    assertBomNodeDependencyInfo(bomJson, knownTransitive1Level2, false, knownTransitive1);
-    assertBomNodeDependencyInfo(bomJson, unknownTransitive1, false, knownDirect);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive1, false, Collections.singleton(knownDirect));
+    assertBomNodeDependencyInfo(bomJson, knownTransitive1Level2, false,
+        Sets.newHashSet(knownTransitive1, unknownDirect));
+    assertBomNodeDependencyInfo(bomJson, unknownTransitive1, false, Collections.singleton(knownDirect));
     assertBomNodeDependencyInfo(bomJson, unknownDirect, true, null);
-    assertBomNodeDependencyInfo(bomJson, knownTransitive3, false, unknownDirect);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive3, false, Collections.singleton(unknownDirect));
   }
 
   @Test
@@ -593,14 +596,49 @@ public class DependencyResolverTest
         PackageUrlIdentifier.toPackageUrl(innerSourceProducer));
 
     assertBomNodeDependencyInfo(bomJson, knownDirect, true, null);
-    assertBomNodeDependencyInfo(bomJson, knownTransitive1, false, knownDirect);
-    assertBomNodeDependencyInfo(bomJson, knownTransitive1Level2, false, knownTransitive1);
-    assertBomNodeDependencyInfo(bomJson, unknownTransitive1, false, knownDirect);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive1, false, Collections.singleton(knownDirect));
+    assertBomNodeDependencyInfo(bomJson, knownTransitive1Level2, false,
+        Sets.newHashSet(knownTransitive1, unknownDirect));
+    assertBomNodeDependencyInfo(bomJson, unknownTransitive1, false, Collections.singleton(knownDirect));
     assertBomNodeDependencyInfo(bomJson, unknownDirect, true, false, null, null);
-    assertBomNodeDependencyInfo(bomJson, knownTransitive3, false, false, unknownDirect, null);
+    assertBomNodeDependencyInfo(bomJson, knownTransitive3, false, false, Collections.singleton(unknownDirect), null);
     assertBomNodeDependencyInfo(bomJson, innerSourceProducer, true, true, null, isDataForProducer);
-    assertBomNodeDependencyInfo(bomJson, producerTransitive1, false, false, innerSourceProducer,
+    assertBomNodeDependencyInfo(bomJson, producerTransitive1, false, false, Collections.singleton(innerSourceProducer),
         isDataForProducerTransitive);
+  }
+
+  @Test
+  public void testResolve_TransitiveAndDirect() throws Exception {
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-transitive-and-direct/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-transitive-and-direct/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-transitive-and-direct/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-transitive-and-direct/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    ComponentIdentifier knownDirect = ComponentIdentifier
+        .createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
+    ComponentIdentifier knownTransitiveAndDirect = ComponentIdentifier
+        .createMavenCoordinates("com.innersource", "known-transitive-and-direct", "2.8.1", "", "jar");
+    assertBomNodeDependencyInfo(bomJson, knownTransitiveAndDirect, true, Collections.singleton(knownDirect));
+  }
+  
+  @Test
+  public void testResolve_MultipleParents() throws Exception {
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-multiple-parents/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-multiple-parents/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-multiple-parents/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-multiple-parents/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    ComponentIdentifier knownDirect1 = ComponentIdentifier
+        .createMavenCoordinates("com.innersource", "known-direct-1", "2.8.1", "", "jar");
+    ComponentIdentifier knownDirect2 = ComponentIdentifier
+        .createMavenCoordinates("com.innersource", "known-direct-2", "2.8.1", "", "jar");
+    ComponentIdentifier knownTransitive = ComponentIdentifier
+        .createMavenCoordinates("com.innersource", "known-transitive", "2.8.1", "", "jar");
+    assertBomNodeDependencyInfo(bomJson, knownTransitive, false, Sets.newHashSet(knownDirect1, knownDirect2));
   }
 
   private void assertInnerSourceInformation(
@@ -628,9 +666,9 @@ public class DependencyResolverTest
       final JsonNode bomJson,
       final ComponentIdentifier componentIdentifier,
       final boolean isDirect,
-      final ComponentIdentifier parentId)
+      final Set<ComponentIdentifier> parentIds)
   {
-    assertBomNodeDependencyInfo(bomJson, componentIdentifier, isDirect, false, parentId, null);
+    assertBomNodeDependencyInfo(bomJson, componentIdentifier, isDirect, false, parentIds, null);
   }
 
   private void assertBomNodeDependencyInfo(
@@ -638,14 +676,24 @@ public class DependencyResolverTest
       final ComponentIdentifier componentIdentifier,
       final boolean isDirect,
       final boolean isInnerSource,
-      final ComponentIdentifier parentId,
+      final Set<ComponentIdentifier> parentIds,
       final InnerSourceData innerSourceData)
   {
     JsonNode bomNode = findNodeById(bomJson, componentIdentifier);
     assertThat(bomNode.get("directDependency").asBoolean()).isEqualTo(isDirect);
     assertThat(bomNode.get("innerSource").asBoolean()).isEqualTo(isInnerSource);
-    assertThat(getAttributeTextSafely(bomNode, "parentComponentPurl"))
-        .isEqualTo(parentId == null ? null : PackageUrlIdentifier.toPackageUrl(parentId));
+    Set<ComponentIdentifier> actualParentIds = null;
+    JsonNode parentComponentPurls = bomNode.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
+    if (parentComponentPurls.isArray() && !parentComponentPurls.isEmpty()) {
+      actualParentIds = new LinkedHashSet<>();
+      for (JsonNode parentComponentPurl : parentComponentPurls) {
+        ComponentIdentifier compIdentifier =
+            ComponentIdentifierAdapter.toComponentIdentifier(parentComponentPurl.asText());
+        compIdentifier.ensureComplete();
+        actualParentIds.add(compIdentifier);
+      }
+    }
+    assertThat(actualParentIds).isEqualTo(parentIds);
     if (innerSourceData != null) {
       JsonNode innerSourceDataNode = bomNode.get("innerSourceData");
       assertThat(innerSourceDataNode.get("ownerApplicationName").asText())
@@ -660,11 +708,6 @@ public class DependencyResolverTest
             .isEqualTo(innerSourceData.getInnerSourceComponentPurl());
       }
     }
-  }
-
-  private String getAttributeTextSafely(final JsonNode bomNode, final String fieldName) {
-    JsonNode purlNode = bomNode.get(fieldName);
-    return purlNode == null ? null : purlNode.asText();
   }
 
   private JsonNode findNodeById(final JsonNode bomJson, final ComponentIdentifier identifier) {
@@ -782,7 +825,7 @@ public class DependencyResolverTest
       assertThat(transitiveDependency).isNotNull();
       assertThat(transitiveDependency.get("componentIdentifier")).isNotNull();
       assertThat(transitiveDependency.get("directDependency").asBoolean()).isFalse();
-      assertThat(transitiveDependency.get("parentComponentPurl")).isNotNull();
+      assertThat(transitiveDependency.get(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD)).isNotNull();
       assertThat(transitiveDependency.get("innerSource").asBoolean()).isFalse();
       assertThat(transitiveDependency.get("innerSourceData").get("ownerApplicationName").asText())
           .isEqualTo(appInnerSource.getName());

@@ -181,7 +181,8 @@ public class ApiReportDataServiceV2
           component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;
           component.proprietary = componentJson.get("proprietary").booleanValue();
           component.pathnames = getPathnames(componentJson);
-          component.displayName = ComponentDAO.getDisplayName(componentJson);
+          component.displayName = JsonUtils.getTypeToString(componentJson.path(ComponentDAO.DISPLAY_NAME_FIELD),
+              ComponentDisplayName.class);
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
           if (isDependencyDataInRestApiSupported()) {
             Boolean directDependency = getBooleanValue(componentJson, "directDependency");
@@ -189,8 +190,8 @@ public class ApiReportDataServiceV2
               component.dependencyData = new ApiDependencyDataDTO();
               component.dependencyData.directDependency = directDependency;
               component.dependencyData.innerSource = getBooleanValue(componentJson, "innerSource");
-              component.dependencyData.parentComponentPurl =
-                  JsonUtils.getNullableString(componentJson.get("parentComponentPurl"));
+              component.dependencyData.parentComponentPurls =
+                  JsonUtils.getStringSetFromArray(componentJson.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD));
               component.dependencyData.innerSourceData =
                   JsonUtils.asPojo(componentJson.get("innerSourceData"), InnerSourceData.class);
             }
@@ -350,8 +351,8 @@ public class ApiReportDataServiceV2
     if (comp.getDirectDependency() != null) {
       component.dependencyData = new ApiDependencyDataDTO();
       component.dependencyData.directDependency = comp.getDirectDependency();
-      if (comp.getParentComponentPurl() != null) {
-        component.dependencyData.parentComponentPurl = comp.getParentComponentPurl();
+      if (comp.getParentComponentPurls() != null) {
+        component.dependencyData.parentComponentPurls = comp.getParentComponentPurls();
       }
       if (comp.getInnerSource() != null) {
         component.dependencyData.innerSource = comp.getInnerSource();

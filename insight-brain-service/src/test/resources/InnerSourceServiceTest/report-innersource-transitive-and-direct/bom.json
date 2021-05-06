@@ -1,0 +1,142 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-direct",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "2.8.1"
+        }
+      },
+      "groupId": "com.innersource",
+      "artifactId": "known-direct",
+      "version": "2.8.1",
+      "filenames": [
+        "known-direct-2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-direct:jar:2.8.1"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-direct"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.8.1"
+          }
+        ],
+        "name": "known-direct"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "known-transitive-and-direct",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.innersource",
+          "version": "2.8.1"
+        }
+      },
+      "groupId": "com.innersource",
+      "artifactId": "known-transitive-and-direct",
+      "version": "2.8.1",
+      "filenames": [
+        "known-transitive-and-direct-2.8.1.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.innersource:known-transitive-and-direct:jar:2.8.1"
+      ],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "02a8e0aa38a2e21cb39e",
+      "relativePopularity": 0.12,
+      "createTime": 1496194739000,
+      "lastModifiedTime": 1558625688000,
+      "lastModifiedEntryTime": 1496187536000,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.innersource"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "known-transitive-and-direct"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.8.1"
+          }
+        ],
+        "name": "known-transitive-and-direct"
+      }
+    }
+  ]
+}

@@ -144,7 +144,7 @@
       },
       "directDependency": false,
       "innerSource": false,
-      "parentComponentPurl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar",
+      "parentComponentPurls": ["pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"],
       "innerSourceData": {
         "ownerApplicationName": "insight-scanner-archive",
         "ownerApplicationId": "ccba77f38eba4171a17b603e4ab9d7e5",

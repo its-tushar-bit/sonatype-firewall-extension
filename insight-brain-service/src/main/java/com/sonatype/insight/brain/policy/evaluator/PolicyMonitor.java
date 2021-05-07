@@ -203,7 +203,8 @@ public class PolicyMonitor
       final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
   {
     // not checking for FIREWALL_FOR_ARTIFACTORY at this time
-    if (!productLicense.hasFeature(LicensedFeature.FIREWALL)) {
+    if (!productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE) ||
+        !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
       log.debug("Not licensed for Firewall Policy Monitoring.");
       return;
     }

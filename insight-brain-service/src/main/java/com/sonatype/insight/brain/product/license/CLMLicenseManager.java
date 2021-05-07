@@ -306,6 +306,7 @@ public class CLMLicenseManager
         marketingNameSuffix = PRODUCT_LIFECYCLE_FOUNDATION;
         break;
       case ProductLicenseDetails.PRODUCT_FIREWALL:
+      case ProductLicenseDetails.PRODUCT_FIREWALL_V2:
         marketingNameSuffix = PRODUCT_FIREWALL;
         break;
       case ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY:
@@ -403,6 +404,9 @@ public class CLMLicenseManager
     else if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY)) {
       return PRODUCT_FIREWALL_FOR_ARTIFACTORY;
     }
+    else if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_V2)) {
+      return PRODUCT_FIREWALL;
+    }
     else if (products.contains(ProductLicenseDetails.PRODUCT_NEXUS)) {
       return PRODUCT_PRO_PLUS;
     }
@@ -494,6 +498,16 @@ public class CLMLicenseManager
       stageTypes.addAll(StageTypes.getAll());
     }
     if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL)) {
+      features.add(LicensedFeature.FIREWALL);
+      features.add(LicensedFeature.RM_STAGING_INTEGRATION);
+      features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
+      features.add(LicensedFeature.WEBHOOKS_FOR_REPOSITORIES);
+      stageTypes.add(StageTypes.STAGE_RELEASE);
+      stageTypes.add(StageTypes.RELEASE);
+    }
+    if (products.contains(ProductLicenseDetails.PRODUCT_FIREWALL_V2)) {
+      features.add(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+      features.add(LicensedFeature.RELEASE_INTEGRITY);
       features.add(LicensedFeature.FIREWALL);
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);

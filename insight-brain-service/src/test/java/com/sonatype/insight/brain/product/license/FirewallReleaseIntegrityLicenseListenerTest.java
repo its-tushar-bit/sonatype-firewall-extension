@@ -152,9 +152,9 @@ public class FirewallReleaseIntegrityLicenseListenerTest
   }
 
   @Test
-  public void testProductLicenseChanged_WithoutFirewallFeature() {
+  public void testProductLicenseChanged_WithoutFirewallAutoUnquarantineFeature() {
     insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     listener.productLicenseChanged();
 

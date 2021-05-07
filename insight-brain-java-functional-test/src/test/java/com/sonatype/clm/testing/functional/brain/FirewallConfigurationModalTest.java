@@ -52,7 +52,7 @@ public class FirewallConfigurationModalTest
 
   @Before
   public void before() {
-    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.RELEASE_INTEGRITY);
+    setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
 
     refreshOrOpen(FirewallPage.url());
     loginAsAdmin();

@@ -121,7 +121,7 @@ public class FirewallCipTest
 
   @Before
   public void before() {
-    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.RELEASE_INTEGRITY);
+    setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 

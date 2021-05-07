@@ -62,7 +62,7 @@ function NavigationContainerController(
 
       ProductFeatures.load().then(function () {
         vm.isFirewallSupported =
-          ProductFeatures.isAvailable('firewall') && ProductFeatures.isAvailable('release-integrity');
+          ProductFeatures.isAvailable('firewall-auto-unquarantine') && ProductFeatures.isAvailable('release-integrity');
 
         vm.isAdvancedLegalPackSupported = ProductFeatures.isAvailable('advanced-legal-pack');
       });

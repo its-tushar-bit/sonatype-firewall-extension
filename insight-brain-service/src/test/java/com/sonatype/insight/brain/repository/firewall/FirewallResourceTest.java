@@ -53,9 +53,21 @@ public class FirewallResourceTest
   }
 
   @Test
-  public void testGetFirewallStatus_MissingLicensedFeature() throws Exception {
+  public void testGetFirewallStatus_MissingFirewallAutoUnquarantineFeature() throws Exception {
     // setup remove firewall feature
-    getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL);
+    setMissingFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+
+    // when GETing status
+    HttpResponse response = restRequest().path(RESOURCE_PATH, STATUS_PATH).get();
+
+    // then result is payment required 402
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED_402);
+  }
+
+  @Test
+  public void testGetFirewallStatus_MissingReleaseIntegrityFeature() throws Exception {
+    // setup remove firewall feature
+    setMissingFeature(LicensedFeature.RELEASE_INTEGRITY);
 
     // when GETing status
     HttpResponse response = restRequest().path(RESOURCE_PATH, STATUS_PATH).get();

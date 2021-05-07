@@ -257,7 +257,7 @@ public class MainHeaderTest
 
   @Test
   public void testFirewallNavigationButton_FeatureFlagDisabledHidden() {
-    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.RELEASE_INTEGRITY);
+    setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
     MainHeader.firewallNavigationButton().shouldBe(hidden);
@@ -272,7 +272,7 @@ public class MainHeaderTest
 
   @Test
   public void testNavigation_ToFirewall() {
-    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.RELEASE_INTEGRITY);
+    setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     refresh();

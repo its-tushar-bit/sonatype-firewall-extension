@@ -50,7 +50,7 @@ public class FirewallAutoUnquarantinePageTest
 
   @Before
   public void before() {
-    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.RELEASE_INTEGRITY);
+    setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
 
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
     loginAsAdmin();
@@ -188,7 +188,7 @@ public class FirewallAutoUnquarantinePageTest
         .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 
     //induce error by removing feature
-    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 

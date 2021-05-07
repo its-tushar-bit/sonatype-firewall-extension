@@ -37,7 +37,7 @@ public class FirewallService
 
   @Authorize(permission = Permission.READ)
   public FirewallStatusDTO getFirewallStatus() {
-    if (!productLicense.hasFeature(LicensedFeature.FIREWALL) ||
+    if (!productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE) ||
         !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
       throw new InvalidLicenseException();
     }

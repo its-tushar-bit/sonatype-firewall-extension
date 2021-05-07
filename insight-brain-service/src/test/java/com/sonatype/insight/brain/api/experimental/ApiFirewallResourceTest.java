@@ -104,9 +104,22 @@ public class ApiFirewallResourceTest
   }
 
   @Test
-  public void testGetFirewallAutoUnquarantineConfig_MissingLicensedFeature() throws Exception {
+  public void testGetFirewallAutoUnquarantineConfig_MissingFirewallAutoUnquarantineFeature() throws Exception {
     // setup remove firewall feature
-    getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL);
+    setMissingFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+
+    // when GETing config
+    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+        ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).get();
+
+    // then result is payment required 402
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED_402);
+  }
+
+  @Test
+  public void testGetFirewallAutoUnquarantineConfig_MissingReleaseIntegrityFeature() throws Exception {
+    // setup remove firewall feature
+    setMissingFeature(LicensedFeature.RELEASE_INTEGRITY);
 
     // when GETing config
     HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
@@ -145,9 +158,22 @@ public class ApiFirewallResourceTest
   }
 
   @Test
-  public void testSetFirewallAutoUnquarantineConfig_MissingLicensedFeature() throws Exception {
-    // setup remove firewall feature
-    getTestProductLicenseManager().setFeatures(LicensedFeature.FIREWALL);
+  public void testSetFirewallAutoUnquarantineConfig_MissingFirewallAutoUnquarantineFeature() throws Exception {
+    // setup remove feature
+    setMissingFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+
+    // when SETing config
+    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
+        ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).put();
+
+    // then result is payment required 402
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PAYMENT_REQUIRED_402);
+  }
+
+  @Test
+  public void testSetFirewallAutoUnquarantineConfig_MissingReleaseIntegrityFeature() throws Exception {
+    // setup remove feature
+    setMissingFeature(LicensedFeature.RELEASE_INTEGRITY);
 
     // when SETing config
     HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,

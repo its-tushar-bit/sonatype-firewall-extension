@@ -84,7 +84,7 @@ describe('navigationContainerSpec', function () {
 
   it('properly loads on supported firewall', function () {
     mockProductFeatures.isAvailable.and.callFake(function (feature) {
-      return feature === 'firewall' || feature === 'release-integrity';
+      return feature === 'firewall-auto-unquarantine' || feature === 'release-integrity';
     });
     vm.$onInit();
     loginDeferred.resolve();

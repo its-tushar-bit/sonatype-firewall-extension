@@ -676,6 +676,62 @@ public class PolicyMonitorTest
   }
 
   @Test
+  public void testRepositoryNotMonitored_WithoutFirewallAutoUnquarantineFeature() throws Exception {
+    setMissingFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
+
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
+    Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
+
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    assertThat(component.isQuarantined()).isTrue();
+
+    createPolicyViolation(policy, component, FailActionType.ID);
+    tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
+
+    mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new IntegrityRating(0, "Normal")));
+
+    policyMonitor.run();
+
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(component.getRepositoryId())).hasSize(1);
+  }
+
+  @Test
+  public void testRepositoryNotMonitored_WithoutReleaseIntegrityFeature() throws Exception {
+    setMissingFeature(LicensedFeature.RELEASE_INTEGRITY);
+
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
+    Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
+
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    assertThat(component.isQuarantined()).isTrue();
+
+    createPolicyViolation(policy, component, FailActionType.ID);
+    tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
+
+    mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new IntegrityRating(0, "Normal")));
+
+    policyMonitor.run();
+
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isTrue();
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).getAutoUnquarantined()).isNull();
+    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(component.getRepositoryId())).hasSize(1);
+  }
+
+  @Test
   public void testRepositoryMonitored_MonitoringNotEnabled() {
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
 

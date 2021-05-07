@@ -62,9 +62,9 @@ public class FirewallServiceTest
   }
 
   @Test
-  public void testGetFirewallStatus_NoFirewallFeature() {
+  public void testGetFirewallStatus_NoFirewallAutoUnquarantineFeature() {
     //setup: remove firewall feature
-    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL);
+    testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     //when: setting firewall auto unquarantine
     //then: expect invalid license exception
@@ -73,7 +73,7 @@ public class FirewallServiceTest
   }
 
   @Test
-  public void testtestGetFirewallStatus_NoReleaseIntegrityFeature() {
+  public void testGetFirewallStatus_NoReleaseIntegrityFeature() {
     //setup: remove release integrity feature
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 

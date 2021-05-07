@@ -170,7 +170,7 @@
           <tbody id="iq-application-report-results" class="iq-table--fixed__content iq-table--fixed__content--filtered">
             <tr class="iq-table-row iq-clickable {{component.innerSource ? 'tm-inner-source' : component.innerSourceTDIndicator ? 'tm-inner-source-transitive' : ''}}"
                 ng-repeat="component in vm.renderedEntries"
-                ng-click="vm.openCipModal($index)">
+                ng-click="vm.onRowClick($index)">
               <td class="iq-cell iq-cell--application-report-policy-threat-level {{component.innerSourceTDIndicator ?
                 'iq-inner-source-td-indicator' : ''}}">
                 <span class="iq-threat-indication" threat-class="component.policyThreatLevel"></span>

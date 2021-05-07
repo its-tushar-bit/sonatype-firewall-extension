@@ -8,6 +8,7 @@ import legacyConfigurationModule from './LegacyConfigurationModule';
 import directivesModule from './directives/module';
 import componentsModule from './components/module';
 import dashboardModule from './dashboard/dashboard.module';
+import componentDetailsModule from './componentDetails/module';
 import reduxConfigModule from './reduxConfig/module';
 import changeDefaultAdminPasswordModule from './changeDefaultAdminPasswordNotice/module';
 import applicationReportModule from './applicationReport/module';
@@ -49,6 +50,7 @@ export default angular
     reportModule.name,
     advancedLegalModule.name,
     firewallModule.name,
+    componentDetailsModule.name,
   ])
   .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
   .config(routes);

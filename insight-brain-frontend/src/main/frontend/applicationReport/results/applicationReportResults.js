@@ -28,6 +28,8 @@ function ApplicationReportResultsController(
   const vm = this;
 
   Object.assign(vm, {
+    $state,
+
     renderedEntries: [],
 
     updateRenderedEntriesPromise: null,
@@ -72,6 +74,19 @@ function ApplicationReportResultsController(
       const { totalArtifactCount, knownArtifactCount } = vm.selectedReport;
 
       return totalArtifactCount ? Math.round((100 * knownArtifactCount) / totalArtifactCount) : 0;
+    },
+
+    onRowClick(componentIndex) {
+      if ($state.params.componentDetailsEnabled) {
+        vm.selectComponent(componentIndex);
+        vm.goToComponentDetailsPage(vm.selectedComponent.hash);
+      } else {
+        vm.openCipModal(componentIndex);
+      }
+    },
+
+    goToComponentDetailsPage(hash) {
+      $ngRedux.dispatch(stateGo('applicationReport.componentDetails', { hash }));
     },
 
     openCipModal(componentIndex) {

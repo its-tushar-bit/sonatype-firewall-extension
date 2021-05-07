@@ -57,7 +57,7 @@ function routes($stateProvider, $urlRouterProvider) {
       },
     })
     .state('applicationReport.policy', {
-      url: '/policy',
+      url: '/policy?componentDetailsEnabled',
       component: 'applicationReport',
       data: {
         title: 'Application Report',
@@ -75,6 +75,13 @@ function routes($stateProvider, $urlRouterProvider) {
       component: 'applicationReportVulnerabilities',
       data: {
         title: 'Application Report Vulnerabilities List',
+      },
+    })
+    .state('applicationReport.componentDetails', {
+      url: '/componentDetails/{hash}',
+      component: 'componentDetails',
+      data: {
+        title: 'Component Details',
       },
     });
 

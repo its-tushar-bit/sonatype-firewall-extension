@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SourceControlPullRequestDAOTest
     extends AbstractDbDAOTest
@@ -98,5 +100,56 @@ public class SourceControlPullRequestDAOTest
     List<SourceControlPullRequest> sourceControlPullRequests = dao.getAll();
     assertThat(sourceControlPullRequests).hasSize(1);
     assertThat(sourceControlPullRequests.get(0).getId()).isEqualTo(sourceControlPullRequest.getId());
+  }
+
+  @Test
+  public void testGetCountByUpdateTimeRange() {
+    // Given several pull requests:
+    // - 1 PR last updated now
+    tempEntity.newSourceControlPullRequest("repoUrl", 1, "sha", "b-1",
+        new Date(), new Date(), new Date());
+
+    // - 2 PRs last updated between 1 and 2 weeks ago
+    Calendar calendar = Calendar.getInstance();
+    calendar.add(Calendar.DATE, -10);
+    Date updateTime = calendar.getTime();
+    tempEntity.newSourceControlPullRequest("repoUrl", 2, "sha", "b-2",
+        new Date(), new Date(), updateTime);
+    tempEntity.newSourceControlPullRequest("repoUrl", 3, "sha", "b-3",
+        new Date(), new Date(), updateTime);
+
+    // - 1 PR last updated more than a months ago
+    calendar.add(Calendar.MONTH, -1);
+    updateTime = calendar.getTime();
+    tempEntity.newSourceControlPullRequest("repoUrl", 4, "sha", "b-4",
+        new Date(), new Date(), updateTime);
+
+    // when check how many PRs were updated between 1 and 2 weeks ago
+    calendar = Calendar.getInstance();
+    calendar.add(Calendar.DATE, -7);
+    Date oneWeekAgo = calendar.getTime();
+    calendar.add(Calendar.DATE, -7);
+    Date twoWeeksAgo = calendar.getTime();
+    int countByUpdateTimeRange = dao.getCountByUpdateTimeRange(twoWeeksAgo, oneWeekAgo);
+
+    // then 2 records are found
+    assertThat(countByUpdateTimeRange).isEqualTo(2);
+
+    // when check how many PRs were updated 1 week ago or earlier
+    countByUpdateTimeRange = dao.getCountByUpdateTimeRange(null, oneWeekAgo);
+
+    // then 3 records are found
+    assertThat(countByUpdateTimeRange).isEqualTo(3);
+
+    // when check how many PRs were updated in the last week
+    countByUpdateTimeRange = dao.getCountByUpdateTimeRange(oneWeekAgo, null);
+
+    // then 1 record is found
+    assertThat(countByUpdateTimeRange).isEqualTo(1);
+
+    // and expect IllegalArgumentException when called with null arguments
+    assertThatThrownBy(() -> {
+      dao.getCountByUpdateTimeRange(null, null);
+    }).isInstanceOf(IllegalArgumentException.class);
   }
 }

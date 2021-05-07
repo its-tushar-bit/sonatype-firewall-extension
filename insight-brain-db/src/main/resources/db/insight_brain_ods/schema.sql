@@ -819,6 +819,7 @@ CREATE TABLE source_control_pull_request
   -- The "source_control_pull_request_uk" name is taken by a constraint incorrectly named in schema_incremental_0171
   CONSTRAINT source_control_pull_request_uk1 UNIQUE (repository_url, pull_request_id)
 );
+CREATE INDEX source_control_pull_request_last_detected_update_time_idx ON source_control_pull_request (last_detected_update_time);
 
 -- Since 1.96
 CREATE TABLE product_license (

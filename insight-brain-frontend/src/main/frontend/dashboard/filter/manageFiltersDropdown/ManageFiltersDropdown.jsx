@@ -103,7 +103,7 @@ export default function ManageFiltersDropdown(props) {
             <span>Default</span>
           </button>
         </div>
-        {isEmpty(options) ? emptyListMessage : options}
+        <Fragment>{isEmpty(options) ? emptyListMessage : options}</Fragment>
       </NxDropdown>
     </div>
   );

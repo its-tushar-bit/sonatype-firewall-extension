@@ -6,23 +6,8 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
-.legal-dashboard-filter-container {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-
-  background-color: $nx-white;
-  border: 1px $nx-indigo-100 solid;
-  box-sizing: border-box;
-  height: calc(100% - #{$nx-main-header-height});
-  width: 344px;
-  padding: $nx-spacing-l;
-  z-index: 1070;
-}
-
 .legal-dashboard-filter {
   box-sizing: border-box;
-  overflow-y: auto;
   padding-right: $nx-spacing-xs;
   padding-left: 2px; // this is to avoid cutting off filter caret icon when it's turning
 
@@ -35,10 +20,6 @@
 .legal-dashboard-filter-footer {
   @include container-vertical;
 
-  border-top: 1px solid $iq-grey-4;
-  padding-top: 12px;
-  position: relative; // needed for box-shadow to render
-
   .nx-alert {
     .nx-btn-bar {
       @include container-horizontal;
@@ -50,27 +31,11 @@
   }
 }
 
-.legal-dashboard-filter-header {
-  @include container-vertical;
-  border-bottom: 1px $iq-grey-4 solid;
-  padding-bottom: $nx-spacing-xs;
-  position: relative; // needed for box-shadow to render
-  z-index: 1;
-}
-
 .nx-btn-bar.legal-dashboard-filter-footer-btns {
   justify-content: space-between;
 
   .nx-btn {
     margin: 0;
-  }
-}
-
-#filter-name-section {
-  margin-left: 52px;
-
-  .nx-text-input {
-    margin-bottom: 0;
   }
 }
 

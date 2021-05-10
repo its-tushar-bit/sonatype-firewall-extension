@@ -97,7 +97,7 @@ export default function LegalDashboardFilterFooter(props) {
     </NxErrorAlert>
   );
 
-  return <footer className="legal-dashboard-filter-footer">{applyFilterError ? footerErrorHTML : footerHTML}</footer>;
+  return applyFilterError ? footerErrorHTML : footerHTML;
 }
 LegalDashboardFilterFooter.propTypes = {
   applyFilterError: PropTypes.string,

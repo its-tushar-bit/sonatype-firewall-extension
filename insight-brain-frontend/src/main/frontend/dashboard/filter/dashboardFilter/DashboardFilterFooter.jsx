@@ -94,7 +94,7 @@ export default function DashboardFilterFooter(props) {
     </NxErrorAlert>
   );
 
-  return <footer className="dashboard-filter-footer">{applyFilterError ? footerErrorHTML : footerHTML}</footer>;
+  return applyFilterError ? footerErrorHTML : footerHTML;
 }
 DashboardFilterFooter.propTypes = {
   applyFilterError: PropTypes.string,

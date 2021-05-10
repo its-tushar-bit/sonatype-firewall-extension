@@ -117,7 +117,7 @@ export default function SaveFilterModalContent(props) {
         save as…
       </NxRadio>
       {saveMode === SAVE_MODE_SAVE_AS && (
-        <div id="filter-name-section">
+        <div id="filter-name-section" className="iq-filter-name-section">
           <NxTextInput {...filterName} validatable autoFocus onChange={filterNameChangeHandler} />
         </div>
       )}

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useRef } from 'react';
+import React, { Fragment } from 'react';
 import {
   NxButton,
   NxErrorAlert,
@@ -12,6 +12,7 @@ import {
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../react/LoadWrapper';
+import IqPopover from '../../../react/IqPopover';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import Hexagon from '../../../react/Hexagon';
 import * as PropTypes from 'prop-types';
@@ -21,8 +22,6 @@ import ManageFiltersDropdown from '../../../dashboard/filter/manageFiltersDropdo
 import { filterToJson } from './legalDashboardFilterService';
 import classnames from 'classnames';
 import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
-import useClickAway from '../../../react/useClickAway';
-import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 import SaveLegalFilterModalContainer from './SaveLegalFilterModalContainer';
 import DeleteLegalFilterModalContainer from './DeleteLegalFilterModalContainer';
 
@@ -66,12 +65,8 @@ export default function LegalDashboardFilter(props) {
   const onCategoriesChange = curriedToggleFilter('categories');
   const onStagesChange = curriedToggleFilter('stages');
   const onProgressOptionsChange = curriedToggleFilter('progressOptions');
-  const ref = useRef(null);
 
   const applicationCategoryTooltip = (prop) => (prop && prop.owner && `in ${prop.owner}`) || '';
-
-  useClickAway(ref, () => toggleFilterSidebar(false));
-  useEscapeKeyStack(true, () => toggleFilterSidebar(false));
 
   function handleCloseBtnClick() {
     if (filtersAreDirty) {
@@ -91,9 +86,9 @@ export default function LegalDashboardFilter(props) {
   const closeFilterBtnTooltip = filtersAreDirty ? 'Please apply or revert filter' : '';
 
   return (
-    <aside ref={ref} className="legal-dashboard-filter-container nx-viewport-sized">
+    <IqPopover onClose={() => toggleFilterSidebar(false)}>
       {showSaveFilterModal && <SaveLegalFilterModalContainer />}
-      <header className="legal-dashboard-filter-header">
+      <IqPopover.Header className="legal-dashboard-filter-header">
         <div className="legal-dashboard-filter-header__title">
           <h3 className="nx-h3 legal-dashboard-filter-header__title-text">Filter</h3>
           <NxTooltip id="legal-dashboard-filter-close-btn-tooltip" placement="top-end" title={closeFilterBtnTooltip}>
@@ -121,7 +116,7 @@ export default function LegalDashboardFilter(props) {
           />
         )}
         {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
-      </header>
+      </IqPopover.Header>
       <div className="legal-dashboard-filter nx-viewport-sized__scrollable">
         <LoadWrapper loading={loading} error={loadError} retryHandler={handleRetry}>
           {() => (
@@ -171,17 +166,19 @@ export default function LegalDashboardFilter(props) {
         </LoadWrapper>
       </div>
 
-      <LegalDashboardFilterFooter
-        {...{
-          applyFilterError,
-          filtersAreDirty,
-          setDisplaySaveFilterModal,
-          revert,
-          onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
-          onCancelApplyFilter: applyFilterCancelled,
-        }}
-      />
-    </aside>
+      <IqPopover.Footer>
+        <LegalDashboardFilterFooter
+          {...{
+            applyFilterError,
+            filtersAreDirty,
+            setDisplaySaveFilterModal,
+            revert,
+            onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
+            onCancelApplyFilter: applyFilterCancelled,
+          }}
+        />
+      </IqPopover.Footer>
+    </IqPopover>
   );
 }
 

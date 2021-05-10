@@ -10,25 +10,8 @@ dashboard-filter {
   display: contents;
 }
 
-#dashboard-filter-container {
-  $top-nav-height: 72px;
-
-  position: absolute;
-  bottom: 0;
-  right: 0;
-
-  background-color: $nx-white;
-  border: 1px $nx-indigo-100 solid;
-  box-sizing: border-box;
-  height: calc(100% - #{$top-nav-height});
-  width: 344px;
-  padding: $nx-spacing-l;
-  z-index: 1070;
-}
-
 .dashboard-filter {
   box-sizing: border-box;
-  overflow-y: auto;
   padding-right: $nx-spacing-xs;
   padding-left: 2px; // this is to avoid cutting off filter caret icon when it's turning
 
@@ -39,12 +22,6 @@ dashboard-filter {
 }
 
 .dashboard-filter-footer {
-  @include container-vertical;
-
-  border-top: 1px solid $iq-grey-4;
-  padding-top: 12px;
-  position: relative; // needed for box-shadow to render
-
   .nx-alert {
     .nx-btn-bar {
       @include container-horizontal;
@@ -54,14 +31,6 @@ dashboard-filter {
       margin-right: $nx-spacing-xs;
     }
   }
-}
-
-.dashboard-filter-header {
-  @include container-vertical;
-  border-bottom: 1px $iq-grey-4 solid;
-  padding-bottom: $nx-spacing-xs;
-  position: relative; // needed for box-shadow to render
-  z-index: 1;
 }
 
 .nx-btn-bar.dashboard-filter-footer-btns {
@@ -88,44 +57,7 @@ dashboard-filter {
   }
 }
 
-#manage-filters-dropdown {
-  position: static;
-
-  .iq-scrollable {
-    // Each filter entry is 40px so 400px is 10 entries before scrolling occurs
-    max-height: 400px;
-    margin-right: -8px;
-    padding-right: 8px;
-  }
-
-  .iq-dropdown-toggle {
-    margin-top: -4px;
-  }
-
-  .iq-dropdown-menu {
-    top: inherit;
-    right: inherit;
-    width: 254px;
-
-    .error {
-      background-color: $iq-fail-color-bg;
-      border: 1px solid $iq-fail-color;
-      border-radius: 0px 0px 4px 4px;
-      color: $iq-fail-color;
-      margin-top: -1px;
-      margin-bottom: -9px;
-      margin-left: -9px;
-      padding: 6px 0px 4px 12px;
-    }
-
-    .loading-spinner {
-      margin-top: 12px;
-      margin-left: 80px;
-    }
-  }
-}
-
-#filter-name-section {
+.iq-filter-name-section {
   margin-left: 52px;
 
   .nx-text-input {

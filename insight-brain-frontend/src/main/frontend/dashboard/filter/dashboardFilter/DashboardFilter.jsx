@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useRef } from 'react';
+import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
 import { map, curryN } from 'ramda';
 import classnames from 'classnames';
@@ -19,6 +19,7 @@ import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import IqTreeViewPolicyThreatSlider from '../../../react/IqTreeViewPolicyThreatSlider';
+import IqPopover from '../../../react/IqPopover';
 import LoadWrapper from '../../../react/LoadWrapper';
 import Hexagon from '../../../react/Hexagon';
 import { filterToJson } from '../dashboardFilterService';
@@ -26,10 +27,7 @@ import { filterToJson } from '../dashboardFilterService';
 import DashboardFilterFooter from './DashboardFilterFooter';
 import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
 import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
-import useClickAway from '../../../react/useClickAway';
-import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 import DeleteFilterModalContainer from '../deleteFilterModal/DeleteFilterModalContainer';
-
 export default function DashboardFilter(props) {
   const {
     loading,
@@ -76,8 +74,7 @@ export default function DashboardFilter(props) {
     onStagesChange = curriedToggleFilter('stages'),
     onPolicyTypesChange = curriedToggleFilter('policyTypes'),
     onPolicyViolationStatesChange = curriedToggleFilter('policyViolationStates'),
-    onPolicyThreatChange = curriedToggleFilter('policyThreatLevels'),
-    ref = useRef(null);
+    onPolicyThreatChange = curriedToggleFilter('policyThreatLevels');
 
   /**
    * IQ uses numbers for the age filter but `NxTreeViewRadioSelect` does not
@@ -90,9 +87,6 @@ export default function DashboardFilter(props) {
     }),
     stringifiedAges = showAgeFilter ? map(stringifyNullableAgeOption, ages) : [],
     stringifiedSelectedAge = selected.maxDaysOld ? selected.maxDaysOld.toString() : selected.maxDaysOld;
-
-  useClickAway(ref, () => toggleFilterSidebar(false));
-  useEscapeKeyStack(true, () => toggleFilterSidebar(false));
 
   function onAgeChange(selectedAge) {
     const ageAsNumber = selectedAge ? parseInt(selectedAge, 10) : null;
@@ -123,9 +117,9 @@ export default function DashboardFilter(props) {
     : '';
 
   return (
-    <aside ref={ref} id="dashboard-filter-container" className="nx-viewport-sized">
+    <IqPopover id="dashboard-filter-container" onClose={() => toggleFilterSidebar(false)}>
       {showSaveFilterModal && <SaveFilterModalContainer />}
-      <header className="dashboard-filter-header" id="dashboard-filter-header">
+      <IqPopover.Header className="dashboard-filter-header" id="dashboard-filter-header">
         <div className="dashboard-filter-header__title">
           <h3 className="nx-h3 dashboard-filter-header__title-text">Filter</h3>
           <NxTooltip id="dashboard-filter-close-btn-tooltip" placement="top-end" title={closeFilterBtnTooltip}>
@@ -155,9 +149,9 @@ export default function DashboardFilter(props) {
           />
         )}
         {loadErrorFilterName && <NxErrorAlert>Failed to load {loadErrorFilterName}</NxErrorAlert>}
-      </header>
+      </IqPopover.Header>
 
-      <div className="dashboard-filter nx-viewport-sized__scrollable">
+      <div className="dashboard-filter">
         <LoadWrapper loading={loading} error={loadError} retryHandler={handleRetry}>
           {() => (
             <Fragment>
@@ -240,18 +234,20 @@ export default function DashboardFilter(props) {
         </LoadWrapper>
       </div>
 
-      <DashboardFilterFooter
-        {...{
-          applyFilterError,
-          filtersAreDirty,
-          needsAcknowledgement,
-          setDisplaySaveFilterModal,
-          revert,
-          onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
-          onCancelApplyFilter: applyFilterCancelled,
-        }}
-      />
-    </aside>
+      <IqPopover.Footer className="dashboard-filter-footer">
+        <DashboardFilterFooter
+          {...{
+            applyFilterError,
+            filtersAreDirty,
+            needsAcknowledgement,
+            setDisplaySaveFilterModal,
+            revert,
+            onApplyCurrentFilter: () => applyFilter(filterToJson(selected), appliedFilterName),
+            onCancelApplyFilter: applyFilterCancelled,
+          }}
+        />
+      </IqPopover.Footer>
+    </IqPopover>
   );
 }
 

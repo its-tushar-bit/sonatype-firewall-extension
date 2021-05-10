@@ -26,7 +26,7 @@ export default function LicenseTextsTile(props) {
     <section id="license-texts-tile" className="nx-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">License Texts</h2>
+          <h2 className="nx-h2">License Files</h2>
         </div>
         <div className="nx-tile__actions">
           <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicensesModal(true)}>

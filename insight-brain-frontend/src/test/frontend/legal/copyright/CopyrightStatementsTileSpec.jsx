@@ -44,9 +44,9 @@ describe('CopyrightStatementsTile component', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(CopyrightStatementsTile, minimalProps);
   });
 
-  it('renders a header with label `Copyright Statements`', function () {
+  it('renders a header with label `Copyright Notices`', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('h2.nx-h2')).toHaveText('Copyright Statements');
+    expect(wrapper.find('h2.nx-h2')).toHaveText('Copyright Notices');
   });
 
   it('renders the given copyright statements', function () {

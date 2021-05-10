@@ -26,7 +26,7 @@ export default function NoticeTextsTile(props) {
     <section id="notice-texts-tile" className="nx-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Notice Texts</h2>
+          <h2 className="nx-h2">Notice Files</h2>
         </div>
         <div className="nx-tile__actions">
           <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>

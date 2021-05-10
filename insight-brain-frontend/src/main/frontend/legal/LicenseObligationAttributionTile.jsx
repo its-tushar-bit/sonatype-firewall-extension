@@ -57,8 +57,9 @@ export default function LicenseObligationAttributionTile(props) {
   const attributionConstantsMap = ATTRIBUTION_DISPLAY_MAP[name] || [];
 
   const isAdditionalAttribution = attributionConstantsMap.length === 0;
-  const title = isAdditionalAttribution ? 'Additional Attributions' : attributionConstantsMap['headerTitle'];
-  const emptyMessage = isAdditionalAttribution ? 'None added' : attributionConstantsMap['emptyMessage'];
+  const title = isAdditionalAttribution ? 'Additional Attributions' : attributionConstantsMap.headerTitle;
+  const modalTitle = isAdditionalAttribution ? 'Additional Attributions' : attributionConstantsMap.modalTitleSuffix;
+  const emptyMessage = isAdditionalAttribution ? 'None added' : attributionConstantsMap.emptyMessage;
   const editOrAdd = isAttributionPresent() ? 'Edit' : 'Add';
   const toId = (s) => (s ? s.toLowerCase().replace(/\s+/g, '-') : '');
 
@@ -145,7 +146,7 @@ export default function LicenseObligationAttributionTile(props) {
           validationErrors={isValid() ? undefined : validationErrorMessage}
         >
           <header className="nx-modal-header">
-            <h2 className="nx-h2">{editOrAdd + ' ' + title}</h2>
+            <h2 className="nx-h2">{editOrAdd + ' ' + modalTitle}</h2>
           </header>
           <div className="nx-modal-content">
             <NxFormGroup

@@ -42,7 +42,7 @@ export default function CopyrightDetailsHeader(props) {
         targetPageTitle="Component Obligations"
       />
       <div className="nx-page-title">
-        <h1 className="nx-h1">Copyrights</h1>
+        <h1 className="nx-h1">Copyright Notices</h1>
         {createSubtitle(availableScopes)}
         <div className="nx-btn-bar">
           <NxButton variant="tertiary" onClick={setDisplayCopyrightOverrideModal}>

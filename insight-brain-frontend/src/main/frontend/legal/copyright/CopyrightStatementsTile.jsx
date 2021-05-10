@@ -6,7 +6,7 @@
 import React from 'react';
 import { availableScopesPropType, componentPropType } from '../advancedLegalPropTypes';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { faAngleRight, faPen } from '@fortawesome/pro-solid-svg-icons';
+import { faAngleRight, faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
 import * as PropTypes from 'prop-types';
 
@@ -60,12 +60,12 @@ export default function CopyrightStatementsTile(props) {
     <section id="copyright-statements-tile" className="nx-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Copyright Statements</h2>
+          <h2 className="nx-h2">Copyright Notices</h2>
         </div>
         <div className="nx-tile__actions">
           <NxButton id="edit-copyrights" variant="tertiary" onClick={() => setDisplayCopyrightOverrideModal(true)}>
-            <NxFontAwesomeIcon icon={faPen} />
-            <span>Edit</span>
+            <NxFontAwesomeIcon icon={isCopyrightPresent() ? faPen : faPlus} />
+            <span>{isCopyrightPresent() ? 'Edit' : 'Add'}</span>
           </NxButton>
         </div>
         {showEditCopyrightOverrideModal && createAttributionModal}

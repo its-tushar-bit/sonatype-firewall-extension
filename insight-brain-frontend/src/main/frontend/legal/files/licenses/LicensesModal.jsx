@@ -106,6 +106,8 @@ export default function LicensesModal(props) {
     return existingObligation && existingObligation.status !== existingObligation.originalStatus;
   }
 
+  const licenseFilesExist = () => licenses && licenses.length > 0;
+
   const resetExistingObligation = () => {
     if (existingObligation) {
       setObligationStatus({
@@ -194,7 +196,9 @@ export default function LicensesModal(props) {
         validationErrors={getValidationErrors()}
       >
         <header className="nx-modal-header">
-          <h2 className="nx-h2">Edit License Texts</h2>
+          <h2 className="nx-h2">
+            <h2 className="nx-h2">{`${licenseFilesExist() ? 'Edit' : 'Add'} License Files`}</h2>
+          </h2>
         </header>
         <div className="nx-modal-content">
           <table className="legal-file-override-table">

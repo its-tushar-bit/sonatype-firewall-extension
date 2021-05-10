@@ -83,6 +83,8 @@ export default function CopyrightOverrideForm(props) {
     </option>
   );
 
+  const isCopyrightPresent = () => copyrights && copyrights.length > 0;
+
   const onCopyrightContentChange = (index) => (content) => {
     setCopyrights(pathSet([index, 'content'], userInput(null, content), copyrights));
   };
@@ -217,7 +219,7 @@ export default function CopyrightOverrideForm(props) {
         validationErrors={isCopyrightsDirty() || isObligationDirty() ? null : 'No modifications'}
       >
         <header className="nx-modal-header">
-          <h2 className="nx-h2">Edit Copyrights</h2>
+          <h2 className="nx-h2">{isCopyrightPresent() ? 'Edit Copyright Notices' : 'Add Copyright Notices'}</h2>
         </header>
         <div className="nx-modal-content">
           <table id="edit-copyrights-override-table">

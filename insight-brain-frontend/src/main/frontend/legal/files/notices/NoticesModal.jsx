@@ -90,6 +90,8 @@ export default function NoticesModal(props) {
     return existingObligation && existingObligation.status !== existingObligation.originalStatus;
   }
 
+  const noticeFilesExist = () => notices && notices.length > 0;
+
   const resetExistingObligation = () => {
     if (existingObligation) {
       setObligationStatus({
@@ -194,7 +196,7 @@ export default function NoticesModal(props) {
         validationErrors={getValidationErrors()}
       >
         <header className="nx-modal-header">
-          <h2 className="nx-h2">Edit Notice Texts</h2>
+          <h2 className="nx-h2">{`${noticeFilesExist() ? 'Edit' : 'Add'} Notice Files`}</h2>
         </header>
         <div className="nx-modal-content">
           <table className="legal-file-override-table">

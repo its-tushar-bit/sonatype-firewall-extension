@@ -38,9 +38,9 @@ describe('NoticeTextsTile', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(NoticeTextsTile, minimalProps);
   });
 
-  it('renders a header with label `Notice Texts`', function () {
+  it('renders a header with label `Notice Files`', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('h2.nx-h2')).toHaveText('Notice Texts');
+    expect(wrapper.find('h2.nx-h2')).toHaveText('Notice Files');
   });
 
   it('renders the given notices', function () {

@@ -120,7 +120,7 @@ export default function LicenseObligationsTile(props) {
   const createItemContent = (licenseObligation, licenseWithObligations) => {
     return (
       <div key={licenseWithObligations.licenseName + '-' + licenseObligation.name} className="license-obligation-item">
-        <h4 className="nx-h4">{licenseWithObligations.licenseName} — License Obligation Text</h4>
+        <h4 className="nx-h4">{licenseWithObligations.licenseName} — Obligation Text</h4>
         {find(propEq('name', licenseObligation.name), licenseWithObligations.obligations).obligationTexts.map(
           createItemContentTexts
         )}

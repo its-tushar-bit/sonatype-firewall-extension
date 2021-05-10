@@ -145,10 +145,10 @@ describe('LicenseObligationsTile component', function () {
     const wrapper = getShallowComponent();
     const licenseObligationSections = wrapper.find(NxStatefulAccordion);
     const expectedObligationLicenseNames = [
-      ['license1 — License Obligation Text'],
-      ['license1 — License Obligation Text', 'license2 — License Obligation Text'],
-      ['license2 — License Obligation Text'],
-      ['license3 — License Obligation Text'],
+      ['license1 — Obligation Text'],
+      ['license1 — Obligation Text', 'license2 — Obligation Text'],
+      ['license2 — Obligation Text'],
+      ['license3 — Obligation Text'],
     ];
     licenseObligationSections.forEach((node1, index1) => {
       node1.find('h4').forEach((node2, index2) => {

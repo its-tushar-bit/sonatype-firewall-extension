@@ -38,9 +38,9 @@ describe('LicenseTextsTile', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(LicenseTextsTile, minimalProps);
   });
 
-  it('renders a header with label `License Texts`', function () {
+  it('renders a header with label `License Files`', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find('h2.nx-h2')).toHaveText('License Texts');
+    expect(wrapper.find('h2.nx-h2')).toHaveText('License Files');
   });
 
   it('renders the given licenses', function () {

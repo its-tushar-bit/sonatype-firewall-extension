@@ -4,11 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxBinaryDonutChart, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { flatten, join, map, pipe, prop } from 'ramda';
 import { isNilOrEmpty } from '../../util/jsUtil';
 import { reviewStatusDisplayNames } from '../dashboard/legalDashboardConstants';
+import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
 
 export default function LegalApplicationDetailsComponentRow({ applicationPublicId, stageTypeId, row, stateGo }) {
   const { displayName, hash, licenses, reviewCompletedCount, reviewStatus, reviewTotalCount } = row;
@@ -17,7 +18,7 @@ export default function LegalApplicationDetailsComponentRow({ applicationPublicI
     ? []
     : pipe(map(prop('licenseThreatGroups')), flatten, map(prop('licenseThreatGroupLevel')))(licenses);
   const threatGroupLevel = isNilOrEmpty(threatGroupLevels) ? 0 : Math.max(...threatGroupLevels) || 0;
-  const percentage = reviewTotalCount > 0 ? Math.min(100, (reviewCompletedCount * 100) / reviewTotalCount) : 100;
+  const percentage = reviewTotalCount > 0 ? Math.min(100, (reviewCompletedCount * 100) / reviewTotalCount) : 0;
   const reviewProgressRatio =
     !isNilOrEmpty(licenses) && reviewTotalCount === 0 ? '- / -' : `${reviewCompletedCount} / ${reviewTotalCount}`;
 
@@ -43,7 +44,7 @@ export default function LegalApplicationDetailsComponentRow({ applicationPublicI
       <NxTableCell className="legal-application-details-review-progress">
         {!isNilOrEmpty(licenses) && (
           <div className="legal-application-details-review-progress-container">
-            <NxBinaryDonutChart className="legal-application-details-review-progress-chart" percent={percentage} />
+            <LegalBinaryDonutChart className="legal-application-details-review-progress-chart" percent={percentage} />
             <span className="legal-application-details-review-progress-ratio">{reviewProgressRatio}</span>
           </div>
         )}

@@ -5,7 +5,8 @@
  */
 import * as enzymeUtils from '../../enzymeUtils';
 import LegalApplicationDetailsComponentRow from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
-import { NxBinaryDonutChart, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
+import LegalBinaryDonutChart from '../../../../main/frontend/legal/shared/LegalBinaryDonutChart';
 
 describe('LegalApplicationDetailsComponentRow component', function () {
   let getShallowComponent;
@@ -93,7 +94,7 @@ describe('LegalApplicationDetailsComponentRow component', function () {
     const cells = tableRow.find(NxTableCell);
     expect(cells.at(1).children().find(NxThreatIndicator).prop('policyThreatLevel')).toEqual(9);
     expect(cells.at(1).childAt(0).childAt(1).text()).toEqual('License 1, License 2');
-    const donutChart = cells.at(2).find(NxBinaryDonutChart);
+    const donutChart = cells.at(2).find(LegalBinaryDonutChart);
     expect(donutChart).toExist();
     expect(donutChart).toHaveProp('percent', 40);
     expect(cells.at(2).find('span').text()).toEqual('4 / 10');
@@ -121,9 +122,9 @@ describe('LegalApplicationDetailsComponentRow component', function () {
     const cells = tableRow.find(NxTableCell);
     expect(cells.at(1).children().find(NxThreatIndicator).prop('policyThreatLevel')).toEqual(0);
     expect(cells.at(1).childAt(0).childAt(1).text()).toEqual('License 1');
-    const donutChart = cells.at(2).find(NxBinaryDonutChart);
+    const donutChart = cells.at(2).find(LegalBinaryDonutChart);
     expect(donutChart).toExist();
-    expect(donutChart).toHaveProp('percent', 100);
+    expect(donutChart).toHaveProp('percent', 0);
     expect(cells.at(2).find('span').text()).toEqual('- / -');
   });
 
@@ -146,7 +147,7 @@ describe('LegalApplicationDetailsComponentRow component', function () {
 
     const wrapper = getShallowComponent(props);
     const cells = wrapper.find(NxTableCell);
-    const donutChart = cells.at(2).find(NxBinaryDonutChart);
+    const donutChart = cells.at(2).find(LegalBinaryDonutChart);
     expect(donutChart).toHaveProp('percent', 100);
     expect(cells.at(2).find('span').text()).toEqual('100 / 5');
   });

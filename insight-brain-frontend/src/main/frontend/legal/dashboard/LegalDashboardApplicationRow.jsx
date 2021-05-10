@@ -4,15 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { NxBinaryDonutChart, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import { join } from 'ramda';
 import * as PropTypes from 'prop-types';
 import { applicationPropType } from '../advancedLegalPropTypes';
 import { terseAgo } from '../../util/CommonServices';
+import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
 
 export default function LegalDashboardApplicationRow({ row, stateGo }) {
   const percentage =
-    row.componentsTotalCount > 0 ? Math.min(100, (row.componentsReviewedCount * 100) / row.componentsTotalCount) : 100;
+    row.componentsTotalCount > 0 ? Math.min(100, (row.componentsReviewedCount * 100) / row.componentsTotalCount) : 0;
 
   const scanTimeDisplay = (row.lastScanTime ? terseAgo(row.lastScanTime) + ' - ' : '') + row.stageTypeName;
 
@@ -33,7 +34,7 @@ export default function LegalDashboardApplicationRow({ row, stateGo }) {
         {join(', ', row.applicationTagNames)}
       </NxTableCell>
       <NxTableCell className="legal-dashboard-applications-review-progress">
-        <NxBinaryDonutChart percent={percentage} />
+        <LegalBinaryDonutChart percent={percentage} />
         <span>
           {row.componentsReviewedCount} / {row.componentsTotalCount}
         </span>

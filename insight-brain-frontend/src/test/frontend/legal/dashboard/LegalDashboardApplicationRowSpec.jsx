@@ -4,7 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxBinaryDonutChart, NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
+import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
+import LegalBinaryDonutChart from '../../../../main/frontend/legal/shared/LegalBinaryDonutChart';
 
 describe('LegalDashboardApplicationRow component', function () {
   let getShallowComponent, terseAgoSpy, LegalDashboardApplicationRow;
@@ -49,7 +50,7 @@ describe('LegalDashboardApplicationRow component', function () {
     expect(terseAgoSpy).toHaveBeenCalledWith(1607030429000);
     expect(cells.at(1).children().text()).toEqual('2d - Build');
     expect(cells.at(2).children().text()).toEqual('tag1, tag2');
-    let donutChart = cells.at(3).find(NxBinaryDonutChart);
+    let donutChart = cells.at(3).find(LegalBinaryDonutChart);
     expect(donutChart).toExist();
     expect(donutChart).toHaveProp('percent', 60);
     expect(cells.at(3).childAt(1).text()).toEqual('12 / 20');
@@ -79,9 +80,9 @@ describe('LegalDashboardApplicationRow component', function () {
     let tableRow = wrapper.find(NxTableRow);
     expect(tableRow).toExist();
     let cells = tableRow.find(NxTableCell);
-    let donutChart = cells.at(3).find(NxBinaryDonutChart);
+    let donutChart = cells.at(3).find(LegalBinaryDonutChart);
     expect(donutChart).toExist();
-    expect(donutChart).toHaveProp('percent', 100);
+    expect(donutChart).toHaveProp('percent', 0);
     expect(cells.at(3).childAt(1).text()).toEqual('0 / 0');
   });
 
@@ -100,7 +101,7 @@ describe('LegalDashboardApplicationRow component', function () {
     let tableRow = wrapper.find(NxTableRow);
     expect(tableRow).toExist();
     let cells = tableRow.find(NxTableCell);
-    let donutChart = cells.at(3).find(NxBinaryDonutChart);
+    let donutChart = cells.at(3).find(LegalBinaryDonutChart);
     expect(donutChart).toExist();
     expect(donutChart).toHaveProp('percent', 100);
     expect(cells.at(3).childAt(1).text()).toEqual('10 / 5');

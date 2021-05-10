@@ -70,6 +70,67 @@ public class ApiLicenseLegalResourceV2Test
   }
 
   @Test
+  public void testGetLicenseLegalApplicationReportByStage() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    PolicyEvaluation policyEvaluationBuild =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluationBuild, getClass().getSimpleName());
+
+    PolicyEvaluation policyEvaluationRelease =
+        tempEntity.newPolicyEvaluation(application.getId(), ReleaseStageType.ID, tempEntity.uuid());
+
+    mockReport(policyEvaluationRelease, getClass().getSimpleName());
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+
+    HttpResponse response =
+        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_PATH_STAGE)
+            .parameter(application.getId(), BuildStageType.ID)
+            .get();
+
+    assertResponseStatus(200, response);
+    ApiLicenseLegalApplicationReportDTO
+        apiLicenseLegalApplicationReportDTO = response.getBody(ApiLicenseLegalApplicationReportDTO.class);
+    assertThat(apiLicenseLegalApplicationReportDTO).isNotNull();
+    assertThat(apiLicenseLegalApplicationReportDTO.components).hasSize(14);
+    assertThat(apiLicenseLegalApplicationReportDTO.licenseLegalMetadata).hasSize(8);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReport_NoStage() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, tempEntity.uuid());
+    mockReport(policyEvaluation, getClass().getSimpleName());
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.METADATA_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_COMMENT_URL);
+    hdsRespondWith("[]").atUri(ApiLicenseLegalHdsService.LEGAL_FILE_URL);
+
+    HttpResponse response =
+        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_PATH_STAGE)
+            .parameter(application.getId(), ReleaseStageType.ID)
+            .get();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testGetLicenseLegalApplicationReportWithStage_NotFound() throws Exception {
+    String applicationPublicId = "doesNotExist";
+
+    HttpResponse response =
+        restRequest().path(DefaultApiLicenseLegalResourceV2.APPLICATION_PATH_STAGE)
+            .parameter(applicationPublicId, ReleaseStageType.ID)
+            .get();
+
+    assertResponseStatus(404, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Could not find an application with ID " + applicationPublicId + ".");
+  }
+
+  @Test
   public void testGetLicenseLegalApplicationHTMLReport() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     PolicyEvaluation policyEvaluation =

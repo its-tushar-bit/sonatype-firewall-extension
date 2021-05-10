@@ -19,6 +19,8 @@ public interface ApiLicenseLegalResourceV2
 {
   ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(String applicationId);
 
+  ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(String applicationId, String stageId);
+
   String getLicenseLegalApplicationHTMLReport(String applicationId, String stageId);
 
   ApiLicenseLegalComponentReportDTO getLicenseLegalComponentReport(

@@ -21,8 +21,8 @@ export default function ComponentDetails({
   }, [selectedComponent, publicId, scanId, hash, unknownjs]);
 
   return (
-    <main className="nx-page-main nx-viewport-sized">
-      {selectedComponent && <h1>{selectedComponent.derivedComponentName}</h1>}
+    <main className="nx-page-main nx-viewport-sized" id="component-details-page">
+      {selectedComponent && <h1 className="title">{selectedComponent.derivedComponentName}</h1>}
     </main>
   );
 }

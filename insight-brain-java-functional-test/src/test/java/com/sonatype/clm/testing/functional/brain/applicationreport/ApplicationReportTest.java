@@ -31,6 +31,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverag
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
+import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
@@ -58,6 +59,7 @@ import com.sonatype.insight.model.HasStringId;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -628,6 +630,19 @@ public class ApplicationReportTest
     violations.shouldHaveSize(102);
 
     reportPage.filterPanel().closeButton().click();
+  }
+
+  @Test
+  public void testComponentDetailsEnabled() throws Exception {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement firstViolation = violations.first();
+    firstViolation.click();
+
+    waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    componentDetailsPage.title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
   }
 
   @Test

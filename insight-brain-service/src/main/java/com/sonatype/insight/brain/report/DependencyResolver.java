@@ -403,13 +403,25 @@ public class DependencyResolver
             if (bomObjectNode.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD).isMissingNode()) {
               bomObjectNode.putArray(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
             }
-            ((ArrayNode) bomObjectNode.get(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD))
-                .add(PackageUrlIdentifier.toPackageUrl(parentComponentId));
+            ArrayNode parentComponentPurls = (ArrayNode) bomObjectNode.get(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD);
+            PackageUrlIdentifier parentComponentPurl = PackageUrlIdentifier.fromComponentIdentifier(parentComponentId);
+            if (!contains(parentComponentPurls, parentComponentPurl)) {
+              parentComponentPurls.add(parentComponentPurl.getPackageUrl());
+            }
           }
           if (innerSourceData != null && bomObjectNode.path(FIELD_INNER_SOURCE_DATA).isMissingNode()) {
             bomObjectNode.set(FIELD_INNER_SOURCE_DATA, JsonUtils.asTree(innerSourceData));
           }
         });
+  }
+
+  private boolean contains(ArrayNode parentComponentPurls, PackageUrlIdentifier packageUrlIdentifier) {
+    for (JsonNode parentComponentPurl : parentComponentPurls) {
+      if (new PackageUrlIdentifier(parentComponentPurl.asText()).equals(packageUrlIdentifier)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void updateUnknownTransitiveDependencyAsKnown(

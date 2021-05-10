@@ -51,6 +51,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -622,7 +623,7 @@ public class DependencyResolverTest
         .createMavenCoordinates("com.innersource", "known-transitive-and-direct", "2.8.1", "", "jar");
     assertBomNodeDependencyInfo(bomJson, knownTransitiveAndDirect, true, Collections.singleton(knownDirect));
   }
-  
+
   @Test
   public void testResolve_MultipleParents() throws Exception {
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-multiple-parents/dependencies.json");
@@ -639,6 +640,9 @@ public class DependencyResolverTest
     ComponentIdentifier knownTransitive = ComponentIdentifier
         .createMavenCoordinates("com.innersource", "known-transitive", "2.8.1", "", "jar");
     assertBomNodeDependencyInfo(bomJson, knownTransitive, false, Sets.newHashSet(knownDirect1, knownDirect2));
+    ComponentIdentifier knownTransitiveTransitive = ComponentIdentifier
+        .createMavenCoordinates("commons-io", "commons-io", "2.6", "", "jar");
+    assertBomNodeDependencyInfo(bomJson, knownTransitiveTransitive, false, Collections.singleton(knownTransitive));
   }
 
   private void assertInnerSourceInformation(
@@ -690,7 +694,9 @@ public class DependencyResolverTest
         ComponentIdentifier compIdentifier =
             ComponentIdentifierAdapter.toComponentIdentifier(parentComponentPurl.asText());
         compIdentifier.ensureComplete();
-        actualParentIds.add(compIdentifier);
+        if (!actualParentIds.add(compIdentifier)) {
+          fail("Duplicate parentComponentPurl " + parentComponentPurl + " found in " + parentComponentPurls);
+        }
       }
     }
     assertThat(actualParentIds).isEqualTo(parentIds);

@@ -29,7 +29,7 @@ export default function FirewallAutoUnquarantineStatus(props) {
           <span>{autoUnquarantineEnabled ? 'Active' : 'Inactive'}</span>
         </div>
         <div className="nx-card__text">
-          releasing {enabledPolicyConditionTypesCount} of {totalPolicyConditionTypesCount} policy types
+          releasing {enabledPolicyConditionTypesCount} of {totalPolicyConditionTypesCount} policy condition types
         </div>
       </div>
       <footer className="nx-card__footer">

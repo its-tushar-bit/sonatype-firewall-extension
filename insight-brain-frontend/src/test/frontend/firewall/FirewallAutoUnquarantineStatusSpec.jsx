@@ -70,7 +70,7 @@ describe('FirewallAutoUnquarantineStatus', function () {
       counts = component.find('.nx-card__text');
 
     expect(counts).toExist();
-    expect(counts).toHaveText('releasing 1 of 2 policy types');
+    expect(counts).toHaveText('releasing 1 of 2 policy condition types');
   });
 
   it('renders card footer', function () {

@@ -112,7 +112,7 @@ export default function FirewallQuarantineTable(props) {
               <NxTableCell isNumeric className="iq-cell--threat">
                 Threat
               </NxTableCell>
-              <NxTableCell className="iq-cell--policy-type">Policy Type</NxTableCell>
+              <NxTableCell className="iq-cell--policy-type">Policy Name</NxTableCell>
               <NxTableCell
                 id="quarantineTime-header"
                 className="iq-cell--quarantine-date"

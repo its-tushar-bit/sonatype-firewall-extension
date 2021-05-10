@@ -136,7 +136,7 @@ describe('navigationContainerSpec', function () {
     $scope.$digest();
 
     expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
-    expect($ngRedux.dispatch).toHaveBeenCalledTimes(2);
+    expect($ngRedux.dispatch).toHaveBeenCalledTimes(1);
     expect(mockProductFeatures.load).toHaveBeenCalled();
   });
 
@@ -182,38 +182,6 @@ describe('navigationContainerSpec', function () {
       };
 
       expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse).isAdvancedSearchEnabled).toBe(false);
-    });
-
-    it('returns an object with isFirewallEnabled set to false given a state with no firewall state statusState', function () {
-      let mockStateNoFirewallStatusState = {
-        firewall: {},
-      };
-
-      expect(mapStateToThis(mockStateNoFirewallStatusState).isFirewallEnabled).toBeFalsy();
-    });
-
-    it('returns an object with isFirewallEnabled true given state with firewall statusState and isEnabled true', function () {
-      let mockStateWithIsEnabledTrue = {
-        firewall: {
-          statusState: {
-            isEnabled: true,
-          },
-        },
-      };
-
-      expect(mapStateToThis(mockStateWithIsEnabledTrue).isFirewallEnabled).toBe(true);
-    });
-
-    it('returns object with isFirewallEnabled false given state with firewall statusState and isEnabled false', function () {
-      let mockStateWithIsEnabledFalse = {
-        firewall: {
-          statusState: {
-            isEnabled: false,
-          },
-        },
-      };
-
-      expect(mapStateToThis(mockStateWithIsEnabledFalse).isFirewallEnabled).toBe(false);
     });
   });
 

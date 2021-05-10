@@ -31,8 +31,6 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -53,8 +51,6 @@ public class FirewallReleaseIntegrityLicenseListener
 
   public static final String POLICY_NAME = "Integrity-Rating";
 
-  private final InsightConfig insightConfig;
-
   private final ProductLicense productLicense;
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
@@ -64,24 +60,20 @@ public class FirewallReleaseIntegrityLicenseListener
 
   private final AuditRecorder auditRecorder;
 
+  public boolean disableForTesting;
+
   @Inject
   public FirewallReleaseIntegrityLicenseListener(
-      final InsightConfig insightConfig,
       final ProductLicense productLicense,
       final AuditRecorder auditRecorder)
   {
-    this.insightConfig = insightConfig;
     this.productLicense = productLicense;
     this.auditRecorder = auditRecorder;
   }
 
   @Override
   public void productLicenseChanged() {
-    if (!insightConfig.isExperimentalFeatureEnabled(Feature.FIREWALL_AUTO_UNQUARANTINE)) {
-      return;
-    }
-
-    if (!productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE) ||
+    if (disableForTesting || !productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE) ||
         !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
       return;
     }

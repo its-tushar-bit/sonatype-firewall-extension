@@ -8,18 +8,17 @@ import FirewallPage from './FirewallPage';
 import { pick } from 'ramda';
 import {
   loadFirewallData,
-  openConfigurationModal,
   loadQuarantineList,
+  openConfigurationModal,
   selectQuarantineComponent,
-  setQuarantineGridSorting,
-  setQuarantineGridPolicyFilter,
   setQuarantineGridPage,
+  setQuarantineGridPolicyFilter,
+  setQuarantineGridSorting,
 } from './firewallActions';
 
 function mapStateToProps({ firewall }) {
   return {
-    ...pick(['loadedStatus', 'isShowConfigurationModal', 'loadError'], firewall.viewState),
-    ...pick(['isEnabled'], firewall.statusState),
+    ...pick(['isShowConfigurationModal', 'loadError'], firewall.viewState),
     ...pick(['autoUnquarantineEnabled'], firewall.configurationState),
     ...pick(
       [

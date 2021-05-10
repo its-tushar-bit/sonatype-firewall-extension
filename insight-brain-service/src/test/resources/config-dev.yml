@@ -14,7 +14,7 @@ logging:
     "com.sonatype.insight.brain.git.event": INFO
     "com.sonatype.insight.brain.git.PullRequestPollingScheduler": INFO
     "com.sonatype.insight.scan": INFO
-    "com.sonatype.nexus.git.utils.api.NativeGitUtils" : INFO
+    "com.sonatype.nexus.git.utils.api.NativeGitUtils": INFO
     "eu.medsea.mimeutil.MimeUtil2": INFO
     "org.apache.http": INFO
     "org.apache.http.wire": ERROR
@@ -24,11 +24,11 @@ logging:
     "org.eclipse.jetty": INFO
     "org.quartz": INFO
     "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator": INFO
-    "org.zeroturnaround.exec" : INFO
-    "org.thymeleaf" : INFO
+    "org.zeroturnaround.exec": INFO
+    "org.thymeleaf": INFO
     "com.sonatype.insight.audit":
       appenders:
-      - type: console
+        - type: console
     "com.sonatype.insight.policy.violation":
       appenders:
         - type: console
@@ -46,4 +46,3 @@ server:
 
 experimentalFeatures:
   scmOnboarding: true
-  firewallAutoUnquarantine: false

@@ -22,10 +22,7 @@ import com.sonatype.insight.brain.policy.ActionDTO;
 import com.sonatype.insight.brain.policy.ConstraintDTO;
 import com.sonatype.insight.brain.policy.NotificationDTO;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Test;
 
@@ -35,9 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FirewallReleaseIntegrityLicenseListenerAuditTest
     extends AbstractComponentAuditTest
 {
-  @Inject
-  private InsightConfig insightConfig;
-
   @Inject
   private FirewallReleaseIntegrityLicenseListener firewallReleaseIntegrityLicenseListener;
 
@@ -60,8 +54,6 @@ public class FirewallReleaseIntegrityLicenseListenerAuditTest
 
   @Test
   public void testProductLicenseChanged() {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     firewallReleaseIntegrityLicenseListener.productLicenseChanged();
 
     Policy importedPolicy = policyDAO.getByName(POLICY_NAME).get(0);

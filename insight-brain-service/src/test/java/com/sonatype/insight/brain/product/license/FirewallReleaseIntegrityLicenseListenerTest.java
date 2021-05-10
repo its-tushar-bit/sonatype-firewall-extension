@@ -24,11 +24,8 @@ import com.sonatype.insight.brain.model.policy.PolicyMonitoring;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Test;
 
@@ -44,9 +41,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   @Inject
   private FirewallReleaseIntegrityLicenseListener listener;
-
-  @Inject
-  private InsightConfig insightConfig;
 
   private final PolicyDAO policyDAO = new PolicyDAO();
 
@@ -72,8 +66,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   @Test
   public void testProductLicenseChanged_InstallsReleaseIntegrityPolicyAndEnablesPolicyMonitoring() {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     listener.productLicenseChanged();
 
     assertThat(policyDAO.getByName(POLICY_NAME)).hasSize(1);
@@ -90,7 +82,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
   public void testProductLicenseChanged_AlreadyInstalled() {
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED,
         String.valueOf(true));
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 
     listener.productLicenseChanged();
 
@@ -106,7 +97,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
   public void testProductLicenseChanged_DisabledConfigurationProperty() {
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED,
         String.valueOf(false));
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 
     listener.productLicenseChanged();
 
@@ -126,7 +116,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
     constraint.addCondition(new Condition(IntegrityRatingConditionType.ID, "is", IntegrityRating.PENDING.getId()));
     tempEntity.newPolicy(POLICY_NAME, constraint);
     tempEntity.newPolicy(POLICY_NAME + "-1", constraint);
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
 
     listener.productLicenseChanged();
 
@@ -139,21 +128,7 @@ public class FirewallReleaseIntegrityLicenseListenerTest
   }
 
   @Test
-  public void testProductLicenseChanged_WithoutExperimentalFeature() {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
-
-    listener.productLicenseChanged();
-
-    assertThat(policyDAO.getByName(POLICY_NAME)).isEmpty();
-    assertThat(systemConfigurationPropertyDAO
-        .getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED)).isNull();
-    assertThat(policyMonitoringDAO.getByOwnerId(REPOSITORY_CONTAINER_ID)).isNull();
-    assertThat(autoUnquarantinePolicyConditionTypeDAO.getById(IntegrityRatingConditionType.ID)).isNull();
-  }
-
-  @Test
   public void testProductLicenseChanged_WithoutFirewallAutoUnquarantineFeature() {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     listener.productLicenseChanged();
@@ -167,7 +142,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   @Test
   public void testProductLicenseChanged_WithoutReleaseIntegrityFeature() {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
     listener.productLicenseChanged();
@@ -181,7 +155,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   @Test
   public void testProductLicenseChanged_PolicyMonitoringAlreadyEnabled() {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     String policyMonitoringId =
         tempEntity.newPolicyMonitoring(REPOSITORY_CONTAINER_ID, StageTypes.PROXY.getId()).getId();
 
@@ -196,7 +169,6 @@ public class FirewallReleaseIntegrityLicenseListenerTest
 
   @Test
   public void testProductLicenseChanged_AutoUnquarantineAlreadyEnabled() {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     autoUnquarantinePolicyConditionTypeDAO
         .insert(new AutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID));
 

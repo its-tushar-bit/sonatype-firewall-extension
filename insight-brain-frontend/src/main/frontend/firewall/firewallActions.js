@@ -9,11 +9,10 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import {
   getFirewallConfigurationUrl,
-  getFirewallStatusUrl,
-  getFirewallReleaseQuarantineSummaryUrl,
+  getFirewallQuarantineListUrl,
   getFirewallQuarantineSummaryUrl,
   getFirewallReleaseQuarantineListUrl,
-  getFirewallQuarantineListUrl,
+  getFirewallReleaseQuarantineSummaryUrl,
   getPoliciesUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../util/CommonServices';
@@ -25,14 +24,6 @@ const loadFirewallDataRequested = noPayloadActionCreator(FIREWALL_LOAD_DATA_REQU
 export const FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED = 'FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED';
 
 const loadAutoUnquarantineDataRequested = noPayloadActionCreator(FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED);
-
-export const FIREWALL_LOAD_STATUS_REQUESTED = 'FIREWALL_LOAD_STATUS_REQUESTED';
-export const FIREWALL_LOAD_STATUS_FULFILLED = 'FIREWALL_LOAD_STATUS_FULFILLED';
-export const FIREWALL_LOAD_STATUS_FAILED = 'FIREWALL_LOAD_STATUS_FAILED';
-
-const loadStatusRequested = noPayloadActionCreator(FIREWALL_LOAD_STATUS_REQUESTED);
-const loadStatusFulfilled = payloadParamActionCreator(FIREWALL_LOAD_STATUS_FULFILLED);
-const loadStatusFailed = payloadParamActionCreator(FIREWALL_LOAD_STATUS_FAILED);
 
 export const FIREWALL_SET_SHOW_CONFIGURATION_MODAL = 'FIREWALL_SET_SHOW_CONFIGURATION_MODAL';
 
@@ -116,7 +107,6 @@ const quarantineSummaryFailed = payloadParamActionCreator(FIREWALL_QUARANTINE_SU
 export function loadFirewallData() {
   return (dispatch) => {
     dispatch(loadFirewallDataRequested());
-    dispatch(loadStatus());
     dispatch(loadConfiguration());
     dispatch(loadReleaseQuarantineSummary());
     dispatch(loadQuarantineSummary());
@@ -128,24 +118,9 @@ export function loadFirewallData() {
 export function loadAutoUnquarantineData() {
   return (dispatch) => {
     dispatch(loadAutoUnquarantineDataRequested());
-    dispatch(loadStatus());
     dispatch(loadConfiguration());
     dispatch(loadReleaseQuarantineSummary());
     dispatch(loadReleaseQuarantineList());
-  };
-}
-
-export function loadStatus() {
-  return function (dispatch) {
-    dispatch(loadStatusRequested());
-    return axios
-      .get(getFirewallStatusUrl())
-      .then(({ data }) => {
-        dispatch(loadStatusFulfilled(data));
-      })
-      .catch((error) => {
-        dispatch(loadStatusFailed(error));
-      });
   };
 }
 

@@ -14,13 +14,8 @@ describe('firewallReducer', function () {
       displayedEntries: [],
     }),
     viewState: Object.freeze({
-      loadedStatus: false,
-      loadStatusError: null,
       isShowConfigurationModal: false,
       loadError: null,
-    }),
-    statusState: Object.freeze({
-      isEnabled: false,
     }),
     autoUnquarantineState: Object.freeze({
       viewState: Object.freeze({
@@ -98,71 +93,6 @@ describe('firewallReducer', function () {
         newState = reduce(state, { type: 'UNKNOWN' });
 
       expect(newState).toBe(state);
-    });
-  });
-
-  describe('FIREWALL_LOAD_STATUS_REQUESTED action', function () {
-    let minimumState = {};
-
-    it('resets the state used for the firewall status', function () {
-      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_STATUS_REQUESTED' })).toEqual({
-        ...minimumState,
-        viewState: {
-          ...minimumState.viewState,
-          loadedStatus: false,
-          loadStatusError: null,
-        },
-      });
-    });
-  });
-
-  describe('FIREWALL_LOAD_STATUS_FULFILLED action', function () {
-    let minimumState = {};
-
-    it('updates the state, sets the load error to null and sets enabled flag from payload', function () {
-      const payload = { experimentalFeatures: { firewallAutoUnquarantine: true } };
-
-      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_STATUS_FULFILLED', payload: payload })).toEqual({
-        ...minimumState,
-        viewState: {
-          ...minimumState.viewState,
-          loadedStatus: true,
-        },
-        statusState: {
-          ...minimumState.statusState,
-          isEnabled: true,
-        },
-      });
-    });
-  });
-
-  describe('FIREWALL_LOAD_STATUS_FAILED action', function () {
-    let minimumState = { viewState: { loadError: null } };
-
-    it('updates the state and sets the loadStatusError to the payload', function () {
-      expect(reduce(minimumState, { type: 'FIREWALL_LOAD_STATUS_FAILED', payload: 'error!' })).toEqual({
-        ...minimumState,
-        viewState: {
-          ...minimumState.viewState,
-          loadedStatus: true,
-          loadStatusError: 'error!',
-          loadError: 'error!',
-        },
-      });
-    });
-
-    it('does not update loadError if it exists', function () {
-      let newState = reduce(minimumState, { type: 'FIREWALL_LOAD_STATUS_FAILED', payload: 'old error!' });
-
-      expect(reduce(newState, { type: 'FIREWALL_LOAD_STATUS_FAILED', payload: 'error!' })).toEqual({
-        ...minimumState,
-        viewState: {
-          ...minimumState.viewState,
-          loadedStatus: true,
-          loadStatusError: 'error!',
-          loadError: 'old error!',
-        },
-      });
     });
   });
 

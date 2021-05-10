@@ -47,8 +47,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -66,8 +64,6 @@ public class ApiFirewallService
 
   static final int MAX_PAGE_SIZE = 10000;
 
-  private final InsightConfig insightConfig;
-
   private final ProductLicense productLicense;
 
   private final RepositoryComponentDAO repositoryComponentDAO;
@@ -82,7 +78,6 @@ public class ApiFirewallService
 
   @Inject
   public ApiFirewallService(
-      final InsightConfig insightConfig,
       final ProductLicense productLicense,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryDAO repositoryDAO,
@@ -90,7 +85,6 @@ public class ApiFirewallService
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO)
   {
-    this.insightConfig = insightConfig;
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryDAO = repositoryDAO;
@@ -109,7 +103,6 @@ public class ApiFirewallService
 
   @Authorize(permission = Permission.READ)
   public ApiFirewallQuarantineSummaryDTO getQuarantineSummary() {
-    checkExperimentalFeatureFlag();
     checkProductLicense();
 
     ApiFirewallQuarantineSummaryDTO summary = new ApiFirewallQuarantineSummaryDTO();
@@ -124,7 +117,6 @@ public class ApiFirewallService
 
   @Authorize(permission = Permission.READ)
   public List<ApiFirewallReleaseQuarantineConfigDTO> getReleaseQuarantineConfig() {
-    checkExperimentalFeatureFlag();
     checkProductLicense();
 
     final Set<String> enabledPolicyConditionTypes = getAutoUnquarantineEnabledPolicyConditionTypesIds();
@@ -138,7 +130,6 @@ public class ApiFirewallService
   public List<ApiFirewallReleaseQuarantineConfigDTO> setReleaseQuarantineConfig(
       final List<ApiFirewallReleaseQuarantineConfigDTO> apiFirewallReleaseQuarantineConfigDTOS)
   {
-    checkExperimentalFeatureFlag();
     checkProductLicense();
 
     if (apiFirewallReleaseQuarantineConfigDTOS == null) {
@@ -221,12 +212,6 @@ public class ApiFirewallService
     return apiFirewallReleaseQuarantineConfigDTO;
   }
 
-  private void checkExperimentalFeatureFlag() {
-    if (!insightConfig.isExperimentalFeatureEnabled(Feature.FIREWALL_AUTO_UNQUARANTINE)) {
-      throw new BadRequestException("Firewall experimental feature is not enabled.");
-    }
-  }
-
   private void checkProductLicense() {
     if (!productLicense.hasFeature(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE) ||
         !productLicense.hasFeature(LicensedFeature.RELEASE_INTEGRITY)) {
@@ -236,7 +221,6 @@ public class ApiFirewallService
 
   @Authorize(permission = Permission.READ)
   public ApiFirewallReleaseQuarantineSummaryDTO getReleaseQuarantineSummary() {
-    checkExperimentalFeatureFlag();
     checkProductLicense();
 
     final Date startOfCurMonth =

@@ -50,12 +50,8 @@ describe('FirewallAutoUnquarantinePageContainer', function () {
       loadError: 'this is not the error',
       firewall: {
         viewState: {
-          loadedStatus: false,
           isShowConfigurationModal: false,
           loadError: null,
-        },
-        statusState: {
-          isEnabled: false,
         },
         autoUnquarantineState: {
           viewState: {
@@ -80,10 +76,8 @@ describe('FirewallAutoUnquarantinePageContainer', function () {
   it('maps the state slice to props', () => {
     let wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('loadedStatus', false);
     expect(wrapper).toHaveProp('isShowConfigurationModal', false);
     expect(wrapper).toHaveProp('loadError', null);
-    expect(wrapper).toHaveProp('isEnabled', false);
     expect(wrapper).toHaveProp('loadedConfiguration', false);
     expect(wrapper).toHaveProp('loadedReleaseQuarantineSummary', false);
     expect(wrapper).toHaveProp('autoReleaseQuarantineCountMTD', '-');
@@ -98,13 +92,8 @@ describe('FirewallAutoUnquarantinePageContainer', function () {
         ...state.firewall,
         viewState: {
           ...state.firewall.viewState,
-          loadedStatus: true,
           isShowConfigurationModal: true,
           loadError: 'error',
-        },
-        statusState: {
-          ...state.firewall.statusState,
-          isEnabled: true,
         },
         autoUnquarantineState: {
           ...state.firewall.autoUnquarantineState,
@@ -125,10 +114,8 @@ describe('FirewallAutoUnquarantinePageContainer', function () {
     };
     wrapper = shallow(vdom).dive();
 
-    expect(wrapper).toHaveProp('loadedStatus', true);
     expect(wrapper).toHaveProp('isShowConfigurationModal', true);
     expect(wrapper).toHaveProp('loadError', 'error');
-    expect(wrapper).toHaveProp('isEnabled', true);
     expect(wrapper).toHaveProp('loadedConfiguration', true);
     expect(wrapper).toHaveProp('loadedReleaseQuarantineSummary', true);
     expect(wrapper).toHaveProp('autoReleaseQuarantineCountMTD', 5);

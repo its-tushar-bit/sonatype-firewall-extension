@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
-import { loadStatus as loadFirewallStatus } from '../firewall/firewallActions';
 import template from './navigationContainer.html';
 import { path } from 'ramda';
 
@@ -29,7 +28,6 @@ function NavigationContainerController(
   vm.isLoggedIn = isLoggedIn;
   vm.isLicensed = isLicensed;
   vm.isFirewallSupported = false;
-  vm.isFirewallEnabled = false;
   vm.isAdvancedLegalPackSupported = false;
 
   function getReleaseVersion() {
@@ -58,7 +56,6 @@ function NavigationContainerController(
       $scope.$on('$destroy', unsubscribe);
 
       $ngRedux.dispatch(loadAdvancedSearchConfig());
-      $ngRedux.dispatch(loadFirewallStatus());
 
       ProductFeatures.load().then(function () {
         vm.isFirewallSupported =
@@ -85,7 +82,6 @@ function NavigationContainerController(
 function mapStateToThis(state) {
   return {
     isAdvancedSearchEnabled: path(['advancedSearchConfig', 'serverData', 'isEnabled'], state),
-    isFirewallEnabled: path(['firewall', 'statusState', 'isEnabled'], state),
   };
 }
 

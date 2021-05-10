@@ -10,15 +10,14 @@ import {
   loadAutoUnquarantineData,
   loadReleaseQuarantineList,
   openConfigurationModal,
-  setAutoUnquarantineGridSorting,
-  setAutoUnquarantineGridPage,
   selectReleaseQuarantineComponent,
+  setAutoUnquarantineGridPage,
+  setAutoUnquarantineGridSorting,
 } from '../firewallActions';
 
 function mapStateToProps({ firewall }) {
   return {
-    ...pick(['loadedStatus', 'isShowConfigurationModal', 'loadError'], firewall.viewState),
-    ...pick(['isEnabled'], firewall.statusState),
+    ...pick(['isShowConfigurationModal', 'loadError'], firewall.viewState),
     ...pick(['autoUnquarantineEnabled'], firewall.configurationState),
     ...pick(
       [

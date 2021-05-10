@@ -20,10 +20,7 @@ export default function FirewallPage(props) {
   const { loadFirewallData } = props;
 
   // viewState
-  const { loadedStatus, isShowConfigurationModal, loadError } = props;
-
-  // statusState
-  const { isEnabled } = props;
+  const { isShowConfigurationModal, loadError } = props;
 
   // autoUnquarantineState.viewState
   const { autoReleaseQuarantineCountMTD, loadedReleaseQuarantineSummary, loadedConfiguration } = props;
@@ -34,14 +31,7 @@ export default function FirewallPage(props) {
   // state
   const { $state } = props;
 
-  const dataLoaded = isDataLoaded(
-    loadedStatus,
-    loadedReleaseQuarantineSummary,
-    loadedConfiguration,
-    loadedQuarantineSummary
-  );
-
-  const error = determineError(loadedStatus, isEnabled, loadError);
+  const dataLoaded = isDataLoaded(loadedReleaseQuarantineSummary, loadedConfiguration, loadedQuarantineSummary);
 
   useEffect(() => {
     loadFirewallData();
@@ -50,7 +40,7 @@ export default function FirewallPage(props) {
   return (
     <main id="firewall-page" className="nx-page-main">
       {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
-      <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadFirewallData}>
+      <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadFirewallData}>
         <FirewallStatus {...props} />
         <div className="nx-card-container nx-card-container--no-wrap">
           <FirewallQuarantineStatus {...props} />
@@ -67,25 +57,14 @@ export default function FirewallPage(props) {
   );
 }
 
-function determineError(loadedStatus, isEnabled, loadError) {
-  if (loadError) {
-    return loadError;
-  }
-  if (loadedStatus && !isEnabled) {
-    return 'The Firewall feature is disabled';
-  }
-}
-
-function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration, loadedQuarantineSummary) {
-  return loadedStatus && loadedReleaseQuarantineSummary && loadedConfiguration && loadedQuarantineSummary;
+function isDataLoaded(loadedReleaseQuarantineSummary, loadedConfiguration, loadedQuarantineSummary) {
+  return loadedReleaseQuarantineSummary && loadedConfiguration && loadedQuarantineSummary;
 }
 
 FirewallPage.propTypes = {
   loadFirewallData: PropTypes.func.isRequired,
-  loadedStatus: PropTypes.bool.isRequired,
   autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
   loadedReleaseQuarantineSummary: PropTypes.bool.isRequired,
-  isEnabled: PropTypes.bool.isRequired,
   isShowConfigurationModal: PropTypes.bool.isRequired,
   loadedConfiguration: PropTypes.bool.isRequired,
   loadedQuarantineSummary: PropTypes.bool.isRequired,

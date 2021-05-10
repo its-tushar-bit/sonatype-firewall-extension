@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroupLicense;
@@ -29,11 +30,13 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
+import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 
 import org.junit.After;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class NewInstancePopulatorTest
@@ -113,6 +116,26 @@ public class NewInstancePopulatorTest
 
   @Test
   @ManualServerInit
+  public void testPopulateIfNewInstance_RIPolicyAutoCreated_SampleDataEnabled_CreatesSampleData()
+      throws Exception
+  {
+    createReleaseIntegrityPolicyAndSetConfigFlag();
+    initServer(true, false);
+    assertSampleDataCreated(true);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testPopulateIfNewInstance_RIPolicyAutoCreated_SampleDataDisabled_SampleDataNotCreated()
+      throws Exception
+  {
+    createReleaseIntegrityPolicyAndSetConfigFlag();
+    initServer(false, false);
+    assertSampleDataCreated(false);
+  }
+
+  @Test
+  @ManualServerInit
   public void testPopulateIfNewInstance_ExistingPolicy_SampleDataEnabled_SampleDataNotCreated() throws Exception {
     tempEntity.newPolicy();
 
@@ -143,6 +166,26 @@ public class NewInstancePopulatorTest
   public void testPopulateIfNewInstance_NoOrgsOrPolicies_PolicyImportDisabled_ReferencePoliciesNotImported()
       throws Exception
   {
+    initServer(false, false);
+    assertReferencePoliciesImported(false);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testPopulateIfNewInstance_RIPolicyAutoCreated_PolicyImportEnabled_ImportsReferencePolicies()
+      throws Exception
+  {
+    createReleaseIntegrityPolicyAndSetConfigFlag();
+    initServer(false, true);
+    assertReferencePoliciesImported(true);
+  }
+
+  @Test
+  @ManualServerInit
+  public void testPopulateIfNewInstance_RIPolicyAutoCreated_PolicyImportDisabled_ReferencePoliciesNotImported()
+      throws Exception
+  {
+    createReleaseIntegrityPolicyAndSetConfigFlag();
     initServer(false, false);
     assertReferencePoliciesImported(false);
   }
@@ -281,5 +324,11 @@ public class NewInstancePopulatorTest
 
   private <T> Set<String> getUniqueStrings(Collection<T> items, Function<T, String> mapper) {
     return items.stream().map(mapper).collect(Collectors.toSet());
+  }
+
+  private void createReleaseIntegrityPolicyAndSetConfigFlag() {
+    tempEntity.newPolicy(ROOT_ORGANIZATION_ID, FirewallReleaseIntegrityLicenseListener.POLICY_NAME, 9);
+    tempEntity
+        .newSystemConfigurationProperty(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED, "true");
   }
 }

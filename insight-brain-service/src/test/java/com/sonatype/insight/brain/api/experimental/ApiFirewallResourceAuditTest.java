@@ -17,11 +17,8 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,13 +35,6 @@ public class ApiFirewallResourceAuditTest
   public void cleanUp() {
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
     autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
-  }
-
-  @Before
-  public void setup() throws Exception {
-    //enable feature flag
-    initServer(
-        config -> config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true)));
   }
 
   @Test

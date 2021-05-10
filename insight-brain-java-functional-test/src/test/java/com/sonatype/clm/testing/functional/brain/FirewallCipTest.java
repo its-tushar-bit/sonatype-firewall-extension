@@ -67,7 +67,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -75,14 +74,12 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.codeborne.selenide.Condition;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
-import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallCipTest
@@ -122,9 +119,6 @@ public class FirewallCipTest
   @Before
   public void before() {
     setFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE, LicensedFeature.RELEASE_INTEGRITY);
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     repo = tempEntity.newRepository("testRepo");
 
     matchStatePolicy = createPolicy(10, MATCH_STATE_POLICY_NAME, MatchStateConditionType.ID, "is",
@@ -133,13 +127,6 @@ public class FirewallCipTest
         createPolicy(9, COORDINATES_POLICY_NAME, CoordinatesConditionType.ID, "match", "maven:critical:*");
 
     insightWork = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
-  }
-
-  @After
-  public void after() {
-    //Clear the experimental feature flag after running the test
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
   }
 
   @Test

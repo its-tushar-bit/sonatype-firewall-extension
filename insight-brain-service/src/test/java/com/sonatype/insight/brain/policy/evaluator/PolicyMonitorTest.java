@@ -732,7 +732,8 @@ public class PolicyMonitorTest
   }
 
   @Test
-  public void testRepositoryMonitored_MonitoringNotEnabled() {
+  public void testRepositoryMonitored_MonitoringNotEnabled() throws Exception {
+    setMissingFeature(LicensedFeature.FIREWALL);
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
 
     Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");

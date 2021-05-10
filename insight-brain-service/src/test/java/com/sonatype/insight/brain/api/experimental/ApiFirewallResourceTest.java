@@ -29,15 +29,12 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,13 +49,6 @@ public class ApiFirewallResourceTest
   @After
   public void cleanUp() {
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
-  }
-
-  @Before
-  public void setup() throws Exception {
-    //enable feature flag
-    initServer(
-        config -> config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true)));
   }
 
   @Test
@@ -87,20 +77,6 @@ public class ApiFirewallResourceTest
     // and value is present
     List<ApiFirewallReleaseQuarantineConfigDTO> dtos = response.getBody(List.class);
     assertThat(dtos).isNotNull().isNotEmpty();
-  }
-
-  @Test
-  public void testGetFirewallAutoUnquarantineConfig_FeatureFlagDisabled() throws Exception {
-    //disable feature flag
-    initServer(
-        config -> config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false)));
-
-    // when SETing config
-    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
-        ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).get();
-
-    // then result is bad request 400
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
   }
 
   @Test
@@ -141,20 +117,6 @@ public class ApiFirewallResourceTest
     // and value is present
     List<ApiFirewallReleaseQuarantineConfigDTO> dtos = response.getBody(List.class);
     assertThat(dtos).isNotNull().isNotEmpty();
-  }
-
-  @Test
-  public void testSetFirewallAutoUnquarantineConfig_FeatureFlagDisabled() throws Exception {
-    //disable feature flag
-    initServer(
-        config -> config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false)));
-
-    // when SETing config
-    HttpResponse response = restRequest().path(ApiFirewallResource.RESOURCE_PATH,
-        ApiFirewallResource.RELEASE_QUARANTINE_CONFIGURATION_PATH).put();
-
-    // then result is bad request 400
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST_400);
   }
 
   @Test

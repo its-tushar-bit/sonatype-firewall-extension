@@ -19,7 +19,6 @@ import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.Firewall
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.SelenideElement;
@@ -34,7 +33,6 @@ import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.google.common.collect.ImmutableMap.of;
 
 public class FirewallAutoUnquarantinePageTest
     extends AbstractFunctionalTest
@@ -58,9 +56,6 @@ public class FirewallAutoUnquarantinePageTest
 
   @After
   public void after() {
-    //Clear the experimental feature flag after running the test
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
 
     hardreset();
@@ -81,29 +76,10 @@ public class FirewallAutoUnquarantinePageTest
   }
 
   @Test
-  public void testFirewallAutoUnquarantinePageAutoUnquarantineFeatureIsNotSet() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
-
+  public void testFirewallAutoUnquarantinePageAutoUnquarantinePageLoads() {
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
-    page.shouldBe(visible);
-    page.firewallAutoUnquarantineStatus().shouldBe(hidden);
-    page.firewallAutoReleaseQuarantineMtd().shouldBe(hidden);
-    page.firewallAutoReleaseQuarantineYtd().shouldBe(hidden);
-    page.firewallUnquarantineTable().shouldBe(hidden);
-    page.firewallConfigurationModal().shouldBe(hidden);
-    page.backToFirewallButton().shouldBe(hidden);
-  }
-
-  @Test
-  public void testFirewallAutoUnquarantinePageAutoUnquarantineFeatureSet() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
-    refreshOrOpen(FirewallAutoUnquarantinePage.url());
-
-    eyesWatcher.eyesCheck("Auto Unquarantine Page - Auto Unquarantine Feature is Set");
+    eyesWatcher.eyesCheck("Auto Unquarantine Page - Auto Unquarantine Page Loads");
 
     page.shouldBe(visible);
     page.firewallAutoUnquarantineStatus().shouldBe(visible);
@@ -116,9 +92,6 @@ public class FirewallAutoUnquarantinePageTest
 
   @Test
   public void testFirewallAutoUnquarantinePageAutoReleaseQuarantineMtd_showsCount() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
     page.shouldBe(visible);
 
@@ -130,9 +103,6 @@ public class FirewallAutoUnquarantinePageTest
 
   @Test
   public void testFirewallAutoUnquarantinePageAutoReleaseQuarantineYtd_showsCount() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
     page.shouldBe(visible);
 
@@ -144,9 +114,6 @@ public class FirewallAutoUnquarantinePageTest
 
   @Test
   public void testFirewallAutoUnquarantinePage_OpenCloseModal() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
     page.shouldBe(visible);
@@ -168,9 +135,6 @@ public class FirewallAutoUnquarantinePageTest
 
   @Test
   public void testFirewallAutoUnquarantinePage_BackToFirewallButton() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
     page.shouldBe(visible);
@@ -184,9 +148,6 @@ public class FirewallAutoUnquarantinePageTest
 
   @Test
   public void testFirewallAutoUnquarantinePage_LoadErrorTest() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     //induce error by removing feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
@@ -220,9 +181,6 @@ public class FirewallAutoUnquarantinePageTest
 
   @Test
   public void testFirewallAutoUnquarantineTable_TableBodyCount() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
     page.shouldBe(visible);
@@ -234,9 +192,6 @@ public class FirewallAutoUnquarantinePageTest
 
   @Test
   public void testFirewallAutoUnquarantineTable_Sorting() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 
     page.shouldBe(visible);

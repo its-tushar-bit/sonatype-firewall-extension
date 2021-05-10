@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Condition;
@@ -31,7 +30,6 @@ import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
-import static com.google.common.collect.ImmutableMap.of;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallConfigurationModalTest
@@ -60,9 +58,6 @@ public class FirewallConfigurationModalTest
 
   @After
   public void after() {
-    //Clear the experimental feature flag after running the test
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), false));
     policyMonitoringDAO.getAll().forEach(policyMonitoringDAO::delete);
     autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
 
@@ -71,8 +66,6 @@ public class FirewallConfigurationModalTest
 
   @Test
   public void testFirewallConfigurationModal_DefaultValues() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     refreshOrOpen(FirewallPage.url());
 
     firewallPage.shouldBe(visible);
@@ -120,8 +113,6 @@ public class FirewallConfigurationModalTest
 
   @Test
   public void testFirewallConfigurationModal_ToggleIntegrityRating() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     refreshOrOpen(FirewallPage.url());
 
     firewallPage.shouldBe(visible);
@@ -175,8 +166,6 @@ public class FirewallConfigurationModalTest
 
   @Test
   public void testFirewallConfigurationModal_ToggleSingle() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     refreshOrOpen(FirewallPage.url());
 
     firewallPage.shouldBe(visible);
@@ -232,9 +221,6 @@ public class FirewallConfigurationModalTest
 
   @Test
   public void testFirewallConfigurationModal_LoadErrorTest() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     refreshOrOpen(FirewallPage.url());
 
     firewallPage.shouldBe(visible);
@@ -270,9 +256,6 @@ public class FirewallConfigurationModalTest
 
   @Test
   public void testFirewallConfigurationModal_SaveErrorTest() {
-    testCLMServer.getCLMServer().getConfiguration()
-        .setExperimentalFeatures(of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     refreshOrOpen(FirewallPage.url());
 
     firewallPage.shouldBe(visible);

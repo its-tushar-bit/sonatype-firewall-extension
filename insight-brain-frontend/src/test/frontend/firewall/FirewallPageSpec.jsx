@@ -131,12 +131,6 @@ describe('FirewallPage', function () {
     expect(component.find(FirewallConfigurationModalMock)).not.toExist();
   });
 
-  it('renders a loading LoadWrapper when loadedStatus is false', function () {
-    const component = getShallowComponent({ loadedStatus: false });
-    const loadWrapper = component.find(LoadWrapper);
-    expect(loadWrapper).toHaveProp('loading', true);
-  });
-
   it('renders a loading LoadWrapper when loadedReleaseQuarantineSummary is false', function () {
     const component = getShallowComponent({
       loadedReleaseQuarantineSummary: false,
@@ -161,15 +155,6 @@ describe('FirewallPage', function () {
     const component = getShallowComponent({ loadError: 'error' });
     const loadWrapper = component.find(LoadWrapper);
     expect(loadWrapper).toHaveProp('error', 'error');
-  });
-
-  it('shows appropriate error when not isEnabled', function () {
-    const component = getShallowComponent({
-      isEnabled: false,
-      loadedStatus: true,
-    });
-    const loadWrapper = component.find(LoadWrapper);
-    expect(loadWrapper).toHaveProp('error', 'The Firewall feature is disabled');
   });
 
   it('calls loadFirewallData when the LoadWrapper retryHandler is invoked', function () {

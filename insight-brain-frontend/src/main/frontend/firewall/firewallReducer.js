@@ -15,9 +15,6 @@ import {
   FIREWALL_LOAD_CONFIGURATION_FULFILLED,
   FIREWALL_LOAD_CONFIGURATION_REQUESTED,
   FIREWALL_LOAD_DATA_REQUESTED,
-  FIREWALL_LOAD_STATUS_FAILED,
-  FIREWALL_LOAD_STATUS_FULFILLED,
-  FIREWALL_LOAD_STATUS_REQUESTED,
   FIREWALL_POLICIES_FAILED,
   FIREWALL_POLICIES_FULFILLED,
   FIREWALL_POLICIES_REQUESTED,
@@ -52,13 +49,8 @@ const initialState = Object.freeze({
     displayedEntries: [],
   }),
   viewState: Object.freeze({
-    loadedStatus: false,
-    loadStatusError: null,
     isShowConfigurationModal: false,
     loadError: null,
-  }),
-  statusState: Object.freeze({
-    isEnabled: false,
   }),
   autoUnquarantineState: Object.freeze({
     viewState: Object.freeze({
@@ -112,38 +104,6 @@ const initialState = Object.freeze({
     filterPolicy: undefined,
     lastUpdated: null,
   }),
-});
-
-const loadStatusRequested = (_, state) =>
-  over(
-    lensPath(['viewState']),
-    merge(__, {
-      loadedStatus: false,
-      loadStatusError: null,
-    }),
-    state
-  );
-
-const loadStatusFulfilled = (payload, state) => ({
-  ...state,
-  viewState: {
-    ...state.viewState,
-    loadedStatus: true,
-  },
-  statusState: {
-    ...state.statusState,
-    isEnabled: payload.experimentalFeatures.firewallAutoUnquarantine,
-  },
-});
-
-const loadStatusFailed = (payload, state) => ({
-  ...state,
-  viewState: {
-    ...state.viewState,
-    loadedStatus: true,
-    loadStatusError: payload,
-    loadError: state.viewState.loadError || payload,
-  },
 });
 
 const loadReleaseQuarantineSummaryRequested = (_, state) =>
@@ -502,9 +462,6 @@ function cipModalShow(_, state) {
 
 const reducerActionMap = {
   [FIREWALL_LOAD_DATA_REQUESTED]: always(initialState),
-  [FIREWALL_LOAD_STATUS_REQUESTED]: loadStatusRequested,
-  [FIREWALL_LOAD_STATUS_FAILED]: loadStatusFailed,
-  [FIREWALL_LOAD_STATUS_FULFILLED]: loadStatusFulfilled,
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
   [FIREWALL_LOAD_CONFIGURATION_REQUESTED]: loadConfigurationRequested,
   [FIREWALL_LOAD_CONFIGURATION_FULFILLED]: loadConfigurationFulfilled,

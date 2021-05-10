@@ -19,10 +19,7 @@ export default function FirewallAutoUnquarantinePage(props) {
   const { loadAutoUnquarantineData } = props;
 
   // viewState
-  const { loadedStatus, isShowConfigurationModal, loadError } = props;
-
-  // statusState
-  const { isEnabled } = props;
+  const { isShowConfigurationModal, loadError } = props;
 
   // autoUnquarantineState.viewState
   const {
@@ -35,9 +32,7 @@ export default function FirewallAutoUnquarantinePage(props) {
   // state
   const { $state } = props;
 
-  const dataLoaded = isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration);
-
-  const error = determineError(loadedStatus, isEnabled, loadError);
+  const dataLoaded = isDataLoaded(loadedReleaseQuarantineSummary, loadedConfiguration);
 
   useEffect(() => {
     loadAutoUnquarantineData();
@@ -45,7 +40,7 @@ export default function FirewallAutoUnquarantinePage(props) {
 
   return (
     <main id="firewall-auto-unquarantine-page" className="nx-page-main">
-      <LoadWrapper loading={!dataLoaded} error={error} retryHandler={loadAutoUnquarantineData}>
+      <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadAutoUnquarantineData}>
         <BackButton stateName="firewall.firewallPage" $state={$state} text="Back to Quarantine" />
         {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
         <div className="nx-page-title">
@@ -62,26 +57,15 @@ export default function FirewallAutoUnquarantinePage(props) {
   );
 }
 
-function determineError(loadedStatus, isEnabled, loadError) {
-  if (loadError) {
-    return loadError;
-  }
-  if (loadedStatus && !isEnabled) {
-    return 'The Firewall feature is disabled';
-  }
-}
-
-function isDataLoaded(loadedStatus, loadedReleaseQuarantineSummary, loadedConfiguration) {
-  return loadedStatus && loadedReleaseQuarantineSummary && loadedConfiguration;
+function isDataLoaded(loadedReleaseQuarantineSummary, loadedConfiguration) {
+  return loadedReleaseQuarantineSummary && loadedConfiguration;
 }
 
 FirewallAutoUnquarantinePage.propTypes = {
   loadAutoUnquarantineData: PropTypes.func.isRequired,
-  loadedStatus: PropTypes.bool.isRequired,
   autoReleaseQuarantineCountMTD: PropTypes.string.isRequired,
   autoReleaseQuarantineCountYTD: PropTypes.string.isRequired,
   loadedReleaseQuarantineSummary: PropTypes.bool.isRequired,
-  isEnabled: PropTypes.bool.isRequired,
   isShowConfigurationModal: PropTypes.bool.isRequired,
   loadedConfiguration: PropTypes.bool.isRequired,
   loadError: PropTypes.string,

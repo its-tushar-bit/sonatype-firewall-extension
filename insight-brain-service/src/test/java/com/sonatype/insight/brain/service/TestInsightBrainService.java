@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PersistedPolicyEvaluationPollingResultCleaner;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
+import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
 import com.sonatype.insight.brain.scan.PersistedScanTicketCleaner;
@@ -303,6 +304,7 @@ public class TestInsightBrainService
     getInstance(IndexService.class).disableForTesting = true;
     getInstance(PersistedPolicyEvaluationPollingResultCleaner.class).disableForTesting = true;
     getInstance(PersistedScanTicketCleaner.class).disableForTesting = true;
+    getInstance(FirewallReleaseIntegrityLicenseListener.class).disableForTesting = true;
     getInstance(PullRequestDetailsUpdater.class).disableForTesting = true;
   }
 

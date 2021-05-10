@@ -555,6 +555,10 @@ public abstract class AbstractFunctionalTest
     setFeatures(EnumSet.complementOf(EnumSet.of(feature)).toArray(new LicensedFeature[0]));
   }
 
+  protected void setMissingFeatures(LicensedFeature... features) {
+    setFeatures(EnumSet.complementOf(EnumSet.copyOf(Arrays.asList(features))).toArray(new LicensedFeature[0]));
+  }
+
   protected void setLicensedProducts(String... products) {
     productLicenseManager.setProducts(products);
     installLicense();

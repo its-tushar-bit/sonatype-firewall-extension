@@ -198,10 +198,6 @@ export function getReportMetadataUrl(applicationPublicId, scanId) {
   return `${getBaseReportUrl(applicationPublicId, scanId)}/metadata`;
 }
 
-export function getFirewallStatusUrl() {
-  return uriTemplate`/rest/repositories/firewall/status`;
-}
-
 export function getFirewallConfigurationUrl() {
   return uriTemplate`/api/experimental/firewall/releaseQuarantine/configuration`;
 }

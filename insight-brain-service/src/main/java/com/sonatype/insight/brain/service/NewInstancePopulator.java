@@ -15,12 +15,15 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.organization.SampleDataCreator;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +70,23 @@ class NewInstancePopulator
     List<Policy> policies = policyDAO.getAll();
 
     // create sample data only for new installs
-    if (policies.isEmpty() && orgs.size() == 1
-        && orgs.get(0).getId().equalsIgnoreCase(Organization.ROOT_ORGANIZATION_ID)) {
+    if ((policies.isEmpty() || isOnlyPolicyIntegrityRatingAutoCreated(policies)) && orgs.size() == 1 &&
+        orgs.get(0).getId().equalsIgnoreCase(Organization.ROOT_ORGANIZATION_ID)) {
       populate(orgs.get(0));
     }
 
     log.debug("populateIfNewInstance finished in {} ms.", System.currentTimeMillis() - start);
+  }
+
+  private boolean isOnlyPolicyIntegrityRatingAutoCreated(List<Policy> policies) {
+    SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+    SystemConfigurationProperty firewallReleaseIntegrityLicenseEnabledProperty =
+        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED);
+    boolean hasIntegrityRatingPolicyBeenCreated = firewallReleaseIntegrityLicenseEnabledProperty != null &&
+        Boolean.parseBoolean(firewallReleaseIntegrityLicenseEnabledProperty.getValue());
+    return policies.size() == 1 &&
+        policies.get(0).getName().equals(FirewallReleaseIntegrityLicenseListener.POLICY_NAME) &&
+        hasIntegrityRatingPolicyBeenCreated;
   }
 
   private void populate(Organization rootOrganization) {

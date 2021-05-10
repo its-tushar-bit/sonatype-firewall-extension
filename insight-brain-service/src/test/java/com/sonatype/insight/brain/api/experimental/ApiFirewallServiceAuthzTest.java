@@ -20,10 +20,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryCompon
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.After;
@@ -38,9 +35,6 @@ public class ApiFirewallServiceAuthzTest
   @Inject
   public ApiFirewallService apiFirewallService;
 
-  @Inject
-  private InsightConfig config;
-
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   @After
@@ -50,7 +44,6 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testGetFirewallUnquarantineSummary_Authorized() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     grantGlobalPermission(Permission.READ);
 
     ApiFirewallReleaseQuarantineSummaryDTO dto = apiFirewallService.getReleaseQuarantineSummary();
@@ -73,7 +66,6 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testGetFirewallAutoUnquarantineConfig_Authorized() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     grantGlobalPermission(Permission.READ);
 
     List<ApiFirewallReleaseQuarantineConfigDTO> dtos = apiFirewallService.getReleaseQuarantineConfig();
@@ -96,7 +88,6 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testSetFirewallAutoUnquarantineConfig_Authorized() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     grantGlobalPermission(Permission.READ);
     grantGlobalPermission(Permission.WRITE);
 
@@ -120,7 +111,6 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testGetQuarantineSummary_Authorized() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     grantGlobalPermission(Permission.READ);
 
     assertThat(apiFirewallService.getQuarantineSummary()).isNotNull();
@@ -140,7 +130,6 @@ public class ApiFirewallServiceAuthzTest
 
   @Test
   public void testGetComponents_Authorized() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     grantGlobalPermission(Permission.READ);
 
     final FirewallRepositoryComponentFilter filter =

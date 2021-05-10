@@ -45,12 +45,9 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Test;
@@ -64,9 +61,6 @@ public class ApiFirewallServiceTest
 {
   @Inject
   ApiFirewallService apiFirewallService;
-
-  @Inject
-  private InsightConfig config;
 
   @Inject
   private TestProductLicense testProductLicense;
@@ -84,8 +78,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetFirewallReleaseQuarantineSummary() {
-    //setup: enable feature flag
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     Repository repository = tempEntity.newRepository();
     // create repository components in various state of quarantine
     final Date mtdDate = new Date();
@@ -120,8 +112,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetFirewallReleaseQuarantineSummary_NoFirewallAutoUnquarantineFeature() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     //setup: remove firewall feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
@@ -133,7 +123,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetFirewallReleaseQuarantineSummary_NoReleaseIntegrityFeature() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     //setup: remove release integrity feature
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
@@ -144,18 +133,7 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void testGetFirewallReleaseQuarantineSummary_FeatureFlag_False() {
-    //when: getting release quarantine summary
-    //then: expect bad request exception
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineSummary());
-  }
-
-  @Test
   public void testGetFirewallReleaseQuarantineConfig() {
-    //setup: enable feature flag
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
 
@@ -180,8 +158,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetFirewallReleaseQuarantineConfig_NoFirewallAutoUnquarantineFeature() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     //setup: remove firewall feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
@@ -193,7 +169,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetFirewallReleaseQuarantineConfig_NoReleaseIntegrityFeature() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     //setup: remove release integrity feature
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
@@ -204,18 +179,7 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void testGetFirewallReleaseQuarantineConfig_FeatureFlag_False() {
-    //when: getting release quarantine config
-    //then: expect bad request exception
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-        apiFirewallService.getReleaseQuarantineConfig());
-  }
-
-  @Test
   public void testSetFirewallReleaseQuarantineConfig_DoesNotChangeUnspecified() {
-    //setup: enable feature flag
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
 
@@ -256,9 +220,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testSetFirewallReleaseQuarantineConfig() {
-    //setup: enable feature flag
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
     tempEntity.newAutoUnquarantinePolicyConditionType(LicenseConditionType.ID);
 
@@ -309,9 +270,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testSetFirewallReleaseQuarantineConfig_IdNotSpecified() {
-    //setup: enable feature flag
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     List<ApiFirewallReleaseQuarantineConfigDTO> list = new ArrayList<>();
     ApiFirewallReleaseQuarantineConfigDTO condition = new ApiFirewallReleaseQuarantineConfigDTO();
     condition.autoReleaseQuarantineEnabled = true;
@@ -325,9 +283,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testSetFirewallReleaseQuarantineConfig_FlagNotSpecified() {
-    //setup: enable feature flag
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     List<ApiFirewallReleaseQuarantineConfigDTO> list = new ArrayList<>();
     ApiFirewallReleaseQuarantineConfigDTO condition = new ApiFirewallReleaseQuarantineConfigDTO();
     condition.id = IntegrityRatingConditionType.ID;
@@ -341,9 +296,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testSetFirewallReleaseQuarantineConfig_IdAndFlagNotSpecified() {
-    //setup: enable feature flag
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     List<ApiFirewallReleaseQuarantineConfigDTO> list = new ArrayList<>();
     ApiFirewallReleaseQuarantineConfigDTO condition = new ApiFirewallReleaseQuarantineConfigDTO();
     list.add(condition);
@@ -356,8 +308,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testSetFirewallReleaseQuarantineConfig_NoFirewallAutoUnquarantineFeature() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
-
     //setup: remove firewall feature
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
@@ -369,21 +319,12 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testSetFirewallReleaseQuarantineConfig_NoReleaseIntegrityFeature() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     //setup: remove release integrity feature
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
     //when: getting release quarantine config
     //then: expect invalid license exception
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
-        apiFirewallService.setReleaseQuarantineConfig(null));
-  }
-
-  @Test
-  public void testSetFirewallReleaseQuarantineConfig_FeatureFlag_False() {
-    //when: getting release quarantine config
-    //then: expect bad request exception
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
         apiFirewallService.setReleaseQuarantineConfig(null));
   }
 
@@ -413,7 +354,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetQuarantineSummary() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     Repository repo = tempEntity.newRepository(tempEntity.newRepositoryManager(), "repo1", true, true);
     tempEntity.newRepositoryComponent(repo, "hash");
     tempEntity.newRepositoryComponent(repo.getId(), "path", new Date(), null);
@@ -430,15 +370,7 @@ public class ApiFirewallServiceTest
   }
 
   @Test
-  public void testGetQuarantineSummary_NoExperimentalFeature() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiFirewallService.getQuarantineSummary();
-    }).withMessage("Firewall experimental feature is not enabled.");
-  }
-
-  @Test
   public void testGetQuarantineSummary_NoReleaseIntegrityFeature() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     testProductLicense.setMissingFeatures(LicensedFeature.RELEASE_INTEGRITY);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
@@ -448,7 +380,6 @@ public class ApiFirewallServiceTest
 
   @Test
   public void testGetQuarantineSummary_NoFirewallAutoUnquarantineFeature() {
-    config.setExperimentalFeatures(ImmutableMap.of(Feature.FIREWALL_AUTO_UNQUARANTINE.getFlag(), true));
     testProductLicense.setMissingFeatures(LicensedFeature.FIREWALL_AUTO_UNQUARANTINE);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {

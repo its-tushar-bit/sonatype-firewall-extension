@@ -5,6 +5,8 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+import BackButton from '../react/BackButton';
+import { useRouterState } from '../react/RouterStateContext';
 
 export default function ComponentDetails({
   selectedComponent,
@@ -14,6 +16,8 @@ export default function ComponentDetails({
   hash,
   loadReportAndSelectComponentByHash,
 }) {
+  const uiRouterState = useRouterState();
+
   useEffect(() => {
     if (!selectedComponent) {
       loadReportAndSelectComponentByHash(publicId, scanId, hash, unknownjs);
@@ -22,6 +26,7 @@ export default function ComponentDetails({
 
   return (
     <main className="nx-page-main nx-viewport-sized" id="component-details-page">
+      <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
       {selectedComponent && <h1 className="title">{selectedComponent.derivedComponentName}</h1>}
     </main>
   );

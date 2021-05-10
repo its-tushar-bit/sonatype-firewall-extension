@@ -635,6 +635,7 @@ public class ApplicationReportTest
   @Test
   public void testComponentDetailsEnabled() throws Exception {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    reportPage.reportTitle().shouldHave(text("ApplicationReportTest Build Report"));
 
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement firstViolation = violations.first();
@@ -643,6 +644,11 @@ public class ApplicationReportTest
     waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, "fa78f54738ccf77379d1"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+    SelenideElement backButton = componentDetailsPage.backButton();
+    backButton.shouldHave(text("Back to Application Report"));
+    backButton.click();
+
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
   }
 
   @Test

@@ -3,14 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
 import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
+import BackButton from '../../../main/frontend/react/BackButton';
 
 describe('ComponentDetails', function () {
-  let minimalProps, getShallowComponent, getMountedComponent, loadReportAndSelectComponentSpy;
+  let minimalProps, getShallowComponent, getMountedComponent, loadReportAndSelectComponentSpy, stateMock, stateGetSpy;
 
   beforeEach(function () {
     loadReportAndSelectComponentSpy = jasmine.createSpy('loadResults');
+    stateGetSpy = jasmine.createSpy('$state.get').and.returnValue({ data: { title: 'some title' } });
+    stateMock = {
+      get: stateGetSpy,
+      href: () => {},
+    };
+    spyOn(React, 'useContext').and.returnValue(stateMock);
 
     minimalProps = {
       selectedComponent: null,
@@ -27,6 +35,14 @@ describe('ComponentDetails', function () {
 
   it('renders a component', () => {
     expect(getShallowComponent()).toExist();
+  });
+
+  it('renders a back button', () => {
+    const el = getShallowComponent(),
+      backBtn = el.find(BackButton);
+
+    expect(backBtn).toHaveProp('stateName', 'applicationReport.policy');
+    expect(backBtn).toHaveProp('$state', stateMock);
   });
 
   it('calls loadReportAndSelectComponentByHash if there is no selectedComponent in the state', () => {

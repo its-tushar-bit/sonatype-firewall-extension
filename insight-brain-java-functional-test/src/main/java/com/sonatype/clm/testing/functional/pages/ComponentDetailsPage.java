@@ -28,4 +28,8 @@ public class ComponentDetailsPage
   public SelenideElement title() {
     return child(".title");
   }
+
+  public SelenideElement backButton() {
+    return child(".nx-text-link");
+  }
 }

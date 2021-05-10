@@ -125,7 +125,10 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
           test: /\.jsx?$/,
           enforce: 'pre',
           exclude: /node_modules|src[\/\\]main[\/\\]frontend[\/\\](lib|cip|audit-report|version-graph)/,
-          use: 'eslint-loader',
+          loader: require.resolve('eslint-loader'),
+          options: {
+            emitWarning: !production,
+          },
         },
         {
           test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')),

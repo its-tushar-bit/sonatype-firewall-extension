@@ -17,7 +17,10 @@ pipeline {
   }
 
   parameters {
-    choice(name: 'DATABASE_GROUP', choices: ['H2', 'PostgreSQL', 'PostgreSQL-RDS'], description: 'Defines the database engine to be used')
+    choice(name: 'DATABASE_GROUP', choices: ['H2', 'PostgreSQL', 'PostgreSQL-RDS'],
+        description: 'Defines the type of database to be used')
+    text(name: 'TARGET_ENDPOINTS', defaultValue: 'DEFAULT',
+        description: 'JSON string that defines the target endpoints for the test. Leave the value DEFAULT to use the default endpoints')
   }
 
   stages {
@@ -38,11 +41,11 @@ pipeline {
         build job: '../Test-performance',
                 parameters: [
                         string(name: 'BRANCH_NAME', value: "${env.BRANCH_NAME}"),
-                        string(name: 'DATABASE_GROUP', value: "${DATABASE_GROUP}")
+                        string(name: 'DATABASE_GROUP', value: "${DATABASE_GROUP}"),
+                        text(name: 'TARGET_ENDPOINTS', value: "${TARGET_ENDPOINTS}")
                 ],
                 wait: true
       }
     }
   }
-
 }

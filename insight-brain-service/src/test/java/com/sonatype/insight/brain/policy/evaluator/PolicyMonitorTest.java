@@ -829,6 +829,32 @@ public class PolicyMonitorTest
     assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isFalse();
     assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).isEmpty();
   }
+  
+  @Test
+  public void testRepositoryMonitored_AutoUnquarantineWithoutPolicyMonitoringFeature() throws Exception {
+    setMissingFeature(LicensedFeature.POLICY_MONITORING);
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+
+    Condition condition = new Condition(IntegrityRatingConditionType.ID, "is", "2");
+    Constraint constraint = new Constraint("c1", "constraint1", LogicalOperator.OR);
+    constraint.addCondition(condition);
+    Policy policy = createPolicy("policy", new Stage(ProxyStageType.ID), FailActionType.ID, constraint);
+
+    Repository repository = tempEntity.newRepository();
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname1",
+        "hash1", ComponentIdentifier.createMavenCoordinates("g", "a1", "v"), true);
+    assertThat(component.isQuarantined()).isTrue();
+
+    createPolicyViolation(policy, component, FailActionType.ID);
+    tempEntity.newPolicyMonitoring(repository.getId(), ProxyStageType.ID);
+
+    mockFirewallResponse(getFirewallHdsResponse(component, "hash1", new IntegrityRating(0, "Normal")));
+
+    policyMonitor.run();
+
+    assertThat(new RepositoryComponentDAO().getById(component.getId()).isQuarantined()).isFalse();
+    assertThat(new RepositoryPolicyViolationDAO().getByRepositoryId(repository.getId())).isEmpty();
+  }
 
   @Test
   public void testRepositoryMonitored_AutoUnquarantineNotSupportedForConditionType() {

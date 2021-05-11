@@ -125,12 +125,6 @@ public class PolicyMonitor
   }
 
   public void run() {
-    // not licensed, back on outta here - firewall still requires Risk product for repository monitoring
-    if (!productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
-      log.debug("Ending task, not licensed for Policy Monitoring.");
-      return;
-    }
-
     log.info("Starting policy monitoring");
 
     long start = System.currentTimeMillis();
@@ -163,6 +157,12 @@ public class PolicyMonitor
   private void evaluateApplications(final Map<String, PolicyMonitoring> policyMonitoringsByOwnerId)
       throws InterruptedException
   {
+    // not licensed for app monitoring
+    if (!productLicense.hasFeature(LicensedFeature.POLICY_MONITORING)) {
+      log.debug("Not licensed for Application Policy Monitoring.");
+      return;
+    }
+
     OwnerDAO ownerDAO = new OwnerDAO();
     List<Application> apps = new ApplicationDAO().getAll();
     log.info("Starting policy monitoring of applications");

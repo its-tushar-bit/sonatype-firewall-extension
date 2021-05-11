@@ -17,10 +17,12 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -55,6 +57,8 @@ public class PullRequestPollingService
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private final SourceControlUtils sourceControlUtils;
@@ -73,6 +77,7 @@ public class PullRequestPollingService
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       SourceControlDAO sourceControlDAO,
+      SourceControlPullRequestDAO sourceControlPullRequestDAO,
       SourceControlEventPublisher sourceControlEventPublisher,
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
@@ -82,6 +87,7 @@ public class PullRequestPollingService
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.sourceControlDAO = sourceControlDAO;
+    this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlUtils = sourceControlUtils;
     this.gitClientFactory = gitClientFactory;
@@ -100,10 +106,12 @@ public class PullRequestPollingService
     PullRequestPollingTracker pollingTracker = new PullRequestPollingTracker(sourceControlDAO);
 
     // the pull requests we get back can be for any app that the related org and key have access to
-    for (PullRequest pullRequest : getPullRequestsFromScm(pollingTracker)) {
+    List<PullRequest> pullRequests = getPullRequestsFromScm(pollingTracker);
+    for (PullRequest pullRequest : pullRequests) {
       // we'll check all apps associated with the pull request's repository
       List<Application> applications = applicationDAO.getByRepositoryUrl(pullRequest.getRepository());
-      applications.forEach(app -> {
+      boolean pullRequestWasPersisted = false;
+      for (Application app : applications) {
         GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
 
         if (isRemediationPullRequest(pullRequest, app)) {
@@ -133,14 +141,25 @@ public class PullRequestPollingService
               gitRepositoryInfo.getRepositoryUrl(), pullRequest.getNumber(), app.getPublicId());
         }
         else {
+          if (!pullRequestWasPersisted) {
+            persistPullRequest(pullRequest);
+            pullRequestWasPersisted = true;
+          }
           createAndSendDiscoveredPullRequestEvent(app.getId(), pullRequest.getNumber(), pullRequest.getHead(),
               pullRequest.getHeadCommitHash());
         }
 
         pollingTracker.onPullRequestProcessedForApplication(app.getId(), pullRequest.getCreated());
         log.debug("Pull request polling time updated for '{}'", pullRequest.getRepository());
-      });
+      }
     }
+  }
+
+  private void persistPullRequest(PullRequest pullRequest) {
+    SourceControlPullRequest sourceControlPullRequest =
+        new SourceControlPullRequest(pullRequest.getRepository(), pullRequest.getNumber(),
+            pullRequest.getHeadCommitHash(), pullRequest.getHead(), pullRequest.getCreated(), new Date(), new Date());
+    sourceControlPullRequestDAO.insert(sourceControlPullRequest);
   }
 
   /**

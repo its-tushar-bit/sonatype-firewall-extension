@@ -163,6 +163,28 @@ public class SourceControlEventServiceTest
   }
 
   @Test
+  public void testProcessEvents_onUpdatedPullRequestEvent() throws Exception {
+    // given: an event DAO setup to return an application evaluation event
+    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.UPDATED_PULL_REQUEST_EVENT);
+    when(mockSourceControlEventDAO.selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
+        .thenReturn(events);
+
+    CountDownLatch eventsProcessedLatch = createOnEventFinishedLatch(events.get(0));
+
+    // when: process the events
+    eventService.processEvents();
+
+    // then: pull request processing invoked for the given event
+    verifyUnlatched(eventsProcessedLatch);
+    verifyProcessEventsActions(events.get(0), EventProcessAction.markedInProgress, EventProcessAction.onPrDiscovered,
+        EventProcessAction.markedComplete);
+
+    assertThatLogMessagesEqual(
+        debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 1"),
+        debug(getProcessedEventMessage(events.get(0))));
+  }
+
+  @Test
   public void testProcessEvents_onRemediationPullRequestEvent() throws Exception {
     // given: an event DAO setup to return an application evaluation event
     List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);

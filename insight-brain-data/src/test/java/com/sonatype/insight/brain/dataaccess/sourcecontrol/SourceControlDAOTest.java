@@ -863,7 +863,7 @@ public class SourceControlDAOTest
   }
 
   private SourceControl createRootOrgWithGitHubProvider() {
-    return tempEntity.newSourceControl(org.getParentOrganizationId(), null, null, SourceControlProvider.GITHUB);
+    return tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
   }
 
   private Date toDate(LocalDateTime localDateTime) {
@@ -983,5 +983,44 @@ public class SourceControlDAOTest
     // repository URL).
     sourceControlDAO.delete(sourceControl1);
     assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(0);
+  }
+
+  @Test
+  public void testUpdate_DeletesOrphanPullRequestsIfRepositoryUrlIsChanged() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // And two source controls (for two apps) with the same repository URL
+    Application app1 = tempEntity.newApplicationWithParent();
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
+    SourceControl sourceControl1 = tempEntity.newSourceControl(app1.getId(), VALID_URL);
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
+        new Date());
+
+    // Then update should not delete pull requests (because there were two source control records with the same
+    // repository URL).
+    sourceControl.setRepositoryUrl(VALID_URL + "Updated");
+    sourceControlDAO.update(sourceControl);
+    assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
+
+    // Then update should delete pull requests (because there is only one source control record left with that
+    // repository URL).
+    sourceControl1.setRepositoryUrl(VALID_URL + "Updated1");
+    sourceControlDAO.update(sourceControl1);
+    assertThat(new SourceControlPullRequestDAO().getAll()).isEmpty();
+  }
+
+  @Test
+  public void testUpdate_DoesNotDeletePullRequestsIfRepositoryUrlIsNotChanged() {
+    // given a root org with github as a provider
+    createRootOrgWithGitHubProvider();
+    // And a source control and a pull request
+    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL);
+    tempEntity.newSourceControlPullRequest(VALID_URL, 1, "testCommitHash", "testBranch", new Date(), new Date(),
+        new Date());
+
+    // Then update should not delete pull requests
+    sourceControl.setToken(sourceControl.getToken() + "Updated");
+    sourceControlDAO.update(sourceControl);
+    assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
   }
 }

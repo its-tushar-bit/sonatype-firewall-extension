@@ -17,11 +17,13 @@ import java.util.UUID;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -36,9 +38,11 @@ import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -54,6 +58,9 @@ public class PullRequestPollingServiceTest
 {
   @Mock
   SourceControlEventPublisher sourceControlEventPublisher;
+
+  @Mock
+  private SourceControlPullRequestDAO mockSourceControlPullRequestDAO;
 
   private Map<String, PullRequestInfoProvider> mockClientMap = new HashMap<>();
 
@@ -120,9 +127,18 @@ public class PullRequestPollingServiceTest
         .build();
 
     // when: fetch and send
+    Date before = new Date();
     pollingService.fetchAndSendPullRequestsForCommenting();
+    Date after = new Date();
 
-    // then: event emitted
+    // then: pull request is persisted and event emitted
+    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequest.class);
+    verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
+    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/org7/repo7", 10,
+        "feature-commit-xyz-1", "feature-branch", pullRequestCreateDate, before, after);
+
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org7' since " + pullRequestPollingTime),
@@ -130,6 +146,41 @@ public class PullRequestPollingServiceTest
             "'feature-commit-xyz-1'"),
         debug("Pull request polling time updated for 'https://domain.com/org7/repo7'")
     );
+  }
+
+  @Test
+  public void testFetchAndSendPullRequestsForCommenting_MultipleAppsSameRepositoryUrl() throws IOException {
+    // given:
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app1", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
+        .forRepository("testorg/testrepo", SourceControlProvider.GITHUB).withApplication("app2", "main-branch")
+        .withPollingTime(pullRequestPollingTime).build();
+
+    // when: fetch and send
+    Date before = new Date();
+    pollingService.fetchAndSendPullRequestsForCommenting();
+    Date after = new Date();
+
+    // then: one pull request is persisted and two events are emitted
+    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequest.class);
+    verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
+    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/testorg/testrepo", 10,
+        "feature-commit-xyz-1", "feature-branch", pullRequestCreateDate, before, after);
+
+    verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
+    assertThatLogMessagesEqual(debug("Fetched 1 pull request(s) for org 'testorg' since " + pullRequestPollingTime),
+        info("Sent pull request discovered event for application 'app1' with PR# '10' and commit "
+            + "'feature-commit-xyz-1'"),
+        debug("Pull request polling time updated for 'https://domain.com/testorg/testrepo'"),
+        info("Sent pull request discovered event for application 'app2' with PR# '10' and commit "
+            + "'feature-commit-xyz-1'"),
+        debug("Pull request polling time updated for 'https://domain.com/testorg/testrepo'"));
   }
 
   @Test
@@ -172,9 +223,18 @@ public class PullRequestPollingServiceTest
         .build();
 
     // when: fetch and send
+    Date before = new Date();
     pollingService.fetchAndSendPullRequestsForCommenting();
+    Date after = new Date();
 
-    // then: event emitted
+    // then: pull request is persisted and event emitted
+    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequest.class);
+    verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
+    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/org3/repo3", 10,
+        "feature-commit-xyz-1", "feature-branch", pullRequestCreateDate, before, after);
+
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org3' since " + pullRequestPollingTime),
@@ -182,6 +242,25 @@ public class PullRequestPollingServiceTest
             "'feature-commit-xyz-1'"),
         debug("Pull request polling time updated for 'https://domain.com/org3/repo3'")
     );
+  }
+
+  private void assertSourceControlPullRequest(
+      SourceControlPullRequest actual,
+      String repositoryUrl,
+      int pullRequestId,
+      String headCommitHash,
+      String branchName,
+      Date createTime,
+      Date before,
+      Date after)
+  {
+    assertThat(actual.getRepositoryUrl()).isEqualTo(repositoryUrl);
+    assertThat(actual.getPullRequestId()).isEqualTo(pullRequestId);
+    assertThat(actual.getHeadCommitHash()).isEqualTo(headCommitHash);
+    assertThat(actual.getBranchName()).isEqualTo(branchName);
+    assertThat(actual.getCreateTime()).isEqualTo(createTime);
+    assertThat(actual.getLastCheckTime()).isBetween(before, after, true, true);
+    assertThat(actual.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
   }
 
   @Test
@@ -199,9 +278,18 @@ public class PullRequestPollingServiceTest
         .build();
 
     // when: fetch and send
+    Date before = new Date();
     pollingService.fetchAndSendPullRequestsForCommenting();
+    Date after = new Date();
 
-    // then: event emitted
+    // then: pull request is persisted and event emitted
+    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequest.class);
+    verify(mockSourceControlPullRequestDAO, times(1)).insert(sourceControlPullRequestArgumentCaptor.capture());
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequestArgumentCaptor.getValue();
+    assertSourceControlPullRequest(sourceControlPullRequest, "https://domain.com/orgint/repoint", 10,
+        "feature-commit-xyz-1", "feature-branch", pullRequestCreateDate, before, after);
+
     verify(sourceControlEventPublisher, times(1)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'orgInt' since " + pullRequestPollingTime),
@@ -335,9 +423,20 @@ public class PullRequestPollingServiceTest
         .build();
 
     // when:
+    Date before = new Date();
     pollingService.fetchAndSendPullRequestsForCommenting();
+    Date after = new Date();
 
-    // then:
+    // then: pull requests are persisted and events emitted
+    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequest.class);
+    verify(mockSourceControlPullRequestDAO, times(2)).insert(sourceControlPullRequestArgumentCaptor.capture());
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestArgumentCaptor.getAllValues();
+    assertSourceControlPullRequest(sourceControlPullRequests.get(0), "https://domain.com/org/multi-1", 10,
+        "feature-commit-xyz-1", "feature-branch", repo1pullRequestCreateDate, before, after);
+    assertSourceControlPullRequest(sourceControlPullRequests.get(1), "https://domain.com/org/multi-2", 20,
+        "feature-commit-abc-2", "R2-feature-branch", repo2pullRequestCreateDate, before, after);
+
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 1 pull request(s) for org 'org' repo 'multi-1' since " + repo1pullRequestPollingTime),
@@ -403,9 +502,20 @@ public class PullRequestPollingServiceTest
         .build();
 
     // when:
+    Date before = new Date();
     pollingService.fetchAndSendPullRequestsForCommenting();
+    Date after = new Date();
 
-    // then:
+    // then: pull requests are persisted and events emitted
+    ArgumentCaptor<SourceControlPullRequest> sourceControlPullRequestArgumentCaptor =
+        ArgumentCaptor.forClass(SourceControlPullRequest.class);
+    verify(mockSourceControlPullRequestDAO, times(2)).insert(sourceControlPullRequestArgumentCaptor.capture());
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestArgumentCaptor.getAllValues();
+    assertSourceControlPullRequest(sourceControlPullRequests.get(0), "https://domain.com/githuborg/multi-1", 10,
+        "feature-commit-xyz-1", "feature-branch", repo1pullRequestCreateDate, before, after);
+    assertSourceControlPullRequest(sourceControlPullRequests.get(1), "https://domain.com/githuborg/multi-2", 20,
+        "feature-commit-abc-2", "R2-feature-branch", repo2pullRequestCreateDate, before, after);
+
     verify(sourceControlEventPublisher, times(2)).publishEvent(any(SourceControlEvent.class));
     assertThatLogMessagesEqual(
         debug("Fetched 2 pull request(s) for org 'githubOrg' since " + repo1pullRequestPollingTime),
@@ -527,8 +637,8 @@ public class PullRequestPollingServiceTest
       }
 
       return new PullRequestPollingService(mockApplicationDAO, mockPolicyEvaluationDAO, mockSourceControlDAO,
-          sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory, mockPullRequestRepositoryValidator,
-          mockSourceControlInstanceManager);
+          mockSourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,
+          mockPullRequestRepositoryValidator, mockSourceControlInstanceManager);
     }
 
     private List<SourceControl> buildSourceControlList(MockRepo mockRepo) {

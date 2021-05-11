@@ -256,6 +256,7 @@ public class SourceControlEventService
           break;
 
         case SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT:
+        case SourceControlEvent.UPDATED_PULL_REQUEST_EVENT:
           pullRequestCommentingEventHandler.onDiscoveredPullRequest(event);
           break;
 

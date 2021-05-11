@@ -49,13 +49,13 @@ export default function LegalDashboardPage(props) {
         <div className="nx-page-title nx-page-title__actions">
           <h1 className="nx-h1">Legal Obligations</h1>
         </div>
-        <div className="nx-tile nx-viewport-sized__container">
-          <div className="nx-tile-content nx-viewport-sized__container">
-            <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
-              <NxTabList>
-                <NxTab>Applications</NxTab>
-              </NxTabList>
-              <NxTabPanel className="nx-viewport-sized__container">
+        <NxStatefulTabs className="nx-viewport-sized__container" defaultActiveTab={0} onTabSelect={() => {}}>
+          <NxTabList>
+            <NxTab>Applications</NxTab>
+          </NxTabList>
+          <NxTabPanel className="nx-viewport-sized__container">
+            <div className="nx-tile nx-viewport-sized__container">
+              <div className="nx-tile-content nx-viewport-sized__container">
                 <div className="nx-btn-bar">
                   <NxButton id="filter-toggle" className="btn" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
                     <NxFontAwesomeIcon icon={faFilter} />
@@ -72,10 +72,10 @@ export default function LegalDashboardPage(props) {
                   changeSortField={changeSortField}
                   stateGo={stateGo}
                 />
-              </NxTabPanel>
-            </NxStatefulTabs>
-          </div>
-        </div>
+              </div>
+            </div>
+          </NxTabPanel>
+        </NxStatefulTabs>
       </LoadWrapper>
     </main>
   );

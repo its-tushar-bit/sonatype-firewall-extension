@@ -61,6 +61,12 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-service</artifactId>
       <classifier>tests</classifier>
+      <exclusions>
+        <exclusion>
+          <groupId>org.antlr</groupId>
+          <artifactId>antlr4-runtime</artifactId>
+        </exclusion>
+      </exclusions>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -73,6 +79,12 @@
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-service</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.antlr</groupId>
+          <artifactId>antlr4-runtime</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>

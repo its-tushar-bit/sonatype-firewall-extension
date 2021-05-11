@@ -296,6 +296,7 @@ public abstract class DefaultPolicyEvaluatorTest
   public void testRun_Scan_Manifest() throws Exception {
     tempEntity.newApplicationWithParent("the-app-id");
     List<String> params = ImmutableList.of("-s", insightServerUrl, "-a", "admin:admin123", //
+        "-D", "poetryManifestScanningEnabled=true", //
         "-i", "the-app-id", "--output-directory", tempDir.getRoot().getAbsolutePath(), //
         "src/test/data/manifest/");
     withTestRunner(params)
@@ -305,7 +306,7 @@ public abstract class DefaultPolicyEvaluatorTest
     Scan scan = scanReader.read(scanFile);
     assertThat(scan).isNotNull();
 
-    assertThat(scan.getItems()).hasSize(21).allSatisfy(item -> {
+    assertThat(scan.getItems()).hasSize(22).allSatisfy(item -> {
           assertThat(item.getPath()).isNotNull();
           assertThat(item.getSha1()).isNotNull();
           assertThat(item.getContentType()).isNotNull();

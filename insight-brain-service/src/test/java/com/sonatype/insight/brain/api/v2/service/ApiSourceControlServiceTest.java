@@ -250,6 +250,20 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
+  public void testAddSourceControl_Create_DefaultBranch() throws Exception {
+    // when new source control with default branch is added
+    ApiSourceControlDTO actual = sourceControlService
+        .addOrUpdateSourceControl(app.getPublicId(), "https://github.com/context/org/a", "branch");
+
+    // then default branch is returned
+    assertThat(actual.baseBranch).isEqualTo("branch");
+
+    // and default branch is stored in database
+    SourceControl persisted = sourceControlDAO.getByIdNotNull(actual.id);
+    assertThat(persisted.getBaseBranch()).isEqualTo("branch");
+  }
+
+  @Test
   public void testAddSourceControlByOwner_TokenEncryption() throws Exception {
     final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)

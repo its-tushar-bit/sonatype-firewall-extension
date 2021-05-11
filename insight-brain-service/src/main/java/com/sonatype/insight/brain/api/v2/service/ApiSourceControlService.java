@@ -138,15 +138,25 @@ public class ApiSourceControlService
   @Authorize(permission = Permission.ADD_APPLICATION)
   public ApiSourceControlDTO addOrUpdateSourceControl(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
-      final String repositoryUrl)
+      final String repositoryUrl,
+      final String defaultBranch)
   {
-    return addOrUpdateSourceControl(publicId, repositoryUrl, true);
+    return addOrUpdateSourceControl(publicId, repositoryUrl, true, defaultBranch);
   }
 
   private ApiSourceControlDTO addOrUpdateSourceControl(
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
       final String repositoryUrl,
       final boolean bypassAutomatedSCM)
+  {
+    return addOrUpdateSourceControl(publicId, repositoryUrl, bypassAutomatedSCM, null);
+  }
+
+  private ApiSourceControlDTO addOrUpdateSourceControl(
+      @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String publicId,
+      final String repositoryUrl,
+      final boolean bypassAutomatedSCM,
+      final String defaultBranch)
   {
     checkLicense();
 
@@ -163,6 +173,7 @@ public class ApiSourceControlService
         sourceControl = new SourceControl.Builder()
             .setOwnerId(application.getId())
             .setRepositoryUrl(convertedRepositoryUrl)
+            .setBaseBranch(defaultBranch)
             .build();
         sourceControlDAO.insert(sourceControl);
         auditAndSendTelemetry(sourceControl, application.getId());

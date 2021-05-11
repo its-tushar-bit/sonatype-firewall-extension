@@ -432,6 +432,13 @@ public class ScmOnboardingTest
     // the long descriptions are trimmed
     scmOnboardingPage.resultsTableDescription().get(0).shouldHave(cssValue("text-overflow", "ellipsis"));
 
+    // and the default branches are populated
+    Actions actions = new Actions(WebDriverRunner.getWebDriver());
+    actions.moveToElement(scmOnboardingPage.resultsTableDefaultBranch().first());
+    actions.perform();
+    assertThat(scmOnboardingPage.resultsTableDefaultBranch().texts()).containsExactlyInAnyOrder("master", "main",
+        "prod", "golden", "boss", "shipit", "junk", "release", "ignition", "product", "liftoff", "top", "green");
+
     // and there is a hover tooltip over the trimmed description
     scmOnboardingPage.resultsTableDescription().get(0).hover();
     scmOnboardingPage.descriptionTooltip().should(matchText(".{101,}")).shouldNotHave(text("..."));

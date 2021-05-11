@@ -121,6 +121,10 @@ public class ScmOnboardingPage
     return children(".iq-scm-repository-namespace");
   }
 
+  public ElementsCollection resultsTableDefaultBranch() {
+    return children(".iq-scm-repository-default-branch");
+  }
+
   public SelenideElement donutChartPercentImported() {
     return $("#scm-imported-donut-chart");
   }

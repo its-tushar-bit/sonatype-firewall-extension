@@ -89,6 +89,7 @@ export default function ResultsTable(props) {
   const sortDirProject = getDirection(sortConfiguration, 'project');
   const sortDirNamespace = getDirection(sortConfiguration, 'namespace');
   const sortDirDescription = getDirection(sortConfiguration, 'description');
+  const sortDirDefaultBranch = getDirection(sortConfiguration, 'defaultBranch');
 
   function getDirection(sortConfig, key) {
     return sortConfig && sortConfig.key === key ? sortConfig.dir : null;
@@ -96,15 +97,19 @@ export default function ResultsTable(props) {
 
   const sortSettingsProject = {
     key: 'project',
-    sortingOrder: ['project', 'namespace', 'description'],
+    sortingOrder: ['project', 'namespace', 'description', 'defaultBranch'],
   };
   const sortSettingsNamespace = {
     key: 'namespace',
-    sortingOrder: ['namespace', 'project', 'description'],
+    sortingOrder: ['namespace', 'project', 'description', 'defaultBranch'],
   };
   const sortSettingsDescription = {
     key: 'description',
-    sortingOrder: ['description', 'namespace', 'project'],
+    sortingOrder: ['description', 'namespace', 'project', 'defaultBranch'],
+  };
+  const sortSettingsDefaultBranch = {
+    key: 'defaultBranch',
+    sortingOrder: ['defaultBranch', 'namespace', 'project', 'description'],
   };
 
   function requestSort(settings) {
@@ -181,6 +186,14 @@ export default function ResultsTable(props) {
             >
               Description
             </NxTableCell>
+            <NxTableCell
+              id="defaultBranch-header"
+              isSortable
+              sortDir={sortDirDefaultBranch}
+              onClick={() => requestSort(sortSettingsDefaultBranch)}
+            >
+              Default Branch
+            </NxTableCell>
           </NxTableRow>
           <NxTableRow isFilterHeader>
             <NxTableCell className="iq-scmonboarding__select-all-cell">
@@ -209,6 +222,7 @@ export default function ResultsTable(props) {
                 onChange={(filterValue) => changeFilter('description', filterValue)}
               />
             </NxTableCell>
+            <NxTableCell />
           </NxTableRow>
         </NxTableHead>
         <NxTableBody emptyMessage="No matching repositories.">
@@ -278,6 +292,7 @@ export function RepositoryRow(props) {
           <div className="nx-truncate-ellipsis">{repo.description}</div>
         </NxTooltip>
       </NxTableCell>
+      <NxTableCell className="iq-scm-repository-default-branch">{repo.defaultBranch}</NxTableCell>
     </NxTableRow>
   );
 }

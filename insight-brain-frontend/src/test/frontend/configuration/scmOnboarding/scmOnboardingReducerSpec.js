@@ -1215,7 +1215,7 @@ describe('scmOnboardingReducer', function () {
       });
       expect(newState.sortConfiguration).toEqual({
         key: 'namespace',
-        sortingOrder: ['namespace', 'project', 'description'],
+        sortingOrder: ['namespace', 'project', 'description', 'defaultBranch'],
         dir: 'asc',
       });
       expect(newState.rootCustomProp).toBeUndefined();

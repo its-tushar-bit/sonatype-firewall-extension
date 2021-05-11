@@ -371,7 +371,7 @@ public class ScmOnboardingService
       }
     }
     ApiSourceControlDTO apiSourceControlDTO =
-        apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl);
+        apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl, scmRepository.getDefaultBranch());
 
     if (insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {
       initiateSourceControlEvaluation(apiSourceControlDTO);

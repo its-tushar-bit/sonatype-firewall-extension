@@ -15,13 +15,14 @@ import {
   NxTable,
   NxTableBody,
   NxTableHead,
+  NxTableRow,
   NxTooltip,
 } from '@sonatype/react-shared-components';
 import NxExternalLink from '../../../../../main/frontend/react/NxExternalLink';
 import { createRepo } from './utils';
 
 describe('ResultsTable', function () {
-  let minimalPropsShallow, minimalPropsMounted, getShallowComponent, getMountedComponent;
+  let minimalPropsShallow, minimalPropsMounted, getShallowComponent, getMountedComponent, getShallowRepositoryRow;
 
   beforeEach(() => {
     minimalPropsShallow = {
@@ -34,6 +35,7 @@ describe('ResultsTable', function () {
 
     getShallowComponent = enzymeUtils.getShallowComponent(ResultsTable, minimalPropsShallow);
     getMountedComponent = enzymeUtils.getMountedComponent(ResultsTable, minimalPropsMounted);
+    getShallowRepositoryRow = enzymeUtils.getMountedComponent(RepositoryRow, minimalPropsMounted);
   });
 
   it('renders a table', () => {
@@ -53,6 +55,7 @@ describe('ResultsTable', function () {
           namespace: 'namespace',
           project: 'project',
           description: 'description',
+          defaultBranch: 'defaultBranch',
           isSelected: false,
           isImported: false,
         },
@@ -175,17 +178,19 @@ describe('ResultsTable', function () {
 
   describe('Requests sorting', () => {
     ['asc', 'desc'].forEach((configuredDirection) => {
-      ['namespace', 'project', 'description'].forEach((selectedField) => {
+      ['namespace', 'project', 'description', 'defaultBranch'].forEach((selectedField) => {
         const expectedSortFields = {
           asc: {
-            namespace: ['namespace', 'project', 'description'],
-            project: ['project', 'namespace', 'description'],
-            description: ['description', 'namespace', 'project'],
+            namespace: ['namespace', 'project', 'description', 'defaultBranch'],
+            project: ['project', 'namespace', 'description', 'defaultBranch'],
+            description: ['description', 'namespace', 'project', 'defaultBranch'],
+            defaultBranch: ['defaultBranch', 'namespace', 'project', 'description'],
           },
           desc: {
-            namespace: ['-namespace', 'project', 'description'],
-            project: ['-project', 'namespace', 'description'],
-            description: ['-description', 'namespace', 'project'],
+            namespace: ['-namespace', 'project', 'description', 'defaultBranch'],
+            project: ['-project', 'namespace', 'description', 'defaultBranch'],
+            description: ['-description', 'namespace', 'project', 'defaultBranch'],
+            defaultBranch: ['-defaultBranch', 'namespace', 'project', 'description'],
           },
         };
 
@@ -329,6 +334,32 @@ describe('ResultsTable', function () {
           repositories[4],
         ]);
       });
+    });
+  });
+
+  describe('Repository row', () => {
+    const repository = {
+      httpCloneUrl: 'https://example.com/',
+      namespace: 'namespace',
+      project: 'project',
+      description: 'description',
+      defaultBranch: 'defaultBranch',
+      isSelected: false,
+      isImported: false,
+    };
+
+    it('Renders RepositoryRow fields', () => {
+      const component = getShallowRepositoryRow({ rowKey: 'key', repo: repository });
+      const row = component.find(NxTableRow),
+        defaultBranch = row.find('.iq-scm-repository-default-branch').first(),
+        description = row.find('.iq-scm-repository-description').first(),
+        project = row.find('.iq-scm-repository-project').find(NxExternalLink).first(),
+        namespace = row.find('.iq-scm-repository-namespace').first();
+
+      expect(defaultBranch.text()).toEqual('defaultBranch');
+      expect(description.text()).toEqual('description');
+      expect(project.text().trim()).toEqual('project');
+      expect(namespace.text()).toEqual('namespace');
     });
   });
 });

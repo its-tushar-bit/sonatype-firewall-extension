@@ -79,7 +79,7 @@ const initialState = {
   },
   sortConfiguration: {
     key: 'namespace',
-    sortingOrder: ['namespace', 'project', 'description'],
+    sortingOrder: ['namespace', 'project', 'description', 'defaultBranch'],
     dir: 'asc',
   },
 };

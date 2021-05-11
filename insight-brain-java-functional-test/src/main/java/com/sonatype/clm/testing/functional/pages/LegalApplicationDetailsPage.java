@@ -52,6 +52,22 @@ public class LegalApplicationDetailsPage
       return $("#legal-application-license-filter");
     }
 
+    public SelenideElement sortByComponent() {
+      return $(".legal-application-details-table-component span.nx-cell__sort-icons");
+    }
+
+    public SelenideElement sortByLicenses() {
+      return $(".legal-application-details-table-licenses span.nx-cell__sort-icons");
+    }
+
+    public SelenideElement sortByPercentage() {
+      return $(".legal-application-details-table-review-progress span.nx-cell__sort-icons");
+    }
+
+    public SelenideElement sortByReviewStatus() {
+      return $(".legal-application-details-table-review-status span.nx-cell__sort-icons");
+    }
+
     public ElementsCollection componentNames() {
       return getElement().findAll("tr.nx-clickable td.legal-application-details-component-name");
     }

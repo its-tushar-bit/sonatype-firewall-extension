@@ -75,6 +75,7 @@ describe('LegalApplicationDetailsPage', function () {
         loading: false,
       },
       loadApplication: loadApplicationSpy,
+      sort: {},
       $state: stateSpy,
     };
 

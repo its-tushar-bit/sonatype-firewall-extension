@@ -41,3 +41,11 @@ export const reviewStatusDisplayNames = {
   UNREVIEWED: 'Unreviewed',
   COMPLETED: 'Completed',
 };
+
+export const statusRanking = {
+  FLAGGED: 10,
+  IN_PROGRESS: 7,
+  UNREVIEWED: 5,
+  NOT_STARTED: 3,
+  COMPLETED: 1,
+};

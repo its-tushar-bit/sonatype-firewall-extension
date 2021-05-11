@@ -9,7 +9,15 @@ import configureStore from 'redux-mock-store';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
 
 describe('LegalApplicationDetailsContainer', function () {
-  let store, state, vdom, LegalApplicationDetailsContainer, loadApplicationMock, stateGoMock;
+  let store,
+    state,
+    vdom,
+    LegalApplicationDetailsContainer,
+    loadApplicationMock,
+    stateGoMock,
+    updateLegalSortOrderMock,
+    updateComponentNameFilterMock,
+    updateLicenseNameFilterMock;
 
   beforeEach(function () {
     state = {
@@ -17,6 +25,7 @@ describe('LegalApplicationDetailsContainer', function () {
         application: 'application',
         stageType: 'stageType',
         components: 'components',
+        sort: 'sort',
       },
       router: {
         currentParams: {
@@ -28,6 +37,18 @@ describe('LegalApplicationDetailsContainer', function () {
 
     loadApplicationMock = jasmine.createSpy('loadApplication').and.returnValue({ type: 'FOO' });
     stateGoMock = jasmine.createSpy('stateGo').and.returnValue({ type: 'BAR' });
+    updateLegalSortOrderMock = jasmine
+      .createSpy('updateLegalSortOrder')
+      .and.returnValue({ type: 'updateLegalSortOrder' });
+    updateComponentNameFilterMock = jasmine
+      .createSpy('updateLegalSortOrder')
+      .and.returnValue({ type: 'updateComponentNameFilter' });
+    updateLicenseNameFilterMock = jasmine
+      .createSpy('updateLegalSortOrder')
+      .and.returnValue({ type: 'updateLicenseNameFilter' });
+    updateLegalSortOrderMock = jasmine
+      .createSpy('updateLegalSortOrder')
+      .and.returnValue({ type: 'updateLegalSortOrder' });
 
     LegalApplicationDetailsContainer = require('inject-loader!../../../../main/frontend/legal/application/LegalApplicationDetailsContainer')(
       {
@@ -36,6 +57,11 @@ describe('LegalApplicationDetailsContainer', function () {
         },
         '../../reduxUiRouter/routerActions': {
           stateGo: stateGoMock,
+        },
+        './filter/legalApplicationDetailsFilterActions': {
+          updateComponentNameFilter: updateComponentNameFilterMock,
+          updateLicenseNameFilter: updateLicenseNameFilterMock,
+          updateLegalSortOrder: updateLegalSortOrderMock,
         },
       }
     ).default;
@@ -51,6 +77,7 @@ describe('LegalApplicationDetailsContainer', function () {
     expect(wrapper).toHaveProp('components', 'components');
     expect(wrapper).toHaveProp('applicationPublicId', 'appId');
     expect(wrapper).toHaveProp('stageTypeId', 'develop');
+    expect(wrapper).toHaveProp('sort', 'sort');
   });
 
   it('correctly maps the action creators to the LegalApplicationDetailsContainer props', function () {
@@ -66,6 +93,21 @@ describe('LegalApplicationDetailsContainer', function () {
     expect(stateGoActionCreator).toEqual(jasmine.any(Function));
     stateGoActionCreator('test');
     expect(store.getActions()[1]).toEqual({ type: 'BAR' });
+
+    const updateLegalSortOrderActionCreator = wrapper.prop('updateLegalSortOrder');
+    expect(updateLegalSortOrderActionCreator).toEqual(jasmine.any(Function));
+    updateLegalSortOrderActionCreator('test');
+    expect(store.getActions()[2]).toEqual({ type: 'updateLegalSortOrder' });
+
+    const changeComponentNameFilterActionCreator = wrapper.prop('changeComponentNameFilter');
+    expect(changeComponentNameFilterActionCreator).toEqual(jasmine.any(Function));
+    changeComponentNameFilterActionCreator('test');
+    expect(store.getActions()[3]).toEqual({ type: 'updateComponentNameFilter' });
+
+    const changeLicenseNameFilterActionCreator = wrapper.prop('changeLicenseNameFilter');
+    expect(changeLicenseNameFilterActionCreator).toEqual(jasmine.any(Function));
+    changeLicenseNameFilterActionCreator('test');
+    expect(store.getActions()[4]).toEqual({ type: 'updateLicenseNameFilter' });
   });
 
   it('renders LegalApplicationDetailsPage component', function () {

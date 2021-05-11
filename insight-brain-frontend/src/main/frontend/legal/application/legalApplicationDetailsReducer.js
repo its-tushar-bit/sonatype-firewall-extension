@@ -10,6 +10,7 @@ import { getLicenseThreatGroupsFromLicense } from '../legalUtility';
 import {
   LEGAL_APPLICATION_DETAILS_SET_COMPONENT_NAME_FILTER,
   LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER,
+  LEGAL_APPLICATION_DETAILS_SET_SORT,
   LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER,
 } from './filter/legalApplicationDetailsFilterActions';
 import {
@@ -23,6 +24,7 @@ import {
   LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FULFILLED,
   LEGAL_APPLICATION_DETAILS_LOAD_COMPONENTS_FAILED,
 } from './legalApplicationDetailsActions';
+import { statusRanking } from '../dashboard/legalDashboardConstants';
 
 const initState = {
   application: {
@@ -45,10 +47,7 @@ const initState = {
   licenseFilter: '',
   reviewStatusFilter: Object.freeze([]),
   licenseThreatGroupFilter: Object.freeze([]),
-  sort: Object.freeze({
-    column: 'component',
-    sortOrder: 'asc',
-  }),
+  sort: {},
   page: 1,
   selected: Object.freeze({
     progressOptions: new Set(),
@@ -104,6 +103,8 @@ export default function (state = initState, { type, payload }) {
       return applyFilters(setComponentFilter(state, payload));
     case LEGAL_APPLICATION_DETAILS_SET_LICENSE_NAME_FILTER:
       return applyFilters(setLicenseFilter(state, payload));
+    case LEGAL_APPLICATION_DETAILS_SET_SORT:
+      return applyFilters(setSortOrder(state, payload));
     default:
       return state;
   }
@@ -120,7 +121,8 @@ const licensesAsString = (licenses) =>
     .toLowerCase();
 
 const applyFilters = (state) => {
-  const { progressOptions, licenseThreatGroups } = state.selected;
+  const { componentFilter, licenseFilter, selected, sort } = state;
+  const { progressOptions, licenseThreatGroups } = selected;
   let filteredResults = state.components.results.filter(
     (component) => progressOptions.size === 0 || progressOptions.has(component.reviewStatus)
   );
@@ -138,26 +140,46 @@ const applyFilters = (state) => {
   )(filteredResults);
 
   const filterByComponentName = (component) =>
-    !state.componentFilter || component.displayName.toLowerCase().includes(state.componentFilter.toLowerCase().trim());
+    !componentFilter || component.displayName.toLowerCase().includes(componentFilter.toLowerCase().trim());
 
   const filterByLicenseName = (component) =>
-    !state.licenseFilter || licensesAsString(component.licenses).includes(state.licenseFilter.toLowerCase().trim());
+    !licenseFilter || licensesAsString(component.licenses).includes(licenseFilter.toLowerCase().trim());
 
-  filteredResults = filteredResults.filter(filterByComponentName).filter(filterByLicenseName);
+  const reviewPercentage = (component) =>
+    component.reviewTotalCount > 0
+      ? Math.min(100, (component.reviewCompletedCount * 100) / component.reviewTotalCount)
+      : 0;
+
+  const sortFn = (a, b) => {
+    let comparison = 0;
+
+    if (!sort.sortOrder) return 0;
+
+    switch (sort.column) {
+      case 'component':
+        comparison = a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
+        break;
+      case 'licenses':
+        comparison = licensesAsString(a.licenses).localeCompare(licensesAsString(b.licenses));
+        break;
+      case 'progress':
+        comparison = reviewPercentage(a) - reviewPercentage(b);
+        break;
+      case 'status':
+        comparison = statusRanking[a.reviewStatus] - statusRanking[b.reviewStatus];
+        break;
+    }
+
+    return sort.sortOrder === 'asc' ? comparison : comparison * -1;
+  };
+
+  filteredResults = filteredResults.filter(filterByComponentName).filter(filterByLicenseName).sort(sortFn);
 
   return pathSet(['components', 'filteredResults'], filteredResults, state);
 };
 
-const setComponentFilter = (state, payload) => {
-  return {
-    ...state,
-    componentFilter: payload.filter,
-  };
-};
+const setComponentFilter = (state, payload) => ({ ...state, componentFilter: payload.filter });
 
-const setLicenseFilter = (state, payload) => {
-  return {
-    ...state,
-    licenseFilter: payload.filter,
-  };
-};
+const setLicenseFilter = (state, payload) => ({ ...state, licenseFilter: payload.filter });
+
+const setSortOrder = (state, payload) => ({ ...state, sort: payload });

@@ -9,11 +9,18 @@ import { pick } from 'ramda';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import LegalApplicationDetailsPage from './LegalApplicationDetailsPage';
 import * as legalApplicationDetailsActions from './legalApplicationDetailsActions';
-import { updateComponentNameFilter, updateLicenseNameFilter } from './filter/legalApplicationDetailsFilterActions';
+import {
+  updateComponentNameFilter,
+  updateLegalSortOrder,
+  updateLicenseNameFilter,
+} from './filter/legalApplicationDetailsFilterActions';
 
 function mapStateToProps({ legalApplicationDetails, router }) {
   return {
-    ...pick(['application', 'stageType', 'components', 'componentFilter', 'licenseFilter'], legalApplicationDetails),
+    ...pick(
+      ['application', 'stageType', 'components', 'componentFilter', 'licenseFilter', 'sort'],
+      legalApplicationDetails
+    ),
     ...pick(['applicationPublicId', 'stageTypeId'], router.currentParams),
   };
 }
@@ -22,6 +29,7 @@ const mapDispatchToProps = {
   ...legalApplicationDetailsActions,
   changeComponentNameFilter: updateComponentNameFilter,
   changeLicenseNameFilter: updateLicenseNameFilter,
+  updateLegalSortOrder,
   stateGo,
 };
 

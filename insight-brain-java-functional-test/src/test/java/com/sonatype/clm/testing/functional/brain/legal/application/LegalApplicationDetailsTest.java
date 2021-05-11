@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.LegalApplicationDetailsPage.Com
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
 import com.codeborne.selenide.CollectionCondition;
@@ -60,6 +61,12 @@ public class LegalApplicationDetailsTest
     addComponentAndLicenses("org.package", "component1", "1.0", "hash1", "Apache-2.0");
     addComponentAndLicenses("org.package", "component2", "2.0", "hash2", "BSD-3-Clause");
     addComponentAndLicenses("com.package", "component1", "3.0", "hash3", "BSD-2-Clause");
+    tempEntity.newComponentObligation(ComponentIdentifier.createMavenCoordinates("org.package", "component1", "1.0"),
+        app.getId(), "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash1");
+    tempEntity.newComponentObligation(ComponentIdentifier.createMavenCoordinates("org.package", "component2", "2.0"),
+        app.getId(), "Inclusion of Notice", "comment", ObligationStatus.FULFILLED, "hash2");
+    tempEntity.newComponentObligation(ComponentIdentifier.createMavenCoordinates("com.package", "component1", "3.0"),
+        app.getId(), "Inclusion of Notice", "comment", ObligationStatus.FLAGGED, "hash3");
 
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
@@ -154,5 +161,36 @@ public class LegalApplicationDetailsTest
     componentTable.licenseFilter().setValue("BSD");
     componentTable.componentNames().shouldHave(CollectionCondition.texts("org.package : component2 : 2.0"));
     componentTable.licenses().shouldHave(CollectionCondition.textsInAnyOrder("BSD-3-Clause"));
+  }
+
+  @Test
+  public void testSortByComponent() {
+    final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
+
+    componentTable.componentNames().shouldHaveSize(3);
+    eyesWatcher.eyesCheck();
+    componentTable.sortByComponent().click();
+    componentTable.componentNames().get(0).shouldHave(text("com.package : component1 : 3.0"));
+    componentTable.componentNames().get(1).shouldHave(text("org.package : component1 : 1.0"));
+    componentTable.componentNames().get(2).shouldHave(text("org.package : component2 : 2.0"));
+    componentTable.sortByComponent().click();
+    componentTable.componentNames().get(0).shouldHave(text("org.package : component2 : 2.0"));
+    componentTable.componentNames().get(1).shouldHave(text("org.package : component1 : 1.0"));
+    componentTable.componentNames().get(2).shouldHave(text("com.package : component1 : 3.0"));
+  }
+
+  @Test
+  public void testSortByLicenses() {
+    final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
+
+    componentTable.componentNames().shouldHaveSize(3);
+    componentTable.sortByLicenses().click();
+    componentTable.licenses().get(0).shouldHave(text("Apache-2.0"));
+    componentTable.licenses().get(1).shouldHave(text("BSD-2-Clause"));
+    componentTable.licenses().get(2).shouldHave(text("BSD-3-Clause"));
+    componentTable.sortByLicenses().click();
+    componentTable.licenses().get(0).shouldHave(text("BSD-3-Clause"));
+    componentTable.licenses().get(1).shouldHave(text("BSD-2-Clause"));
+    componentTable.licenses().get(2).shouldHave(text("Apache-2.0"));
   }
 }

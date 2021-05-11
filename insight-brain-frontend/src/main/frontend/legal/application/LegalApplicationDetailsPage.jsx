@@ -31,10 +31,12 @@ export default function LegalApplicationDetailsPage(props) {
     components,
     componentFilter,
     licenseFilter,
+    sort,
     $state,
     loadApplication,
     changeComponentNameFilter,
     changeLicenseNameFilter,
+    updateLegalSortOrder,
     stateGo,
   } = props;
 
@@ -54,6 +56,34 @@ export default function LegalApplicationDetailsPage(props) {
   );
 
   const errorLoading = application.error || stageType.error;
+
+  const componentSortOrder = sort.column === 'component' ? sort.sortOrder : null;
+  const licensesSortOrder = sort.column === 'licenses' ? sort.sortOrder : null;
+  const progressSortOrder = sort.column === 'progress' ? sort.sortOrder : null;
+  const statusSortOrder = sort.column === 'status' ? sort.sortOrder : null;
+
+  const invertSortOrder = (order) => (order === 'asc' ? 'desc' : 'asc');
+
+  const updateComponentSortOrder = () =>
+    updateLegalSortOrder({
+      column: 'component',
+      sortOrder: invertSortOrder(componentSortOrder),
+    });
+  const updateLicenseSortOrder = () =>
+    updateLegalSortOrder({
+      column: 'licenses',
+      sortOrder: invertSortOrder(licensesSortOrder),
+    });
+  const updateProgressSortOrder = () =>
+    updateLegalSortOrder({
+      column: 'progress',
+      sortOrder: invertSortOrder(progressSortOrder),
+    });
+  const updateStatusSortOrder = () =>
+    updateLegalSortOrder({
+      column: 'status',
+      sortOrder: invertSortOrder(statusSortOrder),
+    });
 
   return (
     <Fragment>
@@ -86,12 +116,38 @@ export default function LegalApplicationDetailsPage(props) {
             <NxTable id="legal-application-details-table" className="legal-dashboard-table">
               <NxTableHead>
                 <NxTableRow>
-                  <NxTableCell>Component</NxTableCell>
-                  <NxTableCell>Licenses</NxTableCell>
-                  <NxTableCell className="legal-application-details-table-review-progress">
+                  <NxTableCell
+                    isSortable
+                    sortDir={componentSortOrder}
+                    onClick={updateComponentSortOrder}
+                    className="legal-application-details-table-component"
+                  >
+                    Component
+                  </NxTableCell>
+                  <NxTableCell
+                    isSortable
+                    sortDir={licensesSortOrder}
+                    onClick={updateLicenseSortOrder}
+                    className="legal-application-details-table-licenses"
+                  >
+                    Licenses
+                  </NxTableCell>
+                  <NxTableCell
+                    isSortable
+                    sortDir={progressSortOrder}
+                    onClick={updateProgressSortOrder}
+                    className="legal-application-details-table-review-progress"
+                  >
                     Completed Obligations
                   </NxTableCell>
-                  <NxTableCell className="legal-application-details-table-review-status">Review Status</NxTableCell>
+                  <NxTableCell
+                    isSortable
+                    sortDir={statusSortOrder}
+                    onClick={updateStatusSortOrder}
+                    className="legal-application-details-table-review-status"
+                  >
+                    Review Status
+                  </NxTableCell>
                 </NxTableRow>
               </NxTableHead>
               <NxTableBody
@@ -157,9 +213,14 @@ LegalApplicationDetailsPage.propTypes = {
   }),
   componentFilter: PropTypes.string,
   licenseFilter: PropTypes.string,
+  sort: PropTypes.shape({
+    column: PropTypes.string,
+    sortOrder: PropTypes.string,
+  }),
   $state: PropTypes.object.isRequired,
   loadApplication: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,
   changeComponentNameFilter: PropTypes.func.isRequired,
   changeLicenseNameFilter: PropTypes.func.isRequired,
+  updateLegalSortOrder: PropTypes.func.isRequired,
 };

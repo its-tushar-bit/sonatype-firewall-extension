@@ -206,6 +206,10 @@ export function getFirewallReleaseQuarantineSummaryUrl() {
   return uriTemplate`/api/experimental/firewall/releaseQuarantine/summary`;
 }
 
+export function getSuccessMetricsConfigUrl() {
+  return uriTemplate`/rest/successMetrics`;
+}
+
 export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc) {
   let params = toURIParams({
     page: page,
@@ -706,7 +710,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return `${baseUrl.get()}/rest/policyViolationGrandfathering/grandfather/${appId}`;
       },
 
-      getSuccessMetricsConfigUrl: () => `${baseUrl.get()}/rest/successMetrics`,
+      getSuccessMetricsConfigUrl,
 
       getSuccessMetricsChartDataUrl: (successMetricsReportId) =>
         `${baseUrl.get()}/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/chartData`,

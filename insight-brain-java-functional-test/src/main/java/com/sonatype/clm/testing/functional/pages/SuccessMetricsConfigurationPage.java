@@ -6,7 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.Toggle;
+import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -25,19 +25,19 @@ public class SuccessMetricsConfigurationPage
   }
 
   public SelenideElement header() {
-    return child(".iq-tile-header");
+    return child(".nx-tile-header");
   }
 
   public SelenideElement explanation() {
-    return child("#success-metrics-explanation");
+    return child(".nx-toggle__content");
   }
 
-  public Toggle toggle() {
-    return new Toggle(childSelector("#success-metrics-toggle"));
+  public NxToggle toggle() {
+    return new NxToggle(childSelector("#success-metrics-toggle"));
   }
 
   public SelenideElement update() {
-    return child("#success-metrics-update");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement cancel() {

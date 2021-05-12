@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { load as loadAdvancedSearchConfig } from '../configuration/advancedSearch/advancedSearchConfigActions';
+import { load as loadSuccessMetricsConfig } from '../configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 import template from './navigationContainer.html';
 import { path } from 'ramda';
 
@@ -48,14 +49,11 @@ function NavigationContainerController(
 
   function doLoad() {
     CurrentUser.waitForLogin().then(function () {
-      systemConfigurationPropertyService.isSuccessMetricsEnabled().then(function (data) {
-        vm.isSuccessMetricsEnabled = data;
-      });
-
       const unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
       $scope.$on('$destroy', unsubscribe);
 
       $ngRedux.dispatch(loadAdvancedSearchConfig());
+      $ngRedux.dispatch(loadSuccessMetricsConfig());
 
       ProductFeatures.load().then(function () {
         vm.isFirewallSupported =
@@ -65,10 +63,6 @@ function NavigationContainerController(
       });
     });
   }
-
-  $scope.$on('successMetricsConfigurationUpdated', function (event, newValue) {
-    vm.isSuccessMetricsEnabled = newValue;
-  });
 
   function isLoggedIn() {
     return $rootScope.username;
@@ -82,6 +76,7 @@ function NavigationContainerController(
 function mapStateToThis(state) {
   return {
     isAdvancedSearchEnabled: path(['advancedSearchConfig', 'serverData', 'isEnabled'], state),
+    isSuccessMetricsEnabled: path(['successMetricsConfiguration', 'serverData', 'enabled'], state),
   };
 }
 

@@ -6,7 +6,6 @@
 import { react2angular } from 'react2angular';
 
 import gettingStartedModule from './gettingStarted/module';
-import successMetricsConfigurationModule from './successMetricsConfiguration/successMetricsConfigurationModule';
 import systemNoticeConfigurationModule from './systemNoticeConfiguration/systemNoticeConfigurationModule';
 import automaticApplicationsConfigurationModule from './automaticApplicationsConfiguration/automaticApplicationsConfigurationModule';
 import ldapModule from './ldap/ldap.module';
@@ -22,11 +21,11 @@ import scmOnboardingActions from './scmOnboarding/scmOnboardingActions';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import { always } from 'ramda';
 import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
+import SuccessMetricsConfigurationContainer from './successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 
 export default angular
   .module('configurationModule', [
     gettingStartedModule.name,
-    successMetricsConfigurationModule.name,
     systemNoticeConfigurationModule.name,
     automaticApplicationsConfigurationModule.name,
     ldapModule.name,
@@ -52,6 +51,10 @@ export default angular
   .component(
     'labsDataInsights',
     react2angular(withStoreProvider(LabsDataInsightsContainer), ['isAuthorized'], ['$ngRedux'])
+  )
+  .component(
+    'successMetricsConfiguration',
+    react2angular(withStoreProvider(SuccessMetricsConfigurationContainer), ['isAuthorized'], ['$ngRedux'])
   )
   .factory('scmOnboardingActions', scmOnboardingActions)
   .config(routes);
@@ -129,6 +132,22 @@ function routes($stateProvider) {
       url: '/advancedSearchConfig',
       data: {
         title: 'Advanced Search Config',
+      },
+      resolve: {
+        isAuthorized: [
+          'PermissionService',
+          function (PermissionService) {
+            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+          },
+        ],
+      },
+    })
+    .state('successMetricsConfiguration', {
+      component: 'successMetricsConfiguration',
+      url: '/successMetricsConfiguration',
+      data: {
+        title: 'Success Metrics',
+        isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
       },
       resolve: {
         isAuthorized: [

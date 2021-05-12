@@ -14,7 +14,6 @@ describe('navigationContainerSpec', function () {
     mockSystemConfigurationPropertyService,
     mockCurrentUser,
     mockProductFeatures,
-    isSuccessMetricsEnabledDeferred,
     loginDeferred,
     productFeaturesDeferred,
     vm,
@@ -31,12 +30,8 @@ describe('navigationContainerSpec', function () {
     $scope = _$rootScope_.$new();
     $rootScope = _$rootScope_;
     $ngRedux = _$ngRedux_;
-    isSuccessMetricsEnabledDeferred = $q.defer();
     loginDeferred = $q.defer();
     productFeaturesDeferred = $q.defer();
-    mockSystemConfigurationPropertyService = {
-      isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
-    };
 
     mockCurrentUser = {
       fetch: jasmine.createSpy('fetch'),
@@ -62,24 +57,6 @@ describe('navigationContainerSpec', function () {
   afterEach(function () {
     window.clmServerVersion = clmServerVersion;
     $scope.$destroy();
-  });
-
-  it('properly loads on enabled success metrics', function () {
-    vm.$onInit();
-    loginDeferred.resolve();
-    isSuccessMetricsEnabledDeferred.resolve(true);
-    $scope.$digest();
-
-    expect(vm.isSuccessMetricsEnabled).toBe(true);
-  });
-
-  it('properly loads on disabled success metrics', function () {
-    vm.$onInit();
-    loginDeferred.resolve();
-    isSuccessMetricsEnabledDeferred.reject('disabled');
-    $scope.$digest();
-
-    expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
 
   it('properly loads on supported firewall', function () {
@@ -122,22 +99,6 @@ describe('navigationContainerSpec', function () {
     $scope.$digest();
 
     expect(vm.isAdvancedLegalPackSupported).toBe(false);
-  });
-
-  it('does not load success metrics or features until after login', function () {
-    vm.$onInit();
-
-    isSuccessMetricsEnabledDeferred.reject('disabled');
-    expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).not.toHaveBeenCalled();
-    expect($ngRedux.dispatch).not.toHaveBeenCalled();
-    expect(mockProductFeatures.load).not.toHaveBeenCalled();
-
-    loginDeferred.resolve();
-    $scope.$digest();
-
-    expect(mockSystemConfigurationPropertyService.isSuccessMetricsEnabled).toHaveBeenCalled();
-    expect($ngRedux.dispatch).toHaveBeenCalledTimes(1);
-    expect(mockProductFeatures.load).toHaveBeenCalled();
   });
 
   describe('mapStateToThis', function () {
@@ -183,6 +144,40 @@ describe('navigationContainerSpec', function () {
 
       expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse).isAdvancedSearchEnabled).toBe(false);
     });
+
+    it('returns an object with isSuccessMetricsEnabled set to false given a state with no server data', function () {
+      let mockStateNoServerData = {
+        successMetricsConfiguration: {
+          serverData: null,
+        },
+      };
+
+      expect(mapStateToThis(mockStateNoServerData).isSuccessMetricsEnabled).toBeFalsy();
+    });
+
+    it('returns an object with isSuccessMetricsEnabled set to true given a state with server data and enabled true', function () {
+      let mockStateWithServerDataAndIsEnabledTrue = {
+        successMetricsConfiguration: {
+          serverData: {
+            enabled: true,
+          },
+        },
+      };
+
+      expect(mapStateToThis(mockStateWithServerDataAndIsEnabledTrue).isSuccessMetricsEnabled).toBe(true);
+    });
+
+    it('returns an object with isSuccessMetricsEnabled set to false given a state with server data and enabled false', function () {
+      let mockStateWithServerDataAndIsEnabledFalse = {
+        successMetricsConfiguration: {
+          serverData: {
+            enabled: false,
+          },
+        },
+      };
+
+      expect(mapStateToThis(mockStateWithServerDataAndIsEnabledFalse).isSuccessMetricsEnabled).toBe(false);
+    });
   });
 
   it('calls unsubscribe when the $scope is destroyed', function () {
@@ -193,21 +188,6 @@ describe('navigationContainerSpec', function () {
     expect(unsubscribeSpy).not.toHaveBeenCalled();
     $scope.$destroy();
     expect(unsubscribeSpy).toHaveBeenCalled();
-  });
-
-  it('resets isSuccessMetricsEnabled on successMetricsConfigurationUpdated event', function () {
-    vm.$onInit();
-    isSuccessMetricsEnabledDeferred.resolve(false);
-
-    expect(vm.isSuccessMetricsEnabled).toBe(false);
-
-    $rootScope.$broadcast('successMetricsConfigurationUpdated', true);
-
-    expect(vm.isSuccessMetricsEnabled).toBe(true);
-
-    $rootScope.$broadcast('successMetricsConfigurationUpdated', false);
-
-    expect(vm.isSuccessMetricsEnabled).toBe(false);
   });
 
   it('properly determines the displayed release version number', function () {

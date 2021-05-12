@@ -36,6 +36,7 @@ import manageLegalFiltersReducer from '../legal/dashboard/filter/manageLegalFilt
 import legalApplicationDetailsReducer from '../legal/application/legalApplicationDetailsReducer';
 import labsDataInsightsReducer from '../configuration/labsDataInsights/labsDataInsightsReducer';
 import notificationsReducer from '../mainHeader/MenuBar/NotificationsMenu/notificationsReducer';
+import successMetricsConfigurationReducer from '../configuration/successMetricsConfiguration/successMetricsConfigurationReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -70,4 +71,5 @@ export default combineReducers({
   manageLegalFilters: manageLegalFiltersReducer,
   labsDataInsights: labsDataInsightsReducer,
   notifications: notificationsReducer,
+  successMetricsConfiguration: successMetricsConfigurationReducer,
 });

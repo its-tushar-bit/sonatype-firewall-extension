@@ -425,6 +425,9 @@ public class ApplicationDAO
    * @return List of #Application objects associated with the given repository URL or an empty list if there are none
    */
   public List<Application> getByRepositoryUrl(String repositoryUrl) {
+    if (repositoryUrl != null) {
+      repositoryUrl = repositoryUrl.toLowerCase(Locale.ENGLISH);
+    }
     final String sQuery = "SELECT app FROM Application app, SourceControl sc " +
         " WHERE app.id = sc.ownerId AND sc.repositoryUrl = ?1";
     return getList(sQuery, repositoryUrl);

@@ -168,7 +168,7 @@ public class ApplicationDAOTest
   @Test
   public void testGetByRepositoryUrl() {
     // given: a set of applications, a repository URL and some apps associated with that URL and some not
-    final String repositoryURL = "http://test.gitlab.com/org/mono-repo";
+    final String repositoryURL = "http://test.gitlab.com/org/MixedCaseName";
 
     // set root org source control
     tempEntity.newSourceControl(organization.getParentOrganizationId(), null, "token", SourceControlProvider.GITLAB);

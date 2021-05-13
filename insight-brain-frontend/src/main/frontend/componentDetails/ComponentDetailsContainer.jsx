@@ -7,19 +7,20 @@ import { connect } from 'react-redux';
 
 import ComponentDetails from './ComponentDetails';
 import { loadReportAndSelectComponentByHash } from '../applicationReport/applicationReportActions';
+import { stateGo } from '../reduxUiRouter/routerActions';
 
 function mapStateToProps(state) {
   const {
     router: {
-      currentParams: { hash, publicId, scanId, unknownjs },
+      currentParams: { hash, publicId, scanId, unknownjs, tabId },
     },
     applicationReport: { selectedComponent, selectedReport },
   } = state;
 
-  return { hash, publicId, scanId, unknownjs, selectedReport, selectedComponent };
+  return { hash, publicId, scanId, unknownjs, tabId, selectedReport, selectedComponent };
 }
 
-const mapDispatchToProps = { loadReportAndSelectComponentByHash };
+const mapDispatchToProps = { loadReportAndSelectComponentByHash, stateGo };
 
 const ComponentDetailsContainer = connect(mapStateToProps, mapDispatchToProps)(ComponentDetails);
 export default ComponentDetailsContainer;

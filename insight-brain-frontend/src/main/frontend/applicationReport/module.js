@@ -83,12 +83,53 @@ function routes($stateProvider, $urlRouterProvider) {
       data: {
         title: 'Component Details',
       },
+      params: {
+        tabId: 'remediation',
+      },
+    })
+    .state('applicationReport.componentDetails.remediation', {
+      url: '/remediation',
+      params: {
+        tabId: 'remediation',
+      },
+    })
+    .state('applicationReport.componentDetails.info', {
+      url: '/info',
+      params: {
+        tabId: 'info',
+      },
+    })
+    .state('applicationReport.componentDetails.violations', {
+      url: '/violations',
+      params: {
+        tabId: 'violations',
+      },
+    })
+    .state('applicationReport.componentDetails.security', {
+      url: '/security',
+      params: {
+        tabId: 'security',
+      },
+    })
+    .state('applicationReport.componentDetails.legal', {
+      url: '/legal',
+      params: {
+        tabId: 'legal',
+      },
+    })
+    .state('applicationReport.componentDetails.audit', {
+      url: '/audit',
+      params: {
+        tabId: 'audit',
+      },
     });
 
-  $urlRouterProvider.when(
-    '/applicationReport/{publicId}/{scanId}?unknownjs',
-    '/applicationReport/{publicId}/{scanId}/policy?unknownjs'
-  );
+  $urlRouterProvider
+    .when('/applicationReport/{publicId}/{scanId}?unknownjs', '/applicationReport/{publicId}/{scanId}/policy?unknownjs')
+    .when(
+      '/applicationReport/{publicId}/{scanId}/componentDetails/{hash}',
+      '/applicationReport/{publicId}/{scanId}/componentDetails/{hash}/remediation'
+    );
 }
 
 routes.$inject = ['$stateProvider', '$urlRouterProvider'];

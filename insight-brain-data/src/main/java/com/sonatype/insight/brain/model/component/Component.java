@@ -86,7 +86,7 @@ public class Component
 
   private AnalyzerFeatures analyzerFeatures;
 
-  private InnerSourceData innerSourceData;
+  private Set<InnerSourceData> innerSourceData;
 
   private Boolean directDependency;
 
@@ -455,11 +455,11 @@ public class Component
     this.directDependency = directDependency;
   }
 
-  public InnerSourceData getInnerSourceData() {
+  public Set<InnerSourceData> getInnerSourceData() {
     return innerSourceData;
   }
 
-  public void setInnerSourceData(final InnerSourceData innerSourceData) {
+  public void setInnerSourceData(final Set<InnerSourceData> innerSourceData) {
     this.innerSourceData = innerSourceData;
   }
 

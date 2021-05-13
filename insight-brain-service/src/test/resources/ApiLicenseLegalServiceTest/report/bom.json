@@ -877,12 +877,14 @@
       } ],
       "name" : "lib-web"
     },
-    "directDependency" : true,
-    "innerSource" : true,
-    "innerSourceData" : {
-      "ownerApplicationName" : "inner-producer-evaluate",
-      "ownerApplicationId" : "34ebc21cfe1f4c1898c1c51470201ae4"
-    }
+    "directDependency": true,
+    "innerSource": true,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "inner-producer-evaluate",
+        "ownerApplicationId": "34ebc21cfe1f4c1898c1c51470201ae4"
+      }
+    ]
   },
   {
     "componentIdentifier" : null,

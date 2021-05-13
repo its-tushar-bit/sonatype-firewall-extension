@@ -47,10 +47,12 @@ describe('cipTabPanel', function () {
         },
         dependencyInfo: { isDirectDependency: false },
         innerSource: true,
-        innerSourceData: {
-          ownerApplicationId: 'id',
-          ownerApplicationName: 'appName',
-        },
+        innerSourceData: [
+          {
+            ownerApplicationId: 'id',
+            ownerApplicationName: 'appName',
+          },
+        ],
       };
     }));
 

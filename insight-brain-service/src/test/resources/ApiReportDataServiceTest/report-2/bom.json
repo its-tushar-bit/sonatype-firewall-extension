@@ -12,13 +12,15 @@
     "relativePopularity" : 1.0,
     "createTime" : 1201589122000,
     "lastModifiedTime" : 1201148356000,
-    "lastModifiedEntryTime" : 1173079498000,
-    "innerSourceData": {
-      "innerSource": true,
-      "ownerApplicationName" : "owningApplicationName",
-      "ownerApplicationId": "123",
-      "ownerComponentName": "A"
-    },
+    "lastModifiedEntryTime": 1173079498000,
+    "innerSourceData": [
+      {
+        "innerSource": true,
+        "ownerApplicationName": "owningApplicationName",
+        "ownerApplicationId": "123",
+        "ownerComponentName": "A"
+      }
+    ],
     "displayName" : {
       "parts" : [ {
         "field" : "Group",

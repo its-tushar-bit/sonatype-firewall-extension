@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSecurityIssueDTO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -193,11 +194,8 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.directDependency).isTrue();
     assertThat(component.dependencyData.innerSource).isTrue();
     assertThat(component.dependencyData.parentComponentPurls).isNull();
-    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
-    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
-        .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
-    assertThat(component.dependencyData.innerSourceData.getInnerSourceComponentPurl()).isNull();
-
+    assertThat(component.dependencyData.innerSourceData)
+        .containsExactly(new InnerSourceData("insight-scanner-archive", "ccba77f38eba4171a17b603e4ab9d7e5", null));
     component = data.components.get(1);
     assertThat(component.hash).isEqualTo("02a8e0aa38a2e21cb39e");
     assertThat(component.matchState).isEqualTo("exact");
@@ -211,11 +209,9 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.innerSource).isFalse();
     assertThat(component.dependencyData.parentComponentPurls)
         .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
-    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
-    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
-        .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
-    assertThat(component.dependencyData.innerSourceData.getInnerSourceComponentPurl())
-        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    assertThat(component.dependencyData.innerSourceData).containsExactly(
+        new InnerSourceData("insight-scanner-archive", "ccba77f38eba4171a17b603e4ab9d7e5",
+            "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"));
 
     component = data.components.get(2);
     assertThat(component.hash).isEqualTo("69b58197caabec2e0d06");
@@ -312,11 +308,9 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.innerSource).isFalse();
     assertThat(component.dependencyData.parentComponentPurls)
         .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
-    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
-    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
-        .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
-    assertThat(component.dependencyData.innerSourceData.getInnerSourceComponentPurl())
-        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
+    assertThat(component.dependencyData.innerSourceData).containsExactly(
+        new InnerSourceData("insight-scanner-archive", "ccba77f38eba4171a17b603e4ab9d7e5",
+            "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"));
 
     // component 2
     component = data.components.get(1);
@@ -327,10 +321,8 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.directDependency).isTrue();
     assertThat(component.dependencyData.innerSource).isTrue();
     assertThat(component.dependencyData.parentComponentPurls).isNull();
-    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationName()).isEqualTo("insight-scanner-archive");
-    assertThat(component.dependencyData.innerSourceData.getOwnerApplicationId())
-        .isEqualTo("ccba77f38eba4171a17b603e4ab9d7e5");
-    assertThat(component.dependencyData.innerSourceData.getInnerSourceComponentPurl()).isNull();
+    assertThat(component.dependencyData.innerSourceData).containsExactly(
+        new InnerSourceData("insight-scanner-archive", "ccba77f38eba4171a17b603e4ab9d7e5", null));
 
     // component 3
     component = data.components.get(2);

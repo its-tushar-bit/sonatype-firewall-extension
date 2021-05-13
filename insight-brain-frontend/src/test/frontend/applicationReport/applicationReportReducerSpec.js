@@ -275,18 +275,22 @@ describe('applicationReportReducer', function () {
           policyThreatLevel: 10,
           grandfathered: true,
           innerSource: true,
-          innerSourceData: {
-            ownerApplicationId: '12345',
-            ownerApplicationName: 'myISApp',
-          },
+          innerSourceData: [
+            {
+              ownerApplicationId: '12345',
+              ownerApplicationName: 'myISApp',
+            },
+          ],
         },
         { policyThreatLevel: 10 },
         {
           policyThreatLevel: 6,
-          innerSourceData: {
-            ownerApplicationId: '12345',
-            ownerApplicationName: 'myISApp',
-          },
+          innerSourceData: [
+            {
+              ownerApplicationId: '12345',
+              ownerApplicationName: 'myISApp',
+            },
+          ],
         },
       ];
       const newState = reduce(state, {
@@ -309,17 +313,21 @@ describe('applicationReportReducer', function () {
             {
               grandfathered: true,
               innerSource: true,
-              innerSourceData: {
-                ownerApplicationName: 'myISApp',
-                ownerApplicationId: '12345',
-              },
+              innerSourceData: [
+                {
+                  ownerApplicationName: 'myISApp',
+                  ownerApplicationId: '12345',
+                },
+              ],
               policyThreatLevel: 10,
             },
             {
-              innerSourceData: {
-                ownerApplicationName: 'myISApp',
-                ownerApplicationId: '12345',
-              },
+              innerSourceData: [
+                {
+                  ownerApplicationName: 'myISApp',
+                  ownerApplicationId: '12345',
+                },
+              ],
               policyThreatLevel: 6,
             },
           ],
@@ -335,8 +343,8 @@ describe('applicationReportReducer', function () {
         isInnerSourceEnabled: true,
         other: otherObject,
         sortFields: [
-          'innerSourceData.ownerApplicationName',
-          'innerSourceData.ownerComponentName',
+          'innerSourceData.0.ownerApplicationName',
+          'innerSourceData.0.ownerComponentName',
           'dependencyType',
           '-policyThreatLevel',
           'policyName',

@@ -264,8 +264,8 @@ function setSelectedReport(state, report) {
     isInnerSourceEnabled: report.isInnerSourceEnabled,
     sortFields: report.isInnerSourceEnabled
       ? [
-          'innerSourceData.ownerApplicationName',
-          'innerSourceData.ownerComponentName',
+          'innerSourceData.0.ownerApplicationName',
+          'innerSourceData.0.ownerComponentName',
           'dependencyType',
           '-policyThreatLevel',
           'policyName',

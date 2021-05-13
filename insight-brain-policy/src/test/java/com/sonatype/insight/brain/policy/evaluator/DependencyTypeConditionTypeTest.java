@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -90,7 +91,7 @@ public class DependencyTypeConditionTypeTest
 
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
-    component1.setInnerSourceData(new InnerSourceData());
+    component1.setInnerSourceData(Collections.singleton(new InnerSourceData()));
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setDirectDependency(true);
@@ -110,7 +111,7 @@ public class DependencyTypeConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     InnerSourceData innerSourceData = new InnerSourceData();
-    component1.setInnerSourceData(innerSourceData);
+    component1.setInnerSourceData(Collections.singleton(innerSourceData));
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setDirectDependency(false);
@@ -130,7 +131,7 @@ public class DependencyTypeConditionTypeTest
     List<Component> components = new ArrayList<>();
     Component component1 = ComponentFactory.forGav("g1", "a1", "v1", MatchState.EXACT);
     InnerSourceData innerSourceData = new InnerSourceData();
-    component1.setInnerSourceData(innerSourceData);
+    component1.setInnerSourceData(Collections.singleton(innerSourceData));
     components.add(component1);
     Component component2 = ComponentFactory.forGav("g2", "a2", "v2", MatchState.EXACT);
     component2.setDirectDependency(true);

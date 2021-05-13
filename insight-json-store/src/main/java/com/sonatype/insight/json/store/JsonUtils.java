@@ -217,13 +217,20 @@ public final class JsonUtils
     return result;
   }
 
-  public static Set<String> getStringSetFromArray(JsonNode jsonNode) {
-    if (jsonNode.isArray() && !jsonNode.isEmpty()) {
-      Set<String> result = new LinkedHashSet<>();
-      for (JsonNode child : jsonNode) {
-        result.add(child.asText());
+  public static Set<String> getStringSetFromArray(JsonNode arrayNode) {
+    if (arrayNode != null && arrayNode.isArray() && !arrayNode.isEmpty()) {
+      Set<String> results = new LinkedHashSet<>();
+      for (JsonNode jsonNode : arrayNode) {
+        if (jsonNode != null && !jsonNode.isNull()) {
+          String result = jsonNode.asText();
+          if (result != null) {
+            results.add(jsonNode.asText());
+          }
+        }
       }
-      return result;
+      if (!results.isEmpty()) {
+        return results;
+      }
     }
     return null;
   }
@@ -235,5 +242,29 @@ public final class JsonUtils
     catch (IOException e) {
       throw new UncheckedIOException(e.getMessage(), e);
     }
+  }
+
+  public static <T> Set<T> getObjectSetFromArray(JsonNode arrayNode, Class<T> type) {
+    if (arrayNode != null && arrayNode.isArray() && !arrayNode.isEmpty()) {
+      Set<T> results = new LinkedHashSet<>();
+      for (JsonNode jsonNode : arrayNode) {
+        if (jsonNode != null && !jsonNode.isNull()) {
+          T result;
+          try {
+            result = JsonUtils.asPojo(jsonNode, type);
+          }
+          catch (IOException e) {
+            throw new UncheckedIOException(e);
+          }
+          if (result != null) {
+            results.add(result);
+          }
+        }
+      }
+      if (!results.isEmpty()) {
+        return results;
+      }
+    }
+    return null;
   }
 }

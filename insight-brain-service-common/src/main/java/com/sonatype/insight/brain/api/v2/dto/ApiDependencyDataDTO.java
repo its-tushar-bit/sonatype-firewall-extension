@@ -24,5 +24,5 @@ public class ApiDependencyDataDTO
   public Set<String> parentComponentPurls;
 
   @JsonInclude(Include.NON_NULL)
-  public InnerSourceData innerSourceData;
+  public Set<InnerSourceData> innerSourceData;
 }

@@ -6,19 +6,22 @@
 package com.sonatype.insight.json.store;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class JsonUtilsTest
 {
@@ -67,19 +70,28 @@ public class JsonUtilsTest
   }
 
   @Test
-  public void testGetStringSetFromArray_NotArrayNode() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    ObjectNode node = objectMapper.createObjectNode();
-
-    assertThat(JsonUtils.getStringSetFromArray(node)).isNull();
+  public void testGetStringSetFromArray_Null() {
+    assertThat(JsonUtils.getStringSetFromArray(null)).isNull();
   }
 
   @Test
-  public void testGetStringSetFromArray_Empty() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    ArrayNode node = objectMapper.createArrayNode();
+  public void testGetStringSetFromArray_NotArray() {
+    assertThat(JsonUtils.getStringSetFromArray(new ObjectMapper().createObjectNode())).isNull();
+  }
 
-    assertThat(JsonUtils.getStringSetFromArray(node)).isNull();
+  @Test
+  public void testGetStringSetFromArray_EmptyArray() {
+    assertThat(JsonUtils.getStringSetFromArray(new ObjectMapper().createArrayNode())).isNull();
+  }
+
+  @Test
+  public void testGetStringSetFromArray_NullElement() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    ArrayNode arrayNode = objectMapper.createArrayNode();
+    arrayNode.add((Integer) null);
+    arrayNode.add((JsonNode) null);
+
+    assertThat(JsonUtils.getStringSetFromArray(arrayNode)).isNull();
   }
 
   @Test
@@ -102,6 +114,57 @@ public class JsonUtilsTest
     assertThat(JsonUtils.getTypeToString(jsonNode, Pair.class)).isEqualTo("key=value");
   }
 
+  @Test
+  public void testGetObjectSetFromArray_Null() {
+    assertThat(JsonUtils.getObjectSetFromArray(null, Pair.class)).isNull();
+  }
+
+  @Test
+  public void testGetObjectSetFromArray_NotArray() {
+    assertThat(JsonUtils.getObjectSetFromArray(new ObjectMapper().createObjectNode(), Pair.class)).isNull();
+  }
+
+  @Test
+  public void testGetObjectSetFromArray_EmptyArray() {
+    assertThat(JsonUtils.getObjectSetFromArray(new ObjectMapper().createArrayNode(), Pair.class)).isNull();
+  }
+
+  @Test
+  public void testGetObjectSetFromArray_NullElement() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    ArrayNode arrayNode = objectMapper.createArrayNode();
+    arrayNode.add((Integer) null);
+    arrayNode.add((JsonNode) null);
+
+    assertThat(JsonUtils.getObjectSetFromArray(arrayNode, Pair.class)).isNull();
+  }
+
+  @Test
+  public void testGetObjectSetFromArray_ElementWrongType() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    ArrayNode arrayNode = objectMapper.createArrayNode();
+    arrayNode.add(5);
+
+    assertThatExceptionOfType(UncheckedIOException.class)
+        .isThrownBy(() -> JsonUtils.getObjectSetFromArray(arrayNode, Pair.class));
+  }
+
+  @Test
+  public void testGetObjectSetFromArray() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    ArrayNode arrayNode = objectMapper.createArrayNode();
+    Pair pair1 = new Pair("a", "b");
+    Pair pair2 = new Pair("c", "d");
+    Pair pair3 = new Pair("e", "f");
+    arrayNode.add(JsonUtils.asTree(pair1));
+    arrayNode.add(JsonUtils.asTree(pair2));
+    arrayNode.add(JsonUtils.asTree(pair3));
+    arrayNode.add(JsonUtils.asTree(pair2));
+
+    Set<Pair> pairs = JsonUtils.getObjectSetFromArray(arrayNode, Pair.class);
+    assertThat(pairs).containsExactly(pair1, pair2, pair3);
+  }
+
   private static class Pair
   {
     public Object a;
@@ -120,6 +183,23 @@ public class JsonUtilsTest
     @Override
     public String toString() {
       return a.toString() + "=" + b.toString();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Pair pair = (Pair) o;
+      return Objects.equals(a, pair.a) && Objects.equals(b, pair.b);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(a, b);
     }
   }
 }

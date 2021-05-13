@@ -191,9 +191,11 @@
     "lastModifiedEntryTime" : 1054324540000,
     "website" : null,
     "innerSource": true,
-    "innerSourceData": {
-      "ownerApplicationName" : "ApplicationReportTest"
-    }
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "ApplicationReportTest"
+      }
+    ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -219,9 +221,11 @@
     "lastModifiedTime" : 1413088396000,
     "lastModifiedEntryTime" : 1054324540000,
     "innerSource": false,
-    "innerSourceData": {
-      "ownerApplicationName" : "ApplicationReportTest"
-    },
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "ApplicationReportTest"
+      }
+    ],
     "website" : null
   }, {
     "componentIdentifier" : {
@@ -281,12 +285,15 @@
       } ],
       "name" : "javax.inject"
     },
-    "innerSource" : false,
-    "innerSourceData" : {
-      "ownerApplicationName" : "ApplicationReportTest2",
-      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd"
-    }
-  }, {
+    "innerSource": false,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "ApplicationReportTest2",
+        "ownerApplicationId": "09895fab56384b61adb3161fa1ec58cd"
+      }
+    ]
+  },
+    {
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
@@ -344,12 +351,15 @@
       } ],
       "name" : "commons-io"
     },
-    "innerSource" : false,
-    "innerSourceData" : {
-      "ownerApplicationName" : "ApplicationReportTest2",
-      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd"
-    }
-  }, {
+      "innerSource": false,
+      "innerSourceData": [
+        {
+          "ownerApplicationName": "ApplicationReportTest2",
+          "ownerApplicationId": "09895fab56384b61adb3161fa1ec58cd"
+        }
+      ]
+    },
+    {
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
@@ -404,12 +414,15 @@
       } ],
       "name" : "test-business"
     },
-    "innerSource" : true,
-    "innerSourceData" : {
-      "ownerApplicationName" : "ApplicationReportTest2",
-      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd"
-    }
-  }, {
+      "innerSource": true,
+      "innerSourceData": [
+        {
+          "ownerApplicationName": "ApplicationReportTest2",
+          "ownerApplicationId": "09895fab56384b61adb3161fa1ec58cd"
+        }
+      ]
+    },
+    {
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
@@ -464,10 +477,12 @@
       } ],
       "name" : "test-data"
     },
-    "innerSource" : false,
-    "innerSourceData" : {
-      "ownerApplicationName" : "ApplicationReportTest2",
-      "ownerApplicationId" : "09895fab56384b61adb3161fa1ec58cd"
-    }
+      "innerSource": false,
+      "innerSourceData": [
+        {
+          "ownerApplicationName": "ApplicationReportTest2",
+          "ownerApplicationId": "09895fab56384b61adb3161fa1ec58cd"
+        }
+      ]
   }]
 }

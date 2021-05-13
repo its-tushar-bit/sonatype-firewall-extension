@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.model.component;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -52,5 +54,24 @@ public class InnerSourceData
 
   public void setInnerSourceComponentPurl(final String ownerComponentName) {
     this.innerSourceComponentPurl = ownerComponentName;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    InnerSourceData that = (InnerSourceData) o;
+    return Objects.equals(ownerApplicationName, that.ownerApplicationName) &&
+        Objects.equals(ownerApplicationId, that.ownerApplicationId) &&
+        Objects.equals(innerSourceComponentPurl, that.innerSourceComponentPurl);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(ownerApplicationName, ownerApplicationId, innerSourceComponentPurl);
   }
 }

@@ -63,8 +63,6 @@ public class DependencyResolver
 
   private static final String FIELD_INNER_SOURCE = "innerSource";
 
-  private static final String FIELD_INNER_SOURCE_DATA = "innerSourceData";
-
   private final JsonNode dependenciesJson;
 
   private final JsonNode bomJson;
@@ -409,8 +407,14 @@ public class DependencyResolver
               parentComponentPurls.add(parentComponentPurl.getPackageUrl());
             }
           }
-          if (innerSourceData != null && bomObjectNode.path(FIELD_INNER_SOURCE_DATA).isMissingNode()) {
-            bomObjectNode.set(FIELD_INNER_SOURCE_DATA, JsonUtils.asTree(innerSourceData));
+          if (innerSourceData != null) {
+            if (bomObjectNode.path(ComponentDAO.INNER_SOURCE_DATA_FIELD).isMissingNode()) {
+              bomObjectNode.putArray(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+            }
+            ArrayNode innerSourceDataArray = (ArrayNode) bomObjectNode.get(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+            if (!contains(innerSourceDataArray, innerSourceData)) {
+              innerSourceDataArray.add(JsonUtils.asTree(innerSourceData));
+            }
           }
         });
   }
@@ -419,6 +423,20 @@ public class DependencyResolver
     for (JsonNode parentComponentPurl : parentComponentPurls) {
       if (new PackageUrlIdentifier(parentComponentPurl.asText()).equals(packageUrlIdentifier)) {
         return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean contains(ArrayNode innerSourceDataArray, InnerSourceData innerSourceData) {
+    for (JsonNode innerSourceNode : innerSourceDataArray) {
+      try {
+        if (innerSourceData.equals(JsonUtils.asPojo(innerSourceNode, InnerSourceData.class))) {
+          return true;
+        }
+      }
+      catch (IOException e) {
+        log.debug("Failed to parse inner source data " + innerSourceNode, e);
       }
     }
     return false;

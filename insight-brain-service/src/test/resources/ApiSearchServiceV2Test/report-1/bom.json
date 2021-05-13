@@ -57,14 +57,18 @@
       } ],
       "name" : "gson"
     },
-    "directDependency" : false,
-    "innerSource" : false,
-    "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"],
-    "innerSourceData" : {
-      "ownerApplicationName" : "insight-scanner-archive",
-      "ownerApplicationId" : "06260dc1e0f34f97892d325fcdf1fdb3",
-      "innerSourceComponentPurl" : "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"
-    }
+    "directDependency": false,
+    "innerSource": false,
+    "parentComponentPurls": [
+      "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"
+    ],
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-scanner-archive",
+        "ownerApplicationId": "06260dc1e0f34f97892d325fcdf1fdb3",
+        "innerSourceComponentPurl": "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar"
+      }
+    ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -308,14 +312,18 @@
       } ],
       "name" : "xmlpull"
     },
-    "directDependency" : false,
-    "innerSource" : false,
-    "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"],
-    "innerSourceData" : {
-      "ownerApplicationName" : "insight-module-model",
-      "ownerApplicationId" : "7509f572645749eba3e19b826e111c8b",
-      "innerSourceComponentPurl" : "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"
-    }
+    "directDependency": false,
+    "innerSource": false,
+    "parentComponentPurls": [
+      "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"
+    ],
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-module-model",
+        "ownerApplicationId": "7509f572645749eba3e19b826e111c8b",
+        "innerSourceComponentPurl": "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"
+      }
+    ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -377,11 +385,13 @@
     "directDependency" : false,
     "innerSource" : false,
     "parentComponentPurls" : ["pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"],
-    "innerSourceData" : {
-      "ownerApplicationName" : "insight-module-model",
-      "ownerApplicationId" : "7509f572645749eba3e19b826e111c8b",
-      "innerSourceComponentPurl" : "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"
-    }
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-module-model",
+        "ownerApplicationId": "7509f572645749eba3e19b826e111c8b",
+        "innerSourceComponentPurl": "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"
+      }
+    ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -537,11 +547,13 @@
       "name" : "insight-module-model"
     },
     "directDependency" : true,
-    "innerSource" : true,
-    "innerSourceData" : {
-      "ownerApplicationName" : "insight-module-model",
-      "ownerApplicationId" : "7509f572645749eba3e19b826e111c8b"
-    }
+    "innerSource": true,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-module-model",
+        "ownerApplicationId": "7509f572645749eba3e19b826e111c8b"
+      }
+    ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -599,9 +611,11 @@
     },
     "directDependency" : true,
     "innerSource" : true,
-    "innerSourceData" : {
-      "ownerApplicationName" : "insight-scanner-archive",
-      "ownerApplicationId" : "06260dc1e0f34f97892d325fcdf1fdb3"
-    }
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "insight-scanner-archive",
+        "ownerApplicationId": "06260dc1e0f34f97892d325fcdf1fdb3"
+      }
+    ]
   } ]
 }

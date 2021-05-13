@@ -66,10 +66,12 @@ describe('cipModal', function () {
           },
           dependencyInfo: { isDirectDependency: false },
           innerSource: true,
-          innerSourceData: {
-            ownerApplicationName: 'app',
-            ownerApplicationId: '123',
-          },
+          innerSourceData: [
+            {
+              ownerApplicationName: 'app',
+              ownerApplicationId: '123',
+            },
+          ],
         };
       });
 

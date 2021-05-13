@@ -1,7 +1,7 @@
 <div id="informationPanel" class="iq-cip-tab-panel" ng-class="vm.selectedComponent.innerSource ? 'iq-cip-tab-panel__inner-source' : ''">
   <div ng-if="vm.selectedComponent.innerSource" class="iq-grid-row iq-grid-row__inner-source-info">
     <div class="iq-grid-col iq-grid-col--33">
-      <h3>{{vm.selectedComponent.innerSourceData.ownerApplicationName}}</h3>
+      <h3>{{vm.selectedComponent.innerSourceData[0].ownerApplicationName}}</h3>
       <em>InnerSource</em>
       <p><a class="tm-inner-source-report" title="View Latest Report" href="{{vm.selectedComponent.latestReport.url}}" target="_blank">
         View Latest Report</a></p>

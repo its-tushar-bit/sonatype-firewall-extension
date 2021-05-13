@@ -192,7 +192,7 @@ const innerSourceDependencyType = {
 function augmentInnerSourceIndicator(components) {
   let result = [];
   let isInnerSourceEnabled = false;
-  const groupedResult = groupBy((c) => c.innerSourceData || '', components);
+  const groupedResult = groupBy((c) => (c.innerSourceData ? c.innerSourceData[0] || '' : ''), components);
   toPairs(groupedResult).forEach(([innerSource, entries]) => {
     if (innerSource !== '') {
       entries.forEach((entry) => {

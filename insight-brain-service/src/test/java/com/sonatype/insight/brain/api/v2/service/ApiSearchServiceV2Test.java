@@ -12,8 +12,10 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -73,11 +75,10 @@ public class ApiSearchServiceV2Test
     assertThat(result.results.get(0).dependencyData.parentComponentPurls)
         .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
     assertThat(result.results.get(0).dependencyData.innerSource).isFalse();
-    assertThat(result.results.get(0).dependencyData).hasFieldOrProperty("innerSourceData");
-    assertThat(result.results.get(0).dependencyData.innerSourceData.getOwnerApplicationId())
-        .isEqualTo("7509f572645749eba3e19b826e111c8b");
-    assertThat(result.results.get(0).dependencyData.innerSourceData.getInnerSourceComponentPurl())
-        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
+    assertThat(result.results.get(0).dependencyData).hasFieldOrProperty(ComponentDAO.INNER_SOURCE_DATA_FIELD);
+    assertThat(result.results.get(0).dependencyData.innerSourceData).containsExactly(
+        new InnerSourceData("insight-module-model", "7509f572645749eba3e19b826e111c8b",
+            "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar"));
 
     result = apiSearchServiceV2
         .searchComponent(BuildStageType.ID, appComponent2.getHash(), appComponent2.getComponentIdentifier(),
@@ -87,7 +88,7 @@ public class ApiSearchServiceV2Test
     assertThat(result.results.get(0).dependencyData.parentComponentPurls)
         .containsExactly("pkg:maven/com.sonatype.insight.scan/insight-client-utils@1.0.0-SNAPSHOT?type=jar");
     assertThat(result.results.get(0).dependencyData.innerSource).isFalse();
-    assertThat(JsonUtils.writeUnformatted(result)).doesNotContain("innerSourceData");
+    assertThat(JsonUtils.writeUnformatted(result)).doesNotContain(ComponentDAO.INNER_SOURCE_DATA_FIELD);
   }
 
   @Test

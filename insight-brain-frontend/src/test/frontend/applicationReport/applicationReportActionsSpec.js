@@ -322,10 +322,12 @@ describe('applicationReportActions', function () {
           {
             componentName: 'a',
             innerSource: true,
-            innerSourceData: {
-              ownerApplicationId: 'id',
-              ownerApplicationName: 'appName',
-            },
+            innerSourceData: [
+              {
+                ownerApplicationId: 'id',
+                ownerApplicationName: 'appName',
+              },
+            ],
           },
           {
             componentName: 'b',
@@ -338,10 +340,12 @@ describe('applicationReportActions', function () {
       const selectedComponent = {
         componentName: 'a',
         innerSource: true,
-        innerSourceData: {
-          ownerApplicationId: 'id',
-          ownerApplicationName: 'appName',
-        },
+        innerSourceData: [
+          {
+            ownerApplicationId: 'id',
+            ownerApplicationName: 'appName',
+          },
+        ],
       };
 
       store.dispatch(applicationReportActions.selectComponent(0)).then(() => {

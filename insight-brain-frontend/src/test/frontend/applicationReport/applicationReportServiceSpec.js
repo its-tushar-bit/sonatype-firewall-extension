@@ -1122,10 +1122,12 @@ describe('applicationReportService', function () {
                 },
               },
               innerSource: true,
-              innerSourceData: {
-                ownerApplicationName: 'app',
-                ownerApplicationId: '123',
-              },
+              innerSourceData: [
+                {
+                  ownerApplicationName: 'app',
+                  ownerApplicationId: '123',
+                },
+              ],
             },
             {
               hash: 'barHash',
@@ -1138,11 +1140,13 @@ describe('applicationReportService', function () {
                 },
               },
               innerSource: false,
-              innerSourceData: {
-                ownerApplicationName: 'app',
-                ownerApplicationId: '123',
-                innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
-              },
+              innerSourceData: [
+                {
+                  ownerApplicationName: 'app',
+                  ownerApplicationId: '123',
+                  innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
+                },
+              ],
             },
           ],
         },
@@ -1219,10 +1223,12 @@ describe('applicationReportService', function () {
           },
           derivedDependencyType: 'direct',
           innerSource: true,
-          innerSourceData: {
-            ownerApplicationName: 'app',
-            ownerApplicationId: '123',
-          },
+          innerSourceData: [
+            {
+              ownerApplicationName: 'app',
+              ownerApplicationId: '123',
+            },
+          ],
           innerSourceTDIndicator: false,
           dependencyType: 'D',
         })
@@ -1240,11 +1246,13 @@ describe('applicationReportService', function () {
             },
           },
           innerSource: false,
-          innerSourceData: {
-            ownerApplicationName: 'app',
-            ownerApplicationId: '123',
-            innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
-          },
+          innerSourceData: [
+            {
+              ownerApplicationName: 'app',
+              ownerApplicationId: '123',
+              innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
+            },
+          ],
           innerSourceTDIndicator: true,
           derivedDependencyType: 'transitive',
           dependencyType: 'TD',

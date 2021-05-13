@@ -63,6 +63,8 @@ public class ComponentDAO
 
   public static final String PARENT_COMPONENT_PURLS_FIELD = "parentComponentPurls";
 
+  public static final String INNER_SOURCE_DATA_FIELD = "innerSourceData";
+
   public static final String DISPLAY_NAME_FIELD = "displayName";
 
   private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
@@ -281,8 +283,8 @@ public class ComponentDAO
           JsonNode analyzerFeaturesNode = componentJson.get("analyzerFeatures");
           setAnalyzerFeatures(analyzerFeaturesNode, component);
 
-          JsonNode innerSourceDataNode = componentJson.get("innerSourceData");
-          setInnerSourceData(innerSourceDataNode, component);
+          JsonNode innerSourceDataNode = componentJson.get(INNER_SOURCE_DATA_FIELD);
+          component.setInnerSourceData(JsonUtils.getObjectSetFromArray(innerSourceDataNode, InnerSourceData.class));
 
           JsonNode directDependencyNode = componentJson.get(DIRECT_DEPENDENCY_FIELD);
           if (directDependencyNode != null) {
@@ -315,21 +317,6 @@ public class ComponentDAO
 
         if (analyzerFeatures != null) {
           component.setAnalyzerFeatures(analyzerFeatures);
-        }
-      }
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
-  private void setInnerSourceData(JsonNode innerSourceNode, Component component) {
-    try {
-      if (innerSourceNode != null) {
-        InnerSourceData innerSourceData = JsonUtils.asPojo(innerSourceNode, InnerSourceData.class);
-
-        if (innerSourceData != null) {
-          component.setInnerSourceData(innerSourceData);
         }
       }
     }

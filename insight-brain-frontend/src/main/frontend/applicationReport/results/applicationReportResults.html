@@ -181,7 +181,7 @@
               {{component.policyName}}</td><!--
               --><td class="iq-cell iq-cell--application-report-component-display {{component.innerSourceTDIndicator ?
                   'iq-inner-source-td-indicator' : ''}}"
-                     data-tooltip="{{component.innerSourceData && component.innerSourceData.ownerApplicationName ? component.innerSourceData.ownerApplicationName : ''}}"
+                     data-tooltip="{{vm.getOwnerApplicationNameOrEmpty(component)}}"
                      data-tooltip-append-to-body="true">
                 <span class="iq-text-indicator iq-text-indicator--waived iq-pull-right" ng-show="component.waived">
                   Waived<i class="fa fa-check"></i>

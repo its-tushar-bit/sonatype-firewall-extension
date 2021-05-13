@@ -192,8 +192,9 @@ public class ApiReportDataServiceV2
               component.dependencyData.innerSource = getBooleanValue(componentJson, "innerSource");
               component.dependencyData.parentComponentPurls =
                   JsonUtils.getStringSetFromArray(componentJson.path(ComponentDAO.PARENT_COMPONENT_PURLS_FIELD));
-              component.dependencyData.innerSourceData =
-                  JsonUtils.asPojo(componentJson.get("innerSourceData"), InnerSourceData.class);
+              component.dependencyData.innerSourceData = JsonUtils
+                  .getObjectSetFromArray(componentJson.path(ComponentDAO.INNER_SOURCE_DATA_FIELD),
+                      InnerSourceData.class);
             }
           }
           components.add(component);

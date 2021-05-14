@@ -124,6 +124,7 @@ export default function FirewallQuarantineTable(props) {
               </NxTableCell>
               <NxTableCell>Component</NxTableCell>
               <NxTableCell className="iq-cell--repository">Repository</NxTableCell>
+              <NxTableCell chevron />
             </NxTableRow>
 
             <NxTableRow isFilterHeader>
@@ -145,6 +146,7 @@ export default function FirewallQuarantineTable(props) {
                     ))}
                 </select>
               </NxTableCell>
+              <NxTableCell />
               <NxTableCell />
               <NxTableCell />
               <NxTableCell />
@@ -185,6 +187,7 @@ export default function FirewallQuarantineTable(props) {
                         <div className="nx-truncate-ellipsis">{row.repository}</div>
                       </NxOverflowTooltip>
                     </NxTableCell>
+                    <NxTableCell chevron />
                   </NxTableRow>
                 );
               })}

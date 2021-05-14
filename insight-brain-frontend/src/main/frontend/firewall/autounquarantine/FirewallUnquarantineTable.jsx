@@ -85,6 +85,7 @@ export default function FirewallUnquarantineTable(props) {
             >
               Date Cleared
             </NxTableCell>
+            <NxTableCell chevron />
           </NxTableRow>
         </NxTableHead>
 
@@ -110,6 +111,7 @@ export default function FirewallUnquarantineTable(props) {
                     </NxOverflowTooltip>
                   </NxTableCell>
                   <NxTableCell>{new Date(row.dateCleared).toLocaleDateString()}</NxTableCell>
+                  <NxTableCell chevron />
                 </NxTableRow>
               );
             })}

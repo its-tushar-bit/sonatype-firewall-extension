@@ -5,9 +5,11 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import BackButton from '../react/BackButton';
-import { useRouterState } from '../react/RouterStateContext';
 import { NxStatefulTabs, NxTab, NxTabList, NxTabPanel } from '@sonatype/react-shared-components';
+
+import BackButton from '../react/BackButton';
+import TagDisplayComponent from '../react/tag/TagDisplayComponent';
+import { useRouterState } from '../react/RouterStateContext';
 
 const tabIdPerIndex = ['remediation', 'info', 'violations', 'security', 'legal', 'audit'];
 
@@ -42,6 +44,7 @@ export default function ComponentDetails({
       {selectedComponent && (
         <div className="nx-viewport-sized__container">
           <h1 className="title">{selectedComponent.derivedComponentName}</h1>
+          <TagDisplayComponent />
           <NxStatefulTabs defaultActiveTab={tabIdPerIndex.indexOf(tabId)} onTabSelect={goToTab}>
             <NxTabList aria-label="Component detail tabs">
               <NxTab>Remediation</NxTab>

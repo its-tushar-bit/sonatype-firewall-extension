@@ -5,6 +5,7 @@
 .sonatype
 target/
 sonatype-work/
+log/
 dependency-reduced-pom.xml
 *.iml
 *.eml

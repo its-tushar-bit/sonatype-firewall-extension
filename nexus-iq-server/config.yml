@@ -2,7 +2,7 @@
 csrfProtection: ${CSRF_PROTECTION:-false}
 
 # Directory for data files.
-sonatypeWork: ${SONATYPE_WORK:./sonatype-work/clm-server}
+sonatypeWork: ${SONATYPE_WORK:-./sonatype-work/clm-server}
 
 enableDefaultPasswordWarning: ${ENABLE_DEFAULT_PASSWORD_WARNING:-false}
 

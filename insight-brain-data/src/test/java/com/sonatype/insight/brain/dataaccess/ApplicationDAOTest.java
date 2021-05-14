@@ -692,9 +692,9 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToLabels() {
+  public void testDelete_CascadesToLabels() {
     LabelDAO labelDAO = new LabelDAO();
-    Label label = new Label(application.getId(), "testCascadeDeleteToLabels", Color.dark_blue);
+    Label label = new Label(application.getId(), "testDelete_CascadesToLabels", Color.dark_blue);
     labelDAO.insert(label);
 
     applicationDAO.delete(application);
@@ -702,7 +702,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToProprietaryConfig() {
+  public void testDelete_CascadesToProprietaryConfig() {
     tempEntity.newProprietaryConfig(application.getId());
 
     applicationDAO.delete(application);
@@ -710,7 +710,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyWaivers() {
+  public void testDelete_CascadesToPolicyWaivers() {
     Policy policy = tempEntity.newPolicy(application);
     PolicyWaiver policyWaiver = new PolicyWaiver("12345678901234567890", policy.getId(), application.getId(),
         "My comment");
@@ -725,9 +725,9 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyEvaluations() {
+  public void testDelete_CascadesToPolicyEvaluations() {
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "testCascadeDeleteToPolicyEvaluations");
+        "testDelete_CascadesToPolicyEvaluations");
 
     applicationDAO.delete(application);
     policyEvaluation = new PolicyEvaluationDAO().getById(policyEvaluation.getId());
@@ -735,9 +735,9 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyViolations() {
+  public void testDelete_CascadesToPolicyViolations() {
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
-        "testCascadeDeleteToPolicyEvaluations");
+        "testDelete_CascadesToPolicyEvaluations");
     tempEntity.newPolicyViolation(policyEvaluation, tempEntity.newPolicy(application));
 
     applicationDAO.delete(application);
@@ -746,7 +746,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicies() {
+  public void testDelete_CascadesToPolicies() {
     tempEntity.newPolicy(application);
     PolicyDAO policyDAO = new PolicyDAO();
     List<Policy> policies = policyDAO.getByOwnerId(application.getId());
@@ -758,7 +758,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToLicenseOverrides() {
+  public void testDelete_CascadesToLicenseOverrides() {
     LicenseOverride licenseOverride = new LicenseOverride(application.getId(),
         ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"),
         LicenseOverrideStatus.OVERRIDDEN, "Apache-2.0", "My comment");
@@ -773,7 +773,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToSecurityVulnerabilityOverrides() {
+  public void testDelete_CascadesToSecurityVulnerabilityOverrides() {
     SecurityVulnerabilityOverride securityVulnerabilityOverride = tempEntity.newSecurityVulnerabilityOverride(
         application.getId(), "hash", "source", "refrenceId", SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
 
@@ -783,7 +783,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToMembershipMappings() {
+  public void testDelete_CascadesToMembershipMappings() {
     String roleId = new RoleDAO().getApplicationRoles().get(0).getId();
     MembershipMappingDAO membershipMappingDAO = new MembershipMappingDAO();
     membershipMappingDAO.setMembershipMappingsForContextAndRole(application.getId(), roleId,
@@ -795,7 +795,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToApplicationTags() {
+  public void testDelete_CascadesToApplicationTags() {
     Tag tag = tempEntity.newTag(organization.getId());
 
     ApplicationTagDAO appTagDAO = new ApplicationTagDAO();
@@ -808,7 +808,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToApplicationComponents() {
+  public void testDelete_CascadesToApplicationComponents() {
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(application.getId(),
         BuildStageType.ID, "hash", ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
 
@@ -844,7 +844,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyMonitoring() {
+  public void testDelete_CascadesToPolicyMonitoring() {
     PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
     PolicyMonitoring policyMonitoring = new PolicyMonitoring(application.getId(), Stage.ID_RELEASE);
     policyMonitoringDAO.insert(policyMonitoring);
@@ -856,7 +856,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToPolicyViolationAggregations() {
+  public void testDelete_CascadesToPolicyViolationAggregations() {
     PolicyViolationAggregationDAO policyViolationAggregationDAO = new PolicyViolationAggregationDAO();
     PolicyViolationAggregation aggregation = tempEntity.newPolicyViolationAggregation(application.getId(), new Date());
 
@@ -866,7 +866,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToSourceControl() {
+  public void testDelete_CascadesToSourceControl() {
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     SourceControl sourceControl = tempEntity.newSourceControl(
         application.getId(), "http://valid.sonatype.com/repository/project",
@@ -878,7 +878,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToSourceControlEvent() {
+  public void testDelete_CascadesToSourceControlEvent() {
     // given a source control event
     PolicyEvaluation sourcePolicyEvaluation =
         tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "sourceScan", "sourceCommit");
@@ -899,7 +899,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToSourceControlDefaultBranchCommitHistory() {
+  public void testDelete_CascadesToSourceControlDefaultBranchCommitHistory() {
     SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory =
         tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", new Date(), null);
 
@@ -910,7 +910,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToLocks_H2() {
+  public void testDelete_CascadesToLocks_H2() {
     Application otherApplication = tempEntity.newApplicationWithParent();
     // Lock for policy violations
     try (ClusterLock clusterLock = ClusterLock.createForPolicyViolations(application)) {
@@ -961,7 +961,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToLocks_Postgres() {
+  public void testDelete_CascadesToLocks_Postgres() {
     DataSourceFactory.clear_ForTestsOnly();
     try (PostgresServer postgres = new PostgresServer()) {
       OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
@@ -1115,7 +1115,7 @@ public class ApplicationDAOTest
   }
 
   @Test
-  public void testCascadeDeleteToInnerSource() {
+  public void testDelete_CascadesToInnerSource() {
     Application applicationTest = tempEntity.newApplication(organization.getId());
     InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent("pkg:test/name", applicationTest);
 

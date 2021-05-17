@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 import * as enzymeUtils from '../../../enzymeUtils';
 import NoticeTextsTile from '../../../../../main/frontend/legal/files/notices/NoticeTextsTile';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
@@ -34,6 +35,10 @@ describe('NoticeTextsTile', function () {
         },
       ],
       showNoticesModal: false,
+      $state: {
+        get: () => '',
+        href: () => '',
+      },
     };
     getShallowComponent = enzymeUtils.getShallowComponent(NoticeTextsTile, minimalProps);
   });

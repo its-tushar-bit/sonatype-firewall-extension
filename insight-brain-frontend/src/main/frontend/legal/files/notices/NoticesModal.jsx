@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 import React from 'react';
 import {
   NxButton,
@@ -211,7 +212,7 @@ export default function NoticesModal(props) {
                 notices.map(createFormRowItem)
               ) : (
                 <tr>
-                  <td className="no-legal-texts-found">No notice texts found</td>
+                  <td className="no-legal-texts-found">No notice files found</td>
                   <td />
                 </tr>
               )}

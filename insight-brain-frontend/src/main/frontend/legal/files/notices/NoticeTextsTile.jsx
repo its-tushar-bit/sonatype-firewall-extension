@@ -3,16 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 import React from 'react';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { legalFilesPropType } from '../../advancedLegalPropTypes';
-import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
+import { availableScopesPropType, legalFilesPropType } from '../../advancedLegalPropTypes';
+import { faAngleRight, faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import NoticesModalContainer from './NoticesModalContainer';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 
 export default function NoticeTextsTile(props) {
-  const { setShowNoticesModal, noticeFiles, showNoticesModal } = props;
+  const { setShowNoticesModal, noticeFiles, showNoticesModal, ownerType, ownerId, hash, $state } = props;
 
   const isNoticePresent = () => noticeFiles.length > 0;
 
@@ -21,6 +22,30 @@ export default function NoticeTextsTile(props) {
   const classes = classnames('nx-tile-content', {
     'license-no-legal-elements-text': !isNoticePresent(),
   });
+
+  const createItem = (notice, index) => (
+    <section id={'notice-section-' + index} key={index} className="nx-tile-subsection legal-file">
+      <div className="legal-file-section-header">
+        <span className="legal-file-path">{notice.relPath}</span>
+        <div>
+          <a
+            href={$state.href('legal.componentNoticeDetails.noticeDetails', {
+              ownerType,
+              ownerId,
+              hash,
+              noticeIndex: index,
+            })}
+          >
+            View More Details
+            <NxFontAwesomeIcon icon={faAngleRight} />
+          </a>
+        </div>
+      </div>
+      <blockquote id={'notice-text-' + index} className="nx-blockquote">
+        <div className="legal-file-content">{notice.originalContent}</div>
+      </blockquote>
+    </section>
+  );
 
   return (
     <section id="notice-texts-tile" className="nx-tile">
@@ -41,19 +66,13 @@ export default function NoticeTextsTile(props) {
   );
 }
 
-const createItem = (notice, index) => (
-  <section id={'notice-section-' + index} key={index} className="nx-tile-subsection legal-file">
-    <div className="legal-file-section-header">
-      <span className="legal-file-path">{notice.relPath}</span>
-    </div>
-    <blockquote id={'notice-text-' + index} className="nx-blockquote">
-      <div className="legal-file-content">{notice.originalContent}</div>
-    </blockquote>
-  </section>
-);
-
 NoticeTextsTile.propTypes = {
   setShowNoticesModal: PropTypes.func.isRequired,
   noticeFiles: legalFilesPropType,
   showNoticesModal: PropTypes.bool.isRequired,
+  ownerType: PropTypes.string.isRequired,
+  ownerId: PropTypes.string.isRequired,
+  availableScopes: availableScopesPropType,
+  hash: PropTypes.string.isRequired,
+  $state: PropTypes.object.isRequired,
 };

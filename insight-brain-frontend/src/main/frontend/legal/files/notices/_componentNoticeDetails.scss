@@ -1,0 +1,62 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-variables';
+@import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+component-notice-details,
+notice-list,
+notice-details-header,
+notice-details-contents {
+  display: contents;
+}
+
+#notice-details-tile {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#notice-text-quote {
+  flex-grow: 0;
+  margin-bottom: 0;
+}
+
+#component-notice-details-content {
+  display: grid;
+  column-gap: $nx-spacing-md;
+  grid-template-columns: 24% 1fr;
+}
+
+.notice-overview {
+  display: grid;
+  column-gap: $nx-spacing-xxl;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  height: 100%;
+  grid-template-rows: auto 1fr;
+
+  .nx-read-only__label {
+    margin-top: 0;
+  }
+
+  .notice-overview-text {
+    margin-top: $nx-spacing-xl;
+    grid-column: 1 / span 4;
+  }
+}
+
+.notice-included-in-detail-filepath {
+  @include semi-bold();
+}
+
+.notice-preformatted {
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
+.file-path-item.nx-tree-view {
+  max-width: unset;
+}

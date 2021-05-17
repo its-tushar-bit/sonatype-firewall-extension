@@ -14,12 +14,13 @@ import LoadWrapper from '../react/LoadWrapper';
 import {
   availableScopesPropType,
   componentPropType,
+  legalFilesPropType,
   licenseLegalMetadataPropType,
   licenseObligationsPropType,
 } from './advancedLegalPropTypes';
 import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './obligation/LicenseObligationsTileContainer';
-import NoticeTextsTileContainer from './files/notices/NoticeTextsTileContainer';
+import NoticeTextsTile from './files/notices/NoticeTextsTile';
 import LicenseTextsTileContainer from './files/licenses/LicenseTextsTileContainer';
 import { createSubtitle, getComponentEffectiveLicenseNamesAndIds } from './legalUtility';
 
@@ -29,6 +30,7 @@ export default function ComponentLegalOverviewPage(props) {
     licenseLegalMetadata,
     obligations,
     loading,
+    noticeFiles,
     error,
     organizationId,
     applicationPublicId,
@@ -36,12 +38,14 @@ export default function ComponentLegalOverviewPage(props) {
     hash,
     availableScopes,
     showEditCopyrightOverrideModal,
+    showNoticesModal,
     $state,
 
     //actions
     setDisplayCopyrightOverrideModal,
     loadAvailableScopes,
     loadComponent,
+    setShowNoticesModal,
   } = props;
 
   function load() {
@@ -128,7 +132,20 @@ export default function ComponentLegalOverviewPage(props) {
                 showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
                 setDisplayCopyrightOverrideModal={setDisplayCopyrightOverrideModal}
               />
-              <NoticeTextsTileContainer />
+              <NoticeTextsTile
+                {...{
+                  noticeFiles,
+                  setShowNoticesModal,
+                  showNoticesModal,
+                  stageTypeId,
+                  $state,
+                  component,
+                  availableScopes,
+                  ownerType,
+                  ownerId,
+                  hash,
+                }}
+              />
               <LicenseTextsTileContainer />
               {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}
               <LicenseObligationAttributionTileContainer name={null} />
@@ -150,10 +167,13 @@ ComponentLegalOverviewPage.propTypes = {
   hash: PropTypes.string,
   licenseLegalMetadata: licenseLegalMetadataPropType,
   obligations: licenseObligationsPropType,
+  noticeFiles: legalFilesPropType,
   loadComponent: PropTypes.func,
   loadAvailableScopes: PropTypes.func,
   availableScopes: availableScopesPropType,
   showEditCopyrightOverrideModal: PropTypes.bool.isRequired,
   setDisplayCopyrightOverrideModal: PropTypes.func.isRequired,
+  setShowNoticesModal: PropTypes.func.isRequired,
+  showNoticesModal: PropTypes.bool.isRequired,
   $state: PropTypes.object.isRequired,
 };

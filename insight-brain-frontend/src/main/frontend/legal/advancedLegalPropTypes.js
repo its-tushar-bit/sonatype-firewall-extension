@@ -34,14 +34,14 @@ export const applicationsTabPropType = PropTypes.shape({
   ]),
 });
 
-export const legalFilesPropType = PropTypes.arrayOf(
-  PropTypes.shape({
-    id: PropTypes.string,
-    content: PropTypes.string.isRequired,
-    relPath: PropTypes.string,
-    originalContentHash: PropTypes.string,
-  }).isRequired
-).isRequired;
+export const legalFilePropType = PropTypes.shape({
+  id: PropTypes.string,
+  content: PropTypes.string.isRequired,
+  relPath: PropTypes.string,
+  originalContentHash: PropTypes.string,
+});
+
+export const legalFilesPropType = PropTypes.arrayOf(legalFilePropType);
 
 export const licenseObligationsPropType = PropTypes.arrayOf(
   PropTypes.shape({
@@ -166,4 +166,9 @@ export const componentCopyrightDetailsPropType = PropTypes.shape({
   selectedFilePath: PropTypes.string,
   copyrightFileCounts: PropTypes.objectOf(PropTypes.number),
   copyrightContexts: PropTypes.arrayOf(PropTypes.string.isRequired),
+});
+
+export const componentNoticeDetailsPropType = PropTypes.shape({
+  loading: PropTypes.bool,
+  selectedNotice: legalFilePropType,
 });

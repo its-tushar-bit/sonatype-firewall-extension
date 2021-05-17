@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 import * as enzymeUtils from '../../../enzymeUtils';
 import NoticesModal from '../../../../../main/frontend/legal/files/notices/NoticesModal';
 import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
@@ -72,10 +73,10 @@ describe('NoticesModal', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(NoticesModal, minimalProps);
   });
 
-  it('renders no notice texts found if there are no notices', function () {
+  it('renders No notice files found found if there are no notices', function () {
     const wrapper = getShallowComponent({ notices: [] });
     const noNoticeTextsRow = wrapper.find('tbody tr');
-    expect(noNoticeTextsRow).toHaveText('No notice texts found');
+    expect(noNoticeTextsRow).toHaveText('No notice files found');
   });
 
   it('renders notice contents', function () {

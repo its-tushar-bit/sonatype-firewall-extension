@@ -7,13 +7,13 @@ import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import { NxBackButton } from '@sonatype/react-shared-components';
 import ComponentOverviewTile from '../../../main/frontend/legal/ComponentOverviewTile';
-import NoticeTextsTileContainer from '../../../main/frontend/legal/files/notices/NoticeTextsTileContainer';
 import LicenseTextsTileContainer from '../../../main/frontend/legal/files/licenses/LicenseTextsTileContainer';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 import CopyrightStatementsTile from '../../../main/frontend/legal/copyright/CopyrightStatementsTile';
 import ComponentLegalOverviewPage from '../../../main/frontend/legal/ComponentLegalOverviewPage';
 import { mount } from 'enzyme/build';
 import LicenseObligationsTileContainer from '../../../main/frontend/legal/obligation/LicenseObligationsTileContainer';
+import NoticeTextsTile from '../../../main/frontend/legal/files/notices/NoticeTextsTile';
 
 describe('ComponentLegalOverviewPage', function () {
   let minimalProps, loadComponentSpy, loadAvailableScopesSpy, getShallowComponent, spy$State;
@@ -229,8 +229,8 @@ describe('ComponentLegalOverviewPage', function () {
     expect(wrapper.find(LicenseTextsTileContainer)).toExist();
   });
 
-  it('renders the NoticeTextsTileContainer', function () {
+  it('renders the NoticeTextsTile', function () {
     const wrapper = getShallowComponent();
-    expect(wrapper.find(NoticeTextsTileContainer)).toExist();
+    expect(wrapper.find(NoticeTextsTile)).toExist();
   });
 });

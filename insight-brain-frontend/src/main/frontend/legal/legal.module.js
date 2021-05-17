@@ -11,8 +11,12 @@ import componentCopyrightDetails from './copyright/componentCopyrightDetails';
 import CopyrightDetailsHeaderContainer from './copyright/CopyrightDetailsHeaderContainer';
 import CopyrightListContainer from './copyright/CopyrightListContainer';
 import CopyrightDetailsContentsContainer from './copyright/CopyrightDetailsContentsContainer';
+import NoticeDetailsHeaderContainer from './files/notices/NoticeDetailsHeaderContainer';
+import NoticeDetailsListContainer from './files/notices/NoticeDetailsListContainer';
+import NoticeDetailsContentsContainer from './files/notices/NoticeDetailsContentsContainer';
 import LegalDashboardContainer from './dashboard/LegalDashboardContainer';
 import ComponentLicenseDetailsContainer from './license/ComponentLicenseDetailsContainer';
+import componentNoticeDetails from './files/notices/componentNoticeDetails';
 
 export default angular
   .module('legalModule', [])
@@ -37,6 +41,19 @@ export default angular
   .component(
     'copyrightDetailsContents',
     react2angular(withStoreProvider(CopyrightDetailsContentsContainer), [], ['$ngRedux', '$state'])
+  )
+  .component('componentNoticeDetails', componentNoticeDetails)
+  .component(
+    'noticeDetailsHeader',
+    react2angular(withStoreProvider(NoticeDetailsHeaderContainer), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'noticeDetailsList',
+    react2angular(withStoreProvider(NoticeDetailsListContainer), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'noticeDetailsContents',
+    react2angular(withStoreProvider(NoticeDetailsContentsContainer), [], ['$ngRedux', '$state'])
   )
   .component(
     'componentLicenseDetails',
@@ -101,6 +118,30 @@ function routes($stateProvider) {
       component: 'copyrightDetailsContents',
       data: {
         title: 'Copyright Details',
+      },
+    })
+    .state('legal.componentNoticeDetails', {
+      url: '/legal/{ownerType}/{ownerId}/component/{hash}/notices',
+      component: 'componentNoticeDetails',
+      abstract: true,
+    })
+    .state('legal.componentNoticeDetails.noticeDetails', {
+      url: '/{noticeIndex}',
+      component: 'noticeDetailsContents',
+      data: {
+        title: 'Notice Details',
+      },
+    })
+    .state('legal.stageTypeComponentNoticeDetails', {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/notices',
+      component: 'componentNoticeDetails',
+      abstract: true,
+    })
+    .state('legal.stageTypeComponentNoticeDetails.noticeDetails', {
+      url: '/{noticeIndex}',
+      component: 'noticeDetailsContents',
+      data: {
+        title: 'Notice Details',
       },
     })
     .state('legal.stageTypeComponentCopyrightDetails', {

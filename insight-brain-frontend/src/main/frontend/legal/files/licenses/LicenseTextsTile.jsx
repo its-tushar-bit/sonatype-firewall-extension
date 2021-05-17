@@ -48,7 +48,7 @@ const createItem = (license, index) => (
         {license.relPath}
       </span>
     </div>
-    <blockquote id={'license-text-' + index} className="nx-blockquote">
+    <blockquote id={'license-text-' + index} className="nx-blockquote notice-preformatted">
       <div className="legal-file-content">{license.originalContent}</div>
     </blockquote>
   </section>

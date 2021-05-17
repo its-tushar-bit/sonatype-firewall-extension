@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { findIndex, propEq } from 'ramda';
+import { findIndex, last, propEq } from 'ramda';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faGlobe, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
@@ -58,6 +58,25 @@ export function getLicenseThreatGroupsFromLicense(license) {
   return isNilOrEmpty(license.licenseThreatGroups)
     ? [{ licenseThreatGroupName: NO_LICENSE_THREAT_GROUP_ASSIGNED }]
     : license.licenseThreatGroups;
+}
+
+export function scopeName(availableScopes) {
+  if (!availableScopes) {
+    return '';
+  } else {
+    return availableScopes.values ? last(availableScopes.values).name : '';
+  }
+}
+
+export function ifExistsElseEmpty(element, func) {
+  return element ? func() : '';
+}
+
+export function attributionStatus(item) {
+  return ifExistsElseEmpty(item, () => (item.status === 'enabled' ? 'Included' : 'Excluded'));
+}
+export function legalSource(item) {
+  return ifExistsElseEmpty(item, () => (item.originalContentHash ? 'Sonatype Scan' : 'Manually added'));
 }
 
 /**

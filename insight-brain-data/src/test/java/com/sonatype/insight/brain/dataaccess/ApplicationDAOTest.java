@@ -900,8 +900,11 @@ public class ApplicationDAOTest
 
   @Test
   public void testDelete_CascadesToSourceControlDefaultBranchCommitHistory() {
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "testScanId");
     SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory =
-        tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", new Date(), null);
+        tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", new Date(),
+            policyEvaluation.getId());
 
     applicationDAO.delete(application);
 
@@ -1116,10 +1119,9 @@ public class ApplicationDAOTest
 
   @Test
   public void testDelete_CascadesToInnerSource() {
-    Application applicationTest = tempEntity.newApplication(organization.getId());
-    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent("pkg:test/name", applicationTest);
+    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent("pkg:test/name", application);
 
-    applicationDAO.delete(applicationTest);
+    applicationDAO.delete(application);
 
     InnerSourceComponentDAO innerSourceComponentDAO = new InnerSourceComponentDAO();
     assertThat(innerSourceComponentDAO.getById(innerSourceComponent.getId())).isNull();

@@ -278,7 +278,12 @@ public class ApplicationDAO
     new SourceControlDAO().deleteByOwnerId(tx, application.getId());
 
     // Cascade to source control default branch commit history
-    new SourceControlDefaultBranchCommitHistoryDAO().deleteByApplicationId(tx, application.getId());
+    // We don't enroll this operation in the transaction because:
+    // Policy evaluation deletions will cascade to commit history and the policy evaluation deletions are not enrolled
+    // in transaction. This means the same commit history records we delete here may be already deleted (and the
+    // deletion committed) before the current transaction is committed or flushed and that results in
+    // OptimisticLockException.
+    new SourceControlDefaultBranchCommitHistoryDAO().deleteByApplicationId(application.getId());
 
     // Cascade to source control events
     // SourceControl events reference policy evaluations, so policy evaluation deletions will cascade to source control

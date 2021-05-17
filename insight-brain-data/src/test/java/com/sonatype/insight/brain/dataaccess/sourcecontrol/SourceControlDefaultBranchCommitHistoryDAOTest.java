@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
-import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Test;
 
@@ -293,11 +292,7 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
     commitHistoryList.forEach(entry -> assertThat(entry.getApplicationId()).isEqualTo(application.getId()));
 
     // when : delete entries for first application
-    try (TransactionContext tx = defaultBranchCommitHistoryDAO.createTransactionContext()) {
-      tx.begin();
-      defaultBranchCommitHistoryDAO.deleteByApplicationId(tx, application.getId());
-      tx.commit();
-    }
+    defaultBranchCommitHistoryDAO.deleteByApplicationId(application.getId());
 
     // then : entries were removed for first application
     commitHistoryList = defaultBranchCommitHistoryDAO.getByApplicationIdSortedByDateDesc(application.getId());

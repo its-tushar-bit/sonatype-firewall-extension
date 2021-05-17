@@ -126,12 +126,17 @@ public class SourceControlDefaultBranchCommitHistoryDAO
     }
   }
 
-  public void deleteByApplicationId(
-      final TransactionContext tx,
-      final String applicationId)
-  {
-    List<SourceControlDefaultBranchCommitHistory> commitHistoryList = getList(
-        tx, SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1, applicationId);
+  public void deleteByApplicationId(String applicationId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deleteByApplicationId(tx, applicationId);
+      tx.commit();
+    }
+  }
+
+  public void deleteByApplicationId(final TransactionContext tx, final String applicationId) {
+    List<SourceControlDefaultBranchCommitHistory> commitHistoryList =
+        getList(tx, SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1, applicationId);
     for (SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory : commitHistoryList) {
       delete(tx, defaultBranchCommitHistory);
     }

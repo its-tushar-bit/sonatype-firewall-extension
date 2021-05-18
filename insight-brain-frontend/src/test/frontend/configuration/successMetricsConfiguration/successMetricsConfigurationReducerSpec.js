@@ -106,6 +106,7 @@ describe('successMetricsConfigurationReducer', function () {
 
       const newState = reduce(state, {
         type: 'SUCCESS_METRICS_CONFIGURATION_UPDATE_FAILED',
+        payload: { status: 403 },
       });
 
       expect(newState.viewState.submitMaskState).toBeNull();
@@ -132,6 +133,29 @@ describe('successMetricsConfigurationReducer', function () {
       expect(newState.viewState.updateError).toEqual({ status: 403 });
 
       expect(newState.other).toBe(otherObject);
+    });
+
+    it('does not reset the form state', function () {
+      const state = Object.freeze({
+        other: otherObject,
+        viewState: {
+          other: otherObject,
+          submitMaskState: true,
+        },
+        formState: {
+          enabled: true,
+        },
+      });
+
+      const newState = reduce(state, {
+        type: 'SUCCESS_METRICS_CONFIGURATION_UPDATE_FAILED',
+        payload: { status: 403 },
+      });
+
+      expect(newState.formState.enabled).toBe(true);
+
+      expect(newState.other).toBe(otherObject);
+      expect(newState.viewState.other).toBe(otherObject);
     });
   });
 
@@ -239,6 +263,7 @@ describe('successMetricsConfigurationReducer', function () {
         viewState: {
           other: otherObject,
           isDirty: true,
+          updateError: 'some error',
         },
         formState: {
           enabled: false,
@@ -252,6 +277,7 @@ describe('successMetricsConfigurationReducer', function () {
       });
 
       expect(newState.viewState.isDirty).toBe(false);
+      expect(newState.viewState.updateError).toBe(null);
       expect(newState.formState.enabled).toBe(true);
 
       expect(newState.other).toBe(otherObject);

@@ -95,10 +95,6 @@ function updateFailed(payload, state) {
       updateError: payload,
       submitMaskState: null,
     },
-    formState: {
-      ...state.formState,
-      enabled: state.serverData.enabled,
-    },
   };
 }
 
@@ -108,6 +104,7 @@ function resetForm(_, state) {
     formState: state.serverData,
     viewState: {
       ...state.viewState,
+      updateError: null,
       isDirty: false,
     },
   };

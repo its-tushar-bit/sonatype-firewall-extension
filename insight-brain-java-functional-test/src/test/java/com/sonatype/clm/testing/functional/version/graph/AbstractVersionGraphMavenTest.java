@@ -25,12 +25,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 
 public abstract class AbstractVersionGraphMavenTest
     extends AbstractFunctionalTest
@@ -40,7 +37,11 @@ public abstract class AbstractVersionGraphMavenTest
           " \"extension\":\"jar\", \"classifier\":\"\"},{\"matchState\":\"exact\",\"proprietary\":\"false\"," +
           "\"filename\":\"aaaa\", \"hash\":\"aaa\", \"appId\":\"ApplicationReportTest\"});";
 
+  private Application appFirst;
+
   private Application app;
+
+  private Application appLast;
 
   @BeforeClass
   public static void startup() {
@@ -50,6 +51,8 @@ public abstract class AbstractVersionGraphMavenTest
 
   @Before
   public void start() {
+    appFirst = tempEntity.newApplicationWithParent("app-123", "app-123");
+    appLast = tempEntity.newApplicationWithParent("SomeApp", "Some App");
     app = tempEntity.newApplicationWithParent("ApplicationReportTest", "ApplicationReportTest");
     // add Security policy
     createPolicy(app.getId(), 10, "SecurityPolicy", SecurityVulnerabilitySeverityConditionType.ID, "=", "9.1");
@@ -70,12 +73,51 @@ public abstract class AbstractVersionGraphMavenTest
   protected abstract String getStartPageUrl();
 
   @Test
+  public void testApplicationsInAlphabeticalOrder() {
+    if (isApplicationSelectionNeeded()) {
+      refreshOrOpen(getStartPageUrl());
+      verifyMessageIsPresentWhenNoApplicationIsSelected();
+      VersionsCIP.applicationsElement().shouldBe(visible);
+      VersionsCIP.applicationsElement().shouldNotBe(selected);
+      VersionsCIP.applicationsElement().selectOption(0);
+      VersionsCIP.applicationsElement().getSelectedOption().shouldHave(text(appFirst.getName()));
+      VersionsCIP.applicationsElement().selectOption(1);
+      VersionsCIP.applicationsElement().getSelectedOption().shouldHave(text(app.getName()));
+      VersionsCIP.applicationsElement().selectOption(2);
+      VersionsCIP.applicationsElement().getSelectedOption().shouldHave(text(appLast.getName()));
+    }
+  }
+
+  @Test
+  public void testVersionGraph() {
+    if (isApplicationSelectionNeeded()) {
+      setupHdsResponses();
+      mockHdsResponseForRemediation();
+      mockHdsResponseForFirstComponent();
+      VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
+      executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
+
+      VersionsCIP.versionGraph().shouldHave(attribute("height", "153"));
+      VersionsCIP.versionGraphLabels().shouldHave(exactTexts(
+          "Popularity",
+          "Policy Threat",
+          "Details",
+          "Security",
+          "License",
+          "Quality",
+          "Other"
+      ));
+    }
+  }
+  
+  @Test
   public void testCIPWithRemediation() {
     setupHdsResponses();
     mockHdsResponseForRemediation();
     mockHdsResponseForFirstComponent();
 
     if (isApplicationSelectionNeeded()) {
+      verifyMessageIsPresentWhenNoApplicationIsSelected();
       VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
     }
 
@@ -284,12 +326,20 @@ public abstract class AbstractVersionGraphMavenTest
 
     executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
 
+    VersionsCIP.versionGraphLoading().should(disappear);
+
     VersionsCIP.viewDetailsButton().shouldBe(visible);
 
     eyesWatcher.eyesCheck("Version graph with breaking changes heatmap");
 
     VersionsCIP.groupId().shouldHave(text("javancss"));
     VersionsCIP.viewDetailsButton().shouldBe(visible);
+  }
+
+  private void verifyMessageIsPresentWhenNoApplicationIsSelected() {
+    if (VersionsCIP.selectApplications().getFirstSelectedOption() == null) {
+      VersionsCIP.selectAnApplicationMessage().shouldBe(visible).shouldHave(text("Select an application."));
+    }
   }
 
   protected Policy createPolicy(String ownerId,

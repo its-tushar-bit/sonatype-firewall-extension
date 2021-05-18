@@ -26,7 +26,15 @@ public class VersionsCIP
   }
 
   public static SelenideElement versionGraph() {
-    return root().find("svg");
+    return root().find("#aiVersionChartViz svg");
+  }
+
+  public static ElementsCollection versionGraphLabels() {
+    return root().findAll("#aiVersionChartLabels text");
+  }
+
+  public static SelenideElement versionGraphLoading() {
+    return root().find("i.icon-time:last-child");
   }
 
   public static SelenideElement artifactTable() {
@@ -47,6 +55,14 @@ public class VersionsCIP
 
   public static SelenideElement version() {
     return root().find("#artifactInfo-Version");
+  }
+
+  public static SelenideElement extension() {
+    return root().find("#artifactInfo-Extension");
+  }
+
+  public static SelenideElement classifier() {
+    return root().find("#artifactInfo-Classifier");
   }
 
   public static ElementsCollection declaredLicenses() {
@@ -153,8 +169,16 @@ public class VersionsCIP
     return root().find("#migrate-button");
   }
 
+  public static SelenideElement selectAnApplicationMessage() {
+    return root().find("#select-application");
+  }
+
   public static Select selectApplications() {
     return new Select(root().find("#selectApp"));
+  }
+
+  public static SelenideElement applicationsElement() {
+    return root().find("#selectApp");
   }
 
   public static SelenideElement noVersionsAvailable() {

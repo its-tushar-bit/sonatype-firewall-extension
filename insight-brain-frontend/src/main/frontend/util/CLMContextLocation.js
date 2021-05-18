@@ -8,7 +8,7 @@ import { contains, split } from 'ramda';
 /* global window, angular */
 import commonServicesModule from '../util/CommonServices';
 import CLMLocationModule from '../util/CLMLocation';
-import { getBaseUrl } from './urlUtil';
+import { getBaseUrl, uriTemplate } from './urlUtil';
 
 var locationModule = angular.module('CLMContextLocation', [
   commonServicesModule.name,
@@ -34,6 +34,10 @@ export function getPermissionContextTestUrl(ownerType, ownerId) {
     path += '/' + ownerId;
   }
   return `${getBaseUrl(window.location.href)}/rest/user/permissions/${path}`;
+}
+
+export function getGlobalPermissionTestUrl() {
+  return uriTemplate`/rest/user/permissions/global/global`;
 }
 
 locationModule.factory('CLMContextLocations', [

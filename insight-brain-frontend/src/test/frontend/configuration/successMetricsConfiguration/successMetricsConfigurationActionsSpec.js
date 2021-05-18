@@ -8,15 +8,20 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 
 import {
   load,
+  loadConfiguration,
   update,
+  permissions,
+  authErrorMessage,
 } from '../../../../main/frontend/configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 import { getSuccessMetricsConfigUrl } from '../../../../main/frontend/util/CLMLocation';
+import { getGlobalPermissionTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
 
 describe('successMetricsConfigurationActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const successMetricsConfigurationUrl = getSuccessMetricsConfigUrl();
+  const permissionUrl = getGlobalPermissionTestUrl();
 
-  describe('load', () => {
+  describe('loadConfiguration', function () {
     let store, state;
 
     beforeEach(function () {
@@ -31,10 +36,6 @@ describe('successMetricsConfigurationActions', () => {
       store = SpecUtil.mockReduxStore(state);
     });
 
-    afterEach(function () {
-      expect(axios.get).toHaveBeenCalledWith(successMetricsConfigurationUrl);
-    });
-
     it('immediately dispatches a SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED action', function () {
       mockAxiosCalls({
         get: {
@@ -43,7 +44,7 @@ describe('successMetricsConfigurationActions', () => {
           }),
         },
       });
-      store.dispatch(load());
+      store.dispatch(loadConfiguration());
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
@@ -61,7 +62,7 @@ describe('successMetricsConfigurationActions', () => {
           },
         });
 
-        store.dispatch(load()).then(() => {
+        store.dispatch(loadConfiguration()).then(() => {
           actions = store.getActions();
           expect(actions.length).toBe(2);
           expect(actions[0].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED');
@@ -80,20 +81,79 @@ describe('successMetricsConfigurationActions', () => {
       it('dispatches an SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED action', function (done) {
         mockAxiosCalls({
           get: {
-            [successMetricsConfigurationUrl]: Promise.reject({ message: 'error' }),
+            [successMetricsConfigurationUrl]: Promise.reject({ status: 403 }),
+          },
+        });
+
+        store.dispatch(loadConfiguration()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[1].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED');
+          expect(actions[1].payload).toEqual('Error 403');
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
+  });
+
+  describe('load', () => {
+    let store, state;
+
+    beforeEach(function () {
+      state = {
+        successMetricsConfiguration: {
+          formState: {
+            enabled: false,
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(state);
+    });
+
+    describe('after a successful PUT permission call', function () {
+      it('dispatches an SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED action', function (done) {
+        mockAxiosCalls({
+          put: {
+            [permissionUrl]: Promise.resolve({
+              data: permissions,
+            }),
           },
         });
 
         store.dispatch(load()).then(() => {
           actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED');
-          expect(actions[1].payload).toEqual({ message: 'error' });
+          expect(actions[0].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED');
           done();
         });
 
         let actions = store.getActions();
-        expect(actions.length).toBe(1);
+        expect(actions.length).toBe(0);
+      });
+    });
+
+    describe('after a failed PUT permission call', function () {
+      it('dispatches an SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED action', function (done) {
+        mockAxiosCalls({
+          put: {
+            [permissionUrl]: Promise.reject(authErrorMessage),
+          },
+        });
+
+        store.dispatch(load()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(1);
+          expect(actions[0].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED');
+          expect(actions[0].payload).toEqual(authErrorMessage);
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(0);
       });
     });
   });
@@ -142,34 +202,34 @@ describe('successMetricsConfigurationActions', () => {
             [successMetricsConfigurationUrl]: Promise.resolve({}),
           },
         });
+      });
 
-        it('dispatches SUCCESS_METRICS_CONFIGURATION_UPDATE_FULFILLED', function (done) {
-          store.dispatch(update()).then(() => {
+      it('dispatches SUCCESS_METRICS_CONFIGURATION_UPDATE_FULFILLED', function (done) {
+        store.dispatch(update()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[1].type).toBe('SUCCESS_METRICS_CONFIGURATION_UPDATE_FULFILLED');
+          expect(actions[1].payload).toBeUndefined();
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+
+      it('dispatches SUCCESS_METRICS_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE after timeout', function (done) {
+        store.dispatch(update()).then(() => {
+          setTimeout(function () {
             actions = store.getActions();
-            expect(actions.length).toBe(2);
-            expect(actions[1].type).toBe('SUCCESS_METRICS_CONFIGURATION_UPDATE_FULFILLED');
-            expect(actions[1].payload).toBeUndefined();
+            expect(actions.length).toBe(3);
+            expect(actions[2].type).toBe('SUCCESS_METRICS_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE');
+
             done();
-          });
-
-          let actions = store.getActions();
-          expect(actions.length).toBe(1);
+          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         });
 
-        it('dispatches SUCCESS_METRICS_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE after timeout', function (done) {
-          store.dispatch(update()).then(() => {
-            setTimeout(function () {
-              actions = store.getActions();
-              expect(actions.length).toBe(3);
-              expect(actions[2].type).toBe('SUCCESS_METRICS_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE');
-
-              done();
-            }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-          });
-
-          let actions = store.getActions();
-          expect(actions.length).toBe(1);
-        });
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
       });
     });
 
@@ -177,22 +237,22 @@ describe('successMetricsConfigurationActions', () => {
       beforeEach(function () {
         mockAxiosCalls({
           put: {
-            [successMetricsConfigurationUrl]: Promise.reject({ message: 'error' }),
+            [successMetricsConfigurationUrl]: Promise.reject({ status: 403 }),
           },
         });
+      });
 
-        it('dispatches SUCCESS_METRICS_CONFIGURATION_UPDATE_FAILED action', function (done) {
-          store.dispatch(update()).then(() => {
-            actions = store.getActions();
-            expect(actions.length).toBe(2);
-            expect(actions[1].type).toBe('SUCCESS_METRICS_CONFIGURATION_UPDATE_FAILED');
-            expect(actions[1].payload).toEqual({ message: 'error' });
-            done();
-          });
-
-          let actions = store.getActions();
-          expect(actions.length).toBe(1);
+      it('dispatches SUCCESS_METRICS_CONFIGURATION_UPDATE_FAILED action', function (done) {
+        store.dispatch(update()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[1].type).toBe('SUCCESS_METRICS_CONFIGURATION_UPDATE_FAILED');
+          expect(actions[1].payload).toEqual('Error 403');
+          done();
         });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
       });
     });
   });

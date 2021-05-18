@@ -7,7 +7,9 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+import { Messages } from '../../util/CommonServices';
 import { getSuccessMetricsConfigUrl } from '../../util/CLMLocation';
+import { getGlobalPermissionTestUrl } from '../../util/CLMContextLocation';
 
 export const SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED = 'SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED';
 export const SUCCESS_METRICS_CONFIGURATION_LOAD_FULFILLED = 'SUCCESS_METRICS_CONFIGURATION_LOAD_FULFILLED';
@@ -17,7 +19,28 @@ const loadRequested = noPayloadActionCreator(SUCCESS_METRICS_CONFIGURATION_LOAD_
 const loadFulfilled = payloadParamActionCreator(SUCCESS_METRICS_CONFIGURATION_LOAD_FULFILLED);
 const loadFailed = payloadParamActionCreator(SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED);
 
+export const permissions = ['CONFIGURE_SYSTEM'];
+export const authErrorMessage = `It appears you do not have permission to access this page.
+  If you believe this to be incorrect please contact your administrator.`;
+
 export function load() {
+  return function (dispatch) {
+    return axios
+      .put(getGlobalPermissionTestUrl(), permissions)
+      .then(({ data }) => {
+        if (data.length === permissions.length) {
+          return Promise.resolve({ isAuthorized: true });
+        }
+        return Promise.reject(authErrorMessage);
+      })
+      .then(() => dispatch(loadConfiguration()))
+      .catch((error) => {
+        dispatch(loadFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
+export function loadConfiguration() {
   return function (dispatch) {
     dispatch(loadRequested());
     return axios
@@ -26,7 +49,7 @@ export function load() {
         dispatch(loadFulfilled(data));
       })
       .catch((error) => {
-        dispatch(loadFailed(error));
+        dispatch(loadFailed(Messages.getHttpErrorMessage(error)));
       });
   };
 }
@@ -58,7 +81,7 @@ export function update() {
         startSubmitMaskSuccessTimer(dispatch);
       })
       .catch((error) => {
-        dispatch(updateFailed(error));
+        dispatch(updateFailed(Messages.getHttpErrorMessage(error)));
       });
   };
 }

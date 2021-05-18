@@ -3,22 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, NxLoadError, NxButton } from '@sonatype/react-shared-components';
+import React from 'react';
+import { NxForm, NxButton } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 
-import SuccessMetricsConfiguration, {
-  authErrorMessage,
-} from '../../../../main/frontend/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
+import SuccessMetricsConfiguration from '../../../../main/frontend/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
 
 describe('SuccessMetricsConfiguration', function () {
-  let mockUpdate,
-    mockLoad,
-    mockReset,
-    mockToggleIsEnabled,
-    getShallowComponent,
-    getMountedComponent,
-    mountedComponent,
-    minimalProps;
+  let mockUpdate, mockLoad, mockReset, mockToggleIsEnabled, getShallowComponent, minimalProps;
 
   beforeEach(function () {
     mockUpdate = jasmine.createSpy('update');
@@ -27,7 +19,6 @@ describe('SuccessMetricsConfiguration', function () {
     mockToggleIsEnabled = jasmine.createSpy('toggleIsEnabled');
 
     minimalProps = {
-      isAuthorized: true,
       load: mockLoad,
       update: mockUpdate,
       resetForm: mockReset,
@@ -38,15 +29,6 @@ describe('SuccessMetricsConfiguration', function () {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(SuccessMetricsConfiguration, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(SuccessMetricsConfiguration, minimalProps);
-  });
-
-  afterEach(function () {
-    if (mountedComponent) {
-      mountedComponent.unmount();
-    }
-
-    mountedComponent = null;
   });
 
   it('renders a component with the "nx-page-main" class', function () {
@@ -55,29 +37,62 @@ describe('SuccessMetricsConfiguration', function () {
 
   describe('on initial load', function () {
     it('calls load', function () {
-      mountedComponent = getMountedComponent();
+      const getMountedComponent = enzymeUtils.getMountedComponent(SuccessMetricsConfiguration, minimalProps);
+      const mountedComponent = getMountedComponent();
 
       expect(mockLoad).toHaveBeenCalled();
-    });
-
-    it('shows error if loadError occurred', function () {
-      const expectedError = 'Error 403';
-      mountedComponent = getMountedComponent({ isAuthorized: true, loadError: { status: '403' } });
-      const loadError = mountedComponent.find(NxLoadError);
-
-      expect(loadError).toExist();
-      expect(loadError).toHaveProp('error', expectedError);
+      mountedComponent.unmount();
     });
   });
 
-  describe('on cancel', function () {
-    it('calls resetForm', function () {
-      mountedComponent = getMountedComponent({ isDirty: true });
-      const cancel = mountedComponent.find('#success-metrics-cancel').first();
+  describe('additionalFooterBtns prop', function () {
+    it('contains non disabled cancel button with proper click handler if form is dirty', function () {
+      const shallowComponent = getShallowComponent({ isDirty: true });
+      const form = shallowComponent.find(NxForm);
 
-      cancel.simulate('click');
+      expect(form).toHaveProp(
+        'additionalFooterBtns',
+        <NxButton type="button" id="success-metrics-cancel" onClick={mockReset} disabled={false}>
+          Cancel
+        </NxButton>
+      );
+    });
 
-      expect(mockReset).toHaveBeenCalled();
+    it('contains disabled cancel button if form is not dirty', function () {
+      const shallowComponent = getShallowComponent({ isDirty: false });
+      const form = shallowComponent.find(NxForm);
+
+      expect(form).toHaveProp(
+        'additionalFooterBtns',
+        <NxButton type="button" id="success-metrics-cancel" onClick={mockReset} disabled={true}>
+          Cancel
+        </NxButton>
+      );
+    });
+  });
+
+  describe('validationErrors', function () {
+    it('should be null if form was changed', function () {
+      const shallowComponent = getShallowComponent({ isDirty: true });
+      const form = shallowComponent.find(NxForm);
+
+      expect(form).toHaveProp('validationErrors', null);
+    });
+
+    it('should contain tooltip validation message if form was not changed', function () {
+      const shallowComponent = getShallowComponent({ isDirty: false });
+      const form = shallowComponent.find(NxForm);
+
+      expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+    });
+  });
+
+  describe('doLoad', function () {
+    it('should have proper handler', function () {
+      const shallowComponent = getShallowComponent();
+      const form = shallowComponent.find(NxForm);
+
+      expect(form).toHaveProp('doLoad', mockLoad);
     });
   });
 
@@ -89,14 +104,6 @@ describe('SuccessMetricsConfiguration', function () {
       form.simulate('submit');
 
       expect(mockUpdate).toHaveBeenCalled();
-    });
-
-    it('shows alert if update request failed', function () {
-      const updateError = 'Some random error from failed update';
-      mountedComponent = getMountedComponent({ updateError });
-      const errorComponent = mountedComponent.find(NxLoadError);
-
-      expect(errorComponent).toHaveProp('error', updateError);
     });
   });
 
@@ -118,25 +125,6 @@ describe('SuccessMetricsConfiguration', function () {
       shallowComponent = getShallowComponent({ enabled: true });
 
       expect(shallowComponent.find('.nx-toggle--no-gap')).toHaveProp('isChecked', true);
-    });
-  });
-
-  describe('on authorization error', function () {
-    it('sets default authErrorMessage value if loadError isn"t provided', function () {
-      mountedComponent = getMountedComponent({ isAuthorized: false });
-      const loadError = mountedComponent.find(NxLoadError);
-
-      expect(loadError).toExist();
-      expect(loadError).toHaveProp('error', authErrorMessage);
-    });
-
-    it('calls load on retry click', function () {
-      mountedComponent = getMountedComponent({ isAuthorized: false });
-      const retryButton = mountedComponent.find(NxButton);
-
-      retryButton.simulate('click');
-
-      expect(mockLoad).toHaveBeenCalled();
     });
   });
 });

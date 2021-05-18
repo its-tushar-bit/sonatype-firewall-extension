@@ -54,7 +54,7 @@ export default angular
   )
   .component(
     'successMetricsConfiguration',
-    react2angular(withStoreProvider(SuccessMetricsConfigurationContainer), ['isAuthorized'], ['$ngRedux'])
+    react2angular(withStoreProvider(SuccessMetricsConfigurationContainer), [], ['$ngRedux'])
   )
   .factory('scmOnboardingActions', scmOnboardingActions)
   .config(routes);
@@ -148,14 +148,6 @@ function routes($stateProvider) {
       data: {
         title: 'Success Metrics',
         isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
-      },
-      resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
       },
     })
     .state('scmOnboarding', {

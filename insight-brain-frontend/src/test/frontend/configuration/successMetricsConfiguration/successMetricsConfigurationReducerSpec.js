@@ -127,10 +127,10 @@ describe('successMetricsConfigurationReducer', function () {
 
       const newState = reduce(state, {
         type: 'SUCCESS_METRICS_CONFIGURATION_UPDATE_FAILED',
-        payload: { status: 403 },
+        payload: 'Error 403',
       });
 
-      expect(newState.viewState.updateError).toEqual({ status: 403 });
+      expect(newState.viewState.updateError).toEqual('Error 403');
 
       expect(newState.other).toBe(otherObject);
     });
@@ -208,8 +208,8 @@ describe('successMetricsConfigurationReducer', function () {
         viewState: {
           other: otherObject,
           loading: true,
-          loadError: { status: 403 },
-          saveError: { status: 403 },
+          loadError: 'Error 403',
+          updateError: 'Error 403',
         },
         formState: {},
         serverData: {},
@@ -245,11 +245,11 @@ describe('successMetricsConfigurationReducer', function () {
       });
       const newState = reduce(state, {
         type: 'SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED',
-        payload: { status: 403 },
+        payload: 'Error 403',
       });
 
       expect(newState.viewState.loading).toBe(false);
-      expect(newState.viewState.loadError).toEqual({ status: 403 });
+      expect(newState.viewState.loadError).toEqual('Error 403');
 
       expect(newState.other).toBe(otherObject);
       expect(newState.viewState.other).toEqual(otherObject);

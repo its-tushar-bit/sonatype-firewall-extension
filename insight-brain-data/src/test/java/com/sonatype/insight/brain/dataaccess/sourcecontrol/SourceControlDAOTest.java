@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -454,7 +453,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testCRUD() {
+  public void testCRUD_Application() {
     assertThat(VALID_URL.toLowerCase(Locale.ENGLISH)).isNotEqualTo(VALID_URL);
 
     createRootOrgWithGitHubProvider();
@@ -532,7 +531,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testPullRequestConfigsCanBeNull() {
+  public void testInsert_PullRequestConfigsCanBeNull() {
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("bar")
@@ -620,7 +619,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void test_getAllForApplications() {
+  public void testGetByApplication() {
     createRootOrgWithGitHubProvider();
     // create a few sample entries
     SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, null);
@@ -635,13 +634,13 @@ public class SourceControlDAOTest
     // create source control entries for organizations which will not have repository URLs set
     sourceControlDAO.insert(buildOrgSourceControl(org.getId(), null));
 
-    Assertions.assertThat(sourceControlDAO.getByApplication())
+    assertThat(sourceControlDAO.getByApplication())
         .hasSize(3).extracting(SourceControl::getId)
         .containsExactlyInAnyOrder(scApp1.getId(), scApp2.getId(), scApp3.getId());
   }
 
   @Test
-  public void test_getCountOfApplicationsWithPREnabled_enabledAtRoot() {
+  public void testGetApplicationsWithPullReqsEnabled_enabledAtRoot() {
     // create SCM entry at root, with PR enabled flag set
     SourceControl rootSourceControl = buildOrgSourceControl(Organization.ROOT_ORGANIZATION_ID, true);
     rootSourceControl.setProvider(SourceControlProvider.GITHUB);
@@ -679,13 +678,13 @@ public class SourceControlDAOTest
     sourceControlDAO.insert(buildAppSourceControlAndApp(org, 4, false));
 
     Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
-    Assertions.assertThat(enabledApplications).extracting(SourceControl::getId).containsExactlyInAnyOrder(
+    assertThat(enabledApplications).extracting(SourceControl::getId).containsExactlyInAnyOrder(
         scExplicitlyEnabled.getId(), scDefault.getId(), scEnabledAtAppDisabledAtOrg.getId(),
         scDefaultAppDefaultOrg.getId());
   }
 
   @Test
-  public void test_getCountOfApplicationsWithPREnabled_enabledAtOrgAndApp() {
+  public void testGetApplicationsWithPullReqsEnabled_enabledAtOrgAndApp() {
     createRootOrgWithGitHubProvider();
     // create SCM entries for organizations, with PR enabled flag set
     Organization orgNullPrs = tempEntity.newOrganization();
@@ -716,7 +715,7 @@ public class SourceControlDAOTest
     sourceControlDAO.insert(scDefaultAppDisabledOrg);
 
     Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
-    Assertions.assertThat(enabledApplications).extracting(SourceControl::getId)
+    assertThat(enabledApplications).extracting(SourceControl::getId)
         .hasSize(3)
         .containsExactlyInAnyOrder(scEnabledAtAppDisabledAtOrg.getId(), scEnabledAtOrg.getId(),
             scDefaultAppDefaultOrg.getId());
@@ -748,7 +747,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testCreate_RootOrgWithoutProvider() {
+  public void testInsert_RootOrgWithoutProvider() {
     assertThatThrownBy(
         () -> sourceControlDAO.insert(new SourceControl.Builder().setOwnerId(ROOT_ORGANIZATION_ID).build()))
         .isInstanceOf(BadRequestException.class)
@@ -811,7 +810,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testCreate_OrganizationWithProvider() {
+  public void testInsert_OrganizationWithProvider() {
     assertThatThrownBy(
         () -> sourceControlDAO.insert(
             new SourceControl.Builder().setOwnerId(org.getId()).setProvider(SourceControlProvider.GITHUB).build()))
@@ -830,7 +829,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testCreate_ApplicationWithProvider() {
+  public void testInsert_ApplicationWithProvider() {
     assertThatThrownBy(
         () -> sourceControlDAO.insert(
             new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB).build()))
@@ -871,7 +870,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void test_getApplicationSourceControlsByOrganization() {
+  public void testGetApplicationSourceControlsByOrganizationWithRepositories() {
     // given a root org with github as a provider
     createRootOrgWithGitHubProvider();
     // and several apps with SC entries in the initial org
@@ -914,7 +913,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void test_getApplicationSourceControlsWithRepositoriesAndDefaultToken() {
+  public void testGetApplicationSourceControlsWithRepositoriesAndDefaultToken() {
     // given a root org with github as a provider
     createRootOrgWithGitHubProvider();
     // and an app with a SC entry in the initial org

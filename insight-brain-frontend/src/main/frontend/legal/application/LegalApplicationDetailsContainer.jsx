@@ -10,6 +10,7 @@ import { stateGo } from '../../reduxUiRouter/routerActions';
 import LegalApplicationDetailsPage from './LegalApplicationDetailsPage';
 import * as legalApplicationDetailsActions from './legalApplicationDetailsActions';
 import {
+  toggleFilterSidebar,
   updateComponentNameFilter,
   updateLegalSortOrder,
   updateLicenseNameFilter,
@@ -18,7 +19,7 @@ import {
 function mapStateToProps({ legalApplicationDetails, router }) {
   return {
     ...pick(
-      ['application', 'stageType', 'components', 'componentFilter', 'licenseFilter', 'sort'],
+      ['application', 'stageType', 'components', 'componentFilter', 'licenseFilter', 'sort', 'filterSidebarOpen'],
       legalApplicationDetails
     ),
     ...pick(['applicationPublicId', 'stageTypeId'], router.currentParams),
@@ -30,6 +31,7 @@ const mapDispatchToProps = {
   changeComponentNameFilter: updateComponentNameFilter,
   changeLicenseNameFilter: updateLicenseNameFilter,
   updateLegalSortOrder,
+  toggleFilterSidebar,
   stateGo,
 };
 

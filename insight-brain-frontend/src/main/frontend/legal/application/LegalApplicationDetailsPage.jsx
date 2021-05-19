@@ -3,13 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, Fragment } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 import { chain, map, pipe, prop, uniq } from 'ramda';
 import {
   NxButton,
   NxFilterInput,
+  NxFontAwesomeIcon,
   NxTable,
   NxTableBody,
   NxTableCell,
@@ -17,10 +18,10 @@ import {
   NxTableRow,
 } from '@sonatype/react-shared-components';
 import { Messages } from '../../util/CommonServices';
-import BackButton from '../../react/BackButton';
 import { getLicenseThreatGroupsFromLicense } from '../legalUtility';
 import LegalApplicationDetailsComponentRow from './LegalApplicationDetailsComponentRow';
 import LegalApplicationDetailsFilterContainer from './filter/LegalApplicationDetailsFilterContainer';
+import { faFilter } from '@fortawesome/pro-solid-svg-icons';
 
 export default function LegalApplicationDetailsPage(props) {
   const {
@@ -31,8 +32,9 @@ export default function LegalApplicationDetailsPage(props) {
     components,
     componentFilter,
     licenseFilter,
+    filterSidebarOpen,
+    toggleFilterSidebar,
     sort,
-    $state,
     loadApplication,
     changeComponentNameFilter,
     changeLicenseNameFilter,
@@ -87,13 +89,10 @@ export default function LegalApplicationDetailsPage(props) {
 
   return (
     <Fragment>
-      {!errorLoading && (
-        <aside id="legal-application-details-filter-container" className="nx-page-sidebar nx-viewport-sized">
-          <BackButton stateName="legal.dashboard" $state={$state} text="Back to Dashboard" />
-          <LegalApplicationDetailsFilterContainer
-            licenseThreatGroups={getLicenseThreatGroupsFromComponents(components.filteredResults)}
-          />
-        </aside>
+      {filterSidebarOpen && (
+        <LegalApplicationDetailsFilterContainer
+          licenseThreatGroups={getLicenseThreatGroupsFromComponents(components.filteredResults)}
+        />
       )}
       <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
         <LoadWrapper
@@ -113,79 +112,91 @@ export default function LegalApplicationDetailsPage(props) {
             </div>
           </div>
           <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-            <NxTable id="legal-application-details-table" className="legal-dashboard-table">
-              <NxTableHead>
-                <NxTableRow>
-                  <NxTableCell
-                    isSortable
-                    sortDir={componentSortOrder}
-                    onClick={updateComponentSortOrder}
-                    className="legal-application-details-table-component"
+            <section className="nx-tile">
+              <header className="nx-tile-header">
+                <div className="nx-tile__actions">
+                  <NxButton id="filter-toggle" className="btn" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
+                    <NxFontAwesomeIcon icon={faFilter} />
+                    <span>Filter</span>
+                  </NxButton>
+                </div>
+              </header>
+              <div className="nx-tile-content">
+                <NxTable id="legal-application-details-table" className="legal-dashboard-table">
+                  <NxTableHead>
+                    <NxTableRow>
+                      <NxTableCell
+                        isSortable
+                        sortDir={componentSortOrder}
+                        onClick={updateComponentSortOrder}
+                        className="legal-application-details-table-component"
+                      >
+                        Component
+                      </NxTableCell>
+                      <NxTableCell
+                        isSortable
+                        sortDir={licensesSortOrder}
+                        onClick={updateLicenseSortOrder}
+                        className="legal-application-details-table-licenses"
+                      >
+                        Licenses
+                      </NxTableCell>
+                      <NxTableCell
+                        isSortable
+                        sortDir={progressSortOrder}
+                        onClick={updateProgressSortOrder}
+                        className="legal-application-details-table-review-progress"
+                      >
+                        Completed Obligations
+                      </NxTableCell>
+                      <NxTableCell
+                        isSortable
+                        sortDir={statusSortOrder}
+                        onClick={updateStatusSortOrder}
+                        className="legal-application-details-table-review-status"
+                      >
+                        Review Status
+                      </NxTableCell>
+                    </NxTableRow>
+                  </NxTableHead>
+                  <NxTableBody
+                    emptyMessage="No components found"
+                    isLoading={components.loading}
+                    error={Messages.getHttpErrorMessage(components.error)}
                   >
-                    Component
-                  </NxTableCell>
-                  <NxTableCell
-                    isSortable
-                    sortDir={licensesSortOrder}
-                    onClick={updateLicenseSortOrder}
-                    className="legal-application-details-table-licenses"
-                  >
-                    Licenses
-                  </NxTableCell>
-                  <NxTableCell
-                    isSortable
-                    sortDir={progressSortOrder}
-                    onClick={updateProgressSortOrder}
-                    className="legal-application-details-table-review-progress"
-                  >
-                    Completed Obligations
-                  </NxTableCell>
-                  <NxTableCell
-                    isSortable
-                    sortDir={statusSortOrder}
-                    onClick={updateStatusSortOrder}
-                    className="legal-application-details-table-review-status"
-                  >
-                    Review Status
-                  </NxTableCell>
-                </NxTableRow>
-              </NxTableHead>
-              <NxTableBody
-                emptyMessage="No components found"
-                isLoading={components.loading}
-                error={Messages.getHttpErrorMessage(components.error)}
-              >
-                <NxTableRow key="__filter">
-                  <NxTableCell>
-                    <NxFilterInput
-                      id="legal-application-component-filter"
-                      value={componentFilter || ''}
-                      placeholder="Filter components"
-                      onChange={(newVal) => changeComponentNameFilter({ filter: newVal })}
-                    />
-                  </NxTableCell>
-                  <NxTableCell>
-                    <NxFilterInput
-                      id="legal-application-license-filter"
-                      value={licenseFilter || ''}
-                      placeholder="Filter licenses"
-                      onChange={(newVal) => changeLicenseNameFilter({ filter: newVal })}
-                    />
-                  </NxTableCell>
-                  <NxTableCell />
-                  <NxTableCell />
-                </NxTableRow>
-                {components.filteredResults.map((row, index) => (
-                  <LegalApplicationDetailsComponentRow
-                    key={index}
-                    applicationPublicId={applicationPublicId}
-                    stageTypeId={stageTypeId}
-                    row={row}
-                    stateGo={stateGo}
-                  />
-                ))}
-              </NxTableBody>
-            </NxTable>
+                    <NxTableRow key="__filter">
+                      <NxTableCell>
+                        <NxFilterInput
+                          id="legal-application-component-filter"
+                          value={componentFilter || ''}
+                          placeholder="Filter components"
+                          onChange={(newVal) => changeComponentNameFilter({ filter: newVal })}
+                        />
+                      </NxTableCell>
+                      <NxTableCell>
+                        <NxFilterInput
+                          id="legal-application-license-filter"
+                          value={licenseFilter || ''}
+                          placeholder="Filter licenses"
+                          onChange={(newVal) => changeLicenseNameFilter({ filter: newVal })}
+                        />
+                      </NxTableCell>
+                      <NxTableCell />
+                      <NxTableCell />
+                    </NxTableRow>
+                    {components.filteredResults.map((row, index) => (
+                      <LegalApplicationDetailsComponentRow
+                        key={index}
+                        applicationPublicId={applicationPublicId}
+                        stageTypeId={stageTypeId}
+                        row={row}
+                        stateGo={stateGo}
+                      />
+                    ))}
+                  </NxTableBody>
+                </NxTable>
+              </div>
+            </section>
           </div>
         </LoadWrapper>
       </main>
@@ -213,6 +224,8 @@ LegalApplicationDetailsPage.propTypes = {
   }),
   componentFilter: PropTypes.string,
   licenseFilter: PropTypes.string,
+  filterSidebarOpen: PropTypes.bool,
+  toggleFilterSidebar: PropTypes.func.isRequired,
   sort: PropTypes.shape({
     column: PropTypes.string,
     sortOrder: PropTypes.string,

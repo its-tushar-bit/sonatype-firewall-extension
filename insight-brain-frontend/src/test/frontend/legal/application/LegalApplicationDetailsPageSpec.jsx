@@ -6,17 +6,17 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import { NxTable, NxTableBody } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
-import BackButton from '../../../../main/frontend/react/BackButton';
 import LegalApplicationDetailsPage from '../../../../main/frontend/legal/application/LegalApplicationDetailsPage';
 import LegalApplicationDetailsComponentRow from '../../../../main/frontend/legal/application/LegalApplicationDetailsComponentRow';
 import LegalApplicationDetailsFilterContainer from '../../../../main/frontend/legal/application/filter/LegalApplicationDetailsFilterContainer';
 
 describe('LegalApplicationDetailsPage', function () {
-  let minimalProps, loadApplicationSpy, stateSpy, getShallowComponent;
+  let minimalProps, loadApplicationSpy, stateSpy, toggleFilterSidebarSpy, getShallowComponent;
 
   beforeEach(function () {
     loadApplicationSpy = jasmine.createSpy('loadApplication');
     stateSpy = jasmine.createSpyObj('$state', ['get', 'href']);
+    toggleFilterSidebarSpy = jasmine.createSpy('toggleFilterSidebarSpy');
     minimalProps = {
       applicationPublicId: 'app-id',
       stageTypeId: 'stage-id',
@@ -76,14 +76,17 @@ describe('LegalApplicationDetailsPage', function () {
       },
       loadApplication: loadApplicationSpy,
       sort: {},
+      toggleFilterSidebar: toggleFilterSidebarSpy,
       $state: stateSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalApplicationDetailsPage, minimalProps);
   });
 
-  it('is wrapped by a LoadWrapper with appropriate parameters', function () {
-    const loadWrapper = getShallowComponent().find(LoadWrapper);
+  it('the main has a LoadWrapper with appropriate parameters', function () {
+    const main = getShallowComponent().find('.nx-page-main');
+    expect(main.children().length).toEqual(1);
+    const loadWrapper = main.childAt(0);
     expect(loadWrapper).toExist();
     expect(loadWrapper).toHaveProp('loading', false);
     expect(loadWrapper).toHaveProp('error', null);
@@ -127,23 +130,32 @@ describe('LegalApplicationDetailsPage', function () {
     expect(loadWrapper).toHaveProp('error', 'some other error');
   });
 
-  it('renders a BackButton with the dashboard state name and the provided $state object, ', function () {
-    const backButton = getShallowComponent().find(BackButton);
-
-    expect(backButton).toExist();
-    expect(backButton).toHaveProp('stateName', 'legal.dashboard');
-    expect(backButton).toHaveProp('$state', stateSpy);
+  it('does not render a LegalApplicationDetailsFilterContainer if filterSidebarOpen is false, ', function () {
+    const filterContainer = getShallowComponent({ filterSidebarOpen: false }).find(
+      LegalApplicationDetailsFilterContainer
+    );
+    expect(filterContainer).not.toExist();
   });
 
-  it('renders an aside with a LegalApplicationDetailsFilterContainer, ', function () {
-    const aside = getShallowComponent().find('aside#legal-application-details-filter-container');
-    expect(aside).toExist();
-    expect(aside.find(LegalApplicationDetailsFilterContainer)).toExist();
+  it('shows a filter button and calls toggleFilterSidebar when clicked', function () {
+    const filterButton = getShallowComponent({ filterSidebarOpen: false }).find('#filter-toggle');
+    expect(filterButton).toExist();
+    filterButton.simulate('click');
+    expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(true);
+  });
+
+  it('renders a LegalApplicationDetailsFilterContainer if filterSidebarOpen is true, ', function () {
+    const filterContainer = getShallowComponent({ filterSidebarOpen: true }).find(
+      LegalApplicationDetailsFilterContainer
+    );
+    expect(filterContainer).toExist();
   });
 
   it('correctly passes the licenseThreatGroups to the LegalApplicationDetailsFilterContainer, ', function () {
     const expectedLTGs = ['ltg1a', 'ltg1b', 'ltg2', 'ltg1c', 'newLtg'];
-    const filterContainer = getShallowComponent().find(LegalApplicationDetailsFilterContainer);
+    const filterContainer = getShallowComponent({ filterSidebarOpen: true }).find(
+      LegalApplicationDetailsFilterContainer
+    );
     expect(filterContainer).toHaveProp('licenseThreatGroups', expectedLTGs);
   });
 
@@ -172,7 +184,7 @@ describe('LegalApplicationDetailsPage', function () {
         },
       ],
     };
-    minimalProps = { ...minimalProps, components: components };
+    minimalProps = { ...minimalProps, filterSidebarOpen: true, components };
 
     const expectedLTGs = ['ltg1a', 'ltg1b', 'No LTG Assigned'];
     const filterContainer = getShallowComponent(minimalProps).find(LegalApplicationDetailsFilterContainer);

@@ -26,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 
 public class LegalApplicationDetailsTest
     extends AbstractFunctionalTest
@@ -192,5 +193,21 @@ public class LegalApplicationDetailsTest
     componentTable.licenses().get(0).shouldHave(text("BSD-3-Clause"));
     componentTable.licenses().get(1).shouldHave(text("BSD-2-Clause"));
     componentTable.licenses().get(2).shouldHave(text("Apache-2.0"));
+  }
+
+  @Test
+  public void testFilterButton() {
+    SelenideElement filterContainer = LegalApplicationDetailsPage.filterContainer();
+    filterContainer.shouldNotBe(visible);
+    LegalApplicationDetailsPage.filterButton().click();
+    filterContainer.shouldBe(visible);
+    eyesWatcher.eyesCheck();
+    final ComponentTable componentTable = LegalApplicationDetailsPage.componentTable();
+    componentTable.componentNames().shouldHaveSize(3);
+    LegalApplicationDetailsPage.reviewStatusFilter().twisty().click();
+    LegalApplicationDetailsPage.reviewStatusFilter().checkboxItem(3).click();
+    componentTable.componentNames().shouldHaveSize(2);
+    componentTable.licenses().get(0).shouldHave(text("Apache-2.0"));
+    componentTable.licenses().get(1).shouldHave(text("BSD-3-Clause"));
   }
 }

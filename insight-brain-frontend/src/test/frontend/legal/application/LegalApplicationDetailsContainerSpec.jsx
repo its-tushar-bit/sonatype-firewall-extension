@@ -17,7 +17,8 @@ describe('LegalApplicationDetailsContainer', function () {
     stateGoMock,
     updateLegalSortOrderMock,
     updateComponentNameFilterMock,
-    updateLicenseNameFilterMock;
+    updateLicenseNameFilterMock,
+    toggleFilterSidebarMock;
 
   beforeEach(function () {
     state = {
@@ -26,6 +27,7 @@ describe('LegalApplicationDetailsContainer', function () {
         stageType: 'stageType',
         components: 'components',
         sort: 'sort',
+        filterSidebarOpen: 'filterSidebarOpen',
       },
       router: {
         currentParams: {
@@ -49,6 +51,7 @@ describe('LegalApplicationDetailsContainer', function () {
     updateLegalSortOrderMock = jasmine
       .createSpy('updateLegalSortOrder')
       .and.returnValue({ type: 'updateLegalSortOrder' });
+    toggleFilterSidebarMock = jasmine.createSpy('toggleFilterSidebar').and.returnValue({ type: 'toggleFilterSidebar' });
 
     LegalApplicationDetailsContainer = require('inject-loader!../../../../main/frontend/legal/application/LegalApplicationDetailsContainer')(
       {
@@ -62,6 +65,7 @@ describe('LegalApplicationDetailsContainer', function () {
           updateComponentNameFilter: updateComponentNameFilterMock,
           updateLicenseNameFilter: updateLicenseNameFilterMock,
           updateLegalSortOrder: updateLegalSortOrderMock,
+          toggleFilterSidebar: toggleFilterSidebarMock,
         },
       }
     ).default;
@@ -78,6 +82,7 @@ describe('LegalApplicationDetailsContainer', function () {
     expect(wrapper).toHaveProp('applicationPublicId', 'appId');
     expect(wrapper).toHaveProp('stageTypeId', 'develop');
     expect(wrapper).toHaveProp('sort', 'sort');
+    expect(wrapper).toHaveProp('filterSidebarOpen', 'filterSidebarOpen');
   });
 
   it('correctly maps the action creators to the LegalApplicationDetailsContainer props', function () {
@@ -108,6 +113,11 @@ describe('LegalApplicationDetailsContainer', function () {
     expect(changeLicenseNameFilterActionCreator).toEqual(jasmine.any(Function));
     changeLicenseNameFilterActionCreator('test');
     expect(store.getActions()[4]).toEqual({ type: 'updateLicenseNameFilter' });
+
+    const toggleFilterSidebarActionCreator = wrapper.prop('toggleFilterSidebar');
+    expect(toggleFilterSidebarActionCreator).toEqual(jasmine.any(Function));
+    toggleFilterSidebarActionCreator('test');
+    expect(store.getActions()[5]).toEqual({ type: 'toggleFilterSidebar' });
   });
 
   it('renders LegalApplicationDetailsPage component', function () {

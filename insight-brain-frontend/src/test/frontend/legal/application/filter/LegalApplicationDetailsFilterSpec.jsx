@@ -5,9 +5,11 @@
  */
 import * as enzymeUtils from '../../../enzymeUtils';
 import { expandedProgressOptions } from '../../../../../main/frontend/legal/dashboard/legalDashboardConstants';
+import { IqPopover } from '../../../../../main/frontend/react/IqPopover';
 
 describe('LegalApplicationDetailsFilter', function () {
   let getShallowComponent, minimalProps, LegalApplicationDetailsFilter;
+  const toggleFilterSidebarSpy = jasmine.createSpy('toggleFiltersDropdown');
 
   const filterData = {
     licenseThreatGroups: ['Liberal', 'Weak Copyleft'],
@@ -20,7 +22,7 @@ describe('LegalApplicationDetailsFilter', function () {
   beforeEach(function () {
     minimalProps = {
       ...filterData,
-      toggleFiltersDropdown: jasmine.createSpy('toggleFiltersDropdown'),
+      toggleFilterSidebar: toggleFilterSidebarSpy,
     };
 
     LegalApplicationDetailsFilter = require('inject-loader!../../../../../main/frontend/legal/application/filter/LegalApplicationDetailsFilter')(
@@ -30,7 +32,27 @@ describe('LegalApplicationDetailsFilter', function () {
     getShallowComponent = enzymeUtils.getShallowComponent(LegalApplicationDetailsFilter, minimalProps);
   });
 
-  describe('LegalApplicationDetailsFilter filter contents', function () {
+  describe('framework', function () {
+    it('renders an IqPopover', function () {
+      const popover = getShallowComponent().find(IqPopover);
+      expect(popover).toExist();
+      expect(popover).toHaveProp('onClose', jasmine.any(Function));
+      const onCloseFn = popover.prop('onClose');
+      onCloseFn();
+      expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(false);
+    });
+
+    it('renders an IqPopover.Header', function () {
+      const popoverHeader = getShallowComponent().find(IqPopover.Header);
+      expect(popoverHeader).toExist();
+      const filterCloseButton = popoverHeader.find('#legal-dashboard-filter-close-btn');
+      expect(filterCloseButton).toExist();
+      filterCloseButton.simulate('click');
+      expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('filter contents', function () {
     it('renders the filters', function () {
       const toggleFilterSpy = jasmine.createSpy('toggleFilter'),
         filterContent = getShallowComponent({

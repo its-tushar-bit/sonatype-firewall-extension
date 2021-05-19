@@ -6,6 +6,8 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
+import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
 import com.sonatype.clm.testing.functional.pages.ComponentCopyrightDetailsPage.CopyrightOverview;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
@@ -13,6 +15,7 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class LegalApplicationDetailsPage
 {
@@ -27,8 +30,36 @@ public class LegalApplicationDetailsPage
     return $("h1");
   }
 
+  public static SelenideElement filterButton() {
+    return $("#filter-toggle");
+  }
+
+  public static SelenideElement filterContainer() {
+    return $(".legal-application-details-filter");
+  }
+
   public static ComponentTable componentTable() {
     return new ComponentTable();
+  }
+
+  public static LegalApplicationDetailsReviewStatusFilter reviewStatusFilter() {
+    return new LegalApplicationDetailsReviewStatusFilter("#legal-progress-options-filter");
+  }
+
+  public static class LegalApplicationDetailsReviewStatusFilter
+      extends NxTreeViewMultiSelect
+  {
+    public LegalApplicationDetailsReviewStatusFilter(final String selector) {
+      super(selector);
+    }
+
+    public NxCheckbox noCategory() {
+      return getFilterCheckboxAt(1);
+    }
+
+    public NxCheckbox getFilterCheckboxAt(int i ) {
+      return new NxCheckbox(child(".nx-tree-view__children .nx-tree-view__child", nthChild(i + 1)));
+    }
   }
 
   public static class ComponentTable

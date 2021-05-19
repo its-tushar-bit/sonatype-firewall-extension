@@ -50,6 +50,7 @@ describe('legalApplicationDetailsReducer', function () {
       });
       expect(newState.componentFilter).toEqual('');
       expect(newState.licenseFilter).toEqual('');
+      expect(newState.filterSidebarOpen).toEqual(false);
       expect(newState.reviewStatusFilter).toEqual([]);
       expect(newState.licenseThreatGroupFilter).toEqual([]);
       expect(newState.sort).toEqual({});
@@ -69,6 +70,17 @@ describe('legalApplicationDetailsReducer', function () {
       };
       const newState = legalApplicationDetailsReducer(state, action);
       expect(newState).toBe(state);
+    });
+  });
+
+  describe('LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER_SIDEBAR', function () {
+    it('sets filterSidebarOpen', function () {
+      const action = {
+        type: 'LEGAL_APPLICATION_DETAILS_TOGGLE_FILTER_SIDEBAR',
+        payload: 'filterSidebarOpen',
+      };
+      const newState = legalApplicationDetailsReducer({}, action);
+      expect(newState).toEqual({ filterSidebarOpen: 'filterSidebarOpen' });
     });
   });
 

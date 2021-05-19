@@ -14,22 +14,22 @@ describe('DependencyTypeTag', function () {
     getShallow = enzymeUtils.getShallowComponent(DependencyTypeTag);
   });
 
-  it('displays direct dependency tag if it is direct and not innersource', function () {
-    const component = getShallow({ isDirect: true, isInnerSource: false });
+  it('displays direct dependency tag if passed type prop "direct"', function () {
+    const component = getShallow({ type: 'direct' });
     const tag = component.find(NxTag);
 
     expect(tag).toHaveProp('children', 'Direct Dependency');
   });
 
-  it('displays transitive dependency tag if it is not direct and not innersource', function () {
-    const component = getShallow({ isDirect: false, isInnerSource: false });
+  it('displays transitive dependency tag if passed type prop "transitive"', function () {
+    const component = getShallow({ type: 'transitive' });
     const tag = component.find(NxTag);
 
     expect(tag).toHaveProp('children', 'Transitive Dependency');
   });
 
-  it('displays innersource tag if it is innersource', function () {
-    const component = getShallow({ isDirect: true, isInnerSource: true });
+  it('displays innersource tag if passed type prop "innerSource"', function () {
+    const component = getShallow({ type: 'innerSource' });
     const tag = component.find(NxTag);
 
     expect(tag).toHaveProp('children', 'InnerSource');

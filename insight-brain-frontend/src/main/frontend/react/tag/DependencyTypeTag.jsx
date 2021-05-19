@@ -22,22 +22,11 @@ const VALUES_FOR_TYPE = {
     color: 'green',
   },
 };
-
-function getDependencyTypeForTag(isDirect = true, isInnerSource = false) {
-  if (isInnerSource) {
-    return 'innerSource';
-  }
-
-  return isDirect ? 'direct' : 'transitive';
-}
-
-export default function DependencyTypeTag({ isDirect, isInnerSource }) {
-  const typeOfDependency = getDependencyTypeForTag(isDirect, isInnerSource);
-  const { color, text } = VALUES_FOR_TYPE[typeOfDependency];
+export default function DependencyTypeTag({ type }) {
+  const { color, text } = VALUES_FOR_TYPE[type];
   return <NxTag color={color}>{text}</NxTag>;
 }
 
 DependencyTypeTag.propTypes = {
-  isDirect: PropTypes.bool.isRequired,
-  isInnerSource: PropTypes.bool.isRequired,
+  type: PropTypes.oneOf(['direct', 'transitive', 'innersource']).isRequired,
 };

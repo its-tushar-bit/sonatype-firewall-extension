@@ -4,20 +4,41 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
+import { path, pick } from 'ramda';
 
 import ComponentDetails from './ComponentDetails';
 import { loadReportAndSelectComponentByHash } from '../applicationReport/applicationReportActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
+
+const formatFromComponent = path(['componentIdentifier', 'format']);
+const reportMetaData = pick(['reportTime', 'reportTitle']);
+
+const deriveComponentDetails = (component, metadata) => ({
+  name: component.derivedComponentName,
+  dependencyType: component.derivedDependencyType,
+  format: formatFromComponent(component),
+  applicationName: metadata.application.name,
+  organizationName: metadata.application.organizationId, //TODO: get name for org Jira: CLM-18517
+  ...reportMetaData(metadata),
+});
 
 function mapStateToProps(state) {
   const {
     router: {
       currentParams: { hash, publicId, scanId, unknownjs, tabId },
     },
-    applicationReport: { selectedComponent, selectedReport },
+    applicationReport: { selectedComponent, metadata },
   } = state;
 
-  return { hash, publicId, scanId, unknownjs, tabId, selectedReport, selectedComponent };
+  let componentDetails = null;
+  if (selectedComponent && metadata) {
+    componentDetails = {
+      ...deriveComponentDetails(selectedComponent, metadata),
+      labels: [], //TODO: load labels when selecting component Jira: CLM-18516
+    };
+  }
+
+  return { hash, publicId, scanId, unknownjs, tabId, componentDetails };
 }
 
 const mapDispatchToProps = { loadReportAndSelectComponentByHash, stateGo };

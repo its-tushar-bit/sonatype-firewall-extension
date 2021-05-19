@@ -34,4 +34,5 @@ TagWithFontAwesomeIcon.propTypes = {
 
 ComponentLabelTag.propTypes = {
   children: PropTypes.node.isRequired,
+  color: PropTypes.string,
 };

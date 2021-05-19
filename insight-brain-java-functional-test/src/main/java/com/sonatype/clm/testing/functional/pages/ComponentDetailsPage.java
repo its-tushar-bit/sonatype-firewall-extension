@@ -52,7 +52,7 @@ public class ComponentDetailsPage
   }
 
   public SelenideElement title() {
-    return child(".title");
+    return child("#component-details-title");
   }
 
   public SelenideElement backButton() {

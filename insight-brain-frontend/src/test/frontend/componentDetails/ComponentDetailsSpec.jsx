@@ -31,7 +31,7 @@ describe('ComponentDetails', function () {
     spyOn(routerContext, 'useRouterState').and.returnValue(stateMock);
 
     minimalProps = {
-      selectedComponent: null,
+      componentDetails: null,
       publicId: 'publicId',
       scanId: 'scanId',
       unknownjs: false,
@@ -41,8 +41,8 @@ describe('ComponentDetails', function () {
       stateGo: stateGoSpy,
     };
 
-    (getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetails, minimalProps)),
-      (getMountedComponent = enzymeUtils.getMountedComponent(ComponentDetails, minimalProps));
+    getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetails, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(ComponentDetails, minimalProps);
   });
 
   it('renders a component', () => {
@@ -57,14 +57,16 @@ describe('ComponentDetails', function () {
     expect(backBtn).toHaveProp('$state', stateMock);
   });
 
-  it('calls loadReportAndSelectComponentByHash if there is no selectedComponent in the state', () => {
-    getMountedComponent();
+  it('calls loadReportAndSelectComponentByHash if there is no componentDetails in the state', () => {
+    const component = getMountedComponent();
     expect(loadReportAndSelectComponentSpy).toHaveBeenCalledWith('publicId', 'scanId', 'hash', false);
+    component.unmount();
   });
 
-  it('does not calls loadReportAndSelectComponentByHash if there is a selectedComponent in the state', () => {
-    getMountedComponent({ selectedComponent: { derivedComponentName: 'MockName' } });
+  it('does not calls loadReportAndSelectComponentByHash if there is a componentDetails in the state', () => {
+    const component = getMountedComponent({ componentDetails: { derivedComponentName: 'MockName' } });
     expect(loadReportAndSelectComponentSpy).not.toHaveBeenCalled();
+    component.unmount();
   });
 
   describe('renders tabs', function () {
@@ -76,7 +78,7 @@ describe('ComponentDetails', function () {
     });
 
     it('renders 6 tabs with the appropriate names when there is a selected component', function () {
-      const component = getShallowComponent({ selectedComponent: 'exists' }),
+      const component = getShallowComponent({ componentDetails: 'exists' }),
         tabBar = component.find(NxStatefulTabs);
 
       expect(tabBar).toExist();
@@ -92,7 +94,7 @@ describe('ComponentDetails', function () {
     });
 
     it('calls stateGo action with the appropriate state when clicking on a tab', function () {
-      let component = getMountedComponent({ selectedComponent: 'exists' }),
+      let component = getMountedComponent({ componentDetails: 'exists' }),
         tabBar = component.find(NxStatefulTabs),
         tabs = tabBar.find(NxTab);
 
@@ -113,7 +115,7 @@ describe('ComponentDetails', function () {
 
       /** Starting on another tab to be able to check the listener on the default 0 tab */
       const stateGoInInfoSpy = jasmine.createSpy('stateGo');
-      (component = getMountedComponent({ selectedComponent: 'exists', tabId: 'info', stateGo: stateGoInInfoSpy })),
+      (component = getMountedComponent({ componentDetails: 'exists', tabId: 'info', stateGo: stateGoInInfoSpy })),
         (tabBar = component.find(NxStatefulTabs)),
         (tabs = tabBar.find(NxTab));
 
@@ -122,7 +124,7 @@ describe('ComponentDetails', function () {
     });
 
     it('does not call stateGo when clicking on the same tab twice', function () {
-      const component = getMountedComponent({ selectedComponent: 'exists' }),
+      const component = getMountedComponent({ componentDetails: 'exists' }),
         tabBar = component.find(NxStatefulTabs),
         tabs = tabBar.find(NxTab),
         defaultTab = tabs.at(0);

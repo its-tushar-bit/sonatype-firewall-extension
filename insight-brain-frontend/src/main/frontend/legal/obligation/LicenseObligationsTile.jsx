@@ -191,13 +191,15 @@ export default function LicenseObligationsTile(props) {
           <h2 className="nx-h2">License Obligations</h2>
         </div>
         <div className="nx-btn-bar">
-          <NxButton
-            id="mark-all-obligations-resolved"
-            variant="tertiary"
-            onClick={() => setShowAllObligationsModal(true)}
-          >
-            <span>Mark all as Fulfilled</span>
-          </NxButton>
+          {licenseObligations.length > 0 ? (
+            <NxButton
+              id="mark-all-obligations-resolved"
+              variant="tertiary"
+              onClick={() => setShowAllObligationsModal(true)}
+            >
+              <span>Mark all as Fulfilled</span>
+            </NxButton>
+          ) : null}
         </div>
         {showAllObligationsModal && (
           <AllLicenseObligationsModalContainer

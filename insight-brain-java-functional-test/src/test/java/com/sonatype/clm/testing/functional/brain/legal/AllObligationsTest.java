@@ -128,6 +128,20 @@ public class AllObligationsTest
   }
 
   @Test
+  public void testFulfillAllObligations_noObligations() {
+    testCLMServer.getHdsServer()
+        .respondWith("[]")
+        .atUri("/rest/license/metadata");
+    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
+
+    assertThat(componentObligationDAO.getByOwnerIdAndComponentIdentifier(app.getId(), componentId)).isEmpty();
+
+    Obligations obligations = ComponentLegalOverviewPage.obligations();
+    obligations.all().shouldHaveSize(0);
+    ComponentLegalOverviewPage.resolveAllObligationsButton().shouldNotBe(Condition.visible);
+  }
+
+  @Test
   public void testFulfillAllObligations_overwriteExisting() {
     tempEntity.newComponentObligation(componentId, rootOrganization.getId(), "Inclusion of Copyright", "some comment",
         ObligationStatus.FLAGGED, "N/A");

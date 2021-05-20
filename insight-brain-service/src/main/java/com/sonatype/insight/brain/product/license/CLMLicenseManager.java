@@ -84,6 +84,8 @@ public class CLMLicenseManager
 
   public static final String PRODUCT_ADVANCED_DEVELOPMENT_PACK = "Advanced Development Pack";
 
+  public static final String PRODUCT_ADVANCED_LEGAL_PACK = "Advanced Legal Pack";
+
   public static final String PRODUCT_INFRASTRUCTURE_AS_CODE_PACK = "Infrastructure as Code Pack";
 
   // Visible for testing
@@ -324,6 +326,9 @@ public class CLMLicenseManager
       case ProductLicenseDetails.PRODUCT_INFRASTRUCTURE_AS_CODE_PACK:
         marketingNameSuffix = PRODUCT_INFRASTRUCTURE_AS_CODE_PACK;
         break;
+      case ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK:
+        marketingNameSuffix = PRODUCT_ADVANCED_LEGAL_PACK;
+        break;
       default:
         return null;
     }
@@ -520,6 +525,10 @@ public class CLMLicenseManager
       features.add(LicensedFeature.RM_STAGING_INTEGRATION);
       features.add(LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES);
     }
+    if (products.contains(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK)) {
+      features.add(LicensedFeature.ADVANCED_LEGAL_PACK);
+    }
+
     stageTypes.add(StageTypes.PROXY);
 
     Set<LicensedFeature> hdsControlledFeatures = EnumSet.of( //

@@ -65,7 +65,7 @@ public class CLMLicenseManagerTest
 
   @Rule
   public LogOutput logOutput = new LogOutput(CLMLicenseManager.class);
-  
+
   @Inject
   private CLMLicenseManager clmLicenseManager;
 
@@ -258,7 +258,7 @@ public class CLMLicenseManagerTest
         LicensedFeature.ENFORCEMENT, //
         LicensedFeature.NOTIFICATIONS, //
         LicensedFeature.POLICY_GRANDFATHERING, //
-        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS, 
+        LicensedFeature.WEBHOOKS_FOR_APPLICATIONS,
         LicensedFeature.AUTOMATION);
   }
 
@@ -1047,13 +1047,14 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetLicenseInfo_Products() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_RISK,
-          ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, "foo", ProductLicenseDetails.PRODUCT_NEXUS);
+        ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION, "foo", ProductLicenseDetails.PRODUCT_NEXUS,
+        ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
 
     installLicense();
     LicenseInfo info = clmLicenseManager.getLicenseInfo();
     assertThat(info).isNotNull();
     assertThat(info.products).containsExactlyInAnyOrder("Nexus Firewall", "Nexus Auditor", "Nexus Lifecycle",
-        "Nexus Pro+");
+        "Nexus Pro+", "Nexus Advanced Legal Pack");
   }
 
   @Test
@@ -1208,5 +1209,16 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures(LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK));
     installLicense();
     assertThat(productLicense.getFeatures()).contains(LicensedFeature.INFRASTRUCTURE_AS_CODE_PACK);
+  }
+
+  @Test
+  public void testGetLicenseInfo_AdvancedLegalPackProduct() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.ADVANCED_LEGAL_PACK);
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.ADVANCED_LEGAL_PACK);
   }
 }

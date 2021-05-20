@@ -27,23 +27,23 @@ export default function NoticeTextsTile(props) {
     <section id={'notice-section-' + index} key={index} className="nx-tile-subsection legal-file">
       <div className="legal-file-section-header">
         <span className="legal-file-path">{notice.relPath}</span>
-        <div>
-          <a
-            href={$state.href('legal.componentNoticeDetails.noticeDetails', {
-              ownerType,
-              ownerId,
-              hash,
-              noticeIndex: index,
-            })}
-          >
-            View More Details
-            <NxFontAwesomeIcon icon={faAngleRight} />
-          </a>
-        </div>
       </div>
       <blockquote id={'notice-text-' + index} className="nx-blockquote">
         <div className="legal-file-content">{notice.originalContent}</div>
       </blockquote>
+      <div className="legal-file-section-view-more-details">
+        <a
+          href={$state.href('legal.componentNoticeDetails.noticeDetails', {
+            ownerType,
+            ownerId,
+            hash,
+            noticeIndex: index,
+          })}
+        >
+          <span>View More Details</span>
+          <NxFontAwesomeIcon icon={faAngleRight} />
+        </a>
+      </div>
     </section>
   );
 

@@ -131,4 +131,11 @@ component-legal-overview {
   .license-no-legal-elements-text {
     text-align: center;
   }
+
+  .legal-file-section-view-more-details {
+    text-align: right;
+    a {
+      @include container-horizontal;
+    }
+  }
 }

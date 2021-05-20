@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.RealmTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.RestEndpointTelemetry;
 import com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.SourceControlRateLimitTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
 import com.sonatype.insight.brain.telemetry.TelemetryScheduler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -56,7 +57,6 @@ import com.sonatype.insight.test.LogOutput;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.dropwizard.logging.AppenderFactory;
 import io.dropwizard.logging.ConsoleAppenderFactory;
 import io.dropwizard.logging.FileAppenderFactory;
@@ -80,6 +80,11 @@ import static org.mockito.Mockito.when;
 public class InsightBrainServiceTest
     extends AbstractBrainServiceTest
 {
+  private static final TelemetryPurpose[] EXPECTED_TELEMETRY_PURPOSES = {
+      TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE,
+      TelemetryPurpose.CONFIGURATION_PROPERTIES, TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS,
+      TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT};
+
   @Rule
   public LogOutput logOutput = new LogOutput(InsightBrainService.class);
 
@@ -123,7 +128,7 @@ public class InsightBrainServiceTest
       }).andStatus(204).atUri(TelemetrySender.RESOURCE_PATH);
     });
     temporarilyEnableQuartzTelemetry();
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(8));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(EXPECTED_TELEMETRY_PURPOSES.length));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);
@@ -145,6 +150,14 @@ public class InsightBrainServiceTest
               .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_SC_WITH_PR_ENABLED, "0")
               .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATION_SC_ENTRIES, "0")
               .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATIONS, "0");
+          break;
+        case SOURCE_CONTROL_RATE_LIMITS:
+          assertThat(telemetryDataReceived.getAttributes())
+              .containsEntry(SourceControlRateLimitTelemetryCollector.SCM,
+                  SourceControlRateLimitTelemetryCollector.NONE)
+              .containsEntry(SourceControlRateLimitTelemetryCollector.CALLS, 0)
+              .containsEntry(SourceControlRateLimitTelemetryCollector.MIN_REMAINING, 0)
+              .containsEntry(SourceControlRateLimitTelemetryCollector.TIMES_EXCEEDED, 0);
           break;
         case POLICY_STATUS_OVERRIDE:
           assertThat(telemetryDataReceived.getAttributes())
@@ -175,10 +188,7 @@ public class InsightBrainServiceTest
           break;
       }
     }
-    assertThat(telemetryPurposes).containsOnly(TelemetryPurpose.HIERARCHY_METRICS,
-        TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE, TelemetryPurpose.CONFIGURATION_PROPERTIES,
-        TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS, TelemetryPurpose.ROLE_USAGE,
-        TelemetryPurpose.RUNTIME_ENVIRONMENT);
+    assertThat(telemetryPurposes).containsOnly(EXPECTED_TELEMETRY_PURPOSES);
   }
 
   private Collection<TelemetryData> assertTelemetry(
@@ -259,7 +269,7 @@ public class InsightBrainServiceTest
     responses.clear();
     telemetryScheduler.getTelemetryRunnable().run();
     temporarilyEnableQuartzTelemetry();
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(9));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(10));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);

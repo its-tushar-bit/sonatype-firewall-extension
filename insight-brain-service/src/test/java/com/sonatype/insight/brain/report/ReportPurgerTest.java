@@ -238,7 +238,7 @@ public class ReportPurgerTest
     File trashFile = new File(trashDir, "app-" + app.getId() + "-report-" + reportId + ".zip");
     assertThat(trashFile).isFile();
     assertThat(trashDir.list()).containsExactly(trashFile.getName());
-    try (FileSystem zipFileSystem = FileSystems.newFileSystem(trashFile.toPath(), null)) {
+    try (FileSystem zipFileSystem = FileSystems.newFileSystem(trashFile.toPath(), (ClassLoader)null)) {
       String[] expectedZipEntries = {"report.zip", Report.CACHE_DIRECTORY_NAME + "/index.html",
           Report.CACHE_DIRECTORY_NAME + "/bom.json", Report.CACHE_DIRECTORY_NAME + "/" + Report.DATA_JSON_FILENAME,
           Report.CACHE_DIRECTORY_NAME + "/licenses.json", Report.CACHE_DIRECTORY_NAME + "/licensethreats.json",

@@ -838,16 +838,6 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testUpdate_ApplicationWithProvider() {
-    createRootOrgWithGitHubProvider();
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, null, null);
-    sourceControl.setProvider(SourceControlProvider.GITHUB);
-    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
-  }
-
-  @Test
   public void testUpdatePollTimeAndErrorCounts() {
     createRootOrgWithGitHubProvider();
     SourceControl scApp1 = buildAppSourceControl(app.getId(), 1, true);

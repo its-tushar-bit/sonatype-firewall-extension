@@ -40,8 +40,8 @@ def functionalTests(String browser, String testRegex) {
 
 def unitTests(String testRegex, String javaVersion = 'Java 8') {
   def testConfig = testConfig(
-      "-Dtest=%regex[${testRegex}] -Dskip-functional-test -Ddocker.registry=${sonatypeDockerRegistryId()} " +
-          "-Pbuildsupport-sonar-coverage",
+      "-Dtest=%regex[${testRegex}] -Dit.test=%regex[${testRegex}] -Dskip-functional-test " +
+          "-Ddocker.registry=${sonatypeDockerRegistryId()} -Pbuildsupport-sonar-coverage",
       null, javaVersion)
   mvn testConfig, 'clean install'
 }

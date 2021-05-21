@@ -85,6 +85,14 @@ pipeline {
         build job: 'ops/fastly-purge-downloads', propagate: true, wait: true
       }
     }
+    stage('Update Download and Compatibility Page') {
+      when {
+        expression {'Production' == params?.environment}
+      }
+      steps {
+        updateDownloadPage(parseVersion(getVersionFromBuildName(env.releaseBuild_NAME)).minor)
+      }
+    }
   }
   post {
     always {

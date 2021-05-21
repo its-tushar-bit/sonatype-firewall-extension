@@ -802,7 +802,6 @@ CREATE TABLE source_control_event (
 CREATE INDEX source_control_event_instance_id_idx ON source_control_event(instance_id);
 CREATE INDEX source_control_event_create_time_idx ON source_control_event(create_time);
 CREATE INDEX source_control_event_event_status_idx ON source_control_event(event_status);
-CREATE INDEX source_control_event_application_id_idx ON source_control_event(application_id);
 
 -- Since 1.114
 CREATE TABLE source_control_pull_request

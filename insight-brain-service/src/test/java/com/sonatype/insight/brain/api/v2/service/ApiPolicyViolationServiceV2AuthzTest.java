@@ -17,17 +17,22 @@ import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Sets;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ApiPolicyViolationServiceV2AuthzTest
     extends AbstractServiceAuthzTest
@@ -39,7 +44,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
   private static final String ORG_POLICY_NAME2 = "org-policy2";
 
   private static final String APP_POLICY_NAME2 = "app-policy2";
-  
+
   private static final String PACKAGE_URL = "pkg:maven/g1/a1@v1";
 
   @Inject
@@ -136,5 +141,74 @@ public class ApiPolicyViolationServiceV2AuthzTest
         .getPolicyViolations(policyIds);
     assertThat(apiApplicationViolationListDTO).isNotNull();
     assertThat(apiApplicationViolationListDTO.applicationViolations).isEmpty();
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetTransitivePolicyViolations_Unauthenticated_Application() {
+    apiPolicyViolationService.getTransitivePolicyViolations(app.getType(), app.getPublicId(), null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetTransitivePolicyViolations_Unauthorized_Application() {
+    login();
+    apiPolicyViolationService.getTransitivePolicyViolations(app.getType(), app.getPublicId(), null, null, null, null);
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_Authorized_Application() {
+    grantReadPermission(app.getId());
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
+        .getTransitivePolicyViolations(app.getType(), app.getPublicId(), BuildStageType.ID, null, "pkg:maven/g/a@v",
+            null))
+        .withMessageContaining(
+            "Component not found in latest policy evaluation for application " + app.getPublicId() + ".");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetTransitivePolicyViolations_Unauthenticated_Organization() {
+    apiPolicyViolationService.getTransitivePolicyViolations(org.getType(), org.getPublicId(), null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetTransitivePolicyViolations_Unauthorized_Organization() {
+    login();
+    apiPolicyViolationService.getTransitivePolicyViolations(org.getType(), org.getPublicId(), null, null, null, null);
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_Authorized_Organization() {
+    grantReadPermission(org.getId());
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
+        .getTransitivePolicyViolations(org.getType(), org.getPublicId(), BuildStageType.ID, null, "pkg:maven/g/a@v",
+            null))
+        .withMessageContaining(
+            "Component not found in latest policy evaluations for organization " + org.getPublicId() + ".");
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetTransitivePolicyViolations_Unauthenticated_RootOrganization() {
+    apiPolicyViolationService.getTransitivePolicyViolations(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetTransitivePolicyViolations_Unauthorized_RootOrganization() {
+    login();
+    apiPolicyViolationService.getTransitivePolicyViolations(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+        null, null, null, null);
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_Authorized_RootOrganization() {
+    grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
+
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
+        .getTransitivePolicyViolations(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID,
+            null, "pkg:maven/g/a@v", null))
+        .withMessageContaining(
+            "Component not found in latest policy evaluations for organization " + Organization.ROOT_ORGANIZATION_ID +
+                ".");
   }
 }

@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.dataaccess;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
@@ -91,6 +93,21 @@ public class OwnerDAO
     }
 
     return result;
+  }
+
+  public Set<String> getDescendantOrSelfApplicationIds(Owner owner) {
+    Set<String> applicationIds = new HashSet<>();
+    addDescendantOrSelfApplicationIds(applicationIds, owner);
+    return applicationIds;
+  }
+
+  private void addDescendantOrSelfApplicationIds(Set<String> applicationIds, Owner owner) {
+    if (OwnerType.APPLICATION.equals(owner.getType())) {
+      applicationIds.add(owner.getId());
+    }
+    else {
+      getChildOwners(owner).forEach(childOwner -> addDescendantOrSelfApplicationIds(applicationIds, childOwner));
+    }
   }
 
   public Owner getParentOwner(Owner owner) {

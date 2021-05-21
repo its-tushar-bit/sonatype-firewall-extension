@@ -155,4 +155,62 @@ public class OwnerDAOTest
       assertThat(policyWaivers).isEmpty();
     }
   }
+
+  @Test
+  public void testGetDescendantOrSelfApplicationIds_Application() {
+    Application application = tempEntity.newApplicationWithParent();
+
+    assertThat(ownerDAO.getDescendantOrSelfApplicationIds(application)).containsExactly(application.getId());
+  }
+
+  @Test
+  public void testGetDescendantOrSelfApplicationIds_Organization_NoDescendants() {
+    Organization organization = tempEntity.newOrganization();
+
+    assertThat(ownerDAO.getDescendantOrSelfApplicationIds(organization)).isEmpty();
+  }
+
+  @Test
+  public void testGetDescendantOrSelfApplicationIds_RootOrganization_NoDescendants() {
+    new ApplicationDAO().delete(application);
+    new OrganizationDAO().delete(organization);
+    Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+
+    assertThat(ownerDAO.getDescendantOrSelfApplicationIds(rootOrganization)).isEmpty();
+  }
+
+  @Test
+  public void testGetDescendantOrSelfApplicationIds_RootOrganization_OnlyOrganizationDescendants() {
+    new ApplicationDAO().delete(application);
+    Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newOrganization();
+
+    assertThat(ownerDAO.getDescendantOrSelfApplicationIds(rootOrganization)).isEmpty();
+  }
+
+  @Test
+  public void testGetDescendantOrSelfApplicationIds_Organization() {
+    Organization organization = tempEntity.newOrganization();
+    Application application1 = tempEntity.newApplication(organization.getId());
+    Application application2 = tempEntity.newApplication(organization.getId());
+    tempEntity.newApplicationWithParent();
+
+    assertThat(ownerDAO.getDescendantOrSelfApplicationIds(organization))
+        .containsExactlyInAnyOrder(application1.getId(), application2.getId());
+  }
+
+  @Test
+  public void testGetDescendantOrSelfApplicationIds_RootOrganization() {
+    Organization rootOrganization = new OrganizationDAO().getById(Organization.ROOT_ORGANIZATION_ID);
+    Organization organization1 = tempEntity.newOrganization();
+    Application application1 = tempEntity.newApplication(organization1.getId());
+    Application application2 = tempEntity.newApplication(organization1.getId());
+    Organization organization2 = tempEntity.newOrganization();
+    Application application3 = tempEntity.newApplication(organization2.getId());
+    Application application4 = tempEntity.newApplication(organization2.getId());
+    tempEntity.newOrganization();
+
+    assertThat(ownerDAO.getDescendantOrSelfApplicationIds(rootOrganization)).containsExactlyInAnyOrder(
+        application1.getId(), application2.getId(), application3.getId(), application4.getId(), application.getId());
+  }
 }

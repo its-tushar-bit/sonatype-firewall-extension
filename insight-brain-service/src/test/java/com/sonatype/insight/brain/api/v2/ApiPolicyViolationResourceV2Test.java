@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -17,26 +18,38 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiConstraintViolationReasonDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyViolationResourceV2Test
@@ -231,5 +244,62 @@ public class ApiPolicyViolationResourceV2Test
     assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
     assertApiPolicyWaiverDTO("hash", policyId, appId, "NewApp", "", violationId,
         expiredExpiryTime, expiredApplicableWaivers.get(0));
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations() throws Exception {
+    getCLMServer().getConfiguration()
+        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    Policy policy = tempEntity.newPolicy();
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e");
+    ComponentIdentifier transitive = ComponentIdentifier.createMavenCoordinates("g", "transitive", "v", "", "e");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, transitive, "hash2");
+    ReportTestUtils.createReportFile(application.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationResourceV2Test/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+        .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
+        .query("componentIdentifier", direct)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiComponentTransitivePolicyViolationsDTO result =
+        response.getBody(ApiComponentTransitivePolicyViolationsDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.componentIdentifier).usingRecursiveComparison()
+        .isEqualTo(ApiComponentIdentifierDTOV2.fromComponentIdentifier(direct));
+    assertThat(result.packageUrl).isEqualTo(PackageUrlIdentifier.fromComponentIdentifier(direct).getPackageUrl());
+    assertThat(result.hash).isEqualTo("hash1");
+    assertThat(result.displayName).isEqualTo("g : direct : v");
+    assertThat(result.isInnerSource).isFalse();
+    Component expectedComponent = new Component();
+    expectedComponent.setHash("hash2");
+    expectedComponent.setDisplayName("g : transitive : v");
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
+        ApiStagePolicyViolationComponentDTO
+            .fromPolicyViolationAndComponent(Pair.of(policyViolation, expectedComponent)));
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_FeatureDisabled() throws Exception {
+    getCLMServer().getConfiguration()
+        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+        .parameter(OwnerType.APPLICATION.name().toLowerCase(Locale.ROOT), "doesNotExist", "doesNotExist")
+        .query("hash", "doesNotExist")
+        .get();
+
+    assertResponseStatus(403, response);
+    assertThat(response.getBodyText())
+        .contains(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
   }
 }

@@ -5,21 +5,39 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Locale;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.PolicyAuditDTO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.InsightWork;
 
+import com.google.common.collect.ImmutableMap;
+import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyViolationResourceV2AuditTest
     extends AbstractAuditTest
 {
+  @Before
+  public void before() {
+    getCLMServer().getConfiguration()
+        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+  }
+
   @Test
   public void testGetPolicyViolations() throws Exception {
     Organization org = tempEntity.newOrganization();
@@ -40,5 +58,75 @@ public class ApiPolicyViolationResourceV2AuditTest
         new PolicyAuditDTO(policy2.getId(), policy2),
         new PolicyAuditDTO(unknownPolicyId, null));
     assertCustomData(auditDTO, "inspectedApplicationCount", 2);
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_Application() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e");
+    ReportTestUtils.createReportFile(application.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationResourceV2AuditTest/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+        .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
+        .query("componentIdentifier", direct)
+        .get();
+
+    assertResponseStatus(200, response);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_TRANSITIVE_POLICY_VIOLATIONS, null);
+    assertApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "stageId", BuildStageType.ID);
+    assertCustomObject(auditDTO, "componentIdentifier", direct);
+    assertCustomData(auditDTO, "componentHash", "hash1");
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_Organization() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplication(organization.getId());
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e");
+    ReportTestUtils.createReportFile(application.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationResourceV2AuditTest/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+        .parameter(organization.getType().name().toLowerCase(Locale.ROOT), organization.getPublicId(),
+            BuildStageType.ID)
+        .query("componentIdentifier", direct)
+        .get();
+
+    assertResponseStatus(200, response);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_TRANSITIVE_POLICY_VIOLATIONS, null);
+    assertOrganizationData(auditDTO, organization);
+    assertCustomData(auditDTO, "stageId", BuildStageType.ID);
+    assertCustomObject(auditDTO, "componentIdentifier", direct);
+    assertCustomData(auditDTO, "componentHash", "hash1");
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", null, "e");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+        .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
+        .query("componentIdentifier", direct)
+        .with(unauthorizedUser())
+        .get();
+
+    assertResponseStatus(403, response);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_TRANSITIVE_POLICY_VIOLATIONS, "unauthorized");
+    assertApplicationData(auditDTO, application);
   }
 }

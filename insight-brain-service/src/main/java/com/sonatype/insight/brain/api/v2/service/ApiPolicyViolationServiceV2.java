@@ -5,35 +5,74 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.PolicyAuditDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
+import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.13.0
@@ -41,6 +80,8 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 @Named
 public class ApiPolicyViolationServiceV2
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiPolicyViolationServiceV2.class);
+
   private final PolicyViolationLoader policyViolationLoader;
 
   private final ApplicationService applicationService;
@@ -51,18 +92,43 @@ public class ApiPolicyViolationServiceV2
 
   private final ApplicationComponentDAO applicationComponentDAO;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
+  private final OwnerDAO ownerDAO;
+
+  private final ReportService reportService;
+
+  private final PolicyViolationDAO policyViolationDAO;
+
+  private final StageTypeService stageTypeService;
+
+  private final InsightConfig insightConfig;
+
   @Inject
-  public ApiPolicyViolationServiceV2(final PolicyViolationLoader policyViolationLoader,
-                                     final ApplicationService applicationService,
-                                     final PolicyViolationAdapter policyViolationAdapter,
-                                     final ApiApplicationAdapter applicationAdapter,
-                                     final ApplicationComponentDAO applicationComponentDAO)
+  public ApiPolicyViolationServiceV2(
+      final PolicyViolationLoader policyViolationLoader,
+      final ApplicationService applicationService,
+      final PolicyViolationAdapter policyViolationAdapter,
+      final ApiApplicationAdapter applicationAdapter,
+      final ApplicationComponentDAO applicationComponentDAO,
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final OwnerDAO ownerDAO,
+      final ReportService reportService,
+      final PolicyViolationDAO policyViolationDAO,
+      final StageTypeService stageTypeService,
+      final InsightConfig insightConfig)
   {
     this.policyViolationLoader = policyViolationLoader;
     this.applicationService = applicationService;
     this.policyViolationAdapter = policyViolationAdapter;
     this.applicationAdapter = applicationAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.ownerDAO = ownerDAO;
+    this.reportService = reportService;
+    this.policyViolationDAO = policyViolationDAO;
+    this.stageTypeService = stageTypeService;
+    this.insightConfig = insightConfig;
   }
 
   public ApiApplicationViolationListDTOV2 getPolicyViolations(final Set<String> policyIds) {
@@ -76,7 +142,7 @@ public class ApiPolicyViolationServiceV2
 
     return buildApplicationDTOs(appViews);
   }
-  
+
   private ApiApplicationViolationListDTOV2 buildApplicationDTOs(Collection<ApplicationView> appViews) {
     ApiApplicationViolationListDTOV2 apiViolationListDTO = new ApiApplicationViolationListDTOV2();
     for (ApplicationView appView : appViews) {
@@ -127,5 +193,179 @@ public class ApiPolicyViolationServiceV2
       }
     }
     return apiPolicyViolationDTOs;
+  }
+
+  public boolean isInnerSourceTransitiveWaiverEnabled() {
+    Map<String, Boolean> experimentalFeatures = insightConfig.getExperimentalFeatures();
+    return experimentalFeatures != null ? experimentalFeatures
+        .getOrDefault(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false) : false;
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolations(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final String stageId,
+      final ComponentIdentifier componentIdentifier,
+      final String packageUrl,
+      final String hash)
+  {
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    String stageIdLowercase = stageId.toLowerCase(Locale.ROOT);
+    if (!Stage.isValidStageTypeId(stageIdLowercase)) {
+      throw new InvalidStageException(stageId);
+    }
+    if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stageIdLowercase))) {
+      throw new InvalidLicenseException("Stage '" + stageId + "' is not supported by your license.");
+    }
+    if (componentIdentifier == null && packageUrl == null && hash == null) {
+      throw new BadRequestException("componentIdentifier or packageUrl or hash must be specified.");
+    }
+    ComponentIdentifier compIdentifier = getComponentIdentifier(componentIdentifier, packageUrl);
+    String truncatedHash = HashHelper.truncateHash(hash);
+    Set<String> applicationIds = ownerDAO.getDescendantOrSelfApplicationIds(owner);
+    List<PolicyEvaluation> policyEvaluations =
+        policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds, Collections.singleton(stageIdLowercase));
+    List<Pair<PolicyViolation, Component>> allTransitivePolicyViolations = new ArrayList<>();
+    Component foundComponent = null;
+    for (PolicyEvaluation policyEvaluation : policyEvaluations) {
+      List<Component> components = getComponents(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+      if (components == null || components.isEmpty()) {
+        continue;
+      }
+      Component component = getComponentByComponentIdentifierOrHash(components, compIdentifier, truncatedHash);
+      if (component == null) {
+        continue;
+      }
+      foundComponent = component;
+      if (component.getComponentIdentifier() == null) {
+        continue;
+      }
+      List<Component> transitiveComponents = getTransitiveComponents(component.getComponentIdentifier(), components);
+      List<PolicyViolation> activePolicyViolations = policyViolationDAO
+          .getActiveByApplicationIdAndStageId(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
+      List<Pair<PolicyViolation, Component>> transitivePolicyViolations = activePolicyViolations.stream()
+          .map(policyViolation -> Pair.of(policyViolation, getComponentByComponentIdentifierOrHash(
+              transitiveComponents, policyViolation.getComponentIdentifier(), policyViolation.getHash())))
+          .filter(policyViolationAndComponent -> policyViolationAndComponent.getRight() != null)
+          .collect(Collectors.toList());
+      allTransitivePolicyViolations.addAll(transitivePolicyViolations);
+    }
+    if (foundComponent == null) {
+      throw new NotFoundException("Component not found in latest policy evaluation"
+          + (OwnerType.ORGANIZATION.equals(owner.getType()) ? "s" : "")
+          + " for " + owner.getType().name().toLowerCase(Locale.ROOT) + " " + owner.getPublicId() + ".");
+    }
+    AuditData.get().setStageId(stageIdLowercase).setComponentIdentifier(foundComponent.getComponentIdentifier())
+        .setComponentHash(foundComponent.getHash());
+    ApiComponentTransitivePolicyViolationsDTO result = new ApiComponentTransitivePolicyViolationsDTO(
+        foundComponent,
+        allTransitivePolicyViolations
+    );
+    sort(result.transitivePolicyViolations);
+    return result;
+  }
+
+  private ComponentIdentifier getComponentIdentifier(ComponentIdentifier componentIdentifier, String packageUrl) {
+    if (componentIdentifier != null) {
+      return componentIdentifier;
+    }
+    if (packageUrl != null) {
+      return new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
+    }
+    return null;
+  }
+
+  // Visible for testing
+  void sort(List<ApiStagePolicyViolationComponentDTO> policyViolations) {
+    policyViolations.sort(Comparator
+        .comparing((ApiStagePolicyViolationComponentDTO policyViolation) -> policyViolation.threatLevel).reversed()
+        .thenComparing(
+            policyViolation -> ApiComponentIdentifierDTOV2.toComponentIdentifier(policyViolation.componentIdentifier),
+            Comparator.nullsLast(Comparator.naturalOrder())));
+  }
+
+  private List<Component> getComponents(String applicationId, String scanId) {
+    try {
+      File reportFile = reportService.getReport(applicationId, scanId);
+      ReportEntry reportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+      if (reportEntry != null) {
+        return new ComponentDAO(IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
+            .getAll(null, null, reportEntry.buf, null);
+      }
+      log.debug("{} not found for application id {} and scan id {}.", Report.DEPENDENCIES_JSON_FILENAME, applicationId,
+          scanId);
+    }
+    catch (IOException | NotFoundException e) {
+      log.debug(e.getMessage(), e);
+    }
+    return null;
+  }
+
+  private Component getComponentByComponentIdentifierOrHash(
+      List<Component> components,
+      ComponentIdentifier componentIdentifier,
+      String hash)
+  {
+    if (componentIdentifier != null) {
+      ComponentIdentifier completeComponentIdentifier = getComplete(componentIdentifier);
+      return components.stream()
+          .filter(c -> completeComponentIdentifier.equals(getComplete(c.getComponentIdentifier())))
+          .findFirst()
+          .orElse(null);
+    }
+    if (hash != null) {
+      return components.stream()
+          .filter(component -> hash.equals(component.getHash()))
+          .findFirst()
+          .orElse(null);
+    }
+    return null;
+  }
+
+  private List<Component> getComponentsByParentComponentIdentifier(
+      List<Component> components,
+      ComponentIdentifier parentComponentIdentifier)
+  {
+    if (parentComponentIdentifier == null) {
+      return Collections.emptyList();
+    }
+    return components.stream()
+        .filter(component -> component.getParentComponentPurls() != null &&
+            component.getParentComponentPurls().stream()
+                .map(ComponentIdentifierAdapter::toComponentIdentifier)
+                .map(this::getComplete).collect(Collectors.toSet())
+                .contains(parentComponentIdentifier))
+        .collect(Collectors.toList());
+  }
+
+  private List<Component> getTransitiveComponents(
+      ComponentIdentifier dependency,
+      List<Component> components)
+  {
+    List<Component> transitiveComponents = new ArrayList<>();
+    addTransitiveComponents(transitiveComponents, dependency, components);
+    return transitiveComponents;
+  }
+
+  private void addTransitiveComponents(
+      List<Component> transitiveComponents,
+      ComponentIdentifier dependency,
+      List<Component> components)
+  {
+    List<Component> childComponents = getComponentsByParentComponentIdentifier(components, dependency);
+    transitiveComponents.addAll(childComponents);
+    childComponents.forEach(childComponent ->
+        addTransitiveComponents(transitiveComponents, childComponent.getComponentIdentifier(), components));
+  }
+
+  private ComponentIdentifier getComplete(ComponentIdentifier componentIdentifier) {
+    if (componentIdentifier == null) {
+      return null;
+    }
+    ComponentIdentifier completeComponentIdentifier =
+        new ComponentIdentifier(componentIdentifier.getFormat(), componentIdentifier.getCoordinates());
+    completeComponentIdentifier.ensureComplete();
+    return completeComponentIdentifier;
   }
 }

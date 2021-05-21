@@ -7,9 +7,12 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationListDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrossStageViolationDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
+import com.sonatype.insight.brain.model.OwnerType;
 
 /**
  * Resource for API Policy Violation
@@ -29,4 +32,15 @@ public interface ApiPolicyViolationResourceV2
    * @since 1.98
    */
   ApiPolicyWaiversApplicableToViolationDTO getApplicableWaivers(String violationId);
+
+  /**
+   * @since 1.115
+   */
+  ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolations(
+      OwnerType ownerType,
+      String ownerId,
+      String stageId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash);
 }

@@ -940,7 +940,8 @@ public class InsightConfig
     FIREWALL_AUTO_UNQUARANTINE("firewallAutoUnquarantine"), //
     INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"), //
     DEPENDENCY_DATA_IN_API("dependencyDataInApi"), //
-    COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource");
+    COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource"),
+    INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver");
 
     private String flag;
 

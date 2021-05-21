@@ -32,12 +32,10 @@ import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.ENC;
-import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControl.FAKE_SECRET_KEY;
 
 @Named
@@ -175,7 +173,13 @@ public class ApiCompositeSourceControlService
       dto.repositoryUrl = sourceControl.getRepositoryUrl();
     }
 
-    setProviderFromRootSourceControlIfPresent(dto, sourceControl, parentSourceControl, grandParentSourceControl);
+    dto.provider = collateCompositeDTO(
+        sourceControl.getProvider() == null ? null : sourceControl.getProvider().toString(),
+        parentName,
+        parentSourceControl.getProvider() == null ? null : parentSourceControl.getProvider().toString(),
+        grandParentName,
+        grandParentSourceControl.getProvider() == null ? null : grandParentSourceControl.getProvider().toString()
+    );
 
     dto.username = collateCompositeDTO(
         sourceControl.getUsername(),
@@ -216,19 +220,6 @@ public class ApiCompositeSourceControlService
         grandParentName,
         grandParentSourceControl.getEnableStatusChecks()
     );
-  }
-
-  private void setProviderFromRootSourceControlIfPresent(
-      final ApiCompositeSourceControlDTO dto,
-      final SourceControl sourceControl,
-      final SourceControl parentSourceControl,
-      final SourceControl grandParentSourceControl)
-  {
-    Lists.newArrayList(sourceControl, parentSourceControl, grandParentSourceControl)
-        .stream()
-        .filter(sc -> ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()) && sc.getProvider() != null)
-        .findFirst()
-        .ifPresent(sc -> dto.provider = sc.getProvider().toString());
   }
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(

@@ -145,16 +145,13 @@ describe('source.control.tile.spec', function () {
         id: ROOT_ORGANIZATION_ID,
       });
       loadProductFeaturesDefer.resolve({});
-      getSourceControlDeferred.resolve({
-        provider: 'github',
-        token: { value: 'TOKEN' },
-      });
+      getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: { value: 'TOKEN' } });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('rootOrganizationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
     });
 
     it('reloads on broadcasted owner summary reload event', function () {
@@ -187,13 +184,13 @@ describe('source.control.tile.spec', function () {
         id: ROOT_ORGANIZATION_ID,
       });
       loadProductFeaturesDefer.resolve({});
-      getSourceControlDeferred.resolve({ provider: null, token: {} });
+      getSourceControlDeferred.resolve({ provider: { value: null, parentValue: null }, token: {} });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('rootOrganizationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toBeNull();
+      expect(vm.effectiveProvider).toBeNull();
       expect(vm.itemText).toEqual('');
       expect(vm.itemSubText).toEqual('Source Control not configured');
     });
@@ -204,13 +201,13 @@ describe('source.control.tile.spec', function () {
         id: ROOT_ORGANIZATION_ID,
       });
       loadProductFeaturesDefer.resolve({});
-      getSourceControlDeferred.resolve({ provider: 'github', token: {} });
+      getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: {} });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('rootOrganizationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
       expect(vm.itemSubText).toEqual('Provides the default source control configuration settings');
     });
@@ -222,7 +219,7 @@ describe('source.control.tile.spec', function () {
           id: ROOT_ORGANIZATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: 'github' });
+        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
         mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'notifications';
         });
@@ -236,7 +233,7 @@ describe('source.control.tile.spec', function () {
           id: ROOT_ORGANIZATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: 'github' });
+        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
         mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'automation';
         });
@@ -250,7 +247,7 @@ describe('source.control.tile.spec', function () {
           id: ROOT_ORGANIZATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: 'github' });
+        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
         mockProductFeatures.isAvailable.and.callFake(function () {
           return false;
         });
@@ -265,7 +262,7 @@ describe('source.control.tile.spec', function () {
           id: ROOT_ORGANIZATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: 'github' });
+        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
         $scope.$digest();
         expect(vm.isAutomationSupported).toBeTruthy();
       });
@@ -276,7 +273,7 @@ describe('source.control.tile.spec', function () {
           id: ROOT_ORGANIZATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: 'github' });
+        getSourceControlDeferred.resolve({ provider: { value: 'github' } });
         mockProductFeatures.isAvailable.and.callFake(function (feature) {
           return feature === 'notifications';
         });
@@ -291,7 +288,7 @@ describe('source.control.tile.spec', function () {
           id: ROOT_ORGANIZATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        getSourceControlDeferred.resolve({ provider: 'github', token: {} });
+        getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: {} });
 
         $scope.$digest();
         expect(vm.loading).toBeFalsy();
@@ -306,12 +303,9 @@ describe('source.control.tile.spec', function () {
       });
 
       it('is set to false when product features cannot be retrieved', function () {
-        getByIdDeferred.resolve({
-          name: 'rootOrganizationName',
-          id: ROOT_ORGANIZATION_ID,
-        });
+        getByIdDeferred.resolve({ name: 'rootOrganizationName', id: ROOT_ORGANIZATION_ID });
         loadProductFeaturesDefer.reject({ status: 400, data: 'bad request' });
-        getSourceControlDeferred.resolve({ provider: 'github', token: {} });
+        getSourceControlDeferred.resolve({ provider: { value: 'github' }, token: {} });
 
         $scope.$digest();
         expect(vm.error).toEqual('bad request');
@@ -413,13 +407,13 @@ describe('source.control.tile.spec', function () {
         id: SUB_ORGANIZATION_ID,
       });
       loadProductFeaturesDefer.resolve({});
-      getSourceControlDeferred.resolve({ provider: null, token: {} });
+      getSourceControlDeferred.resolve({ provider: { value: null, parentValue: null }, token: {} });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('subOrganizationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toBeNull();
+      expect(vm.effectiveProvider).toBeNull();
       expect(vm.itemText).toEqual('');
       expect(vm.itemSubText).toEqual('Source Control not configured');
     });
@@ -431,7 +425,7 @@ describe('source.control.tile.spec', function () {
       });
       loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
-        provider: 'github',
+        provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
       });
 
@@ -439,7 +433,7 @@ describe('source.control.tile.spec', function () {
 
       expect(vm.ownerName).toEqual('subOrganizationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
       expect(vm.itemSubText).toEqual('Inherit access token');
     });
@@ -451,19 +445,15 @@ describe('source.control.tile.spec', function () {
       });
       loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
-        provider: 'github',
-        token: {
-          value: null,
-          parentName: 'Root Organization',
-          parentValue: 'token',
-        },
+        provider: { value: null, parentName: 'root org', parentValue: 'github' },
+        token: { value: null, parentName: 'Root Organization', parentValue: 'token' },
       });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('subOrganizationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
       expect(vm.itemSubText).toEqual('Inherit access token from Root Organization');
     });
@@ -475,19 +465,15 @@ describe('source.control.tile.spec', function () {
       });
       loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
-        provider: 'github',
-        token: {
-          value: 'token',
-          parentName: 'Root Organization',
-          parentValue: 'token',
-        },
+        provider: { value: null, parentName: 'root org', parentValue: 'github' },
+        token: { value: 'token', parentName: 'Root Organization', parentValue: 'token' },
       });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('subOrganizationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('GitHub');
       expect(vm.itemSubText).toEqual('Provides default access token for subOrganizationName');
     });
@@ -540,13 +526,16 @@ describe('source.control.tile.spec', function () {
     it('loads the source control and provides the correct subtext if provider is not defined', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
       loadProductFeaturesDefer.resolve({});
-      getSourceControlDeferred.resolve({ provider: null, token: {} });
+      getSourceControlDeferred.resolve({
+        provider: { value: null, parentValue: null },
+        token: { value: null, parentValue: null },
+      });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toBeNull();
+      expect(vm.effectiveProvider).toBeNull();
       expect(vm.itemText).toEqual('');
       expect(vm.itemSubText).toEqual('Source Control not configured');
     });
@@ -555,7 +544,7 @@ describe('source.control.tile.spec', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
       loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
-        provider: 'github',
+        provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
       });
 
@@ -563,7 +552,7 @@ describe('source.control.tile.spec', function () {
 
       expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
       expect(vm.itemSubText).toEqual('Inherit access token (GitHub)');
     });
@@ -572,19 +561,15 @@ describe('source.control.tile.spec', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
       loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
-        provider: 'github',
-        token: {
-          value: null,
-          parentName: 'Root Organization',
-          parentValue: 'token',
-        },
+        provider: { value: null, parentName: 'root org', parentValue: 'github' },
+        token: { value: null, parentName: 'Root Organization', parentValue: 'token' },
       });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
       expect(vm.itemSubText).toEqual('Inherit access token from Root Organization (GitHub)');
     });
@@ -593,19 +578,15 @@ describe('source.control.tile.spec', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
       loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
-        provider: 'github',
-        token: {
-          value: 'token',
-          parentName: 'Root Organization',
-          parentValue: 'token',
-        },
+        provider: { value: null, parentName: 'root org', parentValue: 'github' },
+        token: { value: 'token', parentName: 'Root Organization', parentValue: 'token' },
       });
 
       $scope.$digest();
 
       expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
       expect(vm.itemSubText).toEqual('Provides default access token for applicationName (GitHub)');
     });
@@ -619,7 +600,7 @@ describe('source.control.tile.spec', function () {
 
       expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toBeNull();
+      expect(vm.effectiveProvider).toBeNull();
       expect(vm.itemText).toEqual('');
       expect(vm.itemSubText).toEqual('Source Control not configured');
     });
@@ -628,7 +609,7 @@ describe('source.control.tile.spec', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
       loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
-        provider: 'github',
+        provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
       });
 
@@ -636,7 +617,7 @@ describe('source.control.tile.spec', function () {
 
       expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('Repository URL needed');
       expect(vm.itemSubText).toEqual('Inherit access token (GitHub)');
     });
@@ -645,7 +626,7 @@ describe('source.control.tile.spec', function () {
       getByIdDeferred.resolve({ name: 'applicationName', id: APPLICATION_ID });
       loadProductFeaturesDefer.resolve({});
       getSourceControlDeferred.resolve({
-        provider: 'github',
+        provider: { value: null, parentName: 'root org', parentValue: 'github' },
         token: { value: null, parentName: null, parentValue: null },
         repositoryUrl: 'url',
       });
@@ -654,7 +635,7 @@ describe('source.control.tile.spec', function () {
 
       expect(vm.ownerName).toEqual('applicationName');
       expect(vm.error).toBeUndefined();
-      expect(vm.sourceControl.provider).toEqual('github');
+      expect(vm.effectiveProvider).toEqual('github');
       expect(vm.itemText).toEqual('url');
       expect(vm.itemSubText).toEqual('Inherit access token (GitHub)');
     });

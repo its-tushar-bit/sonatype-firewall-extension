@@ -13,7 +13,7 @@ public class ApiCompositeSourceControlDTO
 
   public String repositoryUrl;
 
-  public String provider;
+  public ApiCompositeValueDTO<String> provider = new ApiCompositeValueDTO<>();
 
   public ApiCompositeValueDTO<String> username = new ApiCompositeValueDTO<>();
 

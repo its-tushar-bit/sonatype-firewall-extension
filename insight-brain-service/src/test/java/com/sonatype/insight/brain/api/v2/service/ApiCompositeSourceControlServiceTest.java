@@ -87,7 +87,7 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(rootOrgSourcecontrol.getId());
     assertThat(dto.ownerId).isEqualTo(rootOrgSourcecontrol.getOwnerId());
-    assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.value).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -115,7 +115,7 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isNull();
     assertThat(dto.ownerId).isEqualTo(rootOrgSourcecontrol.getOwnerId());
-    assertThat(dto.provider).isNull();
+    assertThat(dto.provider.parentValue).isNull();
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -148,7 +148,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(orgSourceControl.getId());
     assertThat(dto.ownerId).isEqualTo(orgSourceControl.getOwnerId());
-    assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -170,7 +172,7 @@ public class ApiCompositeSourceControlServiceTest
   @Test
   public void testGetCompositeSourceControlByOwner_OrganizationNoRootOrg() {
     final SourceControl orgSourceControl =
-        tempEntity.newSourceControl(org.getId(), null, TOKEN, null, false, null, null);
+        tempEntity.newSourceControl(org.getId(), null, TOKEN, SourceControlProvider.GITHUB, false, null, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -178,7 +180,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(orgSourceControl.getId());
     assertThat(dto.ownerId).isEqualTo(orgSourceControl.getOwnerId());
-    assertThat(dto.provider).isNull();
+    assertThat(dto.provider.parentValue).isNull();
+    assertThat(dto.provider.parentName).isNull();
+    assertThat(dto.provider.value).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -206,7 +210,7 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(null);
     assertThat(dto.ownerId).isEqualTo(org.getId());
-    assertThat(dto.provider).isNull();
+    assertThat(dto.provider.parentValue).isNull();
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -236,7 +240,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isNull();
     assertThat(dto.ownerId).isEqualTo(org.getId());
-    assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -256,6 +262,37 @@ public class ApiCompositeSourceControlServiceTest
   }
 
   @Test
+  public void testGetCompositeSourceControlByOwner_OrganizationOverridesProviderNoToken() {
+    final SourceControl orgSourceControl =
+        tempEntity.newSourceControl(org.getId(), null, null, SourceControlProvider.GITLAB, false, null, null);
+
+    final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
+        .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
+
+    assertThat(dto.id).isEqualTo(orgSourceControl.getId());
+    assertThat(dto.ownerId).isEqualTo(orgSourceControl.getOwnerId());
+    assertThat(dto.provider.value).isEqualTo(SourceControlProvider.GITLAB.toString());
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.repositoryUrl).isNull();
+    assertThat(dto.username.value).isNull();
+    assertThat(dto.username.parentName).isNull();
+    assertThat(dto.username.parentValue).isNull();
+    assertThat(dto.token.value).isNull();
+    assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isFalse();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enablePullRequests.parentValue).isTrue();
+    assertThat(dto.baseBranch.value).isNull();
+    assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.baseBranch.parentValue).isEqualTo("master");
+  }
+
+  @Test
   public void testGetCompositeSourceControlByOwner_Application() {
     rootOrgSourcecontrol.setToken(TOKEN);
     rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
@@ -271,7 +308,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(appSourceControl.getId());
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -297,7 +336,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(appSourceControl.getId());
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -330,7 +371,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(appSourceControl.getId());
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -352,7 +395,7 @@ public class ApiCompositeSourceControlServiceTest
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNoRootOrgSourceControl() {
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, TOKEN, null, false, null, null);
+    tempEntity.newSourceControl(parentOrg.getId(), null, TOKEN, SourceControlProvider.GITLAB, false, null, null);
     final SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null, null, true, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
@@ -362,7 +405,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(appSourceControl.getId());
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider).isNull();
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITLAB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -395,7 +440,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isNull();
     assertThat(dto.ownerId).isEqualTo(app.getId());
-    assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -417,7 +464,7 @@ public class ApiCompositeSourceControlServiceTest
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationAppSourceControlOnly() {
     final SourceControl appSourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null, null, true, null);
+        tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, SourceControlProvider.GITLAB, null, true, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -425,7 +472,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isEqualTo(appSourceControl.getId());
     assertThat(dto.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(dto.provider).isNull();
+    assertThat(dto.provider.parentValue).isNull();
+    assertThat(dto.provider.parentName).isNull();
+    assertThat(dto.provider.value).isEqualTo(SourceControlProvider.GITLAB.toString());
     assertThat(dto.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -455,7 +504,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isNull();
     assertThat(dto.ownerId).isEqualTo(app.getId());
-    assertThat(dto.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -477,7 +528,7 @@ public class ApiCompositeSourceControlServiceTest
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationOrgSourceControlOnly() {
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, TOKEN, null, false, null, null);
+    tempEntity.newSourceControl(parentOrg.getId(), null, TOKEN, SourceControlProvider.GITLAB, false, null, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -485,7 +536,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isNull();
     assertThat(dto.ownerId).isEqualTo(app.getId());
-    assertThat(dto.provider).isNull();
+    assertThat(dto.provider.parentValue).isEqualTo(SourceControlProvider.GITLAB.toString());
+    assertThat(dto.provider.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();
@@ -513,7 +566,9 @@ public class ApiCompositeSourceControlServiceTest
 
     assertThat(dto.id).isNull();
     assertThat(dto.ownerId).isEqualTo(app.getId());
-    assertThat(dto.provider).isNull();
+    assertThat(dto.provider.parentValue).isNull();
+    assertThat(dto.provider.parentName).isNull();
+    assertThat(dto.provider.value).isNull();
     assertThat(dto.repositoryUrl).isNull();
     assertThat(dto.username.value).isNull();
     assertThat(dto.username.parentName).isNull();

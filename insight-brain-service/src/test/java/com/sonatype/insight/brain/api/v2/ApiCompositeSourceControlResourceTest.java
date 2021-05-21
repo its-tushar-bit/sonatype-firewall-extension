@@ -68,7 +68,7 @@ public class ApiCompositeSourceControlResourceTest
 
     assertThat(result.id).isEqualTo(rootOrgSourceControl.getId());
     assertThat(result.ownerId).isEqualTo(rootOrgSourceControl.getOwnerId());
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(result.provider.value).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(result.repositoryUrl).isNull();
     assertThat(result.username.value).isNull();
     assertThat(result.username.parentName).isNull();
@@ -100,7 +100,8 @@ public class ApiCompositeSourceControlResourceTest
 
     assertThat(result.id).isNull();
     assertThat(result.ownerId).isEqualTo(rootOrgSourceControl.getOwnerId());
-    assertThat(result.provider).isNull();
+    assertThat(result.provider.value).isNull();
+    assertThat(result.provider.parentValue).isNull();
     assertThat(result.repositoryUrl).isNull();
     assertThat(result.username.value).isNull();
     assertThat(result.username.parentName).isNull();
@@ -133,7 +134,7 @@ public class ApiCompositeSourceControlResourceTest
 
     assertThat(result.id).isEqualTo(orgSourceControl.getId());
     assertThat(result.ownerId).isEqualTo(orgSourceControl.getOwnerId());
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(result.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(result.repositoryUrl).isNull();
     assertThat(result.username.value).isNull();
     assertThat(result.username.parentName).isNull();
@@ -168,7 +169,7 @@ public class ApiCompositeSourceControlResourceTest
 
     assertThat(result.id).isEqualTo(appSourceControl.getId());
     assertThat(result.ownerId).isEqualTo(appSourceControl.getOwnerId());
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(result.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(result.repositoryUrl).isEqualTo(VALID_URL);
     assertThat(result.username.value).isNull();
     assertThat(result.username.parentName).isNull();
@@ -198,7 +199,7 @@ public class ApiCompositeSourceControlResourceTest
 
     assertThat(result.id).isNull();
     assertThat(result.ownerId).isEqualTo(app.getId());
-    assertThat(result.provider).isEqualTo(SourceControlProvider.GITHUB.toString());
+    assertThat(result.provider.parentValue).isEqualTo(SourceControlProvider.GITHUB.toString());
     assertThat(result.repositoryUrl).isNull();
     assertThat(result.username.value).isNull();
     assertThat(result.username.parentName).isNull();

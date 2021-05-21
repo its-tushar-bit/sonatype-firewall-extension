@@ -29,7 +29,7 @@
           ng-if="vm.isSourceControlSupported">
       <div id="source-control-provider-warning"
            class="iq-alert"
-           ng-if="!vm.isRootOrg && !vm.dirtySourceControl.provider">
+           ng-if="vm.shouldShowProviderWarning">
         <i class="fa fa-warning"></i>Access Token provider must be configured at Root Organization
       </div>
       <div id="source-control-token-warning"
@@ -39,7 +39,7 @@
       </div>
       <div id="repository-url-row" class="iq-form-row" ng-if="vm.isApp">
         <div class="iq-form-group">
-          <label class="iq-label" for="editor-source-control-url" ng-disabled="!vm.dirtySourceControl.provider"><!--
+          <label class="iq-label" for="editor-source-control-url" ng-disabled="!vm.effectiveProvider()"><!--
          -->Repository URL
           </label>
           <input id="editor-source-control-url"
@@ -51,7 +51,7 @@
                  ng-model="vm.dirtySourceControl.repositoryUrl"
                  ng-maxlength="2048"
                  clm-input
-                 ng-disabled="!vm.dirtySourceControl.provider"
+                 ng-disabled="!vm.effectiveProvider()"
                  required
                  messages="{required: 'A valid repository URL is required',
                     pattern: 'A valid repository URL is required. HTTP(S) and SSH URLs are supported'}">
@@ -91,8 +91,45 @@
             </dropdown-selector>
           </div>
         </div>
-        <div class="iq-form-row" ng-if="vm.dirtySourceControl.provider === 'bitbucket'">
-          <div class="iq-form-group" ng-if="!vm.isRootOrg">
+        <div class="iq-form-row" ng-if="!vm.isRootOrg">
+          <div class="iq-form-group">
+            <label for="source-control-provider-suborg" class="iq-label">Access Token Provider</label>
+            <fieldset class="iq-radio-group">
+              <iq-radio id="editor-source-control-provider-inherit"
+                        model="vm.dirtySourceControl.providerInherit"
+                        value="true"
+                        tooltip="vm.providerInheritText"
+                        tooltip-append-to-body="true"><!--
+             -->{{vm.dirtySourceControl.providerInheritFrom
+                ? 'Inherit from ' + vm.dirtySourceControl.providerInheritFrom
+                  + ' (' + vm.providerTypesMap[vm.dirtySourceControl.providerInheritValue] + ')'
+                : 'Inherit (Not Configured)'}}
+              </iq-radio>
+              <iq-radio id="editor-source-control-provider-override"
+                        model="vm.dirtySourceControl.providerInherit"
+                        value="false">Override
+              </iq-radio>
+            </fieldset>
+          </div>
+          <div class="iq-form-row">
+            <div class="iq-form-group"
+                 ng-class="{'iq-form-group--indent': !vm.isRootOrg}">
+              <dropdown-selector id="source-control-provider-suborg"
+                                 ng-model="vm.dirtySourceControl.provider"
+                                 options="vm.providerTypes"
+                                 option-name-param="name"
+                                 option-value-param="value"
+                                 name="provider-dropdown"
+                                 ng-disabled="vm.dirtySourceControl.providerInherit"
+                                 clm-input
+                                 empty-option-string="-- Not Selected --"
+                                 focus-input="true">
+              </dropdown-selector>
+            </div>
+          </div>
+        </div>
+        <div class="iq-form-row" ng-if="vm.effectiveProvider() === 'bitbucket'">
+          <div class="iq-form-group" ng-if="!vm.isRootOrg && vm.dirtySourceControl.providerInherit">
             <label for="editor-source-control-credentials-inherit" class="iq-label"><!--
            -->Credentials
             </label>
@@ -107,13 +144,13 @@
               <iq-radio id="editor-source-control-credentials-override"
                         model="vm.dirtySourceControl.credentialsInherit"
                         value="false"
-                        is-disabled="!vm.dirtySourceControl.provider">Override
+                        is-disabled="!vm.effectiveProvider()">Override
               </iq-radio>
             </fieldset>
           </div>
           <div class="iq-form-row">
             <div class="iq-form-group"
-                 ng-class="{'iq-form-group--indent': !vm.isRootOrg}">
+                 ng-class="{'iq-form-group--indent': !vm.isRootOrg && vm.dirtySourceControl.providerInherit}">
               <label for="editor-source-control-credentials-username" class="iq-label"><!--
              -->Username
               </label>
@@ -125,12 +162,12 @@
                      ng-model="vm.dirtySourceControl.username"
                      ng-maxlength="255"
                      clm-input
-                     ng-disabled="!vm.dirtySourceControl.provider || vm.dirtySourceControl.credentialsInherit"
+                     ng-disabled="!vm.effectiveProvider() || vm.dirtySourceControl.credentialsInherit"
                      ng-required="(!vm.isRootOrg && !vm.dirtySourceControl.credentialsInherit) || vm.dirtySourceControl.token"
                      messages="{required: 'A valid username and token are required'}">
             </div>
             <div class="iq-form-group">
-              <label for="editor-source-control-credentials-token" class="iq-label" ng-disabled="!vm.dirtySourceControl.provider"><!--
+              <label for="editor-source-control-credentials-token" class="iq-label" ng-disabled="!vm.effectiveProvider()"><!--
              -->Access Token
               </label>
               <input id="editor-source-control-credentials-token"
@@ -147,38 +184,38 @@
             </div>
           </div>
         </div>
-        <div class="iq-form-row" ng-if="vm.dirtySourceControl.provider !== 'bitbucket'">
+        <div class="iq-form-row" ng-if="vm.effectiveProvider() !== 'bitbucket'">
           <div class="iq-form-group">
-            <label for="editor-source-control-token" class="iq-label" ng-disabled="!vm.dirtySourceControl.provider"><!--
+            <label for="editor-source-control-token" class="iq-label" ng-disabled="!vm.effectiveProvider()"><!--
            -->Access Token
             </label>
-            <fieldset class="iq-radio-group" ng-if="!vm.isRootOrg">
+            <fieldset class="iq-radio-group" ng-if="!vm.isRootOrg && vm.dirtySourceControl.providerInherit">
               <iq-radio id="editor-source-control-token-inherit"
                         model="vm.dirtySourceControl.tokenInherit"
                         value="true"
-                        is-disabled="!vm.dirtySourceControl.provider || vm.isAccessTokenRequiredOnNode()"
+                        is-disabled="!vm.effectiveProvider() || vm.isAccessTokenRequiredOnNode()"
                         tooltip="{{vm.isAccessTokenRequiredOnNode() ? 'Access token cannot be inherited. No inheritable access token defined.' : ''}}"
                         tooltip-append-to-body="true"><!--
-             -->{{vm.dirtySourceControl.tokenInheritFrom ? 'Inherit from ' + vm.dirtySourceControl.tokenInheritFrom
+             -->{{vm.effectiveTokenInheritFrom() ? 'Inherit from ' + vm.effectiveTokenInheritFrom()
                 : 'Inherit (Not Configured)'}}
               </iq-radio>
               <iq-radio id="editor-source-control-token-override"
                         model="vm.dirtySourceControl.tokenInherit"
                         value="false"
-                        is-disabled="!vm.dirtySourceControl.provider">Override
+                        is-disabled="!vm.effectiveProvider()">Override
               </iq-radio>
             </fieldset>
             <input id="editor-source-control-token"
                    type="password"
                    autocomplete="off"
                    class="iq-text-input iq-text-input--long"
-                   ng-class="{'iq-text-input--double-indent': !vm.isRootOrg}"
+                   ng-class="{'iq-text-input--double-indent': !vm.isRootOrg && vm.dirtySourceControl.providerInherit}"
                    name="token"
                    ng-model="vm.dirtySourceControl.token"
                    ng-maxlength="512"
                    clm-input
-                   ng-disabled="!vm.dirtySourceControl.provider || vm.dirtySourceControl.tokenInherit"
-                   ng-required="!vm.isRootOrg && !vm.dirtySourceControl.tokenInherit"
+                   ng-disabled="(!vm.effectiveProvider() || vm.dirtySourceControl.tokenInherit) && (vm.isRootOrg || vm.dirtySourceControl.providerInherit)"
+                   ng-required="vm.isAccessTokenRequiredOnNode()"
                    messages="{required: 'When override is selected a valid token is required'}">
           </div>
         </div>

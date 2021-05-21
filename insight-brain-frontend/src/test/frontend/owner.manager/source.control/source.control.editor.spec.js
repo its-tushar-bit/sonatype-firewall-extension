@@ -108,7 +108,11 @@ describe('source.control.editor.spec', function () {
       },
       ownerId: ROOT_ORGANIZATION_ID,
       id: 'ID',
-      provider: 'github',
+      provider: {
+        value: 'github',
+        parentValue: null,
+        parentName: null,
+      },
       repositoryUrl: null,
       baseBranch: {
         value: 'BASE_BRANCH',
@@ -143,6 +147,9 @@ describe('source.control.editor.spec', function () {
       ownerId: ROOT_ORGANIZATION_ID,
       id: 'ID',
       provider: 'github',
+      providerInherit: false,
+      providerInheritFrom: null,
+      providerInheritValue: null,
       repositoryUrl: null,
       enablePullRequests: null,
       enablePullRequestsInheritedValue: null,
@@ -403,9 +410,9 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         let sourceControlModelCopy = angular.copy(sourceControlModel);
+        sourceControlModelCopy.provider = 'gitlab';
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.provider = 'gitlab';
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
@@ -414,7 +421,11 @@ describe('source.control.editor.spec', function () {
           id: ROOT_ORGANIZATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        compositeSourceControlCopy.provider = 'gitlab';
+        compositeSourceControlCopy.provider = {
+          value: 'gitlab',
+          parentValue: null,
+          parentName: null,
+        };
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         // when
@@ -428,6 +439,7 @@ describe('source.control.editor.spec', function () {
           expectedSourceControlForSave
         );
         expect(vm.loadError).toBeUndefined();
+        expect(vm.ownerType).toEqual('organization');
         expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
       });
@@ -580,7 +592,6 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl.provider = 'gitlab';
-        compositeSourceControl.provider = 'github';
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
@@ -1012,7 +1023,11 @@ describe('source.control.editor.spec', function () {
       },
       ownerId: SUB_ORGANIZATION_ID,
       id: 'ID',
-      provider: 'gitlab',
+      provider: {
+        value: null,
+        parentValue: 'gitlab',
+        parentName: 'Root Organization',
+      },
       repositoryUrl: null,
       baseBranch: {
         value: 'BASE_BRANCH',
@@ -1046,7 +1061,10 @@ describe('source.control.editor.spec', function () {
       baseBranchInheritedValue: 'PARENT_BRANCH',
       ownerId: SUB_ORGANIZATION_ID,
       id: 'ID',
-      provider: 'gitlab',
+      provider: null,
+      providerInherit: true,
+      providerInheritFrom: 'Root Organization',
+      providerInheritValue: 'gitlab',
       repositoryUrl: null,
       enablePullRequests: null,
       enablePullRequestsInheritedValue: true,
@@ -1186,6 +1204,43 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
         expect(vm.dirtySourceControl.baseBranch).toBeNull();
       });
+
+      it('clears token inheritance when provider is set at org and we load the org', function () {
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.provider = {
+          value: 'gitlab',
+          parentValue: 'github',
+          parentName: 'Root Organization',
+        };
+        compositeSourceControlCopy.token = {
+          value: null,
+          parentValue: 'redacted',
+          parentName: 'Root Organization',
+        };
+        let sourceControlModelCopy = angular.copy(sourceControlModel);
+        sourceControlModelCopy.providerInherit = false;
+        sourceControlModelCopy.providerInheritFrom = 'Root Organization';
+        sourceControlModelCopy.providerInheritValue = 'github';
+        sourceControlModelCopy.provider = 'gitlab';
+
+        // because token is set at root, it should be hidden by the provider
+        sourceControlModelCopy.token = null;
+        sourceControlModelCopy.tokenInherit = true;
+        sourceControlModelCopy.tokenInheritFrom = 'Root Organization';
+
+        getByIdDeferred.resolve({
+          name: 'subOrganizationName',
+          id: SUB_ORGANIZATION_ID,
+        });
+        loadProductFeaturesDefer.resolve({});
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
+        expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
+      });
     });
 
     describe('save', function () {
@@ -1205,7 +1260,10 @@ describe('source.control.editor.spec', function () {
           baseBranchInheritedValue: 'PARENT_BRANCH',
           ownerId: SUB_ORGANIZATION_ID,
           id: null,
-          provider: 'gitlab',
+          provider: null,
+          providerInherit: true,
+          providerInheritFrom: 'Root Organization',
+          providerInheritValue: 'gitlab',
           repositoryUrl: null,
           enablePullRequests: null,
           enablePullRequestsInheritedValue: true,
@@ -1228,7 +1286,11 @@ describe('source.control.editor.spec', function () {
           },
           ownerId: SUB_ORGANIZATION_ID,
           id: null,
-          provider: 'gitlab',
+          provider: {
+            value: null,
+            parentValue: 'gitlab',
+            parentName: 'Root Organization',
+          },
           repositoryUrl: null,
           baseBranch: {
             value: null,
@@ -1250,6 +1312,7 @@ describe('source.control.editor.spec', function () {
         const savedSourceControl = {
           username: null,
           token: null,
+          provider: null,
           baseBranch: null,
           ownerId: SUB_ORGANIZATION_ID,
           id: null,
@@ -1302,6 +1365,7 @@ describe('source.control.editor.spec', function () {
         const savedSourceControl = {
           username: null,
           token: null,
+          provider: null,
           ownerId: SUB_ORGANIZATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
@@ -1357,6 +1421,7 @@ describe('source.control.editor.spec', function () {
         const savedSourceControl = {
           username: null,
           token: null,
+          provider: null,
           ownerId: SUB_ORGANIZATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
@@ -1403,11 +1468,8 @@ describe('source.control.editor.spec', function () {
     });
 
     describe('isDirty', function () {
-      it('returns false when changes have been applied to token and inherit is true', function () {
-        getByIdDeferred.resolve({
-          name: 'subOrganizationName',
-          id: SUB_ORGANIZATION_ID,
-        });
+      it('returns true when changes have been applied to token and inherit is true', function () {
+        getByIdDeferred.resolve({ name: 'subOrganizationName', id: SUB_ORGANIZATION_ID });
         loadProductFeaturesDefer.resolve({});
         getSourceControlDeferred.resolve(compositeSourceControl);
 
@@ -1419,6 +1481,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl.token = 'new_token';
+        vm.dirtySourceControl.tokenInherit = true;
 
         expect(vm.isDirty()).toBeFalsy();
       });
@@ -1475,13 +1538,11 @@ describe('source.control.editor.spec', function () {
         });
         loadProductFeaturesDefer.resolve({});
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.provider = 'bitbucket';
-        compositeSourceControlCopy.credentialsInherit = true;
-        compositeSourceControlCopy.usernameInherit = true;
+        compositeSourceControlCopy.provider.parentValue = 'bitbucket';
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         let sourceControlModelCopy = angular.copy(sourceControlModel);
-        sourceControlModelCopy.provider = 'bitbucket';
+        sourceControlModelCopy.providerInheritValue = 'bitbucket';
         sourceControlModelCopy.credentialsInherit = true;
         sourceControlModelCopy.usernameInherit = true;
 
@@ -1598,7 +1659,6 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl.provider = 'github';
-        compositeSourceControl.provider = 'gitlab';
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
@@ -1824,7 +1884,11 @@ describe('source.control.editor.spec', function () {
       },
       ownerId: APPLICATION_ID,
       id: 'ID',
-      provider: 'gitlab',
+      provider: {
+        value: null,
+        parentValue: 'gitlab',
+        parentName: 'Root Organization',
+      },
       repositoryUrl: null,
       baseBranch: {
         value: 'BASE_BRANCH',
@@ -1858,7 +1922,10 @@ describe('source.control.editor.spec', function () {
       baseBranchInheritedValue: 'PARENT_BRANCH',
       ownerId: APPLICATION_ID,
       id: 'ID',
-      provider: 'gitlab',
+      provider: null,
+      providerInheritFrom: 'Root Organization',
+      providerInherit: true,
+      providerInheritValue: 'gitlab',
       repositoryUrl: null,
       enablePullRequests: null,
       enablePullRequestsInheritedValue: true,
@@ -1977,7 +2044,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
       });
 
-      it('does not ses the base branch to master if empty for the application', function () {
+      it('does not set the base branch to master if empty for the application', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.baseBranch.value = null;
         let sourceControlModelCopy = angular.copy(sourceControlModel);
@@ -1999,6 +2066,43 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
         expect(vm.dirtySourceControl.baseBranch).toBeNull();
       });
+
+      it('clears token inheritance when provider is set at org and we load an app', function () {
+        getByIdDeferred.resolve({
+          name: 'applicationName',
+          id: APPLICATION_ID,
+        });
+        loadProductFeaturesDefer.resolve({});
+
+        let compositeSourceControlCopy = angular.copy(compositeSourceControl);
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'gitlab',
+          parentName: 'non-root org name',
+        };
+        compositeSourceControlCopy.token = {
+          value: null,
+          parentValue: 'redacted',
+          parentName: 'Root Organization',
+        };
+
+        let sourceControlModelCopy = angular.copy(sourceControlModel);
+        sourceControlModelCopy.providerInherit = true;
+        sourceControlModelCopy.providerInheritFrom = 'non-root org name';
+        sourceControlModelCopy.providerInheritValue = 'gitlab';
+
+        // because token is at root and provider is not, tokenInherit should be false
+        sourceControlModelCopy.tokenInherit = false;
+        sourceControlModelCopy.token = null;
+
+        getSourceControlDeferred.resolve(compositeSourceControlCopy);
+
+        $scope.$digest();
+
+        expect(vm.loadError).toBeUndefined();
+        expect(vm.dirtySourceControl).toEqual(sourceControlModelCopy);
+        expect(vm.originalSourceControl).toEqual(sourceControlModelCopy);
+      });
     });
 
     describe('save', function () {
@@ -2018,7 +2122,10 @@ describe('source.control.editor.spec', function () {
           baseBranchInheritedValue: 'PARENT_BRANCH',
           ownerId: APPLICATION_ID,
           id: null,
-          provider: 'gitlab',
+          provider: null,
+          providerInheritFrom: 'Root Organization',
+          providerInherit: true,
+          providerInheritValue: 'gitlab',
           repositoryUrl: null,
           enablePullRequests: null,
           enablePullRequestsInheritedValue: true,
@@ -2041,7 +2148,11 @@ describe('source.control.editor.spec', function () {
           },
           ownerId: APPLICATION_ID,
           id: null,
-          provider: 'gitlab',
+          provider: {
+            value: null,
+            parentValue: 'gitlab',
+            parentName: 'Root Organization',
+          },
           repositoryUrl: null,
           baseBranch: {
             value: null,
@@ -2063,6 +2174,7 @@ describe('source.control.editor.spec', function () {
         const savedSourceControl = {
           username: null,
           token: null,
+          provider: null,
           repositoryUrl: REPOSITORY_URL,
           baseBranch: null,
           ownerId: APPLICATION_ID,
@@ -2117,6 +2229,7 @@ describe('source.control.editor.spec', function () {
         const savedSourceControl = {
           username: null,
           token: null,
+          provider: null,
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
@@ -2176,6 +2289,7 @@ describe('source.control.editor.spec', function () {
         const saveSourceControl = {
           username: null,
           token: null,
+          provider: null,
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
@@ -2235,6 +2349,7 @@ describe('source.control.editor.spec', function () {
         const savedSourceControl = {
           username: null,
           token: null,
+          provider: null,
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
@@ -2300,6 +2415,7 @@ describe('source.control.editor.spec', function () {
         const savedSourceControl = {
           username: null,
           token: null,
+          provider: null,
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
@@ -2359,6 +2475,7 @@ describe('source.control.editor.spec', function () {
         const savedSourceControl = {
           username: null,
           token: null,
+          provider: null,
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
@@ -2513,7 +2630,11 @@ describe('source.control.editor.spec', function () {
 
       it('returns true for bitbucket when changes have been applied to credentials and inherit is false', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'bitbucket',
+          parentName: 'Root Organization',
+        };
         compositeSourceControlCopy.token.value = null;
         compositeSourceControlCopy.token.parentName = 'Root Organization';
         compositeSourceControlCopy.token.parentValue = 'TOKEN';
@@ -2522,7 +2643,9 @@ describe('source.control.editor.spec', function () {
         compositeSourceControlCopy.username.parentValue = 'username';
 
         let sourceControlModelCopy = angular.copy(sourceControlModel);
-        sourceControlModelCopy.provider = 'bitbucket';
+        sourceControlModelCopy.providerInherit = true;
+        sourceControlModelCopy.providerInheritValue = 'bitbucket';
+        sourceControlModelCopy.providerInheritFrom = 'Root Organization';
         sourceControlModelCopy.credentialsInherit = true;
         sourceControlModelCopy.token = null;
         sourceControlModelCopy.tokenInherit = true;
@@ -2672,7 +2795,6 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
         vm.dirtySourceControl.provider = 'github';
-        compositeSourceControl.provider = 'gitlab';
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
@@ -2795,7 +2917,7 @@ describe('source.control.editor.spec', function () {
     describe('isUsernameRequiredOnNode', function () {
       it('should return true if username cannot be inherited on bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider.parentValue = 'bitbucket';
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -2812,7 +2934,11 @@ describe('source.control.editor.spec', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organizaation';
         compositeSourceControlCopy.username.parentName = 'Root Organizaation';
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'bitbucket',
+          parentName: 'Root Organization',
+        };
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -2827,7 +2953,7 @@ describe('source.control.editor.spec', function () {
 
       it('should return true if username is not specified on bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider.parentValue = 'bitbucket';
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -2843,7 +2969,7 @@ describe('source.control.editor.spec', function () {
       it('should return true if username is specified, on bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.username.value = 'TOKEN';
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider.parentValue = 'bitbucket';
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -2873,6 +2999,7 @@ describe('source.control.editor.spec', function () {
       it('should return false if token is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.token.parentValue = 'token';
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -2902,9 +3029,17 @@ describe('source.control.editor.spec', function () {
 
       it('should return false if username and token are specified and provider is bitbucket', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.token.value = 'TOKEN';
+        compositeSourceControlCopy.token = {
+          value: null,
+          parentValue: 'TOKEN',
+          parentName: 'Root Organization',
+        };
         compositeSourceControlCopy.username.value = 'username';
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'bitbucket',
+          parentName: 'Root Organization',
+        };
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -2921,7 +3056,10 @@ describe('source.control.editor.spec', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.username.value = 'username';
         compositeSourceControlCopy.token.value = null;
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'bitbucket',
+        };
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -2938,7 +3076,11 @@ describe('source.control.editor.spec', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.username.parentName = 'Root Organizaation';
         compositeSourceControlCopy.username.parentValue = 'parentuser';
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'bitbucket',
+          parentName: 'Root Organization',
+        };
         compositeSourceControlCopy.token.parentName = 'Root Organization';
         compositeSourceControlCopy.token.parentValue = 'TOKEN';
 
@@ -2957,7 +3099,10 @@ describe('source.control.editor.spec', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.username.parentName = 'Root Organizaation';
         compositeSourceControlCopy.username.parentValue = 'parentuser';
-        compositeSourceControlCopy.provider = 'bitbucket';
+        compositeSourceControlCopy.provider = {
+          value: null,
+          parentValue: 'bitbucket',
+        };
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3019,7 +3164,9 @@ describe('source.control.editor.spec', function () {
       it('should return true if token and branch is inherited', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.token.parentValue = 'token';
         compositeSourceControlCopy.baseBranch.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.baseBranch.parentValue = 'master';
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3066,8 +3213,9 @@ describe('source.control.editor.spec', function () {
 
       it('should return true if token is inherited and base branch is specified', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.baseBranch.value = 'branch';
-        compositeSourceControlCopy.token.parentName = 'Root Organization';
+        compositeSourceControlCopy.token.parentName = 'Root Organizaation';
+        compositeSourceControlCopy.token.parentValue = 'token';
+        compositeSourceControlCopy.baseBranch.value = 'master';
 
         getByIdDeferred.resolve({
           name: 'applicationName',

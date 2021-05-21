@@ -76,6 +76,14 @@ public class SourceControlEditorPage
     return new IqRadio($("#editor-source-control-credentials-override"));
   }
 
+  public static IqRadio providerInheritRadio() {
+    return new IqRadio($("#editor-source-control-provider-inherit"));
+  }
+
+  public static IqRadio providerOverrideRadio() {
+    return new IqRadio($("#editor-source-control-provider-override"));
+  }
+
   public static SelenideElement saveButton() {
     return root().$("button[type^=submit]");
   }

@@ -11,6 +11,8 @@ export default {
   controller: SourceControlEditorController,
 };
 
+const ROOT_ORG_NAME = 'Root Organization';
+
 function SourceControlEditorController(
   CLMContextLocations,
   OrganizationStore,
@@ -45,6 +47,7 @@ function SourceControlEditorController(
   vm.showAdvanced = undefined;
   vm.toggleShowAdvanced = toggleShowAdvanced;
   vm.shouldShowAccessTokenWarning = undefined;
+  vm.shouldShowProviderWarning = undefined;
   vm.canCollapseAdvanced = canCollapseAdvanced;
   vm.statusChecksInheritText = undefined;
   vm.enablePullRequestsInheritText = undefined;
@@ -69,6 +72,8 @@ function SourceControlEditorController(
   vm.getScmValidationClass = getScmValidationClass;
   // pull request metrics associated with application
   vm.sourceControlMetrics = undefined;
+  vm.effectiveProvider = effectiveProvider;
+  vm.effectiveTokenInheritFrom = effectiveTokenInheritFrom;
 
   /**
    * Matches any absolute HTTP(S) and SSH URL as per RFC 3986
@@ -134,18 +139,24 @@ function SourceControlEditorController(
     return $q.all(promises).then(function (result) {
       let compositeSourceControl = typeof result[0] !== 'undefined' && result[0] !== null ? result[0] : {};
       vm.dirtySourceControl = compositeSourceControlToModel(compositeSourceControl);
+      // set this value so that it can be used for intermediate calculations
+      vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
       vm.dirtySourceControl.usernameInherit =
-        vm.dirtySourceControl.usernameInherit &&
-        !isUsernameRequiredOnNode() &&
-        vm.dirtySourceControl.provider === 'bitbucket';
+        vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode() && effectiveProvider() === 'bitbucket';
       vm.dirtySourceControl.credentialsInherit = vm.dirtySourceControl.usernameInherit && !isUsernameRequiredOnNode();
       vm.usernameInheritText = getInheritText(
         vm.dirtySourceControl.usernameInheritFrom,
         vm.dirtySourceControl.usernameInheritedValue
       );
+
+      // force the xxxInherit properties to be 'false' if these values are missing in the hierarchy
+      // but are required at this level
       vm.dirtySourceControl.tokenInherit = vm.dirtySourceControl.tokenInherit && !isAccessTokenRequiredOnNode();
+      vm.dirtySourceControl.providerInherit = vm.dirtySourceControl.providerInherit && !isProviderRequiredOnNode();
+
       vm.originalSourceControl = angular.copy(vm.dirtySourceControl);
       vm.shouldShowAccessTokenWarning = isAccessTokenRequiredOnNode() && vm.dirtySourceControl.token === null;
+      vm.shouldShowProviderWarning = vm.isApp && !vm.effectiveProvider();
       vm.showAdvanced = !vm.isApp || !canCollapseAdvanced();
       vm.statusChecksInheritText = getInheritText(
         vm.dirtySourceControl.enableStatusChecksInheritFrom,
@@ -248,17 +259,29 @@ function SourceControlEditorController(
 
     model.ownerId = compositeSourceControl.ownerId;
     model.id = compositeSourceControl.id;
-    model.provider = compositeSourceControl.provider;
     model.repositoryUrl = compositeSourceControl.repositoryUrl;
+
+    model.provider = compositeSourceControl.provider.value;
+    model.providerInherit = compositeSourceControl.provider.value === null && !vm.isRootOrg;
+    model.providerInheritFrom = compositeSourceControl.provider.parentName;
+    model.providerInheritValue = compositeSourceControl.provider.parentValue;
 
     model.username = compositeSourceControl.username.value;
     model.usernameInherit = compositeSourceControl.username.value === null && !vm.isRootOrg;
     model.usernameInheritFrom = compositeSourceControl.username.parentName;
     model.usernameInheritedValue = compositeSourceControl.username.parentValue;
 
-    model.token = compositeSourceControl.token.value;
-    model.tokenInherit = compositeSourceControl.token.value === null && !vm.isRootOrg;
-    model.tokenInheritFrom = compositeSourceControl.token.parentName;
+    if (model.providerInheritFrom !== ROOT_ORG_NAME && compositeSourceControl.token.parentName === ROOT_ORG_NAME) {
+      model.token = compositeSourceControl.token.value;
+      // provider is inherited from a suborg but the token is at the root
+      // so act as if token is not set
+      model.tokenInherit = false;
+      model.tokenInheritFrom = null;
+    } else {
+      model.token = compositeSourceControl.token.value;
+      model.tokenInherit = compositeSourceControl.token.value === null && !vm.isRootOrg;
+      model.tokenInheritFrom = compositeSourceControl.token.parentName;
+    }
 
     model.baseBranch = getBaseBranchValue(compositeSourceControl.baseBranch.value);
     model.baseBranchInherit = compositeSourceControl.baseBranch.value === null && !vm.isRootOrg;
@@ -284,25 +307,28 @@ function SourceControlEditorController(
     sourceControl.enablePullRequests = getPullRequestsEnabledFlagFromModel(model);
     sourceControl.enableStatusChecks = true;
 
-    if (vm.isRootOrg) {
-      sourceControl.provider = model.provider;
-    } else if (vm.isApp) {
+    if (vm.isApp) {
       sourceControl.repositoryUrl = model.repositoryUrl;
     }
 
     sourceControl.username = null;
     sourceControl.token = null;
-    if (model.provider === 'bitbucket') {
+    if (model.provider === 'bitbucket' || (model.providerInheritValue === 'bitbucket' && model.providerInherit)) {
       // bitbucket uses 'credentials' to gather username & password. They both move as a single block
-      if ((!model.credentialsInherit || vm.isRootOrg) && model.token && model.username) {
+      if ((!model.credentialsInherit || vm.isRootOrg || !model.providerInherit) && model.token && model.username) {
         sourceControl.username = model.username;
         sourceControl.token = model.token;
       }
     } else {
       // username only supported in Bitbucket
-      if (!model.tokenInherit || (vm.isRootOrg && model.token)) {
+      if ((!model.tokenInherit || vm.isRootOrg || !model.providerInherit) && model.token) {
         sourceControl.token = model.token === '' ? null : model.token;
       }
+    }
+
+    sourceControl.provider = null;
+    if (!model.providerInherit || (vm.isRootOrg && model.provider)) {
+      sourceControl.provider = model.provider === '' ? null : model.provider;
     }
 
     if (!model.baseBranchInherit || (vm.isRootOrg && model.baseBranch)) {
@@ -313,12 +339,28 @@ function SourceControlEditorController(
     return sourceControl;
   }
 
+  function effectiveProvider() {
+    return !vm.dirtySourceControl.providerInherit
+      ? vm.dirtySourceControl.provider
+      : vm.originalSourceControl.provider != null
+      ? vm.originalSourceControl.provider
+      : vm.originalSourceControl.providerInheritValue;
+  }
+
+  function effectiveTokenInheritFrom() {
+    return vm.dirtySourceControl.providerInherit ? vm.originalSourceControl.tokenInheritFrom : null;
+  }
+
   function isAccessTokenRequiredOnNode() {
-    return vm.isApp && !vm.dirtySourceControl.tokenInheritFrom;
+    return vm.isApp && !vm.effectiveTokenInheritFrom();
   }
 
   function isUsernameRequiredOnNode() {
-    return vm.isApp && !vm.dirtySourceControl.usernameInheritFrom && vm.dirtySourceControl.provider === 'bitbucket';
+    return vm.isApp && !vm.dirtySourceControl.usernameInheritFrom && effectiveProvider() === 'bitbucket';
+  }
+
+  function isProviderRequiredOnNode() {
+    return vm.isRootOrg;
   }
 
   function toggleShowAdvanced() {
@@ -341,12 +383,16 @@ function SourceControlEditorController(
   }
 
   function canCollapseAdvanced() {
-    return (
-      vm.isApp &&
-      (vm.dirtySourceControl.tokenInherit || vm.dirtySourceControl.token) &&
-      (vm.dirtySourceControl.usernameInherit || vm.dirtySourceControl.username || vm.provider !== 'bitbucket') &&
-      (vm.dirtySourceControl.baseBranchInherit || vm.dirtySourceControl.baseBranch)
-    );
+    const hasToken = vm.dirtySourceControl.tokenInherit || vm.dirtySourceControl.token;
+    const hasUserName =
+      vm.dirtySourceControl.usernameInherit || vm.dirtySourceControl.username || effectiveProvider() !== 'bitbucket';
+    const hasBaseBranch = vm.dirtySourceControl.baseBranchInherit || vm.dirtySourceControl.baseBranch;
+    const hasProvider =
+      (vm.dirtySourceControl.providerInherit || vm.dirtySourceControl.provider) && !!effectiveProvider();
+
+    // at the app level, the 'Advanced' tab can only be collapsed when there are values for all
+    // required fields. At root & suborg, these aren't required and no 'advanced' block is shown
+    return vm.isApp && hasToken && hasUserName && hasBaseBranch && hasProvider;
   }
 
   function getBaseBranchValue(value) {
@@ -367,8 +413,7 @@ function SourceControlEditorController(
 
   function isPullRequestsSupported() {
     return (
-      (!vm.dirtySourceControl.provider ||
-        vm.providersSupportingPullRequests.includes(vm.dirtySourceControl.provider)) &&
+      (!effectiveProvider() || vm.providersSupportingPullRequests.includes(effectiveProvider())) &&
       vm.isAutomationSupported
     );
   }
@@ -379,7 +424,7 @@ function SourceControlEditorController(
     }
 
     return vm.isAutomationSupported
-      ? 'This feature is not currently supported for ' + vm.providerTypesMap[vm.dirtySourceControl.provider]
+      ? 'This feature is not currently supported for ' + vm.providerTypesMap[effectiveProvider()]
       : 'This feature is not supported by your licence';
   }
 
@@ -400,7 +445,7 @@ function SourceControlEditorController(
   }
 
   function isProviderSpecifiedAndPullRequestsSupported() {
-    return vm.dirtySourceControl.provider && isPullRequestsSupported();
+    return effectiveProvider() && isPullRequestsSupported();
   }
 }
 

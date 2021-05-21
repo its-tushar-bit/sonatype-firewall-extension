@@ -17,4 +17,18 @@ const displayName = (provider) => {
   return provider;
 };
 
-export { displayName };
+function valueFromHierarchy(compositeDto) {
+  return compositeDto === null ? null : compositeDto.value !== null ? compositeDto.value : compositeDto.parentValue;
+}
+
+function tokenForOrg(org) {
+  if (!org) {
+    return null;
+  }
+  // if the selected org has a custom provider, then any tokens set at earlier levels should be disregarded.
+  // They were created by a different provider and so can't be shared. We must use the org's token,
+  // even if it is null.
+  return org.sourceControl.provider.value ? org.sourceControl.token.value : valueFromHierarchy(org.sourceControl.token);
+}
+
+export { displayName, valueFromHierarchy, tokenForOrg };

@@ -46,7 +46,10 @@ describe('scmOnboardingReducer', function () {
         name: 'Root Organization',
         id: ownerConstant.ROOT_ORGANIZATION_ID,
       },
-      sourceControl: { provider: 'github', token: { value: 'redacted token' } },
+      sourceControl: {
+        provider: { value: 'github' },
+        token: { value: 'redacted token' },
+      },
     };
 
     beforeEach(() => {
@@ -61,6 +64,7 @@ describe('scmOnboardingReducer', function () {
         configState: {
           isScmTokenConfigured: null,
           scmProvider: null,
+          rootProvider: null,
         },
         formState: {
           selectedOrganization: null,
@@ -76,7 +80,7 @@ describe('scmOnboardingReducer', function () {
             name: 'name0',
             id: 'id0',
           },
-          sourceControl: { provider: 'github', token: { value: null } },
+          sourceControl: { provider: { value: null, parentValue: 'github' }, token: { value: null } },
         },
         {
           organization: {
@@ -84,8 +88,18 @@ describe('scmOnboardingReducer', function () {
             id: 'id1',
           },
           sourceControl: {
-            provider: 'github',
+            provider: { value: null, parentValue: 'github' },
             token: { value: null, parentValue: 'parentValue' },
+          },
+        },
+        {
+          organization: {
+            name: 'Gitlab Org',
+            id: 'gitlab-org',
+          },
+          sourceControl: {
+            provider: { value: 'gitlab', parentValue: null },
+            token: { value: 'token', parentValue: null, parentName: null },
           },
         },
       ];
@@ -102,7 +116,7 @@ describe('scmOnboardingReducer', function () {
           configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           compositeSourceControlResults: {
-            provider: 'github',
+            provider: { value: null, parentValue: 'github' },
             token: { value: 'token' },
           },
           hostUrlResult: { defaultHostUrl: 'http://localhost/' },
@@ -127,7 +141,9 @@ describe('scmOnboardingReducer', function () {
             isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
             isScmTokenOverridden: false,
+            isRootScmConfigured: true,
             scmProvider: 'github',
+            rootProvider: 'github',
             rootOrgHasToken: true,
           },
           formState: {
@@ -175,8 +191,10 @@ describe('scmOnboardingReducer', function () {
           },
           configState: {
             isScmOnboardingFeatureEnabled: true,
-            isScmTokenConfigured: true,
+            isScmTokenConfigured: false,
+            isRootScmConfigured: true,
             scmProvider: 'github',
+            rootProvider: 'github',
             rootOrgHasToken: true,
           },
           formState: {
@@ -198,7 +216,7 @@ describe('scmOnboardingReducer', function () {
           configResults: { scmOnboardingFeatureEnabled: true },
           organizationsResults: defaultOrganizationsPayload,
           compositeSourceControlResults: {
-            provider: 'github',
+            provider: { value: null, parentValue: 'github' },
             token: { parentValue: 'token' },
           },
           hostUrlResult: { defaultHostUrl: 'http://localhost/' },
@@ -223,7 +241,9 @@ describe('scmOnboardingReducer', function () {
             isScmOnboardingFeatureEnabled: true,
             isScmTokenConfigured: true,
             isScmTokenOverridden: false,
+            isRootScmConfigured: true,
             scmProvider: 'github',
+            rootProvider: 'github',
             rootOrgHasToken: true,
           },
           formState: {
@@ -233,6 +253,112 @@ describe('scmOnboardingReducer', function () {
             currentHostUrlState: initialState('http://localhost/'),
             preselectedOrganizationId: 'id1',
           },
+        });
+      });
+
+      it('updates the state with the data loaded from IQ when no root org config exists', () => {
+        // given an initial state
+        const state = Object.freeze(previousState);
+
+        // and a payload where root has no source control config
+        const rootOrgPayloadNoSC = {
+          organization: {
+            name: 'Root Organization',
+            id: ownerConstant.ROOT_ORGANIZATION_ID,
+          },
+          sourceControl: {
+            provider: {},
+            token: {},
+            id: null,
+          },
+        };
+
+        const orgPayload = [...defaultOrganizationsPayloadWithoutRoot, rootOrgPayloadNoSC];
+
+        // and the token is configured in the root organization
+        const payload = {
+          configResults: { scmOnboardingFeatureEnabled: true },
+          organizationsResults: orgPayload,
+          compositeSourceControlResults: {
+            provider: { value: null, parentValue: null },
+            token: { parentValue: null },
+          },
+          hostUrlResult: { defaultHostUrl: 'http://localhost/' },
+        };
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED',
+          payload: payload,
+        });
+
+        // then state is updated and the git host is still needed
+        expect(newState).toEqual({
+          other: otherObject,
+          viewState: {
+            loadingPage: false,
+            isGitHostNeeded: false,
+            isGitHostDialogVisible: false,
+            isSelectingOrganization: false,
+          },
+          configState: {
+            isScmOnboardingFeatureEnabled: true,
+            isScmTokenConfigured: true,
+            isScmTokenOverridden: false,
+            isRootScmConfigured: false,
+            scmProvider: 'github',
+            rootProvider: undefined,
+            rootOrgHasToken: false,
+          },
+          formState: {
+            selectedOrganization: defaultOrganizationsPayload[1],
+            organizations: defaultOrganizationsPayloadWithoutRoot,
+            defaultHostUrl: 'http://localhost/',
+            currentHostUrlState: initialState('http://localhost/'),
+            preselectedOrganizationId: 'id1',
+          },
+        });
+      });
+
+      it('shows the host dialog when provider has changed at org level and a token is available', () => {
+        // given an initial state where there is no preselected organization
+        const state = Object.freeze({
+          ...previousState,
+          formState: {
+            ...previousState,
+            preselectedOrganizationId: 'gitlab-org',
+          },
+        });
+
+        // and the provider is configured in the newly selected organization
+        const payload = {
+          configResults: { scmOnboardingFeatureEnabled: true },
+          organizationsResults: defaultOrganizationsPayload,
+          hostUrlResult: { defaultHostUrl: '' },
+        };
+
+        // when reduce is invoked
+        const newState = reduce(state, {
+          type: 'SCM_ONBOARDING_LOAD_PAGE_FULFILLED',
+          payload: payload,
+        });
+
+        // then state is updated and dialog is shown
+        expect(newState.configState).toEqual({
+          ...previousState.configState,
+          isScmTokenConfigured: true,
+          isScmTokenOverridden: true,
+          isRootScmConfigured: true,
+          scmProvider: 'gitlab',
+          rootOrgHasToken: true,
+          rootProvider: 'github',
+          isScmOnboardingFeatureEnabled: true,
+        });
+        expect(newState.viewState).toEqual({
+          loadingPage: false,
+          isGitHostNeeded: true,
+          isGitHostDialogVisible: true,
+          isSelectingOrganization: false,
         });
       });
 
@@ -572,6 +698,7 @@ describe('scmOnboardingReducer', function () {
           },
           sourceControl: {
             token: { value: 'redacted' },
+            provider: { value: 'github' },
           },
         };
 
@@ -609,7 +736,10 @@ describe('scmOnboardingReducer', function () {
               },
               formState: {
                 selectedOrganization: {
-                  sourceControl: { token: { value: 'redacted' } },
+                  sourceControl: {
+                    provider: { value: null, parentValue: 'github' },
+                    token: { value: 'redacted' },
+                  },
                 },
               },
             },
@@ -634,7 +764,8 @@ describe('scmOnboardingReducer', function () {
               formState: {
                 selectedOrganization: {
                   sourceControl: {
-                    token: { value: null, parentValue: 'redacted' },
+                    provider: { value: null, parentValue: 'github' },
+                    token: { value: 'redacted' },
                   },
                 },
               },
@@ -689,6 +820,7 @@ describe('scmOnboardingReducer', function () {
             // when reduce is invoked without an identified URL
             const selectedOrganization = {
               sourceControl: {
+                provider: { value: null, parentValue: testData.provider },
                 token: { value: null, parentValue: 'redacted' },
               },
             };
@@ -1273,26 +1405,17 @@ describe('scmOnboardingReducer', function () {
     it('create organization fulfilled', () => {
       const createOrgPayload = {
         organization: { name: 'My Organization 3', id: 'id3' },
-        sourceControl: {
-          provider: 'github',
-          token: { value: 'redacted token' },
-        },
+        sourceControl: { provider: { value: null, parentValue: 'github' }, token: { value: 'redacted token' } },
       };
 
       const existingOrganizations = [
         {
           organization: { name: 'My Organization 1', id: 'id1' },
-          sourceControl: {
-            provider: 'github',
-            token: { value: 'redacted token' },
-          },
+          sourceControl: { provider: { value: null, parentValue: 'github' }, token: { value: 'redacted token' } },
         },
         {
           organization: { name: 'My Organization 2', id: 'id2' },
-          sourceControl: {
-            provider: 'github',
-            token: { value: 'redacted token' },
-          },
+          sourceControl: { provider: { value: null, parentValue: 'github' }, token: { value: 'redacted token' } },
         },
       ];
 

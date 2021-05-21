@@ -45,6 +45,7 @@ export default function RepositoryPane(props) {
     isScmTokenConfigured,
     isImporting,
     $state,
+    isRootScmConfigured,
 
     // sorting
     sortConfiguration,
@@ -62,12 +63,20 @@ export default function RepositoryPane(props) {
 
   const orgsAndPoliciesHref = !selectedOrganization
     ? ''
-    : $state.href($state.get('management.view.organization'), {
+    : $state.href($state.get('management.edit.organization.edit-source-control'), {
         organizationId: selectedOrganization.organization.id,
       });
-  const orgsAndPoliciesRootOrgHref = $state.href($state.get('management.view.organization'), {
+  const orgsAndPoliciesRootOrgHref = $state.href($state.get('management.edit.organization.edit-source-control'), {
     organizationId: ownerConstant.ROOT_ORGANIZATION_ID,
   });
+  const missingRootConfigErrorMessage = () => {
+    return (
+      <span>
+        We could not find a source control configuration for the Root Organization. You can configure it on the{' '}
+        <a href={orgsAndPoliciesRootOrgHref}>Source Control Configuration</a> page.
+      </span>
+    );
+  };
 
   const tokenNotConfiguredMessage = () => {
     if (!selectedOrganization) {
@@ -153,7 +162,9 @@ export default function RepositoryPane(props) {
     );
   };
 
-  const resultsTableError = !isScmTokenConfigured
+  const resultsTableError = !isRootScmConfigured
+    ? missingRootConfigErrorMessage()
+    : !isScmTokenConfigured
     ? tokenNotConfiguredMessage()
     : isGitHostNeeded
     ? gitHostUrlMessage(true)
@@ -297,6 +308,7 @@ RepositoryPane.propTypes = {
   $state: PropTypes.object.isRequired,
   isNewOrganizationModalVisible: PropTypes.bool.isRequired,
   isScmTokenConfigured: PropTypes.bool,
+  isRootScmConfigured: PropTypes.bool,
 
   // actions
   setSorting: PropTypes.func,

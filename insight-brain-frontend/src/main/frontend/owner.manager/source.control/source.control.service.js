@@ -94,6 +94,7 @@ export default function SourceControlService($http, CLMLocations) {
 
 function getDataFromSourceControl(ownerType, ownerId, sourceControl) {
   let data = {
+    provider: sourceControl.provider,
     username: sourceControl.username,
     token: sourceControl.token,
     baseBranch: sourceControl.baseBranch,
@@ -102,8 +103,6 @@ function getDataFromSourceControl(ownerType, ownerId, sourceControl) {
   };
   if (ownerType === 'application') {
     data.repositoryUrl = sourceControl.repositoryUrl;
-  } else if (ownerId === 'ROOT_ORGANIZATION_ID') {
-    data.provider = sourceControl.provider;
   }
   return data;
 }

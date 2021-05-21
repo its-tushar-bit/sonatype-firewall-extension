@@ -514,20 +514,20 @@ public class ScmOnboardingServiceTest
     assertThat(imported.get(0).getDescription()).isEqualTo("a description");
     assertThat(response.getFailedRepositories()).isEmpty();
 
-    // and the only apps that are present are the ones for our selected repos
+    // and the new app was imported, with a suffix at the end
     List<Application> allApps = applicationDAO.getAll();
     assertThat(allApps.stream().map(Application::getOrganizationId).distinct().collect(Collectors.toList()))
         .containsExactlyInAnyOrder(org.getId());
     assertThat(allApps.stream().map(Application::getPublicId))
-        .containsExactlyInAnyOrder("repo1__org", app.getPublicId());
+        .containsExactlyInAnyOrder("repo1__org", "repo1__org_2", app.getPublicId());
 
-    // and the source control entries was created
+    // and the source control entries was created on the new application
     List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
         .filter(sc -> !sc.getOwnerId().equals(ROOT_ORGANIZATION_ID))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))
-        .containsExactlyInAnyOrder("repo1__org");
+        .containsExactlyInAnyOrder("repo1__org_2");
 
     // and: a source control evaluation event was created
     verifyManifestEvaluationEventsCreated(1);

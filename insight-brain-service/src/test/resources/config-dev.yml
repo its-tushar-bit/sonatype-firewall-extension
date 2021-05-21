@@ -45,4 +45,4 @@ server:
       port: 8070
 
 experimentalFeatures:
-  scmOnboarding: true
+

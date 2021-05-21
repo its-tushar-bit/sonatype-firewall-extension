@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
@@ -450,7 +451,8 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.advancedSettingsTree().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
 
-    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.providerInheritRadio().shouldBe(selected);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(enabled);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(selected, enabled);
     SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL_SANITIZED));
     SourceControlEditorPage.credentialsToken().shouldHave(value(FAKE_SECRET_KEY));
@@ -463,7 +465,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.advancedSettingsTree().click();
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
 
-    SourceControlEditorPage.credentialsOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(selected, disabled);
     SourceControlEditorPage.repositoryUrl().shouldHave(value(BITBUCKET_REPOSITORY_URL_SANITIZED));
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
@@ -829,13 +830,130 @@ public class ApplicationSourceControlEditorTest
     SourceControlRepositoryUrlUpdateModal.root().shouldBe(hidden);
   }
 
+  @Test
+  public void testSourceControlEditor_providerAtOrg_tokenAtRoot_updateToken() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    verifyStartNoSourceControl();
+    // given root with a token & provider, and a suborg with a provider but NO token
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, null, SourceControlProvider.GITLAB);
+    refresh();
+
+    // then the token at the root is 'hidden' by the provider at the suborg. Token is required
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.tokenInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled, selected);
+    SourceControlEditorPage.token().shouldBe(visible, enabled);
+    SourceControlEditorPage.providerOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.providerInheritRadio().shouldBe(visible, selected, enabled);
+    SourceControlEditorPage.providerInheritRadio()
+        .shouldHave(text("Inherit from " + organization.getName() + " (GitLab)"));
+
+    // update is disabled because no fields have been updated
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("There are no changes to update.");
+
+    // when we set a repository URL
+    SourceControlEditorPage.repositoryUrl().setValue(REPOSITORY_URL);
+
+    // then save is still disabled because we are missing some required values
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    // need to introduce a delay?
+    //assertToolTip("Unable to update: fields with invalid or missing data.");
+
+    // when we set the token
+    SourceControlEditorPage.token().click();
+    SourceControlEditorPage.token().setValue(TOKEN);
+
+    // then the save button should be enabled
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+
+    // when we save the current changes
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // then the advanced should be hidden as all required values have been entered
+    SourceControlEditorPage.advancedSettings().shouldNotBe(visible);
+    SourceControlEditorPage.advancedSettingsTree().click();
+    SourceControlEditorPage.advancedSettings().shouldBe(visible);
+
+    // and the forms values are set correctly
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected, enabled);
+    SourceControlEditorPage.repositoryUrl().shouldHave(value(REPOSITORY_URL));
+    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
+    SourceControlEditorPage.providerInheritRadio().shouldBe(selected);
+
+    // when we switch to bitbucket as a provider
+    SourceControlEditorPage.credentialsUsername().shouldNotBe(visible);
+    SourceControlEditorPage.providerOverrideRadio().click();
+    SourceControlEditorPage.provider().chooseOption(new Option(2, "bitbucket"));
+
+    // then we should see the username/token credentials input fields
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible, enabled);
+
+    // and the page should block updates until the username is provided
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    assertToolTip("Unable to update: fields with invalid or missing data.");
+
+    // when we provide a username
+    SourceControlEditorPage.credentialsUsername().setValue("myuser");
+
+    // then updates are enabled again
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+
+    eyesWatcher.eyesCheck("Source Control Editor Application with Bitbucket credentials and not radio buttons");
+  }
+
+  @Test
+  public void testSourceControlEditor_overrideProvider() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+    verifyStartNoSourceControl();
+    // given root with a token & provider, and a suborg with a provider and token
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(organization.getId(), null, TOKEN, SourceControlProvider.GITLAB);
+    refresh();
+
+    // then the URL is required
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    SourceControlEditorPage.saveButton().hover();
+    //assertToolTip("Unable to update: fields with invalid or missing data.");
+
+    // when we set a repository URL
+    SourceControlEditorPage.repositoryUrl().setValue(REPOSITORY_URL);
+
+    // then save is enabled
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), enabled);
+
+    // when we override the provider
+    SourceControlEditorPage.advancedSettingsTree().click();
+    SourceControlEditorPage.providerOverrideRadio().click();
+    SourceControlEditorPage.provider().chooseOption(new Option(0, "github"));
+
+    // then the token is required
+    SourceControlEditorPage.saveButton().hover();
+    SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
+    assertToolTip("Unable to update: fields with invalid or missing data.");
+
+    // when we provide the token
+    SourceControlEditorPage.token().setValue("my token value");
+
+    // then save is enabled
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+  }
+
   @Override
   void verifyStartNoSourceControl() {
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String
         .format("Configures the integration with an external SCM for the %s application", application.getName())));
-    SourceControlEditorPage.provider().shouldNotBe(visible);
+    SourceControlEditorPage.provider().shouldBe(visible);
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.repositoryUrlControls().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
@@ -846,9 +964,9 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.testConfigButton().shouldBe(visible, enabled);
     SourceControlEditorPage.tokenInheritRadio().label().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, disabled);
-    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(selected);
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(selected);
     SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
-    SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, disabled);
     SourceControlEditorPage.providerWarning().shouldBe(visible);
     SourceControlEditorPage.tokenWarning().shouldBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
@@ -876,7 +994,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String
         .format("Configures the integration with an external SCM for the %s application", application.getName())));
-    SourceControlEditorPage.provider().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrlControls().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);

@@ -17,6 +17,7 @@ import {
   getImportRepositoriesUrl,
   getOrganizationsUrl,
 } from '../../util/CLMLocation';
+import { valueFromHierarchy, tokenForOrg } from './utils/providers';
 
 export const SCM_ONBOARDING_LOAD_CONFIG_FULFILLED = 'SCM_ONBOARDING_LOAD_CONFIG_FULFILLED';
 export const SCM_ONBOARDING_LOAD_CONFIG_FAILED = 'SCM_ONBOARDING_CONFIG_LOAD_FAILED';
@@ -82,9 +83,11 @@ export function loadPage(orgId) {
     let organizations = axios.get(getScmOrganizationsUrl());
     let scm = orgId ? axios.get(getCompositeSourceControlUrl('organization', orgId)) : Promise.resolve(null);
     let hostUrl = scm.then((compositeSCResults) => {
-      return compositeSCResults !== null && compositeSCResults.data.provider !== null
-        ? axios.get(getScmDefaultHostUrl(orgId, compositeSCResults.data.provider))
-        : Promise.resolve(null);
+      const provider =
+        compositeSCResults !== null && compositeSCResults.data.provider !== null
+          ? valueFromHierarchy(compositeSCResults.data.provider)
+          : null;
+      return provider !== null ? axios.get(getScmDefaultHostUrl(orgId, provider)) : Promise.resolve(null);
     });
 
     return Promise.all([config, organizations, scm, hostUrl])
@@ -151,11 +154,22 @@ export function setSelectedOrganization(selectedOrg) {
     const previousOrg = state.formState.selectedOrganization;
     const orgId = selectedOrg.organization.id;
     const isSelectedTokenOverridden = selectedOrg.sourceControl.token.value != null;
+    const isProviderOverridden = selectedOrg.sourceControl.provider.value != null;
+    const provider = valueFromHierarchy(selectedOrg.sourceControl.provider);
+    const hasToken = !!tokenForOrg(selectedOrg);
     dispatch(setTargetOrganizationRequested());
-    if (isScmTokenOverridden || isSelectedTokenOverridden || !previousOrg) {
+    if (!hasToken) {
+      // no token, so can't query for anything
+      dispatch(
+        setTargetOrganizationFulfilled({
+          selectedOrganization: selectedOrg,
+          defaultHostUrl: null,
+        })
+      );
+    } else if (isScmTokenOverridden || isProviderOverridden || isSelectedTokenOverridden || !previousOrg) {
       // newly selected org has a custom token, or previous one did, so requery for host URL, possibly reload repos
       return axios
-        .get(getScmDefaultHostUrl(orgId, selectedOrg.sourceControl.provider))
+        .get(getScmDefaultHostUrl(orgId, provider))
         .then(({ data }) => {
           dispatch(
             setTargetOrganizationFulfilled({
@@ -192,7 +206,7 @@ export function addOrganization(organizationName) {
         const newOrganization = {
           sourceControl: {
             token: { value: null, parentValue: rootToken },
-            provider: getState().scmOnboarding.configState.scmProvider,
+            provider: { value: null, parentValue: getState().scmOnboarding.configState.rootProvider },
           },
           organization: data,
         };

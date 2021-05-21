@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.pages.SourceControlEditorPage;
@@ -18,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -135,7 +137,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(enabled);
     SourceControlEditorPage.saveButton().shouldHave(text("Update"), DISABLED);
     SourceControlEditorPage.saveButton().hover();
-    assertToolTip("Unable to update: fields with invalid or missing data.");
+    assertToolTip("There are no changes to update.");
 
     SourceControlEditorPage.token().setValue(TOKEN);
     eyesWatcher.eyesCheck("Source Control Editor Update With Token Provided");
@@ -357,13 +359,80 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.notSupported().shouldHave(text("Source Control is not supported by your license"));
   }
 
+  @Test
+  public void testSourceControlEditor_overrideProvider() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getPublicId()));
+    verifyStartNoSourceControl();
+
+    // when start with a token & provider at root
+    tempEntity.newSourceControl(rootOrganization.getId(), null, TOKEN, SourceControlProvider.GITHUB);
+    refresh();
+
+    // then elements show inherit status
+    SourceControlEditorPage.tokenInheritRadio().shouldBe(visible, selected);
+    SourceControlEditorPage.tokenInheritRadio().shouldHave(text("Inherit from Root Organization"));
+    SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.token().shouldBe(visible, disabled);
+    SourceControlEditorPage.providerOverrideRadio().shouldBe(visible, enabled);
+    SourceControlEditorPage.providerInheritRadio().shouldBe(visible, selected, enabled);
+    SourceControlEditorPage.providerInheritRadio()
+        .shouldHave(text("Inherit from Root Organization (GitHub)"));
+
+    // when change provider to bitbucket
+    SourceControlEditorPage.credentialsUsername().shouldNotBe(visible);
+    SourceControlEditorPage.providerOverrideRadio().click();
+    SourceControlEditorPage.provider().shouldBe(visible, enabled);
+    SourceControlEditorPage.provider().chooseOption(new Option(2, "bitbucket"));
+
+    // then credentials are shown with no inherit/override radio buttons
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsUsername().shouldBe(visible, enabled);
+
+    // when change to gitlab (no user name required)
+    SourceControlEditorPage.provider().chooseOption(new Option(1, "gitlab"));
+
+    // then username is not show, and token inherit radio buttons also not shown
+    SourceControlEditorPage.credentialsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.credentialsUsername().shouldNotBe(visible);
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldBe(visible, enabled);
+
+    // when save
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // then see results and token is shown but empty
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldBe(visible, enabled, empty);
+
+    // when set token
+    SourceControlEditorPage.token().setValue(TOKEN);
+    SourceControlEditorPage.saveButton().shouldBe(enabled);
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // then token inherit still not shown and value is set to be the fake
+    SourceControlEditorPage.tokenInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(visible);
+    SourceControlEditorPage.token().shouldBe(visible, enabled);
+    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
+  }
+
   @Override
   void verifyStartNoSourceControl() {
     SourceControlEditorPage.root().shouldBe(visible);
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
-    SourceControlEditorPage.provider().shouldNotBe(visible);
+    SourceControlEditorPage.providerInheritRadio().shouldBe(visible, selected, enabled);
+    SourceControlEditorPage.providerOverrideRadio().shouldBe(visible, enabled);
     SourceControlEditorPage.token().shouldBe(visible, disabled);
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
@@ -377,7 +446,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.tokenOverrideRadio().label().shouldHave(text("Override"));
     SourceControlEditorPage.tokenOverrideRadio().shouldBe(visible, disabled);
     SourceControlEditorPage.tokenOverrideRadio().shouldNotBe(selected);
-    SourceControlEditorPage.providerWarning().shouldBe(visible);
+    SourceControlEditorPage.providerWarning().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
@@ -402,7 +471,10 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.title().shouldHave(text("Source Control Configuration"));
     SourceControlEditorPage.subTitle().shouldHave(text(String
         .format("Configures the integration with an external SCM for the %s organization", organization.getName())));
-    SourceControlEditorPage.provider().shouldNotBe(visible);
+    SourceControlEditorPage.providerInheritRadio().label().shouldBe(text("Inherit from Root Organization"));
+    SourceControlEditorPage.providerInheritRadio().shouldBe(selected, enabled);
+    SourceControlEditorPage.providerOverrideRadio().shouldBe(visible);
+    SourceControlEditorPage.provider().shouldBe(visible, enabled);
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.saveButton().shouldBe(visible);

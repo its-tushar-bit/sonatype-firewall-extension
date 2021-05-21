@@ -285,7 +285,6 @@ describe('SourceControlService', function () {
       ownerId: 'APPLICATION_ID',
       repositoryUrl: 'repoUrl',
       token: 'secret_token',
-      provider: 'null',
     };
 
     const inputAppRecord = {
@@ -353,6 +352,7 @@ describe('SourceControlService', function () {
     const inputAppRecord = {
       repositoryUrl: 'repoUrl',
       token: 'secret_token',
+      provider: 'gitlab',
     };
 
     it('updates the source control record for an application', function () {

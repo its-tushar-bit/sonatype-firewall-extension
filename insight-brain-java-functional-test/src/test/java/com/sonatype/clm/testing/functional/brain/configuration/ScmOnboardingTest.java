@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.ElementsCollection;
@@ -61,6 +62,7 @@ import static com.google.common.collect.ImmutableMap.of;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.service.InsightConfig.Feature.SCM_ONBOARDING;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -226,17 +228,22 @@ public class ScmOnboardingTest
     // given the onboarding page
     ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
 
+    // given an org which overrides the provider but doesn't provide a token
+    String encryptedPwd = new String(pwHandler.encryptPassword("TOKEN".toCharArray()));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, encryptedPwd, GITHUB);
+    tempEntity.newSourceControl(org.getId(), null, null, GITLAB);
+
     // when we open the onboarding page as unprivileged user
     refreshOrOpen(ScmOnboardingPage.url(org.getId()));
     loginAsAdmin();
 
     // then a permission denied error is shown
-    scmOnboardingPage.loadError().shouldHave(text("We could not find a token. You can configure a token to be " +
-        "shared across organizations in the Root Organization's Source Control Configuration page, " +
-        "or you can provide a custom token for the Test Org Organization."));
+    scmOnboardingPage.repoTableLoadError()
+        .shouldHave(text("We could not find a token. You can configure a token to be " +
+            "shared across organizations in the Root Organization's Source Control Configuration page, " +
+            "or you can provide a custom token for the Test Org Organization."));
 
     // and form elements are hidden
-    scmOnboardingPage.hostUrl().shouldBe(hidden);
     scmOnboardingPage.resultsTable().shouldBe(hidden);
 
     eyesWatcher.eyesCheck("ScmOnboarding error token not found");
@@ -1692,5 +1699,32 @@ public class ScmOnboardingTest
     scmOnboardingPage.organizationsDropdown().shouldBe(enabled);
     scmOnboardingPage.organizationsDropdown().selectedOrganization().shouldHave(text("Other Org"));
     assertThat(driver.getCurrentUrl()).endsWith("#/onboarding/" + otherOrg.getId());
+  }
+
+  @Test
+  public void testGitHost_noPromptForCustomProviderAndNoToken() {
+    // given an org with no apps
+    setupOrgSourceControl();
+
+    // given attempts to load repos results in an auth failure
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user/repos"))
+        .willReturn(aResponse().withStatus(HttpStatus.SC_UNAUTHORIZED)));
+
+    // given an org that overrides the provider but doesn't provide a new token
+    Organization orgCustomProvider = tempEntity.newOrganization("Custom Provider");
+    tempEntity.newSourceControl(orgCustomProvider.getId(), null, null, SourceControlProvider.GITLAB);
+
+    // when the scm onboarding page is opened to the org with the custom provider
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url() + "/" + orgCustomProvider.getId());
+    loginAsAdmin();
+
+    // then the git host dialog is not loaded
+    scmOnboardingPage.modalDialog().shouldNotBe(visible);
+
+    // and a token error is shown
+    scmOnboardingPage.loadError().shouldHave(text("We could not find a token."));
+    scmOnboardingPage.loadError()
+        .shouldHave(text("or you can provide a custom token for the Custom Provider Organization."));
   }
 }

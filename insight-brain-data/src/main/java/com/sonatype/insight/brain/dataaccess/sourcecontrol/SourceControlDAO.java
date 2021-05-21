@@ -190,18 +190,19 @@ public class SourceControlDAO
 
   /**
    * Gets a list of source control entries for applications that do not override
-   * the root token anywhere in their hierarchy (ie: at the app or org level)
+   * the root token/provider anywhere in their hierarchy (ie: at the app or org level)
    *
    * @return list of source controls for apps
    */
-  public List<SourceControl> getApplicationSourceControlsWithRepositoriesAndDefaultToken() {
+  public List<SourceControl> getApplicationSourceControlsWithInheritedCredentials() {
     String query = "SELECT entity " +
         "FROM SourceControl entity, Application app " +
-        "WHERE entity.repositoryUrl IS NOT NULL and entity.token IS NULL " +
+        "WHERE entity.repositoryUrl IS NOT NULL and entity.token IS NULL and entity.provider IS NULL " +
         "AND app.id=entity.ownerId " +
         "AND NOT EXISTS (" +
         "SELECT orgEntity FROM SourceControl orgEntity " +
-        "WHERE orgEntity.ownerId = app.organizationId AND orgEntity.token IS NOT NULL " +
+        "WHERE orgEntity.ownerId = app.organizationId AND " +
+        " (orgEntity.token IS NOT NULL OR orgEntity.provider IS NOT NULL) " +
         ")";
 
     return getList(query);
@@ -323,6 +324,10 @@ public class SourceControlDAO
     super.delete(tx, entity);
   }
 
+  public List<SourceControl> getByRepositoryUrl(String repositoryUrl) {
+    return getByRepositoryUrl(null, repositoryUrl);
+  }
+
   private List<SourceControl> getByRepositoryUrl(TransactionContext tx, String repositoryUrl) {
     if (repositoryUrl == null) {
       return Collections.emptyList();
@@ -330,6 +335,9 @@ public class SourceControlDAO
 
     repositoryUrl = repositoryUrl.toLowerCase(Locale.ENGLISH);
     String sQuery = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl=?1";
+    if (tx == null) {
+      return getList(sQuery, repositoryUrl);
+    }
     return getList(tx, sQuery, repositoryUrl);
   }
 
@@ -387,11 +395,6 @@ public class SourceControlDAO
       }
       if (isBlank(sourceControl.getBaseBranch())) {
         throw new BadRequestException("SourceControl default branch is required for the root organization");
-      }
-    }
-    else {
-      if (sourceControl.getProvider() != null) {
-        throw new BadRequestException("SourceControl provider can only be specified on the root organization");
       }
     }
 

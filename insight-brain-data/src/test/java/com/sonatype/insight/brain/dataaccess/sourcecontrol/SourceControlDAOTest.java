@@ -29,6 +29,8 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO.PULL_REQUEST_POLLING_INITIAL_OFFSET_MS;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -369,10 +371,11 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_CannotValidateUrl() {
     SourceControl sourceControl =
-        new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl("https://not valid").build();
+        new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl("https://not valid").build();
     assertThatThrownBy(() -> {
       sourceControlDAO.insert(sourceControl);
-    }).isInstanceOf(BadRequestException.class).hasMessageContaining("Cannot validate SourceControl repositoryUrl");
+    }).isInstanceOf(BadRequestException.class).hasMessageContaining("SourceControl repositoryUrl is invalid");
   }
 
   @Test
@@ -615,7 +618,29 @@ public class SourceControlDAOTest
     sourceControl.setToken(null);
     sourceControlDAO.delete(root);
     assertThatThrownBy(() -> sourceControlDAO.update(sourceControl)).isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("Cannot validate SourceControl repositoryUrl");
+        .hasMessageContaining("The root organization source control provider is not set");
+  }
+
+  @Test
+  public void testUpdate_ApplicationWithProvider() {
+    createRootOrgWithGitHubProvider();
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(app.getId())
+        .setRepositoryUrl(VALID_URL)
+        .build();
+    sourceControlDAO.insert(sourceControl);
+    sourceControl.setProvider(GITLAB);
+    sourceControlDAO.update(sourceControl);
+    sourceControl.setToken("token");
+    sourceControlDAO.update(sourceControl);
+
+    // Bitbucket has a different URL structure, expect an error even though only provider is changed
+    sourceControl.setProvider(BITBUCKET);
+    assertThatThrownBy(
+        () -> sourceControlDAO.update(sourceControl))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining(
+            "Expecting a valid Bitbucket server clone url in the form https://<domain>/scm/<project>/<repo>");
   }
 
   @Test
@@ -810,12 +835,29 @@ public class SourceControlDAOTest
   }
 
   @Test
+  public void testCreate_OrganizationWithProvider() {
+    sourceControlDAO.insert(
+        new SourceControl.Builder().setOwnerId(org.getId()).setProvider(SourceControlProvider.GITHUB).build());
+    assertThat(sourceControlDAO.getByOwnerId(org.getId()).getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
+  public void testCreate_ApplicationWithProvider() {
+    sourceControlDAO.insert(
+        new SourceControl.Builder()
+            .setOwnerId(app.getId())
+            .setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl("http://localhost/org/app.git")
+            .build());
+    SourceControl persistedSourceControl = sourceControlDAO.getByOwnerId(app.getId());
+    assertThat(persistedSourceControl.getProvider()).isEqualTo(SourceControlProvider.GITHUB);
+  }
+
+  @Test
   public void testInsert_OrganizationWithProvider() {
-    assertThatThrownBy(
-        () -> sourceControlDAO.insert(
-            new SourceControl.Builder().setOwnerId(org.getId()).setProvider(SourceControlProvider.GITHUB).build()))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
+    sourceControlDAO.insert(
+        new SourceControl.Builder().setOwnerId(org.getId()).setProvider(SourceControlProvider.GITHUB).build());
+    assertThat(sourceControlDAO.getByOwnerId(org.getId()).getProvider()).isEqualTo(GITHUB);
   }
 
   @Test
@@ -823,28 +865,16 @@ public class SourceControlDAOTest
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl = tempEntity.newSourceControl(org.getId(), null, "token", null);
     sourceControl.setProvider(SourceControlProvider.GITHUB);
-    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
+    sourceControlDAO.update(sourceControl);
+    assertThat(sourceControlDAO.getById(sourceControl.getId()).getProvider()).isEqualTo(GITHUB);
   }
 
   @Test
   public void testInsert_ApplicationWithProvider() {
-    assertThatThrownBy(
-        () -> sourceControlDAO.insert(
-            new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB).build()))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
-  }
-
-  @Test
-  public void testUpdate_ApplicationWithProvider() {
-    createRootOrgWithGitHubProvider();
-    SourceControl sourceControl = tempEntity.newSourceControl(app.getId(), VALID_URL, null, null);
-    sourceControl.setProvider(SourceControlProvider.GITHUB);
-    assertThatThrownBy(() -> sourceControlDAO.update(sourceControl))
-        .isInstanceOf(BadRequestException.class)
-        .hasMessageContaining("SourceControl provider can only be specified on the root organization");
+    sourceControlDAO.insert(
+            new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
+                .setRepositoryUrl("http://localhost:1234/org/repo").build());
+    assertThat(sourceControlDAO.getByOwnerId(app.getId()).getProvider()).isEqualTo(GITHUB);
   }
 
   @Test
@@ -946,14 +976,64 @@ public class SourceControlDAOTest
         .build();
     sourceControlDAO.insert(scAppCustom);
 
+    // and given an app with a custom provider and token
+    Application appCustomProvider = tempEntity.newApplication(orgCustom.getId());
+    tempEntity
+        .newSourceControl(appCustomProvider.getId(), "http://localhost:1234/org/appCustomProvider", "token", GITLAB);
+
     // when we get applications with only the default token
     List<SourceControl> appsWithDefaultTokens =
-        sourceControlDAO.getApplicationSourceControlsWithRepositoriesAndDefaultToken();
+        sourceControlDAO.getApplicationSourceControlsWithInheritedCredentials();
 
     // then it doesn't contain the apps with custom tokens or with orgs that have custom tokens
     assertThat(appsWithDefaultTokens)
         .extracting(SourceControl::getId)
         .containsOnly(scApp1a.getId());
+  }
+
+  @Test
+  public void test_getApplicationSourceControlsWithRepositoriesAndDefaultCredentials_testProviders() {
+    // given root org with github as a provider and default tokens
+    createRootOrgWithGitHubProvider();
+
+    // given org with default provider and default tokens
+    Organization orgDefaults = tempEntity.newOrganization();
+
+    // given apps with defaults and with custom provider but null tokens
+    Application appDefaults = tempEntity.newApplication(orgDefaults.getId());
+    SourceControl scDefaults =
+        tempEntity.newSourceControl(appDefaults.getId(), "http://localhost:1234/org/app-defaults");
+
+    Application appAllCustom = tempEntity.newApplication(orgDefaults.getId());
+    tempEntity.newSourceControl(appAllCustom.getId(), "http://localhost:1234/org/app-all-custom", null, GITLAB);
+
+    // given org with gitlab as a provider and a null token
+    Organization orgGitlab = tempEntity.newOrganization();
+    tempEntity.newSourceControl(orgGitlab.getId(), null, null, GITLAB);
+
+    // given apps in the gitlab org with default tokens and custom tokens
+    Application appGitlabDefaults = tempEntity.newApplication(orgGitlab.getId());
+    tempEntity.newSourceControl(appGitlabDefaults.getId(), "http://localhost:2233/gl/app");
+
+    Application appGitlabCustom = tempEntity.newApplication(orgGitlab.getId());
+    tempEntity.newSourceControl(appGitlabCustom.getId(), "http://localhost:2233/gl/app-custom", "token", null);
+
+    // given org with gitlab as a provider and no credentials
+    Organization orgGitlabDefaults = tempEntity.newOrganization();
+    tempEntity.newSourceControl(orgGitlabDefaults.getId(), null, null, GITLAB);
+
+    // given an app which provides credentials
+    Application appGitlabCreds = tempEntity.newApplication(orgGitlabDefaults.getId());
+    tempEntity.newSourceControl(appGitlabCreds.getId(), "http://localhost:2233/gl/app-defaults", "token", null);
+
+    // when we query for apps with default creds
+    List<SourceControl> appsWithDefaultCreds =
+        sourceControlDAO.getApplicationSourceControlsWithInheritedCredentials();
+
+    // then it contains only the app which has default creds
+    assertThat(appsWithDefaultCreds)
+        .extracting(SourceControl::getId)
+        .containsOnly(scDefaults.getId());
   }
 
   @Test
@@ -982,6 +1062,45 @@ public class SourceControlDAOTest
     // repository URL).
     sourceControlDAO.delete(sourceControl1);
     assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(0);
+  }
+  
+  @Test
+  public void testGetByRepositoryUrl() {
+    // given: a source control entry with a URL
+    String repoOwnerAndName = "testOrg/repoName";
+    String githubUrl = "https://localhost:1234/" + repoOwnerAndName;
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    tempEntity.newSourceControl(app.getId(), githubUrl, "", null);
+
+    // when: find the source control entry by owner and name string
+    List<SourceControl> sourceControlList = sourceControlDAO.getByRepositoryUrl(githubUrl);
+
+    // then: we found it
+    assertThat(sourceControlList).isNotNull();
+    assertThat(sourceControlList.size()).isEqualTo(1);
+    assertThat(sourceControlList.get(0).getOwnerId()).isEqualTo(app.getId());
+
+    // when: add a 2nd source control entry for same repo and search again
+    Application app2 = tempEntity.newApplication(app.getOrganizationId());
+    tempEntity.newSourceControl(app2.getId(), githubUrl, null);
+    sourceControlList = sourceControlDAO.getByRepositoryUrl(githubUrl);
+
+    // then: we have 2 now
+    assertThat(sourceControlList.size()).isEqualTo(2);
+    assertThat(sourceControlList).extracting(SourceControl::getOwnerId)
+        .containsExactlyInAnyOrder(app.getId(), app2.getId());
+
+    // when: add a source control entry with same owner, but different host and search again
+    String gitlabUrl = "https://localhost:2233/" + repoOwnerAndName;
+    Application app3 = tempEntity.newApplication(app.getOrganizationId());
+    tempEntity.newSourceControl(app3.getId(), gitlabUrl, null, GITLAB);
+    sourceControlList = sourceControlDAO.getByRepositoryUrl(githubUrl);
+
+    // then we still have 2
+    assertThat(sourceControlList.size()).isEqualTo(2);
+    assertThat(sourceControlList).extracting(SourceControl::getOwnerId)
+        .containsExactlyInAnyOrder(app.getId(), app2.getId());
+
   }
 
   @Test

@@ -39,13 +39,16 @@ import { over, lensPath } from 'ramda';
 import { propSet } from '../../util/jsUtil';
 import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
 import ownerConstant from '../../utility/services/owner.constant';
+import { valueFromHierarchy, tokenForOrg } from './utils/providers';
 
 const initialState = {
   configState: {
     isScmOnboardingFeatureEnabled: null,
     isScmTokenConfigured: null,
     isScmTokenOverridden: null,
+    isRootScmConfigured: null,
     scmProvider: '',
+    rootProvider: null,
     rootOrgHasToken: null,
   },
   viewState: {
@@ -157,8 +160,11 @@ function loadPageFulfilled(payload, state) {
   const selectedOrganization = payload.organizationsResults.find(
     (org) => org.organization.id === state.formState.preselectedOrganizationId
   );
-  const hasToken =
-    (selectedOrganization && !!selectedOrganization.sourceControl.token.value) || !!rootOrg.sourceControl.token.value;
+  const selectedOrgProvider = !selectedOrganization
+    ? null
+    : valueFromHierarchy(selectedOrganization.sourceControl.provider);
+  const rootOrgProvider = rootOrg === null ? null : rootOrg.sourceControl.provider.value;
+  const hasToken = !!tokenForOrg(selectedOrganization);
   let newState = {
     ...state,
     viewState: {
@@ -169,8 +175,10 @@ function loadPageFulfilled(payload, state) {
       ...state.configState,
       isScmOnboardingFeatureEnabled: payload.configResults.scmOnboardingFeatureEnabled,
       isScmTokenConfigured: hasToken,
-      scmProvider: rootOrg !== null ? rootOrg.sourceControl.provider : null,
-      rootOrgHasToken: rootOrg !== null,
+      scmProvider: selectedOrgProvider !== null ? selectedOrgProvider : rootOrgProvider,
+      rootOrgHasToken: rootOrg !== null && !!rootOrg.sourceControl.token.value,
+      rootProvider: rootOrgProvider,
+      isRootScmConfigured: rootOrg.sourceControl && rootOrg.sourceControl.id !== null,
     },
     formState: {
       ...state.formState,
@@ -245,12 +253,13 @@ function setTargetOrgFulfilled({ selectedOrganization, defaultHostUrl }, state) 
   const prevOrg = state.formState.selectedOrganization;
   const prevTokenOverridden = state.configState.isScmTokenOverridden;
 
+  const provider = selectedOrganization ? valueFromHierarchy(selectedOrganization.sourceControl.provider) : null;
+  const providerChanged = provider !== state.configState.scmProvider;
+
   const currOrg = selectedOrganization;
   const currTokenOverridden =
     !!selectedOrganization && !!selectedOrganization.sourceControl && !!selectedOrganization.sourceControl.token.value;
-  const hasToken =
-    selectedOrganization &&
-    (!!selectedOrganization.sourceControl.token.value || !!selectedOrganization.sourceControl.token.parentValue);
+  const hasToken = !!tokenForOrg(selectedOrganization);
 
   const isAuthFailure = !!state.viewState.loadRepositoriesErrorCode;
 
@@ -259,19 +268,21 @@ function setTargetOrgFulfilled({ selectedOrganization, defaultHostUrl }, state) 
   // we need to prompt the user to enter a host URL when they have a token AND:
   // A. we get an authentication failure OR
   // B. the default host URL is empty AND an org is selected AND
-  //    1. the token is overridden at the org level
+  //    1. the token or provider is overridden at the org level
   //    2. OR the previous token was overridden at the org level
   //    3. OR the previous org was empty (ie: this is the first selected org)
   //    4. OR the user needed to enter the git URL in the previous org
   const showHostDialog =
     hasToken &&
     (isAuthFailure ||
-      (!defaultHostUrl && !!currOrg && (currTokenOverridden || prevTokenOverridden || !prevOrg || prevGitHostNeeded)));
+      (!defaultHostUrl &&
+        !!currOrg &&
+        (currTokenOverridden || prevTokenOverridden || providerChanged || !prevOrg || prevGitHostNeeded)));
 
   // we will set the current host URL to a default cloud value if the current host URL is empty
   const overrideCurrentHostUrl = !defaultHostUrl;
 
-  return {
+  let newState = {
     ...state,
     viewState: {
       ...state.viewState,
@@ -283,16 +294,28 @@ function setTargetOrgFulfilled({ selectedOrganization, defaultHostUrl }, state) 
       ...state.configState,
       isScmTokenOverridden: currTokenOverridden,
       isScmTokenConfigured: hasToken,
+      scmProvider: provider,
     },
     formState: {
       ...state.formState,
       defaultHostUrl: defaultHostUrl,
       selectedOrganization: selectedOrganization,
       currentHostUrlState: overrideCurrentHostUrl
-        ? initialHostUrlState(defaultHostUrl, state.configState.scmProvider)
+        ? initialHostUrlState(defaultHostUrl, provider)
         : textInputStateHelpers.initialState(defaultHostUrl),
     },
   };
+
+  if (providerChanged || currTokenOverridden || !hasToken) {
+    newState = {
+      ...newState,
+      formState: {
+        ...newState.formState,
+        repositories: [],
+      },
+    };
+  }
+  return newState;
 }
 
 const providerCloudDefaults = {

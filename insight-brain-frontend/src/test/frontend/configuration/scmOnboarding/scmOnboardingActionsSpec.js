@@ -48,14 +48,16 @@ describe('scmOnboardingActions', function () {
   describe('loadPage', function () {
     const compositeSourceControlUrl = getCompositeSourceControlUrl('organization', 'ownerId'),
       compositeSourceControlPayload = {
-        provider: 'github',
-        token: { value: 'token' },
+        provider: { value: null, parentValue: 'github', parentName: 'root org' },
+        token: { value: null, parentValue: 'token', parentName: 'root org' },
       },
-      unconfiguredCompositeSourceControlPayload = {
-        provider: undefined,
-        token: undefined,
+      unconfiguredCompositeSourceControlPayload = { provider: { value: null, parentValue: null }, token: undefined },
+      providerOverriddenCompositeSourceControlPayload = {
+        provider: { value: 'gitlab', parentValue: 'github', parentName: 'root org' },
+        token: { value: 'token', parentValue: 'root token', parentName: 'root org' },
       },
       scmDefaultHostPayload = { defaultHostUrl: 'http://localhost/' },
+      gitlabDefaultHostPayload = { defaultHostUrl: 'http://localhost:1234/' },
       orgResults = [
         { organization: { id: 'id1', name: 'org 1' }, sourceControl: {} },
         { organization: { id: 'id2', name: 'org 2' }, sourceControl: {} },
@@ -77,8 +79,14 @@ describe('scmOnboardingActions', function () {
             [getScmDefaultHostUrl('id1', 'github')]: Promise.resolve({
               data: scmDefaultHostPayload,
             }),
+            [getScmDefaultHostUrl('provider-org', 'gitlab')]: Promise.resolve({
+              data: gitlabDefaultHostPayload,
+            }),
             [getCompositeSourceControlUrl('organization', 'id2')]: Promise.resolve({
               data: unconfiguredCompositeSourceControlPayload,
+            }),
+            [getCompositeSourceControlUrl('organization', 'provider-org')]: Promise.resolve({
+              data: providerOverriddenCompositeSourceControlPayload,
             }),
           },
         });
@@ -161,6 +169,29 @@ describe('scmOnboardingActions', function () {
           expect(actions[1].payload.organizationsResults).toEqual(orgResults);
           expect(actions[1].payload.compositeSourceControlResults).toEqual(unconfiguredCompositeSourceControlPayload);
           expect(actions[1].payload.hostUrlResult).toEqual(null);
+        });
+      });
+
+      it('uses org provider when one is available', () => {
+        return store.dispatch(scmOnboardingActions.loadPage('provider-org')).then(() => {
+          // then the SCM_ONBOARDING_LOAD_PAGE_REQUESTED action is created with the expected payload
+          let actions = store.getActions();
+          expect(actions.map((a) => a.type)).toEqual([
+            SCM_ONBOARDING_LOAD_PAGE_REQUESTED,
+            SCM_ONBOARDING_LOAD_PAGE_FULFILLED,
+          ]);
+          expect(actions[0].type).toBe('SCM_ONBOARDING_LOAD_PAGE_REQUESTED');
+          expect(actions[0].payload).toEqual('provider-org');
+
+          // and the SCM_ONBOARDING_LOAD_PAGE_FULFILLED action is created using the gitlab provider
+          // rather than the parent provider
+          expect(actions[1].type).toBe('SCM_ONBOARDING_LOAD_PAGE_FULFILLED');
+          expect(actions[1].payload.configResults).toEqual(scmOnboardingConfigPayload);
+          expect(actions[1].payload.organizationsResults).toEqual(orgResults);
+          expect(actions[1].payload.compositeSourceControlResults).toEqual(
+            providerOverriddenCompositeSourceControlPayload
+          );
+          expect(actions[1].payload.hostUrlResult).toEqual(gitlabDefaultHostPayload);
         });
       });
     });
@@ -372,7 +403,7 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: null } },
+        sourceControl: { token: { value: null }, provider: { value: null, parentValue: 'github' } },
       };
 
       // no axios calls
@@ -385,7 +416,7 @@ describe('scmOnboardingActions', function () {
           type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
           payload: {
             selectedOrganization: selectedOrg,
-            defaultHostUrl: undefined,
+            defaultHostUrl: null,
           },
         },
       ]);
@@ -395,7 +426,10 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(true, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: null } },
+        sourceControl: {
+          token: { value: null, parentValue: 'redacted', parentName: 'Root Organization' },
+          provider: { value: null, parentValue: 'github' },
+        },
       };
 
       // triggers an attempt to get new default host URL
@@ -409,7 +443,7 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: 'redacted' } },
+        sourceControl: { token: { value: 'redacted' }, provider: { value: 'github' } },
       };
 
       // attempts to check if default host URL changed
@@ -422,7 +456,7 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(true, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: 'redacted' } },
+        sourceControl: { token: { value: 'redacted' }, provider: { value: 'github' } },
       };
 
       store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg));
@@ -442,7 +476,7 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(true, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: 'redacted' }, provider: 'github' },
+        sourceControl: { token: { value: 'redacted' }, provider: { value: 'github' } },
       };
 
       store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg)).then(() => {
@@ -469,7 +503,10 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(false, undefined);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: null }, provider: 'github' },
+        sourceControl: {
+          token: { value: null, parentValue: 'redacted' },
+          provider: { value: null, parentValue: 'github' },
+        },
       };
 
       store.dispatch(scmOnboardingActions.setSelectedOrganization(selectedOrg)).then(() => {
@@ -488,7 +525,7 @@ describe('scmOnboardingActions', function () {
       store = mockReduxStoreForSelectedOrg(false, prevOrg);
       const selectedOrg = {
         organization: { id: 'id1' },
-        sourceControl: { token: { value: null }, provider: 'github' },
+        sourceControl: { token: { value: null }, provider: { value: null, parentValue: 'github' } },
       };
 
       // undefined because it does not make any axios calls
@@ -501,7 +538,7 @@ describe('scmOnboardingActions', function () {
           type: SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED,
           payload: {
             selectedOrganization: selectedOrg,
-            defaultHostUrl: undefined,
+            defaultHostUrl: null,
           },
         },
       ]);
@@ -584,14 +621,21 @@ describe('scmOnboardingActions', function () {
 
   describe('organization creation', () => {
     describe('success', () => {
-      const createOrgPayload = { id: 'id', name: 'My Organization', tags: [] };
+      const createOrgPayload = {
+        organization: {
+          id: 'id',
+          name: 'My Organization',
+          tags: [],
+        },
+        sourceControl: {
+          token: { value: null, parentValue: 'redacted' },
+          provider: { value: null, parentValue: 'github' },
+        },
+      };
 
       const rootOrgPayload = {
         organization: { name: 'Root Organization', id: 'ROOT_ORGANIZATION_ID' },
-        sourceControl: {
-          provider: 'github',
-          token: { value: 'redacted token' },
-        },
+        sourceControl: { provider: { value: 'github' }, token: { value: 'redacted token' } },
       };
 
       const initialState = {
@@ -608,6 +652,7 @@ describe('scmOnboardingActions', function () {
             isScmTokenOverridden: false,
             scmProvider: 'configuredProvider',
             rootOrgHasToken: true,
+            rootProvider: 'github',
           },
         },
       };
@@ -631,7 +676,7 @@ describe('scmOnboardingActions', function () {
           expect(actions[0].payload).toEqual({
             organization: createOrgPayload,
             sourceControl: {
-              provider: 'configuredProvider',
+              provider: { value: null, parentValue: 'github' },
               token: { value: null, parentValue: 'redacted' },
             },
           });

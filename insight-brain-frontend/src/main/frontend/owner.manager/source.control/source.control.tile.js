@@ -5,6 +5,7 @@
  */
 
 import template from './source.control.tile.html';
+import { valueFromHierarchy } from '../../configuration/scmOnboarding/utils/providers';
 
 export default {
   template: template,
@@ -41,7 +42,7 @@ function SourceControlTileController(
   vm.itemSubText = undefined;
   vm.isAutomationSupported = undefined;
   vm.isSourceControlSupported = undefined;
-
+  vm.effectiveProvider = undefined;
   vm.doLoad();
 
   $scope.$on(EventNameConstant.RELOAD_OWNER_SUMMARY_DATA, function () {
@@ -88,6 +89,7 @@ function SourceControlTileController(
     return SourceControlService.getCompositeSourceControlRecord(vm.ownerType, ownerInternalId).then(function (result) {
       vm.sourceControl = typeof result !== 'undefined' && result !== null ? result : undefined;
       if (vm.sourceControl !== undefined) {
+        vm.effectiveProvider = effectiveProvider();
         vm.itemText = getItemText();
         vm.itemSubText = getItemSubText();
       }
@@ -102,11 +104,15 @@ function SourceControlTileController(
     SameOwnerStateNavigationService.goEdit('edit-source-control');
   }
 
+  function effectiveProvider() {
+    return !vm.sourceControl ? null : valueFromHierarchy(vm.sourceControl.provider);
+  }
+
   function getItemText() {
     let text = '';
-    if (vm.sourceControl && vm.sourceControl.provider) {
+    if (vm.sourceControl && vm.effectiveProvider) {
       if (vm.isOrg) {
-        text = vm.providerTypesMap[vm.sourceControl.provider];
+        text = vm.providerTypesMap[vm.effectiveProvider];
       } else {
         text = vm.sourceControl.repositoryUrl ? vm.sourceControl.repositoryUrl : 'Repository URL needed';
       }
@@ -119,13 +125,16 @@ function SourceControlTileController(
       token = vm.sourceControl.token.value,
       parentValue = vm.sourceControl.token.parentValue,
       parentName = vm.sourceControl.token.parentName,
-      provider = vm.providerTypesMap[vm.sourceControl.provider];
+      orgProvider = vm.sourceControl.provider ? vm.sourceControl.provider.value : null,
+      provider = vm.providerTypesMap[vm.effectiveProvider];
 
-    if (!vm.sourceControl || !vm.sourceControl.provider) {
+    if (!vm.sourceControl || !vm.effectiveProvider) {
       text = 'Source Control not configured';
     } else {
       if (vm.isRootOrg) {
         text = 'Provides the default source control configuration settings';
+      } else if (!!orgProvider && !token) {
+        text = 'Inherit access token';
       } else if (!token) {
         text = `Inherit access token${parentValue ? ` from ${parentName}` : ''}\
 ${vm.isApp ? ` (${provider})` : ''}`;

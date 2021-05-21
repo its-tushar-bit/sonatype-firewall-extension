@@ -151,11 +151,15 @@ public class ScmOnboardingService
     ApiCompositeSourceControlDTO sourceControlDTO =
         apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, orgId);
 
-    if (StringUtils.isEmpty(sourceControlDTO.provider)) {
+    String providerString = sourceControlDTO.provider.value != null ?
+        sourceControlDTO.provider.value :
+        sourceControlDTO.provider.parentValue;
+
+    if (StringUtils.isEmpty(providerString)) {
       throw new BadRequestException("No provider configured");
     }
 
-    SourceControlProvider provider = SourceControlProvider.fromString(sourceControlDTO.provider);
+    SourceControlProvider provider = SourceControlProvider.fromString(providerString);
 
     String username = sourceControlDTO.username.value != null ?
         sourceControlDTO.username.value :
@@ -216,9 +220,9 @@ public class ScmOnboardingService
       sourceControls =
           sourceControlDAO.getApplicationSourceControlsByOrganizationWithRepositories(orgId);
     }
-    if (sourceControls.isEmpty() && orgUsesRootToken(orgId)) {
+    if (sourceControls.isEmpty() && orgUsesRootTokenAndProvider(orgId)) {
       // no apps found within this org, look for apps in other orgs
-      sourceControls = sourceControlDAO.getApplicationSourceControlsWithRepositoriesAndDefaultToken();
+      sourceControls = sourceControlDAO.getApplicationSourceControlsWithInheritedCredentials();
     }
     return sourceControls.stream()
         .map(SourceControl::getRepositoryUrl)
@@ -229,11 +233,11 @@ public class ScmOnboardingService
         .orElse("");
   }
 
-  private boolean orgUsesRootToken(final String orgId) {
+  private boolean orgUsesRootTokenAndProvider(final String orgId) {
     ApiCompositeSourceControlDTO sourceControlDTO =
         apiCompositeSourceControlService.getCompositeSourceControlByOwnerDecrypted(OwnerType.ORGANIZATION, orgId);
 
-    return sourceControlDTO.token.value == null;
+    return sourceControlDTO.token.value == null && sourceControlDTO.provider.value == null;
   }
 
   private String getBaseUrl(String repoUrl, SourceControlProvider provider) {
@@ -364,10 +368,19 @@ public class ScmOnboardingService
       applicationHelper.addApplication(app);
     }
     else {
-      if (applicationNameConverter.doesPublicIdRequireModification(scmRepository)) {
-        // this branch handles newly imported applications (already de-duped during load) but a name with disallowed
-        // characters which have been removed and as a consequence of that introduced a name conflict
+      // app with this ID exists! This may happen because two repos share project/app ID across different
+      // providers/hosts, or because the app ID contains special characters, or because we have
+      // previously imported this repo in another session
+
+      List<SourceControl> reposWithMatchingUrl = sourceControlDAO.getByRepositoryUrl(scmRepository.getHttpCloneUrl());
+      if (reposWithMatchingUrl.isEmpty()) {
+        // no existing SC entry matches this URL, free to create a new app with a postfix to avoid the
+        // accidental collision
         app = createApplicationWithPostfix(orgId, scmRepository);
+      }
+      else {
+        // existing SC entry exists already, no need to create a new app
+        app = appDAO.getById(reposWithMatchingUrl.get(0).getOwnerId());
       }
     }
     ApiSourceControlDTO apiSourceControlDTO =

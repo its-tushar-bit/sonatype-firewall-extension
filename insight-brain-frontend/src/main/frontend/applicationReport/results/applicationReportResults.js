@@ -119,6 +119,10 @@ function ApplicationReportResultsController(
       return CLMLocations.getReportPdfDownloadUrl(vm.metadata.application.publicId, vm.reportParameters.scanId);
     },
 
+    getViewSbomUrl: function () {
+      return CLMLocations.getViewSbomUrl(vm.metadata.application.id, vm.reportParameters.scanId);
+    },
+
     getOwnerApplicationNameOrEmpty: function (component) {
       return pathOr('', ['innerSourceData', 0, 'ownerApplicationName'], component);
     },

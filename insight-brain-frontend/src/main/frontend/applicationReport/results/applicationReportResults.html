@@ -25,6 +25,12 @@
                ng-href="{{::vm.getReportPdfDownloadUrl()}}">
               <i class="fa fa-file-pdf-o fa-fw"></i>Generate PDF
             </a>
+            <a id="show-sbom-link"
+               class="btn iq-btn--dropdown"
+               target="_blank"
+               ng-href="{{::vm.getViewSbomUrl()}}">
+              <i class="fa fa-file-code-o fa-fw"></i>View SBOM
+            </a>
             <div class="divider"></div>
             <a id="raw-data-link" class="link iq-dropdown-menu__link" ui-sref="^.rawData">
               <i class="fa fa-file fa-fw"></i>View raw data

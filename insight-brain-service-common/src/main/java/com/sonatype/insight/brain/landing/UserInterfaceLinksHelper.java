@@ -25,6 +25,8 @@ public class UserInterfaceLinksHelper
 
   public static final String VULNERABILITY_DETAILS_PATH = "vln/{vulnerabilityId}";
 
+  public static final String LATEST_VERSION_SBOM_REPORT_PATH = "cycloneDx/{applicationId}/reports/{scanId}";
+
   private static String buildStableUrl(String path, Object... parameters) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build(parameters).toString();
   }

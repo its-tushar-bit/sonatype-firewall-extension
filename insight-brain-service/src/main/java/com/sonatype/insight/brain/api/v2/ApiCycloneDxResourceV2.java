@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ApiCycloneDxServiceV2;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyUtils;
 
 import com.codahale.metrics.annotation.Timed;
@@ -39,6 +40,10 @@ public class ApiCycloneDxResourceV2
 
   static final String GET_BY_REPORT_PATH = "{applicationId}/reports/{reportId}";
 
+  /**
+   * When adding a new version or changing this path, please update
+   * {@link UserInterfaceLinksResource#linkToSbom(String, String)} as well.
+   */
   static final String GET_BY_REPORT_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2}/{applicationId}/reports/{reportId}";
 
   private final ApiCycloneDxServiceV2 apiCycloneDxService;

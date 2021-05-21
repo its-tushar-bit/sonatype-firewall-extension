@@ -213,7 +213,7 @@ public class ApplicationReportTest
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.shouldBe(visible).menu().shouldNotBe(visible);
     optionsDropdown.button().shouldHave(text("Options")).click();
-    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(4);
+    optionsDropdown.menu().shouldBe(visible).entries().shouldHaveSize(5);
 
     eyesWatcher.eyesCheck();
   }
@@ -245,10 +245,26 @@ public class ApplicationReportTest
   }
 
   @Test
+  public void testViewSbom() throws Exception {
+    IQDropdown optionsDropdown = reportPage.optionsDropdown();
+    optionsDropdown.button().click();
+
+    File downloadedSbom = optionsDropdown.menu().entries().get(1).shouldHave(text("View SBOM")).download();
+
+    byte[] fileBeginning = new byte[5];
+    try (FileInputStream stream = new FileInputStream(downloadedSbom)) {
+      stream.read(fileBeginning);
+    }
+
+    // similar to the PDF test, the content of the file is checked to see if it's XML
+    assertThat(new String(fileBeginning)).isEqualTo("<?xml");
+  }
+
+  @Test
   public void testRawDataLink() {
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(1).shouldHave(text("View raw data")).click();
+    optionsDropdown.menu().entries().get(2).shouldHave(text("View raw data")).click();
 
     waitUntilUrl(ApplicationReportRawDataPage.url(app, SCAN_ID));
     new ApplicationReportRawDataPage().reportTitle().shouldHave(text(app.getName()));
@@ -258,7 +274,7 @@ public class ApplicationReportTest
   public void testVulnerabilitiesLink() {
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(2).shouldHave(text("View vulnerabilities")).click();
+    optionsDropdown.menu().entries().get(3).shouldHave(text("View vulnerabilities")).click();
 
     waitUntilUrl(ApplicationReportVulnerabilitiesPage.url(app, SCAN_ID));
     new ApplicationReportVulnerabilitiesPage().title().shouldHave(text(app.getName()));
@@ -737,7 +753,7 @@ public class ApplicationReportTest
     // Assertions
     IQDropdown optionsDropdown = reportPage.optionsDropdown();
     optionsDropdown.button().click();
-    optionsDropdown.menu().entries().get(2).shouldHave(DISABLED).click();
+    optionsDropdown.menu().entries().get(3).shouldHave(DISABLED).click();
     // should remain on report page
     reportPage.shouldBe(visible);
   }

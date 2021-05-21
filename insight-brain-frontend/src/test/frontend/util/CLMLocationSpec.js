@@ -104,6 +104,12 @@ describe('CLMLocation.js', function () {
         'http://localhost/rest/report/foo/bar/reevaluatePolicy'
       );
     });
+
+    it('should return the correct URL for the SBOM report', () => {
+      expect(CLMLocationsService.getViewSbomUrl('foo', 'bar')).toBe(
+        'http://localhost/ui/links/cycloneDx/foo/reports/bar'
+      );
+    });
   });
 
   // map of user-telemetry method names and their respective unique postfixes

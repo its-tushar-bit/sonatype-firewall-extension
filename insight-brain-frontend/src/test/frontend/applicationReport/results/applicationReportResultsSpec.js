@@ -79,6 +79,20 @@ describe('applicationReportResults', function () {
     });
   });
 
+  describe('getViewSbomUrl()', function () {
+    it('generates a SBOM link from app id and scan id', () => {
+      vm.metadata = {
+        application: {
+          id: 'appId',
+        },
+      };
+      vm.reportParameters = {
+        scanId: 'scanId',
+      };
+      expect(vm.getViewSbomUrl()).toEqual('/ui/links/cycloneDx/appId/reports/scanId');
+    });
+  });
+
   describe('vm.selectedReport.displayedEntries watcher', function () {
     let $timeout;
 

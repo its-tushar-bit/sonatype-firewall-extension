@@ -17,6 +17,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
@@ -165,6 +166,14 @@ public class UserInterfaceLinksResource
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(InsightBrainService.BRAIN_ASSET_PATH + "index.html").fragment("/vulnerabilities/{vulnerabilityId}");
     return redirect(uriBuilder, vulnerabilityId);
+  }
+
+  @GET
+  @Path(LATEST_VERSION_SBOM_REPORT_PATH)
+  public Response linkToSbom(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(PublicApiPaths.CYCLONE_DX_RESOURCE_PATH).path("1.2/{applicationId}/reports/{reportId}");
+    return redirect(uriBuilder, applicationId, scanId);
   }
 
   private void sendSourceTelemetryData(final String applicationId, final String scanId, final String source) {

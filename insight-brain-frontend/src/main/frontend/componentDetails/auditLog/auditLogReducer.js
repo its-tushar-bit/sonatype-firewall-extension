@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import { always, map } from 'ramda';
+
+import {
+  AUDIT_LOG_LOAD_AUDIT_LOG_REQUESTED,
+  AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED,
+  AUDIT_LOG_LOAD_AUDIT_LOG_FAILED,
+} from './auditLogActions';
+import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
+import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
+import { processAuditRecord } from '../componentDetailsUtils';
+
+const initState = Object.freeze({
+  isLoading: false,
+  auditRecords: [],
+  error: null,
+});
+
+const reducerActionMap = {
+  [AUDIT_LOG_LOAD_AUDIT_LOG_REQUESTED]: propSetConst('isLoading', true),
+  [AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED]: loadAuditLogFulfilled,
+  [AUDIT_LOG_LOAD_AUDIT_LOG_FAILED]: loadAuditLogFailed,
+  [UI_ROUTER_ON_FINISH]: always(initState),
+};
+
+function loadAuditLogFailed(payload, state) {
+  return { ...state, isLoading: false, error: payload };
+}
+
+function loadAuditLogFulfilled(payload, state) {
+  const auditRecords = map(processAuditRecord, payload);
+
+  return {
+    ...state,
+    isLoading: false,
+    auditRecords,
+  };
+}
+
+const reducer = createReducerFromActionMap(reducerActionMap, initState);
+export default reducer;

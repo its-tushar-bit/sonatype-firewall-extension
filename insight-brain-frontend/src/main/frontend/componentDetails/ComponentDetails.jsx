@@ -9,6 +9,7 @@ import { NxStatefulTabs, NxTab, NxTabList, NxTabPanel } from '@sonatype/react-sh
 
 import BackButton from '../react/BackButton';
 import { useRouterState } from '../react/RouterStateContext';
+import AuditLogContainer from './auditLog/AuditLogContainer';
 
 const tabIdPerIndex = ['remediation', 'info', 'violations', 'security', 'legal', 'audit'];
 import {
@@ -110,8 +111,8 @@ export default function ComponentDetails({
           <NxTabPanel>
             <PlaceholderTabContent tabIndex={4}>Legal</PlaceholderTabContent>
           </NxTabPanel>
-          <NxTabPanel>
-            <PlaceholderTabContent tabIndex={5}>Audit Log</PlaceholderTabContent>
+          <NxTabPanel id="audit-log-tab-content">
+            <AuditLogContainer />
           </NxTabPanel>
         </NxStatefulTabs>
       </div>

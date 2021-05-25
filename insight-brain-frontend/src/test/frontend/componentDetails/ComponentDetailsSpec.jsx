@@ -3,12 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
 import { NxStatefulTabs, NxTab } from '@sonatype/react-shared-components';
 
 import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
 import BackButton from '../../../main/frontend/react/BackButton';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
+import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
 
 describe('ComponentDetails', function () {
   let minimalProps,
@@ -94,6 +96,9 @@ describe('ComponentDetails', function () {
     });
 
     it('calls stateGo action with the appropriate state when clicking on a tab', function () {
+      // Mock `AuditLogContainer` so that `getMountedComponent` doesn't complain.
+      spyOn(fullAuditLog, 'default').and.returnValue(<div>hello</div>);
+
       let component = getMountedComponent({ componentDetails: 'exists' }),
         tabBar = component.find(NxStatefulTabs),
         tabs = tabBar.find(NxTab);
@@ -124,6 +129,9 @@ describe('ComponentDetails', function () {
     });
 
     it('does not call stateGo when clicking on the same tab twice', function () {
+      // Mock `AuditLogContainer` so that `getMountedComponent` doesn't complain.
+      spyOn(fullAuditLog, 'default').and.returnValue(<div>hello</div>);
+
       const component = getMountedComponent({ componentDetails: 'exists' }),
         tabBar = component.find(NxStatefulTabs),
         tabs = tabBar.find(NxTab),

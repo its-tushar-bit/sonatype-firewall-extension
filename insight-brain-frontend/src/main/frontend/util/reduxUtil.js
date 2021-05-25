@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { always, curry, lensProp, set } from 'ramda';
+import { Messages } from '../util/CommonServices';
 /*
  * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.
  * The payload is ignored and is only an argument to conform to the interface needed by reducerActionMap
@@ -42,3 +43,7 @@ export const mappedPayloadParamActionCreator = (type, mapper) => (payloadSrc) =>
   type,
   payload: mapper(payloadSrc),
 });
+
+export function httpErrorMessageActionCreator(type) {
+  return mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
+}

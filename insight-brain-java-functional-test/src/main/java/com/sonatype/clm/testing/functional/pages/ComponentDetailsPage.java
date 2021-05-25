@@ -86,4 +86,8 @@ public class ComponentDetailsPage
   public SelenideElement auditTab() {
     return this.tabs().get(5);
   }
+
+  public AuditLogContent auditLogContent() {
+    return new AuditLogContent("#audit-log-tab-content");
+  }
 }

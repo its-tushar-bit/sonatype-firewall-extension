@@ -421,6 +421,13 @@ export function getNotificationViewedUrl() {
   return uriTemplate`/rest/product/notifications/viewed`;
 }
 
+export function getReportAuditLogUrl(appPublicId, reportId, component) {
+  const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component));
+
+  return uriTemplate`/rest/report/${appPublicId}/${reportId}/auditLog/licenses.json+security.json
+      ?key=${keyJson}`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -737,17 +744,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getReportPolicyThreatsUrl: getBrowseReportUrl('policythreats.json'),
 
-      getReportAuditLogUrl: function (appPublicId, reportId, component) {
-        const keyJson = JSON.stringify(pick(['hash', 'componentIdentifier'], component)),
-          encodedAppId = encodeURIComponent(appPublicId),
-          encodedReportId = encodeURIComponent(reportId),
-          encodedKeyJson = encodeURIComponent(keyJson);
-
-        return (
-          `${baseUrl.get()}/rest/report/${encodedAppId}/${encodedReportId}/auditLog/licenses.json+security.json` +
-          `?key=${encodedKeyJson}`
-        );
-      },
+      getReportAuditLogUrl,
 
       getReportReevaluateUrl: (applicationPublicId, scanId) =>
         getBaseReportUrl(applicationPublicId, scanId) + '/reevaluatePolicy',

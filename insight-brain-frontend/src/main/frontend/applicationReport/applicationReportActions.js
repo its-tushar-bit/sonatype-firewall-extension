@@ -7,7 +7,12 @@ import { map, pick } from 'ramda';
 import axios from 'axios';
 
 import { createReportEntries, createRawDataEntries } from './applicationReportService';
-import { mappedPayloadParamActionCreator, noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
+import {
+  mappedPayloadParamActionCreator,
+  noPayloadActionCreator,
+  payloadParamActionCreator,
+  httpErrorMessageActionCreator,
+} from '../util/reduxUtil';
 import {
   getDependenciesUrl,
   getReportBomUrl,
@@ -20,7 +25,6 @@ import {
   getReportSecurityUrl,
   getReportUnknownJsUrl,
 } from '../util/CLMLocation';
-import { Messages } from '../util/CommonServices';
 
 export const LOAD_REPORT_REQUESTED = 'LOAD_REPORT_REQUESTED';
 export const LOAD_REPORT_FULFILLED = 'LOAD_REPORT_FULFILLED';
@@ -218,8 +222,6 @@ function selectComponent(componentIndex) {
     return Promise.resolve(dispatch(setSelectedComponent({ component, componentIndex })));
   };
 }
-
-const httpErrorMessageActionCreator = (type) => mappedPayloadParamActionCreator(type, Messages.getHttpErrorMessage);
 
 const loadCommonDataFulfilled = mappedPayloadParamActionCreator(
   LOAD_COMMON_DATA_FULFILLED,

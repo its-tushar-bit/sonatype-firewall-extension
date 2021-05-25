@@ -6,7 +6,6 @@
 import { react2angular } from 'react2angular';
 
 import gettingStartedModule from './gettingStarted/module';
-import systemNoticeConfigurationModule from './systemNoticeConfiguration/systemNoticeConfigurationModule';
 import automaticApplicationsConfigurationModule from './automaticApplicationsConfiguration/automaticApplicationsConfigurationModule';
 import ldapModule from './ldap/ldap.module';
 import samlModule from './saml/module';
@@ -22,11 +21,11 @@ import withStoreProvider from '../reactAdapter/StoreProvider';
 import { always } from 'ramda';
 import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
 import SuccessMetricsConfigurationContainer from './successMetricsConfiguration/SuccessMetricsConfigurationContainer';
+import SystemNoticeConfigurationContainer from './systemNoticeConfiguration/SystemNoticeConfigurationContainer';
 
 export default angular
   .module('configurationModule', [
     gettingStartedModule.name,
-    systemNoticeConfigurationModule.name,
     automaticApplicationsConfigurationModule.name,
     ldapModule.name,
     samlModule.name,
@@ -55,6 +54,10 @@ export default angular
   .component(
     'successMetricsConfiguration',
     react2angular(withStoreProvider(SuccessMetricsConfigurationContainer), [], ['$ngRedux'])
+  )
+  .component(
+    'systemNoticeConfiguration',
+    react2angular(withStoreProvider(SystemNoticeConfigurationContainer), [], ['$ngRedux'])
   )
   .factory('scmOnboardingActions', scmOnboardingActions)
   .config(routes);
@@ -148,6 +151,14 @@ function routes($stateProvider) {
       data: {
         title: 'Success Metrics',
         isDirty: ['successMetricsConfiguration', 'viewState', 'isDirty'],
+      },
+    })
+    .state('systemNoticeConfiguration', {
+      component: 'systemNoticeConfiguration',
+      url: '/systemNoticeConfiguration',
+      data: {
+        title: 'System Notice',
+        isDirty: ['systemNoticeConfiguration', 'viewState', 'isDirty'],
       },
     })
     .state('scmOnboarding', {

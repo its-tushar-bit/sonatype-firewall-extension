@@ -62,7 +62,7 @@ describe('ComponentDetailsTags', () => {
     expect(el).toHaveProp('data-testid', 'bar');
   });
 
-  it('does not render if there is no format, dependencyType or labels props passed', () => {
+  it('does not render if there is no format, dependencyType, isInnerSource=true or labels props passed', () => {
     const component = getShallowComponentNoProps();
     expect(component).toBeEmptyRender();
   });
@@ -85,6 +85,33 @@ describe('ComponentDetailsTags', () => {
 
     const componentWithout = getShallowComponentNoProps({ format: 'maven', labels: mockLabels });
     expect(componentWithout.find(DependencyTypeTag)).not.toExist();
+  });
+
+  describe('innerSource tag', () => {
+    it('only renders dependency type innerSource tag if `isInnerSource` prop is passed as `true`', () => {
+      const component = getShallowComponentNoProps({ isInnerSource: true });
+      expect(component.find(DependencyTypeTag)).toExist();
+      expect(component.find(DependencyTypeTag).findWhere((tag) => tag.prop('type') === 'innerSource')).toExist();
+    });
+
+    it('does NOT render a dependency type innerSource tag if `isInnerSource` prop is passed as `false`', () => {
+      const component = getShallowComponentNoProps({
+        format: 'maven',
+        labels: mockLabels,
+        dependencyType: 'transitive',
+        isInnerSource: false,
+      });
+      expect(component.find(DependencyTypeTag).findWhere((tag) => tag.prop('type') === 'innerSource')).not.toExist();
+    });
+
+    it('does NOT render a dependency type innerSource tag no `isInnerSource` prop is passed', () => {
+      const component = getShallowComponentNoProps({
+        format: 'maven',
+        labels: mockLabels,
+        dependencyType: 'transitive',
+      });
+      expect(component.find(DependencyTypeTag).findWhere((tag) => tag.prop('type') === 'innerSource')).not.toExist();
+    });
   });
 
   it('does not render dependency type tag if `dependencyType` prop is `"unknown"`', () => {

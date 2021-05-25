@@ -62,6 +62,7 @@ export default function ComponentDetails({
     reportTitle,
     format,
     dependencyType,
+    isInnerSource,
     labels,
   } = componentDetails;
 
@@ -77,7 +78,12 @@ export default function ComponentDetails({
             reportTime={reportTime}
             reportTitle={reportTitle}
           />
-          <ComponentDetailsTags format={format} dependencyType={dependencyType} labels={labels} />
+          <ComponentDetailsTags
+            format={format}
+            dependencyType={dependencyType}
+            isInnerSource={isInnerSource}
+            labels={labels}
+          />
         </ComponentDetailsHeader>
 
         <NxStatefulTabs defaultActiveTab={tabIdPerIndex.indexOf(tabId)} onTabSelect={goToTab}>
@@ -131,6 +137,7 @@ ComponentDetails.propTypes = {
     reportTitle: PropTypes.string,
     format: componentDetailsTagsPropTypes.form,
     dependencyType: componentDetailsTagsPropTypes.dependencyType,
+    isInnerSource: componentDetailsTagsPropTypes.isInnerSource,
     labels: componentDetailsTagsPropTypes.label,
   }),
 };

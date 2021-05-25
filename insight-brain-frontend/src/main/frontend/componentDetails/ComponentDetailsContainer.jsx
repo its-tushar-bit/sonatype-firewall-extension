@@ -16,6 +16,7 @@ const reportMetaData = pick(['reportTime', 'reportTitle']);
 const deriveComponentDetails = (component, metadata) => ({
   name: component.derivedComponentName,
   dependencyType: component.derivedDependencyType,
+  isInnerSource: component.innerSource,
   format: formatFromComponent(component),
   applicationName: metadata.application.name,
   organizationName: metadata.application.organizationId, //TODO: get name for org Jira: CLM-18517

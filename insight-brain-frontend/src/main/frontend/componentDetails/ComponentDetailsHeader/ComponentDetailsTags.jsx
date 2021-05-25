@@ -8,10 +8,14 @@ import PropTypes from 'prop-types';
 import cx from 'classnames';
 import { DependencyTypeTag, ComponentLabelTag, ComponentFormatTag } from '../../react/tag';
 
-export const ComponentDetailsTags = ({ format, dependencyType, labels = [], ...props }) => {
-  if (!format && (!dependencyType || dependencyType === 'unknown') && labels.length === 0) {
+const nothingToRender = ({ format, dependencyType, isInnerSource, labels }) =>
+  !format && (!dependencyType || dependencyType === 'unknown') && !isInnerSource && labels.length === 0;
+
+export const ComponentDetailsTags = ({ format, dependencyType, isInnerSource, labels = [], ...props }) => {
+  if (nothingToRender({ format, dependencyType, isInnerSource, labels })) {
     return null;
   }
+  const showDependancyTypeTags = (!!dependencyType && dependencyType !== 'unknown') || isInnerSource;
   return (
     <dl {...props} className={cx('component-details-header__tags', props.className)}>
       {!!format && (
@@ -22,12 +26,19 @@ export const ComponentDetailsTags = ({ format, dependencyType, labels = [], ...p
           </dd>
         </Fragment>
       )}
-      {!!dependencyType && dependencyType !== 'unknown' && (
+      {showDependancyTypeTags && (
         <Fragment>
           <dt>Dependancy Type</dt>
-          <dd>
-            <DependencyTypeTag type={dependencyType} />
-          </dd>
+          {dependencyType && dependencyType !== 'unknown' && (
+            <dd>
+              <DependencyTypeTag type={dependencyType} />
+            </dd>
+          )}
+          {isInnerSource && (
+            <dd>
+              <DependencyTypeTag type="innerSource" />
+            </dd>
+          )}
         </Fragment>
       )}
       {labels.length > 0 && (
@@ -47,7 +58,8 @@ export const ComponentDetailsTags = ({ format, dependencyType, labels = [], ...p
 export const propTypes = {
   className: PropTypes.string,
   format: PropTypes.string,
-  dependencyType: PropTypes.oneOf(['direct', 'transitive', 'innersource', 'unknown']),
+  isInnerSource: PropTypes.bool,
+  dependencyType: PropTypes.oneOf(['direct', 'transitive', 'unknown']),
   labels: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string,

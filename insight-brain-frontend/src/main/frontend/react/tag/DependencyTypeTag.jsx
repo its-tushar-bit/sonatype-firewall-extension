@@ -28,5 +28,5 @@ export default function DependencyTypeTag({ type }) {
 }
 
 DependencyTypeTag.propTypes = {
-  type: PropTypes.oneOf(['direct', 'transitive', 'innersource']).isRequired,
+  type: PropTypes.oneOf(['direct', 'transitive', 'innerSource']).isRequired,
 };

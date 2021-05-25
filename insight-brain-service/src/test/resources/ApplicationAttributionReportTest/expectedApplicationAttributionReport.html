@@ -1,177 +1,57 @@
-<!DOCTYPE HTML>
-<!--
-  ~ Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
-  ~ Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
-  ~ "Sonatype" is a trademark of Sonatype, Inc.
-  -->
-<html lang="en">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-  <title>Application Report Content</title>
-  <style>
-    body {
-      margin: auto;
-      width: 90%;
-      font-family: Open Sans, sans-serif;
-    }
-
-    h1 {
-      width: 50%;
-      padding: 10px;
-      font-family: Open Sans, sans-serif;
-      font-size: 26px;
-      margin-bottom: 16px;
-      margin-top: 16px;
-    }
-
-    h4 {
-      font-family: Open Sans, sans-serif;
-      margin-bottom: 24px;
-      margin-top: 16px;
-    }
-
-    h5 {
-      margin-left: 20px;
-    }
-
-    pre {
-      /* text wrap in <pre>
-          https://css-tricks.com/snippets/css/make-pre-text-wrap/ */
-      white-space: pre-wrap; /* css-3 */
-      white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
-      white-space: -o-pre-wrap; /* Opera 7 */
-      word-wrap: break-word; /* Internet Explorer 5.5+ */
-    }
-
-    .licenseName {
-      font-family: Open Sans, sans-serif;
-      font-weight: 300;
-      color: #2C2000;
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-
-    .componentTitle {
-      font-family: Open Sans, sans-serif;
-      font-weight: 900;
-      color: #2C2C2C;
-      font-size: 26px;
-      margin-bottom: 32px;
-      margin-top: 32px;
-      width: 90%;
-    }
-
-    .fileContent {
-      font-family: Open Sans, sans-serif;
-      color: #2C2000;
-      font-size: 10px;
-      margin: 20px;
-    }
-
-    .subsection {
-      font-family: Open Sans, sans-serif;
-      font-weight: 300;
-      color: #2C2000;
-      font-size: 16px;
-      margin-left: 24px;
-    }
-
-    .containerBox {
-      border: 1px solid;
-      border-radius: 3px;
-      padding: 5px;
-      margin: 24px;
-      border-color: #B7BFDB;
-      background-color: #F4F5F9;
-    }
-
-    .componentBox {
-      width: 85%;
-      border: 1px solid darkslategrey;
-      padding: 10px;
-      border-radius: 3px;
-      border-color: #B7BFDB;
-      margin-bottom: 32px;
-    }
-
-    ul.csv {
-      list-style: none;
-      margin-left: 24px;
-      padding: 0;
-    }
-
-    ul.csv li {
-      display: inline;
-    }
-
-    ul.csv li:after {
-      content: ",";
-    }
-
-    ul.csv li:last-child:after {
-      content: "";
-    }
-  </style>
-</head>
 <body>
 <h1>Attribution Report for appId</h1>
 
 <!-- Component Loop -->
 <div class="componentBox">
-  <h2 class="componentTitle">component 1</h2>
+  <h2>component 1</h2>
+
+  <div class="component-divider"></div>
 
   <!-- Effective Licenses -->
-  <h4>Licensed Under</h4>
-  <ul class="csv">
-    <li class="licenseName">LicenseOneName</li>
-    <li class="licenseName">LicenseTwo</li>
+  <h3>Licenses</h3>
+  <ul class="report-list">
+    <li>LicenseOneName</li>
+    <li>LicenseTwo</li>
   </ul>
 
   <!-- Copyrights -->
-  <h4>
-    Copyright Statements</h4>
-  <pre class="subsection">Copyright 2020</pre>
+  <h3>
+    Copyright Notices</h3>
+  <ul class="report-list">
+    <li>Copyright 2020</li>
 
-  <pre class="subsection">Copyright 2021</pre>
+    <li>Copyright 2021</li>
+  </ul>
 
   <!-- Notice Files -->
 
 
   <!-- License Files -->
   <div>
-    <h4>License Files</h4>
-    <div class="containerBox">
-      <pre class="fileContent">LICENSE CONTENT</pre>
-    </div>
+    <h3>License Files</h3>
+    <blockquote>
+      <div>LICENSE CONTENT</div>
+    </blockquote>
 
   </div>
 
   <!-- Attributions -->
   <div>
-    <h4>Attributions</h4>
     <div>
-      <h5>Stated Changes</h5>
-      <div class="containerBox">
-        <pre class="fileContent">myAttributionContent</pre>
-      </div>
+      <h3>Stated Changes</h3>
+      <div>myAttributionContent</div>
     </div>
     <div>
-      <h5>Install Instructions</h5>
-      <div class="containerBox">
-        <pre class="fileContent">attribution 2</pre>
-      </div>
+      <h3>Install Instructions</h3>
+      <div>attribution 2</div>
     </div>
     <div>
-      <h5>Give Credit</h5>
-      <div class="containerBox">
-        <pre class="fileContent">attribution 3</pre>
-      </div>
+      <h3>Give Credit</h3>
+      <div>attribution 3</div>
     </div>
     <div>
-      <h5>Additional Attributions</h5>
-      <div class="containerBox">
-        <pre class="fileContent">attribution 4</pre>
-      </div>
+      <h3>Additional Attributions</h3>
+      <div>attribution 4</div>
     </div>
 
   </div>
@@ -181,24 +61,29 @@
 
 </div>
 <div class="componentBox">
-  <h2 class="componentTitle">component 2</h2>
+  <h2>component 2</h2>
+
+  <div class="component-divider"></div>
 
   <!-- Effective Licenses -->
-  <h4>Licensed Under</h4>
-  <ul class="csv">
-    <li class="licenseName">License Three</li>
+  <h3>Licenses</h3>
+  <ul class="report-list">
+    <li>License Three</li>
   </ul>
 
   <!-- Copyrights -->
 
+  <ul class="report-list">
 
+  </ul>
 
   <!-- Notice Files -->
   <div>
-    <h4>Notice Files</h4>
-    <div class="containerBox">
-      <pre class="fileContent">NOTICE CONTENT</pre>
-    </div>
+    <h3>Notice Files</h3>
+    <blockquote>
+
+      <div>NOTICE CONTENT</div>
+    </blockquote>
 
   </div>
 
@@ -210,7 +95,7 @@
 
   <!-- License Text -->
   <div>
-    <h4>Standard License Text</h4>
+    <h3>Standard License Text</h3>
     <div>
       <div>
 
@@ -220,17 +105,21 @@
 
 </div>
 <div class="componentBox">
-  <h2 class="componentTitle">component 3</h2>
+  <h2>component 3</h2>
+
+  <div class="component-divider"></div>
 
   <!-- Effective Licenses -->
-  <h4>Licensed Under</h4>
-  <ul class="csv">
-    <li class="licenseName">LicenseOneName</li>
+  <h3>Licenses</h3>
+  <ul class="report-list">
+    <li>LicenseOneName</li>
   </ul>
 
   <!-- Copyrights -->
 
+  <ul class="report-list">
 
+  </ul>
 
   <!-- Notice Files -->
 
@@ -243,19 +132,17 @@
 
   <!-- License Text -->
   <div>
-    <h4>Standard License Text</h4>
+    <h3>Standard License Text</h3>
     <div>
       <div>
         <div>
-          <div class="containerBox">
-            <pre class="fileContent">License One Standard License Text</pre>
-          </div>
+          <blockquote>
+            <div>License One Standard License Text</div>
+          </blockquote>
         </div>
       </div>
     </div>
   </div>
 
 </div>
-
 </body>
-</html>

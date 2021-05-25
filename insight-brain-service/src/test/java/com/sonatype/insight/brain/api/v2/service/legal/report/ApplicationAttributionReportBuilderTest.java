@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -132,11 +134,15 @@ public class ApplicationAttributionReportBuilderTest
     reportDTO.licenseLegalMetadata.add(licenseLegalMetadataDTO);
 
     String content = reportBuilder.generateLegalApplicationAttributionReport(application, BuildStageType.ID);
+    Document doc = Jsoup.parse(content);
+
+    String bodyContent = doc.select("body").first().toString();
+
     String expectedContent = IOUtils.toString(Objects.requireNonNull(getClass().getClassLoader()
             .getResource("ApplicationAttributionReportTest/expectedApplicationAttributionReport.html")),
         StandardCharsets.UTF_8);
 
-    assertThat(content).isEqualToIgnoringWhitespace(expectedContent);
+    assertThat(bodyContent).isEqualToIgnoringWhitespace(expectedContent);
   }
 
   @Test

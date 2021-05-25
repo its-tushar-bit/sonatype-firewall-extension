@@ -19,7 +19,7 @@ const deriveComponentDetails = (component, metadata) => ({
   isInnerSource: component.innerSource,
   format: formatFromComponent(component),
   applicationName: metadata.application.name,
-  organizationName: metadata.application.organizationId, //TODO: get name for org Jira: CLM-18517
+  organizationName: metadata.application.organization.name,
   ...reportMetaData(metadata),
 });
 

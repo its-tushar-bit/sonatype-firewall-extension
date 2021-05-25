@@ -24,6 +24,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -108,7 +109,7 @@ public class ReportServiceTest
 
   private ReportService createReportService() {
     return new ReportService(insightWork, reportDownloader, new PolicyEvaluationDAO(), insightConfig,
-        new ApplicationDAO(), thirdPartyDataServiceSpy, telemetrySender);
+        new ApplicationDAO(), new OrganizationDAO(), thirdPartyDataServiceSpy, telemetrySender);
   }
 
   @Test
@@ -291,6 +292,9 @@ public class ReportServiceTest
     // Verify Response for scan 1
     ReportMetadataDTO metadata = reportService.getReportMetadata(app.getPublicId(), scanId1);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getApplication().getOrganization()).isNotNull();
+    assertThat(metadata.getApplication().getOrganization().getId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval1.getTime());
     assertThat(metadata.getScanTriggerType()).isEqualTo(eval1.getScanTriggerType().getDisplayName());
@@ -303,6 +307,9 @@ public class ReportServiceTest
     // Verify Response for scan 2
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getApplication().getOrganization()).isNotNull();
+    assertThat(metadata.getApplication().getOrganization().getId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getReportTitle()).isEqualTo("Release Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval2.getTime());
     assertThat(metadata.getScanTriggerType()).isEqualTo(eval2.getScanTriggerType().getDisplayName());
@@ -317,6 +324,9 @@ public class ReportServiceTest
         true /* isReevaluation */, true/* isForMonitoring */, new Date(System.currentTimeMillis() + 1));
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
+    assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
+    assertThat(metadata.getApplication().getOrganization()).isNotNull();
+    assertThat(metadata.getApplication().getOrganization().getId()).isEqualTo(app.getOrganizationId());
     assertThat(metadata.getReportTitle()).isEqualTo("Build Report");
     assertThat(metadata.getReportTime()).isEqualTo(eval3.getTime());
     assertThat(metadata.getScanTriggerType()).isEqualTo(eval3.getScanTriggerType().getDisplayName());

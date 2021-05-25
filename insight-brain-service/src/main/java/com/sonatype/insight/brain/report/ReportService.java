@@ -23,8 +23,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -62,6 +64,8 @@ public class ReportService
 
   private final ApplicationDAO applicationDAO;
 
+  private final OrganizationDAO organizationDAO;
+
   private final ThirdPartyDataService thirdPartyDataService;
 
   private final TelemetrySender telemetrySender;
@@ -73,6 +77,7 @@ public class ReportService
       PolicyEvaluationDAO policyEvaluationDAO,
       InsightConfig insightConfig,
       ApplicationDAO applicationDAO,
+      OrganizationDAO organizationDAO,
       ThirdPartyDataService thirdPartyDataService,
       TelemetrySender telemetrySender)
   {
@@ -81,6 +86,7 @@ public class ReportService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.insightConfig = insightConfig;
     this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
     this.thirdPartyDataService = thirdPartyDataService;
     this.telemetrySender = telemetrySender;
   }
@@ -174,7 +180,8 @@ public class ReportService
       final String applicationPublicId,
       final String scanId) throws IOException
   {
-    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Application application = getApplicationWithOrganizationInformation(applicationPublicId);
+
     ReportMetadataDTO metadata = new ReportMetadataDTO();
     metadata.setApplication(application);
 
@@ -184,7 +191,7 @@ public class ReportService
     if (expandedCoverage) {
       throw new BadRequestException(
           "Expanded Coverage (XC) is no longer supported. " +
-          "We have incorporated support for all languages that were maintained in XC in Lifecycle");
+              "We have incorporated support for all languages that were maintained in XC in Lifecycle");
     }
     PolicyEvaluation evaluation = new PolicyEvaluationDAO().getLastByApplicationIdAndScanId(application.getId(),
         scanId);
@@ -207,6 +214,13 @@ public class ReportService
     }
 
     return metadata;
+  }
+
+  private Application getApplicationWithOrganizationInformation(final String applicationPublicId) {
+    Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Organization organization = organizationDAO.getByIdNotNull(application.getOrganizationId());
+    application.setOrganization(organization);
+    return application;
   }
 
   public ReportEntry getBomForPolicyEvaluation(PolicyEvaluation policyEvaluation) throws IOException {

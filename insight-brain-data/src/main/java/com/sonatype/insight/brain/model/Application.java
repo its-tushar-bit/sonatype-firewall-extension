@@ -11,10 +11,13 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Entity
 @Table(name = "application")
@@ -42,6 +45,10 @@ public class Application
 
   @Column(name = "contact_internal_name")
   private String contactInternalName;
+
+  @Transient
+  @JsonInclude(Include.NON_EMPTY)
+  private Organization organization = null;
 
   /**
    * @since 1.50
@@ -178,5 +185,13 @@ public class Application
 
   public void setPolicyViolationGrandfatheringEnabled(Boolean policyViolationGrandfatheringEnabled) {
     this.policyViolationGrandfatheringEnabled = policyViolationGrandfatheringEnabled;
+  }
+
+  public Organization getOrganization() {
+    return organization;
+  }
+
+  public void setOrganization(final Organization organization) {
+    this.organization = organization;
   }
 }

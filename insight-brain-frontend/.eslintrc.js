@@ -26,6 +26,7 @@ module.exports = {
     JiraServiceMockData: false,
     ResourceUtils: false,
     StoreMockData: false,
+    SystemNoticeMockData: false,
     StoreUtils: false,
     PolicyTileMockData: false,
     ProprietaryMockData: false,

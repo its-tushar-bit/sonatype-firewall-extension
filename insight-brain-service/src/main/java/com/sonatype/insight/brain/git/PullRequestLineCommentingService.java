@@ -151,16 +151,19 @@ public class PullRequestLineCommentingService
           CommentResponse response = gitApiClient
               .createPullRequestLineComment(pullRequestId, lineCommentDTO.getMarkup(), commitHash,
                   lineCommentDTO.getDiffPosition());
-          lineCommentDTO.setScmId(response.getId());
-          lineCommentDTO.setScmVersion(response.getVersion());
 
-          //Add the line comment details to the database
-          SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
-              applicationId, lineCommentDTO.getHash(), pullRequestId, response.getId(),
-              response.getVersion(), sourcePolicyEvaluationId, basePolicyEvaluationId);
-          pullRequestCommentDAO.insert(pullRequestComment);
+          if (response.getId() != null) {
+            lineCommentDTO.setScmId(response.getId());
+            lineCommentDTO.setScmVersion(response.getVersion());
 
-          successfulCount++;
+            //Add the line comment details to the database
+            SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
+                applicationId, lineCommentDTO.getHash(), pullRequestId, response.getId(),
+                response.getVersion(), sourcePolicyEvaluationId, basePolicyEvaluationId);
+            pullRequestCommentDAO.insert(pullRequestComment);
+
+            successfulCount++;
+          }
         }
         catch (IOException e) {
           log.error("Cannot create PR line comment", e);

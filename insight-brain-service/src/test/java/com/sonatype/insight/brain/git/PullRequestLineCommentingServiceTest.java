@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -88,6 +89,10 @@ public class PullRequestLineCommentingServiceTest
 
   private final ComponentIdentifier identifier2 =
       ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "2.0");
+
+  private final DiffPosition diffPosition1 =  new DiffPosition("path", 1, 0, 1, 1);
+
+  private final DiffPosition diffPosition2 = new DiffPosition("path", 2, 1, 2, 2);
 
   public PullRequestLineCommentingServiceTest() {
     super(PullRequestLineCommentingService.class);
@@ -330,6 +335,32 @@ public class PullRequestLineCommentingServiceTest
     assertThat(lineComments.size()).isEqualTo(2);
   }
 
+  @Test
+  public void testCreatePullRequestLineComments_bitbucket() throws Exception {
+    // given:
+    when(gitRepositoryInfo.getProvider()).thenReturn(SourceControlProvider.BITBUCKET);
+    PullRequestLineCommentingService service = new TestablePullRequestLineCommentingServiceBuilder()
+        .withTwoComponentsFoundInCode()
+        .withTwoComponentsFoundInPrDiff()
+        .build();
+    CommentResponse response = new DefaultCommentResponse();
+    response.setId(scmId);
+    when(mockGitApiClient.createPullRequestLineComment(anyInt(), anyString(), anyString(), eq(diffPosition1)))
+        .thenReturn(response);
+    when(mockGitApiClient.createPullRequestLineComment(anyInt(), anyString(), anyString(), eq(diffPosition2)))
+        .thenReturn(new DefaultCommentResponse());
+
+    // when: try to create line comments
+    List<PullRequestLineCommentDTO> lineComments = service.createPullRequestLineComments(getViolationList(2),
+        gitRepositoryInfo, remediationVersionMap, pullRequestId, commitHash, applicationId,
+        sourcePolicyEvaluationId, basePolicyEvaluationId, locationDiscoveryResult);
+
+    // then: only one comment should be created
+    verify(mockGitClientFactory, atLeastOnce()).createApiClient(any());
+    assertThat(lineComments).isNotEmpty();
+    assertThat(lineComments.size()).isEqualTo(1);
+  }
+
   private List<PolicyViolation> getViolationList(int itemCount) {
     List<PolicyViolation> violations = new LinkedList<>();
     PolicyViolation violation = new PolicyViolation();
@@ -392,11 +423,12 @@ public class PullRequestLineCommentingServiceTest
         if (positionsAvailable) {
           PositionDiscoveryResult positionDiscoveryResult = new PositionDiscoveryResult();
           List<DiffPosition> list = new LinkedList<>();
-          list.add(new DiffPosition("path", 1, 1, 1));
+          list.add(diffPosition1);
           positionDiscoveryResult.addDiffPositionsForComponent(identifier1, list);
           if (componentsFoundInPrDiff == 2) {
             list = new LinkedList<>();
-            list.add(new DiffPosition("path", 2, 2, 2));
+            // this diff position is for an unchanged line in the PR diff
+            list.add(diffPosition2);
             positionDiscoveryResult.addDiffPositionsForComponent(identifier2, list);
           }
           when(mockPositionDiscoveryExecutor.execute(anyMap(), anyInt(), any())).thenReturn(positionDiscoveryResult);

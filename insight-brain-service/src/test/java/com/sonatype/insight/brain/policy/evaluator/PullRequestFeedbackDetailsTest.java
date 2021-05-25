@@ -715,7 +715,7 @@ public class PullRequestFeedbackDetailsTest
 
     //setup pullRequestLineComments
     pullRequestLineComments = new ArrayList<>();
-    PullRequestLineCommentDTO lineCommentDTO = new PullRequestLineCommentDTO(ci, new DiffPosition("path", 1, 1, 1));
+    PullRequestLineCommentDTO lineCommentDTO = new PullRequestLineCommentDTO(ci, new DiffPosition("path", 1, 0, 1, 1));
     lineCommentDTO.setScmId(12345);
     pullRequestLineComments.add(lineCommentDTO);
 

@@ -124,7 +124,7 @@ public class PullRequestFeedbackMarkupServiceTest
     //setup pullRequestLineComments
     List<PullRequestLineCommentDTO> pullRequestLineComments = new ArrayList<>();
     PullRequestLineCommentDTO lineCommentDTO =
-        new PullRequestLineCommentDTO(componentIdentifier, new DiffPosition("path", 1, 1, 1));
+        new PullRequestLineCommentDTO(componentIdentifier, new DiffPosition("path", 1, 0, 1, 1));
     lineCommentDTO.setScmId(12345);
     pullRequestLineComments.add(lineCommentDTO);
 

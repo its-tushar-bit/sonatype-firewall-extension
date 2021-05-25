@@ -43,32 +43,29 @@ public class SourceControlRateLimitTelemetryCollectorTest
     // and then: the telemetry data is what we expect
     telemetryDataList.forEach(data -> {
       Map attributeMap = data.getAttributes();
-      String scm = (String)attributeMap.get(SourceControlRateLimitTelemetryCollector.SCM);
-      String userHash = (String)attributeMap.get(SourceControlRateLimitTelemetryCollector.USER_HASH);
-      Integer calls = (Integer)attributeMap.get(SourceControlRateLimitTelemetryCollector.CALLS);
-      Integer minRemaining = (Integer)attributeMap.get(SourceControlRateLimitTelemetryCollector.MIN_REMAINING);
-      Integer timesExceeded = (Integer)attributeMap.get(SourceControlRateLimitTelemetryCollector.TIMES_EXCEEDED);
+      SourceControlRateLimitTelemetry rateLimitTelemetry =
+          (SourceControlRateLimitTelemetry)attributeMap.get(SourceControlRateLimitTelemetry.SOURCE_CONTROL_RATE_LIMITS);
 
-      switch (minRemaining) {
+      switch (rateLimitTelemetry.minRemaining) {
         case 123:
-          assertThat(userHash).isEqualTo(DigestUtils.sha512Hex("user123"));
-          assertThat(timesExceeded).isZero();
-          assertThat(scm).isEqualTo("some-scm");
-          assertThat(calls).isEqualTo(1);
+          assertThat(rateLimitTelemetry.userHash).isEqualTo(DigestUtils.sha512Hex("user123"));
+          assertThat(rateLimitTelemetry.timesExceeded).isZero();
+          assertThat(rateLimitTelemetry.scm).isEqualTo("some-scm");
+          assertThat(rateLimitTelemetry.calls).isEqualTo(1);
           break;
 
         case 456:
-          assertThat(userHash).isEqualTo(DigestUtils.sha512Hex("user456"));
-          assertThat(timesExceeded).isEqualTo(1);
-          assertThat(scm).isEqualTo("some-scm");
-          assertThat(calls).isEqualTo(2);
+          assertThat(rateLimitTelemetry.userHash).isEqualTo(DigestUtils.sha512Hex("user456"));
+          assertThat(rateLimitTelemetry.timesExceeded).isEqualTo(1);
+          assertThat(rateLimitTelemetry.scm).isEqualTo("some-scm");
+          assertThat(rateLimitTelemetry.calls).isEqualTo(2);
           break;
 
         case 789:
-          assertThat(userHash).isEqualTo(DigestUtils.sha512Hex("user789"));
-          assertThat(timesExceeded).isEqualTo(2);
-          assertThat(scm).isEqualTo("other-scm");
-          assertThat(calls).isEqualTo(3);
+          assertThat(rateLimitTelemetry.userHash).isEqualTo(DigestUtils.sha512Hex("user789"));
+          assertThat(rateLimitTelemetry.timesExceeded).isEqualTo(2);
+          assertThat(rateLimitTelemetry.scm).isEqualTo("other-scm");
+          assertThat(rateLimitTelemetry.calls).isEqualTo(3);
           break;
 
         default:

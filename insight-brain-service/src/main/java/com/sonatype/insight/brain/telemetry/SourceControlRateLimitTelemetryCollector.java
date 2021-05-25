@@ -25,16 +25,6 @@ import org.apache.shiro.util.CollectionUtils;
 public class SourceControlRateLimitTelemetryCollector
     implements TelemetryCollector
 {
-  public static final String SCM = "scm";
-
-  public static final String USER_HASH = "user_hash";
-
-  public static final String CALLS = "calls";
-
-  public static final String MIN_REMAINING = "min_remaining";
-
-  public static final String TIMES_EXCEEDED = "times_exceeded";
-
   public static final String NONE = "none";
 
   @Override
@@ -64,11 +54,13 @@ public class SourceControlRateLimitTelemetryCollector
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS);
 
-    telemetryData.put(SCM, clientId);
-    telemetryData.put(USER_HASH, DigestUtils.sha512Hex(userId));
-    telemetryData.put(CALLS, calls);
-    telemetryData.put(MIN_REMAINING, minRemaining);
-    telemetryData.put(TIMES_EXCEEDED, timesExceeded);
+    telemetryData.put(SourceControlRateLimitTelemetry.SOURCE_CONTROL_RATE_LIMITS, new SourceControlRateLimitTelemetry(
+        clientId,
+        DigestUtils.sha512Hex(userId),
+        calls,
+        minRemaining,
+        timesExceeded
+    ));
 
     telemetryDataList.add(telemetryData);
   }

@@ -42,7 +42,7 @@ import com.sonatype.insight.brain.telemetry.PropertiesTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.RealmTelemetryCollector;
 import com.sonatype.insight.brain.telemetry.RestEndpointTelemetry;
 import com.sonatype.insight.brain.telemetry.SourceControlMetricsTelemetryCollector;
-import com.sonatype.insight.brain.telemetry.SourceControlRateLimitTelemetryCollector;
+import com.sonatype.insight.brain.telemetry.SourceControlRateLimitTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetryContainerRequestFilter;
 import com.sonatype.insight.brain.telemetry.TelemetryScheduler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -153,11 +153,7 @@ public class InsightBrainServiceTest
           break;
         case SOURCE_CONTROL_RATE_LIMITS:
           assertThat(telemetryDataReceived.getAttributes())
-              .containsEntry(SourceControlRateLimitTelemetryCollector.SCM,
-                  SourceControlRateLimitTelemetryCollector.NONE)
-              .containsEntry(SourceControlRateLimitTelemetryCollector.CALLS, 0)
-              .containsEntry(SourceControlRateLimitTelemetryCollector.MIN_REMAINING, 0)
-              .containsEntry(SourceControlRateLimitTelemetryCollector.TIMES_EXCEEDED, 0);
+              .containsKey(SourceControlRateLimitTelemetry.SOURCE_CONTROL_RATE_LIMITS);
           break;
         case POLICY_STATUS_OVERRIDE:
           assertThat(telemetryDataReceived.getAttributes())

@@ -16,11 +16,12 @@
 .component-details-header__reportinfo {
   display: flex;
   flex-flow: wrap;
-  gap: $iq-spacing-md;
   margin-bottom: $iq-spacing-md;
 
   .component-details-header__reportinfo-item {
-    white-space: nowrap;
+    overflow-wrap: break-all;
+    max-width: 100%;
+    margin-right: $iq-spacing-md;
   }
 
   .component-details-header__reportinfo-item > .component-details-header__reportinfo-icon {

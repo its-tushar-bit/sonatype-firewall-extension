@@ -63,6 +63,8 @@ public class DependencyResolver
 
   private static final String FIELD_INNER_SOURCE = "innerSource";
 
+  private static final String PURL_PREFIX = "pkg:";
+
   private final JsonNode dependenciesJson;
 
   private final JsonNode bomJson;
@@ -227,12 +229,9 @@ public class DependencyResolver
     ComponentIdentifier dependencyId = directDependency.getComponentIdentifier();
 
     if (dependencyId != null) {
-      ComponentIdentifier simplifiedComponent =
-          ComponentIdentifier.createMavenCoordinates(dependencyId.get(ComponentIdentifier.MAVEN_GROUP_ID),
-              dependencyId.get(ComponentIdentifier.MAVEN_ARTIFACT_ID), null);
-
+      PackageUrlIdentifier simplifiedPurl = InnerSourceUtils.getVersionlessPackageUrl(dependencyId);
       InnerSourceComponent innerSourceComponent =
-          innerSourceComponentDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(simplifiedComponent));
+          simplifiedPurl == null ? null : innerSourceComponentDAO.getByPackageUrl(simplifiedPurl);
 
       if (innerSourceComponent != null) {
         Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceComponent.getApplicationId());
@@ -460,10 +459,20 @@ public class DependencyResolver
     ComponentIdentifier bomComponentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(bomChild);
 
     if (bomComponentIdentifier == null) {
-      String path = StringUtils.substringAfterLast(bomChild.withArray("pathnames").get(0).asText(), "/");
-      bomComponentIdentifier = ComponentIdentifierHelper.parseMavenId(path);
+      bomComponentIdentifier = parsePathToId(bomChild.withArray("pathnames").get(0).asText());
     }
     return bomComponentIdentifier;
+  }
+
+  private ComponentIdentifier parsePathToId(final String pathnames) {
+    String path;
+    if (StringUtils.contains(pathnames, PURL_PREFIX)) {
+      path = StringUtils.substring(pathnames, pathnames.indexOf(PURL_PREFIX), pathnames.length());
+    }
+    else {
+      path = StringUtils.substringAfterLast(pathnames, "/");
+    }
+    return ComponentIdentifierHelper.parseId(path);
   }
 
   private Set<ComponentIdentifier> getDirectDependencies(List<DependencyNode> children) {

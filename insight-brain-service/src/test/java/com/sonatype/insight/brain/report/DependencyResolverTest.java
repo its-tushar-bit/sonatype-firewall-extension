@@ -659,6 +659,35 @@ public class DependencyResolverTest
         Collections.singleton(knownTransitive), expectedInnerSourceData);
   }
 
+  @Test
+  public void testResolve_npm() throws Exception {
+    Application appInnerSource = tempEntity.newApplicationWithParent();
+
+    InnerSourceComponent producerOne =
+        tempEntity.newInnerSourceComponent("pkg:npm/producer-one", appInnerSource);
+    InnerSourceComponent producerTwo = tempEntity
+        .newInnerSourceComponent("pkg:npm/producer-two", appInnerSource);
+    tempEntity.newInnerSourceComponent("pkg:npm/consumer", app);
+
+    JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-npm/dependencies.json");
+    JsonNode bomJson = getJsonNodeInformation("report-innersource-npm/bom.json");
+    JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm/summary.json");
+    JsonNode dataJson = getJsonNodeInformation("report-innersource-npm/data.json");
+
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
+
+    List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
+    assertInnerSourceInformation(bomJson, 2, 6, null, bomInnerSourceDependencies);
+
+    assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
+    assertSummaryCounters(summaryJson, dataJson, 11);
+
+    Set<String> innerSourceIds = new HashSet<>();
+    innerSourceIds.add(producerOne.getApplicationId());
+    innerSourceIds.add(producerTwo.getApplicationId());
+    assertTelemetryInformation(app.getId(), innerSourceIds);
+  }
+
   private void assertInnerSourceInformation(
       final JsonNode bomJson,
       int expectedISComponents,

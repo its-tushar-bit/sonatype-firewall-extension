@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import NoticeDetailsHeader from './NoticeDetailsHeader';
 import { loadComponentAndNoticeDetails } from './componentNoticeDetailsActions';
+import { setShowNoticesModal } from '../advancedLegalFileActions';
 
 function mapStateToProps({ advancedLegal, router, componentNoticeDetails }) {
   const component = advancedLegal.component || {};
@@ -26,10 +27,12 @@ function mapStateToProps({ advancedLegal, router, componentNoticeDetails }) {
     error: component.error || availableScopes.error,
     availableScopes,
     ...pick(['hash', 'ownerType', 'ownerId', 'noticeIndex', 'stageTypeId'], routerParams),
+    showNoticesModal: component.component ? component.component.licenseLegalData.showNoticesModal : false,
   };
 }
 
 const mapDispatchToProps = {
+  setShowNoticesModal,
   loadComponentAndNoticeDetails,
 };
 

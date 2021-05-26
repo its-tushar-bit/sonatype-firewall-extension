@@ -25,6 +25,17 @@ export function loadComponentAndNoticeDetails(ownerType, ownerId, hash, noticeIn
   };
 }
 
+export function refreshNoticeFilesDetails() {
+  return (dispatch, getState) => {
+    const currentParams = getState().router && getState().router.currentParams;
+    return (
+      currentParams &&
+      currentParams.noticeIndex &&
+      dispatchSelectedNotice(dispatch, getState(), currentParams.noticeIndex)
+    );
+  };
+}
+
 function dispatchSelectedNotice(dispatch, state, noticeIndex) {
   const { notice } = extractRoutingParameters(state, noticeIndex);
   dispatch(

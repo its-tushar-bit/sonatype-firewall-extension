@@ -11,6 +11,7 @@ import { Messages } from '../../util/CommonServices';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { isScopeOverride } from '../legalUtility';
 import { saveObligation } from '../obligation/advancedLegalObligationActions';
+import { refreshNoticeFilesDetails } from './notices/componentNoticeDetailsActions';
 
 export const ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL';
 export const ADVANCED_LEGAL_CANCEL_NOTICES_MODAL = 'ADVANCED_LEGAL_CANCEL_NOTICES_MODAL';
@@ -73,6 +74,7 @@ export function saveNotices({ existingObligation, isNoticesDirty, isObligationDi
             .get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier, 'notice'))
             .then((responsePayload) => {
               dispatch(saveNoticesSucceeded(responsePayload.data));
+              dispatch(refreshNoticeFilesDetails());
               isObligationDirty
                 ? saveObligation(existingObligation.name)(dispatch, getState)
                 : startSaveNoticesSubmitMaskDoneTimer(dispatch);

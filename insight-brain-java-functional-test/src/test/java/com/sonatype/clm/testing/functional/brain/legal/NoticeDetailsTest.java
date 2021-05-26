@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage.NoticeFileEditor;
+import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage.NoticeHeader;
 import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage.NoticeList;
 import com.sonatype.clm.testing.functional.pages.ComponentNoticeDetailsPage.NoticeOverview;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
@@ -128,5 +130,25 @@ public class NoticeDetailsTest
 
     refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
     noticeOverview.shouldHave(text(noticeFileOverride.getContent()));
+  }
+
+  @Test
+  public void testEditNotice() {
+    refreshOrOpen(ComponentNoticeDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    final NoticeHeader noticeHeader = ComponentNoticeDetailsPage.noticeHeader();
+
+    final SelenideElement noticeEditButton = noticeHeader.noticeEditButton();
+    noticeEditButton.click();
+
+    final String noticeText = "text of added notice";
+    final NoticeFileEditor editorModal = ComponentNoticeDetailsPage.noticeFileEditor();
+    editorModal.noticeText(1).setValue(noticeText);
+    editorModal.saveButton().click();
+
+    final NoticeOverview noticeOverview = ComponentNoticeDetailsPage.noticeOverview();
+    final NoticeList noticeList = ComponentNoticeDetailsPage.noticeList();
+    SelenideElement secondNotice = noticeList.itemAt(2);
+    secondNotice.lastChild().click();
+    noticeOverview.shouldHave(text(noticeText));
   }
 }

@@ -6,9 +6,11 @@
 import React, { useEffect } from 'react';
 import { availableScopesPropType } from '../../advancedLegalPropTypes';
 import LoadWrapper from '../../../react/LoadWrapper';
-import { NxBackButton } from '@sonatype/react-shared-components';
+import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { createSubtitle } from '../../legalUtility';
+import { faPen } from '@fortawesome/pro-solid-svg-icons';
+import NoticesModalContainer from './NoticesModalContainer';
 
 export default function NoticeDetailsHeader(props) {
   const {
@@ -21,6 +23,8 @@ export default function NoticeDetailsHeader(props) {
     noticeIndex,
     $state,
     loadComponentAndNoticeDetails,
+    setShowNoticesModal,
+    showNoticesModal,
   } = props;
 
   const backUrl = () => {
@@ -45,7 +49,14 @@ export default function NoticeDetailsHeader(props) {
       <div className="nx-page-title">
         <h1 className="nx-h1">Notice Files</h1>
         {createSubtitle(availableScopes)}
+        <div className="nx-tile__actions">
+          <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>
+            <NxFontAwesomeIcon icon={faPen} />
+            <span>{'Edit'}</span>
+          </NxButton>
+        </div>
       </div>
+      {showNoticesModal && <NoticesModalContainer />}
     </LoadWrapper>
   );
 }
@@ -59,6 +70,8 @@ NoticeDetailsHeader.propTypes = {
   noticeIndex: PropTypes.string,
   availableScopes: availableScopesPropType,
   $state: PropTypes.object.isRequired,
+  showNoticesModal: PropTypes.bool.isRequired,
+  setShowNoticesModal: PropTypes.func.isRequired,
 
   loadComponentAndNoticeDetails: PropTypes.func.isRequired,
 };

@@ -36,6 +36,14 @@ public final class ComponentNoticeDetailsPage
     return new NoticeList();
   }
 
+  public static NoticeHeader noticeHeader() {
+    return new NoticeHeader();
+  }
+
+  public static NoticeFileEditor noticeFileEditor() {
+    return new NoticeFileEditor();
+  }
+
   public static class NoticeOverview
       extends BasicElement<NoticeOverview>
   {
@@ -81,6 +89,38 @@ public final class ComponentNoticeDetailsPage
 
     public SelenideElement attributionInclusion(final int index) {
       return itemAt(index).$("div.nx-list__subtext");
+    }
+  }
+
+  public static class NoticeHeader
+      extends BasicElement<NoticeHeader>
+  {
+    private static final String NOTICE_HEADER_SELECTOR = "notice-details-header";
+
+    public NoticeHeader() {
+      super(NOTICE_HEADER_SELECTOR);
+    }
+
+    public static SelenideElement noticeEditButton() {
+      return $("notice-details-header button.nx-btn--tertiary");
+    }
+  }
+
+  public static class NoticeFileEditor
+      extends BasicElement<ComponentNoticeDetailsPage.NoticeFileEditor>
+  {
+    private static final String NOTICE_EDITOR_MODAL_SELECTOR = "notice-details-header div.nx-modal-backdrop";
+
+    public NoticeFileEditor() {
+      super(NOTICE_EDITOR_MODAL_SELECTOR);
+    }
+
+    public SelenideElement noticeText(final int index) {
+      return $(String.format("td:nth-child(%d) textarea", index));
+    }
+
+    public SelenideElement saveButton() {
+      return $("button.nx-form__submit-btn");
     }
   }
 }

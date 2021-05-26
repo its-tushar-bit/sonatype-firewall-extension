@@ -7,6 +7,7 @@
 import {
   loadComponentAndNoticeDetails,
   NOTICE_DETAILS_SELECTED_NOTICE,
+  refreshNoticeFilesDetails,
 } from '../../../../../main/frontend/legal/files/notices/componentNoticeDetailsActions';
 
 describe('ComponentNoticeDetailsAction', function () {
@@ -47,11 +48,11 @@ describe('ComponentNoticeDetailsAction', function () {
         ownerType: 'organization',
         ownerId: 'org',
         hash: 'componentHash',
-        copyrightIndex: '0',
+        noticeIndex: '1',
       },
     },
-    componentCopyrightDetails: {
-      copyrightIndex: 1,
+    componentNoticeDetails: {
+      noticeIndex: 1,
     },
   };
 
@@ -59,6 +60,17 @@ describe('ComponentNoticeDetailsAction', function () {
     it('immediately dispatches a NOTICE_DETAILS_SELECTED_NOTICE action. Component already in state', function () {
       store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(loadComponentAndNoticeDetails('organization', 'org', 'componentHash', 1));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(NOTICE_DETAILS_SELECTED_NOTICE);
+    });
+  });
+
+  describe('refresh notice file details', function () {
+    it('immediately dispatches a NOTICE_DETAILS_SELECTED_NOTICE action', function () {
+      store = SpecUtil.mockReduxStore(initialState);
+      store.dispatch(refreshNoticeFilesDetails());
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);

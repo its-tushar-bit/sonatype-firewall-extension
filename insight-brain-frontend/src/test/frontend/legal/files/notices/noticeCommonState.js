@@ -9,6 +9,7 @@ export const noticeState = {
     component: {
       component: {
         licenseLegalData: {
+          showNoticesModal: false,
           noticeFiles: [
             {
               relPath: '/test/NOTICE',

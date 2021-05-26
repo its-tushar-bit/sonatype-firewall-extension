@@ -235,6 +235,7 @@ INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('f
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('6c521879906a4fdf8d27c652787243b4', '0df46317c031440795007f4ce9c7f002', 'LEGAL_REVIEWER');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('9c3d3a466bed410fa8d8c8801f3a0c13', '0df46317c031440795007f4ce9c7f002', 'WRITE');
 INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('4209ad3cdcfd474b865c51c0d664ea2a', '0df46317c031440795007f4ce9c7f002', 'READ');
+INSERT INTO role_permission (role_permission_id, role_id, permission) VALUES ('16ef4730b20f42e6bcfc14afcd42cd6d', '0df46317c031440795007f4ce9c7f002', 'CHANGE_LICENSES');
 
 CREATE TABLE membership_mapping (
   membership_mapping_id varchar(50) NOT NULL,

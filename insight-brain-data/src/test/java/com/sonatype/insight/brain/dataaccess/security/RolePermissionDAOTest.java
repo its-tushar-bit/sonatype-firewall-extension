@@ -67,6 +67,15 @@ public class RolePermissionDAOTest
   }
 
   @Test
+  public void testLegalReviewerRoleHasExpectedPermissions() throws Exception {
+   Role role = roleDAO.getById(Role.LEGAL_REVIEW_ROLE_ID);
+    assertThat(role).isNotNull();
+    Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
+    assertThat(perms).containsExactlyInAnyOrder(Permission.READ, Permission.WRITE, Permission.LEGAL_REVIEWER,
+        Permission.CHANGE_LICENSES);
+  }
+
+  @Test
   public void testGetRoleIdsByPermission() throws Exception {
     String roleId = tempEntity.newRole("testing", false /* global */).getId();
     for (Permission perm : Permission.values()) {

@@ -70,7 +70,7 @@ public class ScannerTest extends InjectedTest
   }
 
   @Test
-  public void testScanWithProprietaryRegex() throws Exception {
+  public void testScan_ProprietaryRegex() throws Exception {
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();
     proprietaryConfig.setRegexes(Collections.singletonList(".*prop.*\\.jar"));
 
@@ -91,7 +91,7 @@ public class ScannerTest extends InjectedTest
   }
 
   @Test
-  public void testScan_sbomFile() throws Exception {
+  public void testScanContent_SbomFile() throws Exception {
     String sbom =
         FileUtils.readFileToString(new File("src/test/resources/ScannerTest/iq-scan-sbom.xml"), StandardCharsets.UTF_8)
             .replace("\r\n", "\n");
@@ -115,7 +115,7 @@ public class ScannerTest extends InjectedTest
   }
 
   @Test
-  public void testSourceControlScan() throws Exception {
+  public void testScan_SourceControl() throws Exception {
     // given: setup and configs what would be used by a client for a source control scan
     File scanDir = new File("src/test/resources/ScannerTest/sourceControlScan");
     ProprietaryConfig proprietaryConfig = new ProprietaryConfig();

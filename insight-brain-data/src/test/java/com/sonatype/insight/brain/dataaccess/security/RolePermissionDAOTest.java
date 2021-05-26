@@ -68,7 +68,7 @@ public class RolePermissionDAOTest
 
   @Test
   public void testLegalReviewerRoleHasExpectedPermissions() throws Exception {
-   Role role = roleDAO.getById(Role.LEGAL_REVIEW_ROLE_ID);
+    Role role = roleDAO.getById(Role.LEGAL_REVIEWER_ROLE_ID);
     assertThat(role).isNotNull();
     Set<Permission> perms = permDAO.getPermissionsForRole(role.getId());
     assertThat(perms).containsExactlyInAnyOrder(Permission.READ, Permission.WRITE, Permission.LEGAL_REVIEWER,

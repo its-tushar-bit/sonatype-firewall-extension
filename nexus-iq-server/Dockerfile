@@ -23,8 +23,9 @@ LABEL vendor=Sonatype \
 USER root
 
 # For testing
-RUN dnf update --allowerasing -y \
-&& dnf install -y procps
+RUN dnf update --allowerasing --skip-broken --nobest -y \
+&& dnf install -y procps \
+&& dnf clean all
 
 # Create folders
 RUN mkdir -m 0755 -p ${TEMP} \

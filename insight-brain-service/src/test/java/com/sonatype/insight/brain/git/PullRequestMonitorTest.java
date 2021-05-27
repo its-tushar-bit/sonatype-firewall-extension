@@ -53,11 +53,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PullRequestDetailsUpdaterTest
+public class PullRequestMonitorTest
     extends AbstractComponentTest
 {
   @Inject
-  private PullRequestDetailsUpdater pullRequestDetailsUpdater;
+  private PullRequestMonitor pullRequestMonitor;
 
   @Inject
   private InsightConfig insightConfig;
@@ -95,39 +95,39 @@ public class PullRequestDetailsUpdaterTest
 
   @Test
   public void testDisallowConcurrentExecution() {
-    assertThat(JobBuilder.newJob(PullRequestDetailsUpdater.class).build().isConcurrentExectionDisallowed()).isTrue();
+    assertThat(JobBuilder.newJob(PullRequestMonitor.class).build().isConcurrentExectionDisallowed()).isTrue();
   }
 
   @Test
   public void testStart_FeatureEnabled() throws Exception {
     insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.PR_COMMENT_MONITORING.getFlag(), true));
 
-    pullRequestDetailsUpdater.start();
+    pullRequestMonitor.start();
 
-    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestDetailsUpdater.class, PullRequestDetailsUpdater.TASK_NAME,
+    verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
         Duration.ofSeconds(insightConfig.getPullRequestDetailsUpdateIntervalInSeconds()));
   }
 
   @Test
   public void testStart_FeatureDisabled() throws Exception {
-    pullRequestDetailsUpdater.start();
+    pullRequestMonitor.start();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
   }
 
   @Test
   public void testExecute() {
-    PullRequestDetailsUpdater pullRequestDetailsUpdaterSpy = spy(pullRequestDetailsUpdater);
+    PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
       return null;
-    }).when(pullRequestDetailsUpdaterSpy).updatePullRequestDetails();
+    }).when(pullRequestMonitorSpy).updatePullRequestDetails();
 
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
-      pullRequestDetailsUpdaterSpy.execute(mock(JobExecutionContext.class));
+      pullRequestMonitorSpy.execute(mock(JobExecutionContext.class));
     }
 
-    verify(pullRequestDetailsUpdaterSpy).updatePullRequestDetails();
+    verify(pullRequestMonitorSpy).updatePullRequestDetails();
   }
 
   @Test
@@ -147,7 +147,7 @@ public class PullRequestDetailsUpdaterTest
     when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
         .thenReturn(Collections.singletonMap("testBranchName1", "testHeadCommitHash1"));
 
-    pullRequestDetailsUpdater.updatePullRequestDetails();
+    pullRequestMonitor.updatePullRequestDetails();
 
     // Then the pull request without a branch is deleted
     assertThat(pullRequestDAO.getById(pullRequest1.getId())).isNotNull();
@@ -183,7 +183,7 @@ public class PullRequestDetailsUpdaterTest
                 ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST));
 
     Date before = new Date();
-    pullRequestDetailsUpdater.updatePullRequestDetails();
+    pullRequestMonitor.updatePullRequestDetails();
     Date after = new Date();
 
     // Then only the first pull request is updated
@@ -228,7 +228,7 @@ public class PullRequestDetailsUpdaterTest
                 ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST));
 
     Date before = new Date();
-    pullRequestDetailsUpdater.updatePullRequestDetails();
+    pullRequestMonitor.updatePullRequestDetails();
     Date after = new Date();
 
     // Then only the first pull request is updated
@@ -277,7 +277,7 @@ public class PullRequestDetailsUpdaterTest
                 ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST));
 
     Date before = new Date();
-    pullRequestDetailsUpdater.updatePullRequestDetails();
+    pullRequestMonitor.updatePullRequestDetails();
     Date after = new Date();
 
     // The pull request is updated
@@ -313,7 +313,7 @@ public class PullRequestDetailsUpdaterTest
                 ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING, ScanTriggerType.CONTINUOUS_INTEGRATION));
 
     Date before = new Date();
-    pullRequestDetailsUpdater.updatePullRequestDetails();
+    pullRequestMonitor.updatePullRequestDetails();
     Date after = new Date();
 
     // The pull request is updated
@@ -346,7 +346,7 @@ public class PullRequestDetailsUpdaterTest
     when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl)).thenReturn(headCommitsByBranch);
 
     Date before = new Date();
-    pullRequestDetailsUpdater.updatePullRequestDetails();
+    pullRequestMonitor.updatePullRequestDetails();
     Date after = new Date();
 
     // Then only the first pull request is updated
@@ -381,7 +381,7 @@ public class PullRequestDetailsUpdaterTest
             .thenThrow(new RuntimeException("There's a tiger behind you"));
 
     Date before = new Date();
-    pullRequestDetailsUpdater.updatePullRequestDetails();
+    pullRequestMonitor.updatePullRequestDetails();
     Date after = new Date();
 
     // The pull request is updated

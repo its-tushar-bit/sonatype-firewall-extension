@@ -55,10 +55,10 @@ import static java.util.stream.Collectors.toSet;
 @Named
 @Singleton
 @DisallowConcurrentExecution
-public class PullRequestDetailsUpdater
+public class PullRequestMonitor
     implements Managed, Job
 {
-  private static final Logger log = LoggerFactory.getLogger(PullRequestDetailsUpdater.class);
+  private static final Logger log = LoggerFactory.getLogger(PullRequestMonitor.class);
 
   static final String TASK_NAME = "PullRequestDetailsUpdater";
 
@@ -85,7 +85,7 @@ public class PullRequestDetailsUpdater
   public boolean disableForTesting;
 
   @Inject
-  public PullRequestDetailsUpdater(
+  public PullRequestMonitor(
       InsightConfig insightConfig,
       TaskScheduler taskScheduler,
       GitApiFactory gitApiFactory,
@@ -128,7 +128,7 @@ public class PullRequestDetailsUpdater
     }
 
     int intervalInSeconds = insightConfig.getPullRequestDetailsUpdateIntervalInSeconds();
-    taskScheduler.schedulePeriodicTask(PullRequestDetailsUpdater.class, TASK_NAME,
+    taskScheduler.schedulePeriodicTask(PullRequestMonitor.class, TASK_NAME,
         Duration.ofSeconds(intervalInSeconds));
     log.debug("Scheduled PullRequestDetailsUpdater, interval={} seconds.", intervalInSeconds);
   }
@@ -161,9 +161,9 @@ public class PullRequestDetailsUpdater
         allPullRequests.stream().collect(groupingBy(SourceControlPullRequest::getRepositoryUrl, toList()));
     Set<String> repositoryUrls =
         allPullRequests.stream().map(SourceControlPullRequest::getRepositoryUrl).collect(toSet());
-    List<PullRequestDetailsUpdaterTask> tasks = new ArrayList<>();
+    List<PullRequestMonitorTask> tasks = new ArrayList<>();
     for (String repositoryUrl : repositoryUrls) {
-      tasks.add(new PullRequestDetailsUpdaterTask(repositoryUrl, pullRequestsByRepositoryUrl.get(repositoryUrl)));
+      tasks.add(new PullRequestMonitorTask(repositoryUrl, pullRequestsByRepositoryUrl.get(repositoryUrl)));
     }
     try {
       getExecutorService().invokeAll(tasks);
@@ -181,14 +181,14 @@ public class PullRequestDetailsUpdater
     // no-op
   }
 
-  private class PullRequestDetailsUpdaterTask
+  private class PullRequestMonitorTask
       implements Callable<Void>
   {
     private final String repositoryUrl;
     
     private final List<SourceControlPullRequest> pullRequestsForRepository;
 
-    PullRequestDetailsUpdaterTask(String repositoryUrl, List<SourceControlPullRequest> pullRequestsForRepository) {
+    PullRequestMonitorTask(String repositoryUrl, List<SourceControlPullRequest> pullRequestsForRepository) {
       this.repositoryUrl = repositoryUrl;
       this.pullRequestsForRepository = pullRequestsForRepository;
     }

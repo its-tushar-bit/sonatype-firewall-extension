@@ -12,8 +12,6 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-
 public class RoleManagementPage
     extends BasicElement<RoleManagementPage>
 {
@@ -26,23 +24,29 @@ public class RoleManagementPage
   }
 
   public SelenideElement pageTitle() {
-    return child(".iq-tile-header__title h2");
+    return child(".nx-tile-header__title h2");
   }
 
   public ElementsCollection builtinRoles() {
-    return children("#builtin-roles .iq-list__item");
+    return children("#builtin-roles .nx-list__item");
   }
 
   public ElementsCollection customRoles() {
-    return children("#custom-roles .role-name-list-item");
+    return children("#custom-roles .nx-list__item");
+  }
+
+  public SelenideElement customRolesDefaultMessage() {
+    return child("#custom-roles .nx-list__item .nx-list__text");
   }
 
   public Role builtinRole(int num) {
-    return new Role("#builtin-roles .iq-list__item", nthChild(num + 1));
+    int elNum = num + 1;
+    return new Role("#builtin-roles .nx-list__item:nth-child(" + elNum + ") .nx-list__link");
   }
 
   public Role customRole(int num) {
-    return new Role("#custom-roles .role-name-list-item", nthChild(num + 1));
+    int elNum = num + 1;
+    return new Role("#custom-roles .nx-list__item:nth-child(" + elNum + ") .nx-list__link");
   }
 
   public class Role
@@ -53,11 +57,11 @@ public class RoleManagementPage
     }
 
     public SelenideElement name() {
-      return child(".role-name");
+      return child(".nx-list__text");
     }
 
     public SelenideElement description() {
-      return child(".iq-list__subtext");
+      return child(".nx-list__subtext");
     }
   }
 

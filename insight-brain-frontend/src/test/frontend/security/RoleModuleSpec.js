@@ -42,67 +42,6 @@ describe('RoleModuleSpec.js', function () {
       ],
     };
 
-  describe('RoleListController', function () {
-    beforeEach(angular.mock.module(roleModule.name));
-
-    afterEach(inject(function ($httpBackend) {
-      $httpBackend.verifyNoOutstandingExpectation();
-      $httpBackend.verifyNoOutstandingRequest();
-      scope.$destroy();
-    }));
-
-    function createController(rolePermissions) {
-      inject(function ($controller, $rootScope) {
-        scope = $rootScope.$new();
-        $controller('RoleListController', {
-          $scope: scope,
-          rolePermissions: rolePermissions,
-        });
-      });
-    }
-
-    it('initializes scope with role list if authorized (read+write)', inject(function ($httpBackend, CLMLocations) {
-      createController({
-        editRoles: true,
-        viewRoles: true,
-      });
-      $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
-      $httpBackend.flush();
-
-      expect(scope.isAuthorized).toBeTruthy();
-      expect(scope.readOnly).toBeFalsy();
-      expect(scope.roles).not.toBeUndefined();
-      expect(scope.roles.length).toEqual(roleSummaries.length);
-      expect(scope.error).toBeNull();
-    }));
-
-    it('initializes scope with role list if authorized (read-only)', inject(function ($httpBackend, CLMLocations) {
-      createController({
-        editRoles: false,
-        viewRoles: true,
-      });
-      $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
-      $httpBackend.flush();
-
-      expect(scope.isAuthorized).toBeTruthy();
-      expect(scope.readOnly).toBeTruthy();
-      expect(scope.roles).not.toBeUndefined();
-      expect(scope.roles.length).toEqual(roleSummaries.length);
-      expect(scope.error).toBeNull();
-    }));
-
-    it('initializes scope without role list if unauthorized', function () {
-      createController({
-        editRoles: false,
-        viewRoles: false,
-      });
-
-      expect(scope.isAuthorized).toBeFalsy();
-      expect(scope.roles).toBeUndefined();
-      expect(scope.error).toBeUndefined();
-    });
-  });
-
   describe('RoleEditorController', function () {
     beforeEach(function () {
       angular.mock.module(roleModule.name);
@@ -217,7 +156,7 @@ describe('RoleModuleSpec.js', function () {
         expect(scope.submitActive).toBeTruthy();
         $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
         $httpBackend.flush();
-        expect($state.go).toHaveBeenCalledWith('roles');
+        expect($state.go).toHaveBeenCalledWith('rolesList');
         expect(roleMappingService.refresh).toHaveBeenCalled();
       }));
 
@@ -253,7 +192,7 @@ describe('RoleModuleSpec.js', function () {
           $httpBackend.expectGET(CLMLocations.getRoleListUrl()).respond(roleSummaries);
           $httpBackend.expectDELETE(CLMLocations.getRoleByIdUrl(roleOne.id)).respond(204);
           $httpBackend.flush();
-          expect($state.go).toHaveBeenCalledWith('roles');
+          expect($state.go).toHaveBeenCalledWith('rolesList');
           expect(roleMappingService.refresh).toHaveBeenCalled();
         }));
       });
@@ -301,7 +240,7 @@ describe('RoleModuleSpec.js', function () {
         scope.save();
         expect(scope.submitActive).toBeTruthy();
         $httpBackend.flush();
-        expect($state.go).toHaveBeenCalledWith('roles');
+        expect($state.go).toHaveBeenCalledWith('rolesList');
         expect(roleMappingService.refresh).toHaveBeenCalled();
       }));
     });

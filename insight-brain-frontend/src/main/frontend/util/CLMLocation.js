@@ -210,6 +210,10 @@ export function getSuccessMetricsConfigUrl() {
   return uriTemplate`/rest/successMetrics`;
 }
 
+export function getRoleListUrl() {
+  return uriTemplate`/rest/security/roles`;
+}
+
 export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc) {
   let params = toURIParams({
     page: page,
@@ -530,9 +534,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/security/roles/new';
       },
 
-      getRoleListUrl: function () {
-        return baseUrl.get() + '/rest/security/roles';
-      },
+      getRoleListUrl,
 
       getPermissionUrl: function () {
         return baseUrl.get() + '/rest/user/permissions';

@@ -4,6 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular, clmBuildTimestamp */
+import { react2angular } from 'react2angular';
+import withStoreProvider from '../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
+
 import roleListTemplate from './role-list.html';
 import roleEditorTemplate from './role-editor.html';
 
@@ -12,59 +16,67 @@ import CLMLocationModule from '../util/CLMLocation';
 import BootstrapAddonsModule from '../util/BootstrapAddonsModule';
 import { SecurityModule } from './UserModule';
 import escapeHtmlString from '../util/escapeHtmlString';
+import RoleListContainer from './roleList/RoleListContainer';
 
-const module = angular.module(
-  'RoleModule',
-  [
+const module = angular
+  .module('RoleModule', [
     'ui.router',
     'ui.router.state',
     BootstrapAddonsModule.name,
     SecurityModule.name,
     CLMLocationModule.name,
     resourceModule.name,
-  ],
-  [
-    '$stateProvider',
-    function ($stateProvider) {
-      $stateProvider
-        .state('roles', {
-          url: '/roles',
-          controller: 'RoleListController',
-          template: roleListTemplate,
-          data: {
-            title: 'Roles',
-            crumb: 'Roles',
-          },
-          resolve: {
-            rolePermissions: [
-              'PermissionService',
-              function (PermissionService) {
-                return PermissionService.getValidPermissions(['VIEW_ROLES', 'EDIT_ROLES'], true).then(function (
-                  validPermissions
-                ) {
-                  return {
-                    viewRoles: validPermissions.indexOf('VIEW_ROLES') >= 0,
-                    editRoles: validPermissions.indexOf('EDIT_ROLES') >= 0,
-                  };
-                });
-              },
-            ],
-          },
-        })
-        .state('roles.editor', {
-          url: '/{roleId}',
-          controller: 'RoleEditorController',
-          template: roleEditorTemplate,
-          data: {
-            title: 'Role Editor',
-            crumb: 'Editor',
-          },
-        });
-    },
-  ]
-);
+  ])
+  .component(
+    'roles',
+    react2angular(withStoreProvider(withRouterStateProvider(RoleListContainer)), [], ['$ngRedux', '$state'])
+  )
+  .config(routes);
 
-export default module;
+function routes($stateProvider) {
+  $stateProvider
+    .state('roles', {
+      abstract: true,
+      controller: 'RoleListController',
+      template: roleListTemplate,
+      data: {
+        title: 'Roles',
+        crumb: 'Roles',
+      },
+      resolve: {
+        rolePermissions: [
+          'PermissionService',
+          function (PermissionService) {
+            return PermissionService.getValidPermissions(['VIEW_ROLES', 'EDIT_ROLES'], true).then(function (
+              validPermissions
+            ) {
+              return {
+                viewRoles: validPermissions.indexOf('VIEW_ROLES') >= 0,
+                editRoles: validPermissions.indexOf('EDIT_ROLES') >= 0,
+              };
+            });
+          },
+        ],
+      },
+    })
+    .state('roles.editor', {
+      url: '/roles/{roleId}',
+      controller: 'RoleEditorController',
+      template: roleEditorTemplate,
+      data: {
+        title: 'Role Editor',
+        crumb: 'Editor',
+      },
+    })
+    .state('rolesList', {
+      url: '/roles',
+      component: 'roles',
+      data: {
+        title: 'Roles',
+        crumb: 'Roles',
+      },
+    });
+}
 
 module.service('RoleStore', [
   'CLMLocations',
@@ -184,7 +196,7 @@ module.controller('RoleEditorController', [
           RoleStore.refresh();
           RoleMappingService.refresh();
           delete $scope.dirtyRole;
-          $state.go('roles');
+          $state.go('rolesList');
         },
         function (error) {
           $scope.errorFn(error);
@@ -193,7 +205,7 @@ module.controller('RoleEditorController', [
     };
 
     $scope.cancel = function () {
-      $state.go('roles');
+      $state.go('rolesList');
     };
 
     $scope.isDirty = function () {
@@ -253,7 +265,7 @@ module.controller('DeleteRoleController', [
             if (role.id === $stateParams.roleId) {
               role.$delete().then(
                 function () {
-                  $state.go('roles');
+                  $state.go('rolesList');
                   RoleMappingService.refresh();
                 },
                 function (error) {
@@ -267,3 +279,7 @@ module.controller('DeleteRoleController', [
     };
   },
 ]);
+
+routes.$inject = ['$stateProvider'];
+
+export default module;

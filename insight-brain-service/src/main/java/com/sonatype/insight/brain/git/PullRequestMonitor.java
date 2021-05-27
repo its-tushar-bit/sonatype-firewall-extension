@@ -60,7 +60,7 @@ public class PullRequestMonitor
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestMonitor.class);
 
-  static final String TASK_NAME = "PullRequestDetailsUpdater";
+  static final String TASK_NAME = "PullRequestMonitor";
 
   private static final int THREAD_POOL_SIZE = 20;
 
@@ -108,7 +108,7 @@ public class PullRequestMonitor
   private ExecutorService getExecutorService() {
     if (executorService == null) {
       ThreadFactory threadFactory =
-          new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PullRequestDetailsUpdater-%s").build();
+          new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PullRequestMonitor-%s").build();
       ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L,
           TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
       threadPoolExecutor.allowCoreThreadTimeOut(true);
@@ -130,7 +130,7 @@ public class PullRequestMonitor
     int intervalInSeconds = insightConfig.getPullRequestDetailsUpdateIntervalInSeconds();
     taskScheduler.schedulePeriodicTask(PullRequestMonitor.class, TASK_NAME,
         Duration.ofSeconds(intervalInSeconds));
-    log.debug("Scheduled PullRequestDetailsUpdater, interval={} seconds.", intervalInSeconds);
+    log.debug("Scheduled PullRequestMonitor, interval={} seconds.", intervalInSeconds);
   }
 
   @Override

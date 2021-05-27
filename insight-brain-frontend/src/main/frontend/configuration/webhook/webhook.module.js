@@ -15,6 +15,11 @@ import viewTemplate from './webhook.view.html';
 import listTemplate from './webhook.list.view.html';
 import editTemplate from './webhook.edit.view.html';
 
+import EditWebhookContainer from './editWebhook/EditWebhookContainer';
+import { react2angular } from 'react2angular';
+import withStoreProvider from '../../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../../reactAdapter/RouterStateProvider';
+
 export default angular
   .module(
     'webhook.module',
@@ -30,7 +35,11 @@ export default angular
   )
   .controller('webhook.view.controller', WebhookViewController)
   .controller('webhook.list.controller', WebhookListController)
-  .controller('webhook.edit.controller', WebhookEditController);
+  .controller('webhook.edit.controller', WebhookEditController)
+  .component(
+    'editWebhook',
+    react2angular(withStoreProvider(withRouterStateProvider(EditWebhookContainer)), [], ['$ngRedux', '$state'])
+  );
 
 function webhookModuleConfiguration($stateProvider) {
   $stateProvider
@@ -74,6 +83,13 @@ function webhookModuleConfiguration($stateProvider) {
       template: editTemplate,
       data: {
         title: 'Edit Webhook',
+      },
+    })
+    .state('addWebhook', {
+      url: '/webhooks/add',
+      component: 'editWebhook',
+      data: {
+        title: 'Create Webhook',
       },
     });
 }

@@ -432,6 +432,14 @@ export function getReportAuditLogUrl(appPublicId, reportId, component) {
       ?key=${keyJson}`;
 }
 
+export function getWebhookEventTypesUrl() {
+  return uriTemplate`/rest/config/webhook/eventTypes`;
+}
+
+export function getWebhooksUrl() {
+  return uriTemplate`/rest/config/webhook`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -694,13 +702,9 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/jira/project';
       },
 
-      getWebhooksUrl: function () {
-        return baseUrl.get() + '/rest/config/webhook';
-      },
+      getWebhooksUrl,
 
-      getWebhookEventTypesUrl: function () {
-        return baseUrl.get() + '/rest/config/webhook/eventTypes';
-      },
+      getWebhookEventTypesUrl,
 
       getSystemNoticeUrl: function () {
         return baseUrl.get() + '/rest/config/systemNotice';

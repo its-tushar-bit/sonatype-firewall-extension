@@ -40,6 +40,7 @@ import notificationsReducer from '../mainHeader/MenuBar/NotificationsMenu/notifi
 import successMetricsConfigurationReducer from '../configuration/successMetricsConfiguration/successMetricsConfigurationReducer';
 import rolesReducer from '../security/rolesReducer';
 import auditLogReducer from '../componentDetails/auditLog/auditLogReducer';
+import editWebhookReducer from '../configuration/webhook/editWebhook/editWebhookReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -78,4 +79,5 @@ export default combineReducers({
   successMetricsConfiguration: successMetricsConfigurationReducer,
   roles: rolesReducer,
   auditLog: auditLogReducer,
+  editWebhook: editWebhookReducer,
 });

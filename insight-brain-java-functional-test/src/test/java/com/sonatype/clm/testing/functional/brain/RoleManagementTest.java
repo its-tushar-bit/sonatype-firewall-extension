@@ -68,7 +68,8 @@ public class RoleManagementTest
     }
 
     // no custom roles on initial load
-    roleManagementPage.customRoles().shouldHaveSize(0);
+    roleManagementPage.customRolesDefaultMessage()
+      .shouldHave(text("No custom roles defined. Click \"Create Role\" in the upper right to add one."));
   }
 
   @Test
@@ -144,10 +145,11 @@ public class RoleManagementTest
     // navigate to role page and click create role
     RoleManagementPage roleManagementPage = new RoleManagementPage();
     roleManagementPage.createRole().click();
-    roleManagementPage.pageTitle().shouldBe(visible).shouldHave(text("New Role"));
 
     // on new role editor
     RoleEditorPage roleEditorPage = new RoleEditorPage();
+    roleEditorPage.pageTitle().shouldBe(visible).shouldHave(text("New Role"));
+
     roleEditorPage.save().shouldBe(disabled);
     roleEditorPage.deleteRole().shouldNotBe(visible);
 
@@ -199,7 +201,8 @@ public class RoleManagementTest
     roleManagementPage.customRole(0).click();
     roleEditorPage.deleteRole().click();
     roleEditorPage.deleteConfirm().shouldBe(visible).click();
-    roleManagementPage.customRoles().shouldHaveSize(0);
+    roleManagementPage.customRolesDefaultMessage()
+      .shouldHave(text("No custom roles defined. Click \"Create Role\" in the upper right to add one."));
   }
 
   @Test

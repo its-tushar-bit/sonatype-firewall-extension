@@ -27,7 +27,7 @@ export const SystemPreferencesMenu = ({
       <NavLink stateName="users" id="system-configuration-users" showIf={CONFIGURE_SYSTEM}>
         Users
       </NavLink>
-      <NavLink stateName="roles" id="system-configuration-roles" showIf={VIEW_ROLES}>
+      <NavLink stateName="rolesList" id="system-configuration-roles" showIf={VIEW_ROLES}>
         Roles
       </NavLink>
       <NavLink stateName="administrators" id="system-configuration-administrators" showIf={CONFIGURE_SYSTEM}>

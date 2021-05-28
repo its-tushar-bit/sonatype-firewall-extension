@@ -3,9 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import './ComponentDetailsHeader/ComponentDetailsHeader';
-@import './auditLog/auditLog';
 
-component-details {
-  display: contents;
+.iq-audit-log-table {
+  .nx-cell {
+    white-space: nowrap;
+  }
+
+  .iq-audit-log-table__comment {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }

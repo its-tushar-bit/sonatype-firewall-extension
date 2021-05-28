@@ -18,7 +18,7 @@ export default function AuditLogTable({ auditRecords }) {
   };
 
   return (
-    <NxTable id="audit-log-table">
+    <NxTable id="audit-log-table" className="iq-audit-log-table">
       <NxTableHead>
         <NxTableRow>
           <NxTableCell>Date</NxTableCell>
@@ -36,7 +36,7 @@ export default function AuditLogTable({ auditRecords }) {
               <NxTableCell>{record.user}</NxTableCell>
               <NxTableCell>{record.action}</NxTableCell>
               <NxTableCell>{record.detail}</NxTableCell>
-              <NxTableCell>{record.comment}</NxTableCell>
+              <NxTableCell className="iq-audit-log-table__comment">{record.comment}</NxTableCell>
             </NxTableRow>
           ))}
       </NxTableBody>

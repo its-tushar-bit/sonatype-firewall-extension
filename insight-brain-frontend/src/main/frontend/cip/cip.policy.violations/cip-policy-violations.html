@@ -238,7 +238,8 @@
           <button ng-if="!useNewWaiverPages"
                   type="button"
                   class="btn btn-primary tm-waive-button"
-                  ng-click="waiveComponent(policyAlert)">
+                  ng-click="waiveComponent(policyAlert)"
+                  ng-class="{'disabled': !isAddWaiverAuthorized}">
             Waive
           </button>
 
@@ -246,7 +247,7 @@
                   type="button"
                   class="btn btn-primary tm-waive-button"
                   ng-click="policyAlert.policyViolationId && waiveComponent(policyAlert)"
-                  ng-class="{'disabled': !policyAlert.policyViolationId}"
+                  ng-class="{'disabled': !policyAlert.policyViolationId || !isAddWaiverAuthorized}"
                   tooltip="{{!policyAlert.policyViolationId ?
                              'The feature to waive is not available on old reports.
                               Re-evaluate this report to make it available' : ''}}"

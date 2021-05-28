@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /*global angular */
+import PermissionServiceModule from '../../util/PermissionService';
 import addWaiverController from './add.waiver.controller';
 import cipPolicyViolationsDirective from './cip.policy.violations.directive';
 import policyViolationsController from './policy.violations.controller';
@@ -20,6 +21,7 @@ export default angular
     'HttpInterceptors',
     'UnauthenticatedResponseHttpInterceptor',
     'ui.bootstrap',
+    PermissionServiceModule.name,
   ])
   .controller('AddWaiverController', addWaiverController)
   .directive('cipPolicyViolations', cipPolicyViolationsDirective)

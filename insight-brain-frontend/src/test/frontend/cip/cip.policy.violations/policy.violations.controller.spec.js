@@ -5,7 +5,18 @@
  */
 
 describe('policy.violations.controller', function () {
-  var scope, policyViolationsSpy, $state, Modal;
+  var scope, policyViolationsSpy, $state, Modal, isAuthorizedSpy, controller;
+
+  beforeEach(
+    angular.mock.module('PermissionServiceModule', function ($provide) {
+      isAuthorizedSpy = jasmine.createSpy('isAuthorized').and.returnValue(Promise.resolve(true));
+      $provide.service('PermissionService', function () {
+        return {
+          isAuthorized: isAuthorizedSpy,
+        };
+      });
+    })
+  );
 
   beforeEach(
     angular.mock.module('cip.policy.violations', 'ui.router', function ($provide) {
@@ -39,7 +50,7 @@ describe('policy.violations.controller', function () {
     scope = $rootScope.$new();
     policyViolationsSpy = jasmine.createSpy('violationsresponse').and.returnValue(undefined);
 
-    $controller('PolicyViolationsController', {
+    controller = $controller('PolicyViolationsController', {
       $scope: scope,
       PolicyViolations: {
         get: function () {
@@ -51,6 +62,15 @@ describe('policy.violations.controller', function () {
     });
     scope.$digest();
   }));
+
+  it('calls PermissionService.isAuthorized to check permissions for waiver', function () {
+    controller.$onInit();
+    expect(scope.isAddWaiverAuthorized).toEqual(false);
+    expect(isAuthorizedSpy).toHaveBeenCalledWith(['WAIVE_POLICY_VIOLATIONS'], true);
+    isAuthorizedSpy().then(() => {
+      expect(scope.isAddWaiverAuthorized).toEqual(true);
+    });
+  });
 
   it('error', function () {
     expect(policyViolationsSpy).toHaveBeenCalled();

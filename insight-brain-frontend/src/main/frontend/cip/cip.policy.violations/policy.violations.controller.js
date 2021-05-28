@@ -16,8 +16,21 @@ export default function PolicyViolationsController(
   OwnerContext,
   PolicyViolations,
   Messages,
-  $state
+  $state,
+  PermissionService
 ) {
+  const vm = this;
+
+  $scope.isAddWaiverAuthorized = false;
+
+  Object.assign(vm, {
+    $onInit() {
+      PermissionService.isAuthorized(['WAIVE_POLICY_VIOLATIONS'], true).then((response) => {
+        $scope.isAddWaiverAuthorized = response;
+      });
+    },
+  });
+
   $scope.getThreatColor = getThreatColor;
 
   function sortPolicyAlerts() {
@@ -133,4 +146,5 @@ PolicyViolationsController.$inject = [
   'PolicyViolations',
   'Messages',
   '$state',
+  'PermissionService',
 ];

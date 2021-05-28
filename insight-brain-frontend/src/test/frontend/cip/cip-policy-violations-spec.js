@@ -9,6 +9,18 @@ describe('CIP Policy Waiver tests', function () {
 
   beforeEach(angular.mock.module('cip.policy.violations', 'TestComponentProvider', 'ui.router'));
 
+  beforeEach(
+    angular.mock.module('PermissionServiceModule', function ($provide) {
+      $provide.service('PermissionService', function () {
+        return {
+          isAuthorized: function () {
+            return true;
+          },
+        };
+      });
+    })
+  );
+
   beforeEach(function () {
     window.CLM = {
       path: '../brain/',

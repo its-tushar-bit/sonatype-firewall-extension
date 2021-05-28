@@ -87,11 +87,11 @@ export default function ComponentOverviewTile(props) {
       lastUpdatedAt = licenseLegalData.componentNoticesLastUpdatedAt;
     }
     if (
-      licenseLegalData.componentLicensesLastUpdatedAt &&
-      licenseLegalData.componentLicensesLastUpdatedAt > lastUpdatedAt
+      licenseLegalData.componentLicenseFilesLastUpdatedAt &&
+      licenseLegalData.componentLicenseFilesLastUpdatedAt > lastUpdatedAt
     ) {
-      lastUpdatedByUsername = licenseLegalData.componentLicensesLastUpdatedByUsername;
-      lastUpdatedAt = licenseLegalData.componentLicensesLastUpdatedAt;
+      lastUpdatedByUsername = licenseLegalData.componentLicenseFilesLastUpdatedByUsername;
+      lastUpdatedAt = licenseLegalData.componentLicenseFilesLastUpdatedAt;
     }
     const lastUpdatedAtTimeAgo = timeAgo(lastUpdatedAt);
     return {

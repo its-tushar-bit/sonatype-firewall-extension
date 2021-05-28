@@ -21,8 +21,8 @@ import {
 import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './obligation/LicenseObligationsTileContainer';
 import NoticeTextsTile from './files/notices/NoticeTextsTile';
-import LicenseTextsTileContainer from './files/licenses/LicenseTextsTileContainer';
 import { createSubtitle, getComponentEffectiveLicenseNamesAndIds } from './legalUtility';
+import LicenseFilesTile from './files/licenses/LicenseFilesTile';
 
 export default function ComponentLegalOverviewPage(props) {
   const {
@@ -30,6 +30,7 @@ export default function ComponentLegalOverviewPage(props) {
     licenseLegalMetadata,
     obligations,
     loading,
+    licenseFiles,
     noticeFiles,
     error,
     organizationId,
@@ -39,6 +40,7 @@ export default function ComponentLegalOverviewPage(props) {
     availableScopes,
     showEditCopyrightOverrideModal,
     showNoticesModal,
+    showLicenseFilesModal,
     $state,
 
     //actions
@@ -46,6 +48,7 @@ export default function ComponentLegalOverviewPage(props) {
     loadAvailableScopes,
     loadComponent,
     setShowNoticesModal,
+    setShowLicenseFilesModal,
   } = props;
 
   function load() {
@@ -146,7 +149,20 @@ export default function ComponentLegalOverviewPage(props) {
                   hash,
                 }}
               />
-              <LicenseTextsTileContainer />
+              <LicenseFilesTile
+                {...{
+                  licenseFiles,
+                  setShowLicenseFilesModal,
+                  showLicenseFilesModal,
+                  stageTypeId,
+                  $state,
+                  component,
+                  availableScopes,
+                  ownerType,
+                  ownerId,
+                  hash,
+                }}
+              />
               {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}
               <LicenseObligationAttributionTileContainer name={null} />
             </div>
@@ -168,6 +184,7 @@ ComponentLegalOverviewPage.propTypes = {
   licenseLegalMetadata: licenseLegalMetadataPropType,
   obligations: licenseObligationsPropType,
   noticeFiles: legalFilesPropType,
+  licenseFiles: legalFilesPropType,
   loadComponent: PropTypes.func,
   loadAvailableScopes: PropTypes.func,
   availableScopes: availableScopesPropType,
@@ -175,5 +192,7 @@ ComponentLegalOverviewPage.propTypes = {
   setDisplayCopyrightOverrideModal: PropTypes.func.isRequired,
   setShowNoticesModal: PropTypes.func.isRequired,
   showNoticesModal: PropTypes.bool.isRequired,
+  setShowLicenseFilesModal: PropTypes.func.isRequired,
+  showLicenseFilesModal: PropTypes.bool.isRequired,
   $state: PropTypes.object.isRequired,
 };

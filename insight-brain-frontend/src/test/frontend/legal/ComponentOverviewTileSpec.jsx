@@ -28,8 +28,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: 1618873200000,
           componentNoticesLastUpdatedByUsername: 'user2',
-          componentLicensesLastUpdatedAt: 1618700400000,
-          componentLicensesLastUpdatedByUsername: 'user3',
+          componentLicenseFilesLastUpdatedAt: 1618700400000,
+          componentLicenseFilesLastUpdatedByUsername: 'user3',
           highestEffectiveLicenseThreatGroup: {
             licenseThreatGroupLevel: 8,
             licenseThreatGroupCategory: 'severe',
@@ -326,8 +326,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: null,
           componentNoticesLastUpdatedAt: null,
           componentNoticesLastUpdatedByUsername: null,
-          componentLicensesLastUpdatedAt: null,
-          componentLicensesLastUpdatedByUsername: null,
+          componentLicenseFilesLastUpdatedAt: null,
+          componentLicenseFilesLastUpdatedByUsername: null,
           obligations: [{ lastUpdatedAt: null, lastUpdatedByUsername: null }],
           attributions: [{ lastUpdatedAt: null, lastUpdatedByUsername: null }],
         },
@@ -347,8 +347,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: getTimeDaysAgo(2),
           componentNoticesLastUpdatedByUsername: 'user2',
-          componentLicensesLastUpdatedAt: getTimeDaysAgo(3),
-          componentLicensesLastUpdatedByUsername: 'user3',
+          componentLicenseFilesLastUpdatedAt: getTimeDaysAgo(3),
+          componentLicenseFilesLastUpdatedByUsername: 'user3',
           obligations: [
             {
               lastUpdatedAt: getTimeDaysAgo(4),
@@ -384,8 +384,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: getTimeDaysAgo(2),
           componentNoticesLastUpdatedByUsername: 'user2',
-          componentLicensesLastUpdatedAt: getTimeDaysAgo(3),
-          componentLicensesLastUpdatedByUsername: 'user3',
+          componentLicenseFilesLastUpdatedAt: getTimeDaysAgo(3),
+          componentLicenseFilesLastUpdatedByUsername: 'user3',
           obligations: [
             {
               lastUpdatedAt: getTimeDaysAgo(4),
@@ -421,8 +421,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: getTimeDaysAgo(9),
           componentNoticesLastUpdatedByUsername: 'user2',
-          componentLicensesLastUpdatedAt: getTimeDaysAgo(3),
-          componentLicensesLastUpdatedByUsername: 'user3',
+          componentLicenseFilesLastUpdatedAt: getTimeDaysAgo(3),
+          componentLicenseFilesLastUpdatedByUsername: 'user3',
           obligations: [
             {
               lastUpdatedAt: getTimeDaysAgo(4),
@@ -458,8 +458,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: getTimeDaysAgo(9),
           componentNoticesLastUpdatedByUsername: 'user2',
-          componentLicensesLastUpdatedAt: getTimeDaysAgo(10),
-          componentLicensesLastUpdatedByUsername: 'user3',
+          componentLicenseFilesLastUpdatedAt: getTimeDaysAgo(10),
+          componentLicenseFilesLastUpdatedByUsername: 'user3',
           obligations: [
             {
               lastUpdatedAt: getTimeDaysAgo(4),
@@ -495,8 +495,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: getTimeDaysAgo(9),
           componentNoticesLastUpdatedByUsername: 'user2',
-          componentLicensesLastUpdatedAt: getTimeDaysAgo(10),
-          componentLicensesLastUpdatedByUsername: 'user3',
+          componentLicenseFilesLastUpdatedAt: getTimeDaysAgo(10),
+          componentLicenseFilesLastUpdatedByUsername: 'user3',
           obligations: [
             {
               lastUpdatedAt: getTimeDaysAgo(11),
@@ -532,8 +532,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: getTimeDaysAgo(9),
           componentNoticesLastUpdatedByUsername: 'user2',
-          componentLicensesLastUpdatedAt: getTimeDaysAgo(10),
-          componentLicensesLastUpdatedByUsername: 'user3',
+          componentLicenseFilesLastUpdatedAt: getTimeDaysAgo(10),
+          componentLicenseFilesLastUpdatedByUsername: 'user3',
           obligations: [
             {
               lastUpdatedAt: getTimeDaysAgo(11),
@@ -569,8 +569,8 @@ describe('ComponentOverviewTile', function () {
           componentCopyrightLastUpdatedByUsername: 'user1',
           componentNoticesLastUpdatedAt: getTimeDaysAgo(9),
           componentNoticesLastUpdatedByUsername: 'user2',
-          componentLicensesLastUpdatedAt: getTimeDaysAgo(10),
-          componentLicensesLastUpdatedByUsername: 'user3',
+          componentLicenseFilesLastUpdatedAt: getTimeDaysAgo(10),
+          componentLicenseFilesLastUpdatedByUsername: 'user3',
           obligations: [
             {
               lastUpdatedAt: getTimeDaysAgo(11),

@@ -9,10 +9,10 @@ import LoadWrapper from '../../../react/LoadWrapper';
 import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { backToComponentOverviewUrl, createSubtitle } from '../../legalUtility';
-import { faPen } from '@fortawesome/pro-solid-svg-icons';
-import NoticesModalContainer from './NoticesModalContainer';
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import LicenseFilesModalContainer from './LicenseFilesModalContainer';
 
-export default function NoticeDetailsHeader(props) {
+export default function LicenseFilesDetailsHeader(props) {
   const {
     loading,
     error,
@@ -21,18 +21,18 @@ export default function NoticeDetailsHeader(props) {
     ownerId,
     stageTypeId,
     hash,
-    noticeIndex,
+    licenseIndex,
     $state,
-    loadComponentAndNoticeDetails,
-    setShowNoticesModal,
-    showNoticesModal,
+    loadComponentAndLicenseDetails,
+    setShowLicenseFilesModal,
+    showLicenseFilesModal,
   } = props;
 
   function load() {
-    loadComponentAndNoticeDetails(ownerType, ownerId, hash, noticeIndex);
+    loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex);
   }
 
-  useEffect(load, [ownerType, ownerId, hash, noticeIndex]);
+  useEffect(load, [ownerType, ownerId, hash, licenseIndex]);
 
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
@@ -41,32 +41,32 @@ export default function NoticeDetailsHeader(props) {
         targetPageTitle="Component Obligations"
       />
       <div className="nx-page-title">
-        <h1 className="nx-h1">Notice Files</h1>
+        <h1 className="nx-h1">License Files</h1>
         {createSubtitle(availableScopes)}
-        <div className="nx-tile__actions">
-          <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>
-            <NxFontAwesomeIcon icon={faPen} />
-            <span>{'Edit'}</span>
+        <div className="nx-btn-bar">
+          <NxButton id="edit-license-files" variant="tertiary" onClick={() => setShowLicenseFilesModal(true)}>
+            <NxFontAwesomeIcon icon={faEdit} />
+            <span>Edit License Files</span>
           </NxButton>
         </div>
       </div>
-      {showNoticesModal && <NoticesModalContainer />}
+      {showLicenseFilesModal && <LicenseFilesModalContainer />}
     </LoadWrapper>
   );
 }
 
-NoticeDetailsHeader.propTypes = {
+LicenseFilesDetailsHeader.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
   ownerType: PropTypes.string,
   ownerId: PropTypes.string,
   stageTypeId: PropTypes.string,
   hash: PropTypes.string,
-  noticeIndex: PropTypes.string,
+  licenseIndex: PropTypes.string,
   availableScopes: availableScopesPropType,
   $state: PropTypes.object.isRequired,
-  showNoticesModal: PropTypes.bool.isRequired,
-  setShowNoticesModal: PropTypes.func.isRequired,
+  showLicenseFilesModal: PropTypes.bool,
 
-  loadComponentAndNoticeDetails: PropTypes.func.isRequired,
+  loadComponentAndLicenseDetails: PropTypes.func.isRequired,
+  setShowLicenseFilesModal: PropTypes.func.isRequired,
 };

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 import React from 'react';
 import {
   NxButton,
@@ -18,15 +19,15 @@ import { availableScopesPropType, legalFilesPropType, licenseObligationPropType 
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 import ObligationStatusComponent from '../../shared/ObligationStatusComponent';
 
-export default function LicensesModal(props) {
+export default function LicenseFilesModal(props) {
   const {
     // actions
-    cancelLicensesModal,
-    setLicenseContent,
-    setLicenseStatus,
-    addLicense,
-    setLicensesScope,
-    saveLicenses,
+    cancelLicenseFilesModal,
+    setLicenseFileContent,
+    setLicenseFileStatus,
+    addLicenseFile,
+    setLicenseFilesScope,
+    saveLicenseFiles,
     setObligationStatus,
     setObligationScope,
     // state
@@ -48,7 +49,7 @@ export default function LicensesModal(props) {
           type="textarea"
           value={license.content}
           isPristine={license.isPristine}
-          onChange={(payload) => setLicenseContent({ index: index, value: payload })}
+          onChange={(payload) => setLicenseFileContent({ index: index, value: payload })}
           disabled={license.status === 'disabled'}
         />
       </td>
@@ -56,7 +57,7 @@ export default function LicensesModal(props) {
         <NxToggle
           inputId={'license-status-toggle-' + index}
           onChange={() =>
-            setLicenseStatus({
+            setLicenseFileStatus({
               index: index,
               value: license.status === 'enabled' ? 'disabled' : 'enabled',
             })
@@ -86,22 +87,6 @@ export default function LicensesModal(props) {
 
   const notDirtyErrorMessage = 'Must add a new license or change the content or status of a license.';
 
-  const isDirty = () => {
-    return isLicensesDirty() || isObligationDirty();
-  };
-
-  const isLicensesDirty = () => {
-    return (
-      scope !== originalScope ||
-      licenses.some(
-        (license) =>
-          (license.id === null && license.originalContentHash === null) ||
-          license.content !== license.originalContent ||
-          license.status !== license.originalStatus
-      )
-    );
-  };
-
   function isObligationDirty() {
     return existingObligation && existingObligation.status !== existingObligation.originalStatus;
   }
@@ -119,6 +104,22 @@ export default function LicensesModal(props) {
         value: existingObligation.originalScope,
       });
     }
+  };
+
+  const isLicensesDirty = () => {
+    return (
+      scope !== originalScope ||
+      licenses.some(
+        (license) =>
+          (license.id === null && license.originalContentHash === null) ||
+          license.content !== license.originalContent ||
+          license.status !== license.originalStatus
+      )
+    );
+  };
+
+  const isDirty = () => {
+    return isLicensesDirty() || isObligationDirty();
   };
 
   const getValidationErrors = () => {
@@ -168,7 +169,7 @@ export default function LicensesModal(props) {
   };
 
   const trySave = () => {
-    saveLicenses({
+    saveLicenseFiles({
       existingObligation,
       isLicensesDirty: isLicensesDirty(),
       isObligationDirty: isObligationDirty(),
@@ -180,14 +181,14 @@ export default function LicensesModal(props) {
       id="edit-licenses-attribution-modal"
       onClose={() => {
         resetExistingObligation();
-        cancelLicensesModal();
+        cancelLicenseFilesModal();
       }}
       variant="wide"
     >
       <NxForm
         onCancel={() => {
           resetExistingObligation();
-          cancelLicensesModal();
+          cancelLicenseFilesModal();
         }}
         submitBtnText="Save"
         onSubmit={trySave}
@@ -196,9 +197,7 @@ export default function LicensesModal(props) {
         validationErrors={getValidationErrors()}
       >
         <header className="nx-modal-header">
-          <h2 className="nx-h2">
-            <h2 className="nx-h2">{`${licenseFilesExist() ? 'Edit' : 'Add'} License Files`}</h2>
-          </h2>
+          <h2 className="nx-h2">{`${licenseFilesExist() ? 'Edit' : 'Add'} License Files`}</h2>
         </header>
         <div className="nx-modal-content">
           <table className="legal-file-override-table">
@@ -220,7 +219,7 @@ export default function LicensesModal(props) {
             </tbody>
           </table>
           <div className="nx-btn-bar nx-btn-bar--left">
-            <NxButton id="add-license" type="button" variant="tertiary" onClick={addLicense}>
+            <NxButton id="add-license" type="button" variant="tertiary" onClick={addLicenseFile}>
               <NxFontAwesomeIcon icon={faPlus} />
               <span>Add License Text</span>
             </NxButton>
@@ -239,7 +238,7 @@ export default function LicensesModal(props) {
               className="nx-form-select nx-form-select--long"
               value={scope}
               onChange={(payload) => {
-                setLicensesScope(payload.currentTarget.value);
+                setLicenseFilesScope(payload.currentTarget.value);
                 setObligationScopeIfNeeded(payload);
               }}
             >
@@ -252,13 +251,13 @@ export default function LicensesModal(props) {
   );
 }
 
-LicensesModal.propTypes = {
-  cancelLicensesModal: PropTypes.func.isRequired,
-  setLicenseContent: PropTypes.func.isRequired,
-  setLicenseStatus: PropTypes.func.isRequired,
-  addLicense: PropTypes.func.isRequired,
-  setLicensesScope: PropTypes.func.isRequired,
-  saveLicenses: PropTypes.func.isRequired,
+LicenseFilesModal.propTypes = {
+  cancelLicenseFilesModal: PropTypes.func.isRequired,
+  setLicenseFileContent: PropTypes.func.isRequired,
+  setLicenseFileStatus: PropTypes.func.isRequired,
+  addLicenseFile: PropTypes.func.isRequired,
+  setLicenseFilesScope: PropTypes.func.isRequired,
+  saveLicenseFiles: PropTypes.func.isRequired,
   scope: PropTypes.string.isRequired,
   originalScope: PropTypes.string.isRequired,
   availableScopes: availableScopesPropType,

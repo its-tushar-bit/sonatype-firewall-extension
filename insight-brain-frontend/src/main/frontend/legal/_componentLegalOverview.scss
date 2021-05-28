@@ -139,3 +139,10 @@ component-legal-overview {
     }
   }
 }
+
+#legal-file-section-view-more-details {
+  text-align: right;
+  a {
+    @include container-horizontal;
+  }
+}

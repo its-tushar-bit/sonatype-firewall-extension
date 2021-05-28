@@ -9,7 +9,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { copyrightState } from './copyrightCommonState';
 import CopyrightList from '../../../../main/frontend/legal/copyright/CopyrightList';
-import { copyrightDetailsStateName } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
+import { copyrightDetailsStateNameSuffix } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
 
 describe('CopyrightListContainer', function () {
   let store, state, vdom, CopyrightListContainer;
@@ -74,7 +74,7 @@ describe('CopyrightListContainer', function () {
           ownerId: 'org',
           copyrightIndex: '12',
         },
-        prevState: { name: copyrightDetailsStateName },
+        prevState: { name: copyrightDetailsStateNameSuffix },
       },
     };
 

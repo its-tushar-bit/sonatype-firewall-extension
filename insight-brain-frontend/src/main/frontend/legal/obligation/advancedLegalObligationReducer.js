@@ -29,7 +29,7 @@ import {
   ADVANCED_LEGAL_SET_SHOW_OBLIGATION_MODAL,
 } from './advancedLegalObligationActions';
 import { __, find, findIndex, lensPath, merge, over, propEq } from 'ramda';
-import { saveNoticesSubmitMaskDone, saveLicensesSubmitMaskDone } from '../files/advancedLegalFileReducer';
+import { saveNoticesSubmitMaskDone, saveLicenseFilesSubmitMaskDone } from '../files/advancedLegalFileReducer';
 import { TEXT_BASED_OBLIGATIONS } from '../advancedLegalConstants';
 
 const updateLicenseLegalData = (newLicenseLegalData, state) =>
@@ -322,7 +322,7 @@ export const advancedLegalObligationReducerActionMap = {
     // Manually chain required actions together, until the components have independent reducers.
     const state1 = saveObligationSubmitMaskDone(payload, state);
     const state2 = saveNoticesSubmitMaskDone(payload, state1);
-    const state3 = saveLicensesSubmitMaskDone(payload, state2);
+    const state3 = saveLicenseFilesSubmitMaskDone(payload, state2);
     const state4 = saveAttributionSubmitMaskDone(payload, state3);
     return state4;
   },

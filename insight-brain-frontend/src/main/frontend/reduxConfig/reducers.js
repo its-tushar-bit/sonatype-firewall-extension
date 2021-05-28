@@ -30,6 +30,7 @@ import legalDashboardFilterReducer from '../legal/dashboard/filter/legalDashboar
 import firewallReducer from '../firewall/firewallReducer';
 import firewallConfigurationModalReducer from '../firewall/config/firewallConfigurationModalReducer';
 import componentNoticeDetailsReducer from '../legal/files/notices/componentNoticeDetailsReducer';
+import componentLicenseFilesDetailsReducer from '../legal/files/licenses/componentLicenseFilesDetailsReducer';
 import copyrightOverrideReducer from '../legal/copyright/copyrightOverrideReducer';
 import componentCopyrightDetailsReducer from '../legal/copyright/componentCopyrightDetailsReducer';
 import componentLicenseDetailsReducer from '../legal/license/componentLicenseDetailsReducer';
@@ -68,8 +69,9 @@ export default combineReducers({
   legalDashboardFilter: legalDashboardFilterReducer,
   copyrightOverrides: copyrightOverrideReducer,
   componentNoticeDetails: componentNoticeDetailsReducer,
-  componentCopyrightDetails: componentCopyrightDetailsReducer,
+  componentLicenseFileDetails: componentLicenseFilesDetailsReducer,
   componentLicenseDetails: componentLicenseDetailsReducer,
+  componentCopyrightDetails: componentCopyrightDetailsReducer,
   firewall: firewallReducer,
   firewallConfigurationModal: firewallConfigurationModalReducer,
   manageLegalFilters: manageLegalFiltersReducer,

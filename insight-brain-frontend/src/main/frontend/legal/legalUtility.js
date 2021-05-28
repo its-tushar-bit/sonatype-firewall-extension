@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { findIndex, last, propEq } from 'ramda';
+import { findIndex, propEq } from 'ramda';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faGlobe, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
@@ -60,12 +60,10 @@ export function getLicenseThreatGroupsFromLicense(license) {
     : license.licenseThreatGroups;
 }
 
-export function scopeName(availableScopes) {
-  if (!availableScopes) {
-    return '';
-  } else {
-    return availableScopes.values ? last(availableScopes.values).name : '';
-  }
+export function scopeName(scopeOwnerId, availableScopes) {
+  const availableScopeValues = (availableScopes && availableScopes.values && [...availableScopes.values]) || [];
+  const scopeIndex = findIndex(propEq('id', scopeOwnerId), availableScopeValues);
+  return scopeIndex < 0 ? 'Root Organization' : availableScopeValues[scopeIndex].name;
 }
 
 export function ifExistsElseEmpty(element, func) {

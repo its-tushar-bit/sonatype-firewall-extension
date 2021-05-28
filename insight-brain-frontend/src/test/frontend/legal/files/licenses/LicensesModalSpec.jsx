@@ -4,33 +4,33 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../../enzymeUtils';
-import LicensesModal from '../../../../../main/frontend/legal/files/licenses/LicensesModal';
+import LicenseFilesModal from '../../../../../main/frontend/legal/files/licenses/LicenseFilesModal';
 import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
 
 describe('LicensesModal', function () {
   let getShallowComponent,
     minimalProps,
-    cancelLicensesModalSpy,
-    setLicenseContentSpy,
-    setLicenseStatusSpy,
-    addLicenseSpy,
-    setLicensesScopeSpy,
-    saveLicensesSpy;
+    cancelLicenseFilesModalSpy,
+    setLicenseFileContentSpy,
+    setLicenseFileStatusSpy,
+    addLicenseFileSpy,
+    setLicenseFilesScopeSpy,
+    saveLicenseFilesSpy;
 
   beforeEach(function () {
-    cancelLicensesModalSpy = jasmine.createSpy('cancelLicensesModalSpy');
-    setLicenseContentSpy = jasmine.createSpy('setLicenseContentSpy');
-    setLicenseStatusSpy = jasmine.createSpy('setLicenseStatusSpy');
-    addLicenseSpy = jasmine.createSpy('addLicenseSpy');
-    setLicensesScopeSpy = jasmine.createSpy('setLicensesScopeSpy');
-    saveLicensesSpy = jasmine.createSpy('saveLicensesSpy');
+    cancelLicenseFilesModalSpy = jasmine.createSpy('cancelLicenseFilesModalSpy');
+    setLicenseFileContentSpy = jasmine.createSpy('setLicenseFileContentSpy');
+    setLicenseFileStatusSpy = jasmine.createSpy('setLicenseFileStatusSpy');
+    addLicenseFileSpy = jasmine.createSpy('addLicenseFileSpy');
+    setLicenseFilesScopeSpy = jasmine.createSpy('setLicenseFilesScopeSpy');
+    saveLicenseFilesSpy = jasmine.createSpy('saveLicenseFilesSpy');
     minimalProps = {
-      cancelLicensesModal: cancelLicensesModalSpy,
-      setLicenseContent: setLicenseContentSpy,
-      setLicenseStatus: setLicenseStatusSpy,
-      addLicense: addLicenseSpy,
-      setLicensesScope: setLicensesScopeSpy,
-      saveLicenses: saveLicensesSpy,
+      cancelLicenseFilesModal: cancelLicenseFilesModalSpy,
+      setLicenseFileContent: setLicenseFileContentSpy,
+      setLicenseFileStatus: setLicenseFileStatusSpy,
+      addLicenseFile: addLicenseFileSpy,
+      setLicenseFilesScope: setLicenseFilesScopeSpy,
+      saveLicenseFiles: saveLicenseFilesSpy,
       scope: 'ROOT_ORGANIZATION_ID',
       originalScope: 'ROOT_ORGANIZATION_ID',
       availableScopes: {
@@ -69,7 +69,7 @@ describe('LicensesModal', function () {
       error: 'error',
       submitMaskState: 'submitMaskState',
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(LicensesModal, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(LicenseFilesModal, minimalProps);
   });
 
   it('renders no license texts found if there are no licenses', function () {
@@ -94,12 +94,12 @@ describe('LicensesModal', function () {
     const wrapper = getShallowComponent();
     const licenseContents = wrapper.find(NxTextInput);
     licenseContents.at(0).simulate('change', '');
-    expect(setLicenseContentSpy.calls.mostRecent().args[0]).toEqual({
+    expect(setLicenseFileContentSpy.calls.mostRecent().args[0]).toEqual({
       index: 0,
       value: '',
     });
     licenseContents.at(1).simulate('change', 'content2');
-    expect(setLicenseContentSpy.calls.mostRecent().args[0]).toEqual({
+    expect(setLicenseFileContentSpy.calls.mostRecent().args[0]).toEqual({
       index: 1,
       value: 'content2',
     });
@@ -119,12 +119,12 @@ describe('LicensesModal', function () {
     const wrapper = getShallowComponent();
     const licenseStatuses = wrapper.find(NxToggle);
     licenseStatuses.at(0).simulate('change');
-    expect(setLicenseStatusSpy.calls.mostRecent().args[0]).toEqual({
+    expect(setLicenseFileStatusSpy.calls.mostRecent().args[0]).toEqual({
       index: 0,
       value: 'disabled',
     });
     licenseStatuses.at(1).simulate('change');
-    expect(setLicenseStatusSpy.calls.mostRecent().args[0]).toEqual({
+    expect(setLicenseFileStatusSpy.calls.mostRecent().args[0]).toEqual({
       index: 1,
       value: 'enabled',
     });
@@ -134,7 +134,7 @@ describe('LicensesModal', function () {
     const wrapper = getShallowComponent();
     const addLicenseButton = wrapper.find(NxButton);
     addLicenseButton.simulate('click');
-    expect(addLicenseSpy).toHaveBeenCalled();
+    expect(addLicenseFileSpy).toHaveBeenCalled();
   });
 
   it('selects the given licenses scope', function () {
@@ -160,7 +160,7 @@ describe('LicensesModal', function () {
     const wrapper = getShallowComponent();
     const licensesScope = wrapper.find('select');
     licensesScope.simulate('change', { currentTarget: { value: 'appId' } });
-    expect(setLicensesScopeSpy).toHaveBeenCalledWith('appId');
+    expect(setLicenseFilesScopeSpy).toHaveBeenCalledWith('appId');
   });
 
   it('has a validation error if a custom license has no content', function () {

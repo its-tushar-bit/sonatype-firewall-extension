@@ -3,16 +3,17 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+
 import { connect } from 'react-redux';
 
-import LicensesModal from './LicensesModal';
+import LicenseFilesModal from './LicenseFilesModal';
 import {
-  addLicense,
-  cancelLicensesModal,
-  saveLicenses,
-  setLicenseContent,
-  setLicensesScope,
-  setLicenseStatus,
+  addLicenseFile,
+  cancelLicenseFilesModal,
+  saveLicenseFiles,
+  setLicenseFileContent,
+  setLicenseFilesScope,
+  setLicenseFileStatus,
 } from '../advancedLegalFileActions';
 import { setObligationScope, setObligationStatus } from '../../obligation/advancedLegalObligationActions';
 
@@ -23,7 +24,7 @@ function mapStateToProps({ advancedLegal }) {
     availableScopes: advancedLegal.availableScopes,
     licenses: advancedLegal.component.component.licenseLegalData.licenseFiles,
     error: advancedLegal.component.component.licenseLegalData.licensesError,
-    submitMaskState: advancedLegal.component.component.licenseLegalData.saveLicensesSubmitMask,
+    submitMaskState: advancedLegal.component.component.licenseLegalData.saveLicenseFilesSubmitMask,
     existingObligation: advancedLegal.component.component.licenseLegalData.obligations.find(
       (o) => o.name === 'Inclusion of License'
     ),
@@ -31,14 +32,14 @@ function mapStateToProps({ advancedLegal }) {
 }
 
 const mapDispatchToProps = {
-  cancelLicensesModal,
-  setLicenseContent,
-  setLicenseStatus,
-  addLicense,
-  setLicensesScope,
-  saveLicenses,
+  cancelLicenseFilesModal,
+  setLicenseFileContent,
+  setLicenseFileStatus,
+  addLicenseFile,
+  setLicenseFilesScope,
+  saveLicenseFiles,
   setObligationScope,
   setObligationStatus,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(LicensesModal);
+export default connect(mapStateToProps, mapDispatchToProps)(LicenseFilesModal);

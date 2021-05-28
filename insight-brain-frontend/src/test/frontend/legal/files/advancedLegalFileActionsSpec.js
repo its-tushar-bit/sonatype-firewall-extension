@@ -11,11 +11,11 @@ import {
   ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED,
   saveNotices,
-  ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
-  ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
-  ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
-  ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED,
-  saveLicenses,
+  ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED,
+  ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED,
+  ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE,
+  ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED,
+  saveLicenseFiles,
 } from '../../../../main/frontend/legal/files/advancedLegalFileActions';
 import { getSaveLegalFileUrl, getLegalFileUrl } from '../../../../main/frontend/util/CLMLocation';
 
@@ -329,7 +329,7 @@ describe('advancedLegalFileActions', function () {
     });
   });
 
-  describe('saveLicenses', function () {
+  describe('saveLicenseFiles', function () {
     let store, initialState;
 
     const createState = (
@@ -372,16 +372,16 @@ describe('advancedLegalFileActions', function () {
 
     it('immediately dispatches a ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED action', function () {
       store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(saveLicenses({ isLicensesDirty: true }));
+      store.dispatch(saveLicenseFiles({ isLicensesDirty: true }));
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED);
     });
 
     it('does not dispatch anything when not dirty', function () {
       store = SpecUtil.mockReduxStore(initialState);
-      store.dispatch(saveLicenses({ isLicensesDirty: false }));
+      store.dispatch(saveLicenseFiles({ isLicensesDirty: false }));
       const actions = store.getActions();
       expect(actions.length).toBe(0);
     });
@@ -407,7 +407,7 @@ describe('advancedLegalFileActions', function () {
           componentIdentifier: 'componentIdentifier',
           legalFileOverrides: [],
         };
-        store.dispatch(saveLicenses({ isLicensesDirty: true })).then(() => {
+        store.dispatch(saveLicenseFiles({ isLicensesDirty: true })).then(() => {
           setTimeout(() => {
             const actions = store.getActions();
             expect(axios.post).toHaveBeenCalledWith(
@@ -419,16 +419,16 @@ describe('advancedLegalFileActions', function () {
                 '?componentIdentifier=%22componentIdentifier%22&legalFileType=license'
             );
             expect(actions.length).toBe(3);
-            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+            expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED);
             expect(actions[1].payload).toEqual('getData');
-            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE);
+            expect(actions[2].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE);
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         });
 
         const actions = store.getActions();
         expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+        expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED);
       }
     );
 
@@ -479,7 +479,7 @@ describe('advancedLegalFileActions', function () {
           },
         ],
       };
-      store.dispatch(saveLicenses({ isLicensesDirty: true })).then(() => {
+      store.dispatch(saveLicenseFiles({ isLicensesDirty: true })).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
           '/api/experimental/licenseLegalMetadata/application/app/component/legalFile',
@@ -490,14 +490,14 @@ describe('advancedLegalFileActions', function () {
             '?componentIdentifier=%22componentIdentifier%22&legalFileType=license'
         );
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED);
         expect(actions[1].payload).toEqual('getData');
         done();
       });
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED);
     });
 
     it('sends the correct payload for saving at a lower scope', function (done) {
@@ -547,7 +547,7 @@ describe('advancedLegalFileActions', function () {
           },
         ],
       };
-      store.dispatch(saveLicenses({ isLicensesDirty: true })).then(() => {
+      store.dispatch(saveLicenseFiles({ isLicensesDirty: true })).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
           '/api/experimental/licenseLegalMetadata/application/app/component/legalFile',
@@ -558,14 +558,14 @@ describe('advancedLegalFileActions', function () {
             '?componentIdentifier=%22componentIdentifier%22&legalFileType=license'
         );
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED);
         expect(actions[1].payload).toEqual('getData');
         done();
       });
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED);
     });
 
     it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_FAILED action on save failure', function (done) {
@@ -581,21 +581,21 @@ describe('advancedLegalFileActions', function () {
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: [],
       };
-      store.dispatch(saveLicenses({ isLicensesDirty: true })).then(() => {
+      store.dispatch(saveLicenseFiles({ isLicensesDirty: true })).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
           '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
           expectedPostBody
         );
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED);
         expect(actions[1].payload).toEqual('error');
         done();
       });
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED);
     });
 
     it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_FAILED action on get failure', function (done) {
@@ -614,7 +614,7 @@ describe('advancedLegalFileActions', function () {
         componentIdentifier: 'componentIdentifier',
         legalFileOverrides: [],
       };
-      store.dispatch(saveLicenses({ isLicensesDirty: true })).then(() => {
+      store.dispatch(saveLicenseFiles({ isLicensesDirty: true })).then(() => {
         const actions = store.getActions();
         expect(axios.post).toHaveBeenCalledWith(
           '/api/experimental/licenseLegalMetadata/organization/ROOT_ORGANIZATION_ID/component/legalFile',
@@ -625,14 +625,14 @@ describe('advancedLegalFileActions', function () {
             '?componentIdentifier=%22componentIdentifier%22&legalFileType=license'
         );
         expect(actions.length).toBe(2);
-        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED);
         expect(actions[1].payload).toEqual('error');
         done();
       });
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED);
     });
   });
 });

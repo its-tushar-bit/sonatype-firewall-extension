@@ -7,15 +7,16 @@
 import React from 'react';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { availableScopesPropType, legalFilesPropType } from '../../advancedLegalPropTypes';
-import { faAngleRight, faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
+import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import NoticesModalContainer from './NoticesModalContainer';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
+import { createLegalFileTileItem } from '../common/utils';
 
 export default function NoticeTextsTile(props) {
-  const { setShowNoticesModal, noticeFiles, showNoticesModal, ownerType, ownerId, hash, $state } = props;
+  const { setShowNoticesModal, noticeFiles, showNoticesModal, ownerType, ownerId, stageTypeId, hash, $state } = props;
 
-  const isNoticePresent = () => noticeFiles.length > 0;
+  const isNoticePresent = () => noticeFiles && noticeFiles.length > 0;
 
   const enabledNotices = noticeFiles.filter((noticeFile) => noticeFile.originalStatus === 'enabled');
 
@@ -23,29 +24,14 @@ export default function NoticeTextsTile(props) {
     'license-no-legal-elements-text': !isNoticePresent(),
   });
 
-  const createItem = (notice, index) => (
-    <section id={'notice-section-' + index} key={index} className="nx-tile-subsection legal-file">
-      <div className="legal-file-section-header">
-        <span className="legal-file-path">{notice.relPath}</span>
-      </div>
-      <blockquote id={'notice-text-' + index} className="nx-blockquote">
-        <div className="legal-file-content">{notice.originalContent}</div>
-      </blockquote>
-      <div className="legal-file-section-view-more-details">
-        <a
-          href={$state.href('legal.componentNoticeDetails.noticeDetails', {
-            ownerType,
-            ownerId,
-            hash,
-            noticeIndex: index,
-          })}
-        >
-          <span>View More Details</span>
-          <NxFontAwesomeIcon icon={faAngleRight} />
-        </a>
-      </div>
-    </section>
-  );
+  const createItem = (license, index) =>
+    createLegalFileTileItem('notice', license, index, $state, 'legal.componentNoticeDetails.noticeDetails', {
+      ownerType,
+      ownerId,
+      hash,
+      stageTypeId,
+      noticeIndex: index,
+    });
 
   return (
     <section id="notice-texts-tile" className="nx-tile">
@@ -72,6 +58,7 @@ NoticeTextsTile.propTypes = {
   showNoticesModal: PropTypes.bool.isRequired,
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
+  stageTypeId: PropTypes.string,
   availableScopes: availableScopesPropType,
   hash: PropTypes.string.isRequired,
   $state: PropTypes.object.isRequired,

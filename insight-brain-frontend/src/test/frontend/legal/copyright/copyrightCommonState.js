@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { copyrightDetailsStateName } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
+import { copyrightDetailsStateNameSuffix } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
 
 export const copyrightState = {
   advancedLegal: {
@@ -49,7 +49,7 @@ export const copyrightState = {
       ownerId: 'org',
       copyrightIndex: '12',
     },
-    currentState: { name: copyrightDetailsStateName },
+    currentState: { name: `copyrightDetails.${copyrightDetailsStateNameSuffix}` },
   },
   copyrightOverrides: {
     showEditCopyrightOverrideModal: false,

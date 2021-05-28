@@ -17,6 +17,10 @@ import NoticeDetailsContentsContainer from './files/notices/NoticeDetailsContent
 import LegalDashboardContainer from './dashboard/LegalDashboardContainer';
 import ComponentLicenseDetailsContainer from './license/ComponentLicenseDetailsContainer';
 import componentNoticeDetails from './files/notices/componentNoticeDetails';
+import componentLicenseFilesDetails from './files/licenses/componentLicenseFilesDetails';
+import LicenseFilesDetailsHeaderContainer from './files/licenses/LicenseFilesDetailsHeaderContainer';
+import LicenseFilesDetailsListContainer from './files/licenses/LicenseFilesDetailsListContainer';
+import LicenseFilesDetailsContentsContainer from './files/licenses/LicenseFilesDetailsContentsContainer';
 
 export default angular
   .module('legalModule', [])
@@ -58,6 +62,19 @@ export default angular
   .component(
     'componentLicenseDetails',
     react2angular(withStoreProvider(ComponentLicenseDetailsContainer), [], ['$ngRedux', '$state'])
+  )
+  .component('componentLicenseFilesDetails', componentLicenseFilesDetails)
+  .component(
+    'licenseFilesDetailsHeader',
+    react2angular(withStoreProvider(LicenseFilesDetailsHeaderContainer), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'licenseFilesDetailsList',
+    react2angular(withStoreProvider(LicenseFilesDetailsListContainer), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'licenseFilesDetailsContents',
+    react2angular(withStoreProvider(LicenseFilesDetailsContentsContainer), [], ['$ngRedux', '$state'])
   )
   .config(routes);
 
@@ -120,6 +137,18 @@ function routes($stateProvider) {
         title: 'Copyright Details',
       },
     })
+    .state('legal.stageTypeComponentCopyrightDetails', {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/copyrights',
+      component: 'componentCopyrightDetails',
+      abstract: true,
+    })
+    .state('legal.stageTypeComponentCopyrightDetails.copyrightDetails', {
+      url: '/{copyrightIndex}',
+      component: 'copyrightDetailsContents',
+      data: {
+        title: 'Copyright Details',
+      },
+    })
     .state('legal.componentNoticeDetails', {
       url: '/legal/{ownerType}/{ownerId}/component/{hash}/notices',
       component: 'componentNoticeDetails',
@@ -144,16 +173,28 @@ function routes($stateProvider) {
         title: 'Notice Details',
       },
     })
-    .state('legal.stageTypeComponentCopyrightDetails', {
-      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/copyrights',
-      component: 'componentCopyrightDetails',
+    .state('legal.componentLicenseFilesDetails', {
+      url: '/legal/{ownerType}/{ownerId}/component/{hash}/licenseFiles',
+      component: 'componentLicenseFilesDetails',
       abstract: true,
     })
-    .state('legal.stageTypeComponentCopyrightDetails.copyrightDetails', {
-      url: '/{copyrightIndex}',
-      component: 'copyrightDetailsContents',
+    .state('legal.componentLicenseFilesDetails.licenseFilesDetails', {
+      url: '/{licenseIndex}',
+      component: 'licenseFilesDetailsContents',
       data: {
-        title: 'Copyright Details',
+        title: 'License Files Details',
+      },
+    })
+    .state('legal.stageTypeComponentLicenseFilesDetails', {
+      url: '/legal/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/licenseFiles',
+      component: 'componentLicenseFilesDetails',
+      abstract: true,
+    })
+    .state('legal.stageTypeComponentLicenseFilesDetails.licenseFilesDetails', {
+      url: '/{licenseIndex}',
+      component: 'licenseFilesDetailsContents',
+      data: {
+        title: 'License Files Details',
       },
     })
     .state('legal.componentLicenseDetails', {

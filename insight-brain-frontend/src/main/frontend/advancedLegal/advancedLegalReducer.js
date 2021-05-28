@@ -202,7 +202,7 @@ function loadComponentFulfilled(payload, state) {
   }));
   const componentNoticesScopeOwnerId =
     payload.component.licenseLegalData.componentNoticesScopeOwnerId || 'ROOT_ORGANIZATION_ID';
-  const componentLicensesScopeOwnerId =
+  const componentLicenseFilesScopeOwnerId =
     payload.component.licenseLegalData.componentLicensesScopeOwnerId || 'ROOT_ORGANIZATION_ID';
   const newLicenseLegalData = {
     ...payload.component.licenseLegalData,
@@ -212,12 +212,12 @@ function loadComponentFulfilled(payload, state) {
     noticeFiles: newNoticeFiles,
     noticesError: null,
     saveNoticesSubmitMask: null,
-    showLicensesModal: false,
-    componentLicensesScopeOwnerId,
-    originalComponentLicensesScopeOwnerId: componentLicensesScopeOwnerId,
+    showLicenseFilesModal: false,
+    componentLicensesScopeOwnerId: componentLicenseFilesScopeOwnerId,
+    originalComponentLicensesScopeOwnerId: componentLicenseFilesScopeOwnerId,
     licenseFiles: newLicenseFiles,
     licensesError: null,
-    saveLicensesSubmitMask: null,
+    saveLicenseFilesSubmitMask: null,
     obligations: newObligations,
     attributions: newAttributions,
     showAllObligationsModal: false,

@@ -4,30 +4,30 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import {
-  ADVANCED_LEGAL_ADD_LICENSE,
+  ADVANCED_LEGAL_ADD_LICENSE_FILE,
   ADVANCED_LEGAL_ADD_NOTICE,
-  ADVANCED_LEGAL_CANCEL_LICENSES_MODAL,
+  ADVANCED_LEGAL_CANCEL_LICENSE_FILES_MODAL,
   ADVANCED_LEGAL_CANCEL_NOTICES_MODAL,
-  ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
-  ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
-  ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
-  ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED,
+  ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED,
+  ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED,
+  ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE,
+  ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
   ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
   ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED,
-  ADVANCED_LEGAL_SET_LICENSE_CONTENT,
-  ADVANCED_LEGAL_SET_LICENSE_STATUS,
-  ADVANCED_LEGAL_SET_LICENSES_SCOPE,
+  ADVANCED_LEGAL_SET_LICENSE_FILE_CONTENT,
+  ADVANCED_LEGAL_SET_LICENSE_FILE_STATUS,
+  ADVANCED_LEGAL_SET_LICENSE_FILES_SCOPE,
   ADVANCED_LEGAL_SET_NOTICE_CONTENT,
   ADVANCED_LEGAL_SET_NOTICE_STATUS,
   ADVANCED_LEGAL_SET_NOTICES_SCOPE,
-  ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL,
+  ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL,
   ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL,
 } from './advancedLegalFileActions';
 import { __, find, lensPath, merge, over, propEq } from 'ramda';
 
-const updateLicenseLegalData = (newLicenseLegalData, state) =>
+const updateLicenseFilesLegalData = (newLicenseLegalData, state) =>
   over(lensPath(['component', 'component', 'licenseLegalData']), merge(__, newLicenseLegalData), state);
 
 const getNoticeByOriginalContentHash = (originalContentHash, state) =>
@@ -37,7 +37,7 @@ const updateNotice = (newNotice, index, state) =>
   over(lensPath(['component', 'component', 'licenseLegalData', 'noticeFiles', index]), merge(__, newNotice), state);
 
 const setShowNoticesModal = (payload, state) =>
-  updateLicenseLegalData(
+  updateLicenseFilesLegalData(
     {
       showNoticesModal: payload,
     },
@@ -45,7 +45,7 @@ const setShowNoticesModal = (payload, state) =>
   );
 
 const cancelNoticesModal = (_, state) =>
-  updateLicenseLegalData(
+  updateLicenseFilesLegalData(
     {
       showNoticesModal: false,
       componentNoticesScopeOwnerId: state.component.component.licenseLegalData.originalComponentNoticesScopeOwnerId,
@@ -96,7 +96,7 @@ const addNotice = (_, state) =>
   );
 
 const setNoticesScope = (payload, state) =>
-  updateLicenseLegalData(
+  updateLicenseFilesLegalData(
     {
       componentNoticesScopeOwnerId: payload,
     },
@@ -104,7 +104,7 @@ const setNoticesScope = (payload, state) =>
   );
 
 const saveNoticesRequested = (_, state) =>
-  updateLicenseLegalData(
+  updateLicenseFilesLegalData(
     {
       noticesError: null,
       saveNoticesSubmitMask: false,
@@ -125,7 +125,7 @@ const saveNoticesSucceeded = (payload, state) => {
     status: legalFileOverride.status,
     isPristine: true,
   }));
-  return updateLicenseLegalData(
+  return updateLicenseFilesLegalData(
     {
       componentNoticesId: payload.id,
       originalComponentNoticesScopeOwnerId: payload.ownerId,
@@ -141,7 +141,7 @@ const saveNoticesSucceeded = (payload, state) => {
 };
 
 const saveNoticesFailed = (payload, state) =>
-  updateLicenseLegalData(
+  updateLicenseFilesLegalData(
     {
       noticesError: payload,
       saveNoticesSubmitMask: null,
@@ -150,7 +150,7 @@ const saveNoticesFailed = (payload, state) =>
   );
 
 export const saveNoticesSubmitMaskDone = (_, state) =>
-  updateLicenseLegalData(
+  updateLicenseFilesLegalData(
     {
       saveNoticesSubmitMask: null,
       showNoticesModal: false,
@@ -164,18 +164,18 @@ const getLicenseByOriginalContentHash = (originalContentHash, state) =>
 const updateLicense = (newLicense, index, state) =>
   over(lensPath(['component', 'component', 'licenseLegalData', 'licenseFiles', index]), merge(__, newLicense), state);
 
-const setShowLicensesModal = (payload, state) =>
-  updateLicenseLegalData(
+const setShowLicenseFilesModal = (payload, state) =>
+  updateLicenseFilesLegalData(
     {
-      showLicensesModal: payload,
+      showLicenseFilesModal: payload,
     },
     state
   );
 
-const cancelLicensesModal = (_, state) =>
-  updateLicenseLegalData(
+const cancelLicenseFilesModal = (_, state) =>
+  updateLicenseFilesLegalData(
     {
-      showLicensesModal: false,
+      showLicenseFilesModal: false,
       componentLicensesScopeOwnerId: state.component.component.licenseLegalData.originalComponentLicensesScopeOwnerId,
       licenseFiles: state.component.component.licenseLegalData.licenseFiles
         .filter((licenseFile) => licenseFile.id !== null || licenseFile.originalContentHash !== null)
@@ -224,23 +224,23 @@ const addLicense = (_, state) =>
   );
 
 const setLicensesScope = (payload, state) =>
-  updateLicenseLegalData(
+  updateLicenseFilesLegalData(
     {
       componentLicensesScopeOwnerId: payload,
     },
     state
   );
 
-const saveLicensesRequested = (_, state) =>
-  updateLicenseLegalData(
+const saveLicenseFilesRequested = (_, state) =>
+  updateLicenseFilesLegalData(
     {
       licensesError: null,
-      saveLicensesSubmitMask: false,
+      saveLicenseFilesSubmitMask: false,
     },
     state
   );
 
-const saveLicensesSucceeded = (payload, state) => {
+const saveLicenseFilesSucceeded = (payload, state) => {
   const licenseFiles = payload.legalFileOverrides.map((legalFileOverride) => ({
     id: legalFileOverride.id,
     originalContentHash: legalFileOverride.originalContentHash,
@@ -253,7 +253,7 @@ const saveLicensesSucceeded = (payload, state) => {
     status: legalFileOverride.status,
     isPristine: true,
   }));
-  return updateLicenseLegalData(
+  return updateLicenseFilesLegalData(
     {
       componentLicensesId: payload.id,
       originalComponentLicensesScopeOwnerId: payload.ownerId,
@@ -262,26 +262,26 @@ const saveLicensesSucceeded = (payload, state) => {
       componentLicensesLastUpdatedAt: payload.lastUpdatedAt,
       licenseFiles,
       licensesError: null,
-      saveLicensesSubmitMask: true,
+      saveLicenseFilesSubmitMask: true,
     },
     state
   );
 };
 
-const saveLicensesFailed = (payload, state) =>
-  updateLicenseLegalData(
+const saveLicenseFilesFailed = (payload, state) =>
+  updateLicenseFilesLegalData(
     {
       licensesError: payload,
-      saveLicensesSubmitMask: null,
+      saveLicenseFilesSubmitMask: null,
     },
     state
   );
 
-export const saveLicensesSubmitMaskDone = (_, state) =>
-  updateLicenseLegalData(
+export const saveLicenseFilesSubmitMaskDone = (_, state) =>
+  updateLicenseFilesLegalData(
     {
-      saveLicensesSubmitMask: null,
-      showLicensesModal: false,
+      saveLicenseFilesSubmitMask: null,
+      showLicenseFilesModal: false,
     },
     state
   );
@@ -297,14 +297,14 @@ export const advancedLegalFileReducerActionMap = {
   [ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED]: saveNoticesSucceeded,
   [ADVANCED_LEGAL_SAVE_NOTICES_FAILED]: saveNoticesFailed,
   [ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE]: saveNoticesSubmitMaskDone,
-  [ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL]: setShowLicensesModal,
-  [ADVANCED_LEGAL_CANCEL_LICENSES_MODAL]: cancelLicensesModal,
-  [ADVANCED_LEGAL_SET_LICENSE_CONTENT]: setLicenseContent,
-  [ADVANCED_LEGAL_SET_LICENSE_STATUS]: setLicenseStatus,
-  [ADVANCED_LEGAL_ADD_LICENSE]: addLicense,
-  [ADVANCED_LEGAL_SET_LICENSES_SCOPE]: setLicensesScope,
-  [ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED]: saveLicensesRequested,
-  [ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED]: saveLicensesSucceeded,
-  [ADVANCED_LEGAL_SAVE_LICENSES_FAILED]: saveLicensesFailed,
-  [ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE]: saveLicensesSubmitMaskDone,
+  [ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL]: setShowLicenseFilesModal,
+  [ADVANCED_LEGAL_CANCEL_LICENSE_FILES_MODAL]: cancelLicenseFilesModal,
+  [ADVANCED_LEGAL_SET_LICENSE_FILE_CONTENT]: setLicenseContent,
+  [ADVANCED_LEGAL_SET_LICENSE_FILE_STATUS]: setLicenseStatus,
+  [ADVANCED_LEGAL_ADD_LICENSE_FILE]: addLicense,
+  [ADVANCED_LEGAL_SET_LICENSE_FILES_SCOPE]: setLicensesScope,
+  [ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED]: saveLicenseFilesRequested,
+  [ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED]: saveLicenseFilesSucceeded,
+  [ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED]: saveLicenseFilesFailed,
+  [ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE]: saveLicenseFilesSubmitMaskDone,
 };

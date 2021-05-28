@@ -4,9 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-export const copyrightDetailsStateName = 'componentCopyrightDetails.copyrightDetails';
+export const copyrightDetailsStateNameSuffix = '.copyrightDetails';
 
 export const FILE_PATH_PAGE_SIZE = 15;
+
+export function isCopyrightDetailsState(stateName) {
+  return stateName.endsWith(copyrightDetailsStateNameSuffix);
+}
 
 export function pageOffset(pageNumber) {
   return pageNumber * FILE_PATH_PAGE_SIZE;

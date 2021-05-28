@@ -78,6 +78,6 @@ describe('LicenseDetailsTile component', function () {
     expect(licenseSpans.at(1)).toHaveText('License-2.0<NxFontAwesomeIcon />');
     expect(licenseSpans.at(2)).toHaveText('License-1.0 or License-2.0<NxFontAwesomeIcon />');
     expect($state.href).toHaveBeenCalled();
-    expect(licenseSpans.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseSpans.at(0)).toHaveProp('href', 'legal.componentLicenseFilesDetails-{"licenseIndex":0}');
   });
 });

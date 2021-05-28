@@ -9,7 +9,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { copyrightState } from './copyrightCommonState';
 import CopyrightDetailsHeader from '../../../../main/frontend/legal/copyright/CopyrightDetailsHeader';
-import { copyrightDetailsStateName } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
+import { copyrightDetailsStateNameSuffix } from '../../../../main/frontend/legal/copyright/copyrightDetailsUtils';
 import { mergeDeepRight } from 'ramda';
 
 describe('CopyrightDetailsHeaderContainer', function () {
@@ -85,7 +85,7 @@ describe('CopyrightDetailsHeaderContainer', function () {
           ownerId: 'org',
           copyrightIndex: '12',
         },
-        prevState: { name: copyrightDetailsStateName },
+        prevState: { name: copyrightDetailsStateNameSuffix },
       },
     };
 

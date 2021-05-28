@@ -332,7 +332,7 @@ describe('advancedLegalReducer', function () {
         ],
         noticesError: null,
         saveNoticesSubmitMask: null,
-        showLicensesModal: false,
+        showLicenseFilesModal: false,
         componentLicensesScopeOwnerId: 'appId',
         originalComponentLicensesScopeOwnerId: 'appId',
         licenseFiles: [
@@ -352,7 +352,7 @@ describe('advancedLegalReducer', function () {
           },
         ],
         licensesError: null,
-        saveLicensesSubmitMask: null,
+        saveLicenseFilesSubmitMask: null,
         showAllObligationsModal: false,
         saveAllObligationsSubmitMask: null,
         saveAllObligationsError: null,

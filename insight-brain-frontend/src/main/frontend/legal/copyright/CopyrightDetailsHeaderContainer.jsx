@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import CopyrightDetailsHeader from './CopyrightDetailsHeader';
 import { loadComponentAndCopyrightDetails } from './componentCopyrightDetailsActions';
-import { copyrightDetailsStateName } from './copyrightDetailsUtils';
+import { isCopyrightDetailsState } from './copyrightDetailsUtils';
 import { setDisplayCopyrightOverrideModal } from './copyrightOverrideFormActions';
 
 function mapStateToProps({ advancedLegal, componentCopyrightDetails, copyrightOverrides, router }) {
@@ -15,7 +15,7 @@ function mapStateToProps({ advancedLegal, componentCopyrightDetails, copyrightOv
   const availableScopes = advancedLegal.availableScopes || {};
 
   let routerParams = router.currentParams;
-  if (router.currentState.name !== copyrightDetailsStateName && router.prevState.name === copyrightDetailsStateName) {
+  if (!isCopyrightDetailsState(router.currentState.name) && isCopyrightDetailsState(router.prevState.name)) {
     routerParams = router.prevParams;
   }
   return {

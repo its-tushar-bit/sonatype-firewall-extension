@@ -4,17 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../../enzymeUtils';
-import LicenseTextsTile from '../../../../../main/frontend/legal/files/licenses/LicenseTextsTile';
+import LicenseFilesTile from '../../../../../main/frontend/legal/files/licenses/LicenseFilesTile';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 
 describe('LicenseTextsTile', function () {
-  let getShallowComponent, minimalProps, setShowLicensesModalSpy;
+  let getShallowComponent, minimalProps, setShowLicenseFilesModalSpy;
 
   beforeEach(function () {
-    setShowLicensesModalSpy = jasmine.createSpy('setShowLicensesModalSpy');
+    setShowLicenseFilesModalSpy = jasmine.createSpy('setShowLicenseFilesModalSpy');
     minimalProps = {
-      setShowLicensesModal: setShowLicensesModalSpy,
+      setShowLicenseFilesModal: setShowLicenseFilesModalSpy,
       licenseFiles: [
         {
           originalStatus: 'enabled',
@@ -33,9 +33,13 @@ describe('LicenseTextsTile', function () {
           content: 'license content 3',
         },
       ],
-      showLicensesModal: false,
+      showLicenseFilesModal: false,
+      $state: {
+        get: () => '',
+        href: () => '',
+      },
     };
-    getShallowComponent = enzymeUtils.getShallowComponent(LicenseTextsTile, minimalProps);
+    getShallowComponent = enzymeUtils.getShallowComponent(LicenseFilesTile, minimalProps);
   });
 
   it('renders a header with label `License Files`', function () {
@@ -77,6 +81,6 @@ describe('LicenseTextsTile', function () {
     const wrapper = getShallowComponent();
     const button = wrapper.find(NxButton);
     button.simulate('click');
-    expect(setShowLicensesModalSpy).toHaveBeenCalledWith(true);
+    expect(setShowLicenseFilesModalSpy).toHaveBeenCalledWith(true);
   });
 });

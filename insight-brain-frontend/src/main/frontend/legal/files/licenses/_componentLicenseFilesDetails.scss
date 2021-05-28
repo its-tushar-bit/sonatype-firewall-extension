@@ -8,14 +8,14 @@
 @import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-variables';
 @import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
-component-notice-details,
-notice-list,
-notice-details-header,
-notice-details-contents {
+component-license-files-details,
+license-files-details-list,
+license-files-details-header,
+license-files-details-contents {
   display: contents;
 }
 
-#component-notice-details-content {
+#component-license-details-content {
   display: grid;
   column-gap: $nx-spacing-md;
   grid-template-columns: 24% 1fr;

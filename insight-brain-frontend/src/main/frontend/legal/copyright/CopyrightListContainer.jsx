@@ -6,14 +6,14 @@
 import { pick } from 'ramda';
 import { connect } from 'react-redux';
 import CopyrightList from './CopyrightList';
-import { copyrightDetailsStateName } from './copyrightDetailsUtils';
+import { isCopyrightDetailsState } from './copyrightDetailsUtils';
 
 function mapStateToProps({ advancedLegal, componentCopyrightDetails, router }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
 
   let routerParams = router.currentParams;
-  if (router.currentState.name !== copyrightDetailsStateName && router.prevState.name === copyrightDetailsStateName) {
+  if (!isCopyrightDetailsState(router.currentState.name) && isCopyrightDetailsState(router.prevState.name)) {
     routerParams = router.prevParams;
   }
   return {

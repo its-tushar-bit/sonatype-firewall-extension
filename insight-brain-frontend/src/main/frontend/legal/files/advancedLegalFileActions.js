@@ -12,6 +12,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { isScopeOverride } from '../legalUtility';
 import { saveObligation } from '../obligation/advancedLegalObligationActions';
 import { refreshNoticeFilesDetails } from './notices/componentNoticeDetailsActions';
+import { refreshLicenseFilesDetails } from './licenses/componentLicenseFilesDetailsActions';
 
 export const ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL';
 export const ADVANCED_LEGAL_CANCEL_NOTICES_MODAL = 'ADVANCED_LEGAL_CANCEL_NOTICES_MODAL';
@@ -96,33 +97,33 @@ function startSaveNoticesSubmitMaskDoneTimer(dispatch) {
   setTimeout(() => dispatch(saveNoticesSubmitMaskDone()), SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
-export const ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL';
-export const ADVANCED_LEGAL_CANCEL_LICENSES_MODAL = 'ADVANCED_LEGAL_CANCEL_LICENSES_MODAL';
-export const ADVANCED_LEGAL_SET_LICENSE_CONTENT = 'ADVANCED_LEGAL_SET_LICENSE_CONTENT';
-export const ADVANCED_LEGAL_SET_LICENSE_STATUS = 'ADVANCED_LEGAL_SET_LICENSE_STATUS';
-export const ADVANCED_LEGAL_ADD_LICENSE = 'ADVANCED_LEGAL_ADD_LICENSE';
-export const ADVANCED_LEGAL_SET_LICENSES_SCOPE = 'ADVANCED_LEGAL_SET_LICENSES_SCOPE';
-export const ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED = 'ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED';
-export const ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED = 'ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED';
-export const ADVANCED_LEGAL_SAVE_LICENSES_FAILED = 'ADVANCED_LEGAL_SAVE_LICENSES_FAILED';
-export const ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE';
+export const ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL';
+export const ADVANCED_LEGAL_CANCEL_LICENSE_FILES_MODAL = 'ADVANCED_LEGAL_CANCEL_LICENSE_FILES_MODAL';
+export const ADVANCED_LEGAL_SET_LICENSE_FILE_CONTENT = 'ADVANCED_LEGAL_SET_LICENSE_FILE_CONTENT';
+export const ADVANCED_LEGAL_SET_LICENSE_FILE_STATUS = 'ADVANCED_LEGAL_SET_LICENSE_FILE_STATUS';
+export const ADVANCED_LEGAL_ADD_LICENSE_FILE = 'ADVANCED_LEGAL_ADD_LICENSE_FILE';
+export const ADVANCED_LEGAL_SET_LICENSE_FILES_SCOPE = 'ADVANCED_LEGAL_SET_LICENSE_FILES_SCOPE';
+export const ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED = 'ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED';
+export const ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED = 'ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED';
+export const ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED = 'ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED';
+export const ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE';
 
-export const setShowLicensesModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL);
-export const cancelLicensesModal = noPayloadActionCreator(ADVANCED_LEGAL_CANCEL_LICENSES_MODAL);
-export const setLicenseContent = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_CONTENT);
-export const setLicenseStatus = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_STATUS);
-export const addLicense = payloadParamActionCreator(ADVANCED_LEGAL_ADD_LICENSE);
-export const setLicensesScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSES_SCOPE);
+export const setShowLicenseFilesModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL);
+export const cancelLicenseFilesModal = noPayloadActionCreator(ADVANCED_LEGAL_CANCEL_LICENSE_FILES_MODAL);
+export const setLicenseFileContent = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FILE_CONTENT);
+export const setLicenseFileStatus = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FILE_STATUS);
+export const addLicenseFile = payloadParamActionCreator(ADVANCED_LEGAL_ADD_LICENSE_FILE);
+export const setLicenseFilesScope = payloadParamActionCreator(ADVANCED_LEGAL_SET_LICENSE_FILES_SCOPE);
 
-const saveLicensesRequested = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
-const saveLicensesSucceeded = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
-const saveLicensesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
-const saveLicensesSubmitMaskDone = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE);
+const saveLicenseFilesRequested = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED);
+const saveLicenseFilesSucceeded = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED);
+const saveLicenseFilesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED);
+const saveLicenseFilesSubmitMaskDone = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE);
 
-export function saveLicenses({ existingObligation, isLicensesDirty, isObligationDirty }) {
+export function saveLicenseFiles({ existingObligation, isLicensesDirty, isObligationDirty }) {
   return (dispatch, getState) => {
     if (isLicensesDirty) {
-      dispatch(saveLicensesRequested());
+      dispatch(saveLicenseFilesRequested());
 
       const advancedLegalState = getState().advancedLegal;
       const { values: availableScopeValues } = advancedLegalState.availableScopes;
@@ -156,15 +157,16 @@ export function saveLicenses({ existingObligation, isLicensesDirty, isObligation
           axios
             .get(getLegalFileUrl(scopeVisited.type, scopeVisited.publicId, componentIdentifier, 'license'))
             .then((responsePayload) => {
-              dispatch(saveLicensesSucceeded(responsePayload.data));
+              dispatch(saveLicenseFilesSucceeded(responsePayload.data));
+              dispatch(refreshLicenseFilesDetails());
               isObligationDirty
                 ? saveObligation(existingObligation.name)(dispatch, getState)
-                : startSaveLicensesSubmitMaskDoneTimer(dispatch);
+                : startSaveLicenseFilesSubmitMaskDoneTimer(dispatch);
             })
-            .catch((error) => dispatch(saveLicensesFailed(Messages.getHttpErrorMessage(error))));
+            .catch((error) => dispatch(saveLicenseFilesFailed(Messages.getHttpErrorMessage(error))));
         })
         .catch((error) => {
-          dispatch(saveLicensesFailed(Messages.getHttpErrorMessage(error)));
+          dispatch(saveLicenseFilesFailed(Messages.getHttpErrorMessage(error)));
         });
     } else if (isObligationDirty) {
       return saveObligation(existingObligation.name)(dispatch, getState);
@@ -174,6 +176,6 @@ export function saveLicenses({ existingObligation, isLicensesDirty, isObligation
   };
 }
 
-function startSaveLicensesSubmitMaskDoneTimer(dispatch) {
-  setTimeout(() => dispatch(saveLicensesSubmitMaskDone()), SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+function startSaveLicenseFilesSubmitMaskDoneTimer(dispatch) {
+  setTimeout(() => dispatch(saveLicenseFilesSubmitMaskDone()), SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }

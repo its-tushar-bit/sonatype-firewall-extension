@@ -6,46 +6,46 @@
 
 import {
   availableScopesPropType,
-  componentNoticeDetailsPropType,
+  componentLicenseDetailsPropType,
   componentPropType,
 } from '../../advancedLegalPropTypes';
 import { timeAgo } from '../../../util/CommonServices';
 import * as PropTypes from 'prop-types';
 import { LegalFileOverviewHeader } from '../common/LegalFileOverviewHeader';
 
-export default function NoticeDetailsOverview(props) {
-  const { availableScopes, componentNoticeDetails, component, loading, error } = props;
+export default function LicenseFilesDetailsOverview(props) {
+  const { availableScopes, componentLicenseFileDetails, component, loading, error } = props;
 
   const licenseLegalData = component && component.licenseLegalData;
 
-  const noticeModification = () => {
-    if (licenseLegalData && licenseLegalData.componentNoticesLastUpdatedAt) {
-      let age = timeAgo(licenseLegalData.componentNoticesLastUpdatedAt);
-      return `${age.age} ${age.qualifier} by ${licenseLegalData.componentNoticesLastUpdatedByUsername}`;
+  const licenseModification = () => {
+    if (licenseLegalData && licenseLegalData.componentLicensesLastUpdatedAt) {
+      let age = timeAgo(licenseLegalData.componentLicensesLastUpdatedAt);
+      return `${age.age} ${age.qualifier} by ${licenseLegalData.componentLicensesLastUpdatedByUsername}`;
     } else {
       return 'N/A';
     }
   };
 
   const scopeOwnerId =
-    (component && component.licenseLegalData && component.licenseLegalData.componentNoticesScopeOwnerId) ||
+    (component && component.licenseLegalData && component.licenseLegalData.componentLicensesScopeOwnerId) ||
     'ROOT_ORGANIZATION_ID';
 
   return loading || error
     ? null
     : LegalFileOverviewHeader(
-        componentNoticeDetails.selectedNotice,
+        componentLicenseFileDetails.selectedLicense,
         availableScopes,
-        noticeModification(),
-        'Notice',
+        licenseModification(),
+        'License',
         scopeOwnerId
       );
 }
 
-NoticeDetailsOverview.propTypes = {
+LicenseFilesDetailsOverview.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
   availableScopes: availableScopesPropType,
-  componentNoticeDetails: componentNoticeDetailsPropType,
+  componentLicenseFileDetails: componentLicenseDetailsPropType,
   component: componentPropType,
 };

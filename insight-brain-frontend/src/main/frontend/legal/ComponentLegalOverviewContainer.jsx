@@ -9,7 +9,7 @@ import { pick } from 'ramda';
 import ComponentLegalOverviewPage from './ComponentLegalOverviewPage';
 import { loadAvailableScopes, loadComponent } from '../advancedLegal/advancedLegalActions';
 import * as copyrightOverrideFormActions from './copyright/copyrightOverrideFormActions';
-import { setShowNoticesModal } from './files/advancedLegalFileActions';
+import { setShowLicenseFilesModal, setShowNoticesModal } from './files/advancedLegalFileActions';
 
 function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
   let component = advancedLegal.component;
@@ -21,7 +21,9 @@ function mapStateToProps({ advancedLegal, router, copyrightOverrides }) {
     ...pick(['component', 'licenseLegalMetadata'], component),
     obligations: component.component ? component.component.licenseLegalData.obligations : null,
     showNoticesModal: component.component ? component.component.licenseLegalData.showNoticesModal : false,
+    showLicenseFilesModal: component.component ? component.component.licenseLegalData.showLicenseFilesModal : false,
     noticeFiles: component.component ? component.component.licenseLegalData.noticeFiles : null,
+    licenseFiles: component.component ? component.component.licenseLegalData.licenseFiles : null,
     ...pick(['hash', 'organizationId', 'applicationPublicId', 'stageTypeId'], router.currentParams),
     ...pick(['showEditCopyrightOverrideModal'], copyrightOverrides),
   };
@@ -31,6 +33,7 @@ const mapDispatchToProps = {
   loadComponent,
   loadAvailableScopes,
   setShowNoticesModal,
+  setShowLicenseFilesModal,
   ...copyrightOverrideFormActions,
 };
 

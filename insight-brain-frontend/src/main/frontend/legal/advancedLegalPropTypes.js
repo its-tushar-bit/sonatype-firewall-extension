@@ -172,3 +172,9 @@ export const componentNoticeDetailsPropType = PropTypes.shape({
   loading: PropTypes.bool,
   selectedNotice: legalFilePropType,
 });
+
+export const componentLicenseDetailsPropType = PropTypes.shape({
+  loading: PropTypes.bool,
+  licenseIndex: PropTypes.number.isRequired,
+  selectedLicense: legalFilePropType.isRequired,
+});

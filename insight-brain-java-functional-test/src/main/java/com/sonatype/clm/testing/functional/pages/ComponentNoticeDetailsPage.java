@@ -47,14 +47,14 @@ public final class ComponentNoticeDetailsPage
   public static class NoticeOverview
       extends BasicElement<NoticeOverview>
   {
-    private static final String NOTICE_DETAILS_TILE = "#notice-details-tile";
+    private static final String NOTICE_DETAILS_TILE = "#legal-file-details-tile";
 
     public NoticeOverview() {
       super(NOTICE_DETAILS_TILE);
     }
 
     private SelenideElement dataAt(final int index) {
-      return $(String.format("dl .notice-overview-item:nth-child(%d) ", index));
+      return $(String.format("dl .legal-file-overview-item:nth-child(%d) ", index));
     }
 
     public SelenideElement getAttributionReportStatus() {
@@ -70,7 +70,7 @@ public final class ComponentNoticeDetailsPage
     }
 
     public SelenideElement getNoticeText() {
-      return $("dl .notice-overview-text .nx-scrollable");
+      return $("dl .legal-file-overview-text .nx-scrollable");
     }
   }
 

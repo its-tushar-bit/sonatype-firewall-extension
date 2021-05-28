@@ -16,7 +16,7 @@ const reportMetaData = pick(['reportTime', 'reportTitle']);
 const deriveComponentDetails = (component, metadata) => ({
   name: component.derivedComponentName,
   dependencyType: component.derivedDependencyType,
-  isInnerSource: component.innerSource,
+  isInnerSource: component.innerSource || !!component.innerSourceData,
   format: formatFromComponent(component),
   applicationName: metadata.application.name,
   organizationName: metadata.application.organization.name,

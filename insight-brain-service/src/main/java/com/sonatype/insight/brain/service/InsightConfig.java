@@ -793,7 +793,7 @@ public class InsightConfig
   @JsonProperty
   @NotNull
   @Min(0)
-  private int pullRequestDetailsUpdateIntervalInSeconds = 60;
+  private int pullRequestMonitoringIntervalInSeconds = 60;
 
   public int getConnectTimeoutInSeconds() {
     return connectTimeoutInSeconds;
@@ -954,11 +954,11 @@ public class InsightConfig
     }
   }
 
-  public int getPullRequestDetailsUpdateIntervalInSeconds() {
-    return pullRequestDetailsUpdateIntervalInSeconds;
+  public int getPullRequestMonitoringIntervalInSeconds() {
+    return pullRequestMonitoringIntervalInSeconds;
   }
 
-  public void setPullRequestDetailsUpdateIntervalInSeconds(int pullRequestDetailsUpdateIntervalInSeconds) {
-    this.pullRequestDetailsUpdateIntervalInSeconds = pullRequestDetailsUpdateIntervalInSeconds;
+  public void setPullRequestMonitoringIntervalInSeconds(int pullRequestMonitoringIntervalInSeconds) {
+    this.pullRequestMonitoringIntervalInSeconds = pullRequestMonitoringIntervalInSeconds;
   }
 }

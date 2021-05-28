@@ -127,7 +127,7 @@ public class PullRequestMonitor
       return;
     }
 
-    int intervalInSeconds = insightConfig.getPullRequestDetailsUpdateIntervalInSeconds();
+    int intervalInSeconds = insightConfig.getPullRequestMonitoringIntervalInSeconds();
     taskScheduler.schedulePeriodicTask(PullRequestMonitor.class, TASK_NAME,
         Duration.ofSeconds(intervalInSeconds));
     log.debug("Scheduled PullRequestMonitor, interval={} seconds.", intervalInSeconds);

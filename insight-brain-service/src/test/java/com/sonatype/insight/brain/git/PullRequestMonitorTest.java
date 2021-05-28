@@ -105,7 +105,7 @@ public class PullRequestMonitorTest
     pullRequestMonitor.start();
 
     verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
-        Duration.ofSeconds(insightConfig.getPullRequestDetailsUpdateIntervalInSeconds()));
+        Duration.ofSeconds(insightConfig.getPullRequestMonitoringIntervalInSeconds()));
   }
 
   @Test

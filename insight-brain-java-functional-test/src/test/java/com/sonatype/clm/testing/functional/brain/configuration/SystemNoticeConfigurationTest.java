@@ -31,7 +31,7 @@ public class SystemNoticeConfigurationTest
       new com.sonatype.insight.brain.model.configuration.SystemNotice();
 
   static {
-    DEFAULT_SYSTEM_NOTICE.setMessage("");
+    DEFAULT_SYSTEM_NOTICE.setMessage("text");
     DEFAULT_SYSTEM_NOTICE.setEnabled(false);
   }
 
@@ -59,13 +59,13 @@ public class SystemNoticeConfigurationTest
     cannotCancelWithoutChanges();
 
     noChangesToUpdateTooltipShowsWithoutChanges();
+    noticeTextEmptyMessageTooltipShows();
 
     clickCancel_RevertsText();
     clickCancel_RevertsDisplay();
     clickCancel_RevertsTextAndDisplay();
 
     systemNotice_InitiallyMatchesConfiguration();
-
     clickUpdate_UpdatesSystemNoticeDisplay();
     clickUpdate_UpdatesSystemNoticeText();
     clickUpdate_UpdatesSystemNoticeTextAndDisplay();
@@ -103,22 +103,38 @@ public class SystemNoticeConfigurationTest
   private void noChangesToUpdateTooltipShowsWithoutChanges() throws Exception {
     init();
     systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipShowing();
+    systemNoticeConfigurationPage.tooltipShowing(systemNoticeConfigurationPage.NOT_DIRTY_FORM);
 
-    systemNoticeConfigurationPage.displayToggle().hover();
+    systemNoticeConfigurationPage.toggle().hover();
     systemNoticeConfigurationPage.toggleDisplay();
     systemNoticeConfigurationPage.update().hover();
     systemNoticeConfigurationPage.tooltipNotShowing();
 
-    systemNoticeConfigurationPage.displayToggle().hover();
+    systemNoticeConfigurationPage.toggle().hover();
     systemNoticeConfigurationPage.toggleDisplay();
     systemNoticeConfigurationPage.update().hover();
-    systemNoticeConfigurationPage.tooltipShowing();
+    systemNoticeConfigurationPage.tooltipShowing(systemNoticeConfigurationPage.NOT_DIRTY_FORM);
+  }
+
+  private void noticeTextEmptyMessageTooltipShows() throws Exception {
+    init();
+    systemNoticeConfigurationPage.setDisplay(true);
+    systemNoticeConfigurationPage.setText(" ");
+
+    systemNoticeConfigurationPage.update().hover();
+    systemNoticeConfigurationPage.tooltipShowing(systemNoticeConfigurationPage.EMPTY_NOTICE_MESSAGE);
+
+    systemNoticeConfigurationPage.toggle().hover();
+    systemNoticeConfigurationPage.toggleDisplay();
+
+    systemNoticeConfigurationPage.update().hover();
+    systemNoticeConfigurationPage.tooltipNotShowing();
+    systemNoticeConfigurationPage.cancel().click();
   }
 
   private void clickCancel_RevertsText() throws Exception {
     init();
-    systemNoticeConfigurationPage.setText(text + "updated");
+    systemNoticeConfigurationPage.setText(text + " updated");
     systemNoticeConfigurationPage.cancel().click();
     systemNoticeConfigurationPage.textMatches(text);
   }
@@ -132,7 +148,7 @@ public class SystemNoticeConfigurationTest
 
   private void clickCancel_RevertsTextAndDisplay() throws Exception {
     init();
-    systemNoticeConfigurationPage.setTextAndToggleDisplay(text + "updated");
+    systemNoticeConfigurationPage.setTextAndToggleDisplay(text + " updated");
     systemNoticeConfigurationPage.cancel().click();
     systemNoticeConfigurationPage.textMatches(text);
     systemNoticeConfigurationPage.displayMatches(display);
@@ -146,7 +162,7 @@ public class SystemNoticeConfigurationTest
     refresh();
     systemNoticeMatchesConfiguration();
 
-    systemNoticeConfigurationPage.setTextAndDisplayAndUpdate(text + "updated", !display);
+    systemNoticeConfigurationPage.setTextAndDisplayAndUpdate(text + " updated", !display);
     refresh();
     systemNoticeMatchesConfiguration();
   }
@@ -163,11 +179,11 @@ public class SystemNoticeConfigurationTest
   private void clickUpdate_UpdatesSystemNoticeText() throws Exception {
     init();
     systemNoticeConfigurationPage.setDisplayAndUpdate(true);
-    systemNoticeConfigurationPage.setTextAndUpdate(text + "updated");
+    systemNoticeConfigurationPage.setTextAndUpdate(text + " updated");
     systemNoticeMatchesConfiguration();
 
     systemNoticeConfigurationPage.setDisplayAndUpdate(false);
-    systemNoticeConfigurationPage.setTextAndUpdate(text + "updated again");
+    systemNoticeConfigurationPage.setTextAndUpdate(text + " updated again");
     systemNoticeConfigurationPage.setDisplayAndUpdate(true);
     systemNoticeMatchesConfiguration();
   }
@@ -175,10 +191,10 @@ public class SystemNoticeConfigurationTest
   private void clickUpdate_UpdatesSystemNoticeTextAndDisplay() throws Exception {
     init();
     systemNoticeConfigurationPage.setDisplayAndUpdate(true);
-    systemNoticeConfigurationPage.setTextAndDisplayAndUpdate(text + "updated", false);
+    systemNoticeConfigurationPage.setTextAndDisplayAndUpdate(text + " updated", false);
     systemNoticeMatchesConfiguration();
 
-    systemNoticeConfigurationPage.setTextAndDisplayAndUpdate(text + "updated again", true);
+    systemNoticeConfigurationPage.setTextAndDisplayAndUpdate(text + " updated again", true);
     systemNoticeMatchesConfiguration();
   }
 
@@ -212,7 +228,7 @@ public class SystemNoticeConfigurationTest
   }
 
   private void elementDisabled_WhenTextReverted(SelenideElement element, Condition disabledCondition) {
-    systemNoticeConfigurationPage.setText(text + "updated");
+    systemNoticeConfigurationPage.setText(text + " updated");
     element.shouldNotHave(disabledCondition);
     systemNoticeConfigurationPage.setText(text);
     element.shouldHave(disabledCondition);
@@ -226,7 +242,7 @@ public class SystemNoticeConfigurationTest
   }
 
   private void elementDisabled_WhenTextAndDisplayReverted(SelenideElement element, Condition disabledCondition) {
-    systemNoticeConfigurationPage.setTextAndToggleDisplay(text + "updated");
+    systemNoticeConfigurationPage.setTextAndToggleDisplay(text + " updated");
     element.shouldNotHave(disabledCondition);
     systemNoticeConfigurationPage.setTextAndToggleDisplay(text);
     element.shouldHave(disabledCondition);

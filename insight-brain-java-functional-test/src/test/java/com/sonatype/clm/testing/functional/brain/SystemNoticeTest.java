@@ -45,8 +45,6 @@ public class SystemNoticeTest
 
   private static final SystemNotice FILLED_DISABLED = createSystemNotice(FIVE_HUNDRED_CHARACTERS, false);
 
-  private static final SystemNotice EMPTY_ENABLED = createSystemNotice("", true);
-
   private static final SystemNotice FILLED_ENABLED = createSystemNotice(FIVE_HUNDRED_CHARACTERS, true);
 
   private static final String[] PAGE_URLS = new String[]{
@@ -88,7 +86,6 @@ public class SystemNoticeTest
   }
 
   private void enabledSystemNotice_ShownOnLogin() {
-    checkSystemNoticeVisibilityOnLogin(EMPTY_ENABLED, visible);
     checkSystemNoticeVisibilityOnLogin(FILLED_ENABLED, visible);
     eyesWatcher.eyesCheck("System Notice on Login");
   }
@@ -99,7 +96,6 @@ public class SystemNoticeTest
   }
 
   private void enabledSystemNotice_ShownOnPages() {
-    checkSystemNoticeVisibilityAfterLogin(EMPTY_ENABLED, visible);
     checkSystemNoticeVisibilityAfterLogin(FILLED_ENABLED, visible);
     eyesWatcher.eyesCheck("System Notice on Page");
   }

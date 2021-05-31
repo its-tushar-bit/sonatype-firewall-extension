@@ -16,7 +16,6 @@ import ownerManagerModule from './owner.manager/owner.manager.module';
 import { MainModule } from './MainModule';
 import { UserModule } from './security/UserModule';
 import RoleModule from './security/RoleModule';
-import systemNoticeModule from './systemNotice/systemNoticeModule';
 import labsModule from './labs/module';
 import vulnerabilitySearchModule from './vulnerabilitySearch/module';
 import violationPageModule from './violation/module';
@@ -27,6 +26,7 @@ import waiversModule from './waivers/module';
 import reportModule from './applicationReport/react/module';
 import advancedLegalModule from './advancedLegal/module';
 import firewallModule from './firewall/module';
+import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 
 export default angular
   .module('managementApp', [
@@ -34,7 +34,6 @@ export default angular
     UserModule.name,
     RoleModule.name,
     ownerManagerModule.name,
-    systemNoticeModule.name,
     componentsModule.name,
     directivesModule.name,
     labsModule.name,
@@ -53,6 +52,7 @@ export default angular
     componentDetailsModule.name,
   ])
   .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
+  .component('systemNotice', react2angular(withStoreProvider(SystemNoticeContainer), [], ['$ngRedux']))
   .config(routes);
 
 function routes($stateProvider) {

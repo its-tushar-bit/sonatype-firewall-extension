@@ -39,6 +39,7 @@ import legalApplicationDetailsReducer from '../legal/application/legalApplicatio
 import labsDataInsightsReducer from '../configuration/labsDataInsights/labsDataInsightsReducer';
 import notificationsReducer from '../mainHeader/MenuBar/NotificationsMenu/notificationsReducer';
 import successMetricsConfigurationReducer from '../configuration/successMetricsConfiguration/successMetricsConfigurationReducer';
+import systemNoticeConfigurationReducer from '../configuration/systemNoticeConfiguration/systemNoticeConfigurationReducer';
 import rolesReducer from '../security/rolesReducer';
 import auditLogReducer from '../componentDetails/auditLog/auditLogReducer';
 import editWebhookReducer from '../configuration/webhook/editWebhook/editWebhookReducer';
@@ -79,6 +80,7 @@ export default combineReducers({
   labsDataInsights: labsDataInsightsReducer,
   notifications: notificationsReducer,
   successMetricsConfiguration: successMetricsConfigurationReducer,
+  systemNoticeConfiguration: systemNoticeConfigurationReducer,
   roles: rolesReducer,
   auditLog: auditLogReducer,
   editWebhook: editWebhookReducer,

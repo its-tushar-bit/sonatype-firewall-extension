@@ -7,7 +7,8 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.Toggle;
+import com.sonatype.clm.testing.functional.elements.NxToggle;
+import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -21,6 +22,10 @@ import static com.codeborne.selenide.Selenide.$;
 public class SystemNoticeConfigurationPage
     extends BasicElement<SystemNoticeConfigurationPage>
 {
+  public static final String NOT_DIRTY_FORM = "There are no changes to update";
+
+  public static final String EMPTY_NOTICE_MESSAGE = "Notice Text cannot be blank";
+
   public static String url() {
     return BaseUrl.resolvePageUrl("/systemNoticeConfiguration");
   }
@@ -47,20 +52,20 @@ public class SystemNoticeConfigurationPage
     return child("#system-notice-text");
   }
 
-  public Toggle displayToggle() {
-    return new Toggle(childSelector("#system-notice-display-toggle-checkbox"));
+  public NxToggle toggle() {
+    return new NxToggle(childSelector("#system-notice-display-toggle-checkbox"));
   }
 
   public SelenideElement update() {
-    return child("#system-notice-update");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement cancel() {
     return child("#system-notice-cancel");
   }
 
-  public SelenideElement tooltip() {
-    return root().find(".tooltip");
+  public Tooltip tooltip() {
+    return Tooltip.get();
   }
 
   private void save() {
@@ -86,12 +91,12 @@ public class SystemNoticeConfigurationPage
   }
 
   public boolean isDisplayed() {
-    return displayToggle().isChecked();
+    return toggle().input().isSelected();
   }
 
   public void setDisplay(final boolean display) {
     if (display != isDisplayed()) {
-      displayToggle().click();
+      toggle().click();
     }
   }
 
@@ -102,10 +107,10 @@ public class SystemNoticeConfigurationPage
 
   public void displayMatches(final boolean display) {
     if (display) {
-      displayToggle().shouldBe(checked);
+      toggle().input().shouldBe(checked);
     }
     else {
-      displayToggle().shouldNotBe(checked);
+      toggle().input().shouldNotBe(checked);
     }
   }
 
@@ -120,7 +125,7 @@ public class SystemNoticeConfigurationPage
         throw new RuntimeException(e);
       }
     }
-    displayToggle().click();
+    toggle().click();
 
     lastClicked = System.currentTimeMillis();
   }
@@ -145,8 +150,8 @@ public class SystemNoticeConfigurationPage
     toggleDisplay();
   }
 
-  public void tooltipShowing() {
-    tooltip().should(exist, exactText("There are no changes to update."));
+  public void tooltipShowing(final String message) {
+    tooltip().should(exist, exactText(message));
   }
 
   public void tooltipNotShowing() {

@@ -210,6 +210,14 @@ export function getSuccessMetricsConfigUrl() {
   return uriTemplate`/rest/successMetrics`;
 }
 
+export function getSystemNoticeUrl() {
+  return uriTemplate`/rest/config/systemNotice`;
+}
+
+export function getSystemNoticeFetchUrl() {
+  return `${getSystemNoticeUrl()}/fetch`;
+}
+
 export function getRoleListUrl() {
   return uriTemplate`/rest/security/roles`;
 }
@@ -706,13 +714,9 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getWebhookEventTypesUrl,
 
-      getSystemNoticeUrl: function () {
-        return baseUrl.get() + '/rest/config/systemNotice';
-      },
+      getSystemNoticeUrl,
 
-      getSystemNoticeFetchUrl: function () {
-        return this.getSystemNoticeUrl() + '/fetch';
-      },
+      getSystemNoticeFetchUrl,
 
       getRevokeGrandfatheringUrl: function (applicationPublicId) {
         return `${baseUrl.get()}/rest/policyViolationGrandfathering/revoke/${encodeURIComponent(applicationPublicId)}`;

@@ -345,7 +345,7 @@ public class ApiReportDataServiceV2
   private boolean isDependencyDataInRestApiSupported() {
     Map<String, Boolean> experimentalFeatures = insightConfig.getExperimentalFeatures();
     return experimentalFeatures != null ? experimentalFeatures
-        .getOrDefault(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false) : false;
+        .getOrDefault(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true) : true;
   }
 
   private void populateDependencyData(final Component comp, final ApiReportComponentDTOV2 component) {

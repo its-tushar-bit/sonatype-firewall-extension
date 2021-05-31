@@ -199,7 +199,7 @@ public class ApiSearchServiceV2
   {
     ApiDependencyDataDTO dependencyData = new ApiDependencyDataDTO();
     boolean isEnabledComponentSearchApiWithInnerSource = MapUtils.emptyIfNull(insightConfig.getExperimentalFeatures())
-        .getOrDefault(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), false);
+        .getOrDefault(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true);
 
     if (!isEnabledComponentSearchApiWithInnerSource) {
       return null;

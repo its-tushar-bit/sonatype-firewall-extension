@@ -152,7 +152,6 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetRawData_DependencyDataConfigEnabled() throws Exception {
-    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
     ComponentIdentifier innerSourceId = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerSourceChildId =
@@ -232,7 +231,6 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetRawData_DependencyDataConfigEnabled_MultipleParentPurls() throws Exception {
-    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
     makeReport("report-3");
 
     ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
@@ -248,6 +246,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetRawData_DependencyDataConfigDisabled() throws Exception {
+    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
     makeReport("report-1");
     ApiReportRawDataDTOV2 data = reportDataService.getRawData(app.getPublicId(), scanId);
     assertThat(data).isNotNull();
@@ -287,7 +286,6 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetPolicyViolationsData_DependencyDataConfigEnabled() throws Exception {
-    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), true);
     ComponentIdentifier innerSourceId = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerSourceChildId =
@@ -338,6 +336,7 @@ public class ApiReportDataServiceV2Test
 
   @Test
   public void testGetPolicyViolationsData_DependencyDataConfigDisabled() throws Exception {
+    config.getExperimentalFeatures().put(Feature.DEPENDENCY_DATA_IN_API.getFlag(), false);
     ComponentIdentifier innerSourceId = ComponentIdentifier
         .createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0-SNAPSHOT", "", "jar");
     ComponentIdentifier innerSourceChildId =

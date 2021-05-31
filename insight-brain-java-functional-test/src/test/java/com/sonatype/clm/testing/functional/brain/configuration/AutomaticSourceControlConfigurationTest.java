@@ -35,7 +35,7 @@ public class AutomaticSourceControlConfigurationTest
     configurationPage.explanation().shouldBe(visible).shouldNotBe(empty);
 
     // check initial state
-    configurationPage.toggle().shouldBe(visible, enabled).shouldNotBe(checked);
+    configurationPage.toggle().input().shouldNotBe(checked);
 
     // check that configuration settings can be saved
     configurationPage.toggle().click();
@@ -47,13 +47,13 @@ public class AutomaticSourceControlConfigurationTest
 
     // check that the updated configuration is displayed on refresh
     refresh();
-    configurationPage.toggle().shouldNotBe(CLM.DISABLED);
+    configurationPage.toggle().input().shouldNotBe(CLM.DISABLED);
 
     // check that local changes to configuration settings can be cancelled
     configurationPage.toggle().click();
     configurationPage.update().shouldNotBe(CLM.DISABLED);
     configurationPage.cancel().shouldNotBe(disabled).click();
-    configurationPage.toggle().shouldNotBe(CLM.DISABLED);
+    configurationPage.toggle().input().shouldNotBe(CLM.DISABLED);
     configurationPage.update().shouldBe(CLM.DISABLED);
     configurationPage.cancel().shouldBe(disabled);
 

@@ -11,8 +11,8 @@ import ldapModule from './ldap/ldap.module';
 import samlModule from './saml/module';
 import webhookModule from './webhook/webhook.module';
 import ProductLicenseModule from './license/ProductLicenseModule';
-import automaticSourceControlConfigurationModule from './automaticSourceControlConfiguration/automaticSourceControlConfigurationModule';
 import MailConfigContainer from './mail/MailConfigContainer';
+import AutomaticSourceControlConfigurationContainer from './automaticSourceControlConfiguration/AutomaticSourceControlConfigurationContainer';
 import ProxyConfigContainer from './proxy/ProxyConfigContainer';
 import ScmOnboardingContainer from './scmOnboarding/ScmOnboardingContainer';
 import LabsDataInsightsContainer from './labsDataInsights/LabsDataInsightsContainer';
@@ -31,9 +31,12 @@ export default angular
     samlModule.name,
     webhookModule.name,
     ProductLicenseModule.name,
-    automaticSourceControlConfigurationModule.name,
     'ngRedux',
   ])
+  .component(
+    'automaticSourceControlConfiguration',
+    react2angular(withStoreProvider(AutomaticSourceControlConfigurationContainer), [], ['$ngRedux'])
+  )
   .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
   .component(
     'proxyConfig',
@@ -168,6 +171,14 @@ function routes($stateProvider) {
     .state('scmOnboardingOrg', {
       ...scmOnboardingRouteCommonProps,
       url: '/onboarding/{organizationId}',
+    })
+    .state('automaticSourceControlConfiguration', {
+      component: 'automaticSourceControlConfiguration',
+      url: '/automaticSourceControlConfiguration',
+      data: {
+        title: 'Automatic Source Control Configuration',
+        isDirty: ['automaticSourceControlConfiguration', 'viewState', 'isDirty'],
+      },
     });
 }
 

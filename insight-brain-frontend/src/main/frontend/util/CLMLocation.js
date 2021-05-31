@@ -34,6 +34,10 @@ export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdP
   return urlWithPath;
 }
 
+export function getAutomaticSourceControlConfigurationUrl() {
+  return uriTemplate`/rest/config/automaticScmConfiguration`;
+}
+
 export function getMailConfigUrl() {
   return uriTemplate`/api/v2/config/mail`;
 }
@@ -741,8 +745,6 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         `${baseUrl.get()}/rest/successMetrics/report/${successMetricsId}`,
 
       getAutomaticApplicationsConfigurationUrl: () => `${baseUrl.get()}/rest/config/automaticApplications`,
-
-      getAutomaticSourceControlConfigurationUrl: () => `${baseUrl.get()}/rest/config/automaticScmConfiguration`,
 
       getAdvancedSearchConfigUrl: () => `${baseUrl.get()}/rest/search/advanced/status`,
 

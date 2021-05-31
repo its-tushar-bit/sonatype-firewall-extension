@@ -6,7 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.Toggle;
+import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -25,19 +25,19 @@ public class AutomaticSourceControlConfigurationPage
   }
 
   public SelenideElement header() {
-    return child(".iq-tile-header");
+    return child(".nx-tile-header");
   }
 
   public SelenideElement explanation() {
-    return child("#automatic-source-control-explanation");
+    return child(".nx-toggle__content");
   }
 
-  public Toggle toggle() {
-    return new Toggle(childSelector("#automatic-source-control-toggle-checkbox"));
+  public NxToggle toggle() {
+    return new NxToggle(childSelector("#automatic-source-control-toggle-checkbox"));
   }
 
   public SelenideElement update() {
-    return child("#automatic-source-control-update");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement cancel() {

@@ -11,14 +11,17 @@ import { NxThreatIndicator } from '@sonatype/react-shared-components';
 import { isMultiLicense } from './componentLicenseDetailsActions';
 
 export default function LicenseList(props) {
-  const { ownerType, ownerId, hash, componentLicenseDetails, licenseLegalMetadata, $state } = props;
+  const { ownerType, ownerId, hash, stageTypeId, componentLicenseDetails, licenseLegalMetadata, $state } = props;
 
   const selectedLicense = parseInt(componentLicenseDetails.licenseIndex);
+
+  const licenseDetailsTargetState = () =>
+    stageTypeId ? 'legal.stageTypeComponentLicenseDetails' : 'legal.componentLicenseDetails';
 
   const licenseItem = (item, index) => (
     <li key={index} className="nx-list__item nx-list__item--link">
       <a
-        href={$state.href('legal.componentLicenseDetails', { ownerType, ownerId, hash, licenseIndex: index })}
+        href={$state.href(licenseDetailsTargetState, { ownerType, ownerId, hash, licenseIndex: index })}
         className={listLinkClass(index)}
       >
         <span className="nx-list__text nx-truncate-ellipsis">{item}</span>
@@ -64,6 +67,7 @@ LicenseList.propTypes = {
   ownerType: PropTypes.string,
   ownerId: PropTypes.string,
   hash: PropTypes.string,
+  stageTypeId: PropTypes.string,
   licenseLegalMetadata: licenseLegalMetadataPropType,
   $state: PropTypes.object.isRequired,
 };

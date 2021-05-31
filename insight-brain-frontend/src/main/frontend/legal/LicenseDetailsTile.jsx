@@ -16,7 +16,7 @@ export default function LicenseDetailsTile(props) {
   const licenses = getComponentEffectiveLicenseNamesAndIds(component, licenseLegalMetadata);
   const isLicensePresent = () => licenses.length > 0;
   const licenseDetailsTargetState = () =>
-    stageTypeId ? 'legal.stageTypeComponentLicenseFilesDetails' : 'legal.componentLicenseFilesDetails';
+    stageTypeId ? 'legal.stageTypeComponentLicenseDetails' : 'legal.componentLicenseDetails';
 
   const createItem = (license, index) => {
     return (

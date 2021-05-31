@@ -7,7 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 
 describe('LicenseDetailsTile component', function () {
-  let getShallowComponent, $state;
+  let getShallowComponent, $state, minimalProps;
 
   beforeEach(function () {
     $state = jasmine.createSpyObj('$state', ['get', 'href']);
@@ -39,7 +39,7 @@ describe('LicenseDetailsTile component', function () {
       },
     };
 
-    const minimalProps = {
+    minimalProps = {
       component,
       licenseLegalMetadata,
       $state,
@@ -78,6 +78,24 @@ describe('LicenseDetailsTile component', function () {
     expect(licenseSpans.at(1)).toHaveText('License-2.0<NxFontAwesomeIcon />');
     expect(licenseSpans.at(2)).toHaveText('License-1.0 or License-2.0<NxFontAwesomeIcon />');
     expect($state.href).toHaveBeenCalled();
-    expect(licenseSpans.at(0)).toHaveProp('href', 'legal.componentLicenseFilesDetails-{"licenseIndex":0}');
+    expect(licenseSpans.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+  });
+
+  it('renders the links to the licenses details pages with stage in the rout', function () {
+    const props = {
+      ...minimalProps,
+      stageTypeId: 'build',
+    };
+    const wrapper = enzymeUtils.getShallowComponent(LicenseDetailsTile, props)();
+    let licenseSpans = wrapper.find('a.nx-list__link');
+    expect(licenseSpans.length).toBe(3);
+    expect(licenseSpans.at(0)).toHaveText('License-1.0<NxFontAwesomeIcon />');
+    expect(licenseSpans.at(1)).toHaveText('License-2.0<NxFontAwesomeIcon />');
+    expect(licenseSpans.at(2)).toHaveText('License-1.0 or License-2.0<NxFontAwesomeIcon />');
+    expect($state.href).toHaveBeenCalled();
+    expect(licenseSpans.at(0)).toHaveProp(
+      'href',
+      'legal.stageTypeComponentLicenseDetails-{"stageTypeId":"build","licenseIndex":0}'
+    );
   });
 });

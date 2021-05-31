@@ -21,7 +21,7 @@ function mapStateToProps({ advancedLegal, componentCopyrightDetails, router }) {
     error: component.error || availableScopes.error || componentCopyrightDetails.errorCopyrightFileCounts,
     componentCopyrightDetails,
     ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'copyrightIndex'], routerParams),
+    ...pick(['hash', 'ownerType', 'ownerId', 'copyrightIndex', 'stageTypeId'], routerParams),
   };
 }
 

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
-import { availableScopesPropType, licenseLegalMetadataPropType, componentPropType } from '../advancedLegalPropTypes';
+import { availableScopesPropType, componentPropType, licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
 import LoadWrapper from '../../react/LoadWrapper';
 import { NxBackButton } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
@@ -53,6 +53,7 @@ export default function ComponentLicenseDetailsPage(props) {
             ownerType={ownerType}
             ownerId={ownerId}
             hash={hash}
+            stageTypeId={stageTypeId}
             licenseLegalMetadata={licenseLegalMetadata}
             componentLicenseDetails={componentLicenseDetails}
             $state={$state}

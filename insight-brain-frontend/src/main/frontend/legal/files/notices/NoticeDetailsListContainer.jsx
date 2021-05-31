@@ -11,14 +11,21 @@ import NoticeDetailsList from './NoticeDetailsList';
 function mapStateToProps({ advancedLegal, componentNoticeDetails, router }) {
   const component = advancedLegal.component || {};
   const availableScopes = advancedLegal.availableScopes || {};
+  const noticeDetailsStateName = 'noticeDetails';
 
   let routerParams = router.currentParams;
+  if (
+    !router.currentState.name.includes(noticeDetailsStateName) &&
+    router.prevState.name.includes(noticeDetailsStateName)
+  ) {
+    routerParams = router.prevParams;
+  }
   return {
     componentNoticeDetails,
     loading: component.loading || availableScopes.loading || componentNoticeDetails.loadingNoticeDetails,
     error: component.error || availableScopes.error,
     ...pick(['component'], component),
-    ...pick(['hash', 'ownerType', 'ownerId', 'noticeIndex'], routerParams),
+    ...pick(['hash', 'ownerType', 'ownerId', 'stageTypeId', 'noticeIndex'], routerParams),
   };
 }
 

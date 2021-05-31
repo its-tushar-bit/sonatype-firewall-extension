@@ -17,6 +17,7 @@ export default function CopyrightList(props) {
     ownerType,
     ownerId,
     hash,
+    stageTypeId,
     componentCopyrightDetails,
     $state,
   } = props;
@@ -39,15 +40,21 @@ export default function CopyrightList(props) {
   const copyrightSource = (item) =>
     item.originalContentHash ? getCopyrightFileCount(item.originalContentHash) : 'Manually added';
 
+  const copyrightDetailsTargetState = () =>
+    stageTypeId
+      ? 'legal.stageTypeComponentCopyrightDetails.copyrightDetails'
+      : 'legal.componentCopyrightDetails.copyrightDetails';
+
   const listItems =
     component && component.licenseLegalData
       ? component.licenseLegalData.copyrights.map((item, index) => (
           <li key={index} className="nx-list__item nx-list__item--link">
             <a
-              href={$state.href('legal.componentCopyrightDetails.copyrightDetails', {
+              href={$state.href(copyrightDetailsTargetState(), {
                 ownerType,
                 ownerId,
                 hash,
+                stageTypeId,
                 copyrightIndex: index,
               })}
               className={listLinkClass(index)}
@@ -79,6 +86,7 @@ CopyrightList.propTypes = {
   ownerType: PropTypes.string,
   ownerId: PropTypes.string,
   hash: PropTypes.string,
+  stageTypeId: PropTypes.string,
   $state: PropTypes.object.isRequired,
   copyrightIndex: PropTypes.string.isRequired,
 };

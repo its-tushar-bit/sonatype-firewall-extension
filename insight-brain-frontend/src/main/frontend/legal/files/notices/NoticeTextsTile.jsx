@@ -24,8 +24,11 @@ export default function NoticeTextsTile(props) {
     'license-no-legal-elements-text': !isNoticePresent(),
   });
 
+  const noticeDetailsTargetState = () =>
+    stageTypeId ? 'legal.stageTypeComponentNoticeDetails.noticeDetails' : 'legal.componentNoticeDetails.noticeDetails';
+
   const createItem = (license, index) =>
-    createLegalFileTileItem('notice', license, index, $state, 'legal.componentNoticeDetails.noticeDetails', {
+    createLegalFileTileItem('notice', license, index, $state, noticeDetailsTargetState(), {
       ownerType,
       ownerId,
       hash,

@@ -28,7 +28,7 @@ export default function LicenseFullDetailsTile(props) {
     const color = selectableColors[colorIndex % selectableColors.length];
     const classes = `license-full-details__obligation-text--${color}`;
     return (
-      <dd className="nx-read-only__data">
+      <dd key={index} className="nx-read-only__data">
         <q className={classes} key={index} onClick={partial(setHighlight, [licenseObligationLicenseText])}>
           {licenseObligationLicenseText}
         </q>

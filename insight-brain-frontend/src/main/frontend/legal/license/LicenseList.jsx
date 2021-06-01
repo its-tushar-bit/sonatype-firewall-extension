@@ -21,7 +21,7 @@ export default function LicenseList(props) {
   const licenseItem = (item, index) => (
     <li key={index} className="nx-list__item nx-list__item--link">
       <a
-        href={$state.href(licenseDetailsTargetState, { ownerType, ownerId, hash, licenseIndex: index })}
+        href={$state.href(licenseDetailsTargetState(), { ownerType, ownerId, hash, licenseIndex: index })}
         className={listLinkClass(index)}
       >
         <span className="nx-list__text nx-truncate-ellipsis">{item}</span>

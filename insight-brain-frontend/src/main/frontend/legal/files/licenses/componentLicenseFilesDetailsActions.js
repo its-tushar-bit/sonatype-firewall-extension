@@ -5,7 +5,7 @@
  */
 
 import { payloadParamActionCreator } from '../../../util/reduxUtil';
-import { loadAvailableScopes, loadComponent } from '../../../advancedLegal/advancedLegalActions';
+import { loadAvailableScopes, loadComponent } from '../../advancedLegalActions';
 
 export const LICENSE_DETAILS_SELECTED_LICENSE_FILE = 'LICENSE_DETAILS_SELECTED_LICENSE_FILE';
 

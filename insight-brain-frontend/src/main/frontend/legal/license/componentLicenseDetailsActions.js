@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { payloadParamActionCreator } from '../../util/reduxUtil';
-import { loadAvailableScopes, loadComponent } from '../../advancedLegal/advancedLegalActions';
+import { loadAvailableScopes, loadComponent } from '../advancedLegalActions';
 
 export const LICENSE_DETAILS_REQUEST = 'LICENSE_DETAILS_REQUEST';
 export const LICENSE_DETAILS_FULFILLED = 'LICENSE_DETAILS_FULFILLED';

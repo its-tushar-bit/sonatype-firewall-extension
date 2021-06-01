@@ -24,7 +24,6 @@ import withStoreProvider from './reactAdapter/StoreProvider';
 import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
 import reportModule from './applicationReport/react/module';
-import advancedLegalModule from './advancedLegal/module';
 import firewallModule from './firewall/module';
 import SystemNoticeContainer from './systemNotice/SystemNoticeContainer';
 
@@ -47,7 +46,6 @@ export default angular
     violationPageModule.name,
     waiversModule.name,
     reportModule.name,
-    advancedLegalModule.name,
     firewallModule.name,
     componentDetailsModule.name,
   ])

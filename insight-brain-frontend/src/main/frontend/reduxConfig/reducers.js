@@ -24,7 +24,7 @@ import manageWaiversReducer from '../waivers/manageWaiversReducer';
 import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
 import deleteWaiverReducer from '../waivers/deleteWaiverModal/deleteWaiverReducer';
 import userTokenReducer from '../mainHeader/MenuBar/UserMenu/UserToken/userTokenReducer';
-import advancedLegalReducer from '../advancedLegal/advancedLegalReducer';
+import advancedLegalReducer from '../legal/advancedLegalReducer';
 import legalDashboardReducer from '../legal/dashboard/legalDashboardReducer';
 import legalDashboardFilterReducer from '../legal/dashboard/filter/legalDashboardFilterReducer';
 import firewallReducer from '../firewall/firewallReducer';

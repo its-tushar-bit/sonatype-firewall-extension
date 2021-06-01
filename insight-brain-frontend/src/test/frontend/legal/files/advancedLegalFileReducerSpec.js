@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reduce from '../../../../main/frontend/advancedLegal/advancedLegalReducer';
+import reduce from '../../../../main/frontend/legal/advancedLegalReducer';
 import {
   ADVANCED_LEGAL_ADD_LICENSE_FILE,
   ADVANCED_LEGAL_ADD_NOTICE,

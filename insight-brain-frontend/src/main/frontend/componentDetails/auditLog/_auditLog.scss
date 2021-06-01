@@ -12,5 +12,8 @@
   .iq-audit-log-table__comment {
     white-space: normal;
     overflow-wrap: anywhere;
+    @supports not (overflow-wrap: anywhere) {
+      word-break: break-all;
+    }
   }
 }

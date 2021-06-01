@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import reduce from '../../../main/frontend/legal/advancedLegalReducer.js';
+import reduce from '../../../main/frontend/advancedLegal/advancedLegalReducer.js';
 import {
   ADVANCED_LEGAL_CANCEL_ATTRIBUTION_MODAL,
   ADVANCED_LEGAL_CANCEL_OBLIGATION_MODAL,

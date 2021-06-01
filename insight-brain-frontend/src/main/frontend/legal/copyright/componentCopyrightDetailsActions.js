@@ -8,7 +8,7 @@ import axios from 'axios';
 import { getCopyrightContextUrl, getCopyrightFileCountUrl, getCopyrightFilePathsUrl } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 import { FILE_PATH_PAGE_SIZE, pageOffset } from './copyrightDetailsUtils';
-import { loadAvailableScopes, loadComponent } from '../advancedLegalActions';
+import { loadAvailableScopes, loadComponent } from '../../advancedLegal/advancedLegalActions';
 
 export const COPYRIGHT_DETAILS_REQUEST = 'COPYRIGHT_DETAILS_REQUEST';
 export const COPYRIGHT_DETAILS_FULFILLED = 'COPYRIGHT_DETAILS_FULFILLED';

@@ -5,7 +5,7 @@
  */
 
 import { payloadParamActionCreator } from '../../../util/reduxUtil';
-import { loadAvailableScopes, loadComponent } from '../../advancedLegalActions';
+import { loadAvailableScopes, loadComponent } from '../../../advancedLegal/advancedLegalActions';
 
 export const NOTICE_DETAILS_SELECTED_NOTICE = 'NOTICE_DETAILS_SELECTED_NOTICE';
 

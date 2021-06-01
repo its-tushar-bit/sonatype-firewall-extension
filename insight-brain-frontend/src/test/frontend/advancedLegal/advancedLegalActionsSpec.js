@@ -4,21 +4,148 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getLicenseLegalComponentUrl, getOwnerHierarchyUrl } from '../../../main/frontend/util/CLMLocation';
 import {
+  getApplicationsUrl,
+  getLicenseLegalApplicationReportUrl,
+  getLicenseLegalComponentUrl,
+  getOwnerHierarchyUrl,
+} from '../../../main/frontend/util/CLMLocation';
+import {
+  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED,
+  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED,
+  ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED,
+  ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED,
+  ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
   ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
+  loadApplicationReport,
+  loadApplications,
   loadAvailableScopes,
   loadComponent,
-} from '../../../main/frontend/legal/advancedLegalActions';
+} from '../../../main/frontend/advancedLegal/advancedLegalActions';
 import { pick } from 'ramda';
 
 describe('advancedLegalActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+
+  describe('loadApplications', function () {
+    let store;
+
+    beforeEach(function () {
+      store = SpecUtil.mockReduxStore({});
+    });
+
+    it('immediately dispatches a ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED action', function () {
+      store.dispatch(loadApplications());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches a ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED action with applications', function (done) {
+      const applications = [
+        {
+          publicId: 'a',
+        },
+        {
+          publicId: 'b',
+        },
+      ];
+      mockAxiosCalls({
+        get: {
+          [getApplicationsUrl()]: Promise.resolve({ data: applications }),
+        },
+      });
+
+      store.dispatch(loadApplications()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED);
+        expect(actions[1].payload).toBe(applications);
+        done();
+      });
+    });
+
+    it('dispatches a ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED action when API fails', function (done) {
+      const errorTest = 'Error test';
+      mockAxiosCalls({
+        get: {
+          [getApplicationsUrl()]: Promise.reject(errorTest),
+        },
+      });
+
+      store.dispatch(loadApplications()).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATIONS_FAILED);
+        expect(actions[1].payload).toBe(errorTest);
+        done();
+      });
+    });
+  });
+
+  describe('loadApplicationReport', function () {
+    let store;
+
+    beforeEach(function () {
+      store = SpecUtil.mockReduxStore({});
+    });
+
+    it('immediately dispatches a ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED action', function () {
+      store.dispatch(loadApplicationReport('appId'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it('dispatches a ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED action with applications', function (done) {
+      const applicationId = 'appId';
+      const applicationReport = {
+        components: [{ displayName: 'groupId : artifactId : version' }],
+        licenseLegalMetadata: [{ licenseId: 'License Test' }],
+      };
+      mockAxiosCalls({
+        get: {
+          [getLicenseLegalApplicationReportUrl(applicationId)]: Promise.resolve({ data: applicationReport }),
+        },
+      });
+
+      store.dispatch(loadApplicationReport(applicationId)).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FULFILLED);
+        expect(actions[1].payload).toBe(applicationReport);
+        done();
+      });
+    });
+
+    it('dispatches a ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED action when API fails', function (done) {
+      const applicationId = 'appId';
+      const errorTest = 'Error test';
+      mockAxiosCalls({
+        get: {
+          [getLicenseLegalApplicationReportUrl(applicationId)]: Promise.reject(errorTest),
+        },
+      });
+
+      store.dispatch(loadApplicationReport(applicationId)).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_APPLICATION_REPORT_FAILED);
+        expect(actions[1].payload).toBe(errorTest);
+        done();
+      });
+    });
+  });
 
   describe('loadComponent', function () {
     let store;

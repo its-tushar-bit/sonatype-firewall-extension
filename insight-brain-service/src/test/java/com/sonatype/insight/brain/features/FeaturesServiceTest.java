@@ -5,8 +5,16 @@
  */
 package com.sonatype.insight.brain.features;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -15,6 +23,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
@@ -124,5 +133,76 @@ public class FeaturesServiceTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
 
     assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.DASHBOARD);
+  }
+
+  @Test
+  public void testGetFeatures_Experimental_Null() {
+    when(productLicense.isValid()).thenReturn(true);
+    insightConfig.setExperimentalFeatures(null);
+
+    assertThat(featuresService.getFeatures()).doesNotContain(Feature.values());
+  }
+
+  @Test
+  public void testGetFeatures_Experimental_NoneSpecified() {
+    when(productLicense.isValid()).thenReturn(true);
+    insightConfig.setExperimentalFeatures(Collections.emptyMap());
+
+    assertThat(featuresService.getFeatures()).doesNotContain(Feature.values());
+  }
+
+  @Test
+  public void testGetFeatures_Experimental_AllFalse() {
+    when(productLicense.isValid()).thenReturn(true);
+    Map<String, Boolean> experimentalFeatures =
+        Arrays.stream(Feature.values()).collect(Collectors.toMap(Feature::getFlag, feature -> false));
+    insightConfig.setExperimentalFeatures(experimentalFeatures);
+
+    assertThat(featuresService.getFeatures()).doesNotContain(Feature.values());
+  }
+
+  @Test
+  public void testGetFeatures_Experimental_AllTrue() {
+    when(productLicense.isValid()).thenReturn(true);
+    Map<String, Boolean> experimentalFeatures =
+        Arrays.stream(Feature.values()).collect(Collectors.toMap(Feature::getFlag, feature -> true));
+    insightConfig.setExperimentalFeatures(experimentalFeatures);
+
+    assertThat(featuresService.getFeatures()).contains(Feature.values());
+  }
+
+  @Test
+  public void testGetFeatures_Experimental_NotAFeature() {
+    when(productLicense.isValid()).thenReturn(true);
+    Map<String, Boolean> experimentalFeatures = new HashMap<>();
+    experimentalFeatures.put("foo", true);
+    insightConfig.setExperimentalFeatures(experimentalFeatures);
+
+    assertThat(featuresService.getFeatures()).extracting(com.sonatype.insight.license.model.Feature::getId)
+        .doesNotContain("foo");
+  }
+
+  @Test
+  public void testGetFeatures_Experimental_NotAnExperimentalFeature() {
+    when(productLicense.isValid()).thenReturn(true);
+    Map<String, Boolean> experimentalFeatures = new HashMap<>();
+    experimentalFeatures.put(LicensedFeature.ADVANCED_LEGAL_PACK.getId(), true);
+    insightConfig.setExperimentalFeatures(experimentalFeatures);
+
+    assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.ADVANCED_LEGAL_PACK);
+  }
+
+  @Test
+  public void testGetFeatures_NoDuplicates() {
+    List<com.sonatype.insight.license.model.Feature> allFeatures = new ArrayList<>();
+    allFeatures.addAll(Arrays.asList(LicensedFeature.values()));
+    allFeatures.addAll(Arrays.asList(NonLicensedFeature.values()));
+    allFeatures.addAll(Arrays.asList(Feature.values()));
+    List<String> allFeatureIdsList = allFeatures.stream()
+        .map(com.sonatype.insight.license.model.Feature::getId)
+        .collect(Collectors.toList());
+    Set<String> allFeatureIdsSet = new LinkedHashSet<>(allFeatureIdsList);
+
+    assertThat(allFeatureIdsSet).hasSize(allFeatureIdsList.size());
   }
 }

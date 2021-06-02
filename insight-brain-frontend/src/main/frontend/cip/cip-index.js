@@ -16,6 +16,7 @@ import '../util/CommonServices';
 import '../util/CLMContextLocation';
 import '../util/CLMLocation';
 import '../util/HttpInterceptors';
+import '../util/ProductFeatures';
 import 'angular-sanitize';
 import 'angular-vs-repeat';
 import 'es6-collections';

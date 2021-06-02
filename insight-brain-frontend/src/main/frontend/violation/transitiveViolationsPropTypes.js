@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import * as PropTypes from 'prop-types';
+
+export const scopePropType = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+});
+
+export const availableScopesPropType = PropTypes.shape({
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  values: PropTypes.arrayOf(scopePropType.isRequired),
+});
+
+export const componentIdentifierPropType = PropTypes.shape({
+  format: PropTypes.string.isRequired,
+  coordinates: PropTypes.object.isRequired,
+});
+
+export const policyViolationPropType = PropTypes.shape({
+  policyId: PropTypes.string.isRequired,
+  policyName: PropTypes.string.isRequired,
+  threatLevel: PropTypes.number.isRequired,
+  threatCategory: PropTypes.string.isRequired,
+  policyViolationId: PropTypes.string.isRequired,
+  action: PropTypes.string,
+  componentIdentifier: componentIdentifierPropType,
+  packageUrl: PropTypes.string,
+  hash: PropTypes.string.isRequired,
+  displayName: PropTypes.string.isRequired,
+});
+
+export const sortConfigurationPropType = PropTypes.shape({
+  key: PropTypes.string.isRequired,
+  dir: PropTypes.string.isRequired,
+});
+
+export const filterConfigurationPropType = PropTypes.shape({
+  policyName: PropTypes.string.isRequired,
+  displayName: PropTypes.string.isRequired,
+});
+
+export const componentTransitivePolicyViolationsPropType = PropTypes.shape({
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  sortConfiguration: sortConfigurationPropType.isRequired,
+  filterConfiguration: filterConfigurationPropType.isRequired,
+  componentIdentifier: componentIdentifierPropType,
+  packageUrl: PropTypes.string,
+  hash: PropTypes.string,
+  displayName: PropTypes.string,
+  isInnerSource: PropTypes.bool,
+  violations: PropTypes.arrayOf(policyViolationPropType.isRequired),
+  displayedViolations: PropTypes.arrayOf(policyViolationPropType.isRequired),
+});

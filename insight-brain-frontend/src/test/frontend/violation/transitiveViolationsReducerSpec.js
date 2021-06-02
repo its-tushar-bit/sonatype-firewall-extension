@@ -1,0 +1,652 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+import reduce from '../../../main/frontend/violation/transitiveViolationsReducer.js';
+import {
+  TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED,
+  TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED,
+  TRANSITIVE_VIOLATIONS_LOAD_FAILED,
+  TRANSITIVE_VIOLATIONS_LOAD_FULFILLED,
+  TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
+  TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
+  TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+} from '../../../main/frontend/violation/transitiveViolationsActions';
+import { Messages } from '../../../main/frontend/util/CommonServices';
+
+describe('transitiveViolationsReducer', function () {
+  describe('initial state', function () {
+    it('is used if no state is provided', function () {
+      const state = undefined;
+      const action = { type: 'UNKNOWN' };
+      const newState = reduce(state, action);
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          loading: false,
+          error: null,
+          sortConfiguration: {
+            key: 'threatLevel',
+            dir: 'desc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          componentIdentifier: null,
+          packageUrl: null,
+          hash: null,
+          displayName: null,
+          isInnerSource: null,
+          violations: null,
+          displayedViolations: null,
+        },
+        availableScopes: {
+          loading: false,
+          error: null,
+          values: null,
+        },
+      });
+    });
+  });
+
+  describe('unknown action', function () {
+    it('returns original state', function () {
+      const state = { foo: 'bar' };
+      const action = { type: 'UNKNOWN' };
+      const newState = reduce(state, action);
+      expect(newState).toBe(state);
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED action', function () {
+    it('sets in availableScopes loading to true and error to null', function () {
+      const state = {};
+      const action = { type: TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED };
+      const newState = reduce(state, action);
+
+      const { availableScopes } = newState;
+      expect(availableScopes).toEqual({
+        loading: true,
+        error: null,
+        values: null,
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED action', function () {
+    it('sets availableScopes loading to false, error to null, and merges the payload with it', function () {
+      const payload = { payload: 'payload' };
+      const state = {};
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      const { availableScopes } = newState;
+      expect(availableScopes).toEqual({
+        loading: false,
+        error: null,
+        ...payload,
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED action', function () {
+    it('sets availableScopes loading to false and the error message', function () {
+      const error = { status: '500', data: 'internal server error' };
+      const state = {};
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED,
+        payload: error,
+      };
+      const newState = reduce(state, action);
+
+      const { availableScopes } = newState;
+      expect(availableScopes).toEqual({
+        loading: false,
+        error: Messages.getHttpErrorMessage(error),
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_REQUESTED action', function () {
+    it('sets in componentTransitivePolicyViolations loading to true and error to null', function () {
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: 'someSortConfiguration',
+          filterConfiguration: 'someFilterConfiguration',
+        },
+      };
+      const action = { type: TRANSITIVE_VIOLATIONS_LOAD_REQUESTED };
+      const newState = reduce(state, action);
+
+      const { componentTransitivePolicyViolations } = newState;
+      expect(componentTransitivePolicyViolations).toEqual({
+        loading: true,
+        error: null,
+        sortConfiguration: 'someSortConfiguration',
+        filterConfiguration: 'someFilterConfiguration',
+        componentIdentifier: null,
+        packageUrl: null,
+        hash: null,
+        displayName: null,
+        isInnerSource: null,
+        violations: null,
+        displayedViolations: null,
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_FULFILLED action', function () {
+    it(
+      'sets componentTransitivePolicyViolations loading to false, error to null,' + 'and merges the payload with it',
+      function () {
+        const payload = { transitivePolicyViolations: 'transitivePolicyViolations', other: 'other' };
+        const state = {
+          componentTransitivePolicyViolations: {
+            sortConfiguration: 'someSortConfiguration',
+            filterConfiguration: 'someFilterConfiguration',
+          },
+        };
+        const action = {
+          type: TRANSITIVE_VIOLATIONS_LOAD_FULFILLED,
+          payload: payload,
+        };
+        const newState = reduce(state, action);
+
+        const { componentTransitivePolicyViolations } = newState;
+        expect(componentTransitivePolicyViolations).toEqual({
+          loading: false,
+          error: null,
+          sortConfiguration: 'someSortConfiguration',
+          filterConfiguration: 'someFilterConfiguration',
+          violations: payload.transitivePolicyViolations,
+          displayedViolations: payload.transitivePolicyViolations,
+          other: 'other',
+        });
+      }
+    );
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_FAILED action', function () {
+    it('sets availableScopes loading to false and the error message', function () {
+      const error = { status: '500', data: 'internal server error' };
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: 'someSortConfiguration',
+          filterConfiguration: 'someFilterConfiguration',
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_LOAD_FAILED,
+        payload: error,
+      };
+      const newState = reduce(state, action);
+
+      const { componentTransitivePolicyViolations } = newState;
+      expect(componentTransitivePolicyViolations).toEqual({
+        loading: false,
+        error: Messages.getHttpErrorMessage(error),
+        sortConfiguration: 'someSortConfiguration',
+        filterConfiguration: 'someFilterConfiguration',
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS action', function () {
+    it('sorts by threat level descending given other key and payload of threatLevel', function () {
+      const payload = 'threatLevel';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'policyName',
+            dir: 'asc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 5, policyName: '', displayName: '' },
+            { threatLevel: 0, policyName: '', displayName: '' },
+            { threatLevel: 10, policyName: '', displayName: '' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'threatLevel',
+            dir: 'desc',
+          },
+          displayedViolations: [
+            { threatLevel: 10, policyName: '', displayName: '' },
+            { threatLevel: 5, policyName: '', displayName: '' },
+            { threatLevel: 0, policyName: '', displayName: '' },
+          ],
+        },
+      });
+    });
+
+    it('sorts by threat level ascending given threatLevel key descending and payload of threatLevel', function () {
+      const payload = 'threatLevel';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'threatLevel',
+            dir: 'desc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 5, policyName: '', displayName: '' },
+            { threatLevel: 0, policyName: '', displayName: '' },
+            { threatLevel: 10, policyName: '', displayName: '' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'threatLevel',
+            dir: 'asc',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: '', displayName: '' },
+            { threatLevel: 5, policyName: '', displayName: '' },
+            { threatLevel: 10, policyName: '', displayName: '' },
+          ],
+        },
+      });
+    });
+
+    it('sorts by threat level descending given threatLevel key ascending and payload of threatLevel', function () {
+      const payload = 'threatLevel';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'threatLevel',
+            dir: 'asc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 5, policyName: '', displayName: '' },
+            { threatLevel: 0, policyName: '', displayName: '' },
+            { threatLevel: 10, policyName: '', displayName: '' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'threatLevel',
+            dir: 'desc',
+          },
+          displayedViolations: [
+            { threatLevel: 10, policyName: '', displayName: '' },
+            { threatLevel: 5, policyName: '', displayName: '' },
+            { threatLevel: 0, policyName: '', displayName: '' },
+          ],
+        },
+      });
+    });
+
+    it('sorts by policy name descending given other key and payload of policyName', function () {
+      const payload = 'policyName';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'threatLevel',
+            dir: 'asc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 0, policyName: 'a', displayName: '' },
+            { threatLevel: 0, policyName: 'Z', displayName: '' },
+            { threatLevel: 0, policyName: 'b', displayName: '' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'policyName',
+            dir: 'desc',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: 'Z', displayName: '' },
+            { threatLevel: 0, policyName: 'b', displayName: '' },
+            { threatLevel: 0, policyName: 'a', displayName: '' },
+          ],
+        },
+      });
+    });
+
+    it('sorts by policy name ascending given policyName key descending and payload of policyName', function () {
+      const payload = 'policyName';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'policyName',
+            dir: 'desc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 0, policyName: 'a', displayName: '' },
+            { threatLevel: 0, policyName: 'Z', displayName: '' },
+            { threatLevel: 0, policyName: 'b', displayName: '' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'policyName',
+            dir: 'asc',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: 'a', displayName: '' },
+            { threatLevel: 0, policyName: 'b', displayName: '' },
+            { threatLevel: 0, policyName: 'Z', displayName: '' },
+          ],
+        },
+      });
+    });
+
+    it('sorts by policy name descending given policyName key ascending and payload of policyName', function () {
+      const payload = 'policyName';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'policyName',
+            dir: 'asc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 0, policyName: 'a', displayName: '' },
+            { threatLevel: 0, policyName: 'Z', displayName: '' },
+            { threatLevel: 0, policyName: 'b', displayName: '' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'policyName',
+            dir: 'desc',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: 'Z', displayName: '' },
+            { threatLevel: 0, policyName: 'b', displayName: '' },
+            { threatLevel: 0, policyName: 'a', displayName: '' },
+          ],
+        },
+      });
+    });
+
+    it('sorts by display name descending given other key and payload of displayName', function () {
+      const payload = 'displayName';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'threatLevel',
+            dir: 'asc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 0, policyName: '', displayName: 'a' },
+            { threatLevel: 0, policyName: '', displayName: 'Z' },
+            { threatLevel: 0, policyName: '', displayName: 'b' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'displayName',
+            dir: 'desc',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: '', displayName: 'Z' },
+            { threatLevel: 0, policyName: '', displayName: 'b' },
+            { threatLevel: 0, policyName: '', displayName: 'a' },
+          ],
+        },
+      });
+    });
+
+    it('sorts by display name ascending given displayName key descending and payload of displayName', function () {
+      const payload = 'displayName';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'displayName',
+            dir: 'desc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 0, policyName: '', displayName: 'a' },
+            { threatLevel: 0, policyName: '', displayName: 'Z' },
+            { threatLevel: 0, policyName: '', displayName: 'b' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'displayName',
+            dir: 'asc',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: '', displayName: 'a' },
+            { threatLevel: 0, policyName: '', displayName: 'b' },
+            { threatLevel: 0, policyName: '', displayName: 'Z' },
+          ],
+        },
+      });
+    });
+
+    it('sorts by display name descending given displayName key ascending and payload of displayName', function () {
+      const payload = 'displayName';
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'displayName',
+            dir: 'asc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 0, policyName: '', displayName: 'a' },
+            { threatLevel: 0, policyName: '', displayName: 'Z' },
+            { threatLevel: 0, policyName: '', displayName: 'b' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          sortConfiguration: {
+            key: 'displayName',
+            dir: 'desc',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: '', displayName: 'Z' },
+            { threatLevel: 0, policyName: '', displayName: 'b' },
+            { threatLevel: 0, policyName: '', displayName: 'a' },
+          ],
+        },
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS action', function () {
+    it('filters by policy name given policyName payload', function () {
+      const payload = { policyName: 'z' };
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'policyName',
+            dir: 'asc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: '',
+          },
+          violations: [
+            { threatLevel: 0, policyName: 'policy x name', displayName: '' },
+            { threatLevel: 0, policyName: 'policy Z name', displayName: '' },
+            { threatLevel: 0, policyName: 'policy z name', displayName: '' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          filterConfiguration: {
+            policyName: 'z',
+            displayName: '',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: 'policy Z name', displayName: '' },
+            { threatLevel: 0, policyName: 'policy z name', displayName: '' },
+          ],
+        },
+      });
+    });
+
+    it('filters by display name given displayName payload', function () {
+      const payload = { displayName: 'z' };
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: {
+            key: 'policyName',
+            dir: 'asc',
+          },
+          filterConfiguration: {
+            policyName: '',
+            displayName: 'z',
+          },
+          violations: [
+            { threatLevel: 0, policyName: '', displayName: 'display x name' },
+            { threatLevel: 0, policyName: '', displayName: 'display Z name' },
+            { threatLevel: 0, policyName: '', displayName: 'display z name' },
+          ],
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        componentTransitivePolicyViolations: {
+          ...state.componentTransitivePolicyViolations,
+          filterConfiguration: {
+            policyName: '',
+            displayName: 'z',
+          },
+          displayedViolations: [
+            { threatLevel: 0, policyName: '', displayName: 'display Z name' },
+            { threatLevel: 0, policyName: '', displayName: 'display z name' },
+          ],
+        },
+      });
+    });
+  });
+});

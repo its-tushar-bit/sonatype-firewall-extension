@@ -11,7 +11,7 @@ import {
   getOwnerHierarchyUrl,
 } from '../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { capitalize } from '../util/jsUtil';
+import { processOwnerHierarchy } from '../util/hierarchyUtil';
 
 export const ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED = 'ADVANCED_LEGAL_LOAD_APPLICATIONS_REQUESTED';
 export const ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED = 'ADVANCED_LEGAL_LOAD_APPLICATIONS_FULFILLED';
@@ -106,17 +106,4 @@ export function loadAvailableScopes(ownerType, ownerId) {
         dispatch(loadAvailableScopesFailed(error));
       });
   };
-}
-
-/**
- * Flattens the Org/Apps hierarchy
- */
-function processOwnerHierarchy(context) {
-  // note that since the context data only includes the ancestors of the owner, `children` should
-  // never have more than one element
-  const processedChildren = context.children ? processOwnerHierarchy(context.children[0]) : [],
-    { type, id, publicId, name } = context,
-    label = capitalize(type);
-
-  return processedChildren.concat({ type, id, publicId, name, label });
 }

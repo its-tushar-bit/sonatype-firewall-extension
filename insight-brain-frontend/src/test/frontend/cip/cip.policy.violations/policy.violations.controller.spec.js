@@ -5,7 +5,14 @@
  */
 
 describe('policy.violations.controller', function () {
-  var scope, policyViolationsSpy, $state, Modal, isAuthorizedSpy, controller;
+  var scope,
+    policyViolationsSpy,
+    $state,
+    Modal,
+    isAuthorizedSpy,
+    controller,
+    mockProductFeaturesIsAvailable,
+    mockSelectedComponentGet;
 
   beforeEach(
     angular.mock.module('PermissionServiceModule', function ($provide) {
@@ -30,16 +37,15 @@ describe('policy.violations.controller', function () {
         pathname: '/foo/bar.jar',
         hash: 'abcd',
       };
+      mockSelectedComponentGet = jasmine.createSpy('selectedComponentGetMock').and.returnValue(component);
       $provide.value('SelectedComponent', {
-        get: function () {
-          return component;
-        },
+        get: mockSelectedComponentGet,
         set: angular.noop,
       });
 
       $provide.value('OwnerContext', {
-        ownerId: 'repository-id',
-        ownerType: 'repository',
+        ownerId: 'ownerId',
+        ownerType: 'ownerType',
       });
     })
   );
@@ -48,7 +54,9 @@ describe('policy.violations.controller', function () {
     $state = _$state_;
     Modal = _Modal_;
     scope = $rootScope.$new();
+    scope.stageTypeId = 'stageTypeId';
     policyViolationsSpy = jasmine.createSpy('violationsresponse').and.returnValue(undefined);
+    mockProductFeaturesIsAvailable = jasmine.createSpy('mockProductFeaturesIsAvailable').and.returnValue(true);
 
     controller = $controller('PolicyViolationsController', {
       $scope: scope,
@@ -58,6 +66,9 @@ describe('policy.violations.controller', function () {
             then: policyViolationsSpy,
           };
         },
+      },
+      ProductFeatures: {
+        isAvailable: mockProductFeaturesIsAvailable,
       },
     });
     scope.$digest();
@@ -100,6 +111,93 @@ describe('policy.violations.controller', function () {
         violationId: 'testViolationId',
       });
       expect(Modal.open).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('innerSourceTransitiveWaiver', function () {
+    it('to be set', function () {
+      expect(mockProductFeaturesIsAvailable).toHaveBeenCalledWith('inner-source-transitive-waiver');
+
+      expect(scope.innerSourceTransitiveWaiver).toBeTruthy();
+    });
+  });
+
+  describe('viewTransitiveViolations', function () {
+    it('opens the Transitive Violations page', function () {
+      spyOn($state, 'go');
+      scope.closeCipModal = jasmine.createSpy('closeCipModal');
+
+      scope.viewTransitiveViolations();
+
+      expect(scope.closeCipModal).toHaveBeenCalled();
+      expect($state.go).toHaveBeenCalledWith('transitiveViolations', {
+        ownerType: 'ownerType',
+        ownerId: 'ownerId',
+        stageTypeId: scope.stageId,
+        hash: 'abcd',
+      });
+    });
+  });
+
+  describe('hasComponentIdentifier', function () {
+    it('returns false if the selected component is undefined', function () {
+      mockSelectedComponentGet.and.returnValue(undefined);
+
+      expect(scope.hasComponentIdentifier()).toBeFalsy();
+    });
+
+    it('returns false if the selected component is null', function () {
+      mockSelectedComponentGet.and.returnValue(null);
+
+      expect(scope.hasComponentIdentifier()).toBeFalsy();
+    });
+
+    it('returns false if a component is selected and it has an undefined component identifier', function () {
+      mockSelectedComponentGet.and.returnValue({ componentIdentifier: undefined });
+
+      expect(scope.hasComponentIdentifier()).toBeFalsy();
+    });
+
+    it('returns false if a component is selected and it has a null component identifier', function () {
+      mockSelectedComponentGet.and.returnValue({ componentIdentifier: null });
+
+      expect(scope.hasComponentIdentifier()).toBeFalsy();
+    });
+
+    it('returns true if a component is selected and it has a component identifier', function () {
+      expect(scope.hasComponentIdentifier()).toBeTruthy();
+    });
+  });
+
+  describe('isInnerSource', function () {
+    it('returns false if the selected component is undefined', function () {
+      mockSelectedComponentGet.and.returnValue(undefined);
+
+      expect(scope.isInnerSource()).toBeFalsy();
+    });
+
+    it('returns false if the selected component is null', function () {
+      mockSelectedComponentGet.and.returnValue(null);
+
+      expect(scope.isInnerSource()).toBeFalsy();
+    });
+
+    it('returns false if the selected component has no InnerSource property', function () {
+      mockSelectedComponentGet.and.returnValue({});
+
+      expect(scope.isInnerSource()).toBeFalsy();
+    });
+
+    it('returns false if a component is selected and it is not InnerSource', function () {
+      mockSelectedComponentGet.and.returnValue({ innerSource: false });
+
+      expect(scope.isInnerSource()).toBeFalsy();
+    });
+
+    it('returns true if a component is selected and it is InnerSource', function () {
+      mockSelectedComponentGet.and.returnValue({ innerSource: true });
+
+      expect(scope.isInnerSource()).toBeTruthy();
     });
   });
 });

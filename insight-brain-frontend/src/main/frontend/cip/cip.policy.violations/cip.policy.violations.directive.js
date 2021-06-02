@@ -13,6 +13,7 @@ export default function cipPolicyViolationsDirective() {
     scope: {
       useNewWaiverPages: '<?',
       closeCipModal: '&?',
+      stageId: '<?',
     },
   };
 }

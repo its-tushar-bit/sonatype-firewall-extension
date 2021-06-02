@@ -27,6 +27,7 @@ export default function ComponentInformationPanel() {
     controller: [
       '$scope',
       'SelectedComponent',
+      'ProductFeatures',
       function ($scope, selectedComponent) {
         var vm = this;
 

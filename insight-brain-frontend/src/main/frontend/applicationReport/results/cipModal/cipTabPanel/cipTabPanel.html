@@ -29,6 +29,7 @@
     <div ng-switch-when="policy"
          cip-policy-violations
          close-cip-modal="vm.closeCipModal()"
+         stage-id="vm.stageId"
          use-new-waiver-pages="vm.useNewWaiverPages">
     </div>
     <cip-similar ng-switch-when="similar" similar-components="vm.selectedComponent.matchDetails"></cip-similar>

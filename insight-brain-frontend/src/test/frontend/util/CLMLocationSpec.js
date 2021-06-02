@@ -457,5 +457,17 @@ describe('CLMLocation.js', function () {
           'component/hash/copyright/fileCount?componentIdentifier=%22identifier%22'
       );
     });
+
+    it('getTransitiveViolationsUrl should return the URL for transitive policy violations', function () {
+      expect(
+        CLMLocation.getTransitiveViolationsUrl('someOwnerType', 'someOwnerId', 'someStageTypeId', 'someHash')
+      ).toBe('/api/v2/policyViolations/transitive/someOwnerType/someOwnerId/stages/someStageTypeId?hash=someHash');
+    });
+
+    it('getLatestReportUrl should return the URL for the latest report for the given app and stage', function () {
+      expect(CLMLocation.getLatestReportUrl('someAppId', 'someStageTypeId')).toBe(
+        '/ui/links/application/someAppId/latestReport/someStageTypeId'
+      );
+    });
   });
 });

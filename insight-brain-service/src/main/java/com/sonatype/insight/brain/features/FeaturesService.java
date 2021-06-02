@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.features;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -61,6 +63,12 @@ public class FeaturesService
       if (insightConfig.isExternalHyperlinksAllowed()) {
         features.add(NonLicensedFeature.ALLOW_EXTERNAL_HYPERLINKS);
       }
+
+      features.addAll(
+          Arrays.stream(InsightConfig.Feature.values())
+              .filter(insightConfig::isExperimentalFeatureEnabled)
+              .collect(Collectors.toSet())
+      );
 
       removeDisabledFeatures(features);
     }

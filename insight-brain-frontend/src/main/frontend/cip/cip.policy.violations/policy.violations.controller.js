@@ -17,7 +17,8 @@ export default function PolicyViolationsController(
   PolicyViolations,
   Messages,
   $state,
-  PermissionService
+  PermissionService,
+  ProductFeatures
 ) {
   const vm = this;
 
@@ -118,6 +119,25 @@ export default function PolicyViolationsController(
       keyboard: false,
     });
   };
+  $scope.innerSourceTransitiveWaiver = ProductFeatures.isAvailable('inner-source-transitive-waiver');
+  $scope.isInnerSource = function () {
+    const component = SelectedComponent.get();
+    return !!(component && component.innerSource);
+  };
+  $scope.hasComponentIdentifier = function () {
+    const component = SelectedComponent.get();
+    return !!(component && component.componentIdentifier);
+  };
+  $scope.viewTransitiveViolations = function () {
+    const hash = SelectedComponent.get().hash;
+    $scope.closeCipModal();
+    $state.go('transitiveViolations', {
+      ownerType: OwnerContext.ownerType,
+      ownerId: OwnerContext.ownerId,
+      stageTypeId: $scope.stageId,
+      hash: hash,
+    });
+  };
   $scope.alerts = [];
 
   $scope.$on('component.evaluation.updated', function (event, componentKey, promises) {
@@ -147,4 +167,5 @@ PolicyViolationsController.$inject = [
   'Messages',
   '$state',
   'PermissionService',
+  'ProductFeatures',
 ];

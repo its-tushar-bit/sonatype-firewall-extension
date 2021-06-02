@@ -44,6 +44,7 @@ import systemNoticeConfigurationReducer from '../configuration/systemNoticeConfi
 import rolesReducer from '../security/rolesReducer';
 import auditLogReducer from '../componentDetails/auditLog/auditLogReducer';
 import editWebhookReducer from '../configuration/webhook/editWebhook/editWebhookReducer';
+import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -86,4 +87,5 @@ export default combineReducers({
   roles: rolesReducer,
   auditLog: auditLogReducer,
   editWebhook: editWebhookReducer,
+  transitiveViolations: transitiveViolationsReducer,
 });

@@ -180,6 +180,12 @@
   </script>
   <div style="width:100%;margin-bottom:5px;" class="clearfix">
     <button id="view-existing-waivers" class="btn pull-right" ng-click="viewWaivers()">View Existing Waivers</button>
+    <button id="view-transitive-violations"
+            class="btn pull-right"
+            ng-hide="!innerSourceTransitiveWaiver || !isInnerSource() || !hasComponentIdentifier()"
+            ng-click="viewTransitiveViolations()">
+      View Transitive Violations
+    </button>
     <div ng-if="quarantined">
       <span><i class="icon icon-ban-circle"></i> Quarantined </span>
       <a id="release-quarantine" class="btn"

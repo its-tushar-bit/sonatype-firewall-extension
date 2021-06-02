@@ -452,6 +452,14 @@ export function getWebhooksUrl() {
   return uriTemplate`/rest/config/webhook`;
 }
 
+export function getTransitiveViolationsUrl(ownerType, ownerId, stageTypeId, hash) {
+  return uriTemplate`/api/v2/policyViolations/transitive/${ownerType}/${ownerId}/stages/${stageTypeId}?hash=${hash}`;
+}
+
+export function getLatestReportUrl(applicationId, stageTypeId) {
+  return uriTemplate`/ui/links/application/${applicationId}/latestReport/${stageTypeId}`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

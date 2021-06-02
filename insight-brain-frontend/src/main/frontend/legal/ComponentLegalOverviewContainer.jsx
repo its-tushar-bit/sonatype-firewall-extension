@@ -7,7 +7,7 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 import ComponentLegalOverviewPage from './ComponentLegalOverviewPage';
-import { loadAvailableScopes, loadComponent } from '../advancedLegal/advancedLegalActions';
+import { loadAvailableScopes, loadComponent } from './advancedLegalActions';
 import * as copyrightOverrideFormActions from './copyright/copyrightOverrideFormActions';
 import { setShowLicenseFilesModal, setShowNoticesModal } from './files/advancedLegalFileActions';
 

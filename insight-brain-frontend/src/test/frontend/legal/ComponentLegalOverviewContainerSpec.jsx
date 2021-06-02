@@ -47,7 +47,7 @@ describe('ComponentLegalOverviewContainer', function () {
     loadAvailableScopesActionMock = jasmine.createSpy('loadAvailableScopes').and.returnValue({ type: 'BAR' });
     ComponentLegalOverviewContainer = require('inject-loader!../../../main/frontend/legal/ComponentLegalOverviewContainer')(
       {
-        '../advancedLegal/advancedLegalActions': {
+        './advancedLegalActions': {
           loadComponent: loadComponentActionMock,
           loadAvailableScopes: loadAvailableScopesActionMock,
         },

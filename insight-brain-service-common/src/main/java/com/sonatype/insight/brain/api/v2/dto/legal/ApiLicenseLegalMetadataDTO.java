@@ -29,6 +29,8 @@ public class ApiLicenseLegalMetadataDTO
 
   public boolean isMulti = false;
 
+  public Set<String> singleLicenseIds = new HashSet<>();
+
   public ApiLicenseLegalMetadataDTO() {
     // for jackson
   }
@@ -60,12 +62,13 @@ public class ApiLicenseLegalMetadataDTO
         Objects.equals(licenseName, that.licenseName) &&
         Objects.equals(licenseText, that.licenseText) &&
         Objects.equals(obligations, that.obligations) &&
-        Objects.equals(threatGroup, that.threatGroup);
+        Objects.equals(threatGroup, that.threatGroup) &&
+        Objects.equals(singleLicenseIds, that.singleLicenseIds);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(licenseId, licenseName, licenseText, obligations, threatGroup, isMulti);
+    return Objects.hash(licenseId, licenseName, licenseText, obligations, threatGroup, isMulti, singleLicenseIds);
   }
 
   @Override
@@ -73,10 +76,10 @@ public class ApiLicenseLegalMetadataDTO
     return "ApiLicenseLegalMetadataDTO{" +
         "licenseId='" + licenseId + '\'' +
         ", licenseName='" + licenseName + '\'' +
-        ", licenseText='" + licenseText + '\'' +
         ", obligations=" + obligations +
         ", threatGroup=" + threatGroup +
         ", isMulti=" + isMulti +
+        ", singleLicenseIds=" + singleLicenseIds +
         '}';
   }
 }

@@ -67,7 +67,6 @@ import com.sonatype.insight.brain.api.v2.service.DefaultApiLicenseDataAdapter;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
-import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
@@ -1521,9 +1520,9 @@ public class ApiLicenseLegalServiceTest
         .containsExactly(namedComponentDetails.getDeclaredLicenseIds().toArray(new String[0]));
     assertThat(licenseLegalComponent.licenseLegalData.observedLicenses)
         .containsExactly(namedComponentDetails.getObservedLicenseIds().toArray(new String[0]));
-    Set<String> expectedLicenseIds = getExpectedLicenseIds(namedComponentDetails);
+    Set<String> expectedEffectiveLicenseIds = getExpectedEffectiveLicenseIds(namedComponentDetails);
     assertThat(licenseLegalComponent.licenseLegalData.effectiveLicenses)
-        .containsExactly(expectedLicenseIds.toArray(new String[0]));
+        .containsExactlyInAnyOrder(expectedEffectiveLicenseIds.toArray(new String[0]));
     assertThat(licenseLegalComponent.licenseLegalData.copyrights).hasSize(8)
         .allMatch(copyright -> copyright.content.endsWith("content"));
     assertThat(licenseLegalComponent.licenseLegalData.licenseFiles).hasSize(4)
@@ -1531,24 +1530,22 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponent.licenseLegalData.noticeFiles).hasSize(4)
         .allMatch(noticeFile -> noticeFile.content.endsWith("contentNotice"));
 
-    Set<com.sonatype.insight.brain.model.license.License> licenses =
+    Map<ApiLicenseDTO, Set<com.sonatype.insight.brain.model.license.License>> multiLicenseToSingleLicense =
         Sets.newHashSet(Iterables.concat(
             licenseLegalComponent.licenseLegalData.effectiveLicenses,
             licenseLegalComponent.licenseLegalData.declaredLicenses,
             licenseLegalComponent.licenseLegalData.observedLicenses)).stream()
-            .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+            .map(multiLicenseDAO::getByIdNotNull)
+            .collect(Collectors.toMap(
+                multiLicense -> new ApiLicenseDTO(multiLicense.getId(), multiLicense.getShortDisplayName()),
+                multiLicense -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicense.getId()),
+                (prev, next) -> next,
+                HashMap::new
+            ));
 
     ApiLicenseLegalMetadataDTO[] expectedLicenseLegalMetadata = legalReportBuilder
         .getLicenseLegalMetadata(
-            Sets.newHashSet(Iterables.concat(
-                licenseLegalComponent.licenseLegalData.effectiveLicenses,
-                licenseLegalComponent.licenseLegalData.declaredLicenses,
-                licenseLegalComponent.licenseLegalData.observedLicenses)).stream()
-                .map(multiLicenseDAO::getByIdNotNull)
-                .map(license -> new ApiLicenseDTO(license.getId(), license.getShortDisplayName()))
-                .collect(Collectors.toList()),
-            licenses,
+            multiLicenseToSingleLicense,
             expectedLicenseMetadataDTOs.stream()
                 .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity())))
         .toArray(new ApiLicenseLegalMetadataDTO[0]);
@@ -1568,12 +1565,22 @@ public class ApiLicenseLegalServiceTest
   }
 
   private Set<String> getExpectedLicenseIds(NamedComponentDetails namedComponentDetails) {
-    return ComponentDetailsLoader.calculateEffectiveLicenses(
+    Set<String> licenseIds = Sets.newHashSet(Iterables.concat(
         namedComponentDetails.getDeclaredLicenseIds(),
-        namedComponentDetails.getObservedLicenseIds(),
-        namedComponentDetails.getOverriddenLicenses().stream()
-            .map(License::getLicenseId)
-            .collect(Collectors.toCollection(LinkedHashSet::new)));
+        namedComponentDetails.getObservedLicenseIds()));
+
+    licenseIds.addAll(getExpectedEffectiveLicenseIds(namedComponentDetails));
+
+    return licenseIds;
+  }
+
+  private Set<String> getExpectedEffectiveLicenseIds(NamedComponentDetails namedComponentDetails) {
+    return Sets.newHashSet(Iterables.concat(
+        namedComponentDetails.getEffectiveLicenses(),
+        namedComponentDetails.getOverriddenLicenses()))
+        .stream()
+        .map(License::getLicenseId)
+        .collect(Collectors.toSet());
   }
 
   @Test
@@ -2177,7 +2184,8 @@ public class ApiLicenseLegalServiceTest
         .map(license -> license.licenseId)
         .collect(Collectors.toCollection(LinkedHashSet::new)));
     assertThat(licenseLegalMetadata).hasSize(expectedLicenseLegalMetadataLicenseIds.size());
-    assertThat(licenseLegalMetadata).extracting(license -> license.licenseId)
+    assertThat(licenseLegalMetadata)
+        .extracting(license -> license.licenseId)
         .containsExactlyInAnyOrder(expectedLicenseLegalMetadataLicenseIds.toArray(new String[0]));
     assertThat(components.stream()
         .flatMap(c -> c.licenseLegalData.copyrights.stream())

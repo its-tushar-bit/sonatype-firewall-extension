@@ -458,20 +458,28 @@ public class ApiLicenseLegalService
 
     Map<ComponentIdentifier, Set<ApiLicenseDTO>> componentIdentifierToMultiLicenses =
         getReportMultiLicenses(latestRawReport);
-    Set<ApiLicenseDTO> multiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
+
+    Set<ApiLicenseDTO> allMultiLicenses = componentIdentifierToMultiLicenses.entrySet().stream()
         .flatMap(e -> e.getValue().stream())
         .collect(Collectors.toCollection(LinkedHashSet::new));
 
-    Set<License> licenses = multiLicenses.stream()
-        .map(multiLicense -> multiLicense.licenseId)
-        .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+    Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense = allMultiLicenses.stream()
+        .collect(Collectors.toMap(
+            Function.identity(),
+            m -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(m.licenseId),
+            (prev, next) -> next,
+            HashMap::new
+        ));
 
-    sendApplicationTelemetryData(application.getPublicId(), latestRawReport, multiLicenses);
+    Set<License> allSingleLicenses = multiLicenseToSingleLicense.values().stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet());
 
-    Map<String, LicenseMetadataDTO> licenseMetadataById = multiLicenses.isEmpty() ? Collections.emptyMap() :
+    sendApplicationTelemetryData(application.getPublicId(), latestRawReport, allMultiLicenses);
+
+    Map<String, LicenseMetadataDTO> licenseMetadataById = allMultiLicenses.isEmpty() ? Collections.emptyMap() :
         apiLicenseLegalHdsService.getLicenseMetadata(
-            licenses.stream()
+            allSingleLicenses.stream()
                 .map(License::getId)
                 .collect(Collectors.toCollection(LinkedHashSet::new)))
             .stream()
@@ -515,8 +523,7 @@ public class ApiLicenseLegalService
             noticeOverridesByComponentIdentifier,
             obligationByComponentIdentifier,
             attributionsByComponentIdentifier,
-            multiLicenses,
-            licenses,
+            multiLicenseToSingleLicense,
             licenseMetadataById);
   }
 
@@ -598,10 +605,17 @@ public class ApiLicenseLegalService
 
     Set<ApiLicenseDTO> allMultiLicenses = getAllLicenses(licenseData);
 
-    Set<License> allSingleLicenses = allMultiLicenses.stream()
-        .map(multiLicense -> multiLicense.licenseId)
-        .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+    Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense = allMultiLicenses.stream()
+        .collect(Collectors.toMap(
+            Function.identity(),
+            m -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(m.licenseId),
+            (prev, next) -> next,
+            HashMap::new
+        ));
+
+    Set<License> allSingleLicenses = multiLicenseToSingleLicense.values().stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet());
 
     Map<String, LicenseMetadataDTO> licenseMetadataById =
         allMultiLicenses.isEmpty() ? Collections.emptyMap() :
@@ -611,6 +625,7 @@ public class ApiLicenseLegalService
                     .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .stream()
                 .collect(toMap(LicenseMetadataDTO::getLicenseId, Function.identity()));
+
     Set<ComponentLegalCommentDTO> componentLegalComments =
         getComponentLegalComments(compIdentifier, component.getHash());
     Set<ComponentLegalFileDTO> componentLegalFiles =
@@ -657,7 +672,7 @@ public class ApiLicenseLegalService
     }
 
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
-        allMultiLicenses, allSingleLicenses, licenseMetadataById);
+        multiLicenseToSingleLicense, licenseMetadataById);
 
     ApiLicenseLegalDataDTO licenseLegalData =
         legalReportBuilder.getLicenseLegalData(

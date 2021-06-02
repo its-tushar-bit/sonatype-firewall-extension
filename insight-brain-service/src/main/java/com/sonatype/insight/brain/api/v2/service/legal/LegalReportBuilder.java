@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -66,12 +67,11 @@ public class LegalReportBuilder
       Map<ComponentIdentifier, List<LegalFileOverride>> noticeOverridesByComponentIdentifier,
       Map<ComponentIdentifier, List<ComponentObligation>> obligationByComponentIdentifier,
       Map<ComponentIdentifier, List<ComponentObligationAttribution>> attributionByComponentIdentifier,
-      Set<ApiLicenseDTO> multiLicenses,
-      Set<License> licenses,
+      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense,
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata =
-        getLicenseLegalMetadata(multiLicenses, licenses, licenseMetadataById);
+        getLicenseLegalMetadata(multiLicenseToSingleLicense, licenseMetadataById);
     List<ApiLicenseLegalComponentDTO> components =
         getLicenseLegalComponents(rawReport,
             licenseLegalMetadata,
@@ -321,20 +321,22 @@ public class LegalReportBuilder
    * <p>
    * Given a Set of effective, observed, and declared multi-licenses and with
    *
-   * @param multiLicenses       - a Collection containing all effective, observed, and declared multi-licenses.
-   * @param licenses            - a Set of all single licenses from the multiLicenses list.
-   * @param licenseMetadataById - Map who's key in the single license and value is the associated {@link
-   *                            LicenseMetadataDTO}
+   * @param multiLicenseToSingleLicense - a Map who's key is a MultiLicense and who's value is a set of Single Licenses
+   *                                    associated with this multi license
+   * @param licenseMetadataById         - Map who's key in the single license and value is the associated {@link
+   *                                    LicenseMetadataDTO}
    * @return the Set of {@link ApiLicenseLegalMetadataDTO} for the given licenses.
    */
   Set<ApiLicenseLegalMetadataDTO> getLicenseLegalMetadata(
-      Collection<ApiLicenseDTO> multiLicenses,
-      Set<License> licenses,
+      Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense,
       Map<String, LicenseMetadataDTO> licenseMetadataById)
   {
     Set<ApiLicenseLegalMetadataDTO> allLicenseLegalMetadata = new LinkedHashSet<>();
     Set<String> licenseIds = new HashSet<>();
-    for (License license : licenses) {
+
+    for (License license : multiLicenseToSingleLicense.values().stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet())) {
       ApiLicenseLegalMetadataDTO licenseLegalMetadata = new ApiLicenseLegalMetadataDTO();
       licenseLegalMetadata.licenseId = license.getId();
       licenseLegalMetadata.licenseName = license.getShortDisplayName();
@@ -347,12 +349,14 @@ public class LegalReportBuilder
       allLicenseLegalMetadata.add(licenseLegalMetadata);
       licenseIds.add(license.getId());
     }
-    for (ApiLicenseDTO multiLicense : multiLicenses) {
-      if (licenseIds.add(multiLicense.licenseId)) {
+
+    for (Entry<ApiLicenseDTO, Set<License>> e : multiLicenseToSingleLicense.entrySet()) {
+      if (licenseIds.add(e.getKey().licenseId)) {
         ApiLicenseLegalMetadataDTO licenseLegalMetadata = new ApiLicenseLegalMetadataDTO();
-        licenseLegalMetadata.licenseId = multiLicense.licenseId;
-        licenseLegalMetadata.licenseName = multiLicense.licenseName;
+        licenseLegalMetadata.licenseId = e.getKey().licenseId;
+        licenseLegalMetadata.licenseName = e.getKey().licenseName;
         licenseLegalMetadata.isMulti = true;
+        licenseLegalMetadata.singleLicenseIds = e.getValue().stream().map(License::getId).collect(Collectors.toSet());
         allLicenseLegalMetadata.add(licenseLegalMetadata);
       }
     }

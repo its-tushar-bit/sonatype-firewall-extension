@@ -36,7 +36,7 @@ public class ApiCycloneDxResourceV2
 {
   static final String GET_BY_STAGE_PATH = "{applicationId}/stages/{stageId}";
 
-  static final String GET_BY_STAGE_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2}/{applicationId}/stages/{stageId}";
+  static final String GET_BY_STAGE_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2|1.3}/{applicationId}/stages/{stageId}";
 
   static final String GET_BY_REPORT_PATH = "{applicationId}/reports/{reportId}";
 
@@ -44,7 +44,7 @@ public class ApiCycloneDxResourceV2
    * When adding a new version or changing this path, please update
    * {@link UserInterfaceLinksResource#linkToSbom(String, String)} as well.
    */
-  static final String GET_BY_REPORT_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2}/{applicationId}/reports/{reportId}";
+  static final String GET_BY_REPORT_PATH_WITH_VERSION = "{cdxVersion: 1.1|1.2|1.3}/{applicationId}/reports/{reportId}";
 
   private final ApiCycloneDxServiceV2 apiCycloneDxService;
 

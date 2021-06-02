@@ -16,6 +16,7 @@ function mapStateToProps({ legalDashboard, legalDashboardFilter, manageLegalFilt
     ...pick(['applications', 'components', 'loading', 'loadError'], legalDashboard),
     ...pick(['filtersAreDirty', 'filterSidebarOpen'], legalDashboardFilter),
     ...pick(['appliedFilterName', 'showDirtyAsterisk'], manageLegalFilters),
+    filterLoading: legalDashboardFilter.loading,
   };
 }
 

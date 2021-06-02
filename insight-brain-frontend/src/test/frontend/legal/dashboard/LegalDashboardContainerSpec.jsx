@@ -22,6 +22,7 @@ describe('LegalDashboardContainerSpec', function () {
       legalDashboardFilter: {
         filtersAreDirty: false,
         filterSidebarOpen: false,
+        loading: false,
       },
       manageLegalFilters: {
         appliedFilterName: 'appliedFilterName',
@@ -55,6 +56,7 @@ describe('LegalDashboardContainerSpec', function () {
     expect(wrapper).toHaveProp('loadError', 'loadError');
     expect(wrapper).toHaveProp('loadError', 'loadError');
     expect(wrapper).toHaveProp('filtersAreDirty', false);
+    expect(wrapper).toHaveProp('filterLoading', false);
     expect(wrapper).toHaveProp('filterSidebarOpen', false);
     expect(wrapper).toHaveProp('appliedFilterName', 'appliedFilterName');
     expect(wrapper).toHaveProp('showDirtyAsterisk', 'showDirtyAsterisk');

@@ -35,12 +35,18 @@ export default function LegalDashboardPage(props) {
     toggleFilterSidebar,
     filterSidebarOpen,
     showDirtyAsterisk,
+    filterLoading,
   } = props;
 
   useEffect(() => {
     loadFilter();
-    loadResults('applications');
   }, []);
+
+  useEffect(() => {
+    if (!filterLoading) {
+      loadResults('applications');
+    }
+  }, [filterLoading]);
 
   return (
     <main id="legal-dashboard-container" className="nx-page-main">
@@ -87,6 +93,7 @@ LegalDashboardPage.propTypes = {
   components: PropTypes.any,
   filtersAreDirty: PropTypes.bool,
   loadFilter: PropTypes.func,
+  filterLoading: PropTypes.bool,
   loadResults: PropTypes.func,
   isAuthorized: PropTypes.bool,
   loading: PropTypes.bool.isRequired,

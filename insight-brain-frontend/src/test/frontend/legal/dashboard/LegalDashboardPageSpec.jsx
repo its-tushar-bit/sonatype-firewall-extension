@@ -9,7 +9,13 @@ import LegalDashboardApplicationsTab from '../../../../main/frontend/legal/dashb
 import LoadWrapper from '../../../../main/frontend/react/LoadWrapper';
 
 describe('LegalDashboardPage', function () {
-  let minimalProps, LegalDashboardPage, LegalDashboardFilterContainerMock, loadResultsSpy, getShallowComponent;
+  let minimalProps,
+    LegalDashboardPage,
+    LegalDashboardFilterContainerMock,
+    loadResultsSpy,
+    loadFilterSpy,
+    getShallowComponent,
+    getMountedComponent;
   const mockApplications = {
     results: [],
   };
@@ -24,10 +30,12 @@ describe('LegalDashboardPage', function () {
     }).default;
 
     loadResultsSpy = jasmine.createSpy('loadResults');
+    loadFilterSpy = jasmine.createSpy('loadFilter');
     minimalProps = {
       applications: mockApplications,
       components: [],
       loadResults: loadResultsSpy,
+      loadFilter: loadFilterSpy,
       isAuthorized: true,
       loading: 'loading',
       loadError: 'loadError',
@@ -35,6 +43,24 @@ describe('LegalDashboardPage', function () {
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(LegalDashboardPage, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(LegalDashboardPage, minimalProps);
+  });
+
+  it('calls loadFilter', function () {
+    expect(loadFilterSpy).not.toHaveBeenCalled();
+    getMountedComponent();
+    expect(loadFilterSpy).toHaveBeenCalled();
+  });
+
+  it('calls loadResults if filterLoading is false', function () {
+    expect(loadResultsSpy).not.toHaveBeenCalled();
+    getMountedComponent();
+    expect(loadResultsSpy).toHaveBeenCalledWith('applications');
+  });
+
+  it('does not call loadResults if filterLoading is true', function () {
+    getMountedComponent({ filterLoading: true });
+    expect(loadResultsSpy).not.toHaveBeenCalled();
   });
 
   it('is wrapped by a LoadWrapper with appropriate parameters', function () {

@@ -36,6 +36,8 @@ public class ApiLicenseLegalDataDTO
 
   public List<ComponentObligationAttributionDTO> attributions;
 
+  public String effectiveLicenseStatus;
+
   /**
    * Persisted {@link ComponentCopyright} identifier associated with this component, if any.
    */
@@ -92,6 +94,7 @@ public class ApiLicenseLegalDataDTO
       final List<ApiLicenseLegalFileDTO> noticeFiles,
       final List<ApiLicenseLegalObligationDTO> obligations,
       final List<ComponentObligationAttributionDTO> attributions,
+      final String effectiveLicenseStatus,
       final String componentCopyrightId,
       final String componentCopyrightScopeOwnerId,
       final String componentCopyrightLastUpdatedByUsername,
@@ -114,6 +117,7 @@ public class ApiLicenseLegalDataDTO
     this.noticeFiles = noticeFiles;
     this.obligations = obligations;
     this.attributions = attributions;
+    this.effectiveLicenseStatus = effectiveLicenseStatus;
     this.componentCopyrightId = componentCopyrightId;
     this.componentCopyrightScopeOwnerId = componentCopyrightScopeOwnerId;
     this.componentCopyrightLastUpdatedByUsername = componentCopyrightLastUpdatedByUsername;
@@ -146,6 +150,7 @@ public class ApiLicenseLegalDataDTO
         Objects.equals(noticeFiles, that.noticeFiles) &&
         Objects.equals(obligations, that.obligations) &&
         Objects.equals(attributions, that.attributions) &&
+        Objects.equals(effectiveLicenseStatus, that.effectiveLicenseStatus) &&
         Objects.equals(componentCopyrightId, that.componentCopyrightId) &&
         Objects.equals(componentCopyrightScopeOwnerId, that.componentCopyrightScopeOwnerId) &&
         Objects.equals(componentCopyrightLastUpdatedByUsername, that.componentCopyrightLastUpdatedByUsername) &&
@@ -164,10 +169,10 @@ public class ApiLicenseLegalDataDTO
   public int hashCode() {
     return Objects
         .hash(declaredLicenses, observedLicenses, effectiveLicenses, highestEffectiveLicenseThreatGroup, copyrights,
-            licenseFiles, noticeFiles, obligations, attributions, componentCopyrightId, componentCopyrightScopeOwnerId,
-            componentCopyrightLastUpdatedByUsername, componentCopyrightLastUpdatedAt, componentLicensesId,
-            componentLicensesScopeOwnerId, componentLicensesLastUpdatedByUsername, componentLicensesLastUpdatedAt,
-            componentNoticesId, componentNoticesScopeOwnerId, componentNoticesLastUpdatedByUsername,
-            componentNoticesLastUpdatedAt);
+            licenseFiles, noticeFiles, obligations, attributions, effectiveLicenseStatus, componentCopyrightId,
+            componentCopyrightScopeOwnerId, componentCopyrightLastUpdatedByUsername, componentCopyrightLastUpdatedAt,
+            componentLicensesId, componentLicensesScopeOwnerId, componentLicensesLastUpdatedByUsername,
+            componentLicensesLastUpdatedAt, componentNoticesId, componentNoticesScopeOwnerId,
+            componentNoticesLastUpdatedByUsername, componentNoticesLastUpdatedAt);
   }
 }

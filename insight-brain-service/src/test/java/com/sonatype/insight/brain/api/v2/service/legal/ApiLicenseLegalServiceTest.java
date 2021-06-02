@@ -38,6 +38,7 @@ import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.clm.dto.model.ide.LicenseStatus;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.experimental.legal.ApiLicenseLegalHdsService;
 import com.sonatype.insight.brain.api.experimental.legal.LegalComponentIdentifierUtil;
@@ -1029,7 +1030,7 @@ public class ApiLicenseLegalServiceTest
   public void testGetLicenseLegalComponentReport_ComponentIdentifier() throws Exception {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     testGetLicenseLegalComponentReport(tempEntity.newApplicationWithParent(), createNamedComponentDetails(),
-        componentIdentifier, null, null);
+        componentIdentifier, null, null, LicenseOverrideStatus.OPEN);
   }
 
   @Test
@@ -1037,7 +1038,7 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     String packageUrl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     testGetLicenseLegalComponentReport(tempEntity.newApplicationWithParent(), createNamedComponentDetails(), null,
-        packageUrl, null);
+        packageUrl, null, LicenseOverrideStatus.OPEN);
   }
 
   @Test
@@ -1046,7 +1047,8 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     String hash = "hash";
     tempEntity.newApplicationComponent(application.getId(), BuildStageType.ID, hash, componentIdentifier);
-    testGetLicenseLegalComponentReport(application, createNamedComponentDetails(), null, null, hash);
+    testGetLicenseLegalComponentReport(application, createNamedComponentDetails(), null, null, hash,
+        LicenseOverrideStatus.OPEN);
   }
 
   @Test
@@ -1055,7 +1057,8 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     String hash = "hash";
     tempEntity.newClaimedComponent(hash, componentIdentifier);
-    testGetLicenseLegalComponentReport(application, createNamedComponentDetails(), null, null, hash);
+    testGetLicenseLegalComponentReport(application, createNamedComponentDetails(), null, null, hash,
+        LicenseOverrideStatus.OPEN);
   }
 
   @Test
@@ -1063,7 +1066,10 @@ public class ApiLicenseLegalServiceTest
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     tempEntity.newLicenseOverride(owner.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GLWTPL");
-    testGetLicenseLegalComponentReport(owner, createNamedComponentDetails(), componentIdentifier, null, null);
+    NamedComponentDetails namedComponentDetails = createNamedComponentDetails();
+    namedComponentDetails.setEffectiveLicenseStatus(LicenseStatus.Overridden);
+    testGetLicenseLegalComponentReport(owner, namedComponentDetails, componentIdentifier, null, null,
+        LicenseOverrideStatus.OVERRIDDEN);
   }
 
   @Test
@@ -1072,7 +1078,8 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     tempEntity
         .newLicenseOverride(owner.getParentOwnerId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GLWTPL");
-    testGetLicenseLegalComponentReport(owner, createNamedComponentDetails(), componentIdentifier, null, null);
+    testGetLicenseLegalComponentReport(owner, createNamedComponentDetails(), componentIdentifier, null, null,
+        LicenseOverrideStatus.OVERRIDDEN);
   }
 
   @Test
@@ -1081,7 +1088,18 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, componentIdentifier,
         LicenseOverrideStatus.OVERRIDDEN, "GLWTPL");
-    testGetLicenseLegalComponentReport(owner, createNamedComponentDetails(), componentIdentifier, null, null);
+    testGetLicenseLegalComponentReport(owner, createNamedComponentDetails(), componentIdentifier, null, null,
+        LicenseOverrideStatus.OVERRIDDEN);
+  }
+
+  @Test
+  public void testGetLicenseLegalComponentReport_RootOrganizationLicenseSelected() throws Exception {
+    Owner owner = tempEntity.newApplicationWithParent();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    tempEntity.newLicenseOverride(Organization.ROOT_ORGANIZATION_ID, componentIdentifier,
+        LicenseOverrideStatus.SELECTED, "Apache-2.0");
+    testGetLicenseLegalComponentReport(owner, createNamedComponentDetails(), componentIdentifier, null, null,
+        LicenseOverrideStatus.SELECTED);
   }
 
   @Test
@@ -1090,7 +1108,8 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     NamedComponentDetails namedComponentDetails =
         createNamedComponentDetails(Collections.emptyList(), Collections.emptyList());
-    testGetLicenseLegalComponentReport(owner, namedComponentDetails, componentIdentifier, null, null);
+    testGetLicenseLegalComponentReport(owner, namedComponentDetails, componentIdentifier, null, null,
+        LicenseOverrideStatus.OPEN);
     assertThat(namedComponentDetails.getDeclaredLicenseIds())
         .containsExactly(com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID);
     assertThat(namedComponentDetails.getObservedLicenseIds())
@@ -1102,7 +1121,7 @@ public class ApiLicenseLegalServiceTest
     Owner owner = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     testGetLicenseLegalComponentReport(owner, createNamedComponentDetails(), componentIdentifier, null, null,
-        IdentificationSource.CLAIR.getId(), "scanId");
+        IdentificationSource.CLAIR.getId(), "scanId", LicenseOverrideStatus.OPEN);
   }
 
   @Test
@@ -1452,9 +1471,11 @@ public class ApiLicenseLegalServiceTest
       NamedComponentDetails namedComponentDetails,
       ComponentIdentifier componentIdentifier,
       String packageUrl,
-      String hash) throws Exception
+      String hash,
+      LicenseOverrideStatus expectedLicenseOverrideStatus) throws Exception
   {
-    testGetLicenseLegalComponentReport(owner, namedComponentDetails, componentIdentifier, packageUrl, hash, null, null);
+    testGetLicenseLegalComponentReport(owner, namedComponentDetails, componentIdentifier, packageUrl, hash, null, null,
+        expectedLicenseOverrideStatus);
   }
 
   private void testGetLicenseLegalComponentReport(
@@ -1464,7 +1485,8 @@ public class ApiLicenseLegalServiceTest
       String packageUrl,
       String hash,
       String identificationSource,
-      String scanId) throws Exception
+      String scanId,
+      LicenseOverrideStatus expectedLicenseOverrideStatus) throws Exception
   {
     lenient().doAnswer(invocationOnMock -> {
       namedComponentDetails.setComponentIdentifier(invocationOnMock.getArgument(2, ComponentIdentifier.class));
@@ -1516,6 +1538,8 @@ public class ApiLicenseLegalServiceTest
     assertThat(licenseLegalComponent.displayName).isNotNull().isEqualTo(
         ComponentDisplayNameUtil.fromIdentifier(component.getComponentIdentifier()).toString());
     assertThat(licenseLegalComponent.licenseLegalData).isNotNull();
+    assertThat(licenseLegalComponent.licenseLegalData.effectiveLicenseStatus)
+        .isEqualTo(expectedLicenseOverrideStatus.getName());
     assertThat(licenseLegalComponent.licenseLegalData.declaredLicenses)
         .containsExactly(namedComponentDetails.getDeclaredLicenseIds().toArray(new String[0]));
     assertThat(licenseLegalComponent.licenseLegalData.observedLicenses)

@@ -151,6 +151,7 @@ public class LegalReportBuilder
         getLegalFiles(LegalFileType.NOTICE, componentLegalFiles, noticeOverrides),
         getObligations(obligations, sourceData.effectiveLicenses, licenseLegalMetadata),
         getAttributions(attributions),
+        sourceData.status,
         componentCopyright == null ? null : componentCopyright.getId(),
         componentCopyright == null ? null : componentCopyright.getOwnerId(),
         componentCopyright == null ? null : componentCopyright.getLastUpdatedByUsername(),

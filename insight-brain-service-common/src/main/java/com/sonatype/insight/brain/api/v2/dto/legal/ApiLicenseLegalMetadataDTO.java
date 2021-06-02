@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.dto.legal;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
@@ -44,5 +45,38 @@ public class ApiLicenseLegalMetadataDTO
     this.licenseText = licenseText;
     this.obligations = obligations;
     this.threatGroup = threatGroup;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ApiLicenseLegalMetadataDTO that = (ApiLicenseLegalMetadataDTO) o;
+    return isMulti == that.isMulti && Objects.equals(licenseId, that.licenseId) &&
+        Objects.equals(licenseName, that.licenseName) &&
+        Objects.equals(licenseText, that.licenseText) &&
+        Objects.equals(obligations, that.obligations) &&
+        Objects.equals(threatGroup, that.threatGroup);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(licenseId, licenseName, licenseText, obligations, threatGroup, isMulti);
+  }
+
+  @Override
+  public String toString() {
+    return "ApiLicenseLegalMetadataDTO{" +
+        "licenseId='" + licenseId + '\'' +
+        ", licenseName='" + licenseName + '\'' +
+        ", licenseText='" + licenseText + '\'' +
+        ", obligations=" + obligations +
+        ", threatGroup=" + threatGroup +
+        ", isMulti=" + isMulti +
+        '}';
   }
 }

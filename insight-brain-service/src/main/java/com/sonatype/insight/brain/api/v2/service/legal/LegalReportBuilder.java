@@ -316,6 +316,17 @@ public class LegalReportBuilder
     return l1.getContent().compareTo(l2.getContent());
   }
 
+  /**
+   * A convenience method for building out the {@link ApiLicenseLegalMetadataDTO}.
+   * <p>
+   * Given a Set of effective, observed, and declared multi-licenses and with
+   *
+   * @param multiLicenses       - a Collection containing all effective, observed, and declared multi-licenses.
+   * @param licenses            - a Set of all single licenses from the multiLicenses list.
+   * @param licenseMetadataById - Map who's key in the single license and value is the associated {@link
+   *                            LicenseMetadataDTO}
+   * @return the Set of {@link ApiLicenseLegalMetadataDTO} for the given licenses.
+   */
   Set<ApiLicenseLegalMetadataDTO> getLicenseLegalMetadata(
       Collection<ApiLicenseDTO> multiLicenses,
       Set<License> licenses,

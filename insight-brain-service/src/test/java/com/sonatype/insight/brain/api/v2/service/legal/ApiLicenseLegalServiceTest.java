@@ -117,6 +117,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
@@ -1470,22 +1471,26 @@ public class ApiLicenseLegalServiceTest
       namedComponentDetails.setComponentIdentifier(invocationOnMock.getArgument(2, ComponentIdentifier.class));
       return namedComponentDetails;
     }).when(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
+
     lenient().doAnswer(invocationOnMock -> {
       namedComponentDetails.setComponentIdentifier(invocationOnMock.getArgument(0, ComponentIdentifier.class));
       return namedComponentDetails;
     }).when(mockThirdPartyComponentDAO).getComponentDetailsByIdentifier(any(), any(), any());
+
     List<LicenseMetadataDTO> expectedLicenseMetadataDTOs = new ArrayList<>();
     doAnswer(invocationOnMock -> {
       List<LicenseMetadataDTO> licenseMetadataDTOS = createLicenseMetadataDTOs(invocationOnMock.getArgument(0));
       expectedLicenseMetadataDTOs.addAll(licenseMetadataDTOS);
       return licenseMetadataDTOS;
     }).when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
+
     doAnswer(invocationOnMock -> {
       Collection<?> argument = invocationOnMock.getArgument(0, Collection.class);
       assertThat(argument).hasSize(1);
       ComponentIdentifier c = (ComponentIdentifier) argument.iterator().next();
       return new LinkedHashSet<>(Arrays.asList(createComponentLegalCommentDTO(c), createComponentLegalCommentDTO(c)));
     }).when(mockApiLicenseLegalHdsService).getComponentLegalComments(any());
+
     doAnswer(invocationOnMock -> {
       Collection<?> argument = invocationOnMock.getArgument(0, Collection.class);
       assertThat(argument).hasSize(1);
@@ -1501,6 +1506,7 @@ public class ApiLicenseLegalServiceTest
     Component component = componentArgumentCaptor.getValue();
     componentIdentifier = component.getComponentIdentifier();
     assertThat(licenseLegalComponentReport).isNotNull();
+
     ApiLicenseLegalComponentDTO licenseLegalComponent = licenseLegalComponentReport.component;
     assertThat(licenseLegalComponent).isNotNull();
     assertThat(licenseLegalComponent.componentIdentifier).isNotNull();
@@ -1524,22 +1530,33 @@ public class ApiLicenseLegalServiceTest
         .allMatch(licenseFile -> licenseFile.content.endsWith("contentLicense"));
     assertThat(licenseLegalComponent.licenseLegalData.noticeFiles).hasSize(4)
         .allMatch(noticeFile -> noticeFile.content.endsWith("contentNotice"));
+
     Set<com.sonatype.insight.brain.model.license.License> licenses =
-        licenseLegalComponent.licenseLegalData.effectiveLicenses.stream()
+        Sets.newHashSet(Iterables.concat(
+            licenseLegalComponent.licenseLegalData.effectiveLicenses,
+            licenseLegalComponent.licenseLegalData.declaredLicenses,
+            licenseLegalComponent.licenseLegalData.observedLicenses)).stream()
             .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
             .collect(Collectors.toCollection(LinkedHashSet::new));
-    ApiLicenseLegalMetadataDTO[] expectedLicenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
-        licenseLegalComponent.licenseLegalData.effectiveLicenses.stream()
-            .map(multiLicenseDAO::getByIdNotNull)
-            .map(license -> new ApiLicenseDTO(license.getId(), license.getShortDisplayName()))
-            .collect(Collectors.toList()),
-        licenses,
-        expectedLicenseMetadataDTOs.stream()
-            .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity())))
+
+    ApiLicenseLegalMetadataDTO[] expectedLicenseLegalMetadata = legalReportBuilder
+        .getLicenseLegalMetadata(
+            Sets.newHashSet(Iterables.concat(
+                licenseLegalComponent.licenseLegalData.effectiveLicenses,
+                licenseLegalComponent.licenseLegalData.declaredLicenses,
+                licenseLegalComponent.licenseLegalData.observedLicenses)).stream()
+                .map(multiLicenseDAO::getByIdNotNull)
+                .map(license -> new ApiLicenseDTO(license.getId(), license.getShortDisplayName()))
+                .collect(Collectors.toList()),
+            licenses,
+            expectedLicenseMetadataDTOs.stream()
+                .collect(Collectors.toMap(LicenseMetadataDTO::getLicenseId, Function.identity())))
         .toArray(new ApiLicenseLegalMetadataDTO[0]);
+
     assertThat(licenseLegalComponentReport.licenseLegalMetadata).isNotNull()
         .usingRecursiveFieldByFieldElementComparator()
-        .containsExactly(expectedLicenseLegalMetadata);
+        .containsExactlyInAnyOrder(expectedLicenseLegalMetadata);
+
     if (identificationSource != null && scanId != null) {
       verify(mockThirdPartyComponentDAO).getComponentDetailsByIdentifier(componentIdentifier, owner.getId(), scanId);
       verify(componentInfoServiceSpy, never()).getComponentDetailsFromHDS(any(), any(), any(), any(), any());
@@ -2056,7 +2073,8 @@ public class ApiLicenseLegalServiceTest
   }
 
   private NamedComponentDetails createNamedComponentDetails() {
-    return createNamedComponentDetails(Arrays.asList("Apache-2.0+", "Apache-2.0-MIT"),
+    return createNamedComponentDetails(
+        Arrays.asList("Apache-2.0+", "Apache-2.0-MIT"),
         Arrays.asList("GPL-3.0-LGPL-2.0", "Beerware"));
   }
 

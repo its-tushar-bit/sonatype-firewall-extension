@@ -595,14 +595,18 @@ public class ApiLicenseLegalService
       component.setHash(hash);
     }
     ApiLicenseDataDTOV2 licenseData = apiLicenseDataAdapter.convertToDTOV2(component);
-    Set<License> licenses = licenseData.effectiveLicenses.stream()
+
+    Set<ApiLicenseDTO> allMultiLicenses = getAllLicenses(licenseData);
+
+    Set<License> allSingleLicenses = allMultiLicenses.stream()
         .map(multiLicense -> multiLicense.licenseId)
         .flatMap(multiLicenseId -> multiLicenseDAO.getLicensesByMultiLicenseIdNotNull(multiLicenseId).stream())
         .collect(Collectors.toCollection(LinkedHashSet::new));
+
     Map<String, LicenseMetadataDTO> licenseMetadataById =
-        licenseData.effectiveLicenses.isEmpty() ? Collections.emptyMap() :
+        allMultiLicenses.isEmpty() ? Collections.emptyMap() :
             apiLicenseLegalHdsService.getLicenseMetadata(
-                licenses.stream()
+                allSingleLicenses.stream()
                     .map(License::getId)
                     .collect(Collectors.toCollection(LinkedHashSet::new)))
                 .stream()
@@ -651,8 +655,9 @@ public class ApiLicenseLegalService
       // component.getHash() may not equal ApplicationComponent.getHash()
       stageScansForOwnerAndHash = getStageScans(tx, owner, hash, compIdentifier);
     }
+
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata = legalReportBuilder.getLicenseLegalMetadata(
-        licenseData.effectiveLicenses, licenses, licenseMetadataById);
+        allMultiLicenses, allSingleLicenses, licenseMetadataById);
 
     ApiLicenseLegalDataDTO licenseLegalData =
         legalReportBuilder.getLicenseLegalData(

@@ -65,4 +65,26 @@ public class IdUtils
         throw new IllegalStateException("Unknown owner type: " + ownerType);
     }
   }
+
+  public static String getPublicOwnerId(OwnerType ownerType, String ownerId) {
+    switch (ownerType) {
+      case APPLICATION:
+        ApplicationDAO applicationDAO = new ApplicationDAO();
+        Application application = applicationDAO.getByPublicId(ownerId);
+        if (application != null) {
+          return application.getPublicId();
+        }
+        return applicationDAO.getByIdNotNull(ownerId).getPublicId();
+      case ORGANIZATION:
+        return new OrganizationDAO().getByIdNotNull(ownerId).getPublicId();
+      case REPOSITORY:
+        return new RepositoryDAO().getByIdNotNull(ownerId).getPublicId();
+      case REPOSITORY_CONTAINER:
+        return RepositoryContainer.REPOSITORY_CONTAINER_ID;
+      case GLOBAL:
+        return MembershipMapping.GLOBAL_CONTEXT_ID;
+      default:
+        throw new IllegalStateException("Unknown owner type: " + ownerType);
+    }
+  }
 }

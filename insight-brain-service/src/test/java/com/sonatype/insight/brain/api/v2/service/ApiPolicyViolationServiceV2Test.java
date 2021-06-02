@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -202,8 +204,7 @@ public class ApiPolicyViolationServiceV2Test
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolations(OwnerType.ORGANIZATION,
             Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID, null, null, "unknown"))
-        .withMessageContaining(
-            "Component not found in latest policy evaluations for organization ROOT_ORGANIZATION_ID.");
+        .withMessageContaining("Component not found.");
   }
 
   @Test
@@ -212,6 +213,23 @@ public class ApiPolicyViolationServiceV2Test
         .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolations(OwnerType.ORGANIZATION,
             Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID, null, "invalidPackageUrl", null))
         .withMessageContaining("Invalid package url");
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_IncompletePackageUrl() {
+    assertThatExceptionOfType(InvalidPackageURLException.class)
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolations(OwnerType.ORGANIZATION,
+            Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID, null, "pkg:maven/g/a@v", null))
+        .withMessageContaining("The following coordinates are missing for given format: [type]");
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_IncompleteComponentIdentifier() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolations(OwnerType.ORGANIZATION,
+            Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID,
+            ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, null), null, null))
+        .withMessageContaining("The following coordinates are missing for given format: [extension]");
   }
 
   @Test
@@ -224,8 +242,25 @@ public class ApiPolicyViolationServiceV2Test
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
         .getTransitivePolicyViolations(OwnerType.APPLICATION, application.getId(), BuildStageType.ID, direct, null,
             null))
-        .withMessageContaining(
-            "Component not found in latest policy evaluation for application " + application.getPublicId() + ".");
+        .withMessageContaining("Component not found.");
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_MissingReports() {
+    Organization organization = tempEntity.newOrganization();
+    Application application1 = tempEntity.newApplication(organization.getId());
+    Application application2 = tempEntity.newApplication(organization.getId());
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID, scanId);
+    tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, scanId);
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e");
+
+    List<String> ids = Arrays.asList(application1.getPublicId(), application2.getPublicId());
+    ids.sort(Comparator.naturalOrder());
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
+        .getTransitivePolicyViolations(OwnerType.ORGANIZATION, organization.getId(), BuildStageType.ID, direct, null,
+            null))
+        .withMessageContaining("Component not found.");
   }
 
   @Test
@@ -239,8 +274,7 @@ public class ApiPolicyViolationServiceV2Test
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
         .getTransitivePolicyViolations(OwnerType.APPLICATION, application.getId(), BuildStageType.ID, null,
             "pkg:maven/g/other@v?type=e", null))
-        .withMessageContaining(
-            "Component not found in latest policy evaluation for application " + application.getPublicId() + ".");
+        .withMessageContaining("Component not found.");
   }
 
   @Test
@@ -255,8 +289,7 @@ public class ApiPolicyViolationServiceV2Test
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
         .getTransitivePolicyViolations(OwnerType.ORGANIZATION, organization.getPublicId(), BuildStageType.ID, null,
             "pkg:maven/g/other@v?type=e", null))
-        .withMessageContaining(
-            "Component not found in latest policy evaluations for organization " + organization.getPublicId() + ".");
+        .withMessageContaining("Component not found.");
   }
 
   @Test

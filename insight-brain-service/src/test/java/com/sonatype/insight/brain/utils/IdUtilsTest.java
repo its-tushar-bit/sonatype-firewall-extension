@@ -104,4 +104,44 @@ public class IdUtilsTest
       IdUtils.getInternalOwnerId(OwnerType.APPLICATION, "no-such-app-id");
     }).withMessage("Could not find an application with ID no-such-app-id.");
   }
+
+  @Test
+  public void testGetPublicOwnerId_Global() {
+    String id = IdUtils.getPublicOwnerId(OwnerType.GLOBAL, null /* ownerId */);
+    assertThat(id).isEqualTo(MembershipMapping.GLOBAL_CONTEXT_ID);
+  }
+
+  @Test
+  public void testGetPublicOwnerId_RepositoryContainer() {
+    String id = IdUtils.getPublicOwnerId(OwnerType.REPOSITORY_CONTAINER, null /* ownerId */);
+    assertThat(id).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testGetPublicOwnerId_Repository() {
+    Repository repository = tempEntity.newRepository();
+    String id = IdUtils.getPublicOwnerId(OwnerType.REPOSITORY, repository.getId());
+    assertThat(id).isEqualTo(repository.getPublicId());
+  }
+
+  @Test
+  public void testGetPublicOwnerId_ApplicationInternalId() {
+    Application application = tempEntity.newApplicationWithParent();
+    String publicOwnerId = IdUtils.getPublicOwnerId(application.getType(), application.getId());
+    assertThat(publicOwnerId).isEqualTo(application.getPublicId());
+  }
+
+  @Test
+  public void testGetPublicOwnerId_ApplicationPublicId() {
+    Application application = tempEntity.newApplicationWithParent();
+    String publicOwnerId = IdUtils.getPublicOwnerId(application.getType(), application.getPublicId());
+    assertThat(publicOwnerId).isEqualTo(application.getPublicId());
+  }
+
+  @Test
+  public void testGetPublicOwnerId_Application_NotFound() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+      IdUtils.getPublicOwnerId(OwnerType.APPLICATION, "no-such-app-public-id");
+    }).withMessage("Could not find an application with ID no-such-app-public-id.");
+  }
 }

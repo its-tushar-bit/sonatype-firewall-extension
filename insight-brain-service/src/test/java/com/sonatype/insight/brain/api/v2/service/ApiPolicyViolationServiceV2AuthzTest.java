@@ -159,10 +159,9 @@ public class ApiPolicyViolationServiceV2AuthzTest
     grantReadPermission(app.getId());
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
-        .getTransitivePolicyViolations(app.getType(), app.getPublicId(), BuildStageType.ID, null, "pkg:maven/g/a@v",
-            null))
-        .withMessageContaining(
-            "Component not found in latest policy evaluation for application " + app.getPublicId() + ".");
+        .getTransitivePolicyViolations(app.getType(), app.getPublicId(), BuildStageType.ID, null,
+            "pkg:maven/g/a@v?type=e", null))
+        .withMessageContaining("Component not found.");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -181,10 +180,9 @@ public class ApiPolicyViolationServiceV2AuthzTest
     grantReadPermission(org.getId());
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
-        .getTransitivePolicyViolations(org.getType(), org.getPublicId(), BuildStageType.ID, null, "pkg:maven/g/a@v",
-            null))
-        .withMessageContaining(
-            "Component not found in latest policy evaluations for organization " + org.getPublicId() + ".");
+        .getTransitivePolicyViolations(org.getType(), org.getPublicId(), BuildStageType.ID, null,
+            "pkg:maven/g/a@v?type=e", null))
+        .withMessageContaining("Component not found.");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -206,9 +204,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
         .getTransitivePolicyViolations(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID,
-            null, "pkg:maven/g/a@v", null))
-        .withMessageContaining(
-            "Component not found in latest policy evaluations for organization " + Organization.ROOT_ORGANIZATION_ID +
-                ".");
+            null, "pkg:maven/g/a@v?type=e", null))
+        .withMessageContaining("Component not found.");
   }
 }

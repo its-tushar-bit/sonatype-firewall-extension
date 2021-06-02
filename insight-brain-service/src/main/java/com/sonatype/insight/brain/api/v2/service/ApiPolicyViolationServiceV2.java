@@ -23,6 +23,7 @@ import javax.inject.Named;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.ApiApplicationAdapter;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;
@@ -252,9 +253,7 @@ public class ApiPolicyViolationServiceV2
       allTransitivePolicyViolations.addAll(transitivePolicyViolations);
     }
     if (foundComponent == null) {
-      throw new NotFoundException("Component not found in latest policy evaluation"
-          + (OwnerType.ORGANIZATION.equals(owner.getType()) ? "s" : "")
-          + " for " + owner.getType().name().toLowerCase(Locale.ROOT) + " " + owner.getPublicId() + ".");
+      throw new NotFoundException("Component not found.");
     }
     AuditData.get().setStageId(stageIdLowercase).setComponentIdentifier(foundComponent.getComponentIdentifier())
         .setComponentHash(foundComponent.getHash());
@@ -268,10 +267,18 @@ public class ApiPolicyViolationServiceV2
 
   private ComponentIdentifier getComponentIdentifier(ComponentIdentifier componentIdentifier, String packageUrl) {
     if (componentIdentifier != null) {
+      try {
+        getComplete(componentIdentifier);
+      }
+      catch (InvalidComponentIdentifierException e) {
+        throw new BadRequestException(e.getMessage(), e);
+      }
       return componentIdentifier;
     }
     if (packageUrl != null) {
-      return new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
+      PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl);
+      packageUrlIdentifier.ensureCompleteIdentifier();
+      return packageUrlIdentifier.toComponentIdentifier();
     }
     return null;
   }
@@ -293,7 +300,7 @@ public class ApiPolicyViolationServiceV2
         return new ComponentDAO(IdUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
             .getAll(null, null, reportEntry.buf, null);
       }
-      log.debug("{} not found for application id {} and scan id {}.", Report.DEPENDENCIES_JSON_FILENAME, applicationId,
+      log.debug("{} not found for application id {} and scan id {}.", Report.BOM_JSON_FILENAME, applicationId,
           scanId);
     }
     catch (IOException | NotFoundException e) {

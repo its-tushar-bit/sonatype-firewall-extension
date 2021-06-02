@@ -50,11 +50,11 @@ import org.cyclonedx.model.Hash;
 import org.cyclonedx.model.Hash.Algorithm;
 import org.cyclonedx.model.License;
 import org.cyclonedx.model.LicenseChoice;
+import org.cyclonedx.model.Source;
 import org.cyclonedx.model.vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability10;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Advisory;
 import org.cyclonedx.model.vulnerability.Vulnerability10.Recommendation;
-import org.cyclonedx.model.vulnerability.Vulnerability10.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,7 +98,7 @@ public class SbomResultHandler
           return content.getContent();
         }
         else {
-          return generateFilteredSbom(sourceBom.getSpecVersion(), targetBom);
+          return generateFilteredSbom(targetBom);
         }
       }
       return content.getContent();
@@ -437,11 +437,11 @@ public class SbomResultHandler
     thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
   }
 
-  private String generateFilteredSbom(String specVersion, Bom sbom)
+  private String generateFilteredSbom(Bom sbom)
       throws ParserConfigurationException, GeneratorException
   {
     BomXmlGenerator generator =
-        BomGeneratorFactory.createXml(ThirdPartyUtils.CYCLONEDX_ACCEPTED_VERSIONS.get(specVersion), sbom);
+        BomGeneratorFactory.createXml(Version.VERSION_13, sbom);
     generator.generate();
     return generator.toXmlString();
   }

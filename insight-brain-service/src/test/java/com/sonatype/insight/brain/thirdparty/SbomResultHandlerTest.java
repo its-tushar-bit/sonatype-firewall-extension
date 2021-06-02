@@ -578,6 +578,26 @@ public class SbomResultHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_v1_2() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_2.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    assertFilteredSbomFile(filteredContent, 2);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_v1_3() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-v1_3.xml");
+    ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile);
+    assertThat(filteredContent).isNotNull();
+    assertFilteredSbomFile(filteredContent, 2);
+  }
+
+  @Test
   public void testHandleAndFilterContents_sbom_coords_no_purl() throws Exception {
     String sbomContent = getSbomXmlFile("scan-with-sbom-coords-no-purl.xml");
     ThirdPartyScanContent content = new ThirdPartyScanContent(null, null, null, null, sbomContent);
@@ -744,12 +764,29 @@ public class SbomResultHandlerTest
       assertThat(component.getName()).isNotNull();
       assertThat(component.getVersion()).isNotNull();
       assertThat(component.getType()).isNotNull();
+
+      assertThat(component.getLicenseChoice()).isNull();
+      assertThat(component.getAuthor()).isNull();
+      assertThat(component.getCopyright()).isNull();
+      assertThat(component.getEvidence()).isNull();
+      assertThat(component.getPedigree()).isNull();
+      assertThat(component.getProperties()).isNull();
+      assertThat(component.getExternalReferences()).isNull();
+      assertThat(component.getSwid()).isNull();
     }
+    assertThat(bom.getMetadata()).isNull();
+    assertThat(bom.getDependencies()).isNull();
+    assertThat(bom.getCompositions()).isNull();
+    assertThat(bom.getServices()).isNull();
+    assertThat(bom.getExternalReferences()).isNull();
+    assertThat(bom.getProperties()).isNull();
+    assertThat(bom.getExtensibleTypes()).isNull();
+    assertThat(bom.getExtensions()).isNull();
     return bom;
   }
 
   @Test
-  public void testParseFilesV11AndV12() throws Exception {
+  public void testParseFilesV11AndV12AndV13() throws Exception {
     ThirdPartyScanContent contentV11 =
         new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-simple-v1-1.xml"));
     Bom bomV11 = sbomResultHandler.parseBom(contentV11);
@@ -759,14 +796,19 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent contentJson =
         new ThirdPartyScanContent(null, null, null, null, getSbomJsonFile("sbom-simple.json"));
     Bom bomJson = sbomResultHandler.parseBom(contentJson);
+    ThirdPartyScanContent contentV13 =
+        new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-simple-v1_3.xml"));
+    Bom bomV13 = sbomResultHandler.parseBom(contentV13);
     assertThat(bomV11).isNotNull();
     assertThat(bomV11.getSpecVersion()).isEqualTo("1.1");
     assertThat(bomV12).isNotNull();
     assertThat(bomV12.getSpecVersion()).isEqualTo("1.2");
     assertThat(bomJson).isNotNull();
     assertThat(bomJson.getSpecVersion()).isEqualTo("1.2");
+    assertThat(bomV13).isNotNull();
+    assertThat(bomV13.getSpecVersion()).isEqualTo("1.3");
     assertThat(bomV11.getComponents()).hasSameElementsAs(bomV12.getComponents())
-        .hasSameElementsAs(bomJson.getComponents());
+        .hasSameElementsAs(bomJson.getComponents()).hasSameElementsAs(bomV13.getComponents());
   }
 
   @Test
@@ -788,17 +830,19 @@ public class SbomResultHandlerTest
   }
 
   @Test
-  public void testParseXmlFilesV11AndV12WithVulnerabilities() throws Exception {
+  public void testParseXmlFilesV11AndV12andV13WithVulnerabilities() throws Exception {
     ThirdPartyScanContent contentV11 =
         new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-vulnerabilities.xml"));
     Bom bomV11 = sbomResultHandler.parseBom(contentV11);
     ThirdPartyScanContent contentV12 =
         new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-vulnerabilities-v1_2.xml"));
     Bom bomV12 = sbomResultHandler.parseBom(contentV12);
-    assertThat(bomV11).isNotNull();
-    assertThat(bomV12).isNotNull();
-    assertThat(bomV11.getComponents()).allSatisfy(component -> assertVulnerabilities(component));
-    assertThat(bomV12.getComponents()).allSatisfy(component -> assertVulnerabilities(component));
+    ThirdPartyScanContent contentV13 =
+        new ThirdPartyScanContent(null, null, null, null, getSbomXmlFile("sbom-vulnerabilities-v1_2.xml"));
+    Bom bomV13 = sbomResultHandler.parseBom(contentV13);
+    assertThat(bomV11.getComponents()).isNotEmpty().allSatisfy(this::assertVulnerabilities);
+    assertThat(bomV12.getComponents()).isNotEmpty().allSatisfy(this::assertVulnerabilities);
+    assertThat(bomV13.getComponents()).isNotEmpty().allSatisfy(this::assertVulnerabilities);
   }
 
   @Test

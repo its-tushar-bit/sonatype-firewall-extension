@@ -19,7 +19,8 @@ public final class ThirdPartyUtils
 {
   public static final Map<String, Version> CYCLONEDX_ACCEPTED_VERSIONS = ImmutableMap
       .of(Version.VERSION_11.getVersionString(), Version.VERSION_11,
-          Version.VERSION_12.getVersionString(), Version.VERSION_12);
+          Version.VERSION_12.getVersionString(), Version.VERSION_12,
+          Version.VERSION_13.getVersionString(), Version.VERSION_13);
 
   public static Bom parseBom(final String content) throws ParseException {
     byte[] bytes = content.getBytes(StandardCharsets.UTF_8);

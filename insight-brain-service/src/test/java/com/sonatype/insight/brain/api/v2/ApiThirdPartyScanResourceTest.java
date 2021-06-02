@@ -51,6 +51,11 @@ public class ApiThirdPartyScanResourceTest
     testScanComponentAndGetScanStatus("valid_bom_1_2.xml", MediaType.APPLICATION_XML);
   }
 
+  @Test
+  public void testScanComponentAndGetScanStatus_Cyclone_Xml_v1_3() throws Exception {
+    testScanComponentAndGetScanStatus("valid_bom_1_3.xml", MediaType.APPLICATION_XML);
+  }
+
   public void testScanComponentAndGetScanStatus(String fileName, String mediaType) throws Exception {
     Application app = tempEntity.newApplicationWithParent();
 

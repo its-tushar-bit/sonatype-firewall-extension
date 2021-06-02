@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -42,7 +43,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -90,6 +90,11 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_bom_v1_2() throws Exception {
     testScanComponents("valid_bom_1_2.xml");
+  }
+
+  @Test
+  public void testScanComponents_bom_v1_3() throws Exception {
+    testScanComponents("valid_bom_1_3.xml");
   }
 
   @Test
@@ -207,7 +212,8 @@ public class ApiThirdPartyScanServiceTest
 
     List<PolicyAlert> alerts = new ArrayList<>();
     if (actionId != null) {
-      alerts.add(new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10), asList(new Action(actionId))));
+      alerts.add(new PolicyAlert(new PolicyFact("policyId", "Policy Name", 10),
+          Collections.singletonList(new Action(actionId))));
     }
 
     PolicyEvaluationResult evaluationResult = new PolicyEvaluationResult();
@@ -336,6 +342,11 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_Invalid_Content_Xml_v1_2() throws Exception {
     testScanComponents_Invalid_Content("invalid_bom_1_2.xml");
+  }
+
+  @Test
+  public void testScanComponents_Invalid_Content_Xml_v1_3() throws Exception {
+    testScanComponents_Invalid_Content("invalid_bom_1_3.xml");
   }
 
   @Test

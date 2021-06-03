@@ -42,8 +42,8 @@ public class RepositoryResourceAuditTest
   }
 
   @Override
-  protected String getEvaluateComponentWithQuarantinePath() {
-    return RepositoryResource.EVALUATE_COMPONENT_WITH_QUARANTINE_PATH;
+  protected String getEvaluateComponentsWithQuarantinePath() {
+    return RepositoryResource.EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH;
   }
 
   @Override

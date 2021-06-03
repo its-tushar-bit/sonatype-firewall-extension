@@ -54,7 +54,7 @@ public abstract class AbstractRepositoryResourceAuditTest
 
   protected abstract String getComponentsPath();
 
-  protected abstract String getEvaluateComponentWithQuarantinePath();
+  protected abstract String getEvaluateComponentsWithQuarantinePath();
 
   protected abstract String getProprietaryComponentsNamePath();
 
@@ -164,7 +164,7 @@ public abstract class AbstractRepositoryResourceAuditTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_Unauthorized() throws Exception {
+  public void testEvaluateComponentsWithQuarantine_Unauthorized() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID);
 
@@ -344,7 +344,7 @@ public abstract class AbstractRepositoryResourceAuditTest
   }
 
   @Test
-  public void testEvaluateComponentWithQuarantine_ImplicitlyEnableQuarantine() throws Exception {
+  public void testEvaluateComponentsWithQuarantine_ImplicitlyEnableQuarantine() throws Exception {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
     Repository repository = tempEntity.newRepository(repositoryManager, REPOSITORY_PUBLIC_ID, true, false);
 
@@ -395,7 +395,7 @@ public abstract class AbstractRepositoryResourceAuditTest
                                       RepositoryComponentEvaluationDataRequestList repoComponentEvalList)
   {
     return restRequest().path(getResourcePath(),
-        withQuarantine ? getEvaluateComponentWithQuarantinePath() : getEvaluateComponentsPath())
+        withQuarantine ? getEvaluateComponentsWithQuarantinePath() : getEvaluateComponentsPath())
         .parameter(repositoryManagerInstanceId, repositoryPublicId).body(repoComponentEvalList);
   }
 

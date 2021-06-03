@@ -53,7 +53,7 @@ public class ArtifactoryRepositoryResource
 
   static final String COMPONENTS_PATH = REPOSITORY_PATH + "components/{pathname: .+}";
 
-  static final String EVALUATE_COMPONENT_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
+  static final String EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH = REPOSITORY_PATH + "evaluate/quarantine";
 
   static final String UNQUARANTINED_COMPONENTS_PATH = REPOSITORY_PATH + "components/unquarantined";
 
@@ -106,11 +106,11 @@ public class ArtifactoryRepositoryResource
   }
 
   @POST
-  @Path(EVALUATE_COMPONENT_WITH_QUARANTINE_PATH)
+  @Path(EVALUATE_COMPONENTS_WITH_QUARANTINE_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.EVALUATE_REPOSITORY)
-  public RepositoryComponentEvaluationDataList evaluateComponentWithQuarantine(
+  public RepositoryComponentEvaluationDataList evaluateComponentsWithQuarantine(
       @PathParam("repositoryManagerInstanceId") final String repositoryManagerInstanceId,
       @PathParam("repositoryPublicId") final String repositoryPublicId,
       final RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,

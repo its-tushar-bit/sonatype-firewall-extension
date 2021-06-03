@@ -179,3 +179,9 @@
 #view-transitive-violations {
   margin-right: $nx-spacing-xs;
 }
+
+.tm-cip-waiver-row {
+  .tm-waive-button.disabled {
+    pointer-events: none;
+  }
+}

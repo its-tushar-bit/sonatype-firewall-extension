@@ -6,13 +6,13 @@
 import { connect } from 'react-redux';
 
 import AuditLog from './AuditLog';
-import { loadAuditLogForComponent } from './auditLogActions';
+import { loadAuditLogForComponent, sortAuditLog } from './auditLogActions';
 
 function mapStateToProps({ auditLog }) {
   return { ...auditLog };
 }
 
-const mapDispatchToProps = { loadAuditLogForComponent };
+const mapDispatchToProps = { loadAuditLogForComponent, sortAuditLog };
 
 const AuditLogContainer = connect(mapStateToProps, mapDispatchToProps)(AuditLog);
 export default AuditLogContainer;

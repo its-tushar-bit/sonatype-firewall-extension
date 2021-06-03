@@ -104,4 +104,41 @@ describe('auditLogReducer', function () {
       expect(newState.otherProp).toBeUndefined();
     });
   });
+
+  describe('AUDIT_LOG_SORT_AUDIT_LOG_REQUESTED', function () {
+    it('sets the isLoading flag to true and sets the appliedSort prop to payload', () => {
+      const currentState = {
+        isLoading: false,
+        auditRecords: [{ hash: 'hash1' }, { hash: 'hash2' }],
+        appliedSort: null,
+      };
+
+      const newState = reducer(currentState, {
+        type: 'AUDIT_LOG_SORT_AUDIT_LOG_REQUESTED',
+        payload: '-time',
+      });
+
+      expect(newState.isLoading).toEqual(true);
+      expect(newState.appliedSort).toEqual('-time');
+    });
+  });
+
+  describe('AUDIT_LOG_SORT_AUDIT_LOG_FULFILLED', function () {
+    it('sets the isLoading flag to false and sets the auditRecords prop to payload', () => {
+      const currentState = {
+        isLoading: true,
+        auditRecords: [{ hash: 'hash1' }, { hash: 'hash2' }],
+        appliedSort: '-time',
+      };
+      const sortedRecords = [{ hash: 'hash2' }, { hash: 'hash1' }];
+
+      const newState = reducer(currentState, {
+        type: 'AUDIT_LOG_SORT_AUDIT_LOG_FULFILLED',
+        payload: sortedRecords,
+      });
+
+      expect(newState.isLoading).toEqual(false);
+      expect(newState.auditRecords).toEqual(sortedRecords);
+    });
+  });
 });

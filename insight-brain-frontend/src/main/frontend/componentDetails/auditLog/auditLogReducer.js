@@ -9,6 +9,8 @@ import {
   AUDIT_LOG_LOAD_AUDIT_LOG_REQUESTED,
   AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED,
   AUDIT_LOG_LOAD_AUDIT_LOG_FAILED,
+  AUDIT_LOG_SORT_AUDIT_LOG_REQUESTED,
+  AUDIT_LOG_SORT_AUDIT_LOG_FULFILLED,
 } from './auditLogActions';
 import { UI_ROUTER_ON_FINISH } from '../../reduxUiRouter/routerActions';
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
@@ -18,12 +20,15 @@ const initState = Object.freeze({
   isLoading: false,
   auditRecords: [],
   error: null,
+  appliedSort: null,
 });
 
 const reducerActionMap = {
   [AUDIT_LOG_LOAD_AUDIT_LOG_REQUESTED]: propSetConst('isLoading', true),
   [AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED]: loadAuditLogFulfilled,
   [AUDIT_LOG_LOAD_AUDIT_LOG_FAILED]: loadAuditLogFailed,
+  [AUDIT_LOG_SORT_AUDIT_LOG_REQUESTED]: sortAuditLogRequested,
+  [AUDIT_LOG_SORT_AUDIT_LOG_FULFILLED]: sortAuditLogFulfilled,
   [UI_ROUTER_ON_FINISH]: always(initState),
 };
 
@@ -39,6 +44,14 @@ function loadAuditLogFulfilled(payload, state) {
     isLoading: false,
     auditRecords,
   };
+}
+
+function sortAuditLogRequested(payload, state) {
+  return { ...state, isLoading: true, appliedSort: payload };
+}
+
+function sortAuditLogFulfilled(payload, state) {
+  return { ...state, isLoading: false, auditRecords: payload };
 }
 
 const reducer = createReducerFromActionMap(reducerActionMap, initState);

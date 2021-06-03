@@ -29,6 +29,10 @@ public class AuditLogContent
     return child(getRowSelector(rowIndex) + ":first-child");
   }
 
+  public ElementsCollection tableHeaders() {
+    return children("thead > tr > th");
+  }
+
   public SelenideElement emptyMessage() {
     return child("tbody > tr .nx-cell--meta-info span");
   }

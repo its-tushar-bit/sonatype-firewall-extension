@@ -4,26 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
-import * as PropTypes from 'prop-types';
 
-import AuditLogTable, { auditRecordsPropTypes } from './AuditLogTable';
-import LoadWrapper from '../../react/LoadWrapper';
+import AuditLogTable from './AuditLogTable';
 
-export default function AuditLog({ auditRecords, isLoading, error, loadAuditLogForComponent }) {
+export default function AuditLog(props) {
+  const { loadAuditLogForComponent } = props;
+
   useEffect(() => {
     loadAuditLogForComponent();
   }, []);
 
-  return (
-    <LoadWrapper loading={isLoading} error={error} retryHandler={loadAuditLogForComponent}>
-      {auditRecords && <AuditLogTable auditRecords={auditRecords} />}
-    </LoadWrapper>
-  );
+  return <AuditLogTable {...props} />;
 }
 
-AuditLog.propTypes = {
-  auditRecords: PropTypes.arrayOf(auditRecordsPropTypes),
-  isLoading: PropTypes.bool.isRequired,
-  error: PropTypes.string,
-  loadAuditLogForComponent: PropTypes.func.isRequired,
-};
+AuditLog.propTypes = AuditLogTable.propTypes;

@@ -205,7 +205,54 @@ public class ComponentDetailsTest
     AuditLogContent auditLog = componentDetailsPage.auditLogContent();
     SelenideElement date = auditLog.dateFromRow(0);
     date.should(matchText(dateRegex));
-    auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Acknowledged", "License Analysis", "A comment"));
+    auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Reopened", "License Analysis", "BBBB"));
+    auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
+  }
+
+  @Test
+  public void testAuditLogTab_sort() {
+    createAuditLogEntries();
+
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement firstViolation = violations.first();
+    firstViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    componentDetailsPage.auditTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToAudit(app, SCAN_ID, HASH));
+
+    AuditLogContent auditLog = componentDetailsPage.auditLogContent();
+    // Sorted by time, descending
+    auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Reopened", "License Analysis", "BBBB"));
+    auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
+
+    ElementsCollection headers = auditLog.tableHeaders();
+    headers.get(0).click();
+    // Sorted by time, ascending
+    auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
+    auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Reopened", "License Analysis", "BBBB"));
+
+    headers.get(2).click();
+    // Sorted by action, ascending
+    auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
+    auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Reopened", "License Analysis", "BBBB"));
+
+    headers.get(2).click();
+    // Sorted by action, descending
+    auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Reopened", "License Analysis", "BBBB"));
+    auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
+
+    headers.get(4).click();
+    // Sorted by comment, ascending
+    auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
+    auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Reopened", "License Analysis", "BBBB"));
+
+    headers.get(4).click();
+    // Sorted by comment, descending
+    auditLog.rowWithoutDate(0).shouldHave(texts("admin", "Reopened", "License Analysis", "BBBB"));
+    auditLog.rowWithoutDate(1).shouldHave(texts("admin", "Acknowledged", "License Analysis", "AAAA"));
   }
 
   private void createAuditLogEntries() {
@@ -220,10 +267,15 @@ public class ComponentDetailsTest
     CipModal cipModal = reportPage.cipModal();
     cipModal.tabLink(5).click();
 
-    //Acknowledge a license so we can have an entry in audit log
+    //Move some licenses' status so we can have some entries in audit log
     LicenseCIP.status().selectOption("Acknowledged");
-    LicenseCIP.comment().setValue("A comment");
+    LicenseCIP.comment().setValue("AAAA");
     LicenseCIP.updateButton().shouldBe(enabled).click();
+    // Navigate away and back
+    LicenseCIP.status().selectOption("Open");
+    LicenseCIP.comment().setValue("BBBB");
+    LicenseCIP.updateButton().shouldBe(enabled).click();
+
     cipModal.closeButton().click();
   }
 

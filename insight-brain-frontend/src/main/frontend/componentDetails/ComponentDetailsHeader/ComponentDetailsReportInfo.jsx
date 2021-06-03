@@ -39,7 +39,10 @@ export const ComponentDetailsReportInfo = ({
       {!!reportTitle && reportTime && (
         <span className="component-details-header__reportinfo-item">
           <NxFontAwesomeIcon className="component-details-header__reportinfo-icon" icon={faFile} />
-          <span>{`${reportTitle} ${formatDate(reportTime, 'YYYY-MM-DD HH:mm:ss')}`}</span>
+          <span className="visual-testing-ignore">{`${reportTitle} ${formatDate(
+            reportTime,
+            'YYYY-MM-DD HH:mm:ss'
+          )}`}</span>
         </span>
       )}
     </div>

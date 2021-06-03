@@ -58,7 +58,7 @@ public class ComponentDetailsTest
     PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
     PolicyImportExport policyImportExport = new PolicyImportExport();
 
-    Organization org = tempEntity.newOrganization();
+    Organization org = tempEntity.newOrganization("Test Organization");
     policyImportExport.importOrganization(org, referencePolicies);
     app = tempEntity.newApplication("ApplicationReportTest", "ApplicationReportTest", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
@@ -84,9 +84,9 @@ public class ComponentDetailsTest
       SelenideElement firstViolation = violations.first();
       firstViolation.click();
 
-      waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, "fa78f54738ccf77379d1"));
+      waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, HASH));
       ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-      componentDetailsPage.title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+      componentDetailsPage.header().title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
       componentDetailsPage.tabs().shouldHaveSize(6);
       SelenideElement backButton = componentDetailsPage.backButton();
       backButton.shouldHave(text("Back to Application Report"));
@@ -99,6 +99,31 @@ public class ComponentDetailsTest
         reportPage.filterPanel().closeButton().click();
       }
     }
+  }
+
+  @Test
+  public void testComponentDetailsHeader() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement directDependencyWithViolation = violations.get(4);
+    directDependencyWithViolation.click();
+
+    final String directDependencyHash = "f0776db1593e215146d2";
+    waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, directDependencyHash));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    SelenideElement title = componentDetailsPage.header().title();
+    title.shouldHave(text("apache-httpclient : commons-httpclient : 3.1"));
+
+    // Not comparing exact texts due to dynamic information (organization uuid, rpeort date)
+    ElementsCollection reportInformationElements = componentDetailsPage.header().reportInformationElements();
+    reportInformationElements.shouldHave(texts("Test Organization", "ApplicationReportTest", "Build Report "));
+
+    ElementsCollection tags = componentDetailsPage.header().tags();
+    tags.shouldHave(texts("maven", "Direct Dependency"));
+
+    eyesWatcher.eyesCheck("component details header");
   }
 
   @Test

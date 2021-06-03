@@ -51,12 +51,12 @@ public class ComponentDetailsPage
     super(ROOT);
   }
 
-  public SelenideElement title() {
-    return child("#component-details-title");
-  }
-
   public SelenideElement backButton() {
     return child(".nx-text-link");
+  }
+
+  public ComponentDetailsHeader header() {
+    return new ComponentDetailsHeader(childSelector(".component-details-header"));
   }
 
   public ElementsCollection tabs() {
@@ -89,5 +89,27 @@ public class ComponentDetailsPage
 
   public AuditLogContent auditLogContent() {
     return new AuditLogContent("#audit-log-tab-content");
+  }
+
+  public static class ComponentDetailsHeader
+      extends BasicElement<ComponentDetailsPage.ComponentDetailsHeader>
+  {
+    private ComponentDetailsHeader(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement title() {
+      return child("#component-details-title");
+    }
+
+    public ElementsCollection reportInformationElements() {
+      SelenideElement child = child(".component-details-header__reportinfo");
+      return child.findAll(".component-details-header__reportinfo-item");
+    }
+
+    public ElementsCollection tags() {
+      SelenideElement child = child(".component-details-header__tags");
+      return child.findAll("dd");
+    }
   }
 }

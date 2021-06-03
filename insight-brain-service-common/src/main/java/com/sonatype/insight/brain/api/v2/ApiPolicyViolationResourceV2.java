@@ -36,10 +36,21 @@ public interface ApiPolicyViolationResourceV2
   /**
    * @since 1.115
    */
-  ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolations(
+  ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByOwnerStageComponent(
       OwnerType ownerType,
       String ownerId,
       String stageId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash);
+
+  /**
+   * @since 1.117
+   */
+  ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByAppScanComponent(
+      OwnerType ownerType,
+      String ownerId,
+      String scanId,
       ComponentIdentifier componentIdentifier,
       String packageUrl,
       String hash);

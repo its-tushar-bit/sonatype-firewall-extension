@@ -61,7 +61,7 @@ public class ApiPolicyViolationResourceV2AuditTest
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_Application() throws Exception {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Application() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
@@ -72,7 +72,7 @@ public class ApiPolicyViolationResourceV2AuditTest
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
         .query("componentIdentifier", direct)
         .get();
@@ -86,7 +86,7 @@ public class ApiPolicyViolationResourceV2AuditTest
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_Organization() throws Exception {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
     String scanId = "scanId";
@@ -98,7 +98,7 @@ public class ApiPolicyViolationResourceV2AuditTest
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(organization.getType().name().toLowerCase(Locale.ROOT), organization.getPublicId(),
             BuildStageType.ID)
         .query("componentIdentifier", direct)
@@ -113,14 +113,58 @@ public class ApiPolicyViolationResourceV2AuditTest
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_Unauthorized() throws Exception {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Unauthorized() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", null, "e");
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
+        .query("componentIdentifier", direct)
+        .with(unauthorizedUser())
+        .get();
+
+    assertResponseStatus(403, response);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_TRANSITIVE_POLICY_VIOLATIONS, "unauthorized");
+    assertApplicationData(auditDTO, application);
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByAppScanComponent() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e");
+    ReportTestUtils.createReportFile(application.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationResourceV2AuditTest/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
+        .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), scanId)
+        .query("componentIdentifier", direct)
+        .get();
+
+    assertResponseStatus(200, response);
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_COMPONENT_TRANSITIVE_POLICY_VIOLATIONS, null);
+    assertApplicationData(auditDTO, application);
+    assertCustomData(auditDTO, "scanId", scanId);
+    assertCustomData(auditDTO, "stageId", BuildStageType.ID);
+    assertCustomObject(auditDTO, "componentIdentifier", direct);
+    assertCustomData(auditDTO, "componentHash", "hash1");
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByAppScanComponent_Unauthorized() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", null, "e");
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
+        .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), "scanId")
         .query("componentIdentifier", direct)
         .with(unauthorizedUser())
         .get();

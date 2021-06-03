@@ -28,10 +28,8 @@ import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 import com.codahale.metrics.annotation.Timed;
-import org.apache.shiro.authz.UnauthorizedException;
 
 /**
  * @since 1.13.0
@@ -47,10 +45,13 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
 
   public static final String APPLICABLE_WAIVERS_PATH = "/applicableWaivers";
 
-  public static final String TRANSITIVE_VIOLATIONS_PATH =
+  public static final String TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH =
       "transitive/{ownerType: application|organization}/{ownerId}/stages/{stageId}";
+  
+  public static final String TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH =
+      "transitive/{ownerType: application}/{ownerId}/{scanId}";
 
-  private ApiPolicyViolationServiceV2 apiPolicyViolationService;
+  private final ApiPolicyViolationServiceV2 apiPolicyViolationService;
 
   private final ApiCrossStageViolationService apiCrossStageViolationService;
 
@@ -114,10 +115,10 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
 
   @Override
   @GET
-  @Path(TRANSITIVE_VIOLATIONS_PATH)
+  @Path(TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.VIEW_COMPONENT_TRANSITIVE_POLICY_VIOLATIONS)
-  public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolations(
+  public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByOwnerStageComponent(
       @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
       @PathParam("stageId") final String stageId,
@@ -125,10 +126,26 @@ public class DefaultApiPolicyViolationResourceV2 implements ApiPolicyViolationRe
       @QueryParam("packageUrl") final String packageUrl,
       @QueryParam("hash") final String hash)
   {
-    if (!apiPolicyViolationService.isInnerSourceTransitiveWaiverEnabled()) {
-      throw new UnauthorizedException(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
-    }
-    return apiPolicyViolationService
-        .getTransitivePolicyViolations(ownerType, ownerId, stageId, componentIdentifier, packageUrl, hash);
+    apiPolicyViolationService.ensureInnerSourceTransitiveWaiverEnabled();
+    return apiPolicyViolationService.getTransitivePolicyViolationsByOwnerStageComponent(ownerType, ownerId, stageId,
+        componentIdentifier, packageUrl, hash);
+  }
+
+  @Override
+  @GET
+  @Path(TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.VIEW_COMPONENT_TRANSITIVE_POLICY_VIOLATIONS)
+  public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByAppScanComponent(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @PathParam("scanId") final String scanId,
+      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") final String packageUrl,
+      @QueryParam("hash") final String hash)
+  {
+    apiPolicyViolationService.ensureInnerSourceTransitiveWaiverEnabled();
+    return apiPolicyViolationService.getTransitivePolicyViolationsByAppScanComponent(ownerType, ownerId,
+        scanId, componentIdentifier, packageUrl, hash);
   }
 }

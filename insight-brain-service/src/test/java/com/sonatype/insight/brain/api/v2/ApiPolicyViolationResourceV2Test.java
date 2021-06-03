@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -247,7 +248,7 @@ public class ApiPolicyViolationResourceV2Test
   }
 
   @Test
-  public void testGetTransitivePolicyViolations() throws Exception {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent() throws Exception {
     getCLMServer().getConfiguration()
         .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
     Application application = tempEntity.newApplicationWithParent();
@@ -260,11 +261,55 @@ public class ApiPolicyViolationResourceV2Test
     ReportTestUtils.createReportFile(application.getId(), scanId,
         zipReportDir("/ApiPolicyViolationResourceV2Test/report", tempDir),
         getCLMServer().getInstance(InsightWork.class));
+    ReportTestUtils.createPolicyThreats(application.getId(), scanId, getCLMServer().getInstance(InsightWork.class),
+        Collections.singletonList(policyViolation));
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
         .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), BuildStageType.ID)
+        .query("componentIdentifier", direct)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApiComponentTransitivePolicyViolationsDTO result =
+        response.getBody(ApiComponentTransitivePolicyViolationsDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.componentIdentifier).usingRecursiveComparison()
+        .isEqualTo(ApiComponentIdentifierDTOV2.fromComponentIdentifier(direct));
+    assertThat(result.packageUrl).isEqualTo(PackageUrlIdentifier.fromComponentIdentifier(direct).getPackageUrl());
+    assertThat(result.hash).isEqualTo("hash1");
+    assertThat(result.displayName).isEqualTo("g : direct : v");
+    assertThat(result.isInnerSource).isFalse();
+    Component expectedComponent = new Component();
+    expectedComponent.setHash("hash2");
+    expectedComponent.setDisplayName("g : transitive : v");
+    assertThat(result.transitivePolicyViolations).usingRecursiveFieldByFieldElementComparator().containsExactly(
+        ApiStagePolicyViolationComponentDTO
+            .fromPolicyViolationAndComponent(Pair.of(policyViolation, expectedComponent)));
+  }
+  
+  @Test
+  public void testGetTransitivePolicyViolationsByAppScanComponent() throws Exception {
+    getCLMServer().getConfiguration()
+        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    Policy policy = tempEntity.newPolicy();
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e");
+    ComponentIdentifier transitive = ComponentIdentifier.createMavenCoordinates("g", "transitive", "v", "", "e");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, transitive, "hash2");
+    ReportTestUtils.createReportFile(application.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationResourceV2Test/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+    ReportTestUtils.createPolicyThreats(application.getId(), scanId, getCLMServer().getInstance(InsightWork.class),
+        Collections.singletonList(policyViolation));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
+        .parameter(application.getType().name().toLowerCase(Locale.ROOT), application.getPublicId(), scanId)
         .query("componentIdentifier", direct)
         .get();
 
@@ -287,13 +332,30 @@ public class ApiPolicyViolationResourceV2Test
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_FeatureDisabled() throws Exception {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_FeatureDisabled() throws Exception {
     getCLMServer().getConfiguration()
         .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
 
     HttpResponse response = restRequest()
         .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
-            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_PATH)
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_OWNER_AND_STAGE_PATH)
+        .parameter(OwnerType.APPLICATION.name().toLowerCase(Locale.ROOT), "doesNotExist", "doesNotExist")
+        .query("hash", "doesNotExist")
+        .get();
+
+    assertResponseStatus(403, response);
+    assertThat(response.getBodyText())
+        .contains(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByAppScanComponent_FeatureDisabled() throws Exception {
+    getCLMServer().getConfiguration()
+        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.POLICY_VIOLATION_RESOURCE_PATH_V2,
+            DefaultApiPolicyViolationResourceV2.TRANSITIVE_VIOLATIONS_BY_APP_AND_SCAN_PATH)
         .parameter(OwnerType.APPLICATION.name().toLowerCase(Locale.ROOT), "doesNotExist", "doesNotExist")
         .query("hash", "doesNotExist")
         .get();

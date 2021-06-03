@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Sets;
@@ -144,67 +145,95 @@ public class ApiPolicyViolationServiceV2AuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetTransitivePolicyViolations_Unauthenticated_Application() {
-    apiPolicyViolationService.getTransitivePolicyViolations(app.getType(), app.getPublicId(), null, null, null, null);
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Unauthenticated_Application() {
+    apiPolicyViolationService.getTransitivePolicyViolationsByOwnerStageComponent(app.getType(), app.getPublicId(),
+        BuildStageType.ID, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetTransitivePolicyViolations_Unauthorized_Application() {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Unauthorized_Application() {
     login();
-    apiPolicyViolationService.getTransitivePolicyViolations(app.getType(), app.getPublicId(), null, null, null, null);
+    apiPolicyViolationService.getTransitivePolicyViolationsByOwnerStageComponent(app.getType(), app.getPublicId(),
+        BuildStageType.ID, null, null, null);
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_Authorized_Application() {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Authorized_Application() {
     grantReadPermission(app.getId());
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
-        .getTransitivePolicyViolations(app.getType(), app.getPublicId(), BuildStageType.ID, null,
+        .getTransitivePolicyViolationsByOwnerStageComponent(app.getType(), app.getPublicId(), BuildStageType.ID, null,
             "pkg:maven/g/a@v?type=e", null))
         .withMessageContaining("Component not found.");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetTransitivePolicyViolations_Unauthenticated_Organization() {
-    apiPolicyViolationService.getTransitivePolicyViolations(org.getType(), org.getPublicId(), null, null, null, null);
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Unauthenticated_Organization() {
+    apiPolicyViolationService.getTransitivePolicyViolationsByOwnerStageComponent(org.getType(), org.getPublicId(),
+        BuildStageType.ID, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetTransitivePolicyViolations_Unauthorized_Organization() {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Unauthorized_Organization() {
     login();
-    apiPolicyViolationService.getTransitivePolicyViolations(org.getType(), org.getPublicId(), null, null, null, null);
+    apiPolicyViolationService.getTransitivePolicyViolationsByOwnerStageComponent(org.getType(), org.getPublicId(),
+        BuildStageType.ID, null, null, null);
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_Authorized_Organization() {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Authorized_Organization() {
     grantReadPermission(org.getId());
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
-        .getTransitivePolicyViolations(org.getType(), org.getPublicId(), BuildStageType.ID, null,
+        .getTransitivePolicyViolationsByOwnerStageComponent(org.getType(), org.getPublicId(), BuildStageType.ID, null,
             "pkg:maven/g/a@v?type=e", null))
         .withMessageContaining("Component not found.");
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetTransitivePolicyViolations_Unauthenticated_RootOrganization() {
-    apiPolicyViolationService.getTransitivePolicyViolations(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
-        null, null, null, null);
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Unauthenticated_RootOrganization() {
+    apiPolicyViolationService.getTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID, null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetTransitivePolicyViolations_Unauthorized_RootOrganization() {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Unauthorized_RootOrganization() {
     login();
-    apiPolicyViolationService.getTransitivePolicyViolations(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
-        null, null, null, null);
+    apiPolicyViolationService.getTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID, null, null, null);
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_Authorized_RootOrganization() {
+  public void testGetTransitivePolicyViolationsByOwnerStageComponent_Authorized_RootOrganization() {
     grantReadPermission(Organization.ROOT_ORGANIZATION_ID);
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
-        .getTransitivePolicyViolations(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID,
-            null, "pkg:maven/g/a@v?type=e", null))
+        .getTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION, Organization.ROOT_ORGANIZATION_ID,
+            BuildStageType.ID, null, "pkg:maven/g/a@v?type=e", null))
         .withMessageContaining("Component not found.");
+  }
+  
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetTransitivePolicyViolationsByAppScanComponent_Unauthenticated() {
+    apiPolicyViolationService.getTransitivePolicyViolationsByAppScanComponent(app.getType(), app.getPublicId(),
+        "someScanId", null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetTransitivePolicyViolationsByAppScanComponent_Unauthorized() {
+    login();
+    apiPolicyViolationService.getTransitivePolicyViolationsByAppScanComponent(app.getType(), app.getPublicId(),
+        BuildStageType.ID, null, null, null);
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByAppScanComponent_Authorized() {
+    grantReadPermission(app.getId());
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiPolicyViolationService
+        .getTransitivePolicyViolationsByAppScanComponent(app.getType(), app.getPublicId(), "someScanId", null,
+            "pkg:maven/g/a@v", null))
+        .withMessageContaining(
+            "scanId someScanId not found for application " + app.getPublicId() + ".");
   }
 }

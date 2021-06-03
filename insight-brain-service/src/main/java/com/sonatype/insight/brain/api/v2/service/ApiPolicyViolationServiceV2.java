@@ -40,7 +40,6 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -50,14 +49,17 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationStageView;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationLoader.ApplicationView;
+import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -69,9 +71,11 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,8 +103,6 @@ public class ApiPolicyViolationServiceV2
 
   private final ReportService reportService;
 
-  private final PolicyViolationDAO policyViolationDAO;
-
   private final StageTypeService stageTypeService;
 
   private final InsightConfig insightConfig;
@@ -115,7 +117,6 @@ public class ApiPolicyViolationServiceV2
       final PolicyEvaluationDAO policyEvaluationDAO,
       final OwnerDAO ownerDAO,
       final ReportService reportService,
-      final PolicyViolationDAO policyViolationDAO,
       final StageTypeService stageTypeService,
       final InsightConfig insightConfig)
   {
@@ -127,7 +128,6 @@ public class ApiPolicyViolationServiceV2
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.ownerDAO = ownerDAO;
     this.reportService = reportService;
-    this.policyViolationDAO = policyViolationDAO;
     this.stageTypeService = stageTypeService;
     this.insightConfig = insightConfig;
   }
@@ -202,8 +202,36 @@ public class ApiPolicyViolationServiceV2
         .getOrDefault(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false) : false;
   }
 
+  public void ensureInnerSourceTransitiveWaiverEnabled() {
+    if (!isInnerSourceTransitiveWaiverEnabled()) {
+      throw new UnauthorizedException(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
+    }
+  }
+
   @Authorize(permission = Permission.READ)
-  public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolations(
+  public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByAppScanComponent(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      final String scanId,
+      final ComponentIdentifier componentIdentifier,
+      final String packageUrl,
+      final String hash)
+  {
+    if (!OwnerType.APPLICATION.equals(ownerType)) {
+      throw new BadRequestException("scanId can only be specified for an application.");
+    }
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(owner.getId(), scanId);
+    if (policyEvaluation == null) {
+      throw new BadRequestException("scanId " + scanId + " not found for application " + owner.getPublicId() + ".");
+    }
+    AuditData.get().setScanId(scanId);
+    return getTransitivePolicyViolations(policyEvaluation.getStageTypeId(), componentIdentifier, packageUrl, hash,
+        Collections.singletonList(policyEvaluation));
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolationsByOwnerStageComponent(
       @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
       final String stageId,
@@ -216,7 +244,21 @@ public class ApiPolicyViolationServiceV2
     if (!Stage.isValidStageTypeId(stageIdLowercase)) {
       throw new InvalidStageException(stageId);
     }
-    if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stageIdLowercase))) {
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO
+        .getLastByApplicationIdsAndStageIds(ownerDAO.getDescendantOrSelfApplicationIds(owner),
+            Collections.singleton(stageIdLowercase));
+    return getTransitivePolicyViolations(stageIdLowercase, componentIdentifier, packageUrl, hash, policyEvaluations);
+  }
+  
+  // Visible for testing
+  ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolations(
+      String stageId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash,
+      List<PolicyEvaluation> policyEvaluations)
+  {
+    if (!stageTypeService.getLicensedStageTypes().contains(StageTypes.getById(stageId))) {
       throw new InvalidLicenseException("Stage '" + stageId + "' is not supported by your license.");
     }
     if (componentIdentifier == null && packageUrl == null && hash == null) {
@@ -224,9 +266,6 @@ public class ApiPolicyViolationServiceV2
     }
     ComponentIdentifier compIdentifier = getComponentIdentifier(componentIdentifier, packageUrl);
     String truncatedHash = HashHelper.truncateHash(hash);
-    Set<String> applicationIds = ownerDAO.getDescendantOrSelfApplicationIds(owner);
-    List<PolicyEvaluation> policyEvaluations =
-        policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds, Collections.singleton(stageIdLowercase));
     List<Pair<PolicyViolation, Component>> allTransitivePolicyViolations = new ArrayList<>();
     Component foundComponent = null;
     for (PolicyEvaluation policyEvaluation : policyEvaluations) {
@@ -243,8 +282,8 @@ public class ApiPolicyViolationServiceV2
         continue;
       }
       List<Component> transitiveComponents = getTransitiveComponents(component.getComponentIdentifier(), components);
-      List<PolicyViolation> activePolicyViolations = policyViolationDAO
-          .getActiveByApplicationIdAndStageId(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
+      List<PolicyViolation> activePolicyViolations =
+          getPolicyViolations(policyEvaluation.getApplicationId(), stageId, policyEvaluation.getScanId());
       List<Pair<PolicyViolation, Component>> transitivePolicyViolations = activePolicyViolations.stream()
           .map(policyViolation -> Pair.of(policyViolation, getComponentByComponentIdentifierOrHash(
               transitiveComponents, policyViolation.getComponentIdentifier(), policyViolation.getHash())))
@@ -255,7 +294,7 @@ public class ApiPolicyViolationServiceV2
     if (foundComponent == null) {
       throw new NotFoundException("Component not found.");
     }
-    AuditData.get().setStageId(stageIdLowercase).setComponentIdentifier(foundComponent.getComponentIdentifier())
+    AuditData.get().setStageId(stageId).setComponentIdentifier(foundComponent.getComponentIdentifier())
         .setComponentHash(foundComponent.getHash());
     ApiComponentTransitivePolicyViolationsDTO result = new ApiComponentTransitivePolicyViolationsDTO(
         foundComponent,
@@ -374,5 +413,47 @@ public class ApiPolicyViolationServiceV2
         new ComponentIdentifier(componentIdentifier.getFormat(), componentIdentifier.getCoordinates());
     completeComponentIdentifier.ensureComplete();
     return completeComponentIdentifier;
+  }
+
+  private List<PolicyViolation> getPolicyViolations(String applicationId, String stageTypeId, String scanId) {
+    try {
+      File reportFile = reportService.getReport(applicationId, scanId);
+      ReportEntry reportEntry = Report.getEntry(reportFile, ScanPolicyEvaluator.POLICY_THREATS_FILENAME);
+      if (reportEntry != null) {
+        return JsonUtils.parse(reportEntry.buf, PolicyThreats.class).aaData.stream()
+            .flatMap(component -> toPolicyViolations(applicationId, stageTypeId, component).stream())
+            .collect(Collectors.toList());
+      }
+      log.debug("{} not found for application id {} and scan id {}.", ScanPolicyEvaluator.POLICY_THREATS_FILENAME,
+          applicationId, scanId);
+    }
+    catch (IOException | NotFoundException e) {
+      log.debug(e.getMessage(), e);
+    }
+    return Collections.emptyList();
+  }
+
+  private List<PolicyViolation> toPolicyViolations(
+      String applicationId,
+      String stageTypeId,
+      PolicyThreats.Component component)
+  {
+    List<PolicyViolation> results = new ArrayList<>();
+    for (PolicyThreats.PolicyViolation policyViolation : component.activeViolations) {
+      PolicyViolation result = new PolicyViolation();
+      result.setApplicationId(applicationId);
+      result.setStageTypeId(stageTypeId);
+      result.setPolicyId(policyViolation.policyId);
+      result.setPolicyName(policyViolation.policyName);
+      result.setThreatLevel(policyViolation.policyThreatLevel);
+      result.setThreatCategory(
+          PolicyThreatCategory.getByName(policyViolation.policyThreatCategory.toLowerCase(Locale.ROOT)));
+      result.setId(policyViolation.policyViolationId);
+      result.setActionTypeId(policyViolation.actions.isEmpty() ? null : policyViolation.actions.get(0).actionType);
+      result.setComponentIdentifier(component.componentIdentifier);
+      result.setHash(component.hash);
+      results.add(result);
+    }
+    return results;
   }
 }

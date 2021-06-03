@@ -40,6 +40,7 @@ import './stores/proprietary/proprietary.mock.data';
 import './mock.data/sidebar.resource.mock.data';
 import './mock.data/jira.service.mock.data';
 import './assets/MockData';
+import customMatchers from './customMatchers';
 
 import '../../main/frontend/util/Globals';
 
@@ -58,4 +59,7 @@ window.d3 = d3;
 window.Fuse = Fuse;
 
 Enzyme.configure({ adapter: new Adapter() });
-beforeEach(jasmineEnzyme);
+beforeEach(function () {
+  jasmineEnzyme();
+  jasmine.addMatchers(customMatchers);
+});

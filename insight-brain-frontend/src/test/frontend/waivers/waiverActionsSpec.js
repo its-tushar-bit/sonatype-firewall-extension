@@ -82,7 +82,7 @@ describe('waiverActions', function () {
       store.dispatch(saveWaiver('policyViolationId', 'waiverScope', 'ownerId', 'some comments', true));
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toBe(WAIVERS_SAVE_WAIVER_REQUESTED);
+      expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
     });
 
     it('sends a POST request with proper data and config', function () {
@@ -127,16 +127,19 @@ describe('waiverActions', function () {
         store.dispatch(saveWaiver('policyViolationId', 'application', 'ownerId', '', false, 7)).then(() => {
           setTimeout(() => {
             expect(axios.post).toHaveBeenCalledWith(url, expectedPayload);
-            expect(store.getActions().length).toBe(4);
-            expect(store.getActions()[1].type).toBe(WAIVERS_SAVE_WAIVER_FULFILLED);
-            expect(store.getActions()[2].type).toBe(STATE_GO);
-            expect(store.getActions()[3].type).toBe(WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE);
+            const actions = store.getActions();
+            expect(actions.length).toBe(4);
+            expect(actions).toHaveActionTypesInOrder([
+              WAIVERS_SAVE_WAIVER_FULFILLED,
+              STATE_GO,
+              WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
+            ]);
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(WAIVERS_SAVE_WAIVER_REQUESTED);
+        expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
       });
 
       it('dispatches the WAIVERS_SAVE_WAIVER_FULFILLED action', function (done) {
@@ -162,7 +165,7 @@ describe('waiverActions', function () {
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(WAIVERS_SAVE_WAIVER_REQUESTED);
+        expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
       });
     });
 
@@ -177,7 +180,7 @@ describe('waiverActions', function () {
         });
 
         expect(store.getActions().length).toBe(1);
-        expect(store.getActions()[0].type).toBe(WAIVERS_SAVE_WAIVER_REQUESTED);
+        expect(store.getActions()).toHaveActionType(WAIVERS_SAVE_WAIVER_REQUESTED);
       });
     });
   });
@@ -187,7 +190,7 @@ describe('waiverActions', function () {
       store.dispatch(loadAddWaiverData('foo'));
 
       expect(store.getActions().length).toBe(1);
-      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+      expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
     });
 
     it('calls fetchCrossStageViolation actionCreator', function (done) {
@@ -203,11 +206,11 @@ describe('waiverActions', function () {
       });
 
       store.dispatch(loadAddWaiverData('foo')).then(() => {
-        expect(store.getActions()[1].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
+        expect(store.getActions()).toHaveActionType(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
         done();
       });
 
-      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+      expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
       expect(axios.get).toHaveBeenCalledWith(violationDetailsUrl);
     });
 
@@ -244,7 +247,7 @@ describe('waiverActions', function () {
           done();
         });
 
-        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+        expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
       });
 
       describe('when loadOwnerContextHierarchy fails', function () {
@@ -298,7 +301,7 @@ describe('waiverActions', function () {
           done();
         });
 
-        expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
+        expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED);
       });
     });
   });
@@ -306,7 +309,7 @@ describe('waiverActions', function () {
   describe('loadManageWaiversData', function () {
     it('immediately dispatches a WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED action', function () {
       store.dispatch(loadManageWaiversData('foo'));
-      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
+      expect(store.getActions()).toHaveActionType(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
     });
 
     it('calls loadApplicableWaivers and fetchCrossStageViolation actionCreators', function (done) {
@@ -326,14 +329,25 @@ describe('waiverActions', function () {
       });
 
       store.dispatch(loadManageWaiversData('foo')).then(() => {
-        expect(store.getActions()[2].type).toEqual(VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED);
-        expect(store.getActions()[3].type).toEqual(VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED);
-        expect(store.getActions()[4].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
+        const actions = store.getActions();
+        expect(actions).toHaveActionsInOrder([
+          { type: VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED, payload: 'applicableWaivers' },
+          {
+            type: VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
+            payload: {
+              violationDetails,
+              selectedViolationId: 'foo',
+            },
+          },
+          { type: WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED },
+        ]);
         done();
       });
 
-      expect(store.getActions()[0].type).toEqual(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
-      expect(store.getActions()[1].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
+      expect(store.getActions()).toHaveActionsInOrder([
+        { type: WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED },
+        { type: WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED },
+      ]);
       expect(axios.get).toHaveBeenCalledWith(violationDetailsUrl);
       expect(axios.get).toHaveBeenCalledWith(applicableWaiversUrl);
     });
@@ -391,8 +405,10 @@ describe('waiverActions', function () {
               done();
             });
 
-            expect(store.getActions()[0].type).toBe(WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED);
-            expect(store.getActions()[1].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED);
+            expect(store.getActions()).toHaveActionsInOrder([
+              { type: WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED },
+              { type: WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED },
+            ]);
           });
         });
 

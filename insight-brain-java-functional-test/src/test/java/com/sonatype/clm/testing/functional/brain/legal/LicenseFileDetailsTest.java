@@ -84,6 +84,7 @@ public class LicenseFileDetailsTest
     licenseOverview.getSource().shouldHave(text("Sonatype Scan"));
 
     licenseOverview.getLicenseText().shouldHave(text("Apache ServiceComb Copyright 2017-2021"));
+    eyesWatcher.eyesCheck("License File Details Overview section");
   }
 
   @Test

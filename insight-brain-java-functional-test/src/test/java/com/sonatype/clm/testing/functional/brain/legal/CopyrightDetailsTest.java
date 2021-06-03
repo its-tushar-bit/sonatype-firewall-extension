@@ -80,6 +80,7 @@ public class CopyrightDetailsTest
     copyrightOverview.getSource().shouldHave(text("Sonatype Scan"));
 
     copyrightOverview.getCopyrightText().shouldHave(text("Copyright SomeDeveloper 2017"));
+    eyesWatcher.eyesCheck("Copyright Details Overview section");
   }
 
   @Test

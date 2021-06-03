@@ -94,6 +94,7 @@ public class EditCopyrightsTest
         .isEqualTo("Copyright SomeDeveloper 2019-2020");
 
     assertThat(ComponentLegalOverviewPage.copyrightStatements().all().size()).isEqualTo(3);
+    eyesWatcher.eyesCheck("Component legal edit copyrights modal");
   }
 
   @Test

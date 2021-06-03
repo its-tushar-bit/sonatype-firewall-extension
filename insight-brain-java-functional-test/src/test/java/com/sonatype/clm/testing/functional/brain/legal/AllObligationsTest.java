@@ -125,6 +125,7 @@ public class AllObligationsTest
       assertThat(co.getStatus()).isEqualTo(ObligationStatus.FULFILLED);
       assertThat(co.getComment()).isEqualTo("my comment");
     });
+    eyesWatcher.eyesCheck("Obligations section none exist");
   }
 
   @Test

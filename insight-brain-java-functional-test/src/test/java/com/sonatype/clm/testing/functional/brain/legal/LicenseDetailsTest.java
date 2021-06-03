@@ -84,6 +84,7 @@ public class LicenseDetailsTest
     overview.getDeclaredLicense().shouldHave(text("Apache-2.0"));
     overview.getObservedLicense().shouldHave(text("GPL-2.0"));
     overview.getEffectiveLicense().shouldHave(text("Apache-2.0, GPL-2.0"));
+    eyesWatcher.eyesCheck("License Details Overview section");
   }
 
   @Test

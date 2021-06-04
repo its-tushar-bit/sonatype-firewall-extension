@@ -57,7 +57,7 @@ public class LegalApplicationDetailsTest
 
   @Before
   public void setUp() throws Exception {
-    app = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName());
+    app = tempEntity.newApplicationWithParent(LegalApplicationDetailsPage.class.getSimpleName(), "app", "org");
 
     addComponentAndLicenses("org.package", "component1", "1.0", "hash1", "Apache-2.0");
     addComponentAndLicenses("org.package", "component2", "2.0", "hash2", "BSD-3-Clause");

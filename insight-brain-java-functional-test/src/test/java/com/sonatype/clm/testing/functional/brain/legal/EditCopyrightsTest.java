@@ -46,7 +46,7 @@ public class EditCopyrightsTest
 
   @Before
   public void init() throws IOException {
-    app = tempEntity.newApplicationWithParent(EditCopyrightsTest.class.getSimpleName());
+    app = tempEntity.newApplicationWithParent(EditCopyrightsTest.class.getSimpleName(), "app", "org");
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
         "033e7a20b23ea284d474", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");

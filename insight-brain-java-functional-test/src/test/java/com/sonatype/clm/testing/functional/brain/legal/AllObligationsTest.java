@@ -57,7 +57,7 @@ public class AllObligationsTest
 
   @Before
   public void init() throws IOException {
-    app = tempEntity.newApplicationWithParent(AllObligationsTest.class.getSimpleName());
+    app = tempEntity.newApplicationWithParent(AllObligationsTest.class.getSimpleName(), "app", "org");
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
 
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,

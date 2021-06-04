@@ -42,7 +42,7 @@ public class CopyrightDetailsTest
 
   @Before
   public void init() throws IOException {
-    app = tempEntity.newApplicationWithParent(CopyrightDetailsTest.class.getSimpleName());
+    app = tempEntity.newApplicationWithParent(CopyrightDetailsTest.class.getSimpleName(), "app", "org");
     final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474",
         componentId);

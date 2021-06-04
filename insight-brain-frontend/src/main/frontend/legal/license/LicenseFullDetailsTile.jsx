@@ -18,27 +18,94 @@ export default function LicenseFullDetailsTile(props) {
 
   const [highlight, setHighlight] = useState('');
 
-  const markRef = React.useRef(null);
+  const markRef = React.useRef(new Map());
 
-  let colorIndex = 0;
+  let obligationColorIndex = 0;
+  let licenseSpanColorIndex = 0;
 
   const createObligationContentTexts = (licenseObligationLicenseText, index) => {
-    colorIndex = colorIndex + 1;
+    const color = selectableColors[obligationColorIndex % selectableColors.length];
+    obligationColorIndex = obligationColorIndex + 1;
 
-    const color = selectableColors[colorIndex % selectableColors.length];
     const classes = `license-full-details__obligation-text--${color}`;
     return (
-      <dd key={index} className="nx-read-only__data">
-        <q className={classes} key={index} onClick={partial(setHighlight, [licenseObligationLicenseText])}>
+      <dd className="nx-read-only__data" key={index}>
+        <q className={classes} onClick={partial(setHighlight, [licenseObligationLicenseText])}>
           {licenseObligationLicenseText}
         </q>
       </dd>
     );
   };
 
+  const obligationCamelCase = (text) =>
+    text.replace(/[-_\s.]+(.)?/g, (_, c) => (c ? c.toUpperCase() : '')).replaceAll(/\s+/g, '');
+
+  // builds ordered list of obligation text spans
+  const obligationHighlightSpans = (text) => {
+    let licenseSpans = [];
+
+    if (!text) {
+      return [];
+    }
+    obligations.map((obligation) => {
+      obligation.obligationTexts.map((obligationText, textIndex) => {
+        const color = selectableColors[licenseSpanColorIndex % selectableColors.length];
+        licenseSpanColorIndex += 1;
+        const colorClass = `license-full-details__license-obligation-highlight--${color}`;
+
+        const reg = new RegExp(escapeTextSnippetForRegExp(obligationText), 'm');
+        const match = reg.exec(text);
+        if (match && match[0]) {
+          const start = match.index;
+          const end = start + match[0].length;
+          licenseSpans.push({
+            colorClass,
+            start,
+            end,
+            obligationText,
+            obligationAnchor: obligationCamelCase(obligation.name) + (textIndex > 0 ? textIndex : ''),
+          });
+        }
+      });
+    });
+
+    licenseSpans.sort((a, b) => a.start - b.start);
+
+    return licenseSpans;
+  };
+
+  const licenseTextWithHighlights = (text) => {
+    const spans = obligationHighlightSpans(text);
+
+    if (spans.length === 0) {
+      return 'Nothing found';
+    }
+
+    let highlightedTexts = [];
+
+    let lastPos = 0;
+    spans.forEach((span, index) => {
+      highlightedTexts.push(<Fragment key={`license-text-span-${index}`}>{text.slice(lastPos, span.start)}</Fragment>);
+      highlightedTexts.push(
+        <mark
+          key={`license-text-span-highlight-${index}`}
+          id={span.obligationAnchor}
+          className={span.colorClass}
+          ref={(element) => markRef.current.set(span.obligationText, element)}
+        >
+          {text.slice(span.start, span.end)}
+        </mark>
+      );
+      lastPos = span.end;
+    });
+
+    highlightedTexts.push(<Fragment key={`license-text-span-last`}>{text.slice(lastPos)}</Fragment>);
+    return highlightedTexts;
+  };
+
   useEffect(() => {
-    if (highlight && markRef.current) {
-      markRef.current.scrollIntoView({
+    if (highlight && markRef.current && markRef.current.get(highlight)) {
+      markRef.current.get(highlight).scrollIntoView({
         behavior: 'smooth',
         block: 'center',
       });
@@ -56,29 +123,6 @@ export default function LicenseFullDetailsTile(props) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/(\n| )+/g, '[ \\r\\n]+');
   }
 
-  function highlightInText(context, toHighlight) {
-    if (!context) {
-      return 'Nothing found';
-    }
-    const reg = new RegExp(escapeTextSnippetForRegExp(toHighlight), 'm');
-    const match = reg.exec(context);
-    if (!match || !match[0]) {
-      return context;
-    }
-
-    const start = match.index;
-    const end = start + match[0].length;
-    return (
-      <Fragment>
-        {context.slice(0, start)}
-        <mark className="component-license-details-text-highlight" ref={markRef}>
-          {context.slice(start, end)}
-        </mark>
-        {context.slice(end)}
-      </Fragment>
-    );
-  }
-
   return (
     <section id="license-full-details-tile" className="nx-tile nx-viewport-sized__container">
       <header className="nx-tile-header">
@@ -94,7 +138,9 @@ export default function LicenseFullDetailsTile(props) {
           <div className="nx-grid-col nx-scrollable nx-viewport-sized__scrollable">
             <dl className="nx-read-only" id="license-full-details-tile__obligations-container">
               {obligations.map((obligation, index) => {
-                const texts = obligation.obligationTexts.map(createObligationContentTexts);
+                const texts = obligation.obligationTexts.map((obligationText) =>
+                  createObligationContentTexts(obligationText)
+                );
                 return (
                   <div key={index}>
                     <dt className="nx-read-only__label">{obligation.name}</dt>
@@ -113,7 +159,7 @@ export default function LicenseFullDetailsTile(props) {
               Standard License Text: {license ? license.licenseName : ''}
             </h3>
             <p className="nx-p component-license-details-license-preformatted">
-              {highlightInText(licenseText, highlight)}
+              {licenseTextWithHighlights(licenseText)}
             </p>
           </div>
         </div>

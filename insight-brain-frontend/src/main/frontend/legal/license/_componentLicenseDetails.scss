@@ -22,10 +22,6 @@ component-license-details {
   margin-top: 0;
 }
 
-.component-license-details-text-highlight {
-  background-color: $nx-yellow-200;
-}
-
 #license-full-details-tile {
   margin-bottom: 0;
 }
@@ -45,12 +41,17 @@ component-license-details {
     padding-right: $nx-spacing-md;
     cursor: pointer;
   }
+
+  .license-full-details__license-obligation-highlight--#{$color-name} {
+    background-color: nth($color-codes, 2);
+  }
 }
 
 .component-license-details-license-preformatted {
   white-space: pre-wrap;
   @include monospace;
   padding-left: $nx-spacing-xs;
+  padding-right: $nx-spacing-xs;
 }
 
 .component-license-details-license-container {

@@ -27,7 +27,9 @@ export const licenseState = {
         },
       ],
       threatGroup: { name: 'Weak', threatLevel: 2 },
-      licenseText: 'GPL long text here',
+      licenseText:
+        'GPL long text here also with obligations to distribute a copy of this License along with the Library' +
+        'and copyright this whenever it is convenient',
     },
     {
       licenseId: 'GPL-2',
@@ -44,7 +46,9 @@ export const licenseState = {
         },
       ],
       threatGroup: { name: 'Weak', threatLevel: 2 },
-      licenseText: 'GPL 2.0 long text here',
+      licenseText:
+        'GPL 2.0 long text here including obligations to distribute a copy of this License along with the Library' +
+        'and copyright this whenever it is convenient',
     },
     {
       licenseId: 'GPL or GPL-2',

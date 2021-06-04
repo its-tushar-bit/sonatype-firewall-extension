@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Owner;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -108,9 +109,9 @@ public final class ComponentLicensesDetailsPage
     public SelenideElement obligationAt(final int index) {
       return $(String.format("dl div:nth-child(%d) q", index));
     }
-    
-    public SelenideElement highlight() {
-      return $(".component-license-details-text-highlight");
+
+    public ElementsCollection highlightedObligations() {
+      return $(".component-license-details-license-preformatted").findAll("mark");
     }
   }
 }

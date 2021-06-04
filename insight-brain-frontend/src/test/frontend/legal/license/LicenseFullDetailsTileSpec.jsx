@@ -32,4 +32,10 @@ describe('LicenseFullDetailsTile component', function () {
     expect(obligationTitles.at(1)).toHaveText('Inclusion of Copyright');
     expect(obligationBodies.at(1)).toHaveText('copyright this');
   });
+
+  it('creates anchors for the given license obligations', function () {
+    const wrapper = getShallowComponent();
+    expect(wrapper.find('#InclusionOfLicense')).toHaveText('distribute a copy of this License along with the Library');
+    expect(wrapper.find('#InclusionOfCopyright')).toHaveText('copyright this');
+  });
 });

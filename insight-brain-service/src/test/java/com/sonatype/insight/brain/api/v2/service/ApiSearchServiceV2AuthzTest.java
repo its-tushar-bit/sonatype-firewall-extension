@@ -5,24 +5,20 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
-import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class ApiSearchServiceV2AuthzTest
@@ -46,13 +42,13 @@ public class ApiSearchServiceV2AuthzTest
   }
 
   @Test
-  public void testSearchComponent() throws Exception {
+  public void testSearchComponent() {
     String stage = Stage.ID_BUILD;
     String hash = "1249e25aebb15358bedd";
     String scanId = "search-test";
     tempEntity.newPolicyEvaluation(app.getId(), stage, scanId);
     tempEntity.newApplicationComponent(app.getId(), stage, hash, null);
-    when(reportServiceMock.fetchReport(any(Application.class), eq(scanId))).thenThrow(IOException.class);
+    when(reportServiceMock.getReport(app.getId(), scanId)).thenThrow(NotFoundException.class);
 
     ApiSearchResultsDTOV2 results = searchService.searchComponent(stage, hash, null, null);
     assertThat(results).isNotNull();

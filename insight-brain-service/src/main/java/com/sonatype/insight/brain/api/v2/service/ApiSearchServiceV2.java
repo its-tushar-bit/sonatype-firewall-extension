@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,7 +205,7 @@ public class ApiSearchServiceV2
     }
 
     try {
-      File reportFile = reportService.fetchReport(app, eval.getScanId());
+      File reportFile = reportService.getReport(app.getId(), eval.getScanId());
       final ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
       final ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
 
@@ -225,9 +224,9 @@ public class ApiSearchServiceV2
         }
       }
     }
-    catch (IOException e) {
+    catch (Exception e) {
       log.warn("Dependency data is incomplete for component with hash {} and report id {}.", candidateHash,
-          eval.getScanId());
+          eval.getScanId(), e);
     }
     return dependencyData;
   }

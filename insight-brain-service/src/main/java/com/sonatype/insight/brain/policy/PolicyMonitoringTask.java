@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.policy;
 
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -13,7 +15,6 @@ import javax.inject.Named;
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitor;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 
-import com.google.common.collect.ImmutableMultimap;
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -43,7 +44,7 @@ public class PolicyMonitoringTask
   }
 
   @Override
-  public void execute(ImmutableMultimap<String, String> parameters, PrintWriter output) {
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
     policyMonitor.run();
     output.write("Completed manual Policy Monitor execution\n");
   }

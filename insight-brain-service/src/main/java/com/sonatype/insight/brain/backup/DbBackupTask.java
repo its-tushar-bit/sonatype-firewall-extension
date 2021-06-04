@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -18,7 +20,6 @@ import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.google.common.collect.ImmutableMultimap;
 import io.dropwizard.servlets.tasks.Task;
 
 /**
@@ -46,7 +47,7 @@ public class DbBackupTask
   }
 
   @Override
-  public void execute(ImmutableMultimap<String, String> parameters, PrintWriter output) {
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
     if (!config.isDatabaseEmbedded()) {
       throw new BadRequestException("The DB backup task is supported only for h2 databases.");
     }

@@ -445,8 +445,8 @@ public class InsightConfigurationFactoryTest
         configurationFactory.build(bootstrap.getConfigurationSourceProvider(), configFile.getPath());
     insightConfig.getServerFactory().build(
         new Environment(bootstrap.getApplication().getName(), bootstrap.getObjectMapper(),
-            bootstrap.getValidatorFactory().getValidator(), bootstrap.getMetricRegistry(), bootstrap.getClassLoader(),
-            bootstrap.getHealthCheckRegistry()));
+            bootstrap.getValidatorFactory(), bootstrap.getMetricRegistry(), bootstrap.getClassLoader(),
+            bootstrap.getHealthCheckRegistry(), insightConfig));
     insightConfig.getLoggingFactory().configure(bootstrap.getMetricRegistry(), bootstrap.getApplication().getName());
     return insightConfig;
   }

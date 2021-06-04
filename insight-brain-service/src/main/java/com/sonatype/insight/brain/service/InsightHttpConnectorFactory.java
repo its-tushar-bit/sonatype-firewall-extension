@@ -33,5 +33,6 @@ public class InsightHttpConnectorFactory
   public InsightHttpConnectorFactory(int port) {
     setPort(port);
     setIdleTimeout(InsightConfigurationFactory.DEFAULT_IDLE_TIMEOUT);
+    setUseForwardedHeaders(true);
   }
 }

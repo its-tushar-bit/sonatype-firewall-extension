@@ -250,6 +250,7 @@ public class TestInsightBrainService
     defaultServerFactory.setIdleThreadTimeout(Duration.seconds(1));
     if (testKeystore != null) {
       HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
+      applicationHttpsConnector.setUseForwardedHeaders(true);
       applicationHttpsConnector.setKeyStorePath(new File(testKeystore).getAbsolutePath());
       applicationHttpsConnector.setKeyStorePassword(testKeystorePassword);
       defaultServerFactory.setApplicationConnectors(Collections.singletonList(applicationHttpsConnector));

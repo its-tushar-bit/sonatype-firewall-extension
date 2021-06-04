@@ -53,11 +53,11 @@ public class AssetsTest
 
     response = restRequest().path("bundle.js").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType()).isEqualToIgnoringCase("application/javascript");
+    assertThat(response.getContentType()).isEqualToIgnoringCase("application/javascript;charset=UTF-8");
 
     response = restRequest().path("fonts/glyphicons-regular.woff").get();
     assertResponseStatus(200, response);
-    assertThat(response.getContentType()).isEqualToIgnoringCase("application/font-woff");
+    assertThat(response.getContentType()).isEqualToIgnoringCase("application/font-woff;charset=UTF-8");
   }
 
   @Test

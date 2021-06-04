@@ -252,6 +252,7 @@ public class LandingResourceTest
         config.setBaseUrl(BASE_URL);
         if (ssl) {
           HttpsConnectorFactory applicationHttpsConnector = new HttpsConnectorFactory();
+          applicationHttpsConnector.setUseForwardedHeaders(true);
           applicationHttpsConnector.setKeyStorePath(SslProperties.SERVER_STORE_FILE.getAbsolutePath());
           applicationHttpsConnector.setKeyStorePassword(SslProperties.KEY_STORE_PASSWORD);
           DefaultServerFactory defaultServerFactory = (DefaultServerFactory) config.getServerFactory();

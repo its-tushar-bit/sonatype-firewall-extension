@@ -154,7 +154,7 @@ public class Scanner
       String scannerDriver) throws IOException
   {
     Files.createDirectories(scanDir.toPath());
-    File scanFile = File.createTempFile(TEMP_SCAN_PREFIX, SCAN_SUFFIX, scanDir);
+    File scanFile = Files.createTempFile(scanDir.toPath(), TEMP_SCAN_PREFIX, SCAN_SUFFIX).toFile();
     log.debug("Adding Sbom file to {}", scanFile);
     ScanResult scanResult = new ScanResult();
     scanResult.setScanFile(scanFile);

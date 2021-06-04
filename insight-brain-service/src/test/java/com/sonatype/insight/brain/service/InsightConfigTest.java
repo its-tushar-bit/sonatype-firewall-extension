@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
@@ -89,9 +89,10 @@ public class InsightConfigTest
   public void testUserAgentSuffix_NoControlCharactersToBlockHeaderInjection() {
     InsightConfig config = new InsightConfig();
     config.setUserAgentSuffix("\nInjected-Header: Value");
-    List<String> errors = ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
+    Collection<String> errors =
+        ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
     assertThat(errors).hasSize(1);
-    assertThat(errors.get(0)).contains("userAgentSuffix"); // validator messages are localized...
+    assertThat(errors.iterator().next()).contains("userAgentSuffix"); // validator messages are localized...
     config.setUserAgentSuffix("Valid User Agent Suffix (Custom/1.0, Bla)");
     errors = ConstraintViolations.format(Validators.newValidatorFactory().getValidator().validate(config));
     assertThat(errors).isEmpty();

@@ -49,6 +49,7 @@ import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.codahale.metrics.servlets.PingServlet;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -295,6 +296,7 @@ public class InsightBrainService
 
   @Override
   public void initialize(final Bootstrap<InsightConfig> bootstrap) {
+    bootstrap.getObjectMapper().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     bootstrap.addBundle(new MultiPartBundle());
 
     bootstrap.addBundle(new AssetsBundle("/assets/", BRAIN_ASSET_PATH, "index.html", "assets"));

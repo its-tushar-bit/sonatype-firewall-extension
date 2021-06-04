@@ -46,9 +46,9 @@
     <sisu-inject.version>0.3.4</sisu-inject.version>
     <clm.dto.model.version>1.40.0-01</clm.dto.model.version>
     <jetty.version>9.4.40.v20210413</jetty.version>
-    <dropwizard.version>1.3.29</dropwizard.version>
+    <dropwizard.version>2.0.22</dropwizard.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
-    <jersey.version>2.25.1</jersey.version>
+    <jersey.version>2.34</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>7.20.0.Final</drools.version>
@@ -794,6 +794,47 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>io.dropwizard</groupId>
+        <artifactId>dropwizard-validation</artifactId>
+        <version>${dropwizard.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- not using dangerous EL expressions -->
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey</groupId>
+        <artifactId>jersey-bom</artifactId>
+        <version>${jersey.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.ext</groupId>
+        <artifactId>jersey-bean-validation</artifactId>
+        <version>${jersey.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- no need for this OSGi-fied duplicate of the standard JAR -->
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>javax.inject</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- not using dangerous EL expressions -->
+            <groupId>jakarta.el</groupId>
+            <artifactId>jakarta.el-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <!-- not using dangerous EL expressions -->
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-client</artifactId>
         <version>${jersey.version}</version>
@@ -821,10 +862,20 @@
         </exclusions>
       </dependency>
       <dependency>
-        <!-- avoid HV-912 and CVE-2017-7536, otherwise pulled in via dropwizard-core -->
-        <groupId>org.hibernate</groupId>
+        <!-- avoid CVE-2020-10693, otherwise pulled in via dropwizard-core -->
+        <groupId>org.hibernate.validator</groupId>
         <artifactId>hibernate-validator</artifactId>
-        <version>5.4.2.Final</version>
+        <version>6.1.7.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>2.0.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
+        <version>${jersey.version}</version>
       </dependency>
 
       <dependency>

@@ -50,7 +50,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightWork;
 
-import com.google.common.collect.ImmutableMultimap;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.servlets.tasks.Task;
 import org.quartz.DisallowConcurrentExecution;
@@ -158,7 +157,7 @@ public class ReportPurger
    * @since 1.95
    */
   @Override
-  public void execute(ImmutableMultimap<String, String> parameters, PrintWriter output) {
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
     log.debug("Triggering purging of obsolete reports");
     taskScheduler.triggerTaskNow(NAME, null);
     output.println("Triggered purging of obsolete reports");

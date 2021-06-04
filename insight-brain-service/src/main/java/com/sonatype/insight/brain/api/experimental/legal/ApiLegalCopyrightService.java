@@ -41,7 +41,7 @@ import com.sonatype.insight.license.dto.model.LegalCopyrightDTO;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.collect.ImmutableSet;
-import jersey.repackaged.com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

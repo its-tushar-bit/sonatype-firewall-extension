@@ -28,9 +28,11 @@ describe('TransitiveViolationsPageTable', function () {
           policyName: '',
           displayName: '',
         },
-        displayName: 'someDisplayName',
-        isInnerSource: false,
-        displayedViolations: [],
+        data: {
+          displayName: 'someDisplayName',
+          isInnerSource: false,
+          displayedViolations: [],
+        },
       },
       setSortingParameters: spySetSortingParameters,
       setFilteringParameters: spySetFilteringParameters,
@@ -44,16 +46,19 @@ describe('TransitiveViolationsPageTable', function () {
         ...minimalProps,
         componentTransitivePolicyViolations: {
           ...minimalProps.componentTransitivePolicyViolations,
-          displayedViolations: [
-            {
-              policyViolationId: 'somePolicyViolationId',
-              policyName: 'somePolicyName',
-              threatLevel: 0,
-              threatCategory: 'someThreatCategory',
-              displayName: 'someDisplayName',
-              ...transitivePolicyViolation,
-            },
-          ],
+          data: {
+            ...minimalProps.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              {
+                policyViolationId: 'somePolicyViolationId',
+                policyName: 'somePolicyName',
+                threatLevel: 0,
+                threatCategory: 'someThreatCategory',
+                displayName: 'someDisplayName',
+                ...transitivePolicyViolation,
+              },
+            ],
+          },
         },
       });
     };

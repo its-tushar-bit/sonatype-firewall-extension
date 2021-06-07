@@ -452,8 +452,8 @@ export function getWebhooksUrl() {
   return uriTemplate`/rest/config/webhook`;
 }
 
-export function getTransitiveViolationsUrl(ownerType, ownerId, stageTypeId, hash) {
-  return uriTemplate`/api/v2/policyViolations/transitive/${ownerType}/${ownerId}/stages/${stageTypeId}?hash=${hash}`;
+export function getTransitiveViolationsUrl(ownerType, ownerId, scanId, hash) {
+  return uriTemplate`/api/v2/policyViolations/transitive/${ownerType}/${ownerId}/${scanId}?hash=${hash}`;
 }
 
 export function getLatestReportUrl(applicationId, stageTypeId) {

@@ -4,16 +4,24 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getOwnerHierarchyUrl, getTransitiveViolationsUrl } from '../../../main/frontend/util/CLMLocation';
+import {
+  getOwnerHierarchyUrl,
+  getReportMetadataUrl,
+  getTransitiveViolationsUrl,
+} from '../../../main/frontend/util/CLMLocation';
 import { pick } from 'ramda';
 import {
   loadAvailableScopes,
+  loadReportMetadata,
   loadTransitiveViolations,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED,
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_FAILED,
   TRANSITIVE_VIOLATIONS_LOAD_FULFILLED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
 } from '../../../main/frontend/violation/transitiveViolationsActions';
 
@@ -56,14 +64,12 @@ describe('transitiveViolationsActions', function () {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED);
-        expect(actions[1].payload).toEqual({
-          values: [
-            {
-              ...pick(['type', 'id', 'publicId', 'name'], payload),
-              label: 'Organization',
-            },
-          ],
-        });
+        expect(actions[1].payload).toEqual([
+          {
+            ...pick(['type', 'id', 'publicId', 'name'], payload),
+            label: 'Organization',
+          },
+        ]);
         done();
       });
     });
@@ -80,6 +86,61 @@ describe('transitiveViolationsActions', function () {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[1].type).toBe(TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED);
+        expect(actions[1].payload).toBe(error);
+        done();
+      });
+    });
+  });
+
+  describe('loadReportMetadata', function () {
+    let store;
+
+    beforeEach(function () {
+      store = SpecUtil.mockReduxStore({});
+    });
+
+    it('immediately dispatches a TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED action', function () {
+      store.dispatch(loadReportMetadata('applicationPublicId', 'scanId'));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    it(
+      'dispatches a TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED action with the returned' + ' data',
+      function (done) {
+        mockAxiosCalls({
+          get: {
+            [getReportMetadataUrl('applicationPublicId', 'scanId')]: Promise.resolve({
+              data: 'data',
+            }),
+          },
+        });
+
+        store.dispatch(loadReportMetadata('applicationPublicId', 'scanId')).then(() => {
+          const actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[1].type).toBe(TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED);
+          expect(actions[1].payload).toEqual('data');
+          done();
+        });
+      }
+    );
+
+    it('dispatches a TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED action when the API fails', function (done) {
+      const error = 'error';
+      mockAxiosCalls({
+        get: {
+          [getReportMetadataUrl('applicationPublicId', 'scanId')]: Promise.reject(error),
+        },
+      });
+
+      store.dispatch(loadReportMetadata('applicationPublicId', 'scanId')).then(() => {
+        const actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED);
         expect(actions[1].payload).toBe(error);
         done();
       });

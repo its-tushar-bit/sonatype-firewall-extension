@@ -15,7 +15,17 @@ export const scopePropType = PropTypes.shape({
 export const availableScopesPropType = PropTypes.shape({
   loading: PropTypes.bool.isRequired,
   error: PropTypes.string,
-  values: PropTypes.arrayOf(scopePropType.isRequired),
+  data: PropTypes.arrayOf(scopePropType.isRequired),
+});
+
+export const reportMetadataPropType = PropTypes.shape({
+  loading: PropTypes.bool.isRequired,
+  error: PropTypes.string,
+  data: PropTypes.shape({
+    reportTime: PropTypes.number.isRequired,
+    reportTitle: PropTypes.string.isRequired,
+    stageId: PropTypes.string.isRequired,
+  }),
 });
 
 export const componentIdentifierPropType = PropTypes.shape({
@@ -51,11 +61,13 @@ export const componentTransitivePolicyViolationsPropType = PropTypes.shape({
   error: PropTypes.string,
   sortConfiguration: sortConfigurationPropType.isRequired,
   filterConfiguration: filterConfigurationPropType.isRequired,
-  componentIdentifier: componentIdentifierPropType,
-  packageUrl: PropTypes.string,
-  hash: PropTypes.string,
-  displayName: PropTypes.string,
-  isInnerSource: PropTypes.bool,
-  violations: PropTypes.arrayOf(policyViolationPropType.isRequired),
-  displayedViolations: PropTypes.arrayOf(policyViolationPropType.isRequired),
+  data: PropTypes.shape({
+    componentIdentifier: componentIdentifierPropType,
+    packageUrl: PropTypes.string,
+    hash: PropTypes.string,
+    displayName: PropTypes.string,
+    isInnerSource: PropTypes.bool.isRequired,
+    violations: PropTypes.arrayOf(policyViolationPropType.isRequired),
+    displayedViolations: PropTypes.arrayOf(policyViolationPropType.isRequired),
+  }),
 });

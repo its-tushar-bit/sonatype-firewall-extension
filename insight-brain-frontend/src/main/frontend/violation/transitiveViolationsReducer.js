@@ -10,6 +10,9 @@ import {
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_FAILED,
   TRANSITIVE_VIOLATIONS_LOAD_FULFILLED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
@@ -18,6 +21,16 @@ import { Messages } from '../util/CommonServices';
 import { caseInsensitiveComparator, defaultComparator, sortItemsByFieldsWithComparator } from '../util/sortUtils';
 
 const initialState = {
+  availableScopes: {
+    loading: false,
+    error: null,
+    data: null,
+  },
+  reportMetadata: {
+    loading: false,
+    error: null,
+    data: null,
+  },
   componentTransitivePolicyViolations: {
     loading: false,
     error: null,
@@ -29,18 +42,7 @@ const initialState = {
       policyName: '',
       displayName: '',
     },
-    componentIdentifier: null,
-    packageUrl: null,
-    hash: null,
-    displayName: null,
-    isInnerSource: null,
-    violations: null,
-    displayedViolations: null,
-  },
-  availableScopes: {
-    loading: false,
-    error: null,
-    values: null,
+    data: null,
   },
 };
 
@@ -62,7 +64,7 @@ function loadAvailableScopesFulfilled(payload, state) {
       ...state.availableScopes,
       loading: false,
       error: null,
-      ...payload,
+      data: payload,
     },
   };
 }
@@ -72,6 +74,40 @@ function loadAvailableScopesFailed(payload, state) {
     ...state,
     availableScopes: {
       ...state.availableScopes,
+      loading: false,
+      error: Messages.getHttpErrorMessage(payload),
+    },
+  };
+}
+
+function loadReportMetadataRequested(_, state) {
+  return {
+    ...state,
+    reportMetadata: {
+      ...initialState.reportMetadata,
+      loading: true,
+      error: null,
+    },
+  };
+}
+
+function loadReportMetadataFulfilled(payload, state) {
+  return {
+    ...state,
+    reportMetadata: {
+      ...state.reportMetadata,
+      loading: false,
+      error: null,
+      data: payload,
+    },
+  };
+}
+
+function loadReportMetadataFailed(payload, state) {
+  return {
+    ...state,
+    reportMetadata: {
+      ...state.reportMetadata,
       loading: false,
       error: Messages.getHttpErrorMessage(payload),
     },
@@ -100,9 +136,11 @@ function loadTransitiveViolationsFulfilled(payload, state) {
       ...state.componentTransitivePolicyViolations,
       loading: false,
       error: null,
-      violations: payload.transitivePolicyViolations,
-      displayedViolations: payload.transitivePolicyViolations,
-      ...payloadWithoutViolations,
+      data: {
+        violations: payload.transitivePolicyViolations,
+        displayedViolations: payload.transitivePolicyViolations,
+        ...payloadWithoutViolations,
+      },
     },
   };
 }
@@ -119,7 +157,7 @@ function loadTransitiveViolationsFailed(payload, state) {
 }
 
 const getDisplayedViolations = (state) => {
-  const violations = state.componentTransitivePolicyViolations.violations;
+  const violations = state.componentTransitivePolicyViolations.data.violations;
   const filterConfiguration = state.componentTransitivePolicyViolations.filterConfiguration;
   const sortConfiguration = state.componentTransitivePolicyViolations.sortConfiguration;
   const result = violations.filter(
@@ -162,7 +200,10 @@ function updateDisplayedViolations(state) {
     ...state,
     componentTransitivePolicyViolations: {
       ...state.componentTransitivePolicyViolations,
-      displayedViolations: getDisplayedViolations(state),
+      data: {
+        ...state.componentTransitivePolicyViolations.data,
+        displayedViolations: getDisplayedViolations(state),
+      },
     },
   };
 }
@@ -194,6 +235,9 @@ const reducerActionMap = {
   [TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED]: loadAvailableScopesRequested,
   [TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
   [TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FAILED]: loadAvailableScopesFailed,
+  [TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED]: loadReportMetadataRequested,
+  [TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED]: loadReportMetadataFulfilled,
+  [TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED]: loadReportMetadataFailed,
   [TRANSITIVE_VIOLATIONS_LOAD_REQUESTED]: loadTransitiveViolationsRequested,
   [TRANSITIVE_VIOLATIONS_LOAD_FULFILLED]: loadTransitiveViolationsFulfilled,
   [TRANSITIVE_VIOLATIONS_LOAD_FAILED]: loadTransitiveViolationsFailed,

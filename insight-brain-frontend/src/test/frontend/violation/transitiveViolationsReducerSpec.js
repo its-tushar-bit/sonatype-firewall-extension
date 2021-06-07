@@ -11,6 +11,9 @@ import {
   TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_FAILED,
   TRANSITIVE_VIOLATIONS_LOAD_FULFILLED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED,
+  TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED,
   TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
@@ -24,6 +27,16 @@ describe('transitiveViolationsReducer', function () {
       const action = { type: 'UNKNOWN' };
       const newState = reduce(state, action);
       expect(newState).toEqual({
+        availableScopes: {
+          loading: false,
+          error: null,
+          data: null,
+        },
+        reportMetadata: {
+          loading: false,
+          error: null,
+          data: null,
+        },
         componentTransitivePolicyViolations: {
           loading: false,
           error: null,
@@ -35,18 +48,7 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          componentIdentifier: null,
-          packageUrl: null,
-          hash: null,
-          displayName: null,
-          isInnerSource: null,
-          violations: null,
-          displayedViolations: null,
-        },
-        availableScopes: {
-          loading: false,
-          error: null,
-          values: null,
+          data: null,
         },
       });
     });
@@ -71,7 +73,7 @@ describe('transitiveViolationsReducer', function () {
       expect(availableScopes).toEqual({
         loading: true,
         error: null,
-        values: null,
+        data: null,
       });
     });
   });
@@ -90,7 +92,7 @@ describe('transitiveViolationsReducer', function () {
       expect(availableScopes).toEqual({
         loading: false,
         error: null,
-        ...payload,
+        data: payload,
       });
     });
   });
@@ -107,6 +109,58 @@ describe('transitiveViolationsReducer', function () {
 
       const { availableScopes } = newState;
       expect(availableScopes).toEqual({
+        loading: false,
+        error: Messages.getHttpErrorMessage(error),
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED action', function () {
+    it('sets in reportMetadata loading to true and error to null', function () {
+      const state = {};
+      const action = { type: TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED };
+      const newState = reduce(state, action);
+
+      const { reportMetadata } = newState;
+      expect(reportMetadata).toEqual({
+        loading: true,
+        error: null,
+        data: null,
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED action', function () {
+    it('sets reportMetadata loading to false, error to null, and merges the payload with it', function () {
+      const payload = { payload: 'payload' };
+      const state = {};
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      const { reportMetadata } = newState;
+      expect(reportMetadata).toEqual({
+        loading: false,
+        error: null,
+        data: payload,
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED action', function () {
+    it('sets reportMetadata loading to false and the error message', function () {
+      const error = { status: '500', data: 'internal server error' };
+      const state = {};
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED,
+        payload: error,
+      };
+      const newState = reduce(state, action);
+
+      const { reportMetadata } = newState;
+      expect(reportMetadata).toEqual({
         loading: false,
         error: Messages.getHttpErrorMessage(error),
       });
@@ -130,13 +184,7 @@ describe('transitiveViolationsReducer', function () {
         error: null,
         sortConfiguration: 'someSortConfiguration',
         filterConfiguration: 'someFilterConfiguration',
-        componentIdentifier: null,
-        packageUrl: null,
-        hash: null,
-        displayName: null,
-        isInnerSource: null,
-        violations: null,
-        displayedViolations: null,
+        data: null,
       });
     });
   });
@@ -164,9 +212,11 @@ describe('transitiveViolationsReducer', function () {
           error: null,
           sortConfiguration: 'someSortConfiguration',
           filterConfiguration: 'someFilterConfiguration',
-          violations: payload.transitivePolicyViolations,
-          displayedViolations: payload.transitivePolicyViolations,
-          other: 'other',
+          data: {
+            violations: payload.transitivePolicyViolations,
+            displayedViolations: payload.transitivePolicyViolations,
+            other: 'other',
+          },
         });
       }
     );
@@ -210,11 +260,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 5, policyName: '', displayName: '' },
-            { threatLevel: 0, policyName: '', displayName: '' },
-            { threatLevel: 10, policyName: '', displayName: '' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 5, policyName: '', displayName: '' },
+              { threatLevel: 0, policyName: '', displayName: '' },
+              { threatLevel: 10, policyName: '', displayName: '' },
+            ],
+          },
         },
       };
       const action = {
@@ -230,11 +282,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'threatLevel',
             dir: 'desc',
           },
-          displayedViolations: [
-            { threatLevel: 10, policyName: '', displayName: '' },
-            { threatLevel: 5, policyName: '', displayName: '' },
-            { threatLevel: 0, policyName: '', displayName: '' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 10, policyName: '', displayName: '' },
+              { threatLevel: 5, policyName: '', displayName: '' },
+              { threatLevel: 0, policyName: '', displayName: '' },
+            ],
+          },
         },
       });
     });
@@ -251,11 +306,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 5, policyName: '', displayName: '' },
-            { threatLevel: 0, policyName: '', displayName: '' },
-            { threatLevel: 10, policyName: '', displayName: '' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 5, policyName: '', displayName: '' },
+              { threatLevel: 0, policyName: '', displayName: '' },
+              { threatLevel: 10, policyName: '', displayName: '' },
+            ],
+          },
         },
       };
       const action = {
@@ -271,11 +328,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'threatLevel',
             dir: 'asc',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: '', displayName: '' },
-            { threatLevel: 5, policyName: '', displayName: '' },
-            { threatLevel: 10, policyName: '', displayName: '' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: '', displayName: '' },
+              { threatLevel: 5, policyName: '', displayName: '' },
+              { threatLevel: 10, policyName: '', displayName: '' },
+            ],
+          },
         },
       });
     });
@@ -292,11 +352,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 5, policyName: '', displayName: '' },
-            { threatLevel: 0, policyName: '', displayName: '' },
-            { threatLevel: 10, policyName: '', displayName: '' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 5, policyName: '', displayName: '' },
+              { threatLevel: 0, policyName: '', displayName: '' },
+              { threatLevel: 10, policyName: '', displayName: '' },
+            ],
+          },
         },
       };
       const action = {
@@ -312,11 +374,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'threatLevel',
             dir: 'desc',
           },
-          displayedViolations: [
-            { threatLevel: 10, policyName: '', displayName: '' },
-            { threatLevel: 5, policyName: '', displayName: '' },
-            { threatLevel: 0, policyName: '', displayName: '' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 10, policyName: '', displayName: '' },
+              { threatLevel: 5, policyName: '', displayName: '' },
+              { threatLevel: 0, policyName: '', displayName: '' },
+            ],
+          },
         },
       });
     });
@@ -333,11 +398,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 0, policyName: 'a', displayName: '' },
-            { threatLevel: 0, policyName: 'Z', displayName: '' },
-            { threatLevel: 0, policyName: 'b', displayName: '' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 0, policyName: 'a', displayName: '' },
+              { threatLevel: 0, policyName: 'Z', displayName: '' },
+              { threatLevel: 0, policyName: 'b', displayName: '' },
+            ],
+          },
         },
       };
       const action = {
@@ -353,11 +420,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'policyName',
             dir: 'desc',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: 'Z', displayName: '' },
-            { threatLevel: 0, policyName: 'b', displayName: '' },
-            { threatLevel: 0, policyName: 'a', displayName: '' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: 'Z', displayName: '' },
+              { threatLevel: 0, policyName: 'b', displayName: '' },
+              { threatLevel: 0, policyName: 'a', displayName: '' },
+            ],
+          },
         },
       });
     });
@@ -374,11 +444,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 0, policyName: 'a', displayName: '' },
-            { threatLevel: 0, policyName: 'Z', displayName: '' },
-            { threatLevel: 0, policyName: 'b', displayName: '' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 0, policyName: 'a', displayName: '' },
+              { threatLevel: 0, policyName: 'Z', displayName: '' },
+              { threatLevel: 0, policyName: 'b', displayName: '' },
+            ],
+          },
         },
       };
       const action = {
@@ -394,11 +466,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'policyName',
             dir: 'asc',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: 'a', displayName: '' },
-            { threatLevel: 0, policyName: 'b', displayName: '' },
-            { threatLevel: 0, policyName: 'Z', displayName: '' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: 'a', displayName: '' },
+              { threatLevel: 0, policyName: 'b', displayName: '' },
+              { threatLevel: 0, policyName: 'Z', displayName: '' },
+            ],
+          },
         },
       });
     });
@@ -415,11 +490,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 0, policyName: 'a', displayName: '' },
-            { threatLevel: 0, policyName: 'Z', displayName: '' },
-            { threatLevel: 0, policyName: 'b', displayName: '' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 0, policyName: 'a', displayName: '' },
+              { threatLevel: 0, policyName: 'Z', displayName: '' },
+              { threatLevel: 0, policyName: 'b', displayName: '' },
+            ],
+          },
         },
       };
       const action = {
@@ -435,11 +512,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'policyName',
             dir: 'desc',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: 'Z', displayName: '' },
-            { threatLevel: 0, policyName: 'b', displayName: '' },
-            { threatLevel: 0, policyName: 'a', displayName: '' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: 'Z', displayName: '' },
+              { threatLevel: 0, policyName: 'b', displayName: '' },
+              { threatLevel: 0, policyName: 'a', displayName: '' },
+            ],
+          },
         },
       });
     });
@@ -456,11 +536,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 0, policyName: '', displayName: 'a' },
-            { threatLevel: 0, policyName: '', displayName: 'Z' },
-            { threatLevel: 0, policyName: '', displayName: 'b' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 0, policyName: '', displayName: 'a' },
+              { threatLevel: 0, policyName: '', displayName: 'Z' },
+              { threatLevel: 0, policyName: '', displayName: 'b' },
+            ],
+          },
         },
       };
       const action = {
@@ -476,11 +558,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'displayName',
             dir: 'desc',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: '', displayName: 'Z' },
-            { threatLevel: 0, policyName: '', displayName: 'b' },
-            { threatLevel: 0, policyName: '', displayName: 'a' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: '', displayName: 'Z' },
+              { threatLevel: 0, policyName: '', displayName: 'b' },
+              { threatLevel: 0, policyName: '', displayName: 'a' },
+            ],
+          },
         },
       });
     });
@@ -497,11 +582,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 0, policyName: '', displayName: 'a' },
-            { threatLevel: 0, policyName: '', displayName: 'Z' },
-            { threatLevel: 0, policyName: '', displayName: 'b' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 0, policyName: '', displayName: 'a' },
+              { threatLevel: 0, policyName: '', displayName: 'Z' },
+              { threatLevel: 0, policyName: '', displayName: 'b' },
+            ],
+          },
         },
       };
       const action = {
@@ -517,11 +604,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'displayName',
             dir: 'asc',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: '', displayName: 'a' },
-            { threatLevel: 0, policyName: '', displayName: 'b' },
-            { threatLevel: 0, policyName: '', displayName: 'Z' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: '', displayName: 'a' },
+              { threatLevel: 0, policyName: '', displayName: 'b' },
+              { threatLevel: 0, policyName: '', displayName: 'Z' },
+            ],
+          },
         },
       });
     });
@@ -538,11 +628,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 0, policyName: '', displayName: 'a' },
-            { threatLevel: 0, policyName: '', displayName: 'Z' },
-            { threatLevel: 0, policyName: '', displayName: 'b' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 0, policyName: '', displayName: 'a' },
+              { threatLevel: 0, policyName: '', displayName: 'Z' },
+              { threatLevel: 0, policyName: '', displayName: 'b' },
+            ],
+          },
         },
       };
       const action = {
@@ -558,11 +650,14 @@ describe('transitiveViolationsReducer', function () {
             key: 'displayName',
             dir: 'desc',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: '', displayName: 'Z' },
-            { threatLevel: 0, policyName: '', displayName: 'b' },
-            { threatLevel: 0, policyName: '', displayName: 'a' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: '', displayName: 'Z' },
+              { threatLevel: 0, policyName: '', displayName: 'b' },
+              { threatLevel: 0, policyName: '', displayName: 'a' },
+            ],
+          },
         },
       });
     });
@@ -581,11 +676,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: '',
           },
-          violations: [
-            { threatLevel: 0, policyName: 'policy x name', displayName: '' },
-            { threatLevel: 0, policyName: 'policy Z name', displayName: '' },
-            { threatLevel: 0, policyName: 'policy z name', displayName: '' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 0, policyName: 'policy x name', displayName: '' },
+              { threatLevel: 0, policyName: 'policy Z name', displayName: '' },
+              { threatLevel: 0, policyName: 'policy z name', displayName: '' },
+            ],
+          },
         },
       };
       const action = {
@@ -601,10 +698,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: 'z',
             displayName: '',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: 'policy Z name', displayName: '' },
-            { threatLevel: 0, policyName: 'policy z name', displayName: '' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: 'policy Z name', displayName: '' },
+              { threatLevel: 0, policyName: 'policy z name', displayName: '' },
+            ],
+          },
         },
       });
     });
@@ -621,11 +721,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: 'z',
           },
-          violations: [
-            { threatLevel: 0, policyName: '', displayName: 'display x name' },
-            { threatLevel: 0, policyName: '', displayName: 'display Z name' },
-            { threatLevel: 0, policyName: '', displayName: 'display z name' },
-          ],
+          data: {
+            violations: [
+              { threatLevel: 0, policyName: '', displayName: 'display x name' },
+              { threatLevel: 0, policyName: '', displayName: 'display Z name' },
+              { threatLevel: 0, policyName: '', displayName: 'display z name' },
+            ],
+          },
         },
       };
       const action = {
@@ -641,10 +743,13 @@ describe('transitiveViolationsReducer', function () {
             policyName: '',
             displayName: 'z',
           },
-          displayedViolations: [
-            { threatLevel: 0, policyName: '', displayName: 'display Z name' },
-            { threatLevel: 0, policyName: '', displayName: 'display z name' },
-          ],
+          data: {
+            ...state.componentTransitivePolicyViolations.data,
+            displayedViolations: [
+              { threatLevel: 0, policyName: '', displayName: 'display Z name' },
+              { threatLevel: 0, policyName: '', displayName: 'display z name' },
+            ],
+          },
         },
       });
     });

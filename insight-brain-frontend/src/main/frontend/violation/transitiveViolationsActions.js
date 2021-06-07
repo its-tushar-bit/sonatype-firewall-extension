@@ -5,7 +5,7 @@
  */
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import axios from 'axios';
-import { getOwnerHierarchyUrl, getTransitiveViolationsUrl } from '../util/CLMLocation';
+import { getOwnerHierarchyUrl, getReportMetadataUrl, getTransitiveViolationsUrl } from '../util/CLMLocation';
 import { processOwnerHierarchy } from '../util/hierarchyUtil';
 
 export const TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED =
@@ -25,10 +25,7 @@ export function loadAvailableScopes(ownerType, ownerId) {
     return axios
       .get(getOwnerHierarchyUrl(ownerType, ownerId))
       .then(({ data }) => {
-        let payload = {
-          values: processOwnerHierarchy(data),
-        };
-        dispatch(loadAvailableScopesFulfilled(payload));
+        dispatch(loadAvailableScopesFulfilled(processOwnerHierarchy(data)));
       })
       .catch((error) => {
         dispatch(loadAvailableScopesFailed(error));
@@ -40,16 +37,41 @@ export const TRANSITIVE_VIOLATIONS_LOAD_REQUESTED = 'TRANSITIVE_VIOLATIONS_LOAD_
 export const TRANSITIVE_VIOLATIONS_LOAD_FULFILLED = 'TRANSITIVE_VIOLATIONS_LOAD_FULFILLED';
 export const TRANSITIVE_VIOLATIONS_LOAD_FAILED = 'TRANSITIVE_VIOLATIONS_LOAD_FAILED';
 
+export const TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED =
+  'TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED';
+export const TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED =
+  'TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED';
+export const TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED = 'TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED';
+
+const loadReportMetadataRequested = noPayloadActionCreator(TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_REQUESTED);
+const loadReportMetadataFulfilled = payloadParamActionCreator(TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FULFILLED);
+const loadReportMetadataFailed = payloadParamActionCreator(TRANSITIVE_VIOLATIONS_LOAD_REPORT_METADATA_FAILED);
+
+export function loadReportMetadata(applicationPublicId, scanId) {
+  return (dispatch) => {
+    dispatch(loadReportMetadataRequested());
+
+    return axios
+      .get(getReportMetadataUrl(applicationPublicId, scanId))
+      .then(({ data }) => {
+        dispatch(loadReportMetadataFulfilled(data));
+      })
+      .catch((error) => {
+        dispatch(loadReportMetadataFailed(error));
+      });
+  };
+}
+
 const loadTransitiveViolationsRequested = noPayloadActionCreator(TRANSITIVE_VIOLATIONS_LOAD_REQUESTED);
 const loadTransitiveViolationsFulfilled = payloadParamActionCreator(TRANSITIVE_VIOLATIONS_LOAD_FULFILLED);
 const loadTransitiveViolationsFailed = payloadParamActionCreator(TRANSITIVE_VIOLATIONS_LOAD_FAILED);
 
-export function loadTransitiveViolations(ownerType, ownerId, stageTypeId, hash) {
+export function loadTransitiveViolations(ownerType, ownerId, scanId, hash) {
   return (dispatch) => {
     dispatch(loadTransitiveViolationsRequested());
 
     return axios
-      .get(getTransitiveViolationsUrl(ownerType, ownerId, stageTypeId, hash))
+      .get(getTransitiveViolationsUrl(ownerType, ownerId, scanId, hash))
       .then(({ data }) => {
         dispatch(loadTransitiveViolationsFulfilled(data));
       })

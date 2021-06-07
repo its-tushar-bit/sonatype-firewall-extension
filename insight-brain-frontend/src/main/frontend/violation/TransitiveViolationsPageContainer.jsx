@@ -9,6 +9,7 @@ import { pick } from 'ramda';
 import TransitiveViolationsPage from './TransitiveViolationsPage';
 import {
   loadAvailableScopes,
+  loadReportMetadata,
   loadTransitiveViolations,
   setFilteringParameters,
   setSortingParameters,
@@ -16,18 +17,16 @@ import {
 
 function mapStateToProps({ router, transitiveViolations }) {
   let scanId = undefined;
-  if (router.prevState.name === 'applicationReport.policy') {
-    scanId = router.prevParams.scanId;
-  }
   return {
     scanId,
-    ...pick(['ownerType', 'ownerId', 'stageTypeId', 'hash'], router.currentParams),
-    ...pick(['availableScopes', 'componentTransitivePolicyViolations'], transitiveViolations),
+    ...pick(['ownerType', 'ownerId', 'scanId', 'hash'], router.currentParams),
+    ...pick(['availableScopes', 'reportMetadata', 'componentTransitivePolicyViolations'], transitiveViolations),
   };
 }
 
 const mapDispatchToProps = {
   loadAvailableScopes,
+  loadReportMetadata,
   loadTransitiveViolations,
   setSortingParameters,
   setFilteringParameters,

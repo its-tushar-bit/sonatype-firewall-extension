@@ -17,10 +17,6 @@ transitive-violations-page-container {
     @include container-horizontal;
   }
 
-  .component-details-header__reportinfo {
-    margin-bottom: 0;
-  }
-
   .nx-icon--fail {
     color: $nx-red-800;
   }
@@ -34,6 +30,10 @@ transitive-violations-page-container {
       'title'
       'description'
       'tags';
+  }
+
+  .component-details-header__reportinfo {
+    grid-area: description;
   }
 
   .nx-page-title__tags--vertical {

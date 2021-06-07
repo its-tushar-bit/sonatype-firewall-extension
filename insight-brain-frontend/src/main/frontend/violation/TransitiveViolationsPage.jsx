@@ -3,91 +3,85 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxBackButton, NxTag } from '@sonatype/react-shared-components';
-import { availableScopesPropType, componentTransitivePolicyViolationsPropType } from './transitiveViolationsPropTypes';
+import { NxBackButton } from '@sonatype/react-shared-components';
+import {
+  availableScopesPropType,
+  componentTransitivePolicyViolationsPropType,
+  reportMetadataPropType,
+} from './transitiveViolationsPropTypes';
 import LoadWrapper from '../react/LoadWrapper';
-import { getLatestReportUrl } from '../util/CLMLocation';
-import TransitiveViolationsPageSubtitle from './TransitiveViolationsPageSubtitle';
 import TransitiveViolationsPageTable from './TransitiveViolationsPageTable';
+import { ComponentDetailsReportInfo } from '../componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
+import { ComponentDetailsHeader, ComponentDetailsTags, Title } from '../componentDetails/ComponentDetailsHeader';
 
 export default function TransitiveViolationsPage(props) {
   const {
     ownerType,
     ownerId,
-    stageTypeId,
     hash,
     scanId,
     $state,
     availableScopes,
+    reportMetadata,
     componentTransitivePolicyViolations,
     loadAvailableScopes,
     loadTransitiveViolations,
     setSortingParameters,
     setFilteringParameters,
+    loadReportMetadata,
   } = props;
 
   function load() {
-    if (ownerType && ownerId && stageTypeId && hash) {
+    if (ownerType && ownerId && scanId && hash) {
       loadAvailableScopes(ownerType, ownerId);
-      loadTransitiveViolations(ownerType, ownerId, stageTypeId, hash);
+      loadTransitiveViolations(ownerType, ownerId, scanId, hash);
+      loadReportMetadata(ownerId, scanId);
     }
   }
 
-  useEffect(load, [ownerType, ownerId, stageTypeId, hash]);
+  useEffect(load, [ownerType, ownerId, scanId, hash]);
 
   const getBackHref = () => {
-    if (ownerType === 'application') {
-      if (scanId) {
-        return $state.href($state.get('applicationReport.policy'), {
-          publicId: ownerId,
-          scanId: scanId,
-        });
-      }
-      return getLatestReportUrl(ownerId, stageTypeId);
-    }
-    if (hash) {
-      return $state.href($state.get('dashboard.component'), {
-        hash: hash,
-      });
-    }
-    return $state.href($state.get('dashboard.component'));
+    return $state.href($state.get('applicationReport.policy'), {
+      publicId: ownerId,
+      scanId: scanId,
+    });
   };
 
   return (
     <main id="transitive-violations-page" className="nx-page-main">
       <LoadWrapper
-        loading={availableScopes.loading || componentTransitivePolicyViolations.loading}
-        error={availableScopes.error || componentTransitivePolicyViolations.error}
+        loading={availableScopes.loading || reportMetadata.loading || componentTransitivePolicyViolations.loading}
+        error={availableScopes.error || reportMetadata.error || componentTransitivePolicyViolations.error}
         retryHandler={load}
       >
-        <NxBackButton href={getBackHref()} />
-        <div className="nx-page-title">
-          <h1 className="nx-h1">Transitive Violations</h1>
-          <TransitiveViolationsPageSubtitle
-            availableScopes={availableScopes.values}
-            componentName={componentTransitivePolicyViolations.displayName}
-            stageTypeId={stageTypeId}
-          />
-          {componentTransitivePolicyViolations.isInnerSource && (
-            <div className="nx-page-title__tags--vertical">
-              <NxTag id="iq-transitive-violations-page-is-inner-source" color="light-blue">
-                InnerSource
-              </NxTag>
-            </div>
-          )}
-        </div>
-        <section className="nx-tile">
-          <div className="nx-tile-content">
-            <TransitiveViolationsPageTable
-              stageTypeId={stageTypeId}
-              componentTransitivePolicyViolations={componentTransitivePolicyViolations}
-              setFilteringParameters={setFilteringParameters}
-              setSortingParameters={setSortingParameters}
-            />
-          </div>
-        </section>
+        {availableScopes.data && reportMetadata.data && componentTransitivePolicyViolations.data && (
+          <Fragment>
+            {ownerId && scanId && <NxBackButton href={getBackHref()} />}
+            <ComponentDetailsHeader>
+              <Title id="transitive-violations-page-title">Transitive Violations</Title>
+              <ComponentDetailsReportInfo
+                applicationName={ownerId}
+                organizationName={availableScopes.data[1].name}
+                reportTime={reportMetadata.data.reportTime}
+                reportTitle={reportMetadata.data.reportTitle}
+              />
+              <ComponentDetailsTags isInnerSource={componentTransitivePolicyViolations.data.isInnerSource} />
+            </ComponentDetailsHeader>
+            <section className="nx-tile">
+              <div className="nx-tile-content">
+                <TransitiveViolationsPageTable
+                  stageTypeId={reportMetadata.data.stageId}
+                  componentTransitivePolicyViolations={componentTransitivePolicyViolations}
+                  setFilteringParameters={setFilteringParameters}
+                  setSortingParameters={setSortingParameters}
+                />
+              </div>
+            </section>
+          </Fragment>
+        )}
       </LoadWrapper>
     </main>
   );
@@ -96,14 +90,15 @@ export default function TransitiveViolationsPage(props) {
 TransitiveViolationsPage.propTypes = {
   ownerType: PropTypes.string,
   ownerId: PropTypes.string,
-  stageTypeId: PropTypes.string,
   hash: PropTypes.string,
   scanId: PropTypes.string,
   $state: PropTypes.object.isRequired,
   availableScopes: availableScopesPropType.isRequired,
+  reportMetadata: reportMetadataPropType.isRequired,
   componentTransitivePolicyViolations: componentTransitivePolicyViolationsPropType.isRequired,
   loadAvailableScopes: PropTypes.func.isRequired,
   loadTransitiveViolations: PropTypes.func.isRequired,
   setSortingParameters: PropTypes.func.isRequired,
   setFilteringParameters: PropTypes.func.isRequired,
+  loadReportMetadata: PropTypes.func.isRequired,
 };

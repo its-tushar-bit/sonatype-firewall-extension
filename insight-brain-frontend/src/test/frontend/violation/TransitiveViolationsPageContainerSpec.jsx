@@ -14,6 +14,7 @@ describe('TransitiveViolationsPageContainer', function () {
     vdom,
     TransitiveViolationsPageContainer,
     loadAvailableScopesActionMock,
+    loadReportMetadataActionMock,
     loadTransitiveViolationsActionMock,
     setSortingParametersActionMock,
     setFilteringParametersActionMock;
@@ -21,40 +22,37 @@ describe('TransitiveViolationsPageContainer', function () {
   beforeEach(function () {
     state = {
       router: {
-        prevState: {
-          name: 'applicationReport.policy',
-        },
-        prevParams: {
-          scanId: 'someScanId',
-        },
         currentParams: {
           ownerType: 'someOwnerType',
           ownerId: 'someOwnerId',
-          stageTypeId: 'someStageTypeId',
+          scanId: 'someScanId',
           hash: 'someHash',
         },
       },
       transitiveViolations: {
         availableScopes: 'someAvailableScopes',
+        reportMetadata: 'someReportMetadata',
         componentTransitivePolicyViolations: 'someComponentTransitivePolicyViolations',
       },
     };
     loadAvailableScopesActionMock = jasmine
       .createSpy('loadAvailableScopesActionMock')
       .and.returnValue({ type: 'BAR1' });
+    loadReportMetadataActionMock = jasmine.createSpy('loadReportMetadataActionMock').and.returnValue({ type: 'BAR2' });
     loadTransitiveViolationsActionMock = jasmine
       .createSpy('loadTransitiveViolationsActionMock')
-      .and.returnValue({ type: 'BAR2' });
+      .and.returnValue({ type: 'BAR3' });
     setSortingParametersActionMock = jasmine
       .createSpy('setSortingParametersActionMock')
-      .and.returnValue({ type: 'BAR3' });
+      .and.returnValue({ type: 'BAR4' });
     setFilteringParametersActionMock = jasmine
       .createSpy('setFilteringParametersActionMock')
-      .and.returnValue({ type: 'BAR4' });
+      .and.returnValue({ type: 'BAR5' });
     TransitiveViolationsPageContainer = require('inject-loader!../../../main/frontend/violation/TransitiveViolationsPageContainer')(
       {
         './transitiveViolationsActions': {
           loadAvailableScopes: loadAvailableScopesActionMock,
+          loadReportMetadata: loadReportMetadataActionMock,
           loadTransitiveViolations: loadTransitiveViolationsActionMock,
           setSortingParameters: setSortingParametersActionMock,
           setFilteringParameters: setFilteringParametersActionMock,
@@ -70,16 +68,11 @@ describe('TransitiveViolationsPageContainer', function () {
     expect(wrapper).toHaveProp('scanId', 'someScanId');
     expect(wrapper).toHaveProp('ownerType', 'someOwnerType');
     expect(wrapper).toHaveProp('ownerId', 'someOwnerId');
-    expect(wrapper).toHaveProp('stageTypeId', 'someStageTypeId');
+    expect(wrapper).toHaveProp('scanId', 'someScanId');
     expect(wrapper).toHaveProp('hash', 'someHash');
     expect(wrapper).toHaveProp('availableScopes', 'someAvailableScopes');
+    expect(wrapper).toHaveProp('reportMetadata', 'someReportMetadata');
     expect(wrapper).toHaveProp('componentTransitivePolicyViolations', 'someComponentTransitivePolicyViolations');
-  });
-
-  it('has an undefined scanId if the previous state is not an application report', () => {
-    state.router.prevState.name = 'other';
-    const wrapper = shallow(vdom).dive();
-    expect(wrapper).toHaveProp('scanId', undefined);
   });
 
   it('correctly maps the action creators to the TransitiveViolationsPageContainer props', function () {
@@ -90,20 +83,25 @@ describe('TransitiveViolationsPageContainer', function () {
     loadAvailableScopesActionCreator('test');
     expect(store.getActions()[0]).toEqual({ type: 'BAR1' });
 
+    const loadReportMetadataActionCreator = wrapper.prop('loadReportMetadata');
+    expect(loadReportMetadataActionCreator).toEqual(jasmine.any(Function));
+    loadReportMetadataActionCreator('test');
+    expect(store.getActions()[1]).toEqual({ type: 'BAR2' });
+
     const loadTransitiveViolationsActionCreator = wrapper.prop('loadTransitiveViolations');
     expect(loadTransitiveViolationsActionCreator).toEqual(jasmine.any(Function));
     loadTransitiveViolationsActionCreator('test');
-    expect(store.getActions()[1]).toEqual({ type: 'BAR2' });
+    expect(store.getActions()[2]).toEqual({ type: 'BAR3' });
 
     const setSortingParametersActionCreator = wrapper.prop('setSortingParameters');
     expect(setSortingParametersActionCreator).toEqual(jasmine.any(Function));
     setSortingParametersActionCreator('test');
-    expect(store.getActions()[2]).toEqual({ type: 'BAR3' });
+    expect(store.getActions()[3]).toEqual({ type: 'BAR4' });
 
     const setFilteringParametersActionCreator = wrapper.prop('setFilteringParameters');
     expect(setFilteringParametersActionCreator).toEqual(jasmine.any(Function));
     setFilteringParametersActionCreator('test');
-    expect(store.getActions()[3]).toEqual({ type: 'BAR4' });
+    expect(store.getActions()[4]).toEqual({ type: 'BAR5' });
   });
 
   it('renders the TransitiveViolationsPage component', function () {

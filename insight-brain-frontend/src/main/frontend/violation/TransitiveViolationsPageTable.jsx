@@ -135,15 +135,14 @@ export default function TransitiveViolationsPageTable(props) {
         </NxTableRow>
       </NxTableHead>
       <NxTableBody emptyMessage="None">
-        {componentTransitivePolicyViolations.displayedViolations &&
-          componentTransitivePolicyViolations.displayedViolations.map(createRow)}
+        {componentTransitivePolicyViolations.data.displayedViolations.map(createRow)}
       </NxTableBody>
     </NxTable>
   );
 }
 
 TransitiveViolationsPageTable.propTypes = {
-  stageTypeId: PropTypes.string,
+  stageTypeId: PropTypes.string.isRequired,
   componentTransitivePolicyViolations: componentTransitivePolicyViolationsPropType.isRequired,
   setSortingParameters: PropTypes.func.isRequired,
   setFilteringParameters: PropTypes.func.isRequired,

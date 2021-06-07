@@ -134,7 +134,7 @@ export default function PolicyViolationsController(
     $state.go('transitiveViolations', {
       ownerType: OwnerContext.ownerType,
       ownerId: OwnerContext.ownerId,
-      stageTypeId: $scope.stageId,
+      scanId: OwnerContext.scanId,
       hash: hash,
     });
   };

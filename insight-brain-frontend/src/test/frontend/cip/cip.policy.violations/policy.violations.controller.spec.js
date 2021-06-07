@@ -46,6 +46,7 @@ describe('policy.violations.controller', function () {
       $provide.value('OwnerContext', {
         ownerId: 'ownerId',
         ownerType: 'ownerType',
+        scanId: 'scanId',
       });
     })
   );
@@ -133,7 +134,7 @@ describe('policy.violations.controller', function () {
       expect($state.go).toHaveBeenCalledWith('transitiveViolations', {
         ownerType: 'ownerType',
         ownerId: 'ownerId',
-        stageTypeId: scope.stageId,
+        scanId: 'scanId',
         hash: 'abcd',
       });
     });

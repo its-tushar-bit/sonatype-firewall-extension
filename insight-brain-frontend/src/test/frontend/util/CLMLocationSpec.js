@@ -459,9 +459,9 @@ describe('CLMLocation.js', function () {
     });
 
     it('getTransitiveViolationsUrl should return the URL for transitive policy violations', function () {
-      expect(
-        CLMLocation.getTransitiveViolationsUrl('someOwnerType', 'someOwnerId', 'someStageTypeId', 'someHash')
-      ).toBe('/api/v2/policyViolations/transitive/someOwnerType/someOwnerId/stages/someStageTypeId?hash=someHash');
+      expect(CLMLocation.getTransitiveViolationsUrl('someOwnerType', 'someOwnerId', 'someScanId', 'someHash')).toBe(
+        '/api/v2/policyViolations/transitive/someOwnerType/someOwnerId/someScanId?hash=someHash'
+      );
     });
 
     it('getLatestReportUrl should return the URL for the latest report for the given app and stage', function () {

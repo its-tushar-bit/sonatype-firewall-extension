@@ -40,7 +40,7 @@ function routes($stateProvider) {
       data: {
         title: 'Transitive Policy Violations',
       },
-      url: '/{ownerType}/{ownerId}/stage/{stageTypeId}/component/{hash}/transitiveViolations',
+      url: '/{ownerType}/{ownerId}/{scanId}/component/{hash}/transitiveViolations',
     });
 }
 

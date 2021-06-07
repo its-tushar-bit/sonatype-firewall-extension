@@ -1490,6 +1490,25 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
+  public PolicyEvaluation newPolicyEvaluation(String applicationId,
+                                              String stageTypeId,
+                                              String scanId,
+                                              boolean isReevaluation,
+                                              boolean isForMonitoring,
+                                              boolean isForObsoleteScan,
+                                              Date time,
+                                              String commitHash,
+                                              ScanTriggerType scanTriggerType)
+  {
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
+        isForMonitoring, "system", scanTriggerType);
+    policyEvaluation.setCommitHash(commitHash);
+    policyEvaluation.setTime(time);
+    policyEvaluation.setForObsoleteScan(isForObsoleteScan);
+    policyEvaluationDAO.insert(policyEvaluation);
+    return policyEvaluation;
+  }
+
   public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
                                             Policy policy,
                                             ComponentIdentifier componentIdentifier,

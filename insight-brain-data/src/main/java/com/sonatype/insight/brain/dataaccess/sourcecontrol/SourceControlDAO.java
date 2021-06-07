@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.EntityManager;
 
@@ -46,6 +48,47 @@ public class SourceControlDAO
   private final OrganizationDAO organizationDAO = new OrganizationDAO();
 
   private final GitApiClientFactory gitApiClientFactory = new GitApiClientFactory();
+
+  // Retrieves source control for application with information of repository even if it is not directly available
+  // in source control row of application (it searches in parent organization or root organization)
+  private static final String SELECT_COMPOSITE_SOURCE_CONTROL =
+      "SELECT " +
+          "  sc_app.source_control_id, " +
+          "  sc_app.owner_id," +
+          "  sc_app.repository_url, " +
+          "  COALESCE(sc_app.username, sc_p.username, sc_gp.username) AS username, " +
+          "  COALESCE(sc_app.token, sc_p.token, sc_gp.token) AS token, " +
+          "  COALESCE(sc_app.provider, sc_p.provider, sc_gp.provider) AS provider, " +
+          "  COALESCE(sc_app.base_branch, sc_p.base_branch, sc_gp.base_branch) AS base_branch, " +
+          "  COALESCE(sc_app.enable_pull_requests, sc_p.enable_pull_requests, sc_gp.enable_pull_requests) " +
+          " AS enable_pull_requests, " +
+          "  COALESCE(sc_app.enable_status_checks, sc_p.enable_status_checks, sc_gp.enable_status_checks) " +
+          " AS enable_status_checks, " +
+          "  sc_app.pull_request_poll_time, " +
+          "  sc_app.pull_request_error_count " +
+          "FROM insight_brain_ods.application app " +
+          "JOIN insight_brain_ods.organization po ON po.organization_id = app.organization_id " +
+          "LEFT JOIN insight_brain_ods.organization gpo ON gpo.organization_id = po.parent_organization_id " +
+          "JOIN insight_brain_ods.source_control sc_app ON sc_app.owner_id = app.application_id " +
+          "LEFT JOIN insight_brain_ods.source_control sc_p ON sc_p.owner_id = po.organization_id " +
+          "LEFT JOIN insight_brain_ods.source_control sc_gp ON sc_gp.owner_id = gpo.organization_id ";
+
+  private static final String SELECT_APPLICATIONS_FOR_SOURCE_SCAN =
+      "SELECT sc.* " +
+          "FROM ( " + SELECT_COMPOSITE_SOURCE_CONTROL + " ) sc " +
+          "LEFT JOIN ( " +
+          "   SELECT pe.application_id, pe.time, pe.scan_trigger_type " +
+          "     FROM insight_brain_ods.last_policy_evaluation lpe " +
+          "     JOIN insight_brain_ods.policy_evaluation pe ON pe.policy_evaluation_id = lpe.policy_evaluation_id" +
+          "     WHERE lpe.stage_type_id='source' " +
+          ") lpe ON lpe.application_id =  sc.owner_id " +
+          "WHERE ( lpe.time < ?1 " +
+          "        AND lpe.scan_trigger_type " +
+          "           IN ('SOURCE_CONTROL_INTERNAL_ONBOARDING', 'SOURCE_CONTROL_INTERNAL_PULL_REQUEST', " +
+          "               'SOURCE_CONTROL_INTERNAL_MONITORING') )  " +
+          // Here we retrieve applications that don't have a first source policy evaluation
+          // This case happens if the user manually creates the application with source control information
+          "      OR lpe.application_id IS NULL ";
 
   /**
    * The purpose of this method is to update the pull request poll time so it is consistent at this particular instant.
@@ -320,7 +363,7 @@ public class SourceControlDAO
         new SourceControlPullRequestDAO().deleteByRepositoryUrl(tx, entity.getRepositoryUrl());
       }
     }
-    
+
     super.delete(tx, entity);
   }
 
@@ -486,5 +529,34 @@ public class SourceControlDAO
     }
 
     return getProviderFromOrganization(tx, organization.getParentOrganizationId());
+  }
+
+  public List<SourceControl> getCompositeSourceControlForOutdatedSourceScans(
+      final Date scanLimitDate)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      javax.persistence.Query query = tx.createNativeQuery(SELECT_APPLICATIONS_FOR_SOURCE_SCAN);
+
+      query.setParameter(1, scanLimitDate);
+
+      return ((Stream<Object[]>) query.getResultStream()).parallel()
+          .map(array -> {
+            SourceControl sc = new SourceControl();
+            sc.setId((String) array[0]);
+            sc.setOwnerId((String) array[1]);
+            sc.setRepositoryUrl((String) array[2]);
+            sc.setUsername((String) array[3]);
+            sc.setToken((String) array[4]);
+            sc.setProvider(SourceControlProvider.fromString((String) array[5]));
+            sc.setBaseBranch((String) array[6]);
+            sc.setEnablePullRequests((Boolean) array[7]);
+            sc.setEnableStatusChecks((Boolean) array[8]);
+            sc.setPullRequestPollTime(array[9] == null ? null : new Date(((Timestamp) array[9]).getTime()));
+            sc.setPullRequestErrorCount((int) array[10]);
+
+            return sc;
+          })
+          .collect(Collectors.toList());
+    }
   }
 }

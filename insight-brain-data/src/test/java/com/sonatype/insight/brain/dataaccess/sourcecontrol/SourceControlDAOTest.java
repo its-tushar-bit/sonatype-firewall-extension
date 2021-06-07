@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -39,6 +40,8 @@ public class SourceControlDAOTest
     extends AbstractDbDAOTest
 {
   private static final String VALID_URL = "https://example.com/organization/Project";
+
+  private static final int INTERVAL_IN_HOURS = 24;
 
   private final SourceControlDAO sourceControlDAO = new SourceControlDAO();
 
@@ -872,8 +875,8 @@ public class SourceControlDAOTest
   @Test
   public void testInsert_ApplicationWithProvider() {
     sourceControlDAO.insert(
-            new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
-                .setRepositoryUrl("http://localhost:1234/org/repo").build());
+        new SourceControl.Builder().setOwnerId(app.getId()).setProvider(SourceControlProvider.GITHUB)
+            .setRepositoryUrl("http://localhost:1234/org/repo").build());
     assertThat(sourceControlDAO.getByOwnerId(app.getId()).getProvider()).isEqualTo(GITHUB);
   }
 
@@ -1063,7 +1066,7 @@ public class SourceControlDAOTest
     sourceControlDAO.delete(sourceControl1);
     assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(0);
   }
-  
+
   @Test
   public void testGetByRepositoryUrl() {
     // given: a source control entry with a URL
@@ -1100,7 +1103,6 @@ public class SourceControlDAOTest
     assertThat(sourceControlList.size()).isEqualTo(2);
     assertThat(sourceControlList).extracting(SourceControl::getOwnerId)
         .containsExactlyInAnyOrder(app.getId(), app2.getId());
-
   }
 
   @Test
@@ -1140,5 +1142,212 @@ public class SourceControlDAOTest
     sourceControl.setToken(sourceControl.getToken() + "Updated");
     sourceControlDAO.update(sourceControl);
     assertThat(new SourceControlPullRequestDAO().getAll()).hasSize(1);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_getOutdatedApplicationWithOnboardingScan() {
+    // given: application with outdated policy evaluation
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
+    SourceControl scRoot = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    SourceControl expectedSourceControl = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+    // Adjust for values inherited from parents
+    expectedSourceControl.setProvider(scRoot.getProvider());
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is retrieved
+    assertThat(sourceControlList.size()).isEqualTo(1);
+    assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_getOutdatedApplicationWithInternalPRScan() {
+    // given: application with outdated policy evaluation
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
+    SourceControl rootSc = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    SourceControl expectedSourceControl = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null,
+        null, null, null, null);
+    SourceControl scOrg = tempEntity.newSourceControl(app.getOrganizationId(), null, null, null, false,
+        false, "branchParentOrg");
+    // Adjust for values inherited from parents
+    expectedSourceControl.setProvider(rootSc.getProvider());
+    expectedSourceControl.setBaseBranch(scOrg.getBaseBranch());
+    expectedSourceControl.setEnablePullRequests(scOrg.getEnablePullRequests());
+    expectedSourceControl.setEnableStatusChecks(scOrg.getEnableStatusChecks());
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is retrieved
+    assertThat(sourceControlList.size()).isEqualTo(1);
+    assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_getOutdatedApplicationWithInfoInRootOrg() {
+    // given: application with outdated policy evaluation
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
+    SourceControl scRoot =
+        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB, null,
+            null, "branchRootOrg");
+    SourceControl expectedSourceControl = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null,
+        null, null, null, null);
+    // Adjust values inherited from parents
+    expectedSourceControl.setProvider(scRoot.getProvider());
+    expectedSourceControl.setBaseBranch(scRoot.getBaseBranch());
+    expectedSourceControl.setEnablePullRequests(scRoot.getEnablePullRequests());
+    expectedSourceControl.setEnableStatusChecks(scRoot.getEnableStatusChecks());
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is retrieved
+    assertThat(sourceControlList.size()).isEqualTo(1);
+    assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_nonExistentSourcePolicyEvaluation() {
+    // given: application without source policy evaluation
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
+    SourceControl scRoot = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    SourceControl expectedSourceControl = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+    // Adjust values inherited from parents
+    expectedSourceControl.setProvider(scRoot.getProvider());
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is retrieved
+    assertThat(sourceControlList.size()).isEqualTo(1);
+    assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+
+    // This checks that other stage policy evaluations different than source are ignored
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.BUILD.getId(), "scanId2", false, false, false,
+        scanTime, "commitHash1234");
+
+    // when: fetching applications with outdated source control policy evaluation
+    sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is retrieved
+    assertThat(sourceControlList.size()).isEqualTo(1);
+    assertSourceControl(sourceControlList.get(0), expectedSourceControl);
+  }
+
+  @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_upToDateSourcePolicyEvaluations() {
+    // given: application with up to date policy evaluation
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS - 1));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is ignored
+    assertThat(sourceControlList.size()).isZero();
+  }
+
+  @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_ignoreSourceControlScannedByCI() {
+    // given: application with outdated policy evaluation
+    LocalDateTime now = LocalDateTime.now();
+    Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
+    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
+        "commitHash123", ScanTriggerType.CONTINUOUS_INTEGRATION);
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is ignored
+    assertThat(sourceControlList.size()).isZero();
+  }
+
+  @Test
+  public void testGetCompositeSourceControlForOutdatedSourceScans_multipleOutdatedScans() {
+    // given: multiple applications with and without outdated policy evaluation
+    // application 1 with outdated scan
+    LocalDateTime now = LocalDateTime.now();
+    // This time will be recognized as outdated scan because is very close
+    Date scanTime1 = toDate(now.minusHours(INTERVAL_IN_HOURS));
+    SourceControl scRoot = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
+    SourceControl expectedSourceControl1 = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
+    // Adjust values inherited from parents
+    expectedSourceControl1.setProvider(scRoot.getProvider());
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime1,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // application 2 with outdated scan
+    Application app2 = tempEntity.newApplicationWithParent();
+    Date scanTime2 = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
+    SourceControl expectedSourceControl2 = tempEntity.newSourceControl(app2.getId(), "http://a.com/org/repo", null);
+    // Adjust values inherited from parents
+    expectedSourceControl2.setProvider(scRoot.getProvider());
+    tempEntity.newPolicyEvaluation(app2.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime2,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // application 3 without outdated scan
+    Application app3 = tempEntity.newApplicationWithParent();
+    Date scanTime3 = toDate(now.minusHours(INTERVAL_IN_HOURS - 1));
+    tempEntity.newSourceControl(app3.getId(), "http://a.com/org/repo", null);
+    tempEntity.newPolicyEvaluation(app3.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime3,
+        "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // when: fetching applications with outdated source control policy evaluation
+    List<SourceControl> sourceControlList =
+        sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
+
+    // then: application is retrieved
+    assertThat(sourceControlList.size()).isEqualTo(2);
+    if (sourceControlList.get(0).getId().equals(expectedSourceControl2.getId())) {
+      assertSourceControl(sourceControlList.get(0), expectedSourceControl2);
+      assertSourceControl(sourceControlList.get(1), expectedSourceControl1);
+    }
+    else {
+      assertSourceControl(sourceControlList.get(0), expectedSourceControl1);
+      assertSourceControl(sourceControlList.get(1), expectedSourceControl2);
+    }
+  }
+
+  private void assertSourceControl(SourceControl actualSC, SourceControl expectedSC) {
+    assertThat(actualSC.getId()).isEqualTo(expectedSC.getId());
+    assertThat(actualSC.getOwnerId()).isEqualTo(expectedSC.getOwnerId());
+    assertThat(actualSC.getRepositoryUrl()).isEqualTo(expectedSC.getRepositoryUrl());
+    assertThat(actualSC.getUsername()).isEqualTo(expectedSC.getUsername());
+    assertThat(actualSC.getToken()).isEqualTo(expectedSC.getToken());
+    assertThat(actualSC.getProvider()).isEqualTo(expectedSC.getProvider());
+    assertThat(actualSC.getBaseBranch()).isEqualTo(expectedSC.getBaseBranch());
+    assertThat(actualSC.getEnablePullRequests()).isEqualTo(expectedSC.getEnablePullRequests());
+    assertThat(actualSC.getEnableStatusChecks()).isEqualTo(expectedSC.getEnableStatusChecks());
+    assertThat(actualSC.getPullRequestPollTime()).isEqualTo(expectedSC.getPullRequestPollTime());
+    assertThat(actualSC.getPullRequestErrorCount()).isEqualTo(expectedSC.getPullRequestErrorCount());
+  }
+
+  private Date getScanLimitDate() {
+    return Date.from(LocalDateTime.now().minusHours(INTERVAL_IN_HOURS)
+        .atZone(ZoneId.systemDefault()).toInstant());
   }
 }

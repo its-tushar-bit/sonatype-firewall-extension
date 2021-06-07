@@ -153,6 +153,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       throw new ExitException(1, message);
     }
     for (String scanTarget : params.getScanTargets()) {
+      if (isContainerTargetSoSkipFileExistsCheck(scanTarget)) {
+        continue;
+      }
+
       File file = new File(scanTarget);
       if (!file.exists()) {
         String message = String.format("The input path '%s' does not exist.", file.getAbsolutePath());
@@ -161,6 +165,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
         throw new ExitException(1, message);
       }
     }
+  }
+
+  private boolean isContainerTargetSoSkipFileExistsCheck(final String scanTarget) {
+    return scanTarget.startsWith("container:");
   }
 
   protected ClientScanResult scan(

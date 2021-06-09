@@ -527,6 +527,21 @@ export function getVulnerabilities(policyEntries, rawDataEntries) {
   return into([], compose(filter(has('securityCode')), map(mkVulnerabilityEntry), reject(isNil)), rawDataEntries);
 }
 
+export function extendRawDataWithKey(rawDataEntries) {
+  const mkRawEntry = (rawDataEntry) => {
+    const { securityCode, cvssScore } = rawDataEntry;
+    const serializedComponentId = serializeComponentId(rawDataEntry);
+
+    return {
+      ...rawDataEntry,
+      key: `${serializedComponentId}\u001D${securityCode}`,
+      cvssScore: cvssScore ? cvssScore.toFixed(1) : '',
+    };
+  };
+
+  return into([], map(mkRawEntry), rawDataEntries);
+}
+
 const vulnerabilitySortStateMap = {
   open: 0,
   notViolating: 1,

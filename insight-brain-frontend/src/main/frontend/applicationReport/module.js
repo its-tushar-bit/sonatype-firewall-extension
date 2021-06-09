@@ -11,16 +11,17 @@ import utilityModule from '../utility/utility.module';
 import utilityDirectivesModule from '../utility/directives/utility.directives.module';
 import ComponentDisplayModule from '../ComponentDisplay/module';
 import selectedComponentServiceModule from '../services/selectedComponentService';
+import withStoreProvider from '../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 
 import applicationReport from './applicationReport';
 import applicationReportResults from './results/applicationReportResults';
 import applicationReportActions from './applicationReportActions';
 import reevaluationErrorModal from './reevaluationErrorModal/reevaluationErrorModal';
 import applicationReportRoot from './applicationReportRoot';
-import rawLicenseDisplay from './rawData/rawLicenseDisplay/rawLicenseDisplay';
-import applicationReportRawData from './rawData/applicationReportRawData';
 import applicationReportVulnerabilities from './vulnerabilities/ApplicationReportVulnerabilities';
 import applicationReportFilter from './applicationReportFilter';
+import ApplicationReportRawDataContainer from './rawData/ApplicationReportRawDataContainer';
 
 export default angular
   .module('applicationReportModule', [
@@ -37,8 +38,14 @@ export default angular
   .component('applicationReportRoot', applicationReportRoot)
   .component('applicationReportResults', applicationReportResults)
   .component('reevaluationErrorModal', reevaluationErrorModal)
-  .component('rawLicenseDisplay', rawLicenseDisplay)
-  .component('applicationReportRawData', applicationReportRawData)
+  .component(
+    'applicationReportRawData',
+    react2angular(
+      withStoreProvider(withRouterStateProvider(ApplicationReportRawDataContainer)),
+      [],
+      ['$ngRedux', '$state']
+    )
+  )
   .component(
     'applicationReportVulnerabilities',
     react2angular(applicationReportVulnerabilities, [], ['$ngRedux', '$state', 'applicationReportActions'])

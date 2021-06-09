@@ -6,15 +6,17 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.IqBackButton;
-import com.sonatype.clm.testing.functional.elements.IqSortingHeader;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
+import com.sonatype.clm.testing.functional.elements.NxSortingHeader;
 import com.sonatype.clm.testing.functional.elements.NxVulnerabilityModal;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.Keys;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class ApplicationReportRawDataPage
@@ -30,16 +32,16 @@ public class ApplicationReportRawDataPage
     super(ROOT);
   }
 
-  public IqBackButton backButton() {
-    return new IqBackButton(ROOT);
+  public NxBackButton backButton() {
+    return new NxBackButton(ROOT);
   }
 
   public SelenideElement reportTitle() {
     return child("#raw-data-report-title");
   }
 
-  public SelenideElement reportSubtitle() {
-    return child(".iq-tile-header__subtitle");
+  public SelenideElement description() {
+    return child(".nx-page-title__description");
   }
 
   public ResultTable resultTable() {
@@ -47,7 +49,7 @@ public class ApplicationReportRawDataPage
   }
 
   public SelenideElement noResultsRow() {
-    return child(".iq-cell--empty");
+    return child(".nx-cell--meta-info");
   }
 
   public NxVulnerabilityModal vulnerabilityModal() {
@@ -61,7 +63,7 @@ public class ApplicationReportRawDataPage
   public static class ResultTable
       extends BasicElement<ResultTable>
   {
-    static final String ROW_SELECTOR = "tbody .iq-table-row";
+    static final String ROW_SELECTOR = "tbody .nx-table-row";
 
     ResultTable() {
       super(ROOT, "#raw-data-report-results");
@@ -84,59 +86,69 @@ public class ApplicationReportRawDataPage
     }
 
     public SelenideElement component() {
-      return child(".iq-cell", nthChild(1));
+      return child(".nx-cell", nthChild(1));
+    }
+
+    public SelenideElement license() {
+      return child(".nx-cell", nthChild(2));
     }
 
     public SelenideElement securityIssue() {
-      return child(".iq-cell", nthChild(3));
+      return child(".nx-cell", nthChild(3));
+    }
+
+    public SelenideElement securityIssueLink() {
+      return child(".nx-cell:nth-child(3) a");
     }
 
     public SelenideElement cvssScore() {
-      return child(".iq-cell", nthChild(4));
+      return child(".nx-cell", nthChild(4));
     }
 
     public SelenideElement declaredLicenses() {
-      return child("raw-license-display strong");
+      return child(".raw-license-tooltip strong");
     }
 
     public SelenideElement observedLicenses() {
-      return child("raw-license-display span");
+      return child(".raw-license-tooltip span");
     }
   }
 
   public static class AppReportRawDataHeaders
       extends BasicElement<AppReportRawDataHeaders>
   {
+    private static final String HEADER_CLASS_NAME = ".nx-cell--header";
+
     public AppReportRawDataHeaders() {
       super(ROOT, "#raw-data-report-results thead");
     }
 
-    public IqSortingHeader componentHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-component a"));
+    public NxSortingHeader componentHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(1))));
     }
 
-    public IqSortingHeader licensesHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-license a"));
+    public NxSortingHeader licensesHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(2))));
     }
 
-    public IqSortingHeader securityIssueHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-security-code a"));
+    public NxSortingHeader securityIssueHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(3))));
     }
 
-    public IqSortingHeader cvssScoreHeader() {
-      return new IqSortingHeader(childSelector(".iq-cell--report-raw-data-cvss a"));
+    public NxSortingHeader cvssScoreHeader() {
+      return new NxSortingHeader(childSelector(createSelector(HEADER_CLASS_NAME, nthChild(4))));
     }
 
     public SelenideElement componentFilterInput() {
-      return child(".iq-cell--report-raw-data-component input");
+      return child("#raw-data-component-filter");
     }
 
     public SelenideElement licenseFilterInput() {
-      return child(".iq-cell--report-raw-data-license input");
+      return child("#raw-data-license-filter");
     }
 
     public SelenideElement securityCodeFilterInput() {
-      return child(".iq-cell--report-raw-data-security-code input");
+      return child("#raw-data-security-filter");
     }
 
     public SelenideElement cvssMinFilterInput() {
@@ -145,6 +157,12 @@ public class ApplicationReportRawDataPage
 
     public SelenideElement cvssMaxFilterInput() {
       return child("#raw-data-cvss-max-filter");
+    }
+
+    public void clearFilterField(SelenideElement element) {
+      while (!element.getAttribute("value").equals("")) {
+        element.sendKeys(Keys.BACK_SPACE);
+      }
     }
   }
 }

@@ -44,18 +44,23 @@ import {
   REEVALUATE_REPORT_FAILED,
   REEVALUATE_REPORT_CANCELLED,
   SET_SORTING,
-  SET_SORTING_RAW_DATA,
   SELECT_ROOT_ANCESTOR,
   UNSELECT_ROOT_ANCESTOR,
   GENERATE_VULNERABILITY_ENTRIES,
   SET_SORTING_PARAMETERS,
+  SET_RAW_SORTING_PARAMETERS,
   SELECT_COMPONENT,
   APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR,
 } from './applicationReportActions';
 
 import { sortItemsByFields } from '../util/sortUtils';
 
-import { aggregateReportEntries, filterReportEntries, getVulnerabilities } from './applicationReportService';
+import {
+  aggregateReportEntries,
+  filterReportEntries,
+  getVulnerabilities,
+  extendRawDataWithKey,
+} from './applicationReportService';
 import { pathSet } from '../util/jsUtil';
 
 const initState = Object.freeze({
@@ -66,7 +71,6 @@ const initState = Object.freeze({
   reevaluationError: null,
   aggregate: true,
   sortFields: Object.freeze(['-policyThreatLevel', 'policyName', 'derivedComponentName']),
-  rawDataSortFields: Object.freeze(['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore']),
 
   // map from field name to Set of allowed values
   // example: { policyThreatLevel: new Set([1, 5, 6, 7]) }
@@ -95,6 +99,11 @@ const initState = Object.freeze({
     sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
     dir: 'desc',
   },
+  rawSortConfiguration: {
+    key: 'derivedComponentName',
+    sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+    dir: 'asc',
+  },
   selectedComponent: null,
 });
 
@@ -105,6 +114,9 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case SET_SORTING_PARAMETERS:
       return setSortingParameters(state, payload);
+
+    case SET_RAW_SORTING_PARAMETERS:
+      return updateRawDataDisplayedEntries(pathSet(['rawSortConfiguration'], payload, state));
 
     case LOAD_REPORT_REQUESTED:
       return setPendingLoads(['common', 'policy'], {
@@ -199,12 +211,6 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case SET_SORTING:
       return updateDisplayedEntries({ ...state, sortFields: payload });
-
-    case SET_SORTING_RAW_DATA:
-      return updateRawDataDisplayedEntries({
-        ...state,
-        rawDataSortFields: payload,
-      });
 
     case SELECT_ROOT_ANCESTOR:
       return { ...state, selectedRootAncestor: payload };
@@ -325,12 +331,13 @@ function generateVulnerabilityEntries(state) {
  * based on `allEntries` and the sorting passed-in, if any.
  */
 function updateRawDataDisplayedEntries(state) {
-  const { reportRawData, rawDataSortFields, rawDataSubstringFilters, rawDataNumericFilters } = state;
+  const { reportRawData, rawSortConfiguration, rawDataSubstringFilters, rawDataNumericFilters } = state;
   if (reportRawData) {
     const { allEntries } = reportRawData;
     const processEntries = pipe(
       filterReportEntries(null, rawDataSubstringFilters, rawDataNumericFilters),
-      sortItemsByFields(rawDataSortFields)
+      sortItemsByFields(rawSortConfiguration.sortFields),
+      extendRawDataWithKey
     );
     const newDisplayedEntries = processEntries(allEntries);
 

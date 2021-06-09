@@ -3,111 +3,29 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-$iq-cell-report-raw-data-security-code-width: 200px;
-$iq-cell-report-raw-data-cvss-width: 120px;
 
 application-report-raw-data {
   display: contents;
 }
 
-#application-report-raw-data {
-  .iq-spinner__wrapper {
-    padding: 8px;
-  }
-
-  .iq-tile {
-    margin-bottom: 0;
-  }
-}
-
 .iq-cell--report-raw-data-cvss {
-  width: $iq-cell-report-raw-data-cvss-width;
-}
-
-.iq-cell--report-raw-data-security-code {
-  width: $iq-cell-report-raw-data-security-code-width;
-}
-
-.iq-scrollable--report-raw-data {
-  height: 100%;
-  .iq-table--fixed__header,
-  .iq-table--fixed__content {
-    .iq-cell--report-raw-data-license,
-    .iq-cell--report-raw-data-component {
-      width: calc((100% - #{$iq-cell-report-raw-data-security-code-width + $iq-cell-report-raw-data-cvss-width}) / 2);
+  .nx-text-input {
+    input {
+      width: 100%;
     }
-  }
-
-  &.scrollbar-present {
-    .iq-table--fixed__content {
-      .iq-cell--report-raw-data-license,
-      .iq-cell--report-raw-data-component {
-        width: calc(
-          (
-              100% -
-                (
-                  #{$iq-cell-report-raw-data-security-code-width} + #{$iq-cell-report-raw-data-cvss-width - $iq-scrollbar-width}
-                )
-            ) / 2
-        );
-      }
-
-      .iq-cell--report-raw-data-cvss {
-        width: $iq-cell-report-raw-data-cvss-width - $iq-scrollbar-width;
+    &.nx-filter-input:nth-child(1) {
+      max-width: 94px;
+      margin-right: 8px;
+    }
+    &.nx-filter-input:nth-child(2) {
+      max-width: 70px;
+      .nx-icon--filter-icons {
+        width: 0;
+        margin-right: 0;
+        path {
+          display: none;
+        }
       }
     }
-  }
-}
-
-// Styling for the cvss min and max filter boxes
-.iq-cell--report-raw-data-cvss {
-  .input-prepend {
-    margin-right: 4px;
-    // 60% for the first filter box subtract left padding and right margin
-    width: calc((60%) - 2px - 4px);
-
-    input.iq-text-input--num-filter {
-      border-left: 0;
-      box-shadow: none;
-      padding-left: 0;
-      // this input + the icon must not be larger than the parent span
-      // if we subtract the icon + padding & input's right padding it all works out
-      width: calc(100% - 23px - 6px);
-    }
-  }
-}
-
-input.iq-text-input--num-filter {
-  box-shadow: none;
-  border-radius: 0;
-  height: 18px;
-  padding-left: 5px;
-  vertical-align: top;
-  // 40% for the first filter box - 12px of left/right padding
-  width: calc((40%) - 12px);
-}
-
-.iq-license-table {
-  $dt-width: 55px;
-
-  margin: 0;
-
-  dt,
-  dd {
-    display: inline-block;
-    vertical-align: top;
-  }
-
-  dt {
-    width: $dt-width;
-    text-align: right;
-  }
-
-  dd {
-    box-sizing: border-box;
-    margin: 0;
-    padding-left: 5px;
-    text-align: left;
-    width: calc(100% - #{$dt-width});
   }
 }

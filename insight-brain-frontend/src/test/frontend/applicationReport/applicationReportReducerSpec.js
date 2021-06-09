@@ -35,12 +35,6 @@ describe('applicationReportReducer', function () {
       expect(newState.selectedReport).toBe(null);
       expect(newState.aggregate).toBe(true);
       expect(newState.sortFields).toEqual(['-policyThreatLevel', 'policyName', 'derivedComponentName']);
-      expect(newState.rawDataSortFields).toEqual([
-        'derivedComponentName',
-        'licenseSortKey',
-        'securityCode',
-        '-cvssScore',
-      ]);
       expect(newState.exactValueFilters).toEqual({});
       expect(newState.substringFilters).toEqual({});
       expect(newState.rawDataSubstringFilters).toEqual({});
@@ -49,6 +43,11 @@ describe('applicationReportReducer', function () {
       expect(newState.policyTypeFilterEnabled).toBe(true);
       expect(newState.vulnerabilities).toBe(null);
       expect(newState.vulnerabilitiesPageEnabled).toBe(true);
+      expect(newState.rawSortConfiguration).toEqual({
+        key: 'derivedComponentName',
+        sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+        dir: 'asc',
+      });
       expect(newState.selectedRootAncestor).toBeNull();
     });
 
@@ -120,7 +119,6 @@ describe('applicationReportReducer', function () {
         loadError: null,
         reevaluationError: null,
         aggregate: true,
-        rawDataSortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
         sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
         exactValueFilters: {},
         reportRawData: null,
@@ -144,6 +142,11 @@ describe('applicationReportReducer', function () {
           key: 'policyThreatLevel',
           sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
           dir: 'desc',
+        },
+        rawSortConfiguration: {
+          key: 'derivedComponentName',
+          sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+          dir: 'asc',
         },
         selectedComponent: null,
       });
@@ -703,6 +706,11 @@ describe('applicationReportReducer', function () {
     it('removes "raw" from pendingLoads and does not change other values on the state', function () {
       const state = Object.freeze({
         pendingLoads: new Set(['foo', 'raw']),
+        rawSortConfiguration: {
+          key: 'derivedComponentName',
+          sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+          dir: 'asc',
+        },
         other: otherObject,
       });
       const newState = reduce(state, {
@@ -714,7 +722,13 @@ describe('applicationReportReducer', function () {
     });
 
     it('sets the raw data information on the allEntries section of reportRawData state', () => {
-      const state = {};
+      const state = {
+        rawSortConfiguration: {
+          key: 'derivedComponentName',
+          sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+          dir: 'asc',
+        },
+      };
       const rawDataEntries = [
         {
           derivedComponentName: 'foo',
@@ -731,11 +745,19 @@ describe('applicationReportReducer', function () {
     });
 
     it('sets the appropriate raw data information on the displayedEntries section of reportRawData state', () => {
-      const state = {};
+      const state = {
+        rawSortConfiguration: {
+          key: 'derivedComponentName',
+          sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+          dir: 'asc',
+        },
+      };
       const rawDataEntries = [
         {
           derivedComponentName: 'foo',
           license: 'undefined',
+          securityCode: 'code-404',
+          cvssScore: 4,
         },
       ];
 
@@ -744,7 +766,13 @@ describe('applicationReportReducer', function () {
         payload: rawDataEntries,
       });
 
-      expect(newState.reportRawData.displayedEntries).toEqual(rawDataEntries);
+      expect(newState.reportRawData.displayedEntries).toEqual([
+        {
+          ...rawDataEntries[0],
+          key: 'null\u001dcode-404',
+          cvssScore: '4.0',
+        },
+      ]);
     });
   });
 
@@ -1325,6 +1353,11 @@ describe('applicationReportReducer', function () {
     it('filters the displayedEntries based on the resulting substringFilters', function () {
       const state = Object.freeze({
           rawDataSubstringFilters: Object.freeze({}),
+          rawSortConfiguration: {
+            key: 'derivedComponentName',
+            sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+            dir: 'asc',
+          },
           reportRawData: Object.freeze({
             allEntries: Object.freeze([
               {
@@ -1367,14 +1400,20 @@ describe('applicationReportReducer', function () {
         {
           otherField: 'asdfasdf',
           fooField: 'bar',
+          key: 'null\u001dundefined',
+          cvssScore: '',
         },
         {
           otherField: '',
           fooField: 'bar',
+          key: 'null\u001dundefined',
+          cvssScore: '',
         },
         {
           otherField: 'dfasdfas',
           fooField: 'foobarbaz',
+          key: 'null\u001dundefined',
+          cvssScore: '',
         },
       ]);
 
@@ -1440,6 +1479,11 @@ describe('applicationReportReducer', function () {
 
     it('filters the displayedEntries based on a maximum numeric filter', function () {
       const state = Object.freeze({
+          rawSortConfiguration: {
+            key: 'derivedComponentName',
+            sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+            dir: 'asc',
+          },
           reportRawData: Object.freeze({
             allEntries: Object.freeze([
               {
@@ -1473,10 +1517,14 @@ describe('applicationReportReducer', function () {
         {
           otherField: 'monkeybrains',
           fooField: 1,
+          key: 'null\u001dundefined',
+          cvssScore: '',
         },
         {
           otherField: 'asdfasdf',
           fooField: 5,
+          key: 'null\u001dundefined',
+          cvssScore: '',
         },
       ]);
 
@@ -1542,6 +1590,11 @@ describe('applicationReportReducer', function () {
 
     it('filters the displayedEntries based on a minimum numeric filter', function () {
       const state = Object.freeze({
+          rawSortConfiguration: {
+            key: 'derivedComponentName',
+            sortFields: ['derivedComponentName', 'licenseSortKey', 'securityCode', '-cvssScore'],
+            dir: 'asc',
+          },
           reportRawData: Object.freeze({
             allEntries: Object.freeze([
               {
@@ -1575,10 +1628,14 @@ describe('applicationReportReducer', function () {
         {
           otherField: 'asdfasdf',
           fooField: 5,
+          key: 'null\u001dundefined',
+          cvssScore: '',
         },
         {
           otherField: 'chocolate',
           fooField: 7,
+          key: 'null\u001dundefined',
+          cvssScore: '',
         },
       ]);
 

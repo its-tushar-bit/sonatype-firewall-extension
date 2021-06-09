@@ -2168,6 +2168,90 @@ describe('applicationReportService', function () {
     });
   });
 
+  describe('extendRawDataWithKey', () => {
+    const mkRawDataEntry = (cveNum, cvssScore = 5, additionalProps = {}) => ({
+      cvssScore,
+      securityCode: `CVE-${cveNum}`,
+      ...additionalProps,
+    });
+
+    it('extends rawDataEntry with cvssScore in 0.0 format', () => {
+      const rawDataEntries = [
+        mkRawDataEntry(404, 4, { pathnames: ['WebGoat-6.0.1.war'] }),
+        mkRawDataEntry(405, null, {
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              artifactId: 'apple',
+              classifier: '',
+              extension: 'jar',
+              groupId: 'apple',
+              version: '0.1',
+            },
+          },
+        }),
+        mkRawDataEntry(406, 5.0, { foo: 'bar', baz: 'qwerty' }),
+      ];
+      expect(applicationReportService.extendRawDataWithKey(rawDataEntries)).toEqual([
+        jasmine.objectContaining({ cvssScore: '4.0' }),
+        jasmine.objectContaining({ cvssScore: '' }),
+        jasmine.objectContaining({ cvssScore: '5.0' }),
+      ]);
+    });
+
+    describe('extends rawDataEntry with generated key', () => {
+      it('from pathnames', () => {
+        const rawDataEntries = [mkRawDataEntry(404, 4, { pathnames: ['WebGoat-6.0.1.war'] })];
+
+        expect(applicationReportService.extendRawDataWithKey(rawDataEntries)).toEqual([
+          jasmine.objectContaining({
+            securityCode: 'CVE-404',
+            key: 'pathnames:WebGoat-6.0.1.war\u001dCVE-404',
+          }),
+        ]);
+      });
+
+      it('from componentIdentifier', () => {
+        const rawDataEntries = [
+          mkRawDataEntry(405, null, {
+            componentIdentifier: {
+              format: 'maven',
+              coordinates: {
+                artifactId: 'apple',
+                classifier: '',
+                extension: 'jar',
+                groupId: 'apple',
+                version: '0.1',
+              },
+            },
+          }),
+        ];
+
+        expect(applicationReportService.extendRawDataWithKey(rawDataEntries)).toEqual([
+          jasmine.objectContaining({
+            securityCode: 'CVE-405',
+            cvssScore: '',
+            key:
+              'maven:artifactId\u001fapple\u001eclassifier\u001f\u001eextension\u001fjar\u001egroupId\u001fapple\u001eversion\u001f0.1\u001dCVE-405',
+          }),
+        ]);
+      });
+
+      it('from only security issue name', () => {
+        const rawDataEntries = [mkRawDataEntry(406, 5.0, { foo: 'bar', baz: 'qwerty' })];
+
+        expect(applicationReportService.extendRawDataWithKey(rawDataEntries)).toEqual([
+          jasmine.objectContaining({
+            foo: 'bar',
+            securityCode: 'CVE-406',
+            cvssScore: '5.0',
+            key: 'null\u001dCVE-406',
+          }),
+        ]);
+      });
+    });
+  });
+
   function expectNoExtraMatchData(result) {
     const hashesWithMatchDetails = new Set(
       result.filter(({ matchDetails }) => matchDetails !== undefined).map(({ hash }) => hash)

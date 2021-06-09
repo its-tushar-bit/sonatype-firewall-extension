@@ -48,6 +48,7 @@ export const REEVALUATE_REPORT_FAILED = 'REEVALUATE_REPORT_FAILED';
 export const REEVALUATE_REPORT_CANCELLED = 'REEVALUATE_REPORT_CANCELLED';
 export const GENERATE_VULNERABILITY_ENTRIES = 'GENERATE_VULNERABILITY_ENTRIES';
 export const SET_SORTING_PARAMETERS = 'SET_SORTING_PARAMETERS';
+export const SET_RAW_SORTING_PARAMETERS = 'SET_RAW_SORTING_PARAMETERS';
 export const SELECT_COMPONENT = 'SELECT_COMPONENT';
 export const APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR = 'APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR';
 
@@ -58,7 +59,6 @@ export const SET_RAW_DATA_SUBSTRING_FIELD_FILTER = 'SET_RAW_DATA_SUBSTRING_FIELD
 export const SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD_MAX_FILTER';
 export const SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER = 'SET_RAW_DATA_NUMERIC_FIELD_MIN_FILTER';
 export const SET_SORTING = 'SET_SORTING';
-export const SET_SORTING_RAW_DATA = 'SET_SORTING_RAW_DATA';
 
 export function setReportParameters(appId, scanId, isUnknownJs, embeddable, policyViolationId) {
   return {
@@ -70,6 +70,13 @@ export function setReportParameters(appId, scanId, isUnknownJs, embeddable, poli
 export function setSortingParameters(key, sortFields, dir) {
   return {
     type: SET_SORTING_PARAMETERS,
+    payload: { key, sortFields, dir },
+  };
+}
+
+export function setRawSortingParameters(key, sortFields, dir) {
+  return {
+    type: SET_RAW_SORTING_PARAMETERS,
     payload: { key, sortFields, dir },
   };
 }
@@ -236,7 +243,6 @@ const loadReportUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_UNNECESS
 const loadReportRawDataFulfilled = payloadParamActionCreator(LOAD_REPORT_RAW_DATA_FULFILLED);
 const loadReportRawDataFailed = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_FAILED);
 const loadReportRawDataUnnecessary = httpErrorMessageActionCreator(LOAD_REPORT_RAW_DATA_UNNECESSARY);
-const setSortingRawData = payloadParamActionCreator(SET_SORTING_RAW_DATA);
 const generateVulnerabilityEntries = noPayloadActionCreator(GENERATE_VULNERABILITY_ENTRIES);
 const setSelectedComponent = payloadParamActionCreator(SELECT_COMPONENT);
 const toggleFilterSidebar = payloadParamActionCreator(APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR);
@@ -336,11 +342,11 @@ export default function applicationReportActions() {
     setRawDataNumericMaxFilter,
     setRawDataNumericMinFilter,
     setSorting,
-    setSortingRawData,
     selectComponent,
     selectRootAncestor,
     unselectRootAncestor,
     setSortingParameters,
+    setRawSortingParameters,
     toggleFilterSidebar,
   };
 }

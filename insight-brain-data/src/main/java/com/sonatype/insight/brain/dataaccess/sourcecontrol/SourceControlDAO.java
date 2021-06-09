@@ -437,7 +437,7 @@ public class SourceControlDAO
         throw new BadRequestException("SourceControl provider is required for the root organization");
       }
       if (isBlank(sourceControl.getBaseBranch())) {
-        throw new BadRequestException("SourceControl default branch is required for the root organization");
+        throw new BadRequestException("SourceControl baseBranch is required for the root organization");
       }
     }
 

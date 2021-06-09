@@ -347,7 +347,7 @@ public class SourceControlDAOTest
 
     assertThatThrownBy(() -> sourceControlDAO.insert(sourceControl))
         .isInstanceOf(BadRequestException.class)
-        .hasMessage("SourceControl default branch is required for the root organization");
+        .hasMessage("SourceControl baseBranch is required for the root organization");
   }
 
   @Test
@@ -825,7 +825,7 @@ public class SourceControlDAOTest
 
     assertThatThrownBy(() -> sourceControlDAO.update(persistedSourceControl))
         .isInstanceOf(BadRequestException.class)
-        .hasMessage("SourceControl default branch is required for the root organization");
+        .hasMessage("SourceControl baseBranch is required for the root organization");
   }
 
   @Test

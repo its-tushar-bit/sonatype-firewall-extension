@@ -149,6 +149,27 @@ public class PullRequestCommentingEventHandler
     }
   }
 
+  public void onUpdatedPullRequest(SourceControlEvent event) {
+    String applicationId = event.getApplicationId();
+    GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
+
+    PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO =
+        pullRequestPolicyEvaluationResolver.resolveForPullRequest(applicationId, gitRepositoryInfo,
+            event.getPullRequestNumber(), event.getBranchName(), event.getCommitHash());
+
+    if (pullRequestPolicyEvaluationsDTO == null) {
+      return;
+    }
+
+    if (!pullRequestPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluation().wasInternallyTriggered()
+        || !pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation().wasInternallyTriggered()) {
+      // There is at least one policy evaluation triggered externally for this pull request.
+      return;
+    }
+
+    pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO);
+  }
+
   private boolean eventHasCommitHashAndScmIsEnabled(ApplicationEvaluationEvent event) {
     boolean isOk = true;
     String applicationId = event.ownerId;

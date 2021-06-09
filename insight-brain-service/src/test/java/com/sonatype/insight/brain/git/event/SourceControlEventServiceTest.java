@@ -176,7 +176,7 @@ public class SourceControlEventServiceTest
 
     // then: pull request processing invoked for the given event
     verifyUnlatched(eventsProcessedLatch);
-    verifyProcessEventsActions(events.get(0), EventProcessAction.markedInProgress, EventProcessAction.onPrDiscovered,
+    verifyProcessEventsActions(events.get(0), EventProcessAction.markedInProgress, EventProcessAction.onPrUpdated,
         EventProcessAction.markedComplete);
 
     assertThatLogMessagesEqual(
@@ -767,8 +767,8 @@ public class SourceControlEventServiceTest
 
   private enum EventProcessAction
   {
-    noPropagation, markedInProgress, markedComplete, markedHasError, onAppEval, onPrDiscovered, onComponentRemediation,
-    onManifestScan, onStatusUpdate, onRepositoryUrlUpdated
+    noPropagation, markedInProgress, markedComplete, markedHasError, onAppEval, onPrDiscovered, onPrUpdated, //
+    onComponentRemediation, onManifestScan, onStatusUpdate, onRepositoryUrlUpdated
   }
 
   private void verifyProcessEventsActions(SourceControlEvent event, EventProcessAction... conditions)
@@ -808,6 +808,7 @@ public class SourceControlEventServiceTest
 
     if (actionSet.contains(EventProcessAction.noPropagation)) {
       verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onUpdatedPullRequest(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
@@ -817,6 +818,7 @@ public class SourceControlEventServiceTest
     else if (actionSet.contains(EventProcessAction.onAppEval)) {
       verify(mockPullRequestCommentingEventHandler, times(1)).onApplicationEvaluation(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onUpdatedPullRequest(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
@@ -824,6 +826,16 @@ public class SourceControlEventServiceTest
     }
     else if (actionSet.contains(EventProcessAction.onPrDiscovered)) {
       verify(mockPullRequestCommentingEventHandler, times(1)).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onUpdatedPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
+      verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
+      verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
+      verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));
+      verify(mockSourceControlService, never()).onRepositoryUrlUpdated(eq(event));
+    }
+    else if (actionSet.contains(EventProcessAction.onPrUpdated)) {
+      verify(mockPullRequestCommentingEventHandler, times(1)).onUpdatedPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
       verify(mockPullRequestRemediationService, never()).onRemediateComponent(eq(event));
       verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
@@ -833,6 +845,7 @@ public class SourceControlEventServiceTest
     else if (actionSet.contains(EventProcessAction.onComponentRemediation)) {
       verify(mockPullRequestRemediationService, times(1)).onRemediateComponent(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onDiscoveredPullRequest(eq(event));
+      verify(mockPullRequestCommentingEventHandler, never()).onUpdatedPullRequest(eq(event));
       verify(mockPullRequestCommentingEventHandler, never()).onApplicationEvaluation(eq(event));
       verify(mockSourceControlScanService, never()).onSourceControlScan(any(SourceControlEvent.class));
       verify(mockGitCommitStatusService, never()).onSendCommitStatus(eq(event));

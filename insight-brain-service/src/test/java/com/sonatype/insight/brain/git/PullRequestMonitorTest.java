@@ -18,9 +18,6 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequ
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -43,7 +40,6 @@ import org.slf4j.MDC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -76,15 +72,11 @@ public class PullRequestMonitorTest
   @Mock
   private SourceControlEventPublisher sourceControlEventPublisherMock;
 
-  @Mock
-  private PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolverMock;
-
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(GitApiFactory.class).toInstance(gitApiFactoryMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
-    binder.bind(PullRequestPolicyEvaluationResolver.class).toInstance(pullRequestPolicyEvaluationResolverMock);
     super.configure(binder);
   }
 
@@ -177,10 +169,6 @@ public class PullRequestMonitorTest
     headCommitsByBranch.put("testBranchName1", "testHeadCommitHash1Updated");
     headCommitsByBranch.put("testBranchName2", "testHeadCommitHash2");
     when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl)).thenReturn(headCommitsByBranch);
-    when(pullRequestPolicyEvaluationResolverMock.resolveForPullRequest(eq(app.getId()), any(), eq(1),
-        eq("testBranchName1"), eq("testHeadCommitHash1Updated"))).thenReturn(
-            createMockPullRequestPolicyEvaluationsDTO(app.getId(), ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING,
-                ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST));
 
     Date before = new Date();
     pullRequestMonitor.updatePullRequestDetails();
@@ -218,15 +206,6 @@ public class PullRequestMonitorTest
     // First branch is updated
     when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
         .thenReturn(Collections.singletonMap("testBranchName", "testHeadCommitHashUpdated"));
-    when(pullRequestPolicyEvaluationResolverMock.resolveForPullRequest(eq(app1.getId()), any(), eq(1),
-        eq("testBranchName"), eq("testHeadCommitHashUpdated"))).thenReturn(
-            createMockPullRequestPolicyEvaluationsDTO(app1.getId(), ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING,
-                ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST));
-    when(pullRequestPolicyEvaluationResolverMock.resolveForPullRequest(eq(app2.getId()), any(), eq(1),
-        eq("testBranchName"), eq("testHeadCommitHashUpdated"))).thenReturn(
-            createMockPullRequestPolicyEvaluationsDTO(app1.getId(), ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING,
-                ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST));
-
     Date before = new Date();
     pullRequestMonitor.updatePullRequestDetails();
     Date after = new Date();
@@ -250,80 +229,6 @@ public class PullRequestMonitorTest
       assertThat(sourceControlEvent.getCommitHash()).isEqualTo(pullRequest.getHeadCommitHash());
       assertThat(sourceControlEvent.getPullRequestNumber()).isEqualTo(pullRequest.getPullRequestId());
     }
-  }
-
-  @Test
-  public void testUpdatePullRequestDetails_DoesNotSendEventWhenDefaultBranchPolicyEvaluationIsExternal()
-      throws Exception
-  {
-    createSourceControlForRootOrg();
-
-    // Given a pull requests
-    Application app = tempEntity.newApplicationWithParent();
-    String repositoryUrl = "http://example.com/testorg/testproject";
-    tempEntity.newSourceControl(app.getId(), repositoryUrl);
-    Date createTime = new Date(System.currentTimeMillis() - 2000);
-    Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
-    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
-        "testHeadCommitHash", "testBranchName", createTime, lastUpdateTime, lastUpdateTime);
-
-    // The pull request branch is updated
-    Map<String, String> headCommitsByBranch = new HashMap<>();
-    headCommitsByBranch.put("testBranchName", "testHeadCommitHashUpdated");
-    when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl)).thenReturn(headCommitsByBranch);
-    when(pullRequestPolicyEvaluationResolverMock.resolveForPullRequest(eq(app.getId()), any(), eq(1),
-        eq("testBranchName1"), eq("testHeadCommitHash1Updated")))
-            .thenReturn(createMockPullRequestPolicyEvaluationsDTO(app.getId(), ScanTriggerType.CONTINUOUS_INTEGRATION,
-                ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST));
-
-    Date before = new Date();
-    pullRequestMonitor.updatePullRequestDetails();
-    Date after = new Date();
-
-    // The pull request is updated
-    pullRequest = pullRequestDAO.getById(pullRequest.getId());
-    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHashUpdated", "testBranchName", createTime);
-    assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
-    assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
-
-    // And no source control event is sent
-    verify(sourceControlEventPublisherMock, never()).publishEvent(any());
-  }
-
-  @Test
-  public void testUpdatePullRequestDetails_DoesNotSendEventWhenPRBranchPolicyEvaluationIsExternal() throws Exception {
-    createSourceControlForRootOrg();
-
-    // Given a pull requests
-    Application app = tempEntity.newApplicationWithParent();
-    String repositoryUrl = "http://example.com/testorg/testproject";
-    tempEntity.newSourceControl(app.getId(), repositoryUrl);
-    Date createTime = new Date(System.currentTimeMillis() - 2000);
-    Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
-    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
-        "testHeadCommitHash", "testBranchName", createTime, lastUpdateTime, lastUpdateTime);
-
-    // The pull request branch is updated
-    Map<String, String> headCommitsByBranch = new HashMap<>();
-    headCommitsByBranch.put("testBranchName", "testHeadCommitHashUpdated");
-    when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl)).thenReturn(headCommitsByBranch);
-    when(pullRequestPolicyEvaluationResolverMock.resolveForPullRequest(eq(app.getId()), any(), eq(1),
-        eq("testBranchName1"), eq("testHeadCommitHash1Updated")))
-            .thenReturn(createMockPullRequestPolicyEvaluationsDTO(app.getId(),
-                ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING, ScanTriggerType.CONTINUOUS_INTEGRATION));
-
-    Date before = new Date();
-    pullRequestMonitor.updatePullRequestDetails();
-    Date after = new Date();
-
-    // The pull request is updated
-    pullRequest = pullRequestDAO.getById(pullRequest.getId());
-    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHashUpdated", "testBranchName", createTime);
-    assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
-    assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
-
-    // And no source control event is sent
-    verify(sourceControlEventPublisherMock, never()).publishEvent(any());
   }
 
   @Test
@@ -355,43 +260,8 @@ public class PullRequestMonitorTest
     assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
     assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
 
-    // And no source control event is sent
-    verify(sourceControlEventPublisherMock, never()).publishEvent(any());
-  }
-
-  @Test
-  public void testUpdatePullRequestDetails_DoesNotDeletePRIfBranchChangeProcessingFails() throws Exception {
-    createSourceControlForRootOrg();
-
-    // Given a pull requests
-    Application app = tempEntity.newApplicationWithParent();
-    String repositoryUrl = "http://example.com/testorg/testproject";
-    tempEntity.newSourceControl(app.getId(), repositoryUrl);
-    Date createTime = new Date(System.currentTimeMillis() - 2000);
-    Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
-    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
-        "testHeadCommitHash", "testBranchName", createTime, lastUpdateTime, lastUpdateTime);
-
-    // The pull request branch is updated
-    Map<String, String> headCommitsByBranch = new HashMap<>();
-    headCommitsByBranch.put("testBranchName", "testHeadCommitHashUpdated");
-    when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl)).thenReturn(headCommitsByBranch);
-    when(pullRequestPolicyEvaluationResolverMock.resolveForPullRequest(eq(app.getId()), any(), eq(1),
-        eq("testBranchName"), eq("testHeadCommitHashUpdated")))
-            .thenThrow(new RuntimeException("There's a tiger behind you"));
-
-    Date before = new Date();
-    pullRequestMonitor.updatePullRequestDetails();
-    Date after = new Date();
-
-    // The pull request is updated
-    pullRequest = pullRequestDAO.getById(pullRequest.getId());
-    assertPullRequest(pullRequest, repositoryUrl, 1, "testHeadCommitHashUpdated", "testBranchName", createTime);
-    assertThat(pullRequest.getLastCheckTime()).isBetween(before, after, true, true);
-    assertThat(pullRequest.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
-
-    // And no source control event is sent
-    verify(sourceControlEventPublisherMock, never()).publishEvent(any());
+    // And source control event is sent
+    verifySourceControlEventWasSent(app.getId(), pullRequest);
   }
 
   private void assertPullRequest(
@@ -423,21 +293,5 @@ public class PullRequestMonitorTest
     assertThat(sourceControlEvent.getBranchName()).isEqualTo(pullRequest.getBranchName());
     assertThat(sourceControlEvent.getCommitHash()).isEqualTo(pullRequest.getHeadCommitHash());
     assertThat(sourceControlEvent.getPullRequestNumber()).isEqualTo(pullRequest.getPullRequestId());
-  }
-
-  private PullRequestPolicyEvaluationsDTO createMockPullRequestPolicyEvaluationsDTO(
-      String appId,
-      ScanTriggerType defaultBranchScanTriggerType,
-      ScanTriggerType prBranchScanTriggerType)
-  {
-    PolicyEvaluation defaultBranchPolicyEvaluation =
-        new PolicyEvaluation(appId, StageTypes.SOURCE.getId(), "scanId1", "initiator", defaultBranchScanTriggerType);
-    PolicyEvaluation prBranchPolicyEvaluation =
-        new PolicyEvaluation(appId, StageTypes.DEVELOP.getId(), "scanId2", "initiator", prBranchScanTriggerType);
-    PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO();
-    pullRequestPolicyEvaluationsDTO.setApplicationId(appId);
-    pullRequestPolicyEvaluationsDTO.setDefaultBranchPolicyEvaluation(defaultBranchPolicyEvaluation);
-    pullRequestPolicyEvaluationsDTO.setFeatureBranchPolicyEvaluation(prBranchPolicyEvaluation);
-    return pullRequestPolicyEvaluationsDTO;
   }
 }

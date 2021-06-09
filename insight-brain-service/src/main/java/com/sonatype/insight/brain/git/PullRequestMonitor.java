@@ -76,8 +76,6 @@ public class PullRequestMonitor
 
   private final SourceControlUtils sourceControlUtils;
 
-  private final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver;
-
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
   private ExecutorService executorService;
@@ -90,7 +88,6 @@ public class PullRequestMonitor
       TaskScheduler taskScheduler,
       GitApiFactory gitApiFactory,
       SourceControlUtils sourceControlUtils,
-      PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver,
       SourceControlEventPublisher sourceControlEventPublisher,
       ApplicationDAO applicationDAO,
       SourceControlPullRequestDAO sourceControlPullRequestDAO)
@@ -99,7 +96,6 @@ public class PullRequestMonitor
     this.taskScheduler = taskScheduler;
     this.gitApiFactory = gitApiFactory;
     this.sourceControlUtils = sourceControlUtils;
-    this.pullRequestPolicyEvaluationResolver = pullRequestPolicyEvaluationResolver;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.applicationDAO = applicationDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
@@ -232,7 +228,7 @@ public class PullRequestMonitor
                 log.debug("Detected change for PR# {} for repository {} and application '{}' with ID {}.",
                     pullRequest.getPullRequestId(), pullRequest.getRepositoryUrl(), application.getName(),
                     application.getId());
-                createAndSendDiscoveredPullRequestEventIfNeeded(application, pullRequest);
+                sendUpdatedPullRequestEvent(application, pullRequest);
               }
             }
             else {
@@ -265,25 +261,10 @@ public class PullRequestMonitor
       return null;
     }
 
-    private void createAndSendDiscoveredPullRequestEventIfNeeded(
+    private void sendUpdatedPullRequestEvent(
         Application application,
         SourceControlPullRequest pullRequest)
     {
-      GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
-      PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO =
-          pullRequestPolicyEvaluationResolver.resolveForPullRequest(application.getId(), gitRepositoryInfo,
-              pullRequest.getPullRequestId(), pullRequest.getBranchName(), pullRequest.getHeadCommitHash());
-
-      if (pullRequestPolicyEvaluationsDTO == null) {
-        return;
-      }
-
-      if (!pullRequestPolicyEvaluationsDTO.getDefaultBranchPolicyEvaluation().wasInternallyTriggered()
-          || !pullRequestPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation().wasInternallyTriggered()) {
-        // There is at least one policy evaluation triggered externally for this pull request.
-        return;
-      }
-
       SourceControlEvent event = new SourceControlEvent() //
           .forUpdatedPullRequest() //
           .setApplicationId(application.getId()) //

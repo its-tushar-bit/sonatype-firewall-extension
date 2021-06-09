@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -303,6 +304,88 @@ public class PullRequestCommentingEventHandlerTest
 
     // when: invoke handler
     commentingEventHandler.onDiscoveredPullRequest(sourceControlEvent);
+
+    // then: there should have been no attempt to create a PR comment
+    verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());
+  }
+
+  @Test
+  public void testOnUpdatedPullRequest_createsComments() {
+    // given: a resolver and a discovered PR event that will lead to comments being created
+    List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
+    pullRequestPolicyEvaluationDTOs.get(0).getDefaultBranchPolicyEvaluation()
+        .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+    pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation()
+        .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs).build();
+
+    SourceControlEvent sourceControlEvent = new SourceControlEvent().forUpdatedPullRequest()
+        .setPullRequestNumber(pullRequestPolicyEvaluationDTOs.get(0).getPullRequestNumber());
+
+    // when: invoke handler
+    commentingEventHandler.onUpdatedPullRequest(sourceControlEvent);
+
+    // then: there should have been 1 attempt to create a PR comment
+    final ArgumentCaptor<PullRequestPolicyEvaluationsDTO> policyEvalDTOCaptor =
+        ArgumentCaptor.forClass(PullRequestPolicyEvaluationsDTO.class);
+
+    verify(mockPullRequestCommentingService, times(1))
+        .doCreateOrUpdatePullRequestComment(policyEvalDTOCaptor.capture());
+    PullRequestPolicyEvaluationsDTO capturedDTO = policyEvalDTOCaptor.getValue();
+    assertThat(capturedDTO).isEqualTo(pullRequestPolicyEvaluationDTOs.get(0));
+  }
+
+  @Test
+  public void testOnUpdatedPullRequest_doesNotCreateCommentsIfThereAreNoPolicyEvaluations() {
+    // given: a resolver that doesn't return any PR policy evals
+    PullRequestCommentingEventHandler commentingEventHandler =
+        new TestablePullRequestCommentingEventHandlerBuilder().build();
+
+    SourceControlEvent sourceControlEvent = new SourceControlEvent().forUpdatedPullRequest().setPullRequestNumber(1);
+
+    // when: invoke handler
+    commentingEventHandler.onUpdatedPullRequest(sourceControlEvent);
+
+    // then: there should have been no attempt to create a PR comment
+    verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());
+  }
+
+  @Test
+  public void testOnUpdatedPullRequest_doesNotCreateCommentsIfDefaultBranchPolicyEvaluationIsExternal() {
+    // given: a resolver and a discovered PR event that will lead to comments being created
+    List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
+    pullRequestPolicyEvaluationDTOs.get(0).getDefaultBranchPolicyEvaluation().setScanTriggerType(ScanTriggerType.CLI);
+    pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation()
+        .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs).build();
+
+    SourceControlEvent sourceControlEvent = new SourceControlEvent().forUpdatedPullRequest()
+        .setPullRequestNumber(pullRequestPolicyEvaluationDTOs.get(0).getPullRequestNumber());
+
+    // when: invoke handler
+    commentingEventHandler.onUpdatedPullRequest(sourceControlEvent);
+
+    // then: there should have been no attempt to create a PR comment
+    verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());
+  }
+
+  @Test
+  public void testOnUpdatedPullRequest_doesNotCreateCommentsIfPRBranchPolicyEvaluationIsExternal() {
+    // given: a resolver and a discovered PR event that will lead to comments being created
+    List<PullRequestPolicyEvaluationsDTO> pullRequestPolicyEvaluationDTOs = createDTOs("testAppId", 1);
+    pullRequestPolicyEvaluationDTOs.get(0).getDefaultBranchPolicyEvaluation()
+        .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+    pullRequestPolicyEvaluationDTOs.get(0).getFeatureBranchPolicyEvaluation().setScanTriggerType(ScanTriggerType.CLI);
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withPullRequestPolicyEvaluationDTOs(pullRequestPolicyEvaluationDTOs).build();
+
+    SourceControlEvent sourceControlEvent = new SourceControlEvent().forUpdatedPullRequest()
+        .setPullRequestNumber(pullRequestPolicyEvaluationDTOs.get(0).getPullRequestNumber());
+
+    // when: invoke handler
+    commentingEventHandler.onUpdatedPullRequest(sourceControlEvent);
 
     // then: there should have been no attempt to create a PR comment
     verify(mockPullRequestCommentingService, never()).doCreateOrUpdatePullRequestComment(any());

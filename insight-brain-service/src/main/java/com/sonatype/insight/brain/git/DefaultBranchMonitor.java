@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.DateUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -48,9 +49,7 @@ public class DefaultBranchMonitor
 
   static final String TASK_NAME = "DefaultBranchMonitor";
 
-  private static final int DEFAULT_MONITOR_INTERVAL_HOURS = 24;
-
-  private static final String DEFAULT_MONITOR_START_TIME = "00:00";
+  private final InsightConfig insightConfig;
 
   private final TaskScheduler taskScheduler;
 
@@ -60,12 +59,16 @@ public class DefaultBranchMonitor
 
   public boolean disableForTesting;
 
+  private int intervalInHours;
+
   @Inject
   public DefaultBranchMonitor(
+      InsightConfig insightConfig,
       TaskScheduler taskScheduler,
       SourceControlEventPublisher sourceControlEventPublisher,
       SourceControlDAO sourceControlDAO)
   {
+    this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlDAO = sourceControlDAO;
@@ -77,12 +80,13 @@ public class DefaultBranchMonitor
       return;
     }
 
-    taskScheduler
-        .schedulePeriodicTask(DefaultBranchMonitor.class, TASK_NAME, Duration.ofHours(DEFAULT_MONITOR_INTERVAL_HOURS),
-            getDefaultBranchMonitorStartTime());
+    intervalInHours = insightConfig.getDefaultBranchMonitoring().getIntervalInHours();
+
+    taskScheduler.schedulePeriodicTask(DefaultBranchMonitor.class, TASK_NAME, Duration.ofHours(intervalInHours),
+        getDefaultBranchMonitorStartTime());
 
     log.debug("DefaultBranchMonitor scheduled to start at {} and repeat every {} hours.",
-        getDefaultBranchMonitorStartTime(), DEFAULT_MONITOR_INTERVAL_HOURS);
+        getDefaultBranchMonitorStartTime(), intervalInHours);
   }
 
   @Override
@@ -107,7 +111,7 @@ public class DefaultBranchMonitor
     long start = System.currentTimeMillis();
     log.debug("Updating default branch source scans.");
 
-    Date scanLimitDate = Date.from(LocalDateTime.now().minusHours(DEFAULT_MONITOR_INTERVAL_HOURS)
+    Date scanLimitDate = Date.from(LocalDateTime.now().minusHours(intervalInHours)
         .atZone(ZoneId.systemDefault()).toInstant());
 
     List<SourceControl> sourceControlList
@@ -153,7 +157,8 @@ public class DefaultBranchMonitor
    */
   @VisibleForTesting
   Date getDefaultBranchMonitorStartTime() {
-    LocalTime intervalStartTime = DateUtils.getLocalTimeForHoursAndMinutes(DEFAULT_MONITOR_START_TIME);
+    LocalTime intervalStartTime =
+        DateUtils.getLocalTimeForHoursAndMinutes(insightConfig.getDefaultBranchMonitoring().getStartTime());
 
     LocalDateTime now = LocalDateTime.now();
 
@@ -163,8 +168,8 @@ public class DefaultBranchMonitor
         .withMinute(intervalStartTime.getMinute())
         .withSecond(0);
 
-    LocalDateTime effectiveStartDate =
-        DateUtils.getClosestFutureDateTime(now, intervalStartDateTime, DEFAULT_MONITOR_INTERVAL_HOURS);
+    LocalDateTime effectiveStartDate = DateUtils.getClosestFutureDateTime(now, intervalStartDateTime,
+            insightConfig.getDefaultBranchMonitoring().getIntervalInHours());
 
     return Date.from(effectiveStartDate.atZone(ZoneId.systemDefault()).toInstant());
   }

@@ -324,6 +324,14 @@ public class InsightConfig
   @JsonProperty
   private Map<String, String> matcherConfiguration;
 
+  /**
+   * This configuration allows adjusting the time the default branch monitor is executed
+   *
+   * @since 1.117
+   */
+  @JsonProperty
+  private DefaultBranchMonitoringConfig defaultBranchMonitoring;
+
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
   }
@@ -920,6 +928,14 @@ public class InsightConfig
 
   public void setLicenseLegalHdsRequestLimit(int licenseLegalHdsRequestLimit) {
     this.licenseLegalHdsRequestLimit = licenseLegalHdsRequestLimit;
+  }
+
+  public DefaultBranchMonitoringConfig getDefaultBranchMonitoring() {
+    return (defaultBranchMonitoring == null) ? new DefaultBranchMonitoringConfig() : defaultBranchMonitoring;
+  }
+
+  public void setDefaultBranchMonitoring(final DefaultBranchMonitoringConfig defaultBranchMonitoring) {
+    this.defaultBranchMonitoring = defaultBranchMonitoring;
   }
 
   public Map<String, String> getMatcherConfiguration() {

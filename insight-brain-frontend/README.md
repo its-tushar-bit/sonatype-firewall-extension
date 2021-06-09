@@ -19,6 +19,7 @@
     - [ Building and monitoring the front-end ](#building-and-monitoring-the-front-end)
     - [ Building and monitoring front-end assets outside the main bundle ](#building-and-monitoring-front-end-assets-outside-the-main-bundle)
     - [ Running tests ](#running-tests)
+    - [ Linting and Formatting ](#linting-and-formatting)
     - [ Re-installing packages with yarn ](#re-installing-packages-with-yarn)
 - [ Supported browsers and resolution ](#supported-browsers-and-resolution)
 - [ Helpful Utilities ](#helpful-utilities)

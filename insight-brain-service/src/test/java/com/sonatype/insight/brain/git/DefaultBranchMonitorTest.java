@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -21,8 +22,11 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,6 +47,9 @@ import static org.mockito.Mockito.verify;
 public class DefaultBranchMonitorTest
     extends AbstractComponentTest
 {
+  @Inject
+  private InsightConfig insightConfig;
+
   @Inject
   private DefaultBranchMonitor defaultBranchMonitor;
 
@@ -80,12 +87,32 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testUpdatePullRequestDetails_applicationToUpdateScan() {
+  public void testStart_FeatureEnabled() throws Exception {
+    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.DEFAULT_BRANCH_MONITORING.getFlag(), true));
+
+    Date expectedStartTime = defaultBranchMonitor.getDefaultBranchMonitorStartTime();
+    defaultBranchMonitor.start();
+
+    verify(taskSchedulerMock).schedulePeriodicTask(DefaultBranchMonitor.class, DefaultBranchMonitor.TASK_NAME,
+        Duration.ofHours(24),
+        expectedStartTime);
+  }
+
+  @Test
+  public void testStart_FeatureDisabled() throws Exception {
+    defaultBranchMonitor.start();
+
+    verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
+  }
+
+  @Test
+  public void testUpdatePullRequestDetails_applicationToUpdateScan() throws Exception {
     // given: application with outdated scan
+    // Service started to initialize interval
+    defaultBranchMonitor.start();
     Application app = tempEntity.newApplicationWithParent();
     LocalDateTime now = LocalDateTime.now();
-    int scanInterval = 24;
-    Date scanTime = toDate(now.minusHours(scanInterval + 1));
+    Date scanTime = toDate(now.minusHours(defaultBranchMonitor.getIntervalInHours() + 1));
     SourceControl scRoot = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null,
         SourceControlProvider.GITLAB);
     SourceControl sc = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
@@ -101,12 +128,13 @@ public class DefaultBranchMonitorTest
   }
 
   @Test
-  public void testUpdatePullRequestDetails_noApplicationsToScan() {
+  public void testUpdatePullRequestDetails_noApplicationsToScan() throws Exception {
     // given: application without scan
+    // Service started to initialize interval
+    defaultBranchMonitor.start();
     Application app = tempEntity.newApplicationWithParent();
     LocalDateTime now = LocalDateTime.now();
-    int scanInterval = 24;
-    Date scanTime = toDate(now.minusHours(scanInterval - 1));
+    Date scanTime = toDate(now.minusHours(defaultBranchMonitor.getIntervalInHours() - 1));
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,

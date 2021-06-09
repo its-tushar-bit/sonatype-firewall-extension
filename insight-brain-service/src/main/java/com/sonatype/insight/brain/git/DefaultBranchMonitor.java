@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.utils.DateUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -37,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @since 1.117
+ * @since 1.118
  */
 @Named
 @Singleton
@@ -77,6 +78,10 @@ public class DefaultBranchMonitor
   @Override
   public void start() throws Exception {
     if (disableForTesting) {
+      return;
+    }
+
+    if (!insightConfig.isExperimentalFeatureEnabled(Feature.DEFAULT_BRANCH_MONITORING)) {
       return;
     }
 
@@ -166,11 +171,17 @@ public class DefaultBranchMonitor
     LocalDateTime intervalStartDateTime = now
         .withHour(intervalStartTime.getHour())
         .withMinute(intervalStartTime.getMinute())
-        .withSecond(0);
+        .withSecond(0)
+        .withNano(0);
 
     LocalDateTime effectiveStartDate = DateUtils.getClosestFutureDateTime(now, intervalStartDateTime,
             insightConfig.getDefaultBranchMonitoring().getIntervalInHours());
 
     return Date.from(effectiveStartDate.atZone(ZoneId.systemDefault()).toInstant());
+  }
+
+  @VisibleForTesting
+  int getIntervalInHours() {
+    return intervalInHours;
   }
 }

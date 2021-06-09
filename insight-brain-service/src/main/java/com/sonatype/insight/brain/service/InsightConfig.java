@@ -951,6 +951,7 @@ public class InsightConfig
     PR_COMMENTING("prCommenting"), //
     PR_LINE_COMMENTING("prLineCommenting"), //
     PR_COMMENT_MONITORING("prCommentMonitoring"), //
+    DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring"), //
     CODE_INSIGHTS("codeInsights"), //
     SCM_ONBOARDING("scmOnboarding"), //
     INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"), //

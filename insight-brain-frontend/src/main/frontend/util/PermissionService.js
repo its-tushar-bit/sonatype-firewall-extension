@@ -18,7 +18,7 @@ module.service('PermissionService', [
   function ($http, CLMContextLocations, $q) {
     return {
       isContextAuthorized: function (permissions, ownerType, ownerId) {
-        var deferred = $q.defer();
+        const deferred = $q.defer();
 
         $http.put(CLMContextLocations.getPermissionContextTestUrl(ownerType, ownerId), permissions).then(
           function (data) {
@@ -31,6 +31,7 @@ module.service('PermissionService', [
 
         return deferred.promise;
       },
+
       isAuthorized: function (permissions, globalContext) {
         var deferred = $q.defer();
 

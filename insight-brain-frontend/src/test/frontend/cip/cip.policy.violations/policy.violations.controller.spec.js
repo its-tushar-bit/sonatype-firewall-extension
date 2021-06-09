@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 describe('policy.violations.controller', function () {
   var scope,
     policyViolationsSpy,
@@ -11,15 +10,17 @@ describe('policy.violations.controller', function () {
     Modal,
     isAuthorizedSpy,
     controller,
+    controllerConfig,
+    $http,
     mockProductFeaturesIsAvailable,
     mockSelectedComponentGet;
 
   beforeEach(
     angular.mock.module('PermissionServiceModule', function ($provide) {
-      isAuthorizedSpy = jasmine.createSpy('isAuthorized').and.returnValue(Promise.resolve(true));
+      isAuthorizedSpy = jasmine.createSpy('isContextAuthorized').and.returnValue(Promise.resolve(true));
       $provide.service('PermissionService', function () {
         return {
-          isAuthorized: isAuthorizedSpy,
+          isContextAuthorized: isAuthorizedSpy,
         };
       });
     })
@@ -51,7 +52,8 @@ describe('policy.violations.controller', function () {
     })
   );
 
-  beforeEach(inject(function ($controller, $rootScope, _$state_, _Modal_) {
+  beforeEach(inject(function ($controller, $rootScope, _$state_, _Modal_, $httpBackend) {
+    $http = $httpBackend;
     $state = _$state_;
     Modal = _Modal_;
     scope = $rootScope.$new();
@@ -59,7 +61,8 @@ describe('policy.violations.controller', function () {
     policyViolationsSpy = jasmine.createSpy('violationsresponse').and.returnValue(undefined);
     mockProductFeaturesIsAvailable = jasmine.createSpy('mockProductFeaturesIsAvailable').and.returnValue(true);
 
-    controller = $controller('PolicyViolationsController', {
+    controller = $controller;
+    controllerConfig = {
       $scope: scope,
       PolicyViolations: {
         get: function () {
@@ -71,16 +74,66 @@ describe('policy.violations.controller', function () {
       ProductFeatures: {
         isAvailable: mockProductFeaturesIsAvailable,
       },
-    });
+      $state,
+    };
+    $controller('PolicyViolationsController', controllerConfig);
     scope.$digest();
   }));
 
-  it('calls PermissionService.isAuthorized to check permissions for waiver', function () {
-    controller.$onInit();
-    expect(scope.isAddWaiverAuthorized).toEqual(false);
-    expect(isAuthorizedSpy).toHaveBeenCalledWith(['WAIVE_POLICY_VIOLATIONS'], true);
-    isAuthorizedSpy().then(() => {
-      expect(scope.isAddWaiverAuthorized).toEqual(true);
+  afterEach(inject(function (_$httpBackend_) {
+    _$httpBackend_.verifyNoOutstandingExpectation();
+    _$httpBackend_.verifyNoOutstandingRequest();
+  }));
+
+  describe('Permission Check', function () {
+    it('calls PermissionService.isContextAuthorized with ownerType and ownerId', function () {
+      const ctrl = controller('PolicyViolationsController', controllerConfig);
+      ctrl.$onInit();
+      scope.$digest();
+      expect(scope.isAddWaiverAuthorized).toEqual(false);
+      expect(isAuthorizedSpy).toHaveBeenCalledWith(['WAIVE_POLICY_VIOLATIONS'], 'ownerType', 'ownerId');
+      isAuthorizedSpy().then(() => {
+        expect(scope.isAddWaiverAuthorized).toEqual(true);
+      });
+    });
+
+    it('calls PermissionService.isContextAuthorized with app internal ID if ownerType is application', function () {
+      $http.expectGET(SpecUtil.toRegExp('/rest/application/services/summary/ownerId')).respond({ id: 'innerId' });
+      const ctrlConfig = {
+        ...controllerConfig,
+        OwnerContext: {
+          ownerId: 'ownerId',
+          ownerType: 'application',
+        },
+      };
+      const ctrl = controller('PolicyViolationsController', ctrlConfig);
+      ctrl.$onInit();
+      $http.flush();
+      scope.$digest();
+      expect(scope.isAddWaiverAuthorized).toEqual(false);
+      expect(isAuthorizedSpy).toHaveBeenCalledWith(['WAIVE_POLICY_VIOLATIONS'], 'application', 'innerId');
+      isAuthorizedSpy().then(() => {
+        expect(scope.isAddWaiverAuthorized).toEqual(true);
+      });
+    });
+
+    it('calls PermissionService.isContextAuthorized with no id if ownerType is repository', function () {
+      const ctrlConfig = {
+        ...controllerConfig,
+        OwnerContext: {
+          ownerId: 'repoId',
+          ownerType: 'repository',
+        },
+      };
+      const ctrl = controller('PolicyViolationsController', ctrlConfig);
+      ctrl.$onInit();
+      scope.$digest();
+
+      expect(scope.isAddWaiverAuthorized).toEqual(false);
+      expect(isAuthorizedSpy).toHaveBeenCalledWith(['WAIVE_POLICY_VIOLATIONS'], 'repository_container', '');
+      isAuthorizedSpy().then(() => {
+        expect(scope.isAddWaiverAuthorized).toEqual(true);
+      });
     });
   });
 

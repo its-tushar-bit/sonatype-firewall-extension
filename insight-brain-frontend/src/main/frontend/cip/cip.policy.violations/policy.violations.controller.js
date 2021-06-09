@@ -6,6 +6,7 @@
 /*global angular */
 import requestWaiverTemplate from './cip-request-waiver-modal.html';
 import getThreatColor from './threatColorUtil';
+import { getApplicationSummaryUrl } from '../../util/CLMLocation';
 
 export default function PolicyViolationsController(
   $http,
@@ -24,11 +25,36 @@ export default function PolicyViolationsController(
 
   $scope.isAddWaiverAuthorized = false;
 
-  Object.assign(vm, {
-    $onInit() {
-      PermissionService.isAuthorized(['WAIVE_POLICY_VIOLATIONS'], true).then((response) => {
+  function getContextData(ownerType, ownerId) {
+    const dataRequest = $q.defer();
+    if (ownerType === 'application') {
+      // applications need to use internal ID for permissions check
+      $http.get(getApplicationSummaryUrl(ownerId)).then(function ({ data }) {
+        dataRequest.resolve({ ownerId: data.id, ownerType });
+      });
+    } else if (ownerType === 'repository') {
+      // repositories don't use id for permissions check and need the `repository_container` type
+      dataRequest.resolve({ ownerId: '', ownerType: 'repository_container' });
+    } else {
+      dataRequest.resolve({ ownerId, ownerType });
+    }
+
+    return dataRequest.promise;
+  }
+
+  function assignWaivePermissions(permissions, ownerType, ownerId) {
+    return getContextData(ownerType, ownerId).then(function (data) {
+      const { ownerId, ownerType } = data;
+      return PermissionService.isContextAuthorized(permissions, ownerType, ownerId).then((response) => {
         $scope.isAddWaiverAuthorized = response;
       });
+    });
+  }
+
+  Object.assign(vm, {
+    $onInit() {
+      const { ownerType, ownerId } = OwnerContext;
+      assignWaivePermissions(['WAIVE_POLICY_VIOLATIONS'], ownerType, ownerId);
     },
   });
 

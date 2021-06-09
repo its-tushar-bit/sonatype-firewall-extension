@@ -5,6 +5,12 @@
  */
 package com.sonatype.insight.brain.utils;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class DateUtilsTest
 {
+  private static final DateTimeFormatter TEST_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd '@' HH:mm");
+
   @Test
   public void testGetDayOfMonthSuffix() {
     assertThat(DateUtils.getDayOfMonthSuffix(1)).isEqualTo("st");
@@ -51,5 +59,61 @@ public class DateUtilsTest
         DateUtils.getDayOfMonthSuffix(notDayOfMonth);
       }).withMessage("Illegal day of month: " + notDayOfMonth);
     }
+  }
+
+  @Test
+  public void testGetClosestFutureDateTime_intervalStartInFuture() {
+    assertExpectedFutureDateTime("2021-06-08 @ 08:30", "2021-06-08 @ 21:00", 3, "2021-06-08 @ 09:00");
+    assertExpectedFutureDateTime("2021-06-08 @ 11:45", "2021-06-08 @ 22:15", 4, "2021-06-08 @ 14:15");
+  }
+
+  @Test
+  public void testGetClosestFutureDateTime_intervalStartInPast() {
+    assertExpectedFutureDateTime("2021-06-08 @ 08:30", "2021-06-08 @ 06:00", 4, "2021-06-08 @ 10:00");
+    assertExpectedFutureDateTime("2021-06-08 @ 11:45", "2021-06-08 @ 10:15", 1, "2021-06-08 @ 12:15");
+  }
+
+  @Test
+  public void testGetLocalTimeForHoursAndMinutes_timeStringBlank() {
+    // given:
+    LocalTime testStartTime = LocalTime.now();
+
+    // when: no time supplied
+    LocalTime localTime = DateUtils.getLocalTimeForHoursAndMinutes(null);
+
+    // then:
+    assertThat(localTime).isBetween(testStartTime, LocalTime.now());
+
+    // and when: time is blank
+    localTime = DateUtils.getLocalTimeForHoursAndMinutes("");
+
+    // then:
+    assertThat(localTime).isBetween(testStartTime, LocalTime.now());
+  }
+
+  @Test
+  public void testGetLocalTimeForHoursAndMinutes_validTimes() {
+    // given: a mapping of time strings to their expected LocalTime values
+    Map<String, LocalTime> timeDataAndExpectedValues = ImmutableMap.of(
+        "2357", LocalTime.of(23, 57, 0),
+        "23:57", LocalTime.of(23, 57, 0),
+        "07:29", LocalTime.of(7, 29, 0),
+        "0945", LocalTime.of(9, 45, 0));
+
+    // verify each pair
+    timeDataAndExpectedValues.forEach((k, v) -> {
+      assertThat(DateUtils.getLocalTimeForHoursAndMinutes(k)).isEqualTo(v);
+    });
+  }
+
+  private void assertExpectedFutureDateTime(String from, String intervalStart, int interval, String expected) {
+    LocalDateTime fromDateTime = LocalDateTime.parse(from, TEST_DATETIME_FORMAT);
+    LocalDateTime intervalStartDateTime = LocalDateTime.parse(intervalStart, TEST_DATETIME_FORMAT);
+    LocalDateTime expectedFutureDateTime = LocalDateTime.parse(expected, TEST_DATETIME_FORMAT);
+
+    LocalDateTime actualFutureDateTime =
+        DateUtils.getClosestFutureDateTime(fromDateTime, intervalStartDateTime, interval);
+
+    assertThat(actualFutureDateTime).isEqualTo(expectedFutureDateTime);
   }
 }

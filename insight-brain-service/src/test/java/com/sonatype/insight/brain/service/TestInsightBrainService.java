@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseName;
+import com.sonatype.insight.brain.git.DefaultBranchMonitor;
 import com.sonatype.insight.brain.git.PullRequestMonitor;
 import com.sonatype.insight.brain.git.PullRequestPollingScheduler;
 import com.sonatype.insight.brain.git.event.SourceControlEventProcessingScheduler;
@@ -307,6 +308,7 @@ public class TestInsightBrainService
     getInstance(PersistedScanTicketCleaner.class).disableForTesting = true;
     getInstance(FirewallReleaseIntegrityLicenseListener.class).disableForTesting = true;
     getInstance(PullRequestMonitor.class).disableForTesting = true;
+    getInstance(DefaultBranchMonitor.class).disableForTesting = true;
   }
 
   @Override

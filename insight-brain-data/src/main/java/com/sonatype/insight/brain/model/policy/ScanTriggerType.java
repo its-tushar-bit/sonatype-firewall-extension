@@ -15,6 +15,7 @@ public enum ScanTriggerType
   REPOSITORY_MANAGER("Repository Manager"), //
   SOURCE_CONTROL_API("Source Control API"), //
   SOURCE_CONTROL_INTERNAL_ONBOARDING("Source Control Onboarding"), //
+  SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING("Source Control Default Branch Monitoring"), //
   SOURCE_CONTROL_INTERNAL_PULL_REQUEST("Source Control Pull Request"), //
   THIRD_PARTY("Third Party"), //
   WEB_UI("Web UI"), //

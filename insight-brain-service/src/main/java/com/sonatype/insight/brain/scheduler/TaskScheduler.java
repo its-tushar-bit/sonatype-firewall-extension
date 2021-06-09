@@ -144,7 +144,6 @@ public class TaskScheduler
   public void scheduleDailyTask(Class<? extends Job> jobClass, String name, LocalTime localTime) {
     CronScheduleBuilder schedule = CronScheduleBuilder.dailyAtHourAndMinute(localTime.getHour(), localTime.getMinute())
         .withMisfireHandlingInstructionDoNothing();
-
     JobDetail job = newJob(jobClass) //
         .withIdentity(name) //
         .build();
@@ -185,17 +184,26 @@ public class TaskScheduler
   }
 
   public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval) {
+    schedulePeriodicTask(jobClass, name, interval, null);
+  }
+
+  public void schedulePeriodicTask(Class<? extends Job> jobClass, String name, Duration interval, Date startTime) {
     JobDetail job = newJob(jobClass) //
         .withIdentity(name) //
         .build();
-    Trigger trigger = TriggerBuilder.newTrigger() //
+    TriggerBuilder triggerBuilder = TriggerBuilder.newTrigger() //
         .withIdentity(job.getKey().getName(), job.getKey().getGroup()) //
         .withSchedule(SimpleScheduleBuilder.simpleSchedule() //
             .withIntervalInMilliseconds(interval.toMillis()) //
             .repeatForever() //
             .withMisfireHandlingInstructionNextWithRemainingCount()) //
-        .modifiedByCalendar(NeverPastCalendar.CALENDAR_NAME) //
-        .build();
+        .modifiedByCalendar(NeverPastCalendar.CALENDAR_NAME);
+
+    if (startTime != null) {
+      triggerBuilder.startAt(startTime);
+    }
+
+    Trigger trigger = triggerBuilder.build();
     scheduleTask(job, trigger);
   }
 

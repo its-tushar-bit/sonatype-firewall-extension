@@ -1265,6 +1265,7 @@ public class SourceControlDAOTest
         sourceControlDAO.getCompositeSourceControlForOutdatedSourceScans(getScanLimitDate());
 
     // then: application is ignored
+    assertThat(sourceControlList).isNotNull();
     assertThat(sourceControlList.size()).isZero();
   }
 

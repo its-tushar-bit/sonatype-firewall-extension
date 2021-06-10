@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -162,7 +163,8 @@ public class LdapResourceAuditTest
 
   @Test
   public void testUpdatePriority_Unauthorized() throws Exception {
-    ldapRequest().path(LdapResource.PRIORITY_PATH).with(unauthorizedUser()).body(asList(ldapServer.getId())).put();
+    ldapRequest().path(LdapResource.PRIORITY_PATH).with(unauthorizedUser()).body(
+        Collections.singletonList(ldapServer.getId())).put();
 
     assertAuditLog(AuditEvent.PRIORITIZE_LDAP, "unauthorized");
   }

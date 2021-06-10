@@ -50,7 +50,7 @@ public class ApiCrossStageViolationServiceTest
 
   private PolicyViolationDAO policyViolationDAO;
 
-  private ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
+  private final ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
 
   @Inject
   private ApiCrossStageViolationService service;
@@ -231,9 +231,7 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationById_IdNotFound() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getCrossStageViolationById("foo");
-    });
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> service.getCrossStageViolationById("foo"));
   }
 
   @Test
@@ -246,9 +244,8 @@ public class ApiCrossStageViolationServiceTest
         new Date(baseDate.getTime() + 2));
     PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, policy, componentIdentifier, "1234", "vuln1");
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getCrossStageViolationById(violation2.getId());
-    });
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getCrossStageViolationById(violation2.getId()));
   }
 
   @Test
@@ -473,12 +470,10 @@ public class ApiCrossStageViolationServiceTest
 
   @Test
   public void testGetCrossStageViolationByConstituentId_IdNotFound() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getCrossStageViolationByConstituentId("foo");
-    });
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getCrossStageViolationByConstituentId(null);
-    });
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getCrossStageViolationByConstituentId("foo"));
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getCrossStageViolationByConstituentId(null));
   }
 
   @Test

@@ -102,10 +102,9 @@ public class NewestRiskDTOComparatorTest
 
   @Test
   public void testCompare_InvalidOrderBy() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      assertComparison(new NewestRiskDTOComparator("Invalid"), 0, newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"),
-          newDTO(4, 0, "MyPolicy", "MyApp", "d.jar"));
-    }).withMessage("Invalid orderBy property.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> assertComparison(new NewestRiskDTOComparator("Invalid"), 0, newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"),
+            newDTO(4, 0, "MyPolicy", "MyApp", "d.jar"))).withMessage("Invalid orderBy property.");
   }
 
   @Test
@@ -116,18 +115,17 @@ public class NewestRiskDTOComparatorTest
 
   @Test
   public void testCompare_EmptyOrderBy() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      assertComparison(new NewestRiskDTOComparator(""), 0, newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"),
-          newDTO(6, 1, "MyPolicy1", "MyApp1", "d.jar"));
-    }).withMessage("Invalid orderBy property.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> assertComparison(new NewestRiskDTOComparator(""), 0, newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"),
+            newDTO(6, 1, "MyPolicy1", "MyApp1", "d.jar"))).withMessage("Invalid orderBy property.");
   }
 
   @Test
   public void testCompare_LeadingCommaOrderBy() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      assertComparison(new NewestRiskDTOComparator(",THREAT_LEVEL"), 1, newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"),
-          newDTO(4, 0, "MyPolicy", "MyApp", "d.jar"));
-    }).withMessage("Invalid orderBy property.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> assertComparison(new NewestRiskDTOComparator(",THREAT_LEVEL"), 1,
+            newDTO(5, 0, "MyPolicy", "MyApp", "c.jar"),
+            newDTO(4, 0, "MyPolicy", "MyApp", "d.jar"))).withMessage("Invalid orderBy property.");
   }
 
   @Test

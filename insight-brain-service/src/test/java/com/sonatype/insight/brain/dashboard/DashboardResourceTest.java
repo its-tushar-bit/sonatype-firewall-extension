@@ -54,7 +54,7 @@ public class DashboardResourceTest
     csvTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
-  private DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
   @Override
   protected HttpRequest restRequest() {

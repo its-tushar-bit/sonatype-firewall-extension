@@ -168,9 +168,8 @@ public class CLMLicenseManagerTest
   public void testLicenseLacksClmFeatureAndFirewallFeature() throws Exception {
     clmLicenseManager.uninstallLicense();
     licenseManager.setForceVerificationFailure(true);
-    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
-      installLicense();
-    }).withMessage("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'");
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessage("License does not permit use of feature '" + CLMFeature.ID + "' or '" + FirewallFeature.ID + "'");
 
     assertThat(productLicense.getFingerprint()).isNull();
   }
@@ -517,9 +516,8 @@ public class CLMLicenseManagerTest
   @Test
   public void testInstallLicense_LegacyVersion() throws Exception {
     licenseManager.setVersion(0);
-    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
-      installLicense();
-    }).withMessage("Invalid license version: 0");
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessage("Invalid license version: 0");
   }
 
   @Test(expected = LicensingException.class)
@@ -561,9 +559,8 @@ public class CLMLicenseManagerTest
   public void testInstallLicense_LicenseDetailsFromHds_InvalidSignature() throws Exception {
     clmLicenseManager.uninstallLicense();
     mockHdsProductLicenseDetails(withInvalidSignature());
-    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
-      installLicense();
-    }).withMessageStartingWith("Could not verify signature of license details");
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessageStartingWith("Could not verify signature of license details");
     assertThat(licenseManager.isValid()).isFalse();
     assertThat(productLicense.isValid()).isFalse();
   }
@@ -572,9 +569,8 @@ public class CLMLicenseManagerTest
   public void testInstallLicense_LicenseDetailsFromHds_RequestFailure() throws Exception {
     clmLicenseManager.uninstallLicense();
     hdsMockServer.respondWith("error").andStatus(503).atUri("/rest/productLicense/v1").withoutLicense();
-    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(() -> {
-      installLicense();
-    }).withMessageContaining("Data Services are currently out of service");
+    assertThatExceptionOfType(BadGatewayException.class).isThrownBy(this::installLicense)
+        .withMessageContaining("Data Services are currently out of service");
     assertThat(licenseManager.isValid()).isFalse();
     assertThat(productLicense.isValid()).isFalse();
   }
@@ -604,9 +600,8 @@ public class CLMLicenseManagerTest
     mockHdsProductLicenseDetails(withFeatures());
     clmLicenseManager.uninstallLicense();
 
-    assertThatExceptionOfType(LicensingException.class).isThrownBy(() -> {
-      installLicense();
-    }).withMessageContaining("license does not support use of an external database");
+    assertThatExceptionOfType(LicensingException.class).isThrownBy(this::installLicense)
+        .withMessageContaining("license does not support use of an external database");
     assertThat(productLicense.isValid()).isFalse();
     assertThat(migrationTrackerDAO.isTrackerPresent(CLMLicenseManager.MIGRATION_TRACKER_EXTERNAL_DB)).isFalse();
   }

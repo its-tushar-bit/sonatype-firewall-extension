@@ -17,7 +17,7 @@ public class PolicyThreatLevelFilterTest
 {
   @Test
   public void testMinimumPolicyThreatLevel() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(Integer.valueOf(4), null);
+    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(4, null);
     PolicyViolation trueViolation = new PolicyViolation();
     trueViolation.setThreatLevel(4);
 
@@ -30,7 +30,7 @@ public class PolicyThreatLevelFilterTest
 
   @Test
   public void testMaximumPolicyThreatLevel() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(null, Integer.valueOf(4));
+    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(null, 4);
     PolicyViolation trueViolation = new PolicyViolation();
     trueViolation.setThreatLevel(4);
 
@@ -43,7 +43,7 @@ public class PolicyThreatLevelFilterTest
 
   @Test
   public void testMinimumAndMaximumPolicyThreatLevel() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(Integer.valueOf(2), Integer.valueOf(4));
+    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(2, 4);
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
     PolicyViolation v3 = new PolicyViolation();
@@ -58,7 +58,7 @@ public class PolicyThreatLevelFilterTest
 
   @Test
   public void testMinimumAndMaximumPolicyEqualThreatLevels() {
-    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(Integer.valueOf(2), Integer.valueOf(2));
+    PolicyThreatLevelFilter filter = new PolicyThreatLevelFilter(2, 2);
     PolicyViolation v1 = new PolicyViolation();
     PolicyViolation v2 = new PolicyViolation();
     PolicyViolation v3 = new PolicyViolation();
@@ -73,9 +73,9 @@ public class PolicyThreatLevelFilterTest
 
   @Test
   public void testMinimumThreatLevelExceedsMaximumThreatLevel() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatLevelFilter(Integer.valueOf(4), Integer.valueOf(2));
-    }).withMessage("Minimum policy threat level should not exceed maximum policy threat level.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> new PolicyThreatLevelFilter(4, 2))
+        .withMessage("Minimum policy threat level should not exceed maximum policy threat level.");
   }
 
   @Test
@@ -87,32 +87,26 @@ public class PolicyThreatLevelFilterTest
     String nullString = null;
     String emptyString = "";
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatLevelFilter(noComma);
-    }).withMessage(
-        "Unable to parse policy threat range from " + noComma + ". Expected format is 'min,max' or ',max' or 'min,'.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatLevelFilter(noComma))
+        .withMessage("Unable to parse policy threat range from " + noComma +
+            ". Expected format is 'min,max' or ',max' or 'min,'.");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatLevelFilter(singlePoint);
-    }).withMessage("Unable to parse policy threat range from " + singlePoint
-        + ". Expected format is 'min,max' or ',max' or 'min,'.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatLevelFilter(singlePoint))
+        .withMessage("Unable to parse policy threat range from " + singlePoint
+            + ". Expected format is 'min,max' or ',max' or 'min,'.");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatLevelFilter(notAnInteger);
-    }).withMessage("Unable to parse policy threat range from " + notAnInteger + ".");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatLevelFilter(notAnInteger))
+        .withMessage("Unable to parse policy threat range from " + notAnInteger + ".");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatLevelFilter(tooManyPoints);
-    }).withMessage("Unable to parse policy threat range from " + tooManyPoints
-        + ". Expected format is 'min,max' or ',max' or 'min,'.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatLevelFilter(tooManyPoints))
+        .withMessage("Unable to parse policy threat range from " + tooManyPoints
+            + ". Expected format is 'min,max' or ',max' or 'min,'.");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatLevelFilter(nullString);
-    }).withMessage("Unable to parse policy threat range from empty or null range.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatLevelFilter(nullString))
+        .withMessage("Unable to parse policy threat range from empty or null range.");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatLevelFilter(emptyString);
-    }).withMessage("Unable to parse policy threat range from empty or null range.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatLevelFilter(emptyString))
+        .withMessage("Unable to parse policy threat range from empty or null range.");
   }
 
   @Test

@@ -120,7 +120,7 @@ public class ClairScannerResultsHandlerTest
 
     assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(2);
     filteredClairScannerResult.getVulnerabilities()
-        .forEach(filteredVulnerability -> assertClairScannerVulnerability(filteredVulnerability));
+        .forEach(this::assertClairScannerVulnerability);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -233,7 +233,7 @@ public class ClairScannerResultsHandlerTest
 
     assertThat(filteredClairScannerResult.getVulnerabilities()).hasSize(1);
     filteredClairScannerResult.getVulnerabilities()
-        .forEach(filteredVulnerability -> assertClairScannerVulnerability(filteredVulnerability));
+        .forEach(this::assertClairScannerVulnerability);
 
     List<ThirdPartyFileCoordinate> coordinates =
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());

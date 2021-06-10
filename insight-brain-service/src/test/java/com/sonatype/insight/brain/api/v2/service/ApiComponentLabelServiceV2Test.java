@@ -27,7 +27,7 @@ public class ApiComponentLabelServiceV2Test
   @Inject
   private ApiComponentLabelServiceV2 apiComponentLabelService;
 
-  private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
   @Test
   public void testSetComponentLabel_Organization() {
@@ -92,9 +92,9 @@ public class ApiComponentLabelServiceV2Test
     Application app = tempEntity.newApplicationWithParent();
     String label = "FAKELABEL";
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash, label);
-    }).withMessage("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + ".");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiComponentLabelService.setComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash, label))
+        .withMessage("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + ".");
   }
 
   @Test
@@ -176,9 +176,8 @@ public class ApiComponentLabelServiceV2Test
     Application app = tempEntity.newApplicationWithParent();
     String label = "FAKELABEL";
 
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash,
-          label);
-    }).withMessage("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + ".");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiComponentLabelService.deleteComponentLabel(OwnerType.APPLICATION, app.getId(), componentHash, label))
+        .withMessage("Could not find a label with name 'FAKELABEL' for application with ID " + app.getId() + ".");
   }
 }

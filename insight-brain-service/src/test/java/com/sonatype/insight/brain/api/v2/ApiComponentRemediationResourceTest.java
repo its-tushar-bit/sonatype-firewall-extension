@@ -56,7 +56,7 @@ public class ApiComponentRemediationResourceTest
   private static final ComponentIdentifier MAVEN_COORDINATES_V3 = ComponentIdentifier.createMavenCoordinates("g1", "a1",
       "v3", "", "jar");
 
-  private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
   private Application app;
 

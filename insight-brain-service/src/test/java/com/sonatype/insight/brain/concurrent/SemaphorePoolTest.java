@@ -112,7 +112,7 @@ public class SemaphorePoolTest
   }
 
   @Test
-  public void testAcquire_blankKey() throws Exception {
+  public void testAcquire_blankKey() {
     // given: an empty semaphore pool
     SemaphorePool semaphorePool = new SemaphorePool(20);
 

@@ -28,7 +28,7 @@ public class HashComponentIdentifierResourceAuditTest
 
   private static final String COMMENT = "comment";
 
-  private HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
+  private final HashComponentIdentifierDAO hashComponentIdentifierDAO = new HashComponentIdentifierDAO();
 
   @Before
   public void before() throws Exception {

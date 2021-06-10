@@ -367,7 +367,7 @@ public class ScanPolicyEvaluatorTest
 
     // Delete all violations
     PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
-    inactiveViolations.forEach(inactiveViolation -> policyViolationDAO.delete(inactiveViolation));
+    inactiveViolations.forEach(policyViolationDAO::delete);
 
     // Evaluate again. No policy violations should be grandfathered.
     String scanId2 = simulateReportIsAvailable("report");

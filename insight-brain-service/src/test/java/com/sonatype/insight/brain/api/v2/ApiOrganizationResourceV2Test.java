@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiOrganizationResourceV2Test
     extends AbstractResourceTest
 {
-  private RoleDAO roleDAO = new RoleDAO();
+  private final RoleDAO roleDAO = new RoleDAO();
 
   private Organization organization;
 

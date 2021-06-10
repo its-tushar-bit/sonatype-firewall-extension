@@ -77,9 +77,9 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_bom_v1_0() throws Exception {
     String bom = getBomFile("valid_bom_1_0.xml");
-    assertThatExceptionOfType(NotAcceptableException.class).isThrownBy(() -> {
-      thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
-    }).withMessage("Cyclone version 1.0 is not supported");
+    assertThatExceptionOfType(NotAcceptableException.class)
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null))
+        .withMessage("Cyclone version 1.0 is not supported");
   }
 
   @Test
@@ -311,27 +311,25 @@ public class ApiThirdPartyScanServiceTest
   public void testScanComponents_StageNotLicensed() {
     productLicenseManager.setStageTypes(StageTypes.RELEASE);
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, "bom", null);
-    }).withMessage("Stage 'build' is not supported by your license.");
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, "bom", null))
+        .withMessage("Stage 'build' is not supported by your license.");
   }
 
   @Test
-  public void testScanComponents_NullBom() throws Exception {
-    String bom = null;
-
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, bom, null);
-    }).withMessage("sbom content is null or empty");
+  public void testScanComponents_NullBom() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", Stage.ID_BUILD, null, null))
+        .withMessage("sbom content is null or empty");
   }
 
   @Test
   public void testScanComponents_InvalidStage() throws Exception {
     String bom = getBomFile("invalid_bom.xml");
 
-    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
-      thirdPartyScanService.scanComponents(app.getId(), "clair", "invalidStage", bom, null);
-    }).withMessage("Invalid stage id=invalidStage");
+    assertThatExceptionOfType(InvalidStageException.class)
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "invalidStage", bom, null))
+        .withMessage("Invalid stage id=invalidStage");
   }
 
   @Test
@@ -352,17 +350,17 @@ public class ApiThirdPartyScanServiceTest
   @Test
   public void testScanComponents_Invalid_Content_Json() throws Exception {
     String bom = getBomFile("invalid_bom.json");
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
-    }).withMessage("sbom content cannot be parsed");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
+        .withMessage("sbom content cannot be parsed");
   }
 
   @Test
   public void testScanComponents_Invalid_Content_Xml() throws Exception {
     String bom = getBomFile("invalid_xml_bom.xml");
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null);
-    }).withMessage("sbom content cannot be parsed");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> thirdPartyScanService.scanComponents(app.getId(), "clair", "build", bom, null))
+        .withMessage("sbom content cannot be parsed");
   }
 
   private void testScanComponents_Invalid_Content(String fileName) throws Exception {

@@ -19,17 +19,16 @@ public class ComponentIdentifierValidatorTest
 {
   @Test
   public void testValidateNull() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      ComponentIdentifierValidator.validate(null);
-    }).withMessage("The component identifier cannot be null.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> ComponentIdentifierValidator.validate(null))
+        .withMessage("The component identifier cannot be null.");
   }
 
   @Test
   public void testValidateInvalid() throws Exception {
     ComponentIdentifier componentIdentifier = JsonUtils.parse("{}", ComponentIdentifier.class);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      ComponentIdentifierValidator.validate(componentIdentifier);
-    }).withCauseInstanceOf(InvalidComponentIdentifierException.class)
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> ComponentIdentifierValidator.validate(componentIdentifier))
+        .withCauseInstanceOf(InvalidComponentIdentifierException.class)
         .satisfies(e -> assertThat(e.getMessage()).isEqualTo(e.getCause().getMessage()));
   }
 }

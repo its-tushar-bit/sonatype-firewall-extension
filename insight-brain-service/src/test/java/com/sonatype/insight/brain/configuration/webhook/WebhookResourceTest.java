@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WebhookResourceTest
     extends AbstractResourceTest
 {
-  private WebhookDAO webhookDao = new WebhookDAO();
+  private final WebhookDAO webhookDao = new WebhookDAO();
 
   @Override
   protected HttpRequest restRequest() {

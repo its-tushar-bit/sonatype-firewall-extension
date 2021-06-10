@@ -85,9 +85,7 @@ public class ExportEmbeddedDatabaseCommandTest
       File dumpFile = new File(tempDir.getRoot(), "dump.sql.gz");
 
       TestInsightBrainService service = newService();
-      service.setConfigurator(config -> {
-        initData(config);
-      });
+      service.setConfigurator(this::initData);
 
       service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
 
@@ -109,9 +107,7 @@ public class ExportEmbeddedDatabaseCommandTest
       File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
       TestInsightBrainService service = newService();
-      service.setConfigurator(config -> {
-        initData(config);
-      });
+      service.setConfigurator(this::initData);
 
       service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
 

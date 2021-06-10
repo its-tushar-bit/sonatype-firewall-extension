@@ -79,16 +79,16 @@ public class ApiCycloneDxServiceV2Test
 
   @Test
   public void testGetByScanId_unknownApplicationId() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getByScanId("fake-app", "fake-scan-id", "application/xml", Version.VERSION_11);
-    }).withMessageContaining("Could not find an application with ID fake-app");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getByScanId("fake-app", "fake-scan-id", "application/xml", Version.VERSION_11))
+        .withMessageContaining("Could not find an application with ID fake-app");
   }
 
   @Test
   public void testGetByScanId_unknownScanId() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getByScanId(application.getId(), "fake-scan-id", "application/xml", Version.VERSION_11);
-    }).withMessageContaining("Could not find a report with ID fake-scan-id");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> service.getByScanId(application.getId(), "fake-scan-id", "application/xml", Version.VERSION_11))
+        .withMessageContaining("Could not find a report with ID fake-scan-id");
   }
 
   @Test
@@ -131,16 +131,16 @@ public class ApiCycloneDxServiceV2Test
 
   @Test
   public void testGetLatest_unknownApplicationId() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getLatest("fake-app", ReleaseStageType.ID, "application/xml", Version.VERSION_11);
-    }).withMessageContaining("Could not find an application with ID fake-app");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getLatest("fake-app", ReleaseStageType.ID, "application/xml", Version.VERSION_11))
+        .withMessageContaining("Could not find an application with ID fake-app");
   }
 
   @Test
   public void testGetLatest_noScanInStage() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getLatest(application.getId(), ReleaseStageType.ID, "application/xml", Version.VERSION_11);
-    }).withMessageContaining("Unable to locate a scan for " + application.getId() + " in stage release");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> service.getLatest(application.getId(), ReleaseStageType.ID, "application/xml", Version.VERSION_11))
+        .withMessageContaining("Unable to locate a scan for " + application.getId() + " in stage release");
   }
 
   @Test

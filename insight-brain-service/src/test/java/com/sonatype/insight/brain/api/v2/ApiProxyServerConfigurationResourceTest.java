@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiProxyServerConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
 
   @Override
   protected void afterDatabaseReset() {

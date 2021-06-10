@@ -20,7 +20,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.quality.Strictness;
@@ -47,11 +46,11 @@ public class PagedNamingEnumerationTest
   @Mock
   private SearchResult result;
 
-  private String baseDN = "baseDN";
+  private final String baseDN = "baseDN";
 
-  private String filter = "filter";
+  private final String filter = "filter";
 
-  private SearchControls searchControls = new SearchControls();
+  private final SearchControls searchControls = new SearchControls();
 
   private byte pageSize = 17;
 
@@ -94,9 +93,8 @@ public class PagedNamingEnumerationTest
     Control[] requestControls = {};
     when(ctx.getRequestControls()).thenReturn(requestControls);
     when(ctx.search(baseDN, filter, searchControls)).thenThrow(NamingException.class);
-    assertThatThrownBy(() -> {
-      new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-    }).isInstanceOf(NamingException.class);
+    assertThatThrownBy(() -> new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize))
+        .isInstanceOf(NamingException.class);
     verify(ctx).setRequestControls(same(requestControls));
   }
 
@@ -110,13 +108,9 @@ public class PagedNamingEnumerationTest
   @Test
   public void testClose_ClosesCookie() throws Exception {
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
-    when(results.hasMore()).thenAnswer(new Answer<Boolean>()
-    {
-      @Override
-      public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        when(ctx.getResponseControls()).thenReturn(newResponseControls(cookie));
-        return false;
-      }
+    when(results.hasMore()).thenAnswer((Answer<Boolean>) invocation -> {
+      when(ctx.getResponseControls()).thenReturn(newResponseControls(cookie));
+      return false;
     }).thenReturn(true);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
     en.hasMore();
@@ -158,9 +152,7 @@ public class PagedNamingEnumerationTest
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
     when(results.hasMore()).thenReturn(false);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-    assertThatThrownBy(() -> {
-      en.nextElement();
-    }).isInstanceOf(NoSuchElementException.class);
+    assertThatThrownBy(en::nextElement).isInstanceOf(NoSuchElementException.class);
   }
 
   @Test
@@ -175,13 +167,9 @@ public class PagedNamingEnumerationTest
   @Test
   public void testHasMore_PageComplete_SearchIncomplete() throws Exception {
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
-    when(results.hasMore()).thenAnswer(new Answer<Boolean>()
-    {
-      @Override
-      public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        when(ctx.getResponseControls()).thenReturn(newResponseControls(cookie));
-        return false;
-      }
+    when(results.hasMore()).thenAnswer((Answer<Boolean>) invocation -> {
+      when(ctx.getResponseControls()).thenReturn(newResponseControls(cookie));
+      return false;
     }).thenReturn(true);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
     verify(ctx).search(baseDN, filter, searchControls);
@@ -195,13 +183,9 @@ public class PagedNamingEnumerationTest
   @Test
   public void testHasMore_PageComplete_SearchComplete() throws Exception {
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
-    when(results.hasMore()).thenAnswer(new Answer<Boolean>()
-    {
-      @Override
-      public Boolean answer(InvocationOnMock invocation) throws Throwable {
-        when(ctx.getResponseControls()).thenReturn(newResponseControls(null));
-        return false;
-      }
+    when(results.hasMore()).thenAnswer((Answer<Boolean>) invocation -> {
+      when(ctx.getResponseControls()).thenReturn(newResponseControls(null));
+      return false;
     });
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
     verify(ctx).search(baseDN, filter, searchControls);
@@ -223,8 +207,6 @@ public class PagedNamingEnumerationTest
     when(ctx.search(baseDN, filter, searchControls)).thenReturn(results);
     when(results.hasMore()).thenReturn(false);
     PagedNamingEnumeration en = new PagedNamingEnumeration(ctx, baseDN, filter, searchControls, pageSize);
-    assertThatThrownBy(() -> {
-      en.next();
-    }).isInstanceOf(NoSuchElementException.class);
+    assertThatThrownBy(en::next).isInstanceOf(NoSuchElementException.class);
   }
 }

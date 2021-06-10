@@ -119,7 +119,7 @@ public class ApplicationAdapterTest
   public void testConvert_Application_WithUserDirectoryException() {
     Application application = createApplication(organizationId, applicationName, applicationId, contactInternalName);
 
-    UserDirectory.QueryResult result = new UserDirectory.QueryResult(new ArrayList<Member>(),
+    UserDirectory.QueryResult result = new UserDirectory.QueryResult(new ArrayList<>(),
         new Exception(TEST_MESSAGE));
     UserDirectory mockUserDirectory = mock(UserDirectory.class);
     when(mockUserDirectory.getUsersByName(Collections.singleton(contactInternalName))).thenReturn(result);

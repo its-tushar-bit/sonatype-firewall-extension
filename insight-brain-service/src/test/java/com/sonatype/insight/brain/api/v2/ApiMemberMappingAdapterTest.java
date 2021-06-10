@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiMemberMappingAdapterTest
     extends AbstractComponentTest
 {
-  private ApiMemberMappingAdapter apiMemberMappingAdapter = new ApiMemberMappingAdapter();
+  private final ApiMemberMappingAdapter apiMemberMappingAdapter = new ApiMemberMappingAdapter();
 
   private final String roleId = "testRoleId";
 

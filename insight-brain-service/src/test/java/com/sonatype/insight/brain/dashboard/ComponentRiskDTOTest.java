@@ -32,18 +32,18 @@ public class ComponentRiskDTOTest
   }
 
   @Test
-  public void testToCsvLine_WithDisplayName() throws Exception {
+  public void testToCsvLine_WithDisplayName() {
     assertThat(risk.toCsvLine()).isEqualTo("displayNameValue,1,14,2,3,4,5");
   }
 
   @Test
-  public void testToCsvLine_WithoutDisplayName() throws Exception {
+  public void testToCsvLine_WithoutDisplayName() {
     risk.displayName = null;
     assertThat(risk.toCsvLine()).isEqualTo("filename,1,14,2,3,4,5");
   }
 
   @Test
-  public void testToCsvLine_WithoutDisplayNameOrFilename() throws Exception {
+  public void testToCsvLine_WithoutDisplayNameOrFilename() {
     risk.displayName = null;
     risk.filename = null;
     assertThat(risk.toCsvLine()).isEqualTo("(Anonymized Path) SHA1: theHash,1,14,2,3,4,5");
@@ -52,7 +52,7 @@ public class ComponentRiskDTOTest
   }
 
   @Test
-  public void testToCsvLine_QuotedIfNecessary() throws Exception {
+  public void testToCsvLine_QuotedIfNecessary() {
     risk.displayName = null;
     risk.filename = "filename,1";
     assertThat(risk.toCsvLine()).isEqualTo("\"filename,1\",1,14,2,3,4,5");

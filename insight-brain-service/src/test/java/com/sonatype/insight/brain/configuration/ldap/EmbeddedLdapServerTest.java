@@ -91,9 +91,8 @@ public class EmbeddedLdapServerTest
 
     Hashtable<String, Object> env = getEnv(AUTH_DIGESTMD5);
     env.put("java.naming.security.sasl.realm", "wrongrealm");
-    assertThatThrownBy(() -> {
-      new InitialDirContext(env).close();
-    }).isInstanceOf(NamingException.class).hasMessageContaining("Nonexistent realm: wrongrealm");
+    assertThatThrownBy(() -> new InitialDirContext(env).close()).isInstanceOf(NamingException.class)
+        .hasMessageContaining("Nonexistent realm: wrongrealm");
   }
 
   @Test

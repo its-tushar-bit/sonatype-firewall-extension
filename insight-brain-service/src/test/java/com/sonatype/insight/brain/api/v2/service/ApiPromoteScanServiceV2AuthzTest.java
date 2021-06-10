@@ -59,9 +59,9 @@ public class ApiPromoteScanServiceV2AuthzTest
   @Test
   public void testGetApplicationEvaluationStatus_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getApplicationEvaluationStatus(app.getId(), "statusId");
-    }).withMessage("Policy evaluation status with id %s for public application id %s was not found.", "statusId",
-        app.getPublicId());
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getApplicationEvaluationStatus(app.getId(), "statusId"))
+        .withMessage("Policy evaluation status with id %s for public application id %s was not found.", "statusId",
+            app.getPublicId());
   }
 }

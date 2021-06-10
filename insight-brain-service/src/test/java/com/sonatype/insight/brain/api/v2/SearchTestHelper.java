@@ -110,7 +110,6 @@ public class SearchTestHelper
       String stageId,
       List<ComponentInfo> componentInfos,
       String scanId)
-      throws Exception
   {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(appPublicId.toUpperCase(Locale.ENGLISH), appPublicId, org.getId());
@@ -118,9 +117,7 @@ public class SearchTestHelper
     return app;
   }
 
-  void createScanForApp(Application app, String stageId, List<ComponentInfo> componentInfos, String scanId)
-      throws Exception
-  {
+  void createScanForApp(Application app, String stageId, List<ComponentInfo> componentInfos, String scanId) {
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), stageId, scanId);
 
     Map<String, Policy> policies = new HashMap<>();

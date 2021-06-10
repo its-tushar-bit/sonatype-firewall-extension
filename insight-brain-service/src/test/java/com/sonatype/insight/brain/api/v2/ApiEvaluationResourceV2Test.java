@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -66,7 +65,7 @@ public class ApiEvaluationResourceV2Test
 
   private Application app;
 
-  private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
   private static final String SCAN_ID = "scanId";
 
@@ -223,9 +222,10 @@ public class ApiEvaluationResourceV2Test
     request.components.add(component2);
 
     // Create a mock return for the first component
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Collections.singletonList(new License("Apache-2.0",
         "Apache-2.0")));
-    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(
+        Collections.singletonList(new License("ATT", "ATT")));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(
@@ -282,8 +282,9 @@ public class ApiEvaluationResourceV2Test
 
     Map<String, Policy> policies = componentEvaluationV2Helper.createPolicies(org, app);
     LinkedHashSet<License> declaredLicenseSet =
-        new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0", "Apache-2.0")));
-    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+        new LinkedHashSet<>(Collections.singletonList(new License("Apache-2.0", "Apache-2.0")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(
+        Collections.singletonList(new License("ATT", "ATT")));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentEvaluationDataList componentEvaluationDataList =
@@ -324,9 +325,10 @@ public class ApiEvaluationResourceV2Test
     request.components.add(component1);
 
     // Create a mock return for the first component
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Collections.singletonList(new License("Apache-2.0",
         "Apache-2.0")));
-    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(
+        Collections.singletonList(new License("ATT", "ATT")));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
@@ -385,9 +387,10 @@ public class ApiEvaluationResourceV2Test
     tempEntity.newClaimedComponent("h2", componentIdentifier2);
 
     // Create a mock return for the first component
-    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("Apache-2.0",
+    LinkedHashSet<License> declaredLicenseSet = new LinkedHashSet<>(Collections.singletonList(new License("Apache-2.0",
         "Apache-2.0")));
-    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(Arrays.asList(new License("ATT", "ATT")));
+    LinkedHashSet<License> observedLicenseSet = new LinkedHashSet<>(
+        Collections.singletonList(new License("ATT", "ATT")));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
 
     ComponentEvaluationDataList componentEvaluationDataList = createComponentEvaluationDataList(

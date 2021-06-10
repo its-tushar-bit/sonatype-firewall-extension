@@ -121,13 +121,7 @@ public class AbstractComponentTest
   }
 
   private void bindManagedComponentObserver(Binder binder) {
-    InjectionListener<Object> injectionListener = new InjectionListener<Object>()
-    {
-      @Override
-      public void afterInjection(Object injectee) {
-        managedComponents.add((Managed) injectee);
-      }
-    };
+    InjectionListener<Object> injectionListener = injectee -> managedComponents.add((Managed) injectee);
     TypeListener typeListener = new TypeListener()
     {
       @Override

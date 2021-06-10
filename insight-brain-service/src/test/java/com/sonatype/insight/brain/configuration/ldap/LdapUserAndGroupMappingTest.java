@@ -243,7 +243,7 @@ public class LdapUserAndGroupMappingTest
 
   private LdapUserAndGroupMappingTest checkMapping(
       LdapConnection ldapConnection,
-      LdapUserMapping ldapUserMapping) throws Exception
+      LdapUserMapping ldapUserMapping)
   {
     ldapService.upsertLdapConnection(ldapConnection);
     List<LdapUser> users = ldapService.testLdapUserMapping(ldapUserMapping.getServerId(), ldapUserMapping, -1);

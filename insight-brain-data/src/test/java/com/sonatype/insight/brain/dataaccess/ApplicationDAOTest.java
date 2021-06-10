@@ -189,7 +189,7 @@ public class ApplicationDAOTest
 
     // then: app1 and app3 associated, app2 is NOT
     assertThat(repoApps).hasSize(2);
-    Set<String> applicationIds = repoApps.stream().map(p -> p.getId()).collect(Collectors.toSet());
+    Set<String> applicationIds = repoApps.stream().map(Application::getId).collect(Collectors.toSet());
     assertThat(applicationIds).contains("app1");
     assertThat(applicationIds).contains("app3");
     assertThat(applicationIds).doesNotContain("app2");

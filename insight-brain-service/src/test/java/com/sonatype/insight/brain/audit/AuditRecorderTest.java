@@ -259,9 +259,7 @@ public class AuditRecorderTest
   @Test
   public void testRecordUserEvent_UnknownError() {
     runRecordUserEventTest(
-        recordingAuditData -> {
-          recordingAuditData.setEvent(AuditEvent.LOGIN);
-        },
+        recordingAuditData -> recordingAuditData.setEvent(AuditEvent.LOGIN),
         httpServletRequest -> {
         },
         AuditEvent.LOGIN,

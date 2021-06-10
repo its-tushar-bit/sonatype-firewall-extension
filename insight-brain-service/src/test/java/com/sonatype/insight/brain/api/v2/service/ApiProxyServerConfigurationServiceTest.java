@@ -43,7 +43,7 @@ public class ApiProxyServerConfigurationServiceTest
   @Inject
   private PasswordHandler passwordHandler;
 
-  private ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
 
   @Mock
   private ProxyServerConfigurationListener proxyServerConfigurationListener;
@@ -79,9 +79,9 @@ public class ApiProxyServerConfigurationServiceTest
 
   @Test
   public void testGetConfiguration_NoConfiguration() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      proxyServerConfigurationService.getConfiguration();
-    }).withMessageContaining("Proxy server not configured");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> proxyServerConfigurationService.getConfiguration())
+        .withMessageContaining("Proxy server not configured");
   }
 
   @Test
@@ -296,9 +296,9 @@ public class ApiProxyServerConfigurationServiceTest
     configurationDTO.password = "mysecret".toCharArray();
     configurationDTO.passwordIsIncluded = false;
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      proxyServerConfigurationService.setConfiguration(configurationDTO);
-    }).withMessageContaining("The password must be provided when the hostname or port are updated");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> proxyServerConfigurationService.setConfiguration(configurationDTO))
+        .withMessageContaining("The password must be provided when the hostname or port are updated");
 
     assertThat(configurationDTO.password).containsOnly('0');
 
@@ -330,9 +330,9 @@ public class ApiProxyServerConfigurationServiceTest
     configurationDTO.password = "mysecret".toCharArray();
     configurationDTO.passwordIsIncluded = true;
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      proxyServerConfigurationService.setConfiguration(configurationDTO);
-    }).withMessageContaining("Invalid hostname provided for the proxy server");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> proxyServerConfigurationService.setConfiguration(configurationDTO))
+        .withMessageContaining("Invalid hostname provided for the proxy server");
   }
 
   @Test
@@ -352,9 +352,9 @@ public class ApiProxyServerConfigurationServiceTest
     configurationDTO.password = "mysecret".toCharArray();
     configurationDTO.passwordIsIncluded = false;
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      proxyServerConfigurationService.setConfiguration(configurationDTO);
-    }).withMessageContaining("The password must be provided when the hostname or port are updated");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> proxyServerConfigurationService.setConfiguration(configurationDTO))
+        .withMessageContaining("The password must be provided when the hostname or port are updated");
 
     assertThat(configurationDTO.password).containsOnly('0');
 
@@ -370,9 +370,9 @@ public class ApiProxyServerConfigurationServiceTest
 
   @Test
   public void testSetConfiguration_NoRequestDTO() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      proxyServerConfigurationService.setConfiguration(null);
-    }).withMessage("No proxy server configuration was provided.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> proxyServerConfigurationService.setConfiguration(null))
+        .withMessage("No proxy server configuration was provided.");
   }
 
   @Test
@@ -391,9 +391,9 @@ public class ApiProxyServerConfigurationServiceTest
 
   @Test
   public void testDeleteConfiguration_NoConfiguration() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      proxyServerConfigurationService.deleteConfiguration();
-    }).withMessageContaining("Proxy server not configured");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> proxyServerConfigurationService.deleteConfiguration())
+        .withMessageContaining("Proxy server not configured");
 
     verifyNoInteractions(proxyServerConfigurationListener);
   }

@@ -144,20 +144,17 @@ public class PolicyThreatCategoryFilterTest
     String emptyString = "";
     String nullString = null;
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatCategoryFilter(emptyCategory);
-    }).withMessage("Unknown policy threat category with name: ");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatCategoryFilter(emptyCategory))
+        .withMessage("Unknown policy threat category with name: ");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatCategoryFilter(nonExistentCategory);
-    }).withMessage("Unknown policy threat category with name: category1");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> new PolicyThreatCategoryFilter(nonExistentCategory))
+        .withMessage("Unknown policy threat category with name: category1");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatCategoryFilter(emptyString);
-    }).withMessage("Unable to parse policy threat categories from empty or null categories.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatCategoryFilter(emptyString))
+        .withMessage("Unable to parse policy threat categories from empty or null categories.");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      new PolicyThreatCategoryFilter(nullString);
-    }).withMessage("Unable to parse policy threat categories from empty or null categories.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> new PolicyThreatCategoryFilter(nullString))
+        .withMessage("Unable to parse policy threat categories from empty or null categories.");
   }
 }

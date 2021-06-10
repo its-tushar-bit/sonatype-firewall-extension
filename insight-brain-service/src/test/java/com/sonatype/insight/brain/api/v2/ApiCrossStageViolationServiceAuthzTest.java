@@ -30,7 +30,7 @@ public class ApiCrossStageViolationServiceAuthzTest
   @Inject
   private ApiCrossStageViolationService service;
 
-  private ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
+  private final ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("foo", "1.0.0");
 
   @Test
   public void testGetCrossStageViolationById_Authorized() {
@@ -50,9 +50,8 @@ public class ApiCrossStageViolationServiceAuthzTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "1234", "vuln1");
 
-    assertThatExceptionOfType(UnauthorizedException.class).isThrownBy(() -> {
-      service.getCrossStageViolationById(violation.getId());
-    });
+    assertThatExceptionOfType(UnauthorizedException.class)
+        .isThrownBy(() -> service.getCrossStageViolationById(violation.getId()));
   }
 
   @Test
@@ -61,8 +60,7 @@ public class ApiCrossStageViolationServiceAuthzTest
     PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scan1", new Date());
     PolicyViolation violation = tempEntity.newPolicyViolation(eval, policy, componentIdentifier, "1234", "vuln1");
 
-    assertThatExceptionOfType(UnauthenticatedException.class).isThrownBy(() -> {
-      service.getCrossStageViolationById(violation.getId());
-    });
+    assertThatExceptionOfType(UnauthenticatedException.class)
+        .isThrownBy(() -> service.getCrossStageViolationById(violation.getId()));
   }
 }

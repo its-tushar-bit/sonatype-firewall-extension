@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DashboardResourceAuditTest
     extends AbstractAuditTest
 {
-  private DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
+  private final DashboardFilterDAO dashboardFilterDAO = new DashboardFilterDAO();
 
   @Test
   public void testUpdateDashboardFilterForCurrentUser() throws Exception {

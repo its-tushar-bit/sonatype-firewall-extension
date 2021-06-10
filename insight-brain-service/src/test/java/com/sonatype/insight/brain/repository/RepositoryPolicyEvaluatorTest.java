@@ -318,7 +318,7 @@ public class RepositoryPolicyEvaluatorTest
     assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, repository, before1, after1, activeViolations);
     // ... and one logged as waived
     List<RepositoryPolicyViolation> waivedViolations = activeViolations.stream()
-        .filter(violation -> violation.isWaived()).collect(toList());
+        .filter(RepositoryPolicyViolation::isWaived).collect(toList());
     assertThat(waivedViolations).hasSize(1);
     assertPolicyViolationsLogged(PolicyViolationLogEvent.WAIVE, repository, before1, after1, waivedViolations);
 
@@ -379,7 +379,7 @@ public class RepositoryPolicyEvaluatorTest
 
     // ... and one as waived
     List<RepositoryPolicyViolation> waivedViolations =
-        activeViolations.stream().filter(violation -> violation.isWaived()).collect(toList());
+        activeViolations.stream().filter(RepositoryPolicyViolation::isWaived).collect(toList());
     assertThat(waivedViolations).hasSize(1);
     RepositoryComponent repositoryComponent =
         repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), waivedViolations.get(0).getPathname());

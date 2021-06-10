@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiMailConfigurationResourceAuditTest
     extends AbstractAuditTest
 {
-  private MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
+  private final MailConfigurationDAO mailConfigurationDAO = new MailConfigurationDAO();
 
   @Override
   protected HttpRequest restRequest() {

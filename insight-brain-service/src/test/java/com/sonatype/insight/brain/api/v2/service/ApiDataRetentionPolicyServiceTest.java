@@ -39,7 +39,7 @@ public class ApiDataRetentionPolicyServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
-  private DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
+  private final DataRetentionPolicyDAO dataRetentionPolicyDAO = new DataRetentionPolicyDAO();
 
   @Test
   public void testGetDataRetentionPolicies_AppReports() {
@@ -54,9 +54,7 @@ public class ApiDataRetentionPolicyServiceTest
     assertThat(dto.applicationReports.stages).containsOnlyKeys(Stage.ID_DEVELOP, Stage.ID_SOURCE, Stage.ID_BUILD,
         Stage.ID_STAGE_RELEASE, Stage.ID_RELEASE, Stage.ID_OPERATE,
         DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING);
-    assertThat(dto.applicationReports.stages.values()).allSatisfy(policyDTO -> {
-      assertThat(policyDTO).isNotNull();
-    });
+    assertThat(dto.applicationReports.stages.values()).allSatisfy(policyDTO -> assertThat(policyDTO).isNotNull());
     assertThat(dto.applicationReports.stages).allSatisfy((contextId, policyDTO) -> {
       if (!Stage.ID_BUILD.equals(contextId) && !Stage.ID_DEVELOP.equals(contextId)) {
         assertThat(policyDTO.inheritPolicy).isTrue();
@@ -172,9 +170,9 @@ public class ApiDataRetentionPolicyServiceTest
     dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.put(Stage.ID_BUILD, new ApiReportRetentionPolicyDTO(true, false, null, null));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dataRetentionPolicyService.setDataRetentionPolicies(Organization.ROOT_ORGANIZATION_ID, dto);
-    }).withMessageContaining("root organization cannot inherit");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dataRetentionPolicyService.setDataRetentionPolicies(Organization.ROOT_ORGANIZATION_ID, dto))
+        .withMessageContaining("root organization cannot inherit");
   }
 
   @Test
@@ -183,9 +181,9 @@ public class ApiDataRetentionPolicyServiceTest
     dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.put(Stage.ID_PROXY, new ApiReportRetentionPolicyDTO(false, false, null, null));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto);
-    }).withMessageContaining("Invalid stage id");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto))
+        .withMessageContaining("Invalid stage id");
   }
 
   @Test
@@ -240,9 +238,9 @@ public class ApiDataRetentionPolicyServiceTest
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
     dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO(true, false, null);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dataRetentionPolicyService.setDataRetentionPolicies(Organization.ROOT_ORGANIZATION_ID, dto);
-    }).withMessageContaining("root organization cannot inherit");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dataRetentionPolicyService.setDataRetentionPolicies(Organization.ROOT_ORGANIZATION_ID, dto))
+        .withMessageContaining("root organization cannot inherit");
   }
 
   @Test
@@ -252,16 +250,16 @@ public class ApiDataRetentionPolicyServiceTest
     ApiDataRetentionPoliciesDTO dto = new ApiDataRetentionPoliciesDTO();
     dto.successMetrics = new ApiSuccessMetricsRetentionPolicyDTO(false, true, new ApiAgeDTO(30, AgeUnit.DAY));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto);
-    }).withMessageContaining("expected unit 'year' for maximum age");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dataRetentionPolicyService.setDataRetentionPolicies(org.getId(), dto))
+        .withMessageContaining("expected unit 'year' for maximum age");
   }
 
   @Test
   public void testSetDataRetentionPolicies_NullRequestBody() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), null);
-    }).withMessageContaining("does not specify any retention policies");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), null))
+        .withMessageContaining("does not specify any retention policies");
   }
 
   @Test
@@ -270,9 +268,9 @@ public class ApiDataRetentionPolicyServiceTest
     dto.applicationReports = null;
     dto.successMetrics = null;
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto);
-    }).withMessageContaining("does not specify any retention policies");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto))
+        .withMessageContaining("does not specify any retention policies");
   }
 
   @Test
@@ -281,9 +279,9 @@ public class ApiDataRetentionPolicyServiceTest
     dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages = null;
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto);
-    }).withMessageContaining("does not specify any retention policies");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto))
+        .withMessageContaining("does not specify any retention policies");
   }
 
   @Test
@@ -292,8 +290,8 @@ public class ApiDataRetentionPolicyServiceTest
     dto.applicationReports = new ApiReportRetentionPoliciesDTO();
     dto.applicationReports.stages.clear();
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto);
-    }).withMessageContaining("does not specify any retention policies");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> dataRetentionPolicyService.setDataRetentionPolicies(tempEntity.newOrganization().getId(), dto))
+        .withMessageContaining("does not specify any retention policies");
   }
 }

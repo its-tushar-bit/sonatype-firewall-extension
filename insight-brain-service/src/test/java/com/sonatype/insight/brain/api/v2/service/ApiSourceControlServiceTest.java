@@ -5,12 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -122,10 +122,10 @@ public class ApiSourceControlServiceTest
   }
 
   private void testGetAll() throws Exception {
-    final List<ApiSourceControlDTO> expected = Arrays.asList(
+    final List<ApiSourceControlDTO> expected = Stream.of(
         rootOrgSourcecontrol,
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null),
-        tempEntity.newSourceControl(org.getId(), null, TOKEN, null)).stream()
+        tempEntity.newSourceControl(org.getId(), null, TOKEN, null))
         .map(apiSourceControlAdapter::convertToDTO)
         .collect(Collectors.toList());
 
@@ -250,7 +250,7 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testAddSourceControl_Create_DefaultBranch() throws Exception {
+  public void testAddSourceControl_Create_DefaultBranch() {
     // when new source control with default branch is added
     ApiSourceControlDTO actual = sourceControlService
         .addOrUpdateSourceControl(app.getPublicId(), "https://github.com/context/org/a", "branch");
@@ -565,7 +565,7 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
-  public void testAddSourceControlByOwner_PRTelemetry() throws Exception {
+  public void testAddSourceControlByOwner_PRTelemetry() {
     final Boolean[] booleanOptions = new Boolean[]{true, false, null};
     final String[] branchOptions = new String[]{"branchA", "", null};
 

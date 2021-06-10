@@ -27,21 +27,21 @@ public class WebhookServiceAuthzTest
   public WebhookDAO webhookDAO;
 
   @Test
-  public void testGetAllWebhookEventTypes_Authorized() throws Exception {
+  public void testGetAllWebhookEventTypes_Authorized() {
     grantConfigureSystemPermission();
 
     webhookService.getAllWebhookEventTypes();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAllWebhookEventTypes_Unauthorized() throws Exception {
+  public void testGetAllWebhookEventTypes_Unauthorized() {
     login();
 
     webhookService.getAllWebhookEventTypes();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetAllWebhookEventTypes_Unauthenticated() throws Exception {
+  public void testGetAllWebhookEventTypes_Unauthenticated() {
     webhookService.getAllWebhookEventTypes();
   }
 
@@ -80,25 +80,25 @@ public class WebhookServiceAuthzTest
   }
 
   @Test
-  public void testGetAll_Authorized() throws Exception {
+  public void testGetAll_Authorized() {
     grantConfigureSystemPermission();
 
     webhookService.getAll();
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testGetAll_Unauthorized() throws Exception {
+  public void testGetAll_Unauthorized() {
     login();
     webhookService.getAll();
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testGetAll_Unauthenticated() throws Exception {
+  public void testGetAll_Unauthenticated() {
     webhookService.getAll();
   }
 
   @Test
-  public void testAddWebhook_Authorized() throws Exception {
+  public void testAddWebhook_Authorized() {
     grantConfigureSystemPermission();
 
     Webhook webhook = webhookService.addWebhook(new Webhook("http://some.url", "secret key"));
@@ -107,18 +107,18 @@ public class WebhookServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testAddWebhook_Unauthorized() throws Exception {
+  public void testAddWebhook_Unauthorized() {
     login();
     webhookService.addWebhook(new Webhook("http://some.url", "secret key"));
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testAddWebhook_Unauthenticated() throws Exception {
+  public void testAddWebhook_Unauthenticated() {
     webhookService.addWebhook(new Webhook("http://some.url", "secret key"));
   }
 
   @Test
-  public void testUpdateWebhook_Authorized() throws Exception {
+  public void testUpdateWebhook_Authorized() {
     grantConfigureSystemPermission();
     Webhook webhook = tempEntity.newWebhook(Sets.newHashSet(WebhookEventType.POLICY_MANAGEMENT));
 
@@ -128,7 +128,7 @@ public class WebhookServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testUpdateWebhook_Unauthorized() throws Exception {
+  public void testUpdateWebhook_Unauthorized() {
     login();
     Webhook webhook = tempEntity.newWebhook(Sets.newHashSet(WebhookEventType.POLICY_MANAGEMENT));
 
@@ -138,7 +138,7 @@ public class WebhookServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testUpdateWebhook_Unauthenticated() throws Exception {
+  public void testUpdateWebhook_Unauthenticated() {
     Webhook webhook = tempEntity.newWebhook(Sets.newHashSet(WebhookEventType.POLICY_MANAGEMENT));
 
     webhook.setEventTypes(Sets.newHashSet(WebhookEventType.APPLICATION_EVALUATION));
@@ -147,7 +147,7 @@ public class WebhookServiceAuthzTest
   }
 
   @Test
-  public void testDeleteWebhook_Authorized() throws Exception {
+  public void testDeleteWebhook_Authorized() {
     grantConfigureSystemPermission();
 
     Webhook webhook = tempEntity.newWebhook(Sets.newHashSet(WebhookEventType.POLICY_MANAGEMENT));
@@ -156,7 +156,7 @@ public class WebhookServiceAuthzTest
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDeleteWebhook_Unauthorized() throws Exception {
+  public void testDeleteWebhook_Unauthorized() {
     login();
     Webhook webhook = tempEntity.newWebhook(Sets.newHashSet(WebhookEventType.POLICY_MANAGEMENT));
 
@@ -164,7 +164,7 @@ public class WebhookServiceAuthzTest
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDeleteWebhook_Unauthenticated() throws Exception {
+  public void testDeleteWebhook_Unauthenticated() {
     Webhook webhook = tempEntity.newWebhook(Sets.newHashSet(WebhookEventType.POLICY_MANAGEMENT));
 
     webhookService.deleteWebhook(webhook.getId());

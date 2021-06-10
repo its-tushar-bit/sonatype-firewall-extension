@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiUserResourceTest
     extends AbstractResourceTest
 {
-  private UserDAO userDAO = new UserDAO();
+  private final UserDAO userDAO = new UserDAO();
 
   @Override
   protected HttpRequest restRequest() {

@@ -22,7 +22,7 @@ import static com.sonatype.insight.brain.api.v2.ApiUserTestSupport.createUserDTO
 public class ApiUserResourceAuditTest
     extends AbstractAuditTest
 {
-  private UserDAO userDAO = new UserDAO();
+  private final UserDAO userDAO = new UserDAO();
 
   @Override
   protected HttpRequest restRequest() {

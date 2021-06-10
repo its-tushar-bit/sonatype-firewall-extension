@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiComponentDetailsResourceV2Test
     extends AbstractResourceTest
 {
-  private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
   @Test
   public void testGetComponentDetails() throws Exception {

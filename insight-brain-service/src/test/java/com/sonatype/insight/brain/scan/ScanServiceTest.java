@@ -154,10 +154,9 @@ public class ScanServiceTest
   @Test
   public void testFailEarlyOnInvalidStage() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
-    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> {
-      scanService
-          .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false, null, null);
-    }).withMessageContaining("invalid-stage-id");
+    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> scanService
+        .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false, null, null))
+        .withMessageContaining("invalid-stage-id");
   }
 
   @Test
@@ -184,8 +183,8 @@ public class ScanServiceTest
     testProductLicense.setMissingFeatures(LicensedFeature.CLI_INTEGRATION);
     InputStream appBundle = getBundle("app01.zip");
 
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null);
-    }).withMessage("Your IQ Server license does not enable this feature.");
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> scanService
+        .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null))
+        .withMessage("Your IQ Server license does not enable this feature.");
   }
 }

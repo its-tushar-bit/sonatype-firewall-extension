@@ -182,7 +182,7 @@ public class ApiMetricsReportingResourceV2Test
 
     String responseText = response.getBodyText();
     String expectedCSV = IOUtils.toString(getClass().getResource("/ApiMetricsReportingResourceV2Test/expected.csv"),
-        "UTF-8").replace("\r\n", "\n");
+        StandardCharsets.UTF_8).replace("\r\n", "\n");
 
     assertThat(responseText).isEqualTo(expectedCSV);
   }

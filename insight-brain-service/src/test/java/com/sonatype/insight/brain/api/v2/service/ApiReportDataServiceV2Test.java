@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -60,7 +61,7 @@ public class ApiReportDataServiceV2Test
 
   private InsightConfig config;
 
-  private MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
+  private final MultiLicenseDAO multiLicenseDAO = new MultiLicenseDAO();
 
   private Application app;
 
@@ -396,7 +397,7 @@ public class ApiReportDataServiceV2Test
 
     // violations
     assertThat(component.violations).hasSize(2);
-    component.violations.sort((o1, o2) -> o1.policyId.compareTo(o2.policyId));
+    component.violations.sort(Comparator.comparing(o -> o.policyId));
     ApiReportPolicyViolationDTOV2 violation = component.violations.get(0);
     assertThat(violation.policyId).isEqualTo("6430b4c764314ac6aee439ad1c045ad1");
     assertThat(violation.policyName).isEqualTo("Security-Medium");
@@ -461,7 +462,7 @@ public class ApiReportDataServiceV2Test
     assertThat(data.counts.get("grandfatheredPolicyViolationCount")).isEqualTo(2);
 
     assertThat(data.components).hasSize(3);
-    data.components.sort((o1, o2) -> o1.hash.compareTo(o2.hash));
+    data.components.sort(Comparator.comparing(o -> o.hash));
   }
 
   @Test

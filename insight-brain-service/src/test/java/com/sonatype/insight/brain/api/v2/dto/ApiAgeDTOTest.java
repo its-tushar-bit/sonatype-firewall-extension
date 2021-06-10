@@ -71,16 +71,14 @@ public class ApiAgeDTOTest
 
   @Test
   public void testFromString_InvalidFormat() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      ApiAgeDTO.fromString("1");
-    }).withMessageContaining("Invalid age").withMessageContaining("expected format");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> ApiAgeDTO.fromString("1"))
+        .withMessageContaining("Invalid age").withMessageContaining("expected format");
   }
 
   @Test
   public void testFromString_ExcessiveAmount() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      ApiAgeDTO.fromString("123456 days");
-    }).withMessageContaining("Invalid age").withMessageContaining("must be less than");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> ApiAgeDTO.fromString("123456 days"))
+        .withMessageContaining("Invalid age").withMessageContaining("must be less than");
   }
 
   @Test

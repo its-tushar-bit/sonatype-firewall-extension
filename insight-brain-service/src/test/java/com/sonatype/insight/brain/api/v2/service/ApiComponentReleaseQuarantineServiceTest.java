@@ -60,11 +60,11 @@ public class ApiComponentReleaseQuarantineServiceTest
   @Inject
   private ApiComponentReleaseQuarantineService service;
 
-  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
-  private RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
+  private final RepositoryComponentDAO repositoryComponentDAO = new RepositoryComponentDAO();
 
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   private final PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier("pkg:maven/g1/a1@v1?type=e1");
 
@@ -120,10 +120,10 @@ public class ApiComponentReleaseQuarantineServiceTest
     RepositoryComponent repositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "hash",
             packageURLIdentifier.ensureCompleteIdentifier(), false);
-    
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), null);
-    }).withMessage("Comment has not been specified.");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), null))
+        .withMessage("Comment has not been specified.");
   }
 
   @Test
@@ -133,10 +133,10 @@ public class ApiComponentReleaseQuarantineServiceTest
     RepositoryComponent repositoryComponent = tempEntity
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "hash",
             packageURLIdentifier.ensureCompleteIdentifier(), false);
-    
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "");
-    }).withMessage("Comment has not been specified.");
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), ""))
+        .withMessage("Comment has not been specified.");
   }
 
   @Test
@@ -147,9 +147,8 @@ public class ApiComponentReleaseQuarantineServiceTest
         .newRepositoryComponent(repository.getId(), MatchState.EXACT, "pathname", "hash",
             packageURLIdentifier.ensureCompleteIdentifier(), false);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment");
-    }).withMessage(
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.releaseQuarantineWithoutReEval(repositoryComponent.getId(), "comment")).withMessage(
         "Component with quarantineId " + repositoryComponent.getId() + " is not quarantined.");
   }
 
@@ -193,9 +192,8 @@ public class ApiComponentReleaseQuarantineServiceTest
 
   @Test
   public void testReleaseQuarantineWithoutReEval_UnknownQuarantineId() {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.releaseQuarantineWithoutReEval("unknownId", "comment");
-    }).withMessage(
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.releaseQuarantineWithoutReEval("unknownId", "comment")).withMessage(
         "Cannot find a component with quarantineId unknownId.");
   }
 

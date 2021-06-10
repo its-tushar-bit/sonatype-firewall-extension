@@ -26,9 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiPolicyResourceV2Test
     extends AbstractResourceTest
 {
-  private Map<String, Policy> organizationPolicyMap = new HashMap<>();
+  private final Map<String, Policy> organizationPolicyMap = new HashMap<>();
 
-  private Map<String, Policy> applicationPolicyMap = new HashMap<>();
+  private final Map<String, Policy> applicationPolicyMap = new HashMap<>();
 
   @Before
   public void setUp() throws Exception {

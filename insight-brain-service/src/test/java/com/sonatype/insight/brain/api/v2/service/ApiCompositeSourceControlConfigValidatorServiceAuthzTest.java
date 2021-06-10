@@ -33,9 +33,9 @@ public class ApiCompositeSourceControlConfigValidatorServiceAuthzTest
             "BASE_BRANCH", null);
     tempEntity.newSourceControl(app.getId(), VALID_URL, null, null);
     // should pass auth stage and promptly throw an exception because TOKEN can't be decrypted
-    assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
-      service.validateSourceControlConfig(app.getId());
-    }).withMessageContaining("org.sonatype.plexus.components.cipher.PlexusCipherException");
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> service.validateSourceControlConfig(app.getId()))
+        .withMessageContaining("org.sonatype.plexus.components.cipher.PlexusCipherException");
   }
 
   @Test(expected = UnauthenticatedException.class)

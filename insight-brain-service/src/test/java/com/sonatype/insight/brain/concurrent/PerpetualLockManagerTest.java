@@ -82,9 +82,8 @@ public class PerpetualLockManagerTest
       long expiration,
       String expectedMessage)
   {
-    assertThatThrownBy(() -> {
-      perpetualLockManager.tryAcquireLock(perpetualLockId, ownerId, expiration);
-    }).isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
+    assertThatThrownBy(() -> perpetualLockManager.tryAcquireLock(perpetualLockId, ownerId, expiration))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage(expectedMessage);
   }
 
   @Test

@@ -134,42 +134,40 @@ public class ApiPromoteScanServiceV2Test
 
   @Test
   public void testPromoteScan_NullRequestDTO() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), null, null /* userAgent */);
-    }).withMessage("Missing parameters.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.promoteScan(app.getId(), null, null /* userAgent */))
+        .withMessage("Missing parameters.");
   }
 
   @Test
   public void testPromoteScan_NoSourceScan() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(null, Stage.ID_OPERATE),
-          null /* userAgent */);
-    }).withMessageStartingWith("Either scanId or sourceStageId need to be supplied.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(null, Stage.ID_OPERATE),
+            null /* userAgent */)).withMessageStartingWith("Either scanId or sourceStageId need to be supplied.");
   }
 
   @Test
   public void testPromoteScan_AmbiguousSourceScan() {
     ApiPromoteScanRequestDTOV2 requestDTO = ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE);
     requestDTO.scanId = SCAN_ID;
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), requestDTO, null /* userAgent */);
-    }).withMessageStartingWith("Only one of scanId or sourceStageId can be supplied.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.promoteScan(app.getId(), requestDTO, null /* userAgent */))
+        .withMessageStartingWith("Only one of scanId or sourceStageId can be supplied.");
   }
 
   @Test
   public void testPromoteScan_NoEvaluationsInSourceStage() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE),
-          null /* userAgent */);
-    }).withMessageStartingWith("No scan available to promote from stage");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromStage(Stage.ID_BUILD, Stage.ID_OPERATE),
+            null /* userAgent */)).withMessageStartingWith("No scan available to promote from stage");
   }
 
   @Test
   public void testPromoteScan_ScanDoesNotExist_Failed() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE),
-          null /* userAgent */);
-    }).withMessageStartingWith("A scan with ID " + SCAN_ID + " does not exist on the server and may be obsolete. ");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE),
+            null /* userAgent */))
+        .withMessageStartingWith("A scan with ID " + SCAN_ID + " does not exist on the server and may be obsolete. ");
   }
 
   @Test
@@ -177,10 +175,9 @@ public class ApiPromoteScanServiceV2Test
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     final List<String> invalidStages = Arrays.asList("invalidStage", Stage.ID_DEVELOP, Stage.ID_PROXY);
     for (String invalidStage : invalidStages) {
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-        service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, invalidStage),
-            null /* userAgent */);
-      }).withMessage("Stage " + invalidStage + " is invalid.");
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> service.promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, invalidStage),
+              null /* userAgent */)).withMessage("Stage " + invalidStage + " is invalid.");
     }
   }
 
@@ -273,7 +270,7 @@ public class ApiPromoteScanServiceV2Test
   }
 
   @Test
-  public void testGetApplicationEvaluationStatus_MismatchedAppStatusIds_NotFound() throws Exception {
+  public void testGetApplicationEvaluationStatus_MismatchedAppStatusIds_NotFound() {
     // app scan promotion
     createScanFile();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
@@ -292,10 +289,10 @@ public class ApiPromoteScanServiceV2Test
   }
 
   private void assertNotFound(Application app, String statusId) {
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getApplicationEvaluationStatus(app.getId(), statusId);
-    }).withMessage("Policy evaluation status with id %s for public application id %s was not found.", statusId,
-        app.getPublicId());
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getApplicationEvaluationStatus(app.getId(), statusId))
+        .withMessage("Policy evaluation status with id %s for public application id %s was not found.", statusId,
+            app.getPublicId());
   }
 
   private String getStatusId(String statusUrl) {

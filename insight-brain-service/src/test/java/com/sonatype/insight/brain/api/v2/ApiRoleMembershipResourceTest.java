@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiRoleMembershipResourceTest
     extends AbstractResourceTest
 {
-  private MembershipMappingDAO dao = new MembershipMappingDAO();
+  private final MembershipMappingDAO dao = new MembershipMappingDAO();
 
   @Test
   public void testGrantRoleMembershipApplicationOrOrganization_Application() throws Exception {

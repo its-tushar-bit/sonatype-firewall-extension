@@ -54,7 +54,7 @@ public class ApiSamlConfigurationServiceTest
   @Inject
   private ApiSamlConfigurationService apiSamlConfigurationService;
 
-  private SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+  private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
 
   @Inject
   private SamlDeploymentManager samlDeploymentManager;

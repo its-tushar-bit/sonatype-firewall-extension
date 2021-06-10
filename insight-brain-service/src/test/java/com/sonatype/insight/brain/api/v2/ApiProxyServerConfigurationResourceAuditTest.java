@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiProxyServerConfigurationResourceAuditTest
     extends AbstractAuditTest
 {
-  private ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
+  private final ProxyServerConfigurationDAO proxyServerConfigurationDAO = new ProxyServerConfigurationDAO();
 
   @Override
   protected HttpRequest restRequest() {

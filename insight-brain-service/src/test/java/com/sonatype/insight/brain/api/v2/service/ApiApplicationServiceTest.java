@@ -53,9 +53,9 @@ public class ApiApplicationServiceTest
     app.publicId = "appPublicId";
     app.name = "appName";
     app.organizationId = Organization.ROOT_ORGANIZATION_ID;
-    assertThatExceptionOfType(InvalidApplicationException.class).isThrownBy(() -> {
-      applicationService.addApplication(app);
-    }).withMessage("Applications cannot have the root organization as parent.");
+    assertThatExceptionOfType(InvalidApplicationException.class)
+        .isThrownBy(() -> applicationService.addApplication(app))
+        .withMessage("Applications cannot have the root organization as parent.");
   }
 
   @Test

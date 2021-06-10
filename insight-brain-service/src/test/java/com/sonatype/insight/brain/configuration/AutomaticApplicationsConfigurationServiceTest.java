@@ -99,7 +99,6 @@ public class AutomaticApplicationsConfigurationServiceTest
       InvocationOnMock invocation,
       TelemetryPurpose telemetryPurpose, String telemetryAttr,
       Date before, Date after, boolean expected)
-      throws Exception
   {
     TelemetryData telemetryData = (TelemetryData) invocation.getArgument(0);
     assertThat(telemetryData.getPurpose()).isEqualTo(telemetryPurpose);
@@ -110,37 +109,37 @@ public class AutomaticApplicationsConfigurationServiceTest
 
   @Test
   public void testUpdate_RootOrganizationId_Enabled() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.update(new AutomaticApplicationsConfiguration(true, Organization.ROOT_ORGANIZATION_ID));
-    }).withMessage("Parent cannot be the root organization.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.update(new AutomaticApplicationsConfiguration(true, Organization.ROOT_ORGANIZATION_ID)))
+        .withMessage("Parent cannot be the root organization.");
   }
 
   @Test
   public void testUpdate_RootOrganizationId_Disabled() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.update(new AutomaticApplicationsConfiguration(false, Organization.ROOT_ORGANIZATION_ID));
-    }).withMessage("Parent cannot be the root organization.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.update(new AutomaticApplicationsConfiguration(false, Organization.ROOT_ORGANIZATION_ID)))
+        .withMessage("Parent cannot be the root organization.");
   }
 
   @Test
   public void testUpdate_InvalidOrganizationId_Enabled() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.update(new AutomaticApplicationsConfiguration(true, "testOrganizationID"));
-    }).withMessage("Parent organization ID testOrganizationID not found.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.update(new AutomaticApplicationsConfiguration(true, "testOrganizationID")))
+        .withMessage("Parent organization ID testOrganizationID not found.");
   }
 
   @Test
   public void testUpdate_InvalidOrganizationId_Disabled() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.update(new AutomaticApplicationsConfiguration(false, "testOrganizationID"));
-    }).withMessage("Parent organization ID testOrganizationID not found.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.update(new AutomaticApplicationsConfiguration(false, "testOrganizationID")))
+        .withMessage("Parent organization ID testOrganizationID not found.");
   }
 
   @Test
   public void testUpdate_EmptyParentOrganizationId_Enabled() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.update(new AutomaticApplicationsConfiguration(true, ""));
-    }).withMessage("Parent organization ID is required when automatic application creation is enabled.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.update(new AutomaticApplicationsConfiguration(true, "")))
+        .withMessage("Parent organization ID is required when automatic application creation is enabled.");
   }
 
   @Test
@@ -153,9 +152,9 @@ public class AutomaticApplicationsConfigurationServiceTest
 
   @Test
   public void testUpdate_NullParentOrganizationId_Enabled() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.update(new AutomaticApplicationsConfiguration(true, null));
-    }).withMessage("Parent organization ID is required when automatic application creation is enabled.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.update(new AutomaticApplicationsConfiguration(true, null)))
+        .withMessage("Parent organization ID is required when automatic application creation is enabled.");
   }
 
   @Test

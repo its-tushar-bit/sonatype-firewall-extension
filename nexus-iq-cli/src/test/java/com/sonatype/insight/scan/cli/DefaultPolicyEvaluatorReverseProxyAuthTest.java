@@ -16,8 +16,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.PasswordService;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyServer;
 
 import com.google.common.collect.ImmutableList;
@@ -58,13 +56,9 @@ public abstract class DefaultPolicyEvaluatorReverseProxyAuthTest
 
   @Override
   protected void initServer() throws Exception {
-    initServer(new Configurator()
-    {
-      @Override
-      public void configure(InsightConfig config) {
-        config.getReverseProxyAuthentication().setEnabled(rutEnabled);
-        config.setImportRefrencePoliciesFromHDS(false);
-      }
+    initServer(config -> {
+      config.getReverseProxyAuthentication().setEnabled(rutEnabled);
+      config.setImportRefrencePoliciesFromHDS(false);
     });
   }
 

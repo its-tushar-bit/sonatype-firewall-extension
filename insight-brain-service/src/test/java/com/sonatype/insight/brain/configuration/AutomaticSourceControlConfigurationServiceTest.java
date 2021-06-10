@@ -94,7 +94,6 @@ public class AutomaticSourceControlConfigurationServiceTest
       InvocationOnMock invocation,
       TelemetryPurpose telemetryPurpose, String telemetryAttr,
       Date before, Date after, boolean expected)
-      throws Exception
   {
     TelemetryData telemetryData = (TelemetryData) invocation.getArgument(0);
     assertThat(telemetryData.getPurpose()).isEqualTo(telemetryPurpose);

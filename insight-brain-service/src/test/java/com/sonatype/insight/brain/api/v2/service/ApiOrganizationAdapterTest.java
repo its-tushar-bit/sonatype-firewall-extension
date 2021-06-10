@@ -27,7 +27,7 @@ public class ApiOrganizationAdapterTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  private ApiOrganizationAdapter apiOrganizationAdapter = new ApiOrganizationAdapter();
+  private final ApiOrganizationAdapter apiOrganizationAdapter = new ApiOrganizationAdapter();
 
   @Test
   public void testConvert_EntityListToDTO() {

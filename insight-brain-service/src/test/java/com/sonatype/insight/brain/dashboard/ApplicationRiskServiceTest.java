@@ -89,13 +89,12 @@ public class ApplicationRiskServiceTest
   @Test
   public void testGetApplicationRisks_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      applicationRiskService.getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0);
-    });
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> applicationRiskService.getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 0));
   }
 
   @Test
-  public void testGetApplicationRisks_FilterByStage_ExcludesDevelop() throws Exception {
+  public void testGetApplicationRisks_FilterByStage_ExcludesDevelop() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), DevelopStageType.ID, "newScanIdApp1");
     tempEntity.newPolicyViolation(evaluation, app1Policy, app1Policy.getThreatLevel(), app1Policy.getThreatCategory(),
         "g", "a", "v", "somehash");
@@ -107,14 +106,13 @@ public class ApplicationRiskServiceTest
     assertThat(result.dashboardResults.get(0).getStageRiskScore(DevelopStageType.ID)).isNull();
     assertThat(result.dashboardResults.get(1).getStageRiskScore(DevelopStageType.ID)).isNull();
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      applicationRiskService.getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null,
-          null, null, "-TOTAL_RISK", 100);
-    }).withMessage("Invalid stage type: develop.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> applicationRiskService
+        .getApplicationRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null,
+            null, null, "-TOTAL_RISK", 100)).withMessage("Invalid stage type: develop.");
   }
 
   @Test
-  public void testGetApplicationRisks_StagesInChronologicalOrder() throws Exception {
+  public void testGetApplicationRisks_StagesInChronologicalOrder() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), OperateStageType.ID, "scan app1 id");
     tempEntity.newPolicyViolation(evaluation, app1Policy);
     evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scan app1 id");
@@ -134,7 +132,7 @@ public class ApplicationRiskServiceTest
   }
 
   @Test
-  public void testGetApplicationRisks_ViolationForComponentWithoutHash() throws Exception {
+  public void testGetApplicationRisks_ViolationForComponentWithoutHash() {
     tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, null, null, null, null, "unknown");
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService
@@ -150,7 +148,7 @@ public class ApplicationRiskServiceTest
   }
 
   @Test
-  public void testGetApplicationRisks_FilterByPolicyViolationState() throws Exception {
+  public void testGetApplicationRisks_FilterByPolicyViolationState() {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
     tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
@@ -245,7 +243,7 @@ public class ApplicationRiskServiceTest
   }
 
   @Test
-  public void testGetApplicationRisks_ExcludesStageWithoutViolations() throws Exception {
+  public void testGetApplicationRisks_ExcludesStageWithoutViolations() {
     tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "scan app1 id");
 
     DashboardResultsDTO<ApplicationRiskScoreDTO> result = applicationRiskService.getApplicationRisks(null,
@@ -434,10 +432,9 @@ public class ApplicationRiskServiceTest
   public void testGetApplicationRisks_DashboardFeatureDisabled() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
-      applicationRiskService
-          .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE);
-    }).withMessage("The dashboard feature has been disabled.");
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> applicationRiskService
+        .getApplicationRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", Integer.MAX_VALUE))
+        .withMessage("The dashboard feature has been disabled.");
   }
 
   private void assertRisk(RiskDTO risk, int criticalRisk, int severeRisk, int moderateRisk, int lowRisk, int netRisk) {

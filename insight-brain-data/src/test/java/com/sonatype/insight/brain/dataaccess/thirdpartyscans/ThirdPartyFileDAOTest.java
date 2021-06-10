@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -107,7 +106,7 @@ public class ThirdPartyFileDAOTest
 
     // Sorts the list to have a deterministic order when comparing and doing the asserts
     retrievedThirdPartyFiles = new ArrayList<>(retrievedThirdPartyFiles);
-    Collections.sort(retrievedThirdPartyFiles, Comparator.comparing(ThirdPartyFile::getCreated));
+    retrievedThirdPartyFiles.sort(Comparator.comparing(ThirdPartyFile::getCreated));
 
     assertThirdPartyScannedFile(thirdPartyFile1.getId(), thirdPartyFile1.getFilename(), thirdPartyFile1.getCreated(),
         retrievedThirdPartyFiles.get(0));

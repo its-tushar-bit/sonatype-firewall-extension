@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiSamlConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
+  private final SamlConfigurationDAO samlConfigurationDAO = new SamlConfigurationDAO();
 
   @After
   public void cleanup() {

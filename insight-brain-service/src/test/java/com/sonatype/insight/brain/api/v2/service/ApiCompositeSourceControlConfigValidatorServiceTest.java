@@ -65,7 +65,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   }
 
   @Test
-  public void testValidateSourceControlConfig_incompleteConfiguration() throws Exception {
+  public void testValidateSourceControlConfig_incompleteConfiguration() {
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(null);
 
     ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
@@ -78,7 +78,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   }
 
   @Test
-  public void testValidateSourceControlConfig_privateRepo() throws Exception {
+  public void testValidateSourceControlConfig_privateRepo() {
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);

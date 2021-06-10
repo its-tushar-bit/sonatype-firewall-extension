@@ -107,16 +107,15 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_Unlicensed() throws Exception {
+  public void testGetNewestRisks_Unlicensed() {
     testProductLicense.setMissingFeatures(LicensedFeature.DASHBOARD);
-    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
-      newestRiskService.getNewestRisks(null, null, null, null, null, null, null, null,
-          DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0);
-    });
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> newestRiskService.getNewestRisks(null, null, null, null, null, null, null, null,
+            DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 0));
   }
 
   @Test
-  public void testGetNewestRisks_FilterByApplication() throws Exception {
+  public void testGetNewestRisks_FilterByApplication() {
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
@@ -127,7 +126,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_FilterByOrganization() throws Exception {
+  public void testGetNewestRisks_FilterByOrganization() {
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(Collections.singleton(app2.getParentOwnerId()),
             null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
@@ -138,7 +137,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_FilterByStage() throws Exception {
+  public void testGetNewestRisks_FilterByStage() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy);
 
@@ -152,7 +151,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_FilterByStage_ExcludesDevelop() throws Exception {
+  public void testGetNewestRisks_FilterByStage_ExcludesDevelop() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app2.getId(), DevelopStageType.ID, "newScanId");
     tempEntity.newPolicyViolation(evaluation, org1Policy);
 
@@ -165,14 +164,13 @@ public class NewestRiskServiceTest
     assertNewestRiskDTO(riskDTO, app2, org2, app2PolicyViolation, app2PolicyEvaluation.getTime());
     assertThat(riskDTO.stageTypeId).isNotEqualTo(DevelopStageType.ID);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      newestRiskService.getNewestRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null, null, null,
-          null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
-    }).withMessage("Invalid stage type: develop.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> newestRiskService
+        .getNewestRisks(null, null, Collections.singleton(DevelopStageType.ID), null, null, null, null,
+            null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000)).withMessage("Invalid stage type: develop.");
   }
 
   @Test
-  public void testGetNewestRisks_FilterByTag() throws Exception {
+  public void testGetNewestRisks_FilterByTag() {
     Tag app2Tag = tempEntity.newTag(org1.getId());
     tempEntity.newApplicationTag(app2.getId(), app2Tag.getId());
 
@@ -186,7 +184,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_FilterByPolicyThreatCategory() throws Exception {
+  public void testGetNewestRisks_FilterByPolicyThreatCategory() {
     Policy licensePolicy =
         tempEntity.newPolicy(app1, 5, LogicalOperator.AND, new Condition(LicenseConditionType.ID, "is", "Apache-2.0"));
     PolicyViolation policyViolation =
@@ -202,7 +200,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_FilterByPolicyThreatLevel() throws Exception {
+  public void testGetNewestRisks_FilterByPolicyThreatLevel() {
     Policy app1Policy1 = tempEntity.newPolicy(app1.getId(), "app owned policy1", 7);
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy1, "gid", "aid",
         "1", "hash1");
@@ -216,7 +214,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_FilterByPolicyViolationState() throws Exception {
+  public void testGetNewestRisks_FilterByPolicyViolationState() {
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", app1Policy.getId(), app1.getId(), "Some comments here");
     PolicyViolation waivedViolation = tempEntity.newWaivedPolicyViolation(app1PolicyEvaluation, app1Policy,
         ComponentIdentifier.createMavenCoordinates("gid", "aid", "1"), "hash1", policyWaiver);
@@ -267,7 +265,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_SortAndResultCapping() throws Exception {
+  public void testGetNewestRisks_SortAndResultCapping() {
     // Limit to high value
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, null, null, null, null, null, null, "-AGE,-THREAT_LEVEL",
@@ -290,7 +288,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks() throws Exception {
+  public void testGetNewestRisks() {
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID,
         "test scan app2 release id", new Date(app1PolicyEvaluation.getTime().getTime() + 1));
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, app1Policy,
@@ -319,7 +317,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_Unknown() throws Exception {
+  public void testGetNewestRisks_Unknown() {
     ComponentIdentifier nullComponentIdentifier = null;
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanIdApp1");
     tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, "pathnames-hash", nullComponentIdentifier,
@@ -347,7 +345,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_NoTimeLimit() throws Exception {
+  public void testGetNewestRisks_NoTimeLimit() {
     Application app = tempEntity.newApplication("myapp", "myapp", org1.getId());
 
     Date oldDate = new Date(0);
@@ -375,22 +373,20 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_InvalidTimeLimit() throws Exception {
+  public void testGetNewestRisks_InvalidTimeLimit() {
     Application app = tempEntity.newApplication("myapp", "myapp", org1.getId());
 
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null,
-          -50, 100);
-    }).withMessage("Max Days Old must be a positive integer");
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> newestRiskService
+        .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null, -50, 100))
+        .withMessage("Max Days Old must be a positive integer");
 
-    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
-      newestRiskService.getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null, 0,
-          100);
-    }).withMessage("Max Days Old must be a positive integer");
+    assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> newestRiskService
+        .getNewestRisks(null, Collections.singleton(app.getId()), null, null, null, null, null, null, 0, 100))
+        .withMessage("Max Days Old must be a positive integer");
   }
 
   @Test
-  public void testGetNewestRisks_LastViolationWithFirstOccurrenceTime() throws Exception {
+  public void testGetNewestRisks_LastViolationWithFirstOccurrenceTime() {
     Application app = tempEntity.newApplication("myapp", "myapp", org1.getId());
 
     DateTime time1 = new DateTime().minusDays(1);
@@ -427,7 +423,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_ViolationWithoutHash() throws Exception {
+  public void testGetNewestRisks_ViolationWithoutHash() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy, "g", "a", "v",
         null /* hash */, "reason");
@@ -443,7 +439,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_ViolationWithoutFirstOccurrence() throws Exception {
+  public void testGetNewestRisks_ViolationWithoutFirstOccurrence() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app1.getId(), ReleaseStageType.ID, "newScanId");
     PolicyViolation policyViolation = tempEntity.newPolicyViolation(evaluation, app1Policy);
 
@@ -457,7 +453,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_LatestReport() throws Exception {
+  public void testGetNewestRisks_LatestReport() {
     DashboardResultsDTO<NewestRiskDTO> result = newestRiskService
         .getNewestRisks(null, Collections.singleton(app2.getId()), null, null, null, null, null, null,
             DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000);
@@ -499,7 +495,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_Deduplicate() throws Exception {
+  public void testGetNewestRisks_Deduplicate() {
     Application app = tempEntity.newApplication(org1.getId());
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation, org1Policy);
@@ -526,11 +522,9 @@ public class NewestRiskServiceTest
   public void testGetNewestRisks_DashboardFeatureDisabled() {
     tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
 
-    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> {
-      newestRiskService
-          .getNewestRisks(null, null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD,
-              1000);
-    }).withMessage("The dashboard feature has been disabled.");
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(() -> newestRiskService
+        .getNewestRisks(null, null, null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD, 1000))
+        .withMessage("The dashboard feature has been disabled.");
   }
 
   private ConstraintFact buildConstraintFact(Policy policy, String trigger) {

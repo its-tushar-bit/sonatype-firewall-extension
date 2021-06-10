@@ -30,7 +30,7 @@ public class ApiSourceControlResourceAuditTest
 {
   private Application app;
 
-  private ApiSourceControlAdapter apiSourceControlAdapter =
+  private final ApiSourceControlAdapter apiSourceControlAdapter =
       new ApiSourceControlAdapter();
 
   @Before

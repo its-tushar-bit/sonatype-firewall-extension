@@ -414,7 +414,7 @@ public class ThirdPartyScanResultsProcessorTest
   {
     assertThat(thirdPartyFileList).isNotEmpty();
     assertThat(thirdPartyFileList).hasSize(expectedFiles);
-    List<String> fileNames = thirdPartyFileList.stream().map(file -> file.getFilename()).collect(Collectors.toList());
+    List<String> fileNames = thirdPartyFileList.stream().map(ThirdPartyFile::getFilename).collect(Collectors.toList());
     assertThat(fileNames).containsExactlyInAnyOrder(expectedFilenames);
 
     for (ThirdPartyFile thirdPartyFile : thirdPartyFileList) {

@@ -260,7 +260,7 @@ public class UserDirectoryTest
 
     UserDirectory userDirectory = new UserDirectory(new UserDAO(), mockLdapService);
 
-    UserDirectory.QueryResult result = userDirectory.getMembersByName(new LinkedList<Member>());
+    UserDirectory.QueryResult result = userDirectory.getMembersByName(new LinkedList<>());
 
     assertThat(result.get()).isEmpty();
     verify(mockLdapService, never()).getUsersByName(any(LdapServer.class), any(String[].class));
@@ -271,7 +271,7 @@ public class UserDirectoryTest
   public void testGetMembersByName_WithNullOrEmptyNames() throws Exception {
     configureAndStartNewLdapServer(testLdapServer1, "LDAP");
 
-    List<Member> members = userDirectory.getMembersByName(new HashSet<Member>()).get();
+    List<Member> members = userDirectory.getMembersByName(new HashSet<>()).get();
 
     assertThat(members).isEmpty();
 

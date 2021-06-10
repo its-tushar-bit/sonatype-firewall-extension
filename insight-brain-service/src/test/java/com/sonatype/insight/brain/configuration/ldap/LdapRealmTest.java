@@ -205,16 +205,14 @@ public class LdapRealmTest
 
   private void assertBadCredentials(String username, String password) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
-    assertThatThrownBy(() -> {
-      realm.getAuthenticationInfo(usernamePasswordToken);
-    }).isInstanceOf(AuthenticationException.class);
+    assertThatThrownBy(() -> realm.getAuthenticationInfo(usernamePasswordToken))
+        .isInstanceOf(AuthenticationException.class);
   }
 
   private void assertEmptyPassword(String username, String password) {
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(username, password);
-    assertThatThrownBy(() -> {
-      realm.getAuthenticationInfo(usernamePasswordToken);
-    }).isInstanceOf(AuthenticationException.class)
+    assertThatThrownBy(() -> realm.getAuthenticationInfo(usernamePasswordToken))
+        .isInstanceOf(AuthenticationException.class)
         .satisfies(e -> assertThat(e.getCause()).hasMessage("Password must not be empty"));
   }
 

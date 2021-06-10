@@ -59,9 +59,9 @@ public class ApiOrganizationServiceTest
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO(null, ORGANIZATION_NAME);
     apiOrganizationDTO.tags = Collections.emptyList();
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiOrganizationService.addOrganization(apiOrganizationDTO);
-    }).withMessage("Organization must not have tags set on creation.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiOrganizationService.addOrganization(apiOrganizationDTO))
+        .withMessage("Organization must not have tags set on creation.");
 
     assertThat(organizationDAO.getByName(ORGANIZATION_NAME)).isNull();
   }
@@ -72,9 +72,9 @@ public class ApiOrganizationServiceTest
     
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO("testId", ORGANIZATION_NAME);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiOrganizationService.addOrganization(apiOrganizationDTO);
-    }).withMessage("Organization must not have an ID set on creation.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiOrganizationService.addOrganization(apiOrganizationDTO))
+        .withMessage("Organization must not have an ID set on creation.");
 
     assertThat(organizationDAO.getByName(ORGANIZATION_NAME)).isNull();
   }

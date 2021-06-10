@@ -59,9 +59,8 @@ public class ApiMetricsReportingServiceV2Test
 
   @Test
   public void testValidate_NullQuery() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.validate(null);
-    }).withMessage("Request parameters must be defined");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.validate(null))
+        .withMessage("Request parameters must be defined");
   }
 
   @Test
@@ -69,9 +68,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(null, "2018-02", "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.validate(queryDTO);
-    }).withMessage("timePeriod must be defined");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.validate(queryDTO))
+        .withMessage("timePeriod must be defined");
   }
 
   @Test
@@ -79,9 +77,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, null, "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.validate(queryDTO);
-    }).withMessage("firstTimePeriod must be defined");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.validate(queryDTO))
+        .withMessage("firstTimePeriod must be defined");
   }
 
   @Test
@@ -89,9 +86,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-02",
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.validate(queryDTO);
-    }).withMessage("lastTimePeriod must not be before firstTimePeriod");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.validate(queryDTO))
+        .withMessage("lastTimePeriod must not be before firstTimePeriod");
   }
 
   @Test
@@ -99,9 +95,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2018-03", null,
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getMetrics(queryDTO);
-    }).withMessage("'2018-03' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.getMetrics(queryDTO))
+        .withMessage("'2018-03' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
   }
 
   @Test
@@ -109,9 +104,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2018-W03", "2018-04",
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getMetrics(queryDTO);
-    }).withMessage("'2018-04' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.getMetrics(queryDTO))
+        .withMessage("'2018-04' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
   }
 
   @Test
@@ -119,9 +113,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-W03", null,
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getMetrics(queryDTO);
-    }).withMessage("'2018-W03' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.getMetrics(queryDTO))
+        .withMessage("'2018-W03' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
   }
 
   @Test
@@ -129,9 +122,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-W04",
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getMetrics(queryDTO);
-    }).withMessage("'2018-W04' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.getMetrics(queryDTO))
+        .withMessage("'2018-W04' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
   }
 
   @Test
@@ -334,9 +326,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2018-03", null,
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getFlattenedMetrics(queryDTO);
-    }).withMessage("'2018-03' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.getFlattenedMetrics(queryDTO))
+        .withMessage("'2018-03' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
   }
 
   @Test
@@ -344,9 +335,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.WEEK, "2018-W03", "2018-04",
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getFlattenedMetrics(queryDTO);
-    }).withMessage("'2018-04' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.getFlattenedMetrics(queryDTO))
+        .withMessage("'2018-04' does not match expected ISO 8601 date format for WEEK timePeriods: xxxx-'W'ww");
   }
 
   @Test
@@ -354,9 +344,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-W03", null,
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getFlattenedMetrics(queryDTO);
-    }).withMessage("'2018-W03' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.getFlattenedMetrics(queryDTO))
+        .withMessage("'2018-W03' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
   }
 
   @Test
@@ -364,9 +353,8 @@ public class ApiMetricsReportingServiceV2Test
     ApiMetricsReportingQueryDTOV2 queryDTO = new ApiMetricsReportingQueryDTOV2(TimePeriod.MONTH, "2018-03", "2018-W04",
         Collections.emptySet(), Collections.emptySet());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.getFlattenedMetrics(queryDTO);
-    }).withMessage("'2018-W04' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.getFlattenedMetrics(queryDTO))
+        .withMessage("'2018-W04' does not match expected ISO 8601 date format for MONTH timePeriods: yyyy-MM");
   }
 
   @Test

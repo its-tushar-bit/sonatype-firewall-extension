@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiRoleAdapterTest
 {
-  private ApiRoleAdapter roleAdapter = new ApiRoleAdapter();
+  private final ApiRoleAdapter roleAdapter = new ApiRoleAdapter();
 
   @Test
   public void testConvertToDTO() {

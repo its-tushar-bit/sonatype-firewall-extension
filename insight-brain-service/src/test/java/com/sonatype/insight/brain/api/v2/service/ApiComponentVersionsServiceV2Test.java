@@ -42,7 +42,7 @@ public class ApiComponentVersionsServiceV2Test
   }
 
   @Test
-  public void testGetComponentVersions() throws Exception {
+  public void testGetComponentVersions() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
@@ -74,7 +74,7 @@ public class ApiComponentVersionsServiceV2Test
   }
 
   @Test
-  public void testGetComponentVersions_EmptyVersion() throws Exception {
+  public void testGetComponentVersions_EmptyVersion() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "");
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
@@ -106,7 +106,7 @@ public class ApiComponentVersionsServiceV2Test
   }
 
   @Test
-  public void testGetComponentVersions_NullVersion() throws Exception {
+  public void testGetComponentVersions_NullVersion() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", null);
 
     when(client.get(List.class, ApiComponentVersionsServiceV2.HDS_COMPONENT_VERSIONS_LIST_PATH,
@@ -137,20 +137,20 @@ public class ApiComponentVersionsServiceV2Test
   }
 
   @Test
-  public void testGetComponentVersions_InvalidComponentIdentifier() throws Exception {
+  public void testGetComponentVersions_InvalidComponentIdentifier() {
     ApiComponentOrPurlIdentifierDTOV2 apiComponentOrPurlIdentifierDTOV2 = new ApiComponentOrPurlIdentifierDTOV2();
     apiComponentOrPurlIdentifierDTOV2.setFormat(ComponentIdentifier.FORMAT_MAVEN);
     apiComponentOrPurlIdentifierDTOV2.setCoordinates(Collections.singletonMap("no-such-coordinate", "x"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2);
-    }).withMessage("Coordinates contain the following incorrect entries for the given format: [no-such-coordinate]");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiComponentVersionsServiceV2.getComponentVersions(apiComponentOrPurlIdentifierDTOV2))
+        .withMessage("Coordinates contain the following incorrect entries for the given format: [no-such-coordinate]");
   }
 
   @Test
-  public void testGetComponentVersions_NullValue() throws Exception {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentVersionsServiceV2.getComponentVersions(null);
-    }).withMessage("Missing component identifier");
+  public void testGetComponentVersions_NullValue() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiComponentVersionsServiceV2.getComponentVersions(null))
+        .withMessage("Missing component identifier");
   }
 }

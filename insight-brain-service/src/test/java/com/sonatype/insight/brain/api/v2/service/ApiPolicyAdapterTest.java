@@ -26,7 +26,7 @@ public class ApiPolicyAdapterTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  private ApiPolicyAdapter apiPolicyAdapter = new ApiPolicyAdapter();
+  private final ApiPolicyAdapter apiPolicyAdapter = new ApiPolicyAdapter();
 
   @Test
   public void testConvert() {

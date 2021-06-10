@@ -73,10 +73,9 @@ public class ApiSourceControlEvaluationServiceTest
     String branchName = "a-branch";
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(stageId, branchName);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiSourceControlEvaluationService.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO,
-          null /* userAgent */);
-    }).withMessage("Stage " + stageId + " is invalid.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSourceControlEvaluationService
+        .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
+        .withMessage("Stage " + stageId + " is invalid.");
   }
 
   @Test
@@ -84,26 +83,24 @@ public class ApiSourceControlEvaluationServiceTest
     Application app = tempEntity.newApplicationWithParent();
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO = null;
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiSourceControlEvaluationService.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO,
-          null /* userAgent */);
-    }).withMessage("Missing parameters.");
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSourceControlEvaluationService
+        .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, null /* userAgent */))
+        .withMessage("Missing parameters.");
   }
 
   @Test
-  public void testDoManifestEvaluation_NoGitRepoInfo() throws Exception {
+  public void testDoManifestEvaluation_NoGitRepoInfo() {
     Application app = tempEntity.newApplicationWithParent();
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiSourceControlEvaluationService
-          .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
-    }).withMessage("No SCM configuration defined for application ID " + app.getId());
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiSourceControlEvaluationService
+        .doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent"))
+        .withMessage("No SCM configuration defined for application ID " + app.getId());
   }
 
   @Test
-  public void testGetApplicationEvaluationStatus() throws Exception {
+  public void testGetApplicationEvaluationStatus() {
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     tempEntity.newSourceControl(app.getId(), "http://example.com/my/repo.git", null,

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -138,13 +138,13 @@ public class ApiComponentsWithWaiversReportingServiceTest
         new ConstraintFact("constraintFact1", "aa c", "OR");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact", triggerReference));
-    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
 
     ConstraintFact constraintFact2 =
         new ConstraintFact("constraintFact2", "aa c", "OR");
     constraintFact2.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact", triggerReference));
-    List<ConstraintFact> constraintFacts2 = Arrays.asList(constraintFact2);
+    List<ConstraintFact> constraintFacts2 = Collections.singletonList(constraintFact2);
 
     // Waived active policy violations and their corresponding waivers
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
@@ -255,7 +255,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "triggerReference refId");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact", triggerReference));
-    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
 
     // Waived active policy violations and their corresponding waivers
     RepositoryPolicyViolation waivedViolation1 =
@@ -302,7 +302,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
         new TriggerReference(Type.SECURITY_VULNERABILITY_REFID, "triggerReference refId");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact", triggerReference));
-    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
 
     // Waived active policy violations and their corresponding waivers
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
@@ -358,7 +358,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
         new ConstraintFact("constraintFact1", "aa c", "OR");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact", triggerReference));
-    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
 
     // Waived active policy violation and its corresponding waiver
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver("hash1", policy1.getId(), repo1.getId(),
@@ -413,7 +413,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
         new ConstraintFact("constraintFact1", "aa c", "OR");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact", triggerReference));
-    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
 
     PolicyWaiver policyWaiver1 =
         tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), constraintFacts1,  "Some comments here");
@@ -615,7 +615,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
         new ConstraintFact("constraintFact1", "aa c", "OR");
     constraintFact1.addConditionFact(new ConditionFact("MatchState", 0,
         "Match State is exact", "Match State was exact", triggerReference));
-    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
 
     PolicyWaiver policyWaiver1 =
         tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), constraintFacts1,
@@ -684,7 +684,7 @@ public class ApiComponentsWithWaiversReportingServiceTest
     constraintFact1.addConditionFact(
         new ConditionFact("MatchState", 0, "Match State is exact", "Match State was exact", triggerReference));
 
-    List<ConstraintFact> constraintFacts1 = Arrays.asList(constraintFact1);
+    List<ConstraintFact> constraintFacts1 = Collections.singletonList(constraintFact1);
 
     PolicyWaiver policyWaiver1 = tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), "Some comments here");
     PolicyWaiver policyWaiver2 = tempEntity.newWaiver("h2", policy1.getId(), app2.getId(), "Some more comments here");

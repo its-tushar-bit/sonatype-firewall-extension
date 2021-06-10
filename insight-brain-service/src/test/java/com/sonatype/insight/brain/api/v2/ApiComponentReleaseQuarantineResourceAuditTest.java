@@ -41,9 +41,9 @@ public class ApiComponentReleaseQuarantineResourceAuditTest
   public static final PackageUrlIdentifier PACKAGE_URL_IDENTIFIER =
       new PackageUrlIdentifier("pkg:maven/g1/a1@v1?type=e1");
 
-  private PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
+  private final PolicyWaiverDAO policyWaiverDAO = new PolicyWaiverDAO();
 
-  private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
+  private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
   private static final String REPO_MAN_INSTANCE_ID = "repoManagerInstanceId";
 

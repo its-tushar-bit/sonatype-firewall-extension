@@ -43,7 +43,7 @@ public class ApiSourceControlServiceAuthzTest
   @Inject
   private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
-  private ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
+  private final ApiSourceControlAdapter apiSourceControlAdapter = new ApiSourceControlAdapter();
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetAll_Unauthenticated() {

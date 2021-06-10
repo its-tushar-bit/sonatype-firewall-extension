@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -45,7 +45,7 @@ public class PolicyViolationAdapterTest
     PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, violation);
 
     assertThat(dto).isNotNull();
-    assertPolicyViolationDTO(Arrays.asList(dto), violation, app, policyEvaluation, policy);
+    assertPolicyViolationDTO(Collections.singletonList(dto), violation, app, policyEvaluation, policy);
   }
 
   @Test
@@ -61,6 +61,6 @@ public class PolicyViolationAdapterTest
     PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, policyViolation);
 
     assertThat(dto).isNotNull();
-    assertPolicyViolationDTO(Arrays.asList(dto), policyViolation, app, policyEvaluation, policy);
+    assertPolicyViolationDTO(Collections.singletonList(dto), policyViolation, app, policyEvaluation, policy);
   }
 }

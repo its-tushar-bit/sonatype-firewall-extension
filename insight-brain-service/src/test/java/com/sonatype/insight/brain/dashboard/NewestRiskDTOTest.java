@@ -32,18 +32,18 @@ public class NewestRiskDTOTest
   }
 
   @Test
-  public void testToCsvLine_WithDisplayName() throws Exception {
+  public void testToCsvLine_WithDisplayName() {
     assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,nameValue,1970-01-01T00:00:00Z,0,,policyViolationId1");
   }
 
   @Test
-  public void testToCsvLine_WithoutDisplayName() throws Exception {
+  public void testToCsvLine_WithoutDisplayName() {
     risk.displayName = null;
     assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,filename,1970-01-01T00:00:00Z,0,,policyViolationId1");
   }
 
   @Test
-  public void testToCsvLine_WithoutDisplayNameOrFilename() throws Exception {
+  public void testToCsvLine_WithoutDisplayNameOrFilename() {
     risk.displayName = null;
     risk.filename = null;
     assertThat(risk.toCsvLine())
@@ -61,7 +61,7 @@ public class NewestRiskDTOTest
   }
 
   @Test
-  public void testToCsvLine_WithCVEReference() throws Exception {
+  public void testToCsvLine_WithCVEReference() {
     risk.referenceId = "CVE-12345";
     assertThat(risk.toCsvLine()).isEqualTo("7,p,o,a,nameValue,1970-01-01T00:00:00Z,0,CVE-12345,policyViolationId1");
   }

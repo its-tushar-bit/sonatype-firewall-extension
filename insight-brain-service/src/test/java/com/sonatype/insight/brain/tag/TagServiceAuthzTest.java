@@ -120,18 +120,18 @@ public class TagServiceAuthzTest
   @Test
   public void testUpdatePolicyTags_Authorized() throws Exception {
     grantWritePermission(org.getId());
-    tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<Tag>());
+    tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<>());
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testUpdatePolicyTags_Unauthorized() throws Exception {
     login();
-    tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<Tag>());
+    tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<>());
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testUpdatePolicyTags_Unauthenticated() throws Exception {
-    tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<Tag>());
+    tagService.updatePolicyTags(OwnerType.ORGANIZATION, org.getId(), policyId, new ArrayList<>());
   }
 
   @Test(expected = UnauthorizedException.class)

@@ -25,7 +25,7 @@ public class ComponentDetailServiceAuthzTest
   @Inject
   private ComponentDetailService componentDetailService;
 
-  private String hash = "ababababab";
+  private final String hash = "ababababab";
 
   @Before
   public void before() {
@@ -34,18 +34,18 @@ public class ComponentDetailServiceAuthzTest
   }
 
   @Test
-  public void testGetApplicationDetailsByHash_Unauthenticated() throws Exception {
+  public void testGetApplicationDetailsByHash_Unauthenticated() {
     assertThat(componentDetailService.getApplicationDetailsByHash(hash)).isEmpty();
   }
 
   @Test
-  public void testGetApplicationDetailsByHash_Unauthorized() throws Exception {
+  public void testGetApplicationDetailsByHash_Unauthorized() {
     login();
     assertThat(componentDetailService.getApplicationDetailsByHash(hash)).isEmpty();
   }
 
   @Test
-  public void testGetApplicationDetailsByHash_Authorized() throws Exception {
+  public void testGetApplicationDetailsByHash_Authorized() {
     Application app1 = tempEntity.newApplicationWithParent("app1");
     tempEntity.newApplicationComponent(app1.getId(), BuildStageType.ID, hash,
         ComponentIdentifier.createMavenCoordinates("groupId1", "artifactId1", "version1"));

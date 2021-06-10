@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.configuration.ldap;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -146,7 +145,7 @@ public class EmbeddedLdapServer
         authenticators = new Authenticator[] { new StrongAuthenticator() };
         ldapServer.setSaslMechanismHandlers(saslHandlers);
         ldapServer.setSaslHost(LOCALHOST);
-        ldapServer.setSaslRealms(Arrays.asList(getSaslRealm()));
+        ldapServer.setSaslRealms(Collections.singletonList(getSaslRealm()));
         ldapServer.setSearchBaseDn("ou=system");
         break;
       case NONE:

@@ -42,16 +42,16 @@ public class DashboardUtilsTest
 
   @Test
   public void testGetStageTypes_InvalidStageTypeId() {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dashboardUtils.getStageTypes(Collections.singleton("invalid-stage-type-id"));
-    }).withMessage("Invalid stage type: invalid-stage-type-id.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dashboardUtils.getStageTypes(Collections.singleton("invalid-stage-type-id")))
+        .withMessage("Invalid stage type: invalid-stage-type-id.");
   }
 
   @Test
-  public void testGetStageTypes_UnlicensedStageTypeId() throws Exception {
+  public void testGetStageTypes_UnlicensedStageTypeId() {
     testProductLicense.setStageTypes(StageTypes.RELEASE);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      dashboardUtils.getStageTypes(Collections.singleton(StageTypes.BUILD.getId()));
-    }).withMessage("Current license does not support stage type: build.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> dashboardUtils.getStageTypes(Collections.singleton(StageTypes.BUILD.getId())))
+        .withMessage("Current license does not support stage type: build.");
   }
 }

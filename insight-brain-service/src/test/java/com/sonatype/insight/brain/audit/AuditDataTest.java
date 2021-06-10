@@ -73,7 +73,7 @@ public class AuditDataTest
     String[] result = new String[1];
     Runnable runnable = () -> result[0] = "result";
 
-    auditData.continueAsync(task -> task.run(), runnable);
+    auditData.continueAsync(Runnable::run, runnable);
 
     verify(auditData).continueAsync(functionArgumentCaptor.capture());
     Function<AuditData, Void> wrappedTaskSubmitter = functionArgumentCaptor.getValue();

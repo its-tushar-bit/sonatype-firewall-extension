@@ -506,9 +506,7 @@ public class InsightConfigurationFactoryTest
     LogbackClassicRequestLogFactory logFactory =
         (LogbackClassicRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
             .getRequestLogFactory();
-    assertThat(logFactory.getAppenders()).hasSize(3).allSatisfy(appenderFactory -> {
-      assertLosslessAppender(appenderFactory);
-    });
+    assertThat(logFactory.getAppenders()).hasSize(3).allSatisfy(this::assertLosslessAppender);
   }
 
   @Test
@@ -518,9 +516,7 @@ public class InsightConfigurationFactoryTest
     LogbackAccessRequestLogFactory logFactory =
         (LogbackAccessRequestLogFactory) ((DefaultServerFactory) insightConfig.getServerFactory())
             .getRequestLogFactory();
-    assertThat(logFactory.getAppenders()).hasSize(3).allSatisfy(appenderFactory -> {
-      assertLosslessAppender(appenderFactory);
-    });
+    assertThat(logFactory.getAppenders()).hasSize(3).allSatisfy(this::assertLosslessAppender);
   }
 
   @Test
@@ -528,14 +524,10 @@ public class InsightConfigurationFactoryTest
     InsightConfig insightConfig = build("config-server-log-appenders.yml");
 
     DefaultLoggingFactory loggingFactory = (DefaultLoggingFactory) insightConfig.getLoggingFactory();
-    assertThat(loggingFactory.getAppenders()).hasSize(3).allSatisfy(appenderFactory -> {
-      assertLosslessAppender(appenderFactory);
-    });
+    assertThat(loggingFactory.getAppenders()).hasSize(3).allSatisfy(this::assertLosslessAppender);
     LoggerConfiguration loggerConfiguration = Jackson.newObjectMapper()
         .treeToValue(loggingFactory.getLoggers().get("com.sonatype.insight.test"), LoggerConfiguration.class);
-    assertThat(loggerConfiguration.getAppenders()).hasSize(3).allSatisfy(appenderFactory -> {
-      assertLosslessAppender(appenderFactory);
-    });
+    assertThat(loggerConfiguration.getAppenders()).hasSize(3).allSatisfy(this::assertLosslessAppender);
   }
 
   private void assertLosslessAppender(AppenderFactory<?> appenderFactory) {

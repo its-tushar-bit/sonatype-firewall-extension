@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
 import com.google.inject.matcher.Matchers;
+import org.aopalliance.intercept.Joinpoint;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.junit.After;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class TaskSchedulerTest
   @Override
   public void configure(Binder binder) {
     // add some AOP to the mix to more closely reflect the normal runtime setup
-    MethodInterceptor noop = invocation -> invocation.proceed();
+    MethodInterceptor noop = Joinpoint::proceed;
     binder.bindInterceptor(Matchers.subclassesOf(TestJob.class), Matchers.any(), noop);
     super.configure(binder);
   }

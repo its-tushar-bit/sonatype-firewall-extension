@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiComponentLabelResourceV2Test
     extends AbstractResourceTest
 {
-  private ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
+  private final ComponentLabelDAO componentLabelDAO = new ComponentLabelDAO();
 
   @Test
   public void testSetComponentLabel_Application() throws Exception {

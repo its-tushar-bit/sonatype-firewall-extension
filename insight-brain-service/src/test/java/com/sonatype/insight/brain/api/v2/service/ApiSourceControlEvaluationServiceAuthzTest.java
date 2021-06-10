@@ -26,25 +26,25 @@ public class ApiSourceControlEvaluationServiceAuthzTest
   private ApiSourceControlEvaluationService service;
 
   @Test
-  public void testDoManifestEvaluation_Authorized() throws Exception {
+  public void testDoManifestEvaluation_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
 
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
-    }).withMessage("No SCM configuration defined for application ID " + app.getId());
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent"))
+        .withMessage("No SCM configuration defined for application ID " + app.getId());
   }
 
   @Test(expected = UnauthenticatedException.class)
-  public void testDoManifestEvaluation_Unauthenticated() throws Exception {
+  public void testDoManifestEvaluation_Unauthenticated() {
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
     service.doSourceControlEvaluation(app.getId(), apiSourceControlEvaluationRequestDTO, "useragent");
   }
 
   @Test(expected = UnauthorizedException.class)
-  public void testDoManifestEvaluation_Unauthorized() throws Exception {
+  public void testDoManifestEvaluation_Unauthorized() {
     login();
     ApiSourceControlEvaluationRequestDTO apiSourceControlEvaluationRequestDTO =
         new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch");
@@ -65,9 +65,9 @@ public class ApiSourceControlEvaluationServiceAuthzTest
   @Test
   public void testGetApplicationEvaluationStatus_Authorized() {
     grantEvaluateApplicationPermission(app.getId());
-    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
-      service.getApplicationEvaluationStatus(app.getId(), "statusId");
-    }).withMessage("Policy evaluation status with id %s for public application id %s was not found.", "statusId",
-        app.getPublicId());
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> service.getApplicationEvaluationStatus(app.getId(), "statusId"))
+        .withMessage("Policy evaluation status with id %s for public application id %s was not found.", "statusId",
+            app.getPublicId());
   }
 }

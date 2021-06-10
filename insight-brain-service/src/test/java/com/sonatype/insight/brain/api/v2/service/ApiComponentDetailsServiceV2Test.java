@@ -58,7 +58,7 @@ public class ApiComponentDetailsServiceV2Test
   @Mock
   private HdsClient client;
 
-  private ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
+  private final ComponentEvaluationV2Helper componentEvaluationV2Helper = new ComponentEvaluationV2Helper();
 
   @Override
   public void configure(Binder binder) {
@@ -89,7 +89,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_chunked() throws Exception {
+  public void testGetComponentDetails_chunked() {
     Set<License> declaredLicenseSet = Collections.singleton(new License("Apache-2.0", "Apache-2.0"));
     Set<License> observedLicenseSet = Collections.singleton(new License("ATT", "ATT"));
     List<SecurityVulnerability> securityVulnerabilities = componentEvaluationV2Helper.createSecurityVulnerabilities();
@@ -141,21 +141,21 @@ public class ApiComponentDetailsServiceV2Test
     String jsonRequest =
         "{\"components\":[{\"hash\":\"h1\",\"componentIdentifier\":{\"format\":\"maven\"},\"proprietary\":false}]}";
     ApiComponentEvaluationRequestDTOV2 request = JsonUtils.parse(jsonRequest, ApiComponentEvaluationRequestDTOV2.class);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentDetailsServiceV2.getComponentDetails(request);
-    }).withMessage("A component identifier must have at least one coordinate.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiComponentDetailsServiceV2.getComponentDetails(request))
+        .withMessage("A component identifier must have at least one coordinate.");
   }
 
   @Test
-  public void testGetComponentDetails_invalidComponentIdentifier_noExtension() throws Exception {
+  public void testGetComponentDetails_invalidComponentIdentifier_noExtension() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     ApiComponentDTOV2 component = componentEvaluationV2Helper.createComponent(componentIdentifier, "h1");
     request.components.add(component);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentDetailsServiceV2.getComponentDetails(request);
-    }).withMessage(MISSING_COORDINATES + "[extension]");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiComponentDetailsServiceV2.getComponentDetails(request))
+        .withMessage(MISSING_COORDINATES + "[extension]");
   }
 
   private ComponentEvaluationData createComponentEvaluationData(ComponentIdentifier componentIdentifier, String hash) {
@@ -171,7 +171,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_validation_nullComponentIdentifierAndNullPackageUrl() throws Exception {
+  public void testGetComponentDetails_validation_nullComponentIdentifierAndNullPackageUrl() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     component.hash = "h1";
@@ -189,7 +189,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_validation_nullHashAndNullPackageUrl() throws Exception {
+  public void testGetComponentDetails_validation_nullHashAndNullPackageUrl() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "", "e1");
@@ -207,7 +207,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_validation_nullComponentIdentifierAndNullHash() throws Exception {
+  public void testGetComponentDetails_validation_nullComponentIdentifierAndNullHash() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
 
@@ -232,40 +232,40 @@ public class ApiComponentDetailsServiceV2Test
     ApiComponentDTOV2 component = new ApiComponentDTOV2();
     request.components.add(component);
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentDetailsServiceV2.getComponentDetails(request);
-    }).withMessage("One of either componentIdentifier, packageUrl, or hash must be supplied.");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiComponentDetailsServiceV2.getComponentDetails(request))
+        .withMessage("One of either componentIdentifier, packageUrl, or hash must be supplied.");
   }
 
   @Test
-  public void testGetComponentDetails_nullComponents() throws Exception {
+  public void testGetComponentDetails_nullComponents() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = null;
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentDetailsServiceV2.getComponentDetails(request);
-    }).withMessage("No components provided in the request");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiComponentDetailsServiceV2.getComponentDetails(request))
+        .withMessage("No components provided in the request");
   }
 
   @Test
-  public void testGetComponentDetails_emptyComponents() throws Exception {
+  public void testGetComponentDetails_emptyComponents() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
     request.components = Collections.emptyList();
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentDetailsServiceV2.getComponentDetails(request);
-    }).withMessage("No components provided in the request");
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiComponentDetailsServiceV2.getComponentDetails(request))
+        .withMessage("No components provided in the request");
   }
   
   @Test
-  public void testGetComponentDetails_nullRequest() throws Exception {
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
-      apiComponentDetailsServiceV2.getComponentDetails(null);
-    }).withMessage("No components provided in the request");
+  public void testGetComponentDetails_nullRequest() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiComponentDetailsServiceV2.getComponentDetails(null))
+        .withMessage("No components provided in the request");
   }
 
   @Test
-  public void testGetComponentDetails_matchByComponentIdentifier() throws Exception {
+  public void testGetComponentDetails_matchByComponentIdentifier() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
@@ -288,7 +288,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_matchByPackageUrl() throws Exception {
+  public void testGetComponentDetails_matchByPackageUrl() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     PackageUrlIdentifier packageURLIdentifier = new PackageUrlIdentifier("pkg:maven/g1/a1@v1?classifier=c1&type=e1");
@@ -309,7 +309,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_multipleMatchByHash() throws Exception {
+  public void testGetComponentDetails_multipleMatchByHash() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     ApiComponentDTOV2 component1 = componentEvaluationV2Helper.createComponent(null, "h1");
@@ -334,7 +334,7 @@ public class ApiComponentDetailsServiceV2Test
   }
 
   @Test
-  public void testGetComponentDetails_matchByLongHash() throws Exception {
+  public void testGetComponentDetails_matchByLongHash() {
     ApiComponentEvaluationRequestDTOV2 request = new ApiComponentEvaluationRequestDTOV2();
 
     String hash = "12345678901234567890";

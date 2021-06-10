@@ -59,12 +59,11 @@ public class RestClientFactoryTest
     RestClientFactory factory = spy(new RestClientFactory());
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    assertThatExceptionOfType(HttpException.class).isThrownBy(() -> {
-      client.getProprietaryConfigForApplicationEvaluation("appId");
-    }).satisfies(e -> {
-      assertThat(e.getReason()).isEqualTo(hre.getMessage());
-      assertThat(e.getStatus()).isEqualTo(hre.getStatusCode());
-    });
+    assertThatExceptionOfType(HttpException.class)
+        .isThrownBy(() -> client.getProprietaryConfigForApplicationEvaluation("appId")).satisfies(e -> {
+          assertThat(e.getReason()).isEqualTo(hre.getMessage());
+          assertThat(e.getStatus()).isEqualTo(hre.getStatusCode());
+        });
   }
 
   @Test
@@ -248,9 +247,8 @@ public class RestClientFactoryTest
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository =
         client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
-    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> {
-      repository.getUnquarantinedComponents(0L);
-    }).isSameAs(httpResponseException);
+    assertThatExceptionOfType(HttpResponseException.class).isThrownBy(() -> repository.getUnquarantinedComponents(0L))
+        .isSameAs(httpResponseException);
     verify(firewallClient).getUnquarantinedComponents(0L);
     verifyNoMoreInteractions(firewallClient);
   }
@@ -272,9 +270,8 @@ public class RestClientFactoryTest
     final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
     final Repository repository =
         client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-      repository.getUnquarantinedComponents(0L);
-    }).withCause(httpResponseException);
+    assertThatExceptionOfType(UnsupportedOperationException.class)
+        .isThrownBy(() -> repository.getUnquarantinedComponents(0L)).withCause(httpResponseException);
     verify(firewallClient).getUnquarantinedComponents(0L);
     verifyNoMoreInteractions(firewallClient);
   }
@@ -382,9 +379,8 @@ public class RestClientFactoryTest
     doReturn(configClient).when(factory).newConfigurationClient(any(Configuration.class));
 
     RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-      client.getFirewallIgnorePatterns();
-    }).withCause(httpResponseException).withMessage("IQ Server doesn't support firewall ignore patterns, "
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(client::getFirewallIgnorePatterns)
+        .withCause(httpResponseException).withMessage("IQ Server doesn't support firewall ignore patterns, "
         + "upgrade it to version 1.35, or newer, to support it.");
     verify(configClient).getFirewallIgnorePatterns();
     verifyNoMoreInteractions(configClient);

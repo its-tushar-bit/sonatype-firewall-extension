@@ -267,7 +267,7 @@ public class PolicyViolationAggregationDAOTest
 
   @Test
   public void testGetMttrMonthlyAverages_EmptyApplicationIdSet() {
-    List<MttrMonth> results = dao.getMttrMonthlyAverages(new HashSet<String>(), false);
+    List<MttrMonth> results = dao.getMttrMonthlyAverages(new HashSet<>(), false);
 
     assertThat(results).isEmpty();
   }
@@ -463,7 +463,7 @@ public class PolicyViolationAggregationDAOTest
 
   @Test
   public void testGetMonthlyAverages_EmptyApplicationIdSet() {
-    List<AverageMonth> monthlyAverages = dao.getMonthlyAverages(new HashSet<String>(), false);
+    List<AverageMonth> monthlyAverages = dao.getMonthlyAverages(new HashSet<>(), false);
 
     assertThat(monthlyAverages).isEmpty();
   }
@@ -481,7 +481,7 @@ public class PolicyViolationAggregationDAOTest
   public void testGetActiveApplicationCount_EmptyApplicationIdSet() {
     PolicyViolationAggregationDataHelper.createAggregationHistory(tempEntity);
 
-    int result = dao.getActiveApplicationCount(new HashSet<String>(), false);
+    int result = dao.getActiveApplicationCount(new HashSet<>(), false);
 
     assertThat(result).isEqualTo(0);
   }
@@ -528,7 +528,7 @@ public class PolicyViolationAggregationDAOTest
   public void testGetApplicationCountsByThreatByApplicationIds_EmptyApplicationIdSet() {
     PolicyViolationAggregationDataHelper.createApplicationCountAggregationHistory(tempEntity);
 
-    ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(new HashSet<String>(), false);
+    ApplicationCountsByThreat result = dao.getApplicationCountsByThreatByApplicationIds(new HashSet<>(), false);
 
     assertThat(result.countAnyThreat).isEqualTo(0);
     assertThat(result.countAnyCriticalThreat).isEqualTo(0);

@@ -75,7 +75,7 @@ public class ApiSamlConfigurationServiceAuthzTest
   }
 
   @Test
-  public void testDeleteSamlConfiguration_Authorized() throws Exception {
+  public void testDeleteSamlConfiguration_Authorized() {
     tempEntity.newSamlConfiguration();
     grantConfigureSystemPermission();
     apiSamlConfigurationService.deleteSamlConfiguration();

@@ -341,7 +341,7 @@ public class ApplicationReportRawDataTest
     else {
       row.declaredLicenses().shouldHave(exactText(declaredLicenses));
       if (observedLicenses == null) {
-        row.observedLicenses().shouldBe(empty);
+        row.observedLicenses().shouldNot(exist);
       }
       else {
         row.observedLicenses().shouldHave(exactText(observedLicenses));

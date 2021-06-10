@@ -48,9 +48,9 @@ describe('RawLicenseDisplay', () => {
 
     it("doesn't show observed license if not provided", () => {
       const component = getShallowComponent({ license: { observedLicenses: [] } });
-      const observedLicenses = component.find('div').find('span');
+      const displayChildren = component.find('div').children();
 
-      expect(observedLicenses.text()).toBe('');
+      expect(displayChildren.length).toBe(1);
     });
   });
 

@@ -30,10 +30,14 @@ const getLicenseTooltipTitle = (license) => {
 };
 
 export default function RawLicenseDisplay({ license }) {
+  const declared = getDeclaredLicensesDisplay(license);
+  const observed = getObservedLicensesDisplay(license);
   return (
     <NxTooltip placement="top" title={getLicenseTooltipTitle(license)}>
       <div className="raw-license-tooltip">
-        <strong>{getDeclaredLicensesDisplay(license)}</strong>, <span>{getObservedLicensesDisplay(license)}</span>
+        <strong>{declared}</strong>
+        {observed && ', '}
+        {observed && <span>{observed}</span>}
       </div>
     </NxTooltip>
   );

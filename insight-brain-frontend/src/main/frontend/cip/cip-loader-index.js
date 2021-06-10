@@ -7,6 +7,9 @@ import 'angular';
 import 'angular-route';
 import 'angular-ui-bootstrap/ui-bootstrap-tpls';
 
+// only necessary for phantomjs geb tests
+import 'core-js/modules/es.object.assign';
+
 import './cip-index';
 
 import './proprietary.matchers.modal/proprietary.matchers.module';

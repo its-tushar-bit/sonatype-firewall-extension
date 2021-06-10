@@ -20,6 +20,7 @@
   "dependencies": {
     "@fortawesome/pro-regular-svg-icons": "^5.11.2",
     "@fortawesome/pro-solid-svg-icons": "^5.11.2",
+    "@reduxjs/toolkit": "^1.5.1",
     "@sonatype/react-shared-components": "^4.8.0",
     "@sonatype/version-graph": "^1.0.1",
     "@uirouter/angularjs": "^1.0.5",
@@ -41,6 +42,7 @@
     "classnames": "^2.2.6",
     "classybrew": "^0.0.3",
     "components-font-awesome": "^4.3.0",
+    "core-js": "^3.13.1",
     "d3": "^4.8.0",
     "dateformat": "^2.0.0",
     "debounce": "^1.2.0",

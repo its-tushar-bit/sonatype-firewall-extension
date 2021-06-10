@@ -3,61 +3,39 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
+import axios from 'axios';
+import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { __, any, complement, compose, curryN, eqProps, map, pick, prop, propEq, values } from 'ramda';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
-import { pathSet, propSet } from '../../util/jsUtil';
 import {
   combineValidators,
   hasValidationErrors,
   validateNonEmpty,
   validatePatternMatch,
 } from '../../util/validationUtil';
-
-import {
-  MAIL_CONFIG_LOAD_REQUESTED,
-  MAIL_CONFIG_LOAD_FULFILLED,
-  MAIL_CONFIG_LOAD_FAILED,
-  MAIL_CONFIG_SAVE_REQUESTED,
-  MAIL_CONFIG_SAVE_FULFILLED,
-  MAIL_CONFIG_SAVE_FAILED,
-  MAIL_CONFIG_DELETE_REQUESTED,
-  MAIL_CONFIG_DELETE_FULFILLED,
-  MAIL_CONFIG_DELETE_FAILED,
-  MAIL_CONFIG_RESET_FORM,
-  MAIL_CONFIG_SET_HOSTNAME,
-  MAIL_CONFIG_SET_PORT,
-  MAIL_CONFIG_SET_USERNAME,
-  MAIL_CONFIG_SET_PASSWORD,
-  MAIL_CONFIG_SET_SSL_ENABLED,
-  MAIL_CONFIG_SET_STARTTLS_ENABLED,
-  MAIL_CONFIG_SET_SYSTEM_EMAIL,
-  MAIL_CONFIG_SET_SHOW_DELETE_MODAL,
-  MAIL_CONFIG_SET_TEST_EMAIL,
-  MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED,
-  MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED,
-  MAIL_CONFIG_SEND_TEST_MAIL_FAILED,
-  MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE,
-} from './mailConfigActions';
+import { pathSet } from '../../util/jsUtil';
+import { propSet, propSetConst } from '../../util/reduxToolkitUtil';
+import { getMailConfigUrl, getTestMailUrl } from '../../util/CLMLocation';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
 const SUBMIT_MASK_SENDING_TEST_MAIL_MESSAGE = 'Sending Test Email';
 const SUBMIT_MASK_DELETING_MESSAGE = 'Deleting';
 export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 
+const REDUCER_NAME = 'mailConfig';
 const initialState = {
   // the data object as it is on the server, based on the last GET or synthesized after the last save
   serverData: null,
   formState: {
-    hostname: textInputStateHelpers.initialState(''),
-    port: textInputStateHelpers.initialState(''),
-    username: textInputStateHelpers.initialState(''),
-    password: textInputStateHelpers.initialState(''),
+    hostname: nxTextInputStateHelpers.initialState(''),
+    port: nxTextInputStateHelpers.initialState(''),
+    username: nxTextInputStateHelpers.initialState(''),
+    password: nxTextInputStateHelpers.initialState(''),
     sslEnabled: false,
     startTlsEnabled: false,
-    systemEmail: textInputStateHelpers.initialState(''),
-    testEmail: textInputStateHelpers.initialState(''),
+    systemEmail: nxTextInputStateHelpers.initialState(''),
+    testEmail: nxTextInputStateHelpers.initialState(''),
   },
   isDirty: false,
   isValid: true,
@@ -84,13 +62,13 @@ const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'testEmailE
 function setFormStateFromServerData(state) {
   const { serverData } = state,
     formState = {
-      hostname: textInputStateHelpers.initialState(serverData.hostname),
-      port: textInputStateHelpers.initialState(serverData.port.toString()),
-      username: textInputStateHelpers.initialState(serverData.username || ''),
-      password: textInputStateHelpers.initialState(FAKE_PASSWORD),
+      hostname: nxTextInputStateHelpers.initialState(serverData.hostname),
+      port: nxTextInputStateHelpers.initialState(serverData.port.toString()),
+      username: nxTextInputStateHelpers.initialState(serverData.username || ''),
+      password: nxTextInputStateHelpers.initialState(FAKE_PASSWORD),
       sslEnabled: serverData.sslEnabled,
       startTlsEnabled: serverData.startTlsEnabled,
-      systemEmail: textInputStateHelpers.initialState(serverData.systemEmail),
+      systemEmail: nxTextInputStateHelpers.initialState(serverData.systemEmail),
       testEmail: state.formState.testEmail,
     };
 
@@ -170,7 +148,7 @@ function loadRequested() {
   };
 }
 
-function loadFulfilled(payload, state) {
+function loadFulfilled(state, { payload }) {
   return setFormStateFromServerData({
     ...state,
     loading: false,
@@ -184,9 +162,9 @@ function loadFulfilled(payload, state) {
   });
 }
 
-const resetForm = (_, state) => (state.serverData ? loadFulfilled(state.serverData, state) : initialState);
+const resetForm = (state) => (state.serverData ? loadFulfilled(state, { payload: state.serverData }) : initialState);
 
-function loadFailed(payload) {
+function loadFailed(state, { payload }) {
   // 404 is fine, it just means there is no configuration
   const error = payload.response && payload.response.status === 404 ? null : payload;
 
@@ -198,7 +176,7 @@ function loadFailed(payload) {
   };
 }
 
-function saveRequested(payload, state) {
+function saveRequested(state) {
   return {
     ...state,
     submitMaskState: false,
@@ -208,7 +186,7 @@ function saveRequested(payload, state) {
   };
 }
 
-function saveFulfilled(payload, state) {
+function saveFulfilled(state, { payload }) {
   return setFormStateFromServerData({
     ...state,
     loading: false,
@@ -219,7 +197,7 @@ function saveFulfilled(payload, state) {
   });
 }
 
-function saveFailed(payload, state) {
+function saveFailed(state, { payload }) {
   return {
     ...state,
     loading: false,
@@ -229,7 +207,7 @@ function saveFailed(payload, state) {
   };
 }
 
-function sendTestMailRequested(payload, state) {
+function sendTestEmailRequested(state) {
   return {
     ...state,
     submitMaskState: false,
@@ -237,7 +215,7 @@ function sendTestMailRequested(payload, state) {
   };
 }
 
-function sendTestMailFulfilled(payload, state) {
+function sendTestEmailFulfilled(state) {
   return {
     ...state,
     submitMaskState: true,
@@ -246,7 +224,7 @@ function sendTestMailFulfilled(payload, state) {
   };
 }
 
-function sendTestMailFailed(payload, state) {
+function sendTestEmailFailed(state, { payload }) {
   return {
     ...state,
     submitMaskState: null,
@@ -255,7 +233,7 @@ function sendTestMailFailed(payload, state) {
   };
 }
 
-function deleteRequested(payload, state) {
+function deleteRequested(state) {
   return {
     ...state,
     submitMaskState: false,
@@ -269,7 +247,7 @@ function deleteFulfilled() {
   return { ...initialState, submitMaskState: true, ...clearedErrors };
 }
 
-function deleteFailed(payload, state) {
+function deleteFailed(state, { payload }) {
   return {
     ...state,
     loading: false,
@@ -279,47 +257,120 @@ function deleteFailed(payload, state) {
   };
 }
 
-const setTextInput = curryN(4, function setTextInput(fieldName, validator, payload, state) {
+const setTextInput = curryN(4, function setTextInput(fieldName, validator, state, { payload }) {
   const stateWithUpdatedValue = pathSet(
     ['formState', fieldName],
-    textInputStateHelpers.userInput(validator, payload),
+    nxTextInputStateHelpers.userInput(validator, payload),
     state
   );
 
   return updatedComputedProps(stateWithUpdatedValue);
 });
 
-const setCheckbox = curryN(3, function setCheckbox(fieldName, payload, state) {
+const setCheckbox = curryN(3, function setCheckbox(fieldName, state, { payload }) {
   const stateWithUpdatedValue = pathSet(['formState', fieldName], payload, state);
 
   return updatedComputedProps(stateWithUpdatedValue);
 });
 
-const reducerActionMap = {
-  [MAIL_CONFIG_LOAD_REQUESTED]: loadRequested,
-  [MAIL_CONFIG_LOAD_FULFILLED]: loadFulfilled,
-  [MAIL_CONFIG_LOAD_FAILED]: loadFailed,
-  [MAIL_CONFIG_SAVE_REQUESTED]: saveRequested,
-  [MAIL_CONFIG_SAVE_FULFILLED]: saveFulfilled,
-  [MAIL_CONFIG_SAVE_FAILED]: saveFailed,
-  [MAIL_CONFIG_DELETE_REQUESTED]: deleteRequested,
-  [MAIL_CONFIG_DELETE_FULFILLED]: deleteFulfilled,
-  [MAIL_CONFIG_DELETE_FAILED]: deleteFailed,
-  [MAIL_CONFIG_RESET_FORM]: resetForm,
-  [MAIL_CONFIG_SET_HOSTNAME]: setTextInput('hostname', validateNonEmpty),
-  [MAIL_CONFIG_SET_PORT]: setTextInput('port', portValidator),
-  [MAIL_CONFIG_SET_USERNAME]: setTextInput('username', null),
-  [MAIL_CONFIG_SET_PASSWORD]: setTextInput('password', null),
-  [MAIL_CONFIG_SET_SSL_ENABLED]: setCheckbox('sslEnabled'),
-  [MAIL_CONFIG_SET_STARTTLS_ENABLED]: setCheckbox('startTlsEnabled'),
-  [MAIL_CONFIG_SET_SYSTEM_EMAIL]: setTextInput('systemEmail', validateNonEmpty),
-  [MAIL_CONFIG_SEND_TEST_MAIL_REQUESTED]: sendTestMailRequested,
-  [MAIL_CONFIG_SEND_TEST_MAIL_FULFILLED]: sendTestMailFulfilled,
-  [MAIL_CONFIG_SEND_TEST_MAIL_FAILED]: sendTestMailFailed,
-  [MAIL_CONFIG_SET_TEST_EMAIL]: setTextInput('testEmail', null),
-  [MAIL_CONFIG_SET_SHOW_DELETE_MODAL]: propSet('showDeleteModal'),
-  [MAIL_CONFIG_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
-};
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue }) => {
+  return axios.get(getMailConfigUrl()).then(prop('data')).catch(rejectWithValue);
+});
 
-const reducer = createReducerFromActionMap(reducerActionMap, initialState);
-export default reducer;
+const sendTestEmail = createAsyncThunk(
+  `${REDUCER_NAME}/sendTestEmail`,
+  (_, { getState, dispatch, rejectWithValue }) => {
+    const { formState } = getState().mailConfig;
+
+    return axios
+      .post(getTestMailUrl(formState.testEmail.trimmedValue), toServerData(formState))
+      .then(prop('data'))
+      .then((data) => {
+        startSubmitMaskSuccessTimer(dispatch);
+        return data;
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const save = createAsyncThunk(`${REDUCER_NAME}/save`, (_, { getState, dispatch, rejectWithValue }) => {
+  const formState = getState().mailConfig.formState,
+    serverData = toServerData(formState);
+
+  return axios
+    .put(getMailConfigUrl(), serverData)
+    .then(() => {
+      startSubmitMaskSuccessTimer(dispatch);
+      return serverData;
+    })
+    .catch(rejectWithValue);
+});
+
+const del = createAsyncThunk(`${REDUCER_NAME}/delete`, (_, { dispatch, rejectWithValue }) => {
+  return axios
+    .delete(getMailConfigUrl())
+    .then(() => {
+      startSubmitMaskSuccessTimer(dispatch);
+    })
+    .catch(rejectWithValue);
+});
+
+function startSubmitMaskSuccessTimer(dispatch) {
+  setTimeout(() => {
+    dispatch(actions.submitMaskTimerDone());
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
+function toServerData(formState) {
+  // pull the trimmedValue out of the input state object and convert empty strings to null
+  const textPropMapper = ({ trimmedValue }) => trimmedValue || null;
+
+  return {
+    ...pick(['startTlsEnabled', 'sslEnabled'], formState),
+    ...map(textPropMapper, pick(['hostname', 'username', 'systemEmail'], formState)),
+    port: parseInt(formState.port.trimmedValue, 10),
+    password: formState.password.value || null,
+    passwordIsIncluded: formState.password.value !== FAKE_PASSWORD,
+  };
+}
+
+const mailConfigSlice = createSlice({
+  name: REDUCER_NAME,
+  initialState,
+  reducers: {
+    resetForm: resetForm,
+    setHostname: setTextInput('hostname', validateNonEmpty),
+    setPort: setTextInput('port', portValidator),
+    setUsername: setTextInput('username', null),
+    setPassword: setTextInput('password', null),
+    setSslEnabled: setCheckbox('sslEnabled'),
+    setStartTlsEnabled: setCheckbox('startTlsEnabled'),
+    setSystemEmail: setTextInput('systemEmail', validateNonEmpty),
+    setTestEmail: setTextInput('testEmail', null),
+    setShowDeleteModal: propSet('showDeleteModal'),
+    submitMaskTimerDone: propSetConst('submitMaskState', null),
+  },
+  extraReducers: {
+    [load.pending]: loadRequested,
+    [load.fulfilled]: loadFulfilled,
+    [load.rejected]: loadFailed,
+    [save.pending]: saveRequested,
+    [save.fulfilled]: saveFulfilled,
+    [save.rejected]: saveFailed,
+    [del.pending]: deleteRequested,
+    [del.fulfilled]: deleteFulfilled,
+    [del.rejected]: deleteFailed,
+    [sendTestEmail.pending]: sendTestEmailRequested,
+    [sendTestEmail.fulfilled]: sendTestEmailFulfilled,
+    [sendTestEmail.rejected]: sendTestEmailFailed,
+  },
+});
+
+export default mailConfigSlice.reducer;
+export const actions = {
+  ...mailConfigSlice.actions,
+  load,
+  save,
+  del,
+  sendTestEmail,
+};

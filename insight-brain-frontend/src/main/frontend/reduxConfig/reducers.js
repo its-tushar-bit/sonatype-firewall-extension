@@ -12,7 +12,7 @@ import applicationReportReducer from '../applicationReport/applicationReportRedu
 import userReducer from '../user/userReducer';
 import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySearchReducer';
 import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
-import mailConfigReducer from '../configuration/mail/mailConfigReducer';
+import mailConfigReducer from '../configuration/mail/mailConfigRedux';
 import violationReducer from '../violation/violationReducer';
 import proxyConfigReducer from '../configuration/proxy/proxyConfigReducer';
 import stagesReducer from '../stages/stagesReducer';

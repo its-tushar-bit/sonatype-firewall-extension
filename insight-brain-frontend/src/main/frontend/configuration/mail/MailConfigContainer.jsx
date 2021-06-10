@@ -6,7 +6,7 @@
 import { connect } from 'react-redux';
 import { pick } from 'ramda';
 
-import * as mailConfigActions from './mailConfigActions';
+import { actions } from './mailConfigRedux';
 import MailConfig from './MailConfig';
 
 function mapStateToProps({ mailConfig }) {
@@ -41,4 +41,4 @@ function mapStateToProps({ mailConfig }) {
   };
 }
 
-export default connect(mapStateToProps, mailConfigActions)(MailConfig);
+export default connect(mapStateToProps, actions)(MailConfig);

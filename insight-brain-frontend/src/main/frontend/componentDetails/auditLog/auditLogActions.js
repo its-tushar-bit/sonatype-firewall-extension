@@ -8,6 +8,7 @@ import axios from 'axios';
 import { getReportAuditLogUrl } from '../../util/CLMLocation';
 import { httpErrorMessageActionCreator, noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { sortItemsByFields } from '../../util/sortUtils';
+import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
 
 export const AUDIT_LOG_LOAD_AUDIT_LOG_REQUESTED = 'AUDIT_LOG_LOAD_AUDIT_LOG_REQUESTED';
 export const AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED = 'AUDIT_LOG_LOAD_AUDIT_LOG_FULFILLED';
@@ -22,13 +23,14 @@ const loadAuditLogFailed = httpErrorMessageActionCreator(AUDIT_LOG_LOAD_AUDIT_LO
 export function loadAuditLogForComponent() {
   return (dispatch, getState) => {
     dispatch(loadAuditLogRequested());
+    const state = getState();
+    const selectedComponent = selectSelectedComponent(state);
 
     const {
-      applicationReport: { selectedComponent },
       router: {
         currentParams: { publicId, scanId },
       },
-    } = getState();
+    } = state;
     const url = getReportAuditLogUrl(publicId, scanId, selectedComponent);
 
     return axios

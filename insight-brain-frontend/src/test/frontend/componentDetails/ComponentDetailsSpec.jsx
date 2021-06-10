@@ -8,6 +8,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import { NxStatefulTabs, NxTab } from '@sonatype/react-shared-components';
 
 import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
+import { ComponentDetailsFooter } from '../../../main/frontend/componentDetails/ComponentDetailsFooter';
 import BackButton from '../../../main/frontend/react/BackButton';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
 import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
@@ -16,14 +17,14 @@ describe('ComponentDetails', function () {
   let minimalProps,
     getShallowComponent,
     getMountedComponent,
-    loadReportAndSelectComponentSpy,
+    loadComponentDetailsSpy,
     stateMock,
     stateGetSpy,
-    stateGoSpy;
+    onTabChangeSpy;
 
   beforeEach(function () {
-    loadReportAndSelectComponentSpy = jasmine.createSpy('loadResults');
-    stateGoSpy = jasmine.createSpy('stateGo');
+    loadComponentDetailsSpy = jasmine.createSpy('loadComponentDetails');
+    onTabChangeSpy = jasmine.createSpy('onTabChange');
 
     stateGetSpy = jasmine.createSpy('$state.get').and.returnValue({ data: { title: 'some title' } });
     stateMock = {
@@ -34,13 +35,10 @@ describe('ComponentDetails', function () {
 
     minimalProps = {
       componentDetails: null,
-      publicId: 'publicId',
-      scanId: 'scanId',
-      unknownjs: false,
-      hash: 'hash',
-      tabId: 'remediation',
-      loadReportAndSelectComponentByHash: loadReportAndSelectComponentSpy,
-      stateGo: stateGoSpy,
+      activeTabId: 'remediation',
+      loadComponentDetails: loadComponentDetailsSpy,
+      onTabChange: onTabChangeSpy,
+      pagination: null,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetails, minimalProps);
@@ -59,15 +57,20 @@ describe('ComponentDetails', function () {
     expect(backBtn).toHaveProp('$state', stateMock);
   });
 
-  it('calls loadReportAndSelectComponentByHash if there is no componentDetails in the state', () => {
+  it('calls loadComponentDetails if there is NO componentDetails in the state', () => {
     const component = getMountedComponent();
-    expect(loadReportAndSelectComponentSpy).toHaveBeenCalledWith('publicId', 'scanId', 'hash', false);
+    expect(loadComponentDetailsSpy).toHaveBeenCalled();
     component.unmount();
   });
 
-  it('does not calls loadReportAndSelectComponentByHash if there is a componentDetails in the state', () => {
-    const component = getMountedComponent({ componentDetails: { derivedComponentName: 'MockName' } });
-    expect(loadReportAndSelectComponentSpy).not.toHaveBeenCalled();
+  it('does not calls loadComponentDetails if there IS a componentDetails in the state', () => {
+    const component = getMountedComponent({
+      componentDetails: {
+        name: 'Mock Component Name',
+        hash: 'some-crazy-hash',
+      },
+    });
+    expect(loadComponentDetailsSpy).not.toHaveBeenCalled();
     component.unmount();
   });
 
@@ -79,8 +82,13 @@ describe('ComponentDetails', function () {
       expect(tabBar).not.toExist();
     });
 
-    it('renders 6 tabs with the appropriate names when there is a selected component', function () {
-      const component = getShallowComponent({ componentDetails: 'exists' }),
+    it('renders 6 tabs with the appropriate names when there is componentDetails prop', function () {
+      const component = getShallowComponent({
+          componentDetails: {
+            name: 'Mock Component Name',
+            hash: 'some-crazy-hash',
+          },
+        }),
         tabBar = component.find(NxStatefulTabs);
 
       expect(tabBar).toExist();
@@ -95,50 +103,83 @@ describe('ComponentDetails', function () {
       expect(tabs.at(5)).toHaveProp('children', 'Audit Log');
     });
 
-    it('calls stateGo action with the appropriate state when clicking on a tab', function () {
+    it('calls onTabChange action with the appropriate activeTabId when clicking on a tab', function () {
       // Mock `AuditLogContainer` so that `getMountedComponent` doesn't complain.
       spyOn(fullAuditLog, 'default').and.returnValue(<div>hello</div>);
 
-      let component = getMountedComponent({ componentDetails: 'exists' }),
+      let component = getMountedComponent({
+          componentDetails: {
+            name: 'Mock Component Name',
+            hash: 'some-crazy-hash',
+          },
+        }),
         tabBar = component.find(NxStatefulTabs),
         tabs = tabBar.find(NxTab);
 
       tabs.at(1).simulate('click');
-      expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.info', { hash: 'hash' });
+      expect(onTabChangeSpy).toHaveBeenCalledWith('info');
 
       tabs.at(2).simulate('click');
-      expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.violations', { hash: 'hash' });
+      expect(onTabChangeSpy).toHaveBeenCalledWith('violations');
 
       tabs.at(3).simulate('click');
-      expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.security', { hash: 'hash' });
+      expect(onTabChangeSpy).toHaveBeenCalledWith('security');
 
       tabs.at(4).simulate('click');
-      expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.legal', { hash: 'hash' });
+      expect(onTabChangeSpy).toHaveBeenCalledWith('legal');
 
       tabs.at(5).simulate('click');
-      expect(stateGoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.audit', { hash: 'hash' });
+      expect(onTabChangeSpy).toHaveBeenCalledWith('audit');
 
       /** Starting on another tab to be able to check the listener on the default 0 tab */
-      const stateGoInInfoSpy = jasmine.createSpy('stateGo');
-      (component = getMountedComponent({ componentDetails: 'exists', tabId: 'info', stateGo: stateGoInInfoSpy })),
+      const onTabChangeInInfoSpy = jasmine.createSpy('onTabChange');
+      (component = getMountedComponent({
+        componentDetails: {
+          name: 'Mock Component Name',
+          hash: 'some-crazy-hash',
+        },
+        activeTabId: 'info',
+        onTabChange: onTabChangeInInfoSpy,
+      })),
         (tabBar = component.find(NxStatefulTabs)),
         (tabs = tabBar.find(NxTab));
 
       tabs.at(0).simulate('click');
-      expect(stateGoInInfoSpy).toHaveBeenCalledWith('applicationReport.componentDetails.remediation', { hash: 'hash' });
+      expect(onTabChangeInInfoSpy).toHaveBeenCalledWith('remediation');
     });
 
-    it('does not call stateGo when clicking on the same tab twice', function () {
+    it('does not call onTabChange when clicking on the same tab twice', function () {
       // Mock `AuditLogContainer` so that `getMountedComponent` doesn't complain.
       spyOn(fullAuditLog, 'default').and.returnValue(<div>hello</div>);
 
-      const component = getMountedComponent({ componentDetails: 'exists' }),
+      const component = getMountedComponent({
+          componentDetails: {
+            name: 'Mock Component Name',
+            hash: 'some-crazy-hash',
+          },
+        }),
         tabBar = component.find(NxStatefulTabs),
         tabs = tabBar.find(NxTab),
         defaultTab = tabs.at(0);
 
       defaultTab.simulate('click');
-      expect(stateGoSpy).not.toHaveBeenCalled();
+      expect(onTabChangeSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('pagination', () => {
+    it('renders a ComponentDetailsFooter component and spreads the pagination prop to it, when pagination prop is passed', () => {
+      const mockPagination = {
+        next: '/next-component',
+      };
+      const el = getShallowComponent({
+        componentDetails: {
+          name: 'Mock Component Name',
+          hash: 'some-crazy-hash',
+        },
+        pagination: mockPagination,
+      });
+      expect(el.find(ComponentDetailsFooter)).toExist();
     });
   });
 });

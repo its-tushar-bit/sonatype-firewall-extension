@@ -55,7 +55,7 @@ export const ComponentDetailsTags = ({ format, dependencyType, isInnerSource, la
   );
 };
 
-export const propTypes = {
+export const componentDetailsTagsPropTypes = {
   className: PropTypes.string,
   format: PropTypes.string,
   isInnerSource: PropTypes.bool,
@@ -69,6 +69,6 @@ export const propTypes = {
     })
   ),
 };
-ComponentDetailsTags.propTypes = propTypes;
+ComponentDetailsTags.propTypes = componentDetailsTagsPropTypes;
 
 export default ComponentDetailsTags;

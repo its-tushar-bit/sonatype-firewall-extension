@@ -102,7 +102,7 @@ public class ComponentDetailsTest
   }
 
   @Test
-  public void testComponentDetailsHeader() {
+  public void testComponentDetailsHeaderAndFooter() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
 
     ElementsCollection violations = reportPage.resultRows();
@@ -123,7 +123,9 @@ public class ComponentDetailsTest
     ElementsCollection tags = componentDetailsPage.header().tags();
     tags.shouldHave(texts("maven", "Direct Dependency"));
 
-    eyesWatcher.eyesCheck("component details header");
+    componentDetailsPage.footer().paginationCounter().shouldHave(text("5 of 64"));
+
+    eyesWatcher.eyesCheck("component details header and footer");
   }
 
   @Test

@@ -225,7 +225,7 @@ function loadReportAllData() {
 function selectComponent(componentIndex) {
   return (dispatch, getState) => {
     const { selectedReport } = getState().applicationReport;
-    const component = selectedReport.displayedEntries[componentIndex];
+    const component = selectedReport && selectedReport.displayedEntries[componentIndex];
     return Promise.resolve(dispatch(setSelectedComponent({ component, componentIndex })));
   };
 }
@@ -312,27 +312,12 @@ const reevaluateReportFulfilled = noPayloadActionCreator(REEVALUATE_REPORT_FULFI
 const reevaluateReportFailed = httpErrorMessageActionCreator(REEVALUATE_REPORT_FAILED);
 const reevaluateReportCancelled = noPayloadActionCreator(REEVALUATE_REPORT_CANCELLED);
 
-export function loadReportAndSelectComponentByHash(appId, scanId, hash, unknownjs) {
-  return (dispatch, getState) => {
-    dispatch(setReportParameters(appId, scanId, unknownjs, false));
-    return dispatch(loadReport(true)).then(() => {
-      const {
-        applicationReport: { selectedReport },
-      } = getState();
-      const selectedComponentIndex =
-        selectedReport && selectedReport.allEntries.findIndex((component) => (component.hash = hash));
-      dispatch(selectComponent(selectedComponentIndex));
-    });
-  };
-}
-
 export default function applicationReportActions() {
   return {
     setReportParameters,
     loadReport,
     loadReportRawData,
     loadReportAllData,
-    loadReportAndSelectComponentByHash,
     reevaluateReport,
     reevaluateReportCancelled,
     setAggregateReportEntries,

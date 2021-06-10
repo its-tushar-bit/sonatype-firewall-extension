@@ -20,18 +20,20 @@ const {
 } = auditLogActions;
 
 describe('auditLogActions', function () {
-  let store, state, mockAxiosCalls, url, mockAppId, mockReportId, mockSelectedComponent, mockResponse;
+  let store, state, mockAxiosCalls, url, mockAppId, mockReportId, mockComponentHash, mockComponent, mockResponse;
 
   beforeEach(function () {
     mockAppId = 'appId';
     mockReportId = 'reportId';
-    mockSelectedComponent = { derivedComponentName: 'componentName' };
+    mockComponentHash = 'my-component-hash';
+    mockComponent = { name: 'My Component', hash: mockComponentHash };
 
     state = {
       router: {
         currentParams: {
           publicId: mockAppId,
           scanId: mockReportId,
+          hash: mockComponentHash,
         },
       },
       auditLog: {
@@ -41,12 +43,14 @@ describe('auditLogActions', function () {
         appliedSort: null,
       },
       applicationReport: {
-        selectedComponent: mockSelectedComponent,
+        selectedReport: {
+          displayedEntries: [mockComponent],
+        },
       },
     };
     store = SpecUtil.mockReduxStore(state);
     mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-    url = getReportAuditLogUrl(mockAppId, mockReportId, mockSelectedComponent);
+    url = getReportAuditLogUrl(mockAppId, mockReportId, mockComponent);
 
     mockResponse = {
       data: {

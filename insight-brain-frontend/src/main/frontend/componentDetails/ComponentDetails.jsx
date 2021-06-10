@@ -17,26 +17,24 @@ import {
   Title,
   ComponentDetailsReportInfo,
   ComponentDetailsTags,
-  propTypes as componentDetailsTagsPropTypes,
+  componentDetailsTagsPropTypes,
 } from './ComponentDetailsHeader';
+import { ComponentDetailsFooter, propTypes as footerPropTypes } from './ComponentDetailsFooter';
 
 export default function ComponentDetails({
   componentDetails,
-  publicId,
-  scanId,
-  unknownjs,
-  tabId,
-  hash,
-  loadReportAndSelectComponentByHash,
-  stateGo,
+  activeTabId,
+  onTabChange,
+  pagination,
+  loadComponentDetails,
 }) {
   const uiRouterState = useRouterState();
 
   useEffect(() => {
     if (!componentDetails) {
-      loadReportAndSelectComponentByHash(publicId, scanId, hash, unknownjs);
+      loadComponentDetails();
     }
-  }, [componentDetails, publicId, scanId, hash, unknownjs]);
+  }, [componentDetails]);
 
   // bail out early if no component details (still show back button)
   if (!componentDetails) {
@@ -47,25 +45,15 @@ export default function ComponentDetails({
     );
   }
 
-  const goToTab = (tabIndex) => {
+  const handleTabChange = (tabIndex) => {
     const tabIdToMoveTo = tabIdPerIndex[tabIndex];
-    if (tabIdToMoveTo === tabId) {
+    if (tabIdToMoveTo === activeTabId) {
       return;
     }
-    stateGo(`applicationReport.componentDetails.${tabIdToMoveTo}`, { hash });
+    onTabChange(tabIdToMoveTo);
   };
 
-  const {
-    name,
-    applicationName,
-    organizationName,
-    reportTime,
-    reportTitle,
-    format,
-    dependencyType,
-    isInnerSource,
-    labels,
-  } = componentDetails;
+  const { name, metadata, format, dependencyType, isInnerSource, labels } = componentDetails;
 
   return (
     <main className="nx-page-main nx-viewport-sized" id="component-details-page">
@@ -73,12 +61,7 @@ export default function ComponentDetails({
       <div className="nx-viewport-sized__container">
         <ComponentDetailsHeader>
           <Title id="component-details-title">{name}</Title>
-          <ComponentDetailsReportInfo
-            applicationName={applicationName}
-            organizationName={organizationName}
-            reportTime={reportTime}
-            reportTitle={reportTitle}
-          />
+          <ComponentDetailsReportInfo {...metadata} />
           <ComponentDetailsTags
             format={format}
             dependencyType={dependencyType}
@@ -87,7 +70,7 @@ export default function ComponentDetails({
           />
         </ComponentDetailsHeader>
 
-        <NxStatefulTabs defaultActiveTab={tabIdPerIndex.indexOf(tabId)} onTabSelect={goToTab}>
+        <NxStatefulTabs defaultActiveTab={tabIdPerIndex.indexOf(activeTabId)} onTabSelect={handleTabChange}>
           <NxTabList aria-label="Component detail tabs">
             <NxTab>Remediation</NxTab>
             <NxTab>Component Info</NxTab>
@@ -115,32 +98,35 @@ export default function ComponentDetails({
             <AuditLogContainer />
           </NxTabPanel>
         </NxStatefulTabs>
+
+        {pagination && <ComponentDetailsFooter {...pagination} />}
       </div>
     </main>
   );
 }
 
 ComponentDetails.propTypes = {
-  loadReportAndSelectComponentByHash: PropTypes.func.isRequired,
-  stateGo: PropTypes.func.isRequired,
-  unknownjs: PropTypes.bool,
-  tabId: PropTypes.string,
-  // the following 3 should be required but marking them as such causes proptype errors when navigating away
-  hash: PropTypes.string,
-  publicId: PropTypes.string,
-  scanId: PropTypes.string,
-
   componentDetails: PropTypes.shape({
-    name: PropTypes.string,
-    applicationName: PropTypes.string,
-    organizationName: PropTypes.string,
-    reportTime: PropTypes.number,
-    reportTitle: PropTypes.string,
+    name: PropTypes.string.isRequired,
+    hash: PropTypes.string.isRequired,
     format: componentDetailsTagsPropTypes.form,
     dependencyType: componentDetailsTagsPropTypes.dependencyType,
     isInnerSource: componentDetailsTagsPropTypes.isInnerSource,
     labels: componentDetailsTagsPropTypes.label,
+    metadata: PropTypes.shape({
+      applicationName: PropTypes.string,
+      organizationName: PropTypes.string,
+      reportTime: PropTypes.number,
+      reportTitle: PropTypes.string,
+    }),
   }),
+  loadComponentDetails: PropTypes.func.isRequired,
+
+  // activeTabId should be required but marking it as such causes proptype errors when navigating away
+  activeTabId: PropTypes.string,
+  onTabChange: PropTypes.func.isRequired,
+
+  pagination: PropTypes.shape(footerPropTypes),
 };
 
 /*

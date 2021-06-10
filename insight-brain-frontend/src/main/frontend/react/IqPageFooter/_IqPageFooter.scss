@@ -1,0 +1,26 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+//POSITIONING and LAYOUT
+//TODO: These styles should be changed when CLM-18612 is merged
+.iq-page-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+//End positioning and layout styles
+
+.iq-page-footer {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  box-sizing: border-box;
+  border: 1px solid #d1d6f0;
+  height: 48px;
+  justify-content: space-between;
+  padding: 0 24px;
+}

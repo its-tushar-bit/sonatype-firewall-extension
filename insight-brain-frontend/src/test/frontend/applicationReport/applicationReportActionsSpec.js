@@ -722,49 +722,6 @@ describe('applicationReportActions', function () {
     });
   });
 
-  describe('loadReportAndSelectComponentByHash', function () {
-    it('loads the report and selects the component with given hash', function (done) {
-      const state = createMockState(false, mockBomData, mockUnknownJsData, mockMetadata);
-      const entries = [
-        {
-          hash: 'hash',
-          derivedComponentName: 'derivedComponentName',
-        },
-      ];
-      state.applicationReport.selectedReport = {
-        displayedEntries: entries,
-        allEntries: entries,
-      };
-      const store = SpecUtil.mockReduxStore(state);
-
-      expectCommonDataCalls(true, {
-        ...expectReportDataCalls(true),
-        ...expectReportRawDataCalls(true),
-      });
-
-      store
-        .dispatch(applicationReportActions.loadReportAndSelectComponentByHash('appId', 'scanId', 'hash', false))
-        .then(() => {
-          expect(store.getActions().length).toBe(5);
-          expect(store.getActions()[0]).toEqual({
-            type: 'SET_REPORT_PARAMETERS',
-            payload: {
-              appId: 'appId',
-              scanId: 'scanId',
-              isUnknownJs: false,
-              embeddable: false,
-              policyViolationId: undefined,
-            },
-          });
-          expect(store.getActions()[3].type).toEqual('LOAD_REPORT_FULFILLED');
-          expect(store.getActions()[4].type).toEqual('SELECT_COMPONENT');
-          expect(store.getActions()[4].payload.componentIndex).toEqual(0),
-            expect(store.getActions()[4].payload.component.hash).toEqual('hash');
-          done();
-        });
-    });
-  });
-
   describe('selectRootAncestor', function () {
     it('returns a SELECT_ROOT_ANCESTOR action with the specified payload value', function () {
       const payload = {},

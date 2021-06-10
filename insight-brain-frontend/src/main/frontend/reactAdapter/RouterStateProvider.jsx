@@ -11,7 +11,7 @@ export default function withRouterStateProvider(WrappedComponent) {
   function WithRouterStateProvider({ $state, ...props }) {
     return (
       <RouterStateProvider value={$state}>
-        <WrappedComponent {...props} />
+        <WrappedComponent {...props} uiRouterState={$state} />
       </RouterStateProvider>
     );
   }

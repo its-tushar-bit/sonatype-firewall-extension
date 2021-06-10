@@ -4,45 +4,24 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { path, pick } from 'ramda';
-
+import { loadReport } from '../applicationReport/applicationReportActions';
+import { selectComponentDetails, selectActiveTabId, selectComponentPagination } from './componentDetailsSelectors';
+import { onTabChange } from './componentDetailsActions';
 import ComponentDetails from './ComponentDetails';
-import { loadReportAndSelectComponentByHash } from '../applicationReport/applicationReportActions';
-import { stateGo } from '../reduxUiRouter/routerActions';
 
-const formatFromComponent = path(['componentIdentifier', 'format']);
-const reportMetaData = pick(['reportTime', 'reportTitle']);
-
-const deriveComponentDetails = (component, metadata) => ({
-  name: component.derivedComponentName,
-  dependencyType: component.derivedDependencyType,
-  isInnerSource: component.innerSource || !!component.innerSourceData,
-  format: formatFromComponent(component),
-  applicationName: metadata.application.name,
-  organizationName: metadata.application.organization.name,
-  ...reportMetaData(metadata),
-});
-
-function mapStateToProps(state) {
-  const {
-    router: {
-      currentParams: { hash, publicId, scanId, unknownjs, tabId },
-    },
-    applicationReport: { selectedComponent, metadata },
-  } = state;
-
-  let componentDetails = null;
-  if (selectedComponent && metadata) {
-    componentDetails = {
-      ...deriveComponentDetails(selectedComponent, metadata),
-      labels: [], //TODO: load labels when selecting component Jira: CLM-18516
-    };
-  }
-
-  return { hash, publicId, scanId, unknownjs, tabId, componentDetails };
+function mapStateToProps(state, { uiRouterState }) {
+  return {
+    componentDetails: selectComponentDetails(state),
+    activeTabId: selectActiveTabId(state),
+    pagination: selectComponentPagination(state, { uiRouterState }),
+  };
 }
 
-const mapDispatchToProps = { loadReportAndSelectComponentByHash, stateGo };
+const mapDispatchToProps = {
+  // we derive componentDetails from the url and the selectedReport
+  // but we need to load the report if there is none loaded yet
+  loadComponentDetails: () => loadReport(true),
+  onTabChange,
+};
 
-const ComponentDetailsContainer = connect(mapStateToProps, mapDispatchToProps)(ComponentDetails);
-export default ComponentDetailsContainer;
+export default connect(mapStateToProps, mapDispatchToProps)(ComponentDetails);

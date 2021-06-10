@@ -59,6 +59,10 @@ public class ComponentDetailsPage
     return new ComponentDetailsHeader(childSelector(".component-details-header"));
   }
 
+  public ComponentDetailsFooter footer() {
+    return new ComponentDetailsFooter(childSelector(".component-details-footer"));
+  }
+
   public ElementsCollection tabs() {
     return children(".nx-tab");
   }
@@ -110,6 +114,26 @@ public class ComponentDetailsPage
     public ElementsCollection tags() {
       SelenideElement child = child(".component-details-header__tags");
       return child.findAll("dd");
+    }
+  }
+
+  public static class ComponentDetailsFooter
+      extends BasicElement<ComponentDetailsPage.ComponentDetailsFooter>
+  {
+    private ComponentDetailsFooter(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement prevLink() {
+      return child(".iq-pagination-link__prev");
+    }
+
+    public SelenideElement nextLink() {
+      return child(".iq-pagination-link__next");
+    }
+
+    public SelenideElement paginationCounter() {
+      return child(".iq-page-counter");
     }
   }
 }

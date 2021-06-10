@@ -4,8 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @import './ComponentDetailsHeader/ComponentDetailsHeader';
+@import './ComponentDetailsFooter/ComponentDetailsFooter';
 @import './auditLog/auditLog';
 
 component-details {
   display: contents;
+
+  //TODO: These positioning will likely no longer be necessary when CLM-18612 is merged
+  & > main {
+    position: relative;
+  }
 }

@@ -17,8 +17,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -39,9 +41,13 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
 {
   private ApiPolicyWaiverService apiPolicyWaiverService;
 
-  static final String BY_POLICY_WAIVER_ID_PATH = "{policyWaiverId}";
+  static final String OWNERS_PATH = "{ownerType: application|organization|repository|repository_container}/{ownerId}";
 
-  static final String BY_POLICY_VIOLATION_ID_PATH = "{policyViolationId}";
+  static final String BY_POLICY_WAIVER_ID_PATH = OWNERS_PATH + "/{policyWaiverId}";
+
+  static final String BY_POLICY_VIOLATION_ID_PATH = OWNERS_PATH + "/{policyViolationId}";
+
+  static final String TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH = "transitive/{ownerType: application}/{ownerId}/{scanId}";
 
   @Inject
   public DefaultApiPolicyWaiverResource(ApiPolicyWaiverService apiPolicyWaiverService) {
@@ -87,6 +93,7 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
 
   @Override
   @GET
+  @Path(OWNERS_PATH)
   @Audited(AuditEvent.VIEW_WAIVER)
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApiPolicyWaiverDTO> getPolicyWaivers(
@@ -94,5 +101,22 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
       @PathParam("ownerId") String ownerId)
   {
     return apiPolicyWaiverService.getPolicyWaivers(ownerType, ownerId);
+  }
+
+  @Override
+  @POST
+  @Path(TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH)
+  @Audited(AuditEvent.CREATE_TRANSITIVE_POLICY_VIOLATIONS_WAIVER)
+  public void addWaiverToTransitivePolicyViolationsByAppScanComponent(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @PathParam("scanId") final String scanId,
+      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") final String packageUrl,
+      @QueryParam("hash") final String hash,
+      ApiWaiverOptionsDTO apiWaiverOptionsDTO)
+  {
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(ownerType, ownerId, scanId,
+        componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
   }
 }

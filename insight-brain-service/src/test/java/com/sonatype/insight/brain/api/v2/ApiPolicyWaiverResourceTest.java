@@ -8,11 +8,14 @@ package com.sonatype.insight.brain.api.v2;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -28,14 +31,19 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.BY_POLICY_VIOLATION_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.BY_POLICY_WAIVER_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.OWNERS_PATH;
+import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
+import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyWaiverResourceTest
@@ -67,7 +75,7 @@ public class ApiPolicyWaiverResourceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(),
         null, "a comment", today, aWeekFromNow);
 
-    HttpResponse response = restRequest().parameter(OwnerType.APPLICATION, application.getId()).get();
+    HttpResponse response = restRequest().path(OWNERS_PATH).parameter(OwnerType.APPLICATION, application.getId()).get();
 
     assertResponseStatus(200, response);
 
@@ -98,7 +106,8 @@ public class ApiPolicyWaiverResourceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), organization.getId(),
         null, "a comment in org waiver", today, aWeekFromNow);
 
-    HttpResponse response = restRequest().parameter(OwnerType.ORGANIZATION, organization.getId()).get();
+    HttpResponse response =
+        restRequest().path(OWNERS_PATH).parameter(OwnerType.ORGANIZATION, organization.getId()).get();
 
     assertResponseStatus(200, response);
 
@@ -128,7 +137,7 @@ public class ApiPolicyWaiverResourceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), repository.getId(),
         null, "comment", today, aWeekFromNow);
 
-    HttpResponse response = restRequest().parameter(OwnerType.REPOSITORY, repository.getId()).get();
+    HttpResponse response = restRequest().path(OWNERS_PATH).parameter(OwnerType.REPOSITORY, repository.getId()).get();
 
     assertResponseStatus(200, response);
 
@@ -157,7 +166,8 @@ public class ApiPolicyWaiverResourceTest
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), REPOSITORY_CONTAINER_ID,
         null, "comment", today, aWeekFromNow);
 
-    HttpResponse response = restRequest().parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID).get();
+    HttpResponse response =
+        restRequest().path(OWNERS_PATH).parameter(OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID).get();
 
     assertResponseStatus(200, response);
 
@@ -329,6 +339,61 @@ public class ApiPolicyWaiverResourceTest
     assertThat(allPolicyWaivers).hasSize(1);
     assertPolicyWaiver(app.getId(), policy, policyViolation, allPolicyWaivers.get(0), "waiver comment",
         policyViolation.getHash(), expiryTime);
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_ByComponentIdentifier() throws Exception {
+    testAddWaiverToTransitivePolicyViolationsByAppScanComponent(request -> request.query("componentIdentifier",
+        ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e")));
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_ByPackageUrl() throws Exception {
+    testAddWaiverToTransitivePolicyViolationsByAppScanComponent(
+        request -> request.query("packageUrl", "pkg:maven/g/direct@v?type=e"));
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_ByHash() throws Exception {
+    testAddWaiverToTransitivePolicyViolationsByAppScanComponent(request -> request.query("hash", "hash1"));
+  }
+
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent(
+      UnaryOperator<HttpRequest> operator) throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(app);
+
+    ComponentIdentifier componentIdentifierTransitive =
+        ComponentIdentifier.createMavenCoordinates("g", "transitive", "v", "", "e");
+    PolicyViolation policyViolationTransitive =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, componentIdentifierTransitive, "hash2");
+
+    ReportTestUtils.createReportFile(app.getId(), policyEvaluation.getScanId(),
+        zipReportDir("/ApiPolicyWaiverResourceTest/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+
+    ReportTestUtils.createPolicyThreats(app.getId(), policyEvaluation.getScanId(),
+        getCLMServer().getInstance(InsightWork.class), Collections.singletonList(policyViolationTransitive));
+
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    waiverOptionsDTO.expiryTime = new Date(System.currentTimeMillis() + 1000);
+
+    HttpRequest request = restRequest()
+        .path(TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getPublicId(), policyEvaluation.getScanId())
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON);
+
+    HttpResponse response = operator.apply(request).post();
+
+    assertResponseStatus(204, response);
+
+    List<PolicyWaiver> allPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    assertThat(allPolicyWaivers).hasSize(1);
+    assertPolicyWaiver(app.getId(), policy, policyViolationTransitive, allPolicyWaivers.get(0),
+        waiverOptionsDTO.comment, policyViolationTransitive.getHash(), waiverOptionsDTO.expiryTime);
   }
 
   @Override

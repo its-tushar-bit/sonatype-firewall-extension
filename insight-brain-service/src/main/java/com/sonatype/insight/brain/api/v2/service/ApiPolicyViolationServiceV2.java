@@ -223,7 +223,7 @@ public class ApiPolicyViolationServiceV2
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(owner.getId(), scanId);
     if (policyEvaluation == null) {
-      throw new BadRequestException("scanId " + scanId + " not found for application " + owner.getPublicId() + ".");
+      throw new NotFoundException("scanId " + scanId + " not found for application " + owner.getPublicId() + ".");
     }
     AuditData.get().setScanId(scanId);
     return getTransitivePolicyViolations(policyEvaluation.getStageTypeId(), componentIdentifier, packageUrl, hash,
@@ -249,9 +249,45 @@ public class ApiPolicyViolationServiceV2
             Collections.singleton(stageIdLowercase));
     return getTransitivePolicyViolations(stageIdLowercase, componentIdentifier, packageUrl, hash, policyEvaluations);
   }
-  
+
+  public Pair<Component, List<Pair<PolicyViolation, Component>>> getTransitivePolicyViolationsForLastEvaluation(
+      String applicationId,
+      String scanId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash)
+  {
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, scanId);
+    if (policyEvaluation == null) {
+      throw new NotFoundException("Evaluation not found with application " + applicationId + " and scan " + scanId);
+    }
+    return getTransitivePolicyViolationsByComponent(policyEvaluation.getStageTypeId(), componentIdentifier, packageUrl,
+        hash, Collections.singletonList(policyEvaluation));
+  }
+
   // Visible for testing
   ApiComponentTransitivePolicyViolationsDTO getTransitivePolicyViolations(
+      String stageId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash,
+      List<PolicyEvaluation> policyEvaluations)
+  {
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair =
+        getTransitivePolicyViolationsByComponent(stageId, componentIdentifier, packageUrl, hash, policyEvaluations);
+    Component foundComponent = pair.getLeft();
+    List<Pair<PolicyViolation, Component>> allTransitivePolicyViolations = pair.getRight();
+
+    AuditData.get().setStageId(stageId).setComponentIdentifier(foundComponent.getComponentIdentifier())
+        .setComponentHash(foundComponent.getHash());
+    ApiComponentTransitivePolicyViolationsDTO result =
+        new ApiComponentTransitivePolicyViolationsDTO(foundComponent, allTransitivePolicyViolations);
+    sort(result.transitivePolicyViolations);
+    return result;
+  }
+
+  // Visible for testing
+  Pair<Component, List<Pair<PolicyViolation, Component>>> getTransitivePolicyViolationsByComponent(
       String stageId,
       ComponentIdentifier componentIdentifier,
       String packageUrl,
@@ -294,14 +330,8 @@ public class ApiPolicyViolationServiceV2
     if (foundComponent == null) {
       throw new NotFoundException("Component not found.");
     }
-    AuditData.get().setStageId(stageId).setComponentIdentifier(foundComponent.getComponentIdentifier())
-        .setComponentHash(foundComponent.getHash());
-    ApiComponentTransitivePolicyViolationsDTO result = new ApiComponentTransitivePolicyViolationsDTO(
-        foundComponent,
-        allTransitivePolicyViolations
-    );
-    sort(result.transitivePolicyViolations);
-    return result;
+
+    return Pair.of(foundComponent, allTransitivePolicyViolations);
   }
 
   private ComponentIdentifier getComponentIdentifier(ComponentIdentifier componentIdentifier, String packageUrl) {
@@ -450,6 +480,7 @@ public class ApiPolicyViolationServiceV2
           PolicyThreatCategory.getByName(policyViolation.policyThreatCategory.toLowerCase(Locale.ROOT)));
       result.setId(policyViolation.policyViolationId);
       result.setActionTypeId(policyViolation.actions.isEmpty() ? null : policyViolation.actions.get(0).actionType);
+      result.setConstraintFactsJson(policyViolation.constraintFactsJson);
       result.setComponentIdentifier(component.componentIdentifier);
       result.setHash(component.hash);
       results.add(result);

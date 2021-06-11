@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -24,4 +25,13 @@ public interface ApiPolicyWaiverResource
   void deletePolicyWaiver(OwnerType ownerType, String ownerId, String policyWaiverId);
 
   List<ApiPolicyWaiverDTO> getPolicyWaivers(OwnerType ownerType, String ownerId);
+
+  void addWaiverToTransitivePolicyViolationsByAppScanComponent(
+      OwnerType ownerType,
+      String ownerId,
+      String scanId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash,
+      ApiWaiverOptionsDTO apiWaiverOptionsDTO);
 }

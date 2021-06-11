@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -48,14 +49,20 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ApiPolicyViolationServiceV2Test
@@ -181,74 +188,111 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_StageTypeNotLicensed() {
+  public void testGetTransitivePolicyViolationsForLastEvaluation_NoPolicyEvaluation() {
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolationsForLastEvaluation(
+            "appId", "scanId", null, null, null))
+        .withMessageContaining("Evaluation not found with application appId and scan scanId");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetTransitivePolicyViolationsForLastEvaluation_WithPolicyEvaluation() {
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    PolicyEvaluation latestPolicyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID,
+        scanId, new Date(System.currentTimeMillis() + 1000));
+    ComponentIdentifier component = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    String packageUrl = PackageUrlIdentifier.fromComponentIdentifier(component).getPackageUrl();
+
+    ApiPolicyViolationServiceV2 spyService = spy(apiPolicyViolationService);
+    ArgumentCaptor<List<PolicyEvaluation>> captor = ArgumentCaptor.forClass(List.class);
+
+    doReturn(null).when(spyService).getTransitivePolicyViolationsByComponent(eq(BuildStageType.ID), eq(component),
+        eq(packageUrl), eq("hash"), captor.capture());
+
+    spyService.getTransitivePolicyViolationsForLastEvaluation(application.getId(), scanId, component, packageUrl,
+        "hash");
+
+    verify(spyService).getTransitivePolicyViolationsByComponent(eq(BuildStageType.ID), eq(component), eq(packageUrl),
+        eq("hash"), captor.capture());
+    assertThat(captor.getValue().get(0).getId()).isEqualTo(latestPolicyEvaluation.getId());
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByComponent_StageTypeNotLicensed() {
     when(mockStageTypeService.getLicensedStageTypes()).thenReturn(Collections.emptyList());
 
     assertThatExceptionOfType(InvalidLicenseException.class)
-        .isThrownBy(() -> apiPolicyViolationService
-            .getTransitivePolicyViolations(BuildStageType.ID, null, null, null, null))
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID, null,
+            null, null, null))
         .withMessageContaining("Stage '" + BuildStageType.ID + "' is not supported by your license.");
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_NoComponentIdentifierAndNoPackageUrlAndNoHash() {
+  public void testGetTransitivePolicyViolationsByComponent_NoComponentIdentifierAndNoPackageUrlAndNoHash() {
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> apiPolicyViolationService
-            .getTransitivePolicyViolations(BuildStageType.ID, null, null, null, null))
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID, null,
+            null, null, null))
         .withMessageContaining("componentIdentifier or packageUrl or hash must be specified.");
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_UnknownHash() {
+  public void testGetTransitivePolicyViolationsByComponent_UnknownHash() {
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
-    
+    List<PolicyEvaluation> policyEvaluations =
+        Collections.singletonList(tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId));
+
     assertThatExceptionOfType(NotFoundException.class)
-        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolations(BuildStageType.ID, null, null,
-            "unknown", Collections.singletonList(policyEvaluation)))
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID, null,
+            null, "unknown", policyEvaluations))
         .withMessageContaining("Component not found.");
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_InvalidPackageUrl() {
+  public void testGetTransitivePolicyViolationsByComponent_InvalidPackageUrl() {
     assertThatExceptionOfType(InvalidPackageURLException.class)
-        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolations(BuildStageType.ID, null,
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID, null,
             "invalidPackageUrl", null, null))
         .withMessageContaining("Invalid package url");
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_IncompletePackageUrl() {
+  public void testGetTransitivePolicyViolationsByComponent_IncompletePackageUrl() {
+    List<PolicyEvaluation> policyEvaluations = Collections.emptyList();
     assertThatExceptionOfType(InvalidPackageURLException.class)
-        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolations(BuildStageType.ID, null,
-            "pkg:maven/g/a@v", null, Collections.emptyList()))
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID, null,
+            "pkg:maven/g/a@v", null, policyEvaluations))
         .withMessageContaining("The following coordinates are missing for given format: [type]");
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_IncompleteComponentIdentifier() {
+  public void testGetTransitivePolicyViolationsByComponent_IncompleteComponentIdentifier() {
+    List<PolicyEvaluation> policyEvaluations = Collections.emptyList();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, null);
     assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolations(BuildStageType.ID,
-            ComponentIdentifier.createMavenCoordinates("g", "a", "v", null, null), null, null, Collections.emptyList()))
+        .isThrownBy(() -> apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID,
+            componentIdentifier, null, null, policyEvaluations))
         .withMessageContaining("The following coordinates are missing for given format: [extension]");
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_MissingReport() {
+  public void testGetTransitivePolicyViolationsByComponent_MissingReport() {
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
     ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e");
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
-        .getTransitivePolicyViolations(BuildStageType.ID, direct, null, null,
+        .getTransitivePolicyViolationsByComponent(BuildStageType.ID, direct, null, null,
             Collections.singletonList(policyEvaluation)))
         .withMessageContaining("Component not found.");
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_ComponentNotFound_Application() throws Exception {
+  public void testGetTransitivePolicyViolationsByComponent_ComponentNotFound_Application() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
@@ -256,7 +300,7 @@ public class ApiPolicyViolationServiceV2Test
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
-        .getTransitivePolicyViolations(BuildStageType.ID, null, "pkg:maven/g/other@v?type=e", null,
+        .getTransitivePolicyViolationsByComponent(BuildStageType.ID, null, "pkg:maven/g/other@v?type=e", null,
             Collections.singletonList(policyEvaluation)))
         .withMessageContaining("Component not found.");
   }
@@ -282,7 +326,7 @@ public class ApiPolicyViolationServiceV2Test
   public void testGetTransitivePolicyViolationsByAppScanComponent_Application_ScanId_NotFound() {
     Application app = tempEntity.newApplicationWithParent();
     String scanId = "someScanId";
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiPolicyViolationService
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
         .getTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION, app.getPublicId(), scanId,
             null, "pkg:maven/g/other@v?type=e", null))
         .withMessageContaining("scanId " + scanId + " not found for application " + app.getPublicId());
@@ -361,7 +405,7 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_ComponentNotFound_Organization() throws Exception {
+  public void testGetTransitivePolicyViolationsByComponent_ComponentNotFound_Organization() throws Exception {
     Organization organization = tempEntity.newOrganization();
     Application application = tempEntity.newApplication(organization.getId());
     String scanId = "scanId";
@@ -370,7 +414,7 @@ public class ApiPolicyViolationServiceV2Test
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
 
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
-        .getTransitivePolicyViolations(BuildStageType.ID, null, "pkg:maven/g/other@v?type=e", null,
+        .getTransitivePolicyViolationsByComponent(BuildStageType.ID, null, "pkg:maven/g/other@v?type=e", null,
             Collections.singletonList(policyEvaluation)))
         .withMessageContaining("Component not found.");
   }
@@ -384,10 +428,25 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
+  public void testGetTransitivePolicyViolationsByComponent_ByComponentIdentifier() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    testGetTransitivePolicyViolationsByComponent(application,
+        ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e"), null, null);
+  }
+
+  @Test
   public void testGetTransitivePolicyViolations_ByPackageUrl() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
 
     testGetTransitivePolicyViolations(application, null, "pkg:maven/g/direct2@v?type=e", null);
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByComponent_ByPackageUrl() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    testGetTransitivePolicyViolationsByComponent(application, null, "pkg:maven/g/direct2@v?type=e", null);
   }
 
   @Test
@@ -398,10 +457,25 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
+  public void testGetTransitivePolicyViolationsByComponent_ByHash() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    testGetTransitivePolicyViolationsByComponent(application, null, null, "hash2");
+  }
+
+  @Test
   public void testGetTransitivePolicyViolations_ByComponentIdentifierAndPackageUrl() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
 
     testGetTransitivePolicyViolations(application,
+        ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e"), "invalidPackageUrl", null);
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByComponent_ByComponentIdentifierAndPackageUrl() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    testGetTransitivePolicyViolationsByComponent(application,
         ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e"), "invalidPackageUrl", null);
   }
 
@@ -414,6 +488,14 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
+  public void testGetTransitivePolicyViolationsByComponent_ByComponentIdentifierAndHash() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    testGetTransitivePolicyViolationsByComponent(application,
+        ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e"), null, "unknown");
+  }
+
+  @Test
   public void testGetTransitivePolicyViolations_ByPackageUrlAndHash() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
 
@@ -421,10 +503,27 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
+  public void testGetTransitivePolicyViolationsByComponent_ByPackageUrlAndHash() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    testGetTransitivePolicyViolationsByComponent(application, null, "pkg:maven/g/direct2@v?type=e", "unknown");
+  }
+
+  @Test
   public void testGetTransitivePolicyViolations_ByComponentIdentifierAndPackageUrlAndHash() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
 
     testGetTransitivePolicyViolations(application,
+        ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e"), "invalidPackageUrl", "unknown");
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByComponent_ByComponentIdentifierAndPackageUrlAndHash()
+      throws Exception
+  {
+    Application application = tempEntity.newApplicationWithParent();
+
+    testGetTransitivePolicyViolationsByComponent(application,
         ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e"), "invalidPackageUrl", "unknown");
   }
 
@@ -471,6 +570,57 @@ public class ApiPolicyViolationServiceV2Test
             .fromPolicyViolationAndComponent(Pair.of(transitive2PolicyViolation, expectedTransitiveComponent2)),
         ApiStagePolicyViolationComponentDTO
             .fromPolicyViolationAndComponent(Pair.of(transitive22PolicyViolation, expectedTransitiveComponent22)));
+  }
+
+  private void testGetTransitivePolicyViolationsByComponent(
+      Application application,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash) throws Exception
+  {
+    String scanId = "scanId";
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    Policy policy = tempEntity.newPolicy();
+    ComponentIdentifier direct2 = ComponentIdentifier.createMavenCoordinates("g", "direct2", "v", "", "e");
+    ComponentIdentifier transitive2 = ComponentIdentifier.createMavenCoordinates("g", "transitive2", "v", "", "e");
+    ComponentIdentifier transitive22 = ComponentIdentifier.createMavenCoordinates("g", "transitive22", "v", "", "e");
+    PolicyViolation direct2PolicyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, direct2, "hash2");
+    PolicyViolation transitive2PolicyViolation =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, transitive2, "hash22");
+    PolicyViolation transitive22PolicyViolation =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, transitive22, "hash222");
+    ReportTestUtils.createReportFile(application.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
+    ReportTestUtils.createPolicyThreats(application.getId(), scanId, insightWork,
+        Arrays.asList(direct2PolicyViolation, transitive2PolicyViolation, transitive22PolicyViolation));
+
+    Pair<Component, List<Pair<PolicyViolation, Component>>> result =
+        apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID, componentIdentifier,
+            packageUrl, hash, Collections.singletonList(policyEvaluation));
+
+    assertThat(result).isNotNull();
+
+    Component component = result.getLeft();
+    List<Pair<PolicyViolation, Component>> violations = result.getRight();
+
+    assertThat(component.getComponentIdentifier()).isEqualTo(direct2);
+    assertThat(component.getHash()).isEqualTo("hash2");
+    assertThat(component.getDisplayName()).isEqualTo("g : direct2 : v");
+    assertThat(BooleanUtils.toBoolean(component.getInnerSource())).isFalse();
+    Component expectedTransitiveComponent2 = new Component();
+    expectedTransitiveComponent2.setHash("hash22");
+    expectedTransitiveComponent2.setDisplayName("g : transitive2 : v");
+    Component expectedTransitiveComponent22 = new Component();
+    expectedTransitiveComponent22.setHash("hash222");
+    expectedTransitiveComponent22.setDisplayName("g : transitive22 : v");
+
+    assertThat(violations.get(0).getLeft().getId()).isEqualTo(transitive2PolicyViolation.getId());
+    assertThat(violations.get(0).getRight().getHash()).isEqualTo(expectedTransitiveComponent2.getHash());
+    assertThat(violations.get(0).getRight().getDisplayName()).isEqualTo(expectedTransitiveComponent2.getDisplayName());
+
+    assertThat(violations.get(1).getLeft().getId()).isEqualTo(transitive22PolicyViolation.getId());
+    assertThat(violations.get(1).getRight().getHash()).isEqualTo(expectedTransitiveComponent22.getHash());
+    assertThat(violations.get(1).getRight().getDisplayName()).isEqualTo(expectedTransitiveComponent22.getDisplayName());
   }
 
   @Test
@@ -572,16 +722,8 @@ public class ApiPolicyViolationServiceV2Test
 
   @Test
   public void testGetTransitivePolicyViolations_InnerSourceAndNone() throws Exception {
-    Application application = tempEntity.newApplicationWithParent();
-    String scanId = "scanId";
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
-    Policy policy = tempEntity.newPolicy();
     ComponentIdentifier direct1 = ComponentIdentifier.createMavenCoordinates("g", "direct1", "v", "", "e");
-    PolicyViolation direct1PolicyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, direct1, "hash1");
-    ReportTestUtils.createReportFile(application.getId(), scanId,
-        zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
-    ReportTestUtils.createPolicyThreats(application.getId(), scanId, insightWork,
-        Collections.singletonList(direct1PolicyViolation));
+    PolicyEvaluation policyEvaluation = setupTestGetTransitivePolicyViolations_InnerSourceAndNone(direct1);
 
     ApiComponentTransitivePolicyViolationsDTO result = apiPolicyViolationService.getTransitivePolicyViolations(
         BuildStageType.ID, direct1, null, null, Collections.singletonList(policyEvaluation));
@@ -597,12 +739,45 @@ public class ApiPolicyViolationServiceV2Test
   }
 
   @Test
-  public void testGetTransitivePolicyViolations_Unknown() throws Exception {
+  public void testGetTransitivePolicyViolationsByComponent_InnerSourceAndNone() throws Exception {
+    ComponentIdentifier direct1 = ComponentIdentifier.createMavenCoordinates("g", "direct1", "v", "", "e");
+    PolicyEvaluation policyEvaluation = setupTestGetTransitivePolicyViolations_InnerSourceAndNone(direct1);
+
+    Pair<Component, List<Pair<PolicyViolation, Component>>> result =
+        apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID, direct1, null, null,
+            Collections.singletonList(policyEvaluation));
+
+    assertThat(result).isNotNull();
+
+    Component component = result.getLeft();
+    List<Pair<PolicyViolation, Component>> violations = result.getRight();
+
+    assertThat(component.getComponentIdentifier()).isEqualTo(direct1);
+    assertThat(component.getHash()).isEqualTo("hash1");
+    assertThat(component.getDisplayName()).isEqualTo("g : direct1 : v");
+    assertThat(BooleanUtils.toBoolean(component.getInnerSource())).isTrue();
+    assertThat(violations).isEmpty();
+  }
+
+  private PolicyEvaluation setupTestGetTransitivePolicyViolations_InnerSourceAndNone(
+      ComponentIdentifier componentIdentifier) throws Exception
+  {
     Application application = tempEntity.newApplicationWithParent();
     String scanId = "scanId";
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
+    Policy policy = tempEntity.newPolicy();
+    PolicyViolation direct1PolicyViolation =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, componentIdentifier, "hash1");
     ReportTestUtils.createReportFile(application.getId(), scanId,
         zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
+    ReportTestUtils.createPolicyThreats(application.getId(), scanId, insightWork,
+        Collections.singletonList(direct1PolicyViolation));
+    return policyEvaluation;
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolations_Unknown() throws Exception {
+    PolicyEvaluation policyEvaluation = setupTestGetTransitivePolicyViolations_Unknown();
 
     ApiComponentTransitivePolicyViolationsDTO result = apiPolicyViolationService
         .getTransitivePolicyViolations(BuildStageType.ID, null, null, "81399f9f3278d8615a7c",
@@ -615,6 +790,34 @@ public class ApiPolicyViolationServiceV2Test
     assertThat(result.displayName).isEqualTo("unknown.zip");
     assertThat(result.isInnerSource).isFalse();
     assertThat(result.transitivePolicyViolations).isEmpty();
+  }
+
+  @Test
+  public void testGetTransitivePolicyViolationsByComponent_Unknown() throws Exception {
+    PolicyEvaluation policyEvaluation = setupTestGetTransitivePolicyViolations_Unknown();
+
+    Pair<Component, List<Pair<PolicyViolation, Component>>> result =
+        apiPolicyViolationService.getTransitivePolicyViolationsByComponent(BuildStageType.ID, null, null,
+            "81399f9f3278d8615a7c", Collections.singletonList(policyEvaluation));
+
+    assertThat(result).isNotNull();
+
+    Component component = result.getLeft();
+    List<Pair<PolicyViolation, Component>> violations = result.getRight();
+
+    assertThat(component.getComponentIdentifier()).isNull();
+    assertThat(component.getHash()).isEqualTo("81399f9f3278d8615a7c");
+    assertThat(component.getDisplayName()).isEqualTo("unknown.zip");
+    assertThat(BooleanUtils.toBoolean(component.getInnerSource())).isFalse();
+    assertThat(violations).isEmpty();
+  }
+
+  public PolicyEvaluation setupTestGetTransitivePolicyViolations_Unknown() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    ReportTestUtils.createReportFile(application.getId(), scanId,
+        zipReportDir("/ApiPolicyViolationServiceV2Test/report", tempDir), insightWork);
+    return tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scanId);
   }
 
   @Test

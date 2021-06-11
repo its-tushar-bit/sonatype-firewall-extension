@@ -26,8 +26,7 @@ public class PublicApiPaths
 
   public static final String POLICY_VIOLATION_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "policyViolations";
 
-  public static final String POLICY_WAIVER_PATH = API_VERSION_PATH_V2 +
-      "policyWaivers/{ownerType: application|organization|repository|repository_container}/{ownerId}";
+  public static final String POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "policyWaivers";
 
   public static final String POLICY_VIOLATION_WAIVER_PATH =
       API_VERSION_PATH_V2 + "policyWaiver/{policyViolationId}/{ownerType: application|organization}";

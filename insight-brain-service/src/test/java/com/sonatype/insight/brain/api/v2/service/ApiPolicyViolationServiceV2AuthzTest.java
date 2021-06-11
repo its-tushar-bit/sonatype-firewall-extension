@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.common.collect.Sets;
@@ -230,7 +229,7 @@ public class ApiPolicyViolationServiceV2AuthzTest
   public void testGetTransitivePolicyViolationsByAppScanComponent_Authorized() {
     grantReadPermission(app.getId());
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> apiPolicyViolationService
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> apiPolicyViolationService
         .getTransitivePolicyViolationsByAppScanComponent(app.getType(), app.getPublicId(), "someScanId", null,
             "pkg:maven/g/a@v", null))
         .withMessageContaining(

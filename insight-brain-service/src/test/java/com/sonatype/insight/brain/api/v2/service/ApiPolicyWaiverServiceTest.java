@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,12 +22,14 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -38,10 +42,13 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -52,6 +59,7 @@ import static com.sonatype.insight.brain.model.repository.RepositoryContainer.RE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ApiPolicyWaiverServiceTest
     extends AbstractComponentTest
@@ -60,6 +68,8 @@ public class ApiPolicyWaiverServiceTest
   private ApiPolicyWaiverService apiPolicyWaiverService;
 
   private Policy policy;
+
+  private PolicyEvaluation policyEvaluation;
 
   private PolicyViolation policyViolation;
 
@@ -72,9 +82,16 @@ public class ApiPolicyWaiverServiceTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  @Mock
+  private ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2Mock;
+
+  @Rule
+  public LogOutput logOutput = new LogOutput(ApiPolicyWaiverService.class);
+
   @Override
   public void configure(Binder binder) {
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(ApiPolicyViolationServiceV2.class).toInstance(apiPolicyViolationServiceV2Mock);
   }
 
   @Before
@@ -83,7 +100,7 @@ public class ApiPolicyWaiverServiceTest
     app = tempEntity.newApplication(org.getId());
     policy = tempEntity.newPolicy(org.getId());
 
-    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
+    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId1App1");
     policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v1", "h1", "r1");
   }
 
@@ -703,6 +720,115 @@ public class ApiPolicyWaiverServiceTest
     assertThat(expiredApplicableWaivers.size()).isEqualTo(1);
     assertApiPolicyWaiverDTO(
         "hash", policyId, appId, "NewApp", "", policyViolationId, expiredExpiryTime, expiredApplicableWaivers.get(0));
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_EmptyPolicyViolations() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Component component = new Component(componentIdentifier);
+
+    when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsForLastEvaluation(app.getId(),
+        policyEvaluation.getScanId(), componentIdentifier, null, null))
+            .thenReturn(Pair.of(component, Collections.emptyList()));
+
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
+        app.getPublicId(), policyEvaluation.getScanId(), componentIdentifier, null, null, null);
+
+    verify(apiPolicyViolationServiceV2Mock).getTransitivePolicyViolationsForLastEvaluation(app.getId(),
+        policyEvaluation.getScanId(), componentIdentifier, null, null);
+    assertThat(policyWaiverDAO.getByOwnerId(app.getId())).isEmpty();
+    assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_WithPolicyViolationsNoDateNoComment() {
+    testAddWaiverToTransitivePolicyViolationsByAppScanComponent(null, null);
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_WithPolicyViolationsDateAndComment() {
+    testAddWaiverToTransitivePolicyViolationsByAppScanComponent(new Date(), "this is a test");
+  }
+
+  private void testAddWaiverToTransitivePolicyViolationsByAppScanComponent(Date expiryTime, String comment) {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Component component = new Component(componentIdentifier);
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e");
+    Component component1 = new Component(componentIdentifier1);
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
+    Component component2 = new Component(componentIdentifier2);
+
+    Policy policy2 = tempEntity.newPolicy(org.getId());
+    PolicyViolation policyViolation2 =
+        tempEntity.newPolicyViolation(policyEvaluation, policy2, componentIdentifier2, "hash");
+
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair =
+        Pair.of(component, Arrays.asList(Pair.of(policyViolation, component1), Pair.of(policyViolation2, component2)));
+
+    ApiWaiverOptionsDTO apiWaiverOptionsDTO = new ApiWaiverOptionsDTO();
+    apiWaiverOptionsDTO.expiryTime = expiryTime;
+    apiWaiverOptionsDTO.comment = comment;
+
+    when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsForLastEvaluation(app.getId(),
+        policyEvaluation.getScanId(), componentIdentifier, null, null))
+            .thenReturn(pair);
+
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
+        app.getPublicId(), policyEvaluation.getScanId(), componentIdentifier, null, null, apiWaiverOptionsDTO);
+
+    verify(apiPolicyViolationServiceV2Mock).getTransitivePolicyViolationsForLastEvaluation(app.getId(),
+        policyEvaluation.getScanId(), componentIdentifier, null, null);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(policyWaivers).hasSize(2);
+
+    PolicyWaiver policyWaiver =
+        policyWaivers.stream().filter(waiver -> waiver.getPolicyId().equals(policy.getId())).findFirst().get();
+    assertThat(policyWaiver.getPolicyId()).isEqualTo(policy.getId());
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(policyViolation.getConstraintFactsJson());
+    assertThat(policyWaiver.getHash()).isEqualTo(policyViolation.getHash());
+    assertThat(policyWaiver.getExpiryTime()).isEqualTo(expiryTime);
+    assertThat(policyWaiver.getComment()).isEqualTo(comment);
+
+    policyWaiver =
+        policyWaivers.stream().filter(waiver -> waiver.getPolicyId().equals(policy2.getId())).findFirst().get();
+    assertThat(policyWaiver.getPolicyId()).isEqualTo(policy2.getId());
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(policyViolation2.getConstraintFactsJson());
+    assertThat(policyWaiver.getHash()).isEqualTo(policyViolation2.getHash());
+    assertThat(policyWaiver.getExpiryTime()).isEqualTo(expiryTime);
+    assertThat(policyWaiver.getComment()).isEqualTo(comment);
+
+    assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_RepeatedWaiver() {
+    PolicyWaiver policyWaiver = tempEntity.newWaiver(policyViolation.getHash(), policyViolation.getPolicyId(),
+        app.getId(), policyViolation.getConstraintFacts(), "comment");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Component component = new Component(componentIdentifier);
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e");
+    Component component1 = new Component(componentIdentifier1);
+
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair =
+        Pair.of(component, Collections.singletonList(Pair.of(policyViolation, component1)));
+
+    when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsForLastEvaluation(app.getId(),
+        policyEvaluation.getScanId(), componentIdentifier, null, null)).thenReturn(pair);
+
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
+        app.getPublicId(), policyEvaluation.getScanId(), componentIdentifier, null, null, null);
+
+    verify(apiPolicyViolationServiceV2Mock).getTransitivePolicyViolationsForLastEvaluation(app.getId(),
+        policyEvaluation.getScanId(), componentIdentifier, null, null);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(policyWaivers).hasSize(1);
+    assertThat(policyWaivers.get(0).getId()).isEqualTo(policyWaiver.getId());
+    assertThat(logOutput).atWarnLevel()
+        .contains("Unable to add waiver for PolicyViolation ID " + policyViolation.getId());
+
+    assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
   }
 
   private void assertNotExpiringPolicyWaiver(String ownerId, String comment, String hash) {

@@ -9,12 +9,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -27,6 +30,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -36,10 +40,15 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.IdUtils;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toList;
@@ -50,6 +59,8 @@ import static java.util.stream.Collectors.toList;
 @Named
 public class ApiPolicyWaiverService
 {
+  private static final Logger log = LoggerFactory.getLogger(ApiPolicyWaiverService.class);
+
   private static final String OWNER_TYPE_ATTR = "owner_type";
 
   private static final String OWNER_ID_ATTR = "owner_id";
@@ -64,19 +75,23 @@ public class ApiPolicyWaiverService
 
   private final OwnerDAO ownerDAO;
 
+  private final ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2;
+
   @Inject
   public ApiPolicyWaiverService(
       TelemetrySender telemetrySender,
       PolicyWaiverDAO policyWaiverDAO,
       PolicyDAO policyDAO,
       ApplicationDAO applicationDAO,
-      OwnerDAO ownerDAO)
+      OwnerDAO ownerDAO,
+      ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2)
   {
     this.telemetrySender = telemetrySender;
     this.policyWaiverDAO = policyWaiverDAO;
     this.policyDAO = policyDAO;
     this.applicationDAO = applicationDAO;
     this.ownerDAO = ownerDAO;
+    this.apiPolicyViolationServiceV2 = apiPolicyViolationServiceV2;
   }
 
   /**
@@ -154,12 +169,7 @@ public class ApiPolicyWaiverService
       final boolean applyToAllComponents,
       final Date expiryTime)
   {
-    String hash = applyToAllComponents ? null : policyViolation.getHash();
-    PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyViolation.getPolicyId(), ownerId, comment);
-    policyWaiver.setConstraintFactsJson(policyViolation.getConstraintFactsJson());
-    policyWaiver.setExpiryTime(expiryTime);
-
-    policyWaiverDAO.insert(policyWaiver);
+    PolicyWaiver policyWaiver = savePolicyWaiver(ownerId, policyViolation, comment, applyToAllComponents, expiryTime);
     auditPolicyWaiver(policyWaiver);
     sendTelemetry(ownerType, ownerId);
   }
@@ -205,8 +215,15 @@ public class ApiPolicyWaiverService
   }
 
   private void auditPolicyWaiver(PolicyWaiver policyWaiver) {
-    AuditData.get().setData("policyWaiverId", policyWaiver.getId())
-        .setPolicy(policyDAO.getByIdNotNull(policyWaiver.getPolicyId()))
+    try (TransactionContext tx = policyDAO.createTransactionContext()) {
+      auditPolicyWaiver(policyWaiver, tx);
+    }
+  }
+
+  private void auditPolicyWaiver(PolicyWaiver policyWaiver, TransactionContext tx) {
+    AuditData.get()
+        .setData("policyWaiverId", policyWaiver.getId())
+        .setPolicy(policyDAO.getById(tx, policyWaiver.getPolicyId()))
         .setComment(policyWaiver.getComment())
         .setComponentHash(policyWaiver.getHash());
     if (policyWaiver.getConstraintFacts() != null) {
@@ -261,6 +278,52 @@ public class ApiPolicyWaiverService
     return apiPolicyWaivers;
   }
 
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
+  public void addWaiverToTransitivePolicyViolationsByAppScanComponent(
+      @AuthzContext(Key.TYPE) OwnerType ownerType,
+      @AuthzContext(Key.ID) String ownerId,
+      String scanId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash,
+      ApiWaiverOptionsDTO apiWaiverOptionsDTO)
+  {
+    ApiWaiverOptionsDTO waiverDTO = apiWaiverOptionsDTO != null ? apiWaiverOptionsDTO : new ApiWaiverOptionsDTO();
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair = apiPolicyViolationServiceV2
+        .getTransitivePolicyViolationsForLastEvaluation(owner.getId(), scanId, componentIdentifier, packageUrl, hash);
+
+    Component component = pair.getLeft();
+    List<PolicyViolation> policyViolations = pair.getRight().stream()
+        .map(Pair::getLeft)
+        .collect(Collectors.toList());
+
+    AuditData.get()
+        .setScanId(scanId)
+        .setComponentIdentifier(component.getComponentIdentifier())
+        .setComponentHash(component.getHash())
+        .setComment(waiverDTO.comment).setData("expiryTime", waiverDTO.expiryTime);
+
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      tx.begin();
+      for (PolicyViolation policyViolation : policyViolations) {
+        try {
+          PolicyWaiver policyWaiver =
+              savePolicyWaiver(tx, owner.getId(), policyViolation, waiverDTO.comment, false, waiverDTO.expiryTime);
+          try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
+            auditPolicyWaiver(policyWaiver, tx);
+          }
+        }
+        catch (BadRequestException e) {
+          log.warn("Unable to add waiver for PolicyViolation ID {}", policyViolation.getId(), e);
+        }
+      }
+      tx.commit();
+      AuditData.get().commitSubEvents();
+      sendTelemetry(ownerType, ownerId);
+    }
+  }
+
   private boolean filterWaiverByCriteria(String policyId,
                                          String constraintFactsJson,
                                          String hash,
@@ -281,5 +344,38 @@ public class ApiPolicyWaiverService
       @AuthzContext(Key.OWNER) Owner owner)
   {
     return policyWaiverDAO.getApplicableAndExpiredByOwnerId(owner.getId());
+  }
+
+  private PolicyWaiver savePolicyWaiver(
+      String ownerId,
+      PolicyViolation policyViolation,
+      String comment,
+      boolean applyToAllComponents,
+      Date expiryTime)
+  {
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      tx.begin();
+      PolicyWaiver policyWaiver =
+          savePolicyWaiver(tx, ownerId, policyViolation, comment, applyToAllComponents, expiryTime);
+      tx.commit();
+      return policyWaiver;
+    }
+  }
+
+  private PolicyWaiver savePolicyWaiver(
+      TransactionContext tx,
+      String ownerId,
+      PolicyViolation policyViolation,
+      String comment,
+      boolean applyToAllComponents,
+      Date expiryTime)
+  {
+    String hash = applyToAllComponents ? null : policyViolation.getHash();
+    PolicyWaiver policyWaiver = new PolicyWaiver(hash, policyViolation.getPolicyId(), ownerId, comment);
+    policyWaiver.setConstraintFactsJson(policyViolation.getConstraintFactsJson());
+    policyWaiver.setExpiryTime(expiryTime);
+
+    policyWaiverDAO.insert(tx, policyWaiver);
+    return policyWaiver;
   }
 }

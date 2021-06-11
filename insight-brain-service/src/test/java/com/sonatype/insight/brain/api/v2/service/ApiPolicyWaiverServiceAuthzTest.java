@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -383,6 +385,30 @@ public class ApiPolicyWaiverServiceAuthzTest
     grantPermission(app.getId(), Permission.READ);
     String policyViolationId = setUpParameterizePolicyViolation(app.getId());
     apiPolicyWaiverService.getApplicableWaivers(policyViolationId);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_Unauthenticated() {
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
+        app.getPublicId(), "scanId", null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_Unauthorized() {
+    login();
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
+        app.getPublicId(), "scanId", null, null, null, null);
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByAppScanComponent_Authorized() {
+    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    String scanId = "scanId";
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
+        app.getPublicId(), scanId, componentIdentifier, null, null, null);
   }
 
   private void addPolicyWaiverWithDefaultOptions(OwnerType ownerType, String ownerId, String violationId) {

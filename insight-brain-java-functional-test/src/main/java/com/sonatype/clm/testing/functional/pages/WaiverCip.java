@@ -227,6 +227,10 @@ public class WaiverCip
     return $("#view-existing-waivers");
   }
 
+  public static SelenideElement viewTransitiveViolations() {
+    return $("#view-transitive-violations");
+  }
+
   public static SelenideElement unquarantineButton() {
     return $(createSelector(CONTAINER_ID, "a.btn"));
   }

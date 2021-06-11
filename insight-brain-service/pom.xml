@@ -734,6 +734,7 @@
                 <include>**/TestLdapServer*</include>
                 <include>**/NetworkingHelper*</include>
                 <include>**/SslSettings*</include>
+                <include>**/ReportTestUtils*</include>
               </includes>
             </configuration>
           </execution>

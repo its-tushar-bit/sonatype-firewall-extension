@@ -61,9 +61,11 @@ export default function TransitiveViolationsPage(props) {
           <Fragment>
             {ownerId && scanId && <NxBackButton href={getBackHref()} />}
             <ComponentDetailsHeader>
-              <Title id="transitive-violations-page-title">Transitive Violations</Title>
+              <Title id="transitive-violations-page-title">
+                {componentTransitivePolicyViolations.data.displayName}
+              </Title>
               <ComponentDetailsReportInfo
-                applicationName={ownerId}
+                applicationName={availableScopes.data[0].name}
                 organizationName={availableScopes.data[1].name}
                 reportTime={reportMetadata.data.reportTime}
                 reportTitle={reportMetadata.data.reportTitle}
@@ -71,6 +73,11 @@ export default function TransitiveViolationsPage(props) {
               <ComponentDetailsTags isInnerSource={componentTransitivePolicyViolations.data.isInnerSource} />
             </ComponentDetailsHeader>
             <section className="nx-tile">
+              <header className="nx-tile-header">
+                <div className="nx-tile-header__title">
+                  <h2 className="nx-h2">Transitive Violations</h2>
+                </div>
+              </header>
               <div className="nx-tile-content">
                 <TransitiveViolationsPageTable
                   stageTypeId={reportMetadata.data.stageId}

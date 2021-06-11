@@ -35,6 +35,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipOccurr
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipSimilarTab;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
+import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.WaiverCip;
 import com.sonatype.clm.testing.functional.pages.WaiverCip.ConfirmRemoveWaiverDialog;
@@ -65,13 +66,16 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.SelenideElement;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -112,6 +116,8 @@ public class ApplicationReportCipTest
 
   @Before
   public void start() throws IOException {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
     app = tempEntity.newApplicationWithParent("ApplicationReportTest", "ApplicationReportTest");
     URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
@@ -201,6 +207,53 @@ public class ApplicationReportCipTest
     testOccurrencesTab();
     testSimilarTab();
     testAuditTab();
+  }
+
+  @Test
+  public void testCip_ViewTransitiveViolations_FeatureEnabled_InnerSource() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+    setupHdsResponses();
+    mockHdsResponseForRemediation();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(8).click();
+    cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
+    SelenideElement viewTransitiveViolations = WaiverCip.viewTransitiveViolations();
+    viewTransitiveViolations.shouldBe(visible);
+    viewTransitiveViolations.click();
+    waitUntilUrl(TransitiveViolationsPage.url(app.getPublicId(), SCAN_ID, "18d393ad345b03b49c62"));
+    TransitiveViolationsPage transitiveViolationsPage = new TransitiveViolationsPage();
+    transitiveViolationsPage.shouldBe(visible);
+    transitiveViolationsPage.backButton().shouldBe(visible).click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.shouldBe(visible);
+  }
+  
+  @Test
+  public void testCip_ViewTransitiveViolations_FeatureEnabled_NonInnerSource() {
+    testCLMServer.getCLMServer().getConfiguration()
+        .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
+    setupHdsResponses();
+    mockHdsResponseForRemediation();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(7).click();
+    cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
+    SelenideElement viewTransitiveViolations = WaiverCip.viewTransitiveViolations();
+    viewTransitiveViolations.shouldNotBe(visible);
+  }
+
+  @Test
+  public void testCip_ViewTransitiveViolations_FeatureDisabled() {
+    setupHdsResponses();
+    mockHdsResponseForRemediation();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    CipModal cipModal = reportPage.cipModal();
+    reportPage.resultRow(8).click();
+    cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
+    SelenideElement viewTransitiveViolations = WaiverCip.viewTransitiveViolations();
+    viewTransitiveViolations.shouldNotBe(visible);
   }
 
   private void testInnerSourceComponentHeader() {

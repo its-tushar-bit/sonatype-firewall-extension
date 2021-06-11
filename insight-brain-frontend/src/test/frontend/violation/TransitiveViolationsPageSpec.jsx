@@ -242,4 +242,10 @@ describe('TransitiveViolationsPage', function () {
       expect(tags.length).toBe(0);
     });
   });
+
+  it('shows the component display name as the title', function () {
+    const component = mount(<TransitiveViolationsPage {...minimalProps} />);
+    const title = component.find('#transitive-violations-page-title');
+    expect(title.at(0)).toHaveText('someDisplayName');
+  });
 });

@@ -63,6 +63,7 @@ function IqSidebarNav(props) {
 
   const isVulnerabilitySearchSelected = isSelected('vulnerabilitySearch') || isSelected('vulnerabilitySearchDetail');
   const isFirewallSelected = isSelected('firewall') || isSelected('firewallAutoUnquarantine');
+  const isReportsSelected = isSelected('violations') || isSelected('transitiveViolations');
 
   useEffect(() => {
     setLeftNavigationOpen(isOpen);
@@ -101,7 +102,7 @@ function IqSidebarNav(props) {
           )}
           {isReportsListAvailable && (
             <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('violations')}
+              isSelected={isReportsSelected}
               id="reporting-navigation-button"
               icon={faFileChartLine}
               text="Reports"

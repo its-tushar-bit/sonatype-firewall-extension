@@ -49,16 +49,16 @@
         "componentIdentifier": {
           "format": "maven",
           "coordinates": {
-            "artifactId": "threat",
+            "artifactId": "a",
             "classifier": "",
             "extension": "jar",
-            "groupId": "critical",
-            "version": "1.0"
+            "groupId": "g",
+            "version": "v"
           }
         },
-        "groupId": "critical",
-        "artifactId": "threat",
-        "version": "1.0",
+        "groupId": "g",
+        "artifactId": "a",
+        "version": "v",
         "hash": "f3f4530c4823d7fc8357",
         "constraintFacts": [{
           "constraintId": "acdb7a00d0914415802b5faa131bc058",
@@ -74,17 +74,17 @@
         "displayName": {
           "parts": [{
             "field": "Group",
-            "value": "critical"
+            "value": "g"
           }, {
             "value": " : "
           }, {
             "field": "Artifact",
-            "value": "threat"
+            "value": "a"
           }, {
             "value": " : "
           }, {
             "field": "Version",
-            "value": "1.0"
+            "value": "v"
           }]
         }
       }]
@@ -99,16 +99,16 @@
         "componentIdentifier": {
           "format": "maven",
           "coordinates": {
-            "artifactId": "threat",
+            "artifactId": "a",
             "classifier": "",
             "extension": "jar",
-            "groupId": "critical",
-            "version": "1.0"
+            "groupId": "g",
+            "version": "v"
           }
         },
-        "groupId": "critical",
-        "artifactId": "threat",
-        "version": "1.0",
+        "groupId": "g",
+        "artifactId": "a",
+        "version": "v",
         "hash": "f3f4530c4823d7fc8357",
         "constraintFacts": [{
           "constraintId": "c649fc678a294e9db72b064cf90e5a39",
@@ -124,17 +124,17 @@
         "displayName": {
           "parts": [{
             "field": "Group",
-            "value": "critical"
+            "value": "g"
           }, {
             "value": " : "
           }, {
             "field": "Artifact",
-            "value": "threat"
+            "value": "a"
           }, {
             "value": " : "
           }, {
             "field": "Version",
-            "value": "1.0"
+            "value": "v"
           }]
         }
       }]
@@ -149,32 +149,32 @@
   "componentIdentifier": {
     "format": "maven",
     "coordinates": {
-      "artifactId": "threat",
+      "artifactId": "a",
       "classifier": "",
       "extension": "jar",
-      "groupId": "critical",
-      "version": "1.0"
+      "groupId": "g",
+      "version": "v"
     }
   },
   "displayName": {
     "parts": [{
       "field": "Group",
-      "value": "critical"
+      "value": "g"
     }, {
       "value": " : "
     }, {
       "field": "Artifact",
-      "value": "threat"
+      "value": "a"
     }, {
       "value": " : "
     }, {
       "field": "Version",
-      "value": "1.0"
+      "value": "v"
     }]
   },
-  "version": "1.0",
-  "artifactId": "threat",
-  "groupId": "critical",
+  "version": "v",
+  "artifactId": "a",
+  "groupId": "g",
   "declaredLicenseIds": ["Not-Declared"],
   "observedLicenseIds": ["No-Sources"],
   "componentCategories": [

@@ -218,7 +218,7 @@ public class EditCopyrightsTest
     ComponentLegalOverviewPage.editCopyrightButton().shouldBe(Condition.visible).click();
 
     ComponentIdentifier componentIdentifier =
-        ComponentIdentifier.createMavenCoordinates("critical", "threat", "1.0", "", "jar");
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     assertThat(new ComponentObligationDAO().getByOwnerIdAndComponentIdentifierAndObligationName(
         Organization.ROOT_ORGANIZATION_ID, componentIdentifier, "Inclusion of Copyright")).isNull();
 

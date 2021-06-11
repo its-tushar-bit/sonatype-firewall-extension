@@ -1222,6 +1222,9 @@ public class ApiLicenseLegalServiceTest
     Application application = tempEntity.newApplicationWithParent();
     ComponentIdentifier componentIdentifier = ComponentIdentifier
         .createMavenCoordinates("org.springframework.boot", "spring-boot-actuator", "2.2.6.RELEASE", "", "jar");
+
+    tempEntity.newLicenseThreatGroup("id", application.getId(), "custom-ltg", 5, "Apache-2.0");
+
     // Set the HDS data
     doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT", "Apache-2.0")))
         .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
@@ -1284,6 +1287,10 @@ public class ApiLicenseLegalServiceTest
     assertThat(apiLicenseLegalComponentDTO.licenseLegalData.attributions).containsExactly(
         new ComponentObligationAttributionDTO(attribution),
         new ComponentObligationAttributionDTO(additionalAttribution));
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.highestEffectiveLicenseThreatGroup.licenseThreatGroupLevel)
+        .isEqualTo(5);
+    assertThat(apiLicenseLegalComponentDTO.licenseLegalData.highestEffectiveLicenseThreatGroup.licenseThreatGroupName)
+        .isEqualTo("custom-ltg");
   }
 
   @Test
@@ -1586,16 +1593,6 @@ public class ApiLicenseLegalServiceTest
       verify(mockThirdPartyComponentDAO, never()).getComponentDetailsByIdentifier(any(), any(), any());
       verify(componentInfoServiceSpy).getComponentDetailsFromHDS(any(), any(), eq(componentIdentifier), any(), any());
     }
-  }
-
-  private Set<String> getExpectedLicenseIds(NamedComponentDetails namedComponentDetails) {
-    Set<String> licenseIds = Sets.newHashSet(Iterables.concat(
-        namedComponentDetails.getDeclaredLicenseIds(),
-        namedComponentDetails.getObservedLicenseIds()));
-
-    licenseIds.addAll(getExpectedEffectiveLicenseIds(namedComponentDetails));
-
-    return licenseIds;
   }
 
   private Set<String> getExpectedEffectiveLicenseIds(NamedComponentDetails namedComponentDetails) {
@@ -2336,9 +2333,8 @@ public class ApiLicenseLegalServiceTest
         .collect(Collectors.toMap(c -> c.displayName,
             c -> c.licenseData == null ? new ApiLicenseDataDTOV2() : c.licenseData));
 
-    components.forEach(comp -> {
-      validateLicenseData(comp, comp.licenseLegalData, expectedComponentData.get(comp.displayName));
-    });
+    components
+        .forEach(comp -> validateLicenseData(comp, comp.licenseLegalData, expectedComponentData.get(comp.displayName)));
   }
 
   private void assertValidComponent(ApiLicenseLegalComponentDTO component) {

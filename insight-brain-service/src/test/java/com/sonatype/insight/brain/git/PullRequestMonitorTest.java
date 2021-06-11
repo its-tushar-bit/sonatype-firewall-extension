@@ -105,6 +105,7 @@ public class PullRequestMonitorTest
     pullRequestMonitor.start();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
+    verify(taskSchedulerMock).unscheduleTask(PullRequestMonitor.TASK_NAME);
   }
 
   @Test

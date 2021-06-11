@@ -192,8 +192,9 @@ public class PolicyEvaluation
   }
 
   public boolean wasInternallyTriggered() {
-    return ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING == scanTriggerType ||
-        ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST == scanTriggerType;
+    return ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING == scanTriggerType
+        || ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST == scanTriggerType
+        || ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING == scanTriggerType;
   }
 
   @Override

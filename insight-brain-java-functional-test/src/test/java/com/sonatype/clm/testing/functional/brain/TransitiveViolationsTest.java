@@ -71,9 +71,11 @@ public class TransitiveViolationsTest
   public void before() throws Exception {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), true));
-    organization = tempEntity.newOrganization();
-    application = tempEntity.newApplication(organization.getId());
-    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId");
+    organization = tempEntity.newOrganization("Test Org 0af5aa00a2424db19b115f70b6f873d9");
+    application = tempEntity.newApplication("Test App 56770d0ec3da47b0aa8eab53d874efdb",
+        "56770d0ec3da47b0aa8eab53d874efdb", organization.getId());
+    policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId",
+        new Date(1623424315000L));
     PolicyViolation aPolicyViolation = tempEntity
         .newPolicyViolation(policyEvaluation, tempEntity.newPolicy(application.getId(), "aPolicyX"), 10,
             PolicyThreatCategory.SECURITY,

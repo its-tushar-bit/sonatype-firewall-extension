@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -431,12 +432,16 @@ public class ScanPolicyEvaluator
           recordConditionTypeViolationTelemetry(telemetryCollector, newPolicyViolation);
 
           policyViolationLogger.add(PolicyViolationLogEvent.CREATE, newPolicyViolation);
+          Component component =
+              findComponentByComponentIdentifier(components, newPolicyViolation.getComponentIdentifier());
+
           if (newPolicyViolation.isWaived()) {
             policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
-            telemetryCollector.addTelemetryForWaivedViolation(newPolicyViolation);
+            telemetryCollector.addTelemetryForWaivedViolation(newPolicyViolation, component);
             results.waivedViolations.add(newPolicyViolation);
           }
           if (newPolicyViolation.isGrandfathered()) {
+            telemetryCollector.addTelemetryForGrandfatheredViolation(newPolicyViolation, component);
             policyViolationLogger.add(PolicyViolationLogEvent.GRANDFATHER, newPolicyViolation);
           }
         }
@@ -445,7 +450,10 @@ public class ScanPolicyEvaluator
           oldPolicyViolation.setFixTime(policyEvaluation.getTime());
           policyViolationDAO.update(tx, oldPolicyViolation);
           policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
-          telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation);
+
+          telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation,
+              findComponentsByComponentIdentifierElseVersionless(components,
+                  oldPolicyViolation.getComponentIdentifier()));
           results.fixedViolations.add(oldPolicyViolation);
         }
         // Existing policy violations.
@@ -464,7 +472,9 @@ public class ScanPolicyEvaluator
             policyViolationDAO.insert(tx, newPolicyViolation);
 
             policyViolationLogger.add(PolicyViolationLogEvent.UNWAIVE, newPolicyViolation);
-            telemetryCollector.addTelemetryForUnwaivedViolation(newPolicyViolation);
+            Component component =
+                findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
+            telemetryCollector.addTelemetryForUnwaivedViolation(newPolicyViolation, component);
           }
           else {
             if (isNotifiable(oldPolicyViolation, newPolicyViolation, forMonitoring, isReevaluation)) {
@@ -482,7 +492,9 @@ public class ScanPolicyEvaluator
               oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
 
               policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
-              telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation);
+              Component component =
+                  findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
+              telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation, component);
               results.waivedViolations.add(oldPolicyViolation);
             }
             policyViolationDAO.update(tx, oldPolicyViolation);
@@ -921,5 +933,38 @@ public class ScanPolicyEvaluator
       // 6 previously seen policies violated: My-First-Policy(4), My-Second-Policy(2).
       log.debug("{} {} policies violated: {}.", policyViolations.size(), policyProperty, stringified);
     }
+  }
+  
+  private Component findComponentByComponentIdentifier(
+      List<Component> components,
+      ComponentIdentifier componentIdentifier)
+  {
+    if (componentIdentifier == null) {
+      return null;
+    }
+    return components.stream()
+        .filter(c -> c.getComponentIdentifier() != null)
+        .filter(c -> c.getComponentIdentifier().equals(componentIdentifier))
+        .findFirst()
+        .orElse(null);
+  }
+
+  private List<Component> findComponentsByComponentIdentifierElseVersionless(
+      List<Component> components,
+      ComponentIdentifier componentIdentifier)
+  {
+    if (componentIdentifier == null) {
+      return Collections.emptyList();
+    }
+    Component component = findComponentByComponentIdentifier(components, componentIdentifier);
+    if (component != null) {
+      return Collections.singletonList(component);
+    }
+    ComponentIdentifier versionlessComponentIdentifier = componentIdentifier.createAlternativeVersion(null);
+    return components.stream()
+        .filter(c -> c.getComponentIdentifier() != null)
+        .filter(c -> c.getComponentIdentifier().createAlternativeVersion(null)
+            .equals(versionlessComponentIdentifier))
+        .collect(toList());
   }
 }

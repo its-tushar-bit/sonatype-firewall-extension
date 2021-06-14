@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
 
 public class SourceControlEventDAO
     extends AbstractOperationalSqlDAO<SourceControlEvent>
@@ -92,6 +93,17 @@ public class SourceControlEventDAO
     List<String> statuses = Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS);
     String sQuery = SELECT_ENTITY + "WHERE entity.eventType = ?1 AND entity.eventStatus IN ?2";
     return getList(sQuery, SOURCE_CONTROL_EVALUATION, statuses);
+  }
+
+  public List<SourceControlEvent> getPendingOrInProgressUpdatedPullRequestEvents(
+      List<String> appIds,
+      int pullRequestNumber)
+  {
+    List<String> statuses = Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS);
+    String sQuery = SELECT_ENTITY + //
+        "WHERE entity.eventType = ?1 AND entity.eventStatus IN ?2" + //
+        " AND entity.applicationId IN ?3 AND entity.pullRequestNumber=?4";
+    return getList(sQuery, UPDATED_PULL_REQUEST_EVENT, statuses, appIds, pullRequestNumber);
   }
 
   public void markEventInProgress(final String eventId) {

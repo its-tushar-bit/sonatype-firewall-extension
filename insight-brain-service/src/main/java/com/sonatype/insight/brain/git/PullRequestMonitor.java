@@ -24,6 +24,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -70,6 +71,8 @@ public class PullRequestMonitor
 
   private final ApplicationDAO applicationDAO;
 
+  private final SourceControlEventDAO sourceControlEventDAO;
+
   private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
 
   private final GitApiFactory gitApiFactory;
@@ -90,6 +93,7 @@ public class PullRequestMonitor
       SourceControlUtils sourceControlUtils,
       SourceControlEventPublisher sourceControlEventPublisher,
       ApplicationDAO applicationDAO,
+      SourceControlEventDAO sourceControlEventDAO,
       SourceControlPullRequestDAO sourceControlPullRequestDAO)
   {
     this.insightConfig = insightConfig;
@@ -98,6 +102,7 @@ public class PullRequestMonitor
     this.sourceControlUtils = sourceControlUtils;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.applicationDAO = applicationDAO;
+    this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
   }
 
@@ -204,6 +209,7 @@ public class PullRequestMonitor
       GitRepositoryInfo gitRepositoryInfo =
           sourceControlUtils.getGitRepositoryInfoForApplication(applications.get(0).getId());
       GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
+      List<String> applicationIds = applications.stream().map(Application::getId).collect(toList());
       try {
         Map<String, String> headCommitsByBranchName = gitApi.getHeadCommitsForAllBranches(repositoryUrl);
         Date updateTime = new Date();
@@ -220,6 +226,18 @@ public class PullRequestMonitor
 
             if (!pullRequest.getHeadCommitHash().equals(headCommit)) {
               // The branch for this pull request was updated
+              List<SourceControlEvent> existingEvents = sourceControlEventDAO
+                  .getPendingOrInProgressUpdatedPullRequestEvents(applicationIds, pullRequest.getPullRequestId());
+              if (!existingEvents.isEmpty()) {
+                // Since we track PRs independently from apps, if multiple apps are mapped to the same SCM repository,
+                // then we should update the PR only if we can send events for all apps.
+                log.info(
+                    "Pull request updated event for applications with SCM repository URL '{}' "
+                        + "with PR# {} and commit {} are already pending or in progress",
+                    repositoryUrl, pullRequest.getPullRequestId(), pullRequest.getHeadCommitHash());
+                continue;
+              }
+
               pullRequest.setHeadCommitHash(headCommit);
               pullRequest.setLastCheckTime(updateTime);
               pullRequest.setLastDetectedUpdateTime(updateTime);
@@ -274,6 +292,7 @@ public class PullRequestMonitor
           .setPullRequestNumber(pullRequest.getPullRequestId()) //
           .setInitiator("polling");
       sourceControlEventPublisher.publishEvent(event);
+
       log.info("Sent pull request updated event for application '{}' with PR# {} and commit {}", application.getId(),
           pullRequest.getPullRequestId(), pullRequest.getHeadCommitHash());
     }

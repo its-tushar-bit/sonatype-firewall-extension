@@ -14,6 +14,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
@@ -263,6 +264,44 @@ public class PullRequestMonitorTest
 
     // And source control event is sent
     verifySourceControlEventWasSent(app.getId(), pullRequest);
+  }
+
+  @Test
+  public void testUpdatePullRequestDetails_DoesNotSendEventIfEventIsAlreadyPending() throws Exception {
+    testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(SourceControlEvent.EVENT_STATUS_NEW);
+  }
+
+  @Test
+  public void testUpdatePullRequestDetails_DoesNotSendEventIfEventIsAlreadyInProgress() throws Exception {
+    testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
+  }
+
+  private void testUpdatePullRequestDetails_DoesNotSendEventIfEventExists(String eventStatus) throws Exception {
+    createSourceControlForRootOrg();
+
+    // Given a pull request
+    Application app = tempEntity.newApplicationWithParent();
+    String repositoryUrl = "http://example.com/testorg/testproject";
+    tempEntity.newSourceControl(app.getId(), repositoryUrl);
+    Date createTime = new Date(System.currentTimeMillis() - 2000);
+    Date lastUpdateTime = new Date(System.currentTimeMillis() - 1000);
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(repositoryUrl, 1,
+        "testHeadCommitHash", "testBranchName", createTime, lastUpdateTime, lastUpdateTime);
+    // And an existing event
+    SourceControlEvent existingEvent = new SourceControlEvent() //
+        .setApplicationId(app.getId()) //
+        .setEventType(SourceControlEvent.UPDATED_PULL_REQUEST_EVENT) //
+        .setPullRequestNumber(pullRequest.getPullRequestId()) //
+        .setEventStatus(eventStatus);
+    new SourceControlEventDAO().insert(existingEvent);
+
+    // The branch is updated
+    when(gitApiMock.getHeadCommitsForAllBranches(repositoryUrl))
+        .thenReturn(Collections.singletonMap("testBranchName", "testHeadCommitHashUpdated"));
+
+    pullRequestMonitor.updatePullRequestDetails();
+
+    verify(sourceControlEventPublisherMock, never()).publishEvent(any());
   }
 
   private void assertPullRequest(

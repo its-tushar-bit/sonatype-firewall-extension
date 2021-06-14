@@ -29,6 +29,7 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -376,6 +377,32 @@ public class SourceControlEventDAOTest
     assertThat(sourceControlEvents.get(0).getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
   }
 
+  @Test
+  public void testGetPendingOrInProgressUpdatedPullRequestEvents() {
+    // given: some events we are interested in
+    SourceControlEvent expectedEvent1 = createUpdatedPullRequestEvent(app.getId(), EVENT_STATUS_NEW, 1);
+    SourceControlEvent expectedEvent2 = createUpdatedPullRequestEvent(app.getId(), EVENT_STATUS_IN_PROGRESS, 1);
+    SourceControlEvent expectedEvent3 = createUpdatedPullRequestEvent(app2.getId(), EVENT_STATUS_NEW, 1);
+    SourceControlEvent expectedEvent4 = createUpdatedPullRequestEvent(app2.getId(), EVENT_STATUS_IN_PROGRESS, 1);
+    // and some events we are not interested in
+    createUpdatedPullRequestEvent(app.getId(), EVENT_STATUS_NEW, 2);
+    createUpdatedPullRequestEvent(app.getId(), EVENT_STATUS_IN_PROGRESS, 2);
+    createUpdatedPullRequestEvent(app2.getId(), EVENT_STATUS_NEW, 2);
+    createUpdatedPullRequestEvent(app2.getId(), EVENT_STATUS_IN_PROGRESS, 2);
+    Application app3 = tempEntity.newApplicationWithParent();
+    createUpdatedPullRequestEvent(app3.getId(), EVENT_STATUS_NEW, 1);
+    createUpdatedPullRequestEvent(app3.getId(), EVENT_STATUS_IN_PROGRESS, 1);
+    createNewSourceControlEvents(1);
+
+    // when: get the events we are interested in
+    List<SourceControlEvent> events = sourceControlEventDAO
+        .getPendingOrInProgressUpdatedPullRequestEvents(Arrays.asList(app.getId(), app2.getId()), 1);
+
+    // then:
+    assertThat(events).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(expectedEvent1.getId(),
+        expectedEvent2.getId(), expectedEvent3.getId(), expectedEvent4.getId());
+  }
+
   private SourceControlEvent getNewSourceControlEvent() {
     return getNewSourceControlEvent(app.getId());
   }
@@ -404,6 +431,23 @@ public class SourceControlEventDAOTest
         .setEventType(SOURCE_CONTROL_EVALUATION)
         .setEventStatus(eventStatus)
         .setStageTypeId(StageTypes.SOURCE.getId())
+        .setCreateTime(testStartTime);
+
+    sourceControlEventDAO.insert(event);
+    return event;
+  }
+
+  private SourceControlEvent createUpdatedPullRequestEvent(
+      String appId,
+      String eventStatus,
+      int pullRequestNumber)
+  {
+    SourceControlEvent event = new SourceControlEvent() //
+        .setApplicationId(appId) //
+        .setEventType(UPDATED_PULL_REQUEST_EVENT) //
+        .setEventStatus(eventStatus) //
+        .setPullRequestNumber(pullRequestNumber) //
+        .setStageTypeId(StageTypes.SOURCE.getId()) //
         .setCreateTime(testStartTime);
 
     sourceControlEventDAO.insert(event);

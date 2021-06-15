@@ -47,7 +47,7 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getLastByApplicationIds(Set<String> appIds) {
-    if (appIds.size() >= H2_IN_OPERATOR_THRESHOLD) {
+    if (appIds.size() >= getInOperatorThreshold()) {
       return getLastByApplicationIdsManualFilter(appIds);
     }
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
@@ -69,6 +69,8 @@ public class PolicyEvaluationDAO
    * and at some point it is faster to just load all entities and filter them manually afterwards. Per those
    * measurements, this method outperforms the {@code IN} operator when the input exceeds ~2000 applications, even if
    * 80% of the loaded entities are dropped.
+   *
+   * Similar to above the check is extended to Postgres with it's allowed threshold limit. (cf, CLM-18653)
    */
   private List<PolicyEvaluation> getLastByApplicationIdsManualFilter(Set<String> appIds) {
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //
@@ -96,7 +98,7 @@ public class PolicyEvaluationDAO
   }
 
   public List<PolicyEvaluation> getLastByApplicationIdsAndStageIds(Set<String> appIds, Set<String> stageTypeIds) {
-    if (appIds.size() >= H2_IN_OPERATOR_THRESHOLD) {
+    if (appIds.size() >= getInOperatorThreshold()) {
       return getLastByApplicationIdsAndStageIdsManualFilter(appIds, stageTypeIds);
     }
     String sQuery = "SELECT pe FROM PolicyEvaluation pe," + //

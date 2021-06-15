@@ -16,7 +16,11 @@ import com.sonatype.insight.model.HasStringId;
 public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
     extends AbstractSqlDAO<T>
 {
+  //visible for testing
   public static final int H2_IN_OPERATOR_THRESHOLD = 2000;
+
+  //visible for testing
+  public static final int POSTGRES_IN_OPERATOR_THRESHOLD = Short.MAX_VALUE;
 
   @Override
   public TransactionContext createTransactionContext() {
@@ -25,6 +29,10 @@ public abstract class AbstractOperationalSqlDAO<T extends HasStringId>
 
   public boolean isDatabaseEmbedded() {
     return OperationalDataStoreProvider.isDatabaseEmbedded();
+  }
+
+  public int getInOperatorThreshold() {
+    return isDatabaseEmbedded() ? H2_IN_OPERATOR_THRESHOLD : POSTGRES_IN_OPERATOR_THRESHOLD;
   }
 
   @Override

@@ -20,6 +20,8 @@ import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -28,6 +30,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
@@ -350,6 +353,24 @@ public class PolicyEvaluationDAOTest
 
   @Test
   public void testGetLastByApplicationIdsAndStageIds_InOperatorOptimizationForH2() {
+    testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(true);
+  }
+
+  @Test
+  public void testGetLastByApplicationIdsAndStageIds_InOperatorOptimizationForPostgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(false);
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  private void testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(boolean isEmbeddedDb) {
+    organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(organization.getId());
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
     Date time1 = new Date();
@@ -360,8 +381,10 @@ public class PolicyEvaluationDAOTest
     Date time2 = new Date(time1.getTime() + 1000);
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scanId4", time2);
 
+    int inOperatorThreshold = isEmbeddedDb ?
+        PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD : PolicyEvaluationDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
     Set<String> appIds = new LinkedHashSet<>();
-    while (appIds.size() < PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD) {
+    while (appIds.size() < inOperatorThreshold) {
       appIds.add(tempEntity.uuid());
     }
     appIds.add(application.getId());
@@ -408,7 +431,25 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  public void testGetLastByApplicationIds_InOperatorOptimizationForPostgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testGetLastByApplicationIds_InOperatorOptimization(false);
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  @Test
   public void testGetLastByApplicationIds_InOperatorOptimizationForH2() {
+    testGetLastByApplicationIds_InOperatorOptimization(true);
+  }
+
+  private void testGetLastByApplicationIds_InOperatorOptimization(boolean isDatabaseEmbedded) {
+    organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(organization.getId());
     PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
 
     String stageTypeId = ReleaseStageType.ID;
@@ -420,7 +461,10 @@ public class PolicyEvaluationDAOTest
     PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, "scanId3", time2);
 
     Set<String> appIds = new LinkedHashSet<>();
-    while (appIds.size() < PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD) {
+    int threshold = isDatabaseEmbedded ?
+        PolicyEvaluationDAO.H2_IN_OPERATOR_THRESHOLD : PolicyEvaluationDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
+
+    while (appIds.size() < threshold) {
       appIds.add(tempEntity.uuid());
     }
     appIds.add(application.getId());

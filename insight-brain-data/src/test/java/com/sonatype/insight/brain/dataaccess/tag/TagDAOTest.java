@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.tag;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,6 +35,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.postgres.PostgresServer;
 
@@ -536,6 +540,53 @@ public class TagDAOTest
     tempEntity.newApplicationTag(app.getId(), tag.getId());
 
     assertThat(dao.getByApplicationIds(appIds)).extracting(Tag::getId).containsExactly(tag.getId());
+  }
+
+  @Test
+  public void testGetTagsUsedByApplications_MoreThanShortMaxValueOnPostgres() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      DatabaseConfig databaseConfig = postgres.getDatabaseConfig();
+      OperationalDataStoreProvider.init(databaseConfig, false);
+      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection()) {
+        String sql = "INSERT INTO organization (organization_id, "
+            + "parent_organization_id, name, name_lowercase_no_whitespace) "
+            + "VALUES ('org1', 'ROOT_ORGANIZATION_ID', 'org1', 'org1');";
+        try (Statement statement = connection.createStatement()) {
+          statement.executeUpdate(sql);
+        }
+
+        connection.setAutoCommit(false);
+        sql = "INSERT INTO application (application_id, public_id, public_id_lowercase, name, "
+            + "name_lowercase_no_whitespace, organization_id) "
+            + "VALUES (?, ?, ?, ?, ?, 'org1');";
+        List<String> appIds = new ArrayList<>(Short.MAX_VALUE + 1);
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+          for (int i = 0; i <= Short.MAX_VALUE; i++) {
+            String app = "app-" + (i + 1);
+            appIds.add(app);
+            statement.setString(1, app);
+            statement.setString(2, app);
+            statement.setString(3, app);
+            statement.setString(4, app);
+            statement.setString(5, app);
+            statement.addBatch();
+
+            if ((i + 1) % 100 == 0) {
+              statement.executeBatch();
+              connection.commit();
+            }
+          }
+          statement.executeBatch();
+          connection.commit();
+        }
+        connection.setAutoCommit(true);
+        assertThat(dao.getByApplicationIds(appIds)).isEmpty();
+      }
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 
   @Test

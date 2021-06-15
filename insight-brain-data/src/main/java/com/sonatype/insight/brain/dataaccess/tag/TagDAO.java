@@ -89,11 +89,12 @@ public class TagDAO
     if (applicationIds == null || applicationIds.isEmpty()) {
       return Collections.emptyList();
     }
-    if (isDatabaseEmbedded() && applicationIds.size() >= H2_IN_OPERATOR_THRESHOLD) {
+    int inOperatorThreshold = getInOperatorThreshold();
+    if (applicationIds.size() >= inOperatorThreshold) {
       Map<String, Tag> tagsById = new LinkedHashMap<>();
-      for (int i = 0; i < applicationIds.size(); i += H2_IN_OPERATOR_THRESHOLD) {
+      for (int i = 0; i < applicationIds.size(); i += inOperatorThreshold) {
         List<Tag> tags =
-            getList(sQuery, applicationIds.subList(i, Math.min(i + H2_IN_OPERATOR_THRESHOLD, applicationIds.size())));
+            getList(sQuery, applicationIds.subList(i, Math.min(i + inOperatorThreshold, applicationIds.size())));
         tags.forEach(tag -> tagsById.put(tag.getId(), tag));
       }
       return new ArrayList<>(tagsById.values());

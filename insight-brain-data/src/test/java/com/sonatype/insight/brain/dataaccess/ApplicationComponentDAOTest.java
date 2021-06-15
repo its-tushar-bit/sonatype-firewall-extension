@@ -16,6 +16,8 @@ import javax.persistence.Query;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -27,6 +29,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
@@ -119,15 +122,35 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering() {
+  public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering_H2() {
+    testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(true);
+  }
+
+  @Test
+  public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering_Postgres() {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      OperationalDataStoreProvider.init(postgres.getDatabaseConfig(), false);
+      testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(false);
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
+  }
+
+  public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(boolean isDatabaseEmbedded) {
+    organization = tempEntity.newOrganization();
+    application = tempEntity.newApplication(organization.getId());
     String appId1 = application.getId();
     String appId2 = tempEntity.newApplication(organization.getId()).getId();
     Set<String> largeIdList = new HashSet<>();
 
+    int threshold = isDatabaseEmbedded ?
+        ApplicationComponentDAO.H2_IN_OPERATOR_THRESHOLD : ApplicationComponentDAO.POSTGRES_IN_OPERATOR_THRESHOLD;
     // make a collection of over 2000 ids.
     largeIdList.add(appId1);
     largeIdList.add(appId2);
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < threshold; i++) {
       largeIdList.add(new Integer(i).toString());
     }
 

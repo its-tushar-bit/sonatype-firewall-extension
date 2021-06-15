@@ -136,7 +136,7 @@ public class ApplicationComponentDAO
                                                                             Set<String> stageTypeIds,
                                                                             Date date)
   {
-    if (isDatabaseEmbedded() && applicationIds != null && applicationIds.size() >= H2_IN_OPERATOR_THRESHOLD) {
+    if (applicationIds != null && applicationIds.size() >= getInOperatorThreshold()) {
       String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
           " WHERE entity.stageTypeId IN (?1) AND entity.time >= ?2" + //
           " ORDER BY entity.time ASC";

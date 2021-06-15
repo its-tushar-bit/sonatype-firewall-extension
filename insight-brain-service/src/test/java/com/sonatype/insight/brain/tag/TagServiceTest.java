@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.tag;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,6 +21,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoryDTO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.InvalidTagException;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.db.DataSourceFactory;
+import com.sonatype.insight.brain.db.OperationalDataStoreProvider;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
@@ -30,10 +35,13 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.model.HasStringId;
+import com.sonatype.insight.postgres.PostgresServer;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
@@ -367,6 +375,54 @@ public class TagServiceTest
         tagService.getTagsUsedByApplications().stream().map(dto -> TagService.fromDTO(dto, dto.organizationId))
             .collect(Collectors.toList());
     assertThat(allTags).usingElementComparator(byId).containsExactlyInAnyOrder(tag1, tag2);
+  }
+
+  @Ignore("Ignored until the issue with the number of applications is fixed")
+  @Test
+  public void testGetTagsUsedByApplications_MoreThanShortMaxValueOnPostgres() throws Exception {
+    DataSourceFactory.clear_ForTestsOnly();
+    try (PostgresServer postgres = new PostgresServer()) {
+      DatabaseConfig databaseConfig = postgres.getDatabaseConfig();
+      OperationalDataStoreProvider.init(databaseConfig, false);
+      try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection()) {
+        String sql = "INSERT INTO organization (organization_id, "
+            + "parent_organization_id, name, name_lowercase_no_whitespace) "
+            + "VALUES ('org1', 'ROOT_ORGANIZATION_ID', 'org1', 'org1');";
+        try (Statement statement = connection.createStatement()) {
+          statement.executeUpdate(sql);
+        }
+
+        connection.setAutoCommit(false);
+        sql = "INSERT INTO application (application_id, public_id, public_id_lowercase, name, "
+            + "name_lowercase_no_whitespace, organization_id) "
+            + "VALUES (?, ?, ?, ?, ?, 'org1');";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+          for (int i = 0; i <= Short.MAX_VALUE; i++) {
+            String app = "app-" + (i + 1);
+            statement.setString(1, app);
+            statement.setString(2, app);
+            statement.setString(3, app);
+            statement.setString(4, app);
+            statement.setString(5, app);
+            statement.addBatch();
+
+            if ((i + 1) % 100 == 0) {
+              statement.executeBatch();
+              connection.commit();
+            }
+          }
+          statement.executeBatch();
+          connection.commit();
+        }
+        connection.setAutoCommit(true);
+
+        List<ApiApplicationCategoryDTO> applicationCategories = tagService.getTagsUsedByApplications();
+        assertThat(applicationCategories).isEmpty();
+      }
+    }
+    finally {
+      DataSourceFactory.clear_ForTestsOnly();
+    }
   }
 
   @Test

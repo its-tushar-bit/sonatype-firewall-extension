@@ -6,6 +6,11 @@
 @import './ComponentDetailsHeader/ComponentDetailsHeader';
 @import './ComponentDetailsFooter/ComponentDetailsFooter';
 @import './auditLog/auditLog';
+@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+
+#component-details-page {
+  padding: 0;
+}
 
 component-details {
   display: contents;
@@ -14,4 +19,8 @@ component-details {
   & > main {
     position: relative;
   }
+}
+
+.iq-component-details__content--lateral-padding {
+  padding: 0 $nx-spacing-l;
 }

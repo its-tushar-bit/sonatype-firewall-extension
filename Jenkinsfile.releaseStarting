@@ -11,17 +11,10 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   stages {
-    stage('Announce Release Starting') {
+    stage('Announce Release is Starting') {
       steps {
         slackSend color: 'good', channel: '#iq-releases',
-            message: "Starting IQ Server release ${params.releaseVersion}. See ${params.releaseJira}"
-      }
-    }
-
-    stage('Broadcast To Marketing') {
-      steps {
-        slackSend color: 'good', channel: '#iq',
-            message: "@product-marketing-team IQ Server release ${params.releaseVersion} has started. Review ${params.productNotificationJira} for In Product Notification."
+            message: "Starting IQ Server Release ${params.releaseVersion}. See ${params.releaseJira}"
       }
     }
   }

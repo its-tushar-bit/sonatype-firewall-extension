@@ -7,7 +7,7 @@ package com.sonatype.clm.testing.functional.brain.configuration;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.Dropdown.Option;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect.Option;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.AutomaticApplicationsConfigurationPage;
@@ -47,6 +47,7 @@ public class AutomaticApplicationsConfigurationTest
     automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
     automaticApplicationsConfigurationPage.cancel().shouldBe(disabled);
     automaticApplicationsConfigurationPage.toggle().click();
+    automaticApplicationsConfigurationPage.toggle().input().shouldBe(checked);
     automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Unable to update: fields with invalid or missing data."));
     automaticApplicationsConfigurationPage.cancel().shouldNotBe(disabled).hover();
@@ -58,8 +59,9 @@ public class AutomaticApplicationsConfigurationTest
     refresh();
     automaticApplicationsConfigurationPage.organization().shouldNotBe(empty);
     automaticApplicationsConfigurationPage.toggle().click();
+    automaticApplicationsConfigurationPage.toggle().input().shouldBe(checked);
     eyesWatcher.eyesCheck();
-    automaticApplicationsConfigurationPage.organization().chooseOption(new Option(0, org1.getName()));
+    automaticApplicationsConfigurationPage.organization().chooseOption(new Option(1, org1.getName()));
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
@@ -68,21 +70,23 @@ public class AutomaticApplicationsConfigurationTest
     // check that the updated configuration is displayed on refresh
     refresh();
     automaticApplicationsConfigurationPage.organization().shouldNotBe(empty);
-    automaticApplicationsConfigurationPage.organization().selectedItem().shouldHave(text(org1.getName()));
-    automaticApplicationsConfigurationPage.toggle().shouldNotBe(CLM.DISABLED);
+    automaticApplicationsConfigurationPage.organization().shouldHave(text(org1.getName()));
+    automaticApplicationsConfigurationPage.toggle().input().shouldBe(checked);
 
     // check that local changes to configuration settings can be cancelled
     automaticApplicationsConfigurationPage.toggle().click();
     automaticApplicationsConfigurationPage.organization().chooseOption(new Option(1, org2.getName()));
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED);
+    automaticApplicationsConfigurationPage.toggle().input().shouldNotBe(checked);
     automaticApplicationsConfigurationPage.cancel().shouldNotBe(disabled).click();
-    automaticApplicationsConfigurationPage.toggle().shouldNotBe(CLM.DISABLED);
-    automaticApplicationsConfigurationPage.organization().selectedItem().shouldHave(text(org1.getName()));
+    automaticApplicationsConfigurationPage.organization().shouldHave(text(org1.getName()));
     automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
     automaticApplicationsConfigurationPage.cancel().shouldBe(disabled);
+    automaticApplicationsConfigurationPage.toggle().input().shouldBe(checked);
 
     // check that subsequent changes to the configuration are also persisted
     automaticApplicationsConfigurationPage.toggle().click();
+    automaticApplicationsConfigurationPage.toggle().input().shouldNotBe(checked);
     automaticApplicationsConfigurationPage.organization().chooseOption(new Option(1, org2.getName()));
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();

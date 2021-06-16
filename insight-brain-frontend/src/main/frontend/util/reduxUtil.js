@@ -3,13 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { always, curry, lensProp, set } from 'ramda';
+import { always, curry, lensPath, lensProp, set } from 'ramda';
 import { Messages } from '../util/CommonServices';
 /*
  * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.
  * The payload is ignored and is only an argument to conform to the interface needed by reducerActionMap
  */
 export const propSetConst = curry((propName, constValue, payload, state) => set(lensProp(propName), constValue, state));
+
+export const pathSetConst = curry((propPath, constValue, payload, state) => set(lensPath(propPath), constValue, state));
 
 /**
  * A generic reducer function parameterized over a reducerActionMap and an initialState.

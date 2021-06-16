@@ -226,6 +226,10 @@ export function getRoleListUrl() {
   return uriTemplate`/rest/security/roles`;
 }
 
+export function getAutomaticApplicationsConfigurationUrl() {
+  return uriTemplate`/rest/config/automaticApplications`;
+}
+
 export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sortAsc) {
   let params = toURIParams({
     page: page,
@@ -752,8 +756,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getSuccessMetricsReportUrl: (successMetricsId) =>
         `${baseUrl.get()}/rest/successMetrics/report/${successMetricsId}`,
 
-      getAutomaticApplicationsConfigurationUrl: () => `${baseUrl.get()}/rest/config/automaticApplications`,
-
+      getAutomaticApplicationsConfigurationUrl,
       getAdvancedSearchConfigUrl: () => `${baseUrl.get()}/rest/search/advanced/status`,
 
       getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,

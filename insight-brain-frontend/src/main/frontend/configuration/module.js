@@ -4,9 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { react2angular } from 'react2angular';
-
 import gettingStartedModule from './gettingStarted/module';
-import automaticApplicationsConfigurationModule from './automaticApplicationsConfiguration/automaticApplicationsConfigurationModule';
 import ldapModule from './ldap/ldap.module';
 import samlModule from './saml/module';
 import webhookModule from './webhook/webhook.module';
@@ -22,17 +20,21 @@ import { always } from 'ramda';
 import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
 import SuccessMetricsConfigurationContainer from './successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 import SystemNoticeConfigurationContainer from './systemNoticeConfiguration/SystemNoticeConfigurationContainer';
+import AutomaticApplicationsConfiguration from './automaticApplicationsConfiguration/AutomaticApplicationsConfigurationContainer';
 
 export default angular
   .module('configurationModule', [
     gettingStartedModule.name,
-    automaticApplicationsConfigurationModule.name,
     ldapModule.name,
     samlModule.name,
     webhookModule.name,
     ProductLicenseModule.name,
     'ngRedux',
   ])
+  .component(
+    'automaticApplicationsConfiguration',
+    react2angular(withStoreProvider(AutomaticApplicationsConfiguration), [], ['$ngRedux'])
+  )
   .component(
     'automaticSourceControlConfiguration',
     react2angular(withStoreProvider(AutomaticSourceControlConfigurationContainer), [], ['$ngRedux'])
@@ -178,6 +180,14 @@ function routes($stateProvider) {
       data: {
         title: 'Automatic Source Control Configuration',
         isDirty: ['automaticSourceControlConfiguration', 'viewState', 'isDirty'],
+      },
+    })
+    .state('automaticApplicationsConfiguration', {
+      component: 'automaticApplicationsConfiguration',
+      url: '/automaticApplicationsConfiguration',
+      data: {
+        title: 'Automatic Applications',
+        isDirty: ['automaticApplicationsConfiguration', 'isDirty'],
       },
     });
 }

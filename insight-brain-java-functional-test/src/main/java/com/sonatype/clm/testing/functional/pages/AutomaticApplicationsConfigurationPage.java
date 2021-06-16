@@ -6,8 +6,8 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.Dropdown;
-import com.sonatype.clm.testing.functional.elements.Toggle;
+import com.sonatype.clm.testing.functional.elements.NxFormSelect;
+import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -19,33 +19,33 @@ public class AutomaticApplicationsConfigurationPage
     return BaseUrl.resolvePageUrl("/automaticApplicationsConfiguration");
   }
 
-  private static final String ROOT_SELECTOR = "#automatic-applications-configuration";
+  private static final String ROOT_SELECTOR = "#auto-app-config-configuration";
 
   public AutomaticApplicationsConfigurationPage() {
     super(ROOT_SELECTOR);
   }
 
   public SelenideElement header() {
-    return child(".iq-tile-header");
+    return child(".nx-tile-header");
   }
 
   public SelenideElement explanation() {
-    return child("#automatic-applications-explanation");
+    return child("#auto-app-config-explanation");
   }
 
-  public Toggle toggle() {
-    return new Toggle(childSelector("#automatic-applications-toggle-checkbox"));
+  public NxToggle toggle() {
+    return new NxToggle(childSelector("#auto-app-config-toggle-checkbox"));
   }
 
-  public Dropdown organization() {
-    return new Dropdown(childSelector("#automatic-applications-organization"));
+  public NxFormSelect organization() {
+    return new NxFormSelect(childSelector("#parent-organization-selector"));
   }
 
   public SelenideElement update() {
-    return child("#automatic-applications-update");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement cancel() {
-    return child("#automatic-applications-cancel");
+    return child("#auto-app-config-cancel");
   }
 }

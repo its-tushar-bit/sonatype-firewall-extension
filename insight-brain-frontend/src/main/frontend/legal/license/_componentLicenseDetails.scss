@@ -64,6 +64,12 @@ component-license-details {
       margin-top: $nx-spacing-xs;
     }
   }
+
+  .nx-read-only__data {
+    q {
+      line-height: $nx-line-height;
+    }
+  }
 }
 
 #license-full-details-tile__license-header {

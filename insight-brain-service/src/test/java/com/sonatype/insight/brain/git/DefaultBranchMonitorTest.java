@@ -103,6 +103,7 @@ public class DefaultBranchMonitorTest
     defaultBranchMonitor.start();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());
+    verify(taskSchedulerMock).unscheduleTask(DefaultBranchMonitor.TASK_NAME);
   }
 
   @Test

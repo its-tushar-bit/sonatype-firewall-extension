@@ -188,8 +188,10 @@ public class TestProductLicenseManager
 
     private Date expirationDate = new Date(System.currentTimeMillis() + 6000 * 1000);
 
-    private String[] products = { ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
-        ProductLicenseDetails.PRODUCT_FIREWALL_V2, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY };
+    private String[] products = {
+        ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION,
+        ProductLicenseDetails.PRODUCT_FIREWALL_V2, ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2
+    };
 
     private Set<LicensedFeature> features;
 

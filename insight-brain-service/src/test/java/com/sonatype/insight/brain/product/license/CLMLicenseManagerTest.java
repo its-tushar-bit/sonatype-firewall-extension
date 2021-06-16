@@ -285,6 +285,19 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetFeatures_FirewallForArtifactory_V2() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).containsExactlyInAnyOrder( //
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.RELEASE_INTEGRITY,
+        LicensedFeature.FIREWALL_FOR_ARTIFACTORY, //
+        LicensedFeature.POLICY_VIOLATION_LOGGING_FOR_REPOSITORIES, //
+        LicensedFeature.RM_STAGING_INTEGRATION);
+  }
+
+  @Test
   public void testGetFeatures_FirewallV2() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
     mockHdsProductLicenseDetails(withFeatures());
@@ -349,6 +362,16 @@ public class CLMLicenseManagerTest
   @Test
   public void testGetStageTypes_FirewallForArtifactory() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+    mockHdsProductLicenseDetails(withStages());
+    installLicense();
+
+    assertThat(productLicense.getStageTypes()).containsExactlyInAnyOrder( //
+        StageTypes.PROXY);
+  }
+
+  @Test
+  public void testGetStageTypes_FirewallForArtifactory_V2() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
     mockHdsProductLicenseDetails(withStages());
     installLicense();
 
@@ -794,6 +817,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseSummary_ProductEditionFirewallForArtifactoryV2() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
+    installLicense();
+    LicenseSummary summary = clmLicenseManager.getLicenseSummary();
+    assertThat(summary).isNotNull();
+    assertThat(summary.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+  }
+
+  @Test
   public void testGetLicenseSummary_ProductEditionLifecycleFoundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     installLicense();
@@ -867,6 +899,15 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testGetLicenseInfo_ProductEditionFirewallForArtifactoryV2() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
+    installLicense();
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.productEdition).isEqualTo(CLMLicenseManager.PRODUCT_FIREWALL_FOR_ARTIFACTORY);
+  }
+
+  @Test
   public void testGetLicenseInfo_ProductEditionLifecycleFoundation() throws Exception {
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION);
     installLicense();
@@ -903,6 +944,12 @@ public class CLMLicenseManagerTest
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isNull();
 
+    // should also be null when it is just Firewall for Artifactory V2
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay).isNull();
+
     // should not be null when it is Pro+
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     installLicense();
@@ -920,6 +967,12 @@ public class CLMLicenseManagerTest
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
 
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION, ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.licensedUsersToDisplay).isEqualTo(50);
+
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION,
+        ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.licensedUsersToDisplay).isEqualTo(50);
@@ -958,6 +1011,12 @@ public class CLMLicenseManagerTest
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.firewallUsersToDisplay).isEqualTo(45);
 
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FOUNDATION,
+        ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.firewallUsersToDisplay).isEqualTo(45);
+
     // should be null when Lifecycle but with null maxFirewallUsers
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_RISK_AND_REMEDIATION);
     licenseManager.setMaxFirewallUsers(null);
@@ -992,6 +1051,13 @@ public class CLMLicenseManagerTest
 
     // should also be null when it is just Firewall V2
     licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+    installLicense();
+    info = clmLicenseManager.getLicenseInfo();
+    assertThat(info.applicationLimitToDisplay).isNull();
+    assertThat(info.applicationCountToDisplay).isNull();
+
+    // should also be null when it is just Firewall for Artifactory V2
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL_FOR_ARTIFACTORY_V2);
     installLicense();
     info = clmLicenseManager.getLicenseInfo();
     assertThat(info.applicationLimitToDisplay).isNull();

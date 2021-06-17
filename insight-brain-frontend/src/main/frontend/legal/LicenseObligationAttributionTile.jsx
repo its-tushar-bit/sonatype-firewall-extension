@@ -160,6 +160,7 @@ export default function LicenseObligationAttributionTile(props) {
               isRequired
             >
               <NxTextInput
+                maxLength="1000"
                 type="textarea"
                 {...attributionTextInput}
                 onChange={(payload) => {

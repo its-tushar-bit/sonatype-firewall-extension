@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.collect.Lists;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -119,6 +120,15 @@ public class ComponentLegalServiceAuthzTest
     componentCopyrightDTO.setId(componentCopyright.getId());
     grantLegalReviewerPermission(app.getId());
     componentLegalService.saveComponentCopyright(OwnerType.APPLICATION, app.getPublicId(), componentCopyrightDTO);
+  }
+
+  @Test(expected = InvalidComponentCopyrightException.class)
+  public void testSaveComponentCopyright_contentOverLimit() {
+    grantLegalReviewerPermission(org.getId());
+    ComponentCopyrightDTO copyright = buildComponentCopyrightDTO();
+    copyright.getCopyrightOverrides().get(0).setContent(String.valueOf(new char[1001]));
+    componentLegalService
+        .saveComponentCopyright(OwnerType.APPLICATION, app.getPublicId(), copyright);
   }
 
   private ComponentCopyrightDTO buildComponentCopyrightDTO() {
@@ -252,6 +262,14 @@ public class ComponentLegalServiceAuthzTest
     grantLegalReviewerPermission(app.getId());
     componentLegalService.saveComponentObligationAttribution(OwnerType.APPLICATION, app.getPublicId(),
         buildComponentObligationAttributionDTO());
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testSaveComponentObligationAttribution_ApplicationScope_ContentTooLong() {
+    grantLegalReviewerPermission(app.getId());
+    ComponentObligationAttributionDTO attribution = buildComponentObligationAttributionDTO();
+    attribution.setContent(String.valueOf(new char[1001]));
+    componentLegalService.saveComponentObligationAttribution(OwnerType.APPLICATION, app.getPublicId(), attribution);
   }
 
   @Test(expected = UnauthenticatedException.class)

@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
 
@@ -77,6 +78,8 @@ public class ApiLicenseLegalResource
       COMPONENT_PATH + "/{componentHash}/copyright/{copyrightContentHash}/context";
 
   public static final String COMPONENT_COPYRIGHT_FILE_COUNT = COMPONENT_PATH + "/{componentHash}/copyright/fileCount";
+
+  public static final int OBLIGATION_COMMENT_MAX_CHARACTER = 1000;
 
   private final ApiLicenseLegalService apiLicenseLegalService;
 
@@ -256,6 +259,11 @@ public class ApiLicenseLegalResource
       @PathParam("ownerId") String ownerId,
       ApiLicenseLegalObligationDTO componentObligationDTO)
   {
+    if (componentObligationDTO.getComment() != null &&
+        componentObligationDTO.getComment().length() > OBLIGATION_COMMENT_MAX_CHARACTER) {
+      throw new BadRequestException(String.format(
+        "ComponentObligationAttribution content must be less than %s characters", OBLIGATION_COMMENT_MAX_CHARACTER));
+    }
     return componentLegalService
         .saveComponentObligations(ownerType, ownerId, Collections.singletonList(componentObligationDTO))
         .get(0);

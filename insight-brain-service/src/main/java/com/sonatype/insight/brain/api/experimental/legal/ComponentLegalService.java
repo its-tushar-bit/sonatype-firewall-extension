@@ -75,6 +75,10 @@ public class ComponentLegalService
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentLegalService.class);
 
+  private static final int COPYRIGHT_CONTENT_MAX_CHARACTER = 1000;
+
+  public static final int ATTRIBUTION_CONTENT_MAX_CHARACTER = 1000;
+
   //TODO: Temporary placeholder until legalContentHash is implemented
   static final String NOT_IMPLEMENTED = "NA";
 
@@ -691,6 +695,11 @@ public class ComponentLegalService
       if (copyrightOverrideDTO.getStatus() == null) {
         throw new InvalidComponentCopyrightException("CopyrightOverride must have a status.");
       }
+      if (copyrightOverrideDTO.getContent() != null &&
+          copyrightOverrideDTO.getContent().length() > COPYRIGHT_CONTENT_MAX_CHARACTER) {
+        throw new InvalidComponentCopyrightException(
+          String.format("CopyrightOverride content must be less than %s characters", COPYRIGHT_CONTENT_MAX_CHARACTER));
+      }
     }
   }
 
@@ -724,6 +733,11 @@ public class ComponentLegalService
     validateApiComponentIdentifierDTOV2(componentObligationAttributionDTO.getComponentIdentifier());
     if (StringUtils.isBlank(componentObligationAttributionDTO.getContent())) {
       throw new BadRequestException("ComponentObligationAttribution must have content.");
+    }
+    if (componentObligationAttributionDTO.getContent() != null &&
+        componentObligationAttributionDTO.getContent().length() > ATTRIBUTION_CONTENT_MAX_CHARACTER) {
+      throw new BadRequestException( String.format(
+        "ComponentObligationAttribution content must be less than %s characters", ATTRIBUTION_CONTENT_MAX_CHARACTER));
     }
   }
 

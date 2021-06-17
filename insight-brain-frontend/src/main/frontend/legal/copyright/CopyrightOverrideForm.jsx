@@ -59,6 +59,7 @@ export default function CopyrightOverrideForm(props) {
         <NxTextInput
           id={'copyright-' + index}
           {...copyright.content}
+          maxLength="1000"
           onChange={onCopyrightContentChange(index)}
           className="copyright-override-input-content"
           disabled={copyright.status === 'disabled'}

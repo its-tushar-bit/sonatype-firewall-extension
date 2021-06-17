@@ -7,10 +7,6 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
-.component-details-header {
-  padding: 0 $nx-spacing-l;
-}
-
 .component-details-header__heading {
   @include nx-truncate-ellipsis;
   font-size: 32px;

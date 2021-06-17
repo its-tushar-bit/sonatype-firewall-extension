@@ -62,7 +62,7 @@ export default function ComponentDetails({
           <div className="iq-component-details__content--lateral-padding">
             <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
           </div>
-          <ComponentDetailsHeader>
+          <ComponentDetailsHeader className="iq-component-details-page__header">
             <Title id="component-details-title">{name}</Title>
             <ComponentDetailsReportInfo {...metadata} />
             <ComponentDetailsTags

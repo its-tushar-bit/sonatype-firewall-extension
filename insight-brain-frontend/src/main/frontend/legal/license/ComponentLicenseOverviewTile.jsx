@@ -23,7 +23,11 @@ export default function ComponentLicenseOverviewTile(props) {
           <div className="nx-grid-col">
             <dl className="nx-read-only">
               <dt className="nx-read-only__label">Declared Licenses</dt>
-              <dd id="component-license-overview__declared-licenses" className="nx-read-only__data">
+              <dd
+                id="component-license-overview__declared-licenses"
+                key="component-license-overview__declared-licenses"
+                className="nx-read-only__data"
+              >
                 {licenseLegalData.declaredLicenses.join(', ')}
               </dd>
             </dl>
@@ -31,7 +35,11 @@ export default function ComponentLicenseOverviewTile(props) {
           <div className="nx-grid-col">
             <dl className="nx-read-only">
               <dt className="nx-read-only__label">Observed Licenses</dt>
-              <dd id="component-license-overview__observed-licenses" className="nx-read-only__data">
+              <dd
+                id="component-license-overview__observed-licenses"
+                key="component-license-overview__observed-licenses"
+                className="nx-read-only__data"
+              >
                 {licenseLegalData.observedLicenses.join(', ')}
               </dd>
             </dl>
@@ -39,8 +47,24 @@ export default function ComponentLicenseOverviewTile(props) {
           <div className="nx-grid-col">
             <dl className="nx-read-only">
               <dt className="nx-read-only__label">Effective Licenses</dt>
-              <dd id="component-license-overview__effective-licenses" className="nx-read-only__data">
+              <dd
+                id="component-license-overview__effective-licenses"
+                key="component-license-overview__effective-licenses"
+                className="nx-read-only__data"
+              >
                 {licenseLegalData.effectiveLicenses.join(', ')}
+              </dd>
+            </dl>
+          </div>
+          <div className="nx-grid-col">
+            <dl className="nx-read-only">
+              <dt className="nx-read-only__label">Status</dt>
+              <dd
+                id="component-license-overview__effective-license-status"
+                key="component-license-overview__effective-license-status"
+                className="nx-read-only__data"
+              >
+                {licenseLegalData.effectiveLicenseStatus}
               </dd>
             </dl>
           </div>

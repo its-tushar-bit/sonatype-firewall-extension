@@ -72,6 +72,7 @@ export const copyrightPropType = PropTypes.shape({
 
 export const licenseLegalDataPropType = PropTypes.shape({
   effectiveLicenses: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
+  effectiveLicenseStatus: PropTypes.string.isRequired,
   copyrights: PropTypes.arrayOf(copyrightPropType.isRequired).isRequired,
   highestEffectiveLicenseThreatGroup: PropTypes.shape({
     licenseThreatGroupCategory: PropTypes.string.isRequired,

@@ -21,5 +21,6 @@ describe('ComponentLicenseOverviewTile component', function () {
     expect(wrapper.find('#component-license-overview__declared-licenses')).toHaveText('GPL');
     expect(wrapper.find('#component-license-overview__effective-licenses')).toHaveText('GPL, GPL-2, GPL or GPL-2');
     expect(wrapper.find('#component-license-overview__observed-licenses')).toHaveText('GPL-2');
+    expect(wrapper.find('#component-license-overview__effective-license-status')).toHaveText('Selected');
   });
 });

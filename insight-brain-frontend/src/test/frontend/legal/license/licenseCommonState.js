@@ -10,6 +10,7 @@ export const licenseState = {
       effectiveLicenses: ['GPL', 'GPL-2', 'GPL or GPL-2'],
       declaredLicenses: ['GPL'],
       observedLicenses: ['GPL-2'],
+      effectiveLicenseStatus: 'Selected',
     },
   },
   hash: 'fooHash',

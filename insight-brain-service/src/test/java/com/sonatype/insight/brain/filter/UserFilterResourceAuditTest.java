@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -55,7 +56,8 @@ public class UserFilterResourceAuditTest
   @Test
   public void testCreateOrUpdateActiveUserFilterForCurrentUser_UpdateActiveFilter() throws Exception {
     String filterName = ACTIVE_FILTER_NAME;
-    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD,
+        JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
     restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).body(userFilterDTO).put();
@@ -74,7 +76,8 @@ public class UserFilterResourceAuditTest
   @Test
   public void testCreateOrUpdateNamedUserFilterForCurrentUser_Update() throws Exception {
     String filterName = "test filter";
-    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD,
+        JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
     restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).body(userFilterDTO).put();
@@ -84,7 +87,8 @@ public class UserFilterResourceAuditTest
   @Test
   public void deleteFilterForCurrentUserByNameAndType() throws Exception {
     UserFilter filter =
-        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filterName", ADVANCED_LEGAL_PACK_DASHBOARD,
+            JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
 
     restRequest().query("name", filter.getName()).query("type", filter.getType()).delete();
 

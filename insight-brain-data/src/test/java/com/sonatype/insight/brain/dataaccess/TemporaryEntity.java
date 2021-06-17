@@ -201,11 +201,9 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.brain.utils.ThreatLevel;
 import com.sonatype.insight.dataaccess.AbstractDAO;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.openjpa.enhance.PersistenceCapable;
@@ -702,10 +700,6 @@ public class TemporaryEntity
     DashboardFilter dashboardFilter = dashboardFilterDAO.getById(id);
     dashboardFilters.add(dashboardFilter);
     return dashboardFilter;
-  }
-
-  public UserFilter newUserFilter(String username, String realmId, String filterName, UserFilterType type) {
-    return newUserFilter(username, realmId, filterName, type, JsonUtils.format(ImmutableMap.of("key", "value")), null);
   }
 
   public UserFilter newUserFilter(

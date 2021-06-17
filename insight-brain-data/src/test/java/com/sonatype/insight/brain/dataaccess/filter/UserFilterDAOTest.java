@@ -58,54 +58,55 @@ public class UserFilterDAOTest
   @Test
   public void testInsert_RealmIdNull() {
     assertThatThrownBy(() ->
-      tempEntity.newUserFilter("testUsername", null /* realmId */, "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD)
+        tempEntity.newUserFilter("testUsername", null /* realmId */, "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD,
+            "")
     ).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   @Test
   public void testUpdate_RealmIdNull() {
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     userFilter.setRealmId(null);
     assertThatThrownBy(() ->
-      userFilterDAO.update(userFilter)
+        userFilterDAO.update(userFilter)
     ).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   @Test
   public void testInsert_RealmIdWhitespace() {
     assertThatThrownBy(() ->
-      tempEntity.newUserFilter("testUsername", " " /* realmId */, "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD)
+        tempEntity.newUserFilter("testUsername", " " /* realmId */, "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "")
     ).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   @Test
   public void testUpdate_RealmIdWhitespace() {
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     userFilter.setRealmId(" ");
     assertThatThrownBy(() ->
-      userFilterDAO.update(userFilter)
+        userFilterDAO.update(userFilter)
     ).isInstanceOf(BadRequestException.class).hasMessage("The realm ID is required.");
   }
 
   @Test
   public void testInsert_TypeNull() {
     assertThatThrownBy(() ->
-      tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", null)
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", null, "")
     ).isInstanceOf(BadRequestException.class).hasMessage("The type is required.");
   }
 
   @Test
   public void testUpdate_TypeNull() {
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     userFilter.setType(null);
     assertThatThrownBy(() ->
-      userFilterDAO.update(userFilter)
+        userFilterDAO.update(userFilter)
     ).isInstanceOf(BadRequestException.class).hasMessage("The type is required.");
   }
 
@@ -114,17 +115,17 @@ public class UserFilterDAOTest
     UserFilter userFilter =
         new UserFilter("testUsername", "testRealmId", null /* name */, ADVANCED_LEGAL_PACK_DASHBOARD);
     assertThatThrownBy(() ->
-      userFilterDAO.insert(userFilter)
+        userFilterDAO.insert(userFilter)
     ).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
   @Test
   public void testValidateNullName_Update() {
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     userFilter.setName(null);
     assertThatThrownBy(() ->
-      userFilterDAO.update(userFilter)
+        userFilterDAO.update(userFilter)
     ).isInstanceOf(InvalidNameException.class).hasMessage("Name is required.");
   }
 
@@ -151,7 +152,7 @@ public class UserFilterDAOTest
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       UserFilter userFilter = new UserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD);
       assertThatThrownBy(() ->
-        userFilterDAO.insert(userFilter)
+          userFilterDAO.insert(userFilter)
       ).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
@@ -159,11 +160,11 @@ public class UserFilterDAOTest
   @Test
   public void testValidateNameInvalidChars_Update() {
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     for (String name : NameHelperTest.INVALID_CHARACTERS) {
       userFilter.setName(name);
       assertThatThrownBy(() ->
-        userFilterDAO.update(userFilter)
+          userFilterDAO.update(userFilter)
       ).isInstanceOf(InvalidNameException.class).hasMessage(NameHelper.INVALID_CHAR_MESSAGE, "Name", name.charAt(0));
     }
   }
@@ -171,14 +172,14 @@ public class UserFilterDAOTest
   @Test
   public void testValidateNameValidChars_Insert() {
     for (String name : NameHelperTest.VALID_NAMES) {
-      tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD);
+      tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     }
   }
 
   @Test
   public void testValidateNameValidChars_Update() {
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     for (String name : NameHelperTest.VALID_NAMES) {
       userFilter.setName(name);
       userFilterDAO.update(userFilter);
@@ -188,8 +189,8 @@ public class UserFilterDAOTest
   @Test
   public void testValidateNameSpaces_Insert() {
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
-      assertThatThrownBy(() -> 
-        tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD)
+      assertThatThrownBy(() ->
+          tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD, "")
       ).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
@@ -198,11 +199,11 @@ public class UserFilterDAOTest
   @Test
   public void testValidateNameSpaces_Update() {
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     for (String name : NameHelperTest.INVALID_SPACING_NAMES) {
       userFilter.setName(name);
-      assertThatThrownBy(() -> 
-        userFilterDAO.update(userFilter)
+      assertThatThrownBy(() ->
+          userFilterDAO.update(userFilter)
       ).isInstanceOf(InvalidNameException.class)
           .hasMessage("Name must not have leading or trailing spaces, or have two spaces in a row.");
     }
@@ -210,21 +211,21 @@ public class UserFilterDAOTest
 
   @Test
   public void testDuplicateName_Insert() {
-    tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     assertThatThrownBy(() ->
-      tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD)
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "")
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("testFilterName is already used as a name for type ADVANCED_LEGAL_PACK_DASHBOARD");
   }
 
   @Test
   public void testDuplicateName_Update() {
-    tempEntity.newUserFilter("testUsername", "testRealmId", "test Filter Name 1", ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter("testUsername", "testRealmId", "test Filter Name 1", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName2", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName2", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     userFilter.setName("test Filter Name 1");
     assertThatThrownBy(() ->
-      userFilterDAO.update(userFilter)
+        userFilterDAO.update(userFilter)
     ).isInstanceOf(BadRequestException.class)
         .hasMessage("test Filter Name 1 is already used as a name for type ADVANCED_LEGAL_PACK_DASHBOARD");
   }
@@ -233,7 +234,7 @@ public class UserFilterDAOTest
   public void testValidateNameLength_Insert() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH + 1);
     assertThatThrownBy(() ->
-      tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD)
+        tempEntity.newUserFilter("testUsername", "testRealmId", name, ADVANCED_LEGAL_PACK_DASHBOARD, "")
     ).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
   }
 
@@ -241,10 +242,10 @@ public class UserFilterDAOTest
   public void testValidateNameLength_Update() {
     String name = StringUtils.repeat("a", NameHelper.MAX_NAME_LENGTH + 1);
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", "testFilterName", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     userFilter.setName(name);
     assertThatThrownBy(() ->
-      userFilterDAO.update(userFilter)
+        userFilterDAO.update(userFilter)
     ).isInstanceOf(InvalidNameException.class).hasMessage("Name must be 60 characters or less.");
   }
 
@@ -253,17 +254,18 @@ public class UserFilterDAOTest
     UserFilter userFilter = new UserFilter("testUsername", "testRealmId", "valid name", ADVANCED_LEGAL_PACK_DASHBOARD);
     userFilter.setBasedOnFilterName("any non-null value");
     assertThatThrownBy(() ->
-      userFilterDAO.insert(userFilter)
+        userFilterDAO.insert(userFilter)
     ).isInstanceOf(BadRequestException.class).hasMessage("Only the active filter can be based on another filter.");
   }
 
   @Test
   public void testValidate_updateNamedFilterBasedOnAnother() {
     UserFilter userFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", "original filter name", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity
+            .newUserFilter("testUsername", "testRealmId", "original filter name", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     userFilter.setBasedOnFilterName("any non-null value");
     assertThatThrownBy(() ->
-      userFilterDAO.update(userFilter)
+        userFilterDAO.update(userFilter)
     ).isInstanceOf(BadRequestException.class).hasMessage("Only the active filter can be based on another filter.");
   }
 
@@ -290,7 +292,7 @@ public class UserFilterDAOTest
   @Test
   public void testValidate_insertActiveFilterBasedOnExistingFilter() {
     String filterName = "test filter name";
-    tempEntity.newUserFilter("testUsername", "testRealmId", filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter("testUsername", "testRealmId", filterName, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     UserFilter newUserFilter = tempEntity.newUserFilter("testUsername", "testRealmId", ACTIVE_FILTER_NAME,
         ADVANCED_LEGAL_PACK_DASHBOARD, "testFilterValue", filterName);
 
@@ -301,9 +303,9 @@ public class UserFilterDAOTest
   @Test
   public void testValidate_updateActiveFilterBasedOnExistingFilter() {
     String filterName = "test filter name";
-    tempEntity.newUserFilter("testUsername", "testRealmId", filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter("testUsername", "testRealmId", filterName, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     UserFilter newUserFilter =
-        tempEntity.newUserFilter("testUsername", "testRealmId", ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter("testUsername", "testRealmId", ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     newUserFilter.setBasedOnFilterName(filterName);
     userFilterDAO.update(newUserFilter);
@@ -334,8 +336,8 @@ public class UserFilterDAOTest
     String username = "testUsername";
     String realmId = "testRealmId";
     String filterName = "test filter name";
-    UserFilter userFilter = tempEntity.newUserFilter(username, realmId, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
-    tempEntity.newUserFilter(username, realmId, "some other name", ADVANCED_LEGAL_PACK_DASHBOARD);
+    UserFilter userFilter = tempEntity.newUserFilter(username, realmId, filterName, ADVANCED_LEGAL_PACK_DASHBOARD, "");
+    tempEntity.newUserFilter(username, realmId, "some other name", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     UserFilter actual = userFilterDAO.getByUsernameAndRealmIdAndNameAndType(username, realmId, filterName,
         ADVANCED_LEGAL_PACK_DASHBOARD);
@@ -347,7 +349,7 @@ public class UserFilterDAOTest
     String username = "testUsername";
     String realmId = "testRealmId";
     String filterName = "test filter name";
-    UserFilter userFilter = tempEntity.newUserFilter(username, realmId, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    UserFilter userFilter = tempEntity.newUserFilter(username, realmId, filterName, ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     UserFilter actual = userFilterDAO.getByUsernameAndRealmIdAndNameAndType("TESTuserNAME", realmId, filterName,
         ADVANCED_LEGAL_PACK_DASHBOARD);
@@ -358,9 +360,9 @@ public class UserFilterDAOTest
   public void testGetNamedFiltersByUsernameAndRealmIdAndType() {
     String username = "testUsername";
     String realmId = "testRealmId";
-    tempEntity.newUserFilter(username, realmId, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter(username, realmId, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     UserFilter namedFilter =
-        tempEntity.newUserFilter(username, realmId, "some other name", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter(username, realmId, "some other name", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     List<UserFilter> result =
         userFilterDAO.getNamedFiltersByUsernameAndRealmIdAndType(username, realmId, ADVANCED_LEGAL_PACK_DASHBOARD);
@@ -371,7 +373,8 @@ public class UserFilterDAOTest
   @Test
   public void testGetNamedFiltersByUsernameAndRealmIdAndType_UsernameCaseInsensitive() {
     String realmId = "testRealmId";
-    UserFilter namedFilter = tempEntity.newUserFilter("testUsername", realmId, "name", ADVANCED_LEGAL_PACK_DASHBOARD);
+    UserFilter namedFilter =
+        tempEntity.newUserFilter("testUsername", realmId, "name", ADVANCED_LEGAL_PACK_DASHBOARD, "");
 
     List<UserFilter> result = userFilterDAO.getNamedFiltersByUsernameAndRealmIdAndType("TESTuserNAME", realmId,
         ADVANCED_LEGAL_PACK_DASHBOARD);

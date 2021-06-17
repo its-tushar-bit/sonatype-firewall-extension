@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.filter;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +19,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_NAME;
@@ -38,7 +38,7 @@ public class UserFilterServiceTest
 
   @Test
   public void testCreateOrUpdateUserFilterForCurrentUser_Insert() {
-    UserFilterDTO userFilterDTO = newUserFilterDTO("test filter name");
+    UserFilterDTO userFilterDTO = newALPDashboardUserFilter("test filter name");
     UserFilter namedFilter = null;
     UserFilter activeFilter = null;
 
@@ -68,10 +68,15 @@ public class UserFilterServiceTest
   @Test
   public void testCreateOrUpdateUserFilterForCurrentUser_UpdateNamedFilter() {
     String filterName = "test filter";
-    tempEntity.newUserFilter(USERNAME, InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    AdvancedLegalPackDashboardFilter advancedLegalPackDashboardFilter = new AdvancedLegalPackDashboardFilter();
+    advancedLegalPackDashboardFilter.getApplicationFilters().add("appId1");
+    advancedLegalPackDashboardFilter.getOrganizationFilters().add("orgId1");
+
+    tempEntity.newUserFilter(USERNAME, InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     tempEntity.newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD,
-        "testFilter", filterName);
-    UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
+        JsonUtils.format(advancedLegalPackDashboardFilter), filterName);
+
+    UserFilterDTO userFilterDTO = newALPDashboardUserFilter(filterName);
 
     userFilterService.createOrUpdateUserFilterForCurrentUser(userFilterDTO);
 
@@ -87,9 +92,9 @@ public class UserFilterServiceTest
   @Test
   public void testCreateOrUpdateUserFilterForCurrentUser_UpdateActiveFilter() {
     String baseFilterName = "base";
-    tempEntity.newUserFilter(USERNAME, InternalRealm.ID, baseFilterName, ADVANCED_LEGAL_PACK_DASHBOARD);
-    tempEntity.newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
-    UserFilterDTO userFilterDTO = newUserFilterDTO(ACTIVE_FILTER_NAME);
+    tempEntity.newUserFilter(USERNAME, InternalRealm.ID, baseFilterName, ADVANCED_LEGAL_PACK_DASHBOARD, "");
+    tempEntity.newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD, "");
+    UserFilterDTO userFilterDTO = newALPDashboardUserFilter(ACTIVE_FILTER_NAME);
     userFilterDTO.basedOnFilterName = baseFilterName;
 
     userFilterService.createOrUpdateUserFilterForCurrentUser(userFilterDTO);
@@ -102,7 +107,7 @@ public class UserFilterServiceTest
   @Test
   public void testGetActiveUserFilterForCurrentUser() throws IOException {
     UserFilter userFilter = tempEntity.newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME,
-        ADVANCED_LEGAL_PACK_DASHBOARD, JsonUtils.format(new HashMap<>()));
+        ADVANCED_LEGAL_PACK_DASHBOARD, JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
 
     UserFilterDTO result = userFilterService.getActiveUserFilterForCurrentUser(ADVANCED_LEGAL_PACK_DASHBOARD);
     assertFilter(result, userFilter);
@@ -119,9 +124,13 @@ public class UserFilterServiceTest
 
   @Test
   public void testGetNamedFiltersForCurrentUser() throws IOException {
-    UserFilter filter1 = tempEntity.newUserFilter(USERNAME, InternalRealm.ID, "filter1", ADVANCED_LEGAL_PACK_DASHBOARD);
-    UserFilter filter2 = tempEntity.newUserFilter(USERNAME, InternalRealm.ID, "filter2", ADVANCED_LEGAL_PACK_DASHBOARD);
-    tempEntity.newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
+    String filterString = JsonUtils.format(new AdvancedLegalPackDashboardFilter());
+    UserFilter filter1 = tempEntity.newUserFilter(
+        USERNAME, InternalRealm.ID, "filter1", ADVANCED_LEGAL_PACK_DASHBOARD, filterString);
+    UserFilter filter2 =
+        tempEntity.newUserFilter(USERNAME, InternalRealm.ID, "filter2", ADVANCED_LEGAL_PACK_DASHBOARD, filterString);
+    tempEntity
+        .newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD, filterString);
 
     List<UserFilterDTO> result = userFilterService.getNamedFiltersForCurrentUser(ADVANCED_LEGAL_PACK_DASHBOARD);
     assertThat(result).hasSize(2);
@@ -131,8 +140,10 @@ public class UserFilterServiceTest
 
   @Test
   public void deleteFilterForCurrentUserByNameAndType() {
-    UserFilter filter1 = tempEntity.newUserFilter(USERNAME, InternalRealm.ID, "filter1", ADVANCED_LEGAL_PACK_DASHBOARD);
-    UserFilter filter2 = tempEntity.newUserFilter(USERNAME, InternalRealm.ID, "filter2", ADVANCED_LEGAL_PACK_DASHBOARD);
+    UserFilter filter1 =
+        tempEntity.newUserFilter(USERNAME, InternalRealm.ID, "filter1", ADVANCED_LEGAL_PACK_DASHBOARD, "");
+    UserFilter filter2 =
+        tempEntity.newUserFilter(USERNAME, InternalRealm.ID, "filter2", ADVANCED_LEGAL_PACK_DASHBOARD, "");
     UserFilter activeFilter = tempEntity.newUserFilter(USERNAME, InternalRealm.ID, ACTIVE_FILTER_NAME,
         ADVANCED_LEGAL_PACK_DASHBOARD, filter1.getFilter(), filter1.getName());
 
@@ -150,11 +161,46 @@ public class UserFilterServiceTest
         "Cannot find a filter with name fake and type ADVANCED_LEGAL_PACK_DASHBOARD for user " + USERNAME + ".");
   }
 
-  private UserFilterDTO newUserFilterDTO(String filterName) {
+  @Test
+  public void pruneDeletedApplication() throws IOException {
+    AdvancedLegalPackDashboardFilter advancedLegalPackDashboardFilter = new AdvancedLegalPackDashboardFilter();
+    advancedLegalPackDashboardFilter.getApplicationFilters().add("appId1");
+    advancedLegalPackDashboardFilter.getApplicationFilters().add("appId2");
+    advancedLegalPackDashboardFilter.getOrganizationFilters().add("orgId");
+
+    tempEntity.newUserFilter(USERNAME, InternalRealm.ID, "filter", ADVANCED_LEGAL_PACK_DASHBOARD,
+        JsonUtils.format(advancedLegalPackDashboardFilter));
+
+    tempEntity.newOrganizationWithSpecificId("orgId");
+    tempEntity.newApplicationWithSpecificId("appId1", "appId1", "appId1", "orgId");
+
+    List<UserFilterDTO> result = userFilterService.getNamedFiltersForCurrentUser(ADVANCED_LEGAL_PACK_DASHBOARD);
+
+    assertThat(result).hasSize(1);
+    UserFilterDTO userFilterDTO = result.get(0);
+    assertThat((List) userFilterDTO.filter.get("applicationFilters")).hasSize(1);
+    assertThat(((List) userFilterDTO.filter.get("applicationFilters")).get(0)).isEqualTo("appId1");
+    assertThat(((List) userFilterDTO.filter.get("organizationFilters")).get(0)).isEqualTo("orgId");
+  }
+
+  private UserFilterDTO newALPDashboardUserFilter(String filterName) {
     UserFilterDTO userFilterDTO = new UserFilterDTO();
     userFilterDTO.name = filterName;
     userFilterDTO.type = ADVANCED_LEGAL_PACK_DASHBOARD;
-    userFilterDTO.filter = ImmutableMap.of("key1", "value 1", "key2", true, "key3", ImmutableMap.of("subKey1", 1));
+
+    AdvancedLegalPackDashboardFilter filter = new AdvancedLegalPackDashboardFilter();
+    filter.getApplicationFilters().addAll(Lists.newArrayList("app1", "app2"));
+    filter.getOrganizationFilters().add("org1");
+    filter.getCategoryFilters().add("cat1");
+    filter.getCategoryFilters().add("build");
+    filter.getProgressOptionsFilters().add("complete");
+
+    try {
+      userFilterDTO.filter = JsonUtils.parse(JsonUtils.format(filter), Map.class);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
     return userFilterDTO;
   }
 

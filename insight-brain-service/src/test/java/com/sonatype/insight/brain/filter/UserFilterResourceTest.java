@@ -66,7 +66,7 @@ public class UserFilterResourceTest
   @Test
   public void testCreateOrUpdateActiveUserFilterForCurrentUser_Update() throws Exception {
     String filterName = ACTIVE_FILTER_NAME;
-    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD, "");
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
     HttpResponse response = restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).body(userFilterDTO).put();
@@ -100,7 +100,8 @@ public class UserFilterResourceTest
   @Test
   public void testCreateOrUpdateNamedUserFilterForCurrentUser_Update() throws Exception {
     String filterName = "test filter";
-    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD);
+    tempEntity.newUserFilter(getUsername(), InternalRealm.ID, filterName, ADVANCED_LEGAL_PACK_DASHBOARD,
+        JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
     UserFilterDTO userFilterDTO = newUserFilterDTO(filterName);
 
     HttpResponse response = restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).body(userFilterDTO).put();
@@ -118,7 +119,8 @@ public class UserFilterResourceTest
   @Test
   public void testGetActiveUserFilterForCurrentUser() throws Exception {
     UserFilter userFilter =
-        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, ACTIVE_FILTER_NAME, ADVANCED_LEGAL_PACK_DASHBOARD,
+            JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
 
     HttpResponse response =
         restRequest().path(UserFilterResource.ACTIVE_FILTERS_PATH).query("type", ADVANCED_LEGAL_PACK_DASHBOARD).get();
@@ -131,9 +133,11 @@ public class UserFilterResourceTest
   @Test
   public void testGetNamedFiltersForCurrentUser() throws Exception {
     UserFilter filter1 =
-        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filter1", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filter1", ADVANCED_LEGAL_PACK_DASHBOARD,
+            JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
     UserFilter filter2 =
-        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filter2", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filter2", ADVANCED_LEGAL_PACK_DASHBOARD,
+            JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
 
     HttpResponse response =
         restRequest().path(UserFilterResource.NAMED_FILTERS_PATH).query("type", ADVANCED_LEGAL_PACK_DASHBOARD).get();
@@ -148,7 +152,8 @@ public class UserFilterResourceTest
   @Test
   public void deleteFilterForCurrentUserByNameAndType() throws Exception {
     UserFilter filter =
-        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filterName", ADVANCED_LEGAL_PACK_DASHBOARD);
+        tempEntity.newUserFilter(getUsername(), InternalRealm.ID, "filterName", ADVANCED_LEGAL_PACK_DASHBOARD,
+            JsonUtils.format(new AdvancedLegalPackDashboardFilter()));
 
     HttpResponse response = restRequest().query("name", filter.getName()).query("type", filter.getType()).delete();
     assertResponseStatus(204, response);

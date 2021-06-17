@@ -33,10 +33,16 @@ public class UserFilterService
 
   private final UserFilterDAO userFilterDAO;
 
+  private final UserFilterPrunerVisitor userFilterPrunerVisitor;
+
   @Inject
-  public UserFilterService(CurrentUser currentUser, UserFilterDAO userFilterDAO) {
+  public UserFilterService(
+      CurrentUser currentUser, UserFilterDAO userFilterDAO,
+      final UserFilterPrunerVisitor userFilterPrunerVisitor)
+  {
     this.currentUser = currentUser;
     this.userFilterDAO = userFilterDAO;
+    this.userFilterPrunerVisitor = userFilterPrunerVisitor;
   }
 
   public UserFilterDTO createOrUpdateUserFilterForCurrentUser(UserFilterDTO userFilterDTO) {
@@ -78,6 +84,8 @@ public class UserFilterService
     if (activeFilter == null) {
       activeFilter = new UserFilter(username, realmId, ACTIVE_FILTER_NAME, type);
     }
+    activeFilter.setFilter(
+        userFilterPrunerVisitor.process(type, activeFilter.getFilter()));
 
     return newUserFilterDTO(activeFilter);
   }
@@ -90,6 +98,8 @@ public class UserFilterService
     List<UserFilterDTO> result = new ArrayList<>();
 
     for (UserFilter userFilter : filters) {
+      userFilter.setFilter(
+          userFilterPrunerVisitor.process(type, userFilter.getFilter()));
       result.add(newUserFilterDTO(userFilter));
     }
 

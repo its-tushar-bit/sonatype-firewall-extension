@@ -65,6 +65,9 @@ function EditWebhook({
   return (
     <main className="nx-page-main" id="webhook-editor">
       <BackButton stateName="webhooks.list" $state={uiRouterState} />
+      <div className="nx-page-title">
+        <h1 className="nx-h1">Create Webhook</h1>
+      </div>
       <section className="nx-tile">
         <NxForm
           onSubmit={saveWebhook}
@@ -79,7 +82,7 @@ function EditWebhook({
         >
           <div className="nx-tile-header">
             <div className="nx-tile-header__title">
-              <h2 className="nx-h2">Create Webhook</h2>
+              <h2 className="nx-h2">Webhook Details</h2>
             </div>
           </div>
           <div className="nx-tile-content">

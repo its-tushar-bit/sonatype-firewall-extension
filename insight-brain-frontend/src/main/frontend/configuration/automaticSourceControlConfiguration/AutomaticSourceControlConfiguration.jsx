@@ -32,6 +32,9 @@ export default function AutomaticSourceControlConfiguration({
 
   return (
     <main className="nx-page-main" id="automatic-source-control-configuration-container">
+      <div className="nx-page-title">
+        <h1 className="nx-h1">Automatic Source Control</h1>
+      </div>
       <section className="nx-tile" id="automatic-source-control-configuration">
         <NxForm
           onSubmit={update}

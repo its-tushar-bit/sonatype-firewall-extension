@@ -18,6 +18,9 @@ export default function SuccessMetricsConfiguration(props) {
 
   return (
     <main id="success-metrics-configuration-container" className="nx-page-main">
+      <div className="nx-page-title">
+        <h1 className="nx-h1">Success Metrics</h1>
+      </div>
       <section id="success-metrics-configuration" className="nx-tile">
         <NxForm
           onSubmit={update}
@@ -37,7 +40,7 @@ export default function SuccessMetricsConfiguration(props) {
         >
           <header className="nx-tile-header">
             <div className="nx-tile-header__title">
-              <h2 className="nx-h2">Success Metrics</h2>
+              <h2 className="nx-h2">Configure Success Metrics</h2>
             </div>
           </header>
           <div className="nx-tile-content">

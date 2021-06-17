@@ -178,7 +178,7 @@ function routes($stateProvider) {
       component: 'automaticSourceControlConfiguration',
       url: '/automaticSourceControlConfiguration',
       data: {
-        title: 'Automatic Source Control Configuration',
+        title: 'Automatic Source Control',
         isDirty: ['automaticSourceControlConfiguration', 'viewState', 'isDirty'],
       },
     })

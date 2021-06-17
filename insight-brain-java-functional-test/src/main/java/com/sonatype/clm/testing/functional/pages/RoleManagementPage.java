@@ -23,7 +23,7 @@ public class RoleManagementPage
     super("#role-management");
   }
 
-  public SelenideElement pageTitle() {
+  public SelenideElement componentTitle() {
     return child(".nx-tile-header__title h2");
   }
 

@@ -59,7 +59,7 @@ public class RoleManagementTest
   @Test
   public void testPageLoadHasTheRightRoles() {
     RoleManagementPage roleManagementPage = new RoleManagementPage();
-    roleManagementPage.pageTitle().shouldBe(visible).shouldHave(text("Roles"));
+    roleManagementPage.componentTitle().shouldBe(visible).shouldHave(text("Configure Roles"));
     roleManagementPage.builtinRoles().shouldHaveSize(7);
 
     // verify that the roles are sorted in the right order

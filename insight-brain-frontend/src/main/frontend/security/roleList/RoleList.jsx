@@ -29,11 +29,14 @@ export default function RoleList(props) {
 
   return (
     <main id="role-management" className="nx-page-main">
+      <div className="nx-page-title">
+        <h1 className="nx-h1">Roles</h1>
+      </div>
       <section className="nx-tile">
         <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
           <header className="nx-tile-header">
             <div className="nx-tile-header__title">
-              <h2 className="nx-h2">Roles</h2>
+              <h2 className="nx-h2">Configure Roles</h2>
             </div>
             <div className="nx-tile__actions">
               <NxButton variant="tertiary" id="create-role" onClick={createRole} disabled={readOnly}>

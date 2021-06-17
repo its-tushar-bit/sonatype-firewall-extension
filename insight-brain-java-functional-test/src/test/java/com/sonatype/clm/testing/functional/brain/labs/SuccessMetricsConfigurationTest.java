@@ -71,7 +71,7 @@ public class SuccessMetricsConfigurationTest
     systemConfigMenu.successMetrics().shouldBe(hidden);
 
     // check initial state
-    metricsConfigPage.header().shouldHave(text("Success Metrics"));
+    metricsConfigPage.header().shouldHave(text("Configure Success Metrics"));
     metricsConfigPage.explanation().shouldHave(text("Enable Success Metrics"));
     metricsConfigPage.toggle().input().shouldBe(checked);
 

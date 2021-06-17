@@ -32,6 +32,9 @@ export default function SystemNoticeConfiguration(props) {
 
   return (
     <main className="nx-page-main">
+      <div className="nx-page-title">
+        <h1 className="nx-h1">System Notice</h1>
+      </div>
       <section id="system-notice-configuration" className="nx-tile">
         <NxForm
           onSubmit={update}
@@ -51,7 +54,7 @@ export default function SystemNoticeConfiguration(props) {
         >
           <header className="nx-tile-header">
             <div className="nx-tile-header__title">
-              <h2 className="nx-h2">System Notice</h2>
+              <h2 className="nx-h2">Configure System Notice</h2>
             </div>
           </header>
           <div className="nx-tile-content">

@@ -15,6 +15,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class PendoCache
+    implements ProductLicenseListener
 {
   public static final String HDS_PENDO_JS_PATH = "user-telemetry.js";
 
@@ -72,6 +74,12 @@ public class PendoCache
       log.debug("Failed to retrieve telemetry segment properties.", e);
       return new CustomerTelemetryProperties(false);
     }
+  }
+
+  @Override
+  public void productLicenseChanged() {
+    log.debug("Invalidating cache after update of product license");
+    invalidate();
   }
 
   @VisibleForTesting

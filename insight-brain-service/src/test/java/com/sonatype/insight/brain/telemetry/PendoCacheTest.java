@@ -99,4 +99,23 @@ public class PendoCacheTest
     assertThat(properties).isNotNull();
     assertThat(properties.disabled).isNull();
   }
+
+  @Test
+  public void testProductLicenseChanged() {
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
+        .thenReturn(new CustomerTelemetryProperties(true));
+
+    assertThat(pendoCache.getJs()).isNull();
+
+    pendoCache.productLicenseChanged();
+
+    when(hdsClient.get(CustomerTelemetryProperties.class, TelemetrySender.RESOURCE_PATH))
+        .thenReturn(new CustomerTelemetryProperties(false));
+    when(hdsClient.get(InputStream.class, PendoCache.HDS_PENDO_JS_PATH))
+        .thenReturn(new ByteArrayInputStream("test".getBytes()));
+
+    assertThat(pendoCache.getCustomerTelemetryProperties().disabled).isNull();
+    File file = pendoCache.getJs();
+    assertThat(file).hasContent("test");
+  }
 }

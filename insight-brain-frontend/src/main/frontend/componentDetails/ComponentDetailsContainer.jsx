@@ -14,6 +14,7 @@ function mapStateToProps(state, { uiRouterState }) {
     componentDetails: selectComponentDetails(state),
     activeTabId: selectActiveTabId(state),
     pagination: selectComponentPagination(state, { uiRouterState }),
+    applicationReportLoadError: state.applicationReport.loadError,
   };
 }
 

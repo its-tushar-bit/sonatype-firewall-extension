@@ -10,6 +10,7 @@ import { NxStatefulTabs, NxTab } from '@sonatype/react-shared-components';
 import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
 import { ComponentDetailsFooter } from '../../../main/frontend/componentDetails/ComponentDetailsFooter';
 import BackButton from '../../../main/frontend/react/BackButton';
+import LoadError from '../../../main/frontend/react/LoadError';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
 import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
 
@@ -180,6 +181,32 @@ describe('ComponentDetails', function () {
         pagination: mockPagination,
       });
       expect(el.find(ComponentDetailsFooter)).toExist();
+    });
+  });
+
+  describe('when there is an error loading the report', () => {
+    beforeEach(() => {
+      minimalProps = {
+        componentDetails: null,
+        activeTabId: 'remediation',
+        loadComponentDetails: loadComponentDetailsSpy,
+        onTabChange: onTabChangeSpy,
+        pagination: null,
+        applicationReportLoadError: 'Mock message',
+      };
+    });
+
+    it('renders a LoadError component', () => {
+      const el = getShallowComponent(minimalProps).find(LoadError);
+      expect(el).toExist();
+      expect(el).toHaveProp('error', 'Mock message');
+    });
+
+    it('calls loadComponentDetails when the user clicks the retry button', () => {
+      const component = getMountedComponent(minimalProps);
+      component.find(LoadError).props().retryHandler();
+      expect(loadComponentDetailsSpy).toHaveBeenCalled();
+      component.unmount();
     });
   });
 });

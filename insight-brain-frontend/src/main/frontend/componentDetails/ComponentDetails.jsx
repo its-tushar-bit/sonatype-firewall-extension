@@ -10,8 +10,10 @@ import { NxStatefulTabs, NxTab, NxTabList, NxTabPanel } from '@sonatype/react-sh
 import BackButton from '../react/BackButton';
 import { useRouterState } from '../react/RouterStateContext';
 import AuditLogContainer from './auditLog/AuditLogContainer';
+import LoadError from '../react/LoadError';
 
 const tabIdPerIndex = ['remediation', 'info', 'violations', 'security', 'legal', 'audit'];
+
 import {
   ComponentDetailsHeader,
   Title,
@@ -27,20 +29,24 @@ export default function ComponentDetails({
   onTabChange,
   pagination,
   loadComponentDetails,
+  applicationReportLoadError,
 }) {
   const uiRouterState = useRouterState();
 
   useEffect(() => {
-    if (!componentDetails) {
+    if (!componentDetails && !applicationReportLoadError) {
       loadComponentDetails();
     }
-  }, [componentDetails]);
+  }, [componentDetails, applicationReportLoadError]);
 
   // bail out early if no component details (still show back button)
   if (!componentDetails) {
     return (
       <main className="nx-page-main nx-viewport-sized" id="component-details-page">
         <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
+        {applicationReportLoadError && (
+          <LoadError error={applicationReportLoadError} retryHandler={loadComponentDetails} />
+        )}
       </main>
     );
   }
@@ -131,7 +137,7 @@ ComponentDetails.propTypes = {
   // activeTabId should be required but marking it as such causes proptype errors when navigating away
   activeTabId: PropTypes.string,
   onTabChange: PropTypes.func.isRequired,
-
+  applicationReportLoadError: PropTypes.string,
   pagination: PropTypes.shape(footerPropTypes),
 };
 

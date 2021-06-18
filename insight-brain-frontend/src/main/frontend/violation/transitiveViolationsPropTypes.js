@@ -7,6 +7,7 @@ import * as PropTypes from 'prop-types';
 
 export const scopePropType = PropTypes.shape({
   id: PropTypes.string.isRequired,
+  publicId: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
@@ -64,10 +65,19 @@ export const componentTransitivePolicyViolationsPropType = PropTypes.shape({
   data: PropTypes.shape({
     componentIdentifier: componentIdentifierPropType,
     packageUrl: PropTypes.string,
-    hash: PropTypes.string,
+    hash: PropTypes.string.isRequired,
     displayName: PropTypes.string,
     isInnerSource: PropTypes.bool.isRequired,
-    violations: PropTypes.arrayOf(policyViolationPropType.isRequired),
-    displayedViolations: PropTypes.arrayOf(policyViolationPropType.isRequired),
+    violations: PropTypes.arrayOf(policyViolationPropType.isRequired).isRequired,
+    displayedViolations: PropTypes.arrayOf(policyViolationPropType.isRequired).isRequired,
   }),
+  threatCounts: PropTypes.shape({
+    critical: PropTypes.number.isRequired,
+    severe: PropTypes.number.isRequired,
+    moderate: PropTypes.number.isRequired,
+    low: PropTypes.number.isRequired,
+    none: PropTypes.number.isRequired,
+  }),
+  threatCountsTotal: PropTypes.number,
+  componentCount: PropTypes.number,
 });

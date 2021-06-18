@@ -1,0 +1,127 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+#waive-transitive-violations-popover {
+  width: 760px;
+
+  .waive-transitive-violations-popover-header__title {
+    @include container-horizontal;
+    display: flex;
+
+    .waive-transitive-violations-popover-header__title-text {
+      flex-grow: 1;
+      margin-top: 6px;
+    }
+
+    .waive-transitive-violations-popover-header__title-icon {
+      font-size: $nx-font-size-heading-level-2;
+    }
+  }
+
+  .iq-popover__content {
+    margin-top: $nx-spacing-l;
+  }
+
+  .iq-popover__footer {
+    .nx-btn {
+      float: right;
+    }
+  }
+
+  .nx-threat-counter {
+    align-items: center;
+    box-sizing: content-box;
+    border: 1px solid;
+    border-left-width: 8px;
+    border-radius: 6px;
+    display: inline-flex;
+    flex-direction: row-reverse;
+    font-size: 14px;
+    justify-content: flex-end;
+    height: 30px;
+    margin: 0;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .nx-threat-counter__count {
+    @include bold();
+    margin: 0;
+  }
+
+  .nx-threat-counter__text {
+    @include semi-bold();
+    margin-left: 8px;
+    text-transform: uppercase;
+  }
+
+  .nx-threat-counter--critical {
+    border-color: $nx-threat-color-critical;
+  }
+
+  .nx-threat-counter--severe {
+    border-color: $nx-threat-color-severe;
+  }
+
+  .nx-threat-counter--moderate {
+    border-color: $nx-threat-color-moderate;
+  }
+
+  .nx-threat-counter--low {
+    border-color: $nx-threat-color-low;
+  }
+
+  .nx-threat-counter--none {
+    border-color: $nx-threat-color-none;
+  }
+
+  .nx-threat-counter-container {
+    display: inline-grid;
+    gap: 16px;
+    grid-template-columns: auto auto auto auto;
+    margin: 16px 0 24px 0;
+  }
+
+  .nx-threat-counter-container--column {
+    grid-template-columns: auto;
+  }
+
+  .nx-threat-counter-container--grid {
+    grid-template-columns: auto auto;
+  }
+
+  .nx-threat-counter-container--hide-zero-critical {
+    .nx-threat-counter--critical {
+      display: none;
+    }
+  }
+
+  .nx-threat-counter-container--hide-zero-severe {
+    .nx-threat-counter--severe {
+      display: none;
+    }
+  }
+
+  .nx-threat-counter-container--hide-zero-moderate {
+    .nx-threat-counter--moderate {
+      display: none;
+    }
+  }
+
+  .nx-threat-counter-container--hide-zero-low {
+    .nx-threat-counter--low {
+      display: none;
+    }
+  }
+
+  .nx-threat-counter-container--hide-zero-none {
+    .nx-threat-counter--none {
+      display: none;
+    }
+  }
+}

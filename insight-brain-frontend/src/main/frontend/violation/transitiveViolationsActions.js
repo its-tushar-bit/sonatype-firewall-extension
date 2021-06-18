@@ -88,3 +88,7 @@ export const setSortingParameters = payloadParamActionCreator(TRANSITIVE_VIOLATI
 export const TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS = 'TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS';
 
 export const setFilteringParameters = payloadParamActionCreator(TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS);
+
+export const TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE = 'TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE';
+
+export const toggleWaiveTransitiveViolations = noPayloadActionCreator(TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE);

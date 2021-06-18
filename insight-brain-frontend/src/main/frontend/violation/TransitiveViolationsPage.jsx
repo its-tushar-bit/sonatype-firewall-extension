@@ -5,7 +5,7 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxBackButton } from '@sonatype/react-shared-components';
+import { NxBackButton, NxButton } from '@sonatype/react-shared-components';
 import {
   availableScopesPropType,
   componentTransitivePolicyViolationsPropType,
@@ -15,6 +15,7 @@ import LoadWrapper from '../react/LoadWrapper';
 import TransitiveViolationsPageTable from './TransitiveViolationsPageTable';
 import { ComponentDetailsReportInfo } from '../componentDetails/ComponentDetailsHeader/ComponentDetailsReportInfo';
 import { ComponentDetailsHeader, ComponentDetailsTags, Title } from '../componentDetails/ComponentDetailsHeader';
+import WaiveTransitiveViolationsPopoverContainer from './WaiveTransitiveViolationsPopoverContainer';
 
 export default function TransitiveViolationsPage(props) {
   const {
@@ -26,11 +27,13 @@ export default function TransitiveViolationsPage(props) {
     availableScopes,
     reportMetadata,
     componentTransitivePolicyViolations,
+    isWaiveTransitiveViolationsOpen,
     loadAvailableScopes,
     loadTransitiveViolations,
     setSortingParameters,
     setFilteringParameters,
     loadReportMetadata,
+    toggleWaiveTransitiveViolations,
   } = props;
 
   function load() {
@@ -77,6 +80,16 @@ export default function TransitiveViolationsPage(props) {
                 <div className="nx-tile-header__title">
                   <h2 className="nx-h2">Transitive Violations</h2>
                 </div>
+                <div className="nx-tile__actions">
+                  <NxButton
+                    id="transitive-violations-page-waive"
+                    variant="tertiary"
+                    onClick={toggleWaiveTransitiveViolations}
+                    disabled={componentTransitivePolicyViolations.data.violations.length === 0}
+                  >
+                    Waive Transitive Violations
+                  </NxButton>
+                </div>
               </header>
               <div className="nx-tile-content">
                 <TransitiveViolationsPageTable
@@ -87,6 +100,7 @@ export default function TransitiveViolationsPage(props) {
                 />
               </div>
             </section>
+            {isWaiveTransitiveViolationsOpen && <WaiveTransitiveViolationsPopoverContainer />}
           </Fragment>
         )}
       </LoadWrapper>
@@ -103,9 +117,11 @@ TransitiveViolationsPage.propTypes = {
   availableScopes: availableScopesPropType.isRequired,
   reportMetadata: reportMetadataPropType.isRequired,
   componentTransitivePolicyViolations: componentTransitivePolicyViolationsPropType.isRequired,
+  isWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
   loadAvailableScopes: PropTypes.func.isRequired,
   loadTransitiveViolations: PropTypes.func.isRequired,
   setSortingParameters: PropTypes.func.isRequired,
   setFilteringParameters: PropTypes.func.isRequired,
   loadReportMetadata: PropTypes.func.isRequired,
+  toggleWaiveTransitiveViolations: PropTypes.func.isRequired,
 };

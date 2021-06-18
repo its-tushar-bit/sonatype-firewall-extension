@@ -13,6 +13,7 @@ import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
 import LoadError from '../react/LoadError';
+import { waiverExpirations } from '../util/waiverUtils';
 
 const ALL_COMPONENTS = 'ALL_COMPONENTS';
 
@@ -74,16 +75,6 @@ export default function AddWaiverForm(props) {
   };
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
-
-  const expirationTimes = [
-    { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead
-    { name: '7 Days', value: '7' },
-    { name: '14 Days', value: '14' },
-    { name: '30 Days', value: '30' },
-    { name: '60 Days', value: '60' },
-    { name: '90 Days', value: '90' },
-    { name: '120 Days', value: '120' },
-  ];
 
   return (
     <form className="nx-form iq-add-waiver-form" onSubmit={onSubmit}>
@@ -173,7 +164,7 @@ export default function AddWaiverForm(props) {
         {/* Expiry time */}
         <NxFieldset className="iq-add-waiver-form__expiryTime" label="Waiver Expiration" isRequired>
           <select id="waiver-expiration-select" onChange={onExpiryTimeChange} value={expiryTime || ''}>
-            {expirationTimes.map(({ name, value }, index) => (
+            {waiverExpirations.map(({ name, value }, index) => (
               <option key={index} value={value}>
                 {name}
               </option>

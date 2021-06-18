@@ -46,6 +46,7 @@ import auditLogReducer from '../componentDetails/auditLog/auditLogReducer';
 import editWebhookReducer from '../configuration/webhook/editWebhook/editWebhookReducer';
 import automaticApplicationsConfigurationReducer from '../configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationReducer';
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
+import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsRedux';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -90,4 +91,5 @@ export default combineReducers({
   editWebhook: editWebhookReducer,
   automaticApplicationsConfiguration: automaticApplicationsConfigurationReducer,
   transitiveViolations: transitiveViolationsReducer,
+  waiveTransitiveViolations: waiveTransitiveViolationsReducer,
 });

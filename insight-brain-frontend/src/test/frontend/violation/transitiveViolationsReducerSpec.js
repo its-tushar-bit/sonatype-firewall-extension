@@ -17,6 +17,7 @@ import {
   TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+  TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE,
 } from '../../../main/frontend/violation/transitiveViolationsActions';
 import { Messages } from '../../../main/frontend/util/CommonServices';
 
@@ -49,7 +50,11 @@ describe('transitiveViolationsReducer', function () {
             displayName: '',
           },
           data: null,
+          threatCounts: null,
+          threatCountsTotal: null,
+          componentCount: null,
         },
+        isWaiveTransitiveViolationsOpen: false,
       });
     });
   });
@@ -185,15 +190,20 @@ describe('transitiveViolationsReducer', function () {
         sortConfiguration: 'someSortConfiguration',
         filterConfiguration: 'someFilterConfiguration',
         data: null,
+        threatCounts: null,
+        threatCountsTotal: null,
+        componentCount: null,
       });
     });
   });
 
   describe('TRANSITIVE_VIOLATIONS_LOAD_FULFILLED action', function () {
     it(
-      'sets componentTransitivePolicyViolations loading to false, error to null,' + 'and merges the payload with it',
+      'sets componentTransitivePolicyViolations loading to false, error to null,' +
+        ' merges the payload with it' +
+        ' and sets the correct counts with no violations',
       function () {
-        const payload = { transitivePolicyViolations: 'transitivePolicyViolations', other: 'other' };
+        const payload = { transitivePolicyViolations: [], other: 'other' };
         const state = {
           componentTransitivePolicyViolations: {
             sortConfiguration: 'someSortConfiguration',
@@ -217,9 +227,58 @@ describe('transitiveViolationsReducer', function () {
             displayedViolations: payload.transitivePolicyViolations,
             other: 'other',
           },
+          threatCounts: Object({ critical: 0, severe: 0, moderate: 0, low: 0, none: 0 }),
+          threatCountsTotal: 0,
+          componentCount: 0,
         });
       }
     );
+
+    it('sets the correct counts with multiple threat threats and components', function () {
+      const payload = {
+        transitivePolicyViolations: [
+          { threatLevel: 10, hash: 'a' },
+          { threatLevel: 9, hash: 'b' },
+          { threatLevel: 8, hash: 'b' },
+          { threatLevel: 7, hash: 'b' },
+          { threatLevel: 6, hash: 'c' },
+          { threatLevel: 5, hash: 'c' },
+          { threatLevel: 4, hash: 'c' },
+          { threatLevel: 3, hash: 'c' },
+          { threatLevel: 2, hash: 'c' },
+          { threatLevel: 1, hash: 'c' },
+          { threatLevel: 0, hash: 'd' },
+        ],
+        other: 'other',
+      };
+      const state = {
+        componentTransitivePolicyViolations: {
+          sortConfiguration: 'someSortConfiguration',
+          filterConfiguration: 'someFilterConfiguration',
+        },
+      };
+      const action = {
+        type: TRANSITIVE_VIOLATIONS_LOAD_FULFILLED,
+        payload: payload,
+      };
+      const newState = reduce(state, action);
+
+      const { componentTransitivePolicyViolations } = newState;
+      expect(componentTransitivePolicyViolations).toEqual({
+        loading: false,
+        error: null,
+        sortConfiguration: 'someSortConfiguration',
+        filterConfiguration: 'someFilterConfiguration',
+        data: {
+          violations: payload.transitivePolicyViolations,
+          displayedViolations: payload.transitivePolicyViolations,
+          other: 'other',
+        },
+        threatCounts: Object({ critical: 3, severe: 4, moderate: 2, low: 1, none: 1 }),
+        threatCountsTotal: 11,
+        componentCount: 4,
+      });
+    });
   });
 
   describe('TRANSITIVE_VIOLATIONS_LOAD_FAILED action', function () {
@@ -751,6 +810,28 @@ describe('transitiveViolationsReducer', function () {
             ],
           },
         },
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE action', function () {
+    it('sets isWaiveTransitiveViolationsOpen to true if it is false', function () {
+      const state = { isWaiveTransitiveViolationsOpen: false };
+      const action = { type: TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        isWaiveTransitiveViolationsOpen: true,
+      });
+    });
+
+    it('sets isWaiveTransitiveViolationsOpen to false if it is true', function () {
+      const state = { isWaiveTransitiveViolationsOpen: true };
+      const action = { type: TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        isWaiveTransitiveViolationsOpen: false,
       });
     });
   });

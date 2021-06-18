@@ -17,7 +17,8 @@ describe('TransitiveViolationsPageContainer', function () {
     loadReportMetadataActionMock,
     loadTransitiveViolationsActionMock,
     setSortingParametersActionMock,
-    setFilteringParametersActionMock;
+    setFilteringParametersActionMock,
+    toggleWaiveTransitiveViolationsMock;
 
   beforeEach(function () {
     state = {
@@ -33,6 +34,7 @@ describe('TransitiveViolationsPageContainer', function () {
         availableScopes: 'someAvailableScopes',
         reportMetadata: 'someReportMetadata',
         componentTransitivePolicyViolations: 'someComponentTransitivePolicyViolations',
+        isWaiveTransitiveViolationsOpen: 'someIsWaiveTransitiveViolationsOpen',
       },
     };
     loadAvailableScopesActionMock = jasmine
@@ -48,6 +50,9 @@ describe('TransitiveViolationsPageContainer', function () {
     setFilteringParametersActionMock = jasmine
       .createSpy('setFilteringParametersActionMock')
       .and.returnValue({ type: 'BAR5' });
+    toggleWaiveTransitiveViolationsMock = jasmine
+      .createSpy('toggleWaiveTransitiveViolationsMock')
+      .and.returnValue({ type: 'BAR6' });
     TransitiveViolationsPageContainer = require('inject-loader!../../../main/frontend/violation/TransitiveViolationsPageContainer')(
       {
         './transitiveViolationsActions': {
@@ -56,6 +61,7 @@ describe('TransitiveViolationsPageContainer', function () {
           loadTransitiveViolations: loadTransitiveViolationsActionMock,
           setSortingParameters: setSortingParametersActionMock,
           setFilteringParameters: setFilteringParametersActionMock,
+          toggleWaiveTransitiveViolations: toggleWaiveTransitiveViolationsMock,
         },
       }
     ).default;
@@ -65,7 +71,6 @@ describe('TransitiveViolationsPageContainer', function () {
 
   it('maps the state slice to props', () => {
     const wrapper = shallow(vdom).dive();
-    expect(wrapper).toHaveProp('scanId', 'someScanId');
     expect(wrapper).toHaveProp('ownerType', 'someOwnerType');
     expect(wrapper).toHaveProp('ownerId', 'someOwnerId');
     expect(wrapper).toHaveProp('scanId', 'someScanId');
@@ -73,6 +78,7 @@ describe('TransitiveViolationsPageContainer', function () {
     expect(wrapper).toHaveProp('availableScopes', 'someAvailableScopes');
     expect(wrapper).toHaveProp('reportMetadata', 'someReportMetadata');
     expect(wrapper).toHaveProp('componentTransitivePolicyViolations', 'someComponentTransitivePolicyViolations');
+    expect(wrapper).toHaveProp('isWaiveTransitiveViolationsOpen', 'someIsWaiveTransitiveViolationsOpen');
   });
 
   it('correctly maps the action creators to the TransitiveViolationsPageContainer props', function () {
@@ -102,6 +108,11 @@ describe('TransitiveViolationsPageContainer', function () {
     expect(setFilteringParametersActionCreator).toEqual(jasmine.any(Function));
     setFilteringParametersActionCreator('test');
     expect(store.getActions()[4]).toEqual({ type: 'BAR5' });
+
+    const toggleWaiveTransitiveViolationsActionCreator = wrapper.prop('toggleWaiveTransitiveViolations');
+    expect(toggleWaiveTransitiveViolationsActionCreator).toEqual(jasmine.any(Function));
+    toggleWaiveTransitiveViolationsActionCreator('test');
+    expect(store.getActions()[5]).toEqual({ type: 'BAR6' });
   });
 
   it('renders the TransitiveViolationsPage component', function () {

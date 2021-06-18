@@ -102,7 +102,6 @@ public class TransitiveViolationsTest
 
   @Test
   public void testInitialState() {
-    refreshOrOpen(TransitiveViolationsPage.url(application.getPublicId(), policyEvaluation.getScanId(), "hash1"));
     TransitiveViolationsPage transitiveViolationsPage = visitPage();
     ComponentDetailsHeader componentDetailsHeader = transitiveViolationsPage.title();
     componentDetailsHeader.title().shouldHave(Condition.text(component.getDisplayName()));

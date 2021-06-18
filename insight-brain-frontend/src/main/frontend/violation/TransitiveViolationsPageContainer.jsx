@@ -13,6 +13,7 @@ import {
   loadTransitiveViolations,
   setFilteringParameters,
   setSortingParameters,
+  toggleWaiveTransitiveViolations,
 } from './transitiveViolationsActions';
 
 function mapStateToProps({ router, transitiveViolations }) {
@@ -20,7 +21,10 @@ function mapStateToProps({ router, transitiveViolations }) {
   return {
     scanId,
     ...pick(['ownerType', 'ownerId', 'scanId', 'hash'], router.currentParams),
-    ...pick(['availableScopes', 'reportMetadata', 'componentTransitivePolicyViolations'], transitiveViolations),
+    ...pick(
+      ['availableScopes', 'reportMetadata', 'componentTransitivePolicyViolations', 'isWaiveTransitiveViolationsOpen'],
+      transitiveViolations
+    ),
   };
 }
 
@@ -30,6 +34,7 @@ const mapDispatchToProps = {
   loadTransitiveViolations,
   setSortingParameters,
   setFilteringParameters,
+  toggleWaiveTransitiveViolations,
 };
 
 const TransitiveViolationsPageContainer = connect(mapStateToProps, mapDispatchToProps)(TransitiveViolationsPage);

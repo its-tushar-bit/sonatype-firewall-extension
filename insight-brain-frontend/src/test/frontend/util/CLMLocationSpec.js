@@ -469,5 +469,11 @@ describe('CLMLocation.js', function () {
         '/ui/links/application/someAppId/latestReport/someStageTypeId'
       );
     });
+
+    it('getWaiveTransitiveViolationsUrl should return the URL with params', function () {
+      expect(CLMLocation.getWaiveTransitiveViolationsUrl('someAppId', 'someScanId', 'someHash')).toBe(
+        '/api/v2/policyWaivers/transitive/application/someAppId/someScanId?hash=someHash'
+      );
+    });
   });
 });

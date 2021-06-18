@@ -460,6 +460,10 @@ export function getTransitiveViolationsUrl(ownerType, ownerId, scanId, hash) {
   return uriTemplate`/api/v2/policyViolations/transitive/${ownerType}/${ownerId}/${scanId}?hash=${hash}`;
 }
 
+export function getWaiveTransitiveViolationsUrl(ownerId, scanId, hash) {
+  return uriTemplate`/api/v2/policyWaivers/transitive/application/${ownerId}/${scanId}?hash=${hash}`;
+}
+
 export function getLatestReportUrl(applicationId, stageTypeId) {
   return uriTemplate`/ui/links/application/${applicationId}/latestReport/${stageTypeId}`;
 }

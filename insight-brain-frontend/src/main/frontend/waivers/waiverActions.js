@@ -7,7 +7,7 @@ import axios from 'axios';
 import { compose, path } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
-import { capitalize, getFutureDate } from '../util/jsUtil';
+import { capitalize } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 import { Messages } from '../util/CommonServices';
 import { getAddPolicyViolationWaiverUrl, getOwnerContextHierarchyUrl, deleteWaiverUrl } from '../util/CLMLocation';
@@ -16,6 +16,7 @@ import { stateGo } from '../reduxUiRouter/routerActions';
 import { getPermissionContextTestUrl } from '../util/CLMContextLocation';
 import { getApplicationSummaryUrl } from '../util/CLMLocation';
 import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
+import { getExpiryTime } from '../util/waiverUtils';
 
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
@@ -56,14 +57,6 @@ function startSubmitMaskTimer(dispatch) {
   setTimeout(() => {
     dispatch({ type: WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE });
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-}
-
-function getExpiryTime(expiration) {
-  if (!expiration) {
-    return null;
-  }
-
-  return getFutureDate(expiration);
 }
 
 /**

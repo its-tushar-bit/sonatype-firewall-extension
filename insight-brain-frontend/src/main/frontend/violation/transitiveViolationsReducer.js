@@ -16,6 +16,7 @@ import {
   TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+  TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE,
 } from './transitiveViolationsActions';
 import { Messages } from '../util/CommonServices';
 import { caseInsensitiveComparator, defaultComparator, sortItemsByFieldsWithComparator } from '../util/sortUtils';
@@ -43,7 +44,11 @@ const initialState = {
       displayName: '',
     },
     data: null,
+    threatCounts: null,
+    threatCountsTotal: null,
+    componentCount: null,
   },
+  isWaiveTransitiveViolationsOpen: false,
 };
 
 function loadAvailableScopesRequested(_, state) {
@@ -130,6 +135,7 @@ function loadTransitiveViolationsRequested(_, state) {
 function loadTransitiveViolationsFulfilled(payload, state) {
   const payloadWithoutViolations = { ...payload };
   delete payloadWithoutViolations.transitivePolicyViolations;
+  const threatCounts = getThreatCounts(payload.transitivePolicyViolations);
   return {
     ...state,
     componentTransitivePolicyViolations: {
@@ -141,9 +147,54 @@ function loadTransitiveViolationsFulfilled(payload, state) {
         displayedViolations: payload.transitivePolicyViolations,
         ...payloadWithoutViolations,
       },
+      threatCounts: threatCounts,
+      threatCountsTotal: getThreatCountsTotal(threatCounts),
+      componentCount: getComponentCount(payload.transitivePolicyViolations),
     },
   };
 }
+
+const getThreatCounts = (violations) => {
+  const threatCounts = { critical: 0, severe: 0, moderate: 0, low: 0, none: 0 };
+  violations.forEach((v) => {
+    switch (true) {
+      case v.threatLevel > 7: {
+        threatCounts.critical++;
+        return;
+      }
+      case v.threatLevel > 3: {
+        threatCounts.severe++;
+        return;
+      }
+      case v.threatLevel > 1: {
+        threatCounts.moderate++;
+        return;
+      }
+      case v.threatLevel > 0: {
+        threatCounts.low++;
+        return;
+      }
+      default: {
+        threatCounts.none++;
+      }
+    }
+  });
+  return threatCounts;
+};
+
+const getThreatCountsTotal = (threatCounts) => {
+  return threatCounts.critical + threatCounts.severe + threatCounts.moderate + threatCounts.low + threatCounts.none;
+};
+
+const getComponentCount = (violations) => {
+  const seenHashes = [];
+  violations.forEach((v) => {
+    if (!seenHashes.includes(v.hash)) {
+      seenHashes.push(v.hash);
+    }
+  });
+  return seenHashes.length;
+};
 
 function loadTransitiveViolationsFailed(payload, state) {
   return {
@@ -231,6 +282,13 @@ function setFilteringParameters(payload, state) {
   });
 }
 
+function toggleWaiveTransitiveViolations(_, state) {
+  return {
+    ...state,
+    isWaiveTransitiveViolationsOpen: !state.isWaiveTransitiveViolationsOpen,
+  };
+}
+
 const reducerActionMap = {
   [TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_REQUESTED]: loadAvailableScopesRequested,
   [TRANSITIVE_VIOLATIONS_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
@@ -243,6 +301,7 @@ const reducerActionMap = {
   [TRANSITIVE_VIOLATIONS_LOAD_FAILED]: loadTransitiveViolationsFailed,
   [TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS]: setSortingParameters,
   [TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS]: setFilteringParameters,
+  [TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE]: toggleWaiveTransitiveViolations,
 };
 
 const transitiveViolationsReducer = createReducerFromActionMap(reducerActionMap, initialState);

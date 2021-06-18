@@ -418,10 +418,10 @@
     prop-types "^15.7.2"
     ramda "^0.27.1"
 
-"@sonatype/version-graph@^1.0.1":
-  version "1.0.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/version-graph/-/version-graph-1.0.1.tgz#12357412e68d5c20eac1d3d337fd9d236f6f0b65"
-  integrity sha512-7KRsi5O3hBKs3beCZxFnrKe8mY5ihiyd2+AB3Zvn6nyRIb0q/6cWGB7clxP0kSJ6gNpWUbw2mKgRDBg8hGcoBg==
+"@sonatype/version-graph@^1.0.2":
+  version "1.0.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/@sonatype/version-graph/-/version-graph-1.0.2.tgz#235fccafa5d8fa89ab2db332a53cba179785e88f"
+  integrity sha512-e+a1CC+U8W7OuOzwNwjzF20px0CYfZ3iAAFg8sSJC2e0AAyc6ZFsxzuzqdZU7H887k23gO9BrMQuNg0vMVN01Q==
 
 "@types/angular@^1.6.39":
   version "1.7.3"

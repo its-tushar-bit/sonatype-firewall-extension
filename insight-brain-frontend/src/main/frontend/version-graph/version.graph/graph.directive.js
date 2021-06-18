@@ -28,6 +28,7 @@ export default function graphDirective(Coordinates) {
               version: Coordinates.get().version,
             },
             selectable: true,
+            showCurrentVersionLabel: true,
             versionClick: function (version) {
               scope.$apply(function () {
                 $.each(versions, function (index, component) {

@@ -22,13 +22,15 @@
 </head>
 <body class="nx-body" ng-csp="no-unsafe-eval">
   <div class="nx-page">
-    <system-notice ng-if="!error"></system-notice>
-    <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>
+    <div class="nx-system-notice-container">
+      <system-notice id="system-notice" ng-if="!error"></system-notice>
+      <change-default-admin-password-notice ng-if="!error"></change-default-admin-password-notice>
+    </div>
+    <navigation-container ng-if="!$state.params.embeddable" product-edition={{productEdition}}></navigation-container>
+    <div class="nx-global-header">
+      <main-header ng-if="!$state.params.embeddable"></main-header>
+    </div>
     <div id="iq-content" class="nx-page-content nx-page-content--full-width" >
-      <div class="iq-content-only">
-        <navigation-container ng-if="!$state.params.embeddable" product-edition={{productEdition}}></navigation-container>
-        <main-header ng-if="!$state.params.embeddable"></main-header>
-      </div>
       <ui-view ng-if="!error"></ui-view>
       <div class="nx-page-main nx-page-main--error" ng-if="error">
         <div ng-cloak class="iq-alert iq-alert--error">

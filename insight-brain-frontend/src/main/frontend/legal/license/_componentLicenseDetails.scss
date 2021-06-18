@@ -5,7 +5,6 @@
  */
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 component-license-details {
@@ -14,7 +13,7 @@ component-license-details {
 
 #component-license-details-content {
   display: grid;
-  column-gap: $nx-spacing-md;
+  column-gap: var(--nx-spacing-4x);
   grid-template-columns: var(--sidebar-width) 1fr;
 }
 
@@ -31,27 +30,25 @@ component-license-details {
   grid-template-columns: 1fr 1fr;
   .nx-grid-col {
     margin-bottom: 0;
-    margin-top: $nx-spacing-xs;
+    margin-top: var(--nx-spacing-2x);
   }
 }
 
-@each $color-name, $color-codes in $nx-selectable-colors {
-  .license-full-details__obligation-text--#{$color-name} {
-    background-color: nth($color-codes, 2);
-    padding-right: $nx-spacing-md;
-    cursor: pointer;
-  }
+.license-full-details__obligation-text {
+  background-color: var(--nx-selectable-color-light);
+  padding-right: var(--nx-spacing-4x);
+  cursor: pointer;
+}
 
-  .license-full-details__license-obligation-highlight--#{$color-name} {
-    background-color: nth($color-codes, 2);
-  }
+.license-full-details__license-obligation-highlight {
+  background-color: var(--nx-selectable-color-light);
 }
 
 .component-license-details-license-preformatted {
   white-space: pre-wrap;
   @include monospace;
-  padding-left: $nx-spacing-xs;
-  padding-right: $nx-spacing-xs;
+  padding-left: var(--nx-spacing-2x);
+  padding-right: var(--nx-spacing-2x);
 }
 
 .component-license-details-license-container {
@@ -61,18 +58,18 @@ component-license-details {
 #license-full-details-tile__obligations-container {
   div:first-child {
     dt {
-      margin-top: $nx-spacing-xs;
+      margin-top: var(--nx-spacing-2x);
     }
   }
 
   .nx-read-only__data {
     q {
-      line-height: $nx-line-height;
+      line-height: var(--nx-line-height);
     }
   }
 }
 
 #license-full-details-tile__license-header {
-  margin-top: $nx-spacing-xs;
-  padding-left: $nx-spacing-xs;
+  margin-top: var(--nx-spacing-2x);
+  padding-left: var(--nx-spacing-2x);
 }

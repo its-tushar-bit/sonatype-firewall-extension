@@ -4,15 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 .iq-dashboard-violations {
   position: relative;
 
   .nx-table {
-    background-color: $nx-white;
+    background-color: var(--nx-swatch-white);
   }
 
   .nx-table-container.nx-scrollable {

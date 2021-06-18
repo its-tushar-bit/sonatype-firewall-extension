@@ -40,7 +40,7 @@ const UserMenu = ({
 
   return (
     <div id="user-menu">
-      <MenuButton icon={faUserCircle} iconSize="2x" id="user-menu-dropdown" iconLabel="Manage User Account">
+      <MenuButton icon={faUserCircle} largeIcon id="user-menu-dropdown" iconLabel="Manage User Account">
         <MenuTitle>
           Current User:
           <span id="user-name" className="iq-user-name">

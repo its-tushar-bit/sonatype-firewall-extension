@@ -355,12 +355,11 @@ describe('DashboardFilter', function () {
       expect(toggleFilterSidebarSpy).toHaveBeenCalledWith(false);
     });
 
-    it('does not render tooltip when filtersAreDirty and needsAcknowledgement are false', function () {
+    it('sets the tooltip to "Close" when filtersAreDirty and needsAcknowledgement are false', function () {
       const shallowRender = getShallowComponent();
 
-      const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
-      expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
-      expect(tooltip).toHaveProp('title', '');
+      const btn = shallowRender.find('#dashboard-filter-close-btn');
+      expect(btn).toHaveProp('title', 'Close');
     });
 
     describe('when filtersAreDirty', function () {
@@ -382,9 +381,8 @@ describe('DashboardFilter', function () {
           filtersAreDirty: true,
         });
 
-        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
-        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
-        expect(tooltip).toHaveProp('title', 'Please apply or revert filter');
+        const btn = shallowRender.find('#dashboard-filter-close-btn');
+        expect(btn).toHaveProp('title', 'Please apply or revert filter');
       });
     });
 
@@ -407,9 +405,8 @@ describe('DashboardFilter', function () {
           needsAcknowledgement: true,
         });
 
-        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
-        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
-        expect(tooltip).toHaveProp('title', 'Please apply a filter');
+        const btn = shallowRender.find('#dashboard-filter-close-btn');
+        expect(btn).toHaveProp('title', 'Please apply a filter');
       });
     });
 
@@ -420,9 +417,8 @@ describe('DashboardFilter', function () {
           filtersAreDirty: true,
         });
 
-        const tooltip = shallowRender.find('#dashboard-filter-close-btn-tooltip');
-        expect(tooltip.childAt(0)).toHaveProp('id', 'dashboard-filter-close-btn');
-        expect(tooltip).toHaveProp('title', 'Please apply a filter');
+        const btn = shallowRender.find('#dashboard-filter-close-btn');
+        expect(btn).toHaveProp('title', 'Please apply a filter');
       });
     });
   });

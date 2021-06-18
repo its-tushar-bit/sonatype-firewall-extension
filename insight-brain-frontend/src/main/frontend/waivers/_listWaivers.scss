@@ -4,9 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
-
 list-waivers-page {
   display: contents;
 }
@@ -19,7 +16,7 @@ list-waivers-page {
   }
 
   .list-waivers-row--expired {
-    background-color: $nx-grey-2;
+    background-color: var(--nx-swatch-grey-90);
   }
 }
 

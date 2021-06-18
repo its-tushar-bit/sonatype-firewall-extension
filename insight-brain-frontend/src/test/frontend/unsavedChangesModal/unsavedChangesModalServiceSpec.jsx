@@ -23,17 +23,25 @@ describe('UnsavedChangesModalService', function () {
     }
   });
 
-  it('opens the unsaved changes modal when you call open()', () => {
+  it('opens the unsaved changes modal when you call open()', (done) => {
     unsavedChangesModalService.open();
     expect(document.querySelector('#unsaved-changes-modal-wrapper .nx-modal')).toBeTruthy();
+
+    // hack to get afterEach to execute in a separate event loop invocation to prevent NxModal from throwing
+    // errors when it gets removed from the document before its useEffect hook gets a chance to fire
+    setTimeout(done, 0);
   });
 
-  it('does not open multiple copies of the unsaved changes modal', () => {
+  it('does not open multiple copies of the unsaved changes modal', (done) => {
     const promise1 = unsavedChangesModalService.open();
     const promise2 = unsavedChangesModalService.open();
     expect(promise1).toBe(promise2);
     expect(document.querySelectorAll('#unsaved-changes-modal-wrapper').length).toEqual(1);
     expect(document.getElementsByClassName('nx-modal').length).toEqual(1);
+
+    // hack to get afterEach to execute in a separate event loop invocation to prevent NxModal from throwing
+    // errors when it gets removed from the document before its useEffect hook gets a chance to fire
+    setTimeout(done, 0);
   });
 
   it('resolves the promise and closes the modal when you click continue', () => {

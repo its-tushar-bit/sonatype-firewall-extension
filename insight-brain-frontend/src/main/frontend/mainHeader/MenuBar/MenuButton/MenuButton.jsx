@@ -13,7 +13,15 @@ export * from './NavLink';
 
 const noop = () => {};
 
-export const MenuButton = ({ iconLabel, icon, iconSize, children, onChange = noop, closeOnClick = true, ...props }) => {
+export const MenuButton = ({
+  iconLabel,
+  icon,
+  largeIcon,
+  children,
+  onChange = noop,
+  closeOnClick = true,
+  ...props
+}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const closeMenu = () => {
     setIsMenuOpen(false);
@@ -32,10 +40,12 @@ export const MenuButton = ({ iconLabel, icon, iconSize, children, onChange = noo
   const menuRef = useRef();
   useClickAway(menuRef, closeMenu);
 
+  const btnClasses = classnames('iq-menu-button__button', { 'iq-menu-button__button--large-icon': largeIcon });
+
   return (
     <div {...props} className={classnames('iq-menu-button', props.className)} ref={menuRef}>
-      <NxButton className="iq-menu-button__button" variant="icon-only" aria-label={iconLabel} onClick={onToggle}>
-        <NxFontAwesomeIcon icon={icon} size={iconSize} />
+      <NxButton className={btnClasses} variant="icon-only" title={iconLabel} onClick={onToggle}>
+        <NxFontAwesomeIcon icon={icon} size={largeIcon ? '2x' : undefined} />
       </NxButton>
       {isMenuOpen && (
         <div className="iq-dropdown-menu" onClick={handleBubbledClick}>
@@ -49,7 +59,7 @@ export const MenuButton = ({ iconLabel, icon, iconSize, children, onChange = noo
 MenuButton.propTypes = {
   iconLabel: PropTypes.string,
   icon: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.string]),
-  iconSize: PropTypes.oneOf(['xs', 'sm', 'lg', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x']),
+  largeIcon: PropTypes.bool,
   onChange: PropTypes.func,
   closeOnClick: PropTypes.bool,
   className: PropTypes.string,

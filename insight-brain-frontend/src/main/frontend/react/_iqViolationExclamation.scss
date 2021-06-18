@@ -3,15 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
-@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
-
 .iq-violation-exclamation {
-  color: $nx-white;
+  color: var(--nx-swatch-white);
 }
 
 .iq-violation-exclamation--disabled {
-  color: $nx-text-color-disabled;
+  color: var(--nx-color-text-disabled);
 }
 
 @each $threat in $nx-threat-levels {

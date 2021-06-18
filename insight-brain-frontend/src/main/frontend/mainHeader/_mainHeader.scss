@@ -18,7 +18,7 @@
 
   .iq-page-title {
     @include nx-truncate-ellipsis;
-    color: $nx-heading-color;
+    color: var(--nx-color-text-dark);
     align-items: center;
   }
 
@@ -35,10 +35,6 @@ main-header.nx-page-header {
 .iq-login-button-container,
 .iq-nav-bar--system {
   position: absolute;
-  right: $nx-spacing-l;
+  right: var(--nx-spacing-6x);
   top: 20px;
-}
-
-.nx-page-main {
-  margin-top: 48px;
 }

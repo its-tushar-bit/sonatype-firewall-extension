@@ -5,7 +5,6 @@
  */
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 component-copyright-details,
@@ -17,13 +16,13 @@ copyright-details-contents {
 
 #component-copyright-details-content {
   display: grid;
-  column-gap: $nx-spacing-md;
+  column-gap: var(--nx-spacing-4x);
   grid-template-columns: 24% 1fr;
 }
 
 .copyright-overview {
   display: grid;
-  column-gap: $nx-spacing-xxl;
+  column-gap: var(--nx-spacing-12x);
   grid-template-columns: 1fr 1fr 1fr 1fr;
 
   .copyright-overview-item {
@@ -31,7 +30,7 @@ copyright-details-contents {
   }
 
   .copyright-overview-text {
-    margin-top: $nx-spacing-xl;
+    margin-top: var(--nx-spacing-8x);
     grid-column: 1 / span 4;
   }
 }
@@ -55,7 +54,7 @@ copyright-details-contents {
 }
 
 .copyright-highlight {
-  background-color: $nx-yellow-200;
+  background-color: var(--nx-swatch-yellow-90);
 }
 
 .copyright-no-files {

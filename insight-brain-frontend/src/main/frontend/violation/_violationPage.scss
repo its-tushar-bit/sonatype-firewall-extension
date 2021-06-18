@@ -6,7 +6,6 @@
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-flexbox-helpers';
 
 #violation-page {
@@ -21,7 +20,7 @@
   .nx-tile-header {
     &.nx-tile-header--disabled {
       // Increase padding due to the manage waivers button not being present
-      padding-top: $nx-spacing-l + $nx-spacing-xs/2;
+      padding-top: calc(var(--nx-spacing-6x) + var(--nx-spacing-2x) / 2);
     }
   }
 
@@ -30,11 +29,11 @@
       display: contents;
 
       > h2 {
-        color: $nx-text-color-disabled;
+        color: var(--nx-color-text-disabled);
       }
 
       > span {
-        color: $nx-text-color-disabled;
+        color: var(--nx-color-text-disabled);
         margin-left: 11px;
       }
     }
@@ -50,10 +49,10 @@
     display: grid;
 
     margin: 0;
-    padding-left: $nx-spacing-xxl;
-    padding-right: $nx-spacing-xxl;
+    padding-left: var(--nx-spacing-12x);
+    padding-right: var(--nx-spacing-12x);
 
-    gap: $nx-spacing-xl $nx-spacing-xxl;
+    gap: var(--nx-spacing-8x) var(--nx-spacing-12x);
 
     > * {
       @include nx-truncate-ellipsis;
@@ -61,11 +60,11 @@
 
     dt,
     dd {
-      line-height: $nx-line-height;
+      line-height: var(--nx-line-height);
     }
 
     dt {
-      margin-bottom: $nx-spacing-xs;
+      margin-bottom: var(--nx-spacing-2x);
     }
 
     dd {
@@ -75,12 +74,12 @@
 }
 
 .iq-violation-details__subtitle-part {
-  $icon-margin: 0 $nx-spacing-xxs 0 0;
+  $icon-margin: 0 var(--nx-spacing-base) 0 0;
 
   @include container-horizontal;
 
   font-weight: normal;
-  margin: 0 $nx-spacing-xs 0 0;
+  margin: 0 var(--nx-spacing-2x) 0 0;
 
   .iq-inverse-icon-wrapper {
     @include container-horizontal;
@@ -106,12 +105,12 @@
   @include container-horizontal;
 
   .nx-icon {
-    margin: 0 $nx-spacing-xxs 0 0;
+    margin: 0 var(--nx-spacing-base) 0 0;
   }
 }
 
 .iq-violation-details__stage--unused {
-  color: $nx-text-color-disabled;
+  color: var(--nx-color-text-disabled);
 }
 
 .iq-violation-details__stage-action--fail {
@@ -134,12 +133,12 @@
 }
 
 .iq-violation-details__policy-owner-icon {
-  $size: $nx-spacing-md;
+  $size: var(--nx-spacing-4x);
 
   height: $size;
   width: $size;
 
-  margin-right: $nx-spacing-xs;
+  margin-right: var(--nx-spacing-2x);
 
   vertical-align: -3px;
 }
@@ -150,20 +149,20 @@
   display: flex;
   grid-column: 3;
   grid-row: 2;
-  color: $nx-dark-green;
+  color: var(--nx-swatch-green-30);
   height: 19px;
   text-align: right;
 }
 
 .iq-waiver-indicator--inactive {
-  color: $nx-text-color-disabled;
+  color: var(--nx-color-text-disabled);
 }
 
 .iq-waiver-indicator__counter {
   box-sizing: border-box;
-  background-color: $nx-dark-green;
+  background-color: var(--nx-swatch-green-30);
   border-radius: 8px;
-  color: $nx-white;
+  color: var(--nx-swatch-white);
   font-size: 10px;
   line-height: 10px;
   padding: 3px;
@@ -173,5 +172,5 @@
 }
 
 .iq-waiver-indicator__counter--inactive {
-  background-color: $nx-text-color-disabled;
+  background-color: var(--nx-color-text-disabled);
 }

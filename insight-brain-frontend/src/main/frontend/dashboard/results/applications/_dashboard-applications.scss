@@ -4,9 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
 // RGB value comes from /frontend/dashboard/utils/classybrew.factory.js
@@ -16,7 +14,7 @@ $iq-cell-heatmap-border-color: rgb(247, 251, 255);
   position: relative;
 
   .nx-table {
-    background-color: $nx-white;
+    background-color: var(--nx-swatch-white);
 
     .iq-dashboard-application-risk-row {
       > td:first-child {
@@ -69,7 +67,7 @@ $iq-cell-heatmap-border-color: rgb(247, 251, 255);
 
       .iq-dashboard-application-risk-row--separator-border {
         .nx-cell {
-          border-bottom: 3px solid $nx-indigo-50;
+          border-bottom: 3px solid var(--nx-swatch-indigo-95);
         }
       }
     }

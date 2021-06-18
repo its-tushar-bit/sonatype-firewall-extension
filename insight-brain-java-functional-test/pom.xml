@@ -21,7 +21,7 @@
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
     <selenide.timeout>4000</selenide.timeout>
     <docker.image.registry></docker.image.registry>
-    <docker.image.version>3.141.59-20200409</docker.image.version>
+    <docker.image.version>91.0-20210527</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
   </properties>
@@ -252,12 +252,6 @@
                         <volume>/dev/shm:/dev/shm</volume>
                       </bind>
                     </volumes>
-                    <wait>
-                      <http>
-                        <url>http://${host}:${port}/wd/hub/</url>
-                        <method>GET</method>
-                      </http>
-                    </wait>
                   </run>
                 </image>
               </images>
@@ -308,7 +302,7 @@
                     <artifactItem>
                       <groupId>org.chromium</groupId>
                       <artifactId>chromedriver</artifactId>
-                      <version>81.0.4044.69</version>
+                      <version>91.0.4472.19</version>
                       <classifier>${chromedriver.classifier}</classifier>
                       <type>zip</type>
                     </artifactItem>

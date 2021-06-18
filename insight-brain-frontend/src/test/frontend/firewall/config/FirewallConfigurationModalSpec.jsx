@@ -16,7 +16,8 @@ describe('FirewallConfigurationModal', function () {
     closeConfigurationModalSpy,
     toggleAutoUnquarantineAllSpy,
     getShallowComponent,
-    getMountedComponent;
+    getMountedComponent,
+    mountPoint;
 
   beforeEach(function () {
     toggleAutoUnquarantineEnabledSpy = jasmine.createSpy('toggleAutoUnquarantineEnabled');
@@ -55,8 +56,17 @@ describe('FirewallConfigurationModal', function () {
       toggleAutoUnquarantineAll: toggleAutoUnquarantineAllSpy,
     };
 
+    mountPoint = document.createElement('div');
+    document.body.appendChild(mountPoint);
+
     getShallowComponent = enzymeUtils.getShallowComponent(FirewallConfigurationModal, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(FirewallConfigurationModal, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(FirewallConfigurationModal, minimalProps, {
+      attachTo: mountPoint,
+    });
+  });
+
+  afterEach(() => {
+    document.body.removeChild(mountPoint);
   });
 
   it('renders an NxModal', function () {

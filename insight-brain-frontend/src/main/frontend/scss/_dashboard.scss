@@ -381,7 +381,7 @@ applications {
 }
 
 .iq-dashboard-form-mask {
-  top: $nx-table-cell-header-height;
+  top: 48px; // height of table headers
   right: 0;
   height: auto;
   padding: $iq-spacing-md;

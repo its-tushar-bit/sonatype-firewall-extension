@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import {
   NxGlobalSidebar,
@@ -23,14 +23,14 @@ import {
   faSitemap,
 } from '@fortawesome/pro-solid-svg-icons';
 
-import RouterStateContext from '../RouterStateContext';
+import { useRouterState } from '../RouterStateContext';
 import IqSidebarNavFooter from './IqSidebarNavFooter';
 
 import { getProductLogo } from '../../util/productLogoUtils';
 import { isLeftNavigationOpen, setLeftNavigationOpen } from '../../util/preferenceStore';
 
 function IqSidebarNav(props) {
-  const uiRouterState = useContext(RouterStateContext);
+  const uiRouterState = useRouterState();
   const [isOpen, toggleOpen] = useToggle(isLeftNavigationOpen());
 
   const {

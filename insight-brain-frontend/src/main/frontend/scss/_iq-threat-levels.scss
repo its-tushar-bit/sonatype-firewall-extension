@@ -11,25 +11,25 @@
 }
 
 .iq-threat-level--unspecified {
-  color: $nx-threat-color-unspecified;
+  color: var(--nx-color-threat-unspecified);
 }
 
 .iq-threat-level--none {
-  color: $nx-threat-color-none;
+  color: var(--nx-color-threat-none);
 }
 
 .iq-threat-level--low {
-  color: $nx-threat-color-low;
+  color: var(--nx-color-threat-low);
 }
 
 .iq-threat-level--moderate {
-  color: $nx-threat-color-moderate;
+  color: var(--nx-color-threat-moderate);
 }
 
 .iq-threat-level--severe {
-  color: $nx-threat-color-severe;
+  color: var(--nx-color-threat-severe);
 }
 
 .iq-threat-level--critical {
-  color: $nx-threat-color-critical;
+  color: var(--nx-color-threat-critical);
 }

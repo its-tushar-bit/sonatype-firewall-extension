@@ -13,7 +13,6 @@ import {
   NxFontAwesomeIcon,
   NxStatefulTreeViewMultiSelect,
   NxStatefulTreeViewRadioSelect,
-  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
@@ -114,7 +113,7 @@ export default function DashboardFilter(props) {
     ? 'Please apply a filter'
     : filtersAreDirty
     ? 'Please apply or revert filter'
-    : '';
+    : 'Close';
 
   return (
     <IqPopover id="dashboard-filter-container" onClose={() => toggleFilterSidebar(false)}>
@@ -122,18 +121,17 @@ export default function DashboardFilter(props) {
       <IqPopover.Header className="dashboard-filter-header" id="dashboard-filter-header">
         <div className="dashboard-filter-header__title">
           <h3 className="nx-h3 dashboard-filter-header__title-text">Filter</h3>
-          <NxTooltip id="dashboard-filter-close-btn-tooltip" placement="top-end" title={closeFilterBtnTooltip}>
-            <NxButton
-              id="dashboard-filter-close-btn"
-              onClick={handleCloseBtnClick}
-              variant="icon-only"
-              className={classnames({
-                disabled: filtersAreDirty || needsAcknowledgement,
-              })}
-            >
-              <NxFontAwesomeIcon icon={faArrowToRight} />
-            </NxButton>
-          </NxTooltip>
+          <NxButton
+            id="dashboard-filter-close-btn"
+            onClick={handleCloseBtnClick}
+            variant="icon-only"
+            title={closeFilterBtnTooltip}
+            className={classnames({
+              disabled: filtersAreDirty || needsAcknowledgement,
+            })}
+          >
+            <NxFontAwesomeIcon icon={faArrowToRight} />
+          </NxButton>
         </div>
         {!loading && !loadError && (
           <ManageFiltersDropdown

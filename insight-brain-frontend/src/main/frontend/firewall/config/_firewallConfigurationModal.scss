@@ -4,16 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
-@import '~@sonatype/react-shared-components/scss-shared/nx-colors';
-
 #auto-release-condition-toggles {
   .nx-toggle {
     margin: 0;
   }
 
-  padding-top: $nx-spacing-xxs;
+  padding-top: var(--nx-spacing-base);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: $nx-spacing-md;
+  gap: var(--nx-spacing-4x);
 }

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 import { chain, map, pipe, prop, uniq } from 'ramda';
@@ -88,119 +88,117 @@ export default function LegalApplicationDetailsPage(props) {
     });
 
   return (
-    <Fragment>
-      {filterSidebarOpen && (
-        <LegalApplicationDetailsFilterContainer
-          licenseThreatGroups={getLicenseThreatGroupsFromComponents(components.filteredResults)}
-        />
-      )}
-      <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
-        <LoadWrapper
-          loading={application.loading || stageType.loading}
-          error={errorLoading}
-          retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
-        >
-          <div className="nx-page-title">
-            <h1 className="nx-h1">{application.name} Obligations</h1>
-            <div className="nx-btn-bar">
-              <NxButton variant="primary" onClick={() => window.open(reportUrl, '_blank')}>
-                Create Attribution Report
-              </NxButton>
-            </div>
-            <div className="nx-page-title__description">
-              <div className="nx-tile-header__subtitle">{stageType.name} Stage</div>
-            </div>
+    <main id="legal-application-details-container" className="nx-page-main nx-viewport-sized">
+      <LoadWrapper
+        loading={application.loading || stageType.loading}
+        error={errorLoading}
+        retryHandler={() => loadApplication(applicationPublicId, stageTypeId)}
+      >
+        {filterSidebarOpen && (
+          <LegalApplicationDetailsFilterContainer
+            licenseThreatGroups={getLicenseThreatGroupsFromComponents(components.filteredResults)}
+          />
+        )}
+        <div className="nx-page-title">
+          <h1 className="nx-h1">{application.name} Obligations</h1>
+          <div className="nx-btn-bar">
+            <NxButton variant="primary" onClick={() => window.open(reportUrl, '_blank')}>
+              Create Attribution Report
+            </NxButton>
           </div>
-          <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
-            <section className="nx-tile">
-              <header className="nx-tile-header">
-                <div className="nx-tile__actions">
-                  <NxButton id="filter-toggle" className="btn" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
-                    <NxFontAwesomeIcon icon={faFilter} />
-                    <span>Filter</span>
-                  </NxButton>
-                </div>
-              </header>
-              <div className="nx-tile-content">
-                <NxTable id="legal-application-details-table" className="legal-dashboard-table">
-                  <NxTableHead>
-                    <NxTableRow>
-                      <NxTableCell
-                        isSortable
-                        sortDir={componentSortOrder}
-                        onClick={updateComponentSortOrder}
-                        className="legal-application-details-table-component"
-                      >
-                        Component
-                      </NxTableCell>
-                      <NxTableCell
-                        isSortable
-                        sortDir={licensesSortOrder}
-                        onClick={updateLicenseSortOrder}
-                        className="legal-application-details-table-licenses"
-                      >
-                        Licenses
-                      </NxTableCell>
-                      <NxTableCell
-                        isSortable
-                        sortDir={progressSortOrder}
-                        onClick={updateProgressSortOrder}
-                        className="legal-application-details-table-review-progress"
-                      >
-                        Completed Obligations
-                      </NxTableCell>
-                      <NxTableCell
-                        isSortable
-                        sortDir={statusSortOrder}
-                        onClick={updateStatusSortOrder}
-                        className="legal-application-details-table-review-status"
-                      >
-                        Review Status
-                      </NxTableCell>
-                    </NxTableRow>
-                  </NxTableHead>
-                  <NxTableBody
-                    emptyMessage="No components found"
-                    isLoading={components.loading}
-                    error={Messages.getHttpErrorMessage(components.error)}
-                  >
-                    <NxTableRow key="__filter">
-                      <NxTableCell>
-                        <NxFilterInput
-                          id="legal-application-component-filter"
-                          value={componentFilter || ''}
-                          placeholder="Filter components"
-                          onChange={(newVal) => changeComponentNameFilter({ filter: newVal })}
-                        />
-                      </NxTableCell>
-                      <NxTableCell>
-                        <NxFilterInput
-                          id="legal-application-license-filter"
-                          value={licenseFilter || ''}
-                          placeholder="Filter licenses"
-                          onChange={(newVal) => changeLicenseNameFilter({ filter: newVal })}
-                        />
-                      </NxTableCell>
-                      <NxTableCell />
-                      <NxTableCell />
-                    </NxTableRow>
-                    {components.filteredResults.map((row, index) => (
-                      <LegalApplicationDetailsComponentRow
-                        key={index}
-                        applicationPublicId={applicationPublicId}
-                        stageTypeId={stageTypeId}
-                        row={row}
-                        stateGo={stateGo}
-                      />
-                    ))}
-                  </NxTableBody>
-                </NxTable>
+          <div className="nx-page-title__description">
+            <div className="nx-tile-header__subtitle">{stageType.name} Stage</div>
+          </div>
+        </div>
+        <div className="nx-scrollable nx-table-container nx-viewport-sized__scrollable">
+          <section className="nx-tile">
+            <header className="nx-tile-header">
+              <div className="nx-tile__actions">
+                <NxButton id="filter-toggle" className="btn" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
+                  <NxFontAwesomeIcon icon={faFilter} />
+                  <span>Filter</span>
+                </NxButton>
               </div>
-            </section>
-          </div>
-        </LoadWrapper>
-      </main>
-    </Fragment>
+            </header>
+            <div className="nx-tile-content">
+              <NxTable id="legal-application-details-table" className="legal-dashboard-table">
+                <NxTableHead>
+                  <NxTableRow>
+                    <NxTableCell
+                      isSortable
+                      sortDir={componentSortOrder}
+                      onClick={updateComponentSortOrder}
+                      className="legal-application-details-table-component"
+                    >
+                      Component
+                    </NxTableCell>
+                    <NxTableCell
+                      isSortable
+                      sortDir={licensesSortOrder}
+                      onClick={updateLicenseSortOrder}
+                      className="legal-application-details-table-licenses"
+                    >
+                      Licenses
+                    </NxTableCell>
+                    <NxTableCell
+                      isSortable
+                      sortDir={progressSortOrder}
+                      onClick={updateProgressSortOrder}
+                      className="legal-application-details-table-review-progress"
+                    >
+                      Completed Obligations
+                    </NxTableCell>
+                    <NxTableCell
+                      isSortable
+                      sortDir={statusSortOrder}
+                      onClick={updateStatusSortOrder}
+                      className="legal-application-details-table-review-status"
+                    >
+                      Review Status
+                    </NxTableCell>
+                  </NxTableRow>
+                </NxTableHead>
+                <NxTableBody
+                  emptyMessage="No components found"
+                  isLoading={components.loading}
+                  error={Messages.getHttpErrorMessage(components.error)}
+                >
+                  <NxTableRow key="__filter">
+                    <NxTableCell>
+                      <NxFilterInput
+                        id="legal-application-component-filter"
+                        value={componentFilter || ''}
+                        placeholder="Filter components"
+                        onChange={(newVal) => changeComponentNameFilter({ filter: newVal })}
+                      />
+                    </NxTableCell>
+                    <NxTableCell>
+                      <NxFilterInput
+                        id="legal-application-license-filter"
+                        value={licenseFilter || ''}
+                        placeholder="Filter licenses"
+                        onChange={(newVal) => changeLicenseNameFilter({ filter: newVal })}
+                      />
+                    </NxTableCell>
+                    <NxTableCell />
+                    <NxTableCell />
+                  </NxTableRow>
+                  {components.filteredResults.map((row, index) => (
+                    <LegalApplicationDetailsComponentRow
+                      key={index}
+                      applicationPublicId={applicationPublicId}
+                      stageTypeId={stageTypeId}
+                      row={row}
+                      stateGo={stateGo}
+                    />
+                  ))}
+                </NxTableBody>
+              </NxTable>
+            </div>
+          </section>
+        </div>
+      </LoadWrapper>
+    </main>
   );
 }
 

@@ -3,16 +3,10 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 
 sidebar-view {
   display: contents;
-}
-
-#iq-content .nx-page-sidebar {
-  margin-top: $nx-main-header-height;
-  padding-top: $nx-spacing-sm;
 }
 
 .nx-page-sidebar.nx-page-sidebar--nav-sidebar {
@@ -26,6 +20,6 @@ sidebar-view {
 
 .nx-scrollable.nx-scrollable--nav-list {
   .nx-list__subtext {
-    margin-top: $nx-spacing-xs;
+    margin-top: var(--nx-spacing-2x);
   }
 }

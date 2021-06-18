@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxTableHeader;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -125,8 +126,8 @@ public class FirewallPageComponents
       return tableBody().findAll("tr");
     }
 
-    public SelenideElement quarantineTimeHeader() {
-      return child("#quarantineTime-header");
+    public NxTableHeader quarantineTimeHeader() {
+      return new NxTableHeader("#quarantineTime-header");
     }
   }
 
@@ -181,12 +182,12 @@ public class FirewallPageComponents
       return tableBody().findAll("tr");
     }
 
-    public SelenideElement quarantineTimeHeader() {
-      return child("#quarantineTime-header");
+    public NxTableHeader quarantineTimeHeader() {
+      return new NxTableHeader("#quarantineTime-header");
     }
 
-    public SelenideElement releaseQuarantineTimeHeader() {
-      return child("#releaseQuarantineTime-header");
+    public NxTableHeader releaseQuarantineTimeHeader() {
+      return new NxTableHeader("#releaseQuarantineTime-header");
     }
   }
 

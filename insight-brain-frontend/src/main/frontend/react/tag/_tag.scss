@@ -9,7 +9,7 @@
     @include container-horizontal();
 
     img {
-      margin-right: $nx-spacing-xs;
+      margin-right: var(--nx-spacing-2x);
       height: 20px;
     }
   }

@@ -21,7 +21,12 @@
 
   .repository-configuration-list__manager-id,
   .repository-configuration-list__enabled {
-    width: 1px;
     white-space: nowrap;
+  }
+
+  .repository-configuration-list__manager-id {
+    // HACK. this is the maximum width that'll fit at min screen size. Note that because of table layout wonkiness,
+    // this number is not strictly respected - if there's room to grow the cell more it will grow more
+    max-width: 356px;
   }
 }

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { Fragment, useEffect, useState } from 'react';
-import { selectableColors } from '@sonatype/react-shared-components';
+import { selectableColorClasses } from '@sonatype/react-shared-components';
 import { licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
 import * as PropTypes from 'prop-types';
 import { partial } from 'ramda';
@@ -24,10 +24,10 @@ export default function LicenseFullDetailsTile(props) {
   let licenseSpanColorIndex = 0;
 
   const createObligationContentTexts = (licenseObligationLicenseText, index) => {
-    const color = selectableColors[obligationColorIndex % selectableColors.length];
+    const colorClass = selectableColorClasses[obligationColorIndex % selectableColorClasses.length];
     obligationColorIndex = obligationColorIndex + 1;
 
-    const classes = `license-full-details__obligation-text--${color}`;
+    const classes = `license-full-details__obligation-text ${colorClass}`;
     return (
       <dd className="nx-read-only__data" key={index}>
         <q className={classes} onClick={partial(setHighlight, [licenseObligationLicenseText])}>
@@ -49,9 +49,9 @@ export default function LicenseFullDetailsTile(props) {
     }
     obligations.map((obligation) => {
       obligation.obligationTexts.map((obligationText, textIndex) => {
-        const color = selectableColors[licenseSpanColorIndex % selectableColors.length];
+        const colorClass = selectableColorClasses[licenseSpanColorIndex % selectableColorClasses.length];
         licenseSpanColorIndex += 1;
-        const colorClass = `license-full-details__license-obligation-highlight--${color}`;
+        const classes = `license-full-details__license-obligation-highlight ${colorClass}`;
 
         const reg = new RegExp(escapeTextSnippetForRegExp(obligationText), 'm');
         const match = reg.exec(text);
@@ -59,7 +59,7 @@ export default function LicenseFullDetailsTile(props) {
           const start = match.index;
           const end = start + match[0].length;
           licenseSpans.push({
-            colorClass,
+            classes,
             start,
             end,
             obligationText,
@@ -90,7 +90,7 @@ export default function LicenseFullDetailsTile(props) {
         <mark
           key={`license-text-span-highlight-${index}`}
           id={span.obligationAnchor}
-          className={span.colorClass}
+          className={span.classes}
           ref={(element) => markRef.current.set(span.obligationText, element)}
         >
           {text.slice(span.start, span.end)}

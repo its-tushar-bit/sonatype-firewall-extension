@@ -65,7 +65,7 @@ public class ChangeDefaultAdminPasswordNoticeTest
     DashboardPage.filterToggle().shouldBe(visible).click();
     eyesWatcher.eyesCheck("DefaultAdminPasswordNotice with dashboard filter");
 
-    assertNotice(visible, text("Click your username"));
+    assertNotice(visible, text("change your password"));
 
     User admin = userDAO.getByUsername("admin");
     String originalPassword = admin.getPassword();
@@ -99,7 +99,7 @@ public class ChangeDefaultAdminPasswordNoticeTest
     grantPermissions(getUsername(), GLOBAL_CONTEXT_ID, Permission.CONFIGURE_SYSTEM);
     login();
 
-    assertNotice(visible, text("Log in as 'admin'"));
+    assertNotice(visible, text("The \"admin\" user has the default password set"));
     eyesWatcher.eyesCheck();
     testCLMServer.getCLMServer().getConfiguration().setEnableDefaultPasswordWarning(false);
     refresh();

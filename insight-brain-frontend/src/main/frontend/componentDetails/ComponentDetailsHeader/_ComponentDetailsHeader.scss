@@ -5,7 +5,6 @@
  */
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 .component-details-header__heading {
   @include nx-truncate-ellipsis;

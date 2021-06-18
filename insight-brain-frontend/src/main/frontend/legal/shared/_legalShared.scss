@@ -4,15 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
-
 .legal-binary-donut-chart .nx-binary-donut-chart__arc {
-  stroke: $nx-green-700;
+  stroke: var(--nx-swatch-green-30);
 }
 
 .legal-binary-donut-check {
   font-size: 30px;
-  color: $nx-green-700;
+  color: var(--nx-swatch-green-30);
 }
 
 .legal-binary-donut-check.nx-icon {

@@ -8,7 +8,7 @@ import * as enzymeUtils from '../../enzymeUtils';
 import DeleteWaiverModal from '../../../../main/frontend/waivers/deleteWaiverModal/DeleteWaiverModal';
 
 describe('DeleteWaiverModal', function () {
-  let minimalProps, deleteWaiverSpy, hideDeleteWaiverModalSpy, getShallowComponent, getMountedComponent;
+  let minimalProps, deleteWaiverSpy, hideDeleteWaiverModalSpy, getShallowComponent, getMountedComponent, mountPoint;
 
   beforeEach(function () {
     deleteWaiverSpy = jasmine.createSpy('deleteWaiver');
@@ -24,8 +24,15 @@ describe('DeleteWaiverModal', function () {
       hideDeleteWaiverModal: hideDeleteWaiverModalSpy,
     };
 
+    mountPoint = document.createElement('div');
+    document.body.appendChild(mountPoint);
+
     getShallowComponent = enzymeUtils.getShallowComponent(DeleteWaiverModal, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(DeleteWaiverModal, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(DeleteWaiverModal, minimalProps, { attachTo: mountPoint });
+  });
+
+  afterEach(() => {
+    document.body.removeChild(mountPoint);
   });
 
   it('renders an NxModal', function () {

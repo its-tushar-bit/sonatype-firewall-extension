@@ -18,11 +18,11 @@ transitive-violations-page-container {
   }
 
   .nx-icon--fail {
-    color: $nx-red-800;
+    color: var(--nx-swatch-red-45);
   }
 
   .nx-icon--warn {
-    color: $nx-orange-700;
+    color: var(--nx-swatch-orange-55);
   }
 
   .nx-page-title {
@@ -39,6 +39,6 @@ transitive-violations-page-container {
   .nx-page-title__tags--vertical {
     @include container-vertical;
     grid-area: tags;
-    margin: $nx-spacing-md 0 0 0;
+    margin: var(--nx-spacing-md) 0 0 0;
   }
 }

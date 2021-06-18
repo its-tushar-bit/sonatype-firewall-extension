@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 // Tweaks necessary to get RSC nx-* classes to work within iq-* containers
 .iq-scrollable {
@@ -17,7 +16,7 @@
 }
 
 .nx-cell > .iq-text-indicator:first-child {
-  margin-left: $nx-spacing-sm;
+  margin-left: var(--nx-spacing-3x);
 }
 
 .nx-vulnerability-details dt {
@@ -33,7 +32,7 @@
 .nx-tree-view--threat-slider {
   .nx-tree-view__child {
     line-height: 18px;
-    margin-left: $nx-spacing-xs;
+    margin-left: var(--nx-spacing-2x);
   }
 }
 

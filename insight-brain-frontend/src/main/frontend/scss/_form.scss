@@ -8,7 +8,6 @@
 
   base form typography is in _typography.scss
 */
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 // Shared styles
 
@@ -194,7 +193,7 @@ textarea {
 
     border: 1px solid $iq-grey-4;
     border-left-width: 4px;
-    font-size: $nx-font-size;
+    font-size: var(--nx-font-size);
     height: 32px;
     padding: 0 8px;
     width: 219px;
@@ -491,13 +490,13 @@ dropdown-selector {
   }
 
   &.nx-form-group {
-    margin-bottom: $nx-spacing-xl;
+    margin-bottom: var(--nx-spacing-8x);
   }
 }
 
 .iq-read-only-data {
   cursor: default;
-  margin-left: $nx-spacing-xs;
+  margin-left: var(--nx-spacing-2x);
 
   .fa {
     margin-right: 8px;
@@ -519,7 +518,7 @@ dropdown-selector {
     margin-left: 0;
 
     + .iq-read-only-data {
-      margin-left: $nx-spacing-xs;
+      margin-left: var(--nx-spacing-2x);
     }
   }
 }

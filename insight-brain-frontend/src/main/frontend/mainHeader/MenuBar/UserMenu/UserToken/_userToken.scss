@@ -4,14 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
-
 .iq-user-token-modal {
   .iq-user-token-modal__highlight-paragraph {
     @include semi-bold();
   }
 
   .iq-user-token-modal__info-paragraph {
-    margin-bottom: $nx-spacing-xl;
+    margin-bottom: var(--nx-spacing-8x);
   }
 }

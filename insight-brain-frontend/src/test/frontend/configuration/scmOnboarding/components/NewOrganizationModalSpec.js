@@ -8,7 +8,7 @@ import NewOrganizationModal from '../../../../../main/frontend/configuration/scm
 import { NxButton, NxForm, NxModal, NxTextInput } from '@sonatype/react-shared-components';
 
 describe('NewOrganizationModal', function () {
-  let minimalProps, getShallowComponent, getMountedComponent;
+  let minimalProps, getShallowComponent, getMountedComponent, mountPoint;
 
   beforeEach(() => {
     minimalProps = {
@@ -16,8 +16,17 @@ describe('NewOrganizationModal', function () {
       addOrganization: jasmine.createSpy('addOrganization'),
     };
 
+    mountPoint = document.createElement('div');
+    document.body.appendChild(mountPoint);
+
     getShallowComponent = enzymeUtils.getShallowComponent(NewOrganizationModal, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(NewOrganizationModal, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(NewOrganizationModal, minimalProps, {
+      attachTo: mountPoint,
+    });
+  });
+
+  afterEach(() => {
+    document.body.removeChild(mountPoint);
   });
 
   it('renders a narrow NxModal', () => {

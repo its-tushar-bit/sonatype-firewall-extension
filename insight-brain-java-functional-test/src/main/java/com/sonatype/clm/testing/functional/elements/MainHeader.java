@@ -20,7 +20,7 @@ public class MainHeader
   }
 
   public static SelenideElement productVersion() {
-    return $(".iq-sidebar-nav-footer__product-info");
+    return $(".nx-global-sidebar__release");
   }
 
   public static SelenideElement productLogo() {

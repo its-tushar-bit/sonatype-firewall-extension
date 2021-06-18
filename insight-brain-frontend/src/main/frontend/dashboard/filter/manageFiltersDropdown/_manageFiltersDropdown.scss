@@ -5,7 +5,6 @@
  */
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 .nx-dropdown.iq-manage-filters-dropdown {
   display: block;
@@ -16,7 +15,7 @@
     width: 100%;
 
     .iq-manage-filters-dropdown__dirty-asterisk {
-      color: $nx-text-color-dark;
+      color: var(--nx-color-text-dark);
     }
   }
 
@@ -38,7 +37,7 @@
 
       &:hover,
       &:focus {
-        background-color: $nx-grey-1;
+        background-color: var(--nx-swatch-grey-95);
       }
 
       .nx-dropdown-button {

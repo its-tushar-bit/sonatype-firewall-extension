@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional;
 
+import java.util.Arrays;
+
 import com.applitools.eyes.BatchInfo;
 import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
@@ -127,13 +129,25 @@ public class EyesWatcher
     if (!eyes.getIsOpen()) {
       eyes.open(remoteDriver, "IQ Server", testName);
     }
-    By ignoreRegion = By.className("visual-testing-ignore");
+
+    Iterable<By> ignoreRegions = Arrays.asList(
+        By.className("visual-testing-ignore"),
+        By.className("nx-global-sidebar__release")
+    );
     SeleniumCheckSettings settings = Target.window();
-    for (WebElement element : remoteDriver.findElements(ignoreRegion)) {
-      settings = settings.ignore(element);
+    for (By ignoreRegion : ignoreRegions) {
+      settings = ignoreBySelector(ignoreRegion, remoteDriver, settings);
     }
 
     eyes.check(tag, settings.ignoreDisplacements(ignoreDisplacements));
+  }
+
+  private SeleniumCheckSettings ignoreBySelector(By selector, WebDriver remoteDriver, SeleniumCheckSettings settings) {
+    for (WebElement element : remoteDriver.findElements(selector)) {
+      settings = settings.ignore(element);
+    }
+
+    return settings;
   }
 
   private static boolean isMaster() {

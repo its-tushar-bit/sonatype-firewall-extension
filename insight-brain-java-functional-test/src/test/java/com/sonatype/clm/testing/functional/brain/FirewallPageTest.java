@@ -12,6 +12,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxTableHeader;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantine;
@@ -24,7 +25,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -173,21 +173,21 @@ public class FirewallPageTest
 
     page.shouldBe(visible);
 
-    SelenideElement quarantineTimeHeader = page.firewallQuarantineTable().quarantineTimeHeader();
+    NxTableHeader quarantineTimeHeader = page.firewallQuarantineTable().quarantineTimeHeader();
 
-    quarantineTimeHeader.shouldHave(
+    quarantineTimeHeader.sortBtn().shouldHave(
         attribute("aria-label", "Quarantine Date unsorted"));
     quarantineTimeHeader.click();
 
-    quarantineTimeHeader.shouldHave(
+    quarantineTimeHeader.sortBtn().shouldHave(
         attribute("aria-label", "Quarantine Date ascending"));
     quarantineTimeHeader.click();
 
-    quarantineTimeHeader.shouldHave(
+    quarantineTimeHeader.sortBtn().shouldHave(
         attribute("aria-label", "Quarantine Date descending"));
     quarantineTimeHeader.click();
 
-    quarantineTimeHeader.shouldHave(
+    quarantineTimeHeader.sortBtn().shouldHave(
         attribute("aria-label", "Quarantine Date unsorted"));
   }
 }

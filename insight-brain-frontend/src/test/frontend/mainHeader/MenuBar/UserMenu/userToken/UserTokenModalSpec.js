@@ -13,7 +13,7 @@ import UserTokenDisplay from '../../../../../../main/frontend/mainHeader/MenuBar
 import UserTokenModal from '../../../../../../main/frontend/mainHeader/MenuBar/UserMenu/UserToken/UserTokenModal';
 
 describe('UserTokenModal', function () {
-  let minimalProps, getShallowComponent, getMountedComponent;
+  let minimalProps, getShallowComponent, getMountedComponent, mountPoints;
 
   beforeEach(function () {
     minimalProps = {
@@ -30,9 +30,30 @@ describe('UserTokenModal', function () {
       checkUserTokenExistence: jasmine.createSpy('checkUserTokenExistence'),
     };
 
+    mountPoints = [];
+
     getShallowComponent = enzymeUtils.getShallowComponent(UserTokenModal, minimalProps);
-    getMountedComponent = enzymeUtils.getMountedComponent(UserTokenModal, minimalProps);
+    getMountedComponent = (props) =>
+      enzymeUtils.getMountedComponent(UserTokenModal, minimalProps, {
+        attachTo: getMountPoint(),
+      })(props);
   });
+
+  afterEach(() => {
+    for (const mountPoint of mountPoints) {
+      document.body.removeChild(mountPoint);
+    }
+
+    mountPoints = [];
+  });
+
+  function getMountPoint() {
+    const mountPoint = document.createElement('div');
+    document.body.append(mountPoint);
+    mountPoints.push(mountPoint);
+
+    return mountPoint;
+  }
 
   it('renders a narrow NxModal', function () {
     const component = getShallowComponent(),

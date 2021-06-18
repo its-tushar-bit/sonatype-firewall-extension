@@ -10,14 +10,19 @@
   position: absolute;
   bottom: 0;
   right: 0;
-  height: calc(100% - #{$nx-main-header-height});
+  top: 0;
   z-index: 1070;
+}
+
+.nx-viewport-sized > .iq-popover,
+.nx-viewport-sized__container > .iq-popover {
+  width: auto;
 }
 //End positioning and layout styles
 
 .iq-popover {
-  background-color: $nx-white;
-  border: 1px $nx-indigo-100 solid;
+  background-color: var(--nx-swatch-white);
+  border: 1px var(--nx-swatch-indigo-95) solid;
   box-sizing: border-box;
 }
 
@@ -35,7 +40,7 @@
 
 .iq-popover__content {
   overflow-y: auto;
-  padding: $nx-spacing-l;
+  padding: var(--nx-spacing-6x);
 
   .iq-popover__header + & {
     padding-top: 0;
@@ -46,7 +51,7 @@
 }
 
 .iq-popover__divider {
-  margin: $nx-spacing-sm auto;
+  margin: var(--nx-spacing-3x) auto;
   border: 0 none;
   box-shadow: none;
   border-top: 1px $iq-grey-4 solid;
@@ -55,14 +60,14 @@
 .iq-popover__header,
 .iq-popover__footer {
   @include container-vertical;
-  padding: $nx-spacing-l;
+  padding: var(--nx-spacing-6x);
 }
 
 .iq-popover__header {
   padding-bottom: 0;
 
   .iq-popover__divider {
-    margin: $nx-spacing-xs auto 0 auto;
+    margin: var(--nx-spacing-2x) auto 0 auto;
   }
 }
 

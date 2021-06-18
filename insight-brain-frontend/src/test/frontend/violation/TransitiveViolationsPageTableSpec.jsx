@@ -10,7 +10,7 @@ import { faExclamationCircle, faExclamationTriangle } from '@fortawesome/pro-sol
 import TransitiveViolationsPageTable from '../../../main/frontend/violation/TransitiveViolationsPageTable';
 
 describe('TransitiveViolationsPageTable', function () {
-  let minimalProps, spySetSortingParameters, spySetFilteringParameters, getShallowComponent;
+  let minimalProps, spySetSortingParameters, spySetFilteringParameters, getMountedComponent, getShallowComponent;
 
   beforeEach(function () {
     spySetSortingParameters = jasmine.createSpy('spySetSortingParameters');
@@ -38,6 +38,7 @@ describe('TransitiveViolationsPageTable', function () {
       setFilteringParameters: spySetFilteringParameters,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(TransitiveViolationsPageTable, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(TransitiveViolationsPageTable, minimalProps);
   });
 
   describe('transitive policy violation', function () {
@@ -192,7 +193,7 @@ describe('TransitiveViolationsPageTable', function () {
   });
 
   it('displays empty message with no transitive policy violations', function () {
-    const wrapper = getShallowComponent();
+    const wrapper = getMountedComponent();
     const nxTableBody = wrapper.find(NxTableBody);
     expect(nxTableBody).toHaveProp('emptyMessage', 'None');
     expect(nxTableBody.html()).toContain('None');

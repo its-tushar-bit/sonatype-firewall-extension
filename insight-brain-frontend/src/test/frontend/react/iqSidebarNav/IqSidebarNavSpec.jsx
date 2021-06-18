@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
 import { faArrowToLeft, faBars } from '@fortawesome/pro-regular-svg-icons';
 import {
   faChartArea,
@@ -16,6 +15,7 @@ import {
   faSitemap,
 } from '@fortawesome/pro-solid-svg-icons';
 import * as preferenceStoreFunctions from '../../../../main/frontend/util/preferenceStore';
+import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
 
 import * as enzymeUtils from '../../enzymeUtils';
 import IqSidebarNav from '../../../../main/frontend/react/iqSidebarNav/IqSidebarNav';
@@ -34,7 +34,7 @@ describe('IqSidebarNav', function () {
     hrefSpy = jasmine.createSpy('href').and.callFake((args) => `href-${args}`);
     includesSpy = jasmine.createSpy('includes').and.returnValue(false);
 
-    spyOn(React, 'useContext').and.returnValue({
+    spyOn(routerContext, 'useRouterState').and.returnValue({
       href: hrefSpy,
       includes: includesSpy,
     });

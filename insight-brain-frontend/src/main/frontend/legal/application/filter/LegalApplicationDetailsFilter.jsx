@@ -4,12 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  NxButton,
-  NxFontAwesomeIcon,
-  NxStatefulTreeViewMultiSelect,
-  NxTooltip,
-} from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { curryN, prop, sortBy } from 'ramda';
 import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
@@ -32,15 +27,14 @@ export default function LegalApplicationDetailsFilter(props) {
       <IqPopover.Header className="legal-application-details-filter-header">
         <div className="legal-application-details-filter-header__title">
           <h3 className="nx-h3 legal-application-details-filter-header__title-text">Filter</h3>
-          <NxTooltip id="legal-dashboard-filter-close-btn-tooltip" placement="top-end">
-            <NxButton
-              id="legal-dashboard-filter-close-btn"
-              onClick={() => toggleFilterSidebar(false)}
-              variant="icon-only"
-            >
-              <NxFontAwesomeIcon icon={faArrowToRight} />
-            </NxButton>
-          </NxTooltip>
+          <NxButton
+            id="legal-dashboard-filter-close-btn"
+            onClick={() => toggleFilterSidebar(false)}
+            variant="icon-only"
+            title="Close"
+          >
+            <NxFontAwesomeIcon icon={faArrowToRight} />
+          </NxButton>
         </div>
       </IqPopover.Header>
       <div className="legal-application-details-filter">

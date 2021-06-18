@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 .license-obligation-attribution-tile {
   .nx-modal {
@@ -14,5 +13,5 @@
 }
 
 #license-obligation-attribution-scope-selection-group {
-  margin-top: $nx-spacing-l;
+  margin-top: var(--nx-spacing-6x);
 }

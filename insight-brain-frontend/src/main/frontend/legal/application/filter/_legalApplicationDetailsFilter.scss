@@ -4,11 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
+@import '~@sonatype/react-shared-components/scss-shared/nx-button-helpers';
 
 .legal-application-details-filter {
   box-sizing: border-box;
-  padding-right: $nx-spacing-xs;
+  padding-right: var(--nx-spacing-2x);
   padding-left: 2px; // this is to avoid cutting off filter caret icon when it's turning
 
   .nx-tree-view .nx-filter-input {
@@ -19,10 +19,16 @@
 
 .legal-application-details-filter-header__title {
   @include container-horizontal;
+
+  align-items: start;
   display: flex;
 
   .legal-application-details-filter-header__title-text {
     flex-grow: 1;
     margin-top: 6px;
+  }
+
+  .nx-btn--icon-only {
+    @include nx-small-icon-btn;
   }
 }

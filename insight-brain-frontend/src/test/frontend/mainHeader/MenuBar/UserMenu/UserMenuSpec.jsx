@@ -15,7 +15,7 @@ import ChangePasswordModal from '../../../../../main/frontend/mainHeader/MenuBar
 
 describe('UserMenu', function () {
   let minProps;
-  let getMountedComponent;
+  let getMountedComponent, mountPoints;
 
   beforeEach(() => {
     minProps = {
@@ -30,8 +30,29 @@ describe('UserMenu', function () {
       changePasswordErrorMessage: undefined,
       onManageUserToken: jasmine.createSpy(),
     };
-    getMountedComponent = enzymeUtils.getMountedComponent(UserMenu, minProps);
+
+    mountPoints = [];
+
+    getMountedComponent = (props) => {
+      return enzymeUtils.getMountedComponent(UserMenu, minProps, { attachTo: getMountPoint() })(props);
+    };
   });
+
+  afterEach(() => {
+    for (const mountPoint of mountPoints) {
+      document.body.removeChild(mountPoint);
+    }
+
+    mountPoints = [];
+  });
+
+  function getMountPoint() {
+    const mountPoint = document.createElement('div');
+    document.body.appendChild(mountPoint);
+    mountPoints.push(mountPoint);
+
+    return mountPoint;
+  }
 
   it('calls the loadUser callback prop immediately on render', () => {
     const loadUser = jasmine.createSpy('loadUser');
@@ -88,7 +109,8 @@ describe('UserMenu', function () {
     const wrapper = mount(
       <Provider store={store}>
         <UserMenu {...minProps} />
-      </Provider>
+      </Provider>,
+      { attachTo: getMountPoint() }
     );
     expect(wrapper.find(UserTokenModal)).not.toExist();
 

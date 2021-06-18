@@ -32,7 +32,7 @@ firewall-auto-unquarantine-page {
     text-align: left;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: $nx-spacing-xs $nx-spacing-l;
+    gap: var(--nx-spacing-2x) var(--nx-spacing-6x);
 
     .nx-text-link {
       text-align: center;
@@ -59,7 +59,7 @@ h2.iq-firewall-table-label {
 }
 
 .iq-firewall-table__time {
-  font-size: $nx-font-size-xs;
+  font-size: var(--nx-font-size-xs);
   justify-self: right;
 }
 
@@ -101,7 +101,7 @@ h2.iq-firewall-table-label {
 .iq-firewall-status-description-line {
   width: 0px;
   height: 49px;
-  margin: 0 $nx-spacing-l 0 $nx-spacing-l;
+  margin: 0 var(--nx-spacing-6x) 0 var(--nx-spacing-6x);
   border: solid 1px #d1d6f0;
   display: inline-block;
 }

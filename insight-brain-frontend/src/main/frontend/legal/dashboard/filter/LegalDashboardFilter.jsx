@@ -9,7 +9,6 @@ import {
   NxErrorAlert,
   NxFontAwesomeIcon,
   NxStatefulTreeViewMultiSelect,
-  NxTooltip,
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../react/LoadWrapper';
 import IqPopover from '../../../react/IqPopover';
@@ -83,7 +82,7 @@ export default function LegalDashboardFilter(props) {
     loadFilter();
   }
 
-  const closeFilterBtnTooltip = filtersAreDirty ? 'Please apply or revert filter' : '';
+  const closeFilterBtnTooltip = filtersAreDirty ? 'Please apply or revert filter' : 'Close';
 
   return (
     <IqPopover onClose={() => toggleFilterSidebar(false)}>
@@ -91,16 +90,15 @@ export default function LegalDashboardFilter(props) {
       <IqPopover.Header className="legal-dashboard-filter-header">
         <div className="legal-dashboard-filter-header__title">
           <h3 className="nx-h3 legal-dashboard-filter-header__title-text">Filter</h3>
-          <NxTooltip id="legal-dashboard-filter-close-btn-tooltip" placement="top-end" title={closeFilterBtnTooltip}>
-            <NxButton
-              id="legal-dashboard-filter-close-btn"
-              onClick={handleCloseBtnClick}
-              variant="icon-only"
-              className={classnames({ disabled: filtersAreDirty })}
-            >
-              <NxFontAwesomeIcon icon={faArrowToRight} />
-            </NxButton>
-          </NxTooltip>
+          <NxButton
+            id="legal-dashboard-filter-close-btn"
+            onClick={handleCloseBtnClick}
+            variant="icon-only"
+            title={closeFilterBtnTooltip}
+            className={classnames({ disabled: filtersAreDirty })}
+          >
+            <NxFontAwesomeIcon icon={faArrowToRight} />
+          </NxButton>
         </div>
         {!loading && !loadError && (
           <ManageFiltersDropdown

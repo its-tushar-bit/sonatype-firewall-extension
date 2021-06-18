@@ -5,7 +5,7 @@
  */
 .iq-pagination-link {
   line-height: 1;
-  font-size: $nx-font-size-s;
+  font-size: var(--nx-font-size-s);
 
   &--disabled .nx-text-link {
     color: $iq-grey-4;

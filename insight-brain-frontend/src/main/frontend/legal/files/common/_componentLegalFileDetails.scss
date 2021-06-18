@@ -5,7 +5,6 @@
  */
 
 @import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-variables';
 @import 'node_modules/@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 #legal-file-details-tile {
@@ -20,7 +19,7 @@
 
 .legal-file-overview {
   display: grid;
-  column-gap: $nx-spacing-xxl;
+  column-gap: var(--nx-spacing-12x);
   grid-template-columns: 1fr 1fr 1fr 1fr;
   height: 100%;
   grid-template-rows: auto 1fr;
@@ -30,7 +29,7 @@
   }
 
   .legal-file-overview-text {
-    margin-top: $nx-spacing-xl;
+    margin-top: var(--nx-spacing-8x);
     grid-column: 1 / span 4;
   }
 }

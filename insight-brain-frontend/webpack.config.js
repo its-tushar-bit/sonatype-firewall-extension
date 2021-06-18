@@ -97,6 +97,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
           // NOTE: babel's transformRuntime and webpack's exports-loader cannot be used on the
           // same files due to https://github.com/webpack/webpack/issues/4039#issuecomment-274094298
           plugins: [transformObjectRestSpread, transformJsx, [transformRuntime, { polyfill: false }]],
+          babelrc: false,
         },
       },
     };
@@ -119,7 +120,7 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
         },
         {
           ...babelLoaderBaseRule,
-          include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|@react-hook)/,
+          include: /node_modules[\/\\](fuse\.js|asn1.js|@uirouter|@react-hook|@rooks)/,
         },
         {
           test: /\.jsx?$/,

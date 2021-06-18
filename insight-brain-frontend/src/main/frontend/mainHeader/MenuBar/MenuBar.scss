@@ -9,20 +9,10 @@
 @import './LoginButton/LoginButton';
 @import './NotificationsMenu/NotificationsMenu';
 
-.menu-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-
-  & > * {
-    margin-left: $iq-spacing-sm;
-  }
+menu-bar {
+  display: contents;
 }
 
-.menu-bar-separator {
-  width: 1px;
-  height: 30px;
-  background-color: $nx-indigo-100;
-  margin: auto $iq-spacing-md;
+.menu-bar {
+  gap: var(--nx-spacing-6x);
 }

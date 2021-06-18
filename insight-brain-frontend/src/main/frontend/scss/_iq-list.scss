@@ -138,7 +138,7 @@
     &:not(.iq-list__item--empty):not(.iq-disabled):not([disabled]) {
       &:hover,
       &:focus {
-        background-color: $nx-color-blue-96;
+        background-color: var(--nx-swatch-blue-95);
         border-top: 1px solid $iq-grey-4;
         border-bottom: 1px solid $iq-grey-4;
         color: $iq-off-black;
@@ -146,7 +146,7 @@
         outline-style: none; // removes :focus outline
 
         .fa-chevron-right {
-          color: $nx-color-blue-41;
+          color: var(--nx-swatch-blue-40);
         }
       }
 

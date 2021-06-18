@@ -34,7 +34,7 @@ public class AuditLogContent
   }
 
   public SelenideElement emptyMessage() {
-    return child("tbody > tr .nx-cell--meta-info span");
+    return child("tbody > tr .nx-cell--meta-info");
   }
 
   private String getRowSelector(int index) {

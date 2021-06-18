@@ -8,10 +8,7 @@
   position: relative;
 
   .iq-menu-button__button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: auto;
+    margin: 0;
   }
 
   .iq-menu-button__nav-link {
@@ -68,5 +65,10 @@
       top: -8px;
       right: 8px;
     }
+  }
+
+  .iq-menu-button__button--large-icon.nx-btn--icon-only {
+    padding: 0;
+    line-height: 1;
   }
 }

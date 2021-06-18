@@ -68,7 +68,7 @@ scm-onboarding {
     display: inline-block;
     margin-left: -22px; /* same as padding-left */
     width: 22px; /* same as padding-left */
-    color: $nx-green-700;
+    color: var(--nx-swatch-green-30);
   }
 
   .scm-import-detail-error:before {
@@ -79,7 +79,7 @@ scm-onboarding {
     display: inline-block;
     margin-left: -22px; /* same as padding-left */
     width: 22px; /* same as padding-left */
-    color: $nx-red-800;
+    color: var(--nx-swatch-red-45);
   }
 
   .scm-import-error-detail-list {

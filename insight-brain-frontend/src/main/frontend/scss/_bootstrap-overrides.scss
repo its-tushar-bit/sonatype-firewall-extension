@@ -7,8 +7,6 @@
  * Styles required to override Bootstraps default styles
  * Please list the location in the app of any changes
  */
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
-
 .nx-list {
   ul,
   ol {
@@ -60,14 +58,14 @@
     // use the same styling as <label>s
     border-style: none;
     font-size: 16px;
-    line-height: $nx-line-height;
+    line-height: var(--nx-line-height);
     margin-bottom: 0;
   }
 }
 
 .nx-label {
   margin-bottom: 0;
-  line-height: $nx-line-height;
+  line-height: var(--nx-line-height);
 }
 
 .nx-text-input__invalid-message {
@@ -82,9 +80,9 @@
     box-shadow: none;
     border: none;
     border-radius: 0;
-    color: $nx-text-color;
+    color: var(--nx-color-text);
     height: auto;
-    line-height: $nx-line-height;
+    line-height: var(--nx-line-height);
     margin: 0;
     transition: none;
     vertical-align: initial;
@@ -118,7 +116,7 @@
 .nx-h4,
 .nx-h5,
 .nx-h6 {
-  line-height: $nx-line-height;
+  line-height: var(--nx-line-height);
 }
 
 .nx-p {
@@ -140,7 +138,7 @@
 .nx-toggle {
   font-size: 16px;
   font-weight: normal;
-  line-height: $nx-line-height;
+  line-height: var(--nx-line-height);
 }
 
 .nx-text-link,

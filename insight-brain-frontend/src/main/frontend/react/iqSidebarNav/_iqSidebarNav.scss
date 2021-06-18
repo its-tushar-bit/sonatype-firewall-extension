@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 main-header,
@@ -13,39 +12,26 @@ iq-sidebar-nav {
   display: contents;
 }
 
-.nx-global-sidebar {
-  flex-shrink: 0;
-}
-
 .iq-sidebar-nav-footer {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  font-size: $nx-font-size-xs;
-  margin-top: auto;
-  padding-bottom: $nx-spacing-l;
-  text-align: center;
-}
-
-.iq-sidebar-nav-footer__product-info {
-  height: 2em * $nx-line-height;
-}
-
-.iq-sidebar-nav-footer__powered {
-  margin-top: $nx-spacing-sm;
-}
-
-.iq-sidebar-nav-footer__created {
-  margin-top: $nx-spacing-md;
+  .nx-global-sidebar__release {
+    // In IQ, we want the "Release 123" (or whatever) text to appear even when the sidebar is collapsed.
+    // We want it to wrap as needed but we want the first line to stay the same distance from the bottom.
+    // By enforcing a single-line height here we force the first line to stay in place. The second line
+    // overflows out of the bottom of the element but there's nothing else visible down there so that's fine
+    height: calc(1em * var(--nx-line-height));
+  }
 }
 
 .nx-global-sidebar.closed {
-  .iq-sidebar-nav-footer__powered,
-  .iq-sidebar-nav-footer__created {
-    // we're keeping these elements present but invisible
-    // so that they help in positioning the one visible footer element
-    // we also truncate so that text doesn't wrap in a new line and maintains its original height
-    @include nx-truncate-ellipsis;
-    visibility: hidden;
+  .iq-sidebar-nav-footer {
+    .nx-global-sidebar__release {
+      // In RSC, this whole section is invisible when collapsed. We only want the product name invisible
+      visibility: visible;
+      white-space: normal;
+    }
+  }
+
+  .iq-sidebar-nav-footer__product-name {
+    display: none;
   }
 }

@@ -4,8 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
-
 legal-dashboard {
   display: contents;
 }
@@ -50,6 +48,6 @@ legal-dashboard {
 
 .legal-dashboard-applications-review-progress > span,
 .legal-dashboard-components-review-progress > span {
-  margin-left: $nx-spacing-xs;
+  margin-left: var(--nx-spacing-2x);
   vertical-align: middle;
 }

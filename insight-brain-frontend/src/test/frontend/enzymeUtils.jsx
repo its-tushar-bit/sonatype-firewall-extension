@@ -12,9 +12,9 @@ export const getShallowComponent = (Component, minimalProps) =>
     return shallow(<Component {...minimalProps} {...additionalProps} />);
   };
 
-export const getMountedComponent = (Component, minimalProps) =>
+export const getMountedComponent = (Component, minimalProps, mountOpts) =>
   function getMounted(additionalProps) {
-    return mount(<Component {...minimalProps} {...additionalProps} />);
+    return mount(<Component {...minimalProps} {...additionalProps} />, mountOpts);
   };
 
 export const getLoadWrapperChildren = function getLoadWrapperChildren(pageShallowWrapper) {

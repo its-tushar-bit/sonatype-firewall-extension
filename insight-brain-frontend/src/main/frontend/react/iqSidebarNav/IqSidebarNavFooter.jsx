@@ -3,26 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
+import { NxGlobalSidebarFooter } from '@sonatype/react-shared-components';
 
-export default function IqSidebarNavFooter(props) {
-  const { productName, releaseNumber } = props;
-
-  const productNameClasses =
-    'iq-sidebar-nav-footer__product-name nx-global-sidebar__expanded-content visual-testing-ignore';
+export default function IqSidebarNavFooter({ productName, releaseNumber }) {
+  const releaseText = (
+    <Fragment>
+      <span className="iq-sidebar-nav-footer__product-name">{productName}</span>
+      {` `}Release {releaseNumber}
+    </Fragment>
+  );
 
   return (
-    <footer className="iq-sidebar-nav-footer">
-      <div className="iq-sidebar-nav-footer__product-info">
-        {productName && <span className={productNameClasses}>{productName}</span>}{' '}
-        {releaseNumber && (
-          <span className="iq-sidebar-nav-footer__release-number visual-testing-ignore">Release {releaseNumber}</span>
-        )}
-      </div>
-      <div className="iq-sidebar-nav-footer__powered">Powered by Nexus IQ Server</div>
-      <div className="iq-sidebar-nav-footer__created">Created by Sonatype</div>
-    </footer>
+    <NxGlobalSidebarFooter
+      className="iq-sidebar-nav-footer"
+      releaseText={releaseText}
+      productTagLine="Powered by Nexus IQ Server"
+    />
   );
 }
 

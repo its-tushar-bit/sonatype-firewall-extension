@@ -5,17 +5,16 @@
  */
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 div.legal-details-content {
   display: grid;
-  column-gap: $nx-spacing-md;
+  column-gap: var(--nx-spacing-4x);
   grid-template-columns: 24% 1fr;
 }
 
 .legal-preformatted {
   white-space: pre-wrap;
   @include monospace;
-  padding-left: $nx-spacing-xs;
+  padding-left: var(--nx-spacing-2x);
 }

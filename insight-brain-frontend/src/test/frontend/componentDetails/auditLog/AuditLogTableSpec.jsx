@@ -9,7 +9,7 @@ import AuditLogTable, { AUDIT_DATE_FORMAT } from '../../../../main/frontend/comp
 import * as dateUtils from '../../../../main/frontend/util/dateUtils';
 
 describe('AuditLogTable', function () {
-  let minimalProps, getShallow, auditRecords;
+  let minimalProps, getShallow, getMounted, auditRecords;
 
   beforeEach(function () {
     spyOn(dateUtils, 'formatDate').and.callThrough();
@@ -40,6 +40,7 @@ describe('AuditLogTable', function () {
     };
 
     getShallow = enzymeUtils.getShallowComponent(AuditLogTable, minimalProps);
+    getMounted = enzymeUtils.getMountedComponent(AuditLogTable, minimalProps);
   });
 
   it('renders a component', () => {
@@ -179,11 +180,11 @@ describe('AuditLogTable', function () {
 
   describe('Table body', () => {
     it('renders an NxTable with empty message if auditRecords are empty', () => {
-      const component = getShallow();
-      const body = component.find(NxTableBody).dive();
-      const tRow = body.find(NxTableRow).dive();
+      const component = getMounted();
+      const body = component.find(NxTableBody);
+      const tRow = body.find(NxTableRow);
       const tCell = tRow.find(NxTableCell);
-      expect(tCell.dive()).toHaveText('No changes were found for this component.');
+      expect(tCell).toHaveText('No changes were found for this component.');
     });
 
     it('sets isLoading in the table body', () => {

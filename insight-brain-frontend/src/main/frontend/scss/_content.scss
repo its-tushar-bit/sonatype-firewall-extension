@@ -5,7 +5,6 @@
  */
 
 @import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
-@import '~@sonatype/react-shared-components/scss-shared/nx-variables';
 
 body {
   &:not(.nx-body) {
@@ -15,7 +14,7 @@ body {
 
   &.nx-body {
     // override bootstrap
-    @include font-size($nx-font-size);
+    @include font-size(var(--nx-font-size));
   }
 }
 
@@ -27,8 +26,20 @@ ui-view {
   display: contents;
 }
 
+#iq-content {
+  // This is a hack for the sake of selenium. This element has `display: contents` so this
+  // makes no actual difference, but because it also had `overflow-y: hidden` selenium decided it wasn't
+  // visible (which isn't accurate). Unsetting `overflow-y` here fixes that.
+  overflow-y: revert;
+}
+
 [authorization-wrapper] > div {
   display: contents;
+}
+
+.nx-page-main {
+  // to make a positioning container for iq-popovers
+  position: relative;
 }
 
 // global errors
@@ -41,16 +52,5 @@ ui-view {
     justify-content: center;
     width: 50%;
     max-width: 400px;
-  }
-}
-
-.nx-page-content--full-width {
-  position: relative;
-
-  .nx-page-main {
-    flex: 1 1 var(--content-width);
-    // 32px top-bar height + 20px top-bar top spacing + 20px top-bar bottom spacing
-    margin-top: calc(32px + 40px);
-    padding-top: 0;
   }
 }

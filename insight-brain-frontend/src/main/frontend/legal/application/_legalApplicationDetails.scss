@@ -41,13 +41,13 @@ legal-application-details {
     @include semi-bold();
 
     &.status-FLAGGED {
-      color: $nx-red-700;
+      color: var(--nx-swatch-red-50);
     }
     &.status-IN_PROGRESS {
-      color: $nx-blue-600;
+      color: var(--nx-swatch-blue-40);
     }
     &.status-COMPLETED {
-      color: $nx-green-600;
+      color: var(--nx-swatch-green-40);
     }
   }
 }

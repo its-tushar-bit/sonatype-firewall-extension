@@ -24,15 +24,18 @@ export const MenuBar = ({
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0 || isLabsDataInsightsEnabled;
 
   if (!isLoggedIn && shouldShowLoginButton) {
-    return <LoginButton onClick={login} />;
+    return (
+      <div id="menu-bar" className="nx-global-header__actions menu-bar">
+        <LoginButton onClick={login} />
+      </div>
+    );
   }
   if (!isLoggedIn) {
     return null;
   }
 
   return (
-    <div id="menu-bar" className="menu-bar">
-      <span className="menu-bar-separator" />
+    <div id="menu-bar" className="nx-global-header__actions menu-bar">
       <HelpMenu majorMinorVersion={majorMinorVersion} />
       <NotificationsMenuContainer />
       {hasAnyPermissions && (

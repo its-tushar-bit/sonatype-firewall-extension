@@ -576,7 +576,7 @@ public class DashboardFilterTest
     DashboardFilters.closeButton().shouldBe(visible, DISABLED).click();
     DashboardFilters.closeButton().shouldBe(visible); // click should have no effect
     DashboardFilters.closeButton().hover();
-    DashboardFilters.closeButtonTooltip().shouldBe(visible).shouldHave(text("Please apply or revert filter"));
+    Tooltip.get().shouldBe(visible).shouldHave(text("Please apply or revert filter"));
 
     // apply new filter
     DashboardFilters.apply();
@@ -759,7 +759,7 @@ public class DashboardFilterTest
     DashboardFilters.closeButton().shouldBe(visible, DISABLED).click();
     DashboardFilters.closeButton().shouldBe(visible); // click should have no effect
     DashboardFilters.closeButton().hover();
-    DashboardFilters.closeButtonTooltip().shouldBe(visible).shouldHave(text("Please apply a filter"));
+    Tooltip.get().shouldBe(visible).shouldHave(text("Please apply a filter"));
 
     ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
     manage.selectedFilterLabel().shouldHave(exactText("Default"));
@@ -788,7 +788,7 @@ public class DashboardFilterTest
     DashboardFilters.closeButton().shouldBe(visible, DISABLED).click();
     DashboardFilters.closeButton().shouldBe(visible); // click should have no effect
     DashboardFilters.closeButton().hover();
-    DashboardFilters.closeButtonTooltip().shouldBe(visible).shouldHave(text("Please apply a filter"));
+    Tooltip.get().shouldBe(visible).shouldHave(text("Please apply a filter"));
 
     DashboardFilters.revertButton().shouldNotBe(DISABLED).click();
     DashboardFilters.apply();

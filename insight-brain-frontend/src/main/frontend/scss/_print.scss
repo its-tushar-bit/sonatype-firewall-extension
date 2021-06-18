@@ -58,6 +58,7 @@
   application-report-root,
   application-report-vulnerabilities,
   ui-view,
+  .nx-page,
   .nx-page-main,
   .nx-page-content,
   .nx-tile {
@@ -78,13 +79,18 @@
     border-left-style: none !important;
   }
 
-  .nx-global-sidebar {
+  .nx-global-sidebar,
+  .nx-global-sidebar__header {
     padding: 0 !important;
+  }
+
+  .nx-global-header {
+    display: none !important;
   }
 
   .iq-nav-bar--system,
   .nx-global-sidebar__toggle,
-  .iq-sidebar-nav-footer__powered {
+  .nx-global-sidebar__product-name {
     border: none !important;
     padding: 0 !important;
     display: none !important;
@@ -99,17 +105,18 @@
     margin-bottom: 24px !important;
   }
 
-  .iq-sidebar-nav-footer__product-info {
+  .nx-global-sidebar__release {
     height: auto !important;
+    margin: 0 !important;
     order: 2;
+
+    &::before {
+      content: ' | ';
+      white-space: pre;
+    }
   }
 
-  .iq-sidebar-nav-footer__product-info:before {
-    content: ' | ';
-    white-space: pre;
-  }
-
-  .nx-global-sidebar__product-info {
+  .nx-global-sidebar__created-by {
     order: 1;
   }
 

@@ -495,7 +495,7 @@ public class NewestRiskServiceTest
   }
 
   @Test
-  public void testGetNewestRisks_Deduplicate() {
+  public void testGetNewestRisks_MultipleConstraints() {
     Application app = tempEntity.newApplication(org1.getId());
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
     PolicyViolation violation1 = tempEntity.newPolicyViolation(evaluation, org1Policy);
@@ -512,10 +512,12 @@ public class NewestRiskServiceTest
         Collections.singleton(app.getId()), null, null, null, null, null, null, DashboardFilterDTO.DEFAULT_MAX_DAYS_OLD,
         1000);
 
-    assertThat(result.dashboardResults).hasSize(1);
-    assertThat(result.numResults).isEqualTo(1);
-    NewestRiskDTO riskDTO = result.dashboardResults.get(0);
-    assertNewestRiskDTO(riskDTO, app, org1, violation1, evaluation.getTime());
+    assertThat(result.dashboardResults).hasSize(2);
+    assertThat(result.numResults).isEqualTo(2);
+    NewestRiskDTO riskDTO1 = result.dashboardResults.get(0);
+    assertNewestRiskDTO(riskDTO1, app, org1, violation1, evaluation.getTime());
+    NewestRiskDTO riskDTO2 = result.dashboardResults.get(1);
+    assertNewestRiskDTO(riskDTO2, app, org1, violation2, evaluation.getTime());
   }
 
   @Test

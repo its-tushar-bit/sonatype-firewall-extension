@@ -67,8 +67,8 @@ public class ComponentDetailServiceTest
     Policy policy1 = tempEntity.newPolicy(app2);
     Policy policy2 = tempEntity.newPolicy(app2);
     PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scanId1");
-    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "reason1");
-    tempEntity.newPolicyViolation(policyEvaluation1, policy2, "groupId", "artifactId", "version", hash, "reason2");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash);
+    tempEntity.newPolicyViolation(policyEvaluation1, policy2, "groupId", "artifactId", "version", hash);
     // add another policy violation for a different stage and with a different threat level
     policy1.setThreatLevel(2);
     new PolicyDAO().update(policy1);
@@ -76,7 +76,7 @@ public class ComponentDetailServiceTest
       // just spinning until next policy eval time is guaranteed to be greater than time for the eval created above
     }
     PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), ReleaseStageType.ID, "scanId2");
-    tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId", "artifactId", "version", hash, "reason3");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy1, "groupId", "artifactId", "version", hash);
 
     // app3 does not have the component
     tempEntity.newApplicationWithParent("app3");
@@ -115,6 +115,44 @@ public class ComponentDetailServiceTest
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(2), StageTypes.STAGE_RELEASE, null, null, null);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(3), StageTypes.RELEASE, null, null, null);
     assertStageDetails(policyViolationSummaryDTO.stageDetails.get(4), StageTypes.OPERATE, null, null, null);
+  }
+
+  @Test
+  public void testGetApplicationDetailsByHashMultipleConstraints() {
+    String hash = "ababababab";
+
+    Application app1 = tempEntity.newApplicationWithParent("app1");
+    tempEntity.newApplicationComponent(app1.getId(), ReleaseStageType.ID, hash,
+        ComponentIdentifier.createMavenCoordinates("groupId", "artifactId", "version"));
+    // add two policy violations for a stage, differing only in condition constraint fact reasons
+    Policy policy1 = tempEntity.newPolicy(app1);
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, "scanId1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "constraint1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, "groupId", "artifactId", "version", hash, "constraint2");
+
+    List<ApplicationComponentDetailsDTO> appComponentDetailsDTOs = componentDetailService
+        .getApplicationDetailsByHash(hash);
+    assertThat(appComponentDetailsDTOs).hasSize(1);
+    ApplicationComponentDetailsDTO appComponentDetailsDTO = appComponentDetailsDTOs.get(0);
+    assertThat(appComponentDetailsDTO.application.getId()).isEqualTo(app1.getId());
+    assertThat(appComponentDetailsDTO.policyViolations).hasSize(2);
+
+    PolicyViolationSummaryDTO policyViolationSummaryDTO1 = getPolicyViolationSummaryDTO(policy1.getId(),
+        appComponentDetailsDTO.policyViolations);
+    assertThat(policyViolationSummaryDTO1).isNotNull();
+    assertThat(policyViolationSummaryDTO1.policyName).isEqualTo(policy1.getName());
+    assertThat(policyViolationSummaryDTO1.threatLevel).isEqualTo(5);
+    assertThat(policyViolationSummaryDTO1.stageDetails).hasSize(5);
+    assertStageDetails(policyViolationSummaryDTO1.stageDetails.get(0), StageTypes.SOURCE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO1.stageDetails.get(1), StageTypes.BUILD, null,
+        policyEvaluation1.getScanId(), policyEvaluation1.getTime().getTime());
+    assertStageDetails(policyViolationSummaryDTO1.stageDetails.get(2), StageTypes.STAGE_RELEASE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO1.stageDetails.get(3), StageTypes.RELEASE, null, null, null);
+    assertStageDetails(policyViolationSummaryDTO1.stageDetails.get(4), StageTypes.OPERATE, null, null, null);
+
+    PolicyViolationSummaryDTO policyViolationSummaryDTO2 = getPolicyViolationSummaryDTO(policy1.getId(),
+        appComponentDetailsDTO.policyViolations);
+    assertThat(policyViolationSummaryDTO2).isEqualTo(policyViolationSummaryDTO1);
   }
 
   @Test

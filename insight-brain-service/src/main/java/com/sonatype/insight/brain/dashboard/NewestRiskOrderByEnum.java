@@ -10,5 +10,5 @@ package com.sonatype.insight.brain.dashboard;
  */
 public enum NewestRiskOrderByEnum
 {
-  AGE, APPLICATION_NAME, COMPONENT_NAME, POLICY_NAME, THREAT_LEVEL;
+  AGE, APPLICATION_NAME, COMPONENT_NAME, POLICY_NAME, THREAT_LEVEL, POLICY_VIOLATION_ID;
 }

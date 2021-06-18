@@ -32,6 +32,7 @@ public class PolicyViolationAdapter
     dto.threatLevel = violation.getThreatLevel();
     dto.time = evaluation.getTime().getTime();
     dto.filename = violation.getFilename();
+    dto.constraintFacts = violation.getConstraintFacts();
     return dto;
   }
 }

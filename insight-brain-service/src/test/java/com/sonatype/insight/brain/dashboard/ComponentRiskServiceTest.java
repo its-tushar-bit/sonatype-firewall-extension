@@ -444,6 +444,28 @@ public class ComponentRiskServiceTest
   }
 
   @Test
+  public void testGetComponentRisks_MultipleViolationConstraintsOnSameComponent()
+      throws Exception
+  {
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, "Group1", "Artifact1",
+        "Version1", "hash", "ConstraintFact1");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(app1PolicyEvaluation, app1Policy, "Group1", "Artifact1",
+        "Version1", "hash", "ConstraintFact2");
+
+    DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService
+        .getComponentRisks(null, null, null, null, null, null, null, "-TOTAL_RISK", 1000);
+
+    assertThat(result.dashboardResults).hasSize(1);
+    assertThat(result.numResults).isEqualTo(1);
+    ComponentRiskDTO riskDTO = result.dashboardResults.get(0);
+    assertThat(riskDTO.hash).isEqualTo(violation1.getHash());
+    assertDisplayFieldValues(riskDTO.displayName.parts, violation1);
+    assertThat(riskDTO.score).isEqualTo(violation1.getThreatLevel() * 3 + orgPolicy.getThreatLevel() * 2);
+    assertThat(riskDTO.affectedApplications).isEqualTo(2);
+    assertDisplayFieldValues(riskDTO.displayName.parts, violation2);
+  }
+
+  @Test
   public void testGetComponentRisks_FilterByApplication() throws Exception {
     DashboardResultsDTO<ComponentRiskDTO> result = componentRiskService.getComponentRisks(null, 
         Collections.singleton(app2.getId()), null, null, null, null, null, "-TOTAL_RISK", 1000);

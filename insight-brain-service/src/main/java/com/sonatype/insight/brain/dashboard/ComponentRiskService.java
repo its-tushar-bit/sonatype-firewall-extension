@@ -168,16 +168,17 @@ public class ComponentRiskService
 
   private static class ComponentViolationRollUp
   {
-    Map<String, PolicyViolationDTO> violationsByAppAndPolicyId = new LinkedHashMap<>();
+    Map<String, PolicyViolationDTO> violationsByAppPolicyAndConstraint = new LinkedHashMap<>();
 
     Set<String> applicationIds = new HashSet<>();
 
     void add(PolicyViolationDTO violation) {
-      String id = violation.applicationId + "\t" + violation.policyId;
-      PolicyViolationDTO existing = violationsByAppAndPolicyId.get(id);
+      String id = violation.computeUniqueAppPolicyConstraintId();
+      PolicyViolationDTO existing = violationsByAppPolicyAndConstraint.get(id);
       if (existing == null || existing.time < violation.time) {
-        // count violations for a given app+policy combo only once, using the data from the most recent evaluation
-        violationsByAppAndPolicyId.put(id, violation);
+        // count violations for a given app+policy+constraint combo only once,
+        // using the data from the most recent evaluation
+        violationsByAppPolicyAndConstraint.put(id, violation);
       }
       applicationIds.add(violation.applicationId);
     }
@@ -185,7 +186,7 @@ public class ComponentRiskService
     public ComponentRiskDTO toDTO() {
       ComponentRiskDTO dto = new ComponentRiskDTO();
       dto.affectedApplications = applicationIds.size();
-      for (PolicyViolationDTO violation : violationsByAppAndPolicyId.values()) {
+      for (PolicyViolationDTO violation : violationsByAppPolicyAndConstraint.values()) {
         dto.hash = violation.hash;
         dto.score += violation.threatLevel;
         if (violation.threatLevel >= 8) {

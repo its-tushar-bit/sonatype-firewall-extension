@@ -6,9 +6,15 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Comparator;
+import java.util.List;
 
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyViolationComparable;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class PolicyViolationComparator
     implements Comparator<PolicyViolationComparable>
@@ -78,5 +84,21 @@ public class PolicyViolationComparator
     }
 
     return 0;
+  }
+
+  public static String computeUniqueAppPolicyConstraintId(String applicationId,
+                                                          String policyId,
+                                                          List<ConstraintFact> constraintFacts)
+  {
+    StringBuilder allConditionsHashIds = new StringBuilder();
+
+    for (ConstraintFact constraintFact: CollectionUtils.emptyIfNull(constraintFacts)) {
+      for (ConditionFact conditionFact : CollectionUtils.emptyIfNull(constraintFact.getConditionFacts())) {
+        if (StringUtils.isNotBlank(conditionFact.getReason())) {
+          allConditionsHashIds.append(conditionFact.getReason().hashCode());
+        }
+      }
+    }
+    return applicationId + policyId + allConditionsHashIds;
   }
 }

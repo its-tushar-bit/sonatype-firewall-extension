@@ -5,8 +5,12 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
+import java.util.List;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 
 /**
  * @since 1.11.0
@@ -37,4 +41,10 @@ public class PolicyViolationDTO
   public long time;
 
   public String filename;
+
+  public List<ConstraintFact> constraintFacts;
+
+  public String computeUniqueAppPolicyConstraintId() {
+    return PolicyViolationComparator.computeUniqueAppPolicyConstraintId(applicationId, policyId, constraintFacts);
+  }
 }

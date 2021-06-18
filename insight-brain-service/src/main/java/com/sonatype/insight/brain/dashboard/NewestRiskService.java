@@ -9,15 +9,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -115,12 +112,6 @@ public class NewestRiskService
         policyThreatLevelFilter, policyViolationStateFilter, maxDaysOld);
 
     List<NewestRiskDTO> riskDTOs = buildRiskDTOs(appViews);
-
-    // Although it's counter intuitive, it is important to deduplicate before sorting in order to get reproducible
-    // results.
-    // Up to this point, the code used policy violations sorted by the standard policy violation comparator. The sorting
-    // required by the orderBy parameter is not a complete order and it may affect the deduplication.
-    deduplicate(riskDTOs);
 
     sort(riskDTOs, orderBy);
 
@@ -223,16 +214,6 @@ public class NewestRiskService
     result.dashboardResults = riskDTOs.subList(0, Math.min(riskDTOs.size(), maxResults));
 
     return result;
-  }
-
-  private void deduplicate(List<NewestRiskDTO> riskDTOs) {
-    SortedSet<NewestRiskDTO> uniqueRiskDTOs = new TreeSet<>( //
-        Comparator.comparing(NewestRiskDTO::getApplicationName) //
-            .thenComparing(NewestRiskDTO::getPolicyId) //
-            .thenComparing(NewestRiskDTO::getDerivedComponentName) //
-            .thenComparing(NewestRiskDTO::getFirstOccurrenceTime) //
-            .thenComparing(NewestRiskDTO::getScanId));
-    riskDTOs.removeIf(riskDTO -> !uniqueRiskDTOs.add(riskDTO));
   }
 
   private void sort(List<NewestRiskDTO> riskDTOs, String orderBy) {

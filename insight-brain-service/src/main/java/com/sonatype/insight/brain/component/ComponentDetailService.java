@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ApplicationAdapter;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -101,8 +102,8 @@ public class ComponentDetailService
 
       ApplicationComponentDetailsDTO applicationComponentDetails = new ApplicationComponentDetailsDTO();
 
-      Map<String, PolicyViolationSummaryDTO> policyViolationDTOsByPolicyId = new LinkedHashMap<>();
-      Map<String, Map<String, StageDetailDTO>> stageDetailsByPolicyId = new LinkedHashMap<>();
+      Map<String, PolicyViolationSummaryDTO> policyViolationDTOsByPolicyAndConstraint = new LinkedHashMap<>();
+      Map<String, Map<String, StageDetailDTO>> stageDetailsByPolicyAndConstraint = new LinkedHashMap<>();
       for (StageType stageType : stageTypes) {
         StageDetailDTO appStageDetailDTO = new StageDetailDTO(stageType.getId(), stageType.getName());
         applicationComponentDetails.stageDetails.add(appStageDetailDTO);
@@ -124,13 +125,12 @@ public class ComponentDetailService
         appStageDetailDTO.scanId = policyEvaluation.getScanId();
 
         for (PolicyViolation policyViolation : policyViolations) {
-          String policyId = policyViolation.getPolicyId();
+          String policyAndConstraintHashId = computeUniqueAppPolicyConstraintId(policyViolation);
 
-          Map<String, StageDetailDTO> stageDetailsById = stageDetailsByPolicyId.get(policyId);
-          if (stageDetailsById == null) {
-            stageDetailsById = initStageDetails(stageTypes);
-            stageDetailsByPolicyId.put(policyId, stageDetailsById);
-          }
+          Map<String, StageDetailDTO> stageDetailsById =
+              stageDetailsByPolicyAndConstraint.computeIfAbsent(policyAndConstraintHashId,
+                  key -> initStageDetails(stageTypes));
+
           StageDetailDTO policyStageDetailDTO = stageDetailsById.get(stageType.getId());
           policyStageDetailDTO.scanId = policyEvaluation.getScanId();
           policyStageDetailDTO.actionTypeId = policyViolation.getActionTypeId();
@@ -143,12 +143,13 @@ public class ComponentDetailService
             appStageDetailDTO.actionTypeId = policyStageDetailDTO.actionTypeId;
           }
 
-          PolicyViolationSummaryDTO policyViolationSummaryDTO = policyViolationDTOsByPolicyId.get(policyId);
+          PolicyViolationSummaryDTO policyViolationSummaryDTO =
+              policyViolationDTOsByPolicyAndConstraint.get(policyAndConstraintHashId);
           if (policyViolationSummaryDTO == null) {
             policyViolationSummaryDTO = new PolicyViolationSummaryDTO();
             policyViolationSummaryDTO.policyId = policyViolation.getPolicyId();
             policyViolationSummaryDTO.stageDetails.addAll(stageDetailsById.values());
-            policyViolationDTOsByPolicyId.put(policyId, policyViolationSummaryDTO);
+            policyViolationDTOsByPolicyAndConstraint.put(policyAndConstraintHashId, policyViolationSummaryDTO);
           }
           // Use the values from the most recent policy violation
           if (policyViolationSummaryDTO.time < policyEvaluation.getTime().getTime()) {
@@ -160,7 +161,7 @@ public class ComponentDetailService
       }
 
       applicationComponentDetails.application = appAdapter.convert(application, false);
-      applicationComponentDetails.policyViolations.addAll(policyViolationDTOsByPolicyId.values());
+      applicationComponentDetails.policyViolations.addAll(policyViolationDTOsByPolicyAndConstraint.values());
       result.add(applicationComponentDetails);
     }
 
@@ -170,6 +171,11 @@ public class ComponentDetailService
         System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  private String computeUniqueAppPolicyConstraintId(PolicyViolation policyViolation) {
+    return PolicyViolationComparator.computeUniqueAppPolicyConstraintId(policyViolation.getApplicationId(),
+        policyViolation.getPolicyId(), policyViolation.getConstraintFacts());
   }
 
   private void auditApplicationComponentDetails(String hash, int inspectedApplicationCount, int resultRecordCount) {

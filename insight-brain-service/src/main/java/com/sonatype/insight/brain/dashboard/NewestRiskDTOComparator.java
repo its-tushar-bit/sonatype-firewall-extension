@@ -62,6 +62,12 @@ class NewestRiskDTOComparator
             return rel;
           }
           break;
+        case POLICY_VIOLATION_ID:
+          rel = ob1.policyViolationId != null ? ob1.policyViolationId.compareTo(ob2.policyViolationId) : 1;
+          if (rel != 0) {
+            return rel;
+          }
+          break;
         default:
           throw new IllegalArgumentException("unsupported order by " + newestRiskOrderBy.newestRiskOrderByEnum);
       }

@@ -12,6 +12,7 @@ public enum UserFilterType
 {
   ADVANCED_LEGAL_PACK_DASHBOARD
   {
+    @Override
     public String accept(UserFilterVisitor visitor, String json) {
       return visitor.filterAdvancedLegalPack(json);
     }

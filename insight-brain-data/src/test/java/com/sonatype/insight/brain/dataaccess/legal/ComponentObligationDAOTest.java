@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,9 +60,8 @@ public class ComponentObligationDAOTest
     componentObligation.setLastUpdatedByUsername("other");
     componentObligation.setLastUpdatedAt(now);
     dao.update(componentObligation);
-    assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison(
-        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
-        .isEqualTo(componentObligation);
+    assertThat(dao.getById(componentObligation.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .usingOverriddenEquals().isEqualTo(componentObligation);
 
     // Delete
     dao.delete(componentObligation);

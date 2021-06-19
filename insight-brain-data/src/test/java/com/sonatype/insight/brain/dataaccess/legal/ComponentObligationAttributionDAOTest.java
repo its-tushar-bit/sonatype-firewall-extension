@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.model.legal.ComponentObligationAttribution;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -59,9 +58,8 @@ public class ComponentObligationAttributionDAOTest
     componentObligationAttribution.setLastUpdatedByUsername("other");
     componentObligationAttribution.setLastUpdatedAt(now);
     dao.update(componentObligationAttribution);
-    assertThat(dao.getById(componentObligationAttribution.getId())).usingRecursiveComparison(
-        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
-        .isEqualTo(componentObligationAttribution);
+    assertThat(dao.getById(componentObligationAttribution.getId())).usingRecursiveComparison()
+        .ignoringFields(JPA.IGNORE_FIELDS).usingOverriddenEquals().isEqualTo(componentObligationAttribution);
 
     // Delete
     dao.delete(componentObligationAttribution);

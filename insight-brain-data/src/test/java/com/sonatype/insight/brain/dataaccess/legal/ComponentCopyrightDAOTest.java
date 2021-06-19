@@ -16,7 +16,6 @@ import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.CopyrightOverride;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,9 +52,8 @@ public class ComponentCopyrightDAOTest
     componentCopyright.setLastUpdatedByUsername("other");
     componentCopyright.setLastUpdatedAt(now);
     dao.update(componentCopyright);
-    assertThat(dao.getById(componentCopyright.getId())).usingRecursiveComparison(
-        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
-        .isEqualTo(componentCopyright);
+    assertThat(dao.getById(componentCopyright.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .usingOverriddenEquals().isEqualTo(componentCopyright);
 
     // Delete
     dao.delete(componentCopyright);

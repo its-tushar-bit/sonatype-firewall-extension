@@ -50,13 +50,13 @@ public class PersistedUserSessionTest
     persistedUserSession.setSession(session);
 
     assertThat(persistedUserSession.getSession()).usingRecursiveComparison().ignoringCollectionOrder()
-        .ignoringFields("attributes.principal.assertion").isEqualTo(session);
+        .ignoringFields("attributes.org.keycloak.adapters.saml.SamlSession.principal.assertion").isEqualTo(session);
 
     session.setAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY, createPrincipalCollection());
     persistedUserSession.setSession(session);
 
     assertThat(persistedUserSession.getSession()).usingRecursiveComparison().ignoringCollectionOrder()
-        .ignoringFields("attributes.principal.assertion").isEqualTo(session);
+        .ignoringFields("attributes.org.keycloak.adapters.saml.SamlSession.principal.assertion").isEqualTo(session);
   }
 
   @Test

@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,9 +54,8 @@ public class ComponentLegalFileDAOTest
     componentLegalFile.setLastUpdatedByUsername("other");
     componentLegalFile.setLastUpdatedAt(now);
     dao.update(componentLegalFile);
-    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison(
-        RecursiveComparisonConfiguration.builder().withIgnoredFields(JPA.IGNORE_FIELDS).build())
-        .isEqualTo(componentLegalFile);
+    assertThat(dao.getById(componentLegalFile.getId())).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
+        .usingOverriddenEquals().isEqualTo(componentLegalFile);
 
     // Delete
     dao.delete(componentLegalFile);

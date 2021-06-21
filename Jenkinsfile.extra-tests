@@ -138,7 +138,6 @@ pipeline {
           }
           post {
             always {
-              sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: currentBuild.projectName != 'master')
               captureResultsAndCleanup()
             }
           }
@@ -150,7 +149,6 @@ pipeline {
           }
           post {
             always {
-              sonarAnalyze(env: env, sonarAnalysisPullRequestsOnly: currentBuild.projectName != 'master')
               captureResultsAndCleanup()
             }
           }

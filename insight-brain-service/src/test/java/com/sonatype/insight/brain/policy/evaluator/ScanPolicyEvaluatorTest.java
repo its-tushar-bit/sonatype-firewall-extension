@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -84,6 +85,7 @@ import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflic
 import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
@@ -1775,15 +1777,18 @@ public class ScanPolicyEvaluatorTest
     Condition vulnerabilityCategoryCondition =
         new Condition(SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code");
     Condition integrityCondition = new Condition(IntegrityRatingConditionType.ID, "is not", "0");
+    Condition securityVulnerabilitySourceCondition = new Condition(SecurityVulnerabilitySourceConditionType.ID,
+        "is not", SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getId());
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
         licenseThreatGroupLevelCondition, matchStateCondition, proprietaryCondition, relativePopularityCondition,
         securityVulnerabilitySeverityCondition, securityVulnerabilityStatusCondition, packageUrlCondition,
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
-        vulnerabilityCategoryCondition, integrityCondition);
+        vulnerabilityCategoryCondition, integrityCondition, securityVulnerabilitySourceCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
+    ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
     try {
       Set<String> expectedConditionTypeIds = ConditionTypes.getAll().stream().map(ConditionType::getId)
           .filter(id -> !ProprietaryNameConflictConditionType.ID.equals(id))
@@ -1806,6 +1811,7 @@ public class ScanPolicyEvaluatorTest
     finally {
       ConditionTypes.disableConditionType(ConditionTypes.HygieneRatingConditionType);
       ConditionTypes.disableConditionType(ConditionTypes.IntegrityRatingConditionType);
+      ConditionTypes.disableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
     }
   }
 

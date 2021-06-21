@@ -34,6 +34,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new DataSourceValueType());
     allConditionValueTypes.add(new DependencyTypeValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityCategoryValueType());
+    allConditionValueTypes.add(new SecurityVulnerabilitySourceValueType());
     return allConditionValueTypes;
   }
 }

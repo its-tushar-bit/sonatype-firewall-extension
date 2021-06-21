@@ -22,11 +22,13 @@ public class ApiConfigFeaturesService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiConfigFeaturesService.class);
 
-  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
-
   static final String FEATURE_DASHBOARD = "dashboard";
 
   static final String FEATURE_REPORTS_LIST = "reportsList";
+
+  static final String FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION = "vulnerabilitySource";
+
+  private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Inject
   public ApiConfigFeaturesService(SystemConfigurationPropertyDAO systemConfigurationPropertyDAO) {
@@ -65,6 +67,8 @@ public class ApiConfigFeaturesService
         return SystemConfigurationProperty.DASHBOARD_DISABLED;
       case FEATURE_REPORTS_LIST:
         return SystemConfigurationProperty.REPORTS_LIST_DISABLED;
+      case FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION:
+        return SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
       default:
         throw new BadRequestException("Feature not supported: " + feature);
     }

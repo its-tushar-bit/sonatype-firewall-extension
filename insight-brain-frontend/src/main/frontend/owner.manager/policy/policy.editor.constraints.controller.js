@@ -53,6 +53,7 @@ export default function PolicyEditorConstraintsController(ConstraintStore) {
       case 'IntegrityRating':
       case 'DependencyType':
       case 'SecurityVulnerabilityCategory':
+      case 'SecurityVulnerabilitySource':
         value = getAvailableValue('name');
         break;
       default:

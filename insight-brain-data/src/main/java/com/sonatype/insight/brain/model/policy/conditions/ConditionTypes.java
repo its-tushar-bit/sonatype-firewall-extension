@@ -52,6 +52,9 @@ public class ConditionTypes
   public static final SecurityVulnerabilityStatusConditionType SecurityVulnerabilityStatusConditionType =
       new SecurityVulnerabilityStatusConditionType();
 
+  public static final SecurityVulnerabilitySourceConditionType SecurityVulnerabilitySourceConditionType =
+      new SecurityVulnerabilitySourceConditionType();
+
   public static final ProprietaryConditionType ProprietaryConditionType = new ProprietaryConditionType();
 
   public static final ProprietaryNameConflictConditionType ProprietaryNameConflictConditionType =
@@ -96,6 +99,7 @@ public class ConditionTypes
     add(SecurityVulnerabilitySeverityConditionType);
     add(SecurityVulnerabilityStatusConditionType);
     add(SecurityVulnerabilityCategoryConditionType);
+    add(SecurityVulnerabilitySourceConditionType);
     add(DataSourceConditionType);
     add(DependencyTypeConditionType);
   }

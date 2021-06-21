@@ -15,8 +15,10 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_DASHBOARD;
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_REPORTS_LIST;
+import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -26,7 +28,8 @@ public class ApiConfigFeaturesServiceTest
   @Inject
   private ApiConfigFeaturesService service;
 
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = new SystemConfigurationPropertyDAO();
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Test
   public void testGetPropertyNameForFeature() {
@@ -92,6 +95,42 @@ public class ApiConfigFeaturesServiceTest
   public void testEnableFeature_ReportsList_AlreadyEnabled() {
     assertThatThrownBy(() -> {
       service.enableFeature(FEATURE_REPORTS_LIST);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_SecurityVulnerabilitySourcePolicyCondition() {
+    systemConfigurationPropertyDAO.delete(systemConfigurationPropertyDAO
+        .getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED));
+
+    service.disableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION);
+
+    assertThat(systemConfigurationPropertyDAO.getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testDisableFeature_SecurityVulnerabilitySourcePolicyCondition_AlreadyDisabled() {
+    assertThatThrownBy(() -> {
+      service.disableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION);
+    }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testEnableFeature_SecurityVulnerabilitySourcePolicyCondition() {
+    service.enableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION);
+
+    assertThat(systemConfigurationPropertyDAO.getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED))
+        .isNull();
+  }
+
+  @Test
+  public void testEnableFeature_SecurityVulnerabilitySourcePolicyCondition_AlreadyEnabled() {
+    systemConfigurationPropertyDAO.delete(systemConfigurationPropertyDAO
+        .getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED));
+
+    assertThatThrownBy(() -> {
+      service.enableFeature(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION);
     }).isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
   }
 }

@@ -19,7 +19,9 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 public class ApiConfigFeaturesResource
 {
   public static final String FEATURE = "{feature: " +
-      ApiConfigFeaturesService.FEATURE_DASHBOARD + "|" + ApiConfigFeaturesService.FEATURE_REPORTS_LIST + "}";
+      ApiConfigFeaturesService.FEATURE_DASHBOARD + "|" +
+      ApiConfigFeaturesService.FEATURE_REPORTS_LIST + "|" +
+      ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION + "}";
 
   private final ApiConfigFeaturesService apiConfigFeaturesService;
 

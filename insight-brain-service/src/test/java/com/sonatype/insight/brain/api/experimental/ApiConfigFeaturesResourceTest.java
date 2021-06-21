@@ -14,8 +14,10 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_DASHBOARD;
 import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_REPORTS_LIST;
+import static com.sonatype.insight.brain.api.experimental.ApiConfigFeaturesService.FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.REPORTS_LIST_DISABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jetty.http.HttpStatus.NO_CONTENT_204;
 
@@ -44,6 +46,13 @@ public class ApiConfigFeaturesResourceTest
   }
 
   @Test
+  public void testEnableFeature_SecurityVulnerabilitySourcePolicyCondition() throws Exception {
+    assertResponseStatus(NO_CONTENT_204,
+        restRequest().path(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION).post());
+    assertThat(configurationPropertyDAO.getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED)).isNull();
+  }
+
+  @Test
   public void testDisableFeature_Dashboard() throws Exception {
     assertResponseStatus(NO_CONTENT_204, restRequest().path(FEATURE_DASHBOARD).delete());
     assertThat(configurationPropertyDAO.getByName(DASHBOARD_DISABLED)).isNotNull();
@@ -53,5 +62,15 @@ public class ApiConfigFeaturesResourceTest
   public void testDisableFeature_ReportsList() throws Exception {
     assertResponseStatus(NO_CONTENT_204, restRequest().path(FEATURE_REPORTS_LIST).delete());
     assertThat(configurationPropertyDAO.getByName(REPORTS_LIST_DISABLED)).isNotNull();
+  }
+
+  @Test
+  public void testDisableFeature_SecurityVulnerabilitySourcePolicyCondition() throws Exception {
+    new SystemConfigurationPropertyDAO().delete(
+        configurationPropertyDAO.getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED));
+    assertResponseStatus(NO_CONTENT_204,
+        restRequest().path(FEATURE_SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION).delete());
+    assertThat(configurationPropertyDAO.getByName(SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED))
+        .isNotNull();
   }
 }

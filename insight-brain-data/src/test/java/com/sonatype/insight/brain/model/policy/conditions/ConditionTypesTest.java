@@ -19,13 +19,15 @@ public class ConditionTypesTest
   public void testGetAll() {
     Collection<ConditionType> allConditionTypes = ConditionTypes.getAll();
 
-    assertThat(allConditionTypes).hasSize(21);
+    assertThat(allConditionTypes).hasSize(22);
     assertThat(allConditionTypes).extracting(ConditionType::getId)
         .doesNotContain(DeprecatedSecurityVulnerabilityConditionType.ID)
         .contains(HygieneRatingConditionType.ID)
-        .contains(IntegrityRatingConditionType.ID);
+        .contains(IntegrityRatingConditionType.ID)
+        .contains(SecurityVulnerabilitySourceConditionType.ID);
     assertThat(allConditionTypes).filteredOn(ConditionType::isEnabled).extracting(ConditionType::getId)
-        .doesNotContain(HygieneRatingConditionType.ID);
+        .doesNotContain(HygieneRatingConditionType.ID)
+        .doesNotContain(SecurityVulnerabilitySourceConditionType.ID);
   }
 
   @Test

@@ -36,6 +36,9 @@ public class SystemConfigurationProperty
 
   public static final String FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED = "FIREWALL_INTEGRITY_RATING_LICENSE_ENABLED";
 
+  public static final String SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED =
+      "SECURITY_VULNERABILITY_SOURCE_CONDITION_DISABLED";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

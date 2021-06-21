@@ -607,6 +607,12 @@ public class TemporaryEntity
         systemConfigurationPropertyDAO.delete(property);
       }
     }
+    // Disable Security Vulnerability Source Policy Condition by adding the property that indicates it's disabled
+    if (systemConfigurationPropertyDAO
+        .getByName(SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED) == null) {
+      systemConfigurationPropertyDAO.insert(new SystemConfigurationProperty(
+          SystemConfigurationProperty.SECURITY_VULNERABILITY_SOURCE_POLICY_CONDITION_DISABLED, "true"));
+    }
 
     componentObligationAttributionDAO.getAll().forEach(componentObligationAttributionDAO::delete);
     componentObligationDAO.getAll().forEach(componentObligationDAO::delete);

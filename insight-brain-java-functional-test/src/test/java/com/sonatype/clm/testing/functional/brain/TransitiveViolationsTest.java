@@ -7,6 +7,11 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -22,13 +27,17 @@ import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.ComponentDetailsHeader;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.TransitiveViolationsRow;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.TransitiveViolationsTable;
+import com.sonatype.clm.testing.functional.pages.WaiveTransitiveViolationsPopover;
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportEntry;
@@ -39,12 +48,16 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.google.common.collect.ImmutableMap;
+import org.codehaus.plexus.util.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransitiveViolationsTest
     extends AbstractFunctionalTest
@@ -237,6 +250,107 @@ public class TransitiveViolationsTest
     transitiveViolationsTable.row(1).shouldHave(Condition.text("None"));
   }
 
+  @Test
+  public void testWaiveTransitiveViolations_InitialState() {
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
+    waiveTransitiveViolationsPopover.countsTitle()
+        .shouldHave(Condition.text("3 total violations brought in by 3 components"));
+    waiveTransitiveViolationsPopover.counts().shouldHaveSize(5);
+    waiveTransitiveViolationsPopover.count(0).text().shouldHave(Condition.text("Critical"));
+    waiveTransitiveViolationsPopover.count(0).count().shouldHave(Condition.text("1"));
+    waiveTransitiveViolationsPopover.count(1).text().shouldHave(Condition.text("Severe"));
+    waiveTransitiveViolationsPopover.count(1).count().shouldHave(Condition.text("1"));
+    waiveTransitiveViolationsPopover.count(2).shouldNotBe(visible);
+    waiveTransitiveViolationsPopover.count(3).shouldNotBe(visible);
+    waiveTransitiveViolationsPopover.count(4).text().shouldHave(Condition.text("None"));
+    waiveTransitiveViolationsPopover.count(4).count().shouldHave(Condition.text("1"));
+    waiveTransitiveViolationsPopover.scope().shouldHave(
+        Condition.text(StringUtils.capitalise(application.getType().toString()) + " - " + application.getName()));
+    waiveTransitiveViolationsPopover.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
+    waiveTransitiveViolationsPopover.expiryTimesOptions().shouldHaveSize(7);
+    waiveTransitiveViolationsPopover.expiryTimesOptions().get(0).shouldHave(text("Never"));
+    waiveTransitiveViolationsPopover.expiryTimesOptions().get(1).shouldHave(text("7 Days"));
+    waiveTransitiveViolationsPopover.expiryTimesOptions().get(2).shouldHave(text("14 Days"));
+    waiveTransitiveViolationsPopover.expiryTimesOptions().get(3).shouldHave(text("30 Days"));
+    waiveTransitiveViolationsPopover.expiryTimesOptions().get(4).shouldHave(text("60 Days"));
+    waiveTransitiveViolationsPopover.expiryTimesOptions().get(5).shouldHave(text("90 Days"));
+    waiveTransitiveViolationsPopover.expiryTimesOptions().get(6).shouldHave(text("120 Days"));
+    waiveTransitiveViolationsPopover.comments().shouldHave(Condition.text(""));
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testWaiveTransitiveViolations_Toggle() {
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
+    waiveTransitiveViolationsPopover.toggle().click();
+    waiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
+  }
+
+  @Test
+  public void testWaiveTransitiveViolations_Cancel() {
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
+    waiveTransitiveViolationsPopover.cancelButton().click();
+    waiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
+  }
+
+  @Test
+  public void testWaiveTransitiveViolations_Save() {
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
+    testWaiveTransitiveViolations_Save(waiveTransitiveViolationsPopover, null, null);
+  }
+
+  @Test
+  public void testWaiveTransitiveViolations_SaveWithComment() {
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
+    String comment = "someComment";
+    waiveTransitiveViolationsPopover.comments().sendKeys(comment);
+    testWaiveTransitiveViolations_Save(waiveTransitiveViolationsPopover, null, comment);
+  }
+
+  @Test
+  public void testWaiveTransitiveViolations_SaveWithExpiry() {
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
+    waiveTransitiveViolationsPopover.expiryTimesSelect().selectOption(1);
+    testWaiveTransitiveViolations_Save(waiveTransitiveViolationsPopover, getExpectedExpiryDate(7), null);
+  }
+
+  private void testWaiveTransitiveViolations_Save(
+      WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover,
+      Date expectedExpiryTime,
+      String expectedComment)
+  {
+    waiveTransitiveViolationsPopover.saveButton().click();
+    waiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
+    List<PolicyWaiver> policyWaivers = new PolicyWaiverDAO().getByOwnerId(application.getId());
+    for (PolicyViolation policyViolation : policyViolations) {
+      PolicyWaiver policyWaiver = findPolicyWaiver(policyWaivers, policyViolation);
+      assertThat(policyWaiver.getExpiryTime()).isEqualTo(expectedExpiryTime);
+      assertThat(policyWaiver.getComment()).isEqualTo(expectedComment);
+    }
+  }
+
+  @Test
+  public void testSubmitError() throws Exception {
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover("hash1");
+    File reportFile = testCLMServer.getCLMServer().getInstance(InsightWork.class)
+        .getReportFile(application.getId(), policyEvaluation.getScanId());
+    new FileCleaner().delete(reportFile.getParentFile());
+    waiveTransitiveViolationsPopover.saveButton().click();
+    waiveTransitiveViolationsPopover.shouldBe(Condition.visible);
+    waiveTransitiveViolationsPopover.submitError().shouldBe(Condition.visible);
+    waiveTransitiveViolationsPopover.saveButton().shouldHave(Condition.text("Retry"));
+
+    ReportTestUtils.createReportFile(application.getId(), policyEvaluation.getScanId(),
+        zipReportDir("/TransitiveViolationsTest/report", tempDir),
+        testCLMServer.getCLMServer().getInstance(InsightWork.class));
+    ReportTestUtils.createPolicyThreats(application.getId(), policyEvaluation.getScanId(),
+        testCLMServer.getCLMServer().getInstance(InsightWork.class), policyViolations);
+    waiveTransitiveViolationsPopover.saveButton().click();
+    waiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
+    new TransitiveViolationsPage().waiveTransitiveViolations().click();
+    waiveTransitiveViolationsPopover.saveButton().shouldBe(Condition.visible).shouldHave(Condition.text("Save"));
+  }
+
   private TransitiveViolationsPage visitPage() {
     return visitPage("hash1");
   }
@@ -246,6 +360,18 @@ public class TransitiveViolationsTest
     TransitiveViolationsPage transitiveViolationsPage = new TransitiveViolationsPage();
     transitiveViolationsPage.shouldBe(Condition.visible);
     return transitiveViolationsPage;
+  }
+
+  private WaiveTransitiveViolationsPopover visitWaivePopover() {
+    return visitWaivePopover("hash1");
+  }
+
+  private WaiveTransitiveViolationsPopover visitWaivePopover(String hash) {
+    TransitiveViolationsPage transitiveViolationsPage = visitPage(hash);
+    transitiveViolationsPage.waiveTransitiveViolations().click();
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = new WaiveTransitiveViolationsPopover();
+    waiveTransitiveViolationsPopover.shouldBe(Condition.visible);
+    return waiveTransitiveViolationsPopover;
   }
 
   private String getExpectedDateTime(Date time) {
@@ -321,5 +447,21 @@ public class TransitiveViolationsTest
   private Component findComponent(PolicyViolation policyViolation) {
     return components.stream().filter(c -> c.getHash().equals(policyViolation.getHash())).findFirst()
         .orElseThrow(() -> new RuntimeException("Component not found"));
+  }
+
+  private PolicyWaiver findPolicyWaiver(List<PolicyWaiver> policyWaivers, PolicyViolation policyViolation) {
+    return policyWaivers.stream()
+        .filter(policyWaiver -> policyWaiver.getHash() != null)
+        .filter(policyWaiver -> policyWaiver.getHash().equals(policyViolation.getHash()))
+        .filter(policyWaiver -> policyWaiver.getPolicyId().equals(policyViolation.getPolicyId()))
+        .filter(policyWaiver -> policyWaiver.getConstraintFactsJson().equals(policyViolation.getConstraintFactsJson()))
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("Policy waiver not found"));
+  }
+
+  private Date getExpectedExpiryDate(int daysFromNow) {
+    ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
+    return Date.from(LocalDateTime.now().plusDays(daysFromNow).withHour(23).withMinute(59).withSecond(59)
+        .with(ChronoField.MILLI_OF_SECOND, 999).toInstant(offset));
   }
 }

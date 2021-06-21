@@ -8,6 +8,8 @@ import {
   validateHostname,
   validateMaxLength,
   validateNonEmpty,
+  validateForm,
+  validateNameCharacters,
 } from '../../../main/frontend/util/validationUtil';
 
 describe('validationUtil', function () {
@@ -69,6 +71,54 @@ describe('validationUtil', function () {
     it('returns null for valid hostnames', function () {
       expect(validateHostname('8.5.4.5')).toBe(null);
       expect(validateHostname('sonatype.com')).toBe(null);
+    });
+  });
+
+  describe('validateNameCharacters', () => {
+    it('returns error message for invalid value', () => {
+      expect(validateNameCharacters('$')).toBe('Use valid characters: alphanumeric, "_", ".", "-", or spaces');
+      expect(validateNameCharacters('#')).toBe('Use valid characters: alphanumeric, "_", ".", "-", or spaces');
+    });
+
+    it('returns bull for valid values', () => {
+      expect(validateNameCharacters('a')).toBeNull();
+      expect(validateNameCharacters('John Doe')).toBeNull();
+    });
+  });
+
+  describe('validateForm', () => {
+    it('returns null if no inputs provided', () => {
+      expect(validateForm({})).toBeNull();
+    });
+
+    it('returns error message if not all required fields are filled', () => {
+      const inputs = {
+        firstName: {
+          value: '',
+          validationErrors: null,
+        },
+        lastName: {
+          value: 'Doe',
+          validationErrors: [],
+        },
+      };
+
+      expect(validateForm(inputs)).toBe('Unable to save: fields with invalid or missing data');
+    });
+
+    it('returns error message if some fields have validation errors', () => {
+      const inputs = {
+        firstName: {
+          value: 'John',
+          validationErrors: 'Must be non-empty',
+        },
+        lastName: {
+          value: 'Doe',
+          validationErrors: [],
+        },
+      };
+
+      expect(validateForm(inputs)).toBe('Unable to save: fields with invalid or missing data');
     });
   });
 });

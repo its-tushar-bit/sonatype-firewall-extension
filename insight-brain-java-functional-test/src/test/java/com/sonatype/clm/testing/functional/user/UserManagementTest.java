@@ -11,8 +11,11 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.DeleteModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
+import com.sonatype.clm.testing.functional.elements.NxTextInput;
 import com.sonatype.clm.testing.functional.elements.ResetPasswordModal;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
@@ -30,6 +33,7 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.empty;
@@ -39,7 +43,6 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.DeleteModal.headerText;
-import static com.sonatype.clm.testing.functional.elements.PopoverViolations.on;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -70,32 +73,47 @@ public class UserManagementTest
   }
 
   @Test
-  public void testCreateUser_formOpen() {
-    UserManagementPage userManagementPage = new UserManagementPage();
-    NewUserForm newUserForm = goToCreateUserForm(userManagementPage);
-    newUserForm.shouldBe(visible);
-    newUserForm.saveButton().shouldBe(disabled);
+  public void createUserTest() {
+    testCreateUser_formOpen();
+    testCreateUserInputs_spaceValidations();
+    testCreateUserInputs_invalidCharacters();
+    testCreateUserInputs_emptyValues();
+    testCreateUserInputs_nonMatchingPassword();
+    testCreateUser_success();
+  }
 
-    List<SelenideElement> formInputs = Arrays.asList(
-        newUserForm.firstNameInput(), newUserForm.lastNameInput(),
-        newUserForm.emailInput(), newUserForm.usernameInput(),
-        newUserForm.passwordInput(), newUserForm.passwordValidateInput());
+  private void cleanup() {
+    refreshOrOpen(UserManagementPage.url());
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+    unsavedChangesModal.continueButton().click();
+  }
+
+  public void testCreateUser_formOpen() {
+    NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
+    newUserForm.shouldBe(visible);
+    newUserForm.saveButton().shouldBe(CLM.DISABLED);
+
+    List<SelenideElement> formInputs = Arrays.asList(newUserForm.firstNameInput(), newUserForm.lastNameInput(),
+        newUserForm.emailInput(), newUserForm.usernameInput(), newUserForm.passwordInput(),
+        newUserForm.passwordValidateInput());
 
     assertElementsNotDisabled(formInputs);
     assertElementsEmpty(formInputs);
+    refreshOrOpen(UserManagementPage.url());
   }
 
-  @Test
   public void testCreateUserInputs_spaceValidations() {
     NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
+    String invalidSpacingError = "No leading, trailing or double spaces or tabs";
 
     keyInElementValue("a  a", asList(newUserForm.firstNameInput(), newUserForm.lastNameInput()));
-    on(newUserForm.firstNameInput()).shouldShowInvalidSpacingError();
-    on(newUserForm.lastNameInput()).shouldShowInvalidSpacingError();
+
+    new NxTextInput(newUserForm.firstNameInput()).errorMessage().shouldHave(exactText(invalidSpacingError));
+    new NxTextInput(newUserForm.lastNameInput()).errorMessage().shouldHave(exactText(invalidSpacingError));
+    cleanup();
   }
 
-  @Test
-  public void testCreateUserInputs__invalidCharacters() {
+  public void testCreateUserInputs_invalidCharacters() {
     NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
     String nameValidationText = "Use valid characters: alphanumeric, \"_\", \".\", \"-\", or spaces";
     String usernameValidationText = "Use valid characters: alphanumeric, \"_\", \".\" or \"-\"";
@@ -105,24 +123,25 @@ public class UserManagementTest
     keyInElementValue("#", nameInputElements);
     keyInElementValue("#", usernameInputElements);
 
-    assertPopoverValidation(nameValidationText, nameInputElements);
-    assertPopoverValidation(usernameValidationText, usernameInputElements);
+    assertInputValidation(nameValidationText, nameInputElements);
+    assertInputValidation(usernameValidationText, usernameInputElements);
+    cleanup();
   }
 
-  @Test
   public void testCreateUserInputs_emptyValues() {
     NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
-    String validationText = "Please enter a value";
+    String validationText = "Must be non-empty";
 
     List<SelenideElement> inputElements = asList(newUserForm.firstNameInput(), newUserForm.lastNameInput(),
-        newUserForm.usernameInput(), newUserForm.passwordInput(), newUserForm.passwordValidateInput());
+        newUserForm.emailInput(), newUserForm.usernameInput(),
+        newUserForm.passwordInput(), newUserForm.passwordValidateInput());
     keyInElementValue("a", inputElements);
-    keyInElementValue(Keys.BACK_SPACE.toString(), inputElements);
+    clearElementsValue(inputElements);
 
-    assertPopoverValidation(validationText, inputElements);
+    assertInputValidation(validationText, inputElements);
+    cleanup();
   }
 
-  @Test
   public void testCreateUserInputs_nonMatchingPassword() {
     NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
     String validationText = "Passwords must match!";
@@ -130,10 +149,10 @@ public class UserManagementTest
     List<SelenideElement> passwordValidateInput = asList(newUserForm.passwordValidateInput());
     keyInElementValue("23abc", passwordValidateInput);
 
-    assertPopoverValidation(validationText, passwordValidateInput);
+    assertInputValidation(validationText, passwordValidateInput);
+    cleanup();
   }
 
-  @Test
   public void testCreateUser_success() {
     UserManagementPage userManagementPage = new UserManagementPage();
     NewUserForm newUserForm = goToCreateUserForm(userManagementPage);
@@ -265,7 +284,6 @@ public class UserManagementTest
     accordionHeader.click();
     userManagementPage.editPanelForm().shouldBe(disappear);
     userManagementPage.editUserButtons().get(userRow).shouldBe(enabled);
-
   }
 
   @Test
@@ -318,8 +336,12 @@ public class UserManagementTest
     elements.forEach(element -> element.val(inputText));
   }
 
-  private void assertPopoverValidation(final String validationText, final List<SelenideElement> elements) {
-    elements.forEach(element -> on(element).shouldShowError(validationText));
+  private void clearElementsValue(final List<SelenideElement> elements) {
+    elements.forEach(element -> clearField(element));
+  }
+
+  private void assertInputValidation(final String validationText, final List<SelenideElement> elements) {
+    elements.forEach(element -> new NxTextInput(element).errorMessage().shouldHave(exactText(validationText)));
   }
 
   private NewUserForm goToCreateUserForm(final UserManagementPage userManagementPage) {
@@ -342,6 +364,12 @@ public class UserManagementTest
     User user = userDAO.getByUsername(username);
     if (user != null) {
       userDAO.delete(user);
+    }
+  }
+
+  private void clearField(SelenideElement element) {
+    while (!element.getAttribute("value").equals("")) {
+      element.sendKeys(Keys.BACK_SPACE);
     }
   }
 }

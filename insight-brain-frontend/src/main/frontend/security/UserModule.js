@@ -5,6 +5,9 @@
  */
 /* global angular, clmBuildTimestamp, $ */
 /* eslint indent: "off"*/
+import { react2angular } from 'react2angular';
+import withStoreProvider from '../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import resourceModule from '../Resource';
 import angularCommonModule from '../util/AngularCommon';
 import CLMLocationModule from '../util/CLMLocation';
@@ -19,8 +22,8 @@ import telemetryServiceModule from '../services/telemetryService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 import userListTemplate from './user-list.html';
-import userCreateTemplate from './user-create.html';
 import administratorsTemplate from '../policy/components/app-security/app-security.html';
+import UserFormContainer from './userForm/UserFormContainer';
 
 export const SecurityModule = angular.module(
   'SecurityModule',
@@ -49,55 +52,56 @@ export const SecurityModule = angular.module(
 );
 
 export const UserModule = angular
-  .module(
-    'UserModule',
-    [
-      'ui.router',
-      SecurityModule.name,
-      CLMLocationModule.name,
-      resourceModule.name,
-      utilityModule.name,
-      utilityDirectivesModule.name,
-      telemetryServiceModule.name,
-      pendoModule.name,
-    ],
-    [
-      '$stateProvider',
-      function ($stateProvider) {
-        $stateProvider
-          .state('users', {
-            url: '/users',
-            controller: 'UserListController',
-            template: userListTemplate,
-            data: {
-              title: 'Users',
-              crumb: 'Users',
-            },
-            resolve: {
-              isAuthorized: [
-                'PermissionService',
-                function (PermissionService) {
-                  return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-                },
-              ],
-            },
-          })
-          .state('users.create', {
-            // NOTE This is currently only used for adding new users - editing users is done using an inline form
-            url: '/_new_',
-            template: userCreateTemplate,
-            data: {
-              title: 'New User',
-              crumb: 'New User',
-            },
-          });
-      },
-    ]
-  )
+  .module('UserModule', [
+    'ui.router',
+    SecurityModule.name,
+    CLMLocationModule.name,
+    resourceModule.name,
+    utilityModule.name,
+    utilityDirectivesModule.name,
+    telemetryServiceModule.name,
+    pendoModule.name,
+  ])
   .controller('UserListController', UserListController)
   .component('userForm', userForm)
+  .component(
+    'createUser',
+    react2angular(withStoreProvider(withRouterStateProvider(UserFormContainer)), [], ['$ngRedux', '$state'])
+  )
   .factory('userActions', userActions)
-  .value('userReducer', userReducer);
+  .value('userReducer', userReducer)
+  .config(routes);
+
+function routes($stateProvider) {
+  $stateProvider
+    .state('users', {
+      url: '/users',
+      controller: 'UserListController',
+      template: userListTemplate,
+      data: {
+        title: 'Users',
+        crumb: 'Users',
+      },
+      resolve: {
+        isAuthorized: [
+          'PermissionService',
+          function (PermissionService) {
+            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
+          },
+        ],
+      },
+    })
+    .state('create', {
+      url: '/users/_new_',
+      component: 'createUser',
+      data: {
+        title: 'Add New User',
+        isDirty: ['userForm', 'isDirty'],
+      },
+    });
+}
+
+routes.$inject = ['$stateProvider'];
 
 export default UserModule;
 

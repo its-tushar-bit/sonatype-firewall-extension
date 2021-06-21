@@ -468,6 +468,10 @@ export function getLatestReportUrl(applicationId, stageTypeId) {
   return uriTemplate`/ui/links/application/${applicationId}/latestReport/${stageTypeId}`;
 }
 
+export function getUserUrl() {
+  return uriTemplate`/rest/user`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -558,9 +562,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/user/session/logout';
       },
 
-      getUserUrl: function () {
-        return baseUrl.get() + '/rest/user';
-      },
+      getUserUrl,
 
       getRoleByIdUrl: function (roleId) {
         return baseUrl.get() + '/rest/security/roles/' + roleId;

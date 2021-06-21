@@ -111,7 +111,7 @@ public class UserManagementPage
   }
 
   public NewUserForm newUserForm() {
-    return new NewUserForm("form[id$='user-form']");
+    return new NewUserForm("#user-form");
   }
 
   public static class NewUserForm
@@ -122,7 +122,7 @@ public class UserManagementPage
     }
 
     public Button saveButton() {
-      return new Button("button[id$='user-form-save']");
+      return new Button(".nx-form__submit-btn");
     }
 
     public SelenideElement firstNameInput() {

@@ -108,22 +108,7 @@ export default function UserListController(
   };
 
   $scope.newUserClick = function () {
-    $state.go('users.create');
-  };
-
-  $scope.closeUserCreateForm = function () {
-    $scope.context.users.sort(function (a, b) {
-      if (a.usernameLowercase < b.usernameLowercase) {
-        return -1;
-      } else if (a.usernameLowercase > b.usernameLowercase) {
-        return 1;
-      } else {
-        return 0;
-      }
-    });
-
-    // when a user is added by the user-create page, change the state back to the user list page
-    $state.go('users');
+    $state.go('create');
   };
 
   $scope.closeUserEditForm = function (user) {

@@ -84,3 +84,10 @@
 .accordion-toggle .iq-label {
   margin-bottom: 0;
 }
+
+.iq-input-group-wrapper {
+  display: flex;
+  .nx-form-group:first-child() {
+    margin-right: 24px;
+  }
+}

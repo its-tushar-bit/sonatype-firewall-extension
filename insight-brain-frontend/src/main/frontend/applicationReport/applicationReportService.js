@@ -78,7 +78,7 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
 
         return {
           ...pick(
-            ['policyThreatLevel', 'policyName', 'policyThreatCategory', 'policyViolationId', 'constraints'],
+            ['policyThreatLevel', 'policyName', 'policyThreatCategory', 'policyViolationId', 'constraints', 'actions'],
             violation
           ),
           ...bomComponent,

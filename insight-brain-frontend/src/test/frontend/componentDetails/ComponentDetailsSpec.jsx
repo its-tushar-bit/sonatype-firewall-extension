@@ -13,6 +13,7 @@ import BackButton from '../../../main/frontend/react/BackButton';
 import LoadError from '../../../main/frontend/react/LoadError';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
 import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
+import * as violationsTab from '../../../main/frontend/componentDetails/violations/PolicyViolationsContainer';
 
 describe('ComponentDetails', function () {
   let minimalProps,
@@ -105,8 +106,9 @@ describe('ComponentDetails', function () {
     });
 
     it('calls onTabChange action with the appropriate activeTabId when clicking on a tab', function () {
-      // Mock `AuditLogContainer` so that `getMountedComponent` doesn't complain.
-      spyOn(fullAuditLog, 'default').and.returnValue(<div>hello</div>);
+      // Mock containers so that `getMountedComponent` doesn't complain.
+      spyOn(fullAuditLog, 'default').and.returnValue(<div>auditLog</div>);
+      spyOn(violationsTab, 'PolicyViolationsContainer').and.returnValue(<div>violations</div>);
 
       let component = getMountedComponent({
           componentDetails: {

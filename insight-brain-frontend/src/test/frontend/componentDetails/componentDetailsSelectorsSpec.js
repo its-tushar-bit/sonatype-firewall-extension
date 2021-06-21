@@ -6,6 +6,7 @@
 import {
   selectComponentDetails,
   selectComponentPagination,
+  selectComponentViolations,
 } from '../../../main/frontend/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -150,5 +151,80 @@ describe('componentDetailsSelectors', () => {
       const actual = selectComponentPagination(state, { uiRouterState });
       expect(actual).toEqual(expected);
     });
+  });
+
+  describe('selectComponentViolations', () => {
+    const mockState = {
+      router: {
+        currentParams: {
+          hash: 'some-component-hash',
+        },
+      },
+      applicationReport: {
+        selectedReport: {
+          allEntries: [
+            {
+              hash: 'some-component-hash',
+            },
+            {
+              hash: 'some-component-hash',
+              policyThreatLevel: 9,
+            },
+            {
+              derivedComponentName: 'My Component',
+              hash: 'some-component-hash',
+              componentIdentifier: { format: 'maven' },
+              derivedDependencyType: 'transitive',
+              policyThreatLevel: 10,
+            },
+            {
+              hash: 'another-component-hash',
+            },
+            {
+              hash: 'and-another-component-hash',
+            },
+            {
+              hash: 'and-another-component-hash-bites-the-dust',
+            },
+          ],
+          displayedEntries: [
+            {
+              hash: 'a-component-hash',
+            },
+            {
+              derivedComponentName: 'My Component',
+              hash: 'some-component-hash',
+              componentIdentifier: { format: 'maven' },
+              derivedDependencyType: 'transitive',
+            },
+            {
+              hash: 'another-component-hash',
+            },
+          ],
+        },
+      },
+    };
+
+    it(
+      'derives the violations for the selected component from the entries in the selected report, ' +
+        'only for those that have a policy threat level',
+      () => {
+        const expected = [
+          {
+            hash: 'some-component-hash',
+            policyThreatLevel: 9,
+          },
+          {
+            derivedComponentName: 'My Component',
+            hash: 'some-component-hash',
+            componentIdentifier: { format: 'maven' },
+            derivedDependencyType: 'transitive',
+            policyThreatLevel: 10,
+          },
+        ];
+        const actual = selectComponentViolations(mockState);
+        expect(actual).toEqual(expected);
+      }
+    );
   });
 });

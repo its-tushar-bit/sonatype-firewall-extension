@@ -11,17 +11,17 @@ import BackButton from '../react/BackButton';
 import { useRouterState } from '../react/RouterStateContext';
 import AuditLogContainer from './auditLog/AuditLogContainer';
 import LoadError from '../react/LoadError';
-
-const tabIdPerIndex = ['remediation', 'info', 'violations', 'security', 'legal', 'audit'];
-
 import {
   ComponentDetailsHeader,
-  Title,
   ComponentDetailsReportInfo,
   ComponentDetailsTags,
   componentDetailsTagsPropTypes,
+  Title,
 } from './ComponentDetailsHeader';
 import { ComponentDetailsFooter, propTypes as footerPropTypes } from './ComponentDetailsFooter';
+import { PolicyViolationsContainer } from './violations';
+
+const tabIdPerIndex = ['remediation', 'info', 'violations', 'security', 'legal', 'audit'];
 
 export default function ComponentDetails({
   componentDetails,
@@ -96,7 +96,7 @@ export default function ComponentDetails({
                 <PlaceholderTabContent tabIndex={1}>Component Info</PlaceholderTabContent>
               </NxTabPanel>
               <NxTabPanel>
-                <PlaceholderTabContent tabIndex={2}>Policy Violations</PlaceholderTabContent>
+                <PolicyViolationsContainer />
               </NxTabPanel>
               <NxTabPanel>
                 <PlaceholderTabContent tabIndex={3}>Security</PlaceholderTabContent>

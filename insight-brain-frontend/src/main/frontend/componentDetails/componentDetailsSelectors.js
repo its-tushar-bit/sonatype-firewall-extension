@@ -6,12 +6,13 @@
 import { path, prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import {
+  selectAllComponentsList,
   selectApplicationReportMetaData,
+  selectDisplayedComponentList,
   selectSelectedComponent,
   selectSelectedComponentIndex,
-  selectComponentList,
 } from '../applicationReport/applicationReportSelectors';
-import { selectRouterCurrentParams, selectCurrentRouteName } from '../reduxUiRouter/routerSelectors';
+import { selectCurrentRouteName, selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 
 const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>
   metadata
@@ -48,7 +49,7 @@ export const selectActiveTabId = createSelector(selectRouterCurrentParams, prop(
 // This selector requires a second parameter passed, usually these would be props from the component
 export const selectComponentPagination = createSelector(
   selectSelectedComponentIndex,
-  selectComponentList,
+  selectDisplayedComponentList,
   selectCurrentRouteName,
   // the second argument is passed to the selector and in this case is props
   // so we can access the uiRouterState instance from context
@@ -68,5 +69,13 @@ export const selectComponentPagination = createSelector(
       };
     }
     return pagination;
+  }
+);
+
+export const selectComponentViolations = createSelector(
+  selectRouterCurrentParams,
+  selectAllComponentsList,
+  ({ hash }, components = []) => {
+    return components.filter((component) => component.hash === hash && component.policyThreatLevel);
   }
 );

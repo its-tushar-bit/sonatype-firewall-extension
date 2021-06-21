@@ -307,6 +307,7 @@ describe('applicationReportService', function () {
                   policyThreatLevel: 9,
                   waived: false,
                   grandfathered: false,
+                  actions: [{ actionSummary: 'Build Failed', actionType: 'fail' }],
                 },
                 {
                   policyId: '546fa744e6434a9e855e1ef5bcaf2068',
@@ -399,6 +400,7 @@ describe('applicationReportService', function () {
           policyThreatLevel: 9,
           waived: false,
           grandfathered: false,
+          actions: [{ actionSummary: 'Build Failed', actionType: 'fail' }],
         })
       );
 

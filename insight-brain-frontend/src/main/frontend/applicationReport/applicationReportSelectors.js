@@ -11,14 +11,15 @@ export const selectApplicationReportSlice = prop('applicationReport');
 export const selectSelectedReport = createSelector(selectApplicationReportSlice, prop('selectedReport'));
 export const selectApplicationReportMetaData = createSelector(selectApplicationReportSlice, prop('metadata'));
 
-export const selectComponentList = createSelector(selectSelectedReport, prop('displayedEntries'));
+export const selectAllComponentsList = createSelector(selectSelectedReport, prop('allEntries'));
+export const selectDisplayedComponentList = createSelector(selectSelectedReport, prop('displayedEntries'));
 export const selectSelectedComponent = createSelector(
   selectRouterCurrentParams,
-  selectComponentList,
+  selectDisplayedComponentList,
   ({ hash }, components = []) => components.find((component) => component.hash === hash)
 );
 export const selectSelectedComponentIndex = createSelector(
   selectSelectedComponent,
-  selectComponentList,
+  selectDisplayedComponentList,
   (component, list = []) => list.indexOf(component)
 );

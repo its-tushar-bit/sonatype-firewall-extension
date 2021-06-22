@@ -14,7 +14,7 @@ import dashboardResultsActionsModule from './dashboardResultsActions';
 
 import dashboardResultsContainer from './dashboardResultsContainer';
 import dashboardCommonResults from './dashboardCommonResults/dashboardCommonResults';
-import dashboardTabs from './dashboardTabs/dashboardTabs';
+import DashboardTabsContainer from './dashboardTabs/DashboardTabsContainer';
 import DashboardViolationsContainer from './violations/DashboardViolationsContainer';
 import DashboardComponentsContainer from './components/DashboardComponentsContainer';
 import ExportButtonContainer from './dashboardSummary/ExportButtonContainer';
@@ -40,4 +40,7 @@ export default angular
   )
   .component('dashboardResultsContainer', dashboardResultsContainer)
   .component('dashboardCommonResults', dashboardCommonResults)
-  .component('dashboardTabs', dashboardTabs);
+  .component(
+    'dashboardTabs',
+    react2angular(withStoreProvider(withRouterStateProvider(DashboardTabsContainer)), [], ['$ngRedux', '$state'])
+  );

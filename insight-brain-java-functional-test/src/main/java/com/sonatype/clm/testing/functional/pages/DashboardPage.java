@@ -52,15 +52,15 @@ public class DashboardPage
   }
 
   public static DashboardTab violationsTab() {
-    return new DashboardTab("#tab-button-newest");
+    return new DashboardTab("#nx-tabs-0-tab-0");
   }
 
   public static DashboardTab componentsTab() {
-    return new DashboardTab("#tab-button-component");
+    return new DashboardTab("#nx-tabs-0-tab-1");
   }
 
   public static DashboardTab applicationsTab() {
-    return new DashboardTab("#tab-button-application");
+    return new DashboardTab("#nx-tabs-0-tab-2");
   }
 
   public static SelenideElement exportResultsLink() {

@@ -17,6 +17,6 @@ public class DashboardTab
   }
 
   public SelenideElement counter() {
-    return child(".iq-counter");
+    return child(".nx-counter");
   }
 }

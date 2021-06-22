@@ -198,7 +198,7 @@ public class ApiSourceControlResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
         "SourceControl provider value 'invalid_scm' is invalid,"
-            + " valid options are: github, gitlab, bitbucket");
+            + " valid options are: github, gitlab, bitbucket, azure");
   }
 
   @Test
@@ -218,7 +218,7 @@ public class ApiSourceControlResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
         "SourceControl provider value 'invalid_scm' is invalid,"
-            + " valid options are: github, gitlab, bitbucket");
+            + " valid options are: github, gitlab, bitbucket, azure");
   }
 
   @Test

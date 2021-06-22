@@ -45,6 +45,9 @@ bcrypt==3.1.7</content>
     <component type="library">
       <name>tomcat-catalina</name>
       <version>9.0.14</version>
+      <hashes>
+        <hash alg="SHA-1">e6b1000b94e835ffd37f</hash>
+      </hashes>
       <purl>pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar</purl>
     </component>
     <component type="library">

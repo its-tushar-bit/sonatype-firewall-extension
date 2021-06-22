@@ -355,6 +355,7 @@ public class ThirdPartyScanResultsProcessorTest
     assertThat(bom.getSerialNumber()).isNull();
     assertThat(bom.getVersion()).isNotNull();
     assertThat(bom.getExternalReferences()).isNull();
+    assertThat(bom.getExternalReferences()).isNull();
 
     for (Component component : bom.getComponents()) {
       assertThat(component.getComponents()).isNull();
@@ -366,13 +367,14 @@ public class ThirdPartyScanResultsProcessorTest
       }
       else {
         assertThat(component.getPurl()).isNull();
+        assertThat(component.getHashes()).isNull();
       }
 
       assertThat(component.getComponents()).isNull();
-      assertThat(component.getHashes()).isNull();
       assertThat(component.getCopyright()).isNull();
       assertThat(component.getDescription()).isNull();
       assertThat(component.getExternalReferences()).isNull();
+      assertThat(component.getExtensibleTypes()).isNull();
       assertThat(component.getGroup()).isNull();
       assertThat(component.getLicenseChoice()).isNull();
       assertThat(component.getPedigree()).isNull();

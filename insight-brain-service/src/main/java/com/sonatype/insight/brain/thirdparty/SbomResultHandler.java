@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +32,12 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import com.github.packageurl.PackageURLBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.BomGeneratorFactory;
 import org.cyclonedx.CycloneDxSchema.Version;
 import org.cyclonedx.exception.GeneratorException;
@@ -119,18 +120,17 @@ public class SbomResultHandler
   }
 
   private void processSbom(
-      ThirdPartyScanContent content,
-      Bom generateBomFromFile,
-      Bom targetBom,
-      ThirdPartyFile thirdPartyFile) throws MalformedPackageURLException
+      final ThirdPartyScanContent content,
+      final Bom sourceBom,
+      final Bom targetBom,
+      final ThirdPartyFile thirdPartyFile)
   {
-    final Map<String, String> hashFileCoordinateIdMap = new HashMap<>();
     String identificationSource = getTruncatedIdentificationSource(determineIdentificationSource(content.getPath()));
     try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
       tx.begin();
-      for (Component component : generateBomFromFile.getComponents()) {
-        processComponent(component, thirdPartyFile.getId(), targetBom, hashFileCoordinateIdMap, identificationSource,
-            tx);
+      Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
+      for (Component component : sourceBom.getComponents()) {
+        processComponent(component, thirdPartyFile.getId(), targetBom, identificationSource, resolvedComponents, tx);
       }
       tx.commit();
     }
@@ -150,64 +150,78 @@ public class SbomResultHandler
   }
 
   private void processComponent(
-      Component component,
-      String thirdPartyFileId,
-      Bom targetBom,
-      Map<String, String> hashFileCoordinateIdMap,
-      String identificationSource,
-      TransactionContext tx) throws MalformedPackageURLException
+      final Component sourceComponent,
+      final String thirdPartyFileId,
+      final Bom targetBom,
+      final String identificationSource,
+      final Set<ComponentIdentifier> resolvedComponents,
+      final TransactionContext tx)
   {
-    String packageUrl = component.getPurl();
+    try {
+      Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
+      if (resolvedComponent != null) {
+        ComponentIdentifier componentIdentifier = resolvedComponent.getLeft();
+        if (componentIdentifier == null) {
+          targetBom.addComponent(resolvedComponent.getRight());
+        }
+        else if (!resolvedComponents.contains(componentIdentifier)) {
+          saveComponent(thirdPartyFileId, identificationSource, sourceComponent, resolvedComponent, tx);
+          targetBom.addComponent(resolvedComponent.getRight());
+          resolvedComponents.add(componentIdentifier);
+        }
+      }
+    }
+    catch (Exception e) {
+      log.warn("Error processing component : {}", sourceComponent, e);
+    }
+  }
+
+  private Pair<ComponentIdentifier, Component> getResolvedComponent(final Component sourceComponent)
+      throws MalformedPackageURLException
+  {
+    String packageUrl = sourceComponent.getPurl();
     try {
       if (StringUtils.isNotBlank(packageUrl)) {
-        PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(packageUrl);
+        PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(packageUrl);
         if (StringUtils.isNoneBlank(packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion())) {
-          processPurlComponent(component, packageUrlIdentifier, thirdPartyFileId, targetBom,
-              hashFileCoordinateIdMap, identificationSource, tx);
+          return createComponent(sourceComponent, packageUrlIdentifier, false);
         }
         else {
           log.warn("PackageUrl is not valid {}", packageUrl);
-          processComponentFromHashOrCoordinates(thirdPartyFileId, targetBom, hashFileCoordinateIdMap,
-              identificationSource, tx, component);
         }
-      }
-      else {
-        processComponentFromHashOrCoordinates(thirdPartyFileId, targetBom, hashFileCoordinateIdMap,
-            identificationSource, tx, component);
       }
     }
     catch (InvalidPackageURLException e) {
       log.warn("Fallback to coordinates due to invalid purl: {}", packageUrl);
-      processComponentFromHashOrCoordinates(thirdPartyFileId, targetBom, hashFileCoordinateIdMap, identificationSource,
-          tx, component);
     }
+    return processComponentFromHashOrCoordinates(sourceComponent);
   }
 
-  private void processComponentFromHashOrCoordinates(
-      final String thirdPartyFileId,
-      final Bom targetBom,
-      final Map<String, String> hashFileCoordinateIdMap,
-      final String identificationSource,
-      final TransactionContext tx,
-      final Component component) throws MalformedPackageURLException
+  private Pair<ComponentIdentifier, Component> processComponentFromHashOrCoordinates(
+      final Component sourceComponent) throws MalformedPackageURLException
   {
-    String name = StringUtils.isNotBlank(component.getName()) ? component.getName() : MISSING_COMPONENT_NAME;
-    String version = component.getVersion();
-    Component sbomComponent = createComponent(component, name, version);
-
+    String name =
+        StringUtils.isNotBlank(sourceComponent.getName()) ? sourceComponent.getName() : MISSING_COMPONENT_NAME;
+    String version = sourceComponent.getVersion();
     if (StringUtils.isNotBlank(version)) {
-      String sha1 = getSha1(component);
+      PackageUrlIdentifier packageUrlIdentifier =
+          resolvePackageUrl(getPackageUrlFromCoordinates(sourceComponent, name));
+      return createComponent(sourceComponent, packageUrlIdentifier, true);
+    }
+    else {
+      // This scenario is only possible when only the hash is sent without coordinates nor purl
+      String sha1 = getSha1(sourceComponent);
       if (StringUtils.isNotBlank(sha1)) {
-        processSha1Component(sbomComponent,
-            StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH), targetBom);
+        Component component = new Component();
+        component.setType(sourceComponent.getType());
+        setHash(sha1, component);
+        return Pair.of(null, component);
       }
       else {
-        PackageUrlIdentifier packageUrlIdentifier =
-            new PackageUrlIdentifier(getPackageUrlFromCoordinates(component, name));
-        processPurlComponent(sbomComponent, packageUrlIdentifier, thirdPartyFileId, targetBom,
-            hashFileCoordinateIdMap, identificationSource, tx);
+        log.debug("Component with invalid information {}", sourceComponent);
       }
     }
+    return null;
   }
 
   private String getPackageUrlFromCoordinates(Component component, String  name)
@@ -241,55 +255,56 @@ public class SbomResultHandler
     return null;
   }
 
-  private void processPurlComponent(
-      Component component,
-      PackageUrlIdentifier packageUrlIdentifier,
-      String thirdPartyFileId,
-      Bom targetBom,
-      Map<String, String> hashFileCoordinateIdMap,
-      String identificationSource,
-      TransactionContext tx)
+  private Pair<ComponentIdentifier, Component> createComponent(
+      final Component sourceComponent,
+      final PackageUrlIdentifier packageUrlIdentifier,
+      final boolean coordinates)
   {
-    ComponentIdentifier componentIdentifier = resolveComponentIdentifier(packageUrlIdentifier);
-    packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
-    Component sbomComponent =
-        createComponent(component, packageUrlIdentifier.getName(), packageUrlIdentifier.getVersion());
-    sbomComponent.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
-    saveComponent(thirdPartyFileId, hashFileCoordinateIdMap, componentIdentifier, identificationSource, targetBom,
-        sbomComponent, component, tx);
-  }
+    ComponentIdentifier componentIdentifier;
+    Component component = new Component();
+    component.setType(sourceComponent.getType());
 
-  private Component createComponent(Component component, String name, String version) {
-    Component sbomComponent = new Component();
-    sbomComponent.setType(component.getType());
-    sbomComponent.setName(name);
-    sbomComponent.setVersion(version);
-    return sbomComponent;
-  }
-
-  private void processSha1Component(Component sbomComponent, String sha1, Bom targetBom) {
-    sbomComponent.setHashes(Collections.singletonList(new Hash(Algorithm.SHA1, sha1)));
-    targetBom.addComponent(sbomComponent);
-  }
-
-  private ComponentIdentifier resolveComponentIdentifier(PackageUrlIdentifier packageUrlIdentifier) {
-    PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL();
-    packageURLBuilder.withType(ThirdPartyScanResultUtils.getValidFormat(packageUrlIdentifier.getFormat()));
-    packageURLBuilder.withName(ThirdPartyScanResultUtils.getTruncatedName(packageUrlIdentifier.getName()));
-    packageURLBuilder.withVersion(ThirdPartyScanResultUtils.getTruncatedVersion(packageUrlIdentifier.getVersion()));
-
-    if (packageUrlIdentifier.getNamespace() != null) {
-      packageURLBuilder.withNamespace(packageUrlIdentifier.getNamespace());
+    String sha1 = getSha1(sourceComponent);
+    boolean hasHash = StringUtils.isNotBlank(sha1);
+    if (hasHash) {
+      setHash(sha1, component);
+    }
+    if (!hasHash || !coordinates) {
+      component.setPurl(ThirdPartyScanResultUtils.getTruncatedPurl(packageUrlIdentifier.getPackageUrl()));
     }
 
-    Map<String, String> qualifiers = packageUrlIdentifier.getQualifiers();
-    for (Entry<String, String> entry : qualifiers.entrySet()) {
-      packageURLBuilder.withQualifier(entry.getKey(), entry.getValue());
-    }
+    componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
+    component.setName(packageUrlIdentifier.getName());
+    component.setVersion(packageUrlIdentifier.getVersion());
 
+    return Pair.of(componentIdentifier, component);
+  }
+
+  private void setHash(final String sha1, final Component component) {
+    component.setHashes(
+        Collections.singletonList(new Hash(Algorithm.SHA1, StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH))));
+  }
+
+  private PackageUrlIdentifier resolvePackageUrl(String packageUrlIdentifier) {
     try {
+      PackageUrlIdentifier sourcePurl = new PackageUrlIdentifier(packageUrlIdentifier);
+
+      PackageURLBuilder packageURLBuilder = PackageURLBuilder.aPackageURL();
+      packageURLBuilder.withType(ThirdPartyScanResultUtils.getValidFormat(sourcePurl.getFormat()));
+      packageURLBuilder.withName(ThirdPartyScanResultUtils.getTruncatedName(sourcePurl.getName()));
+      packageURLBuilder.withVersion(ThirdPartyScanResultUtils.getTruncatedVersion(sourcePurl.getVersion()));
+
+      if (sourcePurl.getNamespace() != null) {
+        packageURLBuilder.withNamespace(sourcePurl.getNamespace());
+      }
+
+      Map<String, String> qualifiers = sourcePurl.getQualifiers();
+      for (Entry<String, String> entry : qualifiers.entrySet()) {
+        packageURLBuilder.withQualifier(entry.getKey(), entry.getValue());
+      }
+
       PackageURL packageUrl = packageURLBuilder.build();
-      return new PackageUrlIdentifier(packageUrl.canonicalize()).toComponentIdentifier();
+      return new PackageUrlIdentifier(packageUrl.canonicalize());
     }
     catch (MalformedPackageURLException e) {
       throw new InvalidPackageURLException(e.getMessage(), e);
@@ -297,27 +312,30 @@ public class SbomResultHandler
   }
 
   private void saveComponent(
-      String thirdPartyFileId,
-      Map<String, String> hashFileCoordinateIdMap,
-      ComponentIdentifier componentIdentifier,
-      String identificationSource,
-      Bom targetBom,
-      Component sbomComponent,
-      Component component,
-      TransactionContext tx)
+      final String thirdPartyFileId,
+      final String identificationSource,
+      final Component sourceComponent,
+      final Pair<ComponentIdentifier, Component> resolvedComponent,
+      final TransactionContext tx)
   {
+    Component component = resolvedComponent.getRight();
+    ComponentIdentifier componentIdentifier;
+    if (component.getPurl() != null) {
+      PackageUrlIdentifier packageUrlIdentifier = resolvePackageUrl(component.getPurl());
+      componentIdentifier = packageUrlIdentifier.toComponentIdentifier();
+    }
+    else {
+      componentIdentifier = resolvedComponent.getLeft();
+    }
+
     String fakeHash = ThirdPartyScanResultUtils.hash(
         componentIdentifier.getFormat() + ":" + StringUtils.join(componentIdentifier.getCoordinates().values(), ":"));
-    if (!hashFileCoordinateIdMap.containsKey(fakeHash)) {
-      ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, identificationSource,
-          componentIdentifier.getFormat(), sbomComponent.getName(), sbomComponent.getVersion(), thirdPartyFileId);
-      fileCoordinate.setPackageUrl(sbomComponent.getPurl());
-      thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
-      hashFileCoordinateIdMap.put(fakeHash, fileCoordinate.getId());
-      saveLicenses(component.getLicenseChoice(), fileCoordinate.getId(), sbomComponent.getPurl(), tx);
-      saveVulnerabilities(component.getExtensions(), fileCoordinate.getId(), tx);
-      targetBom.addComponent(sbomComponent);
-    }
+    ThirdPartyFileCoordinate fileCoordinate = new ThirdPartyFileCoordinate(fakeHash, identificationSource,
+        componentIdentifier.getFormat(), component.getName(), component.getVersion(), thirdPartyFileId);
+    fileCoordinate.setPackageUrl(component.getPurl());
+    thirdPartyFileCoordinateDAO.insert(tx, fileCoordinate);
+    saveLicenses(sourceComponent.getLicenseChoice(), fileCoordinate.getId(), component.getPurl(), tx);
+    saveVulnerabilities(sourceComponent.getExtensions(), fileCoordinate.getId(), tx);
   }
 
   private void saveVulnerabilities(
@@ -344,10 +362,20 @@ public class SbomResultHandler
   }
 
   private void saveVulnerability(Vulnerability10 vulnerability, String fileCoordinateId, TransactionContext tx) {
-    ThirdPartyCoordinateSecurity coordinateSecurity = new ThirdPartyCoordinateSecurity();
+    ThirdPartyCoordinateSecurity coordinateSecurity = parseVulnerability(vulnerability, fileCoordinateId);
+    if (coordinateSecurity != null) {
+      thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+    }
+  }
 
+  @VisibleForTesting
+  ThirdPartyCoordinateSecurity parseVulnerability(
+      final Vulnerability10 vulnerability,
+      final String fileCoordinateId)
+  {
     List<Rating> ratingsElements = vulnerability.getRatings();
     if (CollectionUtils.isNotEmpty(ratingsElements)) {
+      ThirdPartyCoordinateSecurity coordinateSecurity = new ThirdPartyCoordinateSecurity();
       Rating rating = ratingsElements.get(0);
       Double baseScore = getBaseScore(rating);
       if (baseScore != null) {
@@ -385,10 +413,10 @@ public class SbomResultHandler
         }
         coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
         coordinateSecurity.setDescription(vulnerability.getDescription());
-
-        thirdPartyCoordinateSecurityDAO.insert(tx, coordinateSecurity);
+        return coordinateSecurity;
       }
     }
+    return null;
   }
 
   private Double getBaseScore(final Rating rating) {

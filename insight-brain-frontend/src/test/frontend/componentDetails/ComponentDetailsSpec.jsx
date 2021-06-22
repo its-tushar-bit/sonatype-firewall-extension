@@ -210,5 +210,24 @@ describe('ComponentDetails', function () {
       expect(loadComponentDetailsSpy).toHaveBeenCalled();
       component.unmount();
     });
+
+    describe('when app fails to get componentDetails and there is no applicationReportError', () => {
+      beforeEach(() => {
+        minimalProps = {
+          componentDetails: null,
+          activeTabId: 'remediation',
+          loadComponentDetails: loadComponentDetailsSpy,
+          onTabChange: onTabChangeSpy,
+          pagination: null,
+          applicationReportLoadError: null,
+        };
+      });
+
+      it('renders a componentDetails error', () => {
+        const el = getShallowComponent(minimalProps).find(LoadError);
+        expect(el).toExist();
+        expect(el).toHaveProp('error', 'Error getting component details.');
+      });
+    });
   });
 });

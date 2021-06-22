@@ -44,9 +44,10 @@ export default function ComponentDetails({
     return (
       <main className="nx-page-main nx-viewport-sized" id="component-details-page">
         <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
-        {applicationReportLoadError && (
-          <LoadError error={applicationReportLoadError} retryHandler={loadComponentDetails} />
-        )}
+        <LoadError
+          error={applicationReportLoadError || 'Error getting component details.'}
+          retryHandler={loadComponentDetails}
+        />
       </main>
     );
   }

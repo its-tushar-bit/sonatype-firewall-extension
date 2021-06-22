@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.git.event;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
@@ -300,8 +302,10 @@ public class SourceControlEventServiceTest
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
-    doThrow(new RuntimeException(errorMsg)).when(mockPullRequestCommentingEventHandler)
+    doThrow(new SourceControlException(errorMsg, true)).when(mockPullRequestCommentingEventHandler)
         .onDiscoveredPullRequest(any(SourceControlEvent.class));
+    doThrow(new IOException(errorMsg)).when(mockPullRequestRemediationService)
+        .onRemediateComponent(any(SourceControlEvent.class));
 
     CountDownLatch event0Latch = createOnEventFinishedLatch(events.get(0));
     CountDownLatch event1Latch = createOnEventFinishedLatch(events.get(1));
@@ -323,18 +327,18 @@ public class SourceControlEventServiceTest
     verifyProcessEventsActions(events.get(1), errorMsg,
         EventProcessAction.markedInProgress,
         EventProcessAction.onPrDiscovered,
-        EventProcessAction.markedHasError);
+        EventProcessAction.markedPartiallyComplete);
 
-    verifyProcessEventsActions(events.get(2),
+    verifyProcessEventsActions(events.get(2), errorMsg,
         EventProcessAction.markedInProgress,
         EventProcessAction.onComponentRemediation,
-        EventProcessAction.markedComplete);
+        EventProcessAction.markedHasError);
 
     assertThatLogMessagesContain(
         debug("Requested " + SourceControlEventService.TASK_QUEUE_CAPACITY + " source control events, processing 3"),
         debug(getProcessedEventMessage(events.get(0))),
-        error(getProcessedEventErrorMessage(events.get(1), errorMsg)),
-        debug(getProcessedEventMessage(events.get(2)))
+        warn(getProcessedEventWarningMessage(events.get(1), errorMsg)),
+        error(getProcessedEventErrorMessage(events.get(2), errorMsg))
     );
   }
 
@@ -698,6 +702,11 @@ public class SourceControlEventServiceTest
         event.getEventType(), event.getApplicationId(), errorMessage);
   }
 
+  private String getProcessedEventWarningMessage(SourceControlEvent event, String message) {
+    return format("Partially processed event '%s' of type '%s' for application '%s' : %s", event.getId(),
+        event.getEventType(), event.getApplicationId(), message);
+  }
+
   private List<SourceControlEvent> generateEvents(String... qtyAppIdAndTypeArray) {
     List<SourceControlEvent> events = new ArrayList<>();
 
@@ -768,7 +777,7 @@ public class SourceControlEventServiceTest
   private enum EventProcessAction
   {
     noPropagation, markedInProgress, markedComplete, markedHasError, onAppEval, onPrDiscovered, onPrUpdated, //
-    onComponentRemediation, onManifestScan, onStatusUpdate, onRepositoryUrlUpdated
+    markedPartiallyComplete, onComponentRemediation, onManifestScan, onStatusUpdate, onRepositoryUrlUpdated
   }
 
   private void verifyProcessEventsActions(SourceControlEvent event, EventProcessAction... conditions)
@@ -804,6 +813,15 @@ public class SourceControlEventServiceTest
     }
     else {
       verify(mockSourceControlEventDAO, never()).markEventHasError(eq(event.getId()), any());
+    }
+
+    if (actionSet.contains(EventProcessAction.markedPartiallyComplete)) {
+      verify(mockSourceControlEventDAO, times(1))
+          .markEventHasError(eq(event.getId()), eq(message), eq(SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE));
+    }
+    else {
+      verify(mockSourceControlEventDAO, never())
+          .markEventHasError(eq(event.getId()), any(), eq(SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE));
     }
 
     if (actionSet.contains(EventProcessAction.noPropagation)) {

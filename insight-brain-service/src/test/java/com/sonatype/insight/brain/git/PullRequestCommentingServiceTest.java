@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.git;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
@@ -22,11 +21,13 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,7 +50,7 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testDoCreateOrUpdatePullRequestComment_noPolicyEvalDiff() throws IOException {
+  public void testDoCreateOrUpdatePullRequestComment_noPolicyEvalDiff() {
     // given: no policy eval diff for the given PR
     PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
         .withNoPolicyEvaluationDiff()
@@ -71,7 +72,7 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testDoCreateOrUpdatePullRequestComment_noClearedOrAppearedViolations() throws IOException {
+  public void testDoCreateOrUpdatePullRequestComment_noClearedOrAppearedViolations() {
     // given: policy violation diff with no cleared or appeared violations
     PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
         .withMeaninglessPolicyViolationDiff()
@@ -94,7 +95,7 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testDoCreateOrUpdatePullRequestComment_withAppearedViolation() throws IOException {
+  public void testDoCreateOrUpdatePullRequestComment_withAppearedViolation() {
     // given: policy violation diff with an appeared violation
     PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
         .withAppearedViolation()
@@ -117,7 +118,7 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testDoCreateOrUpdatePullRequestComment_withClearedViolation() throws IOException {
+  public void testDoCreateOrUpdatePullRequestComment_withClearedViolation() {
     // given: policy violation diff with a cleared violation
     PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
         .withClearedViolation()
@@ -140,7 +141,7 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testDoCreateOrUpdatePullRequestComment_withAppearedAndClearedViolations() throws IOException {
+  public void testDoCreateOrUpdatePullRequestComment_withAppearedAndClearedViolations() {
     // given: policy violation diff with both cleared and appeared violations
     PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
         .withAppearedViolation()
@@ -164,7 +165,7 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testDoCreateOrUpdatePullRequestComment_existingCommentNoChanges() throws IOException {
+  public void testDoCreateOrUpdatePullRequestComment_existingCommentNoChanges() {
     // given: existing PR comment and new request with no content changes
     PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
         .withAppearedViolation()
@@ -190,7 +191,7 @@ public class PullRequestCommentingServiceTest
   }
 
   @Test
-  public void testDoCreateOrUpdatePullRequestComment_updateExistingComment() throws IOException {
+  public void testDoCreateOrUpdatePullRequestComment_updateExistingComment() {
     // given: existing PR comment and new request with some content changes
     PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
         .withAppearedViolation()
@@ -210,6 +211,28 @@ public class PullRequestCommentingServiceTest
     verify(mockPullRequestCommentCreator, never()).createPullRequestComment(any(), any(), any(), any());
     verify(mockPullRequestCommentCreator, times(1))
         .updatePullRequestComment(eq(pullRequestPolicyEvaluationsDTO), any(), any(), any(), any());
+
+    assertNoErrorsInLogs();
+    assertNoWarningsInLogs();
+  }
+
+  @Test
+  public void testDoCreateOrUpdatePullRequestComment_propagateException() {
+    // given: existing PR comment and new request with some content changes
+    PullRequestCommentingService pullRequestCommentingService = new TestablePullRequestCommentingService()
+        .withAppearedViolation()
+        .withDifferentContentHash()
+        .withExceptionOnCommentCreation()
+        .build();
+
+    PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()
+        .setApplicationId("app1")
+        .setPullRequestNumber(123);
+
+    // expect:
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
+        pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO)
+    ).withMessage("test");
 
     assertNoErrorsInLogs();
     assertNoWarningsInLogs();
@@ -276,6 +299,12 @@ public class PullRequestCommentingServiceTest
       if (null != existingPullRequestComment) {
         existingPullRequestComment.setContentHash("content-hash-1");
       }
+      return this;
+    }
+
+    TestablePullRequestCommentingService withExceptionOnCommentCreation() {
+      doThrow(new SourceControlException("test")).when(mockPullRequestCommentCreator)
+          .createPullRequestComment(any(), any(), any(), any());
       return this;
     }
 

@@ -38,6 +38,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -349,10 +350,13 @@ public class GitCommitStatusServiceTest
 
     SourceControlEvent event = createSourceControlEvent(8, ApplicationEvaluationEvent.ACTION_ID_NONE, 8, 9, 10);
 
-    // when: process event
-    commitStatusService.onSendCommitStatus(event);
+    // expect:
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
+        commitStatusService.onSendCommitStatus(event)
+    ).withMessage("Failed to update status for applicationId: app-8, repository: http://gitlab.com/testOrg/testRepo," +
+        " commitHash: commit-8, triggered by policyEvaluationId: eval-8, reason: gitlab API error");
 
-    // then:
+    // and:
     verifyStatusRequest(
         "yes",
         "Components: Critical: 8, Severe: 9, Moderate: 10",
@@ -362,9 +366,7 @@ public class GitCommitStatusServiceTest
 
     assertThatLogMessagesEqual(
         debug("Creating a gitlab commit status for repository: https://gitlab.com/sonatype/testing/testRepo1/," +
-            " commit hash: commit-8, with outcome: none, state: yes"),
-        error("Failed to update status for applicationId: app-8, repository: http://gitlab.com/testOrg/testRepo," +
-                " commitHash: commit-8, triggered by policyEvaluationId: eval-8, reason: gitlab API error")
+            " commit hash: commit-8, with outcome: none, state: yes")
     );
   }
 

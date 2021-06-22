@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,12 +126,16 @@ public class SourceControlEventDAO
   }
 
   public void markEventHasError(final String eventId, final String errorMessage) {
+    markEventHasError(eventId, errorMessage, SourceControlEvent.EVENT_STATUS_ERROR);
+  }
+
+  public void markEventHasError(final String eventId, final String errorMessage, final String eventStatus) {
     String sQuery = UPDATE_ENTITY +
         "SET entity.eventStatus=?2, entity.eventStatusDetails=?3, entity.completeTime=?4 " +
         WHERE_ENTITY_ID_MATCHES;
-    createQuery(sQuery, eventId, SourceControlEvent.EVENT_STATUS_ERROR, errorMessage,
+    createQuery(sQuery, eventId, eventStatus, StringUtils.abbreviate(errorMessage, 2048),
         new Timestamp(System.currentTimeMillis())).executeUpdate();
-    log.debug(UPDATED_EVENT_WITH_STATUS, eventId, errorMessage);
+    log.debug(UPDATED_EVENT_WITH_STATUS, eventId, eventStatus);
   }
 
   @Override

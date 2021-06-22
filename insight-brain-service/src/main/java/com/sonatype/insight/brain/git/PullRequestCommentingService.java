@@ -107,8 +107,11 @@ public class PullRequestCommentingService
             dto.getApplicationId(), dto.getPullRequestNumber());
       }
     }
+    catch (SourceControlException e) {
+      throw e;
+    }
     catch (Exception e) {
-      log.error(e.getMessage(), e);
+      throw new SourceControlException("Failed to create/update PR comment - reason: " + e.getMessage(), e);
     }
   }
 }

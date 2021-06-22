@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -74,9 +74,9 @@ public class PullRequestLineCommentingService
    * This method encapsulates the complete flow for pull request line commenting of policy violation diffs between the
    * development branch commit that triggered the policy evaluation (which then issued this event) and the most recently
    * available policy evaluation for the source control configured base branch for the associated application.
-   * @return list of PR line comments successfully created
+   * @return PR line comments creation result
    */
-  public List<PullRequestLineCommentDTO> createPullRequestLineComments(
+  public PullRequestLineCommentCreationResult createPullRequestLineComments(
       final List<PolicyViolation> violationList,
       final GitRepositoryInfo gitRepositoryInfo,
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
@@ -87,14 +87,16 @@ public class PullRequestLineCommentingService
       final String basePolicyEvaluationId,
       final LocationDiscoveryResult locationDiscoveryResult)
   {
+    final PullRequestLineCommentCreationResult lineCommentCreationResult =
+        new PullRequestLineCommentCreationResult();
+
     if (!insightConfig.isFeatureEnabled(Feature.PR_LINE_COMMENTING) ||
         !gitRepositoryInfo.getProvider().supportsPullRequestLineCommenting()) {
-      return Collections.emptyList();
+      return lineCommentCreationResult;
     }
 
-    List<PullRequestLineCommentDTO> lineCommentList = Collections.emptyList();
     try {
-      deleteExistingLineCommentsIfExists(applicationId, gitRepositoryInfo, pullRequestId);
+      deleteExistingLineCommentsIfExists(lineCommentCreationResult, applicationId, gitRepositoryInfo, pullRequestId);
       if (!CollectionUtils.isEmpty(violationList)) {
         if (locationDiscoveryResult != null && !locationDiscoveryResult.getLocationMap().isEmpty()) {
           GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
@@ -109,31 +111,35 @@ public class PullRequestLineCommentingService
                 positionDiscoveryResult.getDiffPositionsByComponent();
 
             // Build a list of line comments to be created
-            lineCommentList = buildLineCommentList(diffPositionMap, violationList);
+            buildLineCommentList(lineCommentCreationResult, diffPositionMap, violationList);
 
-            addMarkupToLineComments(lineCommentList, remediationVersionMap, gitRepositoryInfo.getProvider());
+            addMarkupToLineComments(lineCommentCreationResult.getPullRequestLineCommentDtoList(), remediationVersionMap,
+                gitRepositoryInfo.getProvider());
 
-            createLineComments(lineCommentList, gitApiClient, pullRequestId, commitHash,
+            createLineComments(lineCommentCreationResult, gitApiClient, pullRequestId, commitHash,
                 sourcePolicyEvaluationId, basePolicyEvaluationId, applicationId);
 
             // Filter out unsuccessful comment attempts
-            lineCommentList = lineCommentList.stream().filter(i -> i.getScmId() != null).collect(Collectors.toList());
+            lineCommentCreationResult.setPullRequestLineCommentDtoList(
+                lineCommentCreationResult.getPullRequestLineCommentDtoList().stream().filter(i -> i.getScmId() != null)
+                    .collect(Collectors.toList())
+            );
           }
         }
       }
     }
     catch (Exception e) {
-      log.error("Cannot create PullRequest line comments", e);
+      throw new SourceControlException("Cannot create PullRequest line comments - reason: " + e.getMessage(), e);
     }
 
-    return lineCommentList;
+    return lineCommentCreationResult;
   }
 
   /**
    * Creates the line comments in the target SCM and records them in the database.
    */
   private void createLineComments(
-      final List<PullRequestLineCommentDTO> lineCommentList,
+      final PullRequestLineCommentCreationResult lineCommentCreationResult,
       final GitApiClient gitApiClient,
       final int pullRequestId,
       final String commitHash,
@@ -143,7 +149,7 @@ public class PullRequestLineCommentingService
   {
     int totalCount = 0;
     int successfulCount = 0;
-    for (PullRequestLineCommentDTO lineCommentDTO : lineCommentList) {
+    for (PullRequestLineCommentDTO lineCommentDTO : lineCommentCreationResult.getPullRequestLineCommentDtoList()) {
       if (lineCommentDTO.hasMarkup()) {
         totalCount++;
         try {
@@ -166,7 +172,9 @@ public class PullRequestLineCommentingService
           }
         }
         catch (IOException e) {
-          log.error("Cannot create PR line comment", e);
+          String message = String.format("Cannot create PR line comment for pr %s, at line number: %s", pullRequestId,
+              lineCommentDTO.getDiffPosition().getNewLineNumber());
+          lineCommentCreationResult.addException(new IOException(message, e));
         }
       }
     }
@@ -196,7 +204,8 @@ public class PullRequestLineCommentingService
   /**
    * Builds the list of line comments to be created. The list items are enhanced in subsequent steps
    */
-  private List<PullRequestLineCommentDTO> buildLineCommentList(
+  private void buildLineCommentList(
+      final PullRequestLineCommentCreationResult lineCommentCreationResult,
       final Map<ComponentIdentifier, List<DiffPosition>> diffPositionMap,
       final List<PolicyViolation> violationList)
   {
@@ -219,20 +228,22 @@ public class PullRequestLineCommentingService
         }
       }
     }
-    return lineCommentDTOList;
+    lineCommentCreationResult.setPullRequestLineCommentDtoList(lineCommentDTOList);
   }
 
   /**
    * Deletes all existing line comments for a given PR from the DB and SCM if they exists
    *
-   * @param applicationId     The application the PR relates to
-   * @param gitRepositoryInfo The repository info the PR relates to
-   * @param pullRequestId     The pull request id
+   * @param lineCommentCreationResult Collects operation result details
+   * @param applicationId             The application the PR relates to
+   * @param gitRepositoryInfo         The repository info the PR relates to
+   * @param pullRequestId             The pull request id
    */
   private void deleteExistingLineCommentsIfExists(
+      final PullRequestLineCommentCreationResult lineCommentCreationResult,
       final String applicationId,
       final GitRepositoryInfo gitRepositoryInfo,
-      final int pullRequestId) throws IOException
+      final int pullRequestId)
   {
     List<SourceControlPullRequestComment> existingLineComments =
         pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithComponents(applicationId, pullRequestId);
@@ -246,13 +257,16 @@ public class PullRequestLineCommentingService
               comment.getPullRequestCommentVersion());
           pullRequestCommentDAO.delete(comment);
         }
-        catch (HttpResponseException e) {
-          if (HttpStatus.SC_NOT_FOUND == e.getStatusCode()) {
+        catch (IOException e) {
+          if (e instanceof HttpResponseException &&
+              HttpStatus.SC_NOT_FOUND == ((HttpResponseException) e).getStatusCode()) {
             log.debug("Deleting pull request line comment with id {} on application {} returned 404, skipping",
                 comment.getPullRequestCommentId(), applicationId);
           }
           else {
-            throw e;
+            String message = String.format("Cannot delete pull request line comment with id %s on application %s",
+                comment.getPullRequestCommentId(), applicationId);
+            lineCommentCreationResult.addException(new IOException(message, e));
           }
         }
       }

@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
@@ -86,7 +87,6 @@ public class PullRequestCommentCreator
       PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       String contentHash)
-      throws IOException
   {
     doCreateOrUpdateComments(prPolicyEvaluationsDTO, null, policyViolationDiff, remediationVersionMap, contentHash);
   }
@@ -97,7 +97,6 @@ public class PullRequestCommentCreator
       PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       String contentHash)
-      throws IOException
   {
     doCreateOrUpdateComments(prPolicyEvaluationsDTO, existingPullRequestComment, policyViolationDiff,
         remediationVersionMap, contentHash);
@@ -109,7 +108,6 @@ public class PullRequestCommentCreator
       final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final String contentHash)
-      throws IOException
   {
     PullRequestCommentTelemetry telemetry = new PullRequestCommentTelemetry(
         prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber());
@@ -120,7 +118,7 @@ public class PullRequestCommentCreator
     LocationDiscoveryResult locationDiscoveryResult = getLocationDiscovery(prPolicyEvaluationsDTO, policyViolationDiff);
 
     // line comment sub-flow
-    List<PullRequestLineCommentDTO> pullRequestLineComments = pullRequestLineCommentingService
+    PullRequestLineCommentCreationResult lineCommentsCreationResult = pullRequestLineCommentingService
         .createPullRequestLineComments(
             policyViolationDiff.getAppeared(),
             prPolicyEvaluationsDTO.getGitRepositoryInfo(),
@@ -132,56 +130,72 @@ public class PullRequestCommentCreator
             defaultBranchPolicyEvaluation.getId(),
             locationDiscoveryResult);
 
-    telemetry.lineCommentCount = pullRequestLineComments.size();
+    try {
+      List<PullRequestLineCommentDTO> pullRequestLineComments =
+          lineCommentsCreationResult.getPullRequestLineCommentDtoList();
+      telemetry.lineCommentCount = pullRequestLineComments.size();
 
-    SourceControlComponentDetails sourceControlComponentDetails =
-        getSourceControlComponentDetails(prPolicyEvaluationsDTO, policyViolationDiff, pullRequestLineComments);
+      SourceControlComponentDetails sourceControlComponentDetails =
+          getSourceControlComponentDetails(prPolicyEvaluationsDTO, policyViolationDiff, pullRequestLineComments);
 
-    Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
-        policyViolationDiff, remediationVersionMap, pullRequestLineComments,
-        prPolicyEvaluationsDTO.getGitRepositoryInfo(), prPolicyEvaluationsDTO.getPullRequestNumber(),
-        featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, sourceControlComponentDetails, telemetry);
+      Optional<String> policyEvaluationDiffMarkup = pullRequestFeedbackMarkupService.createMarkup(
+          policyViolationDiff, remediationVersionMap, pullRequestLineComments,
+          prPolicyEvaluationsDTO.getGitRepositoryInfo(), prPolicyEvaluationsDTO.getPullRequestNumber(),
+          featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation, sourceControlComponentDetails, telemetry);
 
-    if (policyEvaluationDiffMarkup.isPresent()) {
-      Optional<CommentResponse> response = pullRequestCommentingClient.createOrUpdateCommentInGitSCM(
-          prPolicyEvaluationsDTO.getApplicationId(),
-          prPolicyEvaluationsDTO.getGitRepositoryInfo(),
-          prPolicyEvaluationsDTO.getPullRequestNumber(),
-          policyEvaluationDiffMarkup.get(),
-          existingPullRequestComment,
-          telemetry);
-
-      if (response.isPresent()) {
-        CommentResponse commentResponse = response.get();
-        recordCommentInDatabase(
-            prPolicyEvaluationsDTO,
-            commentResponse.getId(),
-            commentResponse.getVersion(),
-            contentHash,
-            existingPullRequestComment);
-
-        invokePostCommentActions(
+      if (policyEvaluationDiffMarkup.isPresent()) {
+        Optional<CommentResponse> response = pullRequestCommentingClient.createOrUpdateCommentInGitSCM(
+            prPolicyEvaluationsDTO.getApplicationId(),
             prPolicyEvaluationsDTO.getGitRepositoryInfo(),
-            policyViolationDiff,
-            sourceControlComponentDetails,
-            featureBranchPolicyEvaluation,
-            defaultBranchPolicyEvaluation,
-            prPolicyEvaluationsDTO.getFeatureBranchName(),
-            locationDiscoveryResult);
+            prPolicyEvaluationsDTO.getPullRequestNumber(),
+            policyEvaluationDiffMarkup.get(),
+            existingPullRequestComment,
+            telemetry);
 
-        prCommentingMetricsService.sendTelemetry(telemetry);
+        if (response.isPresent()) {
+          CommentResponse commentResponse = response.get();
+          recordCommentInDatabase(
+              prPolicyEvaluationsDTO,
+              commentResponse.getId(),
+              commentResponse.getVersion(),
+              contentHash,
+              existingPullRequestComment);
 
-        AuditEvent auditEvent = existingPullRequestComment == null
-            ? AuditEvent.CREATE_PULL_REQUEST_COMMENT : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
-        prCommentingMetricsService.addAuditRecord(
-            auditEvent, prPolicyEvaluationsDTO.getApplicationId(),
-            prPolicyEvaluationsDTO.getGitRepositoryInfo().repositoryUrl,
-            prPolicyEvaluationsDTO.getPullRequestNumber());
+          invokePostCommentActions(
+              prPolicyEvaluationsDTO.getGitRepositoryInfo(),
+              policyViolationDiff,
+              sourceControlComponentDetails,
+              featureBranchPolicyEvaluation,
+              defaultBranchPolicyEvaluation,
+              prPolicyEvaluationsDTO.getFeatureBranchName(),
+              locationDiscoveryResult);
+
+          prCommentingMetricsService.sendTelemetry(telemetry);
+
+          AuditEvent auditEvent = existingPullRequestComment == null
+              ? AuditEvent.CREATE_PULL_REQUEST_COMMENT : AuditEvent.UPDATE_PULL_REQUEST_COMMENT;
+          prCommentingMetricsService.addAuditRecord(
+              auditEvent, prPolicyEvaluationsDTO.getApplicationId(),
+              prPolicyEvaluationsDTO.getGitRepositoryInfo().repositoryUrl,
+              prPolicyEvaluationsDTO.getPullRequestNumber());
+        }
+      }
+      else {
+        log.info("generated feedback markup was empty for application '{}' pull request '{}'",
+            prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber());
       }
     }
-    else {
-      log.info("generated feedback markup was empty for application '{}' pull request '{}'",
-          prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber());
+    catch (Exception e) {
+      throw new SourceControlException("Failed to create or update PR comments", e);
+    }
+
+    if (lineCommentsCreationResult.hasExceptions()) {
+      SourceControlException sourceControlException =
+          new SourceControlException("Failed to delete/create some PR line comments", true);
+      for (Exception exception : lineCommentsCreationResult.getExceptionList()) {
+        sourceControlException.addSuppressed(exception);
+      }
+      throw sourceControlException;
     }
   }
 

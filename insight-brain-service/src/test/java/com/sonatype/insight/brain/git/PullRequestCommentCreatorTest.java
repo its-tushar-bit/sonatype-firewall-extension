@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
+import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
@@ -266,7 +267,7 @@ public class PullRequestCommentCreatorTest
       doReturn(markup).when(mockFeedbackMarkupService)
           .createMarkup(any(), any(), any(), any(), anyInt(), any(), any(), any(), any());
 
-      doReturn(lineComments).when(mockLineCommentingService)
+      doReturn(result).when(mockLineCommentingService)
           .createPullRequestLineComments(any(), any(), any(), anyInt(), any(), any(), any(), any(), any());
 
       doReturn(Optional.of(mock(CommentResponse.class))).when(mockCommentingClient)
@@ -296,9 +297,10 @@ public class PullRequestCommentCreatorTest
       return this;
     }
 
-    private List<PullRequestLineCommentDTO> lineComments = new ArrayList<>();
+    private PullRequestLineCommentCreationResult result = new PullRequestLineCommentCreationResult();
 
     TestablePullRequestCommentCreatorBuilder withLineComments(int lineCommentCount) {
+      List<PullRequestLineCommentDTO> lineComments = result.getPullRequestLineCommentDtoList();
       for (int i = 0; i < lineCommentCount; i++) {
         lineComments.add(mock(PullRequestLineCommentDTO.class));
       }

@@ -39,7 +39,7 @@ public class PullRequestInfoClient
   }
 
   public CommitInformation getCommitInfoFromScm(GitRepositoryInfo gitRepositoryInfo, String commitHash) {
-    CommitInformation result = null;
+    CommitInformation result;
 
     GitApiClientUtils gitApiClientUtils = new GitApiClientFactory().getGitApiClientUtils(gitRepositoryInfo.provider);
     ProjectUri projectUri = gitApiClientUtils.createProjectUri(gitRepositoryInfo.repositoryUrl);
@@ -58,9 +58,11 @@ public class PullRequestInfoClient
           commitHash, result.getPullRequests().size(), result.getCommits().size());
     }
     catch (IOException e) {
-      log.error(e.getMessage(), e);
+      String message = String.format("Failed to obtain CommitInfo from SCM for project %s, commit %s - reason: %s",
+          projectUri, commitHash, e.getMessage());
+      throw new SourceControlException(message, e);
     }
 
-    return null == result ? new CommitInformation() : result;
+    return result;
   }
 }

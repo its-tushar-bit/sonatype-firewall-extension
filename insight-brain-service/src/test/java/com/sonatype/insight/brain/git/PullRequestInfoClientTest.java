@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
@@ -68,19 +69,19 @@ public class PullRequestInfoClientTest
     // given: a PullRequestInfoProvider setup to throw an IO exception
     doReturn(mockPullRequestInfoProvider).when(mockGitClientFactory).createPullRequestInfoClient(any());
 
-    doThrow(IOException.class).when(mockPullRequestInfoProvider)
+    doThrow(new IOException("Test generated")).when(mockPullRequestInfoProvider)
         .getCommitInformationForCommit(any(), any(), any(), any(), anyInt(), anyInt());
 
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("http://gitlab.com/test/project", "user", "token",
         SourceControlProvider.GITLAB, "master", true, true);
 
-    // when: try to retrieve commit info
     PullRequestInfoClient pullRequestInfoClient = new PullRequestInfoClient(mockGitClientFactory);
-    CommitInformation fetchedCommitInfo = pullRequestInfoClient.getCommitInfoFromScm(gitRepositoryInfo, "commit123");
 
-    // then: we still get back a commit info object, but it is empty
-    assertThat(fetchedCommitInfo).isNotNull();
-    assertThat(fetchedCommitInfo.getCommits()).isEmpty();
-    assertThat(fetchedCommitInfo.getPullRequests()).isEmpty();
+    // expect: when we try to retrieve commit info
+    assertThatExceptionOfType(SourceControlException.class).isThrownBy(() ->
+        pullRequestInfoClient.getCommitInfoFromScm(gitRepositoryInfo, "commit123")
+    ).withMessage(
+        "Failed to obtain CommitInfo from SCM for project http://gitlab.com/test/project/, " +
+            "commit commit123 - reason: Test generated");
   }
 }

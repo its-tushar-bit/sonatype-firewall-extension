@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.git.GitCommitStatusService;
 import com.sonatype.insight.brain.git.PullRequestCommentingEventHandler;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
+import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
@@ -287,12 +288,26 @@ public class SourceControlEventService
     }
     catch (Exception e) {
       success = false;
-      log.error("Unable to process event '{}' of type '{}' for application '{}' : {}", event.getId(),
-          event.getEventType(), event.getApplicationId(), e.getMessage(), e);
-      sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
+      handleException(event, e);
     }
 
     return success;
+  }
+
+  private void handleException(SourceControlEvent event, Exception e) {
+    if (e instanceof SourceControlException) {
+      SourceControlException sce = (SourceControlException) e;
+      if (sce.isPartialFailure()) {
+        log.warn("Partially processed event '{}' of type '{}' for application '{}' : {}", event.getId(),
+            event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+        sourceControlEventDAO
+            .markEventHasError(event.getId(), e.getMessage(), SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE);
+        return;
+      }
+    }
+    log.error("Unable to process event '{}' of type '{}' for application '{}' : {}", event.getId(),
+        event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+    sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
   }
 
   @VisibleForTesting

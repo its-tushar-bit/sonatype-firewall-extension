@@ -181,9 +181,11 @@ public class PullRequestPolicyEvaluationResolver
       }
     }
     catch (Exception e) {
-      log.error(
-          "Cannot comment - unable to resolve policy evaluations for application {} repository {} pull request {} : {}",
-          application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), pullRequestNumber, e.getMessage(), e);
+      String message = String.format(
+          "Cannot comment - unable to resolve policy evaluations for application %s repository %s " +
+              "pull request %s - reason: %s",
+          application.getPublicId(), gitRepositoryInfo.getRepositoryUrl(), pullRequestNumber, e.getMessage());
+      throw new SourceControlException(message, e);
     }
 
     return pullRequestPolicyEvaluationsDTO;

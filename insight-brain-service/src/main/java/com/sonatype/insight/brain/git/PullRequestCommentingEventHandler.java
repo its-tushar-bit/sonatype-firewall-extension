@@ -133,7 +133,9 @@ public class PullRequestCommentingEventHandler
         pullRequestPolicyEvaluationResolver.resolveForPolicyEvaluation(applicationId, gitRepositoryInfo,
             event.getPolicyEvaluationId(), event.getCommitHash());
 
-    pullRequestPolicyEvaluationsDTOs.forEach(pullRequestCommentingService::doCreateOrUpdatePullRequestComment);
+    for (PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO : pullRequestPolicyEvaluationsDTOs) {
+      pullRequestCommentingService.doCreateOrUpdatePullRequestComment(pullRequestPolicyEvaluationsDTO);
+    }
   }
 
   public void onDiscoveredPullRequest(SourceControlEvent event) {

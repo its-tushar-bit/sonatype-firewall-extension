@@ -48,6 +48,8 @@ public class  SourceControlEvent
 
   public static final String EVENT_STATUS_COMPLETE = "complete";
 
+  public static final String EVENT_STATUS_PARTIALLY_COMPLETE = "partially complete";
+
   public static final String EVENT_STATUS_ERROR = "error";
 
   public static final int EVENT_PRIORITY_HIGHER = 1;

@@ -97,7 +97,7 @@ public class PullRequestCommentingEventHandlerTest
   }
 
   @Test
-  public void testOnApplicationEvaluation_Unlicensed() throws Exception {
+  public void testOnApplicationEvaluation_Unlicensed() {
     // remove automation feature, leaving notifications
     testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION);
 
@@ -125,7 +125,7 @@ public class PullRequestCommentingEventHandlerTest
   }
 
   @Test
-  public void testOnApplicationEvaluation_missingCommitHash() throws Exception {
+  public void testOnApplicationEvaluation_missingCommitHash() {
     // given : commenting service object, scm enabled, and an event without a commit hash
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
         .withScmEnabled(true)
@@ -147,7 +147,7 @@ public class PullRequestCommentingEventHandlerTest
   }
 
   @Test
-  public void testOnApplicationEvaluation_scmDisabled() throws Exception {
+  public void testOnApplicationEvaluation_scmDisabled() {
     // given : commenting service object, scm disabled, and an event with a commit hash
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
         .withScmEnabled(false)
@@ -195,7 +195,7 @@ public class PullRequestCommentingEventHandlerTest
   }
 
   @Test
-  public void testOnApplicationEvaluation_publishSourceControlEvent() throws Exception {
+  public void testOnApplicationEvaluation_publishSourceControlEvent() {
     // given : commenting service object, scm enabled, and an event with a commit hash
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
         .withScmEnabled(true)

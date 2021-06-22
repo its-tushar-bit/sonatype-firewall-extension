@@ -195,9 +195,9 @@ public class ApiComponentsWithWaiversReportingService
                     componentPolicyViolationDTOs.add(componentPolicyViolationDTO);
                   });
 
-              // Filter and group policy violations by hash where the component identifier is null
+              // Filter and group policy violations by hash where the component identifier is null but does have a hash
               policyViolations.stream()
-                  .filter(p -> p.getComponentIdentifier() == null)
+                  .filter(p -> p.getComponentIdentifier() == null && p.getHash() != null)
                   .collect(Collectors.groupingBy(PolicyViolation::getHash))
                   .forEach((hash, policyViolationsByHash) -> {
                     applicationComponentsWithWaiversCount.incrementAndGet();

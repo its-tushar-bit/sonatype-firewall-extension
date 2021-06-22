@@ -603,6 +603,23 @@ public class ApiComponentsWithWaiversReportingServiceTest
   }
 
   @Test
+  public void testGetComponentsWithWaivers_Applications_NullComponentIdentifier_NullHash() {
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver("h1", policy1.getId(), app1.getId(), "Some comments here");
+    tempEntity.newWaivedPolicyViolation(app1PolicyEvaluationBuild, policy1, null, null, policyWaiver1);
+    ApiComponentWaiversDTO result = service.getComponentsWithWaivers(null);
+    assertThat(result.applicationWaivers).hasSize(1);
+    assertThat(result.repositoryWaivers).isEmpty();
+    ApiApplicationWaiverDTO applicationWaiverDTO = result.applicationWaivers.get(0);
+    assertThat(applicationWaiverDTO.stages).hasSize(1);
+    // no waived violations should be present for app 1 build stage since both component identifier and hash are null
+    ApiPolicyViolationStageDTO policyViolationStageDTO = applicationWaiverDTO.stages.get(0);
+    assertThat(policyViolationStageDTO.stageId).isEqualTo(BuildStageType.ID);
+    assertThat(policyViolationStageDTO.componentPolicyViolations).isEmpty();
+
+    assertApplicationWaiverDTO(applicationWaiverDTO, app1);
+  }
+
+  @Test
   public void testGetComponentsWithWaivers_Applications_ExcludesExpiredWaiver() {
     DateTime now = DateTime.now();
     Date today = now.toDate();

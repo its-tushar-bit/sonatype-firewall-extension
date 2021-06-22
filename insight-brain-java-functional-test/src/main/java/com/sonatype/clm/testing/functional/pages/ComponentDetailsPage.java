@@ -60,7 +60,7 @@ public class ComponentDetailsPage
   }
 
   public ComponentDetailsFooter footer() {
-    return new ComponentDetailsFooter(childSelector(".component-details-footer"));
+    return new ComponentDetailsFooter(childSelector(".iq-component-details-page__footer"));
   }
 
   public ElementsCollection tabs() {

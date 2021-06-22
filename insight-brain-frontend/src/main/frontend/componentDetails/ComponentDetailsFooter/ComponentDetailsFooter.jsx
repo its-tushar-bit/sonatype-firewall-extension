@@ -9,7 +9,7 @@ import { IqPageFooter } from '../../react/IqPageFooter';
 import { PaginationLink } from './PaginationLink';
 
 export const ComponentDetailsFooter = ({ prev, next, currentPage, pageCount, ...props }) => (
-  <IqPageFooter className="component-details-footer" {...props}>
+  <IqPageFooter {...props}>
     <PaginationLink href={prev} text="Previous Component" direction="prev" />
     {currentPage && pageCount && <PaginationCounter currentPage={currentPage} pageCount={pageCount} />}
     <PaginationLink href={next} text="Next Component" />

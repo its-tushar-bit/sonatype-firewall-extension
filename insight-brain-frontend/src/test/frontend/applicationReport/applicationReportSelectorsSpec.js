@@ -7,7 +7,9 @@ import {
   selectAllComponentsList,
   selectDisplayedComponentList,
   selectSelectedComponent,
-  selectSelectedComponentIndex,
+  selectAggregatedComponentsList,
+  selectSelectedComponentInAggregatedList,
+  selectSelectedComponentIndexInAggregatedList,
 } from '../../../main/frontend/applicationReport/applicationReportSelectors';
 
 describe('applicationReportSelectors', () => {
@@ -40,6 +42,20 @@ describe('applicationReportSelectors', () => {
           },
         ],
         displayedEntries: [
+          {
+            hash: 'a-component-hash',
+          },
+          {
+            derivedComponentName: 'My Component',
+            hash: 'some-component-hash',
+            componentIdentifier: { format: 'maven' },
+            derivedDependencyType: 'transitive',
+          },
+          {
+            hash: 'another-component-hash',
+          },
+        ],
+        aggregatedEntries: [
           {
             hash: 'a-component-hash',
           },
@@ -143,10 +159,82 @@ describe('applicationReportSelectors', () => {
     });
   });
 
-  describe('selectSelectedComponentIndex', () => {
-    it('derives selectedComponentIndex from selectedComponent and the selectedReport displayed component list', () => {
+  describe('selectAggregatedComponentsList', () => {
+    it('selects the aggregatedEntries prop from the state', () => {
+      const expected = [
+        {
+          hash: 'a-component-hash',
+        },
+        {
+          derivedComponentName: 'My Component',
+          hash: 'some-component-hash',
+          componentIdentifier: { format: 'maven' },
+          derivedDependencyType: 'transitive',
+        },
+        {
+          hash: 'another-component-hash',
+        },
+      ];
+      const actual = selectAggregatedComponentsList(mockState);
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('selectSelectedComponentInAggregatedList', () => {
+    it('derives selectedComponent from router params hash and the selectedReport aggregated component list', () => {
+      const expected = {
+        derivedComponentName: 'My Component',
+        hash: 'some-component-hash',
+        componentIdentifier: { format: 'maven' },
+        derivedDependencyType: 'transitive',
+      };
+      const actual = selectSelectedComponentInAggregatedList(mockState);
+      expect(actual).toEqual(expected);
+    });
+
+    it('returns undefined if the selected report does not have aggregated components', () => {
+      const state = {
+        ...mockState,
+        applicationReport: {
+          ...mockState.applicationReport,
+          selectedReport: {},
+        },
+      };
+      const actual = selectSelectedComponentInAggregatedList(state);
+      expect(actual).not.toBeDefined();
+    });
+
+    it('returns undefined if the router hash does not have a matching component in the selectedReport aggregated components list', () => {
+      const state = {
+        ...mockState,
+        router: {
+          currentParams: {
+            hash: 'i-just-typed-this-in-i-wonder-what-happens',
+          },
+        },
+      };
+      const actual = selectSelectedComponentInAggregatedList(state);
+      expect(actual).not.toBeDefined();
+    });
+  });
+
+  describe('selectSelectedComponentIndexInAggregatedList', () => {
+    it('derives the componentIndex from selectedComponent and the aggregated components list in the selectedReport', () => {
       const expected = 1;
-      const actual = selectSelectedComponentIndex(mockState);
+      const actual = selectSelectedComponentIndexInAggregatedList(mockState);
+      expect(actual).toEqual(expected);
+    });
+    it('returns -1 if the selectedComponent is not present in the aggregated components list in the selectedReport', () => {
+      const state = {
+        ...mockState,
+        router: {
+          currentParams: {
+            hash: 'i-just-typed-this-in-i-wonder-what-happens',
+          },
+        },
+      };
+      const expected = -1;
+      const actual = selectSelectedComponentIndexInAggregatedList(state);
       expect(actual).toEqual(expected);
     });
   });

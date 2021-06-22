@@ -8,9 +8,9 @@ import { createSelector } from '@reduxjs/toolkit';
 import {
   selectAllComponentsList,
   selectApplicationReportMetaData,
-  selectDisplayedComponentList,
   selectSelectedComponent,
-  selectSelectedComponentIndex,
+  selectSelectedComponentIndexInAggregatedList,
+  selectAggregatedComponentsList,
 } from '../applicationReport/applicationReportSelectors';
 import { selectCurrentRouteName, selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 
@@ -48,8 +48,8 @@ export const selectActiveTabId = createSelector(selectRouterCurrentParams, prop(
 
 // This selector requires a second parameter passed, usually these would be props from the component
 export const selectComponentPagination = createSelector(
-  selectSelectedComponentIndex,
-  selectDisplayedComponentList,
+  selectSelectedComponentIndexInAggregatedList,
+  selectAggregatedComponentsList,
   selectCurrentRouteName,
   // the second argument is passed to the selector and in this case is props
   // so we can access the uiRouterState instance from context

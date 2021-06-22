@@ -18,8 +18,15 @@ export const selectSelectedComponent = createSelector(
   selectDisplayedComponentList,
   ({ hash }, components = []) => components.find((component) => component.hash === hash)
 );
-export const selectSelectedComponentIndex = createSelector(
-  selectSelectedComponent,
-  selectDisplayedComponentList,
+
+export const selectAggregatedComponentsList = createSelector(selectSelectedReport, prop('aggregatedEntries'));
+export const selectSelectedComponentInAggregatedList = createSelector(
+  selectRouterCurrentParams,
+  selectAggregatedComponentsList,
+  ({ hash }, components = []) => components.find((component) => component.hash === hash)
+);
+export const selectSelectedComponentIndexInAggregatedList = createSelector(
+  selectSelectedComponentInAggregatedList,
+  selectAggregatedComponentsList,
   (component, list = []) => list.indexOf(component)
 );

@@ -3,21 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import {
-  both,
-  curryN,
-  findIndex,
-  identity,
-  inc,
-  lensPath,
-  pipe,
-  propEq,
-  reduceBy,
-  reject,
-  set,
-  sum,
-  values,
-} from 'ramda';
+import { both, curryN, findIndex, inc, lensPath, pipe, propEq, reduceBy, reject, set, sum, values } from 'ramda';
 
 import {
   LOAD_COMMON_DATA_FAILED,
@@ -348,21 +334,25 @@ function updateRawDataDisplayedEntries(state) {
 }
 
 /**
- * Update the `displayedEntries` field on the selectedReport section of the state
- * based on `allEntries` and the various sorting, filtering, and aggregation settings stored in the state
+ * Calculates `aggregatedEntries` field for the selectedReport section of the state, and
+ * updates the `displayedEntries` field on the selectedReport section of the state.
+ * Both of these operations based on `allEntries` and the various sorting, filtering, and aggregation settings stored in the state
  */
 function updateDisplayedEntries(state) {
   let { selectedReport, sortFields, aggregate, exactValueFilters, substringFilters } = state;
   if (selectedReport) {
     const { allEntries } = selectedReport,
-      processEntries = pipe(
-        aggregate ? aggregateReportEntries : identity,
+      filterAndSortEntries = pipe(
         filterReportEntries(exactValueFilters, substringFilters, null),
         sortItemsByFields(sortFields)
       ),
-      newDisplayedEntries = processEntries(allEntries);
+      processAggregatedEntries = pipe(aggregateReportEntries, filterAndSortEntries),
+      aggregatedEntries = processAggregatedEntries(allEntries),
+      newDisplayedEntries = aggregate ? aggregatedEntries : filterAndSortEntries(allEntries),
+      // create `aggregatedEntries` prop to be used for navigation
+      stateWithAggregatedEntries = set(lensPath(['selectedReport', 'aggregatedEntries']), aggregatedEntries, state);
 
-    return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, state);
+    return set(lensPath(['selectedReport', 'displayedEntries']), newDisplayedEntries, stateWithAggregatedEntries);
   } else {
     return state;
   }

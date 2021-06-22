@@ -220,20 +220,42 @@ describe('applicationReportReducer', function () {
         sortFields: ['-policyThreatLevel', 'policyName', 'derivedComponentName'],
       });
       const entries = [
-        { policyThreatLevel: 1 },
-        { policyThreatLevel: 3 },
-        { policyThreatLevel: 4, waived: true },
-        { policyThreatLevel: 6 },
-        { policyThreatLevel: 9 },
-        { policyThreatLevel: 10, grandfathered: true },
+        { policyThreatLevel: 1, hash: 'a' },
+        { policyThreatLevel: 3, hash: 'a' },
+        { policyThreatLevel: 4, waived: true, hash: 'b' },
+        { policyThreatLevel: 6, hash: 'c' },
+        { policyThreatLevel: 9, hash: 'd' },
+        { policyThreatLevel: 10, grandfathered: true, hash: 'e' },
       ];
       const sortedEntries = [
-        { policyThreatLevel: 10, grandfathered: true },
-        { policyThreatLevel: 9 },
-        { policyThreatLevel: 6 },
-        { policyThreatLevel: 4, waived: true },
-        { policyThreatLevel: 3 },
-        { policyThreatLevel: 1 },
+        { policyThreatLevel: 10, grandfathered: true, hash: 'e' },
+        { policyThreatLevel: 9, hash: 'd' },
+        { policyThreatLevel: 6, hash: 'c' },
+        { policyThreatLevel: 4, waived: true, hash: 'b' },
+        { policyThreatLevel: 3, hash: 'a' },
+        { policyThreatLevel: 1, hash: 'a' },
+      ];
+      // Aggregated entries are processed and enhanced with more data
+      const aggregatedEntries = [
+        { policyThreatLevel: 9, hash: 'd', waived: false, grandfathered: false },
+        { policyThreatLevel: 6, hash: 'c', waived: false, grandfathered: false },
+        { policyThreatLevel: 3, hash: 'a', waived: false, grandfathered: false },
+        {
+          policyThreatLevel: 0,
+          grandfathered: undefined,
+          waived: true,
+          hash: 'b',
+          policyName: 'None',
+          derivedViolationState: 'waived',
+        },
+        {
+          policyThreatLevel: 0,
+          grandfathered: true,
+          waived: undefined,
+          hash: 'e',
+          policyName: 'None',
+          derivedViolationState: 'grandfathered',
+        },
       ];
       const newState = reduce(state, {
         type: 'LOAD_REPORT_FULFILLED',
@@ -249,6 +271,7 @@ describe('applicationReportReducer', function () {
         selectedReport: {
           allEntries: entries,
           displayedEntries: sortedEntries,
+          aggregatedEntries,
           moderateViolationCount: 1,
           severeViolationCount: 1,
           criticalViolationCount: 1,
@@ -276,6 +299,7 @@ describe('applicationReportReducer', function () {
       const entries = [
         {
           policyThreatLevel: 10,
+          hash: 'a',
           grandfathered: true,
           innerSource: true,
           innerSourceData: [
@@ -285,15 +309,51 @@ describe('applicationReportReducer', function () {
             },
           ],
         },
-        { policyThreatLevel: 10 },
+        { policyThreatLevel: 10, hash: 'b' },
         {
           policyThreatLevel: 6,
+          hash: 'c',
           innerSourceData: [
             {
               ownerApplicationId: '12345',
               ownerApplicationName: 'myISApp',
             },
           ],
+        },
+      ];
+      const aggregatedEntries = [
+        {
+          policyThreatLevel: 10,
+          hash: 'b',
+          waived: false,
+          grandfathered: false,
+        },
+        {
+          policyThreatLevel: 6,
+          hash: 'c',
+          innerSourceData: [
+            {
+              ownerApplicationId: '12345',
+              ownerApplicationName: 'myISApp',
+            },
+          ],
+          waived: false,
+          grandfathered: false,
+        },
+        {
+          policyThreatLevel: 0,
+          hash: 'a',
+          waived: undefined,
+          grandfathered: true,
+          innerSource: true,
+          innerSourceData: [
+            {
+              ownerApplicationId: '12345',
+              ownerApplicationName: 'myISApp',
+            },
+          ],
+          policyName: 'None',
+          derivedViolationState: 'grandfathered',
         },
       ];
       const newState = reduce(state, {
@@ -309,11 +369,14 @@ describe('applicationReportReducer', function () {
         loadError: null,
         selectedReport: {
           allEntries: entries,
+          aggregatedEntries,
           displayedEntries: [
             {
               policyThreatLevel: 10,
+              hash: 'b',
             },
             {
+              hash: 'a',
               grandfathered: true,
               innerSource: true,
               innerSourceData: [
@@ -325,6 +388,7 @@ describe('applicationReportReducer', function () {
               policyThreatLevel: 10,
             },
             {
+              hash: 'c',
               innerSourceData: [
                 {
                   ownerApplicationName: 'myISApp',
@@ -456,6 +520,22 @@ describe('applicationReportReducer', function () {
             displayName: { parts: [] },
           },
         ],
+        aggregatedEntries = [
+          {
+            hash: '1',
+            policyThreatLevel: 6,
+            policyName: 'P4',
+            waived: false,
+            grandfathered: false,
+          },
+          {
+            hash: '5',
+            policyThreatLevel: 4,
+            policyName: 'P5',
+            waived: false,
+            grandfathered: false,
+          },
+        ],
         newState = reduce(state, {
           type: 'LOAD_REPORT_FULFILLED',
           payload: {
@@ -464,22 +544,104 @@ describe('applicationReportReducer', function () {
           },
         });
 
-      expect(newState.selectedReport.displayedEntries).toEqual([
-        {
-          hash: '1',
-          policyThreatLevel: 6,
-          policyName: 'P4',
-          waived: false,
-          grandfathered: false,
-        },
-        {
-          hash: '5',
-          policyThreatLevel: 4,
-          policyName: 'P5',
-          waived: false,
-          grandfathered: false,
-        },
-      ]);
+      expect(newState.selectedReport.displayedEntries).toEqual(aggregatedEntries);
+      expect(newState.selectedReport.aggregatedEntries).toEqual(aggregatedEntries);
+    });
+
+    it('sets the aggregatedEntries in the selectedReport regardless of aggregation settings', function () {
+      const state = Object.freeze({
+          selectedReport: null,
+          aggregate: false,
+          exactValueFilters: {
+            policyThreatLevel: new Set([1, 4, 5, 6]),
+          },
+          sortFields: ['-policyThreatLevel'],
+        }),
+        entries = [
+          {
+            hash: '1',
+            policyThreatLevel: 1,
+            policyName: 'P1',
+            waived: false,
+            grandfathered: false,
+          },
+          {
+            hash: '2',
+            policyThreatLevel: 3,
+            policyName: 'P2',
+            waived: false,
+            grandfathered: false,
+          },
+          {
+            hash: '4',
+            policyThreatLevel: 4,
+            policyName: 'P3',
+            waived: true,
+            grandfathered: false,
+            displayName: { parts: [] },
+          },
+          {
+            hash: '1',
+            policyThreatLevel: 6,
+            policyName: 'P4',
+            waived: false,
+            grandfathered: false,
+          },
+          {
+            hash: '5',
+            policyThreatLevel: 4,
+            policyName: 'P5',
+            waived: false,
+            grandfathered: false,
+          },
+          {
+            hash: '6',
+            policyThreatLevel: 10,
+            policyName: 'P6',
+            waived: false,
+            grandfathered: true,
+            displayName: { parts: [] },
+          },
+        ],
+        aggregatedEntries = [
+          {
+            hash: '1',
+            policyThreatLevel: 6,
+            policyName: 'P4',
+            waived: false,
+            grandfathered: false,
+          },
+          {
+            hash: '5',
+            policyThreatLevel: 4,
+            policyName: 'P5',
+            waived: false,
+            grandfathered: false,
+          },
+        ],
+        displayedEntries = [
+          { hash: '1', policyThreatLevel: 6, policyName: 'P4', waived: false, grandfathered: false },
+          {
+            hash: '4',
+            policyThreatLevel: 4,
+            policyName: 'P3',
+            waived: true,
+            grandfathered: false,
+            displayName: { parts: [] },
+          },
+          { hash: '5', policyThreatLevel: 4, policyName: 'P5', waived: false, grandfathered: false },
+          { hash: '1', policyThreatLevel: 1, policyName: 'P1', waived: false, grandfathered: false },
+        ],
+        newState = reduce(state, {
+          type: 'LOAD_REPORT_FULFILLED',
+          payload: {
+            allEntries: entries,
+            reportVersion: 3,
+          },
+        });
+
+      expect(newState.selectedReport.displayedEntries).toEqual(displayedEntries);
+      expect(newState.selectedReport.aggregatedEntries).toEqual(aggregatedEntries);
     });
 
     it('sets selectedComponentIndex while in aggregated mode if a component was previously selected', function () {

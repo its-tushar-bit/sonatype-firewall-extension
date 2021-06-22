@@ -89,6 +89,17 @@ describe('componentDetailsSelectors', () => {
               hash: 'another-component-hash',
             },
           ],
+          aggregatedEntries: [
+            {
+              hash: 'a-component-hash',
+            },
+            {
+              hash: 'some-component-hash',
+            },
+            {
+              hash: 'another-component-hash',
+            },
+          ],
         },
       },
     };

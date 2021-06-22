@@ -23,9 +23,9 @@ LABEL vendor=Sonatype \
 USER root
 
 # For testing
-RUN dnf update --allowerasing --skip-broken --nobest -y \
-&& dnf install -y procps \
-&& dnf clean all
+RUN microdnf update --nobest -y \
+&& microdnf install -y procps \
+&& microdnf clean all
 
 # Create folders
 RUN mkdir -m 0755 -p ${TEMP} \
@@ -54,7 +54,7 @@ RUN echo "/usr/bin/java \${JAVA_OPTS} -jar nexus-iq-server-${IQ_SERVER_VERSION}.
 # Add group and user
 RUN groupadd -g 1000 nexus \
 && adduser -u 1000 -d ${IQ_HOME} -c "Nexus IQ user" -g nexus -s /bin/false nexus \
-&& cp /etc/passwd /home/jboss/passwd && chmod ug+rwX /home/jboss /home/jboss/passwd
+&& cp /etc/passwd /home/jboss/passwd && chown jboss:root /home/jboss/passwd && chmod ug+rwX /home/jboss /home/jboss/passwd
 # The above addition of cp-ing the /etc/password folder is required due to changes 
 # to the OpenJDK8 image : https://access.redhat.com/articles/4859371
 

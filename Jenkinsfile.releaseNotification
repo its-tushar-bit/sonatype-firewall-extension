@@ -30,7 +30,7 @@ pipeline {
       steps {
         emailext(
           mimeType: 'text/html',
-          subject: "IQ ${params.releaseVersion} Release Complete",
+          subject: "IQ Server Release ${params.releaseVersion} is complete",
           body: "<p>Dear Product Owners,</p>\
           <p>All the release binaries are up, and can be found by following the link below.</p>\
           <p><a href='https://help.sonatype.com/display/NXIQ/Download+and+Compatibility'>https://help.sonatype.com/display/NXIQ/Download+and+Compatibility</a></p>",
@@ -40,7 +40,7 @@ pipeline {
     }
     stage('Slack Release Notification') {
       steps {
-        slackSend color: 'good', channel: '#iq', message: "@lifecycle-pm IQ Server release ${params.releaseVersion} is available, please send the notification to the clm-announcements list."
+        slackSend color: 'good', channel: '#iq-releases', message: "IQ Server Release ${params.releaseVersion} is complete. @lifecycle-pm Please send the notification to the clm-announcements list."
       }
     }
   }

@@ -34,6 +34,9 @@ export default function AutomaticApplicationsConfiguration(props) {
 
   return (
     <main className="nx-page-main">
+      <div className="nx-page-title">
+        <h1 className="nx-h1">Automatic Applications</h1>
+      </div>
       <section id="auto-app-config-configuration" className="nx-tile">
         <NxForm
           loading={loading}

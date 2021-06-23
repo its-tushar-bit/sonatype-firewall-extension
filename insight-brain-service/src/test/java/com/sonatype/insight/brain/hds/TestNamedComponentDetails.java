@@ -13,12 +13,6 @@ public class TestNamedComponentDetails
 {
   private ComponentDisplayName displayName;
 
-  private String groupId;
-
-  private String artifactId;
-
-  private String version;
-
   @Override
   public ComponentDisplayName getDisplayName() {
     return displayName;
@@ -26,32 +20,5 @@ public class TestNamedComponentDetails
 
   public void setDisplayName(ComponentDisplayName displayName) {
     this.displayName = displayName;
-  }
-
-  @Override
-  public String getGroupId() {
-    return groupId;
-  }
-
-  public void setGroupId(String groupId) {
-    this.groupId = groupId;
-  }
-
-  @Override
-  public String getArtifactId() {
-    return artifactId;
-  }
-
-  public void setArtifactId(String artifactId) {
-    this.artifactId = artifactId;
-  }
-
-  @Override
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
   }
 }

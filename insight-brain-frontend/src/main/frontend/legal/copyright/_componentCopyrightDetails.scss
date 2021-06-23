@@ -21,16 +21,9 @@ copyright-details-contents {
 }
 
 .copyright-overview {
-  display: grid;
-  column-gap: var(--nx-spacing-12x);
   grid-template-columns: 1fr 1fr 1fr 1fr;
 
-  .copyright-overview-item {
-    margin-top: 0;
-  }
-
   .copyright-overview-text {
-    margin-top: var(--nx-spacing-8x);
     grid-column: 1 / span 4;
   }
 }

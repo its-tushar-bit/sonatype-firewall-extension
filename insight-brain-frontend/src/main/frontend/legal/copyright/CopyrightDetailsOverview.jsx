@@ -50,24 +50,24 @@ export default function CopyrightDetailsOverview(props) {
         </div>
       </header>
       <div id="copyright-overview-tile" className="nx-tile-content">
-        <dl className="nx-read-only copyright-overview">
-          <div className="copyright-overview-item">
+        <dl className="nx-read-only nx-read-only--grid copyright-overview">
+          <div className="nx-read-only__item copyright-overview-item">
             <dt className="nx-read-only__label">Attribution Report Status</dt>
             <dd className="nx-read-only__data">{attributionStatus(componentCopyrightDetails.selectedCopyright)}</dd>
           </div>
-          <div className="copyright-overview-item">
+          <div className="nx-read-only__item copyright-overview-item">
             <dt className="nx-read-only__label">Scope</dt>
             <dd className="nx-read-only__data">{scopeName()}</dd>
           </div>
-          <div className="copyright-overview-item">
+          <div className="nx-read-only__item copyright-overview-item">
             <dt className="nx-read-only__label">Source</dt>
             <dd className="nx-read-only__data">{copyrightSource(componentCopyrightDetails.selectedCopyright)}</dd>
           </div>
-          <div className="copyright-overview-item">
+          <div className="nx-read-only__item copyright-overview-item">
             <dt className="nx-read-only__label">Last Modified</dt>
             <dd className="nx-read-only__data">{copyrightModification()}</dd>
           </div>
-          <div className="nx-read-only copyright-overview-text">
+          <div className="nx-read-only__item copyright-overview-text">
             <dt className="nx-read-only__label">Copyright Text</dt>
             <dd className="nx-read-only__data">
               {componentCopyrightDetails.selectedCopyright && componentCopyrightDetails.selectedCopyright.content}

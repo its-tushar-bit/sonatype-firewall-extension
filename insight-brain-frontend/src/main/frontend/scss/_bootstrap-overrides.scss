@@ -14,6 +14,11 @@
   }
 }
 
+.nx-read-only__label,
+.nx-read-only__data {
+  line-height: var(--nx-line-height);
+}
+
 // These styles appear in the System Preferences pages and are required because of Bootstrap accordion styles
 .iq-list,
 .iq-list--clickable {

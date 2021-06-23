@@ -65,6 +65,8 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
+
 /**
  * @since 1.76
  */
@@ -297,7 +299,7 @@ public class ThirdPartyComponentDAO
     ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
     for (int i = 0; i < bomArray.size(); i++) {
       JsonNode bomNode = bomArray.get(i);
-      String matchStateString = bomNode.get("matchState").asText();
+      String matchStateString = bomNode.get(MATCH_STATE).asText();
       MatchState matchState = MatchState.getById(matchStateString);
       if (MatchState.UNKNOWN.equals(matchState)) {
         if (thirdPartyReportComponentDataByHash == null) {

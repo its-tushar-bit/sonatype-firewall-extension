@@ -53,7 +53,7 @@ public class ThirdPartyScanResultsProcessor
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyScanResultsProcessor.class);
 
   private static final List<String> thirdPartyItemContentTypes =
-      asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name());
+      asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name(), ItemContentType.CONTAINER_URI.name());
 
   private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newInstance();
 

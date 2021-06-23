@@ -16,6 +16,9 @@ public class ThirdPartyResultHandlerFactory
     else if (ItemContentType.SBOM.equals(itemContentType)) {
       return new SbomResultHandler();
     }
+    else if (ItemContentType.CONTAINER_URI.equals(itemContentType)) {
+      return new ContainerResultHandler();
+    }
     throw new IllegalArgumentException("unsupported third party content type " + itemContentType);
   }
 }

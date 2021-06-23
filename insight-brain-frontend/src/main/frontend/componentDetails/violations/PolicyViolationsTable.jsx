@@ -11,7 +11,7 @@ import PolicyViolationsTableRow from './PolicyViolationsTableRow';
 
 export default function PolicyViolationsTable({ violations, error, loading, retryHandler }) {
   return (
-    <NxTable id="iq-policy-violations-table" className="iq-policy-violations-table">
+    <NxTable className="iq-policy-violations-table">
       <NxTableHead>
         <NxTableRow>
           <NxTableCell>Threat</NxTableCell>

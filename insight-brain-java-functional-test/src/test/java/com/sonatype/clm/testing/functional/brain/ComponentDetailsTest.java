@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Collections;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
@@ -32,7 +33,9 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.By;
 
+import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.matchText;
@@ -169,6 +172,32 @@ public class ComponentDetailsTest
 
     componentDetailsPage.remediationTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+  }
+
+  @Test
+  public void testPolicyViolationsTab_violationTableEntries() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement firstViolation = violations.first();
+    firstViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+
+    componentDetailsPage.violationsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, HASH));
+
+    componentDetailsPage.violationsTabContent().shouldBe(visible);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(4);
+    rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')"));
+
+    eyesWatcher.eyesCheck("component details violations tab violation table");
   }
 
   @Test

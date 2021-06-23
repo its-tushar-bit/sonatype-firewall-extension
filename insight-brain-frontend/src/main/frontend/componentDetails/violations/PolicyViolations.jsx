@@ -28,7 +28,7 @@ export default function PolicyViolations({ violations, componentDetails, loadCom
   };
 
   return (
-    <section className="nx-tile">
+    <section id="component-details-policy-violations" className="nx-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Policy Violations</h2>

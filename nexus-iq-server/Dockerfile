@@ -25,7 +25,9 @@ USER root
 # For testing
 RUN microdnf update --nobest -y \
 && microdnf install -y procps \
+&& microdnf install -y gzip \
 && microdnf clean all
+
 
 # Create folders
 RUN mkdir -m 0755 -p ${TEMP} \

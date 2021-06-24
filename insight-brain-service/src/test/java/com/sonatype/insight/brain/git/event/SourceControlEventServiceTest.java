@@ -241,7 +241,7 @@ public class SourceControlEventServiceTest
   @Test
   public void testProcessEvents_onManifestScanEvent() throws Exception {
     // given: an event DAO setup to return a source control scan event
-    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.SOURCE_CONTROL_EVALUATION);
+    List<SourceControlEvent> events = generateEvents("1:app1:" + SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
     when(mockSourceControlEventDAO
         .selectEventsForInstance(eq(eventService.getInstanceId()), anyInt()))
         .thenReturn(events);
@@ -817,11 +817,11 @@ public class SourceControlEventServiceTest
 
     if (actionSet.contains(EventProcessAction.markedPartiallyComplete)) {
       verify(mockSourceControlEventDAO, times(1))
-          .markEventHasError(eq(event.getId()), eq(message), eq(SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE));
+          .markEventPartiallyComplete(eq(event.getId()), eq(message));
     }
     else {
       verify(mockSourceControlEventDAO, never())
-          .markEventHasError(eq(event.getId()), any(), eq(SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE));
+          .markEventPartiallyComplete(eq(event.getId()), any());
     }
 
     if (actionSet.contains(EventProcessAction.noPropagation)) {

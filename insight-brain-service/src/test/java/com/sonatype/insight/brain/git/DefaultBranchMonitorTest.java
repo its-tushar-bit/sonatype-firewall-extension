@@ -157,7 +157,7 @@ public class DefaultBranchMonitorTest
         ArgumentCaptor.forClass(SourceControlEvent.class);
     verify(sourceControlEventPublisherMock).publishEvent(sourceControlEventArgumentCaptor.capture());
     SourceControlEvent sourceControlEvent = sourceControlEventArgumentCaptor.getValue();
-    assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION);
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
     assertThat(sourceControlEvent.getApplicationId()).isEqualTo(sourceControl.getOwnerId());
     assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(Stage.ID_SOURCE);
     assertThat(sourceControlEvent.getScanTriggerType())

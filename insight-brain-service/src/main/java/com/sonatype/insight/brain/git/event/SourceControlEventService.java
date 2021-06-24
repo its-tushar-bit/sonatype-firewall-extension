@@ -264,7 +264,7 @@ public class SourceControlEventService
           pullRequestCommentingEventHandler.onUpdatedPullRequest(event);
           break;
 
-        case SourceControlEvent.SOURCE_CONTROL_EVALUATION:
+        case SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT:
           sourceControlScanService.onSourceControlScan(event);
           break;
 
@@ -295,19 +295,16 @@ public class SourceControlEventService
   }
 
   private void handleException(SourceControlEvent event, Exception e) {
-    if (e instanceof SourceControlException) {
-      SourceControlException sce = (SourceControlException) e;
-      if (sce.isPartialFailure()) {
-        log.warn("Partially processed event '{}' of type '{}' for application '{}' : {}", event.getId(),
-            event.getEventType(), event.getApplicationId(), e.getMessage(), e);
-        sourceControlEventDAO
-            .markEventHasError(event.getId(), e.getMessage(), SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE);
-        return;
-      }
+    if (e instanceof SourceControlException && ((SourceControlException)e).isPartialFailure()) {
+      log.warn("Partially processed event '{}' of type '{}' for application '{}' : {}", event.getId(),
+          event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+      sourceControlEventDAO.markEventPartiallyComplete(event.getId(), e.getMessage());
     }
-    log.error("Unable to process event '{}' of type '{}' for application '{}' : {}", event.getId(),
-        event.getEventType(), event.getApplicationId(), e.getMessage(), e);
-    sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
+    else {
+      log.error("Unable to process event '{}' of type '{}' for application '{}' : {}", event.getId(),
+          event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+      sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
+    }
   }
 
   @VisibleForTesting

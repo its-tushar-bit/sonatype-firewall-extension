@@ -19,9 +19,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_COMPLETE;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_ERROR;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
 
 public class SourceControlEventDAO
@@ -93,7 +97,7 @@ public class SourceControlEventDAO
   public List<SourceControlEvent> getPendingOrInProgressSourceControlEvaluationEvents() {
     List<String> statuses = Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS);
     String sQuery = SELECT_ENTITY + "WHERE entity.eventType = ?1 AND entity.eventStatus IN ?2";
-    return getList(sQuery, SOURCE_CONTROL_EVALUATION, statuses);
+    return getList(sQuery, SOURCE_CONTROL_EVALUATION_EVENT, statuses);
   }
 
   public List<SourceControlEvent> getPendingOrInProgressUpdatedPullRequestEvents(
@@ -111,29 +115,33 @@ public class SourceControlEventDAO
     String sQuery = UPDATE_ENTITY +
         "SET entity.eventStatus=?2, entity.startTime=?3 " +
         WHERE_ENTITY_ID_MATCHES;
-    createQuery(sQuery, eventId, SourceControlEvent.EVENT_STATUS_IN_PROGRESS, new Timestamp(System.currentTimeMillis()))
+    createQuery(sQuery, eventId, EVENT_STATUS_IN_PROGRESS, new Timestamp(System.currentTimeMillis()))
         .executeUpdate();
-    log.debug(UPDATED_EVENT_WITH_STATUS, eventId, SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
+    log.debug(UPDATED_EVENT_WITH_STATUS, eventId, EVENT_STATUS_IN_PROGRESS);
   }
 
   public void markEventComplete(final String eventId) {
     String sQuery = UPDATE_ENTITY +
         "SET entity.eventStatus=?2, entity.completeTime=?3 " +
         WHERE_ENTITY_ID_MATCHES;
-    createQuery(sQuery, eventId, SourceControlEvent.EVENT_STATUS_COMPLETE, new Timestamp(System.currentTimeMillis()))
+    createQuery(sQuery, eventId, EVENT_STATUS_COMPLETE, new Timestamp(System.currentTimeMillis()))
         .executeUpdate();
-    log.debug(UPDATED_EVENT_WITH_STATUS, eventId, SourceControlEvent.EVENT_STATUS_COMPLETE);
+    log.debug(UPDATED_EVENT_WITH_STATUS, eventId, EVENT_STATUS_COMPLETE);
   }
 
   public void markEventHasError(final String eventId, final String errorMessage) {
-    markEventHasError(eventId, errorMessage, SourceControlEvent.EVENT_STATUS_ERROR);
+    markEventFinishedWithMessage(eventId, errorMessage, EVENT_STATUS_ERROR);
   }
 
-  public void markEventHasError(final String eventId, final String errorMessage, final String eventStatus) {
+  public void markEventPartiallyComplete(final String eventId, final String message) {
+    markEventFinishedWithMessage(eventId, message, EVENT_STATUS_PARTIALLY_COMPLETE);
+  }
+
+  private void markEventFinishedWithMessage(final String eventId, final String message, final String eventStatus) {
     String sQuery = UPDATE_ENTITY +
         "SET entity.eventStatus=?2, entity.eventStatusDetails=?3, entity.completeTime=?4 " +
         WHERE_ENTITY_ID_MATCHES;
-    createQuery(sQuery, eventId, eventStatus, StringUtils.abbreviate(errorMessage, 2048),
+    createQuery(sQuery, eventId, eventStatus, StringUtils.abbreviate(message, 2048),
         new Timestamp(System.currentTimeMillis())).executeUpdate();
     log.debug(UPDATED_EVENT_WITH_STATUS, eventId, eventStatus);
   }
@@ -197,7 +205,7 @@ public class SourceControlEventDAO
     String sQuery = "SELECT count(entity) FROM SourceControlEvent entity" +
         " WHERE entity.applicationId = ?1 AND entity.eventType = ?2 AND entity.branchName = ?3";
     return 0 !=
-        getSingle(Long.class, sQuery, applicationId, SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT, branchName);
+        getSingle(Long.class, sQuery, applicationId, REMEDIATION_PULL_REQUEST_EVENT, branchName);
   }
 
   public List<SourceControlEvent> getAll() {

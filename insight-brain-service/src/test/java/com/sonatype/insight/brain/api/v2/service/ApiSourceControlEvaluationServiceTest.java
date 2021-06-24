@@ -60,7 +60,7 @@ public class ApiSourceControlEvaluationServiceTest
     assertThat(sourceControlEvent.getApplicationId()).isEqualTo(app.getId());
     assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(stageId);
     assertThat(sourceControlEvent.getBranchName()).isEqualTo(branchName);
-    assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION);
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
     assertThat(sourceControlEvent.getScanTriggerType())
         .isEqualTo(ScanTriggerType.SOURCE_CONTROL_API);
   }

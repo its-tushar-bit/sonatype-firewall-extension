@@ -804,7 +804,7 @@ public class ScmOnboardingServiceTest
       assertThat(eventCaptor.getAllValues().size()).isEqualTo(count);
       eventCaptor.getAllValues().forEach(
           event -> {
-            assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION);
+            assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
             assertThat(event.getScanTriggerType())
                 .isEqualTo(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
           }

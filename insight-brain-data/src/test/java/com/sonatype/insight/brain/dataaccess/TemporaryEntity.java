@@ -1825,7 +1825,7 @@ public class TemporaryEntity
   public SourceControlEvent newSourceControlEvaluationEvent(final Application application) {
     SourceControlEvent sourceControlEvent = new SourceControlEvent()
         .setApplicationId(application.getId())
-        .setEventType(SourceControlEvent.SOURCE_CONTROL_EVALUATION);
+        .setEventType(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
 
     new SourceControlEventDAO().insert(sourceControlEvent);
     return sourceControlEvent;

@@ -579,7 +579,7 @@ public class ApiEvaluationResourceV2Test
     // and it matches expected values
     SourceControlEvent event = allEvents.get(0);
     assertThat(event.getApplicationId()).isEqualTo(app.getId());
-    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION);
+    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
     assertThat(event.getStageTypeId()).isEqualTo("develop");
     assertThat(event.getBranchName()).isEqualTo("customBranch");
   }

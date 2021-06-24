@@ -28,7 +28,7 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_ERROR;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -117,9 +117,17 @@ public class SourceControlEventDAOTest
         .setCompleteTime(new Date(cutoffTimeMs - 300));
     sourceControlEventDAO.insert(staleCompletedEvent);
 
+    SourceControlEvent stalePartiallyCompletedEvent = getNewSourceControlEvent()
+        .setEventStatus("partially complete")
+        .setInstanceId("instance6")
+        .setCreateTime(new Date(cutoffTimeMs - 500))
+        .setStartTime(new Date(cutoffTimeMs - 400))
+        .setCompleteTime(new Date(cutoffTimeMs - 300));
+    sourceControlEventDAO.insert(stalePartiallyCompletedEvent);
+
     SourceControlEvent staleErrorEvent = getNewSourceControlEvent()
         .setEventStatus("error")
-        .setInstanceId("instance6")
+        .setInstanceId("instance7")
         .setCreateTime(new Date(cutoffTimeMs - 500))
         .setStartTime(new Date(cutoffTimeMs - 400))
         .setCompleteTime(new Date(cutoffTimeMs - 300));
@@ -127,19 +135,21 @@ public class SourceControlEventDAOTest
 
     SourceControlEvent staleThisInstanceEvent = getNewSourceControlEvent()
         .setEventStatus("in progress")
-        .setInstanceId("instance7")
+        .setInstanceId("instance8")
         .setCreateTime(new Date(cutoffTimeMs - 500))
         .setStartTime(new Date(cutoffTimeMs - 400));
     sourceControlEventDAO.insert(staleThisInstanceEvent);
 
     // when: reset stale events
-    sourceControlEventDAO.resetStaleEvents(new Date(cutoffTimeMs), "instance7");
+    sourceControlEventDAO.resetStaleEvents(new Date(cutoffTimeMs), "instance8");
 
     SourceControlEvent fetchedActiveNewEvent = sourceControlEventDAO.getById(activeNewEvent.getId());
     SourceControlEvent fetchedActiveInProgressEvent = sourceControlEventDAO.getById(activeInProgressEvent.getId());
     SourceControlEvent fetchedStaleNewEvent = sourceControlEventDAO.getById(staleNewEvent.getId());
     SourceControlEvent fetchedStaleInProgressEvent = sourceControlEventDAO.getById(staleInProgressEvent.getId());
     SourceControlEvent fetchedStaleCompletedEvent = sourceControlEventDAO.getById(staleCompletedEvent.getId());
+    SourceControlEvent fetchedStalePartiallyCompletedEvent =
+        sourceControlEventDAO.getById(stalePartiallyCompletedEvent.getId());
     SourceControlEvent fetchedStaleErrorEvent = sourceControlEventDAO.getById(staleErrorEvent.getId());
     SourceControlEvent fetchedStaleThisInstanceEvent = sourceControlEventDAO.getById(staleThisInstanceEvent.getId());
 
@@ -158,11 +168,13 @@ public class SourceControlEventDAOTest
     // and: complete/error events were NOT reset
     assertThat(fetchedStaleCompletedEvent.getInstanceId()).isEqualTo("instance5");
     assertThat(fetchedStaleCompletedEvent.getEventStatus()).isEqualTo("complete");
-    assertThat(fetchedStaleErrorEvent.getInstanceId()).isEqualTo("instance6");
+    assertThat(fetchedStalePartiallyCompletedEvent.getInstanceId()).isEqualTo("instance6");
+    assertThat(fetchedStalePartiallyCompletedEvent.getEventStatus()).isEqualTo("partially complete");
+    assertThat(fetchedStaleErrorEvent.getInstanceId()).isEqualTo("instance7");
     assertThat(fetchedStaleErrorEvent.getEventStatus()).isEqualTo("error");
 
     // and: 'this' instance was stale but was not reset
-    assertThat(fetchedStaleThisInstanceEvent.getInstanceId()).isEqualTo("instance7");
+    assertThat(fetchedStaleThisInstanceEvent.getInstanceId()).isEqualTo("instance8");
     assertThat(fetchedStaleThisInstanceEvent.getEventStatus()).isEqualTo("in progress");
   }
 
@@ -262,6 +274,23 @@ public class SourceControlEventDAOTest
   }
 
   @Test
+  public void testMarkEventPartiallyComplete() {
+    // given 4 new source control events
+    createNewSourceControlEvents(4);
+
+    // when we mark an event with an error
+    sourceControlEventDAO.reserveEventsForInstance("1");
+    SourceControlEvent sourceControlEvent = sourceControlEventDAO.selectEventsForInstance("1", 1).get(0);
+    sourceControlEventDAO.markEventPartiallyComplete(sourceControlEvent.getId(), "informational message");
+
+    // then the event is marked with partial completion message and a complete time
+    SourceControlEvent sourceControlEventById = sourceControlEventDAO.getById(sourceControlEvent.getId());
+    assertThat(sourceControlEventById.getEventStatus()).isEqualTo(SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE);
+    assertThat(sourceControlEventById.getEventStatusDetails()).isEqualTo("informational message");
+    assertThat(sourceControlEventById.getCompleteTime()).isAfter(testStartTime);
+  }
+
+  @Test
   public void testDeleteByApplicationId() {
     // when we have events for different application ids
     createNewSourceControlEvents(2);
@@ -316,7 +345,7 @@ public class SourceControlEventDAOTest
         Collections.unmodifiableList(Arrays.asList(EVENT_STATUS_NEW, EVENT_STATUS_IN_PROGRESS));
     events.forEach(event -> {
       assertThat(pendingEventStatus).contains(event.getEventStatus());
-      assertThat(event.getEventType()).isEqualTo(SOURCE_CONTROL_EVALUATION);
+      assertThat(event.getEventType()).isEqualTo(SOURCE_CONTROL_EVALUATION_EVENT);
     });
   }
 
@@ -428,7 +457,7 @@ public class SourceControlEventDAOTest
   private SourceControlEvent createNewSourceControlEvaluationEvent(String appId, String eventStatus) {
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId(appId)
-        .setEventType(SOURCE_CONTROL_EVALUATION)
+        .setEventType(SOURCE_CONTROL_EVALUATION_EVENT)
         .setEventStatus(eventStatus)
         .setStageTypeId(StageTypes.SOURCE.getId())
         .setCreateTime(testStartTime);

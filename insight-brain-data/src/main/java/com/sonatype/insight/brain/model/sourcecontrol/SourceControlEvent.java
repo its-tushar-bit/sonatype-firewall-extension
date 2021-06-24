@@ -34,7 +34,7 @@ public class  SourceControlEvent
 
   public static final String UPDATED_PULL_REQUEST_EVENT = "updated pull request";
 
-  public static final String SOURCE_CONTROL_EVALUATION = "source control evaluation";
+  public static final String SOURCE_CONTROL_EVALUATION_EVENT = "source control evaluation";
 
   public static final String REMEDIATION_PULL_REQUEST_EVENT = "remediation pull request";
 
@@ -206,7 +206,7 @@ public class  SourceControlEvent
   }
 
   public SourceControlEvent forSourceControlEvaluation() {
-    return setEventType(SOURCE_CONTROL_EVALUATION);
+    return setEventType(SOURCE_CONTROL_EVALUATION_EVENT);
   }
 
   public SourceControlEvent forRemediationPullRequest() {

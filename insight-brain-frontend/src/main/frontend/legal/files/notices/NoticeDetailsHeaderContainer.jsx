@@ -26,6 +26,7 @@ function mapStateToProps({ advancedLegal, router, componentNoticeDetails }) {
     loading: component.loading || availableScopes.loading || componentNoticeDetails.loadingNoticeDetails,
     error: component.error || availableScopes.error,
     availableScopes,
+    ...pick(['component'], component),
     ...pick(['hash', 'ownerType', 'ownerId', 'noticeIndex', 'stageTypeId'], routerParams),
     showNoticesModal: component.component ? component.component.licenseLegalData.showNoticesModal : false,
   };

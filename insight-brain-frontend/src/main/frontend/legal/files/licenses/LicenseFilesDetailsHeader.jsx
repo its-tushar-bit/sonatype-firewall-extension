@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
-import { availableScopesPropType } from '../../advancedLegalPropTypes';
+import { availableScopesPropType, componentPropType } from '../../advancedLegalPropTypes';
 import LoadWrapper from '../../../react/LoadWrapper';
 import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
@@ -14,6 +14,7 @@ import LicenseFilesModalContainer from './LicenseFilesModalContainer';
 
 export default function LicenseFilesDetailsHeader(props) {
   const {
+    component,
     loading,
     error,
     availableScopes,
@@ -42,7 +43,7 @@ export default function LicenseFilesDetailsHeader(props) {
       />
       <div className="nx-page-title">
         <h1 className="nx-h1">License Files</h1>
-        {createSubtitle(availableScopes)}
+        {createSubtitle(availableScopes, component)}
         <div className="nx-btn-bar">
           <NxButton id="edit-license-files" variant="tertiary" onClick={() => setShowLicenseFilesModal(true)}>
             <NxFontAwesomeIcon icon={faEdit} />
@@ -56,6 +57,7 @@ export default function LicenseFilesDetailsHeader(props) {
 }
 
 LicenseFilesDetailsHeader.propTypes = {
+  component: componentPropType,
   loading: PropTypes.bool,
   error: PropTypes.string,
   ownerType: PropTypes.string,

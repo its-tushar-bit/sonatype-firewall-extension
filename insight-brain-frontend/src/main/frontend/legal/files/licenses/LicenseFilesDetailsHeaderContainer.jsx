@@ -27,6 +27,7 @@ function mapStateToProps({ advancedLegal, router, componentLicenseFileDetails })
     error: component.error || availableScopes.error,
     showLicenseFilesModal: component.component ? component.component.licenseLegalData.showLicenseFilesModal : false,
     availableScopes,
+    ...pick(['component'], component),
     ...pick(['hash', 'ownerType', 'ownerId', 'licenseIndex', 'stageTypeId'], routerParams),
   };
 }

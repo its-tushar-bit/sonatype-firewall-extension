@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { availableScopesPropType } from '../advancedLegalPropTypes';
+import { availableScopesPropType, componentPropType } from '../advancedLegalPropTypes';
 import LoadWrapper from '../../react/LoadWrapper';
 import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
@@ -14,6 +14,7 @@ import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
 
 export default function CopyrightDetailsHeader(props) {
   const {
+    component,
     loading,
     error,
     availableScopes,
@@ -43,7 +44,7 @@ export default function CopyrightDetailsHeader(props) {
       />
       <div className="nx-page-title">
         <h1 className="nx-h1">Copyright Notices</h1>
-        {createSubtitle(availableScopes)}
+        {createSubtitle(availableScopes, component)}
         <div className="nx-btn-bar">
           <NxButton variant="tertiary" onClick={setDisplayCopyrightOverrideModal}>
             <NxFontAwesomeIcon icon={faEdit} />
@@ -57,6 +58,7 @@ export default function CopyrightDetailsHeader(props) {
 }
 
 CopyrightDetailsHeader.propTypes = {
+  component: componentPropType,
   loading: PropTypes.bool,
   error: PropTypes.string,
   ownerType: PropTypes.string.isRequired,

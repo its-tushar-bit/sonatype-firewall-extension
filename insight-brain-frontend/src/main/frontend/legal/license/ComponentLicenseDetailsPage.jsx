@@ -45,7 +45,7 @@ export default function ComponentLicenseDetailsPage(props) {
         />
         <div className="nx-page-title">
           <h1 className="nx-h1">Licenses</h1>
-          {createSubtitle(availableScopes)}
+          {createSubtitle(availableScopes, component)}
         </div>
         <ComponentLicenseOverviewTile component={component} />
         <div id="component-license-details-content" className="nx-viewport-sized__container">

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
-import { availableScopesPropType } from '../../advancedLegalPropTypes';
+import { availableScopesPropType, componentPropType } from '../../advancedLegalPropTypes';
 import LoadWrapper from '../../../react/LoadWrapper';
 import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
@@ -14,6 +14,7 @@ import NoticesModalContainer from './NoticesModalContainer';
 
 export default function NoticeDetailsHeader(props) {
   const {
+    component,
     loading,
     error,
     availableScopes,
@@ -33,7 +34,6 @@ export default function NoticeDetailsHeader(props) {
   }
 
   useEffect(load, [ownerType, ownerId, hash, noticeIndex]);
-
   return (
     <LoadWrapper loading={loading} error={error} retryHandler={load}>
       <NxBackButton
@@ -42,7 +42,7 @@ export default function NoticeDetailsHeader(props) {
       />
       <div className="nx-page-title">
         <h1 className="nx-h1">Notice Files</h1>
-        {createSubtitle(availableScopes)}
+        {createSubtitle(availableScopes, component)}
         <div className="nx-tile__actions">
           <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>
             <NxFontAwesomeIcon icon={faPen} />
@@ -56,6 +56,7 @@ export default function NoticeDetailsHeader(props) {
 }
 
 NoticeDetailsHeader.propTypes = {
+  component: componentPropType,
   loading: PropTypes.bool,
   error: PropTypes.string,
   ownerType: PropTypes.string,

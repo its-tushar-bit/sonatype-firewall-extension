@@ -7,6 +7,7 @@ import {
   findSingleLicenseIndex,
   getComponentEffectiveLicenseNamesAndIds,
   backToComponentOverviewUrl,
+  createSubtitle,
 } from '../../../main/frontend/legal/legalUtility';
 
 const { isScopeOverride, getLicenseThreatGroupsFromLicense } = require('../../../main/frontend/legal/legalUtility');
@@ -165,6 +166,57 @@ describe('legalUtility', function () {
           stageTypeId: 'build',
         },
       });
+    });
+  });
+
+  describe('createSubtitle', function () {
+    const rootScope = {
+      id: 'ROOT_ORGANIZATION_ID',
+      type: 'organization',
+      name: 'root org',
+    };
+
+    const availableScopes = {
+      error: null,
+      values: [
+        {
+          id: 'appId',
+          type: 'application',
+          name: 'app',
+        },
+        {
+          id: 'orgId',
+          type: 'organization',
+          name: 'org',
+        },
+        rootScope,
+      ],
+    };
+
+    const availableScopesOnlyRoot = {
+      error: null,
+      values: [rootScope],
+    };
+
+    let component = {
+      displayName: 'testComponent',
+    };
+
+    it('creates a subtitle from root org + app that does not include `root org`', function () {
+      let subtitle = createSubtitle(availableScopes, component);
+      let subtitleString = JSON.stringify(subtitle);
+      expect(subtitleString).not.toContain('root org');
+      expect(subtitle.props.children.length).toEqual(3);
+      expect(subtitle.props.children[0].props.children[1].props.children).toEqual('org');
+      expect(subtitle.props.children[1].props.children[1].props.children).toEqual('app');
+      expect(subtitle.props.children[2].props.children[1].props.children).toEqual('testComponent');
+    });
+
+    it('creates a subtitle from only root org that includes `root org` + component name and nothing else', function () {
+      let subtitle = createSubtitle(availableScopesOnlyRoot, component);
+      expect(subtitle.props.children.length).toEqual(2);
+      expect(subtitle.props.children[0].props.children[1].props.children).toEqual('root org');
+      expect(subtitle.props.children[1].props.children[1].props.children).toEqual('testComponent');
     });
   });
 });

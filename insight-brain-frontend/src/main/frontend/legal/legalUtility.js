@@ -6,7 +6,7 @@
 
 import { findIndex, propEq } from 'ramda';
 import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
-import { faGlobe, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faSitemap, faTerminal, faCube, faCaretSquareRight } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
 import { isNilOrEmpty } from '../util/jsUtil';
 import { NO_LICENSE_THREAT_GROUP_ASSIGNED } from './advancedLegalConstants';
@@ -17,27 +17,46 @@ export function isScopeOverride(originalOwnerId, ownerId, availableScopeValues) 
   return originalOwnerLevel > newOwnerLevel;
 }
 
-export function createSubtitle(availableScopes) {
+export function createSubtitle(availableScopes, component) {
   let availableScopeValuesReversed = (availableScopes && availableScopes.values && [...availableScopes.values]) || [];
   availableScopeValuesReversed.reverse();
+  if (availableScopeValuesReversed.length > 1) {
+    availableScopeValuesReversed = availableScopeValuesReversed.filter((obj) => obj.id !== 'ROOT_ORGANIZATION_ID');
+  }
+  if (component) {
+    availableScopeValuesReversed.push({
+      type: 'component',
+      id: 'component',
+      name: component.displayName,
+    });
+  }
   return (
     <div className="nx-page-title__description">
       {availableScopeValuesReversed.map((availableScope, index) => {
-        const scopeIcon =
-          availableScope.id === 'ROOT_ORGANIZATION_ID'
-            ? faGlobe
-            : availableScope.type === 'organization'
-            ? faSitemap
-            : faTerminal;
         return (
           <span key={index} className="iq-violation-details__subtitle-part">
-            <NxFontAwesomeIcon icon={scopeIcon} />
+            <NxFontAwesomeIcon icon={setScopeIcon(availableScope)} />
             <span>{availableScope.name}</span>
           </span>
         );
       })}
     </div>
   );
+}
+
+export function setScopeIcon(availableScope) {
+  if (availableScope.id === 'ROOT_ORGANIZATION_ID') {
+    return faGlobe;
+  }
+  switch (availableScope.type) {
+    case 'organization':
+      return faSitemap;
+    case 'application':
+      return faTerminal;
+    case 'component':
+      return faCube;
+  }
+  return faCaretSquareRight;
 }
 
 export function backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash) {

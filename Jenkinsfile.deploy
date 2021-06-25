@@ -6,6 +6,9 @@
 @Library(['private-pipeline-library', 'jenkins-shared', 'bnr-pipeline-library', 'iq-pipeline-library']) _
 pipeline {
   agent { label InsightConstants.AGENT_LABEL }
+  environment {
+    minorVersion = "${parseVersion(getVersionFromBuildName(env.releaseBuild_NAME))?.minor}"
+  }
   tools {
     jdk 'Java 8'
   }
@@ -90,7 +93,47 @@ pipeline {
         expression {'Production' == params?.environment}
       }
       steps {
-        updateDownloadPage(parseVersion(getVersionFromBuildName(env.releaseBuild_NAME)).minor)
+        updateDownloadPage(env.minorVersion)
+      }
+    }
+    stage('Release the Jira version') {
+      when {
+        expression {'Production' == params?.environment}
+      }
+      steps {
+        build(job: 'insight/insight-brain/Release JIRA Version',
+            parameters: [string(name: 'releaseVersion', value: env.minorVersion)]
+        )
+      }
+    }
+    stage('Send Policy Results') {
+      when {
+        expression {'Production' == params?.environment}
+      }
+      steps {
+        build(job: 'insight/insight-brain/Send Policy Results',
+            parameters: [string(name: 'releaseVersion', value: env.minorVersion)]
+        )
+      }
+    }
+    stage('Sync Product Notifications') {
+      when {
+        expression {'Production' == params?.environment}
+      }
+      steps {
+        build(job: 'insight/hosted-data-services/Sync Product Notifications',
+            parameters: [string(name: 'ENVIRONMENT', value: 'production')]
+        )
+      }
+    }
+    stage('Release Notification') {
+      when {
+        expression {'Production' == params?.environment}
+      }
+      steps {
+        build(job: 'insight/insight-brain/Release Notification',
+            parameters: [string(name: 'releaseVersion', value: env.minorVersion)]
+        )
       }
     }
   }

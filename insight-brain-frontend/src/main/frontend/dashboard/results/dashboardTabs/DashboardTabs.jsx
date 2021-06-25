@@ -39,7 +39,7 @@ export default function DashboardTabs(props) {
 }
 
 DashboardTabs.propTypes = {
-  currentTab: PropTypes.number.isRequired,
+  currentTab: PropTypes.string.isRequired,
   violations: PropTypes.shape({ numResults: PropTypes.number }).isRequired,
   components: PropTypes.shape({ numResults: PropTypes.number }).isRequired,
   applications: PropTypes.shape({ numResults: PropTypes.number }).isRequired,

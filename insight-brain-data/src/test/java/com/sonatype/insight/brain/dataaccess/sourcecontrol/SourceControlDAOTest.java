@@ -1293,7 +1293,7 @@ public class SourceControlDAOTest
     // application 1 with outdated scan
     LocalDateTime now = LocalDateTime.now();
     // This time will be recognized as outdated scan because is very close
-    Date scanTime1 = toDate(now.minusHours(INTERVAL_IN_HOURS));
+    Date scanTime1 = toDate(now.minusHours(INTERVAL_IN_HOURS).minusNanos(1));
     SourceControl scRoot = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     SourceControl expectedSourceControl1 = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null);
     // Adjust values inherited from parents
@@ -1348,7 +1348,6 @@ public class SourceControlDAOTest
   }
 
   private Date getScanLimitDate() {
-    return Date.from(LocalDateTime.now().minusHours(INTERVAL_IN_HOURS)
-        .atZone(ZoneId.systemDefault()).toInstant());
+    return toDate(LocalDateTime.now().minusHours(INTERVAL_IN_HOURS));
   }
 }

@@ -107,8 +107,6 @@ public class ApplicationSummaryViewTest
     SelectContactModal.searchButton().shouldBe(enabled).click();
     SelectContactModal.users().shouldHaveSize(2).shouldHave(texts("Admin Builtin", tempUser.calculateDisplayName()));
 
-    eyesWatcher.eyesCheck("Search results");
-
     // wildcard suffix search narrows search results
     SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
     SelectContactModal.searchButton().click();
@@ -159,7 +157,6 @@ public class ApplicationSummaryViewTest
     SelectContactModal.users().shouldHaveSize(1).shouldHave(texts(tempUser.calculateDisplayName()));
     // update contact
     SelectContactModal.userRadio(tempUser.calculateDisplayName()).click();
-    eyesWatcher.eyesCheck();
     SelectContactModal.updateButton().shouldNotHave(DISABLED).click();
     SelectContactModal.body().shouldBe(hidden);
     OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
@@ -537,8 +534,6 @@ public class ApplicationSummaryViewTest
     tile.itemText().shouldBe(visible).shouldHave(Condition.text("Repository URL needed"));
     tile.itemSubText().shouldBe(visible).shouldHave(Condition.text("Inherit access token (GitHub)"));
 
-    eyesWatcher.eyesCheck("Valid source control configured, token on root");
-
     rootSourceControl.setToken("TESK_TOKEN");
     sourceControlDAO.update(rootSourceControl);
     refresh();
@@ -593,7 +588,6 @@ public class ApplicationSummaryViewTest
     tile.itemText().shouldNotBe(visible);
     tile.itemSubText().shouldNotBe(visible);
 
-    eyesWatcher.eyesCheck("Source Control No License");
   }
 
   @Test

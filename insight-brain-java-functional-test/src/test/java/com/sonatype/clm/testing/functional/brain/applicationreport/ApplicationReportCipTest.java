@@ -422,8 +422,6 @@ public class ApplicationReportCipTest
     assertThat(RequestWaiverDialog.policyViolationPageLink().attr("href")).contains(policyViolationPageURL);
     assertThat(RequestWaiverDialog.policyCurlExample().getText()).contains(requestWaiverUrl);
 
-    eyesWatcher.eyesCheck("Request Waiver");
-
     RequestWaiverDialog.closeButton().click();
 
     // Waive violation
@@ -595,8 +593,6 @@ public class ApplicationReportCipTest
     auditTab.rowWithoutDate(2).shouldHave(texts("admin", "Selected", "License as Apache-2.0", "not bad"));
     auditTab.dateFromRow(2).should(matchText(dateRegex));
 
-    eyesWatcher.eyesCheck("Audit Tab");
-
     // sorting
     auditTab.dateHeader().sortArrowDown().shouldBeSelected().click();
 
@@ -725,8 +721,6 @@ public class ApplicationReportCipTest
     LabelsCIP.availableLabel(1).shouldHave(text("El Junko")).action().click();
     AddLabelModal.root().should(appear);
     AddLabelModal.error().shouldBe(visible).shouldHave(text("Insufficient Permissions"));
-
-    eyesWatcher.eyesCheck("Labels Tab Error");
 
     AddLabelModal.closeButton().shouldBe(visible).click();
     AddLabelModal.root().should(disappear);

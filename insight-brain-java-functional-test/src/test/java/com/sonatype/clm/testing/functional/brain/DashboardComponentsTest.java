@@ -94,7 +94,6 @@ public class DashboardComponentsTest
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.maxResultsMessage().shouldBe(visible).shouldHave(text(MAX_RESULTS_MSG));
     ScrollUtil.scrollIntoView(table.maxResultsMessage());
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -258,7 +257,6 @@ public class DashboardComponentsTest
     DashboardPage.filterToggle().click();
     DashboardFilters.policyThreatLevelFilter().twisty().click();
     DashboardFilters.policyThreatLevelFilter().slider().setValues(2, 10);
-    eyesWatcher.eyesCheck("Components tab with form-mask");
     DashboardFilters.apply();
     DashboardFilters.closeButton().click();
     DashboardPage.exportResultsLink().click();

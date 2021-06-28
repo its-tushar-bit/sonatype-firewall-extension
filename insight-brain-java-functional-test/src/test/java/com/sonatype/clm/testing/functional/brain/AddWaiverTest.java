@@ -130,7 +130,6 @@ public class AddWaiverTest
         "investigating alternative components or a potential mitigating control."));
     vulnerabilityDetails.shouldHave(text("Root Cause " +
         "org.webjars:bootstrap:3.1.1META-INF/resources/webjars/bootstrap/3.1.1/js/bootstrap.js[3.1.1-1,3.1.1-2]"));
-    eyesWatcher.eyesCheck();
     vulnerabilityModal.closeButton().shouldHave(text("Close")).click();
     vulnerabilityModal.shouldNot(exist);
   }
@@ -433,7 +432,6 @@ public class AddWaiverTest
     DashboardPage.dashboardContainer().shouldNotBe(visible);
     UnsavedModal unsavedChangesModal = new UnsavedModal();
     unsavedChangesModal.shouldBe(visible);
-    eyesWatcher.eyesCheck("Unsaved Changes Modal in Add Waiver Form");
     unsavedChangesModal.cancelButton().click();
     DashboardPage.dashboardContainer().shouldNotBe(visible);
     addWaiverPage.artifactName().shouldBe(visible);

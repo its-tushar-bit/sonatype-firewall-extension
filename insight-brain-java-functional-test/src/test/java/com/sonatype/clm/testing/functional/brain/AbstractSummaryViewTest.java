@@ -751,6 +751,7 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.summaryTile().policyButton().shouldBe(visible).click();
     
     assertPolicyTile_Foundation(policy, true);
+    eyesWatcher.eyesCheck();
   }
   
   private void assertPolicyTile_Foundation(Policy policy, boolean proxyActionReadOnly) {
@@ -784,7 +785,6 @@ public abstract class AbstractSummaryViewTest
     policyElement.column(8).shouldBe(visible).shouldHave(PolicyTile.noActionText()).shouldHave(IQ_DISABLED);
 
     policyElement.chevron().shouldBe(visible);
-    eyesWatcher.eyesCheck();
   }
 
   @Test

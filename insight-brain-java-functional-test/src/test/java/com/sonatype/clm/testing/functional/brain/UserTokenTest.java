@@ -33,7 +33,6 @@ public class UserTokenTest
     userTokenModal.deleteUserTokenButton().shouldNotBe(Condition.visible);
     userTokenModal.userCodeInput().shouldNotBe(Condition.visible);
     userTokenModal.passCodeInput().shouldNotBe(Condition.visible);
-    eyesWatcher.eyesCheck("No User Token");
 
     // Generate the token
     userTokenModal.generateUserTokenButton().shouldBe(Condition.visible).click();

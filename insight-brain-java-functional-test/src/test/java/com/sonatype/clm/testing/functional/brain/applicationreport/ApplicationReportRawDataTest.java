@@ -155,8 +155,6 @@ public class ApplicationReportRawDataTest
     vulnerabilityDetails.shouldHave(text("Root Cause " +
         "org.webjars:bootstrap:3.1.1META-INF/resources/webjars/bootstrap/3.1.1/js/bootstrap.js[3.1.1-1,3.1.1-2]"));
 
-    eyesWatcher.eyesCheck("Test Raw Data Vulnerability Modal");
-
     vulnerabilityModal.closeButton().shouldHave(text("Close")).click();
     vulnerabilityModal.shouldNot(exist);
   }
@@ -282,8 +280,6 @@ public class ApplicationReportRawDataTest
     rawDataPage.headers().cvssMinFilterInput().shouldBe(empty);
     rawDataPage.headers().cvssMaxFilterInput().setValue("XX");
     rawDataPage.headers().cvssMaxFilterInput().shouldBe(empty);
-
-    eyesWatcher.eyesCheck("Filter Raw Data invalid input");
 
     rawDataPage.headers().cvssMinFilterInput().setValue("0");
     rawDataPage.headers().cvssMinFilterInput().shouldBe(value("0"));

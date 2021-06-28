@@ -1006,7 +1006,6 @@ public class ScmOnboardingTest
     scmOnboardingPage.paginationButtons().shouldHaveSize(2);
 
     // and move viewport and perform visual test
-    eyesWatcher.eyesCheck("ScmOnboarding list of repositories");
     Actions actions = new Actions(WebDriverRunner.getWebDriver());
     actions.moveToElement(scmOnboardingPage.paginationButtons().first());
     actions.perform();
@@ -1082,8 +1081,6 @@ public class ScmOnboardingTest
 
     // when we pull down the list
     OrganizationsDropdownMenu menu = scmOnboardingPage.organizationsDropdown().dropdownMenu();
-
-    eyesWatcher.eyesCheck("ScmOnboarding select organization dropdown");
 
     // then the org list is complete
     menu.options().containsAll(Arrays.asList(org, org2, org3, org4, org5));

@@ -1149,7 +1149,6 @@ public class DashboardFilterTest
     saveDialog.saveButton().shouldNotBe(DISABLED).click();
 
     saveDialog.header().shouldHave(text("Overwrite Filter"));
-    eyesWatcher.eyesCheck("Overwrite filter confirmation");
     saveDialog.confirmation().shouldBe(visible).shouldHave(
         text("You are about to permanently overwrite " + currentFilterName + ". This action cannot be undone."));
 

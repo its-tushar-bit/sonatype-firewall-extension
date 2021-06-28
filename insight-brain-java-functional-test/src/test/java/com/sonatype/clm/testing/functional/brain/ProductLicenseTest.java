@@ -131,7 +131,6 @@ public class ProductLicenseTest
 
     MainHeader.openNavigationSidebar();
     MainHeader.productLogo().shouldHave(attribute("alt", "Lifecycle Foundation"));
-    eyesWatcher.eyesCheck("Nexus Lifecycle Logo - Foundation");
   }
 
   @Test

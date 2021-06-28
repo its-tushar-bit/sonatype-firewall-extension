@@ -399,7 +399,6 @@ public class RepositoryReportTest
     VersionsCIP.recommendedVersionsHeader().shouldNotBe(visible);
     VersionsCIP.nextNoViolationVersionLink().shouldNotBe(visible);
     VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
-    eyesWatcher.eyesCheck("Repository report version graph");
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);

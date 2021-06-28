@@ -95,8 +95,6 @@ public class ListWaiversTest
     listWaiversPage.conditions().shouldHaveSize(1);
     listWaiversPage.condition(1).shouldHave(text("sonatype-2017-0507"));
     listWaiversPage.componentName().shouldHave(text("Group1 : Artifact1 : Version1"));
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -250,7 +248,6 @@ public class ListWaiversTest
 
     row1.deleteButton().click();
     modal.root().shouldBe(visible);
-    eyesWatcher.eyesCheck();
     modal.yesButton().click();
     modal.root().should(disappear);
 

@@ -46,9 +46,7 @@ public class RootOrganizationSourceControlEditorTest
     refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
 
     verifyStartNoSourceControl();
-
-    eyesWatcher.eyesCheck("Source Control Editor Default State");
-
+    
     SourceControlEditorPage.provider().chooseOption(new Option(0, "github"));
 
     SourceControlEditorPage.root().shouldBe(visible);

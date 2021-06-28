@@ -45,8 +45,6 @@ public class OrganizationSourceControlEditorTest
 
     verifyStartNoSourceControl();
 
-    eyesWatcher.eyesCheck("Source Control Editor Default State");
-
     assertSourceControlDoesNotExist(rootOrganization.getId());
     assertSourceControlDoesNotExist(organization.getId());
   }
@@ -202,8 +200,6 @@ public class OrganizationSourceControlEditorTest
     tempEntity.newSourceControl(organization.getId(), null, null, null);
 
     refresh();
-
-    eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
 
     verifyStartWithSourceControl();
     SourceControlEditorPage.credentialsToken().shouldBe(visible, disabled);

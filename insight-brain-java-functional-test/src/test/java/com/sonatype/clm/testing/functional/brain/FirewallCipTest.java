@@ -226,8 +226,6 @@ public class FirewallCipTest
     assertThat(override.getStatus()).isEqualTo(LicenseOverrideStatus.SELECTED);
     assertThat(override.getLicenseIds()).isEqualTo(Collections.singleton("Apache-2.0"));
 
-    eyesWatcher.eyesCheck("FirewallPage License CIP - override");
-
     // remove
     LicenseCIP.status().selectOption("Inherit Status (Acknowledged)");
     LicenseCIP.updateButton().shouldBe(enabled).click();
@@ -266,8 +264,6 @@ public class FirewallCipTest
     VersionsCIP.recommendedVersionsHeader().shouldNotBe(visible);
     VersionsCIP.nextNoViolationVersionLink().shouldNotBe(visible);
     VersionsCIP.nextNoFailVersionLink().shouldNotBe(visible);
-
-    eyesWatcher.eyesCheck("FirewallPage Version Graph CIP");
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
@@ -353,7 +349,6 @@ public class FirewallCipTest
     // check that there are no existing waivers
     WaiverCip.viewWaivers().shouldBe(visible).click();
     ViewWaiversDialog.rows().shouldHaveSize(0);
-    eyesWatcher.eyesCheck("FirewallPage View Waivers Dialog");
     ViewWaiversDialog.closeButton().click();
 
     // Request waiver button should be hidden

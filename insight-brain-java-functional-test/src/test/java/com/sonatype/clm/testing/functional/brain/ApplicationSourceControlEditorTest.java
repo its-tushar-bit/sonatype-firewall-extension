@@ -170,8 +170,6 @@ public class ApplicationSourceControlEditorTest
 
     refresh();
 
-    eyesWatcher.eyesCheck("Source Control Editor Bitbucket Default State");
-
     assertSourceControlDoesNotExist(organization.getId());
     assertSourceControlDoesNotExist(application.getId());
 
@@ -223,7 +221,6 @@ public class ApplicationSourceControlEditorTest
     SourceControlEditorPage.tokenWarning().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrl().shouldHave(text(""));
 
-    eyesWatcher.eyesCheck("Source Control Editor Default State With Provider and Inherited Token");
   }
 
   @Test
@@ -907,7 +904,6 @@ public class ApplicationSourceControlEditorTest
     // then updates are enabled again
     SourceControlEditorPage.saveButton().shouldBe(enabled);
 
-    eyesWatcher.eyesCheck("Source Control Editor Application with Bitbucket credentials and not radio buttons");
   }
 
   @Test

@@ -149,10 +149,8 @@ public class MainHeaderTest
   @Test
   public void testSidebar_Toggles() {
     MainHeader.sidebar().shouldBe(visible).shouldHave(CSS_SIDEBAR_OPEN);
-    eyesWatcher.eyesCheck("Left Nav Sidebar Open");
     MainHeader.toggleNavigationButton().shouldBe(visible).click();
     MainHeader.sidebar().shouldBe(visible).shouldHave(CSS_SIDEBAR_CLOSED);
-    eyesWatcher.eyesCheck("Left Nav Sidebar Closed");
     MainHeader.toggleNavigationButton().shouldBe(visible).click();
     MainHeader.sidebar().shouldBe(visible).shouldHave(CSS_SIDEBAR_OPEN);
   }

@@ -322,7 +322,6 @@ public class SuccessMetricsChartsTest
     ViolationTrendTile.fixedBarTooltip.shouldNotBe(visible);
 
     allViolationsDeltaPlot.bar(3).hover();
-    eyesWatcher.eyesCheck(true);
 
     verifyPlotTooltips(allViolationsDeltaPlot, new String[][]{
         new String[]{"0", "0", "0", "0"},

@@ -129,7 +129,6 @@ public class DashboardApplicationsTest
 
     refresh();
     showLowRiskViolations();
-    eyesWatcher.eyesCheck();
     DashboardPage.dashboardContainer().shouldBe(visible);
     ApplicationsResults table = DashboardPage.applicationsView().results();
 
@@ -457,8 +456,6 @@ public class DashboardApplicationsTest
     table.application(40).lowRisk().shouldHave(text("0"));
     table.lastApplication().lowRisk().shouldHave(text("0"));
 
-    // last but certainly not least
-    eyesWatcher.eyesCheck("Scrollbar-present styling");
   }
 
   private void assertApplicationsCsv(String csv, String[] expectedSortedResults) {

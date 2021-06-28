@@ -129,8 +129,6 @@ public class OwnerTreeViewTest
     treeViewElement.click();
     treeViewElement.shouldBe(CLM.SELECTED);
     twisty.shouldBe(CLM.COLLAPSED);
-
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -169,7 +167,6 @@ public class OwnerTreeViewTest
     applicationNode.click();
     applicationNode.shouldBe(CLM.SELECTED);
     organizationTreeViewElement.shouldNotBe(CLM.SELECTED);
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -222,7 +219,6 @@ public class OwnerTreeViewTest
   public void testApplicationFuzzyFilter() {
     OwnerTreeView.filter().setValue("PaulQuincyRandalph");
     assertSingleApplicationVisible("Orange Squadron", "PaulQuincyRandolph");
-    eyesWatcher.eyesCheck();
   }
 
   @Test

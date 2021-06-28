@@ -96,7 +96,7 @@ pipeline {
         updateDownloadPage(env.minorVersion)
       }
     }
-    stage('Release the Jira version') {
+    stage('Release the Jira version - IQ') {
       when {
         expression {'Production' == params?.environment}
       }
@@ -106,32 +106,23 @@ pipeline {
         )
       }
     }
+    stage('Release the Jira version - Integrations') {
+      when {
+        expression {'Production' == params?.environment}
+      }
+      steps {
+        build(job: 'integrations/Set Jira Fix Version/',
+          parameters: [string(name: 'prefix', value: 'brain'),
+                       string(name: 'version', value: env.minorVersion)]
+        )
+      }
+    }
     stage('Send Policy Results') {
       when {
         expression {'Production' == params?.environment}
       }
       steps {
         build(job: 'insight/insight-brain/Send Policy Results',
-            parameters: [string(name: 'releaseVersion', value: env.minorVersion)]
-        )
-      }
-    }
-    stage('Sync Product Notifications') {
-      when {
-        expression {'Production' == params?.environment}
-      }
-      steps {
-        build(job: 'insight/hosted-data-services/Sync Product Notifications',
-            parameters: [string(name: 'ENVIRONMENT', value: 'production')]
-        )
-      }
-    }
-    stage('Release Notification') {
-      when {
-        expression {'Production' == params?.environment}
-      }
-      steps {
-        build(job: 'insight/insight-brain/Release Notification',
             parameters: [string(name: 'releaseVersion', value: env.minorVersion)]
         )
       }

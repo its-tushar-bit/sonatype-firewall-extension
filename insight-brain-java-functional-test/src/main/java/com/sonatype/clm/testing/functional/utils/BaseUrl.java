@@ -27,6 +27,10 @@ public class BaseUrl
     return undoUnnecessaryUrlEscapes(restUriBuilder().path(path).build(parameters));
   }
 
+  public static String resolveApiV2Url(String path, Object... parameters) {
+    return undoUnnecessaryUrlEscapes(apiV2UriBuilder().path(path).build(parameters));
+  }
+
   public static String resolveUiLinksUrl(String path, Object... parameters) {
     return undoUnnecessaryUrlEscapes(uiLinksUriBuilder().path(path).build(parameters));
   }
@@ -41,6 +45,10 @@ public class BaseUrl
 
   private static UriBuilder restUriBuilder() {
     return rootUriBuilder().path("rest");
+  }
+
+  private static UriBuilder apiV2UriBuilder() {
+    return rootUriBuilder().path("api/v2");
   }
 
   private static UriBuilder uiLinksUriBuilder() {

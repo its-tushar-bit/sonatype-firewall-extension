@@ -955,7 +955,9 @@ public class ApiLicenseLegalServiceTest
     ComponentIdentifier[] expectedComponentIdentifiers = rawReport.components.stream()
         .filter(c -> c.componentIdentifier != null)
         .filter(c -> !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))
-        .map(component -> component.componentIdentifier.toComponentIdentifier()).toArray(ComponentIdentifier[]::new);
+        .map(component -> component.componentIdentifier.toComponentIdentifier())
+        .distinct()
+        .toArray(ComponentIdentifier[]::new);
     LicenseMetadataDTO[] licenseMetadata = getContent(licenseMetadataResource, LicenseMetadataDTO[].class);
     when(mockApiLicenseLegalHdsService.getLicenseMetadata(licenseIdArgumentCaptor.capture()))
         .thenReturn(Arrays.asList(licenseMetadata));
@@ -2331,7 +2333,7 @@ public class ApiLicenseLegalServiceTest
     Map<String, ApiLicenseDataDTOV2> expectedComponentData = rawReport.components.stream()
         .filter(comp -> comp.displayName != null)
         .collect(Collectors.toMap(c -> c.displayName,
-            c -> c.licenseData == null ? new ApiLicenseDataDTOV2() : c.licenseData));
+            c -> c.licenseData == null ? new ApiLicenseDataDTOV2() : c.licenseData, (l1, l2) -> l1));
 
     components
         .forEach(comp -> validateLicenseData(comp, comp.licenseLegalData, expectedComponentData.get(comp.displayName)));

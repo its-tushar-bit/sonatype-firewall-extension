@@ -21,14 +21,11 @@ import java.util.stream.Collectors;
 
 import javax.inject.Named;
 
-import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.IdentificationSource;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalComponentDTO;
@@ -39,7 +36,6 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalFileDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalMetadataDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalObligationDTO;
 import com.sonatype.insight.brain.api.v2.dto.legal.ComponentObligationAttributionDTO;
-import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
@@ -55,7 +51,6 @@ import com.sonatype.insight.license.dto.model.ComponentLegalFileDTO;
 import com.sonatype.insight.license.dto.model.LegalFileDTO;
 import com.sonatype.insight.license.dto.model.LicenseMetadataDTO;
 import com.sonatype.insight.license.dto.model.LicenseObligationDTO;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -72,9 +67,10 @@ public class LegalReportBuilder
    * Build an {@link ApiLicenseLegalApplicationReportDTO}
    *
    * @param rawReport                                   the HDS {@link ApiReportRawDataDTOV2} for this application
-   * @param componentIdentifierToLegalData              a map where the key is the {@link ComponentIdentifier} and value
-   *                                                    is the {@link ComponentIdentifierLegalData}. All components in
-   *                                                    the report raw data should be accounted for in this map.
+   * @param componentReportLegalMap                     a map where the key is the {@link ApiReportComponentDTOV2} and
+   *                                                    value is the {@link ComponentIdentifierLegalData}. All
+   *                                                    components in the report raw data should be accounted for in
+   *                                                    this map.
    * @param componentLegalCommentsByComponentIdentifier a map where the key is the {@link ComponentIdentifier} and the
    *                                                    value is the IQ stored {@link ComponentLegalCommentDTO}.
    *                                                    Components with not persisted LegalComment can be excluded from
@@ -91,7 +87,7 @@ public class LegalReportBuilder
    */
   public ApiLicenseLegalApplicationReportDTO getLicenseLegalApplicationReport(
       ApiReportRawDataDTOV2 rawReport,
-      Map<ComponentIdentifier, ComponentIdentifierLegalData> componentIdentifierToLegalData,
+      Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> componentReportLegalMap,
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
       Map<ApiLicenseDTO, Set<License>> multiLicenseToSingleLicense,
@@ -100,29 +96,20 @@ public class LegalReportBuilder
     Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata =
         getLicenseLegalMetadata(multiLicenseToSingleLicense, licenseMetadataById);
 
-    Map<ComponentIdentifier, ApiLicenseDataDTOV2> componentIdentifierApiLicenseDataDTOV2Map =
-        rawReport.components.stream()
-            .filter(c -> c.componentIdentifier != null)
-            .collect(Collectors.toMap(
-                c -> removeClassifierAndExtension(c.componentIdentifier.toComponentIdentifier()),
-                c -> c.licenseData));
-
     List<ApiLicenseLegalComponentDTO> components =
         getLicenseLegalComponents(
             rawReport.components,
-            componentIdentifierApiLicenseDataDTOV2Map,
             licenseLegalMetadata,
             componentLegalCommentsByComponentIdentifier,
             componentLegalFilesByComponentIdentifier,
-            componentIdentifierToLegalData);
+            componentReportLegalMap);
     return new ApiLicenseLegalApplicationReportDTO(components, licenseLegalMetadata);
   }
 
   /**
    * Given a component, build out an {@link ApiLicenseLegalComponentReportDTO}.
    *
-   * @param component                    the {@link Component} in question.
-   * @param apiLicenseDataDTOV2          the component's {@link ApiLicenseDataDTOV2}, fetch from HDS.
+   * @param apiReportComponentDTOV2      the {@link ApiReportComponentDTOV2} in question.
    * @param componentIdentifierLegalData the component's {@link ComponentIdentifierLegalData}
    * @param componentLegalComments       the component's list of persisted IQ {@link ComponentLegalCommentDTO}, can be
    *                                     empty.
@@ -135,8 +122,7 @@ public class LegalReportBuilder
    * @return a populated {@link ApiLicenseLegalComponentReportDTO}
    */
   public ApiLicenseLegalComponentReportDTO getLicenseLegalComponentReport(
-      Component component,
-      ApiLicenseDataDTOV2 apiLicenseDataDTOV2,
+      ApiReportComponentDTOV2 apiReportComponentDTOV2,
       ComponentIdentifierLegalData componentIdentifierLegalData,
       Set<ComponentLegalCommentDTO> componentLegalComments,
       Set<ComponentLegalFileDTO> componentLegalFiles,
@@ -148,12 +134,11 @@ public class LegalReportBuilder
         multiLicenseToSingleLicense, licenseMetadataById);
 
     ApiLicenseLegalComponentDTO componentDTO = getLicenseLegalComponents(
-        Collections.singleton(toComponentDTO(component)),
-        ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), apiLicenseDataDTOV2),
+        Collections.singleton(apiReportComponentDTOV2),
         licenseLegalMetadata,
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalComments),
         ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentLegalFiles),
-        ImmutableMap.of(componentIdentifierLegalData.getComponentIdentifier(), componentIdentifierLegalData
+        ImmutableMap.of(apiReportComponentDTOV2, componentIdentifierLegalData
         )
     ).get(0);
 
@@ -161,21 +146,22 @@ public class LegalReportBuilder
   }
 
   private List<ApiLicenseLegalComponentDTO> getLicenseLegalComponents(
-      Collection<? extends ApiComponentDTOV2> apiComponentDTOV2s,
-      Map<ComponentIdentifier, ApiLicenseDataDTOV2> componentIdentifierToApiLicenseDataDTOV2,
+      Collection<ApiReportComponentDTOV2> apiComponentDTOV2s,
       Set<ApiLicenseLegalMetadataDTO> licenseLegalMetadata,
       Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> componentLegalCommentsByComponentIdentifier,
       Map<ComponentIdentifier, Set<ComponentLegalFileDTO>> componentLegalFilesByComponentIdentifier,
-      Map<ComponentIdentifier, ComponentIdentifierLegalData> componentIdentifierToLegalData)
+      Map<ApiReportComponentDTOV2, ComponentIdentifierLegalData> apiReportComponentDTOV2ComponentIdentifierLegalDataMap)
   {
     return apiComponentDTOV2s.stream()
-        .filter(component -> component.componentIdentifier != null)
-        .map(component -> {
-          ComponentIdentifier key = removeClassifierAndExtension(component.componentIdentifier.toComponentIdentifier());
-          ComponentIdentifierLegalData componentIdentifierLegalData = componentIdentifierToLegalData.get(key);
-          return new ApiLicenseLegalComponentDTO(component,
+        .filter(apiReportComponentDTOV2 -> apiReportComponentDTOV2.componentIdentifier != null)
+        .map(apiReportComponentDTOV2 -> {
+          ComponentIdentifier key =
+              removeClassifierAndExtension(apiReportComponentDTOV2.componentIdentifier.toComponentIdentifier());
+          ComponentIdentifierLegalData componentIdentifierLegalData =
+              apiReportComponentDTOV2ComponentIdentifierLegalDataMap.get(apiReportComponentDTOV2);
+          return new ApiLicenseLegalComponentDTO(apiReportComponentDTOV2,
               getLicenseLegalData(
-                  componentIdentifierToApiLicenseDataDTOV2.get(key),
+                  apiReportComponentDTOV2.licenseData,
                   componentIdentifierLegalData.getHighestEffectiveLicenseThreatGroup(),
                   licenseLegalMetadata,
                   componentLegalCommentsByComponentIdentifier.getOrDefault(key, new LinkedHashSet<>()),
@@ -434,20 +420,5 @@ public class LegalReportBuilder
       }
     }
     return allLicenseLegalMetadata;
-  }
-
-  private ApiComponentDTOV2 toComponentDTO(Component component) {
-    ApiComponentDTOV2 componentDTO = new ApiComponentDTOV2();
-    String hash = component.getHash();
-    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
-    componentDTO.componentIdentifier =
-        ApiComponentIdentifierDTOV2.fromComponentIdentifier(componentIdentifier);
-    componentDTO.packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
-    componentDTO.hash = hash;
-    componentDTO.displayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
-    componentDTO.proprietary = component.isProprietary();
-    componentDTO.thirdParty =
-        IdentificationSource.isThirdPartyIdentificationSource(component.getIdentificationSource().getId());
-    return componentDTO;
   }
 }

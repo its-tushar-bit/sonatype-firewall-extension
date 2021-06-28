@@ -123,6 +123,66 @@
     "componentIdentifier" : {
       "format" : "maven",
       "coordinates" : {
+        "artifactId" : "spring-boot-actuator",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.springframework.boot",
+        "version" : "2.2.6.RELEASE"
+      }
+    },
+    "groupId" : "org.springframework.boot",
+    "artifactId" : "spring-boot-actuator",
+    "version" : "2.2.6.RELEASE",
+    "filenames" : [ "spring-boot-actuator-2.2.6.RELEASE.jar" ],
+    "pathnames" : [ "Downloads/spring-boot-actuator-2.2.6.RELEASE.jar" ],
+    "matchState" : "similar",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "07d6baf032f9361d6f8c",
+    "relativePopularity" : 0.0,
+    "createTime" : 1585226756000,
+    "lastModifiedTime" : 1603897016000,
+    "lastModifiedEntryTime" : 1585221842000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 139,
+      "path" : "Monitoring and Management/Configuration Management"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "cli",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "integrityRating" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "org.springframework.boot"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "spring-boot-actuator"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.2.6.RELEASE"
+      } ],
+      "name" : "spring-boot-actuator"
+    }
+  },{
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
         "artifactId" : "spring-core",
         "classifier" : "",
         "extension" : "jar",

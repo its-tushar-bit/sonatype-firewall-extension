@@ -120,6 +120,7 @@ export default function UserForm({
                 id="username"
                 placeholder="Enter Username"
                 aria-required={true}
+                autoComplete="new-password"
               />
             </NxFormGroup>
             <div className="iq-input-group-wrapper">
@@ -133,6 +134,7 @@ export default function UserForm({
                   type="password"
                   placeholder="Enter Password"
                   aria-required={true}
+                  autoComplete="new-password"
                 />
               </NxFormGroup>
               <NxFormGroup label="Validate Password" isRequired>

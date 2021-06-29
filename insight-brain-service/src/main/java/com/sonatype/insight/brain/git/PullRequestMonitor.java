@@ -63,7 +63,9 @@ public class PullRequestMonitor
 
   static final String TASK_NAME = "PullRequestMonitor";
 
-  private static final int THREAD_POOL_SIZE = 20;
+  private static final int THREAD_POOL_SIZE = 1;
+
+  private static final long LS_REMOTE_DELAY_MS = 1_000;
 
   private final InsightConfig insightConfig;
 
@@ -211,6 +213,9 @@ public class PullRequestMonitor
       GitApi gitApi = gitApiFactory.createGitApi(gitRepositoryInfo);
       List<String> applicationIds = applications.stream().map(Application::getId).collect(toList());
       try {
+        // introducing a small delay here to cut down on the perceived load on the scm system (for github.com
+        // specifically) to help reduce rate abuse triggering that was experienced during load testing
+        Thread.sleep(LS_REMOTE_DELAY_MS);
         Map<String, String> headCommitsByBranchName = gitApi.getHeadCommitsForAllBranches(repositoryUrl);
         Date updateTime = new Date();
         for (Entry<String, String> entry : headCommitsByBranchName.entrySet()) {

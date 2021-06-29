@@ -63,10 +63,13 @@ public class SourceControlEventService
   private static final Logger log = LoggerFactory.getLogger(SourceControlEventService.class);
 
   @VisibleForTesting
-  static final int THREAD_POOL_SIZE = 25;
+  static final int THREAD_POOL_SIZE = 15;
 
+  // this gives us the potential to process up to 4800 events per hour (polled 4 times/minute), but
+  // load testing has revealed that we can only process about 1/3 of that in that time on the test machine;  so,
+  // this gives us some ability to scale to multiple configured SCM users and/or better hardware
   @VisibleForTesting
-  static final int TASK_QUEUE_CAPACITY = 40;
+  static final int TASK_QUEUE_CAPACITY = 20;
 
   @VisibleForTesting
   static final int MAX_LOAD = THREAD_POOL_SIZE + TASK_QUEUE_CAPACITY;

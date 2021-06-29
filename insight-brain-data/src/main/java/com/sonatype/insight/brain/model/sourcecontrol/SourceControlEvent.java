@@ -210,6 +210,7 @@ public class  SourceControlEvent
   }
 
   public SourceControlEvent forRemediationPullRequest() {
+    setEventPriority(EVENT_PRIORITY_LOWER);
     return setEventType(REMEDIATION_PULL_REQUEST_EVENT);
   }
 

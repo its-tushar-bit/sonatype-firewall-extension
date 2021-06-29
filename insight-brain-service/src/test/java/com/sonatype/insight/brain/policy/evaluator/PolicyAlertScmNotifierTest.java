@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -266,6 +267,7 @@ public class PolicyAlertScmNotifierTest
       assertThat(event.getRemediationVersion()).isEqualTo("2.0.1");
       assertThat(event.getBranchName()).isEqualTo(branchName);
       assertThat(event.getApplicationId()).isEqualTo(application.getId());
+      assertThat(event.getEventPriority()).isEqualTo(SourceControlEvent.EVENT_PRIORITY_LOWER);
       return true;
     }));
   }

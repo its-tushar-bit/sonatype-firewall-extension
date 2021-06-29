@@ -66,7 +66,7 @@ public class EditAttributionsTest
     org = tempEntity.newOrganization();
     app = tempEntity.newApplication(org.getId());
     owners = Arrays.asList(app, org, rootOrg);
-    componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474", componentIdentifier);
     testCLMServer.getHdsServer()
         .respondWith(IOUtils

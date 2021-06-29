@@ -48,7 +48,7 @@ public class LicenseDetailsTest
   @Before
   public void init() throws IOException {
     app = tempEntity.newApplicationWithParent(LicenseDetailsTest.class.getSimpleName(), "app", "org");
-    final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    final ComponentIdentifier componentId = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar");
     final ApplicationComponent applicationComponent =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "033e7a20b23ea284d474", componentId);
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");

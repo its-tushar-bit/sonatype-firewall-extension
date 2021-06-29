@@ -48,10 +48,11 @@ public class EditCopyrightsTest
   public void init() throws IOException {
     app = tempEntity.newApplicationWithParent(EditCopyrightsTest.class.getSimpleName(), "app", "org");
     ApplicationComponent applicationComponent = tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID,
-        "033e7a20b23ea284d474", ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+        "033e7a20b23ea284d474", ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"));
     tempEntity.newApplicationComponentLicense(applicationComponent.getId(), "MIT");
     tempEntity.newComponentObligation(
-        ComponentIdentifier.createMavenCoordinates("g", "a", "v"), app.getId(), "Inclusion of Copyright", null,
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "", "jar"), app.getId(), "Inclusion of Copyright",
+        null,
         ObligationStatus.OPEN, "NA");
 
     testCLMServer.getHdsServer()
@@ -69,13 +70,13 @@ public class EditCopyrightsTest
         .atUri("/rest/legal/file");
 
     testCLMServer.getHdsServer()
-      .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails.json"),
-              StandardCharsets.UTF_8))
-      .atUri("rest/ci/componentDetails");
+        .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetails.json"),
+            StandardCharsets.UTF_8))
+        .atUri("rest/ci/componentDetails");
     testCLMServer.getHdsServer()
-      .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetailsList.json"),
-              StandardCharsets.UTF_8))
-      .atUri("rest/ci/componentDetails/list");
+        .respondWith(IOUtils.toString(this.getClass().getResourceAsStream("/legal/componentDetailsList.json"),
+            StandardCharsets.UTF_8))
+        .atUri("rest/ci/componentDetails/list");
 
     refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
   }
@@ -236,10 +237,10 @@ public class EditCopyrightsTest
 
     // then the status list is complete, except for the selected status.
     assertThat(String.join(",", menu.options().texts())).isEqualTo("Fulfilled,Flagged,Not Applicable");
-    
+
     // Changing the status
     modal.statusDropdownItems().find(Condition.exactText("Flagged")).click();
-    
+
     // should enable the save button
     modal.save().shouldNotHave(Condition.cssClass("disabled")).click();
     modal.should(Condition.disappear);

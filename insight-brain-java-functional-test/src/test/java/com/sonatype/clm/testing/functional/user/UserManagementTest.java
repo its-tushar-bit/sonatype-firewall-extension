@@ -88,6 +88,10 @@ public class UserManagementTest
     unsavedChangesModal.continueButton().click();
   }
 
+  private void cleanupWithoutUnsavedModal() {
+    refreshOrOpen(UserManagementPage.url());
+  }
+
   public void testCreateUser_formOpen() {
     NewUserForm newUserForm = goToCreateUserForm(new UserManagementPage());
     newUserForm.shouldBe(visible);
@@ -139,7 +143,7 @@ public class UserManagementTest
     clearElementsValue(inputElements);
 
     assertInputValidation(validationText, inputElements);
-    cleanup();
+    cleanupWithoutUnsavedModal();
   }
 
   public void testCreateUserInputs_nonMatchingPassword() {

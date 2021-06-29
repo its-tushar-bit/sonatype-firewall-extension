@@ -59,7 +59,7 @@ const updatedComputedProps = compose(computeIsDirty, computeValidationError);
 
 function computeIsDirty(state) {
   const { inputFields } = state;
-  const isDirty = any((prop) => !isEmpty(inputFields[prop].value) || !inputFields[prop].isPristine, fullTextFields);
+  const isDirty = any((prop) => !isEmpty(inputFields[prop].value), fullTextFields);
 
   return pathSet(['isDirty'], isDirty, state);
 }

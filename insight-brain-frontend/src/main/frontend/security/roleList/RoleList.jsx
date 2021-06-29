@@ -32,8 +32,8 @@ export default function RoleList(props) {
       <div className="nx-page-title">
         <h1 className="nx-h1">Roles</h1>
       </div>
-      <section className="nx-tile">
-        <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
+      <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
+        <section className="nx-tile">
           <header className="nx-tile-header">
             <div className="nx-tile-header__title">
               <h2 className="nx-h2">Configure Roles</h2>
@@ -66,8 +66,8 @@ export default function RoleList(props) {
               ))}
             </ul>
           </div>
-        </LoadWrapper>
-      </section>
+        </section>
+      </LoadWrapper>
     </main>
   );
 }

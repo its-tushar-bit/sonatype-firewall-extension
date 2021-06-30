@@ -45,16 +45,25 @@ export function refreshCopyrightDetails() {
   };
 }
 
+function getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex) {
+  return requestLoadCopyrightDetails(dispatch, getState(), copyrightIndex).then(() => {
+    const filePaths = getState().componentCopyrightDetails.filePaths;
+    if (filePaths.length) {
+      return dispatch(loadCopyrightContexts(filePaths[0].filePath));
+    }
+  });
+}
+
 export function loadComponentAndCopyrightDetails(ownerType, ownerId, hash, copyrightIndex) {
   return (dispatch, getState) => {
     const component = getState().advancedLegal.component.component;
     if (!component) {
       dispatch(loadAvailableScopes(ownerType, ownerId));
       return dispatch(loadComponent(ownerType, ownerId, hash)).then(() =>
-        requestLoadCopyrightDetails(dispatch, getState(), copyrightIndex)
+        getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex)
       );
     } else {
-      return requestLoadCopyrightDetails(dispatch, getState(), copyrightIndex);
+      return getFirstFileCopyrightContexts(getState, dispatch, copyrightIndex);
     }
   };
 }
@@ -77,19 +86,29 @@ export function loadFilePathsOnPageUpdate(filePathsPage) {
   };
 }
 
-export function unloadCopyrightContexts() {
-  return (dispatch) => {
-    dispatch(copyrightContextsRequest({ selectedFilePath: null }));
-    dispatch(copyrightContextFulfilled({ copyrightContexts: [] }));
+export function unloadCopyrightContext(filePath) {
+  return (dispatch, getState) => {
+    const { selectedFilePaths } = getState().componentCopyrightDetails;
+    selectedFilePaths.splice(selectedFilePaths.indexOf(filePath), 1);
+    dispatch(copyrightContextsRequest({ selectedFilePaths }));
   };
 }
 
 export function loadCopyrightContexts(filePath) {
   return (dispatch, getState) => {
-    dispatch(copyrightContextsRequest({ selectedFilePath: filePath }));
+    const { selectedFilePaths, copyrightContexts } = getState().componentCopyrightDetails;
+    dispatch(copyrightContextsRequest({ selectedFilePaths: [...selectedFilePaths, filePath] }));
     const { copyright, component, ownerType, ownerPublicId } = extractRoutingParameters(getState());
-
-    return loadCopyrightContext(dispatch, ownerType, ownerPublicId, component, copyright.originalContentHash, filePath);
+    if (!copyrightContexts.find((context) => context.filePath === filePath)) {
+      return loadCopyrightContext(
+        dispatch,
+        ownerType,
+        ownerPublicId,
+        component,
+        copyright.originalContentHash,
+        filePath
+      );
+    }
   };
 }
 
@@ -142,11 +161,13 @@ function loadCopyrightContext(dispatch, ownerType, ownerId, component, copyright
     copyrightContentHash,
     filePath
   );
+
   return axios
     .get(copyrightContextUrl)
     .then((copyrightContextsPayload) =>
       dispatch(
         copyrightContextFulfilled({
+          filePath,
           copyrightContexts: copyrightContextsPayload.data,
         })
       )

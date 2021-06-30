@@ -22,7 +22,7 @@ export default function CopyrightDetailsContents(props) {
     component,
 
     loadCopyrightContexts,
-    unloadCopyrightContexts,
+    unloadCopyrightContext,
     loadFilePathsOnPageUpdate,
   } = props;
 
@@ -37,7 +37,7 @@ export default function CopyrightDetailsContents(props) {
       />
       <CopyrightFilesTile
         loadCopyrightContexts={loadCopyrightContexts}
-        hideCopyrightContext={unloadCopyrightContexts}
+        hideCopyrightContext={unloadCopyrightContext}
         componentCopyrightDetails={componentCopyrightDetails}
         pageChange={loadFilePathsOnPageUpdate}
       />
@@ -53,5 +53,5 @@ CopyrightDetailsContents.propTypes = {
   componentCopyrightDetails: componentCopyrightDetailsPropType,
   loadFilePathsOnPageUpdate: PropTypes.func.isRequired,
   loadCopyrightContexts: PropTypes.func.isRequired,
-  unloadCopyrightContexts: PropTypes.func.isRequired,
+  unloadCopyrightContext: PropTypes.func.isRequired,
 };

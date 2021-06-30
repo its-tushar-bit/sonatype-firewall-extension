@@ -7,7 +7,7 @@ import { pick } from 'ramda';
 import {
   loadCopyrightContexts,
   loadFilePathsOnPageUpdate,
-  unloadCopyrightContexts,
+  unloadCopyrightContext,
 } from './componentCopyrightDetailsActions';
 import { connect } from 'react-redux';
 import CopyrightDetailsContents from './CopyrightDetailsContents';
@@ -26,7 +26,7 @@ function mapStateToProps({ advancedLegal, componentCopyrightDetails }) {
 
 const mapDispatchToProps = {
   loadCopyrightContexts,
-  unloadCopyrightContexts,
+  unloadCopyrightContext,
   loadFilePathsOnPageUpdate,
 };
 

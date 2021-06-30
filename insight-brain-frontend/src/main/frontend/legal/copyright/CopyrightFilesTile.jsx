@@ -8,6 +8,7 @@ import { componentCopyrightDetailsPropType } from '../advancedLegalPropTypes';
 import { pageCount, pageRange } from './copyrightDetailsUtils';
 import { NxLoadWrapper, NxPagination, NxTreeView } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
+import { propEq } from 'ramda';
 
 export default function CopyrightFilesTile(props) {
   const { componentCopyrightDetails, loadCopyrightContexts, hideCopyrightContext, pageChange } = props;
@@ -18,7 +19,7 @@ export default function CopyrightFilesTile(props) {
   }
 
   function isFilePathOpen(filePath) {
-    return componentCopyrightDetails.selectedFilePath === filePath;
+    return componentCopyrightDetails.selectedFilePaths.includes(filePath);
   }
 
   function highlightCopyright(context, copyright) {
@@ -38,17 +39,25 @@ export default function CopyrightFilesTile(props) {
   }
 
   function copyrightContexts(filePathItem) {
+    const matchingContextsByFilePath = componentCopyrightDetails.copyrightContexts.find(
+      propEq('filePath', filePathItem.filePath)
+    );
+
     return (
       <NxLoadWrapper
         retryHandler={() => loadCopyrightContexts(filePathItem.filePath)}
         error={componentCopyrightDetails.errorCopyrightContext}
-        loading={componentCopyrightDetails.loadingCopyrightContext}
+        loading={
+          componentCopyrightDetails.loadingCopyrightContext &&
+          (!matchingContextsByFilePath || matchingContextsByFilePath.contexts.length === 0)
+        }
       >
-        {componentCopyrightDetails.copyrightContexts.map((context, index) => (
-          <blockquote key={index} className="nx-blockquote copyright-preformatted">
-            {highlightCopyright(context, componentCopyrightDetails.selectedCopyright.content)}
-          </blockquote>
-        ))}
+        {matchingContextsByFilePath &&
+          matchingContextsByFilePath.contexts.map((text, index) => (
+            <blockquote key={index} className="nx-blockquote copyright-preformatted">
+              {highlightCopyright(text, componentCopyrightDetails.selectedCopyright.content)}
+            </blockquote>
+          ))}
       </NxLoadWrapper>
     );
   }

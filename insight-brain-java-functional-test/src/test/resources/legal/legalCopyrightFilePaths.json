@@ -15,7 +15,7 @@
       {
         "content": "Copyright SomeDeveloper 2019-2020 All Right reserved",
         "filePaths": ["path1"],
-        "copyrightContentHashes": ["contentHash1"]
+        "copyrightContentHashes": ["contentHash1", "contentHash3"]
       },
       {
         "content": "Copyright SomeDeveloper 2018-2019 All Right reserved",

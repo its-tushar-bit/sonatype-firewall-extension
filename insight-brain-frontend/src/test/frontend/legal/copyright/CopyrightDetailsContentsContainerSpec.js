@@ -16,19 +16,19 @@ describe('CopyrightDetailsContentsContainer', function () {
     vdom,
     CopyrightDetailsContentsContainer,
     loadCopyrightContextsMock,
-    unloadCopyrightContextsMock,
+    unloadCopyrightContextMock,
     loadFilePathsOnPageUpdateMock;
 
   beforeEach(function () {
     state = copyrightState;
     loadCopyrightContextsMock = jasmine.createSpy('loadCopyrightContexts').and.returnValue({ type: 'FOO' });
-    unloadCopyrightContextsMock = jasmine.createSpy('unloadCopyrightContexts').and.returnValue({ type: 'BAR' });
+    unloadCopyrightContextMock = jasmine.createSpy('unloadCopyrightContext').and.returnValue({ type: 'BAR' });
     loadFilePathsOnPageUpdateMock = jasmine.createSpy('loadFilePathsOnPageUpdate').and.returnValue({ type: 'BAZ' });
     CopyrightDetailsContentsContainer = require('inject-loader!../../../../main/frontend/legal/copyright/CopyrightDetailsContentsContainer')(
       {
         './componentCopyrightDetailsActions': {
           loadCopyrightContexts: loadCopyrightContextsMock,
-          unloadCopyrightContexts: unloadCopyrightContextsMock,
+          unloadCopyrightContext: unloadCopyrightContextMock,
           loadFilePathsOnPageUpdate: loadFilePathsOnPageUpdateMock,
         },
       }
@@ -70,17 +70,17 @@ describe('CopyrightDetailsContentsContainer', function () {
   it('correctly maps the action creators to the ComponentLegalOverviewContainer props', function () {
     const wrapper = shallow(vdom).dive();
     const loadCopyrightContextsCreator = wrapper.prop('loadCopyrightContexts');
-    const unloadCopyrightContextsCreator = wrapper.prop('unloadCopyrightContexts');
+    const unloadCopyrightContextCreator = wrapper.prop('unloadCopyrightContext');
     const loadFilePathsOnPageUpdateCreator = wrapper.prop('loadFilePathsOnPageUpdate');
 
     expect(loadCopyrightContextsCreator).toEqual(jasmine.any(Function));
-    expect(unloadCopyrightContextsCreator).toEqual(jasmine.any(Function));
+    expect(unloadCopyrightContextCreator).toEqual(jasmine.any(Function));
     expect(loadFilePathsOnPageUpdateCreator).toEqual(jasmine.any(Function));
 
     expect(store.getActions()).toEqual([]);
     loadCopyrightContextsCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }]);
-    unloadCopyrightContextsCreator('test');
+    unloadCopyrightContextCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }, { type: 'BAR' }]);
     loadFilePathsOnPageUpdateCreator('test');
     expect(store.getActions()).toEqual([{ type: 'FOO' }, { type: 'BAR' }, { type: 'BAZ' }]);

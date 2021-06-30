@@ -166,7 +166,12 @@ export const componentCopyrightDetailsPropType = PropTypes.shape({
   totalFileMatches: PropTypes.number.isRequired,
   selectedFilePath: PropTypes.string,
   copyrightFileCounts: PropTypes.objectOf(PropTypes.number),
-  copyrightContexts: PropTypes.arrayOf(PropTypes.string.isRequired),
+  copyrightContexts: PropTypes.arrayOf(
+    PropTypes.shape({
+      filePath: PropTypes.string,
+      contexts: PropTypes.arrayOf(PropTypes.string),
+    })
+  ),
 });
 
 export const componentNoticeDetailsPropType = PropTypes.shape({

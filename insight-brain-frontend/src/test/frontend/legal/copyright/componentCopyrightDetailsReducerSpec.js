@@ -58,10 +58,18 @@ describe('componentCopyrightDetailsReducer', function () {
     const originalState = {
       loadingCopyrightContext: false,
       filePathsPage: 10,
-      copyrightContexts: ['some', 'contexts'],
+      copyrightContexts: [
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath1',
+        },
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath2',
+        },
+      ],
       copyrightFileCounts: { 1: 2 },
       filePaths: ['path1', 'path2'],
-      selectedFilePath: 'selectedPath',
       totalFileMatches: 5,
     };
 
@@ -81,7 +89,7 @@ describe('componentCopyrightDetailsReducer', function () {
 
       expect(newState.copyrightFileCounts).toEqual({ 1: 2 });
       expect(newState.totalFileMatches).toEqual(5);
-      expect(newState.selectedFilePath).toBeNull();
+      expect(newState.selectedFilePaths).toEqual([]);
       expect(newState.copyrightContexts).toEqual([]);
       expect(newState.filePaths).toEqual(['path1', 'path2']);
     });
@@ -118,7 +126,16 @@ describe('componentCopyrightDetailsReducer', function () {
       expect(newState.filePaths).toEqual(['path1', 'path2']);
       expect(newState.totalFileMatches).toEqual(5);
       expect(newState.copyrightFileCounts).toEqual({ 1: 2 });
-      expect(newState.copyrightContexts).toEqual(['some', 'contexts']);
+      expect(newState.copyrightContexts).toEqual([
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath1',
+        },
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath2',
+        },
+      ]);
     });
   });
 
@@ -127,7 +144,12 @@ describe('componentCopyrightDetailsReducer', function () {
       filePathsPage: 10,
       filePaths: ['path'],
       totalFileMatches: 5,
-      copyrightContexts: ['context'],
+      copyrightContexts: [
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath',
+        },
+      ],
       copyrightFileCounts: { 1: 2 },
     };
 
@@ -142,7 +164,12 @@ describe('componentCopyrightDetailsReducer', function () {
       expect(newState.filePathsPage).toEqual(1);
 
       expect(newState.filePaths).toEqual(['path']);
-      expect(newState.copyrightContexts).toEqual(['context']);
+      expect(newState.copyrightContexts).toEqual([
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath',
+        },
+      ]);
       expect(newState.copyrightFileCounts).toEqual({ 1: 2 });
       expect(newState.totalFileMatches).toEqual(5);
     });
@@ -161,7 +188,7 @@ describe('componentCopyrightDetailsReducer', function () {
       expect(newState.totalFileMatches).toEqual(2);
 
       expect(newState.filePathsPage).toEqual(10);
-      expect(newState.copyrightContexts).toEqual(['context']);
+      expect(newState.copyrightContexts).toEqual([]);
       expect(newState.copyrightFileCounts).toEqual({ 1: 2 });
     });
 
@@ -178,7 +205,12 @@ describe('componentCopyrightDetailsReducer', function () {
 
       expect(newState.filePaths).toEqual(['path']);
       expect(newState.filePathsPage).toEqual(10);
-      expect(newState.copyrightContexts).toEqual(['context']);
+      expect(newState.copyrightContexts).toEqual([
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath',
+        },
+      ]);
       expect(newState.copyrightFileCounts).toEqual({ 1: 2 });
       expect(newState.totalFileMatches).toEqual(5);
     });
@@ -189,21 +221,30 @@ describe('componentCopyrightDetailsReducer', function () {
       filePaths: ['path'],
       filePathsPage: 3,
       totalFileMatches: 5,
-      selectedFilePath: 'selected',
-      copyrightContexts: ['context'],
+      copyrightContexts: [
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath',
+        },
+      ],
       copyrightFileCounts: { 1: 2 },
     };
 
     it('COPYRIGHT_CONTEXT_REQUEST sets loading flag to true', function () {
       const newState = reduce(originalState, {
         type: COPYRIGHT_CONTEXT_REQUEST,
-        payload: { selectedFilePath: 'filePath' },
+        payload: { selectedFilePaths: ['filePath'] },
       });
 
       expect(newState.loadingCopyrightContext).toBeTruthy();
       expect(newState.errorCopyrightFileCounts).toBeFalsy();
-      expect(newState.copyrightContexts).toEqual([]);
-      expect(newState.selectedFilePath).toEqual('filePath');
+      expect(newState.copyrightContexts).toEqual([
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath',
+        },
+      ]);
+      expect(newState.selectedFilePaths).toEqual(['filePath']);
 
       expect(newState.copyrightFileCounts).toEqual({ 1: 2 });
       expect(newState.totalFileMatches).toEqual(5);
@@ -214,12 +255,21 @@ describe('componentCopyrightDetailsReducer', function () {
     it('COPYRIGHT_CONTEXT_FULFILLED sets copyright contexts in the state', function () {
       const newState = reduce(originalState, {
         type: COPYRIGHT_CONTEXT_FULFILLED,
-        payload: { copyrightContexts: ['context1', 'context2'] },
+        payload: { filePath: 'filePath2', copyrightContexts: ['context1', 'context2'] },
       });
 
       expect(newState.loadingCopyrightContext).toBeFalsy();
       expect(newState.errorCopyrightFileCounts).toBeFalsy();
-      expect(newState.copyrightContexts).toEqual(['context1', 'context2']);
+      expect(newState.copyrightContexts).toEqual([
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath',
+        },
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath2',
+        },
+      ]);
 
       expect(newState.copyrightFileCounts).toEqual({ 1: 2 });
       expect(newState.totalFileMatches).toEqual(5);
@@ -236,7 +286,12 @@ describe('componentCopyrightDetailsReducer', function () {
       expect(newState.loadingCopyrightContext).toBeFalsy();
       expect(newState.errorCopyrightContext).toEqual('Error');
 
-      expect(newState.copyrightContexts).toEqual(['context']);
+      expect(newState.copyrightContexts).toEqual([
+        {
+          contexts: ['context1', 'context2'],
+          filePath: 'filePath',
+        },
+      ]);
       expect(newState.copyrightFileCounts).toEqual({ 1: 2 });
       expect(newState.totalFileMatches).toEqual(5);
       expect(newState.filePathsPage).toEqual(3);

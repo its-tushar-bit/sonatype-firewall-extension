@@ -47,26 +47,35 @@ function updateCopyrightFilePaths(payload, state) {
     loadingFilePaths: false,
     filePaths: payload.filePaths.filePaths,
     totalFileMatches: payload.filePaths.totalFileMatches,
-    selectedFilePath: null,
-  };
-}
-
-function requestCopyrightContext(payload, state) {
-  return {
-    ...state,
-    loadingCopyrightContext: true,
-    errorCopyrightContext: null,
-    selectedFilePath: payload.selectedFilePath,
+    selectedFilePaths: [],
     copyrightContexts: [],
   };
 }
 
+function requestCopyrightContext(payload, state) {
+  const copyrightContexts = state.copyrightContexts;
+  return {
+    ...state,
+    loadingCopyrightContext: true,
+    errorCopyrightContext: null,
+    selectedFilePaths: payload.selectedFilePaths,
+    copyrightContexts,
+  };
+}
+
 function updateCopyrightContext(payload, state) {
+  const copyrightContexts = state.copyrightContexts;
   return {
     ...state,
     errorCopyrightContext: null,
     loadingCopyrightContext: false,
-    copyrightContexts: payload.copyrightContexts,
+    copyrightContexts: [
+      ...copyrightContexts,
+      {
+        filePath: payload.filePath,
+        contexts: payload.copyrightContexts,
+      },
+    ],
   };
 }
 
@@ -80,7 +89,7 @@ function requestCopyrightDetails(payload, state) {
     copyrightIndex: parseInt(payload.copyrightIndex),
     selectedCopyright: payload.copyright,
     copyrightContexts: [],
-    selectedFilePath: null,
+    selectedFilePaths: [],
   };
 }
 

@@ -18,14 +18,13 @@ import {
   loadComponentAndCopyrightDetails,
   loadCopyrightContexts,
   loadFilePathsOnPageUpdate,
-  unloadCopyrightContexts,
+  unloadCopyrightContext,
 } from '../../../../main/frontend/legal/copyright/componentCopyrightDetailsActions';
 import {
   getCopyrightContextUrl,
   getCopyrightFileCountUrl,
   getCopyrightFilePathsUrl,
 } from '../../../../main/frontend/util/CLMLocation';
-import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 describe('ComponentCopyrightDetailsAction', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -66,6 +65,14 @@ describe('ComponentCopyrightDetailsAction', function () {
     },
     componentCopyrightDetails: {
       copyrightIndex: 1,
+      selectedFilePaths: [],
+      copyrightContexts: [],
+      filePaths: [
+        {
+          copyrightMatches: 1,
+          filePath: 'path1/file1',
+        },
+      ],
     },
   };
 
@@ -73,7 +80,6 @@ describe('ComponentCopyrightDetailsAction', function () {
     it('immediately dispatches a COPYRIGHT_DETAILS_REQUEST action', function () {
       store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(loadComponentAndCopyrightDetails('organization', 'org', 'componentHash', 1));
-
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(COPYRIGHT_DETAILS_REQUEST);
@@ -94,11 +100,19 @@ describe('ComponentCopyrightDetailsAction', function () {
           0,
           15
         );
-        let copyrightFileCountUrl = getCopyrightFileCountUrl(
+        const copyrightFileCountUrl = getCopyrightFileCountUrl(
           'organization',
           'org',
           'componentHash',
           'componentIdentifier'
+        );
+        const copyrightContextUrl = getCopyrightContextUrl(
+          'organization',
+          'org',
+          'componentHash',
+          'componentIdentifier',
+          'copyright_hash_2',
+          'path1/file1'
         );
 
         mockAxiosCalls({
@@ -110,26 +124,49 @@ describe('ComponentCopyrightDetailsAction', function () {
               },
             }),
             [copyrightFilePathsUrl]: Promise.resolve({
-              data: ['path1/file1', 'path2/file2', 'path3/file3'],
+              data: {
+                filePaths: [
+                  {
+                    copyrightMatches: 1,
+                    filePath: 'path1/file1',
+                  },
+                ],
+                totalFileMatches: 1,
+              },
+            }),
+            [copyrightContextUrl]: Promise.resolve({
+              data: ['context 1', 'context 2'],
             }),
           },
         });
 
         store.dispatch(loadComponentAndCopyrightDetails('organization', 'org', 'componentHash', 1)).then(() => {
-          setTimeout(() => {
-            expect(axios.get).toHaveBeenCalledWith(copyrightFileCountUrl);
-            expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
-
-            const actions = store.getActions();
-            expect(actions[1].type).toBe(COPYRIGHT_DETAILS_FULFILLED);
-            expect(actions[1].payload).toEqual({
-              copyrightIndex: 1,
-              copyright: { originalContentHash: 'copyright_hash_2' },
-              filePaths: ['path1/file1', 'path2/file2', 'path3/file3'],
-              copyrightFileCounts: { path1: 5, path2: 10 },
-            });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          expect(axios.get).toHaveBeenCalledWith(copyrightFileCountUrl);
+          expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
+          const actions = store.getActions();
+          expect(actions[1].type).toBe(COPYRIGHT_DETAILS_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            copyrightIndex: 1,
+            copyright: { originalContentHash: 'copyright_hash_2' },
+            filePaths: {
+              filePaths: [
+                {
+                  copyrightMatches: 1,
+                  filePath: 'path1/file1',
+                },
+              ],
+              totalFileMatches: 1,
+            },
+            copyrightFileCounts: { path1: 5, path2: 10 },
+          });
+          expect(axios.get).toHaveBeenCalledWith(copyrightContextUrl);
+          expect(actions[2].type).toBe(COPYRIGHT_CONTEXT_REQUEST);
+          expect(actions[3].type).toBe(COPYRIGHT_CONTEXT_FULFILLED);
+          expect(actions[3].payload).toEqual({
+            filePath: 'path1/file1',
+            copyrightContexts: ['context 1', 'context 2'],
+          });
+          done();
         });
 
         const actions = store.getActions();
@@ -140,15 +177,13 @@ describe('ComponentCopyrightDetailsAction', function () {
 
     function verifyCopyrightDetailsFailure(copyrightFileCountUrl, copyrightFilePathsUrl, done) {
       store.dispatch(loadComponentAndCopyrightDetails('organization', 'org', 'componentHash', 1)).then(() => {
-        setTimeout(() => {
-          expect(axios.get).toHaveBeenCalledWith(copyrightFileCountUrl);
-          expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
+        expect(axios.get).toHaveBeenCalledWith(copyrightFileCountUrl);
+        expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
 
-          const actions = store.getActions();
-          expect(actions[1].type).toBe(COPYRIGHT_DETAILS_FAILED);
-          expect(actions[1].payload).toEqual({ value: 'Error' });
-          done();
-        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        const actions = store.getActions();
+        expect(actions[1].type).toBe(COPYRIGHT_DETAILS_FAILED);
+        expect(actions[1].payload).toEqual({ value: 'Error' });
+        done();
       });
 
       const actions = store.getActions();
@@ -177,12 +212,31 @@ describe('ComponentCopyrightDetailsAction', function () {
           'componentHash',
           'componentIdentifier'
         );
+        const copyrightContextUrl = getCopyrightContextUrl(
+          'organization',
+          'org',
+          'componentHash',
+          'componentIdentifier',
+          'copyright_hash_2',
+          'path1/file1'
+        );
 
         mockAxiosCalls({
           get: {
             [copyrightFileCountUrl]: Promise.reject({ value: 'Error' }),
             [copyrightFilePathsUrl]: Promise.resolve({
-              data: ['path1/file1', 'path2/file2', 'path3/file3'],
+              data: {
+                filePaths: [
+                  {
+                    copyrightMatches: 1,
+                    filePath: 'path1/file1',
+                  },
+                ],
+                totalFileMatches: 1,
+              },
+            }),
+            [copyrightContextUrl]: Promise.resolve({
+              data: ['context 1', 'context 2'],
             }),
           },
         });
@@ -205,11 +259,19 @@ describe('ComponentCopyrightDetailsAction', function () {
           0,
           15
         );
-        let copyrightFileCountUrl = getCopyrightFileCountUrl(
+        const copyrightFileCountUrl = getCopyrightFileCountUrl(
           'organization',
           'org',
           'componentHash',
           'componentIdentifier'
+        );
+        const copyrightContextUrl = getCopyrightContextUrl(
+          'organization',
+          'org',
+          'componentHash',
+          'componentIdentifier',
+          'copyright_hash_2',
+          'path1/file1'
         );
 
         mockAxiosCalls({
@@ -221,6 +283,9 @@ describe('ComponentCopyrightDetailsAction', function () {
               },
             }),
             [copyrightFilePathsUrl]: Promise.reject({ value: 'Error' }),
+            [copyrightContextUrl]: Promise.resolve({
+              data: ['context 1', 'context 2'],
+            }),
           },
         });
 
@@ -237,11 +302,10 @@ describe('ComponentCopyrightDetailsAction', function () {
       const actions = store.getActions();
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe(COPYRIGHT_CONTEXT_REQUEST);
-      expect(actions[0].payload).toEqual({ selectedFilePath: 'path/file.js' });
+      expect(actions[0].payload).toEqual({ selectedFilePaths: ['path/file.js'] });
     });
-
     it(
-      'immediately dispatches a COPYRIGHT_CONTEXT_REQUEST action and then COPYRIGHT_CONTEXT_FULFILLED action ' +
+      'immediately dispatches a COPYRIGHT_CONTEXT_REQUEST action and copyrightContext does not exist then COPYRIGHT_CONTEXT_FULFILLED action ' +
         'when copyright context loads',
       function (done) {
         store = SpecUtil.mockReduxStore(initialState);
@@ -257,22 +321,30 @@ describe('ComponentCopyrightDetailsAction', function () {
         mockAxiosCalls({
           get: {
             [copyrightContextUrl]: Promise.resolve({
-              data: ['context'],
+              data: [
+                {
+                  contexts: ['context1', 'context2'],
+                  filePath: 'path/file.js',
+                },
+              ],
             }),
           },
         });
 
         store.dispatch(loadCopyrightContexts('path/file.js')).then(() => {
-          setTimeout(() => {
-            expect(axios.get).toHaveBeenCalledWith(copyrightContextUrl);
-
-            const actions = store.getActions();
-            expect(actions[1].type).toBe(COPYRIGHT_CONTEXT_FULFILLED);
-            expect(actions[1].payload).toEqual({
-              copyrightContexts: ['context'],
-            });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          expect(axios.get).toHaveBeenCalledWith(copyrightContextUrl);
+          const actions = store.getActions();
+          expect(actions[1].type).toBe(COPYRIGHT_CONTEXT_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            copyrightContexts: [
+              {
+                contexts: ['context1', 'context2'],
+                filePath: 'path/file.js',
+              },
+            ],
+            filePath: 'path/file.js',
+          });
+          done();
         });
 
         const actions = store.getActions();
@@ -282,23 +354,116 @@ describe('ComponentCopyrightDetailsAction', function () {
     );
 
     it(
-      'immediately dispatches a COPYRIGHT_CONTEXT_REQUEST action and then COPYRIGHT_CONTEXT_FULFILLED action ' +
-        'when copyright context unloads',
-      function () {
+      'immediately dispatches a COPYRIGHT_DETAILS_REQUEST action and then COPYRIGHT_CONTEXT_FAILED action ' +
+        'when copyright contexts fail to load',
+      function (done) {
         store = SpecUtil.mockReduxStore(initialState);
 
-        store.dispatch(unloadCopyrightContexts());
+        const copyrightFilePathsUrl = getCopyrightFilePathsUrl(
+          'organization',
+          'org',
+          'componentHash',
+          'componentIdentifier',
+          'copyright_hash_2',
+          0,
+          15
+        );
+        const copyrightFileCountUrl = getCopyrightFileCountUrl(
+          'organization',
+          'org',
+          'componentHash',
+          'componentIdentifier'
+        );
+        const copyrightContextUrl = getCopyrightContextUrl(
+          'organization',
+          'org',
+          'componentHash',
+          'componentIdentifier',
+          'copyright_hash_2',
+          'path1/file1'
+        );
+
+        mockAxiosCalls({
+          get: {
+            [copyrightFileCountUrl]: Promise.resolve({
+              data: {
+                path1: 5,
+                path2: 10,
+              },
+            }),
+            [copyrightFilePathsUrl]: Promise.resolve({
+              data: {
+                filePaths: [
+                  {
+                    copyrightMatches: 1,
+                    filePath: 'path1/file1',
+                  },
+                  {
+                    copyrightMatches: 1,
+                    filePath: 'path1/file2',
+                  },
+                  {
+                    copyrightMatches: 1,
+                    filePath: 'path1/file3',
+                  },
+                ],
+                totalFileMatches: 1,
+              },
+            }),
+            [copyrightContextUrl]: Promise.reject({ value: 'Error' }),
+          },
+        });
+
+        store.dispatch(loadComponentAndCopyrightDetails('organization', 'org', 'componentHash', 1)).then(() => {
+          expect(axios.get).toHaveBeenCalledWith(copyrightFileCountUrl);
+          expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
+          const actions = store.getActions();
+          expect(actions[1].type).toBe(COPYRIGHT_DETAILS_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            copyrightIndex: 1,
+            copyright: { originalContentHash: 'copyright_hash_2' },
+            filePaths: {
+              filePaths: [
+                {
+                  copyrightMatches: 1,
+                  filePath: 'path1/file1',
+                },
+                {
+                  copyrightMatches: 1,
+                  filePath: 'path1/file2',
+                },
+                {
+                  copyrightMatches: 1,
+                  filePath: 'path1/file3',
+                },
+              ],
+              totalFileMatches: 1,
+            },
+            copyrightFileCounts: { path1: 5, path2: 10 },
+          });
+          expect(axios.get).toHaveBeenCalledWith(copyrightContextUrl);
+          expect(actions[3].type).toBe(COPYRIGHT_CONTEXT_FAILED);
+          expect(actions[3].payload).toEqual({ value: 'Error' });
+          done();
+        });
+
         const actions = store.getActions();
-        expect(actions.length).toBe(2);
-        expect(actions[0].type).toBe(COPYRIGHT_CONTEXT_REQUEST);
-        expect(actions[0].payload).toEqual({ selectedFilePath: null });
-        expect(actions[1].type).toBe(COPYRIGHT_CONTEXT_FULFILLED);
-        expect(actions[1].payload).toEqual({ copyrightContexts: [] });
+        expect(actions.length).toBe(1);
+        expect(actions[0].type).toBe(COPYRIGHT_DETAILS_REQUEST);
       }
     );
+    it('immediately dispatches a COPYRIGHT_CONTEXT_REQUEST action when copyright context unloads', function () {
+      store = SpecUtil.mockReduxStore(initialState);
+
+      store.dispatch(unloadCopyrightContext());
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(COPYRIGHT_CONTEXT_REQUEST);
+      expect(actions[0].payload).toEqual({ selectedFilePaths: [] });
+    });
 
     it(
-      'immediately dispatches a COPYRIGHT_CONTEXT_REQUEST action and then COPYRIGHT_CONTEXT_FAILED action ' +
+      'immediately dispatches a COPYRIGHT_CONTEXT_REQUEST action and copyrightContext does not exist then COPYRIGHT_CONTEXT_FAILED action ' +
         'when loading copyright context fails',
       function (done) {
         store = SpecUtil.mockReduxStore(initialState);
@@ -320,14 +485,11 @@ describe('ComponentCopyrightDetailsAction', function () {
         });
 
         store.dispatch(loadCopyrightContexts('path/file.js')).then(() => {
-          setTimeout(() => {
-            expect(axios.get).toHaveBeenCalledWith(copyrightContextUrl);
-
-            const actions = store.getActions();
-            expect(actions[1].type).toBe(COPYRIGHT_CONTEXT_FAILED);
-            expect(actions[1].payload).toEqual({ value: 'Error' });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          expect(axios.get).toHaveBeenCalledWith(copyrightContextUrl);
+          const actions = store.getActions();
+          expect(actions[1].type).toBe(COPYRIGHT_CONTEXT_FAILED);
+          expect(actions[1].payload).toEqual({ value: 'Error' });
+          done();
         });
 
         const actions = store.getActions();
@@ -335,6 +497,21 @@ describe('ComponentCopyrightDetailsAction', function () {
         expect(actions[0].type).toBe(COPYRIGHT_CONTEXT_REQUEST);
       }
     );
+
+    it('COPYRIGHT_CONTEXT_REQUEST action is not dispatched when the copyrightContext does exist', function () {
+      const customInitialState = { ...initialState };
+      customInitialState.componentCopyrightDetails.copyrightContexts = [
+        { filePath: 'path/file.js', contexts: ['context1'] },
+      ];
+      store = SpecUtil.mockReduxStore(customInitialState);
+      store.dispatch(loadCopyrightContexts('path/file.js'));
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(COPYRIGHT_CONTEXT_REQUEST);
+      expect(actions[0].payload).toEqual({ selectedFilePaths: ['path/file.js'] });
+      spyOn(axios, 'get');
+      expect(axios.get).not.toHaveBeenCalledWith(getCopyrightContextUrl);
+    });
   });
 
   describe('load copyright file paths', function () {
@@ -366,23 +543,37 @@ describe('ComponentCopyrightDetailsAction', function () {
         mockAxiosCalls({
           get: {
             [copyrightFilePathsUrl]: Promise.resolve({
-              data: ['path1/file1', 'path2/file2', 'path3/file3'],
+              data: {
+                filePaths: [
+                  {
+                    copyrightMatches: 1,
+                    filePath: 'path1/file1',
+                  },
+                ],
+                totalFileMatches: 1,
+              },
             }),
           },
         });
 
         store.dispatch(loadFilePathsOnPageUpdate(1)).then(() => {
-          setTimeout(() => {
-            expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
+          expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
 
-            const actions = store.getActions();
-            expect(actions.length).toBe(2);
-            expect(actions[1].type).toBe(COPYRIGHT_FILE_PATHS_FULFILLED);
-            expect(actions[1].payload).toEqual({
-              filePaths: ['path1/file1', 'path2/file2', 'path3/file3'],
-            });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          const actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[1].type).toBe(COPYRIGHT_FILE_PATHS_FULFILLED);
+          expect(actions[1].payload).toEqual({
+            filePaths: {
+              filePaths: [
+                {
+                  copyrightMatches: 1,
+                  filePath: 'path1/file1',
+                },
+              ],
+              totalFileMatches: 1,
+            },
+          });
+          done();
         });
 
         const actions = store.getActions();
@@ -415,14 +606,12 @@ describe('ComponentCopyrightDetailsAction', function () {
         });
 
         store.dispatch(loadFilePathsOnPageUpdate(1)).then(() => {
-          setTimeout(() => {
-            expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
+          expect(axios.get).toHaveBeenCalledWith(copyrightFilePathsUrl);
 
-            const actions = store.getActions();
-            expect(actions[1].type).toBe(COPYRIGHT_FILE_PATHS_FAILED);
-            expect(actions[1].payload).toEqual({ value: 'Error' });
-            done();
-          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          const actions = store.getActions();
+          expect(actions[1].type).toBe(COPYRIGHT_FILE_PATHS_FAILED);
+          expect(actions[1].payload).toEqual({ value: 'Error' });
+          done();
         });
 
         const actions = store.getActions();

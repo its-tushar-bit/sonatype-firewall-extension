@@ -87,15 +87,13 @@ public class CopyrightDetailsTest
   public void testCopyrightPathClick() {
     refreshOrOpen(ComponentCopyrightDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
     final CopyrightFilePaths copyrightFilePaths = ComponentCopyrightDetailsPage.copyrightFilePaths();
-
+    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-tree-view--expanded"));
+    copyrightFilePaths.getFilePath(1).shouldHave(text("path1"));
+    copyrightFilePaths.getCopyrightContextText(1).shouldHave(
+        text("Copyright SomeDeveloper 2019-2020 All Right reserved"));
+    copyrightFilePaths.pathAt(1).$("button.nx-tree-view__trigger").click();
     copyrightFilePaths.pathAt(1).shouldNotHave(cssClass("nx-tree-view--expanded"));
     copyrightFilePaths.getCopyrightContextText(1).shouldHave(text(""));
-    copyrightFilePaths.pathAt(1).click();
-    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-tree-view--expanded"));
-    copyrightFilePaths.getFilePath(1).shouldHave(text("path3"));
-    copyrightFilePaths.getCopyrightContextText(1).shouldHave(
-        text("Copyright SomeDeveloper 2019-2020 All Right reserved and some other stuff " +
-            "\\n Copyright SomeDeveloper 2017 All Right reserved"));
   }
 
   @Test
@@ -105,10 +103,30 @@ public class CopyrightDetailsTest
     final CopyrightList copyrightList = ComponentCopyrightDetailsPage.copyrightList();
 
     copyrightList.attributionInclusion(1).shouldHave(text("Included in attribution report"));
-    copyrightList.getItemFileCount(1).shouldHave(text("Found in 1 file"));
+    copyrightList.getItemFileCount(1).shouldHave(text("Found in 2 file"));
 
     copyrightList.attributionInclusion(3).shouldHave(text("Included in attribution report"));
     copyrightList.getItemFileCount(3).shouldHave(text("Found in 2 files"));
+  }
+
+  @Test
+  public void testSelectDifferentCopyrightAndVerifyFirstPathIsOpen() {
+    refreshOrOpen(ComponentCopyrightDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    final CopyrightList copyrightList = ComponentCopyrightDetailsPage.copyrightList();
+    copyrightList.getItemFileCount(3).click();
+    final CopyrightFilePaths copyrightFilePaths = ComponentCopyrightDetailsPage.copyrightFilePaths();
+    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-tree-view--expanded"));
+  }
+
+  @Test
+  public void testExpandMultiplePaths() {
+    refreshOrOpen(ComponentCopyrightDetailsPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474", 0));
+    final CopyrightList copyrightList = ComponentCopyrightDetailsPage.copyrightList();
+    copyrightList.getItemFileCount(3).click();
+    final CopyrightFilePaths copyrightFilePaths = ComponentCopyrightDetailsPage.copyrightFilePaths();
+    copyrightFilePaths.pathAt(2).click();
+    copyrightFilePaths.pathAt(1).shouldHave(cssClass("nx-tree-view--expanded"));
+    copyrightFilePaths.pathAt(2).shouldHave(cssClass("nx-tree-view--expanded"));
   }
 
   @Test

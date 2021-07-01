@@ -50,10 +50,7 @@ export default function UserListController(
   };
 
   $scope.editClick = function (user) {
-    $scope.context.userEditMap[user.id] = user;
-    $scope.$broadcast('userEditClick', {
-      userId: user.id,
-    });
+    $state.go('editUser', { userId: user.id });
   };
 
   $scope.isCurrentUser = function (user) {
@@ -109,10 +106,6 @@ export default function UserListController(
 
   $scope.newUserClick = function () {
     $state.go('create');
-  };
-
-  $scope.closeUserEditForm = function (user) {
-    $scope.context.userEditMap[user.id] = null;
   };
 
   $scope.doLoad();

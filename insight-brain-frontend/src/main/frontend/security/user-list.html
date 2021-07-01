@@ -103,8 +103,7 @@
               <a class="accordion-toggle user-top collapsed"
                  ng-class="{ 'test-current-user': isCurrentUser(user) }"
                  data-toggle="collapse"
-                 data-target="#collapse{{user.id}}"
-                 ng-click="closeUserEditForm(user)">
+                 data-target="#collapse{{user.id}}">
                 <label class="iq-label iq-label--inline">
                   {{user.username}} ({{user.firstName}} {{user.lastName}})
                 </label>
@@ -123,13 +122,6 @@
                     <dt>E-mail Address:</dt><!--
                  --><dd class="iq-read-only-data test-user-email">{{user.email}}</dd>
                   </dl>
-                </div>
-                <div class="accordion-inner" ng-if="context.userEditMap[user.id]">
-                  <user-form user="user"
-                             existing-users="context.users"
-                             on-cancel="closeUserEditForm(user)"
-                             on-save="closeUserEditForm(user)">
-                  </user-form>
                 </div>
               </div>
             </li>

@@ -12,13 +12,19 @@ import {
   CREATE_USER_SAVE_REQUESTED,
   CREATE_USER_SAVE_FULFILLED,
   CREATE_USER_SAVE_FAILED,
-  CREATE_USER_SAVE_SUBMIT_MASK_TIMER_DONE,
-  CREATE_USER_SET_FIRST_NAME,
-  CREATE_USER_SET_LAST_NAME,
-  CREATE_USER_SET_EMAIL,
-  CREATE_USER_SET_USERNAME,
-  CREATE_USER_SET_PASSWORD,
-  CREATE_USER_SET_MATCH_PASSWORD,
+  USER_FORM_SUBMIT_MASK_TIMER_DONE,
+  USER_SET_FIRST_NAME,
+  USER_SET_LAST_NAME,
+  USER_SET_EMAIL,
+  USER_SET_USERNAME,
+  USER_SET_PASSWORD,
+  USER_SET_MATCH_PASSWORD,
+  EDIT_USER_LOAD_REQUESTED,
+  EDIT_USER_LOAD_FAILED,
+  EDIT_USER_LOAD_FULFILLED,
+  EDIT_USER_UPDATE_REQUESTED,
+  EDIT_USER_UPDATE_FULFILLED,
+  EDIT_USER_UPDATE_FAILED,
 } from '../../../../main/frontend/security/userForm/userFormActions';
 
 describe('userFormReducer', () => {
@@ -166,16 +172,153 @@ describe('userFormReducer', () => {
     });
   });
 
-  describe(`${CREATE_USER_SAVE_SUBMIT_MASK_TIMER_DONE} action`, () => {
+  describe(`${USER_FORM_SUBMIT_MASK_TIMER_DONE} action`, () => {
     it('resets submitMaskState', () => {
       const state = {
         submitMaskState: true,
         other: otherObject,
       };
 
-      const { submitMaskState, other } = reduce(state, { type: CREATE_USER_SAVE_SUBMIT_MASK_TIMER_DONE });
+      const { submitMaskState, other } = reduce(state, { type: USER_FORM_SUBMIT_MASK_TIMER_DONE });
 
       expect(submitMaskState).toBe(null);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${EDIT_USER_LOAD_REQUESTED} action`, () => {
+    it('resets to initial state', () => {
+      const state = {
+        other: otherObject,
+      };
+
+      const newState = reduce(state, { type: EDIT_USER_LOAD_REQUESTED });
+      expect(newState).toBe(initialState);
+    });
+  });
+
+  describe(`${EDIT_USER_LOAD_FULFILLED} action`, () => {
+    it('resets loading and errors and sets fetched users', () => {
+      const state = {
+        loading: true,
+        saveError: 'update error',
+        loadError: 'load error',
+        other: otherObject,
+      };
+
+      const fetchedUser = {
+        id: 'ADMIN',
+        username: 'admin',
+        usernameLowercase: 'admin',
+        password: '#~FAKE~PASSWORD~#',
+        firstName: 'Admin',
+        lastName: 'BuiltIn',
+        email: 'admin@localhost',
+      };
+
+      const { loading, selectedUserServerData, saveError, loadError, other, inputFields } = reduce(state, {
+        type: EDIT_USER_LOAD_FULFILLED,
+        payload: fetchedUser,
+      });
+
+      expect(selectedUserServerData).toEqual(fetchedUser);
+      expect(loading).toBe(false);
+      expect(saveError).toBe(null);
+      expect(loadError).toBe(null);
+      expect(other).toBe(otherObject);
+      expect(inputFields).toEqual({
+        firstName: textInputStateHelpers.initialState(fetchedUser.firstName),
+        lastName: textInputStateHelpers.initialState(fetchedUser.lastName),
+        email: textInputStateHelpers.initialState(fetchedUser.email),
+      });
+    });
+  });
+
+  describe(`${EDIT_USER_LOAD_FAILED} action`, () => {
+    it('resets loading and sets error to loadError', () => {
+      const state = {
+        serverData: {},
+        loading: true,
+        updateError: 'save error',
+        loadError: null,
+        other: otherObject,
+      };
+
+      const { loading, updateError, loadError, other } = reduce(state, {
+        type: EDIT_USER_LOAD_FAILED,
+        payload: 'load error occurred',
+      });
+
+      expect(loading).toBe(false);
+      expect(updateError).toBe(state.updateError);
+      expect(loadError).toBe('load error occurred');
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${EDIT_USER_UPDATE_REQUESTED} action`, () => {
+    it('resets errors and sets mask to false', () => {
+      const state = {
+        saveError: 'save error',
+        loadError: null,
+        submitMaskState: true,
+        other: otherObject,
+      };
+
+      const { submitMaskState, saveError, loadError, other } = reduce(state, {
+        type: EDIT_USER_UPDATE_REQUESTED,
+      });
+
+      expect(submitMaskState).toBe(false);
+      expect(saveError).toBe(null);
+      expect(loadError).toBe(null);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${EDIT_USER_UPDATE_FULFILLED} action`, () => {
+    it('sets mask to true, dirty to false, clears errors', () => {
+      const state = {
+        submitMaskState: null,
+        isDirty: true,
+        saveError: 'error',
+        inputFields: {
+          firstName: 'fake',
+          lastName: 'fake',
+          email: 'fake',
+        },
+        other: otherObject,
+      };
+
+      const { submitMaskState, isDirty, other, inputFields, saveError } = reduce(state, {
+        type: EDIT_USER_UPDATE_FULFILLED,
+      });
+
+      expect(submitMaskState).toBe(true);
+      expect(isDirty).toBe(false);
+      expect(inputFields).toEqual(state.inputFields);
+      expect(saveError).toBeNull();
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${EDIT_USER_UPDATE_FAILED} action`, () => {
+    it('resets mask, sets updateError', () => {
+      const state = {
+        saveError: null,
+        loadError: 'error',
+        submitMaskState: true,
+        other: otherObject,
+      };
+
+      const { submitMaskState, saveError, loadError, other } = reduce(state, {
+        type: EDIT_USER_UPDATE_FAILED,
+        payload: 'update error occurred',
+      });
+
+      expect(submitMaskState).toBeNull();
+      expect(saveError).toBe('update error occurred');
+      expect(loadError).toBe(state.loadError);
       expect(other).toBe(otherObject);
     });
   });
@@ -196,6 +339,7 @@ describe('userFormReducer', () => {
             email: 'admin@localhost',
           },
         ],
+        selectedUserServerData: {},
         inputFields: {
           firstName: textInputStateHelpers.initialState(''),
           lastName: textInputStateHelpers.initialState(''),
@@ -209,10 +353,10 @@ describe('userFormReducer', () => {
       };
     });
 
-    describe(`${CREATE_USER_SET_FIRST_NAME} action`, () => {
+    describe(`${USER_SET_FIRST_NAME} action`, () => {
       it('sets firstName userInput', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_FIRST_NAME,
+          type: USER_SET_FIRST_NAME,
           payload: 'John',
         });
 
@@ -223,7 +367,7 @@ describe('userFormReducer', () => {
 
       it('sets firstName userInput with "Must be non-empty" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_FIRST_NAME,
+          type: USER_SET_FIRST_NAME,
           payload: '',
         });
 
@@ -235,7 +379,7 @@ describe('userFormReducer', () => {
 
       it('sets firstName userInput with "Use valid characters" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_FIRST_NAME,
+          type: USER_SET_FIRST_NAME,
           payload: '&',
         });
 
@@ -249,7 +393,7 @@ describe('userFormReducer', () => {
 
       it('sets firstName userInput with "No leading, trailing or double spaces or tabs" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_FIRST_NAME,
+          type: USER_SET_FIRST_NAME,
           payload: 'a  a',
         });
 
@@ -260,10 +404,10 @@ describe('userFormReducer', () => {
       });
     });
 
-    describe(`${CREATE_USER_SET_LAST_NAME} action`, () => {
+    describe(`${USER_SET_LAST_NAME} action`, () => {
       it('sets lastName userInput', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_LAST_NAME,
+          type: USER_SET_LAST_NAME,
           payload: 'Doe',
         });
 
@@ -274,7 +418,7 @@ describe('userFormReducer', () => {
 
       it('sets lastName userInput with "Must be non-empty" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_LAST_NAME,
+          type: USER_SET_LAST_NAME,
           payload: '',
         });
 
@@ -286,7 +430,7 @@ describe('userFormReducer', () => {
 
       it('sets lastName userInput with "Use valid characters" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_LAST_NAME,
+          type: USER_SET_LAST_NAME,
           payload: '^',
         });
 
@@ -300,7 +444,7 @@ describe('userFormReducer', () => {
 
       it('sets lastName userInput with "No leading, trailing or double spaces or tabs" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_LAST_NAME,
+          type: USER_SET_LAST_NAME,
           payload: 'b  b',
         });
 
@@ -311,10 +455,10 @@ describe('userFormReducer', () => {
       });
     });
 
-    describe(`${CREATE_USER_SET_EMAIL} action`, () => {
+    describe(`${USER_SET_EMAIL} action`, () => {
       it('sets email userInput', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_EMAIL,
+          type: USER_SET_EMAIL,
           payload: 'john@doe.com',
         });
 
@@ -325,7 +469,7 @@ describe('userFormReducer', () => {
 
       it('sets email userInput with "Must be non-empty" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_EMAIL,
+          type: USER_SET_EMAIL,
           payload: '',
         });
 
@@ -337,7 +481,7 @@ describe('userFormReducer', () => {
 
       it('sets email userInput with "Use valid format: abc@xyz.com" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_EMAIL,
+          type: USER_SET_EMAIL,
           payload: '@.com',
         });
 
@@ -348,10 +492,10 @@ describe('userFormReducer', () => {
       });
     });
 
-    describe(`${CREATE_USER_SET_USERNAME} action`, () => {
+    describe(`${USER_SET_USERNAME} action`, () => {
       it('sets username userInput', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_USERNAME,
+          type: USER_SET_USERNAME,
           payload: 'johnDoe',
         });
 
@@ -362,7 +506,7 @@ describe('userFormReducer', () => {
 
       it('sets username userInput with "Must be non-empty" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_USERNAME,
+          type: USER_SET_USERNAME,
           payload: '',
         });
 
@@ -374,7 +518,7 @@ describe('userFormReducer', () => {
 
       it('sets username userInput with "Use valid characters" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_USERNAME,
+          type: USER_SET_USERNAME,
           payload: '^',
         });
 
@@ -386,7 +530,7 @@ describe('userFormReducer', () => {
 
       it('sets username userInput with "Use valid characters" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_USERNAME,
+          type: USER_SET_USERNAME,
           payload: 'f g',
         });
 
@@ -398,7 +542,7 @@ describe('userFormReducer', () => {
 
       it('sets username userInput with "Username already taken" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_USERNAME,
+          type: USER_SET_USERNAME,
           payload: 'admin',
         });
 
@@ -409,10 +553,10 @@ describe('userFormReducer', () => {
       });
     });
 
-    describe(`${CREATE_USER_SET_PASSWORD} action`, () => {
+    describe(`${USER_SET_PASSWORD} action`, () => {
       it('sets password userInput', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_PASSWORD,
+          type: USER_SET_PASSWORD,
           payload: '1234',
         });
 
@@ -423,7 +567,7 @@ describe('userFormReducer', () => {
 
       it('sets username userInput with "Must be non-empty" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_PASSWORD,
+          type: USER_SET_PASSWORD,
           payload: '',
         });
 
@@ -434,10 +578,10 @@ describe('userFormReducer', () => {
       });
     });
 
-    describe(`${CREATE_USER_SET_MATCH_PASSWORD} action`, () => {
+    describe(`${USER_SET_MATCH_PASSWORD} action`, () => {
       it('sets matchPassword userInput', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_MATCH_PASSWORD,
+          type: USER_SET_MATCH_PASSWORD,
           payload: '1234',
         });
 
@@ -448,7 +592,7 @@ describe('userFormReducer', () => {
 
       it('sets matchPassword userInput with "Must be non-empty" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_MATCH_PASSWORD,
+          type: USER_SET_MATCH_PASSWORD,
           payload: '',
         });
 
@@ -460,7 +604,7 @@ describe('userFormReducer', () => {
 
       it('sets matchPassword userInput with "Passwords must match!" error', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_MATCH_PASSWORD,
+          type: USER_SET_MATCH_PASSWORD,
           payload: 'qwe',
         });
 
@@ -474,7 +618,7 @@ describe('userFormReducer', () => {
     describe('password and matchPassword behavior', () => {
       it('matchPassword does not show error if pristine and password field was changed', () => {
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_PASSWORD,
+          type: USER_SET_PASSWORD,
           payload: 'asdf',
         });
 
@@ -487,12 +631,12 @@ describe('userFormReducer', () => {
 
       it('matchPassword shows error if password and matchPassword fields were changed', () => {
         state = reduce(state, {
-          type: CREATE_USER_SET_MATCH_PASSWORD,
+          type: USER_SET_MATCH_PASSWORD,
           payload: '',
         });
 
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_PASSWORD,
+          type: USER_SET_PASSWORD,
           payload: 'asdf',
         });
 
@@ -506,12 +650,12 @@ describe('userFormReducer', () => {
 
       it('shows error if password and matchPassword fields both were changed to empty values', () => {
         state = reduce(state, {
-          type: CREATE_USER_SET_PASSWORD,
+          type: USER_SET_PASSWORD,
           payload: '',
         });
 
         const { inputFields, other } = reduce(state, {
-          type: CREATE_USER_SET_MATCH_PASSWORD,
+          type: USER_SET_MATCH_PASSWORD,
           payload: '',
         });
 

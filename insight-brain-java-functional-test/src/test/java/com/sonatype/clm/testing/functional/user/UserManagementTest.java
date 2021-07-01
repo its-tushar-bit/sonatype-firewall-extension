@@ -19,8 +19,8 @@ import com.sonatype.clm.testing.functional.elements.NxTextInput;
 import com.sonatype.clm.testing.functional.elements.ResetPasswordModal;
 import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
-import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditPanelForm;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.NewUserForm;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.SummarySection;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
@@ -177,7 +177,7 @@ public class UserManagementTest
     userManagementPage.headers().shouldHaveSize(2);// created user and the admin
 
     userManagementPage.headers().get(0).click();
-    SummarySection summarySection = userManagementPage.summarySection(1);
+    SummarySection summarySection = userManagementPage.summarySection();
     summarySection.shouldBe(visible);
 
     summarySection.firstName().shouldHave(text("add"));
@@ -218,31 +218,30 @@ public class UserManagementTest
   @Test
   public void testUserEditProfile() {
     User user = createUser();
+    int userRow = 0;
     refreshOrOpen(UserManagementPage.url());
     UserManagementPage userManagementPage = new UserManagementPage();
 
-    int userRow = 0;
-    userManagementPage.headers().get(userRow).shouldHave(text(user.getUsername()));
+    EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
+    editUserForm.shouldBe(visible);
+    editUserForm.saveButton().shouldBe(CLM.DISABLED);
 
-    userManagementPage.editUserButtons().get(userRow).shouldBe(visible).click();
+    editUserForm.firstNameInput().shouldHave(value(user.getFirstName()));
+    editUserForm.lastNameInput().shouldHave(value(user.getLastName()));
+    editUserForm.emailInput().shouldHave(value(user.getEmail()));
 
-    EditPanelForm editPanelForm = userManagementPage.editPanelForm();
-    editPanelForm.shouldBe(visible);
+    editUserForm.firstNameInput().val("testupdateFirstName");
+    editUserForm.lastNameInput().val("testupdateLastName");
+    editUserForm.emailInput().val("emailLastName@email.com");
+    eyesWatcher.eyesCheck();
 
-    editPanelForm.firstName().shouldHave(value(user.getFirstName()));
-    editPanelForm.lastName().shouldHave(value(user.getLastName()));
-    editPanelForm.email().shouldHave(value(user.getEmail()));
+    editUserForm.saveButton().shouldBe(enabled).click();
+    editUserForm.should(disappear);
 
-    editPanelForm.saveButton().shouldBe(disabled);
+    userManagementPage.headers().get(userRow).click();
 
-    editPanelForm.firstName().val("testupdateFirstName");
-    editPanelForm.lastName().val("testupdateLastName");
-    editPanelForm.email().val("emailLastName@email.com");
+    SummarySection summarySection = userManagementPage.summarySection();
 
-    editPanelForm.saveButton().shouldBe(enabled).click();
-    editPanelForm.should(disappear);
-
-    SummarySection summarySection = userManagementPage.summarySection(1);
     summarySection.shouldBe(visible);
     summarySection.firstName().shouldHave(text("testupdateFirstName"));
     summarySection.lastName().shouldHave(text("testupdateLastName"));
@@ -267,27 +266,6 @@ public class UserManagementTest
     DeleteModal.body().should(disappear);
 
     userManagementPage.headers().shouldHaveSize(1);
-  }
-
-  @Test
-  public void testAccordionClosesEditForm() {
-    User user = createUser();
-    refreshOrOpen(UserManagementPage.url());
-
-    UserManagementPage userManagementPage = new UserManagementPage();
-
-    int userRow = 0;
-    SelenideElement accordionHeader = userManagementPage.headers().get(userRow);
-
-    accordionHeader.shouldHave(text(user.getUsername()));
-    userManagementPage.editUserButtons().get(userRow).shouldBe(visible).click();
-
-    userManagementPage.editPanelForm().shouldBe(visible);
-    userManagementPage.editUserButtons().get(userRow).shouldBe(disabled);
-
-    accordionHeader.click();
-    userManagementPage.editPanelForm().shouldBe(disappear);
-    userManagementPage.editUserButtons().get(userRow).shouldBe(enabled);
   }
 
   @Test
@@ -354,6 +332,12 @@ public class UserManagementTest
 
     newUserButton.shouldBe(hidden);
     return userManagementPage.newUserForm();
+  }
+
+  private EditUserForm goToEditUserForm(final UserManagementPage userManagementPage, int row) {
+    userManagementPage.editUserButtons().get(row).shouldBe(visible).click();
+
+    return userManagementPage.editUserForm();
   }
 
   private void assertElementsEmpty(final List<SelenideElement> elements) {

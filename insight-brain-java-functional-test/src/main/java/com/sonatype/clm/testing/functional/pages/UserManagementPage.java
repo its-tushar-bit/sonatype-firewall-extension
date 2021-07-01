@@ -15,8 +15,6 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
-
 public class UserManagementPage
     extends BasicElement<UserManagementPage>
 {
@@ -42,8 +40,8 @@ public class UserManagementPage
     return child(".test-current-user");
   }
 
-  public SummarySection summarySection(int visibleIndex) {
-    return new SummarySection(ROOT_SELECTOR, ".accordion-inner", nthChild(visibleIndex));
+  public SummarySection summarySection() {
+    return new SummarySection(ROOT_SELECTOR, ".accordion-inner");
   }
 
   public List<SelenideElement> resetPasswordButtons() {
@@ -60,34 +58,6 @@ public class UserManagementPage
 
   public ResetPasswordModal resetPasswordModal() {
     return new ResetPasswordModal();
-  }
-
-  public EditPanelForm editPanelForm() {
-    return new EditPanelForm(".accordion-body", "form");
-  }
-
-  public static class EditPanelForm
-      extends BasicElement<EditPanelForm>
-  {
-    EditPanelForm(final String... selectors) {
-      super(selectors);
-    }
-
-    public SelenideElement firstName() {
-      return child("input[name=firstName]");
-    }
-
-    public SelenideElement lastName() {
-      return child("input[name=lastName]");
-    }
-
-    public SelenideElement email() {
-      return child("input[name=email]");
-    }
-
-    public Button saveButton() {
-      return new Button("button[id$='user-form-save']");
-    }
   }
 
   public static class SummarySection
@@ -147,6 +117,34 @@ public class UserManagementPage
 
     public SelenideElement passwordValidateInput() {
       return child("#passwordValidate");
+    }
+  }
+
+  public EditUserForm editUserForm() {
+    return new EditUserForm("#user-edit");
+  }
+
+  public static class EditUserForm
+      extends BasicElement<EditUserForm>
+  {
+    EditUserForm(final String ...selectors) {
+      super(selectors);
+    }
+
+    public Button saveButton() {
+      return new Button(".nx-form__submit-btn");
+    }
+
+    public SelenideElement firstNameInput() {
+      return child("#firstName");
+    }
+
+    public SelenideElement lastNameInput() {
+      return child("#lastName");
+    }
+
+    public SelenideElement emailInput() {
+      return child("#email");
     }
   }
 }

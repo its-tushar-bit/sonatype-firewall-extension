@@ -6,7 +6,7 @@
 import { always, any, compose, find, isEmpty, pick, test, propEq, clone } from 'ramda';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
-import { pathSet } from '../../util/jsUtil';
+import { pathSet, propSet } from '../../util/jsUtil';
 import {
   combineValidators,
   validateForm,
@@ -22,14 +22,20 @@ import {
   CREATE_USER_SAVE_REQUESTED,
   CREATE_USER_SAVE_FULFILLED,
   CREATE_USER_SAVE_FAILED,
-  CREATE_USER_SAVE_SUBMIT_MASK_TIMER_DONE,
-  CREATE_USER_SET_FIRST_NAME,
-  CREATE_USER_SET_LAST_NAME,
-  CREATE_USER_SET_EMAIL,
-  CREATE_USER_SET_USERNAME,
-  CREATE_USER_SET_PASSWORD,
-  CREATE_USER_SET_MATCH_PASSWORD,
-  CREATE_USER_RESET_FORM,
+  USER_FORM_SUBMIT_MASK_TIMER_DONE,
+  USER_SET_FIRST_NAME,
+  USER_SET_LAST_NAME,
+  USER_SET_EMAIL,
+  USER_SET_USERNAME,
+  USER_SET_PASSWORD,
+  USER_SET_MATCH_PASSWORD,
+  USER_RESET_FORM,
+  EDIT_USER_LOAD_REQUESTED,
+  EDIT_USER_LOAD_FAILED,
+  EDIT_USER_LOAD_FULFILLED,
+  EDIT_USER_UPDATE_REQUESTED,
+  EDIT_USER_UPDATE_FULFILLED,
+  EDIT_USER_UPDATE_FAILED,
   fullTextFields,
 } from './userFormActions';
 
@@ -51,17 +57,22 @@ export const initialState = Object.freeze({
     matchPassword: initUserInput(''),
   },
   users: [],
+  selectedUserServerData: {},
 });
 
 const clearedErrors = pick(['loadError', 'saveError'], initialState);
+const editFormFields = ['firstName', 'lastName', 'email'];
 
 const updatedComputedProps = compose(computeIsDirty, computeValidationError);
 
 function computeIsDirty(state) {
-  const { inputFields } = state;
-  const isDirty = any((prop) => !isEmpty(inputFields[prop].value), fullTextFields);
+  const { inputFields, selectedUserServerData } = state;
 
-  return pathSet(['isDirty'], isDirty, state);
+  const isDirty = isEmpty(selectedUserServerData)
+    ? any((prop) => !isEmpty(inputFields[prop].value), fullTextFields)
+    : any((prop) => inputFields[prop].trimmedValue !== selectedUserServerData[prop], editFormFields);
+
+  return propSet('isDirty', isDirty, state);
 }
 
 function computeValidationError(state) {
@@ -180,21 +191,74 @@ function saveFailed(payload, state) {
   };
 }
 
+function loadEditFulfilled(payload, state) {
+  return {
+    ...state,
+    ...clearedErrors,
+    loading: false,
+    inputFields: {
+      firstName: initUserInput(payload.firstName),
+      lastName: initUserInput(payload.lastName),
+      email: initUserInput(payload.email),
+    },
+    selectedUserServerData: payload,
+  };
+}
+
+function loadEditFailed(payload, state) {
+  return {
+    ...state,
+    loading: false,
+    loadError: payload,
+  };
+}
+
+function updateRequested(_, state) {
+  return {
+    ...state,
+    submitMaskState: false,
+    ...clearedErrors,
+  };
+}
+
+function updateFulfilled(_, state) {
+  return {
+    ...state,
+    submitMaskState: true,
+    isDirty: false,
+    ...clearedErrors,
+  };
+}
+
+function updateFailed(payload, state) {
+  return {
+    ...state,
+    saveError: payload,
+    submitMaskState: null,
+  };
+}
+
 const reducerActionMap = {
+  [USER_SET_FIRST_NAME]: setInput('firstName', nameValidator),
+  [USER_SET_LAST_NAME]: setInput('lastName', nameValidator),
+  [USER_SET_EMAIL]: setInput('email', emailValidator),
+  [USER_SET_USERNAME]: setUsernameInput,
+  [USER_SET_PASSWORD]: setPasswordInput,
+  [USER_SET_MATCH_PASSWORD]: setPasswordMatchInput,
   [CREATE_USER_LOAD_REQUESTED]: always(initialState),
   [CREATE_USER_LOAD_FULFILLED]: loadFulfilled,
   [CREATE_USER_LOAD_FAILED]: loadFailed,
-  [CREATE_USER_SET_FIRST_NAME]: setInput('firstName', nameValidator),
-  [CREATE_USER_SET_LAST_NAME]: setInput('lastName', nameValidator),
-  [CREATE_USER_SET_EMAIL]: setInput('email', emailValidator),
-  [CREATE_USER_SET_USERNAME]: setUsernameInput,
-  [CREATE_USER_SET_PASSWORD]: setPasswordInput,
-  [CREATE_USER_SET_MATCH_PASSWORD]: setPasswordMatchInput,
   [CREATE_USER_SAVE_REQUESTED]: saveRequested,
   [CREATE_USER_SAVE_FULFILLED]: saveFulfilled,
   [CREATE_USER_SAVE_FAILED]: saveFailed,
-  [CREATE_USER_SAVE_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
-  [CREATE_USER_RESET_FORM]: always(initialState),
+  [EDIT_USER_LOAD_REQUESTED]: always(initialState),
+  [EDIT_USER_LOAD_FULFILLED]: loadEditFulfilled,
+  [EDIT_USER_LOAD_FAILED]: loadEditFailed,
+  [EDIT_USER_UPDATE_REQUESTED]: updateRequested,
+  [EDIT_USER_UPDATE_FULFILLED]: updateFulfilled,
+  [EDIT_USER_UPDATE_FAILED]: updateFailed,
+  [USER_FORM_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
+  [USER_RESET_FORM]: always(initialState),
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

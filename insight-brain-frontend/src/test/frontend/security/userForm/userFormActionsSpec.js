@@ -13,7 +13,13 @@ import {
   CREATE_USER_SAVE_REQUESTED,
   CREATE_USER_SAVE_FULFILLED,
   CREATE_USER_SAVE_FAILED,
-  CREATE_USER_SAVE_SUBMIT_MASK_TIMER_DONE,
+  USER_FORM_SUBMIT_MASK_TIMER_DONE,
+  EDIT_USER_LOAD_REQUESTED,
+  EDIT_USER_LOAD_FAILED,
+  EDIT_USER_LOAD_FULFILLED,
+  EDIT_USER_UPDATE_REQUESTED,
+  EDIT_USER_UPDATE_FULFILLED,
+  EDIT_USER_UPDATE_FAILED,
 } from '../../../../main/frontend/security/userForm/userFormActions';
 import { STATE_GO } from '../../../../main/frontend/reduxUiRouter/routerActions';
 
@@ -22,7 +28,7 @@ const { initialState: initUserInput } = nxTextInputStateHelpers;
 describe('userFormActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const userUrl = getUserUrl();
-  let checkPermissionsSpy, save, loadCreateUserPage;
+  let checkPermissionsSpy, save, loadCreateUserPage, loadUserById, update;
 
   beforeEach(() => {
     checkPermissionsSpy = jasmine.createSpy('checkPermissions');
@@ -33,10 +39,12 @@ describe('userFormActions', () => {
     });
     loadCreateUserPage = module.loadCreateUserPage;
     save = module.save;
+    loadUserById = module.loadUserById;
+    update = module.update;
   });
 
   describe('loadCreateUserPage', () => {
-    describe('when authorised', () => {
+    describe('when authorized', () => {
       beforeEach(() => {
         checkPermissionsSpy.and.returnValue(Promise.resolve());
       });
@@ -109,7 +117,7 @@ describe('userFormActions', () => {
       store = SpecUtil.mockReduxStore({ userForm: state });
     });
 
-    it('fires CREATE_USER_SAVE_FULFILLED, CREATE_USER_SAVE_SUBMIT_MASK_TIMER_DONE actions on success', (done) => {
+    it('fires CREATE_USER_SAVE_FULFILLED, USER_FORM_SUBMIT_MASK_TIMER_DONE actions on success', (done) => {
       mockAxiosCalls({
         post: {
           [userUrl]: Promise.resolve(),
@@ -117,25 +125,25 @@ describe('userFormActions', () => {
       });
 
       store.dispatch(save()).then(() => {
-        const actions = store.getActions();
         setTimeout(() => {
           const actions = store.getActions();
 
           expect(actions.length).toBe(4);
-          expect(actions[1]).toEqual({ type: CREATE_USER_SAVE_FULFILLED });
-          expect(actions[2]).toEqual({ type: CREATE_USER_SAVE_SUBMIT_MASK_TIMER_DONE });
-          expect(actions[3]).toEqual({
-            type: STATE_GO,
-            payload: {
-              to: 'users',
-              params: undefined,
-              options: undefined,
+          expect(actions).toHaveActionsInOrder([
+            { type: CREATE_USER_SAVE_REQUESTED },
+            { type: CREATE_USER_SAVE_FULFILLED },
+            { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+            {
+              type: STATE_GO,
+              payload: {
+                to: 'users',
+                params: undefined,
+                options: undefined,
+              },
             },
-          });
+          ]);
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-
-        expect(actions[0]).toEqual({ type: CREATE_USER_SAVE_REQUESTED });
       });
     });
 
@@ -155,6 +163,177 @@ describe('userFormActions', () => {
 
       let actions = store.getActions();
       expect(actions[0]).toEqual({ type: CREATE_USER_SAVE_REQUESTED });
+    });
+  });
+
+  describe('loadUserById', () => {
+    describe('when authorized', () => {
+      beforeEach(() => {
+        checkPermissionsSpy.and.returnValue(Promise.resolve());
+      });
+
+      it('fires EDIT_USER_LOAD_FULFILLED action on success', (done) => {
+        const store = SpecUtil.mockReduxStore();
+        mockAxiosCalls({
+          get: {
+            [userUrl]: Promise.resolve({
+              data: [
+                {
+                  id: '201',
+                  username: 'vaild',
+                },
+              ],
+            }),
+          },
+        });
+
+        store.dispatch(loadUserById('201')).then(() => {
+          actions = store.getActions();
+
+          expect(actions.length).toBe(2);
+          expect(actions[1]).toEqual({
+            type: EDIT_USER_LOAD_FULFILLED,
+            payload: {
+              id: '201',
+              username: 'vaild',
+            },
+          });
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions[0]).toEqual({ type: EDIT_USER_LOAD_REQUESTED });
+      });
+
+      it('fires EDIT_USER_UPDATE_FAILED action if no user with predefined id exists', (done) => {
+        const store = SpecUtil.mockReduxStore();
+        mockAxiosCalls({
+          get: {
+            [userUrl]: Promise.resolve({
+              data: [
+                {
+                  id: '201',
+                  username: 'vaild',
+                },
+              ],
+            }),
+          },
+        });
+
+        store.dispatch(loadUserById('404')).then(() => {
+          actions = store.getActions();
+
+          expect(actions.length).toBe(2);
+          expect(actions[1]).toEqual({
+            type: EDIT_USER_LOAD_FAILED,
+            payload: 'Unable to locate user',
+          });
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions[0]).toEqual({ type: EDIT_USER_LOAD_REQUESTED });
+      });
+    });
+
+    describe('when not authorized', () => {
+      it('does not load user edit page', (done) => {
+        checkPermissionsSpy.and.returnValue(Promise.reject('user edit page authorization error'));
+        const store = SpecUtil.mockReduxStore();
+        mockAxiosCalls({
+          get: {},
+        });
+
+        store.dispatch(loadUserById('404')).then(() => {
+          expect(axios.get).not.toHaveBeenCalled();
+
+          actions = store.getActions();
+
+          expect(actions.length).toBe(2);
+          expect(actions[1]).toEqual({
+            type: EDIT_USER_LOAD_FAILED,
+            payload: 'user edit page authorization error',
+          });
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions[0]).toEqual({ type: EDIT_USER_LOAD_REQUESTED });
+      });
+    });
+  });
+
+  describe('update', () => {
+    let store;
+
+    beforeEach(() => {
+      const state = {
+        selectedUserServerData: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@doe.com',
+          id: '201',
+          password: '#~FAKE~PASSWORD~#',
+          username: 'johnDoe',
+          usernameLowercase: 'johndoe',
+        },
+        inputFields: {
+          firstName: initUserInput('Jane'),
+          lastName: initUserInput('Doe'),
+          email: initUserInput('jane@doe.com'),
+        },
+      };
+
+      store = SpecUtil.mockReduxStore({ userForm: state });
+    });
+
+    it('fires EDIT_USER_UPDATE_FULFILLED, USER_FORM_SUBMIT_MASK_TIMER_DONE actions on success', (done) => {
+      mockAxiosCalls({
+        put: {
+          [userUrl]: Promise.resolve(),
+        },
+      });
+
+      store.dispatch(update()).then(() => {
+        setTimeout(() => {
+          const actions = store.getActions();
+
+          expect(actions.length).toBe(4);
+
+          expect(actions).toHaveActionsInOrder([
+            { type: EDIT_USER_UPDATE_REQUESTED },
+            { type: EDIT_USER_UPDATE_FULFILLED },
+            { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+            {
+              type: STATE_GO,
+              payload: {
+                to: 'users',
+                params: undefined,
+                options: undefined,
+              },
+            },
+          ]);
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+    });
+
+    it('fires EDIT_USER_UPDATE_FAILED action on error', (done) => {
+      mockAxiosCalls({
+        put: {
+          [userUrl]: Promise.reject('cannot update'),
+        },
+      });
+
+      store.dispatch(update()).then(() => {
+        actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[1]).toEqual({ type: EDIT_USER_UPDATE_FAILED, payload: 'cannot update' });
+        done();
+      });
+
+      let actions = store.getActions();
+      expect(actions[0]).toEqual({ type: EDIT_USER_UPDATE_REQUESTED });
     });
   });
 });

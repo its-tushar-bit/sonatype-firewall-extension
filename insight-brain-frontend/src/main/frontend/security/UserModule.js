@@ -17,13 +17,13 @@ import utilityDirectivesModule from '../utility/directives/utility.directives.mo
 import permissionServiceModule from '../util/PermissionService';
 import ApplicationSecurityModule from '../policy/AppSecurityController';
 import UserListController from './user.list.controller';
-import userForm from './userForm/userForm';
 import telemetryServiceModule from '../services/telemetryService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 import userListTemplate from './user-list.html';
 import administratorsTemplate from '../policy/components/app-security/app-security.html';
 import UserFormContainer from './userForm/UserFormContainer';
+import UserEditContainer from './userForm/UserEditContainer';
 
 export const SecurityModule = angular.module(
   'SecurityModule',
@@ -63,10 +63,13 @@ export const UserModule = angular
     pendoModule.name,
   ])
   .controller('UserListController', UserListController)
-  .component('userForm', userForm)
   .component(
     'createUser',
     react2angular(withStoreProvider(withRouterStateProvider(UserFormContainer)), [], ['$ngRedux', '$state'])
+  )
+  .component(
+    'editUser',
+    react2angular(withStoreProvider(withRouterStateProvider(UserEditContainer)), [], ['$ngRedux', '$state'])
   )
   .factory('userActions', userActions)
   .value('userReducer', userReducer)
@@ -98,6 +101,14 @@ function routes($stateProvider) {
         title: 'Add New User',
         isDirty: ['userForm', 'isDirty'],
       },
+    })
+    .state('editUser', {
+      url: '/users/{userId}',
+      component: 'editUser',
+      data: {
+        title: 'Edit User',
+        isDirty: ['userForm', 'isDirty'],
+      },
     });
 }
 
@@ -126,33 +137,6 @@ UserModule.service('UserStore', [
     return store;
   },
 ]);
-
-UserModule.directive('clmMatch', function () {
-  return {
-    require: 'ngModel',
-    link: function (scope, element, attrs, ctrl) {
-      function emptyString(val) {
-        if (val === '' || val === null) {
-          return undefined;
-        }
-        return val;
-      }
-
-      ctrl.$validators.match = function (value) {
-        return emptyString(value) === emptyString(scope.$eval(attrs.clmMatch));
-      };
-
-      scope.$watch(
-        function () {
-          return scope.$eval(attrs.clmMatch);
-        },
-        function () {
-          ctrl.$$parseAndValidate();
-        }
-      );
-    },
-  };
-});
 
 UserModule.directive('expandUserOnEvent', function () {
   return {

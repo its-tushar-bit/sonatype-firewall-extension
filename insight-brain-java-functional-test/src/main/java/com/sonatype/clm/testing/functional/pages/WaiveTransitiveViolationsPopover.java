@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxThreatCounter;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -27,11 +28,11 @@ public class WaiveTransitiveViolationsPopover
   }
 
   public SelenideElement countsTitle() {
-    return child("#waive-transitive-violations-counts-group .nx-sub-label");
+    return child(".transitive-violations-counts-group .nx-read-only__data");
   }
 
-  public ElementsCollection counts() {
-    return children("#waive-transitive-violations-counts div");
+  public NxThreatCounter counts() {
+    return new NxThreatCounter(".nx-threat-counter-container");
   }
 
   public WaiveTransitiveViolationsPopoverCount count(int index) {
@@ -79,7 +80,11 @@ public class WaiveTransitiveViolationsPopover
     return new Button("#waive-transitive-violations-popover-save");
   }
 
+  public Button retryButton() {
+    return new Button("#waive-transitive-violations-popover-save-error .nx-btn");
+  }
+
   public SelenideElement submitError() {
-    return child(".iq-popover__footer .nx-alert");
+    return child("#waive-transitive-violations-popover-save-error");
   }
 }

@@ -4,10 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-#waive-transitive-violations-popover {
-  #waive-transitive-violations-counts-group {
-    dl.nx-read-only {
-      margin: 0;
-    }
+#request-waive-transitive-violations-popover {
+  .nx-text-input__input {
+    min-height: unset;
+  }
+
+  dl.nx-read-only {
+    margin: 0;
   }
 }

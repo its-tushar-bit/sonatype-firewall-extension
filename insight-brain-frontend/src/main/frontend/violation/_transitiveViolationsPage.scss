@@ -25,20 +25,28 @@ transitive-violations-page-container {
     color: var(--nx-swatch-orange-55);
   }
 
-  .nx-page-title {
-    grid-template-areas:
-      'title'
-      'description'
-      'tags';
+  .component-details-header {
+    margin-bottom: var(--nx-spacing-4x);
   }
 
-  .component-details-header__reportinfo {
-    grid-area: description;
+  .nx-viewport-sized__container > .iq-popover {
+    width: 760px;
   }
 
-  .nx-page-title__tags--vertical {
-    @include container-vertical;
-    grid-area: tags;
-    margin: var(--nx-spacing-md) 0 0 0;
+  .iq-popover {
+    .transitive-violations-popover-header__title {
+      @include container-horizontal;
+      display: flex;
+      align-items: start;
+
+      .transitive-violations-popover-header__title-text {
+        flex-grow: 1;
+        margin-top: 6px;
+      }
+    }
+
+    .iq-popover__content {
+      padding-top: var(--nx-spacing-6x);
+    }
   }
 }

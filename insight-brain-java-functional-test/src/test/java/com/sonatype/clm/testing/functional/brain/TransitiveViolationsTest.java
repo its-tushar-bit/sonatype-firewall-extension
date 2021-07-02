@@ -22,12 +22,15 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.NxThreatCounter;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.RequestWaiveTransitiveViolationsPopover;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.ComponentDetailsHeader;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.TransitiveViolationsRow;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.TransitiveViolationsTable;
 import com.sonatype.clm.testing.functional.pages.WaiveTransitiveViolationsPopover;
+import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.component.ComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
@@ -46,6 +49,7 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
 import com.google.common.collect.ImmutableMap;
 import org.codehaus.plexus.util.StringUtils;
@@ -55,7 +59,6 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -251,19 +254,54 @@ public class TransitiveViolationsTest
   }
 
   @Test
+  public void testRequestWaiveTransitiveViolations_InitialState() {
+    RequestWaiveTransitiveViolationsPopover requestWaiveTransitiveViolationsPopover = visitRequestWaivePopover();
+    requestWaiveTransitiveViolationsPopover.countsTitle()
+        .shouldHave(Condition.text("3 total violations brought in by 3 components"));
+    NxThreatCounter counts = requestWaiveTransitiveViolationsPopover.counts();
+    counts.all().shouldHaveSize(3);
+    counts.critical().text().shouldHave(Condition.text("Critical"));
+    counts.critical().count().shouldHave(Condition.text("1"));
+    counts.severe().text().shouldHave(Condition.text("Severe"));
+    counts.severe().count().shouldHave(Condition.text("1"));
+    counts.none().shouldHave(Condition.text("None"));
+    counts.none().shouldHave(Condition.text("1"));
+    requestWaiveTransitiveViolationsPopover.applicationPublicIdContainer().content()
+        .shouldHave(Condition.text(application.getPublicId()));
+    requestWaiveTransitiveViolationsPopover.reportIdContainer().content()
+        .shouldHave(Condition.text(policyEvaluation.getScanId()));
+    requestWaiveTransitiveViolationsPopover.componentHashContainer().content()
+        .shouldHave(Condition.text(component.getHash()));
+    String expectedCurlCommand =
+        "curl -u admin:admin123 -X POST " + Configuration.baseUrl + "api/v2/policyWaivers/transitive/application/" +
+            application.getPublicId() + "/" + policyEvaluation.getScanId() + "?hash=" + component.getHash();
+    requestWaiveTransitiveViolationsPopover.curlExampleContainer().content()
+        .shouldHave(Condition.text(expectedCurlCommand));
+    eyesWatcher.eyesCheck();
+    ScrollUtil.scrollIntoView(requestWaiveTransitiveViolationsPopover.curlExampleContainer().content());
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testRequestWaiveTransitiveViolations_Toggle() {
+    RequestWaiveTransitiveViolationsPopover requestWaiveTransitiveViolationsPopover = visitRequestWaivePopover();
+    requestWaiveTransitiveViolationsPopover.toggle().click();
+    requestWaiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
+  }
+
+  @Test
   public void testWaiveTransitiveViolations_InitialState() {
     WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
     waiveTransitiveViolationsPopover.countsTitle()
         .shouldHave(Condition.text("3 total violations brought in by 3 components"));
-    waiveTransitiveViolationsPopover.counts().shouldHaveSize(5);
-    waiveTransitiveViolationsPopover.count(0).text().shouldHave(Condition.text("Critical"));
-    waiveTransitiveViolationsPopover.count(0).count().shouldHave(Condition.text("1"));
-    waiveTransitiveViolationsPopover.count(1).text().shouldHave(Condition.text("Severe"));
-    waiveTransitiveViolationsPopover.count(1).count().shouldHave(Condition.text("1"));
-    waiveTransitiveViolationsPopover.count(2).shouldNotBe(visible);
-    waiveTransitiveViolationsPopover.count(3).shouldNotBe(visible);
-    waiveTransitiveViolationsPopover.count(4).text().shouldHave(Condition.text("None"));
-    waiveTransitiveViolationsPopover.count(4).count().shouldHave(Condition.text("1"));
+    NxThreatCounter counts = waiveTransitiveViolationsPopover.counts();
+    counts.all().shouldHaveSize(3);
+    counts.critical().text().shouldHave(Condition.text("Critical"));
+    counts.critical().count().shouldHave(Condition.text("1"));
+    counts.severe().text().shouldHave(Condition.text("Severe"));
+    counts.severe().count().shouldHave(Condition.text("1"));
+    counts.none().shouldHave(Condition.text("None"));
+    counts.none().shouldHave(Condition.text("1"));
     waiveTransitiveViolationsPopover.scope().shouldHave(
         Condition.text(StringUtils.capitalise(application.getType().toString()) + " - " + application.getName()));
     waiveTransitiveViolationsPopover.expiryTimesSelect().getSelectedOption().shouldHave(text("Never"));
@@ -330,24 +368,26 @@ public class TransitiveViolationsTest
   }
 
   @Test
-  public void testSubmitError() throws Exception {
-    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover("hash1");
+  public void testWaiveTransitiveViolations_SubmitError() throws Exception {
+    WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
     File reportFile = testCLMServer.getCLMServer().getInstance(InsightWork.class)
         .getReportFile(application.getId(), policyEvaluation.getScanId());
     new FileCleaner().delete(reportFile.getParentFile());
     waiveTransitiveViolationsPopover.saveButton().click();
     waiveTransitiveViolationsPopover.shouldBe(Condition.visible);
     waiveTransitiveViolationsPopover.submitError().shouldBe(Condition.visible);
-    waiveTransitiveViolationsPopover.saveButton().shouldHave(Condition.text("Retry"));
+    waiveTransitiveViolationsPopover.saveButton().shouldNotBe(Condition.visible);
+    waiveTransitiveViolationsPopover.retryButton().shouldBe(Condition.visible).shouldHave(Condition.text("Retry"));
 
     ReportTestUtils.createReportFile(application.getId(), policyEvaluation.getScanId(),
         zipReportDir("/TransitiveViolationsTest/report", tempDir),
         testCLMServer.getCLMServer().getInstance(InsightWork.class));
     ReportTestUtils.createPolicyThreats(application.getId(), policyEvaluation.getScanId(),
         testCLMServer.getCLMServer().getInstance(InsightWork.class), policyViolations);
-    waiveTransitiveViolationsPopover.saveButton().click();
+    waiveTransitiveViolationsPopover.retryButton().click();
     waiveTransitiveViolationsPopover.shouldNotBe(Condition.visible);
     new TransitiveViolationsPage().waiveTransitiveViolations().click();
+    waiveTransitiveViolationsPopover.retryButton().shouldNotBe(Condition.visible);
     waiveTransitiveViolationsPopover.saveButton().shouldBe(Condition.visible).shouldHave(Condition.text("Save"));
   }
 
@@ -362,12 +402,17 @@ public class TransitiveViolationsTest
     return transitiveViolationsPage;
   }
 
-  private WaiveTransitiveViolationsPopover visitWaivePopover() {
-    return visitWaivePopover("hash1");
+  private RequestWaiveTransitiveViolationsPopover visitRequestWaivePopover() {
+    TransitiveViolationsPage transitiveViolationsPage = visitPage();
+    transitiveViolationsPage.requestWaiveTransitiveViolations().click();
+    RequestWaiveTransitiveViolationsPopover requestWaiveTransitiveViolationsPopover =
+        new RequestWaiveTransitiveViolationsPopover();
+    requestWaiveTransitiveViolationsPopover.shouldBe(Condition.visible);
+    return requestWaiveTransitiveViolationsPopover;
   }
 
-  private WaiveTransitiveViolationsPopover visitWaivePopover(String hash) {
-    TransitiveViolationsPage transitiveViolationsPage = visitPage(hash);
+  private WaiveTransitiveViolationsPopover visitWaivePopover() {
+    TransitiveViolationsPage transitiveViolationsPage = visitPage();
     transitiveViolationsPage.waiveTransitiveViolations().click();
     WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = new WaiveTransitiveViolationsPopover();
     waiveTransitiveViolationsPopover.shouldBe(Condition.visible);

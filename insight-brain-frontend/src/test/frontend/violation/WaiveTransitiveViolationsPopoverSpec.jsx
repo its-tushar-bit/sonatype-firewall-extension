@@ -8,9 +8,9 @@ import * as enzymeUtils from '../enzymeUtils';
 import WaiveTransitiveViolationsPopover from '../../../main/frontend/violation/WaiveTransitiveViolationsPopover';
 import { mount } from 'enzyme';
 import React from 'react';
-import { NxErrorAlert, NxFontAwesomeIcon, NxStatefulTextInput, NxSubmitMask } from '@sonatype/react-shared-components';
+import { NxLoadError, NxStatefulTextInput, NxSubmitMask } from '@sonatype/react-shared-components';
 import { waiverExpirations } from '../../../main/frontend/util/waiverUtils';
-import { faSync } from '@fortawesome/pro-solid-svg-icons';
+import TransitiveViolationsSummary from '../../../main/frontend/violation/TransitiveViolationsSummary';
 
 describe('WaiveTransitiveViolationsPopover', function () {
   let minimalProps,
@@ -81,85 +81,21 @@ describe('WaiveTransitiveViolationsPopover', function () {
     expect(spyToggleWaiveTransitiveViolations).toHaveBeenCalled();
   });
 
-  it('displays the correct sublabel', function () {
-    let wrapper = getShallowComponent({
-      ...minimalProps,
-      componentTransitivePolicyViolations: {
-        ...minimalProps.componentTransitivePolicyViolations,
-        threatCountsTotal: 3,
-        componentCount: 2,
-      },
-    });
-    let countsGroup = wrapper.find('#waive-transitive-violations-counts-group');
-    expect(countsGroup.props().sublabel).toBe(3 + ' total violations brought in by ' + 2 + ' components');
-    wrapper = getShallowComponent({
-      ...minimalProps,
-      componentTransitivePolicyViolations: {
-        ...minimalProps.componentTransitivePolicyViolations,
-        threatCountsTotal: 0,
-        componentCount: 0,
-      },
-    });
-    countsGroup = wrapper.find('#waive-transitive-violations-counts-group');
-    expect(countsGroup.props().sublabel).toBe(0 + ' total violations brought in by ' + 0 + ' components');
-    wrapper = getShallowComponent({
-      ...minimalProps,
-      componentTransitivePolicyViolations: {
-        ...minimalProps.componentTransitivePolicyViolations,
-        threatCountsTotal: 1,
-        componentCount: 1,
-      },
-    });
-    countsGroup = wrapper.find('#waive-transitive-violations-counts-group');
-    expect(countsGroup.props().sublabel).toBe(1 + ' total violation brought in by ' + 1 + ' component');
-  });
-
-  it('displays the correct transitive violation counts', function () {
+  it('creates a transitive violations summary with the correct props', function () {
     const wrapper = getShallowComponent();
-    const countsContainer = wrapper.find('#waive-transitive-violations-counts').at(0);
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-critical')).toBeFalsy();
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-severe')).toBeFalsy();
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-moderate')).toBeFalsy();
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-low')).toBeFalsy();
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-none')).toBeFalsy();
-    expect(countsContainer.find('.nx-threat-counter--critical dt')).toHaveText('Critical');
-    expect(countsContainer.find('.nx-threat-counter--critical dd')).toHaveText('5');
-    expect(countsContainer.find('.nx-threat-counter--severe dt')).toHaveText('Severe');
-    expect(countsContainer.find('.nx-threat-counter--severe dd')).toHaveText('4');
-    expect(countsContainer.find('.nx-threat-counter--moderate dt')).toHaveText('Moderate');
-    expect(countsContainer.find('.nx-threat-counter--moderate dd')).toHaveText('3');
-    expect(countsContainer.find('.nx-threat-counter--low dt')).toHaveText('Low');
-    expect(countsContainer.find('.nx-threat-counter--low dd')).toHaveText('2');
-    expect(countsContainer.find('.nx-threat-counter--none dt')).toHaveText('None');
-    expect(countsContainer.find('.nx-threat-counter--none dd')).toHaveText('1');
-  });
-
-  it('hides zero counts', function () {
-    const wrapper = mount(
-      <WaiveTransitiveViolationsPopover
-        {...{
-          ...minimalProps,
-          componentTransitivePolicyViolations: {
-            threatCounts: {
-              critical: 0,
-              severe: 0,
-              moderate: 0,
-              low: 0,
-              none: 0,
-            },
-            threatCountsTotal: 0,
-            componentCount: 0,
-          },
-        }}
-      />
+    const transitiveViolationsSummary = wrapper.find(TransitiveViolationsSummary);
+    expect(transitiveViolationsSummary).toHaveProp(
+      'threatCounts',
+      minimalProps.componentTransitivePolicyViolations.threatCounts
     );
-    getShallowComponent();
-    const countsContainer = wrapper.find('#waive-transitive-violations-counts').at(0);
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-critical')).toBeTruthy();
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-severe')).toBeTruthy();
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-moderate')).toBeTruthy();
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-low')).toBeTruthy();
-    expect(countsContainer.hasClass('nx-threat-counter-container--hide-zero-none')).toBeTruthy();
+    expect(transitiveViolationsSummary).toHaveProp(
+      'threatCountsTotal',
+      minimalProps.componentTransitivePolicyViolations.threatCountsTotal
+    );
+    expect(transitiveViolationsSummary).toHaveProp(
+      'componentCount',
+      minimalProps.componentTransitivePolicyViolations.componentCount
+    );
   });
 
   it('calls cancel and toggleWaiveTransitiveViolations when the cancel button is clicked', function () {
@@ -177,9 +113,23 @@ describe('WaiveTransitiveViolationsPopover', function () {
     expect(spySave).toHaveBeenCalled();
   });
 
+  it('calls save when the retry button is clicked', function () {
+    const wrapper = mount(
+      <WaiveTransitiveViolationsPopover
+        {...{
+          ...minimalProps,
+          saveError: 'someSaveError',
+        }}
+      />
+    );
+    const retry = wrapper.find(NxLoadError).find('.nx-btn');
+    retry.simulate('click');
+    expect(spySave).toHaveBeenCalled();
+  });
+
   it('shows the scope', function () {
     const wrapper = getShallowComponent();
-    const scope = wrapper.find('#waive-transitive-violations-scopes');
+    const scope = wrapper.find('#waive-transitive-violations-scopes .nx-read-only__data');
     expect(scope).toHaveText('Application - app');
   });
 
@@ -229,24 +179,17 @@ describe('WaiveTransitiveViolationsPopover', function () {
 
   it('shows the save error if it exists', function () {
     let wrapper = getShallowComponent();
-    let alert = wrapper.find(NxErrorAlert);
-    expect(alert).not.toExist();
+    let saveError = wrapper.find(NxLoadError);
+    expect(saveError).not.toExist();
     let saveButton = wrapper.find('#waive-transitive-violations-popover-save');
     expect(saveButton).toHaveProp('variant', 'primary');
     expect(saveButton).toHaveText('Save');
-    let retryIcon = saveButton.find(NxFontAwesomeIcon);
-    expect(retryIcon).not.toExist();
 
     wrapper = getShallowComponent({ ...minimalProps, saveError: 'someSaveError' });
-    alert = wrapper.find(NxErrorAlert);
-    expect(alert).toExist();
-    const saveErrorMessage = alert.find('span');
-    expect(saveErrorMessage).toHaveText('someSaveError');
+    saveError = wrapper.find(NxLoadError);
+    expect(saveError).toHaveProp('error', 'someSaveError');
+    expect(saveError).toHaveProp('titleMessage', 'An error occurred saving data.');
     saveButton = wrapper.find('#waive-transitive-violations-popover-save');
-    expect(saveButton).toHaveProp('variant', 'error');
-    expect(saveButton.text()).toContain('Retry');
-    retryIcon = saveButton.find(NxFontAwesomeIcon);
-    expect(retryIcon).toExist();
-    expect(retryIcon.props().icon).toEqual(faSync);
+    expect(saveButton).not.toExist();
   });
 });

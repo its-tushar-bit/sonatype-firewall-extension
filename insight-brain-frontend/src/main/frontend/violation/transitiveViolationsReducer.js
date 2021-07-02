@@ -16,6 +16,7 @@ import {
   TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+  TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE,
   TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE,
 } from './transitiveViolationsActions';
 import { Messages } from '../util/CommonServices';
@@ -48,6 +49,7 @@ const initialState = {
     threatCountsTotal: null,
     componentCount: null,
   },
+  isRequestWaiveTransitiveViolationsOpen: false,
   isWaiveTransitiveViolationsOpen: false,
 };
 
@@ -282,6 +284,13 @@ function setFilteringParameters(payload, state) {
   });
 }
 
+function toggleRequestWaiveTransitiveViolations(_, state) {
+  return {
+    ...state,
+    isRequestWaiveTransitiveViolationsOpen: !state.isRequestWaiveTransitiveViolationsOpen,
+  };
+}
+
 function toggleWaiveTransitiveViolations(_, state) {
   return {
     ...state,
@@ -301,6 +310,7 @@ const reducerActionMap = {
   [TRANSITIVE_VIOLATIONS_LOAD_FAILED]: loadTransitiveViolationsFailed,
   [TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS]: setSortingParameters,
   [TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS]: setFilteringParameters,
+  [TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE]: toggleRequestWaiveTransitiveViolations,
   [TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE]: toggleWaiveTransitiveViolations,
 };
 

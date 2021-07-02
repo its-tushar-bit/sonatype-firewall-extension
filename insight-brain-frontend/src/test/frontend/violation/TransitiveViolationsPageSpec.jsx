@@ -11,6 +11,7 @@ import React from 'react';
 import { NxBackButton } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import WaiveTransitiveViolationsPopoverContainer from '../../../main/frontend/violation/WaiveTransitiveViolationsPopoverContainer';
+import RequestWaiveTransitiveViolationsPopoverContainer from '../../../main/frontend/violation/RequestWaiveTransitiveViolationsPopoverContainer';
 
 describe('TransitiveViolationsPage', function () {
   let minimalProps,
@@ -20,6 +21,7 @@ describe('TransitiveViolationsPage', function () {
     spyLoadTransitiveViolations,
     spySetSortingParameters,
     spySetFilteringParameters,
+    spyToggleRequestWaiveTransitiveViolations,
     spyToggleWaiveTransitiveViolations,
     getShallowComponent;
 
@@ -37,6 +39,7 @@ describe('TransitiveViolationsPage', function () {
     spyLoadTransitiveViolations = jasmine.createSpy('spyLoadTransitiveViolations');
     spySetSortingParameters = jasmine.createSpy('spySetSortingParameters');
     spySetFilteringParameters = jasmine.createSpy('spySetFilteringParameters');
+    spyToggleRequestWaiveTransitiveViolations = jasmine.createSpy('spyToggleRequestWaiveTransitiveViolations');
     spyToggleWaiveTransitiveViolations = jasmine.createSpy('spyToggleWaiveTransitiveViolations');
     minimalProps = {
       ownerType: 'someOwnerType',
@@ -80,12 +83,14 @@ describe('TransitiveViolationsPage', function () {
           displayedViolations: [],
         },
       },
+      isRequestWaiveTransitiveViolationsOpen: false,
       isWaiveTransitiveViolationsOpen: false,
       loadAvailableScopes: spyLoadAvailableScopes,
       loadReportMetadata: spyLoadReportMetadata,
       loadTransitiveViolations: spyLoadTransitiveViolations,
       setSortingParameters: spySetSortingParameters,
       setFilteringParameters: spySetFilteringParameters,
+      toggleRequestWaiveTransitiveViolations: spyToggleRequestWaiveTransitiveViolations,
       toggleWaiveTransitiveViolations: spyToggleWaiveTransitiveViolations,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(TransitiveViolationsPage, minimalProps);
@@ -295,5 +300,48 @@ describe('TransitiveViolationsPage', function () {
     });
     const waiveTransitiveViolationsButton = component.find('#transitive-violations-page-waive');
     expect(waiveTransitiveViolationsButton).toHaveProp('disabled', false);
+  });
+
+  it('does not show the request waive transitive violations popover when isRequestWaiveTransitiveViolationsOpen is false', function () {
+    const wrapper = getShallowComponent();
+    const requestWaiveTransitiveViolationsPopover = wrapper.find(RequestWaiveTransitiveViolationsPopoverContainer);
+    expect(requestWaiveTransitiveViolationsPopover).not.toExist();
+  });
+
+  it('shows the request waive transitive violations popover when isRequestWaiveTransitiveViolationsOpen is true', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      isRequestWaiveTransitiveViolationsOpen: true,
+    });
+    const requestWaiveTransitiveViolationsPopover = wrapper.find(RequestWaiveTransitiveViolationsPopoverContainer);
+    expect(requestWaiveTransitiveViolationsPopover).toExist();
+  });
+
+  it('calls toggleRequestWaiveTransitiveViolations when clicking the request waiver button', function () {
+    const component = getShallowComponent();
+    const requestWaiveTransitiveViolationsButton = component.find('#transitive-violations-page-request-waive');
+    requestWaiveTransitiveViolationsButton.simulate('click');
+    expect(spyToggleRequestWaiveTransitiveViolations).toHaveBeenCalled();
+  });
+
+  it('disables the request waive transitive violations button if there are no transitive violations', function () {
+    const component = getShallowComponent();
+    const requestWaiveTransitiveViolationsButton = component.find('#transitive-violations-page-request-waive');
+    expect(requestWaiveTransitiveViolationsButton).toHaveProp('disabled', true);
+  });
+
+  it('enables the request waive transitive violations button if there is at least 1 transitive violation', function () {
+    const component = getShallowComponent({
+      ...minimalProps,
+      componentTransitivePolicyViolations: {
+        ...minimalProps.componentTransitivePolicyViolations,
+        data: {
+          ...minimalProps.componentTransitivePolicyViolations.data,
+          violations: [{}],
+        },
+      },
+    });
+    const requestWaiveTransitiveViolationsButton = component.find('#transitive-violations-page-request-waive');
+    expect(requestWaiveTransitiveViolationsButton).toHaveProp('disabled', false);
   });
 });

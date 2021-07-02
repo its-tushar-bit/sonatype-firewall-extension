@@ -17,6 +17,7 @@ import {
   TRANSITIVE_VIOLATIONS_LOAD_REQUESTED,
   TRANSITIVE_VIOLATIONS_SET_FILTERING_PARAMETERS,
   TRANSITIVE_VIOLATIONS_SET_SORTING_PARAMETERS,
+  TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE,
   TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE,
 } from '../../../main/frontend/violation/transitiveViolationsActions';
 import { Messages } from '../../../main/frontend/util/CommonServices';
@@ -54,6 +55,7 @@ describe('transitiveViolationsReducer', function () {
           threatCountsTotal: null,
           componentCount: null,
         },
+        isRequestWaiveTransitiveViolationsOpen: false,
         isWaiveTransitiveViolationsOpen: false,
       });
     });
@@ -810,6 +812,28 @@ describe('transitiveViolationsReducer', function () {
             ],
           },
         },
+      });
+    });
+  });
+
+  describe('TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE action', function () {
+    it('sets isRequestWaiveTransitiveViolationsOpen to true if it is false', function () {
+      const state = { isRequestWaiveTransitiveViolationsOpen: false };
+      const action = { type: TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        isRequestWaiveTransitiveViolationsOpen: true,
+      });
+    });
+
+    it('sets isRequestWaiveTransitiveViolationsOpen to false if it is true', function () {
+      const state = { isRequestWaiveTransitiveViolationsOpen: true };
+      const action = { type: TRANSITIVE_VIOLATIONS_TOGGLE_REQUEST_WAIVE };
+      const newState = reduce(state, action);
+
+      expect(newState).toEqual({
+        isRequestWaiveTransitiveViolationsOpen: false,
       });
     });
   });

@@ -57,6 +57,14 @@ export const filterConfigurationPropType = PropTypes.shape({
   displayName: PropTypes.string.isRequired,
 });
 
+export const threatCountsPropType = PropTypes.shape({
+  critical: PropTypes.number.isRequired,
+  severe: PropTypes.number.isRequired,
+  moderate: PropTypes.number.isRequired,
+  low: PropTypes.number.isRequired,
+  none: PropTypes.number.isRequired,
+});
+
 export const componentTransitivePolicyViolationsPropType = PropTypes.shape({
   loading: PropTypes.bool.isRequired,
   error: PropTypes.string,
@@ -71,13 +79,7 @@ export const componentTransitivePolicyViolationsPropType = PropTypes.shape({
     violations: PropTypes.arrayOf(policyViolationPropType.isRequired).isRequired,
     displayedViolations: PropTypes.arrayOf(policyViolationPropType.isRequired).isRequired,
   }),
-  threatCounts: PropTypes.shape({
-    critical: PropTypes.number.isRequired,
-    severe: PropTypes.number.isRequired,
-    moderate: PropTypes.number.isRequired,
-    low: PropTypes.number.isRequired,
-    none: PropTypes.number.isRequired,
-  }),
+  threatCounts: threatCountsPropType,
   threatCountsTotal: PropTypes.number,
   componentCount: PropTypes.number,
 });

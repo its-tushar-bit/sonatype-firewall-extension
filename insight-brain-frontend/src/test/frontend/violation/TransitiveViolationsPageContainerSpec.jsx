@@ -18,6 +18,7 @@ describe('TransitiveViolationsPageContainer', function () {
     loadTransitiveViolationsActionMock,
     setSortingParametersActionMock,
     setFilteringParametersActionMock,
+    toggleRequestWaiveTransitiveViolationsMock,
     toggleWaiveTransitiveViolationsMock;
 
   beforeEach(function () {
@@ -34,6 +35,7 @@ describe('TransitiveViolationsPageContainer', function () {
         availableScopes: 'someAvailableScopes',
         reportMetadata: 'someReportMetadata',
         componentTransitivePolicyViolations: 'someComponentTransitivePolicyViolations',
+        isRequestWaiveTransitiveViolationsOpen: 'someIsRequestWaiveTransitiveViolationsOpen',
         isWaiveTransitiveViolationsOpen: 'someIsWaiveTransitiveViolationsOpen',
       },
     };
@@ -50,9 +52,12 @@ describe('TransitiveViolationsPageContainer', function () {
     setFilteringParametersActionMock = jasmine
       .createSpy('setFilteringParametersActionMock')
       .and.returnValue({ type: 'BAR5' });
+    toggleRequestWaiveTransitiveViolationsMock = jasmine
+      .createSpy('toggleRequestWaiveTransitiveViolationsMock')
+      .and.returnValue({ type: 'BAR6' });
     toggleWaiveTransitiveViolationsMock = jasmine
       .createSpy('toggleWaiveTransitiveViolationsMock')
-      .and.returnValue({ type: 'BAR6' });
+      .and.returnValue({ type: 'BAR7' });
     TransitiveViolationsPageContainer = require('inject-loader!../../../main/frontend/violation/TransitiveViolationsPageContainer')(
       {
         './transitiveViolationsActions': {
@@ -61,6 +66,7 @@ describe('TransitiveViolationsPageContainer', function () {
           loadTransitiveViolations: loadTransitiveViolationsActionMock,
           setSortingParameters: setSortingParametersActionMock,
           setFilteringParameters: setFilteringParametersActionMock,
+          toggleRequestWaiveTransitiveViolations: toggleRequestWaiveTransitiveViolationsMock,
           toggleWaiveTransitiveViolations: toggleWaiveTransitiveViolationsMock,
         },
       }
@@ -78,6 +84,7 @@ describe('TransitiveViolationsPageContainer', function () {
     expect(wrapper).toHaveProp('availableScopes', 'someAvailableScopes');
     expect(wrapper).toHaveProp('reportMetadata', 'someReportMetadata');
     expect(wrapper).toHaveProp('componentTransitivePolicyViolations', 'someComponentTransitivePolicyViolations');
+    expect(wrapper).toHaveProp('isRequestWaiveTransitiveViolationsOpen', 'someIsRequestWaiveTransitiveViolationsOpen');
     expect(wrapper).toHaveProp('isWaiveTransitiveViolationsOpen', 'someIsWaiveTransitiveViolationsOpen');
   });
 
@@ -109,10 +116,15 @@ describe('TransitiveViolationsPageContainer', function () {
     setFilteringParametersActionCreator('test');
     expect(store.getActions()[4]).toEqual({ type: 'BAR5' });
 
+    const toggleRequestWaiveTransitiveViolationsActionCreator = wrapper.prop('toggleRequestWaiveTransitiveViolations');
+    expect(toggleRequestWaiveTransitiveViolationsActionCreator).toEqual(jasmine.any(Function));
+    toggleRequestWaiveTransitiveViolationsActionCreator('test');
+    expect(store.getActions()[5]).toEqual({ type: 'BAR6' });
+
     const toggleWaiveTransitiveViolationsActionCreator = wrapper.prop('toggleWaiveTransitiveViolations');
     expect(toggleWaiveTransitiveViolationsActionCreator).toEqual(jasmine.any(Function));
     toggleWaiveTransitiveViolationsActionCreator('test');
-    expect(store.getActions()[5]).toEqual({ type: 'BAR6' });
+    expect(store.getActions()[6]).toEqual({ type: 'BAR7' });
   });
 
   it('renders the TransitiveViolationsPage component', function () {

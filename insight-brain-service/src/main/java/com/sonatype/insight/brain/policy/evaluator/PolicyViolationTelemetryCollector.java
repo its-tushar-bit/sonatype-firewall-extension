@@ -77,9 +77,25 @@ public class PolicyViolationTelemetryCollector
 
   public void addTelemetryForFixedViolation(PolicyViolation fixedPolicyViolation, List<Component> components) {
     if (fixedPolicyViolation != null) {
-      String fixByVersionChange = calculateFixByVersionChange(components, fixedPolicyViolation);
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION, fixedPolicyViolation);
+      if (components.size() == 1) {
+        addTelemetryDependencyInfo(components.get(0), telemetryData);
+      }
+      else if (components.size() > 1 && components.get(0).getInnerSourceData() != null) {
+        telemetryData.put(INNERSOURCE_DEPENDENCY, true);
+      }
+      telemetryData.put(FIX_TIME, timeOfPolicyEvaluation.getTime());
+      telemetryDataList.add(telemetryData);
+      addTelemetryForVersionChange(fixedPolicyViolation, components);
+    }
+  }
+
+  private void addTelemetryForVersionChange(PolicyViolation fixedPolicyViolation, List<Component> components) {
+    if (components.size() == 1) {
+      String fixByVersionChange = calculateFixByVersionChange(components, fixedPolicyViolation);
+      TelemetryData telemetryData =
+          createTelemetry(TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, fixedPolicyViolation);
       if (components.size() == 1) {
         addTelemetryDependencyInfo(components.get(0), telemetryData);
       }
@@ -167,28 +183,22 @@ public class PolicyViolationTelemetryCollector
   }
 
   private String calculateFixByVersionChange(List<Component> components, PolicyViolation oldPolicyViolation) {
-    if (components.isEmpty()) {
-      return "remove";
+    String newVersion = components.get(0).getVersion();
+    String oldVersion = null;
+    if (oldPolicyViolation.getComponentIdentifier() != null) {
+      oldVersion = oldPolicyViolation.getComponentIdentifier().get(ComponentIdentifier.VERSION);
     }
-    if (components.size() == 1) {
-      String newVersion = components.get(0).getVersion();
-      String oldVersion = null;
-      if (oldPolicyViolation.getComponentIdentifier() != null) {
-        oldVersion = oldPolicyViolation.getComponentIdentifier().get(ComponentIdentifier.VERSION);
+    if (oldVersion != null && newVersion != null) {
+      ComparableVersion oldComparableVersion = new ComparableVersion(oldVersion);
+      ComparableVersion newComparableVersion = new ComparableVersion(newVersion);
+      int comparisonResult = oldComparableVersion.compareTo(newComparableVersion);
+      if (comparisonResult > 0) {
+        return "downgrade";
       }
-      if (oldVersion != null && newVersion != null) {
-        ComparableVersion oldComparableVersion = new ComparableVersion(oldVersion);
-        ComparableVersion newComparableVersion = new ComparableVersion(newVersion);
-        int comparisonResult = oldComparableVersion.compareTo(newComparableVersion);
-        if (comparisonResult > 0) {
-          return "downgrade";
-        }
-        if (comparisonResult < 0) {
-          return "upgrade";
-        }
+      if (comparisonResult < 0) {
+        return "upgrade";
       }
     }
-
     return null;
   }
 

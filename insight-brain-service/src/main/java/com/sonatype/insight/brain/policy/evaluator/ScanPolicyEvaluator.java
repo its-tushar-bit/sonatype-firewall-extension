@@ -451,9 +451,9 @@ public class ScanPolicyEvaluator
           policyViolationDAO.update(tx, oldPolicyViolation);
           policyViolationLogger.add(PolicyViolationLogEvent.FIX, oldPolicyViolation);
 
-          telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation,
-              findComponentsByComponentIdentifierElseVersionless(components,
-                  oldPolicyViolation.getComponentIdentifier()));
+          List<Component> found = findComponentsByComponentIdentifierElseVersionless(components,
+              oldPolicyViolation.getComponentIdentifier());
+          telemetryCollector.addTelemetryForFixedViolation(oldPolicyViolation, found);
           results.fixedViolations.add(oldPolicyViolation);
         }
         // Existing policy violations.

@@ -31,6 +31,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_GRANDFATHER_POLICY_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION;
@@ -84,8 +85,11 @@ public class PolicyViolationTelemetryCollectorTest
 
     // then
     assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
+    assertThat(telemetryData.size()).isEqualTo(2);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
+        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
+        telemetryData);
+    assertTelemetryAttributes(TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource,
         "upgrade", telemetryData);
   }
@@ -116,8 +120,11 @@ public class PolicyViolationTelemetryCollectorTest
 
     // then
     assertThat(telemetryData).isNotNull();
-    assertThat(telemetryData.size()).isEqualTo(1);
+    assertThat(telemetryData.size()).isEqualTo(2);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
+        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource, null,
+        telemetryData);
+    assertTelemetryAttributes(TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
         expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, isDirectDependency, isInnerSource,
         "downgrade", telemetryData);
   }
@@ -144,7 +151,7 @@ public class PolicyViolationTelemetryCollectorTest
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.size()).isEqualTo(1);
     assertTelemetryAttributes(TIME_TO_REMEDIATE_POLICY_VIOLATION, threatLevel, policyThreatCategory, isScmEnabled,
-        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, null, "remove", telemetryData);
+        expectedTTR, openTime.getTime(), null, null, evalTime.getTime(), 1, null, null, null, telemetryData);
   }
 
   @Test

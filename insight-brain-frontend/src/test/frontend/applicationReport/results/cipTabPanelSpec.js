@@ -89,15 +89,38 @@ describe('cipTabPanel', function () {
         },
       ];
 
-      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(200, mockResponse);
       controller.selectedComponent = innerSourceComponent;
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(200, mockResponse);
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            CLMLocations.getInnerSourceComponentLatestVersionUrl(controller.selectedComponent.componentIdentifier)
+          )
+        )
+        .respond(200, '');
       $scope.$digest();
       $httpBackend.flush();
 
       expect(controller.selectedComponent.latestReport.url).toContain('releaseUrl');
     });
 
-    it('handle the error action if request fails', function () {
+    it('sets the latest version for a selected InnerSource component', function () {
+      controller.selectedComponent = innerSourceComponent;
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(200, [{}]);
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            CLMLocations.getInnerSourceComponentLatestVersionUrl(controller.selectedComponent.componentIdentifier)
+          )
+        )
+        .respond(200, '1.0.0');
+      $scope.$digest();
+      $httpBackend.flush();
+
+      expect(controller.selectedComponent.innerSourceData[0].latestVersion).toContain('1.0.0');
+    });
+
+    it('handle the error action if last report URL request fails', function () {
       $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(500, 'error');
       controller.selectedComponent = innerSourceComponent;
       $scope.$digest();
@@ -106,6 +129,59 @@ describe('cipTabPanel', function () {
       expect(controller.error).toContain('error');
       expect(controller.selectedComponent.latestReport).toBeUndefined();
     });
+
+    it('handle the error action if request for InnerSource component latest version fails', function () {
+      controller.selectedComponent = innerSourceComponent;
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getApplicationReportsUrl('id'))).respond(200, [{}]);
+      $httpBackend
+        .expectGET(
+          SpecUtil.toRegExp(
+            CLMLocations.getInnerSourceComponentLatestVersionUrl(controller.selectedComponent.componentIdentifier)
+          )
+        )
+        .respond(500, 'error');
+      $scope.$digest();
+      $httpBackend.flush();
+
+      expect(controller.error).toContain('error');
+      expect(controller.selectedComponent.innerSourceData[0].latestVersion).toBeUndefined();
+    });
+
+    it('opens a new tab with the InnerSource report when no version is set', inject(function ($window) {
+      spyOn($window, 'open').and.callFake(() => {});
+
+      controller.selectedComponent = innerSourceComponent;
+      controller.selectedComponent.latestReport = { url: 'someUrl' };
+      controller.openLatestInnerSourceReport();
+
+      expect($window.open).toHaveBeenCalledWith('someUrl', '_blank');
+    }));
+
+    it('opens a new tab with the InnerSource report when having the same version', inject(function ($window) {
+      spyOn($window, 'open').and.callFake(() => {});
+
+      controller.selectedComponent = innerSourceComponent;
+      controller.selectedComponent.latestReport = { url: 'someUrl' };
+      controller.selectedComponent.componentIdentifier.coordinates = { version: '1.0.0' };
+      controller.selectedComponent.innerSourceData[0].latestVersion = '1.0.0';
+      controller.openLatestInnerSourceReport();
+
+      expect($window.open).toHaveBeenCalledWith('someUrl', '_blank');
+    }));
+
+    it('opens a modal to go to the InnerSource report when a different version is set', inject(function ($window) {
+      spyOn($window, 'open');
+      spyOn(controller, 'openInnerSourceProducerReportModal');
+
+      controller.selectedComponent = innerSourceComponent;
+      controller.selectedComponent.latestReport = { url: 'someUrl' };
+      controller.selectedComponent.componentIdentifier.coordinates = { version: '1.0.0' };
+      controller.selectedComponent.innerSourceData[0].latestVersion = '2.0.0';
+      controller.openLatestInnerSourceReport();
+
+      expect(controller.openInnerSourceProducerReportModal).toHaveBeenCalled();
+      expect($window.open).not.toHaveBeenCalled();
+    }));
 
     it('sets vm.selectedTab to the name of the first tab if its previous value is not present in vm.tabs', function () {
       controller.selectedComponent = { matchState: 'exact' };
@@ -509,6 +585,27 @@ describe('cipTabPanel', function () {
           displayName: 'Audit Log',
         });
       });
+    });
+  });
+
+  describe('$destroy()', function () {
+    let $scope, controller;
+
+    beforeEach(inject(function (_$rootScope_) {
+      $scope = _$rootScope_.$new();
+      controller = $componentController('cipTabPanel', { $scope }, { selectedComponent: {} });
+    }));
+
+    it('unsubscribes from redux store', function () {
+      spyOn(controller, 'reduxUnsubscribe');
+      $scope.$destroy();
+      expect(controller.reduxUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the InnerSource producer report modal', function () {
+      spyOn(controller, 'closeInnerSourceProducerReportModal');
+      $scope.$destroy();
+      expect(controller.closeInnerSourceProducerReportModal).toHaveBeenCalledTimes(1);
     });
   });
 });

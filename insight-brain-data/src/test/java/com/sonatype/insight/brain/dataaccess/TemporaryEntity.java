@@ -2836,7 +2836,12 @@ public class TemporaryEntity
   }
 
   public InnerSourceComponent newInnerSourceComponent(String purl, Application application) {
+    return newInnerSourceComponent(purl, application, null);
+  }
+
+  public InnerSourceComponent newInnerSourceComponent(String purl, Application application, String latestVersion) {
     InnerSourceComponent innerSourceComponent = new InnerSourceComponent(application.getId(), purl);
+    innerSourceComponent.setLatestVersion(latestVersion);
     innerSourceComponentDAO.insert(innerSourceComponent);
     innerSourceComponents.add(innerSourceComponent);
     return innerSourceComponent;

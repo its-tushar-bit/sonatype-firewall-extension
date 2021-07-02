@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,24 +165,37 @@ public class DependencyResolver
     String appId = application.getId();
     PackageUrlIdentifier rootArtifactIdentifier = getVersionlessPackageUrl(componentIdentifier);
     if (rootArtifactIdentifier != null) {
+      String version = componentIdentifier.get(ComponentIdentifier.VERSION);
       InnerSourceComponent innerSourceComponent = innerSourceComponentDAO.getByPackageUrl(rootArtifactIdentifier);
       if (innerSourceComponent != null) {
-        if (!appId.equals(innerSourceComponent.getApplicationId())) {
+        boolean isNewerVersion = isNewerVersion(innerSourceComponent.getLatestVersion(), version);
+        if (!appId.equals(innerSourceComponent.getApplicationId()) || isNewerVersion) {
           innerSourceComponent.setApplicationId(appId);
+          if (isNewerVersion) {
+            innerSourceComponent.setLatestVersion(version);
+          }
           innerSourceComponentDAO.update(innerSourceComponent);
-          log.info("InnerSource component {} for app {} was updated", innerSourceComponent.getPackageUrl(), appId);
+          log.info("InnerSource component {} with version {} for app {} was updated",
+              innerSourceComponent.getPackageUrl(), version, appId);
         }
       }
       else {
         innerSourceComponent = new InnerSourceComponent();
         innerSourceComponent.setApplicationId(appId);
         innerSourceComponent.setPackageUrl(rootArtifactIdentifier.getPackageUrl());
+        innerSourceComponent.setLatestVersion(version);
         innerSourceComponentDAO.insert(innerSourceComponent);
-        log.info("InnerSource component {} for app {} was created", innerSourceComponent.getPackageUrl(), appId);
+        log.info("InnerSource component {} with version {} for app {} was created",
+            innerSourceComponent.getPackageUrl(), version, appId);
       }
       return true;
     }
     return false;
+  }
+
+  private boolean isNewerVersion(String oldVersion, String newVersion) {
+    return new ComparableVersion(newVersion == null ? "" : newVersion)
+        .compareTo(new ComparableVersion(oldVersion == null ? "" : oldVersion)) > 0;
   }
 
   private Set<String> associateModuleToApp(

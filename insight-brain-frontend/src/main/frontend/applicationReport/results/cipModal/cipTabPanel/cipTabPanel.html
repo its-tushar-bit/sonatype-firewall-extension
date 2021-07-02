@@ -3,7 +3,7 @@
     <div class="iq-grid-col iq-grid-col--33">
       <h3>{{vm.selectedComponent.innerSourceData[0].ownerApplicationName}}</h3>
       <em>InnerSource</em>
-      <p><a class="tm-inner-source-report" title="View Latest Report" href="{{vm.selectedComponent.latestReport.url}}" target="_blank">
+      <p><a class="tm-inner-source-report" title="View Latest Report" ng-click="vm.openLatestInnerSourceReport()">
         View Latest Report</a></p>
     </div>
     <div class="iq-grid-col iq-grid-col--67">
@@ -11,6 +11,9 @@
         <i class='fa fa-info-circle'></i>InnerSource components are software components that are developed internally
         and shared with other internal projects.
       </div>
+    </div>
+    <div ng-if="vm.selectedComponent.latestReport">
+      <inner-source-producer-report-modal />
     </div>
   </div>
 

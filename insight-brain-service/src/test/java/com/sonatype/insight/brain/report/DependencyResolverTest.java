@@ -113,6 +113,7 @@ public class DependencyResolverTest
         componentIdentifier.get(ComponentIdentifier.MAVEN_ARTIFACT_ID)));
 
     assertThat(innerSourceComponents.get(0).getPackageUrl()).isEqualTo(expectedPurl.getPackageUrl());
+    assertThat(innerSourceComponents.get(0).getLatestVersion()).isEqualTo("1.0.0");
   }
 
   @Test
@@ -141,7 +142,29 @@ public class DependencyResolverTest
 
     ArgumentCaptor<InnerSourceComponent> argument = ArgumentCaptor.forClass(InnerSourceComponent.class);
     verify(innerSourceComponentDAOSpy).update(argument.capture());
-    assertThat(argument.getValue().getApplicationId()).isEqualTo(app.getId());
+
+    InnerSourceComponent innerSourceComponent = argument.getValue();
+    assertThat(innerSourceComponent.getApplicationId()).isEqualTo(app.getId());
+    // The original component has null as version, now it should have a value there
+    assertThat(innerSourceComponent.getLatestVersion()).isEqualTo("1.0.0");
+  }
+
+  @Test
+  public void processInnerSource_updateInnerSourceParentWithOlderVersion() {
+    Application innerSourceApp = tempEntity.newApplicationWithParent();
+    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", innerSourceApp, "1.0.1");
+
+    ComponentIdentifier rootComponentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("com.sonatype.nexus", "nexus-platform-api", "1.0.0", "", "jar");
+
+    newDependencyResolver().saveInnerSourceComponent(rootComponentIdentifier);
+
+    ArgumentCaptor<InnerSourceComponent> argument = ArgumentCaptor.forClass(InnerSourceComponent.class);
+    verify(innerSourceComponentDAOSpy).update(argument.capture());
+
+    InnerSourceComponent innerSourceComponent = argument.getValue();
+    assertThat(innerSourceComponent.getApplicationId()).isEqualTo(app.getId());
+    assertThat(innerSourceComponent.getLatestVersion()).isEqualTo("1.0.1");
   }
 
   @Test

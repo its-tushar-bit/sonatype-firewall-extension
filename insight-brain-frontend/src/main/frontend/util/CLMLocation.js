@@ -823,6 +823,10 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getAbsoluteUrl: function (url) {
         return baseUrl.get() + `/${url}`;
       },
+
+      getInnerSourceComponentLatestVersionUrl: (componentIdentifier) =>
+        `${baseUrl.get()}/rest/innerSource/component/latestVersion?` +
+        `componentIdentifier=${encodeURIComponent(JSON.stringify(componentIdentifier))}`,
     };
   },
 ]);

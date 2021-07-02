@@ -30,6 +30,9 @@ public class InnerSourceComponent
   @Column(name = "package_url")
   private String packageUrl;
 
+  @Column(name = "latest_version")
+  private String latestVersion;
+
   // for JPA
   public InnerSourceComponent() { }
 
@@ -64,12 +67,21 @@ public class InnerSourceComponent
     this.packageUrl = purl;
   }
 
+  public String getLatestVersion() {
+    return latestVersion;
+  }
+
+  public void setLatestVersion(String latestVersion) {
+    this.latestVersion = latestVersion;
+  }
+
   @Override
   public String toString() {
     return "InnerSourceComponent{" +
         "id='" + id + '\'' +
         ", applicationId='" + applicationId + '\'' +
         ", packageUrl='" + packageUrl + '\'' +
+        ", latestVersion='" + latestVersion + '\'' +
         '}';
   }
 }

@@ -33,6 +33,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipAuditT
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipOccurrencesTab;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipSimilarTab;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.InnerSourceProducerReportModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RepositoryReportPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
@@ -66,6 +67,7 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -118,7 +120,9 @@ public class ApplicationReportCipTest
   public void start() throws IOException {
     testCLMServer.getCLMServer().getConfiguration()
         .setExperimentalFeatures(ImmutableMap.of(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false));
-    app = tempEntity.newApplicationWithParent("ApplicationReportTest", "ApplicationReportTest");
+    Organization org = tempEntity.newOrganization("ApplicationReportTest");
+    app = tempEntity.newApplicationWithSpecificId("8bbaa746602142d9adf2de00a9ca4d4a", "ApplicationReportTest",
+        "ApplicationReportTest", org.getId());
     URL zippedReport = ReportHelper.zipReport("/canned-reports/small-report", tempDir);
     InsightWork work = new InsightWork(testCLMServer.getCLMServer().getConfiguration());
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, Configuration.baseUrl, work);
@@ -257,6 +261,11 @@ public class ApplicationReportCipTest
   }
 
   private void testInnerSourceComponentHeader() {
+    String packageUrl = InnerSourceUtils
+        .getVersionlessPackageUrl(ComponentIdentifier.createMavenCoordinates("java2html", "j2h", "1.3.1"))
+        .getPackageUrl();
+    tempEntity.newInnerSourceComponent(packageUrl, app, "0.0.0");
+
     CipModal cipModal = reportPage.cipModal();
     reportPage.resultRow(8).click();
 
@@ -270,6 +279,17 @@ public class ApplicationReportCipTest
     cipModal.latestReportLink().shouldHave(exactText("View Latest Report"));
     cipModal.innerSourceAlertInfo().shouldHave(exactText("InnerSource components are software components that are " +
         "developed internally and shared with other internal projects."));
+
+    cipModal.latestReportLink().click();
+    InnerSourceProducerReportModal innerSourceProducerReportModal = cipModal.innerSourceProducerReportModal();
+    innerSourceProducerReportModal.shouldBe(visible);
+    innerSourceProducerReportModal.header().shouldHave(exactText("Newer Component Version Found in Report"));
+    innerSourceProducerReportModal.content()
+        .shouldHave(exactText("A newer version of the InnerSource component is being used in the latest report."));
+    innerSourceProducerReportModal.continueToReportButton().shouldBe(visible);
+    innerSourceProducerReportModal.cancelButton().click();
+    innerSourceProducerReportModal.shouldNotBe(visible);
+
     cipModal.closeButton().click();
   }
 

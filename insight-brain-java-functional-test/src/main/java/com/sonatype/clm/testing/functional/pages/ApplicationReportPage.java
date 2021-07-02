@@ -299,6 +299,10 @@ public class ApplicationReportPage
     public SelenideElement innerSourceAlertInfo() {
       return child(".iq-alert--info");
     }
+
+    public InnerSourceProducerReportModal innerSourceProducerReportModal() {
+      return new InnerSourceProducerReportModal();
+    }
   }
 
   public static class CipOccurrencesTab
@@ -378,6 +382,32 @@ public class ApplicationReportPage
 
     public IqSortingHeader commentHeader() {
       return new IqSortingHeader(selector + " thead > tr > th:nth-child(5)");
+    }
+  }
+
+  public static class InnerSourceProducerReportModal
+      extends BasicElement<InnerSourceProducerReportModal>
+  {
+    public static final String ROOT = "#innersource-producer-report-modal";
+
+    public InnerSourceProducerReportModal() {
+      super(ROOT);
+    }
+
+    public SelenideElement header() {
+      return child(".nx-modal-header .nx-h2");
+    }
+
+    public SelenideElement content() {
+      return child(".nx-modal-content");
+    }
+
+    public SelenideElement cancelButton() {
+      return child("#innersource-producer-report-modal-cancel");
+    }
+
+    public SelenideElement continueToReportButton() {
+      return child("#innersource-producer-report-modal-continue-to-report");
     }
   }
 

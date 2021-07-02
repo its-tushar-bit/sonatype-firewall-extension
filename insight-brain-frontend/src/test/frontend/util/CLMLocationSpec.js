@@ -110,6 +110,14 @@ describe('CLMLocation.js', function () {
         'http://localhost/ui/links/cycloneDx/foo/reports/bar'
       );
     });
+
+    it('should return the correct URL to query the latest version of an InnerSource component', () => {
+      const componentIdentifier = { coordinates: 'a-coordinate' };
+      expect(CLMLocationsService.getInnerSourceComponentLatestVersionUrl(componentIdentifier)).toBe(
+        'http://localhost/rest/innerSource/component/latestVersion?componentIdentifier=' +
+          '%7B%22coordinates%22%3A%22a-coordinate%22%7D'
+      );
+    });
   });
 
   // map of user-telemetry method names and their respective unique postfixes

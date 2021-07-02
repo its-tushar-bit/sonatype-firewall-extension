@@ -6,6 +6,10 @@
 import { comparator, find, isNil, propEq, reject, sort } from 'ramda';
 
 import template from './cipTabPanel.html';
+import {
+  openInnerSourceProducerReportModal,
+  closeInnerSourceProducerReportModal,
+} from '../../../applicationReportActions';
 
 /**
  * This component is analogous to the older componentInformationPanelDirective, but for the policy-centric app report.
@@ -27,11 +31,16 @@ export default {
   },
 };
 
-function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerContext) {
-  const vm = this;
+function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerContext, $window, $ngRedux) {
+  const vm = this,
+    actions = { openInnerSourceProducerReportModal, closeInnerSourceProducerReportModal };
+
+  vm.reduxUnsubscribe = $ngRedux.connect(null, actions)(vm);
 
   Object.assign(vm, {
     selectedTab: 'componentInfo',
+    openLatestInnerSourceReport: openLatestInnerSourceReport,
+    closeInnerSourceProducerReportModal: closeInnerSourceProducerReportModal,
   });
 
   function updateTabs() {
@@ -123,21 +132,35 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerConte
       innerSourceData[0] &&
       innerSourceData[0].ownerApplicationId
     ) {
-      $http.get(CLMLocations.getApplicationReportsUrl(innerSourceData[0].ownerApplicationId)).then(
-        function (response) {
-          const { data } = response;
-          if (data && data.length > 0) {
-            const lastInnerSourceReportData = sort(byStage, data)[0];
-            vm.selectedComponent.latestReport = {
-              stage: lastInnerSourceReportData.stage,
-              url: CLMLocations.getAbsoluteUrl(lastInnerSourceReportData.latestReportHtmlUrl),
-            };
-          }
-        },
-        function (response) {
-          vm.error = Messages.getHttpErrorMessage(response);
-        }
+      $http
+        .get(CLMLocations.getApplicationReportsUrl(innerSourceData[0].ownerApplicationId))
+        .then(handleLatestInnerSourceReportsUrlResponse, (error) => (vm.error = Messages.getHttpErrorMessage(error)));
+    }
+  }
+
+  function handleLatestInnerSourceReportsUrlResponse(reportsUrlResponse) {
+    const { data } = reportsUrlResponse;
+    if (data && data.length > 0) {
+      const lastInnerSourceReportData = sort(byStage, data)[0];
+      vm.selectedComponent.latestReport = {
+        stage: lastInnerSourceReportData.stage,
+        url: CLMLocations.getAbsoluteUrl(lastInnerSourceReportData.latestReportHtmlUrl),
+      };
+
+      $http.get(CLMLocations.getInnerSourceComponentLatestVersionUrl(vm.selectedComponent.componentIdentifier)).then(
+        (response) => (vm.selectedComponent.innerSourceData[0].latestVersion = response.data),
+        (error) => (vm.error = Messages.getHttpErrorMessage(error))
       );
+    }
+  }
+
+  function openLatestInnerSourceReport() {
+    const currentVersion = vm.selectedComponent.componentIdentifier.coordinates.version;
+    const { latestVersion } = vm.selectedComponent.innerSourceData[0];
+    if (latestVersion && latestVersion !== currentVersion) {
+      vm.openInnerSourceProducerReportModal();
+    } else {
+      $window.open(vm.selectedComponent.latestReport.url, '_blank');
     }
   }
 
@@ -151,6 +174,11 @@ function CipTabPanelController($scope, CLMLocations, $http, Messages, OwnerConte
       }
     }
   });
+
+  $scope.$on('$destroy', function () {
+    vm.closeInnerSourceProducerReportModal();
+    vm.reduxUnsubscribe();
+  });
 }
 
-CipTabPanelController.$inject = ['$scope', 'CLMLocations', '$http', 'Messages', 'OwnerContext'];
+CipTabPanelController.$inject = ['$scope', 'CLMLocations', '$http', 'Messages', 'OwnerContext', '$window', '$ngRedux'];

@@ -37,6 +37,8 @@ import {
   SET_RAW_SORTING_PARAMETERS,
   SELECT_COMPONENT,
   APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR,
+  OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL,
+  CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL,
 } from './applicationReportActions';
 
 import { sortItemsByFields } from '../util/sortUtils';
@@ -212,6 +214,12 @@ export default function applicationReportReducer(state = initState, { type, payl
 
     case APPLICATION_REPORT_TOGGLE_FILTER_SIDEBAR:
       return { ...state, filterSidebarOpen: payload };
+
+    case OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL:
+      return pathSet(['selectedComponent', 'showInnerSourceProducerReportModal'], true, state);
+
+    case CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL:
+      return pathSet(['selectedComponent', 'showInnerSourceProducerReportModal'], false, state);
 
     default:
       return state;

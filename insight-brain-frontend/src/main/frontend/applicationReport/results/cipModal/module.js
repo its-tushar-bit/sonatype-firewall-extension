@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { react2angular } from 'react2angular';
+import withStoreProvider from '../../../reactAdapter/StoreProvider';
 import './cipGlobals';
 import '../../../version-graph/appcheck';
 import pv from '../../../lib/protovis/protovis.min';
@@ -41,6 +43,7 @@ import cipAudit from './cipAudit/cipAudit';
 import cipTabPanel from './cipTabPanel/cipTabPanel';
 import cipClaimComponent from './cipClaimComponent/cipClaimComponent';
 import rootAncestors from './rootAncestors/rootAncestors';
+import innerSourceProducerReportModalContainer from './cipTabPanel/innerSourceProducerReportModal/InnerSourceProducerReportModalContainer';
 
 export default angular
   .module('cipModal', [
@@ -62,6 +65,10 @@ export default angular
   .component('cipTabPanel', cipTabPanel)
   .component('cipClaimComponent', cipClaimComponent)
   .component('rootAncestors', rootAncestors)
+  .component(
+    'innerSourceProducerReportModal',
+    react2angular(withStoreProvider(innerSourceProducerReportModalContainer), [], ['$ngRedux'])
+  )
   .service('OwnerContext', OwnerContext);
 
 // context service needed for CIP

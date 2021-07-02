@@ -759,6 +759,24 @@ describe('applicationReportActions', function () {
     });
   });
 
+  describe('openInnerSourceProducerReportModal', function () {
+    it('returns a OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL action with no payload', function () {
+      const action = applicationReportActions.openInnerSourceProducerReportModal();
+
+      expect(action.type).toBe('OPEN_INNERSOURCE_PRODUCER_REPORT_MODAL');
+      expect(action.payload).not.toBeDefined();
+    });
+  });
+
+  describe('closeInnerSourceProducerReportModal', function () {
+    it('returns a CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL action with no payload', function () {
+      const action = applicationReportActions.closeInnerSourceProducerReportModal();
+
+      expect(action.type).toBe('CLOSE_INNERSOURCE_PRODUCER_REPORT_MODAL');
+      expect(action.payload).not.toBeDefined();
+    });
+  });
+
   function expectCommonDataCalls(isSuccess, additionalCalls = {}) {
     mockAxiosCalls({
       get: {

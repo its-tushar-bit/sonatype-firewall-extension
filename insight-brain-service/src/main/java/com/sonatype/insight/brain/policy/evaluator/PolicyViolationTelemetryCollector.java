@@ -94,19 +94,15 @@ public class PolicyViolationTelemetryCollector
   private void addTelemetryForVersionChange(PolicyViolation fixedPolicyViolation, List<Component> components) {
     if (components.size() == 1) {
       String fixByVersionChange = calculateFixByVersionChange(components, fixedPolicyViolation);
-      TelemetryData telemetryData =
-          createTelemetry(TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, fixedPolicyViolation);
-      if (components.size() == 1) {
-        addTelemetryDependencyInfo(components.get(0), telemetryData);
-      }
-      else if (components.size() > 1 && components.get(0).getInnerSourceData() != null) {
-        telemetryData.put(INNERSOURCE_DEPENDENCY, true);
-      }
       if (fixByVersionChange != null) {
+        TelemetryData telemetryData =
+            createTelemetry(TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, fixedPolicyViolation);
+        addTelemetryDependencyInfo(components.get(0), telemetryData);
         telemetryData.put(FIX_BY_VERSION_CHANGE, fixByVersionChange);
+
+        telemetryData.put(FIX_TIME, timeOfPolicyEvaluation.getTime());
+        telemetryDataList.add(telemetryData);
       }
-      telemetryData.put(FIX_TIME, timeOfPolicyEvaluation.getTime());
-      telemetryDataList.add(telemetryData);
     }
   }
 

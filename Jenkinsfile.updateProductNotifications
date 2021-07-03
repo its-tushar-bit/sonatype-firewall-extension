@@ -13,7 +13,7 @@ pipeline {
   stages {
     stage('Update In-Product Notifications') {
       steps {
-        updateProductNotifications(params.releaseJira, params.releaseVersion)
+        updateProductNotifications(params.releaseVersion)
       }
     }
   }

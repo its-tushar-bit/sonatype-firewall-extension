@@ -16,6 +16,7 @@ import {
   LdapCheckUserMappingController,
   LdapCheckLoginController,
 } from './LdapConfigurationController';
+import BootstrapAddonsModule from '../../util/BootstrapAddonsModule';
 import LdapServerListController from './ldap.server.list.controller';
 import { LdapServerOrderingController, LdapServerOrderingModal } from './ldap.server.ordering.controller';
 
@@ -34,6 +35,7 @@ export default angular
       angularCommonModule.name,
       commonServicesModule.name,
       EditorToolsModule.name,
+      BootstrapAddonsModule.name,
     ],
     ldapModuleConfiguration
   )

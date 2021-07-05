@@ -103,15 +103,13 @@ describe('RoleList', () => {
   });
 
   describe('on create role click', () => {
-    it('links to the roles.editor page', function () {
+    it('links to the addRole page', function () {
       const component = getShallowComponent();
       const createRole = component.find('#create-role');
 
       createRole.simulate('click');
 
-      expect(stateGoSpy).toHaveBeenCalledWith('roles.editor', {
-        roleId: '_new_',
-      });
+      expect(stateGoSpy).toHaveBeenCalledWith('addRole');
     });
   });
 });

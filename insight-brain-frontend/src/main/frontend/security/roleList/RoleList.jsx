@@ -22,7 +22,7 @@ export default function RoleList(props) {
   }, []);
 
   const createRole = () => {
-    stateGo('roles.editor', { roleId: '_new_' });
+    stateGo('addRole');
   };
 
   const { builtInRoles = [], customRoles = [] } = byBuiltIn(roles);

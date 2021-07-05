@@ -64,7 +64,6 @@
 @import '../policy/components/app-security/app-security';
 @import '../security/user-list';
 @import '../owner.manager/utility/services/evaluateApplicationModal';
-@import '../security/role-editor';
 @import '../report/violations/report-list';
 @import '../owner.manager/retention/retentionEditor';
 @import '../owner.manager/retention/retentionTile';
@@ -107,6 +106,7 @@
 @import '../dashboard/results/applications/dashboard-applications';
 @import '../componentDetails/ComponentDetails';
 @import '../../frontend/react/tag/tag';
+@import '../security/roleEditor/roleEditor';
 @import '../violation/transitiveViolationsPage';
 @import '../violation/waiveTransitiveViolationsPopover';
 @import '../violation/requestWaiveTransitiveViolationsPopover';

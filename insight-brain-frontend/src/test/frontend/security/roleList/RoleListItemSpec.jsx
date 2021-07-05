@@ -27,12 +27,12 @@ describe('RoleListItem', () => {
   });
 
   describe('on role item click', () => {
-    it('links to the roles.editor page with role id', () => {
+    it('links to the editRole page with role id', () => {
       const component = getShallowComponent();
 
       component.simulate('click');
 
-      expect(hrefSpy).toHaveBeenCalledWith('roles.editor', {
+      expect(hrefSpy).toHaveBeenCalledWith('editRole', {
         roleId: 'roleIdOne',
       });
     });

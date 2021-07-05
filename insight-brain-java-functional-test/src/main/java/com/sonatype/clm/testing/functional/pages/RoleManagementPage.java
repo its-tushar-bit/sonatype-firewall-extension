@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -65,7 +64,7 @@ public class RoleManagementPage
     }
   }
 
-  public Button createRole() {
-    return new Button("#create-role");
+  public SelenideElement createRole() {
+    return child("#create-role");
   }
 }

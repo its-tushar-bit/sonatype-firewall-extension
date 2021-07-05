@@ -34,6 +34,10 @@ export function getVulnerabilityJsonDetailUrl(refId, componentIdentifier, thirdP
   return urlWithPath;
 }
 
+export function getRoleForNewUrl() {
+  return uriTemplate`/rest/security/roles/new`;
+}
+
 export function getAutomaticSourceControlConfigurationUrl() {
   return uriTemplate`/rest/config/automaticScmConfiguration`;
 }
@@ -468,6 +472,10 @@ export function getLatestReportUrl(applicationId, stageTypeId) {
   return uriTemplate`/ui/links/application/${applicationId}/latestReport/${stageTypeId}`;
 }
 
+export function getRoleByIdUrl(roleId) {
+  return uriTemplate`/rest/security/roles/${roleId}`;
+}
+
 export function getUserUrl() {
   return uriTemplate`/rest/user`;
 }
@@ -568,13 +576,9 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getUserUrl,
 
-      getRoleByIdUrl: function (roleId) {
-        return baseUrl.get() + '/rest/security/roles/' + roleId;
-      },
+      getRoleByIdUrl,
 
-      getRoleForNewUrl: function () {
-        return baseUrl.get() + '/rest/security/roles/new';
-      },
+      getRoleForNewUrl,
 
       getRoleListUrl,
 

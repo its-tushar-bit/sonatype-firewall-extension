@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxToggle;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -14,8 +15,7 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
-public class RoleEditorPage
-    extends BasicElement<RoleEditorPage>
+public class RoleEditorPage extends BasicElement<RoleEditorPage> 
 {
   public static String url() {
     return BaseUrl.resolvePageUrl("/roles");
@@ -34,15 +34,15 @@ public class RoleEditorPage
   }
 
   public SelenideElement deleteConfirm() {
-    return $(".modal.in .btn-primary");
+    return $(".nx-modal .nx-btn--primary");
   }
 
   public SelenideElement nameEditor() {
     return child("#roleName");
   }
 
-  public SelenideElement namePopover() {
-    return child("#roleName-popover");
+  public SelenideElement nameAlert() {
+    return child(".nx-text-input__invalid-message");
   }
 
   public SelenideElement descriptionEditor() {
@@ -54,55 +54,58 @@ public class RoleEditorPage
   }
 
   public SelenideElement save() {
-    return child("#role-details-save");
+    return child(".nx-form__submit-btn");
   }
 
   public ElementsCollection permissionCategories() {
-    return children(".iq-list--role-permissions");
+    return children(".nx-tile-subsection");
   }
 
   public PermissionCategory permissionCategory(String categoryName) {
-    return new PermissionCategory(".test-permission-category-" + categoryName);
+    return new PermissionCategory("#test-permission-category-" + categoryName);
   }
 
-  public class PermissionCategory
-      extends BasicElement<PermissionCategory>
+  public class PermissionCategory extends BasicElement<PermissionCategory> 
   {
     PermissionCategory(final String... selectors) {
       super(selectors);
     }
+
+    public SelenideElement title() {
+      return child(".nx-tile-subsection__header", ".nx-h3");
+    }
   }
 
   public ElementsCollection permissions(String categoryName) {
-    return children(".test-permissions-" + categoryName, ".iq-list__item");
+    return children(".test-permissions-" + categoryName, ".iq-role-editor-permission-group__col", ".toggle-checkbox");
   }
 
-  public Permission permission(String categoryName, int num) {
-    return new Permission(".test-permissions-" + categoryName, ".iq-list__item", nthChild(num + 1));
+  public NxToggle permission(String categoryName, int num, boolean firstColumn) {
+    return new NxToggle(childSelector( ".test-permissions-" + categoryName,
+        ".iq-role-editor-permission-group__col", nthChild(firstColumn ? 1 : 2),
+        ".toggle-checkbox", nthChild(num + 1)));
   }
 
-  public class Permission
-      extends BasicElement<Permission>
+  public class Permission extends BasicElement<Permission> 
   {
     Permission(final String... selectors) {
       super(selectors);
     }
 
     public SelenideElement name() {
-      return child("label > span");
+      return child("span");
     }
 
     public SelenideElement description() {
-      return child(".iq-role-description");
+      return child(".nx-toggle__content");
     }
 
-    public ToggleSwitch toggleSwitch() {
-      return new ToggleSwitch(childSelector(".toggle-checkbox"));
+    public NxToggle toggleSwitch() {
+      return new NxToggle(childSelector(".toggle-checkbox"));
     }
   }
 
-  public class ToggleSwitch
-      extends BasicElement<ToggleSwitch>
+  public class ToggleSwitch extends BasicElement<ToggleSwitch> 
   {
     ToggleSwitch(final String... selectors) {
       super(selectors);

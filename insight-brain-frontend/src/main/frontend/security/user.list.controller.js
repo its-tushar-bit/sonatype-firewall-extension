@@ -100,10 +100,6 @@ export default function UserListController(
     });
   };
 
-  $scope.removeClick = function (user) {
-    DeleteModalService.deleteResource('User', user.username, user);
-  };
-
   $scope.newUserClick = function () {
     $state.go('create');
   };

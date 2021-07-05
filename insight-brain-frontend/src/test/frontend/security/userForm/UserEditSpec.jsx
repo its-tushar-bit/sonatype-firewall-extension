@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import { NxForm, NxWarningAlert, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
 
@@ -169,6 +169,59 @@ describe('UserEdit', () => {
       form.simulate('cancel');
 
       expect(stateGoSpy).toHaveBeenCalledWith('users');
+    });
+  });
+
+  describe('delete button', () => {
+    it('is rendered when editing a user', () => {
+      const component = getShallowComponent();
+
+      expect(component.find('#delete-user')).toExist();
+    });
+
+    it('shows delete modal when clicked', () => {
+      const component = getShallowComponent();
+      const deleteButton = component.find('#delete-user');
+
+      deleteButton.simulate('click');
+
+      expect(component.find('#delete-user-modal')).toExist();
+    });
+  });
+
+  describe('delete modal', () => {
+    let modal, username, userId, deleteUserMock;
+
+    beforeEach(() => {
+      username = 'Aragorn';
+      userId = '325sdf';
+      deleteUserMock = jasmine.createSpy('deleteUser');
+
+      const component = getShallowComponent({
+        deleteUser: deleteUserMock,
+        username,
+      });
+
+      const deleteButton = component.find('#delete-user');
+
+      deleteButton.simulate('click');
+
+      modal = component.find('#delete-user-modal');
+    });
+
+    it('renders delete alert message', () => {
+      const alert = modal.find(NxWarningAlert);
+
+      expect(alert).toExist();
+      expect(alert).toHaveText(`You are about to permanently remove ${username}. This action cannot be undone.`);
+    });
+
+    it('calls deleteUser when submitted', () => {
+      const form = modal.find(NxForm);
+
+      form.simulate('submit');
+
+      expect(deleteUserMock).toHaveBeenCalledWith(userId);
     });
   });
 });

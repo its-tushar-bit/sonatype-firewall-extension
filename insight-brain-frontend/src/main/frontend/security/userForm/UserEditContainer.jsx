@@ -5,13 +5,14 @@
  */
 import { connect } from 'react-redux';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import { loadUserById, setFirstName, setLastName, setEmail, update, resetForm } from './userFormActions';
+import { loadUserById, setFirstName, setLastName, setEmail, update, resetForm, deleteUser } from './userFormActions';
 
 import UserEdit from './UserEdit';
 
 export default connect(
   ({ userForm, router }) => ({
     ...userForm,
+    username: userForm.selectedUserServerData.username,
     router,
   }),
   {
@@ -19,6 +20,7 @@ export default connect(
     setFirstName,
     setLastName,
     setEmail,
+    deleteUser,
     resetForm,
     update,
     stateGo,

@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { getUserUrl } from '../../../../main/frontend/util/CLMLocation';
+import { getUserUrl, getUserByIdUrl } from '../../../../main/frontend/util/CLMLocation';
 import {
   CREATE_USER_LOAD_REQUESTED,
   CREATE_USER_LOAD_FULFILLED,
@@ -20,6 +20,9 @@ import {
   EDIT_USER_UPDATE_REQUESTED,
   EDIT_USER_UPDATE_FULFILLED,
   EDIT_USER_UPDATE_FAILED,
+  DELETE_USER_REQUESTED,
+  DELETE_USER_FULFILLED,
+  DELETE_USER_FAILED,
 } from '../../../../main/frontend/security/userForm/userFormActions';
 import { STATE_GO } from '../../../../main/frontend/reduxUiRouter/routerActions';
 
@@ -28,7 +31,7 @@ const { initialState: initUserInput } = nxTextInputStateHelpers;
 describe('userFormActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const userUrl = getUserUrl();
-  let checkPermissionsSpy, save, loadCreateUserPage, loadUserById, update;
+  let checkPermissionsSpy, save, loadCreateUserPage, loadUserById, update, deleteUser;
 
   beforeEach(() => {
     checkPermissionsSpy = jasmine.createSpy('checkPermissions');
@@ -41,6 +44,7 @@ describe('userFormActions', () => {
     save = module.save;
     loadUserById = module.loadUserById;
     update = module.update;
+    deleteUser = module.deleteUser;
   });
 
   describe('loadCreateUserPage', () => {
@@ -334,6 +338,74 @@ describe('userFormActions', () => {
 
       let actions = store.getActions();
       expect(actions[0]).toEqual({ type: EDIT_USER_UPDATE_REQUESTED });
+    });
+  });
+
+  describe('deleteUser', () => {
+    let store;
+
+    beforeEach(() => {
+      const state = {
+        selectedUserServerData: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@doe.com',
+          id: '201',
+          password: '#~FAKE~PASSWORD~#',
+          username: 'johnDoe',
+          usernameLowercase: 'johndoe',
+        },
+        inputFields: {
+          firstName: initUserInput('Jane'),
+          lastName: initUserInput('Doe'),
+          email: initUserInput('jane@doe.com'),
+        },
+      };
+
+      store = SpecUtil.mockReduxStore({ userForm: state });
+    });
+
+    it('fires DELETE_USER_REQUESTED, DELETE_USER_FULFILLED, USER_FORM_SUBMIT_MASK_TIMER_DONE and STATE_GO actions on success', (done) => {
+      mockAxiosCalls({
+        del: {
+          [getUserByIdUrl('201')]: Promise.resolve({ data: 'success' }),
+        },
+      });
+
+      store.dispatch(deleteUser('201')).then(() => {
+        setTimeout(function () {
+          expect(store.getActions()).toHaveActionsInOrder([
+            { type: DELETE_USER_REQUESTED },
+            { type: DELETE_USER_FULFILLED },
+            { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+            {
+              type: STATE_GO,
+              payload: {
+                to: 'users',
+                params: undefined,
+                options: undefined,
+              },
+            },
+          ]);
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+    });
+
+    it('fires DELETE_USER_FAILED action on error', (done) => {
+      mockAxiosCalls({
+        del: {
+          [getUserByIdUrl('201')]: Promise.reject({ response: 'failed to delete user' }),
+        },
+      });
+
+      store.dispatch(deleteUser('201')).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          { type: DELETE_USER_REQUESTED },
+          { type: DELETE_USER_FAILED, payload: 'failed to delete user' },
+        ]);
+        done();
+      });
     });
   });
 });

@@ -472,6 +472,10 @@ export function getUserUrl() {
   return uriTemplate`/rest/user`;
 }
 
+export function getUserByIdUrl(userId) {
+  return uriTemplate`/rest/user/${userId}`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

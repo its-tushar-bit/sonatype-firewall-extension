@@ -135,6 +135,10 @@ public class UserManagementPage
       return new Button(".nx-form__submit-btn");
     }
 
+    public Button deleteButton() {
+      return new Button("#delete-user");
+    }
+
     public SelenideElement firstNameInput() {
       return child("#firstName");
     }

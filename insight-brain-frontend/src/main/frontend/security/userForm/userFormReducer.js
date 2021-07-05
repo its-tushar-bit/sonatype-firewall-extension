@@ -36,6 +36,9 @@ import {
   EDIT_USER_UPDATE_REQUESTED,
   EDIT_USER_UPDATE_FULFILLED,
   EDIT_USER_UPDATE_FAILED,
+  DELETE_USER_REQUESTED,
+  DELETE_USER_FULFILLED,
+  DELETE_USER_FAILED,
   fullTextFields,
 } from './userFormActions';
 
@@ -47,7 +50,9 @@ export const initialState = Object.freeze({
   isDirty: false,
   validationError: null,
   submitMaskState: null,
+  deleteMaskState: null,
   saveError: null,
+  deleteError: null,
   inputFields: {
     firstName: initUserInput(''),
     lastName: initUserInput(''),
@@ -60,7 +65,7 @@ export const initialState = Object.freeze({
   selectedUserServerData: {},
 });
 
-const clearedErrors = pick(['loadError', 'saveError'], initialState);
+const clearedErrors = pick(['loadError', 'saveError', 'deleteError'], initialState);
 const editFormFields = ['firstName', 'lastName', 'email'];
 
 const updatedComputedProps = compose(computeIsDirty, computeValidationError);
@@ -238,6 +243,23 @@ function updateFailed(payload, state) {
   };
 }
 
+function deleteFulfilled(_, state) {
+  return {
+    ...state,
+    isDirty: false,
+    deleteMaskState: true,
+    deleteError: null,
+  };
+}
+
+function deleteFailed(payload, state) {
+  return {
+    ...state,
+    deleteMaskState: null,
+    deleteError: payload,
+  };
+}
+
 const reducerActionMap = {
   [USER_SET_FIRST_NAME]: setInput('firstName', nameValidator),
   [USER_SET_LAST_NAME]: setInput('lastName', nameValidator),
@@ -257,6 +279,9 @@ const reducerActionMap = {
   [EDIT_USER_UPDATE_REQUESTED]: updateRequested,
   [EDIT_USER_UPDATE_FULFILLED]: updateFulfilled,
   [EDIT_USER_UPDATE_FAILED]: updateFailed,
+  [DELETE_USER_REQUESTED]: propSetConst('deleteMaskState', false),
+  [DELETE_USER_FULFILLED]: deleteFulfilled,
+  [DELETE_USER_FAILED]: deleteFailed,
   [USER_FORM_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
   [USER_RESET_FORM]: always(initialState),
 };

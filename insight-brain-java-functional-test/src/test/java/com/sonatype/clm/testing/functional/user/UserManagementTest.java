@@ -12,7 +12,7 @@ import java.util.List;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.CLM;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.elements.NxTextInput;
@@ -42,7 +42,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.DeleteModal.headerText;
+import static com.sonatype.clm.testing.functional.elements.NxDeleteModal.alertText;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -253,17 +253,21 @@ public class UserManagementTest
   @Test
   public void testDeleteUser() {
     User user = createUser();
+    int userRow = 0;
+
     refreshOrOpen(UserManagementPage.url());
     UserManagementPage userManagementPage = new UserManagementPage();
 
-    int userRow = 0;
-    userManagementPage.headers().get(userRow).shouldHave(text(user.getUsername()));
+    EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
+    editUserForm.shouldBe(visible);
+    editUserForm.deleteButton().shouldNotBe(CLM.DISABLED).click();
 
-    userManagementPage.deleteUserButtons().get(userRow).shouldBe(visible).click();
+    NxDeleteModal deleteModal = new NxDeleteModal("#delete-user-modal");
 
-    DeleteModal.header().shouldBe(headerText("User"));
-    DeleteModal.continueButton().click();
-    DeleteModal.body().should(disappear);
+    deleteModal.header().shouldHave(text("Delete User"));
+    deleteModal.alertContent().shouldHave(alertText(user.getUsername()));
+    deleteModal.submitButton().click();
+    deleteModal.should(disappear);
 
     userManagementPage.headers().shouldHaveSize(1);
   }
@@ -291,14 +295,20 @@ public class UserManagementTest
 
     SelenideElement accordionHeader = userManagementPage.headers().get(userRow);
     accordionHeader.shouldHave(text(user.getUsername()));
-    userManagementPage.deleteUserButtons().get(userRow).shouldBe(visible).click();
 
-    DeleteModal.root().shouldBe(visible);
+    EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
+    editUserForm.shouldBe(visible);
+    editUserForm.deleteButton().click();
+
+    NxDeleteModal deleteModal = new NxDeleteModal("#delete-user-modal");
+    deleteModal.shouldBe(visible);
+
     // Stop server to test error messages.
     testCLMServer.stop();
-    DeleteModal.continueButton().click();
-    DeleteModal.error().shouldBe(visible);
-    DeleteModal.body().shouldBe(visible);
+
+    deleteModal.submitButton().click();
+    deleteModal.error().shouldBe(visible);
+    deleteModal.shouldBe(visible);
     staticTempEntity.cleanupAllPersistedUserSessions();
     // Start the server again, and log back in
     testCLMServer.start();
@@ -306,10 +316,12 @@ public class UserManagementTest
     initialLogin();
     refreshOrOpen(UserManagementPage.url());
     // Test proper delete.
-    userManagementPage.deleteUserButtons().get(userRow).click();
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.continueButton().click();
-    DeleteModal.root().shouldNotBe(visible);
+    EditUserForm editUserForm2 = goToEditUserForm(userManagementPage, userRow);
+    editUserForm2.deleteButton().click();
+
+    deleteModal.shouldBe(visible);
+    deleteModal.submitButton().click();
+    deleteModal.shouldNotBe(visible);
     // Confirm delete
     accordionHeader.shouldNotHave(text(user.getUsername()));
   }

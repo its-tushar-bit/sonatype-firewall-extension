@@ -9,7 +9,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { Messages } from '../../util/CommonServices';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { checkPermissions } from '../../util/authorizationUtil';
-import { getUserUrl } from '../../util/CLMLocation';
+import { getUserUrl, getUserByIdUrl } from '../../util/CLMLocation';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 
 export const USER_SET_FIRST_NAME = 'USER_SET_FIRST_NAME';
@@ -143,5 +143,27 @@ export function update() {
         startSubmitMaskSuccessTimer(dispatch);
       })
       .catch(compose(dispatch, updateFailed, Messages.getHttpErrorMessage));
+  };
+}
+
+export const DELETE_USER_REQUESTED = 'DELETE_USER_REQUESTED';
+export const DELETE_USER_FULFILLED = 'DELETE_USER_FULFILLED';
+export const DELETE_USER_FAILED = 'DELETE_USER_FAILED';
+
+const deleteRequested = noPayloadActionCreator(DELETE_USER_REQUESTED);
+const deleteFulfilled = noPayloadActionCreator(DELETE_USER_FULFILLED);
+const deleteFailed = payloadParamActionCreator(DELETE_USER_FAILED);
+
+export function deleteUser(userId) {
+  return (dispatch) => {
+    dispatch(deleteRequested());
+
+    return axios
+      .delete(getUserByIdUrl(userId))
+      .then(() => {
+        dispatch(deleteFulfilled());
+        startSubmitMaskSuccessTimer(dispatch);
+      })
+      .catch(compose(dispatch, deleteFailed, Messages.getHttpErrorMessage));
   };
 }

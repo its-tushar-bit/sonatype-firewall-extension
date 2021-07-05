@@ -25,6 +25,9 @@ import {
   EDIT_USER_UPDATE_REQUESTED,
   EDIT_USER_UPDATE_FULFILLED,
   EDIT_USER_UPDATE_FAILED,
+  DELETE_USER_REQUESTED,
+  DELETE_USER_FULFILLED,
+  DELETE_USER_FAILED,
 } from '../../../../main/frontend/security/userForm/userFormActions';
 
 describe('userFormReducer', () => {
@@ -319,6 +322,59 @@ describe('userFormReducer', () => {
       expect(submitMaskState).toBeNull();
       expect(saveError).toBe('update error occurred');
       expect(loadError).toBe(state.loadError);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${DELETE_USER_REQUESTED} action`, () => {
+    it('sets delete mask to false', () => {
+      const state = {
+        deleteMaskState: true,
+        other: otherObject,
+      };
+
+      const { deleteMaskState, other } = reduce(state, {
+        type: DELETE_USER_REQUESTED,
+      });
+
+      expect(deleteMaskState).toBe(false);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${DELETE_USER_FULFILLED} action`, () => {
+    it('sets delete mask to true, dirty to false', () => {
+      const state = {
+        isDirty: true,
+        deleteMaskState: null,
+        other: otherObject,
+      };
+
+      const { deleteMaskState, isDirty, other } = reduce(state, {
+        type: DELETE_USER_FULFILLED,
+      });
+
+      expect(deleteMaskState).toBe(true);
+      expect(isDirty).toBe(false);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${DELETE_USER_FAILED} action`, () => {
+    it('resets delete mask, sets deleteError', () => {
+      const state = {
+        deleteError: null,
+        deleteMaskState: true,
+        other: otherObject,
+      };
+
+      const { deleteMaskState, deleteError, other } = reduce(state, {
+        type: DELETE_USER_FAILED,
+        payload: 'delete error occurred',
+      });
+
+      expect(deleteMaskState).toBeNull();
+      expect(deleteError).toBe('delete error occurred');
       expect(other).toBe(otherObject);
     });
   });

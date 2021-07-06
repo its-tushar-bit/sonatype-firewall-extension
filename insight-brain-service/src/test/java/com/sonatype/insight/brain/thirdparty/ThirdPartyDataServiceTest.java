@@ -233,6 +233,28 @@ public class ThirdPartyDataServiceTest
     assertThat(vulnerability).isNotNull();
   }
 
+  @Test
+  public void testProcessThirdPartyData_withContainerContent_getSecurityVulnerabilitiesForScanId() throws Exception {
+    String scanId = tempEntity.uuid();
+    ThirdPartyFile thirdPartyFile1 = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(tempEntity.uuid(), scanId, thirdPartyFile1);
+    ThirdPartyFileCoordinate coord1 = tempEntity
+        .newThirdPartyFileCoordinate(thirdPartyFile1, "f1", "container", "n1", "v1", "hash1",
+            "pkg:generic/n1@v1?qualifier=container");
+    ThirdPartyFileCoordinate coord2 = tempEntity
+        .newThirdPartyFileCoordinate(thirdPartyFile1, "f2", "container", "n2", "v2", "hash2",
+            "pkg:generic/n2@v2?qualifier=container");
+
+    tempEntity.newThirdPartyCoordinateSecurity(coord1, "r1", "desc1", "l1", 5f, "Medium", "v3");
+    tempEntity.newThirdPartyCoordinateSecurity(coord2, "r2", "desc2", "l1", 7f, "High", "v4");
+
+    List<ThirdPartyCoordinateSecurity> coordinateSecurities = handler.getSecurityVulnerabilitiesForScanId(scanId);
+
+    assertThat(coordinateSecurities).hasSize(2);
+    assertThat(coordinateSecurities.stream().map(ThirdPartyCoordinateSecurity::getRefId))
+        .containsExactlyInAnyOrder("r1", "r2");
+  }
+
   private File zipReportDir(String reportResourceName) throws URISyntaxException {
     return Paths.get(ReportHelper.zipReport(reportResourceName, tempDir).toURI()).toFile();
   }

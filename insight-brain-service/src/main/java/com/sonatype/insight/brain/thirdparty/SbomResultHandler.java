@@ -119,7 +119,7 @@ public class SbomResultHandler
     return bom;
   }
 
-  private void processSbom(
+  void processSbom(
       final ThirdPartyScanContent content,
       final Bom sourceBom,
       final Bom targetBom,
@@ -465,7 +465,7 @@ public class SbomResultHandler
     thirdPartyCoordinateLicenseDAO.insert(tx, coordinateLicense);
   }
 
-  private String generateFilteredSbom(Bom sbom)
+  String generateFilteredSbom(Bom sbom)
       throws ParserConfigurationException, GeneratorException
   {
     BomXmlGenerator generator =

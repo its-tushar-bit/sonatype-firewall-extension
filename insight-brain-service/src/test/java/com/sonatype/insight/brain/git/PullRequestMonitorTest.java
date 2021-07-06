@@ -93,8 +93,6 @@ public class PullRequestMonitorTest
 
   @Test
   public void testStart_FeatureEnabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.PR_COMMENT_MONITORING.getFlag(), true));
-
     pullRequestMonitor.start();
 
     verify(taskSchedulerMock).schedulePeriodicTask(PullRequestMonitor.class, PullRequestMonitor.TASK_NAME,
@@ -103,6 +101,8 @@ public class PullRequestMonitorTest
 
   @Test
   public void testStart_FeatureDisabled() throws Exception {
+    insightConfig.setFeatures(ImmutableMap.of(Feature.PR_COMMENT_MONITORING.getFlag(), false));
+
     pullRequestMonitor.start();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());

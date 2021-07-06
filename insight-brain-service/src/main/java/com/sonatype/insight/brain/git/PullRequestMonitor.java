@@ -126,7 +126,7 @@ public class PullRequestMonitor
       return;
     }
 
-    if (!insightConfig.isExperimentalFeatureEnabled(InsightConfig.Feature.PR_COMMENT_MONITORING)) {
+    if (!insightConfig.isFeatureEnabled(InsightConfig.Feature.PR_COMMENT_MONITORING)) {
       taskScheduler.unscheduleTask(TASK_NAME);
       return;
     }

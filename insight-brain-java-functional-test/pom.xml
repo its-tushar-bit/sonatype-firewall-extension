@@ -252,6 +252,9 @@
                         <volume>/dev/shm:/dev/shm</volume>
                       </bind>
                     </volumes>
+                    <log>
+                      <enabled>true</enabled>
+                    </log>
                   </run>
                 </image>
               </images>

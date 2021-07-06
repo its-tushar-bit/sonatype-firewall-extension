@@ -7,20 +7,15 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import {
-  load,
   loadSystemNotice,
   update,
-  permissions,
-  authErrorMessage,
 } from '../../../../main/frontend/configuration/systemNoticeConfiguration/systemNoticeConfigurationActions';
 import { getSystemNoticeFetchUrl, getSystemNoticeUrl } from '../../../../main/frontend/util/CLMLocation';
-import { getGlobalPermissionTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
 
 describe('systemNoticeConfigurationActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const systemNoticeFetchUrl = getSystemNoticeFetchUrl();
   const systemNoticeUpdateUrl = getSystemNoticeUrl();
-  const permissionUrl = getGlobalPermissionTestUrl();
 
   describe('loadSystemNotice', function () {
     let store, state;
@@ -91,10 +86,21 @@ describe('systemNoticeConfigurationActions', function () {
     });
   });
 
-  describe('load', function () {
-    let store, state;
+  describe('load', () => {
+    let checkPermissionsSpy, load, store, state;
 
-    beforeEach(function () {
+    beforeEach(() => {
+      checkPermissionsSpy = jasmine.createSpy('checkPermissions');
+      const module = require('inject-loader!../../../../main/frontend/configuration/systemNoticeConfiguration/systemNoticeConfigurationActions')(
+        {
+          '../../util/authorizationUtil': {
+            checkPermissions: checkPermissionsSpy,
+          },
+        }
+      );
+
+      load = module.load;
+
       state = {
         systemNoticeConfiguration: {
           formState: {
@@ -111,18 +117,13 @@ describe('systemNoticeConfigurationActions', function () {
       store = SpecUtil.mockReduxStore(state);
     });
 
-    afterEach(function () {
-      expect(axios.put).toHaveBeenCalledWith(permissionUrl, permissions);
-    });
+    describe('when authorized', () => {
+      beforeEach(() => {
+        checkPermissionsSpy.and.returnValue(Promise.resolve());
+      });
 
-    describe('after a successful PUT permission call', function () {
-      it('dispatches an SYSTEM_NOTICE_CONFIGURATION_SYSTEM_NOTICE_LOAD_FAILED action', function (done) {
+      it('fires an SYSTEM_NOTICE_CONFIGURATION_LOAD_FULFILLED action', (done) => {
         mockAxiosCalls({
-          put: {
-            [permissionUrl]: Promise.resolve({
-              data: permissions,
-            }),
-          },
           get: {
             [systemNoticeFetchUrl]: Promise.resolve({
               data: { enabled: true, message: 'some message' },
@@ -143,25 +144,22 @@ describe('systemNoticeConfigurationActions', function () {
       });
     });
 
-    describe('after a failed PUT permission call', function () {
-      it('dispatches an SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED action', function (done) {
-        mockAxiosCalls({
-          put: {
-            [permissionUrl]: Promise.reject(authErrorMessage),
-          },
-        });
+    describe('when not authorized', () => {
+      it('fires an SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED action', (done) => {
+        checkPermissionsSpy.and.returnValue(Promise.reject('system notice page authorization error'));
+        const store = SpecUtil.mockReduxStore();
 
         store.dispatch(load()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED');
-          expect(actions[1].payload).toEqual(authErrorMessage);
+
+          expect(actions).toHaveActionsInOrder([
+            { type: 'SYSTEM_NOTICE_CONFIGURATION_LOAD_REQUESTED' },
+            { type: 'SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED', payload: 'system notice page authorization error' },
+          ]);
+
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe('SYSTEM_NOTICE_CONFIGURATION_LOAD_REQUESTED');
       });
     });
   });

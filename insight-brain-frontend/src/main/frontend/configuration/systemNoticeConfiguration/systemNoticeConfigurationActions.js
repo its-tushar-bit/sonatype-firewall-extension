@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { equals } from 'ramda';
+import { compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+import { checkPermissions } from '../../util/authorizationUtil';
 import { getSystemNoticeFetchUrl, getSystemNoticeUrl } from '../../util/CLMLocation';
-import { getGlobalPermissionTestUrl } from '../../util/CLMContextLocation';
 import { Messages } from '../../util/CommonServices';
 
 export const SYSTEM_NOTICE_CONFIGURATION_LOAD_REQUESTED = 'SYSTEM_NOTICE_CONFIGURATION_LOAD_REQUESTED';
@@ -23,24 +23,13 @@ const loadFulfilled = payloadParamActionCreator(SYSTEM_NOTICE_CONFIGURATION_LOAD
 const loadSystemNoticeFailed = payloadParamActionCreator(SYSTEM_NOTICE_CONFIGURATION_SYSTEM_NOTICE_LOAD_FAILED);
 const loadPageFailed = payloadParamActionCreator(SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED);
 
-export const permissions = ['CONFIGURE_SYSTEM'];
-export const authErrorMessage = `It appears you do not have permission to access this page.
-  If you believe this to be incorrect please contact your administrator.`;
-
 export function load() {
   return function (dispatch) {
     dispatch(loadRequested());
-    return axios
-      .put(getGlobalPermissionTestUrl(), permissions)
-      .then(({ data }) => {
-        if (!equals(data, permissions)) {
-          throw authErrorMessage;
-        }
-      })
+
+    return checkPermissions(['CONFIGURE_SYSTEM'])
       .then(() => dispatch(loadSystemNotice()))
-      .catch((error) => {
-        dispatch(loadPageFailed(Messages.getHttpErrorMessage(error)));
-      });
+      .catch(compose(dispatch, loadPageFailed, Messages.getHttpErrorMessage));
   };
 }
 

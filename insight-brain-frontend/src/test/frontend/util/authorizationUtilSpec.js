@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 
-import { checkPermissions, authErrorMessage } from '../../../main/frontend/util/authorizationUtil';
+import { getPermissions, checkPermissions, authErrorMessage } from '../../../main/frontend/util/authorizationUtil';
 import { getGlobalPermissionTestUrl } from '../../../main/frontend/util/CLMContextLocation';
 
 const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -39,6 +39,19 @@ describe('authorizationUtil', () => {
         .catch((message) => {
           expect(message).toBe(authErrorMessage);
           done();
+        });
+    });
+  });
+
+  describe('getPermissions', () => {
+    it('returns resolved array of authorized permissions', (done) => {
+      getPermissions(['permission1', 'permission2', 'permission3'])
+        .then((result) => {
+          expect(result).toEqual(['permission1', 'permission2']);
+          done();
+        })
+        .catch(() => {
+          done.fail('Promise should have been resolved');
         });
     });
   });

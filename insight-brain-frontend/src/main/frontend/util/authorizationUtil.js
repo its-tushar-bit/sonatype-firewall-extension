@@ -25,9 +25,29 @@ export const authErrorMessage = `It appears you do not have permission to access
  * @returns {Promise}
  */
 export function checkPermissions(permissions) {
-  return axios.put(getGlobalPermissionTestUrl(), permissions).then(({ data }) => {
+  return getPermissions(permissions).then((data) => {
     if (data.length !== permissions.length) {
       throw authErrorMessage;
     }
+  });
+}
+
+/**
+ * Given a list of permissions to check, returns promise that:
+ * - reolves with all permitted permissions from passed list
+ *
+ * this utility is meant to be used in async action creators:
+ * <pre>
+ *     return getPermissions(['CONFIGURE_SYSTEM'])
+ *       .then(load)
+ *       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
+ * </pre>
+ *
+ * @param permissions - list of permissions to verify
+ * @returns {Promise}
+ */
+export function getPermissions(permissions) {
+  return axios.put(getGlobalPermissionTestUrl(), permissions).then(({ data }) => {
+    return data;
   });
 }

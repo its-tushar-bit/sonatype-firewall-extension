@@ -7,19 +7,14 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import {
-  load,
   loadConfiguration,
   update,
-  permissions,
-  authErrorMessage,
 } from '../../../../main/frontend/configuration/successMetricsConfiguration/successMetricsConfigurationActions';
 import { getSuccessMetricsConfigUrl } from '../../../../main/frontend/util/CLMLocation';
-import { getGlobalPermissionTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
 
 describe('successMetricsConfigurationActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const successMetricsConfigurationUrl = getSuccessMetricsConfigUrl();
-  const permissionUrl = getGlobalPermissionTestUrl();
 
   describe('loadConfiguration', function () {
     let store, state;
@@ -100,9 +95,20 @@ describe('successMetricsConfigurationActions', () => {
   });
 
   describe('load', () => {
-    let store, state;
+    let checkPermissionsSpy, load, store, state;
 
-    beforeEach(function () {
+    beforeEach(() => {
+      checkPermissionsSpy = jasmine.createSpy('checkPermissions');
+      const module = require('inject-loader!../../../../main/frontend/configuration/successMetricsConfiguration/successMetricsConfigurationActions')(
+        {
+          '../../util/authorizationUtil': {
+            checkPermissions: checkPermissionsSpy,
+          },
+        }
+      );
+
+      load = module.load;
+
       state = {
         successMetricsConfiguration: {
           formState: {
@@ -114,46 +120,50 @@ describe('successMetricsConfigurationActions', () => {
       store = SpecUtil.mockReduxStore(state);
     });
 
-    describe('after a successful PUT permission call', function () {
-      it('dispatches an SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED action', function (done) {
+    describe('when authorized', () => {
+      beforeEach(() => {
+        checkPermissionsSpy.and.returnValue(Promise.resolve());
+      });
+
+      it('fires an SUCCESS_METRICS_CONFIGURATION_LOAD_FULFILLED action', (done) => {
         mockAxiosCalls({
-          put: {
-            [permissionUrl]: Promise.resolve({
-              data: permissions,
+          get: {
+            [successMetricsConfigurationUrl]: Promise.resolve({
+              data: { enabled: true },
             }),
           },
         });
 
         store.dispatch(load()).then(() => {
           actions = store.getActions();
-          expect(actions.length).toBe(2);
-          expect(actions[0].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED');
+          expect(actions.length).toBe(3);
+          expect(actions[2].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_FULFILLED');
           done();
         });
 
         let actions = store.getActions();
-        expect(actions.length).toBe(0);
+        expect(actions.length).toBe(1);
+        expect(actions[0].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED');
       });
     });
 
-    describe('after a failed PUT permission call', function () {
-      it('dispatches an SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED action', function (done) {
-        mockAxiosCalls({
-          put: {
-            [permissionUrl]: Promise.reject(authErrorMessage),
-          },
-        });
+    describe('when not authorized', () => {
+      it('fires an SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED action', (done) => {
+        checkPermissionsSpy.and.returnValue(Promise.reject('success metrics config page authorization error'));
 
         store.dispatch(load()).then(() => {
-          actions = store.getActions();
-          expect(actions.length).toBe(1);
-          expect(actions[0].type).toBe('SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED');
-          expect(actions[0].payload).toEqual(authErrorMessage);
+          const actions = store.getActions();
+          expect(actions.length).toBe(2);
+
+          expect(actions).toHaveActionsInOrder([
+            { type: 'SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED' },
+            {
+              type: 'SUCCESS_METRICS_CONFIGURATION_LOAD_FAILED',
+              payload: 'success metrics config page authorization error',
+            },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(0);
       });
     });
   });

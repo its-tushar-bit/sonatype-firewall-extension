@@ -5,18 +5,24 @@
  */
 import axios from 'axios';
 import { getRoleListUrl } from '../../../main/frontend/util/CLMLocation';
-import { getGlobalPermissionTestUrl } from '../../../main/frontend/util/CLMContextLocation';
-import { load, permissions, authErrorMessage } from '../../../main/frontend/security/rolesActions';
 
 describe('rolesActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
-  const permissionUrl = getGlobalPermissionTestUrl();
   const rolesListUrl = getRoleListUrl();
 
   describe('load', () => {
-    let store, state;
+    let getPermissionsSpy, load, store, state;
 
     beforeEach(() => {
+      getPermissionsSpy = jasmine.createSpy('getPermissions');
+      const module = require('inject-loader!../../../main/frontend/security/rolesActions')({
+        '../util/authorizationUtil': {
+          getPermissions: getPermissionsSpy,
+        },
+      });
+
+      load = module.load;
+
       state = {
         roles: {
           roles: [],
@@ -29,12 +35,12 @@ describe('rolesActions', () => {
       store = SpecUtil.mockReduxStore(state);
     });
 
-    afterEach(function () {
-      expect(axios.put).toHaveBeenCalledWith(permissionUrl, permissions);
-    });
+    describe('when authorized', () => {
+      beforeEach(() => {
+        getPermissionsSpy.and.returnValue(Promise.resolve(['VIEW_ROLES', 'EDIT_ROLES']));
+      });
 
-    describe('after a successful PUT permission call', function () {
-      it('dispatches an ROLES_LIST_LOAD_FULFILLED action', function (done) {
+      it('fires an ROLES_LIST_LOAD_FULFILLED action', (done) => {
         const role = {
           id: 'roleIdOne',
           name: 'Role Name One',
@@ -43,11 +49,6 @@ describe('rolesActions', () => {
         };
 
         mockAxiosCalls({
-          put: {
-            [permissionUrl]: Promise.resolve({
-              data: permissions,
-            }),
-          },
           get: {
             [rolesListUrl]: Promise.resolve({
               data: [{ ...role }],
@@ -56,19 +57,19 @@ describe('rolesActions', () => {
         });
 
         store.dispatch(load()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('ROLES_LIST_LOAD_FULFILLED');
-          expect(actions[1].payload).toEqual({ roles: [role], readOnly: false });
+
+          expect(actions).toHaveActionsInOrder([
+            { type: 'ROLES_LIST_LOAD_REQUESTED' },
+            { type: 'ROLES_LIST_LOAD_FULFILLED', payload: { roles: [role], readOnly: false } },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe('ROLES_LIST_LOAD_REQUESTED');
       });
 
-      it('dispatches an ROLES_LIST_LOAD_FULFILLED action with readOnly true', (done) => {
+      it('fires an ROLES_LIST_LOAD_FULFILLED action with readOnly true', (done) => {
+        getPermissionsSpy.and.returnValue(Promise.resolve(['VIEW_ROLES']));
         const role = {
           id: 'roleIdOne',
           name: 'Role Name One',
@@ -77,11 +78,6 @@ describe('rolesActions', () => {
         };
 
         mockAxiosCalls({
-          put: {
-            [permissionUrl]: Promise.resolve({
-              data: ['VIEW_ROLES'],
-            }),
-          },
           get: {
             [rolesListUrl]: Promise.resolve({
               data: [{ ...role }],
@@ -90,68 +86,52 @@ describe('rolesActions', () => {
         });
 
         store.dispatch(load()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
+
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('ROLES_LIST_LOAD_FULFILLED');
-          expect(actions[1].payload).toEqual({ roles: [role], readOnly: true });
+          expect(actions).toHaveActionsInOrder([
+            { type: 'ROLES_LIST_LOAD_REQUESTED' },
+            { type: 'ROLES_LIST_LOAD_FULFILLED', payload: { roles: [role], readOnly: true } },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe('ROLES_LIST_LOAD_REQUESTED');
       });
     });
 
-    describe('after a failed PUT permission call', function () {
-      it('dispatches an ROLES_LIST_LOAD_FAILED action', function (done) {
-        mockAxiosCalls({
-          put: {
-            [permissionUrl]: Promise.resolve({
-              data: [],
-            }),
-          },
-        });
+    describe('when not authorized', () => {
+      it('fires an ROLES_LIST_LOAD_FAILED action', (done) => {
+        getPermissionsSpy.and.returnValue(Promise.resolve(['EDIT_ROLES']));
 
         store.dispatch(load()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('ROLES_LIST_LOAD_FAILED');
-          expect(actions[1].payload).toEqual(authErrorMessage);
+          expect(actions).toHaveActionsInOrder([
+            { type: 'ROLES_LIST_LOAD_REQUESTED' },
+            { type: 'ROLES_LIST_LOAD_FAILED' },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe('ROLES_LIST_LOAD_REQUESTED');
       });
     });
 
-    describe('after a failed GET roles call', function () {
-      it('dispatches an ROLES_LIST_LOAD_FAILED action', function (done) {
+    describe('after a failed GET roles call', () => {
+      it('dispatches an ROLES_LIST_LOAD_FAILED action', (done) => {
+        getPermissionsSpy.and.returnValue(Promise.resolve(['VIEW_ROLES', 'EDIT_ROLES']));
         mockAxiosCalls({
-          put: {
-            [permissionUrl]: Promise.resolve({
-              data: permissions,
-            }),
-          },
           get: {
             [rolesListUrl]: Promise.reject('error'),
           },
         });
 
         store.dispatch(load()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('ROLES_LIST_LOAD_FAILED');
-          expect(actions[1].payload).toBe('error');
+          expect(actions).toHaveActionsInOrder([
+            { type: 'ROLES_LIST_LOAD_REQUESTED' },
+            { type: 'ROLES_LIST_LOAD_FAILED', payload: 'error' },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
-        expect(actions[0].type).toBe('ROLES_LIST_LOAD_REQUESTED');
-        expect(actions[0].payload).toBeUndefined();
       });
     });
   });

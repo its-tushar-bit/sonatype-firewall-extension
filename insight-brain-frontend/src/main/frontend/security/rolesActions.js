@@ -6,13 +6,12 @@
 import axios from 'axios';
 import { compose } from 'ramda';
 import { Messages } from '../util/CommonServices';
-import { getGlobalPermissionTestUrl } from '../util/CLMContextLocation';
+import { getPermissions, authErrorMessage } from '../util/authorizationUtil';
+
 import { getRoleListUrl } from '../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
 
 export const permissions = ['VIEW_ROLES', 'EDIT_ROLES'];
-export const authErrorMessage = `It appears you do not have permission to access this page.
-  If you believe this to be incorrect please contact your administrator.`;
 
 export const ROLES_LIST_LOAD_REQUESTED = 'ROLES_LIST_LOAD_REQUESTED';
 export const ROLES_LIST_LOAD_FULFILLED = 'ROLES_LIST_LOAD_FULFILLED';
@@ -25,9 +24,9 @@ const loadFailed = payloadParamActionCreator(ROLES_LIST_LOAD_FAILED);
 export function load() {
   return function (dispatch) {
     dispatch(loadRequested());
-    return axios
-      .put(getGlobalPermissionTestUrl(), permissions)
-      .then(({ data }) => {
+
+    return getPermissions(permissions)
+      .then((data) => {
         if (!data.includes('VIEW_ROLES')) {
           throw authErrorMessage;
         }

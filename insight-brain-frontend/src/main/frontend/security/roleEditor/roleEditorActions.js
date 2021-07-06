@@ -3,16 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
+import { getPermissions, authErrorMessage } from '../../util/authorizationUtil';
 import { getRoleByIdUrl, getRoleForNewUrl, getRoleListUrl } from '../../util/CLMLocation';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import { Messages } from '../../util/CommonServices';
 import { mapObjIndexed, prop } from 'ramda';
-import { getGlobalPermissionTestUrl } from '../../util/CLMContextLocation';
 
 export const ROLE_EDITOR_SET_READONLY = 'ROLE_EDITOR_SET_READONLY';
 const setReadOnly = payloadParamActionCreator(ROLE_EDITOR_SET_READONLY);
@@ -51,8 +50,6 @@ export const ROLE_EDITOR_RESET_FORM = 'ROLE_EDITOR_RESET_FORM';
 
 export const resetForm = noPayloadActionCreator(ROLE_EDITOR_RESET_FORM);
 
-export const authErrorMessage = `It appears you do not have permission to access this page.
-  If you believe this to be incorrect please contact your administrator.`;
 export const permissions = ['VIEW_ROLES', 'EDIT_ROLES'];
 
 export const ROLE_EDITOR_DELETE_REQUESTED = 'ROLE_EDITOR_DELETE_REQUESTED';
@@ -98,9 +95,8 @@ export function load(roleId) {
   return (dispatch) => {
     dispatch(loadRequested());
     let allowedToEdit;
-    return axios
-      .put(getGlobalPermissionTestUrl(), permissions)
-      .then(({ data }) => {
+    return getPermissions(permissions)
+      .then((data) => {
         allowedToEdit = data.includes('EDIT_ROLES');
         if (!data.includes('VIEW_ROLES') || (!allowedToEdit && !roleId)) {
           throw authErrorMessage;

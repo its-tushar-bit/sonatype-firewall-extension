@@ -3,21 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import axios from 'axios';
-import {
-  authErrorMessage,
-  save,
-  load,
-  deleteRole,
-} from '../../../../main/frontend/security/roleEditor/roleEditorActions';
-import { getGlobalPermissionTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
+import { save, deleteRole } from '../../../../main/frontend/security/roleEditor/roleEditorActions';
 import { getRoleByIdUrl, getRoleForNewUrl, getRoleListUrl } from '../../../../main/frontend/util/CLMLocation';
 
 describe('RoleEditorActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const roleListUrl = getRoleListUrl();
-  const globalPermissionTestUrl = getGlobalPermissionTestUrl();
   const roleForNewUrl = getRoleForNewUrl();
   let state, store, actions;
 
@@ -100,90 +92,98 @@ describe('RoleEditorActions', function () {
   });
 
   describe('load', () => {
-    it('dispatches a ROLE_EDITOR_LOAD_FAILED when permissions do not include VIEW_ROLES', (done) => {
-      mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: ['FIRST_PERMISSION', 'SECOND_PERMISSION'] }),
+    let getPermissionsSpy, load;
+
+    beforeEach(() => {
+      getPermissionsSpy = jasmine.createSpy('getPermissions');
+      const module = require('inject-loader!../../../../main/frontend/security/roleEditor/roleEditorActions')({
+        '../../util/authorizationUtil': {
+          getPermissions: getPermissionsSpy,
         },
       });
+
+      load = module.load;
+
+      getPermissionsSpy.and.returnValue(Promise.resolve(['VIEW_ROLES', 'EDIT_ROLES']));
+    });
+
+    it('dispatches a ROLE_EDITOR_LOAD_FAILED when permissions do not include VIEW_ROLES', (done) => {
+      getPermissionsSpy.and.returnValue(Promise.resolve(['EDIT_ROLES']));
+
       store.dispatch(load()).then(() => {
-        const [, { type: actionType, payload: actionPayload }] = actions;
-        expect(actionType).toBe('ROLE_EDITOR_LOAD_FAILED');
-        expect(actionPayload).toBe(authErrorMessage);
+        expect(actions.length).toBe(2);
+
+        expect(actions).toHaveActionsInOrder([
+          { type: 'ROLE_EDITOR_LOAD_REQUESTED' },
+          { type: 'ROLE_EDITOR_LOAD_FAILED' },
+        ]);
+
         done();
       });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('ROLE_EDITOR_LOAD_REQUESTED');
     });
 
     it('dispatches a ROLE_EDITOR_LOAD_FAILED when permissions do not include EDIT_ROLES', (done) => {
+      getPermissionsSpy.and.returnValue(Promise.resolve(['VIEW_ROLES']));
       mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: ['VIEW_ROLES'] }),
-        },
         get: {
           [roleListUrl]: Promise.resolve({}),
         },
       });
+
       store.dispatch(load()).then(() => {
-        const [, { type: actionType, payload: actionPayload }] = actions;
-        expect(actionType).toBe('ROLE_EDITOR_LOAD_FAILED');
-        expect(actionPayload).toBe(authErrorMessage);
+        expect(actions.length).toBe(2);
+
+        expect(actions).toHaveActionsInOrder([
+          { type: 'ROLE_EDITOR_LOAD_REQUESTED' },
+          { type: 'ROLE_EDITOR_LOAD_FAILED' },
+        ]);
+
         done();
       });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('ROLE_EDITOR_LOAD_REQUESTED');
     });
 
     it('dispatches a ROLE_EDITOR_LOAD_FULFILLED action', (done) => {
-      let data = {};
       mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: ['VIEW_ROLES', 'EDIT_ROLES'] }),
-        },
         get: {
-          [roleForNewUrl]: Promise.resolve({ data }),
+          [roleForNewUrl]: Promise.resolve({ data: {} }),
         },
       });
+
       store.dispatch(load()).then(() => {
-        const [, , { type: actionType, payload: actionPayload }] = actions;
-        expect(actionType).toBe('ROLE_EDITOR_LOAD_FULFILLED');
-        expect(actionPayload).toBe(data);
+        expect(actions.length).toBe(3);
+
+        expect(actions).toHaveActionsInOrder([
+          { type: 'ROLE_EDITOR_LOAD_REQUESTED' },
+          { type: 'ROLE_EDITOR_SET_READONLY', payload: undefined },
+          { type: 'ROLE_EDITOR_LOAD_FULFILLED', payload: {} },
+        ]);
         done();
       });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('ROLE_EDITOR_LOAD_REQUESTED');
     });
 
     it('dispatches a ROLE_EDITOR_LOAD_FAILED action when the get role for new url service fail', (done) => {
       let data = 'some error happened';
       mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: ['VIEW_ROLES', 'EDIT_ROLES'] }),
-        },
         get: {
           [roleForNewUrl]: Promise.reject(data),
         },
       });
       store.dispatch(load()).then(() => {
-        const [, { type: actionType, payload: actionPayload }] = actions;
-        expect(actionType).toBe('ROLE_EDITOR_LOAD_FAILED');
-        expect(actionPayload).toBe(data);
+        expect(actions.length).toBe(2);
+
+        expect(actions).toHaveActionsInOrder([
+          { type: 'ROLE_EDITOR_LOAD_REQUESTED' },
+          { type: 'ROLE_EDITOR_LOAD_FAILED', payload: data },
+        ]);
         done();
       });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('ROLE_EDITOR_LOAD_REQUESTED');
     });
 
     it('loads info from getRoleByIdUrl', (done) => {
       const id = 'ROLE-ID';
       const roleByIdUrl = getRoleByIdUrl(id);
       const spy = spyOn(axios, 'get').and.returnValue(Promise.resolve({}));
-      mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: ['VIEW_ROLES', 'EDIT_ROLES'] }),
-        },
-      });
+
       store.dispatch(load(id)).then(() => {
         expect(spy).toHaveBeenCalledWith(roleByIdUrl);
         done();
@@ -191,27 +191,30 @@ describe('RoleEditorActions', function () {
     });
 
     it('dispatches a ROLE_EDITOR_SET_READONLY action with true', (done) => {
+      getPermissionsSpy.and.returnValue(Promise.resolve(['VIEW_ROLES']));
       const id = 'ROLE-ID';
       const roleByIdUrl = getRoleByIdUrl(id);
       state.roleEditor.formState.id = id;
       store = SpecUtil.mockReduxStore(state);
       actions = store.getActions();
+
       mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: ['VIEW_ROLES'] }),
-        },
         get: {
           [roleByIdUrl]: Promise.resolve({}),
         },
       });
+
       store.dispatch(load(id)).then(() => {
-        const [, { type: actionType, payload: actionPayload }] = actions;
-        expect(actionType).toBe('ROLE_EDITOR_SET_READONLY');
-        expect(actionPayload).toBe(true);
+        expect(actions.length).toBe(3);
+
+        expect(actions).toHaveActionsInOrder([
+          { type: 'ROLE_EDITOR_LOAD_REQUESTED' },
+          { type: 'ROLE_EDITOR_SET_READONLY', payload: true },
+          { type: 'ROLE_EDITOR_LOAD_FULFILLED', payload: undefined },
+        ]);
+
         done();
       });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('ROLE_EDITOR_LOAD_REQUESTED');
     });
   });
 

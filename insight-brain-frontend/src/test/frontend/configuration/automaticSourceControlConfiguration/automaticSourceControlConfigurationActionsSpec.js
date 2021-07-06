@@ -3,24 +3,27 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import axios from 'axios';
-import {
-  load,
-  update,
-  authErrorMessage,
-} from '../../../../main/frontend/configuration/automaticSourceControlConfiguration/automaticSourceControlConfigurationActions';
-import { getGlobalPermissionTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
+import { update } from '../../../../main/frontend/configuration/automaticSourceControlConfiguration/automaticSourceControlConfigurationActions';
 import { getAutomaticSourceControlConfigurationUrl } from '../../../../main/frontend/util/CLMLocation';
 
-describe('AutomaticSourceControlConfigurationActions', function () {
+describe('AutomaticSourceControlConfigurationActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const automaticSourceControlControlConfigurationUrl = getAutomaticSourceControlConfigurationUrl();
-  const globalPermissionTestUrl = getGlobalPermissionTestUrl();
+  let checkPermissionsSpy, load, store, state, actions;
 
-  let store, state, actions;
+  beforeEach(() => {
+    checkPermissionsSpy = jasmine.createSpy('checkPermissions');
+    const module = require('inject-loader!../../../../main/frontend/configuration/automaticSourceControlConfiguration/automaticSourceControlConfigurationActions')(
+      {
+        '../../util/authorizationUtil': {
+          checkPermissions: checkPermissionsSpy,
+        },
+      }
+    );
 
-  beforeEach(function () {
+    load = module.load;
+
     state = {
       automaticSourceControlConfiguration: {
         formState: {
@@ -33,76 +36,75 @@ describe('AutomaticSourceControlConfigurationActions', function () {
     actions = store.getActions();
   });
 
-  describe('load', function () {
-    it('requests load configuration', function (done) {
-      let data = [];
-      mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: [''] }),
-        },
-        get: {
-          [automaticSourceControlControlConfigurationUrl]: Promise.resolve({ data }),
-        },
-      });
-      store.dispatch(load()).then(() => {
-        const [, { type: secondActionType, payload: secondActionPayload }] = actions;
-        expect(secondActionType).toBe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED');
-        expect(secondActionPayload).toBe(data);
-        done();
-      });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED');
+  describe('load', () => {
+    beforeEach(() => {
+      checkPermissionsSpy.and.returnValue(Promise.resolve());
     });
 
-    it('dispatches AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FAIL action when there is not permissions', function (done) {
+    it('requests load configuration', (done) => {
       mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: [] }),
+        get: {
+          [automaticSourceControlControlConfigurationUrl]: Promise.resolve({ data: [] }),
         },
       });
 
       store.dispatch(load()).then(() => {
-        const [, { type: secondActionType, payload: secondActionPayload }] = actions;
-        expect(secondActionType).toBe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FAIL');
-        expect(secondActionPayload).toBe(authErrorMessage);
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionsInOrder([
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED' },
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FULFILLED', payload: [] },
+        ]);
         done();
       });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED');
+    });
+
+    it('dispatches AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FAIL action when there is not permissions', (done) => {
+      checkPermissionsSpy.and.returnValue(Promise.reject('ASC config page authorization error'));
+
+      store.dispatch(load()).then(() => {
+        expect(actions.length).toBe(2);
+        expect(actions).toHaveActionsInOrder([
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED' },
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_FAIL', payload: 'ASC config page authorization error' },
+        ]);
+        done();
+      });
     });
   });
 
   describe('update', function () {
-    it('dispatches an AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FULFILLED action', function () {
+    it('dispatches an AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FULFILLED action', (done) => {
       mockAxiosCalls({
         put: {
           [automaticSourceControlControlConfigurationUrl]: Promise.resolve({}),
         },
       });
+
       store.dispatch(update()).then(() => {
-        const [, { type }] = actions;
         expect(actions.length).toBe(2);
-        expect(type).toBe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FULFILLED');
+        expect(actions).toHaveActionsInOrder([
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_REQUESTED' },
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FULFILLED' },
+        ]);
+        done();
       });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_REQUESTED');
     });
 
-    it('dispatches an AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FAILED action', function () {
+    it('dispatches an AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FAILED action', (done) => {
       mockAxiosCalls({
         put: {
           [automaticSourceControlControlConfigurationUrl]: Promise.reject({ status: 403 }),
         },
       });
+
       store.dispatch(update()).then(() => {
-        actions = store.getActions();
-        const [, { type, payload }] = actions;
         expect(actions.length).toBe(2);
-        expect(type).toBe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FAILED');
-        expect(payload).toBe('Error 403');
+        expect(actions).toHaveActionsInOrder([
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_REQUESTED' },
+          { type: 'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_FAILED', payload: 'Error 403' },
+        ]);
+        done();
       });
-      const [{ type: actionType }] = actions;
-      expect(actionType).toBe('AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_UPDATE_REQUESTED');
     });
   });
 });

@@ -5,14 +5,12 @@
  */
 
 import axios from 'axios';
+import { compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { checkPermissions } from '../../util/authorizationUtil';
 import { getAutomaticSourceControlConfigurationUrl } from '../../util/CLMLocation';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
-import { getGlobalPermissionTestUrl } from '../../util/CLMContextLocation';
 import { Messages } from '../../util/CommonServices';
-
-export const authErrorMessage = `It appears you do not have permission to access this page.
-  If you believe this to be incorrect please contact your administrator.`;
 
 export const AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED =
   'AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_LOAD_REQUESTED';
@@ -54,16 +52,11 @@ function startSubmitMaskSuccessTimer(dispatch) {
 export function load() {
   return function (dispatch) {
     dispatch(loadRequested());
-    return axios
-      .put(getGlobalPermissionTestUrl(), permissions)
-      .then(({ data }) => {
-        if (data.length !== permissions.length) {
-          throw authErrorMessage;
-        }
-      })
+
+    return checkPermissions(permissions)
       .then(() => axios.get(getAutomaticSourceControlConfigurationUrl()))
       .then(({ data }) => dispatch(loadFulfilled(data)))
-      .catch((error) => dispatch(loadFailed(Messages.getHttpErrorMessage(error))));
+      .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
   };
 }
 

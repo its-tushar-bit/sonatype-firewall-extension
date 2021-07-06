@@ -143,6 +143,17 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
+  public void testHandle_container_content() throws Exception {
+    File scanFile = getScanFile("container/scan-with-container-content.xml");
+    File tempScanFile = tempDir.newFile();
+
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), null);
+
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.CONTAINER_URI));
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.CONTAINER_URI, true, 9);
+  }
+
+  @Test
   public void testHandle_sbomUsingSameSbomFileRepeatedContent() throws Exception {
     File scanFile = getScanFile("sbom/scan-with-sbom-repeated-content.xml");
 
@@ -327,8 +338,12 @@ public class ThirdPartyScanResultsProcessorTest
                 assertFilteredClairScanContentFile(contentElement.getValue(), contentType, expectedComponentCount);
               }
               else if (ItemContentType.SBOM == itemContentType) {
-                assertFilteredSbomScanContentFile(contentElement.getValue(), contentType, optionalValuesPresent,
-                    expectedComponentCount);
+                assertFilteredScanContentFile(contentElement.getValue(), contentType, optionalValuesPresent,
+                    expectedComponentCount, ItemContentType.SBOM);
+              }
+              else if (ItemContentType.CONTAINER_URI == itemContentType) {
+                assertFilteredScanContentFile(contentElement.getValue(), contentType, optionalValuesPresent,
+                    expectedComponentCount, ItemContentType.CONTAINER_URI);
               }
             }
             else {
@@ -342,13 +357,14 @@ public class ThirdPartyScanResultsProcessorTest
     }
   }
 
-  private void assertFilteredSbomScanContentFile(
-      String xml,
-      String contentType,
-      boolean optionalValuesPresent,
-      int expectedComponentCount) throws Exception
+  private void assertFilteredScanContentFile(
+      final String xml,
+      final String contentType,
+      final boolean optionalValuesPresent,
+      final int expectedComponentCount,
+      final ItemContentType itemContentType) throws ParseException
   {
-    assertThat(contentType).isEqualTo(ItemContentType.SBOM.name());
+    assertThat(contentType).isEqualTo(itemContentType.name());
     Bom bom = getBom(xml);
     assertThat(bom).isNotNull();
     assertThat(bom.getComponents()).hasSize(expectedComponentCount);

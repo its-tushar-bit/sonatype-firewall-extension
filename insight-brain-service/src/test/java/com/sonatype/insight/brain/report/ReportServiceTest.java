@@ -222,6 +222,16 @@ public class ReportServiceTest
   {
     assertThat(component.getSecurityVulnerabilities()).hasSize(1);
     SecurityVulnerability securityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertSecurityVulnerability(securityVulnerability, source, refId, severity, url);
+  }
+
+  private void assertSecurityVulnerability(
+      final SecurityVulnerability securityVulnerability,
+      final String source,
+      final String refId,
+      final float severity,
+      final String url)
+  {
     assertThat(securityVulnerability.getSource()).isEqualTo(source);
     assertThat(securityVulnerability.getRefId()).isEqualTo(refId);
     assertThat(securityVulnerability.getSeverity()).isEqualTo(severity);
@@ -407,6 +417,36 @@ public class ReportServiceTest
     assertThat(dto.securityRows).hasSize(13);
     assertThat(dto.securityRows.get(0).componentIdentifier.getFormat()).isEqualTo("sbom");
     assertThat(dto.securityRows.get(1).componentIdentifier.getFormat()).isEqualTo("terraform");
+  }
+
+  @Test
+  public void testProcessThirdPartyData_withContainerContent() throws Exception {
+    MockReportDownloader mockReportDownloader = new MockReportDownloader();
+    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-container-content");
+    reportDownloader = mockReportDownloader.getMock();
+    ReportService reportService = createReportService();
+
+    File reportFile = reportService.fetchReport(app, scanId);
+
+    ComponentDAO componentDAO = new ComponentDAO(app);
+    ReportEntry licenseReportEntry = Report.getEntry(reportFile, Report.LICENSES_JSON_FILENAME);
+    ReportEntry securityReportEntry = Report.getEntry(reportFile, Report.SECURITY_JSON_FILENAME);
+    ReportEntry bomReportEntry = Report.getEntry(reportFile, Report.BOM_JSON_FILENAME);
+    ReportEntry dependenciesReportEntry = Report.getEntry(reportFile, Report.DEPENDENCIES_JSON_FILENAME);
+    List<Component> components = componentDAO
+        .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
+    assertThat(components).hasSize(9);
+
+    // get a component with a vulnerability and verify it
+    Component component = components.get(0);
+    assertComponent(component, "9cd309492780e10b8349",
+        ComponentIdentifier.createContainerCoordinates("alpine:3.6.5", "apk-tools", "2.7.6-r0"),
+        "dependency:/pkg:generic\\alpine%3A3.6.5\\apk-tools@2.7.6-r0?qualifier=container",
+        IdentificationSource.SONATYPE_CONTAINER);
+
+    List<SecurityVulnerability> securityVulnerabilities = component.getSecurityVulnerabilities();
+    assertSecurityVulnerability(securityVulnerabilities.get(0), "Sonatype", "CVE-2021-30139", 7.5F,
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-30139");
   }
 
   @Test

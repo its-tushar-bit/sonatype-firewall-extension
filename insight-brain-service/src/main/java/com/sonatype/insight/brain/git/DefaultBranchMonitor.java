@@ -81,7 +81,7 @@ public class DefaultBranchMonitor
       return;
     }
 
-    if (!insightConfig.isExperimentalFeatureEnabled(Feature.DEFAULT_BRANCH_MONITORING)) {
+    if (!insightConfig.isFeatureEnabled(Feature.DEFAULT_BRANCH_MONITORING)) {
       taskScheduler.unscheduleTask(TASK_NAME);
       return;
     }

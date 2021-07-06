@@ -88,8 +88,6 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testStart_FeatureEnabled() throws Exception {
-    insightConfig.setExperimentalFeatures(ImmutableMap.of(Feature.DEFAULT_BRANCH_MONITORING.getFlag(), true));
-
     Date expectedStartTime = defaultBranchMonitor.getDefaultBranchMonitorStartTime();
     defaultBranchMonitor.start();
 
@@ -100,6 +98,7 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testStart_FeatureDisabled() throws Exception {
+    insightConfig.setFeatures(ImmutableMap.of(Feature.DEFAULT_BRANCH_MONITORING.getFlag(), false));
     defaultBranchMonitor.start();
 
     verify(taskSchedulerMock, never()).schedulePeriodicTask(any(), any(), any());

@@ -18,9 +18,9 @@ function TagWithFontAwesomeIcon({ faIcon, color, children }) {
   );
 }
 
-export default function ComponentLabelTag({ children }) {
+export default function ComponentLabelTag({ children, color }) {
   return (
-    <TagWithFontAwesomeIcon faIcon={faTag} color="orange">
+    <TagWithFontAwesomeIcon faIcon={faTag} color={color}>
       {children}
     </TagWithFontAwesomeIcon>
   );

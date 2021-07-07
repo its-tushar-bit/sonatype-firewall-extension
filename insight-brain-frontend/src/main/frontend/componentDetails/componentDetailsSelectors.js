@@ -14,6 +14,8 @@ import {
 } from '../applicationReport/applicationReportSelectors';
 import { selectCurrentRouteName, selectRouterCurrentParams } from '../reduxUiRouter/routerSelectors';
 
+const selectDetails = prop('componentDetails');
+
 const selectComponentMetaData = createSelector(selectApplicationReportMetaData, (metadata) =>
   metadata
     ? {
@@ -30,8 +32,9 @@ const formatFromComponent = path(['componentIdentifier', 'format']);
 export const selectComponentDetails = createSelector(
   selectSelectedComponent,
   selectComponentMetaData,
-  (component, metadata) =>
-    component && metadata
+  selectDetails,
+  (component, metadata, details) =>
+    component && metadata && details
       ? {
           name: component.derivedComponentName,
           hash: component.hash,
@@ -40,6 +43,7 @@ export const selectComponentDetails = createSelector(
           isInnerSource: component.innerSource || !!component.innerSourceData,
           format: formatFromComponent(component),
           metadata,
+          labels: details.labels,
         }
       : null
 );

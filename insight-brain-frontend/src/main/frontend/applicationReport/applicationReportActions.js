@@ -194,7 +194,7 @@ export function loadReport(forceClearMetadata = false) {
 
     return dispatch(fetchCommonData(forceClearMetadata))
       .then(() => dispatch(fetchReportData()))
-      .catch(() => {});
+      .catch((error) => dispatch(loadReportFailed(error)));
   };
 }
 

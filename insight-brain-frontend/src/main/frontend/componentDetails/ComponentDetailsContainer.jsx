@@ -4,9 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { loadReport } from '../applicationReport/applicationReportActions';
 import { selectComponentDetails, selectActiveTabId, selectComponentPagination } from './componentDetailsSelectors';
-import { onTabChange } from './componentDetailsActions';
+import { onTabChange, loadComponentDetails } from './componentDetailsActions';
 import ComponentDetails from './ComponentDetails';
 
 function mapStateToProps(state, { uiRouterState }) {
@@ -14,14 +13,15 @@ function mapStateToProps(state, { uiRouterState }) {
     componentDetails: selectComponentDetails(state),
     activeTabId: selectActiveTabId(state),
     pagination: selectComponentPagination(state, { uiRouterState }),
-    applicationReportLoadError: state.applicationReport.loadError,
+    loadError: state.applicationReport.loadError || state.componentDetails.loadError,
+    loading: !!(state.applicationReport.pendingLoads.size + state.componentDetails.pendingLoads.size),
   };
 }
 
 const mapDispatchToProps = {
   // we derive componentDetails from the url and the selectedReport
   // but we need to load the report if there is none loaded yet
-  loadComponentDetails: () => loadReport(true),
+  loadComponentDetails,
   onTabChange,
 };
 

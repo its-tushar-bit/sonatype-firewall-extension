@@ -45,8 +45,11 @@ describe('componentDetailsSelectors', () => {
           ],
         },
       },
+      componentDetails: {
+        labels: [],
+      },
     };
-    it('derives componentDetails from the selectedReport metadata, and the selectedComponent', () => {
+    it('derives componentDetails from the componentDetails, selectedReport metadata, and the selectedComponent', () => {
       const expected = {
         name: 'My Component',
         hash: 'some-component-hash',
@@ -60,6 +63,7 @@ describe('componentDetailsSelectors', () => {
           reportTime: 1623135382098,
           reportTitle: 'Title of Report',
         },
+        labels: [],
       };
       const actual = selectComponentDetails(mockState);
       expect(actual).toEqual(expected);

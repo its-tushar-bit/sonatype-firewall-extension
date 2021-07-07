@@ -195,13 +195,12 @@ describe('applicationReportActions', function () {
       });
     });
 
-    it('fires LOAD_COMMON_DATA_FAILED action and no further actions if the common data request fails', (done) => {
+    it('fires LOAD_COMMON_DATA_FAILED action if the common data request fails', (done) => {
       const store = SpecUtil.mockReduxStore(createMockState(true, undefined, undefined, undefined));
 
       expectCommonDataCalls(false, expectAdditionalCalls);
 
       store.dispatch(applicationReportActions[actionCreatorName]()).then(() => {
-        expect(store.getActions().length).toBe(2);
         expect(store.getActions()[1]).toEqual({
           type: 'LOAD_COMMON_DATA_FAILED',
           payload: 'Error 500',

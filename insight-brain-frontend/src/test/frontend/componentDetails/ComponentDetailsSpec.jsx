@@ -5,12 +5,11 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
-import { NxStatefulTabs, NxTab } from '@sonatype/react-shared-components';
+import { NxStatefulTabs, NxTab, NxLoadError, NxLoadingSpinner } from '@sonatype/react-shared-components';
 
 import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
 import { ComponentDetailsFooter } from '../../../main/frontend/componentDetails/ComponentDetailsFooter';
 import BackButton from '../../../main/frontend/react/BackButton';
-import LoadError from '../../../main/frontend/react/LoadError';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
 import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
 import * as violationsTab from '../../../main/frontend/componentDetails/violations/PolicyViolationsContainer';
@@ -41,6 +40,8 @@ describe('ComponentDetails', function () {
       loadComponentDetails: loadComponentDetailsSpy,
       onTabChange: onTabChangeSpy,
       pagination: null,
+      loadError: null,
+      loading: false,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetails, minimalProps);
@@ -62,17 +63,6 @@ describe('ComponentDetails', function () {
   it('calls loadComponentDetails if there is NO componentDetails in the state', () => {
     const component = getMountedComponent();
     expect(loadComponentDetailsSpy).toHaveBeenCalled();
-    component.unmount();
-  });
-
-  it('does not calls loadComponentDetails if there IS a componentDetails in the state', () => {
-    const component = getMountedComponent({
-      componentDetails: {
-        name: 'Mock Component Name',
-        hash: 'some-crazy-hash',
-      },
-    });
-    expect(loadComponentDetailsSpy).not.toHaveBeenCalled();
     component.unmount();
   });
 
@@ -187,47 +177,32 @@ describe('ComponentDetails', function () {
   });
 
   describe('when there is an error loading the report', () => {
-    beforeEach(() => {
-      minimalProps = {
-        componentDetails: null,
-        activeTabId: 'remediation',
-        loadComponentDetails: loadComponentDetailsSpy,
-        onTabChange: onTabChangeSpy,
-        pagination: null,
-        applicationReportLoadError: 'Mock message',
-      };
-    });
-
-    it('renders a LoadError component', () => {
-      const el = getShallowComponent(minimalProps).find(LoadError);
+    it('renders a NxLoadError component', () => {
+      const el = getShallowComponent({ loadError: 'Mock message' }).find(NxLoadError);
       expect(el).toExist();
       expect(el).toHaveProp('error', 'Mock message');
     });
 
     it('calls loadComponentDetails when the user clicks the retry button', () => {
-      const component = getMountedComponent(minimalProps);
-      component.find(LoadError).props().retryHandler();
+      const component = getMountedComponent({ loadError: 'Mock message' });
+      component.find(NxLoadError).props().retryHandler();
       expect(loadComponentDetailsSpy).toHaveBeenCalled();
       component.unmount();
     });
 
-    describe('when app fails to get componentDetails and there is no applicationReportError', () => {
-      beforeEach(() => {
-        minimalProps = {
-          componentDetails: null,
-          activeTabId: 'remediation',
-          loadComponentDetails: loadComponentDetailsSpy,
-          onTabChange: onTabChangeSpy,
-          pagination: null,
-          applicationReportLoadError: null,
-        };
-      });
-
+    describe('when app fails to get componentDetails and there is no loadError', () => {
       it('renders a componentDetails error', () => {
-        const el = getShallowComponent(minimalProps).find(LoadError);
+        const el = getShallowComponent(minimalProps).find(NxLoadError);
         expect(el).toExist();
         expect(el).toHaveProp('error', 'Error getting component details.');
       });
+    });
+  });
+
+  describe('when there are pending loads', () => {
+    it('renders a NxLoadingSpinner component', () => {
+      const el = getShallowComponent({ loading: true }).find(NxLoadingSpinner);
+      expect(el).toExist();
     });
   });
 });

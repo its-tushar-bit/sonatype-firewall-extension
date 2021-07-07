@@ -480,6 +480,10 @@ export function getUserUrl() {
   return uriTemplate`/rest/user`;
 }
 
+export function getComponentLabels(ownerId, componentHash) {
+  return uriTemplate`/rest/label/component/application/${ownerId}/${componentHash}`;
+}
+
 export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }

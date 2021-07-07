@@ -5,12 +5,18 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxStatefulTabs, NxTab, NxTabList, NxTabPanel } from '@sonatype/react-shared-components';
+import {
+  NxStatefulTabs,
+  NxTab,
+  NxTabList,
+  NxTabPanel,
+  NxLoadingSpinner,
+  NxLoadError,
+} from '@sonatype/react-shared-components';
 
 import BackButton from '../react/BackButton';
 import { useRouterState } from '../react/RouterStateContext';
 import AuditLogContainer from './auditLog/AuditLogContainer';
-import LoadError from '../react/LoadError';
 import {
   ComponentDetailsHeader,
   ComponentDetailsReportInfo,
@@ -29,25 +35,24 @@ export default function ComponentDetails({
   onTabChange,
   pagination,
   loadComponentDetails,
-  applicationReportLoadError,
+  loadError,
+  loading,
 }) {
   const uiRouterState = useRouterState();
+  const customError = loadError || 'Error getting component details.';
 
   useEffect(() => {
-    if (!componentDetails && !applicationReportLoadError) {
-      loadComponentDetails();
-    }
-  }, [componentDetails, applicationReportLoadError]);
+    loadComponentDetails();
+  }, []);
 
   // bail out early if no component details (still show back button)
-  if (!componentDetails) {
+  if (loadError || loading || !componentDetails) {
     return (
       <main className="nx-page-main nx-viewport-sized" id="component-details-page">
         <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
-        <LoadError
-          error={applicationReportLoadError || 'Error getting component details.'}
-          retryHandler={loadComponentDetails}
-        />
+        <div className="iq-component-details-page__error">
+          {loading ? <NxLoadingSpinner /> : <NxLoadError error={customError} retryHandler={loadComponentDetails} />}
+        </div>
       </main>
     );
   }
@@ -134,7 +139,8 @@ ComponentDetails.propTypes = {
   // activeTabId should be required but marking it as such causes proptype errors when navigating away
   activeTabId: PropTypes.string,
   onTabChange: PropTypes.func.isRequired,
-  applicationReportLoadError: PropTypes.string,
+  loading: PropTypes.bool.isRequired,
+  loadError: PropTypes.string,
   pagination: PropTypes.shape(footerPropTypes),
 };
 

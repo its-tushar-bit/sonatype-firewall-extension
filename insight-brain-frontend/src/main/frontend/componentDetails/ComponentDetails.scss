@@ -34,6 +34,10 @@ component-details {
   }
 }
 
+.iq-component-details-page__error {
+  padding: 0 var(--nx-spacing-6x);
+}
+
 .iq-component-details-page__content {
   padding: 0 var(--nx-spacing-6x);
 }

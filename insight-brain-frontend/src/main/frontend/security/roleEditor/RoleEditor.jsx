@@ -30,7 +30,6 @@ function RoleEditor({
   save,
   updateMaskState,
   load,
-  resetForm,
   readonly,
   loadError,
   updateError,
@@ -42,6 +41,7 @@ function RoleEditor({
   deleteMaskState,
   builtIn,
   loading,
+  stateGo,
 }) {
   const { name: roleName, description: roleDescription, permissionCategories } = formState;
 
@@ -63,12 +63,6 @@ function RoleEditor({
       loadRoles();
     }
   }, []);
-
-  const cancelButton = (
-    <NxButton type="button" disabled={!isDirty} onClick={resetForm}>
-      Cancel
-    </NxButton>
-  );
 
   function formValidatorErrors() {
     if (!isDirty) {
@@ -100,7 +94,7 @@ function RoleEditor({
         <section className="nx-tile">
           <NxForm
             loading={loading}
-            additionalFooterBtns={cancelButton}
+            onCancel={() => stateGo('rolesList')}
             submitBtnText="Save"
             validationErrors={readonly ? readOnlyValidatorErrors() : formValidatorErrors()}
             onSubmit={save}
@@ -212,7 +206,6 @@ RoleEditor.propTypes = {
   save: PropTypes.func.isRequired,
   updateMaskState: PropTypes.bool,
   load: PropTypes.func.isRequired,
-  resetForm: PropTypes.func.isRequired,
   readonly: PropTypes.bool,
   loadError: PropTypes.string,
   updateError: PropTypes.string,
@@ -233,6 +226,7 @@ RoleEditor.propTypes = {
   deleteMaskState: PropTypes.bool,
   builtIn: PropTypes.bool.isRequired,
   loading: PropTypes.bool.isRequired,
+  stateGo: PropTypes.func.isRequired,
 };
 
 export default RoleEditor;

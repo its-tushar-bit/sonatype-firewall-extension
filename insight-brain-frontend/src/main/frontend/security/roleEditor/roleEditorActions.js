@@ -46,10 +46,6 @@ export const ROLE_EDITOR_DELETE_MASK_TIMER_DONE = 'ROLE_EDITOR_DELETE_MASK_TIMER
 const updateMaskTimerDone = noPayloadActionCreator(ROLE_EDITOR_SAVE_SUBMIT_MASK_TIMER_DONE);
 const deleteMaskTimerDone = noPayloadActionCreator(ROLE_EDITOR_DELETE_MASK_TIMER_DONE);
 
-export const ROLE_EDITOR_RESET_FORM = 'ROLE_EDITOR_RESET_FORM';
-
-export const resetForm = noPayloadActionCreator(ROLE_EDITOR_RESET_FORM);
-
 export const permissions = ['VIEW_ROLES', 'EDIT_ROLES'];
 
 export const ROLE_EDITOR_DELETE_REQUESTED = 'ROLE_EDITOR_DELETE_REQUESTED';

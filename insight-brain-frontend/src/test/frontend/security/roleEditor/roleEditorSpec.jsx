@@ -4,8 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React from 'react';
-import { NxButton, NxForm, NxModal } from '@sonatype/react-shared-components';
+import { NxForm, NxModal } from '@sonatype/react-shared-components';
 import RoleEditor from '../../../../main/frontend/security/roleEditor/RoleEditor';
 import * as enzymeUtils from '../../enzymeUtils';
 import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
@@ -14,16 +13,16 @@ describe('RoleEditor', () => {
   let getShallowComponent,
     minimalProps,
     mockLoad,
-    mockResetForm,
     mockLoadRoles,
     mockSubmit,
     stateMock,
     stateGetSpy,
-    mockDelete;
+    mockDelete,
+    stateGoSpy;
 
   beforeEach(() => {
+    stateGoSpy = jasmine.createSpy('stateGo');
     mockLoad = jasmine.createSpy('load');
-    mockResetForm = jasmine.createSpy('resetForm');
     mockLoadRoles = jasmine.createSpy('loadRoles');
     mockSubmit = jasmine.createSpy('save');
     stateGetSpy = jasmine.createSpy('$state.get').and.returnValue({ data: { title: 'some title' } });
@@ -44,7 +43,6 @@ describe('RoleEditor', () => {
         description: {},
         permissionCategories: [],
       },
-      resetForm: mockResetForm,
       loadRoles: mockLoadRoles,
       save: mockSubmit,
       router: {
@@ -53,6 +51,7 @@ describe('RoleEditor', () => {
       },
       deleteSaving: false,
       deleteSuccess: false,
+      stateGo: stateGoSpy,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(RoleEditor, minimalProps);
   });
@@ -102,26 +101,11 @@ describe('RoleEditor', () => {
   });
 
   describe('cancel button', () => {
-    it('contains the cancel button', () => {
+    it('redirect to roles list', () => {
       const shallowComponent = getShallowComponent({ isDirty: true });
-      const cancelButton = (
-        <NxButton type="button" disabled={false} onClick={mockResetForm}>
-          Cancel
-        </NxButton>
-      );
       const form = shallowComponent.find(NxForm);
-      expect(form).toHaveProp('additionalFooterBtns', cancelButton);
-    });
-
-    it('contains a disabled cancel button when the form is not dirty', () => {
-      const shallowComponent = getShallowComponent({ isDirty: false });
-      const cancelButton = (
-        <NxButton type="button" disabled={true} onClick={mockResetForm}>
-          Cancel
-        </NxButton>
-      );
-      const form = shallowComponent.find(NxForm);
-      expect(form).toHaveProp('additionalFooterBtns', cancelButton);
+      form.simulate('cancel');
+      expect(stateGoSpy).toHaveBeenCalledWith('rolesList');
     });
   });
 

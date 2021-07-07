@@ -14,7 +14,6 @@ import {
   ROLE_EDITOR_LOAD_FAILED,
   ROLE_EDITOR_LOAD_FULFILLED,
   ROLE_EDITOR_LOAD_REQUESTED,
-  ROLE_EDITOR_RESET_FORM,
   ROLE_EDITOR_SAVE_SUBMIT_MASK_TIMER_DONE,
   ROLE_EDITOR_SET_READONLY,
   ROLE_EDITOR_SET_ROLE_DESCRIPTION,
@@ -132,25 +131,6 @@ function loadFulfilled(payload, state) {
   };
 }
 
-function resetForm(_, state) {
-  const {
-    formStateFromServer: { name, description, permissionCategories },
-  } = state;
-  const formState = {
-    ...state.formStateFromServer,
-    name: initUserInput(name),
-    description: initUserInput(description),
-    permissionCategories: clone(permissionCategories),
-  };
-  return {
-    ...initialState,
-    formState,
-    formStateFromServer: {
-      ...state.formStateFromServer,
-    },
-  };
-}
-
 function loadFailed(payload, state) {
   return {
     ...state,
@@ -198,7 +178,6 @@ const reducerActionMap = {
   [ROLE_EDITOR_SAVE_SUBMIT_MASK_TIMER_DONE]: propSetConst('updateMaskState', null),
   [ROLE_EDITOR_LOAD_REQUESTED]: () => initialState,
   [ROLE_EDITOR_LOAD_FULFILLED]: loadFulfilled,
-  [ROLE_EDITOR_RESET_FORM]: resetForm,
   [ROLE_EDITOR_SET_READONLY]: propSet('readonly'),
   [ROLE_EDITOR_LOAD_FAILED]: loadFailed,
   [ROLE_EDITOR_DELETE_MASK_TIMER_DONE]: propSetConst('deleteMaskState', null),

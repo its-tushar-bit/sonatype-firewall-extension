@@ -346,32 +346,6 @@ describe('RoleEditorReducer', () => {
     });
   });
 
-  describe('ROLE_EDITOR_RESET_FORM action', () => {
-    it('resets the state', () => {
-      const permissionCategories = [{}];
-      let state = {
-        formStateFromServer: {
-          name: '',
-          description: '',
-          permissionCategories,
-        },
-      };
-      let action = {
-        type: 'ROLE_EDITOR_RESET_FORM',
-      };
-      const newState = reduce(state, action);
-      expect(newState).toEqual({
-        ...initialState,
-        formState: {
-          ...state.formStateFromServer,
-          name: initUserInput(state.formStateFromServer.name),
-          description: initUserInput(state.formStateFromServer.description),
-        },
-        formStateFromServer: { ...state.formStateFromServer },
-      });
-    });
-  });
-
   describe('ROLE_EDITOR_SET_READONLY action', () => {
     it('sets true to readonly', () => {
       const state = {

@@ -25,10 +25,11 @@ def gebTests() {
   mvn testConfig, 'clean test'
 }
 
-def functionalTests(String browser, String testRegex) {
+def functionalTests(String browser, String testRegex, String testGroupLabel) {
   copyRepo()
   withCredentials([string(credentialsId: 'APPLITOOLS_KEY', variable: 'applitoolsKey')]) {
     String mavenOptions = "'-Dit.test=%regex[${testRegex}]'"
+    mavenOptions += " -Dtest.group=${testGroupLabel}"
     mavenOptions += ' -Drun-functional-tests=docker'
     mavenOptions += " -Dbrowser=${browser}"
     mavenOptions += " -DapplitoolsKey=${applitoolsKey}"
@@ -46,8 +47,8 @@ def unitTests(String testRegex, String javaVersion = 'Java 8') {
   mvn testConfig, 'clean install'
 }
 
-def captureResultsAndCleanup() {
-  archiveArtifacts(artifacts: '**/target/*-reports/**', excludes: '**/*.xml, **/*-output.txt')
+def captureResultsAndCleanup(String artifactGlob = '**/target/*-reports/**') {
+  archiveArtifacts(artifacts: artifactGlob, excludes: '**/*.xml, **/*-output.txt')
   collectTestResults(['**/target/*-reports/*.xml'])
   deleteDir()
 }
@@ -81,11 +82,11 @@ pipeline {
             APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
           }
           steps {
-            functionalTests('chrome', '.*/[A-H].*Test.class')
+            functionalTests('chrome', '.*/[A-H].*Test.class', 'chrome-A')
           }
           post {
             always {
-              captureResultsAndCleanup()
+              captureResultsAndCleanup('**/target/*-reports/**,**/*docker.log')
             }
           }
         }
@@ -96,11 +97,11 @@ pipeline {
             APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
           }
           steps {
-            functionalTests('chrome', '.*/[I-R].*Test.class')
+            functionalTests('chrome', '.*/[I-R].*Test.class', 'chrome-B')
           }
           post {
             always {
-              captureResultsAndCleanup()
+              captureResultsAndCleanup('**/target/*-reports/**,**/*docker.log')
             }
           }
         }
@@ -111,11 +112,11 @@ pipeline {
             APPLITOOLS_BATCH_ID = "${env.GIT_COMMIT}"
           }
           steps {
-            functionalTests('chrome', '.*/[S-Z].*Test.class')
+            functionalTests('chrome', '.*/[S-Z].*Test.class', 'chrome-C')
           }
           post {
             always {
-              captureResultsAndCleanup()
+              captureResultsAndCleanup('**/target/*-reports/**,**/*docker.log')
             }
           }
         }

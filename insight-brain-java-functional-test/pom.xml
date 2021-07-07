@@ -24,6 +24,7 @@
     <docker.image.version>91.0-20210527</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
+    <test.group>all</test.group>
   </properties>
 
   <build>
@@ -252,6 +253,9 @@
                         <volume>/dev/shm:/dev/shm</volume>
                       </bind>
                     </volumes>
+                    <log>
+                      <file>test-group-${test.group}-docker.log</file>
+                    </log>
                   </run>
                 </image>
               </images>

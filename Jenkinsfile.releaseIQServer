@@ -1,0 +1,133 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+properties(
+  [
+    parameters (
+      [
+        string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"')
+      ]
+    )
+  ]
+)
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+
+  environment {
+    minorVersion = "${parseVersion(getVersionFromBuildName(params.releaseVersion))?.minor}"
+    runId = "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}"
+  }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+  }
+  stages {
+    stage('Announce Release is Starting') {
+      steps {
+        build(job: 'insight/insight-brain/Release Starting',
+          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Stage Release Binaries') {
+      steps {
+        build(job: 'insight/insight-brain/release',
+          parameters: [string(name: 'version', value: params.releaseVersion)])
+      }
+    }
+    stage('Release Jira Version - IQ') {
+      steps {
+        build(job: 'insight/insight-brain/Release JIRA Version',
+          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Release Jira Version - Integrations') {
+      steps {
+        build(job: 'integrations/Set Jira Fix Version/',
+          parameters: [string(name: 'prefix', value: 'brain'), string(name: 'version', value: env.minorVersion)])
+      }
+    }
+    stage('Deploy to staging') {
+      steps {
+        build(
+          job: 'insight/insight-brain/deploy',
+          parameters: [
+            string(name: 'environment', value: 'Staging'),
+            run(name: 'releaseBuild', runId: env.runId)
+          ]
+        )
+      }
+    }
+    stage('Deploy to Production') {
+      steps {
+        build(
+          job: 'insight/insight-brain/deploy',
+          parameters: [
+            string(name: 'environment', value: 'Production'),
+            run(name: 'releaseBuild', runId: env.runId)
+          ]
+        )
+      }
+    }
+    parallel {
+      stage('Publish Docker Image') {
+        steps {
+          build(
+            job: 'insight/insight-brain/docker/docker-nexus-iq-server',
+            parameters: [
+              run(name: 'releaseBuild', runId: env.runId)
+            ]
+          )
+        }
+      }
+      stage('Publish CloudFormation Templates') {
+        steps {
+          build(
+            job: 'integrations/cloud/nexus-iq-ha-reference',
+            parameters: [
+              run(name: 'releaseBuild', runId: env.runId)
+            ]
+          )
+        }
+      }
+    }
+    stage('Publish Release Notes & Documentation') {
+      steps {
+        build(job: 'insight/insight-brain/Publish Documentation')
+      }
+    }
+    stage('Send Policy Results') {
+      steps {
+        build(job: 'insight/insight-brain/Send Policy Results',
+          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Create Product Notification') {
+      steps {
+        build(job: 'insight/insight-brain/Update Product Notifications',
+          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+    stage('Deploy Product Notification - Staging') {
+      steps {
+        build(job: 'insight/hosted-data-services/Sync Product Notifications',
+          parameters: [string(name: 'ENVIRONMENT', value: 'staging')])
+      }
+    }
+    stage('Deploy Product Notification - Production') {
+      steps {
+        build(job: 'insight/hosted-data-services/Sync Product Notifications',
+          parameters: [string(name: 'ENVIRONMENT', value: 'production')])
+      }
+    }
+    stage('Send Release Notifications') {
+      steps {
+        build(job: 'insight/insight-brain/Release Notification',
+          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+  }
+}

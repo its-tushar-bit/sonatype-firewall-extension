@@ -21,7 +21,7 @@
     <selenide.driverManagerEnabled>false</selenide.driverManagerEnabled>
     <selenide.timeout>4000</selenide.timeout>
     <docker.image.registry></docker.image.registry>
-    <docker.image.version>3.141.59</docker.image.version>
+    <docker.image.version>3.141.59-20210607</docker.image.version>
     <docker.image>standalone-chrome:${docker.image.version}</docker.image>
     <webdriver.chrome.driver>${project.build.directory}/chromedriver</webdriver.chrome.driver>
     <test.group>all</test.group>

@@ -26,10 +26,11 @@ export default function CopyrightStatementsTile(props) {
 
   const createAttributionModal = <CopyrightOverrideFormContainer />;
 
-  const isCopyrightPresent = () =>
-    component.licenseLegalData.copyrights.filter((c) => c.status === 'enabled').length > 0;
-
-  const noDataText = () => (component.licenseLegalData.copyrights.length > 0 ? 'None enabled' : 'None found');
+  const noDataText = () => (
+    <li className={'license-no-legal-elements-text'}>
+      {component.licenseLegalData.copyrights.length > 0 ? 'None enabled' : 'None found'}
+    </li>
+  );
 
   const copyrightDetailsTargetState = () =>
     stageTypeId
@@ -56,6 +57,8 @@ export default function CopyrightStatementsTile(props) {
     );
   };
 
+  const isCopyrightPresent = component.licenseLegalData.copyrights.filter((c) => c.status === 'enabled').length > 0;
+
   return (
     <section id="copyright-statements-tile" className="nx-tile">
       <header className="nx-tile-header">
@@ -64,15 +67,15 @@ export default function CopyrightStatementsTile(props) {
         </div>
         <div className="nx-tile__actions">
           <NxButton id="edit-copyrights" variant="tertiary" onClick={() => setDisplayCopyrightOverrideModal(true)}>
-            <NxFontAwesomeIcon icon={isCopyrightPresent() ? faPen : faPlus} />
-            <span>{isCopyrightPresent() ? 'Edit' : 'Add'}</span>
+            <NxFontAwesomeIcon icon={isCopyrightPresent ? faPen : faPlus} />
+            <span>{isCopyrightPresent ? 'Edit' : 'Add'}</span>
           </NxButton>
         </div>
         {showEditCopyrightOverrideModal && createAttributionModal}
       </header>
       <div className="nx-tile-content">
         <ul className="nx-list nx-list--clickable">
-          {isCopyrightPresent()
+          {isCopyrightPresent
             ? component.licenseLegalData.copyrights
                 .map((c, index) => [c, index])
                 .filter((pair) => pair[0].status === 'enabled')

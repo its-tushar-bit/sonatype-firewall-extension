@@ -7,7 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 
 describe('LicenseDetailsTile component', function () {
-  let getShallowComponent, $state, minimalProps;
+  let getMountedComponent, $state, minimalProps;
 
   beforeEach(function () {
     $state = jasmine.createSpyObj('$state', ['get', 'href']);
@@ -22,20 +22,29 @@ describe('LicenseDetailsTile component', function () {
       {
         licenseId: 'License-1.0',
         licenseName: 'License-1.0',
+        singleLicenseIds: [],
+        isMulti: false,
       },
       {
         licenseId: 'License-2.0',
         licenseName: 'License-2.0',
+        singleLicenseIds: [],
+        isMulti: false,
       },
       {
         licenseId: 'License-1.0-License-2.0',
         licenseName: 'License-1.0 or License-2.0',
+        singleLicenseIds: ['License-1.0', 'License-2.0'],
+        isMulti: true,
       },
     ];
 
     const component = {
       licenseLegalData: {
         effectiveLicenses: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
+        observedLicenses: ['License-2.0', 'License-1.0-License-2.0'],
+        declaredLicenses: ['License-1.0-License-2.0'],
+        effectiveLicenseStatus: 'Selected',
       },
     };
 
@@ -45,57 +54,101 @@ describe('LicenseDetailsTile component', function () {
       $state,
     };
 
-    getShallowComponent = enzymeUtils.getShallowComponent(LicenseDetailsTile, minimalProps);
+    getMountedComponent = enzymeUtils.getMountedComponent(LicenseDetailsTile, minimalProps);
   });
 
   it('renders a header with label `License Details`', function () {
-    const wrapper = getShallowComponent();
+    const wrapper = getMountedComponent();
     expect(wrapper.find('h2.nx-h2')).toHaveText('Licenses');
   });
 
   it('renders the given licenses', function () {
-    const wrapper = getShallowComponent();
-    let licenseSpans = wrapper.find('span.nx-list__text');
-    expect(licenseSpans.length).toBe(3);
-    expect(licenseSpans.at(0)).toHaveText('License-1.0');
-    expect(licenseSpans.at(1)).toHaveText('License-2.0');
-    expect(licenseSpans.at(2)).toHaveText('License-1.0 or License-2.0');
-  });
+    const wrapper = getMountedComponent();
+    let licenseLinks = wrapper.find('.license-details-tile__effective-licenses .nx-text-link span');
+    expect(licenseLinks.length).toBe(4);
+    expect(licenseLinks.at(0)).toHaveText('License-1.0');
+    expect(licenseLinks.at(1)).toHaveText('License-2.0');
+    expect(licenseLinks.at(2)).toHaveText('License-1.0');
+    expect(licenseLinks.at(3)).toHaveText('License-2.0');
 
-  it('renders None found if there are no licenses', function () {
-    const wrapper = enzymeUtils.getShallowComponent(LicenseDetailsTile, {
-      licenseNames: [],
-    })();
-    const content = wrapper.find('.nx-tile-content');
-    expect(content).toHaveText('None found');
+    licenseLinks = wrapper.find('.license-details-tile__observed-licenses .nx-text-link span');
+    expect(licenseLinks.length).toBe(3);
+    expect(licenseLinks.at(0)).toHaveText('License-2.0');
+    expect(licenseLinks.at(1)).toHaveText('License-1.0');
+    expect(licenseLinks.at(2)).toHaveText('License-2.0');
+
+    licenseLinks = wrapper.find('.license-details-tile__declared-licenses .nx-text-link span');
+    expect(licenseLinks.length).toBe(2);
+    expect(licenseLinks.at(0)).toHaveText('License-1.0');
+    expect(licenseLinks.at(1)).toHaveText('License-2.0');
   });
 
   it('renders the links to the licenses details pages', function () {
-    const wrapper = getShallowComponent();
-    let licenseSpans = wrapper.find('a.nx-list__link');
-    expect(licenseSpans.length).toBe(3);
-    expect(licenseSpans.at(0)).toHaveText('License-1.0<NxFontAwesomeIcon />');
-    expect(licenseSpans.at(1)).toHaveText('License-2.0<NxFontAwesomeIcon />');
-    expect(licenseSpans.at(2)).toHaveText('License-1.0 or License-2.0<NxFontAwesomeIcon />');
-    expect($state.href).toHaveBeenCalled();
-    expect(licenseSpans.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    const wrapper = getMountedComponent();
+    let licenseLinks = wrapper.find('.license-details-tile__effective-licenses a.nx-text-link');
+    expect(licenseLinks.length).toBe(4);
+    expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
+    expect(licenseLinks.at(2)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(3)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
+
+    licenseLinks = wrapper.find('.license-details-tile__observed-licenses a.nx-text-link');
+    expect(licenseLinks.length).toBe(3);
+    expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
+    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(2)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
+
+    licenseLinks = wrapper.find('.license-details-tile__declared-licenses a.nx-text-link');
+    expect(licenseLinks.length).toBe(2);
+    expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
   });
 
-  it('renders the links to the licenses details pages with stage in the rout', function () {
-    const props = {
+  it('renders None found if there are no licenses', function () {
+    const newMinimalProps = {
       ...minimalProps,
-      stageTypeId: 'build',
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          effectiveLicenses: [],
+          observedLicenses: [],
+          declaredLicenses: [],
+          effectiveLicenseStatus: null,
+        },
+      },
+      licenseLegalMetadata: [],
     };
-    const wrapper = enzymeUtils.getShallowComponent(LicenseDetailsTile, props)();
-    let licenseSpans = wrapper.find('a.nx-list__link');
-    expect(licenseSpans.length).toBe(3);
-    expect(licenseSpans.at(0)).toHaveText('License-1.0<NxFontAwesomeIcon />');
-    expect(licenseSpans.at(1)).toHaveText('License-2.0<NxFontAwesomeIcon />');
-    expect(licenseSpans.at(2)).toHaveText('License-1.0 or License-2.0<NxFontAwesomeIcon />');
-    expect($state.href).toHaveBeenCalled();
-    expect(licenseSpans.at(0)).toHaveProp(
-      'href',
-      'legal.stageTypeComponentLicenseDetails-{"stageTypeId":"build","licenseIndex":0}'
-    );
+
+    const wrapper = enzymeUtils.getMountedComponent(LicenseDetailsTile, newMinimalProps)();
+    let content = wrapper.find('.nx-tile-content .license-details-tile__effective-licenses span');
+    expect(content).toHaveText('None found');
+
+    content = wrapper.find('.nx-tile-content .license-details-tile__observed-licenses span');
+    expect(content).toHaveText('None found');
+
+    content = wrapper.find('.nx-tile-content .license-details-tile__declared-licenses span');
+    expect(content).toHaveText('None found');
+  });
+
+  it('renders the selected tag when effectiveLicenseStatus is Selected', function () {
+    const wrapper = getMountedComponent();
+    let SelectedNxTag = wrapper.find('.license-details-tile__effective-licenses .nx-tag.nx-selectable-color--indigo');
+    expect(SelectedNxTag).toHaveText('Selected');
+  });
+
+  it('renders the selected tag when effectiveLicenseStatus is Overridden', function () {
+    const newMinimalProps = {
+      ...minimalProps,
+      component: {
+        ...minimalProps.component,
+        licenseLegalData: {
+          ...minimalProps.component.licenseLegalData,
+          effectiveLicenseStatus: 'Overridden',
+        },
+      },
+    };
+    const wrapper = enzymeUtils.getMountedComponent(LicenseDetailsTile, newMinimalProps)();
+    let SelectedNxTag = wrapper.find('.license-details-tile__effective-licenses .nx-tag.nx-selectable-color--purple');
+    expect(SelectedNxTag).toHaveText('Overridden');
   });
 });

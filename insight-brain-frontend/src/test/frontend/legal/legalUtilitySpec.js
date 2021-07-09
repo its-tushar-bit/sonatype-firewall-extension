@@ -5,7 +5,8 @@
  */
 import {
   findSingleLicenseIndex,
-  getComponentEffectiveLicenseNamesAndIds,
+  findSimilarLicenseIndex,
+  formatLicenseMeta,
   backToComponentOverviewUrl,
   createSubtitle,
 } from '../../../main/frontend/legal/legalUtility';
@@ -59,18 +60,26 @@ describe('legalUtility', function () {
       {
         licenseId: 'License-1.0',
         licenseName: 'License-1.0 Name',
+        isMulti: false,
+        singleLicenseIds: [],
       },
       {
         licenseId: 'License-2.0',
         licenseName: 'License-2.0 Name',
+        isMulti: false,
+        singleLicenseIds: [],
       },
       {
         licenseId: 'License-1.0-License-2.0',
         licenseName: 'License-1.0 or License-2.0',
+        isMulti: true,
+        singleLicenseIds: ['License-1.0', 'License-2.0'],
       },
       {
         licenseId: 'LicenseNotOnComponent',
         licenseName: 'LicenseNotOnComponent Name',
+        isMulti: false,
+        singleLicenseIds: [],
       },
     ];
 
@@ -79,19 +88,25 @@ describe('legalUtility', function () {
         effectiveLicenses: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
       },
     };
-    it('returns license names', function () {
-      expect(getComponentEffectiveLicenseNamesAndIds(component, licenseLegalMetadata)).toEqual([
+    it('returns license names, isMulti flag and singleLicenseIds', function () {
+      expect(formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata)).toEqual([
         {
           licenseId: 'License-1.0',
           licenseName: 'License-1.0 Name',
+          isMulti: false,
+          singleLicenseIds: [],
         },
         {
           licenseId: 'License-2.0',
           licenseName: 'License-2.0 Name',
+          isMulti: false,
+          singleLicenseIds: [],
         },
         {
           licenseId: 'License-1.0-License-2.0',
           licenseName: 'License-1.0 or License-2.0',
+          isMulti: true,
+          singleLicenseIds: ['License-1.0', 'License-2.0'],
         },
       ]);
     });
@@ -103,16 +118,19 @@ describe('legalUtility', function () {
         licenseId: 'License-1.0',
         licenseName: 'License-1.0 Name',
         isMulti: false,
+        singleLicenseIds: [],
       },
       {
         licenseId: 'License-2.0',
         licenseName: 'License-2.0 Name',
         isMulti: false,
+        singleLicenseIds: [],
       },
       {
         licenseId: 'License-1.0-License-2.0',
         licenseName: 'License-1.0 Name or License-2.0 Name',
         isMulti: true,
+        singleLicenseIds: ['License-1.0', 'License-2.0'],
       },
     ];
 
@@ -123,6 +141,67 @@ describe('legalUtility', function () {
 
     it('return multi license index', function () {
       expect(findSingleLicenseIndex('License-1.0 Name or License-2.0 Name', licenseLegalMetadata)).toEqual(0);
+    });
+  });
+
+  describe('findSimilarLicenseIndex', function () {
+    const licenseLegalMetadata = [
+      {
+        licenseId: 'License-1.0',
+        licenseName: 'License-1.0 Name',
+        isMulti: false,
+        singleLicenseIds: [],
+      },
+      {
+        licenseId: 'License-2.0',
+        licenseName: 'License-2.0 Name',
+        isMulti: false,
+        singleLicenseIds: [],
+      },
+      {
+        licenseId: 'Apache-2.0',
+        licenseName: 'Apache-2.0',
+        isMulti: false,
+        singleLicenseIds: [],
+      },
+      {
+        licenseId: 'GNU-UNSPECIFIED',
+        licenseName: 'GNU-UNSPECIFIED',
+        isMulti: false,
+        singleLicenseIds: [],
+      },
+      {
+        licenseId: 'GPL-2.0-with-classpath-exception',
+        licenseName: 'GPL-2.0-with-classpath-exception',
+        isMulti: false,
+        singleLicenseIds: [],
+      },
+      {
+        licenseId: 'License-1.0-License-2.0-Apache-2.0+-GNU-2-Apache-3.1-SuperDuperLicense-1.0',
+        licenseName:
+          'License-1.0 Name or License-2.0 Name or Apache-2.0+, GNU-2 or Apache-3.1 or GPL-2.0-CPE or SuperDuperLicense-1.0',
+        isMulti: true,
+        singleLicenseIds: ['License-2.0', 'License-1.0, Apache-2.0', 'Apache-3.1', 'GPL-2.0-CPE', 'GNU-2'],
+      },
+    ];
+
+    it('return multiple license index when the license names matches exactly', function () {
+      expect(findSimilarLicenseIndex('License-1.0 Name', licenseLegalMetadata)).toEqual(0);
+      expect(findSimilarLicenseIndex('License-2.0 Name', licenseLegalMetadata)).toEqual(1);
+    });
+
+    it('return multiple license index when the license names matches by name and major version', function () {
+      expect(findSimilarLicenseIndex('Apache-2.0+', licenseLegalMetadata)).toEqual(2);
+      expect(findSimilarLicenseIndex('GPL-2.0-CPE', licenseLegalMetadata)).toEqual(4);
+    });
+
+    it('return multiple license index when the license names matches just by name', function () {
+      expect(findSimilarLicenseIndex('Apache-3.1', licenseLegalMetadata)).toEqual(2);
+      expect(findSimilarLicenseIndex('GNU-2', licenseLegalMetadata)).toEqual(3);
+    });
+
+    it('return multiple license index as 0 when the license name does not match', function () {
+      expect(findSimilarLicenseIndex('SuperDuperLicense-1.0', licenseLegalMetadata)).toEqual(0);
     });
   });
 

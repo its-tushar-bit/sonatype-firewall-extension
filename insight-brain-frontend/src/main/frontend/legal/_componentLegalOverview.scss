@@ -131,6 +131,18 @@ component-legal-overview {
     text-align: center;
   }
 
+  #license-details-tile {
+    dd > * {
+      vertical-align: middle;
+    }
+    .nx-text-link:last-of-type {
+      margin-right: var(--nx-spacing-2x);
+    }
+    .nx-tag {
+      margin: 0;
+    }
+  }
+
   .legal-file-section-view-more-details {
     text-align: right;
     a {

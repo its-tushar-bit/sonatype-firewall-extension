@@ -111,21 +111,59 @@ export function findSingleLicenseIndex(licenseId, licenseLegalMetadata) {
 }
 
 /**
- * Given a component and the licenseLegalMetadata, returns an array of the license name and id from the component's
+ * Find the index of the most similar single license in licenseMetadata.
+ */
+export function findSimilarLicenseIndex(licenseId, licenseLegalMetadata) {
+  // licenseId === 'Apache 2.0+'
+  // searching for 'Apache 2.0'
+  let index = licenseLegalMetadata.findIndex((license) => license.licenseId.startsWith(licenseId.split('+')[0]));
+  if (index === -1) {
+    const matched = licenseId.match(/([A-Z\sa-z]+[A-Za-z])[^\d]*[\d]+\.?/);
+    if (!matched) return 0;
+    const [licenseNameWithMajorVersion, licenseNameWithoutMajorVersion] = matched;
+    // searching for 'Apache 2.'
+    index = licenseLegalMetadata.findIndex((license) => license.licenseId.startsWith(licenseNameWithMajorVersion));
+    if (index === -1) {
+      // searching for 'Apache'
+      index = licenseLegalMetadata.findIndex((license) => license.licenseId.startsWith(licenseNameWithoutMajorVersion));
+      // if nothing matches, the id will be 0, the first license in licenseLegalMetadata
+      return index === -1 ? 0 : index;
+    } else {
+      return index;
+    }
+  } else {
+    return index;
+  }
+}
+
+/**
+ * Given a license type name, a component and the licenseLegalMetadata, returns an array of the license name, id, isMulti flag, and an array of single licenses ids from the component's
  * effective license IDs.
  *  example:
  * [{
  *    licenseId: id,
  *    licenseName: name
+ *    isMulti: true,
+      singleLicenseIds: ['license1', 'license2'],
  *  }]
- */
-export function getComponentEffectiveLicenseNamesAndIds(component, licenseLegalMetadata) {
-  return component
-    ? licenseLegalMetadata
-        .filter((l) => component.licenseLegalData.effectiveLicenses.includes(l.licenseId))
-        .map((l) => ({
-          licenseId: l.licenseId,
-          licenseName: l.licenseName,
-        }))
-    : [];
+*/
+export function formatLicenseMeta(licenseType, component, licenseLegalMetadata) {
+  if (component) {
+    const licenses = component.licenseLegalData[licenseType];
+    return licenseLegalMetadata.reduce((accumulated, l) => {
+      if (licenses.includes(l.licenseId)) {
+        return [
+          ...accumulated,
+          {
+            licenseId: l.licenseId,
+            licenseName: l.licenseName,
+            isMulti: l.isMulti,
+            singleLicenseIds: l.singleLicenseIds,
+          },
+        ];
+      }
+      return accumulated;
+    }, []);
+  }
+  return [];
 }

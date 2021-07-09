@@ -83,3 +83,8 @@ export const ATTRIBUTION_DISPLAY_MAP = {
     emptyMessage: 'No attribution for install instructions added',
   },
 };
+
+export const statusTagPropsMap = {
+  Overridden: 'purple',
+  Selected: 'indigo',
+};

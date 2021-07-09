@@ -74,6 +74,7 @@ public class PullRequestLineCommentingService
    * This method encapsulates the complete flow for pull request line commenting of policy violation diffs between the
    * development branch commit that triggered the policy evaluation (which then issued this event) and the most recently
    * available policy evaluation for the source control configured base branch for the associated application.
+   *
    * @return PR line comments creation result
    */
   public PullRequestLineCommentCreationResult createPullRequestLineComments(
@@ -153,21 +154,8 @@ public class PullRequestLineCommentingService
       if (lineCommentDTO.hasMarkup()) {
         totalCount++;
         try {
-          //Create the line comment in SCM
-          CommentResponse response = gitApiClient
-              .createPullRequestLineComment(pullRequestId, lineCommentDTO.getMarkup(), commitHash,
-                  lineCommentDTO.getDiffPosition());
-
-          if (response.getId() != null) {
-            lineCommentDTO.setScmId(response.getId());
-            lineCommentDTO.setScmVersion(response.getVersion());
-
-            //Add the line comment details to the database
-            SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
-                applicationId, lineCommentDTO.getHash(), pullRequestId, response.getId(),
-                response.getVersion(), sourcePolicyEvaluationId, basePolicyEvaluationId);
-            pullRequestCommentDAO.insert(pullRequestComment);
-
+          if (createLineComment(applicationId, gitApiClient, commitHash, pullRequestId, sourcePolicyEvaluationId,
+              basePolicyEvaluationId, lineCommentDTO)) {
             successfulCount++;
           }
         }
@@ -180,6 +168,36 @@ public class PullRequestLineCommentingService
     }
     log.info("Pull request line comments created {} out of {} attempted for application '{}' and pull request '{}'",
         successfulCount, totalCount, applicationId, pullRequestId);
+  }
+
+  private boolean createLineComment(
+      final String applicationId,
+      final GitApiClient gitApiClient,
+      final String commitHash,
+      final int pullRequestId,
+      final String sourcePolicyEvaluationId,
+      final String basePolicyEvaluationId,
+      final PullRequestLineCommentDTO lineCommentDTO)
+      throws IOException
+  {
+    boolean wasCreated = false;
+
+    CommentResponse response = gitApiClient
+        .createPullRequestLineComment(pullRequestId, lineCommentDTO.getMarkup(), commitHash,
+            lineCommentDTO.getDiffPosition());
+
+    if (response.getId() != null) {
+      lineCommentDTO.setScmId(response.getId());
+      lineCommentDTO.setScmVersion(response.getVersion());
+
+      //Add the line comment details to the database
+      SourceControlPullRequestComment pullRequestComment = new SourceControlPullRequestComment(
+          applicationId, lineCommentDTO.getHash(), pullRequestId, response.getId(),
+          response.getVersion(), sourcePolicyEvaluationId, basePolicyEvaluationId);
+      pullRequestCommentDAO.insert(pullRequestComment);
+      wasCreated = true;
+    }
+    return wasCreated;
   }
 
   /**

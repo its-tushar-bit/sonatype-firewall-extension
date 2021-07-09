@@ -21,12 +21,14 @@ describe('MenuBar', function () {
     expect(component.find(HelpMenu).prop('majorMinorVersion')).toBe('x.x.x');
   });
 
-  it('should pass the permissions and isWebhooksSupported props on to the SystemPreferencesMenu component', () => {
+  it('should pass the permissions and props on to the SystemPreferencesMenu component', () => {
     const permissions = { SOME_PERMISSION: true };
     const isWebhooksSupported = true;
-    const component = getShallowComponent({ permissions, isWebhooksSupported });
+    const isSourceControlSupported = true;
+    const component = getShallowComponent({ permissions, isWebhooksSupported, isSourceControlSupported });
     expect(component.find(SystemPreferencesMenu).prop('permissions')).toBe(permissions);
     expect(component.find(SystemPreferencesMenu).prop('isWebhooksSupported')).toBe(isWebhooksSupported);
+    expect(component.find(SystemPreferencesMenu).prop('isSourceControlSupported')).toBe(isSourceControlSupported);
   });
 
   it('should only render the SystemPreferencesMenu component if there are ANY permissions passed', () => {

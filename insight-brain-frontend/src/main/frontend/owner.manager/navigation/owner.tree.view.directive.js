@@ -21,7 +21,8 @@ function OwnerTreeViewController(
   EventNameConstant,
   LastSelectedOrganization,
   fuzzyFilter,
-  scmOnboardingActions
+  scmOnboardingActions,
+  ProductFeatures
 ) {
   var vm = this;
 
@@ -37,6 +38,7 @@ function OwnerTreeViewController(
   vm.doLoad = doLoad;
   vm.goToOrganizationIfNotSynthetic = goToOrganizationIfNotSynthetic;
   vm.handleOrganizationTwistyClick = handleOrganizationTwistyClick;
+  vm.isSourceControlSupported = undefined;
 
   $scope.$watch('vm.filter.value', filter, function (error) {
     vm.error = error;
@@ -114,12 +116,14 @@ function OwnerTreeViewController(
     var loadPromises = [
       $http.get(CLMLocations.getOwnerListUrl()),
       PermissionService.isContextAuthorized(['READ'], 'repository_container'),
+      ProductFeatures.load(),
     ];
 
     $q.all(loadPromises).then(
       function (results) {
         vm.organizations = results[0].data.organizations;
         vm.showRepositories = results[1];
+        vm.isSourceControlSupported = ProductFeatures.isAvailable('automation');
 
         for (var i = vm.organizations.length - 1; i >= 0; i--) {
           var organization = vm.organizations[i];
@@ -319,6 +323,7 @@ OwnerTreeViewController.$inject = [
   'LastSelectedOrganization',
   'fuzzyFilter',
   'scmOnboardingActions',
+  'ProductFeatures',
 ];
 
 export default function ownerTreeView() {

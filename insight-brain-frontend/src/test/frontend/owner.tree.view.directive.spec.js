@@ -65,6 +65,8 @@ describe('owner.tree.view.directive.spec.js', function () {
           .expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container'))
           .respond(permissions);
 
+        $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
+
         scope = _$rootScope_.$new();
         var ownerTreeView = angular.element('<div owner-tree-view></div>');
         _$compile_(ownerTreeView)(scope);
@@ -505,6 +507,40 @@ describe('owner.tree.view.directive.spec.js', function () {
     runTestsForOwnerTreeViewDirective([]);
   });
 
+  describe('Source Control', function () {
+    beforeEach(inject((_$rootScope_, _$httpBackend_, _$state_, _$compile_, _CLMLocations_, _CLMContextLocations_) => {
+      $httpBackend = _$httpBackend_;
+      $state = _$state_;
+      CLMLocations = _CLMLocations_;
+      CLMContextLocations = _CLMContextLocations_;
+
+      spyOn($state, 'is').and.returnValue(true);
+      scope = _$rootScope_.$new();
+      const ownerTreeView = angular.element('<div owner-tree-view></div>');
+      _$compile_(ownerTreeView)(scope);
+    }));
+
+    it('is supported when automation is available', function () {
+      scope.vm.doLoad();
+      $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
+      $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
+      $httpBackend.flush();
+
+      expect(scope.vm.isSourceControlSupported).toBeTruthy();
+    });
+
+    it('is unsupported when automation is not available', function () {
+      scope.vm.doLoad();
+      $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
+      $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond([]);
+      $httpBackend.flush();
+
+      expect(scope.vm.isSourceControlSupported).toBeFalsy();
+    });
+  });
+
   describe('organization and policy link', function () {
     var $timeout,
       options = { location: 'replace' };
@@ -554,6 +590,7 @@ describe('owner.tree.view.directive.spec.js', function () {
     it('handles load error', function () {
       $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(400, 'Bad Request');
       $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
       $httpBackend.flush();
 
       expect(scope.vm.error).toBeDefined();
@@ -561,11 +598,20 @@ describe('owner.tree.view.directive.spec.js', function () {
       expect(scope.vm.error.status).toEqual(400);
 
       scope.vm.doLoad();
-      doLoadWithOwnerList(SidebarResourceMockData.getOwnerListUrl_onlySynthetic());
+      doLoadWithOwnerListNoFeatures(SidebarResourceMockData.getOwnerListUrl_onlySynthetic());
       expect(scope.vm.error).toBeUndefined();
     });
 
     function doLoadWithOwnerList(ownerList) {
+      $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
+      $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+      $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
+      scope.$digest();
+      $httpBackend.flush();
+      $timeout.flush();
+    }
+
+    function doLoadWithOwnerListNoFeatures(ownerList) {
       $httpBackend.expectGET(CLMLocations.getOwnerListUrl()).respond(ownerList);
       $httpBackend.expectPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
       scope.$digest();
@@ -592,6 +638,7 @@ describe('owner.tree.view.directive.spec.js', function () {
         scope.vm.doLoad();
         $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
         $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+        $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
         $httpBackend.flush();
 
         expect(scope.vm.unsubscribe).toBeDefined();
@@ -604,6 +651,7 @@ describe('owner.tree.view.directive.spec.js', function () {
         scope.$destroy();
         $httpBackend.whenGET(CLMLocations.getOwnerListUrl()).respond(SidebarResourceMockData.getOwnerListUrl());
         $httpBackend.whenPUT(CLMContextLocations.getPermissionContextTestUrl('repository_container')).respond(false);
+        $httpBackend.expectGET(CLMLocations.getProductFeaturesUrl()).respond(['automation']);
         $httpBackend.flush();
         expect(scope.vm.unsubscribe).toHaveBeenCalledTimes(1);
       });

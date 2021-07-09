@@ -47,6 +47,7 @@ export default angular
         'permissions',
         'isWebhooksSupported',
         'isLabsDataInsightsEnabled',
+        'isSourceControlSupported',
         'login',
         'isLoggedIn',
         'shouldShowLoginButton',

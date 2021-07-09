@@ -232,4 +232,28 @@ public class SystemConfigurationMenuTest
     systemConfigMenu.shouldBe(visible);
     systemConfigMenu.dataInsights().shouldBe(hidden);
   }
+
+  @Test
+  public void testLicenseFeatureAwareness_scmOnboarding_enabled() {
+    setFeatures(LicensedFeature.AUTOMATION);
+
+    refreshOrOpen(ReportListPage.url());
+    loginAsAdmin();
+
+    systemConfigMenu.shouldBe(visible);
+    systemConfigMenu.dropdownToggle().click();
+    systemConfigMenu.scmOnboarding().shouldBe(visible);
+  }
+
+  @Test
+  public void testLicenseFeatureAwareness_scmOnboarding_disabled() {
+    setFeatures();
+
+    refreshOrOpen(ReportListPage.url());
+    loginAsAdmin();
+
+    systemConfigMenu.shouldBe(visible);
+    systemConfigMenu.dropdownToggle().click();
+    systemConfigMenu.scmOnboarding().shouldNotBe(visible);
+  }
 }

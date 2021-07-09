@@ -17,6 +17,7 @@ export const MenuBar = ({
   permissions = {},
   isWebhooksSupported = false,
   isLabsDataInsightsEnabled,
+  isSourceControlSupported,
   login,
   isLoggedIn = false,
   shouldShowLoginButton = false,
@@ -43,6 +44,7 @@ export const MenuBar = ({
           permissions={permissions}
           isWebhooksSupported={isWebhooksSupported}
           dataInsightsEnabled={isLabsDataInsightsEnabled}
+          isSourceControlSupported={isSourceControlSupported}
         />
       )}
       <UserMenu userActions={userActions} />
@@ -54,6 +56,7 @@ MenuBar.propTypes = {
   permissions: PropTypes.object,
   isWebhooksSupported: PropTypes.bool,
   isLabsDataInsightsEnabled: PropTypes.bool,
+  isSourceControlSupported: PropTypes.bool,
   userActions: PropTypes.shape({
     loadUser: PropTypes.func,
     logout: PropTypes.func,

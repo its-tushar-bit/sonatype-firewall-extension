@@ -20,6 +20,7 @@ function MainHeaderController($rootScope, ProductFeatures, PermissionService, Cu
   vm.login = login;
   vm.shouldShowLoginButton = shouldShowLoginButton;
   vm.majorMinorVersion = globalMajorMinorVersion;
+  vm.isSourceControlSupported = undefined;
 
   function hasAnyPermission() {
     return !angular.equals({}, vm.permissions);
@@ -49,6 +50,8 @@ function MainHeaderController($rootScope, ProductFeatures, PermissionService, Cu
           ProductFeatures.isAvailable('webhooks-for-repositories');
 
         vm.isLabsDataInsightsEnabled = ProductFeatures.isAvailable('data-insights');
+
+        vm.isSourceControlSupported = ProductFeatures.isAvailable('automation');
       });
     });
   }

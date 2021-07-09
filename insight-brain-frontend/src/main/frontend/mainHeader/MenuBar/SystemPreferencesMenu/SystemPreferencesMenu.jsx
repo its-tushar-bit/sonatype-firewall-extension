@@ -13,6 +13,7 @@ export const SystemPreferencesMenu = ({
   permissions = {},
   isWebhooksSupported = false,
   dataInsightsEnabled = false,
+  isSourceControlSupported = false,
 }) => {
   const {
     CONFIGURE_SYSTEM = false,
@@ -80,7 +81,7 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="scmOnboarding"
         id="system-configuration-scm-onboarding"
-        showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION}
+        showIf={MANAGE_AUTOMATIC_SCM_CONFIGURATION && isSourceControlSupported}
       >
         SCM Onboarding
       </NavLink>
@@ -106,6 +107,7 @@ SystemPreferencesMenu.propTypes = {
   }),
   isWebhooksSupported: PropTypes.bool,
   dataInsightsEnabled: PropTypes.bool,
+  isSourceControlSupported: PropTypes.bool,
 };
 
 const EarlyAccessLinks = ({ children }) => {

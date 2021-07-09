@@ -19,7 +19,7 @@ pipeline {
   agent { label InsightConstants.AGENT_LABEL }
 
   environment {
-    minorVersion = "${parseVersion(getVersionFromBuildName(params.releaseVersion))?.minor}"
+    minorVersion = "${parseVersion(params.releaseVersion)?.minor}"
     runId = "insight/insight-brain/release#${getReleaseJobForVersion('insight/insight-brain/release', params.releaseVersion)}"
   }
   options {
@@ -99,12 +99,6 @@ pipeline {
         build(job: 'insight/insight-brain/Publish Documentation')
       }
     }
-    stage('Send Policy Results') {
-      steps {
-        build(job: 'insight/insight-brain/Send Policy Results',
-          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
-      }
-    }
     stage('Create Product Notification') {
       steps {
         build(job: 'insight/insight-brain/Update Product Notifications',
@@ -121,6 +115,12 @@ pipeline {
       steps {
         build(job: 'insight/hosted-data-services/Sync Product Notifications',
           parameters: [string(name: 'ENVIRONMENT', value: 'production')])
+      }
+    }
+    stage('Send Policy Results') {
+      steps {
+        build(job: 'insight/insight-brain/Send Policy Results',
+          parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Send Release Notifications') {

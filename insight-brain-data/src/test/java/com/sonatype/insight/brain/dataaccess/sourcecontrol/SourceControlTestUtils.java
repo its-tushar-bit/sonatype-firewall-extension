@@ -11,6 +11,8 @@ public class SourceControlTestUtils
 {
   public static String getTestUrlForProvider(final SourceControlProvider sourceControlProvider) {
     switch (sourceControlProvider) {
+      case AZURE:
+        return "https://example.com/scm/organization/_git/project";
       case BITBUCKET:
         return "https://example.com/scm/organization/project";
       default:

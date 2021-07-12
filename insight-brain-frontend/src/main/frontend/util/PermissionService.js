@@ -61,6 +61,7 @@ module.service('PermissionService', [
         return deferred.promise;
       },
       isLabsDataInsightsEnabled: isLabsDataInsightsFeatureEnabled,
+      isAutomationFeatureEnabled: isAutomationFeatureEnabled,
     };
   },
 ]);
@@ -74,6 +75,15 @@ function isLabsDataInsightsFeatureEnabled() {
     .catch(function () {
       return false;
     });
+
+  return promise;
+}
+
+function isAutomationFeatureEnabled() {
+  var promise = axios
+    .get(getProductFeaturesUrl())
+    .then((response) => response.data.includes('automation'))
+    .catch(() => false);
 
   return promise;
 }

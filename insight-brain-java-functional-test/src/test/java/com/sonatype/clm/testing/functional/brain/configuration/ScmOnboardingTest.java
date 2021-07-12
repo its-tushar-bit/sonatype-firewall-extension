@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.CollectionCondition;
@@ -125,6 +126,8 @@ public class ScmOnboardingTest
             .withBody("{\"username\":\"foo\"}")));
 
     org = tempEntity.newOrganization("Test Org");
+
+    setFeatures(LicensedFeature.AUTOMATION);
   }
 
   private void setupMockRepos() throws IOException {
@@ -199,6 +202,35 @@ public class ScmOnboardingTest
     // and form elements are hidden
     scmOnboardingPage.hostUrl().shouldBe(hidden);
     scmOnboardingPage.resultsTable().shouldBe(hidden);
+  }
+
+  @Test
+  public void testLicenseCheck() {
+    // given no licensed features
+    setFeatures();
+
+    // when we open the page as admin
+    ScmOnboardingPage scmOnboardingPage = new ScmOnboardingPage();
+    refreshOrOpen(ScmOnboardingPage.url());
+    loginAsAdmin();
+
+    // then a permission denied error is shown
+    scmOnboardingPage.loadError().shouldBe(visible).shouldHave(text("you do not have permission to access this page"));
+
+    // and form elements are hidden
+    scmOnboardingPage.hostUrl().shouldBe(hidden);
+    scmOnboardingPage.resultsTable().shouldBe(hidden);
+
+    // when the AUTOMATION feature is added
+    logout();
+    setFeatures(LicensedFeature.AUTOMATION);
+
+    // and we log in as admin
+    refreshOrOpen(ScmOnboardingPage.url());
+    loginAsAdmin();
+
+    // then the page is shown with no error
+    scmOnboardingPage.newOrgButton().shouldBe(visible);
   }
 
   @Test

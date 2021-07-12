@@ -12,8 +12,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -55,6 +57,8 @@ public class PullRequestCommentingEventHandler
 
   private final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   @Inject
   public PullRequestCommentingEventHandler(
       final PullRequestCommentingService pullRequestCommentingService,
@@ -63,7 +67,8 @@ public class PullRequestCommentingEventHandler
       final AsyncEventBus asyncEventBus,
       final ProductLicense productLicense,
       final InsightConfig insightConfig,
-      final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver)
+      final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver,
+      final PolicyEvaluationDAO policyEvaluationDAO)
   {
     this.pullRequestCommentingService = pullRequestCommentingService;
     this.sourceControlUtils = sourceControlUtils;
@@ -72,6 +77,7 @@ public class PullRequestCommentingEventHandler
     this.productLicense = productLicense;
     this.insightConfig = insightConfig;
     this.pullRequestPolicyEvaluationResolver = pullRequestPolicyEvaluationResolver;
+    this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
   @Override
@@ -109,6 +115,11 @@ public class PullRequestCommentingEventHandler
           sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)) {
         log.debug("'{}' not currently supported for pull request commenting", gitRepositoryInfo.provider.toString());
       }
+      else if (wasPolicyEvalInternallyTriggered(event.policyEvaluationId)) {
+        log.debug(
+            "Ignoring ApplicationEvaluationEvent for application {} because the policy evaluation {} was " +
+                "internally triggered", applicationId, event.policyEvaluationId);
+      }
       else {
         SourceControlEvent sourceControlEvent = new SourceControlEvent()
             .forApplicationEvaluation()
@@ -123,6 +134,16 @@ public class PullRequestCommentingEventHandler
             sourceControlEvent.getEventType(), applicationId, event.commitHash);
       }
     }
+  }
+
+  /**
+   * We don't process pull requests for internally triggered policy evaluations - we let polling take care of that
+   */
+  private boolean wasPolicyEvalInternallyTriggered(String policyEvaluationId) {
+    PolicyEvaluation possibleFeatureBranchPolicyEvaluation = policyEvaluationDAO.getById(policyEvaluationId);
+
+    return null != possibleFeatureBranchPolicyEvaluation
+        && possibleFeatureBranchPolicyEvaluation.wasInternallyTriggered();
   }
 
   public void onApplicationEvaluation(SourceControlEvent event) {

@@ -13,6 +13,7 @@ import java.util.Random;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.helper.ApplicationEvaluationEventBuilder;
@@ -58,6 +59,9 @@ public class PullRequestCommentingEventHandlerTest
 
   @Mock
   private SourceControlEventPublisher mockSourceControlEventPublisher;
+
+  @Mock
+  private PolicyEvaluationDAO mockPolicyEvaluationDAO;
 
   public PullRequestCommentingEventHandlerTest() {
     super(PullRequestCommentingEventHandler.class);
@@ -196,7 +200,8 @@ public class PullRequestCommentingEventHandlerTest
 
   @Test
   public void testOnApplicationEvaluation_publishSourceControlEvent() {
-    // given : commenting service object, scm enabled, and an event with a commit hash
+    // given : commenting service object, scm enabled, and an event with a commit hash and policy evaluation not
+    // internally triggered
     PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
         .withScmEnabled(true)
         .build();
@@ -206,6 +211,12 @@ public class PullRequestCommentingEventHandlerTest
         .withPolicyEvaluationId("pe1")
         .withCommitHash("commit456")
         .build();
+
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    policyEvaluation.setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_API);
+    policyEvaluation.setId("pe1");
+
+    doReturn(policyEvaluation).when(mockPolicyEvaluationDAO).getById("pe1");
 
     // when : check event
     commentingEventHandler.onApplicationEvaluation(event);
@@ -219,6 +230,87 @@ public class PullRequestCommentingEventHandlerTest
     assertThat(sourceControlEvent.getCommitHash()).isEqualTo(event.commitHash);
     assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     assertThat(sourceControlEvent.getPolicyEvaluationId()).isEqualTo(event.policyEvaluationId);
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_sourceControlEventNotCreatedBecausePolicyEvalInternalOnboarding() {
+    // given : commenting service object, scm enabled, and an event with a commit hash and policy evaluation
+    // internally triggered
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withScmEnabled(true)
+        .build();
+
+    ApplicationEvaluationEvent event = createApplicationEventWithInternallyTriggeredPolicyEval(
+        ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    // when : check event
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then : event is not published
+    assertEventNotCreatedBecausePolicyEvalInternallyTriggered();
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_sourceControlEventNotCreatedBecausePolicyEvalInternalPullRequest() {
+    // given : commenting service object, scm enabled, and an event with a commit hash and policy evaluation
+    // internally triggered
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withScmEnabled(true)
+        .build();
+
+    ApplicationEvaluationEvent event = createApplicationEventWithInternallyTriggeredPolicyEval(
+        ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
+
+    // when : check event
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then : event is not published
+    assertEventNotCreatedBecausePolicyEvalInternallyTriggered();
+  }
+
+  @Test
+  public void testOnApplicationEvaluation_sourceControlEventNotCreatedBecausePolicyEvalInternalDefaultBranchMonitor() {
+    // given : commenting service object, scm enabled, and an event with a commit hash and policy evaluation
+    // internally triggered
+    PullRequestCommentingEventHandler commentingEventHandler = new TestablePullRequestCommentingEventHandlerBuilder()
+        .withScmEnabled(true)
+        .build();
+
+    ApplicationEvaluationEvent event = createApplicationEventWithInternallyTriggeredPolicyEval(
+        ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING);
+
+    // when : check event
+    commentingEventHandler.onApplicationEvaluation(event);
+
+    // then : event is not published
+    assertEventNotCreatedBecausePolicyEvalInternallyTriggered();
+  }
+
+  private ApplicationEvaluationEvent createApplicationEventWithInternallyTriggeredPolicyEval(
+      ScanTriggerType scanTriggerType)
+  {
+    ApplicationEvaluationEvent event = new ApplicationEvaluationEventBuilder()
+        .withApplicationId("app1")
+        .withPolicyEvaluationId("pe1")
+        .withCommitHash("commit456")
+        .build();
+
+    PolicyEvaluation policyEvaluation = new PolicyEvaluation();
+    policyEvaluation.setScanTriggerType(scanTriggerType);
+    policyEvaluation.setId("pe1");
+
+    doReturn(policyEvaluation).when(mockPolicyEvaluationDAO).getById("pe1");
+
+    return event;
+  }
+
+  private void assertEventNotCreatedBecausePolicyEvalInternallyTriggered() {
+    verify(mockSourceControlEventPublisher, times(0)).publishEvent(any());
+    verify(mockPolicyEvaluationDAO, times(1)).getById("pe1");
+    assertThatLogMessagesEqual(
+        debug(
+            "Ignoring ApplicationEvaluationEvent for application app1 because the policy evaluation pe1 was " +
+                "internally triggered"));
   }
 
   @Test
@@ -509,7 +601,8 @@ public class PullRequestCommentingEventHandlerTest
           mockAsyncEventBus,
           testProductLicense,
           getInsightConfig(featureFlagEnabled),
-          mockPullRequestPolicyEvaluationResolver
+          mockPullRequestPolicyEvaluationResolver,
+          mockPolicyEvaluationDAO
       );
     }
 

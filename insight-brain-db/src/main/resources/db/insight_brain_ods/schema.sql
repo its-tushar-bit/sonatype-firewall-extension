@@ -1036,3 +1036,15 @@ CREATE TABLE auto_unquarantine_policy_condition_type (
   condition_type_id varchar(100) NOT NULL, -- stores the id from ConditionType
   CONSTRAINT auto_unquarantine_policy_condition_type_pk PRIMARY KEY (condition_type_id)
 );
+
+-- Since 1.120
+CREATE TABLE attribution_report_template (
+  attribution_report_template_id varchar(50) NOT NULL,
+  document_title varchar(250) NOT NULL,
+  document_header varchar(500),
+  document_footer varchar(500),
+  include_table_of_contents boolean,
+  include_standard_license_texts boolean,
+  include_appendix boolean,
+  last_updated_at timestamp NOT NULL
+);

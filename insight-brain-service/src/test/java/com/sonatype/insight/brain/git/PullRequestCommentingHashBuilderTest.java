@@ -19,11 +19,12 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.TriggerReference.Type;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
@@ -54,7 +55,7 @@ public class PullRequestCommentingHashBuilderTest
 
   @Before
   public void setUp() {
-    evaluation = new PolicyEvaluation("app-id", "stage-type-id", "scan-id", "system", ScanTriggerType.CLI);
+    evaluation = new PolicyEvaluation("app-id", "stage-type-id", "scan-id", CurrentUser.SYSTEM, ScanTriggerType.CLI);
     evaluation.setTime(new Date(System.currentTimeMillis() - 12345));
   }
 

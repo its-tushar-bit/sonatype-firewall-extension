@@ -78,6 +78,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractBrainServiceTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -267,7 +268,7 @@ public class PolicyMonitorTest
     assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
     ApplicationEvaluationEvent event = handler.getEvent();
     assertThat(event).isNotNull();
-    assertThat(event.initiator).isEqualTo("system");
+    assertThat(event.initiator).isEqualTo(CurrentUser.SYSTEM);
   }
 
   private void testMonitored(OwnerType monitorOwnerType) throws Exception {

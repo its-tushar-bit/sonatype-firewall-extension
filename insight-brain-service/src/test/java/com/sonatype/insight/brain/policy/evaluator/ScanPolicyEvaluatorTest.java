@@ -100,6 +100,7 @@ import com.sonatype.insight.brain.report.Report;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -786,7 +787,7 @@ public class ScanPolicyEvaluatorTest
     new ApplicationDAO().update(application);
 
     PolicyEvaluation policyEvaluation =
-        new PolicyEvaluation(application.getId(), "stageId", "scanId", "system", ScanTriggerType.CLI);
+        new PolicyEvaluation(application.getId(), "stageId", "scanId", CurrentUser.SYSTEM, ScanTriggerType.CLI);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(policyViolation(policyEvaluation, 1, PolicyThreatCategory.LICENSE, false));
     policyViolations.add(policyViolation(policyEvaluation, 3, PolicyThreatCategory.SECURITY, false));
@@ -810,7 +811,7 @@ public class ScanPolicyEvaluatorTest
     new ApplicationDAO().update(application);
 
     PolicyEvaluation policyEvaluation =
-        new PolicyEvaluation(application.getId(), "stageId", "scanId", "system", ScanTriggerType.CLI);
+        new PolicyEvaluation(application.getId(), "stageId", "scanId", CurrentUser.SYSTEM, ScanTriggerType.CLI);
     List<PolicyViolation> policyViolations = new ArrayList<>();
     policyViolations.add(policyViolation(policyEvaluation, 1, PolicyThreatCategory.LICENSE, true));
     policyViolations.add(policyViolation(policyEvaluation, 3, PolicyThreatCategory.SECURITY, true));

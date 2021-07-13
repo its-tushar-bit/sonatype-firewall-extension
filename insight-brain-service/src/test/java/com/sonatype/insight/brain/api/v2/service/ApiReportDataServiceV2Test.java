@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.report.Report;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
@@ -448,7 +449,7 @@ public class ApiReportDataServiceV2Test
     assertThat(data.reportTime).isEqualTo(policyEvaluation.getTime());
     assertThat(data.reportTitle).isEqualTo("Release Report");
     assertThat(data.commitHash).isEqualTo(policyEvaluation.getCommitHash());
-    assertThat(data.initiator).isEqualTo("system");
+    assertThat(data.initiator).isEqualTo(CurrentUser.SYSTEM);
     assertThat(data.application.id).isEqualTo(app.getId());
     assertThat(data.application.publicId).isEqualTo("app-id");
     assertThat(data.application.name).isEqualTo(app.getName());

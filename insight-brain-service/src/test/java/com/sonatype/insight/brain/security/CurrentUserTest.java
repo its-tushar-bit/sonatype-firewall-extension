@@ -105,6 +105,6 @@ public class CurrentUserTest
   public void testGetUsernameOrSystem_System() {
     ThreadContext.unbindSubject();
     ThreadContext.unbindSecurityManager();
-    assertThat(currentUser.getUsernameOrSystem()).isEqualTo("system");
+    assertThat(currentUser.getUsernameOrSystem()).isEqualTo(CurrentUser.SYSTEM);
   }
 }

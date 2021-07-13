@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -310,7 +311,7 @@ public class ReportServiceTest
     assertThat(metadata.getScanTriggerType()).isEqualTo(eval1.getScanTriggerType().getDisplayName());
     assertThat(metadata.getStageId()).isEqualTo("build");
     assertThat(metadata.getCommitHash()).isNull();
-    assertThat(metadata.getInitiator()).isEqualTo("system");
+    assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
     assertThat(metadata.isForMonitoring()).isFalse();
     assertThat(metadata.isReevaluation()).isFalse();
 
@@ -325,7 +326,7 @@ public class ReportServiceTest
     assertThat(metadata.getScanTriggerType()).isEqualTo(eval2.getScanTriggerType().getDisplayName());
     assertThat(metadata.getStageId()).isEqualTo("release");
     assertThat(metadata.getCommitHash()).isEqualTo(commitHash);
-    assertThat(metadata.getInitiator()).isEqualTo("system");
+    assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
     assertThat(metadata.isForMonitoring()).isFalse();
     assertThat(metadata.isReevaluation()).isFalse();
 
@@ -342,7 +343,7 @@ public class ReportServiceTest
     assertThat(metadata.getScanTriggerType()).isEqualTo(eval3.getScanTriggerType().getDisplayName());
     assertThat(metadata.getStageId()).isEqualTo("build");
     assertThat(metadata.getCommitHash()).isNull();
-    assertThat(metadata.getInitiator()).isEqualTo("system");
+    assertThat(metadata.getInitiator()).isEqualTo(CurrentUser.SYSTEM);
     assertThat(metadata.isForMonitoring()).isTrue();
     assertThat(metadata.isReevaluation()).isTrue();
 
@@ -481,7 +482,7 @@ public class ReportServiceTest
   @Test
   public void testGetBomForPolicyEvaluation_NoPolicyEvaluation() {
     PolicyEvaluation policyEvaluation =
-        new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID", "system", ScanTriggerType.CLI);
+        new PolicyEvaluation(app.getId(), BuildStageType.ID, "SCAN_ID", CurrentUser.SYSTEM, ScanTriggerType.CLI);
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> createReportService().getBomForPolicyEvaluation(policyEvaluation));

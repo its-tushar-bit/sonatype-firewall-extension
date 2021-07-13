@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -45,7 +46,7 @@ public class PolicyViolationTelemetryCollectorTest
   private static final String TEST_STAGE = "testStage";
 
   private static final PolicyEvaluation policyEvaluation =
-      new PolicyEvaluation(TEST_APP_ID, TEST_STAGE, "scanId123", "system", ScanTriggerType.CLI);
+      new PolicyEvaluation(TEST_APP_ID, TEST_STAGE, "scanId123", CurrentUser.SYSTEM, ScanTriggerType.CLI);
 
   private static final ComponentIdentifier commonsLang3 = ComponentIdentifier.createMavenCoordinates(
       "org.apache.commons", "commons-lang3", "3.8.1");

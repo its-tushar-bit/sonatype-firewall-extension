@@ -24,6 +24,8 @@ import org.apache.shiro.util.ThreadContext;
 @Named
 public class CurrentUser
 {
+  public static String SYSTEM = "system";
+
   static final String XFF_HEADER = "X-Forwarded-For";
 
   /**
@@ -62,7 +64,7 @@ public class CurrentUser
    */
   public String getUsernameOrSystem() {
     if (ThreadContext.getSecurityManager() == null) {
-      return "system";
+      return SYSTEM;
     }
     return getUsername();
   }

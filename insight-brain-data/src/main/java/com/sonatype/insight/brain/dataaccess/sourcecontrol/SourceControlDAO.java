@@ -278,17 +278,17 @@ public class SourceControlDAO
   }
 
   private boolean isPrEnabled(
-      final SourceControl application,
+      final SourceControl sourceControl,
       final Map<String, Application> applicationsById,
       final Map<String, SourceControl> orgSourceControlsByOrgId,
       final SourceControl scRootOrg)
   {
-    if (application.getEnablePullRequests() != null) {
-      return application.getEnablePullRequests();
+    if (sourceControl.getEnablePullRequests() != null) {
+      return sourceControl.getEnablePullRequests();
     }
 
     // application did not define a value, so check organization
-    String orgId = applicationsById.get(application.getOwnerId()).getOrganizationId();
+    String orgId = applicationsById.get(sourceControl.getOwnerId()).getOrganizationId();
     if (orgSourceControlsByOrgId.containsKey(orgId)) {
       SourceControl orgSourcControl = orgSourceControlsByOrgId.get(orgId);
       if (orgSourcControl.getEnablePullRequests() != null) {

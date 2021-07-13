@@ -196,30 +196,42 @@ public class SourceControlEventService
   }
 
   private void handleSourceControlEvent(final SourceControlEvent event) {
-    log.trace("Handling event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
-        event.getApplicationId());
+    try {
+      log.trace("Handling event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
+          event.getApplicationId());
 
-    if (acquireRepoAccess(event.getApplicationId())) {
-      log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", event.getId(),
-          event.getEventType(), event.getApplicationId());
-      try {
-        if (executeSourceControlEvent(event)) {
-          log.debug("Processed event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
-              event.getApplicationId());
-          sourceControlEventDAO.markEventComplete(event.getId());
+      if (acquireRepoAccess(event.getApplicationId())) {
+        log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", event.getId(),
+            event.getEventType(), event.getApplicationId());
+        try {
+          if (executeSourceControlEvent(event)) {
+            log.debug("Processed event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
+                event.getApplicationId());
+            sourceControlEventDAO.markEventComplete(event.getId());
+          }
+        }
+        catch (Exception e) {
+          log.error("Error updating event processing status for event '{}' of type '{}' for application '{}' : {}",
+              event.getId(), event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+        }
+        finally {
+          releaseRepoAccess(event.getApplicationId());
+          log.trace("Released repo access for event '{}' of type '{}' for application '{}'", event.getId(),
+              event.getEventType(), event.getApplicationId());
         }
       }
-      catch (Exception e) {
-        log.error("Error updating event processing status for event '{}' of type '{}' for application '{}' : {}",
-            event.getId(), event.getEventType(), event.getApplicationId(), e.getMessage(), e);
-      }
-      finally {
-        releaseRepoAccess(event.getApplicationId());
-        log.trace("Released repo access for event '{}' of type '{}' for application '{}'", event.getId(),
-            event.getEventType(), event.getApplicationId());
-      }
+      notifyFinishedProcessingEvent(event);
     }
-    notifyFinishedProcessingEvent(event);
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
+    catch (Throwable t) {
+      // Try to log to stderr before trying the standard logging because the standard logging may not be operational
+      // at this point.
+      t.printStackTrace();
+      log.error(t.getMessage(), t);
+      System.exit(1);
+    }
   }
 
   @VisibleForTesting

@@ -9,6 +9,14 @@ packageOne@^1.0.4:
     packageTwo "^1.2.0"
     packageThree ">=2.2.7 <3"
 
+packageTwo@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/packageTwo.tgz#733c144827efa416cc0066b3e73ed3190e325d67"
+
+packageThree@>=2.2.7 <3:
+  version "2.2.7"
+  resolved "https://registry.yarnpkg.com/packageThree.tgz#f19effdab28198313bf8511a57d472b3f85f9f60"
+
 packageFour@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/packageFour.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"

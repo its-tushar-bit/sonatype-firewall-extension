@@ -39,6 +39,10 @@ import {
   DELETE_USER_REQUESTED,
   DELETE_USER_FULFILLED,
   DELETE_USER_FAILED,
+  RESET_USER_PASSWORD_REQUESTED,
+  RESET_USER_PASSWORD_FULFILLED,
+  RESET_USER_PASSWORD_FAILED,
+  RESET_USER_PASSWORD_RESET_VALUE,
   fullTextFields,
 } from './userFormActions';
 
@@ -51,8 +55,10 @@ export const initialState = Object.freeze({
   validationError: null,
   submitMaskState: null,
   deleteMaskState: null,
+  resetMaskState: null,
   saveError: null,
   deleteError: null,
+  resetError: null,
   inputFields: {
     firstName: initUserInput(''),
     lastName: initUserInput(''),
@@ -63,9 +69,10 @@ export const initialState = Object.freeze({
   },
   users: [],
   selectedUserServerData: {},
+  newPassword: null,
 });
 
-const clearedErrors = pick(['loadError', 'saveError', 'deleteError'], initialState);
+const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'resetError'], initialState);
 const editFormFields = ['firstName', 'lastName', 'email'];
 
 const updatedComputedProps = compose(computeIsDirty, computeValidationError);
@@ -260,6 +267,32 @@ function deleteFailed(payload, state) {
   };
 }
 
+function resetFulfilled({ newPassword }, state) {
+  return {
+    ...state,
+    resetMaskState: true,
+    resetError: null,
+    newPassword,
+  };
+}
+
+function resetFailed(payload, state) {
+  return {
+    ...state,
+    resetMaskState: null,
+    resetError: payload,
+  };
+}
+
+function removeNewPassword(_, state) {
+  return {
+    ...state,
+    newPassword: null,
+    resetMaskState: null,
+    resetError: null,
+  };
+}
+
 const reducerActionMap = {
   [USER_SET_FIRST_NAME]: setInput('firstName', nameValidator),
   [USER_SET_LAST_NAME]: setInput('lastName', nameValidator),
@@ -282,6 +315,10 @@ const reducerActionMap = {
   [DELETE_USER_REQUESTED]: propSetConst('deleteMaskState', false),
   [DELETE_USER_FULFILLED]: deleteFulfilled,
   [DELETE_USER_FAILED]: deleteFailed,
+  [RESET_USER_PASSWORD_REQUESTED]: propSetConst('resetMaskState', false),
+  [RESET_USER_PASSWORD_FULFILLED]: resetFulfilled,
+  [RESET_USER_PASSWORD_FAILED]: resetFailed,
+  [RESET_USER_PASSWORD_RESET_VALUE]: removeNewPassword,
   [USER_FORM_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
   [USER_RESET_FORM]: always(initialState),
 };

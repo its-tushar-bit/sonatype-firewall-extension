@@ -9,8 +9,9 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { Messages } from '../../util/CommonServices';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { checkPermissions } from '../../util/authorizationUtil';
-import { getUserUrl, getUserByIdUrl } from '../../util/CLMLocation';
+import { getUserUrl, getUserByIdUrl, getUserResetPasswordByIdUrl } from '../../util/CLMLocation';
 import { stateGo } from '../../reduxUiRouter/routerActions';
+import userActions from '../../user/userActions';
 
 export const USER_SET_FIRST_NAME = 'USER_SET_FIRST_NAME';
 export const USER_SET_LAST_NAME = 'USER_SET_LAST_NAME';
@@ -65,6 +66,12 @@ function startSubmitMaskSuccessTimer(dispatch) {
   setTimeout(() => {
     dispatch({ type: USER_FORM_SUBMIT_MASK_TIMER_DONE });
     dispatch(stateGo('users'));
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
+function startResetPasswordMaskSuccessTimer(dispatch) {
+  setTimeout(() => {
+    dispatch({ type: USER_FORM_SUBMIT_MASK_TIMER_DONE });
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 }
 
@@ -167,3 +174,30 @@ export function deleteUser(userId) {
       .catch(compose(dispatch, deleteFailed, Messages.getHttpErrorMessage));
   };
 }
+
+export const RESET_USER_PASSWORD_REQUESTED = 'RESET_USER_PASSWORD_REQUESTED';
+export const RESET_USER_PASSWORD_FULFILLED = 'RESET_USER_PASSWORD_FULFILLED';
+export const RESET_USER_PASSWORD_FAILED = 'RESET_USER_PASSWORD_FAILED';
+
+const resetRequested = noPayloadActionCreator(RESET_USER_PASSWORD_REQUESTED);
+const resetFulfilled = payloadParamActionCreator(RESET_USER_PASSWORD_FULFILLED);
+const resetFailed = payloadParamActionCreator(RESET_USER_PASSWORD_FAILED);
+
+export function resetPassword(userId, username) {
+  return (dispatch) => {
+    dispatch(resetRequested());
+
+    return axios
+      .put(getUserResetPasswordByIdUrl(userId))
+      .then(({ data }) => {
+        dispatch(resetFulfilled(data));
+        dispatch(userActions().passwordChangedForUser({ username }));
+
+        startResetPasswordMaskSuccessTimer(dispatch);
+      })
+      .catch(compose(dispatch, resetFailed, Messages.getHttpErrorMessage));
+  };
+}
+
+export const RESET_USER_PASSWORD_RESET_VALUE = 'RESET_USER_PASSWORD_RESET_VALUE';
+export const resetInitialNewPasswordValue = noPayloadActionCreator(RESET_USER_PASSWORD_RESET_VALUE);

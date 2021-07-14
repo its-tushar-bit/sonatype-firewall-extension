@@ -3,11 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxForm, NxWarningAlert, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import React from 'react';
+import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
 
 import UserEdit from '../../../../main/frontend/security/userForm/UserEdit';
+import DeleteModal from '../../../../main/frontend/security/userForm/modals/DeleteModal';
+import ResetPasswordModal from '../../../../main/frontend/security/userForm/modals/ResetPasswordModal';
+import CopyToClipboard from '../../../../main/frontend/security/userForm/modals/CopyToClipboard';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -185,43 +189,35 @@ describe('UserEdit', () => {
 
       deleteButton.simulate('click');
 
-      expect(component.find('#delete-user-modal')).toExist();
+      expect(component.find(DeleteModal)).toExist();
     });
   });
 
-  describe('delete modal', () => {
-    let modal, username, userId, deleteUserMock;
+  describe('reset password button', () => {
+    it('is rendered when editing a user', () => {
+      const component = getShallowComponent();
 
-    beforeEach(() => {
-      username = 'Aragorn';
-      userId = '325sdf';
-      deleteUserMock = jasmine.createSpy('deleteUser');
-
-      const component = getShallowComponent({
-        deleteUser: deleteUserMock,
-        username,
-      });
-
-      const deleteButton = component.find('#delete-user');
-
-      deleteButton.simulate('click');
-
-      modal = component.find('#delete-user-modal');
+      expect(component.find('#reset-password')).toExist();
     });
 
-    it('renders delete alert message', () => {
-      const alert = modal.find(NxWarningAlert);
+    it('shows reset password modal when clicked', () => {
+      const component = getShallowComponent();
+      const resetButton = component.find('#reset-password');
 
-      expect(alert).toExist();
-      expect(alert).toHaveText(`You are about to permanently remove ${username}. This action cannot be undone.`);
+      resetButton.simulate('click');
+
+      expect(component.find(ResetPasswordModal)).toExist();
     });
+  });
 
-    it('calls deleteUser when submitted', () => {
-      const form = modal.find(NxForm);
+  describe('copy to clipboard modal', () => {
+    const setMode = jasmine.createSpy('setMode');
 
-      form.simulate('submit');
+    it('shown when mode set to COPY_TO_CLIPBOARD', () => {
+      spyOn(React, 'useState').and.returnValue(['copyToClipboard', setMode]);
+      const component = getShallowComponent({ newPassword: 'weAreDoomed' });
 
-      expect(deleteUserMock).toHaveBeenCalledWith(userId);
+      expect(component.find(CopyToClipboard)).toExist();
     });
   });
 });

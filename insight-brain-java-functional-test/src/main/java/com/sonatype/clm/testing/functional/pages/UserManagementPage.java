@@ -139,6 +139,10 @@ public class UserManagementPage
       return new Button("#delete-user");
     }
 
+    public Button resetPasswordButton() {
+      return new Button("#reset-password");
+    }
+
     public SelenideElement firstNameInput() {
       return child("#firstName");
     }
@@ -149,6 +153,26 @@ public class UserManagementPage
 
     public SelenideElement emailInput() {
       return child("#email");
+    }
+  }
+
+  public CopyToClipboardModal copyToClipboardModal() {
+    return new CopyToClipboardModal();
+  }
+
+  public static class CopyToClipboardModal
+      extends BasicElement<CopyToClipboardModal>
+  {
+    public CopyToClipboardModal() {
+      super("#copy-password-modal");
+    }
+
+    public SelenideElement ok() {
+      return child(".nx-form__submit-btn");
+    }
+
+    public SelenideElement newPassword() {
+      return child(".nx-text-input__input");
     }
   }
 }

@@ -6,10 +6,7 @@
 package com.sonatype.clm.testing.functional.elements;
 import com.sonatype.clm.testing.functional.BasicElement;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-
-import static com.codeborne.selenide.Condition.text;
 
 public class NxDeleteModal extends BasicElement<NxDeleteModal>
 {
@@ -23,10 +20,6 @@ public class NxDeleteModal extends BasicElement<NxDeleteModal>
 
   public SelenideElement alertContent() {
     return child(".nx-alert__content");
-  }
-
-  public static Condition alertText(String username) {
-    return text("You are about to permanently remove " + username + ". This action cannot be undone.");
   }
 
   public SelenideElement closeButton() {

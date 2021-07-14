@@ -21,6 +21,7 @@ import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.NewUserForm;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
+import com.sonatype.clm.testing.functional.pages.UserManagementPage.CopyToClipboardModal;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.SummarySection;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
@@ -42,7 +43,6 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.NxDeleteModal.alertText;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -190,19 +190,24 @@ public class UserManagementTest
   @Test
   public void testUserResetPassword() {
     User user = createUser();
+    int userRow = 0;
+
     refreshOrOpen(UserManagementPage.url());
     UserManagementPage userManagementPage = new UserManagementPage();
 
-    int userRow = 0;
+    EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
+    editUserForm.shouldBe(visible);
+    editUserForm.resetPasswordButton().shouldNotBe(CLM.DISABLED).click();
 
-    userManagementPage.resetPasswordButtons().get(userRow).shouldBe(visible).click();
     ResetPasswordModal resetPasswordModal = userManagementPage.resetPasswordModal();
     resetPasswordModal.shouldBe(visible);
 
     resetPasswordModal.reset().click();
 
-    String newPassword = resetPasswordModal.newPassword().shouldBe(visible).val();
-    resetPasswordModal.ok().click();
+    CopyToClipboardModal copyToClipboardModal = userManagementPage.copyToClipboardModal();
+
+    String newPassword = copyToClipboardModal.newPassword().shouldBe(visible).val();
+    copyToClipboardModal.ok().click();
 
     logout();
     login(user.getUsername(), newPassword);
@@ -265,7 +270,8 @@ public class UserManagementTest
     NxDeleteModal deleteModal = new NxDeleteModal("#delete-user-modal");
 
     deleteModal.header().shouldHave(text("Delete User"));
-    deleteModal.alertContent().shouldHave(alertText(user.getUsername()));
+    deleteModal.alertContent().shouldHave(text("You are about to permanently remove " +
+        user.getUsername() + ". This action cannot be undone."));
     deleteModal.submitButton().click();
     deleteModal.should(disappear);
 

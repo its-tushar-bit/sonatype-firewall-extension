@@ -28,6 +28,10 @@ import {
   DELETE_USER_REQUESTED,
   DELETE_USER_FULFILLED,
   DELETE_USER_FAILED,
+  RESET_USER_PASSWORD_REQUESTED,
+  RESET_USER_PASSWORD_FULFILLED,
+  RESET_USER_PASSWORD_FAILED,
+  RESET_USER_PASSWORD_RESET_VALUE,
 } from '../../../../main/frontend/security/userForm/userFormActions';
 
 describe('userFormReducer', () => {
@@ -722,6 +726,82 @@ describe('userFormReducer', () => {
         expect(inputFields.matchPassword.validationErrors).toEqual('Must be non-empty');
         expect(inputFields.matchPassword.validationErrors).toEqual('Must be non-empty');
       });
+    });
+  });
+
+  describe(`${RESET_USER_PASSWORD_REQUESTED} action`, () => {
+    it('sets resetMaskState to false', () => {
+      const state = {
+        resetMaskState: true,
+        other: otherObject,
+      };
+
+      const { resetMaskState, other } = reduce(state, {
+        type: RESET_USER_PASSWORD_REQUESTED,
+      });
+
+      expect(resetMaskState).toBe(false);
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${RESET_USER_PASSWORD_FULFILLED} action`, () => {
+    it('sets resetMaskState to true, resets resetError to null, newPassword to payload', () => {
+      const state = {
+        resetMaskState: null,
+        newPassword: null,
+        resetError: 'error',
+        other: otherObject,
+      };
+
+      const { resetMaskState, newPassword, resetError, other } = reduce(state, {
+        type: RESET_USER_PASSWORD_FULFILLED,
+        payload: { newPassword: 'weAreDoomed' },
+      });
+
+      expect(resetMaskState).toBe(true);
+      expect(newPassword).toBe('weAreDoomed');
+      expect(resetError).toBeNull();
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${RESET_USER_PASSWORD_FAILED} action`, () => {
+    it('resets resetMaskState, sets resetError', () => {
+      const state = {
+        resetError: null,
+        resetMaskState: true,
+        other: otherObject,
+      };
+
+      const { resetMaskState, resetError, other } = reduce(state, {
+        type: RESET_USER_PASSWORD_FAILED,
+        payload: 'error occurred',
+      });
+
+      expect(resetMaskState).toBeNull();
+      expect(resetError).toBe('error occurred');
+      expect(other).toBe(otherObject);
+    });
+  });
+
+  describe(`${RESET_USER_PASSWORD_RESET_VALUE} action`, () => {
+    it('resets newPassword, resetMaskState and resetError', () => {
+      const state = {
+        resetError: 'error',
+        resetMaskState: true,
+        newPassword: 'weAreDoomed',
+        other: otherObject,
+      };
+
+      const { resetMaskState, resetError, newPassword, other } = reduce(state, {
+        type: RESET_USER_PASSWORD_RESET_VALUE,
+      });
+
+      expect(resetMaskState).toBeNull();
+      expect(resetError).toBeNull();
+      expect(newPassword).toBeNull();
+      expect(other).toBe(otherObject);
     });
   });
 });

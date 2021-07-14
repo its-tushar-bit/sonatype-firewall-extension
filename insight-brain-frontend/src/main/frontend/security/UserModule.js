@@ -18,8 +18,6 @@ import permissionServiceModule from '../util/PermissionService';
 import ApplicationSecurityModule from '../policy/AppSecurityController';
 import UserListController from './user.list.controller';
 import telemetryServiceModule from '../services/telemetryService';
-import userActions from '../user/userActions';
-import userReducer from '../user/userReducer';
 import userListTemplate from './user-list.html';
 import administratorsTemplate from '../policy/components/app-security/app-security.html';
 import UserFormContainer from './userForm/UserFormContainer';
@@ -71,8 +69,6 @@ export const UserModule = angular
     'editUser',
     react2angular(withStoreProvider(withRouterStateProvider(UserEditContainer)), [], ['$ngRedux', '$state'])
   )
-  .factory('userActions', userActions)
-  .value('userReducer', userReducer)
   .config(routes);
 
 function routes($stateProvider) {
@@ -148,15 +144,3 @@ UserModule.directive('expandUserOnEvent', function () {
     },
   };
 });
-
-//simple directive that will select the text in an input field
-//when user clicks on it
-UserModule.directive('selectText', [
-  function () {
-    return function (scope, element) {
-      element.bind('focus', function () {
-        this.select();
-      });
-    };
-  },
-]);

@@ -3,35 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/*global angular, AngularUtils*/
-import { pick } from 'ramda';
-
-export default function UserListController(
-  $http,
-  clmLocations,
-  UserStore,
-  messages,
-  CurrentUser,
-  $scope,
-  DeleteModalService,
-  Modal,
-  $q,
-  isAuthorized,
-  $state,
-  $ngRedux,
-  userActions
-) {
+export default function UserListController(UserStore, CurrentUser, $scope, $q, isAuthorized, $state) {
   var username = null;
 
   $scope.context = {
-    userEditMap: {},
     users: [],
   };
 
   $scope.isAuthorized = isAuthorized;
-  const actions = pick(['passwordChangedForUser'], userActions);
-  const unsubscribe = $ngRedux.connect(undefined, actions)($scope);
-  $scope.$on('$destroy', unsubscribe);
 
   $scope.doLoad = function () {
     if (isAuthorized) {
@@ -57,49 +36,6 @@ export default function UserListController(
     return username === user.username;
   };
 
-  $scope.resetPasswordClick = function (user) {
-    Modal.open({
-      templateUrl: 'reset-password-modal',
-      scope: $scope,
-      backdrop: 'static',
-      keyboard: false,
-      controller: [
-        '$scope',
-        function (scope) {
-          scope.state = 'ready';
-          scope.user = user;
-
-          scope.cancelClick = function () {
-            scope.$close();
-          };
-
-          scope.resetClick = function () {
-            scope.state = 'pending';
-            $http.put(clmLocations.getUserUrl() + '/' + user.id + '/reset').then(
-              function (response) {
-                scope.newPassword = response.data.newPassword;
-                scope.state = 'complete';
-                $scope.passwordChangedForUser(scope.user);
-              },
-              function (error) {
-                scope.state = 'failed';
-                scope.error = messages.getHttpErrorMessage(error);
-              }
-            );
-          };
-
-          scope.okClick = function () {
-            scope.$close();
-          };
-
-          scope.flashInstalled = function () {
-            return AngularUtils.hasFlash();
-          };
-        },
-      ],
-    });
-  };
-
   $scope.newUserClick = function () {
     $state.go('create');
   };
@@ -107,18 +43,4 @@ export default function UserListController(
   $scope.doLoad();
 }
 
-UserListController.$inject = [
-  '$http',
-  'CLMLocations',
-  'UserStore',
-  'Messages',
-  'CurrentUser',
-  '$scope',
-  'DeleteModalService',
-  'Modal',
-  '$q',
-  'isAuthorized',
-  '$state',
-  '$ngRedux',
-  'userActions',
-];
+UserListController.$inject = ['UserStore', 'CurrentUser', '$scope', '$q', 'isAuthorized', '$state'];

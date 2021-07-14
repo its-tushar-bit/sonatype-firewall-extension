@@ -13,22 +13,14 @@ public class ResetPasswordModal
     extends BasicElement<ResetPasswordModal>
 {
   public ResetPasswordModal() {
-    super(".test-reset-password-modal");
+    super("#reset-password-modal");
   }
 
   public SelenideElement reset() {
-    return child(".test-reset-button");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement cancel() {
-    return child(".test-cancel-button");
-  }
-
-  public SelenideElement ok() {
-    return child(".test-ok-button");
-  }
-
-  public SelenideElement newPassword() {
-    return child("#generatedPassword");
+    return child(".nx-form__cancel-btn");
   }
 }

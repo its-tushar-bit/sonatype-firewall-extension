@@ -1,64 +1,4 @@
 <div class="nx-page-main">
-  <script type="text/ng-template" id="reset-password-modal">
-    <div class="iq-modal-header">
-      <h2 id="reset-password-modal-title">Reset Password</h2>
-    </div>
-    <div ng-switch="state" class="test-reset-password-modal">
-      <div ng-switch-default id="reset-password-modal">
-        <div class="iq-modal-content">
-          <div class="iq-alert">
-            <i class="fa fa-warning"></i><!--
-         -->Are you sure you want to reset the password for <strong>{{::user.username}}</strong>?
-            This action cannot be undone.
-          </div>
-        </div>
-        <div class="iq-modal-footer" ng-class="{'iq-error' : error}">
-          <div class="iq-alert iq-alert--error" ng-if="error">
-            <i class="fa fa-warning"></i>{{ error }}
-          </div>
-          <button class="iq-btn iq-btn--error" type="submit" ng-click="resetClick()" ng-if="error">
-            <i class="fa fa-refresh"></i>Retry
-          </button><!--
-       --><button ng-if="!error" class="iq-btn iq-btn--primary test-reset-button" ng-click="resetClick()">
-            Reset
-          </button><!--
-       --><button class="iq-btn iq-btn--dismiss test-cancel-button" ng-click="cancelClick()">Cancel</button>
-        </div>
-      </div>
-      <div ng-switch-when="pending">
-        <div class="iq-modal-content">
-          Reset pending...
-        </div>
-      </div>
-      <div ng-switch-when="complete">
-        <div class="iq-modal-content">
-          <form class="iq-form iq-form--no-padding iq-form--no-border">
-            <div class="iq-form-group">
-              <label class="iq-label iq-label--password-change">
-                The new password for <strong>{{user.username}}</strong> is
-              </label>
-              <input id="generatedPassword"
-                     type="text"
-                     class="iq-text-input iq-text-input--read-only iq-input-text--generated-password"
-                     ng-model="newPassword"
-                     readonly
-                     select-text
-                     focus-input="state == 'complete'"><!--
-            --><button class="iq-btn iq-btn--reset-password"
-                       type="button"
-                       copy-to-clipboard="newPassword"
-                       copied-tooltip>
-                <i class="fa fa-clipboard"></i>Copy to Clipboard
-              </button>
-            </div>
-          </form>
-        </div>
-        <div class="iq-modal-footer">
-          <button class="iq-btn iq-btn--primary test-ok-button" ng-click="okClick()">OK</button>
-        </div>
-      </div>
-    </div>
-  </script>
   <div load-wrapper="error" reload="doLoad()">
     <div ng-if="$state.is('users')" authorization-wrapper="isAuthorized" class="iq-tile iq-tile--sys-prefs">
       <div expand-user-on-event="userEditClick"></div>
@@ -83,15 +23,8 @@
                 <button type="button"
                         class="iq-btn iq-btn--icon-only tm-iq-user-edit"
                         title="Edit User"
-                        ng-disabled="context.userEditMap[user.id]"
                         ng-click="editClick(user)">
                     <i class="icon-pencil"></i>
-                </button><!--
-             --><button type="button"
-                        class="iq-btn iq-btn--icon-only tm-iq-user-reset-password"
-                        title="Reset Password"
-                        ng-click="resetPasswordClick(user)">
-                  <i class="icon-reset-pw"></i>
                 </button>
               </div>
               <a class="accordion-toggle user-top collapsed"
@@ -107,7 +40,7 @@
               </a>
 
               <div id="collapse{{user.id}}" class="accordion-body collapse">
-                <div class="accordion-inner iq-user-details" ng-if="!context.userEditMap[user.id]">
+                <div class="accordion-inner iq-user-details">
                   <dl class="iq-read-only iq-read-only--user-details">
                     <dt>First Name:</dt><!--
                  --><dd class="iq-read-only-data test-user-first-name">{{user.firstName}}</dd>

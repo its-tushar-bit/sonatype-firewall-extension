@@ -5,7 +5,17 @@
  */
 import { connect } from 'react-redux';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import { loadUserById, setFirstName, setLastName, setEmail, update, resetForm, deleteUser } from './userFormActions';
+import {
+  loadUserById,
+  setFirstName,
+  setLastName,
+  setEmail,
+  update,
+  resetForm,
+  resetInitialNewPasswordValue,
+  deleteUser,
+  resetPassword,
+} from './userFormActions';
 
 import UserEdit from './UserEdit';
 
@@ -22,6 +32,8 @@ export default connect(
     setEmail,
     deleteUser,
     resetForm,
+    resetInitialNewPasswordValue,
+    resetPassword,
     update,
     stateGo,
   }

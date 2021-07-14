@@ -488,6 +488,10 @@ export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }
 
+export function getUserResetPasswordByIdUrl(userId) {
+  return uriTemplate`/rest/user/${userId}/reset`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

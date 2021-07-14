@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { getUserUrl, getUserByIdUrl } from '../../../../main/frontend/util/CLMLocation';
+import { getUserUrl, getUserByIdUrl, getUserResetPasswordByIdUrl } from '../../../../main/frontend/util/CLMLocation';
 import {
   CREATE_USER_LOAD_REQUESTED,
   CREATE_USER_LOAD_FULFILLED,
@@ -23,6 +23,9 @@ import {
   DELETE_USER_REQUESTED,
   DELETE_USER_FULFILLED,
   DELETE_USER_FAILED,
+  RESET_USER_PASSWORD_REQUESTED,
+  RESET_USER_PASSWORD_FULFILLED,
+  RESET_USER_PASSWORD_FAILED,
 } from '../../../../main/frontend/security/userForm/userFormActions';
 import { STATE_GO } from '../../../../main/frontend/reduxUiRouter/routerActions';
 
@@ -31,7 +34,7 @@ const { initialState: initUserInput } = nxTextInputStateHelpers;
 describe('userFormActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const userUrl = getUserUrl();
-  let checkPermissionsSpy, save, loadCreateUserPage, loadUserById, update, deleteUser;
+  let checkPermissionsSpy, save, loadCreateUserPage, loadUserById, update, deleteUser, resetPassword;
 
   beforeEach(() => {
     checkPermissionsSpy = jasmine.createSpy('checkPermissions');
@@ -45,6 +48,7 @@ describe('userFormActions', () => {
     loadUserById = module.loadUserById;
     update = module.update;
     deleteUser = module.deleteUser;
+    resetPassword = module.resetPassword;
   });
 
   describe('loadCreateUserPage', () => {
@@ -62,18 +66,15 @@ describe('userFormActions', () => {
         });
 
         store.dispatch(loadCreateUserPage()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
 
           expect(actions.length).toBe(2);
-          expect(actions[1]).toEqual({
-            type: CREATE_USER_LOAD_FULFILLED,
-            payload: [],
-          });
+          expect(actions).toHaveActionsInOrder([
+            { type: CREATE_USER_LOAD_REQUESTED },
+            { type: CREATE_USER_LOAD_FULFILLED, payload: [] },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions[0]).toEqual({ type: CREATE_USER_LOAD_REQUESTED });
       });
     });
 
@@ -88,18 +89,15 @@ describe('userFormActions', () => {
         store.dispatch(loadCreateUserPage()).then(() => {
           expect(axios.get).not.toHaveBeenCalled();
 
-          actions = store.getActions();
+          const actions = store.getActions();
 
           expect(actions.length).toBe(2);
-          expect(actions[1]).toEqual({
-            type: CREATE_USER_LOAD_FAILED,
-            payload: 'user add page authorization error',
-          });
+          expect(actions).toHaveActionsInOrder([
+            { type: CREATE_USER_LOAD_REQUESTED },
+            { type: CREATE_USER_LOAD_FAILED, payload: 'user add page authorization error' },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions[0]).toEqual({ type: CREATE_USER_LOAD_REQUESTED });
       });
     });
   });
@@ -159,14 +157,15 @@ describe('userFormActions', () => {
       });
 
       store.dispatch(save()).then(() => {
-        actions = store.getActions();
+        const actions = store.getActions();
+
         expect(actions.length).toBe(2);
-        expect(actions[1]).toEqual({ type: CREATE_USER_SAVE_FAILED, payload: 'cannot save' });
+        expect(actions).toHaveActionsInOrder([
+          { type: CREATE_USER_SAVE_REQUESTED },
+          { type: CREATE_USER_SAVE_FAILED, payload: 'cannot save' },
+        ]);
         done();
       });
-
-      let actions = store.getActions();
-      expect(actions[0]).toEqual({ type: CREATE_USER_SAVE_REQUESTED });
     });
   });
 
@@ -192,21 +191,15 @@ describe('userFormActions', () => {
         });
 
         store.dispatch(loadUserById('201')).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
 
           expect(actions.length).toBe(2);
-          expect(actions[1]).toEqual({
-            type: EDIT_USER_LOAD_FULFILLED,
-            payload: {
-              id: '201',
-              username: 'vaild',
-            },
-          });
+          expect(actions).toHaveActionsInOrder([
+            { type: EDIT_USER_LOAD_REQUESTED },
+            { type: EDIT_USER_LOAD_FULFILLED, payload: { id: '201', username: 'vaild' } },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions[0]).toEqual({ type: EDIT_USER_LOAD_REQUESTED });
       });
 
       it('fires EDIT_USER_UPDATE_FAILED action if no user with predefined id exists', (done) => {
@@ -225,18 +218,15 @@ describe('userFormActions', () => {
         });
 
         store.dispatch(loadUserById('404')).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
 
           expect(actions.length).toBe(2);
-          expect(actions[1]).toEqual({
-            type: EDIT_USER_LOAD_FAILED,
-            payload: 'Unable to locate user',
-          });
+          expect(actions).toHaveActionsInOrder([
+            { type: EDIT_USER_LOAD_REQUESTED },
+            { type: EDIT_USER_LOAD_FAILED, payload: 'Unable to locate user' },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions[0]).toEqual({ type: EDIT_USER_LOAD_REQUESTED });
       });
     });
 
@@ -251,18 +241,15 @@ describe('userFormActions', () => {
         store.dispatch(loadUserById('404')).then(() => {
           expect(axios.get).not.toHaveBeenCalled();
 
-          actions = store.getActions();
+          const actions = store.getActions();
 
           expect(actions.length).toBe(2);
-          expect(actions[1]).toEqual({
-            type: EDIT_USER_LOAD_FAILED,
-            payload: 'user edit page authorization error',
-          });
+          expect(actions).toHaveActionsInOrder([
+            { type: EDIT_USER_LOAD_REQUESTED },
+            { type: EDIT_USER_LOAD_FAILED, payload: 'user edit page authorization error' },
+          ]);
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions[0]).toEqual({ type: EDIT_USER_LOAD_REQUESTED });
       });
     });
   });
@@ -330,14 +317,15 @@ describe('userFormActions', () => {
       });
 
       store.dispatch(update()).then(() => {
-        actions = store.getActions();
+        const actions = store.getActions();
+
         expect(actions.length).toBe(2);
-        expect(actions[1]).toEqual({ type: EDIT_USER_UPDATE_FAILED, payload: 'cannot update' });
+        expect(actions).toHaveActionsInOrder([
+          { type: EDIT_USER_UPDATE_REQUESTED },
+          { type: EDIT_USER_UPDATE_FAILED, payload: 'cannot update' },
+        ]);
         done();
       });
-
-      let actions = store.getActions();
-      expect(actions[0]).toEqual({ type: EDIT_USER_UPDATE_REQUESTED });
     });
   });
 
@@ -403,6 +391,60 @@ describe('userFormActions', () => {
         expect(store.getActions()).toHaveActionsInOrder([
           { type: DELETE_USER_REQUESTED },
           { type: DELETE_USER_FAILED, payload: 'failed to delete user' },
+        ]);
+        done();
+      });
+    });
+  });
+
+  describe('resetPassword', () => {
+    let store, state;
+
+    beforeEach(() => {
+      state = {
+        selectedUserServerData: {
+          username: 'johnDoe',
+        },
+      };
+
+      store = SpecUtil.mockReduxStore({ userForm: state, user: {} });
+    });
+
+    it('fires RESET_USER_PASSWORD_REQUESTED, RESET_USER_PASSWORD_FULFILLED and USER_FORM_SUBMIT_MASK_TIMER_DONE actions on success', (done) => {
+      mockAxiosCalls({
+        put: {
+          [getUserResetPasswordByIdUrl('201', state.selectedUserServerData.username)]: Promise.resolve({
+            data: { newPassword: 'weAreDoomed' },
+          }),
+        },
+      });
+
+      store.dispatch(resetPassword('201', state.selectedUserServerData.username)).then(() => {
+        setTimeout(function () {
+          const actions = store.getActions();
+          expect(actions).toHaveActionsInOrder([
+            { type: RESET_USER_PASSWORD_REQUESTED },
+            { type: RESET_USER_PASSWORD_FULFILLED, payload: { newPassword: 'weAreDoomed' } },
+            { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+          ]);
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+    });
+
+    it('fires RESET_USER_PASSWORD_FAILED action on error', (done) => {
+      mockAxiosCalls({
+        put: {
+          [getUserResetPasswordByIdUrl('201', state.selectedUserServerData.username)]: Promise.reject({
+            response: 'failed to reset user password',
+          }),
+        },
+      });
+
+      store.dispatch(resetPassword('201', state.selectedUserServerData.username)).then(() => {
+        expect(store.getActions()).toHaveActionsInOrder([
+          { type: RESET_USER_PASSWORD_REQUESTED },
+          { type: RESET_USER_PASSWORD_FAILED, payload: 'failed to reset user password' },
         ]);
         done();
       });

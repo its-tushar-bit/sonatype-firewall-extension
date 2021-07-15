@@ -25,6 +25,7 @@ import utilityServicesModule from './utility/services/utility.services.module';
 import unsavedChangesModalModule from './unsavedChangesModal/module';
 import legalModule from './legal/legal.module';
 import { not, contains, path } from 'ramda';
+import axios from 'axios';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -205,6 +206,20 @@ export const InitModule = angular
           }
         }
       }
+
+      axios.interceptors.response.use(
+        (response) => {
+          return response;
+        },
+        (error) => {
+          const isUnauthorized = error.response.status === 401;
+          if (isUnauthorized) {
+            $window.top.sessionExpired();
+          } else {
+            return Promise.reject(error);
+          }
+        }
+      );
 
       function setRootError(err) {
         $rootScope.error = Messages.getHttpErrorMessage(err);

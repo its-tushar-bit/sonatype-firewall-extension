@@ -124,6 +124,8 @@ public class PolicyWaiverResource
       dto.setOwnerId(waiver.getOwnerId());
       dto.setPolicyId(waiver.getPolicyId());
       dto.policyName = policyNameLoader.apply(dto.getPolicyId());
+      dto.setConstraintFactsJson(waiver.getConstraintFactsJson());
+      dto.setConstraintFacts(waiver.getConstraintFacts());
       dtos.add(dto);
     }
     return dtos;

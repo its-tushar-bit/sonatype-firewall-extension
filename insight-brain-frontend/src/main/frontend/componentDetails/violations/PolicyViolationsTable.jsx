@@ -18,6 +18,7 @@ export default function PolicyViolationsTable({ violations, error, loading, retr
           <NxTableCell>Policy/Action</NxTableCell>
           <NxTableCell>Constraint Name</NxTableCell>
           <NxTableCell>Condition</NxTableCell>
+          <NxTableCell />
         </NxTableRow>
       </NxTableHead>
       <NxTableBody emptyMessage="No policy violations" error={error} isLoading={loading} retryHandler={retryHandler}>

@@ -4,13 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxTableCell, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { NxFontAwesomeIcon, NxTableCell, NxThreatIndicator } from '@sonatype/react-shared-components';
 
 import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTableRow';
 import ViolationExclamation from '../../../../main/frontend/react/ViolationExclamation';
+import ActiveWaiversIndicator from '../../../../main/frontend/violation/ActiveWaiversIndicator';
 
 describe('PolicyViolationsTableRow', () => {
-  let minimalProps, getShallow, getMounted;
+  let minimalProps, getShallow;
 
   beforeEach(function () {
     minimalProps = {
@@ -29,12 +30,13 @@ describe('PolicyViolationsTableRow', () => {
           },
           { conditions: [{ conditionReason: 'first reason from second constraint' }] },
         ],
+        grandfathered: false,
+        waived: false,
+        applicableWaivers: [],
       },
     };
 
     getShallow = enzymeUtils.getShallowComponent(PolicyViolationsTableRow, minimalProps);
-    getMounted = enzymeUtils.getMountedComponent(PolicyViolationsTableRow, minimalProps);
-    console.log(getMounted);
   });
 
   it('renders a Threat cell with the policyThreatLevel and an indicator related to the threat level', () => {
@@ -77,6 +79,46 @@ describe('PolicyViolationsTableRow', () => {
       expect(actionElement.find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'critical');
       expect(actionElement.find('span')).toHaveText('Build Failure');
     });
+
+    it('renders the threat level of the actions with as disabled when the row is waived', () => {
+      const component = getShallow({
+          violation: {
+            ...minimalProps.violation,
+            actions: [
+              {
+                actionType: 'fail',
+                actionSummary: 'Build Failure',
+              },
+            ],
+            waived: true,
+          },
+        }),
+        rowCells = component.find(NxTableCell),
+        policyNameAndActionsCell = rowCells.at(1);
+
+      const actionElement = policyNameAndActionsCell.dive().find('li');
+      expect(actionElement.find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'disabled');
+    });
+
+    it('renders the threat level of the actions with as disabled when the row is grandfathered', () => {
+      const component = getShallow({
+          violation: {
+            ...minimalProps.violation,
+            actions: [
+              {
+                actionType: 'fail',
+                actionSummary: 'Build Failure',
+              },
+            ],
+            grandfathered: true,
+          },
+        }),
+        rowCells = component.find(NxTableCell),
+        policyNameAndActionsCell = rowCells.at(1);
+
+      const actionElement = policyNameAndActionsCell.dive().find('li');
+      expect(actionElement.find(ViolationExclamation)).toHaveProp('threatLevelCategory', 'disabled');
+    });
   });
 
   it('renders a Constraint name cell with the constraint name of the first constraint of the violation', () => {
@@ -98,5 +140,62 @@ describe('PolicyViolationsTableRow', () => {
     expect(reasons.at(0)).toHaveText('first reason from first constraint');
     expect(reasons.at(1)).toHaveText('second reason from first constraint');
     expect(reasons.at(2)).toHaveText('first reason from second constraint');
+  });
+
+  describe('renders a cell for the manage waivers trigger and relevant indicators', () => {
+    const getIndicators = (additionalProps) => {
+      const component = getShallow(additionalProps),
+        rowCells = component.find(NxTableCell),
+        waiversAndGrandfatheringCell = rowCells.at(4);
+
+      return waiversAndGrandfatheringCell.find(PolicyViolationsTableRow.indicators);
+    };
+
+    it('renders a grandfathering indicator if the violation has been grandfathered', () => {
+      const indicators = getIndicators({ violation: { ...minimalProps.violation, grandfathered: true } });
+      expect(indicators).toExist();
+
+      const grandfatheringIcon = indicators.dive().find(NxFontAwesomeIcon);
+      expect(grandfatheringIcon).toExist();
+
+      expect(indicators.dive().find('span')).toHaveText('Grandfathered');
+    });
+
+    it('does not render a grandfathering indicator if the violation has not been grandfathered', () => {
+      const indicators = getIndicators({ violation: { ...minimalProps.violation, grandfathered: false } });
+      expect(indicators.dive().find('span')).not.toExist();
+    });
+
+    it('renders an information indicator when there are unapplied waivers', () => {
+      const indicators = getIndicators({ violation: { ...minimalProps.violation, applicableWaivers: ['waiver1'] } });
+
+      const unnappliedIcon = indicators.dive().find(NxFontAwesomeIcon);
+      expect(unnappliedIcon).toExist();
+
+      expect(indicators.dive().find('span')).toHaveText('Unapplied Waiver');
+    });
+
+    it('does not render an information indicator when there are no unapplied waivers', () => {
+      const indicators = getIndicators({ violation: { ...minimalProps.violation, applicableWaivers: [] } });
+      expect(indicators.dive().find('span')).not.toExist();
+    });
+
+    it('does not render an information indicator when the violation has been waived', () => {
+      const indicators = getIndicators({
+        violation: { ...minimalProps.violation, applicableWaivers: ['waiver1'], waived: true },
+      });
+
+      expect(indicators.dive().find('span')).not.toExist();
+    });
+
+    it('renders an ActiveWaiversIndicator when the violation has been waived and has applicableWaivers', () => {
+      const indicators = getIndicators({
+        violation: { ...minimalProps.violation, applicableWaivers: ['waiver1', 'waiver2'], waived: true },
+      });
+
+      const activeWaiversIndicator = indicators.dive().find(ActiveWaiversIndicator);
+      expect(activeWaiversIndicator).toExist();
+      expect(activeWaiversIndicator).toHaveProp('noOfWaivers', 2);
+    });
   });
 });

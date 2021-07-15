@@ -21,24 +21,19 @@ describe('PolicyViolations', () => {
           constraints: [],
         },
       ],
-      componentDetails: { hash: 'hash' },
-      loadComponentDetails: jasmine.createSpy('loadComponentDetails'),
+      loadPolicyViolationsInformation: jasmine.createSpy('loadPolicyViolationsInformation'),
       loadError: null,
+      loading: false,
     };
 
     getShallow = enzymeUtils.getShallowComponent(PolicyViolations, minimalProps);
     getMounted = enzymeUtils.getMountedComponent(PolicyViolations, minimalProps);
   });
 
-  describe('loadComponentDetails action', () => {
-    it('Does not call loadComponentDetails if the componentDetails are loaded', () => {
+  describe('loadPolicyViolationsInformation action', () => {
+    it('calls loadPolicyViolationsInformation when the component renders', () => {
       getMounted();
-      expect(minimalProps.loadComponentDetails).not.toHaveBeenCalled();
-    });
-
-    it('calls loadComponentDetails if no componentDetails are loaded yet', () => {
-      getMounted({ componentDetails: undefined });
-      expect(minimalProps.loadComponentDetails).toHaveBeenCalled();
+      expect(minimalProps.loadPolicyViolationsInformation).toHaveBeenCalled();
     });
   });
 
@@ -51,9 +46,9 @@ describe('PolicyViolations', () => {
       expect(violationsTable).toHaveProp('violations', minimalProps.violations);
       expect(violationsTable).toHaveProp('loading', false);
       expect(violationsTable).toHaveProp('error', null);
-      expect(violationsTable).toHaveProp('retryHandler', minimalProps.loadComponentDetails);
+      expect(violationsTable).toHaveProp('retryHandler', minimalProps.loadPolicyViolationsInformation);
 
-      violationsTable = getShallow({ loadError: null, violations: undefined }).find(PolicyViolationsTable);
+      violationsTable = getShallow({ loading: true }).find(PolicyViolationsTable);
       expect(violationsTable).toHaveProp('loading', true);
 
       violationsTable = getShallow({ loadError: 'some error' }).find(PolicyViolationsTable);

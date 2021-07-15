@@ -492,6 +492,10 @@ export function getUserResetPasswordByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}/reset`;
 }
 
+export function getComponentWaivers(ownerType, ownerId, hash) {
+  return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/component/${hash}`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

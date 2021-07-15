@@ -26,12 +26,43 @@
           @include container-horizontal();
         }
       }
+
+      .nx-cell.disabled {
+        svg {
+          color: var(--nx-color-text-disabled);
+        }
+      }
     }
 
-    .policy-name-and-action {
-      > span {
-        @include bold();
+    .iq-policy-violation-row {
+      .iq-policy-violation-row__policy-name-and-action-cell {
+        > span {
+          @include bold();
+        }
       }
+
+      .iq-policy-violation-row__actions-and-indicators-cell {
+        --actions-and-indicators--min-size: 170px;
+
+        min-width: var(--actions-and-indicators--min-size);
+        text-align: center;
+
+        .iq-waiver-indicator {
+          justify-content: center;
+          color: unset;
+        }
+
+        // All indicators are inside div containers since they require multiple elements
+        // we take advantage of that selecting all immediate div children of the cell
+        > div {
+          @include container-horizontal();
+          margin-bottom: var(--nx-spacing-2x);
+        }
+      }
+    }
+
+    .iq-policy-violation-row--remediated {
+      background-color: var(--nx-swatch-grey-95);
     }
   }
 }

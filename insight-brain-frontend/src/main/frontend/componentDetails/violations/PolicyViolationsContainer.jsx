@@ -6,24 +6,21 @@
 import { connect } from 'react-redux';
 
 import PolicyViolations from './PolicyViolations';
-import { selectComponentDetails, selectComponentViolations } from '../componentDetailsSelectors';
-import { selectApplicationReportSlice } from '../../applicationReport/applicationReportSelectors';
-import { loadReport } from '../../applicationReport/applicationReportActions';
+import { actions } from './PolicyViolationsRedux';
+import { selectComponentDetailsViolationsSlice, selectComponentViolations } from './PolicyViolationsSelectors';
 
 function mapStateToProps(state) {
-  const { loadError } = selectApplicationReportSlice(state);
+  const { loading, loadError } = selectComponentDetailsViolationsSlice(state);
 
   return {
     violations: selectComponentViolations(state),
-    componentDetails: selectComponentDetails(state),
+    loading,
     loadError,
   };
 }
 
 const mapDispatchToProps = {
-  // we derive componentDetails from the url and the selectedReport
-  // but we need to load the report if there is none loaded yet
-  loadComponentDetails: () => loadReport(true),
+  loadPolicyViolationsInformation: actions.load,
 };
 
 export const PolicyViolationsContainer = connect(mapStateToProps, mapDispatchToProps)(PolicyViolations);

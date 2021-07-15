@@ -149,7 +149,7 @@ public class ViolationDetailsPage
     }
 
     public SelenideElement waiversIndicator() {
-      return child("#waivers-indicator");
+      return child(".iq-waiver-indicator");
     }
   }
 

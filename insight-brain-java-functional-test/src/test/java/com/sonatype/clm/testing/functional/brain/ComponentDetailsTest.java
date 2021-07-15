@@ -18,10 +18,15 @@ import com.sonatype.clm.testing.functional.pages.AuditLogContent;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.policy.PolicyViolationGrandfatheringService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
@@ -148,12 +153,7 @@ public class ComponentDetailsTest
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
     reportPage.reportTitle().shouldHave(text("ApplicationReportTest Build Report"));
 
-    ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
-
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
     componentDetailsPage.componentInfoTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToComponentInfo(app, SCAN_ID, HASH));
@@ -176,39 +176,90 @@ public class ComponentDetailsTest
 
   @Test
   public void testPolicyViolationsTab_violationTableEntries() {
+    waiveFirstReportRow();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
-    ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
-
-    componentDetailsPage.violationsTab().click();
-    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, HASH));
-
-    componentDetailsPage.violationsTabContent().shouldBe(visible);
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(1);
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(4);
+    rowCells.shouldHaveSize(5);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')"));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Unapplied Waiver"));
+    eyesWatcher.eyesCheck("component details violations tab violation table unapplied waiver");
 
-    eyesWatcher.eyesCheck("component details violations tab violation table");
+    // Reevaluate to apply the waiver and apply appropriate filter to show in the report
+    componentDetailsPage.backButton().click();
+    waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
+    reportPage.reevaluateButton().click();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    reportPage.filterToggle().click();
+    reportPage.filterPanel().violationStateFilter().twisty().click();
+    reportPage.filterPanel().violationStateFilter().waived().click();
+    reportPage.filterPanel().closeButton().click();
+    componentDetailsPage = openComponentDetailsPageForFirstViolation();
+
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+
+    policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
+    rowCells.shouldHaveSize(5);
+    rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "1 Active Waiver"));
+    eyesWatcher.eyesCheck("component details violations tab violation table active waiver");
+
+    testGrandfatheringIndicator(componentDetailsPage);
+  }
+
+  /* Part of testPolicyViolationsTab_violationTableEntries. */
+  private void testGrandfatheringIndicator(final ComponentDetailsPage componentDetailsPage) {
+    // Configure grandfathering indicator for the first violation in the report and reload it
+    componentDetailsPage.backButton().click();
+    activateGrandfathering();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+
+    reportPage.aggregateByComponentToggle().click();
+    SelenideElement firstGrandfatheredViolation = reportPage.resultRows().first();
+    firstGrandfatheredViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).last();
+    indicatorsCell.shouldHave(text("Grandfathered"));
+    eyesWatcher.eyesCheck("component details violations tab violation table grandfathered row");
+  }
+
+  private void activateGrandfathering() {
+    Policy licenseBannedPolicy = new PolicyDAO().getByName("License-Banned").get(0);
+
+    app.setPolicyViolationGrandfatheringEnabled(true);
+    licenseBannedPolicy.setPolicyViolationGrandfatheringAllowed(true);
+    new ApplicationDAO().update(app);
+    new PolicyDAO().update(licenseBannedPolicy);
+    PolicyViolationGrandfatheringService policyViolationGrandfatheringService =
+        testCLMServer.getCLMServer().getInstance(PolicyViolationGrandfatheringService.class);
+    policyViolationGrandfatheringService.grandfather(app.getPublicId());
+    try {
+      evaluator.reevaluatePolicy();
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Test
   public void testAuditLogTab_emptyMessage() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
 
-    ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
     componentDetailsPage.auditTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToAudit(app, SCAN_ID, HASH));
@@ -224,11 +275,7 @@ public class ComponentDetailsTest
     createAuditLogEntries();
 
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
-    ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
     componentDetailsPage.auditTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToAudit(app, SCAN_ID, HASH));
@@ -245,11 +292,7 @@ public class ComponentDetailsTest
     createAuditLogEntries();
 
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
-    ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
-    ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
 
     componentDetailsPage.auditTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToAudit(app, SCAN_ID, HASH));
@@ -317,5 +360,24 @@ public class ComponentDetailsTest
     testCLMServer.getHdsServer()
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
+  }
+
+  private ComponentDetailsPage openComponentDetailsPageForFirstViolation() {
+    ElementsCollection violations = reportPage.resultRows();
+    SelenideElement firstViolation = violations.first();
+    firstViolation.click();
+    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+    return new ComponentDetailsPage();
+  }
+
+  private void navigateToComponentDetailsPageViolationsTab(final ComponentDetailsPage componentDetailsPage) {
+    componentDetailsPage.violationsTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, HASH));
+    componentDetailsPage.violationsTabContent().shouldBe(visible);
+  }
+
+  private void waiveFirstReportRow() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
+    WaiverApplierForReport.waiveReportRow(reportPage, 0);
   }
 }

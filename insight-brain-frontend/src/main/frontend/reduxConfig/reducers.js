@@ -50,6 +50,7 @@ import automaticApplicationsConfigurationReducer from '../configuration/automati
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
 import userFormReducer from '../security/userForm/userFormReducer';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsRedux';
+import componentDetailsViolationsReducer from '../componentDetails/violations/PolicyViolationsRedux';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -98,4 +99,5 @@ export default combineReducers({
   automaticApplicationsConfiguration: automaticApplicationsConfigurationReducer,
   transitiveViolations: transitiveViolationsReducer,
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
+  componentDetailsPolicyViolations: componentDetailsViolationsReducer,
 });

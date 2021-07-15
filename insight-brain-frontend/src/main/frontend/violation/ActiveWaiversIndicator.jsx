@@ -19,7 +19,7 @@ export default function ActiveWaiversIndicator({ noOfWaivers = 0 }) {
   const indicatorText = noOfWaivers === 1 ? 'Active Waiver' : 'Active Waivers';
 
   return (
-    <div id="waivers-indicator" className={containerClass}>
+    <div className={containerClass}>
       <span className={iconClass}>{noOfWaivers}</span>
       <span>{indicatorText}</span>
     </div>

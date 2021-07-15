@@ -1,0 +1,111 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import axios from 'axios';
+
+import { actions } from '../../../../main/frontend/componentDetails/violations/PolicyViolationsRedux';
+import { getComponentWaivers, getReportPolicyThreatsUrl } from '../../../../main/frontend/util/CLMLocation';
+import { omit } from 'ramda';
+
+describe('componentDetailsPolicyViolationsActions', () => {
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let store, state;
+
+  beforeEach(function () {
+    state = {
+      router: {
+        currentParams: {
+          publicId: 'appPublicId',
+          scanId: 'currentScanId',
+          hash: 'currentComponentHash',
+        },
+      },
+    };
+    store = SpecUtil.mockReduxStore(state);
+  });
+
+  describe('load', () => {
+    const { load } = actions;
+
+    it('immediately dispatches a componentDetailsPolicyViolations/load/pending action and appropriate requests', () => {
+      mockAxiosCalls({
+        get: {
+          [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.resolve({}),
+          [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({}),
+        },
+      });
+
+      store.dispatch(load());
+
+      const actions = store.getActions();
+      expect(actions).toHaveAction({
+        type: 'componentDetailsPolicyViolations/load/pending',
+      });
+      expect(axios.get).toHaveBeenCalledTimes(2);
+      expect(axios.get).toHaveBeenCalledWith('/rest/report/appPublicId/currentScanId/browseReport/policythreats.json');
+      expect(axios.get).toHaveBeenCalledWith(
+        '/rest/policyWaiver/application/appPublicId/component/currentComponentHash'
+      );
+    });
+
+    it('dispatches a componentDetailsPolicyViolations/load/fulfilled action after successful GET requests', (done) => {
+      const violationData = [{ policyViolationId: 'violation1' }];
+      const waiversData = [{ id: 'waiver1' }];
+      mockAxiosCalls({
+        get: {
+          [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.resolve({ data: violationData }),
+          [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({
+            data: waiversData,
+          }),
+        },
+      });
+
+      const expectedPendingAction = {
+        type: 'componentDetailsPolicyViolations/load/pending',
+      };
+      const expectedFulfilledAction = {
+        type: 'componentDetailsPolicyViolations/load/fulfilled',
+        payload: {
+          violationsResult: violationData,
+          waiversResult: waiversData,
+          hash: 'currentComponentHash',
+        },
+      };
+
+      store.dispatch(load()).then(() => {
+        // Remove metadata and custom error information from redux toolkit before comparisons
+        const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFulfilledAction]);
+        done();
+      });
+    });
+
+    it('dispatches a componentDetailsPolicyViolations/load/rejected action after an error occurs in the GET requests', (done) => {
+      mockAxiosCalls({
+        get: {
+          [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.reject('errorMessage'),
+          [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({
+            data: [{ id: 'waiver1' }],
+          }),
+        },
+      });
+
+      const expectedPendingAction = {
+        type: 'componentDetailsPolicyViolations/load/pending',
+      };
+      const expectedFailedAction = {
+        type: 'componentDetailsPolicyViolations/load/rejected',
+        payload: 'errorMessage',
+      };
+
+      store.dispatch(load()).then(() => {
+        // Remove metadata and custom error information from redux toolkit before comparisons
+        const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
+        expect(actions).toHaveActionsInOrder([expectedPendingAction, expectedFailedAction]);
+        done();
+      });
+    });
+  });
+});

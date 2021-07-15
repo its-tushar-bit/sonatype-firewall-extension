@@ -9,12 +9,10 @@ import { sort } from 'ramda';
 
 import PolicyViolationsTable from './PolicyViolationsTable';
 
-export default function PolicyViolations({ violations, componentDetails, loadComponentDetails, loadError }) {
+export default function PolicyViolations({ violations, loadPolicyViolationsInformation, loading, loadError }) {
   useEffect(() => {
-    if (!componentDetails) {
-      loadComponentDetails();
-    }
-  }, [componentDetails]);
+    loadPolicyViolationsInformation();
+  }, []);
 
   const orderedViolations = violations
     ? sort((threatA, threatB) => threatB.policyThreatLevel - threatA.policyThreatLevel, violations)
@@ -22,9 +20,9 @@ export default function PolicyViolations({ violations, componentDetails, loadCom
 
   const tableProps = {
     violations: orderedViolations,
-    loading: !loadError && !violations,
     error: loadError,
-    retryHandler: loadComponentDetails,
+    retryHandler: loadPolicyViolationsInformation,
+    loading,
   };
 
   return (
@@ -43,7 +41,7 @@ export default function PolicyViolations({ violations, componentDetails, loadCom
 
 PolicyViolations.propTypes = {
   violations: PolicyViolationsTable.propTypes.violations,
-  componentDetails: PropTypes.object,
-  loadComponentDetails: PropTypes.func.isRequired,
+  loadPolicyViolationsInformation: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
 };

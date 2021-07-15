@@ -47,8 +47,12 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 
@@ -64,6 +68,8 @@ public class ApiFirewallService
 
   static final int MAX_PAGE_SIZE = 10000;
 
+  static final String AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY = "auto_release_quarantine_config";
+
   private final ProductLicense productLicense;
 
   private final RepositoryComponentDAO repositoryComponentDAO;
@@ -76,6 +82,8 @@ public class ApiFirewallService
 
   private final ApiPolicyViolationAdapter apiPolicyViolationAdapter;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ApiFirewallService(
       final ProductLicense productLicense,
@@ -83,7 +91,8 @@ public class ApiFirewallService
       final RepositoryDAO repositoryDAO,
       final ApiPolicyViolationAdapter apiPolicyViolationAdapter,
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO)
+      final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO,
+      final TelemetrySender telemetrySender)
   {
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -91,6 +100,7 @@ public class ApiFirewallService
     this.apiPolicyViolationAdapter = apiPolicyViolationAdapter;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.autoUnquarantinePolicyConditionTypeDAO = autoUnquarantinePolicyConditionTypeDAO;
+    this.telemetrySender = telemetrySender;
   }
 
   private void executeWithAuditSession(Runnable runnable) {
@@ -150,7 +160,28 @@ public class ApiFirewallService
       });
     }
 
-    return getReleaseQuarantineConfig();
+    final List<ApiFirewallReleaseQuarantineConfigDTO> result = getReleaseQuarantineConfig();
+    sendAutoReleaseQuarantineConfigTelemetry(result);
+    return result;
+  }
+
+  private void sendAutoReleaseQuarantineConfigTelemetry(
+      final List<ApiFirewallReleaseQuarantineConfigDTO> releaseQuarantineConfigDTOS)
+  {
+    final AutoReleaseQuarantineTelemetry autoReleaseQuarantineTelemetry = new AutoReleaseQuarantineTelemetry();
+    final TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.AUTO_RELEASE_FROM_QUARANTINE_CONFIGURATION);
+    telemetryData.getAttributes().put(AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY, autoReleaseQuarantineTelemetry);
+
+    releaseQuarantineConfigDTOS.forEach(apiFirewallReleaseQuarantineConfigDTO -> {
+      if (apiFirewallReleaseQuarantineConfigDTO.autoReleaseQuarantineEnabled) {
+        autoReleaseQuarantineTelemetry.enabledConditionTypes.add(apiFirewallReleaseQuarantineConfigDTO.id);
+      }
+      else {
+        autoReleaseQuarantineTelemetry.disabledConditionTypes.add(apiFirewallReleaseQuarantineConfigDTO.id);
+      }
+    });
+
+    telemetrySender.send(telemetryData);
   }
 
   private void validateInputConfigurationDtos(

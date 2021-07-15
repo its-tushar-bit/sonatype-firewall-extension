@@ -40,21 +40,32 @@ import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditi
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.AutoReleaseQuarantineTelemetry;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import com.google.inject.Binder;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.After;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.api.experimental.ApiFirewallService.AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ApiFirewallServiceTest
     extends AbstractComponentTest
@@ -65,10 +76,19 @@ public class ApiFirewallServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
+  @Mock
+  private TelemetrySender telemetrySenderMock;
+
   private final PolicyMonitoringDAO policyMonitoringDAO = new PolicyMonitoringDAO();
 
   private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
       new AutoUnquarantinePolicyConditionTypeDAO();
+
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    super.configure(binder);
+  }
 
   @After
   public void cleanUp() {
@@ -326,6 +346,48 @@ public class ApiFirewallServiceTest
     //then: expect invalid license exception
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() ->
         apiFirewallService.setReleaseQuarantineConfig(null));
+  }
+
+  @Test
+  public void testSetFirewallReleaseQuarantine_Telemetry() {
+    //setup
+    ArgumentCaptor<TelemetryData> argCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    tempEntity.newAutoUnquarantinePolicyConditionType(IntegrityRatingConditionType.ID);
+    List<ApiFirewallReleaseQuarantineConfigDTO> list = new ArrayList<>();
+    ApiFirewallReleaseQuarantineConfigDTO integrity = new ApiFirewallReleaseQuarantineConfigDTO();
+    integrity.id = IntegrityRatingConditionType.ID;
+    integrity.autoReleaseQuarantineEnabled = true;
+    list.add(integrity);
+
+    //when: setting release quarantine config
+    Map<String, ApiFirewallReleaseQuarantineConfigDTO> releaseQuarantineConfig =
+        apiFirewallService.setReleaseQuarantineConfig(list).stream()
+            .collect(Collectors.toMap(dto -> dto.id, Function.identity()));
+
+    //then: expect telemetry to have been sent matching the current config
+    assertThat(releaseQuarantineConfig.get(IntegrityRatingConditionType.ID).autoReleaseQuarantineEnabled).isTrue();
+    assertThat(releaseQuarantineConfig.get(SecurityVulnerabilityCategoryConditionType.ID).autoReleaseQuarantineEnabled)
+        .isFalse();
+    assertThat(releaseQuarantineConfig.get(SecurityVulnerabilitySeverityConditionType.ID).autoReleaseQuarantineEnabled)
+        .isFalse();
+    assertThat(releaseQuarantineConfig.get(LicenseConditionType.ID).autoReleaseQuarantineEnabled)
+        .isFalse();
+    assertThat(releaseQuarantineConfig.get(LicenseThreatGroupConditionType.ID).autoReleaseQuarantineEnabled)
+        .isFalse();
+
+    verify(telemetrySenderMock, times(1)).send(argCaptor.capture());
+    TelemetryData telemetryData = argCaptor.getValue();
+    AutoReleaseQuarantineTelemetry telemetrySent =
+        (AutoReleaseQuarantineTelemetry) telemetryData.getAttributes().get(AUTO_RELEASE_QUARANTINE_CONFIG_TELEMETRY);
+    assertThat(telemetrySent.enabledConditionTypes)
+        .hasSize(1)
+        .containsOnly(IntegrityRatingConditionType.ID);
+    assertThat(telemetrySent.disabledConditionTypes)
+        .hasSize(4)
+        .containsExactlyInAnyOrder(SecurityVulnerabilityCategoryConditionType.ID,
+            SecurityVulnerabilitySeverityConditionType.ID, LicenseConditionType.ID, LicenseThreatGroupConditionType.ID);
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTO_RELEASE_FROM_QUARANTINE_CONFIGURATION);
+    assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
   }
 
   @Test

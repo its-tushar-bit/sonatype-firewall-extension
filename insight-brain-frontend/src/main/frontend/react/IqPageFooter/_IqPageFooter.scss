@@ -4,16 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-//POSITIONING and LAYOUT
-//TODO: These styles should be changed when CLM-18612 is merged
-.iq-page-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-//End positioning and layout styles
-
 .iq-page-footer {
   display: flex;
   align-items: center;

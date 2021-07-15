@@ -16,7 +16,7 @@ import com.codeborne.selenide.SelenideElement;
 public class ComponentDetailsPage
     extends BasicElement<ComponentDetailsPage>
 {
-  public static final String ROOT = "#component-details-page";
+  public static final String ROOT = ".nx-page-main.iq-component-details-page";
 
   private static final String BASE_URL = "/applicationReport/{applicationPublicId}/{scanId}/componentDetails/{hash}";
 
@@ -61,7 +61,7 @@ public class ComponentDetailsPage
   }
 
   public ComponentDetailsFooter footer() {
-    return new ComponentDetailsFooter(childSelector(".iq-component-details-page__footer"));
+    return new ComponentDetailsFooter(childSelector(".iq-page-footer"));
   }
 
   public ElementsCollection tabs() {

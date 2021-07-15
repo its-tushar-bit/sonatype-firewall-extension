@@ -8,48 +8,19 @@
 @import './auditLog/auditLog';
 @import './violations/policyViolations';
 
-#component-details-page {
+.nx-page-main.iq-component-details-page {
   padding: 0;
-  display: flex;
-  flex-direction: column;
 
-  & > .nx-back-button {
-    padding: 0 var(--nx-spacing-6x);
-    flex: 0 1 auto;
+  // returns the padding to the page in the loading state
+  &.iq-component-details-page--loading {
+    padding: var(--nx-spacing-8x) var(--nx-spacing-6x);
   }
+}
 
-  & > .nx-scrollable {
-    margin: 0;
-    background-color: #f4f5f9;
-    border: none;
-  }
+.iq-component-details-page__content {
+  padding: var(--nx-spacing-8x) var(--nx-spacing-6x);
 }
 
 component-details {
   display: contents;
-
-  //TODO: These positioning will likely no longer be necessary when CLM-18612 is merged
-  & > main {
-    position: relative;
-  }
-}
-
-.iq-component-details-page__error {
-  padding: 0 var(--nx-spacing-6x);
-}
-
-.iq-component-details-page__content {
-  padding: 0 var(--nx-spacing-6x);
-}
-
-.iq-component-details-page__header {
-  padding: 0 var(--nx-spacing-6x);
-}
-
-.iq-component-details-page__footer {
-  position: sticky;
-  text-align: center;
-  flex-flow: row;
-  padding: var(--nx-spacing-4x) var(--nx-spacing-6x);
-  margin-top: auto;
 }

@@ -48,7 +48,7 @@ export default function ComponentDetails({
   // bail out early if no component details (still show back button)
   if (loadError || loading || !componentDetails) {
     return (
-      <main className="nx-page-main nx-viewport-sized" id="component-details-page">
+      <main className="nx-page-main nx-viewport-sized iq-component-details-page iq-component-details-page--loading">
         <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
         <div className="iq-component-details-page__error">
           {loading ? <NxLoadingSpinner /> : <NxLoadError error={customError} retryHandler={loadComponentDetails} />}
@@ -68,53 +68,50 @@ export default function ComponentDetails({
   const { name, metadata, format, dependencyType, isInnerSource, labels } = componentDetails;
 
   return (
-    <main className="nx-page-main" id="component-details-page">
-      <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
-      <ComponentDetailsHeader className="iq-component-details-page__header">
-        <Title id="component-details-title">{name}</Title>
-        <ComponentDetailsReportInfo {...metadata} />
-        <ComponentDetailsTags
-          format={format}
-          dependencyType={dependencyType}
-          isInnerSource={isInnerSource}
-          labels={labels}
-        />
-      </ComponentDetailsHeader>
+    <main className="nx-page-main nx-viewport-sized iq-component-details-page">
+      <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
+        <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
+        <ComponentDetailsHeader>
+          <Title id="component-details-title">{name}</Title>
+          <ComponentDetailsReportInfo {...metadata} />
+          <ComponentDetailsTags
+            format={format}
+            dependencyType={dependencyType}
+            isInnerSource={isInnerSource}
+            labels={labels}
+          />
+        </ComponentDetailsHeader>
 
-      <NxStatefulTabs
-        className="iq-component-details-page__content"
-        defaultActiveTab={tabIdPerIndex.indexOf(activeTabId)}
-        onTabSelect={handleTabChange}
-      >
-        <NxTabList aria-label="Component detail tabs">
-          <NxTab>Remediation</NxTab>
-          <NxTab>Component Info</NxTab>
-          <NxTab>Policy Violations</NxTab>
-          <NxTab>Security</NxTab>
-          <NxTab>Legal</NxTab>
-          <NxTab>Audit Log</NxTab>
-        </NxTabList>
-        <NxTabPanel>
-          <PlaceholderTabContent tabIndex={0}>Remediation</PlaceholderTabContent>
-        </NxTabPanel>
-        <NxTabPanel>
-          <PlaceholderTabContent tabIndex={1}>Component Info</PlaceholderTabContent>
-        </NxTabPanel>
-        <NxTabPanel>
-          <PolicyViolationsContainer />
-        </NxTabPanel>
-        <NxTabPanel>
-          <PlaceholderTabContent tabIndex={3}>Security</PlaceholderTabContent>
-        </NxTabPanel>
-        <NxTabPanel>
-          <PlaceholderTabContent tabIndex={4}>Legal</PlaceholderTabContent>
-        </NxTabPanel>
-        <NxTabPanel id="audit-log-tab-content">
-          <AuditLogContainer />
-        </NxTabPanel>
-      </NxStatefulTabs>
-
-      {pagination && <ComponentDetailsFooter className="iq-component-details-page__footer" {...pagination} />}
+        <NxStatefulTabs defaultActiveTab={tabIdPerIndex.indexOf(activeTabId)} onTabSelect={handleTabChange}>
+          <NxTabList aria-label="Component detail tabs">
+            <NxTab>Remediation</NxTab>
+            <NxTab>Component Info</NxTab>
+            <NxTab>Policy Violations</NxTab>
+            <NxTab>Security</NxTab>
+            <NxTab>Legal</NxTab>
+            <NxTab>Audit Log</NxTab>
+          </NxTabList>
+          <NxTabPanel>
+            <PlaceholderTabContent tabIndex={0}>Remediation</PlaceholderTabContent>
+          </NxTabPanel>
+          <NxTabPanel>
+            <PlaceholderTabContent tabIndex={1}>Component Info</PlaceholderTabContent>
+          </NxTabPanel>
+          <NxTabPanel>
+            <PolicyViolationsContainer />
+          </NxTabPanel>
+          <NxTabPanel>
+            <PlaceholderTabContent tabIndex={3}>Security</PlaceholderTabContent>
+          </NxTabPanel>
+          <NxTabPanel>
+            <PlaceholderTabContent tabIndex={4}>Legal</PlaceholderTabContent>
+          </NxTabPanel>
+          <NxTabPanel id="audit-log-tab-content">
+            <AuditLogContainer />
+          </NxTabPanel>
+        </NxStatefulTabs>
+      </div>
+      {pagination && <ComponentDetailsFooter {...pagination} />}
     </main>
   );
 }

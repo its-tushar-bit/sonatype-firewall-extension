@@ -101,6 +101,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -197,8 +198,9 @@ public class ComponentInfoServiceTest
         newCoordinatesQueryParam(hdsComponentDetails))).thenThrow(NotFoundException.class);
   }
 
-  private void mockHdsGetComponentDetailsList(ComponentDetailsList hdsComponentDetailsList,
-                                              ComponentIdentifier identifier)
+  private void mockHdsGetComponentDetailsList(
+      ComponentDetailsList hdsComponentDetailsList,
+      ComponentIdentifier identifier)
   {
     when(hdsClientMock.get(ComponentDetailsList.class, "rest/" + TOOL_NAME +
             "/componentDetails/list",
@@ -467,8 +469,9 @@ public class ComponentInfoServiceTest
         repository.getId());
   }
 
-  private void testGetLicenses_withNotSupportedLicense(final OwnerType ownerType,
-                                                       final String ownerId)
+  private void testGetLicenses_withNotSupportedLicense(
+      final OwnerType ownerType,
+      final String ownerId)
       throws Exception
   {
     NamedComponentDetails hdsComponentDetails = newNamedComponentDetails(NUGET_COORDINATES);
@@ -732,7 +735,7 @@ public class ComponentInfoServiceTest
         MatchState.EXACT.getId(), null /* hash */, false /* proprietary */, httpRequestMock);
     assertThat(componentDetails).isNotNull();
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(MAVEN_A1_COORDINATES);
-    assertThat( componentDetails.getOverriddenLicenses()).hasSize(1);
+    assertThat(componentDetails.getOverriddenLicenses()).hasSize(1);
     License overriddenLicense = componentDetails.getOverriddenLicenses().iterator().next();
     assertThat(overriddenLicense).isNotNull();
     assertThat(overriddenLicense.getLicenseId()).isEqualTo("GPL-2.0");
@@ -1277,7 +1280,7 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.policyMaxThreatLevelsByCategory)
         .isEqualTo(ImmutableMap.of(PolicyThreatCategory.SECURITY, 8));
     assertThat(componentDetails.violatedPolicyCount).isEqualTo(1);
-    
+
     assertThat(componentDetails.declaredLicenses).hasSize(1);
   }
 
@@ -1303,7 +1306,7 @@ public class ComponentInfoServiceTest
     assertThat(dto.remediation.versionChanges).isNotEmpty();
     assertThat(
         dto.remediation.versionChanges.get(0).getData().getComponent().componentIdentifier.toComponentIdentifier())
-            .isEqualTo(MAVEN_A1_COORDINATES);
+        .isEqualTo(MAVEN_A1_COORDINATES);
 
     ComponentDetailsDTO resultComponentDetails = resultComponentDetailsList.get(0);
     assertThat(resultComponentDetails.displayName)
@@ -1409,7 +1412,6 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getDeclaredLicenses()).extracting(License::getLicenseId, License::getLicenseName)
         .contains(tuple("Apache-2.0", "Apache License 2.0"));
     assertThat(componentDetails.getComponentIdentifier()).isEqualTo(componentIdentifier1);
-
   }
 
   @Test
@@ -1662,7 +1664,7 @@ public class ComponentInfoServiceTest
 
     assertGetSecurityVulnerabilityResults(vulnerability, retrievedVulnerabilities);
   }
-  
+
   @Test
   public void testGetLicenses_Application_ThirdParty() throws Exception {
     String scanId = "scanId";
@@ -1712,7 +1714,7 @@ public class ComponentInfoServiceTest
     assertThat(retrievedLicense.getLicenseId()).isEqualTo(license.getLicenseId());
     assertThat(retrievedLicense.getLicenseName()).isEqualTo(license.getLicenseId());
   }
-  
+
   private void assertGetSecurityVulnerabilityResults(
       final SecurityVulnerability vulnerability,
       final ComponentSecurityVulnerabilities retrievedVulnerabilities)
@@ -1731,5 +1733,24 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getComponentCategories())
         .extracting(ComponentCategory::getComponentCategoryId, ComponentCategory::getPath)
         .containsExactly(Tuple.tuple(113, "Other"));
+  }
+
+  @Test
+  public void testGetComponentDetailsFromHDS_NoDetailsReturned() throws Exception {
+    when(hdsClientMock.relay(eq(httpRequestMock), eq(NamedComponentDetails.class),
+        eq("rest/" + TOOL_NAME + "/componentDetails"),
+        any(Map.class))).thenReturn(null);
+
+    final ComponentIdentifier terraformCoords =
+        ComponentIdentifier.createTerraformCoordinates("plan", "name", "version");
+
+    final NamedComponentDetails componentDetails =
+        componentInfoService.getComponentDetailsFromHDS(null, "hash", terraformCoords, httpRequestMock, "");
+
+    assertThat(componentDetails).isNotNull();
+    assertThat(componentDetails.getMatchState()).isEqualToIgnoringCase(MatchState.UNKNOWN.getName());
+    assertThat(componentDetails.getDeclaredLicenses()).isEmpty();
+    assertThat(componentDetails.getObservedLicenses()).isEmpty();
+    assertThat(componentDetails.getEffectiveLicenses()).isEmpty();
   }
 }

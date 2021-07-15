@@ -241,6 +241,10 @@ public class ComponentInfoService
             try {
               componentDetails = hdsClient.relay(httpRequest, NamedComponentDetails.class, "rest/" + toolName
                   + "/componentDetails", queryParams);
+              if (componentDetails == null) {
+                // HDS returned 204 No content
+                return createEmptyComponentDetails(hash, identifier);
+              }
               componentDetails.setMatchState(MatchState.EXACT.getId());
             }
             catch (NotFoundException e) {

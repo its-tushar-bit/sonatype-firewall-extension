@@ -9,11 +9,13 @@ import ListWaiversPage from './ListWaiversPage';
 import { pick } from 'ramda';
 import { loadManageWaiversData } from './waiverActions';
 import { setWaiverToDelete, loadApplicableWaivers } from './waiverActions';
+import { stateGo } from '../reduxUiRouter/routerActions';
 
-function mapStateToProps({ violation, manageWaivers, router, deleteWaiver }) {
+function mapStateToProps(state) {
+  const { violation, manageWaivers, router, deleteWaiver } = state;
   return {
     ...pick(['activeWaivers', 'expiredWaivers', 'violationDetails'], violation),
-    ...pick(['violationId'], router.currentParams),
+    ...pick(['violationId', 'sidebarReference', 'type', 'hash', 'scanId', 'publicId'], router.currentParams),
     ...pick(
       [
         'loadingManageWaiversData',
@@ -32,6 +34,7 @@ const mapDispatchToProps = {
   loadManageWaiversData,
   setWaiverToDelete,
   loadApplicableWaivers,
+  stateGo,
 };
 
 const ListWaiversPageContainer = connect(mapStateToProps, mapDispatchToProps)(ListWaiversPage);

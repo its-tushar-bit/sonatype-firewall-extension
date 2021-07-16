@@ -3,12 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, Fragment } from 'react';
 import classnames from 'classnames';
 import * as PropTypes from 'prop-types';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 
-import { NxBackButton, NxButton, NxFontAwesomeIcon, NxTooltip } from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
 import ViolationExclamation from '../react/ViolationExclamation';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
@@ -16,14 +16,13 @@ import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
 import ListWaiversTable, { waiverType } from './ListWaiversTable';
 import DeleteWaiverModalContainer from './deleteWaiverModal/DeleteWaiverModalContainer';
-import { Fragment } from 'react';
+import ListWaiversBackButton from './ListWaiversBackButton';
 
 export default function ListWaiversPage(props) {
   const {
     activeWaivers,
     expiredWaivers,
     loadManageWaiversData,
-    violationId,
     loadingManageWaiversData,
     loadingApplicableWaivers,
     violationDetails,
@@ -33,8 +32,11 @@ export default function ListWaiversPage(props) {
     waiverToDelete,
     setWaiverToDelete,
     loadApplicableWaivers,
-    $state,
+    stateGo,
+    ...backButtonProps
   } = props;
+
+  const { violationId } = backButtonProps;
 
   function load() {
     if (violationId) {
@@ -48,16 +50,11 @@ export default function ListWaiversPage(props) {
 
   useEffect(load, [violationId]);
 
-  const redirectToAddWaiverPage = () => hasPermissionForAppWaivers && $state.go('addWaiver', { violationId });
-  const violationDetailsHref = $state.href($state.get('sidebarView.violation'), {
-    id: violationId,
-    type: $state.params.type,
-    sidebarReference: $state.params.sidebarReference,
-  });
-
   const { componentName, constraintName, policyName, reasons, threatLevelCategory } = extractViolationDetails(
     violationDetails
   );
+
+  const redirectToAddWaiverPage = () => hasPermissionForAppWaivers && stateGo('addWaiver', { violationId });
 
   const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
 
@@ -70,7 +67,7 @@ export default function ListWaiversPage(props) {
           error={loadManageWaiversDataError}
           retryHandler={load}
         >
-          <NxBackButton targetPageTitle="Violation Details" href={violationDetailsHref} />
+          <ListWaiversBackButton {...backButtonProps} />
           <div className="nx-page-title">
             <h1 className="nx-h1">Waivers for Violation</h1>
             <div className="list-waivers__threat-indicator">
@@ -164,15 +161,12 @@ ListWaiversPage.propTypes = {
   waiverToDelete: PropTypes.shape(waiverType),
   setWaiverToDelete: PropTypes.func.isRequired,
   loadApplicableWaivers: PropTypes.func.isRequired,
-  $state: PropTypes.shape({
-    go: PropTypes.func.isRequired,
-    href: PropTypes.func.isRequired,
-    get: PropTypes.func.isRequired,
-    params: PropTypes.shape({
-      type: PropTypes.string,
-      sidebarReference: PropTypes.string,
-    }),
-  }),
+  stateGo: PropTypes.func.isRequired,
+  sidebarReference: PropTypes.string,
+  type: PropTypes.string,
+  hash: PropTypes.string,
+  publicId: PropTypes.string,
+  scanId: PropTypes.string,
   violationId: PropTypes.string,
   violationDetails: PropTypes.shape({
     ...violationDetailsPropTypes,

@@ -8,8 +8,14 @@ import * as PropTypes from 'prop-types';
 import { flatten } from 'ramda';
 
 import ViolationExclamation from '../../react/ViolationExclamation';
-import { NxFontAwesomeIcon, NxTableCell, NxTableRow, NxThreatIndicator } from '@sonatype/react-shared-components';
-import { faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
+import {
+  NxButton,
+  NxFontAwesomeIcon,
+  NxTableCell,
+  NxTableRow,
+  NxThreatIndicator,
+} from '@sonatype/react-shared-components';
+import { faFlag, faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
 
@@ -18,8 +24,8 @@ const ACTION_ICON_CATEGORY = {
   warn: 'severe',
 };
 
-export default function PolicyViolationsTableRow({ violation }) {
-  const { policyThreatLevel, policyName, constraints, actions, grandfathered, waived } = violation;
+export default function PolicyViolationsTableRow({ violation, goToWaivers }) {
+  const { policyThreatLevel, policyName, constraints, actions, grandfathered, waived, policyViolationId } = violation;
   const [firstConstraint] = constraints;
   const reasons = flatten(
     constraints.map((constraint) => constraint.conditions.map((condition) => condition.conditionReason))
@@ -28,6 +34,8 @@ export default function PolicyViolationsTableRow({ violation }) {
   const rowClassNames = classnames('iq-policy-violation-row', {
     'iq-policy-violation-row--remediated': isRemediated,
   });
+
+  const goToWaiversForViolation = (policyViolationId) => () => goToWaivers(policyViolationId);
 
   const renderActionsAsList = (actions = []) => {
     if (actions.length === 0) {
@@ -68,13 +76,23 @@ export default function PolicyViolationsTableRow({ violation }) {
           })}
       </NxTableCell>
       <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
+        {!grandfathered && (
+          <NxButton
+            variant="tertiary"
+            className="iq-policy-violation__manage-waivers-btn"
+            onClick={goToWaiversForViolation(policyViolationId)}
+          >
+            <NxFontAwesomeIcon icon={faFlag} />
+            <span>Manage Waivers</span>
+          </NxButton>
+        )}
         <PolicyViolationsGrandfatheringAndWaiverIndicators violation={violation} />
       </NxTableCell>
     </NxTableRow>
   );
 }
 
-const violationPropTypes = {
+export const violationPropTypes = {
   policyViolationId: PropTypes.string.isRequired,
   policyThreatLevel: PropTypes.number.isRequired,
   policyName: PropTypes.string.isRequired,
@@ -101,6 +119,7 @@ const violationPropTypes = {
 
 PolicyViolationsTableRow.propTypes = {
   violation: PropTypes.shape(violationPropTypes),
+  goToWaivers: PropTypes.func.isRequired,
 };
 
 /* Helper component for grandfathering and waiver indicators. */
@@ -136,4 +155,4 @@ const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
 };
 
 PolicyViolationsTableRow.indicators = PolicyViolationsGrandfatheringAndWaiverIndicators;
-PolicyViolationsGrandfatheringAndWaiverIndicators.propTypes = PolicyViolationsTableRow.propTypes;
+PolicyViolationsGrandfatheringAndWaiverIndicators.propTypes = { violation: PropTypes.shape(violationPropTypes) };

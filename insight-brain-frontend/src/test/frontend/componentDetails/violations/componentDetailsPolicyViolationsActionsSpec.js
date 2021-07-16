@@ -108,4 +108,22 @@ describe('componentDetailsPolicyViolationsActions', () => {
       });
     });
   });
+
+  describe('goToWaivers', () => {
+    const { goToWaivers } = actions;
+
+    it('dispatches a @@reduxUiRouter/stateGo action to `applicationReport.violationWaivers`', () => {
+      store.dispatch(goToWaivers('policyViolationId'));
+
+      const actions = store.getActions();
+      expect(actions).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'applicationReport.violationWaivers',
+          params: { hash: 'currentComponentHash', violationId: 'policyViolationId' },
+          options: undefined,
+        },
+      });
+    });
+  });
 });

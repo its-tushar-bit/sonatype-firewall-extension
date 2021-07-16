@@ -10,6 +10,7 @@ import { equals, flatten } from 'ramda';
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 import { getComponentWaivers, getReportPolicyThreatsUrl } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
+import { stateGo } from '../../reduxUiRouter/routerActions';
 
 const REDUCER_NAME = 'componentDetailsPolicyViolations';
 
@@ -95,6 +96,13 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
     .catch(rejectWithValue);
 });
 
+const goToWaivers = (policyViolationId) => {
+  return (dispatch, getState) => {
+    const { hash } = selectRouterCurrentParams(getState());
+    return dispatch(stateGo('applicationReport.violationWaivers', { hash, violationId: policyViolationId }));
+  };
+};
+
 const componentDetailsViolationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
@@ -110,4 +118,5 @@ export default componentDetailsViolationsSlice.reducer;
 export const actions = {
   ...componentDetailsViolationsSlice.actions,
   load,
+  goToWaivers,
 };

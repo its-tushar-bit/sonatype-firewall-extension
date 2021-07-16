@@ -188,7 +188,8 @@ public class ComponentDetailsTest
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(5);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Unapplied Waiver"));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Manage Waivers Unapplied Waiver"));
+
     eyesWatcher.eyesCheck("component details violations tab violation table unapplied waiver");
 
     // Reevaluate to apply the waiver and apply appropriate filter to show in the report
@@ -210,7 +211,7 @@ public class ComponentDetailsTest
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(5);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "1 Active Waiver"));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Manage Waivers 1 Active Waiver"));
     eyesWatcher.eyesCheck("component details violations tab violation table active waiver");
 
     testGrandfatheringIndicator(componentDetailsPage);

@@ -13,6 +13,7 @@ import ComponentDisplayModule from '../ComponentDisplay/module';
 import selectedComponentServiceModule from '../services/selectedComponentService';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
+import waiversModule from '../waivers/module';
 
 import applicationReport from './applicationReport';
 import applicationReportResults from './results/applicationReportResults';
@@ -31,6 +32,7 @@ export default angular
     utilityDirectivesModule.name,
     ComponentDisplayModule.name,
     selectedComponentServiceModule.name,
+    waiversModule.name,
     'ngRedux',
   ])
   .component('applicationReport', applicationReport)
@@ -129,6 +131,10 @@ function routes($stateProvider, $urlRouterProvider) {
       params: {
         tabId: 'audit',
       },
+    })
+    .state('applicationReport.violationWaivers', {
+      url: '/{hash}/waivers/{violationId}',
+      component: 'listWaiversPage',
     });
 
   $urlRouterProvider

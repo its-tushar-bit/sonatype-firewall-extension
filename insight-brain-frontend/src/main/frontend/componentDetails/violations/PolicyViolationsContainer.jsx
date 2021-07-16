@@ -21,6 +21,7 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = {
   loadPolicyViolationsInformation: actions.load,
+  goToWaivers: actions.goToWaivers,
 };
 
 export const PolicyViolationsContainer = connect(mapStateToProps, mapDispatchToProps)(PolicyViolations);

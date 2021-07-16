@@ -7,7 +7,7 @@ import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import ViolationExclamation from '../../../main/frontend/react/ViolationExclamation';
-import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 describe('ListWaiversPage', function () {
@@ -15,37 +15,27 @@ describe('ListWaiversPage', function () {
     ListWaiversPage,
     ListWaiversTableMock,
     loadManageWaiversDataSpy,
-    stateMock,
-    stateGoSpy,
-    stateHrefSpy,
     violationDetailsMock,
     getShallowComponent,
     DeleteWaiverModalMock,
-    setWaiverToDeleteMock;
+    setWaiverToDeleteMock,
+    BackButtonMock,
+    stateGoSpy;
 
   beforeEach(function () {
     ListWaiversTableMock = jasmine.createSpy('ListWaiversTableMock').and.returnValue(<div>ListWaiversTable</div>);
     DeleteWaiverModalMock = jasmine.createSpy('DeleteWaiverModalMock').and.returnValue(<div>Delete Waiver Modal</div>);
+    BackButtonMock = jasmine.createSpy('ListWaiversBackButton').and.returnValue(<div>List Waivers Back Button</div>);
 
     ListWaiversPage = require('inject-loader!../../../main/frontend/waivers/ListWaiversPage')({
       './ListWaiversTable': ListWaiversTableMock,
       './deleteWaiverModal/DeleteWaiverModalContainer': DeleteWaiverModalMock,
+      './ListWaiversBackButton': BackButtonMock,
     }).default;
 
     loadManageWaiversDataSpy = jasmine.createSpy('loadManageWaiversDataSpy');
     setWaiverToDeleteMock = () => {};
     stateGoSpy = jasmine.createSpy();
-    stateHrefSpy = jasmine.createSpy().and.returnValue('href');
-    stateMock = {
-      get: jasmine.createSpy().and.returnValue('/violation'),
-      go: stateGoSpy,
-      href: stateHrefSpy,
-      params: {
-        id: 'violationId',
-        type: 'violation',
-        sidebarReference: 'filter',
-      },
-    };
 
     violationDetailsMock = {
       filename: 'filename',
@@ -74,12 +64,12 @@ describe('ListWaiversPage', function () {
         value: '',
         isPristine: true,
       },
-      $state: stateMock,
       backButtonStateName: 'backButtonStateName',
       loadManageWaiversData: loadManageWaiversDataSpy,
       hasPermissionForAppWaivers: false,
       setWaiverToDelete: setWaiverToDeleteMock,
       waiverToDelete: null,
+      stateGo: stateGoSpy,
     };
 
     getShallowComponent = enzymeUtils.getShallowComponent(ListWaiversPage, minimalProps);
@@ -89,17 +79,27 @@ describe('ListWaiversPage', function () {
     expect(getShallowComponent().find('.nx-page-main')).toExist();
   });
 
-  it('renders a NxBackButton with correct href and targetPageTitle properties', function () {
-    const component = getShallowComponent();
-    const backButton = component.find(NxBackButton);
+  it('renders a ListWaiversBackButton with correct props', function () {
+    let backButton = getShallowComponent().find(BackButtonMock);
     expect(backButton).toExist();
-    expect(backButton).toHaveProp('targetPageTitle', 'Violation Details');
-    expect(stateHrefSpy).toHaveBeenCalledWith('/violation', {
-      id: 'violationId',
+    expect(backButton).toHaveProp('violationId', 'violationId');
+
+    const stateProps = {
       type: 'violation',
-      sidebarReference: 'filter',
-    });
-    expect(backButton).toHaveProp('href', 'href');
+      sidebarReference: 'sidebarRef',
+      hash: 'a-hash',
+      publicId: 'publicId1',
+      scanId: 'scanId1',
+    };
+
+    backButton = getShallowComponent(stateProps).find(BackButtonMock);
+    expect(backButton).toExist();
+    expect(backButton).toHaveProp('violationId', 'violationId');
+    expect(backButton).toHaveProp('type', 'violation');
+    expect(backButton).toHaveProp('sidebarReference', 'sidebarRef');
+    expect(backButton).toHaveProp('hash', 'a-hash');
+    expect(backButton).toHaveProp('publicId', 'publicId1');
+    expect(backButton).toHaveProp('scanId', 'scanId1');
   });
 
   it('renders a page title', function () {

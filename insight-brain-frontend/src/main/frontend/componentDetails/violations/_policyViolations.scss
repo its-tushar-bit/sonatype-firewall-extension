@@ -35,6 +35,17 @@
     }
 
     .iq-policy-violation-row {
+      --actions-and-indicators--min-size: 170px;
+
+      .iq-policy-violation__manage-waivers-btn {
+        font-size: var(--nx-font-size-s);
+        padding: var(--nx-spacing-base);
+        min-width: var(--actions-and-indicators--min-size);
+        margin-bottom: var(--nx-spacing-2x);
+        margin-left: auto;
+        margin-right: auto;
+      }
+
       .iq-policy-violation-row__policy-name-and-action-cell {
         > span {
           @include bold();
@@ -42,8 +53,6 @@
       }
 
       .iq-policy-violation-row__actions-and-indicators-cell {
-        --actions-and-indicators--min-size: 170px;
-
         min-width: var(--actions-and-indicators--min-size);
         text-align: center;
 

@@ -4,16 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxFontAwesomeIcon, NxTableCell, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { faFlag } from '@fortawesome/pro-solid-svg-icons';
+import { NxButton, NxFontAwesomeIcon, NxTableCell, NxThreatIndicator } from '@sonatype/react-shared-components';
 
 import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTableRow';
 import ViolationExclamation from '../../../../main/frontend/react/ViolationExclamation';
 import ActiveWaiversIndicator from '../../../../main/frontend/violation/ActiveWaiversIndicator';
 
 describe('PolicyViolationsTableRow', () => {
-  let minimalProps, getShallow;
+  let minimalProps, getShallow, goToWaiversSpy;
 
   beforeEach(function () {
+    goToWaiversSpy = jasmine.createSpy('goToWaiversForViolation');
     minimalProps = {
       violation: {
         policyViolationId: 'policyViolationId',
@@ -34,6 +36,7 @@ describe('PolicyViolationsTableRow', () => {
         waived: false,
         applicableWaivers: [],
       },
+      goToWaivers: goToWaiversSpy,
     };
 
     getShallow = enzymeUtils.getShallowComponent(PolicyViolationsTableRow, minimalProps);
@@ -150,6 +153,29 @@ describe('PolicyViolationsTableRow', () => {
 
       return waiversAndGrandfatheringCell.find(PolicyViolationsTableRow.indicators);
     };
+
+    it('renders a manage waivers btn if the violation is not grandfathered', () => {
+      const component = getShallow({ violation: { ...minimalProps.violation, grandfathered: false } }),
+        rowCells = component.find(NxTableCell),
+        waiversAndGrandfatheringCell = rowCells.at(4),
+        btn = waiversAndGrandfatheringCell.find(NxButton);
+
+      expect(btn).toExist();
+      expect(btn.find(NxFontAwesomeIcon)).toHaveProp('icon', faFlag);
+      expect(btn.find('span')).toHaveText('Manage Waivers');
+
+      btn.simulate('click');
+      expect(goToWaiversSpy).toHaveBeenCalledWith('policyViolationId');
+    });
+
+    it('does not render a manage waivers btn if the violation is grandfathered', () => {
+      const component = getShallow({ violation: { ...minimalProps.violation, grandfathered: true } }),
+        rowCells = component.find(NxTableCell),
+        waiversAndGrandfatheringCell = rowCells.at(4),
+        btn = waiversAndGrandfatheringCell.find(NxButton);
+
+      expect(btn).not.toExist();
+    });
 
     it('renders a grandfathering indicator if the violation has been grandfathered', () => {
       const indicators = getIndicators({ violation: { ...minimalProps.violation, grandfathered: true } });

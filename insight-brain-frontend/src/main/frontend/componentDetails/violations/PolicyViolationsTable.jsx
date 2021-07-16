@@ -7,9 +7,9 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 
-import PolicyViolationsTableRow from './PolicyViolationsTableRow';
+import PolicyViolationsTableRow, { violationPropTypes } from './PolicyViolationsTableRow';
 
-export default function PolicyViolationsTable({ violations, error, loading, retryHandler }) {
+export default function PolicyViolationsTable({ violations, error, loading, retryHandler, goToWaivers }) {
   return (
     <NxTable className="iq-policy-violations-table">
       <NxTableHead>
@@ -23,7 +23,7 @@ export default function PolicyViolationsTable({ violations, error, loading, retr
       </NxTableHead>
       <NxTableBody emptyMessage="No policy violations" error={error} isLoading={loading} retryHandler={retryHandler}>
         {violations.map((violation) => (
-          <PolicyViolationsTableRow key={violation.policyViolationId} violation={violation} />
+          <PolicyViolationsTableRow key={violation.policyViolationId} violation={violation} goToWaivers={goToWaivers} />
         ))}
       </NxTableBody>
     </NxTable>
@@ -31,8 +31,9 @@ export default function PolicyViolationsTable({ violations, error, loading, retr
 }
 
 PolicyViolationsTable.propTypes = {
-  violations: PropTypes.arrayOf(PropTypes.shape(PolicyViolationsTableRow.propTypes)),
+  violations: PropTypes.arrayOf(PropTypes.shape(violationPropTypes)),
   error: PropTypes.string,
   loading: PropTypes.bool,
   retryHandler: PropTypes.func,
+  goToWaivers: PropTypes.func,
 };

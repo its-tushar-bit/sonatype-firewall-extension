@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { availableScopesPropType, componentPropType } from '../advancedLegalPropTypes';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxAccordion, useToggle } from '@sonatype/react-shared-components';
 import { faAngleRight, faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import CopyrightOverrideFormContainer from './CopyrightOverrideFormContainer';
 import * as PropTypes from 'prop-types';
@@ -59,31 +59,37 @@ export default function CopyrightStatementsTile(props) {
 
   const isCopyrightPresent = component.licenseLegalData.copyrights.filter((c) => c.status === 'enabled').length > 0;
 
+  const [open, toggleOpen] = useToggle(true);
+
   return (
-    <section id="copyright-statements-tile" className="nx-tile">
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Copyright Notices</h2>
+    <React.Fragment>
+      <NxAccordion open={open} onToggle={toggleOpen} id="copyright-statements-tile">
+        <NxAccordion.Header>
+          <header className="nx-tile-header">
+            <div className="nx-tile-header__title">
+              <h2 className="nx-h2 nx-accordion__header-title">Copyright Notices</h2>
+            </div>
+            <div className="nx-tile__actions">
+              <NxButton id="edit-copyrights" variant="tertiary" onClick={() => setDisplayCopyrightOverrideModal(true)}>
+                <NxFontAwesomeIcon icon={isCopyrightPresent ? faPen : faPlus} />
+                <span>{isCopyrightPresent ? 'Edit' : 'Add'}</span>
+              </NxButton>
+            </div>
+          </header>
+        </NxAccordion.Header>
+        <div className="nx-tile-content nx-accordion__list-container">
+          <ul className="nx-list nx-list--clickable">
+            {isCopyrightPresent
+              ? component.licenseLegalData.copyrights
+                  .map((c, index) => [c, index])
+                  .filter((pair) => pair[0].status === 'enabled')
+                  .map((pair) => createItem(pair[0], pair[1]))
+              : noDataText()}
+          </ul>
         </div>
-        <div className="nx-tile__actions">
-          <NxButton id="edit-copyrights" variant="tertiary" onClick={() => setDisplayCopyrightOverrideModal(true)}>
-            <NxFontAwesomeIcon icon={isCopyrightPresent ? faPen : faPlus} />
-            <span>{isCopyrightPresent ? 'Edit' : 'Add'}</span>
-          </NxButton>
-        </div>
-        {showEditCopyrightOverrideModal && createAttributionModal}
-      </header>
-      <div className="nx-tile-content">
-        <ul className="nx-list nx-list--clickable">
-          {isCopyrightPresent
-            ? component.licenseLegalData.copyrights
-                .map((c, index) => [c, index])
-                .filter((pair) => pair[0].status === 'enabled')
-                .map((pair) => createItem(pair[0], pair[1]))
-            : noDataText()}
-        </ul>
-      </div>
-    </section>
+      </NxAccordion>
+      {showEditCopyrightOverrideModal && createAttributionModal}
+    </React.Fragment>
   );
 }
 

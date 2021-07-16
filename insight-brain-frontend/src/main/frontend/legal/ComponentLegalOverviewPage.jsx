@@ -114,58 +114,65 @@ export default function ComponentLegalOverviewPage(props) {
               stageTypeId={stageTypeId}
               $state={$state}
             />
-            <div id="component-legal-overview-details-right">
-              <LicenseDetailsTile
-                component={component}
-                licenseLegalMetadata={licenseLegalMetadata}
-                ownerType={ownerType}
-                ownerId={ownerId}
-                hash={hash}
-                stageTypeId={stageTypeId}
-                $state={$state}
-              />
-              <CopyrightStatementsTile
-                component={component}
-                availableScopes={availableScopes}
-                ownerType={ownerType}
-                ownerId={ownerId}
-                hash={hash}
-                stageTypeId={stageTypeId}
-                $state={$state}
-                showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
-                setDisplayCopyrightOverrideModal={setDisplayCopyrightOverrideModal}
-              />
-              <NoticeTextsTile
-                {...{
-                  noticeFiles,
-                  setShowNoticesModal,
-                  showNoticesModal,
-                  stageTypeId,
-                  $state,
-                  component,
-                  availableScopes,
-                  ownerType,
-                  ownerId,
-                  hash,
-                }}
-              />
-              <LicenseFilesTile
-                {...{
-                  licenseFiles,
-                  setShowLicenseFilesModal,
-                  showLicenseFilesModal,
-                  stageTypeId,
-                  $state,
-                  component,
-                  availableScopes,
-                  ownerType,
-                  ownerId,
-                  hash,
-                }}
-              />
-              {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}
-              <LicenseObligationAttributionTileContainer name={null} />
-            </div>
+            <section id="attribution-summary-tile" className="nx-tile">
+              <header className="nx-tile-header">
+                <div className="nx-tile-header__title">
+                  <h2 className="nx-h2">Attribution Summary</h2>
+                </div>
+              </header>
+              <div className="nx-tile-content nx-tile-content--accordion-container">
+                <LicenseDetailsTile
+                  component={component}
+                  licenseLegalMetadata={licenseLegalMetadata}
+                  ownerType={ownerType}
+                  ownerId={ownerId}
+                  hash={hash}
+                  stageTypeId={stageTypeId}
+                  $state={$state}
+                />
+                <CopyrightStatementsTile
+                  component={component}
+                  availableScopes={availableScopes}
+                  ownerType={ownerType}
+                  ownerId={ownerId}
+                  hash={hash}
+                  stageTypeId={stageTypeId}
+                  $state={$state}
+                  showEditCopyrightOverrideModal={showEditCopyrightOverrideModal}
+                  setDisplayCopyrightOverrideModal={setDisplayCopyrightOverrideModal}
+                />
+                <NoticeTextsTile
+                  {...{
+                    noticeFiles,
+                    setShowNoticesModal,
+                    showNoticesModal,
+                    stageTypeId,
+                    $state,
+                    component,
+                    availableScopes,
+                    ownerType,
+                    ownerId,
+                    hash,
+                  }}
+                />
+                <LicenseFilesTile
+                  {...{
+                    licenseFiles,
+                    setShowLicenseFilesModal,
+                    showLicenseFilesModal,
+                    stageTypeId,
+                    $state,
+                    component,
+                    availableScopes,
+                    ownerType,
+                    ownerId,
+                    hash,
+                  }}
+                />
+                {obligations.filter(isTextBasedObligation).map(createLicenseObligationAttributionTileContainer)}
+                <LicenseObligationAttributionTileContainer name={null} />
+              </div>
+            </section>
           </div>
         )}
       </LoadWrapper>

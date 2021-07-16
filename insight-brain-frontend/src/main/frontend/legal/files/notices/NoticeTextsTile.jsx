@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxAccordion, useToggle } from '@sonatype/react-shared-components';
 import { availableScopesPropType, legalFilesPropType } from '../../advancedLegalPropTypes';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import NoticesModalContainer from './NoticesModalContainer';
@@ -36,22 +36,28 @@ export default function NoticeTextsTile(props) {
       noticeIndex: index,
     });
 
+  const [open, toggleOpen] = useToggle(true);
+
   return (
-    <section id="notice-texts-tile" className="nx-tile">
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Notice Files</h2>
-        </div>
-        <div className="nx-tile__actions">
-          <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>
-            <NxFontAwesomeIcon icon={isNoticePresent() ? faPen : faPlus} />
-            <span>{isNoticePresent() ? 'Edit' : 'Add'}</span>
-          </NxButton>
-        </div>
-        {showNoticesModal && <NoticesModalContainer />}
-      </header>
-      <div className={classes}>{enabledNotices.length > 0 ? enabledNotices.map(createItem) : 'None found'}</div>
-    </section>
+    <React.Fragment>
+      <NxAccordion open={open} onToggle={toggleOpen} id="notice-texts-tile">
+        <NxAccordion.Header>
+          <header className="nx-tile-header">
+            <div className="nx-tile-header__title">
+              <h2 className="nx-h2 nx-accordion__header-title">Notice Files</h2>
+            </div>
+            <div className="nx-tile__actions">
+              <NxButton id="edit-notices" variant="tertiary" onClick={() => setShowNoticesModal(true)}>
+                <NxFontAwesomeIcon icon={isNoticePresent() ? faPen : faPlus} />
+                <span>{isNoticePresent() ? 'Edit' : 'Add'}</span>
+              </NxButton>
+            </div>
+          </header>
+        </NxAccordion.Header>
+        <div className={classes}>{enabledNotices.length > 0 ? enabledNotices.map(createItem) : 'None found'}</div>
+      </NxAccordion>
+      {showNoticesModal && <NoticesModalContainer />}
+    </React.Fragment>
   );
 }
 

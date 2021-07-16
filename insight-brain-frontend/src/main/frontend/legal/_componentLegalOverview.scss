@@ -116,8 +116,8 @@ component-legal-overview {
     align-self: flex-start;
   }
 
-  #component-legal-overview-details-right {
-    @include container-vertical;
+  #attribution-summary-tile {
+    margin: 0;
     grid-row-start: 2;
     grid-row-end: 3;
     grid-column-start: 2;

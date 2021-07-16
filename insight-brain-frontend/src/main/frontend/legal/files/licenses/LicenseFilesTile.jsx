@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxButton, NxFontAwesomeIcon, NxAccordion, useToggle } from '@sonatype/react-shared-components';
 import { availableScopesPropType, legalFilesPropType } from '../../advancedLegalPropTypes';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import LicensesModalContainer from './LicenseFilesModalContainer';
@@ -47,22 +47,28 @@ export default function LicenseFilesTile(props) {
       licenseIndex: index,
     });
 
+  const [open, toggleOpen] = useToggle(true);
+
   return (
-    <section id="license-texts-tile" className="nx-tile">
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">License Files</h2>
-        </div>
-        <div className="nx-tile__actions">
-          <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicenseFilesModal(true)}>
-            <NxFontAwesomeIcon icon={isLicensePresent() ? faPen : faPlus} />
-            <span>{isLicensePresent() ? 'Edit' : 'Add'}</span>
-          </NxButton>
-        </div>
-        {showLicenseFilesModal && <LicensesModalContainer />}
-      </header>
-      <div className={classes}>{enabledLicenses.length > 0 ? enabledLicenses.map(createItem) : 'None found'}</div>
-    </section>
+    <React.Fragment>
+      <NxAccordion open={open} onToggle={toggleOpen} id="license-texts-tile">
+        <NxAccordion.Header>
+          <header className="nx-tile-header">
+            <div className="nx-tile-header__title">
+              <h2 className="nx-h2 nx-accordion__header-title">License Files</h2>
+            </div>
+            <div className="nx-tile__actions">
+              <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicenseFilesModal(true)}>
+                <NxFontAwesomeIcon icon={isLicensePresent() ? faPen : faPlus} />
+                <span>{isLicensePresent() ? 'Edit' : 'Add'}</span>
+              </NxButton>
+            </div>
+          </header>
+        </NxAccordion.Header>
+        <div className={classes}>{enabledLicenses.length > 0 ? enabledLicenses.map(createItem) : 'None found'}</div>
+      </NxAccordion>
+      {showLicenseFilesModal && <LicensesModalContainer />}
+    </React.Fragment>
   );
 }
 

@@ -21,7 +21,8 @@ public class ComponentLegalOverviewPage
 {
   private static final String ROOT = "#component-legal-overview-details";
 
-  private ComponentLegalOverviewPage() {}
+  private ComponentLegalOverviewPage() {
+  }
 
   public static String urlToApplicationScope(String publicAppId, String componentHash) {
     return BaseUrl.resolvePageUrl(String.format("/legal/application/%s/component/%s", publicAppId, componentHash));
@@ -155,8 +156,8 @@ public class ComponentLegalOverviewPage
   }
 
   public static Attribution attribution(String obligationName) {
-    return new Attribution(obligationName == null ? "#additional-attribution-tile" :
-        "#" + obligationName.toLowerCase(Locale.ROOT).replaceAll("\\s+", "-") + "-attribution-tile");
+    return new Attribution(obligationName == null ? "#additional-attribution-tile"
+        : "#" + obligationName.toLowerCase(Locale.ROOT).replaceAll("\\s+", "-") + "-attribution-tile");
   }
 
   public static class Attribution
@@ -210,6 +211,26 @@ public class ComponentLegalOverviewPage
 
     public String getObligationStatus() {
       return child("button.nx-segmented-btn__main-btn span").innerText();
+    }
+  }
+
+  public static class AttributionSummaryTile
+      extends BasicElement<AttributionSummaryTile>
+  {
+    public AttributionSummaryTile() {
+      super(ROOT, "#attribution-summary-tile");
+    }
+
+    public ElementsCollection getAllAccordions() {
+      return children(".nx-accordion");
+    }
+
+    public SelenideElement getAccordionByIndex(int index) {
+      return child(".nx-accordion:nth-child(" + (index + 1) + ")");
+    }
+
+    public SelenideElement openModal() {
+      return child(".nx-modal-backdrop");
     }
   }
 

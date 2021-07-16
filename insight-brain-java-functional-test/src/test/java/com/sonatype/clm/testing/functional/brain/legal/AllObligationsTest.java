@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage;
 import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage.Obligations;
+import com.sonatype.clm.testing.functional.pages.ComponentLegalOverviewPage.AttributionSummaryTile;
 import com.sonatype.clm.testing.functional.pages.EditAllObligationsModal;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
@@ -256,6 +258,74 @@ public class AllObligationsTest
     }
     List<ComponentObligation> componentObligations = componentObligationDAO.getAll();
     assertThat(componentObligations).isEmpty();
+  }
+
+  @Test
+  public void testAccordionsExpanded() {
+    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
+    AttributionSummaryTile attributionSummaryTile = new AttributionSummaryTile();
+    ElementsCollection accordions = attributionSummaryTile.getAllAccordions();
+    accordions.shouldHaveSize(6);
+    SelenideElement accordion;
+    for (int i = 0; i < accordions.size(); i++) {
+      accordion = attributionSummaryTile.getAccordionByIndex(i);
+      assertThat(accordion.attr("aria-expanded")).isEqualTo("true");
+      assertThat(accordion.attr("open")).isEqualTo("true");
+    }
+  }
+
+  @Test
+  public void testAccordionCollapsed() {
+    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
+    AttributionSummaryTile attributionSummaryTile = new AttributionSummaryTile();
+    ElementsCollection accordions = attributionSummaryTile.getAllAccordions();
+    accordions.shouldHaveSize(6);
+    SelenideElement accordion;
+    for (int i = 0; i < accordions.size(); i++) {
+      accordion = attributionSummaryTile.getAccordionByIndex(i);
+      accordion.$(".nx-accordion__header").click();
+      assertThat(accordion.attr("aria-expanded")).isEqualTo("false");
+      assertThat(accordion.attr("open")).isNull();
+    }
+  }
+
+  @Test
+  public void testModalOpenWhenAccordionExpanded() {
+    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
+    AttributionSummaryTile attributionSummaryTile = new AttributionSummaryTile();
+    ElementsCollection accordions = attributionSummaryTile.getAllAccordions();
+    accordions.shouldHaveSize(6);
+    SelenideElement accordion;
+    SelenideElement openModal;
+    for (int i = 1; i < accordions.size(); i++) {
+      accordion = attributionSummaryTile.getAccordionByIndex(i);
+      assertThat(accordion.attr("aria-expanded")).isEqualTo("true");
+      assertThat(accordion.attr("open")).isEqualTo("true");
+      accordion.$(".nx-accordion__header .nx-btn").click();
+      openModal = attributionSummaryTile.openModal();
+      assertThat(openModal.isDisplayed()).isTrue();
+      openModal.$(".nx-form__cancel-btn").click();
+    }
+  }
+
+  @Test
+  public void testModalOpenWhenAccordionCollapsed() {
+    refreshOrOpen(ComponentLegalOverviewPage.urlToApplicationScope(app.getPublicId(), "033e7a20b23ea284d474"));
+    AttributionSummaryTile attributionSummaryTile = new AttributionSummaryTile();
+    ElementsCollection accordions = attributionSummaryTile.getAllAccordions();
+    accordions.shouldHaveSize(6);
+    SelenideElement accordion;
+    SelenideElement openModal;
+    for (int i = 1; i < accordions.size(); i++) {
+      accordion = attributionSummaryTile.getAccordionByIndex(i);
+      accordion.$(".nx-accordion__header").click();
+      assertThat(accordion.attr("aria-expanded")).isEqualTo("false");
+      assertThat(accordion.attr("open")).isNull();
+      accordion.$(".nx-accordion__header .nx-btn").click();
+      openModal = attributionSummaryTile.openModal();
+      assertThat(openModal.isDisplayed()).isTrue();
+      openModal.$(".nx-form__cancel-btn").click();
+    }
   }
 
   private void assertOption(SelenideElement option, Owner owner) {

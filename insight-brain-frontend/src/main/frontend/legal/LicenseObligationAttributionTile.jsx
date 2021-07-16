@@ -12,6 +12,8 @@ import {
   NxModal,
   NxTextInput,
   nxTextInputStateHelpers,
+  NxAccordion,
+  useToggle,
 } from '@sonatype/react-shared-components';
 import { faPen, faPlus } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
@@ -206,31 +208,39 @@ export default function LicenseObligationAttributionTile(props) {
     'license-no-legal-elements-text': !isAttributionPresent(),
   });
 
+  const [open, toggleOpen] = useToggle(true);
+
   return (
-    <section
-      id={isAdditionalAttribution ? 'additional-attribution-tile' : toId(name) + '-attribution-tile'}
-      className="nx-tile license-obligation-attribution-tile"
-    >
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">{title}</h2>
-        </div>
-        <div className="nx-tile__actions">
-          <NxButton
-            variant="tertiary"
-            onClick={() => {
-              setAttributionTextInput(initialState(attributionText));
-              setShowAttributionModal({ name, value: true });
-            }}
-          >
-            <NxFontAwesomeIcon icon={isAttributionPresent() ? faPen : faPlus} />
-            <span>{editOrAdd}</span>
-          </NxButton>
-        </div>
-        {showAttributionModal && createAttributionModal()}
-      </header>
-      <div className={classes}>{isAttributionPresent() ? originalAttributionText : emptyMessage}</div>
-    </section>
+    <React.Fragment>
+      <NxAccordion
+        open={open}
+        onToggle={toggleOpen}
+        className={'license-obligation-attribution-tile'}
+        id={isAdditionalAttribution ? 'additional-attribution-tile' : toId(name) + '-attribution-tile'}
+      >
+        <NxAccordion.Header>
+          <header className="nx-tile-header">
+            <div className="nx-tile-header__title">
+              <h2 className="nx-h2 nx-accordion__header-title">{title}</h2>
+            </div>
+            <div className="nx-tile__actions">
+              <NxButton
+                variant="tertiary"
+                onClick={() => {
+                  setAttributionTextInput(initialState(attributionText));
+                  setShowAttributionModal({ name, value: true });
+                }}
+              >
+                <NxFontAwesomeIcon icon={isAttributionPresent() ? faPen : faPlus} />
+                <span>{editOrAdd}</span>
+              </NxButton>
+            </div>
+          </header>
+        </NxAccordion.Header>
+        <div className={classes}>{isAttributionPresent() ? originalAttributionText : emptyMessage}</div>
+      </NxAccordion>
+      {showAttributionModal && createAttributionModal()}
+    </React.Fragment>
   );
 }
 

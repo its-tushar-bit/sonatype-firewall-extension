@@ -190,7 +190,7 @@ export default function LicenseObligationsTile(props) {
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">License Obligations</h2>
         </div>
-        <div className="nx-btn-bar">
+        <div className="nx-tile__actions">
           {licenseObligations.length > 0 ? (
             <NxButton
               id="mark-all-obligations-resolved"

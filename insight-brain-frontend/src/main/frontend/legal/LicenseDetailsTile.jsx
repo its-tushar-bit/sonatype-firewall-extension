@@ -7,7 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
 import { findSingleLicenseIndex, findSimilarLicenseIndex, formatLicenseMeta } from './legalUtility';
-import { NxTag, NxTextLink } from '@sonatype/react-shared-components';
+import { NxTag, NxTextLink, NxAccordion, useToggle } from '@sonatype/react-shared-components';
 import { statusTagPropsMap } from './advancedLegalConstants';
 
 export default function LicenseDetailsTile(props) {
@@ -80,13 +80,17 @@ export default function LicenseDetailsTile(props) {
     );
   };
 
+  const [open, toggleOpen] = useToggle(true);
+
   return (
-    <section id="license-details-tile" className="nx-tile">
-      <header className="nx-tile-header">
-        <div className="nx-tile-header__title">
-          <h2 className="nx-h2">Licenses</h2>
-        </div>
-      </header>
+    <NxAccordion open={open} onToggle={toggleOpen} id="license-details-tile">
+      <NxAccordion.Header>
+        <header className="nx-tile-header">
+          <div className="nx-tile-header__title">
+            <h2 className="nx-h2 nx-accordion__header-title">Licenses</h2>
+          </div>
+        </header>
+      </NxAccordion.Header>
       <div className="nx-tile-content">
         <dl className="nx-read-only">
           <dt className="nx-read-only__label">Effective Licenses</dt>
@@ -104,7 +108,7 @@ export default function LicenseDetailsTile(props) {
           </dd>
         </dl>
       </div>
-    </section>
+    </NxAccordion>
   );
 }
 

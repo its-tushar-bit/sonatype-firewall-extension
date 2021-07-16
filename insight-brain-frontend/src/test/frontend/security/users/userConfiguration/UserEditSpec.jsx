@@ -5,13 +5,12 @@
  */
 import React from 'react';
 import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import * as enzymeUtils from '../../enzymeUtils';
-import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
-
-import UserEdit from '../../../../main/frontend/security/userForm/UserEdit';
-import DeleteModal from '../../../../main/frontend/security/userForm/modals/DeleteModal';
-import ResetPasswordModal from '../../../../main/frontend/security/userForm/modals/ResetPasswordModal';
-import CopyToClipboard from '../../../../main/frontend/security/userForm/modals/CopyToClipboard';
+import * as enzymeUtils from '../../../enzymeUtils';
+import * as routerContext from '../../../../../main/frontend/react/RouterStateContext';
+import UserEdit from '../../../../../main/frontend/security/users/userConfiguration/UserEdit';
+import DeleteModal from '../../../../../main/frontend/security/users/userConfiguration/modals/DeleteModal';
+import ResetPasswordModal from '../../../../../main/frontend/security/users/userConfiguration/modals/ResetPasswordModal';
+import CopyToClipboard from '../../../../../main/frontend/security/users/userConfiguration/modals/CopyToClipboard';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 

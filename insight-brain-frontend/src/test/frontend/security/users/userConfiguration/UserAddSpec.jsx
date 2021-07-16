@@ -4,14 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { NxForm, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-
-import * as enzymeUtils from '../../../frontend/enzymeUtils';
-import * as routerContext from '../../../../main/frontend/react/RouterStateContext';
-import UserFormAdd from '../../../../main/frontend/security/userForm/UserFormAdd';
+import * as enzymeUtils from '../../../../frontend/enzymeUtils';
+import * as routerContext from '../../../../../main/frontend/react/RouterStateContext';
+import UserFormAdd from '../../../../../main/frontend/security/users/userConfiguration/UserAdd';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
-describe('UserFormAdd', () => {
+describe('UserAdd', () => {
   let getShallowComponent;
 
   const stateGoSpy = jasmine.createSpy('stateGo');

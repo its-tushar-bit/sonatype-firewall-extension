@@ -6,8 +6,8 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxForm, NxTextInput, NxFormGroup } from '@sonatype/react-shared-components';
-import { useRouterState } from '../../react/RouterStateContext';
-import BackButton from '../../react/BackButton';
+import { useRouterState } from '../../../react/RouterStateContext';
+import BackButton from '../../../react/BackButton';
 
 const getValidationMessage = ({ isDirty, validationError }) => {
   if (!isDirty) {
@@ -17,7 +17,7 @@ const getValidationMessage = ({ isDirty, validationError }) => {
   return validationError;
 };
 
-export default function UserForm({
+export default function UserAdd({
   loading,
   loadError,
   submitMaskState,
@@ -166,7 +166,7 @@ const inputFieldsTypes = PropTypes.shape({
   matchPassword: PropTypes.object,
 });
 
-UserForm.propTypes = {
+UserAdd.propTypes = {
   loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
   saveError: PropTypes.string,

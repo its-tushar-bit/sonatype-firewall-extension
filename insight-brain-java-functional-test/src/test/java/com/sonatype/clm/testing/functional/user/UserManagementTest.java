@@ -22,7 +22,6 @@ import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.NewUserForm;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.CopyToClipboardModal;
-import com.sonatype.clm.testing.functional.pages.UserManagementPage.SummarySection;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.security.User;
 
@@ -174,17 +173,9 @@ public class UserManagementTest
     newUserForm.saveButton().click();
 
     newUserForm.shouldBe(hidden);
-    userManagementPage.headers().shouldHaveSize(2);// created user and the admin
+    userManagementPage.userItems().shouldHaveSize(2);// created user and the admin
 
-    userManagementPage.headers().get(0).click();
-    SummarySection summarySection = userManagementPage.summarySection();
-    summarySection.shouldBe(visible);
-
-    summarySection.firstName().shouldHave(text("add"));
-    summarySection.lastName().shouldHave(text("user"));
-    summarySection.email().shouldHave(text("addusertest@email.com"));
-
-    userManagementPage.currentUser().shouldHave(text("ADMIN (ADMIN BUILTIN)"));
+    userManagementPage.userItems().get(0).shouldHave(text(TEST_USERNAME + " (add user)"));
   }
 
   @Test
@@ -243,16 +234,8 @@ public class UserManagementTest
     editUserForm.saveButton().shouldBe(enabled).click();
     editUserForm.should(disappear);
 
-    userManagementPage.headers().get(userRow).click();
-
-    SummarySection summarySection = userManagementPage.summarySection();
-
-    summarySection.shouldBe(visible);
-    summarySection.firstName().shouldHave(text("testupdateFirstName"));
-    summarySection.lastName().shouldHave(text("testupdateLastName"));
-    summarySection.email().shouldHave(text("emailLastName@email.com"));
-
-    userManagementPage.currentUser().shouldHave(text("ADMIN (ADMIN BUILTIN)"));
+    userManagementPage.userItems().get(userRow).shouldHave(text(user.getUsername() +
+        " (testupdateFirstName testupdateLastName)"));
   }
 
   @Test
@@ -275,7 +258,7 @@ public class UserManagementTest
     deleteModal.submitButton().click();
     deleteModal.should(disappear);
 
-    userManagementPage.headers().shouldHaveSize(1);
+    userManagementPage.userItems().shouldHaveSize(1);
   }
 
   @Test
@@ -287,11 +270,11 @@ public class UserManagementTest
 
     int userRow = -1;
     String username = user.getUsername().toLowerCase();
-    ElementsCollection headers = userManagementPage.headers();
+    ElementsCollection headers = userManagementPage.userItems();
     headers.shouldHave(sizeGreaterThan(0));
 
     for (int i = 0; i < headers.size(); i++) {
-      SelenideElement element = userManagementPage.headers().get(i);
+      SelenideElement element = userManagementPage.userItems().get(i);
       if (element.getText().toLowerCase().contains(username)) {
         userRow = i;
         break;
@@ -299,7 +282,7 @@ public class UserManagementTest
     }
     assertThat(userRow).isNotEqualTo(-1);
 
-    SelenideElement accordionHeader = userManagementPage.headers().get(userRow);
+    SelenideElement accordionHeader = userManagementPage.userItems().get(userRow);
     accordionHeader.shouldHave(text(user.getUsername()));
 
     EditUserForm editUserForm = goToEditUserForm(userManagementPage, userRow);
@@ -353,7 +336,7 @@ public class UserManagementTest
   }
 
   private EditUserForm goToEditUserForm(final UserManagementPage userManagementPage, int row) {
-    userManagementPage.editUserButtons().get(row).shouldBe(visible).click();
+    userManagementPage.userItems().get(row).shouldBe(visible).click();
 
     return userManagementPage.editUserForm();
   }

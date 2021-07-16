@@ -5,7 +5,7 @@
  */
 import { connect } from 'react-redux';
 import { prop } from 'ramda';
-import { stateGo } from '../../reduxUiRouter/routerActions';
+import { stateGo } from '../../../reduxUiRouter/routerActions';
 import {
   loadCreateUserPage,
   save,
@@ -16,10 +16,10 @@ import {
   setPassword,
   setMatchPassword,
   resetForm,
-} from './userFormActions';
-import UserForm from './UserFormAdd';
+} from '../usersActions';
+import UserAdd from './UserAdd';
 
-export default connect(prop('userForm'), {
+export default connect(prop('userConfiguration'), {
   loadCreateUserPage,
   save,
   setFirstName,
@@ -30,4 +30,4 @@ export default connect(prop('userForm'), {
   setMatchPassword,
   resetForm,
   stateGo,
-})(UserForm);
+})(UserAdd);

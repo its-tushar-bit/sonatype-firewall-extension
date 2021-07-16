@@ -5,7 +5,12 @@
  */
 import axios from 'axios';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { getUserUrl, getUserByIdUrl, getUserResetPasswordByIdUrl } from '../../../../main/frontend/util/CLMLocation';
+import {
+  getUserUrl,
+  getUserByIdUrl,
+  getUserResetPasswordByIdUrl,
+  getSessionUrl,
+} from '../../../../main/frontend/util/CLMLocation';
 import {
   CREATE_USER_LOAD_REQUESTED,
   CREATE_USER_LOAD_FULFILLED,
@@ -26,19 +31,23 @@ import {
   RESET_USER_PASSWORD_REQUESTED,
   RESET_USER_PASSWORD_FULFILLED,
   RESET_USER_PASSWORD_FAILED,
-} from '../../../../main/frontend/security/userForm/userFormActions';
+  USER_LIST_LOAD_REQUESTED,
+  USER_LIST_LOAD_FAILED,
+  USER_LIST_LOAD_FULFILLED,
+} from '../../../../main/frontend/security/users/usersActions';
 import { STATE_GO } from '../../../../main/frontend/reduxUiRouter/routerActions';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
-describe('userFormActions', () => {
+describe('usersActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
   const userUrl = getUserUrl();
-  let checkPermissionsSpy, save, loadCreateUserPage, loadUserById, update, deleteUser, resetPassword;
+  const sessionUrl = getSessionUrl();
+  let checkPermissionsSpy, save, loadCreateUserPage, loadUserById, update, deleteUser, resetPassword, loadListPage;
 
   beforeEach(() => {
     checkPermissionsSpy = jasmine.createSpy('checkPermissions');
-    const module = require('inject-loader!../../../../main/frontend/security/userForm/userFormActions')({
+    const module = require('inject-loader!../../../../main/frontend/security/users/usersActions')({
       '../../util/authorizationUtil': {
         checkPermissions: checkPermissionsSpy,
       },
@@ -49,6 +58,7 @@ describe('userFormActions', () => {
     update = module.update;
     deleteUser = module.deleteUser;
     resetPassword = module.resetPassword;
+    loadListPage = module.loadListPage;
   });
 
   describe('loadCreateUserPage', () => {
@@ -71,7 +81,7 @@ describe('userFormActions', () => {
           expect(actions.length).toBe(2);
           expect(actions).toHaveActionsInOrder([
             { type: CREATE_USER_LOAD_REQUESTED },
-            { type: CREATE_USER_LOAD_FULFILLED, payload: [] },
+            { type: CREATE_USER_LOAD_FULFILLED, payload: { users: [], currentUsername: null } },
           ]);
           done();
         });
@@ -102,6 +112,58 @@ describe('userFormActions', () => {
     });
   });
 
+  describe('loadListPage', () => {
+    describe('when authorized', () => {
+      beforeEach(() => {
+        checkPermissionsSpy.and.returnValue(Promise.resolve());
+      });
+
+      it('fires USER_LIST_LOAD_FULFILLED action on success', (done) => {
+        const store = SpecUtil.mockReduxStore();
+        mockAxiosCalls({
+          get: {
+            [userUrl]: Promise.resolve({ data: [] }),
+            [sessionUrl]: Promise.resolve({ data: { username: 'admin' } }),
+          },
+        });
+
+        store.dispatch(loadListPage()).then(() => {
+          const actions = store.getActions();
+
+          expect(actions.length).toBe(2);
+          expect(actions).toHaveActionsInOrder([
+            { type: USER_LIST_LOAD_REQUESTED },
+            { type: USER_LIST_LOAD_FULFILLED, payload: { users: [], currentUsername: 'admin' } },
+          ]);
+          done();
+        });
+      });
+    });
+
+    describe('when not authorized', () => {
+      it('does not load user add page', (done) => {
+        checkPermissionsSpy.and.returnValue(Promise.reject('user list page authorization error'));
+        const store = SpecUtil.mockReduxStore();
+        mockAxiosCalls({
+          get: {},
+        });
+
+        store.dispatch(loadListPage()).then(() => {
+          expect(axios.get).not.toHaveBeenCalled();
+
+          const actions = store.getActions();
+
+          expect(actions.length).toBe(2);
+          expect(actions).toHaveActionsInOrder([
+            { type: USER_LIST_LOAD_REQUESTED },
+            { type: USER_LIST_LOAD_FAILED, payload: 'user list page authorization error' },
+          ]);
+          done();
+        });
+      });
+    });
+  });
+
   describe('save', () => {
     let store;
     beforeEach(() => {
@@ -116,7 +178,7 @@ describe('userFormActions', () => {
         },
       };
 
-      store = SpecUtil.mockReduxStore({ userForm: state });
+      store = SpecUtil.mockReduxStore({ userConfiguration: state });
     });
 
     it('fires CREATE_USER_SAVE_FULFILLED, USER_FORM_SUBMIT_MASK_TIMER_DONE actions on success', (done) => {
@@ -275,7 +337,7 @@ describe('userFormActions', () => {
         },
       };
 
-      store = SpecUtil.mockReduxStore({ userForm: state });
+      store = SpecUtil.mockReduxStore({ userConfiguration: state });
     });
 
     it('fires EDIT_USER_UPDATE_FULFILLED, USER_FORM_SUBMIT_MASK_TIMER_DONE actions on success', (done) => {
@@ -350,7 +412,7 @@ describe('userFormActions', () => {
         },
       };
 
-      store = SpecUtil.mockReduxStore({ userForm: state });
+      store = SpecUtil.mockReduxStore({ userConfiguration: state });
     });
 
     it('fires DELETE_USER_REQUESTED, DELETE_USER_FULFILLED, USER_FORM_SUBMIT_MASK_TIMER_DONE and STATE_GO actions on success', (done) => {
@@ -407,7 +469,7 @@ describe('userFormActions', () => {
         },
       };
 
-      store = SpecUtil.mockReduxStore({ userForm: state, user: {} });
+      store = SpecUtil.mockReduxStore({ userConfiguration: state, user: {} });
     });
 
     it('fires RESET_USER_PASSWORD_REQUESTED, RESET_USER_PASSWORD_FULFILLED and USER_FORM_SUBMIT_MASK_TIMER_DONE actions on success', (done) => {

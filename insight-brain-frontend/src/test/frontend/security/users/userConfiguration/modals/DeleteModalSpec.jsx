@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { NxForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
-import * as enzymeUtils from '../../../enzymeUtils';
-import DeleteModal from '../../../../../main/frontend/security/userForm/modals/DeleteModal';
+import * as enzymeUtils from '../../../../enzymeUtils';
+import DeleteModal from '../../../../../../main/frontend/security/users/userConfiguration/modals/DeleteModal';
 
 describe('User DeleteModal', () => {
   let getShallowComponent, containerModal;

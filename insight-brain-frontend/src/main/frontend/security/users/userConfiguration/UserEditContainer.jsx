@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { stateGo } from '../../reduxUiRouter/routerActions';
+import { stateGo } from '../../../reduxUiRouter/routerActions';
 import {
   loadUserById,
   setFirstName,
@@ -15,14 +15,14 @@ import {
   resetInitialNewPasswordValue,
   deleteUser,
   resetPassword,
-} from './userFormActions';
+} from '../usersActions';
 
 import UserEdit from './UserEdit';
 
 export default connect(
-  ({ userForm, router }) => ({
-    ...userForm,
-    username: userForm.selectedUserServerData.username,
+  ({ userConfiguration, router }) => ({
+    ...userConfiguration,
+    username: userConfiguration.selectedUserServerData.username,
     router,
   }),
   {

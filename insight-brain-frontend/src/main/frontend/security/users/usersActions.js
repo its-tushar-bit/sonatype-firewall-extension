@@ -9,7 +9,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { Messages } from '../../util/CommonServices';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { checkPermissions } from '../../util/authorizationUtil';
-import { getUserUrl, getUserByIdUrl, getUserResetPasswordByIdUrl } from '../../util/CLMLocation';
+import { getUserUrl, getUserByIdUrl, getUserResetPasswordByIdUrl, getSessionUrl } from '../../util/CLMLocation';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import userActions from '../../user/userActions';
 
@@ -45,7 +45,7 @@ export function loadCreateUserPage() {
     return checkPermissions(['CONFIGURE_SYSTEM'])
       .then(() => {
         return axios.get(getUserUrl()).then(({ data }) => {
-          dispatch(loadFulfilled(data));
+          dispatch(loadFulfilled({ users: data, currentUsername: null }));
         });
       })
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));
@@ -84,8 +84,8 @@ export function save() {
   return function (dispatch, getState) {
     dispatch(saveRequested());
 
-    const textState = pick(textFields, getState().userForm.inputFields);
-    const passwordState = pick(['password'], getState().userForm.inputFields);
+    const textState = pick(textFields, getState().userConfiguration.inputFields);
+    const passwordState = pick(['password'], getState().userConfiguration.inputFields);
 
     const textInputs = mapObjIndexed(prop('trimmedValue'), textState);
     const passwordInputs = mapObjIndexed(prop('value'), passwordState);
@@ -139,7 +139,7 @@ export function update() {
   return function (dispatch, getState) {
     dispatch(updateRequested());
 
-    const { selectedUserServerData, inputFields } = getState().userForm;
+    const { selectedUserServerData, inputFields } = getState().userConfiguration;
 
     const textInputs = mapObjIndexed(prop('trimmedValue'), inputFields);
 
@@ -201,3 +201,28 @@ export function resetPassword(userId, username) {
 
 export const RESET_USER_PASSWORD_RESET_VALUE = 'RESET_USER_PASSWORD_RESET_VALUE';
 export const resetInitialNewPasswordValue = noPayloadActionCreator(RESET_USER_PASSWORD_RESET_VALUE);
+
+export const USER_LIST_LOAD_REQUESTED = 'USER_LIST_LOAD_REQUESTED';
+export const USER_LIST_LOAD_FAILED = 'USER_LIST_LOAD_FAILED';
+export const USER_LIST_LOAD_FULFILLED = 'USER_LIST_LOAD_FULFILLED';
+
+const loadListRequested = noPayloadActionCreator(USER_LIST_LOAD_REQUESTED);
+const loadListFailed = payloadParamActionCreator(USER_LIST_LOAD_FAILED);
+const loadListFulfilled = payloadParamActionCreator(USER_LIST_LOAD_FULFILLED);
+
+export function loadListPage() {
+  return (dispatch) => {
+    dispatch(loadListRequested());
+
+    return checkPermissions(['CONFIGURE_SYSTEM'])
+      .then(() => {
+        const usersPromise = axios.get(getUserUrl());
+        const sessionPromise = axios.get(getSessionUrl());
+        return Promise.all([usersPromise, sessionPromise]);
+      })
+      .then(([{ data: users }, { data: session }]) => {
+        dispatch(loadListFulfilled({ users, currentUsername: session.username }));
+      })
+      .catch(compose(dispatch, loadListFailed, Messages.getHttpErrorMessage));
+  };
+}

@@ -48,7 +48,7 @@ import roleEditorReducer from '../security/roleEditor/roleEditorReducer';
 import editWebhookReducer from '../configuration/webhook/editWebhook/editWebhookReducer';
 import automaticApplicationsConfigurationReducer from '../configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationReducer';
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
-import userFormReducer from '../security/userForm/userFormReducer';
+import userConfigurationReducer from '../security/users/usersReducer';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsRedux';
 import componentDetailsViolationsReducer from '../componentDetails/violations/PolicyViolationsRedux';
 
@@ -61,7 +61,7 @@ export default combineReducers({
   sidebarNavList: sidebarNavListReducer,
   applicationReport: applicationReportReducer,
   user: userReducer,
-  userForm: userFormReducer,
+  userConfiguration: userConfigurationReducer,
   vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,
   vulnerabilitySearch: vulnerabilitySearchReducer,
   mailConfig: mailConfigReducer,

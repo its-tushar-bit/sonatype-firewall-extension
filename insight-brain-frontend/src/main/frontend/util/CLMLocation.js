@@ -480,6 +480,10 @@ export function getUserUrl() {
   return uriTemplate`/rest/user`;
 }
 
+export function getSessionUrl() {
+  return uriTemplate`/rest/user/session`;
+}
+
 export function getComponentLabels(ownerId, componentHash) {
   return uriTemplate`/rest/label/component/application/${ownerId}/${componentHash}`;
 }
@@ -578,9 +582,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getReportUrl: (applicationPublicId, scanId) =>
         getBaseReportUrl(applicationPublicId, scanId) + '/browseReport/index.html',
 
-      getSessionUrl: function () {
-        return baseUrl.get() + '/rest/user/session';
-      },
+      getSessionUrl,
 
       getSessionLogoutUrl: function () {
         return baseUrl.get() + '/rest/user/session/logout';

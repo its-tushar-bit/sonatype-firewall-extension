@@ -1,0 +1,84 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import * as enzymeUtils from '../../../../frontend/enzymeUtils';
+import UserList from '../../../../../main/frontend/security/users/userList/UserList';
+import UserListItem from '../../../../../main/frontend/security/users/userList/UserListItem';
+import LoadWrapper from '../../../../../main/frontend/react/LoadWrapper';
+
+describe('UserList', () => {
+  let getShallowComponent;
+
+  const stateGoSpy = jasmine.createSpy('stateGo');
+  const loadListPageMock = jasmine.createSpy('loadListPage');
+
+  const minimalProps = {
+    stateGo: stateGoSpy,
+    loadListPage: loadListPageMock,
+    users: [
+      {
+        id: 'userIdOne',
+        username: 'john_doe',
+        firstName: 'John',
+        lastName: 'Doe',
+      },
+      {
+        id: 'userIdTwo',
+        username: 'admin',
+        firstName: 'Admin',
+        lastName: 'BuiltIn',
+      },
+    ],
+    currentUsername: 'admin',
+  };
+
+  beforeEach(() => {
+    getShallowComponent = enzymeUtils.getShallowComponent(UserList, minimalProps);
+  });
+
+  describe('on render', () => {
+    it('renders a component with the "user-management" id', () => {
+      expect(getShallowComponent().find('#user-management')).toExist();
+    });
+
+    it('renders passed users', () => {
+      const component = getShallowComponent();
+      const userItems = component.find(UserListItem);
+
+      expect(userItems.length).toBe(2);
+    });
+  });
+
+  describe('on initial load', () => {
+    it('calls load', () => {
+      const getMountedComponent = enzymeUtils.getMountedComponent(UserList, minimalProps);
+      const component = getMountedComponent();
+
+      expect(loadListPageMock).toHaveBeenCalled();
+      component.unmount();
+    });
+
+    describe('on load error', () => {
+      it('triggers load method on retry handler', () => {
+        const component = getShallowComponent({ loadError: 'error' });
+        const loadWrapper = component.find(LoadWrapper);
+
+        expect(loadWrapper).toExist();
+        expect(loadWrapper).toHaveProp('retryHandler', loadListPageMock);
+      });
+    });
+  });
+
+  describe('on create user click', () => {
+    it('links to the createUser page', function () {
+      const component = getShallowComponent();
+      const createUser = component.find('#create-user');
+
+      createUser.simulate('click');
+
+      expect(stateGoSpy).toHaveBeenCalledWith('createUser');
+    });
+  });
+});

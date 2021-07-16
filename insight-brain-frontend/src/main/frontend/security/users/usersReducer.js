@@ -43,8 +43,11 @@ import {
   RESET_USER_PASSWORD_FULFILLED,
   RESET_USER_PASSWORD_FAILED,
   RESET_USER_PASSWORD_RESET_VALUE,
+  USER_LIST_LOAD_REQUESTED,
+  USER_LIST_LOAD_FAILED,
+  USER_LIST_LOAD_FULFILLED,
   fullTextFields,
-} from './userFormActions';
+} from './usersActions';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 
@@ -68,6 +71,7 @@ export const initialState = Object.freeze({
     matchPassword: initUserInput(''),
   },
   users: [],
+  currentUsername: null,
   selectedUserServerData: {},
   newPassword: null,
 });
@@ -162,7 +166,8 @@ function loadFulfilled(payload, state) {
   return {
     ...state,
     loading: false,
-    users: payload,
+    users: payload.users,
+    currentUsername: payload.currentUsername,
     ...clearedErrors,
   };
 }
@@ -319,6 +324,9 @@ const reducerActionMap = {
   [RESET_USER_PASSWORD_FULFILLED]: resetFulfilled,
   [RESET_USER_PASSWORD_FAILED]: resetFailed,
   [RESET_USER_PASSWORD_RESET_VALUE]: removeNewPassword,
+  [USER_LIST_LOAD_REQUESTED]: always(initialState),
+  [USER_LIST_LOAD_FULFILLED]: loadFulfilled,
+  [USER_LIST_LOAD_FAILED]: loadFailed,
   [USER_FORM_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
   [USER_RESET_FORM]: always(initialState),
 };

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { react2angular } from 'react2angular';
 import configurationModule from './configuration/module';
 import legacyConfigurationModule from './LegacyConfigurationModule';
 import directivesModule from './directives/module';
@@ -14,12 +15,12 @@ import changeDefaultAdminPasswordModule from './changeDefaultAdminPasswordNotice
 import applicationReportModule from './applicationReport/module';
 import ownerManagerModule from './owner.manager/owner.manager.module';
 import { MainModule } from './MainModule';
-import { UserModule } from './security/UserModule';
+import { UserModule } from './security/users/UserModule';
+import { SecurityModule } from './security/SecurityModule';
 import RoleModule from './security/RoleModule';
 import labsModule from './labs/module';
 import vulnerabilitySearchModule from './vulnerabilitySearch/module';
 import violationPageModule from './violation/module';
-import { react2angular } from 'react2angular';
 import withStoreProvider from './reactAdapter/StoreProvider';
 import AdvancedSearchContainer from './advancedSearch/AdvancedSearchContainer';
 import waiversModule from './waivers/module';
@@ -31,6 +32,7 @@ export default angular
   .module('managementApp', [
     MainModule.name,
     UserModule.name,
+    SecurityModule.name,
     RoleModule.name,
     ownerManagerModule.name,
     componentsModule.name,

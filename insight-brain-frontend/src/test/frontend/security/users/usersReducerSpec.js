@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as textInputStateHelpers from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
-import reduce, { initialState } from '../../../../main/frontend/security/userForm/userFormReducer';
+import reduce, { initialState } from '../../../../main/frontend/security/users/usersReducer';
 import {
   CREATE_USER_LOAD_REQUESTED,
   CREATE_USER_LOAD_FULFILLED,
@@ -32,9 +32,9 @@ import {
   RESET_USER_PASSWORD_FULFILLED,
   RESET_USER_PASSWORD_FAILED,
   RESET_USER_PASSWORD_RESET_VALUE,
-} from '../../../../main/frontend/security/userForm/userFormActions';
+} from '../../../../main/frontend/security/users/usersActions';
 
-describe('userFormReducer', () => {
+describe('usersReducer', () => {
   let otherObject;
 
   beforeEach(() => {
@@ -62,25 +62,27 @@ describe('userFormReducer', () => {
         other: otherObject,
       };
 
-      const fetchedUsers = [
-        {
-          id: 'ADMIN',
-          username: 'admin',
-          usernameLowercase: 'admin',
-          password: '#~FAKE~PASSWORD~#',
-          firstName: 'Admin',
-          lastName: 'BuiltIn',
-          email: 'admin@localhost',
-        },
-      ];
+      const payload = {
+        users: [
+          {
+            id: 'ADMIN',
+            username: 'admin',
+            usernameLowercase: 'admin',
+            password: '#~FAKE~PASSWORD~#',
+            firstName: 'Admin',
+            lastName: 'BuiltIn',
+            email: 'admin@localhost',
+          },
+        ],
+      };
 
       const { loading, users, saveError, loadError, other } = reduce(state, {
         type: CREATE_USER_LOAD_FULFILLED,
-        payload: fetchedUsers,
+        payload,
       });
 
       expect(users.length).toBe(1);
-      expect(users).toEqual(fetchedUsers);
+      expect(users).toEqual(payload.users);
       expect(loading).toBe(false);
       expect(saveError).toBe(null);
       expect(loadError).toBe(null);

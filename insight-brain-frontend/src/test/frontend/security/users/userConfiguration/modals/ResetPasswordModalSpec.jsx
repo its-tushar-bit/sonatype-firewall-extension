@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { NxForm, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
-import * as enzymeUtils from '../../../enzymeUtils';
-import ResetPasswordModal from '../../../../../main/frontend/security/userForm/modals/ResetPasswordModal';
+import * as enzymeUtils from '../../../../enzymeUtils';
+import ResetPasswordModal from '../../../../../../main/frontend/security/users/userConfiguration/modals/ResetPasswordModal';
 
 describe('User ResetPasswordModal', () => {
   let getShallowComponent, containerModal;

@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
-import java.util.List;
-
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
 import com.sonatype.clm.testing.functional.elements.ResetPasswordModal;
@@ -18,7 +16,7 @@ import com.codeborne.selenide.SelenideElement;
 public class UserManagementPage
     extends BasicElement<UserManagementPage>
 {
-  private static final String ROOT_SELECTOR = ".test-user-management";
+  private static final String ROOT_SELECTOR = "#user-management";
 
   public static String url() {
     return BaseUrl.resolvePageUrl("/users");
@@ -29,55 +27,19 @@ public class UserManagementPage
   }
 
   public Button newUserButton() {
-    return new Button("#user-new");
+    return new Button("#create-user");
   }
 
-  public ElementsCollection headers() {
-    return children("a.accordion-toggle");
+  public ElementsCollection userItems() {
+    return children(".nx-list__item .nx-list__link");
   }
 
   public SelenideElement currentUser() {
-    return child(".test-current-user");
-  }
-
-  public SummarySection summarySection() {
-    return new SummarySection(ROOT_SELECTOR, ".accordion-inner");
-  }
-
-  public List<SelenideElement> resetPasswordButtons() {
-    return children(".tm-iq-user-reset-password");
-  }
-
-  public List<SelenideElement> editUserButtons() {
-    return children(".tm-iq-user-edit");
-  }
-
-  public List<SelenideElement> deleteUserButtons() {
-    return children(".tm-iq-user-remove");
+    return child(".iq-user-list-item-current");
   }
 
   public ResetPasswordModal resetPasswordModal() {
     return new ResetPasswordModal();
-  }
-
-  public static class SummarySection
-      extends BasicElement<SummarySection>
-  {
-    SummarySection(final String... selectors) {
-      super(selectors);
-    }
-
-    public SelenideElement firstName() {
-      return child(".test-user-first-name");
-    }
-
-    public SelenideElement lastName() {
-      return child(".test-user-last-name");
-    }
-
-    public SelenideElement email() {
-      return child(".test-user-email");
-    }
   }
 
   public NewUserForm newUserForm() {

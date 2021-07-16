@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { NxForm, NxModal } from '@sonatype/react-shared-components';
-import * as enzymeUtils from '../../../enzymeUtils';
-import CopyToClipboard from '../../../../../main/frontend/security/userForm/modals/CopyToClipboard';
+import * as enzymeUtils from '../../../../enzymeUtils';
+import CopyToClipboard from '../../../../../../main/frontend/security/users/userConfiguration/modals/CopyToClipboard';
 
 describe('User CopyToClipboard', () => {
   let getShallowComponent, containerModal;

@@ -9,6 +9,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 
 public class PolicyViolationsTable
     extends BasicElement<ViolationsTabContent>
@@ -26,5 +27,13 @@ public class PolicyViolationsTable
 
   public ElementsCollection getRows() {
     return children("tbody > tr");
+  }
+
+  public SelenideElement getRow(int rowIndex) {
+    return child("tbody > tr:nth-child(" + rowIndex + ")");
+  }
+
+  public SelenideElement getManageWaiversButton(int rowIndex) {
+    return getRow(rowIndex).find(".iq-policy-violation__manage-waivers-btn");
   }
 }

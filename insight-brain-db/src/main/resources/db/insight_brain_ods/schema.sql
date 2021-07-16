@@ -410,6 +410,9 @@ CREATE TABLE policy_violation (
   -- whether the violation was ever encountered during policy monitoring, supports separate notifications for policy monitoring
   seen_by_monitoring_evaluation bool NOT NULL,
 
+  -- whether the grandfather was applied by a new evaluation or a re-evaluation of a report
+  grandfather_applied bool NOT NULL DEFAULT false,
+
   CONSTRAINT policy_violation_pk PRIMARY KEY (policy_violation_id),
   CONSTRAINT policy_violation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
 );

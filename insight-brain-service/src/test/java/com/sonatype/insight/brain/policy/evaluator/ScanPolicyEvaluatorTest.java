@@ -128,6 +128,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.GRANDFATHER_TIME;
 import static java.time.Duration.ofSeconds;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -319,12 +320,14 @@ public class ScanPolicyEvaluatorTest
       List<PolicyViolation> inactiveViolations = getInactiveViolations(results);
       assertThat(inactiveViolations).hasSize(36).allSatisfy(inactiveViolation -> {
         assertThat(inactiveViolation.getGrandfatherTime()).isEqualTo(results.evaluation.getTime());
+        assertThat(inactiveViolation.isGrandfatherApplied()).isTrue();
         assertThat(inactiveViolation.isWaived()).isFalse();
       });
     }
     else {
       assertThat(results.activeViolations).hasSize(36).allSatisfy(activeViolation -> {
         assertThat(activeViolation.isGrandfathered()).isFalse();
+        assertThat(activeViolation.isGrandfatherApplied()).isFalse();
       });
     }
 
@@ -2100,6 +2103,98 @@ public class ScanPolicyEvaluatorTest
     // The second violation should be reported as waived
     assertThat(scanPolicyEvaluatorResults.waivedViolations).hasSize(1);
     assertThat(scanPolicyEvaluatorResults.waivedViolations.get(0).getPolicyId()).isEqualTo(licensePolicy.getId());
+  }
+
+  @Test
+  public void testEvaluate_EvaluationAfterEnablingGrandfathering() throws Exception {
+    testEvaluate_DoEvaluationAfterEnablingGrandfathering(false);
+  }
+
+  @Test
+  public void testEvaluate_ReEvaluationAfterEnablingGrandfathering() throws Exception {
+    testEvaluate_DoEvaluationAfterEnablingGrandfathering(true);
+  }
+
+  @Test
+  public void testEvaluate_RevokeGrandfathering() throws Exception {
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Policy policy = newSecurityPolicy();
+    policy.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(policy);
+
+    String scanId = simulateReportIsAvailable("report");
+    File scanFile = createScanFile(application, scanId);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+    assertThat(scanFile).isFile();
+
+    // Make sure we don't have two evaluations at exactly the same time
+    waitForTimeAdvance();
+
+    application.setPolicyViolationGrandfatheringEnabled(false);
+    new ApplicationDAO().update(application);
+
+    // This is what disabling grandfathering performs for an application
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+      policyViolation.setGrandfatherTime(null);
+      policyViolationDAO.update(policyViolation);
+    });
+
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+
+    policyViolationDAO.getByApplicationId(application.getId())
+        .forEach(policyViolation -> assertThat(policyViolation.isGrandfatherApplied()).isFalse());
+  }
+
+  @SuppressWarnings("unchecked")
+  private void testEvaluate_DoEvaluationAfterEnablingGrandfathering(boolean isReevaluation) throws Exception {
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Policy policy = newSecurityPolicy();
+    policy.setPolicyViolationGrandfatheringAllowed(true);
+    new PolicyDAO().update(policy);
+
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+
+    String scanId = simulateReportIsAvailable("report");
+    File scanFile = createScanFile(application, scanId);
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+    assertThat(scanFile).isFile();
+
+    // Make sure we don't have two evaluations at exactly the same time
+    waitForTimeAdvance();
+
+    application.setPolicyViolationGrandfatheringEnabled(true);
+    new ApplicationDAO().update(application);
+
+    // This is what enabling grandfathering performs for an application
+    Date currentDate = new Date();
+    PolicyViolationDAO policyViolationDAO = new PolicyViolationDAO();
+    policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+      policyViolation.setGrandfatherTime(currentDate);
+      policyViolationDAO.update(policyViolation);
+    });
+
+    clearInvocations(mockTelemetrySender);
+    if (!isReevaluation) {
+      scanId = simulateReportIsAvailable("report");
+      scanFile = createScanFile(application, scanId);
+    }
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI);
+
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryDataList).hasSize(36);
+    for (TelemetryData telemetryData : telemetryDataList) {
+      assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_GRANDFATHER_POLICY_VIOLATION);
+      assertThat(telemetryData.getAttributes()).containsEntry(COUNT, 1);
+      assertThat(telemetryData.getAttributes().get(GRANDFATHER_TIME)).isNotNull();
+    }
+
+    policyViolationDAO.getByApplicationId(application.getId())
+        .forEach(policyViolation -> assertThat(policyViolation.isGrandfatherApplied()).isTrue());
   }
 
   private void assertPolicyViolationsLogged(

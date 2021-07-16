@@ -426,6 +426,9 @@ public class ScanPolicyEvaluator
           if (isNotifiable(null, newPolicyViolation, forMonitoring, isReevaluation)) {
             results.notifiableViolations.add(newPolicyViolation);
           }
+          if (newPolicyViolation.isGrandfathered()) {
+            newPolicyViolation.setGrandfatherApplied(true);
+          }
 
           policyViolationDAO.insert(tx, newPolicyViolation);
 
@@ -485,6 +488,10 @@ public class ScanPolicyEvaluator
             oldPolicyViolation.setConstraintFactsJson(newPolicyViolation.getConstraintFactsJson());
             oldPolicyViolation.setFilename(newPolicyViolation.getFilename());
             oldPolicyViolation.setPolicyName(newPolicyViolation.getPolicyName());
+
+            Component component =
+                findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
+
             if (!oldPolicyViolation.isWaived() && newPolicyViolation.isWaived()) {
               // The policy violation was waived.
               oldPolicyViolation.setWaiveTime(newPolicyViolation.getWaiveTime());
@@ -492,10 +499,16 @@ public class ScanPolicyEvaluator
               oldPolicyViolation.setPolicyWaiverComment(newPolicyViolation.getPolicyWaiverComment());
 
               policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
-              Component component =
-                  findComponentByComponentIdentifier(components, oldPolicyViolation.getComponentIdentifier());
               telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation, component);
               results.waivedViolations.add(oldPolicyViolation);
+            }
+            if (oldPolicyViolation.isGrandfathered() && !oldPolicyViolation.isGrandfatherApplied()) {
+              oldPolicyViolation.setGrandfatherApplied(true);
+              telemetryCollector.addTelemetryForGrandfatheredViolation(oldPolicyViolation, component);
+            }
+            else if (!oldPolicyViolation.isGrandfathered() && oldPolicyViolation.isGrandfatherApplied()) {
+              // Grandfathering was revoked
+              oldPolicyViolation.setGrandfatherApplied(false);
             }
             policyViolationDAO.update(tx, oldPolicyViolation);
 

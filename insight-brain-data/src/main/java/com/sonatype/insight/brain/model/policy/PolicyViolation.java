@@ -53,6 +53,9 @@ public class PolicyViolation
   @Column(name = "seen_by_monitoring_evaluation")
   private boolean seenByMonitoringEvaluation;
 
+  @Column(name = "grandfather_applied")
+  private boolean grandfatherApplied;
+
   public PolicyViolation() {
   }
 
@@ -211,12 +214,21 @@ public class PolicyViolation
     }
   }
 
+  public boolean isGrandfatherApplied() {
+    return grandfatherApplied;
+  }
+
+  public void setGrandfatherApplied(boolean grandfatherApplied) {
+    this.grandfatherApplied = grandfatherApplied;
+  }
+
   @Override
   public String toString() {
     return "PolicyViolation [id=" + id + ", applicationId=" + getApplicationId() + ", stageTypeId=" + getStageTypeId()
         + ", openTime=" + getOpenTime() + "(" + getOpenTime().getTime() + "), waiveTime=" + getWaiveTime()
         + ", fixTime=" + getFixTime() + ", policyId=" + getPolicyId() + ", policyName=" + getPolicyName()
         + ", threatLevel=" + getThreatLevel() + ", threatCategory=" + getThreatCategory() + ", hash=" + getHash()
-        + ", componentIdentifier=" + getComponentIdentifier() + ", actionTypeId=" + getActionTypeId() + "]";
+        + ", componentIdentifier=" + getComponentIdentifier() + ", actionTypeId=" + getActionTypeId()
+        + ", grandfatherApplied=" + isGrandfatherApplied() + "]";
   }
 }

@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.legal.AttributionReportTemplateDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
@@ -137,6 +138,7 @@ import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
+import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;
 import com.sonatype.insight.brain.model.legal.ComponentCopyright;
 import com.sonatype.insight.brain.model.legal.ComponentLegalFile;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
@@ -395,6 +397,8 @@ public class TemporaryEntity
   private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO =
       new AutoUnquarantinePolicyConditionTypeDAO();
 
+  private final AttributionReportTemplateDAO attributionReportTemplateDAO = new AttributionReportTemplateDAO();
+
   private MailConfiguration savedMailConfiguration;
 
   private Collection<MigrationTracker> migrationTrackers;
@@ -619,6 +623,7 @@ public class TemporaryEntity
     componentCopyrightDAO.getAll().forEach(componentCopyrightDAO::delete);
     componentLegalFileDAO.getAll().forEach(componentLegalFileDAO::delete);
     autoUnquarantinePolicyConditionTypeDAO.getAll().forEach(autoUnquarantinePolicyConditionTypeDAO::delete);
+    attributionReportTemplateDAO.getAll().forEach(attributionReportTemplateDAO::delete);
   }
 
   private <E> void detachEntity(E entity) {
@@ -2974,5 +2979,11 @@ public class TemporaryEntity
     sourceControlPullRequestDAO.insert(sourceControlPullRequest);
     sourceControlPullRequests.add(sourceControlPullRequest);
     return sourceControlPullRequest;
+  }
+
+  public AttributionReportTemplate newAttributionReportTemplate(String docTitle) {
+    AttributionReportTemplate template = new AttributionReportTemplate(docTitle, null, null, true, true);
+    attributionReportTemplateDAO.insert(template);
+    return template;
   }
 }

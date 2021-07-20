@@ -53,7 +53,6 @@ import com.sonatype.insight.brain.model.legal.LegalFileOverride;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
 import com.sonatype.insight.brain.model.legal.ObligationStatus;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -63,7 +62,6 @@ import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.model.HasStringId;
 
 import org.apache.commons.lang.StringUtils;
@@ -140,7 +138,7 @@ public class ComponentLegalService
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
       final ComponentCopyrightDTO componentCopyrightDTO)
   {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     validateComponentCopyrightDTO(componentCopyrightDTO);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentCopyright componentCopyright = new ComponentCopyright(
@@ -155,7 +153,7 @@ public class ComponentLegalService
           final String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
           CopyrightOverride copyrightOverride = new CopyrightOverride(
               dto.getOriginalContentHash(),
-              ContentHashUtil.getContentHash(content),
+              LegalServiceUtil.getContentHash(content),
               content,
               dto.getStatus(),
               componentCopyrightDTO.getId()
@@ -208,7 +206,7 @@ public class ComponentLegalService
       @AuthzContext(Key.TYPE) final OwnerType ownerType, @AuthzContext(Key.ID) final String ownerId,
       ComponentIdentifier componentIdentifier)
   {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     componentIdentifier.validate();
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentCopyright componentCopyright =
@@ -245,7 +243,7 @@ public class ComponentLegalService
       @AuthzContext(AuthzContext.Key.ID) String ownerId,
       ComponentLegalFileDTO componentLegalFileDTO)
   {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     validateComponentLegalFileDTO(componentLegalFileDTO);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     ComponentLegalFile componentLegalFile = new ComponentLegalFile(
@@ -261,7 +259,7 @@ public class ComponentLegalService
           String content = StringUtils.isBlank(dto.getContent()) ? "" : dto.getContent();
           LegalFileOverride legalFileOverride = new LegalFileOverride(
               dto.getOriginalContentHash(),
-              ContentHashUtil.getContentHash(content),
+              LegalServiceUtil.getContentHash(content),
               content,
               dto.getStatus(),
               componentLegalFileDTO.getId()
@@ -300,7 +298,7 @@ public class ComponentLegalService
       ComponentIdentifier componentIdentifier,
       LegalFileType legalFileType)
   {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifierValidator.validate(componentIdentifier);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     List<LegalFileOverride> legalFileOverrides = legalFileOverrideDAO
@@ -336,7 +334,7 @@ public class ComponentLegalService
       @AuthzContext(AuthzContext.Key.ID) String ownerId,
       List<ApiLicenseLegalObligationDTO> componentObligationDTOs)
   {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     componentObligationDTOs.forEach(this::validateComponentObligationDTO);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     List<ApiLicenseLegalObligationDTO> result = new ArrayList<>();
@@ -391,7 +389,7 @@ public class ComponentLegalService
       ComponentIdentifier componentIdentifier,
       String obligationName)
   {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifierValidator.validate(componentIdentifier);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     return componentObligationDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
@@ -409,7 +407,7 @@ public class ComponentLegalService
    * @since 1.106
    */
   public void deleteComponentObligations(List<String> componentObligationIds) {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     try (TransactionContext tx = componentObligationDAO.createTransactionContext()) {
       tx.begin();
       for (String componentObligationId : componentObligationIds) {
@@ -446,7 +444,7 @@ public class ComponentLegalService
       @AuthzContext(AuthzContext.Key.ID) String ownerId,
       ComponentObligationAttributionDTO componentObligationAttributionDTO)
   {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     validateComponentObligationAttributionDTO(componentObligationAttributionDTO);
     ComponentIdentifier componentIdentifier =
         componentObligationAttributionDTO.getComponentIdentifier().toComponentIdentifier();
@@ -494,7 +492,7 @@ public class ComponentLegalService
       ComponentIdentifier componentIdentifier,
       String obligationName)
   {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     ComponentIdentifierValidator.validate(componentIdentifier);
     Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
     return componentObligationAttributionDAO.getByOwnerIdAndComponentIdentifierAndObligationNamesWithHierarchy(
@@ -512,7 +510,7 @@ public class ComponentLegalService
    * @since 1.106
    */
   public void deleteComponentObligationAttribution(String componentObligationAttributionId) {
-    checkLicense();
+    LegalServiceUtil.checkLicense(productLicense, log);
     try (TransactionContext tx = componentObligationAttributionDAO.createTransactionContext()) {
       tx.begin();
       ComponentObligationAttribution componentObligationAttribution =
@@ -523,13 +521,6 @@ public class ComponentLegalService
       checkLegalReviewerPermission(owner);
       componentObligationAttributionDAO.delete(tx, componentObligationAttribution);
       tx.commit();
-    }
-  }
-
-  private void checkLicense() {
-    if (!productLicense.hasFeature(LicensedFeature.ADVANCED_LEGAL_PACK)) {
-      log.debug("License does not support Advanced Legal Pack features");
-      throw new InvalidLicenseException();
     }
   }
 

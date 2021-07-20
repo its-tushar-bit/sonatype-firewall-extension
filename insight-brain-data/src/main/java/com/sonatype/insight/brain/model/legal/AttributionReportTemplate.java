@@ -48,12 +48,29 @@ public class AttributionReportTemplate
   }
 
   public AttributionReportTemplate(
+      String id,
       String documentTitle,
       String documentHeader,
       String documentFooter,
       boolean includeTableOfContents,
       boolean includeAppendix)
   {
+    this.id = id;
+    this.documentTitle = documentTitle;
+    this.documentHeader = documentHeader;
+    this.documentFooter = documentFooter;
+    this.includeTableOfContents = includeTableOfContents;
+    this.includeAppendix = includeAppendix;
+  }
+
+  public AttributionReportTemplate(
+      String documentTitle,
+      String documentHeader,
+      String documentFooter,
+      boolean includeTableOfContents,
+      boolean includeAppendix)
+  {
+    this.id = null;
     this.documentTitle = documentTitle;
     this.documentHeader = documentHeader;
     this.documentFooter = documentFooter;

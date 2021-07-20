@@ -21,7 +21,7 @@ public class AttributionReportTemplateDAO
 {
   @Override
   public AttributionReportTemplate getById(TransactionContext tx, String id) {
-    String sQuery = "SELECT entity FROM AttributionReportTemplate entity" + //
+    final String sQuery = "SELECT entity FROM AttributionReportTemplate entity" + //
         " WHERE entity.id=?1";
     return get(tx, sQuery, id);
   }
@@ -46,7 +46,12 @@ public class AttributionReportTemplateDAO
   }
 
   public List<AttributionReportTemplate> getAll() {
-    String sQuery = "SELECT entity FROM AttributionReportTemplate entity";
+    final String sQuery = "SELECT entity FROM AttributionReportTemplate entity";
     return getList(sQuery);
+  }
+
+  public void deleteById(String attributionReportId) {
+    final String sQuery = "DELETE FROM AttributionReportTemplate entity WHERE entity.id=?1";
+    createQuery(sQuery, attributionReportId).executeUpdate();
   }
 }

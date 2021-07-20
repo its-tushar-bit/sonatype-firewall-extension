@@ -16,6 +16,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.SystemRunnable;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -48,6 +50,8 @@ public class SourceControlEventProcessingScheduler
 
   private final ProductLicense productLicense;
 
+  private final InsightConfig insightConfig;
+
   private ScheduledExecutorService scheduledExecutorService;
 
   private final int sourceControlEventProcessingIntervalSeconds;
@@ -59,20 +63,23 @@ public class SourceControlEventProcessingScheduler
   @Inject
   public SourceControlEventProcessingScheduler(
       SourceControlEventService sourceControlEventService,
+      InsightConfig insightConfig,
       ProductLicense productLicense)
   {
-    this(sourceControlEventService, productLicense, SOURCE_CONTROL_EVENT_PROCESSING_DELAY_SECONDS,
+    this(sourceControlEventService, insightConfig, productLicense, SOURCE_CONTROL_EVENT_PROCESSING_DELAY_SECONDS,
         SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS);
   }
 
   @VisibleForTesting
   SourceControlEventProcessingScheduler(
       SourceControlEventService sourceControlEventService,
+      InsightConfig insightConfig,
       ProductLicense productLicense,
       int sourceControlEventProcessingDelaySeconds,
       int sourceControlEventProcessingIntervalSeconds)
   {
     this.sourceControlEventService = sourceControlEventService;
+    this.insightConfig = insightConfig;
     this.productLicense = productLicense;
     this.sourceControlEventProcessingDelaySeconds = sourceControlEventProcessingDelaySeconds;
     this.sourceControlEventProcessingIntervalSeconds = sourceControlEventProcessingIntervalSeconds;
@@ -80,7 +87,9 @@ public class SourceControlEventProcessingScheduler
 
   @Override
   public void start() throws Exception {
-    startSourceControlEventProcessing();
+    if (!insightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)) {
+      startSourceControlEventProcessing();
+    }
   }
 
   private void startSourceControlEventProcessing() {

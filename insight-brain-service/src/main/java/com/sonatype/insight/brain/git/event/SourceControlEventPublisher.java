@@ -10,7 +10,12 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventCreationListener;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.license.model.LicensedFeature;
+
+import org.apache.commons.lang3.StringUtils;
 
 @Named
 @Singleton
@@ -18,9 +23,21 @@ public class SourceControlEventPublisher
 {
   private final SourceControlEventDAO sourceControlEventDAO;
 
+  private final ProductLicense productLicense;
+
+  private SourceControlEventCreationListener sourceControlEventCreationListener;
+
   @Inject
-  public SourceControlEventPublisher(SourceControlEventDAO sourceControlEventDAO) {
+  public SourceControlEventPublisher(
+      ProductLicense productLicense,
+      SourceControlEventDAO sourceControlEventDAO)
+  {
+    this.productLicense = productLicense;
     this.sourceControlEventDAO = sourceControlEventDAO;
+  }
+
+  public void setSourceControlEventListener(SourceControlEventCreationListener sourceControlEventCreationListener) {
+    this.sourceControlEventCreationListener = sourceControlEventCreationListener;
   }
 
   /**
@@ -29,8 +46,15 @@ public class SourceControlEventPublisher
    * @param event the event to persist
    */
   public void publishEvent(SourceControlEvent event) {
-    if (null != event) {
+    if (null != event && checkLicense()) {
+      if (StringUtils.isBlank(event.getScmUsername())) {
+        event.setScmUsername("temp-user-1");
+        // todo - lookup user
+      }
       sourceControlEventDAO.insert(event);
+      if (null != sourceControlEventCreationListener) {
+        sourceControlEventCreationListener.onNewEvent(event);
+      }
     }
   }
 
@@ -48,5 +72,9 @@ public class SourceControlEventPublisher
 
   public boolean doesRemediationEventExistForBranch(String applicationId, String branchName) {
     return sourceControlEventDAO.hasRemediationEventForBranch(applicationId, branchName);
+  }
+
+  private boolean checkLicense() {
+    return productLicense.hasFeature(LicensedFeature.AUTOMATION);
   }
 }

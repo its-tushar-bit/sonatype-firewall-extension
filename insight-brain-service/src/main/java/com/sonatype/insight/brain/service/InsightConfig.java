@@ -948,16 +948,17 @@ public class InsightConfig
 
   public enum Feature implements com.sonatype.insight.license.model.Feature
   {
+    CODE_INSIGHTS("codeInsights"), //
+    COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource"), //
+    DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring"), //
+    DEPENDENCY_DATA_IN_API("dependencyDataInApi"), //
+    INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver"), //
+    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"), //
+    ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"), //
+    PR_COMMENT_MONITORING("prCommentMonitoring"), //
     PR_COMMENTING("prCommenting"), //
     PR_LINE_COMMENTING("prLineCommenting"), //
-    PR_COMMENT_MONITORING("prCommentMonitoring"), //
-    DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring"), //
-    CODE_INSIGHTS("codeInsights"), //
-    SCM_ONBOARDING("scmOnboarding"), //
-    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"), //
-    DEPENDENCY_DATA_IN_API("dependencyDataInApi"), //
-    COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource"),
-    INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver");
+    SCM_ONBOARDING("scmOnboarding");
 
     private String flag;
 

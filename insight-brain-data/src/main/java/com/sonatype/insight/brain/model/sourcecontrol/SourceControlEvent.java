@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.model.sourcecontrol;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,6 +19,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.HasComponentId;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.model.HasStringId;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @since 1.95
@@ -32,15 +35,25 @@ public class  SourceControlEvent
 
   public static final String DISCOVERED_PULL_REQUEST_EVENT = "discovered pull request";
 
-  public static final String UPDATED_PULL_REQUEST_EVENT = "updated pull request";
+  public static final String REMEDIATION_PULL_REQUEST_EVENT = "remediation pull request";
+
+  public static final String REPOSITORY_URL_UPDATED_EVENT = "url update";
 
   public static final String SOURCE_CONTROL_EVALUATION_EVENT = "source control evaluation";
 
-  public static final String REMEDIATION_PULL_REQUEST_EVENT = "remediation pull request";
-
   public static final String STATUS_UPDATE_EVENT = "status update";
 
-  public static final String REPOSITORY_URL_UPDATED_EVENT = "url update";
+  public static final String UPDATED_PULL_REQUEST_EVENT = "updated pull request";
+
+  public static final List<String> EVENT_TYPES = ImmutableList.of(
+      APPLICATION_EVALUATION_EVENT,
+      DISCOVERED_PULL_REQUEST_EVENT,
+      REMEDIATION_PULL_REQUEST_EVENT,
+      REPOSITORY_URL_UPDATED_EVENT,
+      SOURCE_CONTROL_EVALUATION_EVENT,
+      STATUS_UPDATE_EVENT,
+      UPDATED_PULL_REQUEST_EVENT
+  );
 
   public static final String EVENT_STATUS_NEW = "new";
 

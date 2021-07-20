@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.git.event;
 
+import java.util.UUID;
+
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +28,9 @@ import static org.mockito.Mockito.when;
 public class SourceControlEventPublisherTest
 {
   @Mock
+  private ProductLicense mockProductLicense;
+
+  @Mock
   private SourceControlEventDAO mockSourceControlEventDAO;
 
   private SourceControlEventPublisher sourceControlEventPublisher;
@@ -32,11 +38,14 @@ public class SourceControlEventPublisherTest
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    sourceControlEventPublisher = new SourceControlEventPublisher(mockSourceControlEventDAO);
+    sourceControlEventPublisher = new SourceControlEventPublisher(mockProductLicense, mockSourceControlEventDAO);
   }
 
   @Test
-  public void testPublishEvent() {
+  public void testPublishEvent_licensedFeature() {
+    // given: feature is licensed
+    when(mockProductLicense.hasFeature(any())).thenReturn(true);
+
     // when: publish a null event
     sourceControlEventPublisher.publishEvent(null);
 
@@ -53,6 +62,19 @@ public class SourceControlEventPublisherTest
     verify(mockSourceControlEventDAO, times(1)).insert(eventCaptor.capture());
     SourceControlEvent persistedEvent = eventCaptor.getValue();
     assertThat(persistedEvent.getApplicationId()).isEqualTo(appId);
+  }
+
+  @Test
+  public void testPublishEvent_unlicensedFeature() {
+    // given: an event to publish and product license not setup
+    final String appId = UUID.randomUUID().toString();
+    SourceControlEvent event = new SourceControlEvent().forStatusUpdate().setApplicationId(appId);
+
+    // when: publish an event
+    sourceControlEventPublisher.publishEvent(event);
+
+    // then: nothing saved to DB
+    verify(mockSourceControlEventDAO, never()).insert(any());
   }
 
   @Test

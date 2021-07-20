@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.git.event;
 
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -25,6 +28,9 @@ import static org.mockito.Mockito.when;
 public class SourceControlEventProcessingSchedulerTest
     extends VerifiableLoggingTestBase
 {
+  @Mock
+  private InsightConfig mockInsightConfig;
+
   @Mock
   private SourceControlEventService sourceControlEventService;
 
@@ -41,9 +47,10 @@ public class SourceControlEventProcessingSchedulerTest
     final int delaySeconds = 2;
     final int intervalSeconds = 1;
     SourceControlEventProcessingScheduler scheduler =
-        new SourceControlEventProcessingScheduler(sourceControlEventService, productLicense, delaySeconds,
-            intervalSeconds);
+        new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, productLicense,
+            delaySeconds, intervalSeconds);
     when(productLicense.hasFeature(any())).thenReturn(true);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(eq(Feature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
 
     // when: start scheduler and wait (less than full initial delay)
     scheduler.start();
@@ -100,10 +107,11 @@ public class SourceControlEventProcessingSchedulerTest
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     SourceControlEventProcessingScheduler scheduler =
-        new SourceControlEventProcessingScheduler(sourceControlEventService, productLicense, delaySeconds,
-            intervalSeconds);
+        new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, productLicense,
+            delaySeconds, intervalSeconds);
     doThrow(new RuntimeException("some runtime exception")).when(sourceControlEventService).processEvents();
     when(productLicense.hasFeature(any())).thenReturn(true);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(eq(Feature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
 
     // when: start scheduler, wait (delay + 1 interval)
     scheduler.start();

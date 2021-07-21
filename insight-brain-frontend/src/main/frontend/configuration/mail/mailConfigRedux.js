@@ -11,6 +11,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
   combineValidators,
   hasValidationErrors,
+  validateHostname,
   validateNonEmpty,
   validatePatternMatch,
 } from '../../util/validationUtil';
@@ -339,7 +340,7 @@ const mailConfigSlice = createSlice({
   initialState,
   reducers: {
     resetForm: resetForm,
-    setHostname: setTextInput('hostname', validateNonEmpty),
+    setHostname: setTextInput('hostname', validateHostname),
     setPort: setTextInput('port', portValidator),
     setUsername: setTextInput('username', null),
     setPassword: setTextInput('password', null),

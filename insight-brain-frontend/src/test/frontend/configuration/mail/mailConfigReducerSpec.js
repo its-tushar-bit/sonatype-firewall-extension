@@ -333,7 +333,34 @@ describe('mailConfigRedux reducer', function () {
       });
     });
 
-    describe('when payload is non-empty string', function () {
+    describe('when payload is invalid hostname string', function () {
+      it('sets the hostname value and a validation error', function () {
+        const state = Object.freeze({
+          other: otherObject,
+          formState: {
+            hostname: initialState(''),
+            port: initialState(''),
+            username: initialState(''),
+            password: initialState(''),
+            systemEmail: initialState(''),
+            testEmail: initialState(''),
+          },
+        });
+
+        const newState = reduce(state, {
+          type: 'mailConfig/setHostname',
+          payload: 'sonatype.com/host',
+        });
+
+        expect(newState.formState.hostname.value).toBe('sonatype.com/host');
+        expect(newState.formState.hostname.trimmedValue).toBe('sonatype.com/host');
+        expect(newState.formState.hostname.isPristine).toBe(false);
+        expect(newState.formState.hostname.validationErrors).toBeTruthy();
+        expect(newState.other).toBe(otherObject);
+      });
+    });
+
+    describe('when payload is valid hostname string', function () {
       it('sets the hostname value and no validation error', function () {
         const state = Object.freeze({
           other: otherObject,

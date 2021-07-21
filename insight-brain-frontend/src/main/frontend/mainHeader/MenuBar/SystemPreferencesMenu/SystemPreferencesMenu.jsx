@@ -52,7 +52,7 @@ export const SystemPreferencesMenu = ({
       {CONFIGURE_SYSTEM && (
         <NxTooltip title={isWebhooksSupported ? undefined : 'Webhooks feature is not supported by your license'}>
           <span>
-            <NavLink stateName="webhooks.list" id="system-configuration-webhooks" disabled={!isWebhooksSupported}>
+            <NavLink stateName="listWebhooks" id="system-configuration-webhooks" disabled={!isWebhooksSupported}>
               Webhooks
             </NavLink>
           </span>

@@ -17,7 +17,7 @@ import static com.codeborne.selenide.Condition.disabled;
  */
 public class NxCheckbox
 {
-  private static final Condition LABEL_DISABLED = cssClass("nx-checkbox--disabled");
+  private static final Condition LABEL_DISABLED = cssClass("nx-radio-checkbox--disabled");
 
   protected SelenideElement element;
 

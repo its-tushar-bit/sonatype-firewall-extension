@@ -6,9 +6,8 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.ErrorBox;
-import com.sonatype.clm.testing.functional.elements.IqBackButton;
-import com.sonatype.clm.testing.functional.elements.IqCheckbox;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -29,12 +28,12 @@ public class WebhookEditPage
     super(ROOT_SELECTOR);
   }
 
-  public IqBackButton backButton() {
-    return new IqBackButton(ROOT_SELECTOR);
+  public NxBackButton backButton() {
+    return new NxBackButton(ROOT_SELECTOR);
   }
 
   public SelenideElement title() {
-    return child(".iq-tile-header__title");
+    return child(".nx-page-title");
   }
 
   public SelenideElement url() {
@@ -46,38 +45,49 @@ public class WebhookEditPage
   }
 
   public ElementsCollection eventTypes() {
-    return children("iq-checkbox");
+    return children(".nx-checkbox");
   }
 
-  public IqCheckbox management() {
-    return new IqCheckbox(eventTypes().get(0));
+  public NxCheckbox management() {
+    return new NxCheckbox(eventTypes().get(0));
   }
 
-  public IqCheckbox applicationEvaluation() {
-    return new IqCheckbox(eventTypes().get(1));
+  public NxCheckbox applicationEvaluation() {
+    return new NxCheckbox(eventTypes().get(1));
   }
 
-  public IqCheckbox component() {
-    return new IqCheckbox(eventTypes().get(3));
+  public NxCheckbox component() {
+    return new NxCheckbox(eventTypes().get(3));
   }
 
   public SelenideElement save() {
-    return child(".iq-btn--primary");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement remove() {
-    return child(".iq-btn--tertiary");
+    return child("#delete-webhook-button");
   }
 
-  public ErrorBox errorAlert() {
-    return new ErrorBox(childSelector(".iq-alert--error"));
+  public AlertError errorAlert() {
+    return new AlertError(childSelector(".nx-alert--error"));
   }
 
   public SelenideElement form() {
-    return child(".iq-form");
+    return child(".nx-form");
   }
 
   public static SelenideElement disabledApplicationEvaluationMessage() {
     return $("#application-evaluation-disabled-message");
+  }
+
+  public class AlertError extends BasicElement<AlertError>
+  {
+    public AlertError(String... selector) {
+      super(selector);
+    }
+
+    public SelenideElement retryButton() {
+      return child("button");
+    }
   }
 }

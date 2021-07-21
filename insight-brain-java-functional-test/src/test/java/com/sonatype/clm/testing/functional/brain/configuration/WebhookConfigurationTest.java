@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.ActionList;
-import com.sonatype.clm.testing.functional.elements.ActionList.ActionListElement;
-import com.sonatype.clm.testing.functional.elements.DeleteModal;
-import com.sonatype.clm.testing.functional.elements.FormMask;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
+import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage;
+import com.sonatype.clm.testing.functional.pages.WebhookConfigurationPage.WebhookListElement;
+import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.pages.WebhookEditPage;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
@@ -39,8 +39,6 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
-import static com.sonatype.clm.testing.functional.elements.DeleteModal.bodyText;
-import static com.sonatype.clm.testing.functional.elements.DeleteModal.headerText;
 
 public class WebhookConfigurationTest
     extends AbstractFunctionalTest
@@ -76,7 +74,7 @@ public class WebhookConfigurationTest
 
   @Test
   public void testShowsListOfExistingWebhooks() {
-    ElementsCollection webhooks = webhookConfigurationPage.webhooksList().elements();
+    ElementsCollection webhooks = webhookConfigurationPage.webhooks();
 
     webhooks.shouldHaveSize(3);
     webhooks.shouldHave(texts("http://localhost0", "http://localhost1", "http://localhost2"));
@@ -92,7 +90,7 @@ public class WebhookConfigurationTest
     webhookEditPage.should(appear);
     webhookEditPage.title().shouldHave(text("Create Webhook"));
 
-    webhookEditPage.backButton().shouldHave(text("Back to Webhook Configuration")).click();
+    webhookEditPage.backButton().shouldHave(text("Back to Webhooks")).click();
     webhookConfigurationPage.should(appear);
 
     newWebhook.shouldBe(visible).click();
@@ -108,24 +106,23 @@ public class WebhookConfigurationTest
     webhookEditPage.save().shouldBe(enabled).click();
 
     webhookConfigurationPage.should(appear);
-    ActionList webhooks = webhookConfigurationPage.webhooksList();
 
-    webhooks.elements()
+    webhookConfigurationPage.webhooks()
         .shouldHave(texts("http://localhost0", "http://localhost1", "http://localhost2", "http://foo.bar"));
-    webhooks.element(3).subtext().shouldHave(text("Application Evaluation"));
+    webhookConfigurationPage.webhook(3).shouldHave(text("Application Evaluation"));
   }
 
   @Test
   public void testCanNavigateToAndEditWebhook() {
-    ActionListElement firstWebhook = webhookConfigurationPage.webhooksList().element(0);
-    firstWebhook.click();
+    WebhookListElement firstWebhook = webhookConfigurationPage.webhook(0);
+    firstWebhook.link().click();
 
     webhookEditPage.should(appear);
 
-    webhookEditPage.backButton().shouldHave(text("Back to Webhook Configuration")).click();
+    webhookEditPage.backButton().shouldHave(text("Back to Webhooks")).click();
     webhookConfigurationPage.should(appear);
 
-    firstWebhook.shouldBe(visible).click();
+    firstWebhook.link().click();
     webhookEditPage.should(appear);
 
     webhookEditPage.url().shouldHave(value("http://localhost0"));
@@ -146,7 +143,7 @@ public class WebhookConfigurationTest
     webhookEditPage.save().shouldBe(enabled).click();
 
     webhookConfigurationPage.should(appear);
-    firstWebhook = webhookConfigurationPage.webhooksList().element(0);
+    firstWebhook = webhookConfigurationPage.webhook(2);
 
     firstWebhook.text().shouldHave(text("http://foo.bar"));
     firstWebhook.subtext().shouldHave(text("License Override"));
@@ -154,22 +151,27 @@ public class WebhookConfigurationTest
 
   @Test
   public void testCanRemoveWebhook() {
-    ActionList webhooks = webhookConfigurationPage.webhooksList();
 
     for (int i = 0; i < 3; i++) {
-      webhooks.element(0).click();
+      webhookConfigurationPage.webhook(0).link().click();
       webhookEditPage.should(appear);
+      
+      String url = webhookEditPage.url().getValue();
       webhookEditPage.remove().shouldBe(enabled).click();
-      DeleteModal.body().should(appear).shouldHave(bodyText("http://localhost" + i));
-      DeleteModal.header().shouldHave(headerText("Webhook"));
-      DeleteModal.continueButton().shouldBe(enabled).click();
-      FormMask.seeAndWaitForDismissal();
-      DeleteModal.body().should(disappear);
+
+      NxDeleteModal deleteModal = new NxDeleteModal("#delete-modal");
+
+      deleteModal.header().shouldHave(text("Delete Webhook"));
+      deleteModal.alertContent().shouldHave(text("You are about to permanently remove webhook for " +
+          url + ". This action cannot be undone."));
+      deleteModal.submitButton().click();
+      deleteModal.should(disappear);
+
       webhookConfigurationPage.should(appear);
-      webhooks.elements().shouldHave(size(2 - i));
+      webhookConfigurationPage.webhooks().shouldHave(size(2 - i));
     }
 
-    webhooks.emptyDescriptor().shouldBe(visible).shouldHave(text("No webhooks are defined"));
+    webhookConfigurationPage.emptyListMessage().shouldBe(visible).shouldHave(text("No webhooks are defined"));
   }
 
   @Test
@@ -187,10 +189,62 @@ public class WebhookConfigurationTest
         .shouldHave(text("Retry")).click();
 
     webhookEditPage.errorAlert()
-        .shouldHave(text("An error occurred loading data. Could not find an webhook with ID BAD_ID."));
+        .shouldHave(text("An error occurred loading data. Unable to locate webhook"));
 
-    webhookEditPage.backButton().shouldHave(text("Back to Webhook Configuration")).click();
+    webhookEditPage.backButton().shouldHave(text("Back to Webhooks")).click();
     webhookConfigurationPage.should(appear);
+  }
+
+  @Test
+  public void testUnsavedChangesModal() {
+    UnsavedModal unsavedChangesModal = new UnsavedModal();
+
+    //Unsaved changes when creating webhook
+
+    SelenideElement newWebhook = webhookConfigurationPage.newWebhook();
+    newWebhook.shouldBe(visible);
+
+    newWebhook.click();
+    webhookEditPage.url().setValue("foo");
+    
+    refreshOrOpen(WebhookConfigurationPage.url());
+    unsavedChangesModal.should(appear);
+    unsavedChangesModal.cancelButton().click();
+
+    webhookEditPage.applicationEvaluation().click();
+    webhookEditPage.applicationEvaluation().shouldBe(selected);
+    InputUtils.clearInput(webhookEditPage.url());
+
+    refreshOrOpen(WebhookConfigurationPage.url());
+    unsavedChangesModal.should(appear);
+    unsavedChangesModal.cancelButton().click();
+
+    webhookEditPage.applicationEvaluation().click();
+    webhookEditPage.applicationEvaluation().shouldNotBe(selected);
+    refreshOrOpen(WebhookConfigurationPage.url());
+
+    unsavedChangesModal.shouldNot(appear);
+
+    //Unsaved changes when editing webhook
+    webhookConfigurationPage.webhook(0).link().click();
+
+    String previousUrl = webhookEditPage.url().val();
+    
+    webhookEditPage.url().val("isDirty");
+    refreshOrOpen(WebhookConfigurationPage.url());
+    unsavedChangesModal.should(appear);
+    unsavedChangesModal.cancelButton().click();
+
+    webhookEditPage.url().val(previousUrl);
+    webhookEditPage.applicationEvaluation().click();
+    refreshOrOpen(WebhookConfigurationPage.url());
+    unsavedChangesModal.should(appear);
+    unsavedChangesModal.cancelButton().click();
+
+    webhookEditPage.applicationEvaluation().click();
+    refreshOrOpen(WebhookConfigurationPage.url());
+    unsavedChangesModal.shouldNot(appear);
+
   }
 
   @Test
@@ -228,7 +282,9 @@ public class WebhookConfigurationTest
 
   private void insertWebhooks() {
     for (int i = 0; i < 3; i++) {
-      webhookList.add(tempEntity.newWebhook("http://localhost" + i, Sets.newSet(WebhookEventType.POLICY_MANAGEMENT)));
+      Webhook newWebhook = tempEntity.newWebhookWithSecret("http://localhost" + i, 
+          Sets.newSet(WebhookEventType.POLICY_MANAGEMENT), "");
+      webhookList.add(newWebhook);
     }
   }
 }

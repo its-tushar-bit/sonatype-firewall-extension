@@ -4,19 +4,33 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
-import { prop } from 'ramda';
 
-import { loadWebhookData, toggleEventType, setUrl, setDescription, setSecretKey, saveWebhook } from './webhooksActions';
-import { stateGo } from '../../../reduxUiRouter/routerActions';
-
-import EditWebhook from './EditWebhook';
-
-export default connect(prop('editWebhook'), {
-  loadWebhookData,
+import {
+  loadWebhookPage,
   toggleEventType,
   setUrl,
   setDescription,
   setSecretKey,
   saveWebhook,
-  stateGo,
-})(EditWebhook);
+  deleteWebhook,
+} from '../webhookActions';
+import { stateGo } from '../../../reduxUiRouter/routerActions';
+
+import EditWebhook from './EditWebhook';
+
+export default connect(
+  ({ webhooks, router }) => ({
+    ...webhooks,
+    router,
+  }),
+  {
+    loadWebhookPage,
+    toggleEventType,
+    setUrl,
+    setDescription,
+    setSecretKey,
+    saveWebhook,
+    deleteWebhook,
+    stateGo,
+  }
+)(EditWebhook);

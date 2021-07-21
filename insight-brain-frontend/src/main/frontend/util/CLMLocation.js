@@ -459,6 +459,9 @@ export function getWebhookEventTypesUrl() {
 export function getWebhooksUrl() {
   return uriTemplate`/rest/config/webhook`;
 }
+export function deleteWebhooksUrl(webhookId) {
+  return uriTemplate`/rest/config/webhook/${webhookId}`;
+}
 
 export function getTransitiveViolationsUrl(ownerType, ownerId, scanId, hash) {
   return uriTemplate`/api/v2/policyViolations/transitive/${ownerType}/${ownerId}/${scanId}?hash=${hash}`;

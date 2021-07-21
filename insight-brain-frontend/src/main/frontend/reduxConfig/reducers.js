@@ -44,8 +44,8 @@ import automaticSourceControlConfigurationReducer from '../configuration/automat
 import systemNoticeConfigurationReducer from '../configuration/systemNoticeConfiguration/systemNoticeConfigurationReducer';
 import rolesReducer from '../security/rolesReducer';
 import auditLogReducer from '../componentDetails/auditLog/auditLogReducer';
+import webhookReducer from '../configuration/webhook/webhookReducer';
 import roleEditorReducer from '../security/roleEditor/roleEditorReducer';
-import editWebhookReducer from '../configuration/webhook/editWebhook/editWebhookReducer';
 import automaticApplicationsConfigurationReducer from '../configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationReducer';
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
 import userConfigurationReducer from '../security/users/usersReducer';
@@ -94,8 +94,8 @@ export default combineReducers({
   systemNoticeConfiguration: systemNoticeConfigurationReducer,
   roles: rolesReducer,
   auditLog: auditLogReducer,
+  webhooks: webhookReducer,
   roleEditor: roleEditorReducer,
-  editWebhook: editWebhookReducer,
   automaticApplicationsConfiguration: automaticApplicationsConfigurationReducer,
   transitiveViolations: transitiveViolationsReducer,
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,

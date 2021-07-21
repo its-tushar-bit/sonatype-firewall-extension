@@ -3,7 +3,13 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { NxCheckbox, NxForm, NxInfoAlert, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import {
+  NxCheckbox,
+  NxForm,
+  NxInfoAlert,
+  nxTextInputStateHelpers,
+  NxWarningAlert,
+} from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../../enzymeUtils';
 import EditWebhook from '../../../../../main/frontend/configuration/webhook/editWebhook/EditWebhook';
 import * as routerContext from '../../../../../main/frontend/react/RouterStateContext';
@@ -23,6 +29,9 @@ describe('EditWebhook', () => {
         url: initialState(''),
         description: initialState(''),
         secretKey: initialState(''),
+      },
+      router: {
+        currentParams: {},
       },
     };
 
@@ -119,7 +128,7 @@ describe('EditWebhook', () => {
   });
 
   describe('on load', () => {
-    let component, getMounted, loadWebhookDataSpy;
+    let component, getMounted, loadWebhookPageSpy;
 
     beforeEach(() => {
       spyOn(routerContext, 'useRouterState').and.returnValue({
@@ -127,10 +136,10 @@ describe('EditWebhook', () => {
         href: jasmine.createSpy('href'),
       });
 
-      loadWebhookDataSpy = jasmine.createSpy('loadWebhookData');
+      loadWebhookPageSpy = jasmine.createSpy('loadWebhookPage');
       getMounted = enzymeUtils.getMountedComponent(EditWebhook, {
         ...minProps,
-        loadWebhookData: loadWebhookDataSpy,
+        loadWebhookPage: loadWebhookPageSpy,
       });
     });
 
@@ -138,9 +147,20 @@ describe('EditWebhook', () => {
       component.unmount();
     });
 
-    it('calls loadWebhookData action with no arguments if creating new webhook', () => {
+    it('calls loadWebhookPage action with no arguments if creating new webhook', () => {
       component = getMounted();
-      expect(loadWebhookDataSpy).toHaveBeenCalled();
+      expect(loadWebhookPageSpy).toHaveBeenCalled();
+    });
+
+    it('calls loadWebhookPage action with webhookId if editing webhook', () => {
+      component = getMounted({
+        router: {
+          currentParams: {
+            webhookId: '404',
+          },
+        },
+      });
+      expect(loadWebhookPageSpy).toHaveBeenCalledWith('404');
     });
   });
 
@@ -197,6 +217,17 @@ describe('EditWebhook', () => {
       expect(component.find(NxForm)).toHaveProp('validationErrors', 'webhook is invalid');
     });
 
+    it('is rendered with validationErrors if in edit mode and no changes applied', () => {
+      const component = getShallow({
+        router: {
+          currentParams: { webhookId: '200' },
+        },
+      });
+      const form = component.find(NxForm);
+
+      expect(form).toHaveProp('validationErrors', 'There are no changes to update');
+    });
+
     describe('onCancel', () => {
       it('navigates to webhook list page', () => {
         const stateGoSpy = jasmine.createSpy('stateGo');
@@ -205,7 +236,73 @@ describe('EditWebhook', () => {
         });
         const form = component.find(NxForm);
         form.simulate('cancel');
-        expect(stateGoSpy).toHaveBeenCalledWith('webhooks.list');
+        expect(stateGoSpy).toHaveBeenCalledWith('listWebhooks');
+      });
+    });
+
+    describe('delete button', () => {
+      it('is rendered when editing a webhook', () => {
+        const component = getShallow({
+          router: {
+            currentParams: {
+              webhookId: '404',
+            },
+          },
+        });
+        expect(component.find('#delete-webhook-button')).toExist();
+      });
+      it('is not rendered when creating a new webhook', () => {
+        const component = getShallow();
+        expect(component.find('#delete-webhook')).not.toExist();
+      });
+      it('shows delete modal when clicked', () => {
+        const component = getShallow({
+          router: {
+            currentParams: {
+              webhookId: '404',
+            },
+          },
+        });
+        const deleteButton = component.find('#delete-webhook-button');
+        deleteButton.simulate('click');
+        expect(component.find('#delete-modal')).toExist();
+      });
+    });
+
+    describe('delete modal', () => {
+      let modal, urlValue, webhookId, deleteWebhook;
+      beforeEach(() => {
+        urlValue = 'http://test';
+        webhookId = '404';
+        deleteWebhook = jasmine.createSpy('deleteWebhook');
+        const component = getShallow({
+          inputFields: {
+            url: initialState(urlValue),
+            description: initialState('test'),
+            secretKey: initialState('test'),
+          },
+          router: {
+            currentParams: {
+              webhookId,
+            },
+          },
+          deleteWebhook,
+        });
+        const deleteButton = component.find('#delete-webhook-button');
+        deleteButton.simulate('click');
+        modal = component.find('#delete-modal');
+      });
+      it('renders delete alert message', () => {
+        const alert = modal.find(NxWarningAlert);
+        expect(alert).toExist();
+        expect(alert).toHaveText(
+          `You are about to permanently remove webhook for ${urlValue}. This action cannot be undone.`
+        );
+      });
+      it('calls deleteWebhook when submitted', () => {
+        const form = modal.find(NxForm);
+        form.simulate('submit');
+        expect(deleteWebhook).toHaveBeenCalledWith(webhookId);
       });
     });
   });

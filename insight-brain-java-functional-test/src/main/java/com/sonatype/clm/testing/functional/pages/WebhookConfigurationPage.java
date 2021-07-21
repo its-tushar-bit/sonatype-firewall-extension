@@ -9,7 +9,10 @@ import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ActionList;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class WebhookConfigurationPage
     extends BasicElement<WebhookConfigurationPage>
@@ -28,7 +31,35 @@ public class WebhookConfigurationPage
     return child("#create-webhook");
   }
 
-  public ActionList webhooksList() {
-    return new ActionList(".iq-list");
+  public ElementsCollection webhooks() {
+    return children(".nx-list__item.nx-list__item--link");
+  }
+
+  public WebhookListElement webhook(int num) {
+    return new WebhookListElement(num);
+  }
+
+  public SelenideElement emptyListMessage() {
+    return child(".nx-list__item--empty");
+  }
+
+  public class WebhookListElement
+      extends BasicElement<ActionList.ActionListElement>
+  {
+    public WebhookListElement(int num) {
+      super(ROOT_SELECTOR, "li:not(.nx-list__item--empty)", nthChild(num + 1));
+    }
+
+    public SelenideElement text() {
+      return child(".nx-list__text");
+    }
+
+    public SelenideElement subtext() {
+      return child(".nx-list__subtext");
+    }
+
+    public SelenideElement link() {
+      return child(".nx-list__link");
+    }
   }
 }

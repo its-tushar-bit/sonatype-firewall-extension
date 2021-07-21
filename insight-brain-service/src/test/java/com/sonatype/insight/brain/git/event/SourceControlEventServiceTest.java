@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -78,6 +79,9 @@ public class SourceControlEventServiceTest
   @Mock
   private SemaphorePool mockRepoAccessController;
 
+  @Mock
+  private CurrentUser mockCurrentUser;
+
   private SourceControlEventService eventService;
 
   @Mock
@@ -92,9 +96,10 @@ public class SourceControlEventServiceTest
   public void setup() {
     MockitoAnnotations.openMocks(this);
     super.setup();
+    when(mockCurrentUser.getUsernameOrSystem()).thenReturn(CurrentUser.SYSTEM);
     eventService = spy(new SourceControlEventService(mockSourceControlEventDAO, mockSourceControlInstanceManager,
         mockPullRequestCommentingEventHandler, mockPullRequestRemediationService, mockGitCommitStatusService,
-        mockSourceControlScanService, mockSourceControlService));
+        mockSourceControlScanService, mockSourceControlService, mockCurrentUser));
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
   }
 

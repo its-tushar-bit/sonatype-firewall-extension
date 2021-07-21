@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -101,6 +102,8 @@ public class SourceControlEventService
 
   private final SourceControlService sourceControlService;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public SourceControlEventService(
       SourceControlEventDAO sourceControlEventDAO,
@@ -109,7 +112,8 @@ public class SourceControlEventService
       PullRequestRemediationService pullRequestRemediationService,
       GitCommitStatusService gitCommitStatusService,
       SourceControlScanService sourceControlScanService,
-      SourceControlService sourceControlService)
+      SourceControlService sourceControlService,
+      CurrentUser currentUser)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
@@ -118,6 +122,7 @@ public class SourceControlEventService
     this.gitCommitStatusService = gitCommitStatusService;
     this.sourceControlScanService = sourceControlScanService;
     this.sourceControlService = sourceControlService;
+    this.currentUser = currentUser;
   }
 
   /**
@@ -195,10 +200,21 @@ public class SourceControlEventService
     }
   }
 
+  private void checkRunsAsSystem(SourceControlEvent event) {
+    // See https://issues.sonatype.org/browse/INT-5413
+    String username = currentUser.getUsernameOrSystem();
+    if (!CurrentUser.SYSTEM.equals(username)) {
+      throw new IllegalStateException("SourceControlEvent with ID " + event.getId() + " processed as user '" + username
+          + "' instead of '" + CurrentUser.SYSTEM + "'");
+    }
+  }
+
   private void handleSourceControlEvent(final SourceControlEvent event) {
     try {
       log.trace("Handling event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
           event.getApplicationId());
+
+      checkRunsAsSystem(event);
 
       if (acquireRepoAccess(event.getApplicationId())) {
         log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", event.getId(),

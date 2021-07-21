@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.nexus.git.utils.api.GitException;
 
 import org.junit.Before;
@@ -30,12 +31,15 @@ import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
 import static com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventProcessor.REPO_ACCESS_LOCK_ERROR;
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SourceControlEventProcessorTest
     extends VerifiableLoggingTestBase
@@ -61,6 +65,9 @@ public class SourceControlEventProcessorTest
   @Mock
   private SourceControlEventStatusListener mockStatusListener;
 
+  @Mock
+  private CurrentUser mockCurrentUser;
+
   private SourceControlEventProcessor sourceControlEventProcessor;
 
   public SourceControlEventProcessorTest() {
@@ -72,9 +79,10 @@ public class SourceControlEventProcessorTest
   public void setup() {
     MockitoAnnotations.openMocks(this);
     super.setup();
+    when(mockCurrentUser.getUsernameOrSystem()).thenReturn(CurrentUser.SYSTEM);
     sourceControlEventProcessor =
         spy(new SourceControlEventProcessor(mockPullRequestCommentingEventHandler, mockPullRequestRemediationService,
-            mockGitCommitStatusService, mockSourceControlScanService, mockSourceControlService));
+            mockGitCommitStatusService, mockSourceControlScanService, mockSourceControlService, mockCurrentUser));
   }
 
   @Test
@@ -145,6 +153,18 @@ public class SourceControlEventProcessorTest
 
     verify(mockPullRequestCommentingEventHandler, times(1)).onUpdatedPullRequest(eq(event));
     verifyEventCompleted(event);
+  }
+
+  @Test
+  public void testProcessEvent_runAsNonSystemUser() throws Exception {
+    when(mockCurrentUser.getUsernameOrSystem()).thenReturn("JohnDoe");
+    SourceControlEvent event = createEvent().forUpdatedPullRequest();
+
+    processEventAndWaitForCompletion(event);
+
+    verify(mockPullRequestCommentingEventHandler, never()).onUpdatedPullRequest(any());
+    verifyEventError(event,
+        "SourceControlEvent with ID " + event.getId() + " processed as user 'JohnDoe' instead of 'system'");
   }
 
   @Test

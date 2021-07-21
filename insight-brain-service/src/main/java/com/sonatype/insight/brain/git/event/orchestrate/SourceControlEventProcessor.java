@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.git.SourceControlException;
 import com.sonatype.insight.brain.git.SourceControlScanService;
 import com.sonatype.insight.brain.git.SourceControlService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.security.CurrentUser;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -53,6 +54,8 @@ public class SourceControlEventProcessor
 
   private final SourceControlService sourceControlService;
 
+  private final CurrentUser currentUser;
+
   private final LazyInitThreadPoolExecutor lazyInitThreadPoolExecutor =
       new LazyInitThreadPoolExecutor(THREAD_POOL_SIZE, TASK_QUEUE_CAPACITY, "SourceControlEventProcessor-%s", 30L);
 
@@ -62,13 +65,15 @@ public class SourceControlEventProcessor
       PullRequestRemediationService pullRequestRemediationService,
       GitCommitStatusService gitCommitStatusService,
       SourceControlScanService sourceControlScanService,
-      SourceControlService sourceControlService)
+      SourceControlService sourceControlService,
+      CurrentUser currentUser)
   {
     this.pullRequestCommentingEventHandler = pullRequestCommentingEventHandler;
     this.pullRequestRemediationService = pullRequestRemediationService;
     this.gitCommitStatusService = gitCommitStatusService;
     this.sourceControlScanService = sourceControlScanService;
     this.sourceControlService = sourceControlService;
+    this.currentUser = currentUser;
   }
 
   public void processEvent(SourceControlEvent event, SourceControlEventStatusListener statusListener) {
@@ -95,14 +100,29 @@ public class SourceControlEventProcessor
     }
   }
 
+  private void checkRunsAsSystem(String eventId) {
+    // See https://issues.sonatype.org/browse/INT-5413
+    String username = currentUser.getUsernameOrSystem();
+    if (!CurrentUser.SYSTEM.equals(username)) {
+      throw new IllegalStateException("SourceControlEvent with ID " + eventId + " processed as user '" + username
+          + "' instead of '" + CurrentUser.SYSTEM + "'");
+    }
+  }
+
   private void handleSourceControlEvent(final ManagedSourceControlEvent managedEvent) {
     log.trace("Handling event '{}' of type '{}' for application '{}'", managedEvent.getId(),
         managedEvent.getEventType(), managedEvent.getApplicationId());
 
-    if (acquireRepoAccess(managedEvent.getApplicationId())) {
-      log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", managedEvent.getId(),
-          managedEvent.getEventType(), managedEvent.getApplicationId());
+    try {
+      checkRunsAsSystem(managedEvent.getId());
+
+      if (!acquireRepoAccess(managedEvent.getApplicationId())) {
+        throw new RuntimeException(REPO_ACCESS_LOCK_ERROR);
+      }
       try {
+        log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", managedEvent.getId(),
+            managedEvent.getEventType(), managedEvent.getApplicationId());
+
         if (executeSourceControlEvent(managedEvent)) {
           log.debug("Processed event '{}' of type '{}' for application '{}'", managedEvent.getId(),
               managedEvent.getEventType(), managedEvent.getApplicationId());
@@ -119,10 +139,12 @@ public class SourceControlEventProcessor
             managedEvent.getEventType(), managedEvent.getApplicationId());
       }
     }
-    else {
-      managedEvent.onError(new Exception(REPO_ACCESS_LOCK_ERROR));
+    catch (Exception e) {
+      managedEvent.onError(e);
     }
-    notifyFinishedProcessingEvent(managedEvent.getSourceControlEvent());
+    finally {
+      notifyFinishedProcessingEvent(managedEvent.getSourceControlEvent());
+    }
   }
 
   @VisibleForTesting

@@ -131,6 +131,9 @@ public class SourceControlScanServiceAuditTest
 
   @Test
   public void testDoSynchronousSourceControlScan() throws Exception {
+    // Remove the subject and security manager for the current thread - i.e. make it run as system.
+    tearDownSecurity();
+
     Application app = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null,
         new String(passwordHandler.encryptPassword("token".toCharArray())), SourceControlProvider.GITHUB);

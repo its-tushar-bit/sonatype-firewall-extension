@@ -26,7 +26,7 @@
     .iq-manage-filters-dropdown__option {
       @include container-horizontal;
       display: flex;
-      padding: 0 8px;
+      padding: var(--nx-spacing-base) var(--nx-spacing-2x);
 
       // without this the first one, which doesn't have a delete button, is shorter
       height: 32px;
@@ -59,6 +59,7 @@
 
       .nx-btn--delete-filter {
         background: none;
+        padding: 0;
       }
     }
   }

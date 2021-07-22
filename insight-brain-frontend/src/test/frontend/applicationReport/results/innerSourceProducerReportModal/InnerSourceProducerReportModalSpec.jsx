@@ -49,9 +49,10 @@ describe('InnerSourceProducerReportModal', function () {
     expect(onCloseMock).toHaveBeenCalled();
   });
 
-  it('calls the onClose callback when dismissing the modal via keyboard', function () {
-    enzymeUtils.getMountedComponent(InnerSourceProducerReportModal, minimalProps, { attachTo: containerModal })();
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+  it('calls the onClose callback when modal close is fired', () => {
+    const shallowComponent = getShallowComponent();
+    const modal = shallowComponent.find(NxModal);
+    modal.simulate('close');
 
     expect(onCloseMock).toHaveBeenCalled();
   });

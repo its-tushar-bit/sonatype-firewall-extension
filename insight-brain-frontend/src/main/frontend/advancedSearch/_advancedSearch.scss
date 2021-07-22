@@ -98,6 +98,10 @@ advanced-search {
   .nx-text-input {
     width: 100%;
   }
+
+  .nx-label {
+    max-width: unset;
+  }
 }
 
 .nx-table--advanced-search {

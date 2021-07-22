@@ -129,8 +129,6 @@ public class ScanPolicyEvaluator
 
   private ApplicationComponentLicenseDAO applicationComponentLicenseDAO = new ApplicationComponentLicenseDAO();
 
-  private final PolicyThreatsAdapter policyThreatsAdapter;
-
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   private final ApplicationEvaluationEventService applicationEvaluationEventService;
@@ -153,7 +151,6 @@ public class ScanPolicyEvaluator
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
       final ReportService reportService,
-      final PolicyThreatsAdapter policyThreatsAdapter,
       final ComponentPolicyEvaluator componentPolicyEvaluator,
       final ApplicationEvaluationEventService applicationEvaluationEventService,
       final PolicyViolationGrandfatheringService policyViolationGrandfatheringService,
@@ -166,7 +163,6 @@ public class ScanPolicyEvaluator
   {
     this.work = insightWork;
     this.reportService = reportService;
-    this.policyThreatsAdapter = policyThreatsAdapter;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
     this.policyViolationGrandfatheringService = policyViolationGrandfatheringService;
@@ -299,7 +295,7 @@ public class ScanPolicyEvaluator
         scanPolicyEvaluatorResults.activeViolations);
     Report.putEntry(reportFile, POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
 
-    PolicyThreats policyThreats = policyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations);
+    PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations);
     Report.putEntry(reportFile, POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
 
     updateDataJson(reportFile, policyThreats);

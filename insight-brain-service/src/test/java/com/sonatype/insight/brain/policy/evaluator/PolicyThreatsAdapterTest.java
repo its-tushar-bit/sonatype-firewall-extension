@@ -30,8 +30,6 @@ import static org.assertj.core.api.Assertions.fail;
 
 public class PolicyThreatsAdapterTest
 {
-  private PolicyThreatsAdapter policyThreatsAdapter = new PolicyThreatsAdapter();
-
   @Test
   public void testCreatePolicyThreats() {
     ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
@@ -44,7 +42,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
 
     assertPolicyThreats(threats, violations);
   }
@@ -66,7 +64,7 @@ public class PolicyThreatsAdapterTest
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation10, mavenViolation1, nugetViolation10,
         nugetViolation1);
 
-    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
 
     PolicyViolation largestMavenPolicyViolation = getLargestThreatViolation("hash1", violations);
     PolicyViolation largestNuGetPolicyViolation = getLargestThreatViolation("hash2", violations);
@@ -102,7 +100,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
 
     // Make sure each component has a waived policy.
     for (PolicyThreats.Component component : threats.aaData) {
@@ -124,7 +122,7 @@ public class PolicyThreatsAdapterTest
     
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
 
     for (PolicyThreats.Component component : threats.aaData) {
       assertThat(component.allViolations).hasSize(1);
@@ -148,7 +146,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
 
     for (PolicyThreats.Component component : threats.aaData) {
       assertThat(component.allViolations).hasSize(1);
@@ -169,7 +167,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
 
     // Make sure each component has a 'top violation' even though all violations are waived.
     for (PolicyThreats.Component component : threats.aaData) {
@@ -194,7 +192,7 @@ public class PolicyThreatsAdapterTest
 
     List<PolicyViolation> violations = Lists.newArrayList(mavenViolation, nugetViolation);
 
-    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(violations);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations);
 
     // Make sure we have two components.
     assertThat(threats.aaData).hasSize(2);
@@ -212,7 +210,7 @@ public class PolicyThreatsAdapterTest
 
   @Test
   public void testCreatePolicyThreats_NullPolicyViolations() {
-    PolicyThreats threats = policyThreatsAdapter.createPolicyThreats(null);
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(null);
 
     assertThat(threats.aaData).isEmpty();
     assertThat(threats.version).isEqualTo(5);

@@ -40,8 +40,7 @@ public class ReportTestUtils
       InsightWork insightWork,
       List<PolicyViolation> policyViolations) throws IOException
   {
-    PolicyThreatsAdapter policyThreatsAdapter = new PolicyThreatsAdapter();
-    PolicyThreats policyThreats = policyThreatsAdapter.createPolicyThreats(policyViolations);
+    PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(policyViolations);
     Report.putEntry(insightWork.getReportFile(appId, scanId), ScanPolicyEvaluator.POLICY_THREATS_FILENAME,
         JsonUtils.generate(policyThreats));
   }

@@ -68,8 +68,6 @@ public class RepositoryService
 
   private static final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO = new RepositoryPolicyViolationDAO();
 
-  private final PolicyThreatsAdapter policyThreatsAdapter;
-
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
@@ -77,11 +75,9 @@ public class RepositoryService
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      PolicyThreatsAdapter policyThreatsAdapter,
       PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
-    this.policyThreatsAdapter = policyThreatsAdapter;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
@@ -191,8 +187,8 @@ public class RepositoryService
 
     List<RepositoryPolicyViolationDTO> activeRepositoryViolationDTOs = new ArrayList<>();
     for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-      List<PolicyThreats.PolicyConstraint> constraints = policyThreatsAdapter
-          .toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
+      List<PolicyThreats.PolicyConstraint> constraints =
+          PolicyThreatsAdapter.toPolicyThreatsPolicyConstraints(repositoryPolicyViolation.getConstraintFacts());
       activeRepositoryViolationDTOs.add(new RepositoryPolicyViolationDTO(repositoryPolicyViolation.getPolicyId(),
           repositoryPolicyViolation.getPolicyName(), repositoryPolicyViolation.getThreatLevel(),
           Action.ID_FAIL.equals(repositoryPolicyViolation.getActionTypeId()), constraints,

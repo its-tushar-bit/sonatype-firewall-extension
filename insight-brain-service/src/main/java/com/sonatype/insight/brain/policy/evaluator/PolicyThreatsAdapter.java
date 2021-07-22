@@ -10,13 +10,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.sonatype.clm.dto.model.policy.ConditionFact;
-import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
 
@@ -29,11 +26,9 @@ import com.sonatype.insight.brain.model.policy.actions.ActionTypes;
  * 
  * @since 1.13.0
  */
-@Named
-@Singleton
 public class PolicyThreatsAdapter
 {
-  public PolicyThreats createPolicyThreats(List<PolicyViolation> policyViolations) {
+  public static PolicyThreats createPolicyThreats(List<PolicyViolation> policyViolations) {
     Map<String, PolicyThreats.Component> components = processPolicyViolations(policyViolations);
 
     PolicyThreats policyThreats = new PolicyThreats();
@@ -43,7 +38,7 @@ public class PolicyThreatsAdapter
     return policyThreats;
   }
 
-  private Map<String, PolicyThreats.Component> processPolicyViolations(List<PolicyViolation> policyViolations) {
+  private static Map<String, PolicyThreats.Component> processPolicyViolations(List<PolicyViolation> policyViolations) {
     Map<String, PolicyThreats.Component> components = new LinkedHashMap<>();
 
     if (policyViolations != null) {
@@ -79,7 +74,7 @@ public class PolicyThreatsAdapter
     return components;
   }
 
-  private PolicyThreats.PolicyViolation toPolicyThreatsPolicyViolation(PolicyViolation violation) {
+  private static PolicyThreats.PolicyViolation toPolicyThreatsPolicyViolation(PolicyViolation violation) {
     PolicyThreats.PolicyViolation result = new PolicyThreats.PolicyViolation();
     result.policyId = violation.getPolicyId();
     result.policyViolationId = violation.getId();
@@ -94,7 +89,7 @@ public class PolicyThreatsAdapter
     return result;
   }
 
-  private List<PolicyThreats.PolicyAction> toPolicyThreatsPolicyActions(PolicyViolation violation) {
+  private static List<PolicyThreats.PolicyAction> toPolicyThreatsPolicyActions(PolicyViolation violation) {
     List<PolicyThreats.PolicyAction> result = new ArrayList<>();
 
     if (violation.getActionTypeId() != null) {
@@ -107,7 +102,9 @@ public class PolicyThreatsAdapter
     return result;
   }
 
-  public List<PolicyThreats.PolicyConstraint> toPolicyThreatsPolicyConstraints(List<ConstraintFact> constraintFacts) {
+  public static List<PolicyThreats.PolicyConstraint> toPolicyThreatsPolicyConstraints(
+      List<ConstraintFact> constraintFacts)
+  {
     List<PolicyThreats.PolicyConstraint> result = new ArrayList<>();
     for (ConstraintFact fact : constraintFacts) {
       PolicyThreats.PolicyConstraint constraint = new PolicyThreats.PolicyConstraint();
@@ -120,7 +117,7 @@ public class PolicyThreatsAdapter
     return result;
   }
 
-  private List<PolicyThreats.PolicyCondition> toPolicyThreatsPolicyConditions(ConstraintFact fact) {
+  private static List<PolicyThreats.PolicyCondition> toPolicyThreatsPolicyConditions(ConstraintFact fact) {
     List<PolicyThreats.PolicyCondition> result = new ArrayList<>();
     for (ConditionFact conditionFact : fact.getConditionFacts()) {
       TriggerReference conditionReference = conditionFact.getReference();

@@ -246,11 +246,11 @@ public class DefaultPolicyEvaluateService
         "Submitting policy evaluation task for app public id {}, clientScanType {}, stageTypeId {}. "
             + "The status ID of the operation is {}.",
         app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
-    TelemetryData thirdPartyTelemetryData =
+    TelemetryData thirdPartyScanTelemetryData =
         buildThirdPartyScanTelemetryData(app.getPublicId(), stage, thirdPartyScanType, clientUserAgent);
     AuditData.get().continueAsync(
         new Task(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
-            thirdPartyTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent),
+            thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent),
         executor::submit);
   }
 
@@ -312,7 +312,7 @@ public class DefaultPolicyEvaluateService
 
     private final File tempScanFile;
 
-    private final TelemetryData telemetryData;
+    private final TelemetryData thirdPartyScanTelemetryData;
 
     private final long taskCreateTime = System.currentTimeMillis();
 
@@ -327,7 +327,7 @@ public class DefaultPolicyEvaluateService
         final Stage stage,
         final ScanTriggerType scanTriggerType,
         final File tempScanFile,
-        final TelemetryData telemetryData,
+        final TelemetryData thirdPartyScanTelemetryData,
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
         final String clientUserAgent)
     {
@@ -337,7 +337,7 @@ public class DefaultPolicyEvaluateService
       this.stage = stage;
       this.scanTriggerType = scanTriggerType;
       this.tempScanFile = tempScanFile;
-      this.telemetryData = telemetryData;
+      this.thirdPartyScanTelemetryData = thirdPartyScanTelemetryData;
       this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
       this.clientUserAgent = clientUserAgent;
     }
@@ -354,7 +354,7 @@ public class DefaultPolicyEvaluateService
       policyEvaluationPollingResult.setNextPollingIntervalInSeconds(getNextPollingInterval());
 
       try {
-        ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, telemetryData,
+        ScanReceipt scanReceipt = scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData,
             stage.getStageTypeId(), clientUserAgent);
         scanId = scanReceipt.getScanId();
 
@@ -412,9 +412,9 @@ public class DefaultPolicyEvaluateService
     String scanId = null;
 
     try {
-      TelemetryData thirdPartyTelemetryData = buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
+      TelemetryData thirdPartyScanTelemetryData = buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
           null /* thirdPartyScanType */, clientUserAgent);
-      ScanReceipt scanReceipt = scanHandler.handle(scanFile, application, clientScanType, thirdPartyTelemetryData,
+      ScanReceipt scanReceipt = scanHandler.handle(scanFile, application, clientScanType, thirdPartyScanTelemetryData,
           stage.getStageTypeId(), clientUserAgent);
       scanId = scanReceipt.getScanId();
 

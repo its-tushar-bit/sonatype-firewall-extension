@@ -74,7 +74,12 @@ public class ThirdPartyScanResultsProcessor
     this.thirdPartyScanDAO = thirdPartyScanDAO;
   }
 
-  public String filterAndSaveData(File scanFile, File tempScanFile, File scanDir, TelemetryData telemetryData) {
+  public String filterAndSaveData(
+      File scanFile,
+      File tempScanFile,
+      File scanDir,
+      TelemetryData thirdPartyScanTelemetryData)
+  {
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
     try {
@@ -90,7 +95,7 @@ public class ThirdPartyScanResultsProcessor
 
         parser.next();
         while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-          processEvent(parser, writer, scanFile, scanRequestId, telemetryData);
+          processEvent(parser, writer, scanFile, scanRequestId, thirdPartyScanTelemetryData);
         }
         writer.flush();
         writer.close();
@@ -119,7 +124,7 @@ public class ThirdPartyScanResultsProcessor
       XMLEventWriter writer,
       File scanFile,
       String scanRequestId,
-      TelemetryData telemetryData)
+      TelemetryData thirdPartyScanTelemetryData)
   {
     try {
       int eventType = parser.getEventType();
@@ -130,7 +135,7 @@ public class ThirdPartyScanResultsProcessor
           writer.add(EVENT_FACTORY.createStartElement(new QName(parser.getName()), null, null));
           addElementAttributes(parser, writer);
           if ("item".equals(elementName)) {
-            processItemElement(parser, writer, scanFile, scanRequestId, telemetryData);
+            processItemElement(parser, writer, scanFile, scanRequestId, thirdPartyScanTelemetryData);
           }
         }
         else if (eventType == XmlPullParser.END_TAG) {
@@ -157,16 +162,16 @@ public class ThirdPartyScanResultsProcessor
       XMLEventWriter writer,
       File scanFile,
       String scanRequestId,
-      TelemetryData telemetryData) throws XMLStreamException, IOException, XmlPullParserException
+      TelemetryData thirdPartyScanTelemetryData) throws XMLStreamException, IOException, XmlPullParserException
   {
     String contentType = parser.getAttributeValue(null, "contentType");
     if (contentType != null && thirdPartyItemContentTypes.contains(contentType)) {
       Xpp3Dom itemElement = Xpp3Util.loadElement("item", parser);
       Xpp3Dom contentElement = itemElement.getChild("content");
-      if (telemetryData != null) {
+      if (thirdPartyScanTelemetryData != null) {
         // add the content type to telemetry data
-        telemetryData.getAttributes().put("content_type", contentType);
-        telemetrySender.send(telemetryData);
+        thirdPartyScanTelemetryData.getAttributes().put("content_type", contentType);
+        telemetrySender.send(thirdPartyScanTelemetryData);
       }
       if (contentElement != null) {
         String filteredContent =

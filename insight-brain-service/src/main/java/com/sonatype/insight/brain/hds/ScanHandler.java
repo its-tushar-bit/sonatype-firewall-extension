@@ -68,14 +68,15 @@ public class ScanHandler
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     File tempScanFile = createTempScanFile(httpRequest, app);
-    return handle(tempScanFile, app, clientScanType, null, null, DefaultHdsClient.getClientUserAgent(httpRequest));
+    return handle(tempScanFile, app, clientScanType, null /* thirdPartyScanTelemetryData */, null /* stageTypeId */,
+        DefaultHdsClient.getClientUserAgent(httpRequest));
   }
 
   public ScanReceipt handle(
       File tempScanFile,
       Application app,
       ClientScanType clientScanType,
-      TelemetryData telemetryData,
+      TelemetryData thirdPartyScanTelemetryData,
       String stageTypeId,
       String clientUserAgent)
       throws IOException
@@ -86,8 +87,8 @@ public class ScanHandler
     try {
       ScanReceipt scanReceipt;
       if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
-        scanReceipt =
-            thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, clientUserAgent, telemetryData);
+        scanReceipt = thirdPartyScanService.filterAndUpload(tempScanFile, app, stageTypeId, clientUserAgent,
+            thirdPartyScanTelemetryData);
       }
       else {
         scanReceipt = scanUploader.upload(tempScanFile, app, stageTypeId, clientUserAgent);

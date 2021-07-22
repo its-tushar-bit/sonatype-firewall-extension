@@ -54,8 +54,6 @@ public class ApplicationSummaryService
     }
   };
 
-  private final ApplicationSummaryAdapter applicationAdapter;
-
   private final ApplicationDAO applicationDAO;
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
@@ -71,16 +69,15 @@ public class ApplicationSummaryService
   private final ProductLicense productLicense;
 
   @Inject
-  public ApplicationSummaryService(final ApplicationSummaryAdapter applicationAdapter,
-                                   final ApplicationDAO applicationDAO,
-                                   PolicyEvaluationDAO policyEvaluationDAO,
-                                   final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
-                                   TelemetrySender telemetrySender,
-                                   final ApplicationHelper applicationHelper,
-                                   final OrganizationDAO organizationDAO,
-                                   final ProductLicense productLicense)
+  public ApplicationSummaryService(
+      final ApplicationDAO applicationDAO,
+      PolicyEvaluationDAO policyEvaluationDAO,
+      final AutomaticApplicationsConfigurationDAO automaticApplicationsConfigurationDAO,
+      TelemetrySender telemetrySender,
+      final ApplicationHelper applicationHelper,
+      final OrganizationDAO organizationDAO,
+      final ProductLicense productLicense)
   {
-    this.applicationAdapter = applicationAdapter;
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.automaticApplicationsConfigurationDAO = automaticApplicationsConfigurationDAO;
@@ -139,7 +136,7 @@ public class ApplicationSummaryService
     // The input list may be immutable
     apps = new ArrayList<>(apps);
     apps.sort(APP_COMPARATOR);
-    return applicationAdapter.convert(apps);
+    return ApplicationSummaryAdapter.convert(apps);
   }
 
   /**

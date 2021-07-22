@@ -9,9 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.model.Application;
@@ -21,11 +18,9 @@ import com.sonatype.insight.brain.model.Application;
  *
  * @since 1.11.0
  */
-@Named
-@Singleton
-public class ApplicationSummaryAdapter
+class ApplicationSummaryAdapter
 {
-  public ApplicationSummaryList convert(Collection<Application> applications) {
+  static ApplicationSummaryList convert(Collection<Application> applications) {
     ApplicationSummaryList applicationSummaryList = new ApplicationSummaryList();
     List<ApplicationSummary> applicationSummaries = new ArrayList<>();
     applicationSummaryList.setApplicationSummaries(applicationSummaries);
@@ -40,7 +35,7 @@ public class ApplicationSummaryAdapter
     return applicationSummaryList;
   }
 
-  public ApplicationSummary convert(Application application) {
+  static ApplicationSummary convert(Application application) {
     if (application == null) {
       return null;
     }

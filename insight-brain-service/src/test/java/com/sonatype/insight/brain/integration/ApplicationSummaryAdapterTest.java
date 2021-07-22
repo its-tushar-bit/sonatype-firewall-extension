@@ -19,24 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationSummaryAdapterTest
 {
-  private ApplicationSummaryAdapter applicationAdapter = new ApplicationSummaryAdapter();
-
   @Test
-  public void testConvertApplication() {
+  public void testConvert_SingleApplication() {
     Application application = new Application();
     application.setId("testId");
     application.setPublicId("testPublicId");
     application.setName("testName");
 
-    ApplicationSummary applicationSummary = applicationAdapter.convert(application);
+    ApplicationSummary applicationSummary = ApplicationSummaryAdapter.convert(application);
     assertThat(applicationSummary.getId()).isEqualTo(application.getId());
     assertThat(applicationSummary.getPublicId()).isEqualTo(application.getPublicId());
     assertThat(applicationSummary.getName()).isEqualTo(application.getName());
   }
 
   @Test
-  public void testConvertApplication_Null() {
-    assertThat(applicationAdapter.convert((Application) null)).isNull();
+  public void testConvert_Null() {
+    assertThat(ApplicationSummaryAdapter.convert((Application) null)).isNull();
   }
 
   @Test
@@ -48,7 +46,7 @@ public class ApplicationSummaryAdapterTest
     application.setName("testName");
     applicationList.add(application);
 
-    ApplicationSummaryList applicationSummaryList = applicationAdapter.convert(applicationList);
+    ApplicationSummaryList applicationSummaryList = ApplicationSummaryAdapter.convert(applicationList);
     assertThat(applicationSummaryList).isNotNull();
     assertThat(applicationSummaryList.getApplicationSummaries()).hasSize(1);
     ApplicationSummary applicationSummary = applicationSummaryList.getApplicationSummaries().get(0);
@@ -58,16 +56,16 @@ public class ApplicationSummaryAdapterTest
   }
 
   @Test
-  public void testConvertApplicationList_EmptyList() {
-    ApplicationSummaryList applicationSummaryList = applicationAdapter.convert(Collections.emptyList());
+  public void testConvert_ApplicationList_EmptyList() {
+    ApplicationSummaryList applicationSummaryList = ApplicationSummaryAdapter.convert(Collections.emptyList());
     assertThat(applicationSummaryList).isNotNull();
     assertThat(applicationSummaryList.getApplicationSummaries()).isEmpty();
   }
 
   @Test
-  public void testConvertApplicationList_NullList() {
+  public void testConvert_ApplicationList_NullList() {
     List<Application> applicationList = null;
-    ApplicationSummaryList applicationSummaryList = applicationAdapter.convert(applicationList);
+    ApplicationSummaryList applicationSummaryList = ApplicationSummaryAdapter.convert(applicationList);
     assertThat(applicationSummaryList).isNotNull();
     assertThat(applicationSummaryList.getApplicationSummaries()).isEmpty();
   }

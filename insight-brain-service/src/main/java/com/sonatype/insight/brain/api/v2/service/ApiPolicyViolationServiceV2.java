@@ -91,8 +91,6 @@ public class ApiPolicyViolationServiceV2
 
   private final ApplicationService applicationService;
 
-  private final PolicyViolationAdapter policyViolationAdapter;
-
   private final ApiApplicationAdapter applicationAdapter;
 
   private final ApplicationComponentDAO applicationComponentDAO;
@@ -111,7 +109,6 @@ public class ApiPolicyViolationServiceV2
   public ApiPolicyViolationServiceV2(
       final PolicyViolationLoader policyViolationLoader,
       final ApplicationService applicationService,
-      final PolicyViolationAdapter policyViolationAdapter,
       final ApiApplicationAdapter applicationAdapter,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -122,7 +119,6 @@ public class ApiPolicyViolationServiceV2
   {
     this.policyViolationLoader = policyViolationLoader;
     this.applicationService = applicationService;
-    this.policyViolationAdapter = policyViolationAdapter;
     this.applicationAdapter = applicationAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -190,7 +186,7 @@ public class ApiPolicyViolationServiceV2
             ComponentDisplayNameUtil.fromIdentifier(policyViolation.getComponentIdentifier());
         apiPolicyViolationDTO.component.displayName =
             componentDisplayName != null ? componentDisplayName.toString() : null;
-        apiPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
+        apiPolicyViolationDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
       }
     }
     return apiPolicyViolationDTOs;

@@ -57,8 +57,6 @@ public class ApiCrossStageViolationService
 
   private final OwnerDAO ownerDAO;
 
-  private final PolicyViolationAdapter policyViolationAdapter;
-
   private final Comparator<PolicyViolationComparable> policyViolationComparator = new PolicyViolationComparator();
 
   private static final Comparator<Date> DATE_COMPARATOR = Comparator.nullsLast(Comparator.naturalOrder());
@@ -70,8 +68,7 @@ public class ApiCrossStageViolationService
       OrganizationDAO organizationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyDAO policyDAO,
-      OwnerDAO ownerDAO,
-      PolicyViolationAdapter policyViolationAdapter)
+      OwnerDAO ownerDAO)
   {
     this.policyViolationDAO = policyViolationDAO;
     this.applicationService = applicationService;
@@ -79,7 +76,6 @@ public class ApiCrossStageViolationService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyDAO = policyDAO;
     this.ownerDAO = ownerDAO;
-    this.policyViolationAdapter = policyViolationAdapter;
   }
 
   /**
@@ -287,7 +283,7 @@ public class ApiCrossStageViolationService
             (first, later) -> later
         ));
 
-    dto.constraintViolations = policyViolationAdapter.convert(firstViolation);
+    dto.constraintViolations = PolicyViolationAdapter.convert(firstViolation);
 
     return dto;
   }

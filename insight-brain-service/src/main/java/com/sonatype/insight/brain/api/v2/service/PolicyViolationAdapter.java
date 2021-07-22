@@ -8,8 +8,6 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Named;
-
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
@@ -20,10 +18,9 @@ import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 /**
  * @since 1.13.0
  */
-@Named
 public class PolicyViolationAdapter
 {
-  public List<ApiConstraintViolationDTO> convert(final AbstractPolicyViolation policyViolation) {
+  public static List<ApiConstraintViolationDTO> convert(final AbstractPolicyViolation policyViolation) {
     List<ApiConstraintViolationDTO> apiConstraintViolationsDTO = new ArrayList<>();
     for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
       ApiConstraintViolationDTO apiConstraintViolationDTO = new ApiConstraintViolationDTO();

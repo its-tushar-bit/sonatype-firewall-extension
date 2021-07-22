@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
@@ -17,13 +16,6 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 @Named
 public class ApiPolicyViolationAdapter
 {
-  private PolicyViolationAdapter policyViolationAdapter;
-
-  @Inject
-  public ApiPolicyViolationAdapter(final PolicyViolationAdapter policyViolationAdapter) {
-    this.policyViolationAdapter = policyViolationAdapter;
-  }
-
   public ApiPolicyViolationDTOV2 convert(
       final RepositoryPolicyViolation repositoryPolicyViolation)
   {
@@ -32,7 +24,7 @@ public class ApiPolicyViolationAdapter
     policyViolationDTOV2.policyName = repositoryPolicyViolation.getPolicyName();
     policyViolationDTOV2.threatLevel = repositoryPolicyViolation.getThreatLevel();
     policyViolationDTOV2.policyViolationId = repositoryPolicyViolation.getId();
-    policyViolationDTOV2.constraintViolations = this.policyViolationAdapter.convert(repositoryPolicyViolation);
+    policyViolationDTOV2.constraintViolations = PolicyViolationAdapter.convert(repositoryPolicyViolation);
     return policyViolationDTOV2;
   }
 }

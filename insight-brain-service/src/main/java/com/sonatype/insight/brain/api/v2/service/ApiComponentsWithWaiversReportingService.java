@@ -88,14 +88,11 @@ public class ApiComponentsWithWaiversReportingService
 
   private final ApplicationService applicationService;
 
-  private final PolicyViolationAdapter policyViolationAdapter;
-
   private final OwnerDAO ownerDAO;
 
   @Inject
   public ApiComponentsWithWaiversReportingService(
       ApplicationService applicationService,
-      PolicyViolationAdapter policyViolationAdapter,
       PolicyViolationLoader policyViolationLoader,
       RepositoryService repositoryService,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDao,
@@ -103,7 +100,6 @@ public class ApiComponentsWithWaiversReportingService
       OwnerDAO ownerDAO)
   {
     this.applicationService = applicationService;
-    this.policyViolationAdapter = policyViolationAdapter;
     this.policyViolationLoader = policyViolationLoader;
     this.repositoryService = repositoryService;
     this.repositoryPolicyViolationDao = repositoryPolicyViolationDao;
@@ -361,7 +357,7 @@ public class ApiComponentsWithWaiversReportingService
     waivedPolicyViolationDTO.policyName = policyViolation.getPolicyName();
     waivedPolicyViolationDTO.policyViolationId = policyViolation.getId();
     waivedPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
-    waivedPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
+    waivedPolicyViolationDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
 
     ApiPolicyWaiverDTO policyWaiverDTO;
     String policyWaiverId = policyViolation.getPolicyWaiverId();

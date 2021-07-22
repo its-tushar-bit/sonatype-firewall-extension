@@ -73,8 +73,6 @@ public class ApiReportViolationsDiffService
 
   private final ApplicationComponentDAO applicationComponentDAO;
 
-  private final PolicyViolationAdapter policyViolationAdapter;
-
   private final PolicyEvaluationDiffService policyEvaluationDiffService;
 
   private final ProductLicense productLicense;
@@ -90,7 +88,6 @@ public class ApiReportViolationsDiffService
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApiApplicationAdapter applicationAdapter,
       final ApplicationComponentDAO applicationComponentDAO,
-      final PolicyViolationAdapter policyViolationAdapter,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final ProductLicense productLicense,
       final ReportService reportService)
@@ -99,7 +96,6 @@ public class ApiReportViolationsDiffService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationAdapter = applicationAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
-    this.policyViolationAdapter = policyViolationAdapter;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.productLicense = productLicense;
     this.reportService = reportService;
@@ -279,7 +275,7 @@ public class ApiReportViolationsDiffService
     apiPolicyViolationForDiffDTO.component.packageUrl =
         PackageUrlIdentifier.toPackageUrl(policyViolation.getComponentIdentifier());
     apiPolicyViolationForDiffDTO.component.displayName = componentNamesMap.get(policyViolation.getHash());
-    apiPolicyViolationForDiffDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
+    apiPolicyViolationForDiffDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
 
     return apiPolicyViolationForDiffDTO;
   }

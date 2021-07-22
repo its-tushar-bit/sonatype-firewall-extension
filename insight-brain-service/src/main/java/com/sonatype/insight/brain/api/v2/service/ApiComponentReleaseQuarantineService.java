@@ -68,8 +68,6 @@ public class ApiComponentReleaseQuarantineService
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
-  private final PolicyViolationAdapter policyViolationAdapter;
-
   private final PolicyViolationLoggerFactory policyViolationLoggerFactory;
 
   @Inject
@@ -77,13 +75,11 @@ public class ApiComponentReleaseQuarantineService
       RepositoryDAO repositoryDAO,
       RepositoryComponentDAO repositoryComponentDAO,
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      PolicyViolationAdapter policyViolationAdapter,
       PolicyViolationLoggerFactory policyViolationLoggerFactory)
   {
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
-    this.policyViolationAdapter = policyViolationAdapter;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
   }
 
@@ -230,7 +226,7 @@ public class ApiComponentReleaseQuarantineService
     waivedPolicyViolationDTO.policyName = policyViolation.getPolicyName();
     waivedPolicyViolationDTO.policyViolationId = policyViolation.getId();
     waivedPolicyViolationDTO.threatLevel = policyViolation.getThreatLevel();
-    waivedPolicyViolationDTO.constraintViolations = policyViolationAdapter.convert(policyViolation);
+    waivedPolicyViolationDTO.constraintViolations = PolicyViolationAdapter.convert(policyViolation);
 
     ApiPolicyWaiverDTO policyWaiverDTO = ApiPolicyWaiverDTO.toDto(policyWaiver, null);
     policyWaiverDTO.isObsolete = false;

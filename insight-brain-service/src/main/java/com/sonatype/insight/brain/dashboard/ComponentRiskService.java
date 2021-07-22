@@ -48,19 +48,15 @@ public class ComponentRiskService
 
   private final PolicyViolationLoader policyViolationLoader;
 
-  private final PolicyViolationAdapter policyViolationAdapter;
-
   private final DashboardUtils dashboardUtils;
 
   @Inject
   public ComponentRiskService(ApplicationService applicationService,
                               PolicyViolationLoader policyViolationLoader,
-                              PolicyViolationAdapter policyViolationAdapter,
                               DashboardUtils dashboardUtils)
   {
     this.applicationService = applicationService;
     this.policyViolationLoader = policyViolationLoader;
-    this.policyViolationAdapter = policyViolationAdapter;
     this.dashboardUtils = dashboardUtils;
   }
 
@@ -148,7 +144,7 @@ public class ComponentRiskService
       for (ApplicationStageView appStageView : appView.getStageViews()) {
         PolicyEvaluation evaluation = appStageView.getLastEvaluation();
         for (PolicyViolation violation : appStageView.getFilteredViolations()) {
-          policyViolationDTOs.add(policyViolationAdapter.createPolicyViolationDTO(application, evaluation, violation));
+          policyViolationDTOs.add(PolicyViolationAdapter.createPolicyViolationDTO(application, evaluation, violation));
         }
       }
     }

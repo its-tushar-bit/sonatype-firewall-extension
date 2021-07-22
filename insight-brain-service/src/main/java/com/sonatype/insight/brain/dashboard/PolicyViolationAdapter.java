@@ -5,20 +5,16 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 
-@Named
-@Singleton
-public class PolicyViolationAdapter
+class PolicyViolationAdapter
 {
-  public PolicyViolationDTO createPolicyViolationDTO(Application application,
-                                                     PolicyEvaluation evaluation,
-                                                     PolicyViolation violation)
+  static PolicyViolationDTO createPolicyViolationDTO(
+      Application application,
+      PolicyEvaluation evaluation,
+      PolicyViolation violation)
   {
     PolicyViolationDTO dto = new PolicyViolationDTO();
     dto.applicationId = application.getId();

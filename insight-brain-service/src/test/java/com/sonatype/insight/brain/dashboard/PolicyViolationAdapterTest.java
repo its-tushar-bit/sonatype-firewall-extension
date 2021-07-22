@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -24,25 +23,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationAdapterTest
 {
-  private PolicyViolationAdapter policyViolationAdapter;
-
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  @Before
-  public void setup() {
-    policyViolationAdapter = new PolicyViolationAdapter();
-  }
-
   @Test
   public void testCreatePolicyViolationDTO() {
-    Application app = tempEntity.newApplicationWithParent("test-application");
+    Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
 
     PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scan-id");
     PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy);
 
-    PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, violation);
+    PolicyViolationDTO dto = PolicyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, violation);
 
     assertThat(dto).isNotNull();
     assertPolicyViolationDTO(Collections.singletonList(dto), violation, app, policyEvaluation, policy);
@@ -58,7 +50,7 @@ public class PolicyViolationAdapterTest
 
     new PolicyDAO().delete(policy);
 
-    PolicyViolationDTO dto = policyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, policyViolation);
+    PolicyViolationDTO dto = PolicyViolationAdapter.createPolicyViolationDTO(app, policyEvaluation, policyViolation);
 
     assertThat(dto).isNotNull();
     assertPolicyViolationDTO(Collections.singletonList(dto), policyViolation, app, policyEvaluation, policy);

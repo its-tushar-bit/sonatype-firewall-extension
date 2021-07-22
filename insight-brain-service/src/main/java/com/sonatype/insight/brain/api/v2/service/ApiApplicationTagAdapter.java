@@ -20,8 +20,9 @@ import com.sonatype.insight.brain.model.tag.ApplicationTag;
 @Named
 public class ApiApplicationTagAdapter
 {
-  public List<ApplicationTag> convertFromDTO(final String applicationId,
-                                             final List<ApiApplicationTagDTO> applicationTagDTOs)
+  static List<ApplicationTag> convertFromDTO(
+      final String applicationId,
+      final List<ApiApplicationTagDTO> applicationTagDTOs)
   {
     if (applicationTagDTOs == null) {
       return Collections.emptyList();
@@ -36,7 +37,7 @@ public class ApiApplicationTagAdapter
     return applicationTags;
   }
 
-  public List<ApiApplicationTagDTO> convertToDTO(final List<ApplicationTag> applicationTags) {
+  public static List<ApiApplicationTagDTO> convertToDTO(final List<ApplicationTag> applicationTags) {
     if (applicationTags == null) {
       return Collections.emptyList();
     }

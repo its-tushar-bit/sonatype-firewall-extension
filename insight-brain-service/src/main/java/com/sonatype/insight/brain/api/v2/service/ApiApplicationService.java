@@ -47,8 +47,6 @@ public class ApiApplicationService
 {
   private final ApiApplicationAdapter apiApplicationAdapter;
 
-  private final ApiApplicationTagAdapter apiApplicationTagAdapter;
-
   private final ApplicationTagDAO applicationTagDAO;
 
   private final RoleDAO roleDAO;
@@ -65,7 +63,6 @@ public class ApiApplicationService
 
   @Inject
   public ApiApplicationService(final ApiApplicationAdapter apiApplicationAdapter,
-                               final ApiApplicationTagAdapter apiApplicationTagAdapter,
                                final ApplicationTagDAO applicationTagDAO,
                                final RoleDAO roleDAO,
                                final ApplicationDAO applicationDAO,
@@ -75,7 +72,6 @@ public class ApiApplicationService
                                final OrganizationDAO organizationDAO)
   {
     this.apiApplicationAdapter = apiApplicationAdapter;
-    this.apiApplicationTagAdapter = apiApplicationTagAdapter;
     this.applicationTagDAO = applicationTagDAO;
     this.applicationDAO = applicationDAO;
     this.roleDAO = roleDAO;
@@ -134,7 +130,7 @@ public class ApiApplicationService
       tx.begin();
       AuditData.get().setParentOrganization(organizationDAO.getById(application.getParentOwnerId()));
       application = addApplication(tx, application);
-      List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(application.getId(),
+      List<ApplicationTag> applicationTags = ApiApplicationTagAdapter.convertFromDTO(application.getId(),
           applicationDTO.applicationTags);
       addTags(tx, applicationTags, application);
 
@@ -153,8 +149,8 @@ public class ApiApplicationService
 
       AuditData.get().setParentOrganization(organizationDAO.getById(application.getParentOwnerId()));
       application = updateApplication(tx, application);
-      List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(application.getId(),
-          applicationDTO.applicationTags);
+      List<ApplicationTag> applicationTags =
+          ApiApplicationTagAdapter.convertFromDTO(application.getId(), applicationDTO.applicationTags);
       updateTags(tx, application, applicationTags);
 
       tx.commit();

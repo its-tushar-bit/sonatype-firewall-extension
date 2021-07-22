@@ -25,12 +25,9 @@ public class ApiApplicationAdapter
 {
   private final ApplicationTagDAO applicationTagDAO;
 
-  private final ApiApplicationTagAdapter apiApplicationTagAdapter;
-
   @Inject
-  public ApiApplicationAdapter(ApplicationTagDAO applicationTagDAO, ApiApplicationTagAdapter apiApplicationTagAdapter) {
+  public ApiApplicationAdapter(ApplicationTagDAO applicationTagDAO) {
     this.applicationTagDAO = applicationTagDAO;
-    this.apiApplicationTagAdapter = apiApplicationTagAdapter;
   }
 
   /**
@@ -49,7 +46,7 @@ public class ApiApplicationAdapter
     populateDTO(applicationDTO, application);
 
     List<ApplicationTag> tags = applicationTagDAO.getByApplicationId(application.getId());
-    applicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(tags);
+    applicationDTO.applicationTags = ApiApplicationTagAdapter.convertToDTO(tags);
 
     return applicationDTO;
   }

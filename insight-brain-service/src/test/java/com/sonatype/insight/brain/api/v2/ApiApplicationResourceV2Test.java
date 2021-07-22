@@ -55,8 +55,6 @@ public class ApiApplicationResourceV2Test
 
   private ApiApplicationAdapter apiApplicationAdapter;
 
-  private final ApiApplicationTagAdapter apiApplicationTagAdapter = new ApiApplicationTagAdapter();
-
   private final RoleDAO roleDAO = new RoleDAO();
 
   private Organization organization;
@@ -157,7 +155,7 @@ public class ApiApplicationResourceV2Test
     List<ApiApplicationDTO> expectedApplications = new ArrayList<>(numApps);
     for (Application application : applications) {
       ApiApplicationDTO apiApplicationDTO = apiApplicationAdapter.convertToDTO(application);
-      apiApplicationDTO.applicationTags = apiApplicationTagAdapter.convertToDTO(appTagMap.get(apiApplicationDTO.id));
+      apiApplicationDTO.applicationTags = ApiApplicationTagAdapter.convertToDTO(appTagMap.get(apiApplicationDTO.id));
       expectedApplications.add(apiApplicationDTO);
     }
     assertApplications(applicationListDTO.applications, expectedApplications);

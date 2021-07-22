@@ -17,8 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiApplicationTagAdapterTest
 {
-  private final ApiApplicationTagAdapter apiApplicationTagAdapter = new ApiApplicationTagAdapter();
-
   private static final String ID = "testId";
 
   private static final String TAG_ID = "testTagId";
@@ -32,7 +30,7 @@ public class ApiApplicationTagAdapterTest
     applicationTag.setId(ID);
     applicationTags.add(applicationTag);
 
-    List<ApiApplicationTagDTO> apiApplicationTagDTOs = apiApplicationTagAdapter.convertToDTO(applicationTags);
+    List<ApiApplicationTagDTO> apiApplicationTagDTOs = ApiApplicationTagAdapter.convertToDTO(applicationTags);
     assertThat(apiApplicationTagDTOs).hasSize(1);
     assertThat(apiApplicationTagDTOs.get(0).id).isEqualTo(applicationTag.getId());
     assertThat(apiApplicationTagDTOs.get(0).applicationId).isEqualTo(applicationTag.getApplicationId());
@@ -41,7 +39,7 @@ public class ApiApplicationTagAdapterTest
 
   @Test
   public void testConvertToDTO_nullList() {
-    List<ApiApplicationTagDTO> apiApplicationTagDTOs = apiApplicationTagAdapter.convertToDTO(null);
+    List<ApiApplicationTagDTO> apiApplicationTagDTOs = ApiApplicationTagAdapter.convertToDTO(null);
     assertThat(apiApplicationTagDTOs).isEmpty();
   }
 
@@ -53,7 +51,7 @@ public class ApiApplicationTagAdapterTest
     apiApplicationTagDTO.tagId = TAG_ID;
     apiApplicationTagDTOs.add(apiApplicationTagDTO);
 
-    List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(APPLICATION_ID,
+    List<ApplicationTag> applicationTags = ApiApplicationTagAdapter.convertFromDTO(APPLICATION_ID,
         apiApplicationTagDTOs);
     assertThat(applicationTags).hasSize(1);
     assertThat(applicationTags.get(0).getId()).isEqualTo(apiApplicationTagDTO.id);
@@ -63,7 +61,7 @@ public class ApiApplicationTagAdapterTest
 
   @Test
   public void testConvertFromDTO_nullList() {
-    List<ApplicationTag> applicationTags = apiApplicationTagAdapter.convertFromDTO(APPLICATION_ID, null);
+    List<ApplicationTag> applicationTags = ApiApplicationTagAdapter.convertFromDTO(APPLICATION_ID, null);
     assertThat(applicationTags).isEmpty();
   }
 }

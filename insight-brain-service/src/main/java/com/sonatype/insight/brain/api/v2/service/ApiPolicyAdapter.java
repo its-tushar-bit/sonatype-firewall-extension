@@ -16,9 +16,9 @@ import com.sonatype.insight.brain.model.policy.Policy;
 /**
  * @since 1.12.0
  */
-public class ApiPolicyAdapter
+class ApiPolicyAdapter
 {
-  public static List<ApiPolicyDTO> convert(Collection<Policy> policies, ApiPolicyOwnerType ownerType) {
+  static List<ApiPolicyDTO> convert(Collection<Policy> policies, ApiPolicyOwnerType ownerType) {
     List<ApiPolicyDTO> apiPolicyDTOs = new ArrayList<>(policies.size());
     for (Policy policy : policies) {
       apiPolicyDTOs.add(convert(policy, ownerType));
@@ -26,7 +26,7 @@ public class ApiPolicyAdapter
     return apiPolicyDTOs;
   }
 
-  public static ApiPolicyDTO convert(Policy policy, ApiPolicyOwnerType ownerType) {
+  static ApiPolicyDTO convert(Policy policy, ApiPolicyOwnerType ownerType) {
     ApiPolicyDTO policyDTO = new ApiPolicyDTO();
     policyDTO.id = policy.getId();
     policyDTO.name = policy.getName();

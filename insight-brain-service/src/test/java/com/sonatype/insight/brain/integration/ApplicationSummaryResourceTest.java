@@ -10,7 +10,6 @@ import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
@@ -31,8 +30,7 @@ public class ApplicationSummaryResourceTest
 
   @Test
   public void testGetApplications_EvaluateApplication() throws Exception {
-    Organization organization = tempEntity.newOrganization();
-    Application application = tempEntity.newApplication(organization.getId());
+    Application application = tempEntity.newApplicationWithParent();
 
     HttpResponse response = summaryRequest(Goal.EVALUATE_APPLICATION).get();
     assertResponseStatus(200, response);
@@ -43,8 +41,7 @@ public class ApplicationSummaryResourceTest
 
   @Test
   public void testGetApplications_EvaluateComponent() throws Exception {
-    Organization organization = tempEntity.newOrganization();
-    Application application = tempEntity.newApplication(organization.getId());
+    Application application = tempEntity.newApplicationWithParent();
 
     HttpResponse response = summaryRequest(Goal.EVALUATE_COMPONENT).get();
     assertResponseStatus(200, response);
@@ -55,8 +52,7 @@ public class ApplicationSummaryResourceTest
 
   @Test
   public void testGetApplications_NoGoalSpecified() throws Exception {
-    Organization organization = tempEntity.newOrganization();
-    Application application = tempEntity.newApplication(organization.getId());
+    Application application = tempEntity.newApplicationWithParent();
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, response);

@@ -5,18 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import javax.inject.Named;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyViolationDTOV2;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 
 /**
  * @since 1.107.0
  */
-@Named
 public class ApiPolicyViolationAdapter
 {
-  public ApiPolicyViolationDTOV2 convert(
+  public static ApiPolicyViolationDTOV2 convert(
       final RepositoryPolicyViolation repositoryPolicyViolation)
   {
     ApiPolicyViolationDTOV2 policyViolationDTOV2 = new ApiPolicyViolationDTOV2();

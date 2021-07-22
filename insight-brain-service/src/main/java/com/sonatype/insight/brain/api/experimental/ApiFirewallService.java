@@ -80,8 +80,6 @@ public class ApiFirewallService
 
   private final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO;
 
-  private final ApiPolicyViolationAdapter apiPolicyViolationAdapter;
-
   private final TelemetrySender telemetrySender;
 
   @Inject
@@ -89,7 +87,6 @@ public class ApiFirewallService
       final ProductLicense productLicense,
       final RepositoryComponentDAO repositoryComponentDAO,
       final RepositoryDAO repositoryDAO,
-      final ApiPolicyViolationAdapter apiPolicyViolationAdapter,
       final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       final AutoUnquarantinePolicyConditionTypeDAO autoUnquarantinePolicyConditionTypeDAO,
       final TelemetrySender telemetrySender)
@@ -97,7 +94,6 @@ public class ApiFirewallService
     this.productLicense = productLicense;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryDAO = repositoryDAO;
-    this.apiPolicyViolationAdapter = apiPolicyViolationAdapter;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
     this.autoUnquarantinePolicyConditionTypeDAO = autoUnquarantinePolicyConditionTypeDAO;
     this.telemetrySender = telemetrySender;
@@ -310,7 +306,7 @@ public class ApiFirewallService
           .getByRepositoryIdAndPathnameAndActionAndNotWaived(component.getRepositoryId(), component.getPathname(),
               Action.ID_FAIL);
       for (RepositoryPolicyViolation policyViolation : violations) {
-        final ApiPolicyViolationDTOV2 policyViolationDTO = apiPolicyViolationAdapter.convert(policyViolation);
+        final ApiPolicyViolationDTOV2 policyViolationDTO = ApiPolicyViolationAdapter.convert(policyViolation);
         apiFirewallComponentDTO.quarantinePolicyViolations.add(policyViolationDTO);
       }
 

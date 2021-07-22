@@ -42,19 +42,15 @@ public class ApiComponentsInQuarantineReportingService
 
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
-  private final ApiPolicyViolationAdapter apiPolicyViolationAdapter;
-
   @Inject
   public ApiComponentsInQuarantineReportingService(
       final RepositoryService repositoryService,
       final RepositoryComponentDAO repositoryComponentDAO,
-      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
-      final ApiPolicyViolationAdapter apiPolicyViolationAdapter)
+      final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO)
   {
     this.repositoryService = repositoryService;
     this.repositoryComponentDAO = repositoryComponentDAO;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
-    this.apiPolicyViolationAdapter = apiPolicyViolationAdapter;
   }
 
   public ApiComponentsInQuarantineDTO getComponentsInQuarantine() {
@@ -111,7 +107,7 @@ public class ApiComponentsInQuarantineReportingService
           .getByRepositoryIdAndPathnameAndActionAndNotWaived(repositoryDTO.repository.getId(),
               repositoryComponent.getPathname(), Action.ID_FAIL);
       for (RepositoryPolicyViolation repositoryPolicyViolation : repositoryPolicyViolations) {
-        policyViolationDTOV2List.add(apiPolicyViolationAdapter.convert(repositoryPolicyViolation));
+        policyViolationDTOV2List.add(ApiPolicyViolationAdapter.convert(repositoryPolicyViolation));
       }
       repositoryComponentPolicyViolationDTO.policyViolations = policyViolationDTOV2List;
 

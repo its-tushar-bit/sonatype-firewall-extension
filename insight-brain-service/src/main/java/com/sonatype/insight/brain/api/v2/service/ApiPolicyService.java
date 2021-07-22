@@ -37,21 +37,17 @@ public class ApiPolicyService
 
   private final OrganizationService organizationService;
 
-  private final ApiPolicyAdapter apiPolicyAdapter;
-
   private final OwnerDAO ownerDAO;
 
   @Inject
   public ApiPolicyService(final PolicyDAO policyDAO,
                           final ApplicationService applicationService,
                           final OrganizationService organizationService,
-                          final ApiPolicyAdapter apiPolicyAdapter,
                           final OwnerDAO ownerDAO)
   {
     this.policyDAO = policyDAO;
     this.applicationService = applicationService;
     this.organizationService = organizationService;
-    this.apiPolicyAdapter = apiPolicyAdapter;
     this.ownerDAO = ownerDAO;
   }
 
@@ -68,9 +64,9 @@ public class ApiPolicyService
     getFilteredOwnerIds(applicationIds, organizationIds);
 
     List<Policy> appPolicies = policyDAO.getByOwnerIds(applicationIds);
-    apiPolicyList.addAll(apiPolicyAdapter.convert(appPolicies, ApiPolicyOwnerType.APPLICATION));
+    apiPolicyList.addAll(ApiPolicyAdapter.convert(appPolicies, ApiPolicyOwnerType.APPLICATION));
     List<Policy> orgPolicies = policyDAO.getByOwnerIds(organizationIds);
-    apiPolicyList.addAll(apiPolicyAdapter.convert(orgPolicies, ApiPolicyOwnerType.ORGANIZATION));
+    apiPolicyList.addAll(ApiPolicyAdapter.convert(orgPolicies, ApiPolicyOwnerType.ORGANIZATION));
 
     return apiPolicyList;
   }

@@ -26,18 +26,16 @@ public class ApiPolicyAdapterTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  private final ApiPolicyAdapter apiPolicyAdapter = new ApiPolicyAdapter();
-
   @Test
-  public void testConvert() {
+  public void testConvert_SinglePolicy() {
     Organization organization = tempEntity.newOrganization();
     Policy policy = tempEntity.newPolicy(organization);
-    ApiPolicyDTO policyDTO = apiPolicyAdapter.convert(policy, ApiPolicyOwnerType.ORGANIZATION);
+    ApiPolicyDTO policyDTO = ApiPolicyAdapter.convert(policy, ApiPolicyOwnerType.ORGANIZATION);
     PolicyAssertUtils.assertPolicy(policyDTO, policy, ApiPolicyOwnerType.ORGANIZATION);
   }
 
   @Test
-  public void testConvertList() {
+  public void testConvertList_ListOfPolicies() {
     Map<String, Policy> orgPolicyMap = new HashMap<>();
     Organization organization = tempEntity.newOrganization();
     Policy policy1 = tempEntity.newPolicy(organization);
@@ -45,7 +43,7 @@ public class ApiPolicyAdapterTest
     orgPolicyMap.put(policy1.getId(), policy1);
     orgPolicyMap.put(policy2.getId(), policy2);
 
-    List<ApiPolicyDTO> policyDTOList = apiPolicyAdapter.convert(orgPolicyMap.values(), ApiPolicyOwnerType.ORGANIZATION);
+    List<ApiPolicyDTO> policyDTOList = ApiPolicyAdapter.convert(orgPolicyMap.values(), ApiPolicyOwnerType.ORGANIZATION);
     assertThat(policyDTOList).hasSize(2);
     PolicyAssertUtils.assertPolicies(policyDTOList, orgPolicyMap, Collections.emptyMap());
   }

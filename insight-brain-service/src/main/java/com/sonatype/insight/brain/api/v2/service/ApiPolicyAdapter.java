@@ -9,9 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyOwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -19,11 +16,9 @@ import com.sonatype.insight.brain.model.policy.Policy;
 /**
  * @since 1.12.0
  */
-@Named
-@Singleton
 public class ApiPolicyAdapter
 {
-  public List<ApiPolicyDTO> convert(Collection<Policy> policies, ApiPolicyOwnerType ownerType) {
+  public static List<ApiPolicyDTO> convert(Collection<Policy> policies, ApiPolicyOwnerType ownerType) {
     List<ApiPolicyDTO> apiPolicyDTOs = new ArrayList<>(policies.size());
     for (Policy policy : policies) {
       apiPolicyDTOs.add(convert(policy, ownerType));
@@ -31,7 +26,7 @@ public class ApiPolicyAdapter
     return apiPolicyDTOs;
   }
 
-  public ApiPolicyDTO convert(Policy policy, ApiPolicyOwnerType ownerType) {
+  public static ApiPolicyDTO convert(Policy policy, ApiPolicyOwnerType ownerType) {
     ApiPolicyDTO policyDTO = new ApiPolicyDTO();
     policyDTO.id = policy.getId();
     policyDTO.name = policy.getName();

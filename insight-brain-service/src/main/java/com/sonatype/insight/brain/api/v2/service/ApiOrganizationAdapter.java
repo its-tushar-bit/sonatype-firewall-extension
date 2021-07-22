@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Named;
-
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiOrganizationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiTagDTO;
@@ -20,10 +18,9 @@ import com.sonatype.insight.brain.model.tag.Tag;
 /**
  * @since 1.11.0
  */
-@Named
-public class ApiOrganizationAdapter
+class ApiOrganizationAdapter
 {
-  public ApiOrganizationListDTO convert(List<Organization> organizations, Map<String, List<Tag>> orgTagMap) {
+  static ApiOrganizationListDTO convert(List<Organization> organizations, Map<String, List<Tag>> orgTagMap) {
     final List<ApiOrganizationDTO> dtoList = new ArrayList<>(organizations.size());
     for (final Organization organization : organizations) {
       dtoList.add(convert(organization, orgTagMap.get(organization.getId())));
@@ -33,7 +30,7 @@ public class ApiOrganizationAdapter
     return organizationListDTO;
   }
 
-  public ApiOrganizationDTO convert(Organization organization, List<Tag> tags) {
+  static ApiOrganizationDTO convert(Organization organization, List<Tag> tags) {
     ApiOrganizationDTO apiOrganizationDTO = new ApiOrganizationDTO();
     apiOrganizationDTO.id = organization.getId();
     apiOrganizationDTO.name = organization.getName();

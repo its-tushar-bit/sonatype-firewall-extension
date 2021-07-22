@@ -39,19 +39,15 @@ public class ApiOrganizationService
 
   private final OrganizationService organizationService;
 
-  private final ApiOrganizationAdapter apiOrganizationAdapter;
-
   @Inject
   public ApiOrganizationService(
       OrganizationDAO organizationDAO,
       final TagDAO tagDAO,
-      final OrganizationService organizationService,
-      final ApiOrganizationAdapter apiOrganizationAdapter)
+      final OrganizationService organizationService)
   {
     this.organizationDAO = organizationDAO;
     this.tagDAO = tagDAO;
     this.organizationService = organizationService;
-    this.apiOrganizationAdapter = apiOrganizationAdapter;
   }
 
   public ApiOrganizationListDTO getOrganizations(Set<String> orgNames) {
@@ -63,14 +59,14 @@ public class ApiOrganizationService
       orgTagMap.put(organization.getId(), tags);
     }
 
-    return apiOrganizationAdapter.convert(organizations, orgTagMap);
+    return ApiOrganizationAdapter.convert(organizations, orgTagMap);
   }
 
   @Authorize(permission = Permission.READ)
   public ApiOrganizationDTO getOrganizationById(@AuthzContext(AuthzContext.Key.ORGANIZATION_ID) String organizationId) {
     Organization organization = organizationDAO.getById(organizationId);
     List<Tag> tags = tagDAO.getByOrganizationId(organizationId);
-    return apiOrganizationAdapter.convert(organization, tags);
+    return ApiOrganizationAdapter.convert(organization, tags);
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.ORGANIZATION)
@@ -92,6 +88,6 @@ public class ApiOrganizationService
     Organization apiOrganization = new Organization(apiOrganizationDTO.name);
     Organization newOrganization = organizationService.addOrganization(apiOrganization);
 
-    return apiOrganizationAdapter.convert(newOrganization, Collections.emptyList());
+    return ApiOrganizationAdapter.convert(newOrganization, Collections.emptyList());
   }
 }

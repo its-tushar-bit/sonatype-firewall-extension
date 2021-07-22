@@ -27,8 +27,6 @@ public class ApiOrganizationAdapterTest
   @Rule
   public TemporaryEntity tempEntity = new TemporaryEntity();
 
-  private final ApiOrganizationAdapter apiOrganizationAdapter = new ApiOrganizationAdapter();
-
   @Test
   public void testConvert_EntityListToDTO() {
     Organization org = tempEntity.newOrganization();
@@ -42,7 +40,7 @@ public class ApiOrganizationAdapterTest
     organizations.add(org);
     orgTagMap.put(org.getId(), tagList);
 
-    ApiOrganizationListDTO apiOrganizationListDTO = apiOrganizationAdapter.convert(organizations, orgTagMap);
+    ApiOrganizationListDTO apiOrganizationListDTO = ApiOrganizationAdapter.convert(organizations, orgTagMap);
     assertThat(apiOrganizationListDTO).isNotNull();
 
     assertThat(apiOrganizationListDTO.organizations).hasSize(1);
@@ -66,7 +64,7 @@ public class ApiOrganizationAdapterTest
     List<Tag> tagList = new ArrayList<>();
     tagList.add(tag);
 
-    ApiOrganizationDTO organizationDTO = apiOrganizationAdapter.convert(org, tagList);
+    ApiOrganizationDTO organizationDTO = ApiOrganizationAdapter.convert(org, tagList);
     assertThat(organizationDTO.id).isEqualTo(org.getId());
     assertThat(organizationDTO.name).isEqualTo(org.getName());
     assertThat(organizationDTO.tags).hasSize(1);

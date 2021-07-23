@@ -15,6 +15,22 @@ import org.apache.http.HttpEntity;
 
 public interface HdsClient
 {
+  class RelayResponse<T>
+  {
+    public T content;
+
+    public String contentType;
+
+    public RelayResponse(T content) {
+      this(content, null);
+    }
+
+    public RelayResponse(T content, String contentType) {
+      this.content = content;
+      this.contentType = contentType;
+    }
+  }
+
   void start() throws Exception;
 
   void stop() throws Exception;
@@ -25,22 +41,26 @@ public interface HdsClient
 
   <T> T get(Class<T> clazz, String url);
 
-  <T> T relay(HttpServletRequest request, Class<T> clazz, String path, String... uriParams) throws IOException;
+  <T> RelayResponse<T> relay(
+      HttpServletRequest request,
+      Class<T> clazz,
+      String path,
+      String... uriParams) throws IOException;
 
-  <T> T relay(HttpServletRequest request,
-              Class<T> clazz,
-              String path,
-              Map<String, String> queryParams,
-              String... uriParams)
-      throws IOException;
+  <T> RelayResponse<T> relay(
+      HttpServletRequest request,
+      Class<T> clazz,
+      String path,
+      Map<String, String> queryParams,
+      String... uriParams) throws IOException;
 
-  <T> T relay(HttpServletRequest request,
-              HdsClientAnalytics analytics,
-              Class<T> clazz,
-              String path,
-              Map<String, String> queryParams,
-              String... uriParams)
-          throws IOException;
+  <T> RelayResponse<T> relay(
+      HttpServletRequest request,
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String path,
+      Map<String, String> queryParams,
+      String... uriParams) throws IOException;
 
   /**
    * @since 1.46

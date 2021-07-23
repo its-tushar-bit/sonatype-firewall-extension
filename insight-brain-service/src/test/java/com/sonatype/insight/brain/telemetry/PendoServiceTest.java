@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
 import com.sonatype.insight.brain.version.VersionService;
@@ -123,7 +124,7 @@ public class PendoServiceTest
   @Test
   public void testProxy() throws Exception {
     HttpServletRequest request = mock(HttpServletRequest.class);
-    InputStream result = mock(InputStream.class);
+    RelayResponse<InputStream> result = new RelayResponse<>(mock(InputStream.class));
 
     when(hdsClient.relay(eq(request), eq(InputStream.class), eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar")))
         .thenReturn(result);
@@ -139,7 +140,7 @@ public class PendoServiceTest
     when(hdsClient.relay(eq(request), eq(InputStream.class), eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar")))
         .thenThrow(new IOException());
 
-    try (InputStream in = pendoService.proxy(request, "foo/bar")) {
+    try (InputStream in = pendoService.proxy(request, "foo/bar").content) {
       assertThat(in).hasContent("");
     }
   }

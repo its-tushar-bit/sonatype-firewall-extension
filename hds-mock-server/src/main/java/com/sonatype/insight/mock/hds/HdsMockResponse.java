@@ -64,6 +64,11 @@ public class HdsMockResponse
     return pathname.endsWith(".json") ? CONTENT_TYPE_JSON : CONTENT_TYPE_OCTET_STREAM;
   }
 
+  public HdsMockResponse withType(String contentType) {
+    this.contentType = contentType;
+    return this;
+  }
+
   public HdsMockResponse andStatus(int status) {
     this.status = status;
     return this;

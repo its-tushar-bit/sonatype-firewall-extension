@@ -47,7 +47,9 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 
   @Test
   public void testProxyGet() throws Exception {
-    getHdsServer().respondWith("some response").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
+    String contentType = "application/javascript;charset=UTF-8";
+    getHdsServer().respondWith("some response").withType(contentType)
+        .atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
         .build("foo/bar").toString();
@@ -55,6 +57,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     assertResponseStatus(200, response);
 
     assertThat(response.getBodyText()).isEqualTo("some response");
+    assertThat(response.getContentType()).isEqualTo(contentType);
   }
 
   @Test

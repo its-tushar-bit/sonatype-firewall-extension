@@ -16,6 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -56,7 +57,7 @@ public class ComponentInfoServiceAuthzTest
     lenient().when(hdsClientMock.get(any(Class.class), any(String.class), any(Map.class))).thenReturn(
         componentDetailsList);
     lenient().when(hdsClientMock.relay((HttpServletRequest) any(), any(Class.class), any(String.class), any(Map.class)))
-        .thenReturn(namedComponentDetails);
+        .thenReturn(new RelayResponse<>(namedComponentDetails));
   }
 
   @Deprecated

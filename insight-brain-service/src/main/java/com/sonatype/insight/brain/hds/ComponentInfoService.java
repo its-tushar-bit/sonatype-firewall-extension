@@ -240,7 +240,7 @@ public class ComponentInfoService
 
             try {
               componentDetails = hdsClient.relay(httpRequest, NamedComponentDetails.class, "rest/" + toolName
-                  + "/componentDetails", queryParams);
+                  + "/componentDetails", queryParams).content;
               if (componentDetails == null) {
                 // HDS returned 204 No content
                 return createEmptyComponentDetails(hash, identifier);

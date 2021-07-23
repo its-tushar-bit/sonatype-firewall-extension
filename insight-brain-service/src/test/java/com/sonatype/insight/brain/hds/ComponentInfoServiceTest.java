@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentLicenses;
 import com.sonatype.insight.brain.hds.ComponentInfoService.ComponentSecurityVulnerabilities;
 import com.sonatype.insight.brain.hds.ComponentInfoService.LicenseWithThreatLevel;
+import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -190,7 +191,7 @@ public class ComponentInfoServiceTest
   private void mockHdsGetComponentDetails(NamedComponentDetails hdsComponentDetails) throws IOException {
     when(
         hdsClientMock.relay(httpRequestMock, NamedComponentDetails.class, "rest/" + TOOL_NAME + "/componentDetails",
-            newCoordinatesQueryParam(hdsComponentDetails))).thenReturn(hdsComponentDetails);
+            newCoordinatesQueryParam(hdsComponentDetails))).thenReturn(new RelayResponse<>(hdsComponentDetails));
   }
 
   private void mockHdsGetComponentDetailsException(NamedComponentDetails hdsComponentDetails) throws IOException {
@@ -1739,7 +1740,7 @@ public class ComponentInfoServiceTest
   public void testGetComponentDetailsFromHDS_NoDetailsReturned() throws Exception {
     when(hdsClientMock.relay(eq(httpRequestMock), eq(NamedComponentDetails.class),
         eq("rest/" + TOOL_NAME + "/componentDetails"),
-        any(Map.class))).thenReturn(null);
+        any(Map.class))).thenReturn(new RelayResponse<>(null));
 
     final ComponentIdentifier terraformCoords =
         ComponentIdentifier.createTerraformCoordinates("plan", "name", "version");

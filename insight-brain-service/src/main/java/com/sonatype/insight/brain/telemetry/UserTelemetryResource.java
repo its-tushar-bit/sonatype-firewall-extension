@@ -19,6 +19,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
 
 /**
@@ -71,12 +72,17 @@ public class UserTelemetryResource
   @POST
   @Path(EVENTS_PATH)
   public Response proxyPost(@Context HttpServletRequest request, @PathParam("path") String pendoPath) {
-    return Response.ok(pendoService.proxy(request, pendoPath)).build();
+    return proxyRequest(request, pendoPath);
   }
 
   @GET
   @Path(EVENTS_PATH)
   public Response proxyGet(@Context HttpServletRequest request, @PathParam("path") String pendoPath) {
-    return Response.ok(pendoService.proxy(request, pendoPath)).build();
+    return proxyRequest(request, pendoPath);
+  }
+
+  private Response proxyRequest(HttpServletRequest request, String path) {
+    RelayResponse<?> response = pendoService.proxy(request, path);
+    return Response.ok(response.content, response.contentType).build();
   }
 }

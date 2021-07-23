@@ -601,7 +601,7 @@ public class DefaultHdsClientTest
         ":\"\",\"version\":\"1.8.14\"}} ");
 
     //making sure reserved characters are preserved where they should be and encoded in the query values
-    String requestUri = client.relay(httpServletRequest, String.class, "rest/ci/componentDetails", queryParams);
+    String requestUri = client.relay(httpServletRequest, String.class, "rest/ci/componentDetails", queryParams).content;
     assertThat("&" + requestUri).contains(
         "&name2=%7B%22format%22%3A%22a-name%22%2C%22coordinates%22%3A%7B%22name%22%3A%22org.dojotoolkit"
             + "+dojo%22%2C%22qualifier%22%3A%22%22%2C%22version%22%3A%221.8.14%22%7D%7D",

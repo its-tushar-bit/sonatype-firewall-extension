@@ -199,33 +199,43 @@ public class DefaultHdsClient
   }
 
   @Override
-  public <T> T relay(HttpServletRequest request, Class<T> clazz, String path, String... uriParams) throws IOException {
+  public <T> RelayResponse<T> relay(
+      HttpServletRequest request,
+      Class<T> clazz,
+      String path,
+      String... uriParams) throws IOException
+  {
     return relay(request, clazz, path, null, uriParams);
   }
 
   @Override
-  public <T> T relay(HttpServletRequest request,
-                     Class<T> clazz,
-                     String path,
-                     Map<String, String> queryParams,
-                     String... uriParams)
-      throws IOException
+  public <T> RelayResponse<T> relay(
+      HttpServletRequest request,
+      Class<T> clazz,
+      String path,
+      Map<String, String> queryParams,
+      String... uriParams) throws IOException
   {
     return relay(request, null, clazz, path, queryParams, uriParams);
   }
 
   @Override
-  public <T> T relay(HttpServletRequest request,
-                     HdsClientAnalytics analytics,
-                     Class<T> clazz,
-                     String path,
-                     Map<String, String> queryParams,
-                     String... uriParams)
-      throws IOException
+  public <T> RelayResponse<T> relay(
+      HttpServletRequest request,
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String path,
+      Map<String, String> queryParams,
+      String... uriParams) throws IOException
   {
     String url = buildUri(request, path, queryParams, uriParams);
     HttpUriRequest cloudReq = createRequest(request, url, analytics);
-    return execute(cloudReq, clazz);
+    HttpResponse response = execute(cloudReq);
+    RelayResponse<T> relayResponse = new RelayResponse<>(fromHttpResponse(response, clazz));
+    if (response.getEntity() != null && response.getEntity().getContentType() != null) {
+      relayResponse.contentType = response.getEntity().getContentType().getValue();
+    }
+    return relayResponse;
   }
 
   public HttpResponse forwardingProxy(HttpServletRequest request, Map<String, String> queryParams)

@@ -100,7 +100,7 @@ public class IdeResource
     String applicationId = app.getId();
 
     MatchedComponent matchedComponent = client.relay(req, MatchedComponent.class, "rest/ide/scan/{scanType}/{path}",
-        scanType, path);
+        scanType, path).content;
     // Is this a manually claimed component?
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifierDAO().getByHash(matchedComponent
         .getHash());
@@ -172,7 +172,7 @@ public class IdeResource
   @Path("component/versions")
   @Produces(MediaType.APPLICATION_JSON)
   public String[] getVersions(@Context HttpServletRequest req) throws IOException {
-    return client.relay(req, String[].class, "rest/ide/artifact/versions");
+    return client.relay(req, String[].class, "rest/ide/artifact/versions").content;
   }
 
   /**

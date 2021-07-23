@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -90,15 +91,14 @@ public class PendoService
     return pendoConfig;
   }
 
-  public InputStream proxy(HttpServletRequest request, String pendoPath) {
+  public RelayResponse<InputStream> proxy(HttpServletRequest request, String pendoPath) {
     try {
-
       return hdsClient.relay(request, InputStream.class,
           UriBuilder.fromPath(HDS_TELEMETRY_PATH).path(pendoPath).build().toString());
     }
     catch (Exception e) {
       log.debug("An error occurred while proxying user telemetry", e);
-      return new ByteArrayInputStream(new byte[0]);
+      return new RelayResponse<>(new ByteArrayInputStream(new byte[0]));
     }
   }
 

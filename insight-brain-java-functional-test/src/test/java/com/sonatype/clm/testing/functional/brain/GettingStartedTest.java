@@ -91,7 +91,6 @@ public class GettingStartedTest
     gettingStartedPage.productLicenseSummary().shouldBe(visible);
     checkLicenseSummaryContent();
     gettingStartedPage.systemSetup().shouldBe(visible);
-    eyesWatcher.eyesCheck("Non-default admin user");
     scrollIntoView(gettingStartedPage.learningTopics()).shouldBe(visible);
 
     testCLMServer.getHdsServer().respondWith("alive").atUri("ping");

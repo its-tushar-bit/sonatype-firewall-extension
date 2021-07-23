@@ -164,7 +164,6 @@ public class VersionGraphVsTest
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
     VersionsCIP.hideDetailsLink().shouldBe(visible);
-    eyesWatcher.eyesCheck("Component Info Screen");
   }
 
   @Test

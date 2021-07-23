@@ -157,7 +157,6 @@ public class ViolationDetailsTest
     tile.policyOwner().shouldHave(text("Policy no longer exists"));
     tile.waiversIndicator().shouldNotBe(visible);
     tile.manageWaiversButton().shouldNotBe(visible);
-    eyesWatcher.eyesCheck();
   }
 
   @Test
@@ -331,7 +330,6 @@ public class ViolationDetailsTest
     SidebarNavListItem selectedItem = sidebarNav.navItem(32);
     selectedItem.shouldBe(visible);
     selectedItem.shouldHave(cssClass("selected"));
-    eyesWatcher.eyesCheck("selected element is visible");
   }
 
   @Test

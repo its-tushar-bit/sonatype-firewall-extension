@@ -67,8 +67,6 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.itemSubText().shouldBe(visible)
         .shouldHave(Condition.text("Source Control not configured"));
 
-    eyesWatcher.eyesCheck("Source control not configured");
-
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "TEST_TOKEN", SourceControlProvider.GITHUB);
     refresh();
 
@@ -129,7 +127,5 @@ public class RootOrganizationSummaryViewTest extends AbstractFunctionalTest
     tile.content().shouldBe(visible);
 
     tile.itemSubText().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Source Control Notifications Only License");
   }
 }

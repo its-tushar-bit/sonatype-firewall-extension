@@ -103,8 +103,6 @@ public class FirewallPageTest
     page.firewallAutoReleaseQuarantine().shouldBe(visible);
     page.firewallQuarantineTable().shouldBe(visible);
     page.firewallConfigurationModal().shouldBe(hidden);
-
-    eyesWatcher.eyesCheck("Auto unquarantine page loads");
   }
 
   @Test

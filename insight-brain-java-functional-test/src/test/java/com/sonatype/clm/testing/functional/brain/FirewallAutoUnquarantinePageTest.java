@@ -186,8 +186,6 @@ public class FirewallAutoUnquarantinePageTest
     page.shouldBe(visible);
     page.firewallUnquarantineTable().tableBodyRows().shouldHaveSize(2);
     page.firewallUnquarantineTable().tableBodyRows().shouldHave(texts("g : a : v", "g : a : v"));
-
-    eyesWatcher.eyesCheck("Auto Unquarantine Grid visible with data");
   }
 
   @Test

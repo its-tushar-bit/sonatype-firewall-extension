@@ -495,6 +495,10 @@ export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }
 
+export function getSuccessMetricsReportsUrl() {
+  return uriTemplate`/rest/successMetrics/report`;
+}
+
 export function getRequestWaiverUrl(policyViolationId) {
   return uriTemplate`/api/v2/policyWaiver/${policyViolationId}/application`;
 }
@@ -793,7 +797,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
       getSuccessMetricsComponentCountsUrl: (successMetricsReportId) =>
         `${baseUrl.get()}/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/componentCounts`,
 
-      getSuccessMetricsReportsUrl: () => `${baseUrl.get()}/rest/successMetrics/report`,
+      getSuccessMetricsReportsUrl,
 
       getSuccessMetricsReportUrl: (successMetricsId) =>
         `${baseUrl.get()}/rest/successMetrics/report/${successMetricsId}`,

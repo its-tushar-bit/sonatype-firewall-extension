@@ -34,9 +34,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.FOOTER_ERROR_CLASS;
 import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_DISABLED_CLASS;
-import static com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal.SUBMIT_BUTTON_ERROR_CLASS;
 
 public class SuccessMetricsReportListTest
     extends AbstractFunctionalTest
@@ -134,7 +132,7 @@ public class SuccessMetricsReportListTest
     modal.includingMostRecentEvaluations().shouldNotBe(selected);
     modal.allApplicationsRadioBtn().shouldHave(text("all applications")).shouldBe(selected);
     modal.customRadioBtn().shouldHave(text("custom")).shouldNotBe(selected);
-    modal.createBtn().shouldHave(text("Create")).click();
+    modal.createBtn().shouldHave(text("Submit")).click();
 
     page.successMetricsChartActionItems().elements().shouldHaveSize(1);
     page.successMetricsChartActionItems().element(0).shouldHave(text("Root Org Chart")).click();
@@ -296,9 +294,6 @@ public class SuccessMetricsReportListTest
     modal.name().setValue("Tes t");
     modal.createBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
     modal.createBtn().click();
-    modal.footer().shouldHave(cssClass(FOOTER_ERROR_CLASS));
-    modal.createBtn().shouldHave(cssClass(SUBMIT_BUTTON_ERROR_CLASS)).shouldHave(text("Retry"))
-      .shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
     modal.cancelBtn().shouldNotHave(cssClass(SUBMIT_BUTTON_DISABLED_CLASS));
 
     modal.cancelBtn().click();

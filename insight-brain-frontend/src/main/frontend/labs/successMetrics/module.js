@@ -5,7 +5,6 @@
  */
 import successMetricsDataService from './successMetricsDataService';
 import successMetricsReportList from './successMetricsReportList';
-import addSuccessMetricsReportModal from './addSuccessMetricsReportModal/addSuccessMetricsReportModal';
 import mttrChart from './successMetricsReport/mttrChart/mttrChart';
 import violationAveragesChart from './successMetricsReport/violationAveragesChart/violationAveragesChart';
 import applicationCountsChart from './successMetricsReport/applicationCountsChart/applicationCountsChart';
@@ -20,6 +19,9 @@ import commonServicesModule from '../../util/CommonServices';
 import componentsModule from '../../components/module';
 import renderCombinedTrendsChart from './successMetricsReport/violationTrendsChart/renderCombinedTrendsChart';
 import violationTrendsChart from './successMetricsReport/violationTrendsChart/violationTrendsChart';
+import { react2angular } from 'react2angular';
+import addSuccessMetricsReportContainer from './addSuccessMetricsReport/AddSuccessMetricsReportContainer';
+import withStoreProvider from '../../reactAdapter/StoreProvider';
 
 export default angular
   .module('successMetricsModule', [
@@ -32,7 +34,6 @@ export default angular
   ])
   .service('successMetricsDataService', successMetricsDataService)
   .component('successMetricsReportList', successMetricsReportList)
-  .component('addSuccessMetricsReportModal', addSuccessMetricsReportModal)
   .component('mttrChart', mttrChart)
   .component('violationAveragesChart', violationAveragesChart)
   .component('applicationCountsChart', applicationCountsChart)
@@ -42,4 +43,8 @@ export default angular
   .component('successMetricsReport', successMetricsReport)
   .directive('renderCombinedTrendsChart', renderCombinedTrendsChart)
   .component('violationTrendsChart', violationTrendsChart)
+  .component(
+    'addSuccessMetricsReportContainer',
+    react2angular(withStoreProvider(addSuccessMetricsReportContainer), ['close', 'dismiss', 'reports'], ['$ngRedux'])
+  )
   .filter('abs', () => Math.abs);

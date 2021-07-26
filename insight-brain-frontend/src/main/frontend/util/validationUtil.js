@@ -6,6 +6,9 @@
 import { applyTo, curryN, isNil, map, prop, reject, test, isEmpty, none, any, values } from 'ramda';
 import isValidHostname from 'is-valid-hostname';
 
+export const validateDoubleWhitespace = (payload) =>
+  test(/ {2,}|\t/, payload) ? 'No leading, trailing or double spaces or tabs' : null;
+
 export const validateHostname = (value) => (isValidHostname(value) ? null : 'Invalid host name');
 
 export const validateNonEmpty = (val) => (val && val.length ? null : 'Must be non-empty');

@@ -15,6 +15,7 @@ import {
 import { OBLIGATION_STATUS_TO_DISPLAY, OBLIGATION_STATUSES } from '../advancedLegalConstants';
 import * as PropTypes from 'prop-types';
 import { availableScopesPropType, licenseObligationPropType } from '../advancedLegalPropTypes';
+import { createScopeOption } from '../legalUtility';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -75,14 +76,6 @@ export default function LicenseObligationModal(props) {
   };
 
   const [commentTextInput, setCommentTextInput] = useState(initialState(licenseObligation.comment));
-
-  const createScopeOption = (value) => {
-    return (
-      <option key={value.id} value={value.id}>
-        {value.label} - {value.name}
-      </option>
-    );
-  };
 
   return (
     <NxModal key={licenseObligation.name} onClose={() => cancelObligationModal({ name: licenseObligation.name })}>

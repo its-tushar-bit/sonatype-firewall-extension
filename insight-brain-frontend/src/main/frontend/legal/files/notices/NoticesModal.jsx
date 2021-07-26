@@ -18,6 +18,7 @@ import * as PropTypes from 'prop-types';
 import { availableScopesPropType, legalFilesPropType, licenseObligationPropType } from '../../advancedLegalPropTypes';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 import ObligationStatusComponent from '../../shared/ObligationStatusComponent';
+import { createScopeOption } from '../../legalUtility';
 
 export default function NoticesModal(props) {
   const {
@@ -69,12 +70,6 @@ export default function NoticesModal(props) {
         </NxToggle>
       </td>
     </tr>
-  );
-
-  const createScopeOption = (value) => (
-    <option key={value.id} value={value.id}>
-      {value.label} - {value.name}
-    </option>
   );
 
   const notValidErrorMessage = 'A custom notice must have text.';

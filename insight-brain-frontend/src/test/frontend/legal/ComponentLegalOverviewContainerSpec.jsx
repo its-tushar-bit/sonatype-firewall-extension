@@ -18,6 +18,7 @@ describe('ComponentLegalOverviewContainer', function () {
           component: {
             licenseLegalData: {
               obligations: 'obligations',
+              showLicensesModal: 'showLicensesModal',
             },
           },
           licenseLegalMetadata: 'licenseLegalMetadata',
@@ -63,6 +64,7 @@ describe('ComponentLegalOverviewContainer', function () {
     expect(wrapper).toHaveProp('component', {
       licenseLegalData: {
         obligations: 'obligations',
+        showLicensesModal: 'showLicensesModal',
       },
     });
     expect(wrapper).toHaveProp('licenseLegalMetadata', 'licenseLegalMetadata');

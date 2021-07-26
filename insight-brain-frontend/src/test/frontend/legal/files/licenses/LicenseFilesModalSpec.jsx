@@ -7,7 +7,7 @@ import * as enzymeUtils from '../../../enzymeUtils';
 import LicenseFilesModal from '../../../../../main/frontend/legal/files/licenses/LicenseFilesModal';
 import { NxButton, NxForm, NxTextInput, NxToggle } from '@sonatype/react-shared-components';
 
-describe('LicensesModal', function () {
+describe('LicenseFilesModal', function () {
   let getShallowComponent,
     minimalProps,
     cancelLicenseFilesModalSpy,

@@ -21,6 +21,7 @@ import classnames from 'classnames';
 import { availableScopesPropType, licenseObligationPropType } from './advancedLegalPropTypes';
 import ObligationStatusComponent from './shared/ObligationStatusComponent';
 import { ATTRIBUTION_DISPLAY_MAP } from './advancedLegalConstants';
+import { createScopeOption } from './legalUtility';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -193,14 +194,6 @@ export default function LicenseObligationAttributionTile(props) {
           </div>
         </NxForm>
       </NxModal>
-    );
-  };
-
-  const createScopeOption = (value) => {
-    return (
-      <option key={value.id} value={value.id}>
-        {value.label} - {value.name}
-      </option>
     );
   };
 

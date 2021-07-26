@@ -84,6 +84,8 @@ export const ATTRIBUTION_DISPLAY_MAP = {
   },
 };
 
+export const EDIT_LICENSE_MODAL_STATUS_OPTIONS = ['Open', 'Acknowledged', 'Overridden', 'Selected', 'Confirmed'];
+
 export const statusTagPropsMap = {
   Overridden: 'purple',
   Selected: 'indigo',

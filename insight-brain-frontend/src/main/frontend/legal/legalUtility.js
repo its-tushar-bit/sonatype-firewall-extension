@@ -79,10 +79,17 @@ export function getLicenseThreatGroupsFromLicense(license) {
     : license.licenseThreatGroups;
 }
 
-export function scopeName(scopeOwnerId, availableScopes) {
+export function getRelevantScope(scopeOwnerId, availableScopes) {
+  const rootScope = {
+    id: 'ROOT_ORGANIZATION_ID',
+    label: 'Organization',
+    name: 'Root Organization',
+    publicId: 'ROOT_ORGANIZATION_ID',
+    type: 'organization',
+  };
   const availableScopeValues = (availableScopes && availableScopes.values && [...availableScopes.values]) || [];
   const scopeIndex = findIndex(propEq('id', scopeOwnerId), availableScopeValues);
-  return scopeIndex < 0 ? 'Root Organization' : availableScopeValues[scopeIndex].name;
+  return scopeIndex < 0 ? rootScope : availableScopeValues[scopeIndex];
 }
 
 export function ifExistsElseEmpty(element, func) {
@@ -94,6 +101,14 @@ export function attributionStatus(item) {
 }
 export function legalSource(item) {
   return ifExistsElseEmpty(item, () => (item.originalContentHash ? 'Sonatype Scan' : 'Manually added'));
+}
+
+export function createScopeOption(value) {
+  return (
+    <option key={value.id} value={value.id}>
+      {value.label} - {value.name}
+    </option>
+  );
 }
 
 /**
@@ -167,3 +182,20 @@ export function formatLicenseMeta(licenseType, component, licenseLegalMetadata) 
   }
   return [];
 }
+
+export const getStatusName = (id) => {
+  if (id === 'OPEN') {
+    return 'Open';
+  } else if (id === 'SELECTED') {
+    return 'Selected';
+  } else if (id === 'OVERRIDDEN') {
+    return 'Overridden';
+  } else if (id === 'ACKNOWLEDGED') {
+    return 'Acknowledged';
+  } else if (id === 'CONFIRMED') {
+    return 'Confirmed';
+  } else {
+    //you send me junk, i send you junk back ;)
+    return id;
+  }
+};

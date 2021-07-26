@@ -9,10 +9,16 @@ import {
   ADVANCED_LEGAL_ADD_NOTICE,
   ADVANCED_LEGAL_CANCEL_LICENSE_FILES_MODAL,
   ADVANCED_LEGAL_CANCEL_NOTICES_MODAL,
+  ADVANCED_LEGAL_LICENSE_MODAL_LOAD_FAILED,
+  ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED,
+  ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
+  ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
+  ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
   ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
   ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
@@ -24,10 +30,28 @@ import {
   ADVANCED_LEGAL_SET_NOTICE_STATUS,
   ADVANCED_LEGAL_SET_NOTICES_SCOPE,
   ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL,
+  ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL,
   ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL,
 } from '../../../../main/frontend/legal/files/advancedLegalFileActions';
 
 describe('advancedLegalFileReducer', function () {
+  describe('ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL action', function () {
+    it('sets the modal visibility to the payload', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {},
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL,
+        payload: true,
+      });
+      expect(newState.component.component.licenseLegalData.showLicensesModal).toBe(true);
+    });
+  });
+
   describe('ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL action', function () {
     it('sets the modal visibility to the payload', function () {
       const state = {
@@ -387,6 +411,68 @@ describe('advancedLegalFileReducer', function () {
     });
   });
 
+  describe('ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED action', function () {
+    it('clears the licenses error and closes the notices submit mask', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              licensesError: 'error',
+              saveLicensesSubmitMask: null,
+            },
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
+      });
+      expect(newState.component.component.licenseLegalData.licensesError).toBeNull();
+      expect(newState.component.component.licenseLegalData.saveLicensesSubmitMask).toBeFalsy();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_LICENSES_FAILED action', function () {
+    it('sets the notices error to the payload and closes the notices submit mask', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              licensesError: null,
+              saveLicensesSubmitMask: true,
+            },
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
+        payload: 'error',
+      });
+      expect(newState.component.component.licenseLegalData.licensesError).toBe('error');
+      expect(newState.component.component.licenseLegalData.saveLicensesSubmitMask).toBeNull();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE action', function () {
+    it('closes the notices submit mask and modal', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              saveLicensesSubmitMask: true,
+              showLicensesModal: true,
+            },
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
+        payload: 'error',
+      });
+      expect(newState.component.component.licenseLegalData.saveLicensesSubmitMask).toBeNull();
+      expect(newState.component.component.licenseLegalData.showLicensesModal).toBeFalsy();
+    });
+  });
+
   describe('ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL action', function () {
     it('sets the modal visibility to the payload', function () {
       const state = {
@@ -401,6 +487,57 @@ describe('advancedLegalFileReducer', function () {
         payload: true,
       });
       expect(newState.component.component.licenseLegalData.showLicenseFilesModal).toBeTruthy();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED action', function () {
+    it('sets the hierarchy to the payload', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {},
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED,
+        payload: 'payload',
+      });
+      expect(newState.component.component.licenseLegalData.hierarchy).toEqual('payload');
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED action', function () {
+    it('sets the allLicenses to the payload', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {},
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED,
+        payload: 'payload',
+      });
+      expect(newState.component.component.licenseLegalData.allLicenses).toEqual('payload');
+    });
+  });
+
+  describe('ADVANCED_LEGAL_LICENSE_MODAL_LOAD_FAILED action', function () {
+    it('sets the error to the payload', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {},
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_LICENSE_MODAL_LOAD_FAILED,
+        payload: 'error',
+      });
+      expect(newState.component.component.licenseLegalData.licensesError).toEqual('error');
     });
   });
 

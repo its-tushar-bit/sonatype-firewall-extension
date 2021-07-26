@@ -19,6 +19,7 @@ import * as PropTypes from 'prop-types';
 import { faPlus } from '@fortawesome/pro-solid-svg-icons';
 import { pathSet } from '../../util/jsUtil';
 import ObligationStatusComponent from '../shared/ObligationStatusComponent';
+import { createScopeOption } from '../legalUtility';
 
 const { initialState, userInput } = nxTextInputStateHelpers;
 
@@ -76,12 +77,6 @@ export default function CopyrightOverrideForm(props) {
         </NxToggle>
       </td>
     </tr>
-  );
-
-  const createScopeOption = (value) => (
-    <option key={value.id} value={value.id}>
-      {value.label} - {value.name}
-    </option>
   );
 
   const isCopyrightPresent = () => copyrights && copyrights.length > 0;

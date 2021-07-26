@@ -6,21 +6,190 @@
 import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import {
-  ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
-  ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
-  ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
-  ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED,
-  saveNotices,
+  ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED,
+  ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
+  ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
+  ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
+  ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
+  ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
+  ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
+  ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED,
+  loadLicenseModalInformation,
   saveLicenseFiles,
+  saveLicenses,
+  saveNotices,
 } from '../../../../main/frontend/legal/files/advancedLegalFileActions';
-import { getSaveLegalFileUrl, getLegalFileUrl } from '../../../../main/frontend/util/CLMLocation';
+import {
+  getLegalFileUrl,
+  getLicenseLegalComponentUrl,
+  getLicenseOverrideUrl,
+  getLicensesWithSyntheticFilterUrl,
+  getOwnerHierarchyUrl,
+  getSaveLegalFileUrl,
+} from '../../../../main/frontend/util/CLMLocation';
+import {
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
+  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
+} from '../../../../main/frontend/legal/advancedLegalActions';
 
 describe('advancedLegalFileActions', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+
+  describe('loadLicenseModalInformation', function () {
+    let store, initialState;
+    const ownerType = 'application';
+    const ownerId = 'ownerId';
+    const componentIdentifier = 'componentIdentifier123';
+
+    beforeEach(function () {
+      initialState = {
+        advancedLegal: {
+          component: {
+            component: {
+              componentIdentifier: 'componentIdentifier',
+              licenseLegalData: {},
+            },
+          },
+          availableScopes: {
+            values: [
+              { id: 'appId', publicId: 'app', type: 'application' },
+              { id: 'orgId', publicId: 'orgId', type: 'organization' },
+              {
+                id: 'ROOT_ORGANIZATION_ID',
+                publicId: 'ROOT_ORGANIZATION_ID',
+                type: 'organization',
+              },
+            ],
+          },
+        },
+      };
+    });
+
+    it('correctly loads the data', function (done) {
+      store = SpecUtil.mockReduxStore(initialState);
+      const overrideData = { data: { licenseOverridesByOwner: 'testLicenseData' } };
+      const licenseData = {
+        data: [
+          {
+            id: 'id',
+          },
+        ],
+      };
+      mockAxiosCalls({
+        get: {
+          [getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier)]: Promise.resolve(overrideData),
+          [getLicensesWithSyntheticFilterUrl()]: Promise.resolve(licenseData),
+        },
+      });
+      store.dispatch(loadLicenseModalInformation({ ownerType, ownerId, componentIdentifier })).then(() => {
+        setTimeout(() => {
+          const actions = store.getActions();
+          expect(axios.get).toHaveBeenCalledWith(
+            '/rest/licenseOverride/application/ownerId?componentIdentifier=componentIdentifier123'
+          );
+          expect(axios.get).toHaveBeenCalledWith('/rest/license?filterSynthetic=true');
+          expect(actions.length).toBe(2);
+          expect(actions[0].type).toBe(ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED);
+          expect(actions[0].payload).toEqual(['id']);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED);
+          expect(actions[1].payload).toEqual('testLicenseData');
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+    });
+  });
+
+  describe('saveLicenses', function () {
+    let store, initialState;
+    const ownerType = 'application';
+    const ownerId = 'ownerId';
+    const postBody = {};
+    const hash = 'hash123';
+
+    beforeEach(function () {
+      initialState = {
+        advancedLegal: {
+          component: {
+            component: {
+              componentIdentifier: 'componentIdentifier',
+              licenseLegalData: {},
+            },
+          },
+          availableScopes: {
+            values: [
+              { id: 'appId', publicId: 'app', type: 'application' },
+              { id: 'orgId', publicId: 'orgId', type: 'organization' },
+              {
+                id: 'ROOT_ORGANIZATION_ID',
+                publicId: 'ROOT_ORGANIZATION_ID',
+                type: 'organization',
+              },
+            ],
+          },
+        },
+      };
+    });
+
+    it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE actions on success', function (done) {
+      store = SpecUtil.mockReduxStore(initialState);
+      mockAxiosCalls({
+        post: {
+          [getLicenseOverrideUrl(ownerType, ownerId)]: Promise.resolve({ data: 'postData' }),
+        },
+        get: {
+          [getOwnerHierarchyUrl('application', 'app')]: Promise.resolve({ data: 'getData' }),
+          [getLicenseLegalComponentUrl('application', 'app', hash)]: Promise.resolve({ data: 'getData2' }),
+        },
+      });
+      store.dispatch(saveLicenses({ ownerType, ownerId, postBody, hash })).then(() => {
+        setTimeout(() => {
+          const actions = store.getActions();
+          expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', postBody);
+          expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
+          expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy');
+          expect(actions.length).toBe(6);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+          expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
+          expect(actions[5].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE);
+          done();
+        }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+    });
+
+    it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_FAILED action on save failure', function (done) {
+      store = SpecUtil.mockReduxStore(initialState);
+      mockAxiosCalls({
+        post: {
+          [getLicenseOverrideUrl('application', 'ownerId')]: () => Promise.reject('error'),
+        },
+      });
+      store.dispatch(saveLicenses({ ownerType, ownerId, postBody, hash })).catch(() => {
+        const actions = store.getActions();
+        expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', postBody);
+        expect(actions.length).toBe(2);
+        expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
+        expect(actions[1].payload).toEqual('error');
+        done();
+      });
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+    });
+  });
 
   describe('saveNotices', function () {
     let store, initialState;

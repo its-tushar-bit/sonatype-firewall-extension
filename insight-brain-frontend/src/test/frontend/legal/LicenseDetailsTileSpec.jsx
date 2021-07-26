@@ -5,9 +5,10 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
+import LicensesModalContainer from '../../../main/frontend/legal/license/LicensesModalContainer';
 
 describe('LicenseDetailsTile component', function () {
-  let getMountedComponent, $state, minimalProps;
+  let getShallowComponent, getMountedComponent, $state, minimalProps, setShowLicensesModalMock;
 
   beforeEach(function () {
     $state = jasmine.createSpyObj('$state', ['get', 'href']);
@@ -48,18 +49,39 @@ describe('LicenseDetailsTile component', function () {
       },
     };
 
+    setShowLicensesModalMock = jasmine.createSpy();
+
     minimalProps = {
       component,
       licenseLegalMetadata,
+      setShowLicensesModal: setShowLicensesModalMock,
       $state,
     };
 
+    getShallowComponent = enzymeUtils.getShallowComponent(LicenseDetailsTile, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(LicenseDetailsTile, minimalProps);
   });
 
   it('renders a header with label `License Details`', function () {
     const wrapper = getMountedComponent();
     expect(wrapper.find('h2.nx-h2')).toHaveText('Licenses');
+  });
+
+  it('renders an edit button', function () {
+    const wrapper = getShallowComponent();
+    const editButton = wrapper.find('#edit-licenses');
+    editButton.simulate('click');
+    expect(setShowLicensesModalMock).toHaveBeenCalledWith(true);
+  });
+
+  it('does not show the modal if showLicensesModal is false', function () {
+    const wrapper = getShallowComponent();
+    expect(wrapper.find(LicensesModalContainer)).not.toExist();
+  });
+
+  it('does not show the modal if showLicensesModal is true', function () {
+    const wrapper = getShallowComponent({ showLicensesModal: true });
+    expect(wrapper.find(LicensesModalContainer)).toExist();
   });
 
   it('renders the given licenses', function () {

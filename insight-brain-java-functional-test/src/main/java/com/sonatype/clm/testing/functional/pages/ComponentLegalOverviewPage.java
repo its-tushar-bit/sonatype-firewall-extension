@@ -113,25 +113,29 @@ public class ComponentLegalOverviewPage
     }
   }
 
-  public static Licenses licenses() {
-    return new Licenses();
-  }
-
   public static SelenideElement editLicensesButton() {
     return $("#edit-licenses");
   }
 
-  public static class Licenses
-      extends BasicElement<Licenses>
+  public static LicenseFiles licenseFiles() {
+    return new LicenseFiles();
+  }
+
+  public static SelenideElement editLicenseFilesButton() {
+    return $("#edit-license-files");
+  }
+
+  public static class LicenseFiles
+      extends BasicElement<LicenseFiles>
   {
     private static final String LICENSE_SECTION = "#license-texts-tile";
 
-    Licenses() {
+    LicenseFiles() {
       super(ROOT, LICENSE_SECTION);
     }
 
-    public License at(int index) {
-      return new License("#license-section-" + index);
+    public LicenseFile at(int index) {
+      return new LicenseFile("#license-section-" + index);
     }
 
     public ElementsCollection all() {
@@ -139,10 +143,10 @@ public class ComponentLegalOverviewPage
     }
   }
 
-  public static class License
-      extends BasicElement<License>
+  public static class LicenseFile
+      extends BasicElement<LicenseFile>
   {
-    License(String selector) {
+    LicenseFile(String selector) {
       super(selector);
     }
 

@@ -6,16 +6,23 @@
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { find, propEq } from 'ramda';
 import axios from 'axios';
-import { getLegalFileUrl, getSaveLegalFileUrl } from '../../util/CLMLocation';
+import {
+  getLegalFileUrl,
+  getLicenseOverrideUrl,
+  getLicensesWithSyntheticFilterUrl,
+  getSaveLegalFileUrl,
+} from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { isScopeOverride } from '../legalUtility';
 import { saveObligation } from '../obligation/advancedLegalObligationActions';
 import { refreshNoticeFilesDetails } from './notices/componentNoticeDetailsActions';
 import { refreshLicenseFilesDetails } from './licenses/componentLicenseFilesDetailsActions';
+import { loadAvailableScopes, loadComponent } from '../advancedLegalActions';
 
 export const ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL';
 export const ADVANCED_LEGAL_CANCEL_NOTICES_MODAL = 'ADVANCED_LEGAL_CANCEL_NOTICES_MODAL';
+export const ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL = 'ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL';
 export const ADVANCED_LEGAL_SET_NOTICE_CONTENT = 'ADVANCED_LEGAL_SET_NOTICE_CONTENT';
 export const ADVANCED_LEGAL_SET_NOTICE_STATUS = 'ADVANCED_LEGAL_SET_NOTICE_STATUS';
 export const ADVANCED_LEGAL_ADD_NOTICE = 'ADVANCED_LEGAL_ADD_NOTICE';
@@ -24,9 +31,18 @@ export const ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED = 'ADVANCED_LEGAL_SAVE_NOTICE
 export const ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED = 'ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED';
 export const ADVANCED_LEGAL_SAVE_NOTICES_FAILED = 'ADVANCED_LEGAL_SAVE_NOTICES_FAILED';
 export const ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE';
+export const ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED = 'ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED';
+export const ADVANCED_LEGAL_SAVE_LICENSES_FAILED = 'ADVANCED_LEGAL_SAVE_LICENSES_FAILED';
+export const ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE';
+export const ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED =
+  'ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED';
+export const ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED =
+  'ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED';
+export const ADVANCED_LEGAL_LICENSE_MODAL_LOAD_FAILED = 'ADVANCED_LEGAL_LICENSE_MODAL_LOAD_FAILED';
 
 export const setShowNoticesModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL);
 export const cancelNoticesModal = noPayloadActionCreator(ADVANCED_LEGAL_CANCEL_NOTICES_MODAL);
+export const setShowLicensesModal = payloadParamActionCreator(ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL);
 export const setNoticeContent = payloadParamActionCreator(ADVANCED_LEGAL_SET_NOTICE_CONTENT);
 export const setNoticeStatus = payloadParamActionCreator(ADVANCED_LEGAL_SET_NOTICE_STATUS);
 export const addNotice = payloadParamActionCreator(ADVANCED_LEGAL_ADD_NOTICE);
@@ -36,6 +52,63 @@ const saveNoticesRequested = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_NOTICES_
 const saveNoticesSucceeded = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED);
 const saveNoticesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_NOTICES_FAILED);
 const saveNoticesSubmitMaskDone = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE);
+
+const saveLicensesRequested = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+const saveLicensesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
+
+const licenseModalHierarchyFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED);
+const licenseModalAllLicensesFulfilled = payloadParamActionCreator(
+  ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED
+);
+
+const licenseModalLoadingFailed = payloadParamActionCreator(ADVANCED_LEGAL_LICENSE_MODAL_LOAD_FAILED);
+
+export function loadLicenseModalInformation({ ownerType, ownerId, componentIdentifier }) {
+  return (dispatch) => {
+    const promises = [
+      axios.get(getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier)),
+      axios.get(getLicensesWithSyntheticFilterUrl()),
+    ];
+
+    return axios
+      .all(promises)
+      .then((data) => {
+        const [hierarchy, allLicenses] = data;
+
+        dispatch(licenseModalAllLicensesFulfilled(allLicenses.data.map((license) => license.id)));
+        return dispatch(licenseModalHierarchyFulfilled(hierarchy.data.licenseOverridesByOwner));
+      })
+      .catch((error) => {
+        dispatch(licenseModalLoadingFailed(error));
+      });
+  };
+}
+
+function startLicenseSubmitMaskTimer(dispatch) {
+  setTimeout(() => {
+    dispatch({ type: ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE });
+  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
+export function saveLicenses({ ownerType, ownerId, postBody, hash }) {
+  return (dispatch, getState) => {
+    dispatch(saveLicensesRequested());
+    const advancedLegalState = getState().advancedLegal;
+    const { availableScopes } = advancedLegalState;
+    const visitedScope = availableScopes.values[0];
+    return axios
+      .post(getLicenseOverrideUrl(ownerType, ownerId), postBody)
+      .then(() => {
+        dispatch(loadAvailableScopes(visitedScope.type, visitedScope.publicId));
+        dispatch(loadComponent(visitedScope.type, visitedScope.publicId, hash));
+        startLicenseSubmitMaskTimer(dispatch);
+      })
+      .catch((error) => {
+        dispatch(saveLicensesFailed(error));
+        return Promise.reject(error);
+      });
+  };
+}
 
 export function saveNotices({ existingObligation, isNoticesDirty, isObligationDirty }) {
   return (dispatch, getState) => {

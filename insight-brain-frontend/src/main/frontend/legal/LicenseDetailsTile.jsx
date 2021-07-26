@@ -3,15 +3,34 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment } from 'react';
+import { faPen } from '@fortawesome/pro-solid-svg-icons';
 import * as PropTypes from 'prop-types';
 import { componentPropType, licenseLegalMetadataPropType } from './advancedLegalPropTypes';
 import { findSingleLicenseIndex, findSimilarLicenseIndex, formatLicenseMeta } from './legalUtility';
-import { NxTag, NxTextLink, NxAccordion, useToggle } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxFontAwesomeIcon,
+  NxTag,
+  NxTextLink,
+  NxAccordion,
+  useToggle,
+} from '@sonatype/react-shared-components';
 import { statusTagPropsMap } from './advancedLegalConstants';
+import LicensesModalContainer from './license/LicensesModalContainer';
 
 export default function LicenseDetailsTile(props) {
-  const { component, licenseLegalMetadata, ownerType, ownerId, hash, stageTypeId, $state } = props;
+  const {
+    component,
+    licenseLegalMetadata,
+    showLicensesModal,
+    setShowLicensesModal,
+    ownerType,
+    ownerId,
+    hash,
+    stageTypeId,
+    $state,
+  } = props;
   const effectiveLicenses = formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata);
   const declaredLicenses = formatLicenseMeta('declaredLicenses', component, licenseLegalMetadata);
   const observedLicenses = formatLicenseMeta('observedLicenses', component, licenseLegalMetadata);
@@ -83,38 +102,49 @@ export default function LicenseDetailsTile(props) {
   const [open, toggleOpen] = useToggle(true);
 
   return (
-    <NxAccordion open={open} onToggle={toggleOpen} id="license-details-tile">
-      <NxAccordion.Header>
-        <header className="nx-tile-header">
-          <div className="nx-tile-header__title">
-            <h2 className="nx-h2 nx-accordion__header-title">Licenses</h2>
-          </div>
-        </header>
-      </NxAccordion.Header>
-      <div className="nx-tile-content">
-        <dl className="nx-read-only">
-          <dt className="nx-read-only__label">Effective Licenses</dt>
-          <dd className="nx-read-only__data license-details-tile__effective-licenses">
-            {formatLicenseList(effectiveLicenses)}
-            {getStatusTag()}
-          </dd>
-          <dt className="nx-read-only__label">Declared Licenses</dt>
-          <dd className="nx-read-only__data license-details-tile__declared-licenses">
-            {formatLicenseList(declaredLicenses)}
-          </dd>
-          <dt className="nx-read-only__label">Observed Licenses</dt>
-          <dd className="nx-read-only__data license-details-tile__observed-licenses">
-            {formatLicenseList(observedLicenses)}
-          </dd>
-        </dl>
-      </div>
-    </NxAccordion>
+    <Fragment>
+      {showLicensesModal && <LicensesModalContainer />}
+      <NxAccordion open={open} onToggle={toggleOpen} id="license-details-tile">
+        <NxAccordion.Header>
+          <header className="nx-tile-header">
+            <div className="nx-tile-header__title">
+              <h2 className="nx-h2 nx-accordion__header-title">Licenses</h2>
+            </div>
+            <div className="nx-tile__actions">
+              <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicensesModal(true)}>
+                <NxFontAwesomeIcon icon={faPen} />
+                <span>Edit</span>
+              </NxButton>
+            </div>
+          </header>
+        </NxAccordion.Header>
+        <div className="nx-tile-content">
+          <dl className="nx-read-only">
+            <dt className="nx-read-only__label">Effective Licenses</dt>
+            <dd className="nx-read-only__data license-details-tile__effective-licenses">
+              {formatLicenseList(effectiveLicenses)}
+              {getStatusTag()}
+            </dd>
+            <dt className="nx-read-only__label">Declared Licenses</dt>
+            <dd className="nx-read-only__data license-details-tile__declared-licenses">
+              {formatLicenseList(declaredLicenses)}
+            </dd>
+            <dt className="nx-read-only__label">Observed Licenses</dt>
+            <dd className="nx-read-only__data license-details-tile__observed-licenses">
+              {formatLicenseList(observedLicenses)}
+            </dd>
+          </dl>
+        </div>
+      </NxAccordion>
+    </Fragment>
   );
 }
 
 LicenseDetailsTile.propTypes = {
   component: componentPropType,
   licenseLegalMetadata: licenseLegalMetadataPropType,
+  showLicensesModal: PropTypes.bool,
+  setShowLicensesModal: PropTypes.func.isRequired,
   ownerType: PropTypes.string.isRequired,
   ownerId: PropTypes.string.isRequired,
   hash: PropTypes.string.isRequired,

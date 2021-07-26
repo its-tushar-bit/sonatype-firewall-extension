@@ -41,6 +41,7 @@ export default function ComponentLegalOverviewPage(props) {
     showEditCopyrightOverrideModal,
     showNoticesModal,
     showLicenseFilesModal,
+    showLicensesModal,
     $state,
 
     //actions
@@ -49,6 +50,7 @@ export default function ComponentLegalOverviewPage(props) {
     loadComponent,
     setShowNoticesModal,
     setShowLicenseFilesModal,
+    setShowLicensesModal,
   } = props;
 
   function load() {
@@ -129,6 +131,8 @@ export default function ComponentLegalOverviewPage(props) {
                   hash={hash}
                   stageTypeId={stageTypeId}
                   $state={$state}
+                  showLicensesModal={showLicensesModal}
+                  setShowLicensesModal={setShowLicensesModal}
                 />
                 <CopyrightStatementsTile
                   component={component}
@@ -201,5 +205,7 @@ ComponentLegalOverviewPage.propTypes = {
   showNoticesModal: PropTypes.bool.isRequired,
   setShowLicenseFilesModal: PropTypes.func.isRequired,
   showLicenseFilesModal: PropTypes.bool.isRequired,
+  setShowLicensesModal: PropTypes.func.isRequired,
+  showLicensesModal: PropTypes.bool.isRequired,
   $state: PropTypes.object.isRequired,
 };

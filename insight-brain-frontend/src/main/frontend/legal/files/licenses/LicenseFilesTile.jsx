@@ -58,7 +58,7 @@ export default function LicenseFilesTile(props) {
               <h2 className="nx-h2 nx-accordion__header-title">License Files</h2>
             </div>
             <div className="nx-tile__actions">
-              <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicenseFilesModal(true)}>
+              <NxButton id="edit-license-files" variant="tertiary" onClick={() => setShowLicenseFilesModal(true)}>
                 <NxFontAwesomeIcon icon={isLicensePresent() ? faPen : faPlus} />
                 <span>{isLicensePresent() ? 'Edit' : 'Add'}</span>
               </NxButton>

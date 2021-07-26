@@ -483,5 +483,19 @@ describe('CLMLocation.js', function () {
         '/api/v2/policyWaivers/transitive/application/someAppId/someScanId?hash=someHash'
       );
     });
+
+    it('getLicenseOverrideUrl should return the URL with params', function () {
+      expect(CLMLocation.getLicenseOverrideUrl('ownerType', 'ownerId', 'componentIdentifier')).toBe(
+        '/rest/licenseOverride/ownerType/ownerId?componentIdentifier=componentIdentifier'
+      );
+    });
+
+    it('getLicenseOverrideUrl should return the URL with no component identifier', function () {
+      expect(CLMLocation.getLicenseOverrideUrl('ownerType', 'ownerId')).toBe('/rest/licenseOverride/ownerType/ownerId');
+    });
+
+    it('getLicensesWithSyntheticFilterUrl should return the URL with params', function () {
+      expect(CLMLocation.getLicensesWithSyntheticFilterUrl()).toBe('/rest/license?filterSynthetic=true');
+    });
   });
 });

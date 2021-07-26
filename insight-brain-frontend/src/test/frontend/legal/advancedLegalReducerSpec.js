@@ -320,6 +320,7 @@ describe('advancedLegalReducer', function () {
         noticesError: null,
         saveNoticesSubmitMask: null,
         showLicenseFilesModal: false,
+        showLicensesModal: false,
         componentLicensesScopeOwnerId: 'appId',
         originalComponentLicensesScopeOwnerId: 'appId',
         licenseFiles: [

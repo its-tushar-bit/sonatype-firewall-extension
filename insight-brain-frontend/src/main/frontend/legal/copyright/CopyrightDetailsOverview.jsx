@@ -10,7 +10,7 @@ import {
 } from '../advancedLegalPropTypes';
 import React from 'react';
 import { timeAgo } from '../../util/CommonServices';
-import { findIndex, propEq } from 'ramda';
+import { getRelevantScope } from '../legalUtility';
 
 export default function CopyrightDetailsOverview(props) {
   const { availableScopes, component, componentCopyrightDetails } = props;
@@ -37,9 +37,7 @@ export default function CopyrightDetailsOverview(props) {
     const scopeOwnerId =
       (component && component.licenseLegalData && component.licenseLegalData.componentCopyrightScopeOwnerId) ||
       'ROOT_ORGANIZATION_ID';
-    const availableScopeValues = (availableScopes && availableScopes.values && [...availableScopes.values]) || [];
-    const scopeIndex = findIndex(propEq('id', scopeOwnerId), availableScopeValues);
-    return scopeIndex < 0 ? 'Root Organization' : availableScopeValues[scopeIndex].name;
+    return getRelevantScope(scopeOwnerId, availableScopes).name;
   };
 
   return (

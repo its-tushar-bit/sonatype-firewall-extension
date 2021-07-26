@@ -7,33 +7,58 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxCheckbox;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class EditLicensesModal
     extends BasicElement<EditLicensesModal>
 {
   public EditLicensesModal() {
-    super("#edit-licenses-attribution-modal");
+    super("#edit-licenses-modal");
   }
 
-  public License licenseAt(int index) {
-    return new License("#license-row-" + index);
-  }
-
-  public ElementsCollection allLicenses() {
-    return children("tbody tr");
-  }
-
-  public Button addLicenseButton() {
-    return new Button("#add-license");
+  public SelenideElement header() {
+    return child(".nx-h2");
   }
 
   public SelenideElement scopeDropdown() {
-    return $("#edit-license-scope-selection");
+    return child("#edit-licenses-scope-selection");
+  }
+
+  public SelenideElement statusDropdown() {
+    return child("#edit-licenses-status-selection");
+  }
+
+  public SelenideElement statusOpenOption() {
+    return $("#edit-license-status-option-Open");
+  }
+
+  public SelenideElement statusAcknowledgedOption() {
+    return $("#edit-license-status-option-Acknowledged");
+  }
+
+  public SelenideElement statusSelectedOption() {
+    return $("#edit-license-status-option-Selected");
+  }
+
+  public SelenideElement statusOverrriddenOption() {
+    return $("#edit-license-status-option-Overridden");
+  }
+
+  public SelenideElement statusConfirmedption() {
+    return $("#edit-license-status-option-Confirmed");
+  }
+
+  public NxCheckbox getCheckboxAt(int i ) {
+    return new NxCheckbox(child(".nx-checkbox", nthChild(i + 1)));
+  }
+
+  public SelenideElement commentTextInput() {
+    return child(".nx-text-input__input");
   }
 
   public Button save() {
@@ -49,18 +74,6 @@ public class EditLicensesModal
   {
     License(String selector) {
       super(selector);
-    }
-
-    public SelenideElement textInput() {
-      return child(".nx-text-input__input");
-    }
-
-    public SelenideElement statusCheckbox() {
-      return child(".nx-toggle__input");
-    }
-
-    public SelenideElement statusToggle() {
-      return child(".nx-toggle__content");
     }
   }
 }

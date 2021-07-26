@@ -8,10 +8,16 @@ import {
   ADVANCED_LEGAL_ADD_NOTICE,
   ADVANCED_LEGAL_CANCEL_LICENSE_FILES_MODAL,
   ADVANCED_LEGAL_CANCEL_NOTICES_MODAL,
+  ADVANCED_LEGAL_LICENSE_MODAL_LOAD_FAILED,
+  ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED,
+  ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_REQUESTED,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED,
+  ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
+  ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
+  ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
   ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
   ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
@@ -23,9 +29,11 @@ import {
   ADVANCED_LEGAL_SET_NOTICE_STATUS,
   ADVANCED_LEGAL_SET_NOTICES_SCOPE,
   ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL,
+  ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL,
   ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL,
 } from './advancedLegalFileActions';
 import { __, find, lensPath, merge, over, propEq } from 'ramda';
+import { Messages } from '../../util/CommonServices';
 
 const updateLicenseFilesLegalData = (newLicenseLegalData, state) =>
   over(lensPath(['component', 'component', 'licenseLegalData']), merge(__, newLicenseLegalData), state);
@@ -172,6 +180,14 @@ const setShowLicenseFilesModal = (payload, state) =>
     state
   );
 
+const setShowLicensesModal = (payload, state) =>
+  updateLicenseFilesLegalData(
+    {
+      showLicensesModal: payload,
+    },
+    state
+  );
+
 const cancelLicenseFilesModal = (_, state) =>
   updateLicenseFilesLegalData(
     {
@@ -286,6 +302,59 @@ export const saveLicenseFilesSubmitMaskDone = (_, state) =>
     state
   );
 
+const saveLicensesRequested = (_, state) =>
+  updateLicenseFilesLegalData(
+    {
+      licensesError: null,
+      saveLicensesSubmitMask: false,
+    },
+    state
+  );
+
+const saveLicensesFailed = (payload, state) =>
+  updateLicenseFilesLegalData(
+    {
+      licensesError: Messages.getHttpErrorMessage(payload),
+      saveLicensesSubmitMask: null,
+    },
+    state
+  );
+
+export const saveLicensesSubmitMaskDone = (_, state) =>
+  updateLicenseFilesLegalData(
+    {
+      saveLicensesSubmitMask: null,
+      showLicensesModal: false,
+    },
+    state
+  );
+
+const licenseModalHierarchyFulfilled = (payload, state) => {
+  return updateLicenseFilesLegalData(
+    {
+      hierarchy: payload,
+    },
+    state
+  );
+};
+
+const licenseModalLicensesFulfilled = (payload, state) => {
+  return updateLicenseFilesLegalData(
+    {
+      allLicenses: payload,
+    },
+    state
+  );
+};
+
+const licenseModalLoadingFailed = (payload, state) =>
+  updateLicenseFilesLegalData(
+    {
+      licensesError: Messages.getHttpErrorMessage(payload),
+    },
+    state
+  );
+
 export const advancedLegalFileReducerActionMap = {
   [ADVANCED_LEGAL_SET_SHOW_NOTICES_MODAL]: setShowNoticesModal,
   [ADVANCED_LEGAL_CANCEL_NOTICES_MODAL]: cancelNoticesModal,
@@ -298,6 +367,10 @@ export const advancedLegalFileReducerActionMap = {
   [ADVANCED_LEGAL_SAVE_NOTICES_FAILED]: saveNoticesFailed,
   [ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE]: saveNoticesSubmitMaskDone,
   [ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL]: setShowLicenseFilesModal,
+  [ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED]: saveLicensesRequested,
+  [ADVANCED_LEGAL_SAVE_LICENSES_FAILED]: saveLicensesFailed,
+  [ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE]: saveLicensesSubmitMaskDone,
+  [ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL]: setShowLicensesModal,
   [ADVANCED_LEGAL_CANCEL_LICENSE_FILES_MODAL]: cancelLicenseFilesModal,
   [ADVANCED_LEGAL_SET_LICENSE_FILE_CONTENT]: setLicenseContent,
   [ADVANCED_LEGAL_SET_LICENSE_FILE_STATUS]: setLicenseStatus,
@@ -307,4 +380,7 @@ export const advancedLegalFileReducerActionMap = {
   [ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED]: saveLicenseFilesSucceeded,
   [ADVANCED_LEGAL_SAVE_LICENSE_FILES_FAILED]: saveLicenseFilesFailed,
   [ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUBMIT_MASK_DONE]: saveLicenseFilesSubmitMaskDone,
+  [ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED]: licenseModalHierarchyFulfilled,
+  [ADVANCED_LEGAL_LOAD_LICENSE_MODAL_ALL_LICENSES_FULFILLED]: licenseModalLicensesFulfilled,
+  [ADVANCED_LEGAL_LICENSE_MODAL_LOAD_FAILED]: licenseModalLoadingFailed,
 };

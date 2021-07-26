@@ -5,7 +5,7 @@
  */
 
 import { attributionStatus, legalFileSource } from './utils';
-import { scopeName } from '../../legalUtility';
+import { getRelevantScope } from '../../legalUtility';
 import React from 'react';
 
 export const LegalFileOverviewHeader = (legalFileElement, availableScopes, lastModified, title, scopeOwnerId) => (
@@ -23,7 +23,7 @@ export const LegalFileOverviewHeader = (legalFileElement, availableScopes, lastM
         </div>
         <div className="legal-file-overview-item">
           <dt className="nx-read-only__label">Scope</dt>
-          <dd className="nx-read-only__data">{scopeName(scopeOwnerId, availableScopes)}</dd>
+          <dd className="nx-read-only__data">{getRelevantScope(scopeOwnerId, availableScopes).name}</dd>
         </div>
         <div className="legal-file-overview-item">
           <dt className="nx-read-only__label">Source</dt>

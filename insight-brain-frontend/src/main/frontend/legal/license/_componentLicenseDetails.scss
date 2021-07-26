@@ -73,3 +73,7 @@ component-license-details {
   margin-top: var(--nx-spacing-2x);
   padding-left: var(--nx-spacing-2x);
 }
+
+.edit-licenses-modal-textarea textarea.nx-text-input__input {
+  min-height: 120px;
+}

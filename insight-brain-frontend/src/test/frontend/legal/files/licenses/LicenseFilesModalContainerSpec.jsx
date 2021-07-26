@@ -9,7 +9,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import LicenseFilesModal from '../../../../../main/frontend/legal/files/licenses/LicenseFilesModal';
 
-describe('LicensesModalContainer', function () {
+describe('LicenseFilesModalContainer', function () {
   let store,
     state,
     vdom,
@@ -79,7 +79,7 @@ describe('LicensesModalContainer', function () {
     expect(wrapper).toHaveProp('submitMaskState', 'saveLicenseFilesSubmitMask');
   });
 
-  it('correctly maps the action creators to the LicensesModalContainer props', function () {
+  it('correctly maps the action creators to the LicenseFilesModalContainer props', function () {
     const wrapper = shallow(vdom).dive();
     expect(wrapper.prop('cancelLicenseFilesModal')()).toEqual({
       type: 'cancelLicensesModalSpy',
@@ -97,8 +97,8 @@ describe('LicensesModalContainer', function () {
     expect(wrapper.prop('saveLicenseFiles')()).toEqual({ type: 'saveLicensesSpy' });
   });
 
-  it('renders the LicensesModal component', function () {
-    const licensesModal = shallow(vdom).find(LicenseFilesModal);
-    expect(licensesModal).toExist();
+  it('renders the LicenseFilesModal component', function () {
+    const licenseFilesModal = shallow(vdom).find(LicenseFilesModal);
+    expect(licenseFilesModal).toExist();
   });
 });

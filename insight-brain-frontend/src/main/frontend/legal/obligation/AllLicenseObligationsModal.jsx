@@ -19,6 +19,7 @@ import {
 } from '../advancedLegalConstants';
 import * as PropTypes from 'prop-types';
 import { availableScopesPropType } from '../advancedLegalPropTypes';
+import { createScopeOption } from '../legalUtility';
 const { initialState, userInput } = nxTextInputStateHelpers;
 
 export default function AllLicenseObligationsModal(props) {
@@ -67,14 +68,6 @@ export default function AllLicenseObligationsModal(props) {
   };
 
   const [commentTextInput, setCommentTextInput] = useState(initialState(''));
-
-  const createScopeOption = (value) => {
-    return (
-      <option key={value.id} value={value.id}>
-        {value.label} - {value.name}
-      </option>
-    );
-  };
 
   return (
     <NxModal id="all-obligations-modal" onClose={() => cancelAllObligationsModal()}>

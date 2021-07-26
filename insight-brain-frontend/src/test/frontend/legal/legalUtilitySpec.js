@@ -9,6 +9,8 @@ import {
   formatLicenseMeta,
   backToComponentOverviewUrl,
   createSubtitle,
+  getStatusName,
+  createScopeOption,
 } from '../../../main/frontend/legal/legalUtility';
 
 const { isScopeOverride, getLicenseThreatGroupsFromLicense } = require('../../../main/frontend/legal/legalUtility');
@@ -245,6 +247,34 @@ describe('legalUtility', function () {
           stageTypeId: 'build',
         },
       });
+    });
+  });
+
+  describe('createScopeOption', function () {
+    it('maps the correct options', () => {
+      const option = {
+        id: 'id',
+        label: 'label',
+        name: 'name',
+      };
+      const createdScopeOption = createScopeOption(option);
+      expect(createdScopeOption.type).toEqual('option');
+      expect(createdScopeOption.key).toEqual('id');
+      expect(createdScopeOption.props.value).toEqual('id');
+      expect(createdScopeOption.props.children[0]).toEqual('label');
+      expect(createdScopeOption.props.children[1]).toEqual(' - ');
+      expect(createdScopeOption.props.children[2]).toEqual('name');
+    });
+  });
+
+  describe('getStatusName', function () {
+    it('maps the correct status names', () => {
+      expect(getStatusName('OPEN')).toEqual('Open');
+      expect(getStatusName('SELECTED')).toEqual('Selected');
+      expect(getStatusName('OVERRIDDEN')).toEqual('Overridden');
+      expect(getStatusName('ACKNOWLEDGED')).toEqual('Acknowledged');
+      expect(getStatusName('CONFIRMED')).toEqual('Confirmed');
+      expect(getStatusName('BlahBlahBlah')).toEqual('BlahBlahBlah');
     });
   });
 

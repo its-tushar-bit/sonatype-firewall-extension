@@ -495,6 +495,15 @@ export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }
 
+export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
+  const componentIdentifierProp = componentIdentifier ? `?componentIdentifier=${componentIdentifier}` : '';
+  return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}` + componentIdentifierProp;
+}
+
+export function getLicensesWithSyntheticFilterUrl() {
+  return uriTemplate`/rest/license?filterSynthetic=true`;
+}
+
 export function getUserResetPasswordByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}/reset`;
 }

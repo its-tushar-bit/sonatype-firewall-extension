@@ -30,3 +30,12 @@ export const selectSelectedComponentIndexInAggregatedList = createSelector(
   selectAggregatedComponentsList,
   (component, list = []) => list.indexOf(component)
 );
+export const selectPolicyViolationId = createSelector(selectRouterCurrentParams, prop('violationId'));
+export const selectPolicyViolation = createSelector(
+  selectPolicyViolationId,
+  selectAggregatedComponentsList,
+  (id, allComponentsList = []) =>
+    id && allComponentsList.find(({ policyViolationId }) => policyViolationId && policyViolationId === id)
+);
+export const selectLoadError = createSelector(selectApplicationReportSlice, prop('loadError'));
+export const selectIsLoading = createSelector(selectApplicationReportSlice, ({ pendingLoads }) => !!pendingLoads.size);

@@ -10,6 +10,10 @@ import {
   selectAggregatedComponentsList,
   selectSelectedComponentInAggregatedList,
   selectSelectedComponentIndexInAggregatedList,
+  selectPolicyViolationId,
+  selectPolicyViolation,
+  selectLoadError,
+  selectIsLoading,
 } from '../../../main/frontend/applicationReport/applicationReportSelectors';
 
 describe('applicationReportSelectors', () => {
@@ -17,6 +21,7 @@ describe('applicationReportSelectors', () => {
     router: {
       currentParams: {
         hash: 'some-component-hash',
+        violationId: 'some-policy-violation-id',
       },
     },
     applicationReport: {
@@ -64,12 +69,15 @@ describe('applicationReportSelectors', () => {
             hash: 'some-component-hash',
             componentIdentifier: { format: 'maven' },
             derivedDependencyType: 'transitive',
+            policyViolationId: 'some-policy-violation-id',
           },
           {
             hash: 'another-component-hash',
           },
         ],
       },
+      loadError: false,
+      pendingLoads: new Set(['test']),
     },
   };
 
@@ -170,6 +178,7 @@ describe('applicationReportSelectors', () => {
           hash: 'some-component-hash',
           componentIdentifier: { format: 'maven' },
           derivedDependencyType: 'transitive',
+          policyViolationId: 'some-policy-violation-id',
         },
         {
           hash: 'another-component-hash',
@@ -187,6 +196,7 @@ describe('applicationReportSelectors', () => {
         hash: 'some-component-hash',
         componentIdentifier: { format: 'maven' },
         derivedDependencyType: 'transitive',
+        policyViolationId: 'some-policy-violation-id',
       };
       const actual = selectSelectedComponentInAggregatedList(mockState);
       expect(actual).toEqual(expected);
@@ -236,6 +246,34 @@ describe('applicationReportSelectors', () => {
       const expected = -1;
       const actual = selectSelectedComponentIndexInAggregatedList(state);
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('selectPolicyViolationId', () => {
+    it('selects the policy violation Id in the URL from the state', () => {
+      const actual = selectPolicyViolationId(mockState);
+      expect(actual).toEqual('some-policy-violation-id');
+    });
+  });
+
+  describe('selectPolicyViolation', () => {
+    it('selects the policy violation from the state', () => {
+      const actual = selectPolicyViolation(mockState);
+      expect(actual.policyViolationId).toEqual('some-policy-violation-id');
+    });
+  });
+
+  describe('selectLoadError', () => {
+    it('selects loadError from the state', () => {
+      const actual = selectLoadError(mockState);
+      expect(actual).toEqual(false);
+    });
+  });
+
+  describe('selectIsLoading', () => {
+    it('selects isLoading getting the size of the pending loads in the state', () => {
+      const actual = selectIsLoading(mockState);
+      expect(actual).toEqual(true);
     });
   });
 });

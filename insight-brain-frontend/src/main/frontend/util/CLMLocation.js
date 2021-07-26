@@ -495,6 +495,10 @@ export function getUserByIdUrl(userId) {
   return uriTemplate`/rest/user/${userId}`;
 }
 
+export function getRequestWaiverUrl(policyViolationId) {
+  return uriTemplate`/api/v2/policyWaiver/${policyViolationId}/application`;
+}
+
 export function getLicenseOverrideUrl(ownerType, ownerId, componentIdentifier) {
   const componentIdentifierProp = componentIdentifier ? `?componentIdentifier=${componentIdentifier}` : '';
   return uriTemplate`/rest/licenseOverride/${ownerType}/${ownerId}` + componentIdentifierProp;
@@ -746,9 +750,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/sidebar';
       },
 
-      getRequestWaiverUrl: function (policyViolationId) {
-        return `${baseUrl.get()}/api/v2/policyWaiver/${encodeURIComponent(policyViolationId)}/application`;
-      },
+      getRequestWaiverUrl,
 
       getDestinationOrganizationsUrl: function (applicationId) {
         return baseUrl.get() + '/rest/move/application/' + applicationId + '/destinations';

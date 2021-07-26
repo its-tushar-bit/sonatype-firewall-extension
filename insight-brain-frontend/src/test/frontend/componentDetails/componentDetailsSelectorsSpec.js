@@ -10,45 +10,86 @@ import {
 } from '../../../main/frontend/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
-  describe('selectComponentDetails', () => {
-    const mockState = {
-      router: {
-        currentParams: {
-          hash: 'some-component-hash',
-        },
+  const mockState = {
+    router: {
+      currentParams: {
+        hash: 'some-component-hash',
       },
-      applicationReport: {
-        metadata: {
-          application: {
-            name: 'The App',
-            organization: {
-              name: 'The Org',
-            },
+      currentState: {
+        name: 'router-state-name',
+      },
+    },
+    applicationReport: {
+      metadata: {
+        application: {
+          name: 'The App',
+          organization: {
+            name: 'The Org',
           },
-          reportTime: 1623135382098,
-          reportTitle: 'Title of Report',
         },
-        selectedReport: {
-          displayedEntries: [
-            {
-              hash: 'a-component-hash',
-            },
-            {
-              derivedComponentName: 'My Component',
-              hash: 'some-component-hash',
-              componentIdentifier: { format: 'maven' },
-              derivedDependencyType: 'transitive',
-            },
-            {
-              hash: 'another-component-hash',
-            },
-          ],
-        },
+        reportTime: 1623135382098,
+        reportTitle: 'Title of Report',
       },
-      componentDetails: {
-        labels: [],
+      selectedReport: {
+        allEntries: [
+          {
+            hash: 'some-component-hash',
+          },
+          {
+            hash: 'some-component-hash',
+            policyThreatLevel: 9,
+          },
+          {
+            derivedComponentName: 'My Component',
+            hash: 'some-component-hash',
+            componentIdentifier: { format: 'maven' },
+            derivedDependencyType: 'transitive',
+            policyThreatLevel: 10,
+          },
+          {
+            hash: 'another-component-hash',
+          },
+          {
+            hash: 'and-another-component-hash',
+          },
+          {
+            hash: 'and-another-component-hash-bites-the-dust',
+          },
+        ],
+        displayedEntries: [
+          {
+            hash: 'a-component-hash',
+          },
+          {
+            derivedComponentName: 'My Component',
+            hash: 'some-component-hash',
+            componentIdentifier: { format: 'maven' },
+            derivedDependencyType: 'transitive',
+          },
+          {
+            hash: 'another-component-hash',
+          },
+        ],
+        aggregatedEntries: [
+          {
+            hash: 'a-component-hash',
+          },
+          {
+            hash: 'some-component-hash',
+          },
+          {
+            hash: 'another-component-hash',
+          },
+        ],
       },
-    };
+    },
+    componentDetails: {
+      labels: [],
+      loadError: false,
+      pendingLoads: new Set(['test']),
+    },
+  };
+  describe('selectComponentDetails', () => {
     it('derives componentDetails from the componentDetails, selectedReport metadata, and the selectedComponent', () => {
       const expected = {
         name: 'My Component',
@@ -71,42 +112,6 @@ describe('componentDetailsSelectors', () => {
   });
 
   describe('selectComponentPagination', function () {
-    const mockState = {
-      router: {
-        currentParams: {
-          hash: 'some-component-hash',
-        },
-        currentState: {
-          name: 'router-state-name',
-        },
-      },
-      applicationReport: {
-        selectedReport: {
-          displayedEntries: [
-            {
-              hash: 'a-component-hash',
-            },
-            {
-              hash: 'some-component-hash',
-            },
-            {
-              hash: 'another-component-hash',
-            },
-          ],
-          aggregatedEntries: [
-            {
-              hash: 'a-component-hash',
-            },
-            {
-              hash: 'some-component-hash',
-            },
-            {
-              hash: 'another-component-hash',
-            },
-          ],
-        },
-      },
-    };
     // we need to use the uiRouterState from props because it is passed by context
     // so we mock it here and pass it in as the props second selector argument
     // the router state is used to determine the HREF of next and prev components
@@ -169,57 +174,6 @@ describe('componentDetailsSelectors', () => {
   });
 
   describe('selectComponentViolations', () => {
-    const mockState = {
-      router: {
-        currentParams: {
-          hash: 'some-component-hash',
-        },
-      },
-      applicationReport: {
-        selectedReport: {
-          allEntries: [
-            {
-              hash: 'some-component-hash',
-            },
-            {
-              hash: 'some-component-hash',
-              policyThreatLevel: 9,
-            },
-            {
-              derivedComponentName: 'My Component',
-              hash: 'some-component-hash',
-              componentIdentifier: { format: 'maven' },
-              derivedDependencyType: 'transitive',
-              policyThreatLevel: 10,
-            },
-            {
-              hash: 'another-component-hash',
-            },
-            {
-              hash: 'and-another-component-hash',
-            },
-            {
-              hash: 'and-another-component-hash-bites-the-dust',
-            },
-          ],
-          displayedEntries: [
-            {
-              hash: 'a-component-hash',
-            },
-            {
-              derivedComponentName: 'My Component',
-              hash: 'some-component-hash',
-              componentIdentifier: { format: 'maven' },
-              derivedDependencyType: 'transitive',
-            },
-            {
-              hash: 'another-component-hash',
-            },
-          ],
-        },
-      },
-    };
-
     it(
       'derives the violations for the selected component from the entries in the selected report, ' +
         'only for those that have a policy threat level',

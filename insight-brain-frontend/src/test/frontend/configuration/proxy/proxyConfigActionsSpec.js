@@ -9,13 +9,13 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { save, del } from '../../../../main/frontend/configuration/proxy/proxyConfigActions';
 import { getProxyConfigUrl } from '../../../../main/frontend/util/CLMLocation';
 
-describe('proxyConfigActions', function () {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios),
-    proxyConfigUrl = getProxyConfigUrl();
+describe('proxyConfigActions', () => {
+  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  const proxyConfigUrl = getProxyConfigUrl();
 
   let store, state;
 
-  beforeEach(function () {
+  beforeEach(() => {
     state = {
       proxyConfig: {
         formState: {
@@ -41,7 +41,7 @@ describe('proxyConfigActions', function () {
     store = SpecUtil.mockReduxStore(state);
   });
 
-  describe('save', function () {
+  describe('save', () => {
     const serverData = {
       hostname: 'foo',
       username: 'user',
@@ -51,11 +51,11 @@ describe('proxyConfigActions', function () {
       excludeHosts: null,
     };
 
-    afterEach(function () {
+    afterEach(() => {
       expect(axios.put).toHaveBeenCalledWith(proxyConfigUrl, serverData);
     });
 
-    it('immediately dispatches a PROXY_CONFIG_SAVE_REQUESTED action', function () {
+    it('immediately dispatches a PROXY_CONFIG_SAVE_REQUESTED action', () => {
       mockAxiosCalls({
         put: {
           [proxyConfigUrl]: Promise.resolve({}),
@@ -65,13 +65,16 @@ describe('proxyConfigActions', function () {
       store.dispatch(save());
 
       const actions = store.getActions();
+
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe('PROXY_CONFIG_SAVE_REQUESTED');
-      expect(actions[0].payload).toBeUndefined();
+      expect(actions).toHaveAction({
+        type: 'PROXY_CONFIG_SAVE_REQUESTED',
+        payload: undefined,
+      });
     });
 
-    describe('after successful PUT call', function () {
-      beforeEach(function () {
+    describe('after successful PUT call', () => {
+      beforeEach(() => {
         mockAxiosCalls({
           put: {
             [proxyConfigUrl]: Promise.resolve({}),
@@ -79,37 +82,40 @@ describe('proxyConfigActions', function () {
         });
       });
 
-      it('dispatches PROXY_CONFIG_SAVE_FULFILLED', function (done) {
+      it('dispatches PROXY_CONFIG_SAVE_FULFILLED', (done) => {
         store.dispatch(save()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
+
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('PROXY_CONFIG_SAVE_FULFILLED');
-          expect(actions[1].payload).toEqual(serverData);
+          expect(actions).toHaveActionsInOrder([
+            { type: 'PROXY_CONFIG_SAVE_REQUESTED' },
+            { type: 'PROXY_CONFIG_SAVE_FULFILLED', payload: { ...serverData } },
+          ]);
+
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
       });
 
-      it('dispatches PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE after timeout', function (done) {
+      it('dispatches PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE after timeout', (done) => {
         store.dispatch(save()).then(() => {
-          setTimeout(function () {
-            actions = store.getActions();
+          setTimeout(() => {
+            const actions = store.getActions();
+
             expect(actions.length).toBe(3);
-            expect(actions[2].type).toBe('PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE');
+            expect(actions).toHaveActionsInOrder([
+              { type: 'PROXY_CONFIG_SAVE_REQUESTED' },
+              { type: 'PROXY_CONFIG_SAVE_FULFILLED', payload: { ...serverData } },
+              { type: 'PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE' },
+            ]);
 
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
       });
     });
 
-    describe('after failed PUT call', function () {
-      beforeEach(function () {
+    describe('after failed PUT call', () => {
+      beforeEach(() => {
         mockAxiosCalls({
           put: {
             [proxyConfigUrl]: Promise.reject('error!'),
@@ -117,27 +123,28 @@ describe('proxyConfigActions', function () {
         });
       });
 
-      it('dispatches PROXY_CONFIG_SAVE_FAILED action', function (done) {
+      it('dispatches PROXY_CONFIG_SAVE_FAILED action', (done) => {
         store.dispatch(save()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
+
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('PROXY_CONFIG_SAVE_FAILED');
-          expect(actions[1].payload).toBe('error!');
+          expect(actions).toHaveActionsInOrder([
+            { type: 'PROXY_CONFIG_SAVE_REQUESTED' },
+            { type: 'PROXY_CONFIG_SAVE_FAILED', payload: 'error!' },
+          ]);
+
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
       });
     });
   });
 
-  describe('del', function () {
-    afterEach(function () {
+  describe('del', () => {
+    afterEach(() => {
       expect(axios.delete).toHaveBeenCalledWith(proxyConfigUrl);
     });
 
-    it('immediately dispatches a PROXY_CONFIG_DELETE_REQUESTED action', function () {
+    it('immediately dispatches a PROXY_CONFIG_DELETE_REQUESTED action', () => {
       mockAxiosCalls({
         del: {
           [proxyConfigUrl]: Promise.resolve({}),
@@ -147,13 +154,17 @@ describe('proxyConfigActions', function () {
       store.dispatch(del());
 
       const actions = store.getActions();
+
       expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe('PROXY_CONFIG_DELETE_REQUESTED');
-      expect(actions[0].payload).toBeUndefined();
+      expect(actions).toHaveAction({
+        type: 'PROXY_CONFIG_DELETE_REQUESTED',
+        payload: undefined,
+      });
     });
 
-    describe('after successful DELETE call', function () {
-      beforeEach(function () {
+    describe('after successful DELETE call', () => {
+      const noop = () => {};
+      beforeEach(() => {
         mockAxiosCalls({
           del: {
             [proxyConfigUrl]: Promise.resolve({}),
@@ -161,37 +172,40 @@ describe('proxyConfigActions', function () {
         });
       });
 
-      it('dispatches PROXY_CONFIG_DELETE_FULFILLED', function (done) {
-        store.dispatch(del()).then(() => {
-          actions = store.getActions();
+      it('dispatches PROXY_CONFIG_DELETE_FULFILLED', (done) => {
+        store.dispatch(del(noop)).then(() => {
+          const actions = store.getActions();
+
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('PROXY_CONFIG_DELETE_FULFILLED');
-          expect(actions[1].payload).toBeUndefined();
+          expect(actions).toHaveActionsInOrder([
+            { type: 'PROXY_CONFIG_DELETE_REQUESTED' },
+            { type: 'PROXY_CONFIG_DELETE_FULFILLED', payload: undefined },
+          ]);
+
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
       });
 
-      it('dispatches PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE after timeout', function (done) {
-        store.dispatch(del()).then(() => {
-          setTimeout(function () {
-            actions = store.getActions();
+      it('dispatches PROXY_CONFIG_DELETE_MASK_TIMER_DONE after timeout', (done) => {
+        store.dispatch(del(noop)).then(() => {
+          setTimeout(() => {
+            const actions = store.getActions();
+
             expect(actions.length).toBe(3);
-            expect(actions[2].type).toBe('PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE');
+            expect(actions).toHaveActionsInOrder([
+              { type: 'PROXY_CONFIG_DELETE_REQUESTED' },
+              { type: 'PROXY_CONFIG_DELETE_FULFILLED', payload: undefined },
+              { type: 'PROXY_CONFIG_DELETE_MASK_TIMER_DONE' },
+            ]);
 
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
       });
     });
 
-    describe('after failed DELETE call', function () {
-      beforeEach(function () {
+    describe('after failed DELETE call', () => {
+      beforeEach(() => {
         mockAxiosCalls({
           del: {
             [proxyConfigUrl]: Promise.reject('error!'),
@@ -199,17 +213,18 @@ describe('proxyConfigActions', function () {
         });
       });
 
-      it('dispatches PROXY_CONFIG_DELETE_FAILED action', function (done) {
+      it('dispatches PROXY_CONFIG_DELETE_FAILED action', (done) => {
         store.dispatch(del()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
+
           expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe('PROXY_CONFIG_DELETE_FAILED');
-          expect(actions[1].payload).toBe('error!');
+          expect(actions).toHaveActionsInOrder([
+            { type: 'PROXY_CONFIG_DELETE_REQUESTED' },
+            { type: 'PROXY_CONFIG_DELETE_FAILED', payload: 'error!' },
+          ]);
+
           done();
         });
-
-        let actions = store.getActions();
-        expect(actions.length).toBe(1);
       });
     });
   });

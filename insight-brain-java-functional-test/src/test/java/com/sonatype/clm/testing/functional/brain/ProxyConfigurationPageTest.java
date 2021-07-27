@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.brain;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.elements.NxDeleteModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ProxyConfigurationPage;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
@@ -121,12 +122,13 @@ public class ProxyConfigurationPageTest
     tempEntity.setProxyServerConfiguration("proxy.server", 8080);
     refreshOrOpen(ProxyConfigurationPage.url());
 
-    // Make sure cancel does not delete
-    proxyConfigurationPage.deleteModal().shouldNotBe(visible);
-    proxyConfigurationPage.delete().shouldBe(enabled).click();
-    proxyConfigurationPage.deleteModal().shouldBe(visible);
+    NxDeleteModal deleteModal = new NxDeleteModal("#proxy-config-delete-modal");
 
-    proxyConfigurationPage.deleteModal().cancel().click();
+    // Make sure cancel does not delete
+    deleteModal.shouldNotBe(visible);
+    proxyConfigurationPage.delete().shouldBe(enabled).click();
+    deleteModal.shouldBe(visible);
+    deleteModal.closeButton().click();
 
     proxyConfigurationPage.hostName().shouldBe(value("proxy.server"));
     proxyConfigurationPage.port().shouldBe(value("8080"));
@@ -136,13 +138,13 @@ public class ProxyConfigurationPageTest
     assertThat(dao.get()).isNotNull();
 
     // Make sure OK on delete modal does delete
-    proxyConfigurationPage.deleteModal().shouldNotBe(visible);
+    deleteModal.shouldNotBe(visible);
     proxyConfigurationPage.delete().shouldBe(enabled).click();
-    proxyConfigurationPage.deleteModal().shouldBe(visible);
+    deleteModal.shouldBe(visible);
     eyesWatcher.eyesCheck("Proxy Configuration Page - Delete Modal");
 
     FormMask.seeAndWaitForDismissal();
-    proxyConfigurationPage.deleteModal().ok().click();
+    deleteModal.submitButton().click();
     assertNoProxyServerConfigured();
   }
 
@@ -298,7 +300,7 @@ public class ProxyConfigurationPageTest
       proxyConfigurationPage.loadError()
           .shouldBe(visible)
           .shouldHave(text("An error occurred loading data. It appears you do not have permission to access this " +
-              "page. If you believe this to be incorrect, please contact your administrator."));
+              "page. If you believe this to be incorrect please contact your administrator."));
     }
     finally {
       logout();
@@ -315,7 +317,7 @@ public class ProxyConfigurationPageTest
     proxyConfigurationPage.port().setValue("nineteen-eighty-four");
 
     proxyConfigurationPage.save().hover();
-    proxyConfigurationPage.saveTooltip().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
+    Tooltip.get().shouldBe(visible).shouldBe(text("Hostname and Port are required details."));
   }
 
   private void assertNoProxyServerConfigured() {

@@ -16,7 +16,7 @@ import ScmOnboardingContainer from './scmOnboarding/ScmOnboardingContainer';
 import LabsDataInsightsContainer from './labsDataInsights/LabsDataInsightsContainer';
 import scmOnboardingActions from './scmOnboarding/scmOnboardingActions';
 import withStoreProvider from '../reactAdapter/StoreProvider';
-import { always } from 'ramda';
+import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 import AdvancedSearchConfigContainer from './advancedSearch/AdvancedSearchConfigContainer';
 import SuccessMetricsConfigurationContainer from './successMetricsConfiguration/SuccessMetricsConfigurationContainer';
 import SystemNoticeConfigurationContainer from './systemNoticeConfiguration/SystemNoticeConfigurationContainer';
@@ -42,7 +42,7 @@ export default angular
   .component('mailConfig', react2angular(withStoreProvider(MailConfigContainer), ['isAuthorized'], ['$ngRedux']))
   .component(
     'proxyConfig',
-    react2angular(withStoreProvider(ProxyConfigContainer), ['isAuthorized', 'licensed'], ['$ngRedux', '$state'])
+    react2angular(withStoreProvider(withRouterStateProvider(ProxyConfigContainer)), [], ['$ngRedux', '$state'])
   )
   .component(
     'advancedSearchConfig',
@@ -122,21 +122,7 @@ function routes($stateProvider) {
       component: 'proxyConfig',
       url: '/proxyConfig',
       data: {
-        title: 'Proxy Config',
-      },
-      resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
-        licensed: [
-          'ProductLicense',
-          function (ProductLicense) {
-            return ProductLicense.load().then(always(true)).catch(always(false));
-          },
-        ],
+        title: 'Proxy',
       },
     })
     .state('advancedSearchConfig', {

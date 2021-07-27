@@ -6,7 +6,6 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -15,32 +14,6 @@ public class ProxyConfigurationPage
     extends BasicElement<ProxyConfigurationPage>
 {
   public static final String ROOT = "#proxy-config-container";
-
-  public static class DeleteModal
-      extends BasicElement<DeleteModal>
-  {
-    public static final String ROOT = "#proxy-config-delete-modal";
-
-    public DeleteModal() {
-      super(ROOT);
-    }
-
-    public SelenideElement ok() {
-      return child("#proxy-config-delete-ok");
-    }
-
-    public SelenideElement cancel() {
-      return child("#proxy-config-delete-cancel");
-    }
-  }
-
-  public Tooltip saveTooltip() {
-    return new Tooltip("#save-button-tooltip");
-  }
-
-  public DeleteModal deleteModal() {
-    return new DeleteModal();
-  }
 
   public ProxyConfigurationPage() {
     super(ROOT);
@@ -71,7 +44,7 @@ public class ProxyConfigurationPage
   }
 
   public SelenideElement save() {
-    return child("#proxy-config-save");
+    return child(".nx-form__submit-btn");
   }
 
   public SelenideElement cancel() {
@@ -83,7 +56,7 @@ public class ProxyConfigurationPage
   }
 
   public SelenideElement loadError() {
-    return child(".nx-alert--load-error");
+    return child(".nx-load-error__message");
   }
 
   public SelenideElement productLicenseNavigation() {

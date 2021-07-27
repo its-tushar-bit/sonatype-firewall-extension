@@ -3,10 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 import reduce from '../../../../main/frontend/configuration/proxy/proxyConfigReducer';
 
-describe('proxyConfigReducer', function () {
+describe('proxyConfigReducer', () => {
   let otherObject;
 
   const serverData = {
@@ -18,136 +17,134 @@ describe('proxyConfigReducer', function () {
     excludeHosts: null,
   };
 
-  beforeEach(function () {
+  beforeEach(() => {
     otherObject = { value: 'test value' };
   });
 
-  describe('unknown action', function () {
-    it('returns original state', function () {
+  describe('unknown action', () => {
+    it('returns original state', () => {
       const state = Object.freeze({ foo: 'bar' });
-      const action = {
-        type: 'UNKNOWN',
-      };
-      const newState = reduce(state, action);
+
+      const newState = reduce(state, { type: 'UNKNOWN' });
       expect(newState).toBe(state);
     });
   });
 
-  describe('PROXY_CONFIG_SAVE_REQUESTED action', function () {
-    it('sets submitMaskState to false', function () {
+  describe('PROXY_CONFIG_SAVE_REQUESTED action', () => {
+    it('sets submitMaskState to false', () => {
       const state = Object.freeze({
         other: otherObject,
         submitMaskState: null,
       });
 
-      const newState = reduce(state, {
+      const { submitMaskState, other } = reduce(state, {
         type: 'PROXY_CONFIG_SAVE_REQUESTED',
       });
 
-      expect(newState.submitMaskState).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      expect(submitMaskState).toBe(false);
+      expect(other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('PROXY_CONFIG_SAVE_FULFILLED action', function () {
-    it('sets submitMaskState to true', function () {
+  describe('PROXY_CONFIG_SAVE_FULFILLED action', () => {
+    it('sets submitMaskState to true', () => {
       const state = Object.freeze({
         other: otherObject,
         submitMaskState: null,
       });
 
-      const newState = reduce(state, {
+      const { submitMaskState, other } = reduce(state, {
         type: 'PROXY_CONFIG_SAVE_FULFILLED',
         payload: serverData,
       });
 
-      expect(newState.submitMaskState).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      expect(submitMaskState).toBe(true);
+      expect(other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('PROXY_CONFIG_SAVE_FAILED action', function () {
-    it('sets submitMaskState to null', function () {
+  describe('PROXY_CONFIG_SAVE_FAILED action', () => {
+    it('sets submitMaskState to null', () => {
       const state = Object.freeze({
         other: otherObject,
         submitMaskState: null,
       });
 
-      const newState = reduce(state, {
+      const { submitMaskState, other } = reduce(state, {
         type: 'PROXY_CONFIG_SAVE_FAILED',
         payload: 'Error!',
       });
 
-      expect(newState.submitMaskState).toBe(null);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      expect(submitMaskState).toBe(null);
+      expect(other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('PROXY_CONFIG_DELETE_REQUESTED action', function () {
-    it('sets submitMaskState to false', function () {
+  describe('PROXY_CONFIG_DELETE_REQUESTED action', () => {
+    it('sets deleteMaskState to false', () => {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: null,
+        deleteMaskState: null,
       });
 
-      const newState = reduce(state, {
+      const { deleteMaskState, other } = reduce(state, {
         type: 'PROXY_CONFIG_DELETE_REQUESTED',
       });
 
-      expect(newState.submitMaskState).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      expect(deleteMaskState).toBe(false);
+      expect(other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('PROXY_CONFIG_DELETE_FULFILLED action', function () {
-    it('sets submitMaskState to true', function () {
+  describe('PROXY_CONFIG_DELETE_FULFILLED action', () => {
+    it('sets deleteMaskState to true', () => {
       const state = Object.freeze({
-        submitMaskState: null,
+        deleteMaskState: null,
       });
 
-      const newState = reduce(state, {
+      const { deleteMaskState } = reduce(state, {
         type: 'PROXY_CONFIG_DELETE_FULFILLED',
       });
 
-      expect(newState.submitMaskState).toBe(true);
+      expect(deleteMaskState).toBe(true);
     });
   });
 
-  describe('PROXY_CONFIG_DELETE_FAILED action', function () {
-    it('sets submitMaskState to null', function () {
+  describe('PROXY_CONFIG_DELETE_FAILED action', () => {
+    it('sets deleteMaskState to null', () => {
       const state = Object.freeze({
         other: otherObject,
-        submitMaskState: null,
+        deleteMaskState: null,
       });
 
-      const newState = reduce(state, {
+      const { deleteMaskState, other } = reduce(state, {
         type: 'PROXY_CONFIG_DELETE_FAILED',
         payload: 'Error!',
       });
 
-      expect(newState.submitMaskState).toBe(null);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      expect(deleteMaskState).toBe(null);
+      expect(other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE action', function () {
-    it('sets submitMaskState to null', function () {
+  describe('PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE action', () => {
+    it('sets submitMaskState to null', () => {
       const state = Object.freeze({
         other: otherObject,
         submitMaskState: null,
       });
 
-      const newState = reduce(state, {
+      const { submitMaskState, other } = reduce(state, {
         type: 'PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE',
       });
 
-      expect(newState.submitMaskState).toBe(null);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      expect(submitMaskState).toBe(null);
+      expect(other).toBe(otherObject); // other properties are not modified
     });
   });
 
-  describe('PROXY_CONFIG_SET_HOSTNAME action', function () {
-    it('sets isValid to false when using an invalid value', function () {
+  describe('PROXY_CONFIG_SET_HOSTNAME action', () => {
+    it('sets isValid to false when using an invalid value', () => {
       const state = Object.freeze({
         formState: {
           hostname: { value: '' },
@@ -159,15 +156,15 @@ describe('proxyConfigReducer', function () {
         isValid: true,
       });
 
-      const newState = reduce(state, {
+      const { isValid } = reduce(state, {
         type: 'PROXY_CONFIG_SET_HOSTNAME',
         payload: 'sonatype.com/host',
       });
 
-      expect(newState.isValid).toBe(false);
+      expect(isValid).toBe(false);
     });
 
-    it('sets validation errors on the hostname when using an invalid value', function () {
+    it('sets validation errors on the hostname when using an invalid value', () => {
       const state = Object.freeze({
         formState: {
           hostname: { value: '' },
@@ -179,17 +176,16 @@ describe('proxyConfigReducer', function () {
         isValid: true,
       });
 
-      const newState = reduce(state, {
+      const { formState } = reduce(state, {
         type: 'PROXY_CONFIG_SET_HOSTNAME',
         payload: 'sonatype.com/host',
       });
 
-      const { formState } = newState;
       expect(formState.hostname.value).toEqual('sonatype.com/host');
       expect(formState.hostname.validationErrors).toEqual(['Invalid host name']);
     });
 
-    it('sets the hostname value when using a valid hostname', function () {
+    it('sets the hostname value when using a valid hostname', () => {
       const state = Object.freeze({
         formState: {
           hostname: { value: 'host' },
@@ -201,12 +197,11 @@ describe('proxyConfigReducer', function () {
         isValid: true,
       });
 
-      const newState = reduce(state, {
+      const { formState } = reduce(state, {
         type: 'PROXY_CONFIG_SET_HOSTNAME',
         payload: 'sonatype.com',
       });
 
-      const { formState } = newState;
       expect(formState.hostname.value).toEqual('sonatype.com');
       expect(formState.hostname.validationErrors).toEqual([]);
     });

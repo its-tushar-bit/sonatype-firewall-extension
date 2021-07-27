@@ -4,16 +4,23 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { map, pick } from 'ramda';
+import { map, pick, compose } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { Messages } from '../../util/CommonServices';
 
-import { getProxyConfigUrl } from '../../util/CLMLocation';
+import { getProxyConfigUrl, getValidateLicenseUrl } from '../../util/CLMLocation';
+import { checkPermissions } from '../../util/authorizationUtil';
+
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { FAKE_PASSWORD } from './proxyConfigReducer';
 
 export const PROXY_CONFIG_LOAD_REQUESTED = 'PROXY_CONFIG_LOAD_REQUESTED';
 export const PROXY_CONFIG_LOAD_FULFILLED = 'PROXY_CONFIG_LOAD_FULFILLED';
 export const PROXY_CONFIG_LOAD_FAILED = 'PROXY_CONFIG_LOAD_FAILED';
+
+export const PROXY_CONFIG_LOAD_LICENSED_REQUESTED = 'PROXY_CONFIG_LOAD_LICENSED_REQUESTED';
+export const PROXY_CONFIG_LOAD_LICENSED_FULFILLED = 'PROXY_CONFIG_LOAD_LICENSED_FULFILLED';
+export const PROXY_CONFIG_LOAD_LICENSED_FAILED = 'PROXY_CONFIG_LOAD_LICENSED_FAILED';
 
 export const PROXY_CONFIG_SAVE_REQUESTED = 'PROXY_CONFIG_SAVE_REQUESTED';
 export const PROXY_CONFIG_SAVE_FULFILLED = 'PROXY_CONFIG_SAVE_FULFILLED';
@@ -31,9 +38,11 @@ export const PROXY_CONFIG_SET_USERNAME = 'PROXY_CONFIG_SET_USERNAME';
 export const PROXY_CONFIG_SET_PASSWORD = 'PROXY_CONFIG_SET_PASSWORD';
 export const PROXY_CONFIG_SET_EXCLUDE_HOSTS = 'PROXY_CONFIG_SET_EXCLUDE_HOSTS';
 
-export const PROXY_CONFIG_SET_SHOW_DELETE_MODAL = 'PROXY_CONFIG_SET_SHOW_DELETE_MODAL';
-
 export const PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE = 'PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE';
+const saveMaskTimerDone = noPayloadActionCreator(PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE);
+
+export const PROXY_CONFIG_DELETE_MASK_TIMER_DONE = 'PROXY_CONFIG_DELETE_MASK_TIMER_DONE';
+const deleteMaskTimerDone = noPayloadActionCreator(PROXY_CONFIG_DELETE_MASK_TIMER_DONE);
 
 function toServerData(formState) {
   // pull the trimmedValue out of the input state object and convert empty strings to null
@@ -49,24 +58,36 @@ function toServerData(formState) {
   };
 }
 
-function startSubmitMaskSuccessTimer(dispatch) {
+function startSubmitMaskSuccessTimer(dispatch, timerDoneFunc) {
   setTimeout(() => {
-    dispatch({ type: PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE });
+    dispatch(timerDoneFunc());
   }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+}
+
+export function loadLicenced() {
+  return function (dispatch) {
+    dispatch(loadLicensedRequested());
+
+    return axios
+      .get(getValidateLicenseUrl())
+      .then(() => {
+        dispatch(loadLicensedFulfilled());
+      })
+      .catch(compose(dispatch, loadLicensedFailed));
+  };
 }
 
 export function load() {
   return function (dispatch) {
     dispatch(loadRequested());
 
-    return axios
-      .get(getProxyConfigUrl())
-      .then(({ data }) => {
-        dispatch(loadFulfilled(data));
+    return checkPermissions(['CONFIGURE_SYSTEM'])
+      .then(() => {
+        return axios.get(getProxyConfigUrl()).then(({ data }) => {
+          dispatch(loadFulfilled(data));
+        });
       })
-      .catch((error) => {
-        dispatch(loadFailed(error));
-      });
+      .catch(compose(dispatch, loadFailed));
   };
 }
 
@@ -81,15 +102,13 @@ export function save() {
       .put(getProxyConfigUrl(), serverData)
       .then(() => {
         dispatch(saveFulfilled(serverData));
-        startSubmitMaskSuccessTimer(dispatch);
+        startSubmitMaskSuccessTimer(dispatch, saveMaskTimerDone);
       })
-      .catch((error) => {
-        dispatch(saveFailed(error));
-      });
+      .catch(compose(dispatch, saveFailed, Messages.getHttpErrorMessage));
   };
 }
 
-export function del() {
+export function del(cb) {
   return function (dispatch) {
     dispatch(deleteRequested());
 
@@ -97,17 +116,20 @@ export function del() {
       .delete(getProxyConfigUrl())
       .then(() => {
         dispatch(deleteFulfilled());
-        startSubmitMaskSuccessTimer(dispatch);
+        startSubmitMaskSuccessTimer(dispatch, deleteMaskTimerDone);
+        cb();
       })
-      .catch((error) => {
-        dispatch(deleteFailed(error));
-      });
+      .catch(compose(dispatch, deleteFailed, Messages.getHttpErrorMessage));
   };
 }
 
 const loadRequested = noPayloadActionCreator(PROXY_CONFIG_LOAD_REQUESTED);
 const loadFulfilled = payloadParamActionCreator(PROXY_CONFIG_LOAD_FULFILLED);
 const loadFailed = payloadParamActionCreator(PROXY_CONFIG_LOAD_FAILED);
+
+const loadLicensedRequested = noPayloadActionCreator(PROXY_CONFIG_LOAD_LICENSED_REQUESTED);
+const loadLicensedFulfilled = payloadParamActionCreator(PROXY_CONFIG_LOAD_LICENSED_FULFILLED);
+const loadLicensedFailed = payloadParamActionCreator(PROXY_CONFIG_LOAD_LICENSED_FAILED);
 
 const saveRequested = noPayloadActionCreator(PROXY_CONFIG_SAVE_REQUESTED);
 const saveFulfilled = payloadParamActionCreator(PROXY_CONFIG_SAVE_FULFILLED);
@@ -124,4 +146,3 @@ export const setPort = payloadParamActionCreator(PROXY_CONFIG_SET_PORT);
 export const setUsername = payloadParamActionCreator(PROXY_CONFIG_SET_USERNAME);
 export const setPassword = payloadParamActionCreator(PROXY_CONFIG_SET_PASSWORD);
 export const setExcludeHosts = payloadParamActionCreator(PROXY_CONFIG_SET_EXCLUDE_HOSTS);
-export const setShowDeleteModal = payloadParamActionCreator(PROXY_CONFIG_SET_SHOW_DELETE_MODAL);

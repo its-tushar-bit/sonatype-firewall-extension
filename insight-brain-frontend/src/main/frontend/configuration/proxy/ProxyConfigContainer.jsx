@@ -8,6 +8,7 @@ import { pick } from 'ramda';
 
 import * as proxyConfigActions from './proxyConfigActions';
 import ProxyConfig from './ProxyConfig';
+import { stateGo } from '../../reduxUiRouter/routerActions';
 
 function mapStateToProps({ proxyConfig }) {
   return {
@@ -16,6 +17,7 @@ function mapStateToProps({ proxyConfig }) {
         'loading',
         'submitMaskState',
         'submitMaskMessage',
+        'deleteMaskState',
         'hasAllRequiredData',
         'isDirty',
         'isValid',
@@ -25,7 +27,6 @@ function mapStateToProps({ proxyConfig }) {
         'deleteError',
         'serverData',
         'showDeleteModal',
-        'isAuthorized',
         'licensed',
       ],
       proxyConfig
@@ -38,4 +39,4 @@ function mapStateToProps({ proxyConfig }) {
   };
 }
 
-export default connect(mapStateToProps, proxyConfigActions)(ProxyConfig);
+export default connect(mapStateToProps, { ...proxyConfigActions, stateGo })(ProxyConfig);

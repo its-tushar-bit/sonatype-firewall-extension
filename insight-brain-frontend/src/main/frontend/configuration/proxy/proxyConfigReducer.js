@@ -7,7 +7,7 @@ import * as textInputStateHelpers from '@sonatype/react-shared-components/compon
 import { any, compose, curryN, map, pick, prop, values } from 'ramda';
 
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
-import { pathSet, propSet } from '../../util/jsUtil';
+import { pathSet } from '../../util/jsUtil';
 import {
   combineValidators,
   hasValidationErrors,
@@ -15,6 +15,7 @@ import {
   validateNonEmpty,
   validatePatternMatch,
 } from '../../util/validationUtil';
+import { Messages } from '../../util/CommonServices';
 
 import {
   PROXY_CONFIG_DELETE_FAILED,
@@ -31,13 +32,13 @@ import {
   PROXY_CONFIG_SET_HOSTNAME,
   PROXY_CONFIG_SET_PASSWORD,
   PROXY_CONFIG_SET_PORT,
-  PROXY_CONFIG_SET_SHOW_DELETE_MODAL,
   PROXY_CONFIG_SET_USERNAME,
   PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE,
+  PROXY_CONFIG_DELETE_MASK_TIMER_DONE,
+  PROXY_CONFIG_LOAD_LICENSED_FULFILLED,
+  PROXY_CONFIG_LOAD_LICENSED_FAILED,
 } from './proxyConfigActions';
 
-const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
-const SUBMIT_MASK_DELETING_MESSAGE = 'Deleting';
 export const FAKE_PASSWORD = '\x00\x00\x00\x00\x00';
 
 const initialState = {
@@ -55,18 +56,19 @@ const initialState = {
   hasAllRequiredData: false,
   loading: false,
   submitMaskState: null, // one of null, false, or true as patterned in the NxStatefulSubmitMask examples
-  submitMaskMessage: null,
   loadError: null,
   saveError: null,
   deleteError: null,
-  showDeleteModal: false,
+  deleteMaskState: null,
   mustReenterPassword: false,
+  licensed: false,
 };
 
+const clearedErrors = pick(['loadError', 'saveError', 'deleteError'], initialState);
 const textProps = ['hostname', 'port', 'username', 'password', 'excludeHosts'];
+
 const hostNameValidator = combineValidators([validateNonEmpty, validateHostname]);
 const portValidator = combineValidators([validateNonEmpty, validatePatternMatch(/^\d+$/, 'Must be a number')]);
-const clearedErrors = pick(['loadError', 'saveError', 'deleteError'], initialState);
 
 function setFormStateFromServerData(state) {
   const { serverData } = state,
@@ -150,7 +152,6 @@ function loadFulfilled(payload, state) {
     isDirty: false,
     ...clearedErrors,
     submitMaskState: initialState.submitMaskState,
-    submitMaskMessage: initialState.submitMaskMessage,
     serverData: payload,
     mustReenterPassword: false,
   });
@@ -158,19 +159,12 @@ function loadFulfilled(payload, state) {
 
 const resetForm = (_, state) => (state.serverData ? loadFulfilled(state.serverData, state) : initialState);
 
-function loadFailed(payload) {
+function loadFailed(payload, state) {
   return {
     ...initialState,
+    licensed: state.licensed,
     loading: false,
-    loadError: payload.response && payload.response.status === 404 ? null : payload,
-  };
-}
-
-function saveRequested(payload, state) {
-  return {
-    ...state,
-    submitMaskState: false,
-    submitMaskMessage: SUBMIT_MASK_SAVING_MESSAGE,
+    loadError: payload.response && payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload),
   };
 }
 
@@ -195,24 +189,20 @@ function saveFailed(payload, state) {
   };
 }
 
-function deleteRequested(payload, state) {
+function deleteFulfilled(_, state) {
   return {
-    ...state,
-    submitMaskState: false,
-    submitMaskMessage: SUBMIT_MASK_DELETING_MESSAGE,
-    showDeleteModal: false,
+    ...initialState,
+    licensed: state.licensed,
+    deleteMaskState: true,
+    ...clearedErrors,
   };
-}
-
-function deleteFulfilled() {
-  return { ...initialState, submitMaskState: true, ...clearedErrors };
 }
 
 function deleteFailed(payload, state) {
   return {
     ...state,
     loading: false,
-    submitMaskState: null,
+    deleteMaskState: null,
     ...clearedErrors,
     deleteError: payload,
   };
@@ -232,10 +222,10 @@ const reducerActionMap = {
   [PROXY_CONFIG_LOAD_REQUESTED]: propSetConst('loading', true),
   [PROXY_CONFIG_LOAD_FULFILLED]: loadFulfilled,
   [PROXY_CONFIG_LOAD_FAILED]: loadFailed,
-  [PROXY_CONFIG_SAVE_REQUESTED]: saveRequested,
+  [PROXY_CONFIG_SAVE_REQUESTED]: propSetConst('submitMaskState', false),
   [PROXY_CONFIG_SAVE_FULFILLED]: saveFulfilled,
   [PROXY_CONFIG_SAVE_FAILED]: saveFailed,
-  [PROXY_CONFIG_DELETE_REQUESTED]: deleteRequested,
+  [PROXY_CONFIG_DELETE_REQUESTED]: propSetConst('deleteMaskState', false),
   [PROXY_CONFIG_DELETE_FULFILLED]: deleteFulfilled,
   [PROXY_CONFIG_DELETE_FAILED]: deleteFailed,
   [PROXY_CONFIG_RESET_FORM]: resetForm,
@@ -244,8 +234,10 @@ const reducerActionMap = {
   [PROXY_CONFIG_SET_USERNAME]: setTextInput('username', null),
   [PROXY_CONFIG_SET_PASSWORD]: setTextInput('password', null),
   [PROXY_CONFIG_SET_EXCLUDE_HOSTS]: setTextInput('excludeHosts', null),
-  [PROXY_CONFIG_SET_SHOW_DELETE_MODAL]: propSet('showDeleteModal'),
   [PROXY_CONFIG_SUBMIT_MASK_TIMER_DONE]: propSetConst('submitMaskState', null),
+  [PROXY_CONFIG_DELETE_MASK_TIMER_DONE]: propSetConst('deleteMaskState', null),
+  [PROXY_CONFIG_LOAD_LICENSED_FULFILLED]: propSetConst('licensed', true),
+  [PROXY_CONFIG_LOAD_LICENSED_FAILED]: propSetConst('licensed', false),
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
@@ -222,6 +223,39 @@ public class SourceControlEventDAOTest
       assertThat(event.getEventPriority()).isGreaterThanOrEqualTo(priority);
       priority = event.getEventPriority();
     }
+  }
+
+  @Test
+  public void testSelectUnassignedNewEventsAndAssignToInstance() {
+    // given: events in all combinations of type, status and instance assignment
+    List<String> instanceIds = new ArrayList<>();
+    instanceIds.add("instance-1");
+    instanceIds.add(null);
+    AtomicInteger expectedEventCount = new AtomicInteger();
+
+    SourceControlEvent.EVENT_TYPES.forEach(type -> {
+      SourceControlEvent.EVENT_STATUSES.forEach(status -> {
+        instanceIds.forEach(instanceId -> {
+          boolean expectAssignment = status.equals(EVENT_STATUS_NEW) && instanceId == null;
+          // using the status details field to record whether or not we expect the event to be assigned
+          createNewEvent(app.getId(), type, status, instanceId, Boolean.toString(expectAssignment));
+          if (expectAssignment) {
+            expectedEventCount.getAndIncrement();
+          }
+        });
+      });
+    });
+
+    List<SourceControlEvent> unassignedEvents =
+        sourceControlEventDAO.selectUnassignedNewEventsAndAssignToInstance("instance-2");
+
+    assertThat(unassignedEvents.size()).isPositive();
+    assertThat(unassignedEvents.size()).isEqualTo(expectedEventCount.get());
+    unassignedEvents.forEach(event -> {
+      assertThat(event.getEventStatusDetails()).isEqualTo(Boolean.TRUE.toString());
+      assertThat(event.getEventStatus()).isEqualTo(EVENT_STATUS_NEW);
+      assertThat(event.getInstanceId()).isEqualTo("instance-2");
+    });
   }
 
   @Test
@@ -508,6 +542,24 @@ public class SourceControlEventDAOTest
       created = created.plusMinutes(1);
     }
     return result;
+  }
+
+  private void createNewEvent(
+      String applicationId,
+      String eventType,
+      String eventStatus,
+      String instanceId,
+      String statusDetails)
+  {
+    sourceControlEventDAO.insert(
+        new SourceControlEvent()
+            .setApplicationId(applicationId)
+            .setEventType(eventType)
+            .setEventStatus(eventStatus)
+            .setInstanceId(instanceId)
+            .setEventStatusDetails(statusDetails)
+            .setCreateTime(new Date())
+    );
   }
 
   private Date toDate(final LocalDateTime localDateTime) {

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.utils;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
@@ -104,6 +105,27 @@ public class DateUtilsTest
     timeDataAndExpectedValues.forEach((k, v) -> {
       assertThat(DateUtils.getLocalTimeForHoursAndMinutes(k)).isEqualTo(v);
     });
+  }
+
+  @Test
+  public void testMax() {
+    // given two non-null dates
+    Date now = new Date();
+    Date earlier = new Date(System.currentTimeMillis() - 5_000);
+    Date later = new Date(System.currentTimeMillis() + 5_000);
+    assertThat(DateUtils.max(now, later)).isEqualTo(later);
+    assertThat(DateUtils.max(later, now)).isEqualTo(later);
+    assertThat(DateUtils.max(now, earlier)).isEqualTo(now);
+    assertThat(DateUtils.max(earlier, now)).isEqualTo(now);
+    assertThat(DateUtils.max(earlier, later)).isEqualTo(later);
+    assertThat(DateUtils.max(later, earlier)).isEqualTo(later);
+
+    // both dates null
+    assertThat(DateUtils.max(null, null)).isNull();
+
+    // only one date null
+    assertThat(DateUtils.max(null, now)).isEqualTo(now);
+    assertThat(DateUtils.max(now, null)).isEqualTo(now);
   }
 
   private void assertExpectedFutureDateTime(String from, String intervalStart, int interval, String expected) {

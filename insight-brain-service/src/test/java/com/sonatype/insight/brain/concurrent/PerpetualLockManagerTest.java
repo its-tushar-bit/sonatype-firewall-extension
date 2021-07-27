@@ -102,6 +102,40 @@ public class PerpetualLockManagerTest
   }
 
   @Test
+  public void testTryAcquirePerpetualLock_reserveTimeExtended() {
+    // given: DAO setup with existing lock and reserve success
+    final String lockId = "test-lock-reserve-time-extended";
+    final long reserveTime = 30;
+
+    // then: lock acquired
+    assertThat(perpetualLockManager.tryAcquireLock(lockId, "test-owner", reserveTime)).isTrue();
+    // extend the lock with another call
+    assertThat(perpetualLockManager.tryAcquireLock(lockId, "test-owner", reserveTime + 10)).isTrue();
+
+    // and: expiration date in the future as expected, with the newer expiration
+    PerpetualLock lock = perpetualLockDAO.getPerpetualLockById(lockId);
+    assertThat(lock.getExpirationTime()).isAfter(new Date(currentTimeMillis() - 1_000 * (reserveTime - 9)));
+    assertThat(lock.getExpirationTime()).isBefore(new Date(currentTimeMillis() + 1_000 * (reserveTime + 11)));
+  }
+
+  @Test
+  public void testTryAcquirePerpetualLock_reserveTimeNotReduced() {
+    // given: DAO setup with existing lock and reserve success
+    final String lockId = "test-lock-reserve-time-not-reduced";
+    final long reserveTime = 30;
+
+    // then: lock acquired
+    assertThat(perpetualLockManager.tryAcquireLock(lockId, "test-owner", reserveTime)).isTrue();
+    // acquire the lock again, but with a shorter reserve time
+    assertThat(perpetualLockManager.tryAcquireLock(lockId, "test-owner", reserveTime - 10)).isTrue();
+
+    // and: expiration date in the future as expected, with the original expiration
+    PerpetualLock lock = perpetualLockDAO.getPerpetualLockById(lockId);
+    assertThat(lock.getExpirationTime()).isAfter(new Date(currentTimeMillis() - 1_000 * (reserveTime - 2)));
+    assertThat(lock.getExpirationTime()).isBefore(new Date(currentTimeMillis() + 1_000 * (reserveTime + 2)));
+  }
+
+  @Test
   public void testTryAcquirePerpetualLock_existsAndReserveUnsuccessful() {
     // given: DAO setup with existing lock and reserve unsuccessful
     final String lockId = "test-lock-unsuccessful";

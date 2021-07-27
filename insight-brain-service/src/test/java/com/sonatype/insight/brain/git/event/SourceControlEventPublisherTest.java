@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git.event;
 import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 
@@ -33,12 +34,16 @@ public class SourceControlEventPublisherTest
   @Mock
   private SourceControlEventDAO mockSourceControlEventDAO;
 
+  @Mock
+  private SourceControlInstanceManager mockSourceControlInstanceManager;
+
   private SourceControlEventPublisher sourceControlEventPublisher;
 
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    sourceControlEventPublisher = new SourceControlEventPublisher(mockProductLicense, mockSourceControlEventDAO);
+    sourceControlEventPublisher = new SourceControlEventPublisher(mockProductLicense, mockSourceControlEventDAO,
+        mockSourceControlInstanceManager);
   }
 
   @Test

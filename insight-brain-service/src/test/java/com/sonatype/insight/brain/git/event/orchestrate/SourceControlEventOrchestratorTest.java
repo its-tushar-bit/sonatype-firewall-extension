@@ -5,7 +5,14 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -16,11 +23,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Stubber;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,6 +51,9 @@ public class SourceControlEventOrchestratorTest
   private SourceControlEventPublisher mockSourceControlEventPublisher;
 
   @Mock
+  private SourceControlInstanceManager mockSourceControlInstanceManager;
+
+  @Mock
   private SourceControlUtils mockSourceControlUtils;
 
   @Before
@@ -53,8 +66,9 @@ public class SourceControlEventOrchestratorTest
     // given: an orchestrator and two events for different scm users
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlUtils
+        mockSourceControlInstanceManager, mockSourceControlUtils
     );
+    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
 
     SourceControlEvent user1Event =
         new SourceControlEvent().forRemediationPullRequest().withId("user1Event").setScmUsername("user1")
@@ -84,8 +98,9 @@ public class SourceControlEventOrchestratorTest
     // given: an orchestrator and two events for the same scm user
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlUtils
+        mockSourceControlInstanceManager, mockSourceControlUtils
     );
+    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
 
     SourceControlEvent user1Event1 =
         new SourceControlEvent().forRemediationPullRequest().withId("user1Event1").setScmUsername("user1")
@@ -111,12 +126,60 @@ public class SourceControlEventOrchestratorTest
   }
 
   @Test
+  public void testOnNewEvent_eventNotProcessed() {
+    // given: an orchestrator configured not to process events
+    SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
+        mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlInstanceManager, mockSourceControlUtils
+    );
+    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(false);
+
+    SourceControlEvent event =
+        new SourceControlEvent().forSourceControlEvaluation().setApplicationId(UUID.randomUUID().toString());
+
+    // when: submit event for processing
+    sourceControlEventOrchestrator.onNewEvent(event);
+
+    // then: event is not processed
+    verify(mockSourceControlEventProcessor, never()).processEvent(eq(event), any());
+  }
+
+  @Test
+  public void testFetchAndRouteEvents() throws Exception {
+    // given: orchestrator configured to run scheduled executor and fetch events from DB
+    when(mockInsightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(true);
+    when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+
+    SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
+        mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlInstanceManager, mockSourceControlUtils
+    );
+
+    SourceControlEvent event =
+        new SourceControlEvent().forDiscoveredPullRequest().setApplicationId(UUID.randomUUID().toString());
+    List<SourceControlEvent> events = new ArrayList<>();
+    events.add(event);
+    when(mockSourceControlEventDAO.selectUnassignedNewEventsAndAssignToInstance(any())).thenReturn(events);
+
+    // when: start the orchestrator which will start the executor service to query the DB for events
+    sourceControlEventOrchestrator.setEventProcessingScheduleTimesForTesting(1, 2);
+
+    SourceControlEventOrchestrator spyOrchestrator = Mockito.spy(sourceControlEventOrchestrator);
+    CountDownLatch executorFiredLatch = new CountDownLatch(1);
+    unlatch(executorFiredLatch).when(spyOrchestrator).notifyRoutingComplete();
+    spyOrchestrator.start();
+
+    verifyUnlatched(executorFiredLatch, 10);
+    verify(mockSourceControlEventProcessor).processEvent(eq(event), any());
+  }
+
+  @Test
   public void testStart_featureEnabled() {
     when(mockInsightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(true);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlUtils
+        mockSourceControlInstanceManager, mockSourceControlUtils
     );
 
     sourceControlEventOrchestrator.start();
@@ -130,11 +193,32 @@ public class SourceControlEventOrchestratorTest
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
-        mockSourceControlUtils
+        mockSourceControlInstanceManager, mockSourceControlUtils
     );
 
     sourceControlEventOrchestrator.start();
 
     verify(mockSourceControlEventPublisher, never()).setSourceControlEventListener(any());
+  }
+
+  @Test
+  public void testStop() {
+    SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
+        mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,
+        mockSourceControlInstanceManager, mockSourceControlUtils
+    );
+    sourceControlEventOrchestrator.stop();
+    verify(mockSourceControlEventProcessor, times(1)).shutdown();
+  }
+
+  private Stubber unlatch(CountDownLatch latch) {
+    return doAnswer(a -> {
+      latch.countDown();
+      return null;
+    });
+  }
+
+  private void verifyUnlatched(CountDownLatch latch, long seconds) throws InterruptedException {
+    assertThat(latch.await(seconds, TimeUnit.SECONDS)).isTrue();
   }
 }

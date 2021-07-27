@@ -33,9 +33,9 @@ public class PullRequestPollingScheduler
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestPollingScheduler.class);
 
-  private static final int PULL_REQUEST_MONITORING_DELAY_SECONDS = 30;
+  public static final int PULL_REQUEST_MONITORING_INTERVAL_SECONDS = 60;
 
-  private static final int PULL_REQUEST_MONITORING_INTERVAL_SECONDS = 60;
+  private static final int PULL_REQUEST_MONITORING_DELAY_SECONDS = 30;
 
   private final PullRequestPollingService pullRequestPollingService;
 

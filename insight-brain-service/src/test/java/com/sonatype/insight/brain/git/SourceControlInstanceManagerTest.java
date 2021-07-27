@@ -16,10 +16,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SourceControlInstanceManagerTest
 {
   // test subject 1
-  SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager();
+  SourceControlInstanceManager instanceManager1 = new SourceControlInstanceManager()
+      .setInstanceLockCacheExpirationForTesting(1);
 
   // test subject 2
-  SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager();
+  SourceControlInstanceManager instanceManager2 = new SourceControlInstanceManager()
+      .setInstanceLockCacheExpirationForTesting(1);
 
   @Before
   public void before() {
@@ -33,7 +35,7 @@ public class SourceControlInstanceManagerTest
   }
 
   @Test
-  public void testCanPoll() {
+  public void testCanPoll() throws InterruptedException {
     // given: two source control instance managers
 
     // then: first one to ask can poll, the other cannot
@@ -42,6 +44,7 @@ public class SourceControlInstanceManagerTest
 
     // when: release instance1 and try the reverse order
     instanceManager1.releaseInstance();
+    Thread.sleep(1_100);
 
     // then: first one to ask can poll, the other cannot
     assertThat(instanceManager2.canPoll()).isTrue();
@@ -49,33 +52,39 @@ public class SourceControlInstanceManagerTest
   }
 
   @Test
-  public void testCanProcessEvents() {
+  public void testCanProcessEvents() throws InterruptedException {
     // given: two source control instance managers
 
-    // then: first one to ask can process events, the other cannot
+    // then: polling must get the lock
+    assertThat(instanceManager1.canProcessEvents()).isFalse();
+    assertThat(instanceManager1.canPoll()).isTrue();
     assertThat(instanceManager1.canProcessEvents()).isTrue();
     assertThat(instanceManager2.canProcessEvents()).isFalse();
 
     // when: release instance1 and try the reverse order
     instanceManager1.releaseInstance();
+    Thread.sleep(1_100);
 
-    // then: first one to ask can process events, the other cannot
-    assertThat(instanceManager2.canProcessEvents()).isTrue();
+    // then: polling has to get the lock before event processing can use it
+    assertThat(instanceManager2.canProcessEvents()).isFalse();
     assertThat(instanceManager1.canProcessEvents()).isFalse();
+    assertThat(instanceManager2.canPoll()).isTrue();
+    assertThat(instanceManager2.canProcessEvents()).isTrue();
   }
 
   @Test
-  public void testPollAndProcessInteraction() {
+  public void testPollAndProcessInteraction() throws InterruptedException {
     // given: two source control instance managers
 
     // then: first one to ask can poll AND process events, the other cannot
+    assertThat(instanceManager1.canPoll()).isTrue();
     assertThat(instanceManager1.canProcessEvents()).isTrue();
     assertThat(instanceManager2.canProcessEvents()).isFalse();
-    assertThat(instanceManager1.canPoll()).isTrue();
     assertThat(instanceManager2.canPoll()).isFalse();
 
     // when: release instance1 and try the reverse order
     instanceManager1.releaseInstance();
+    Thread.sleep(1_100);
 
     // then: first one to ask can process events, the other cannot
     assertThat(instanceManager2.canPoll()).isTrue();

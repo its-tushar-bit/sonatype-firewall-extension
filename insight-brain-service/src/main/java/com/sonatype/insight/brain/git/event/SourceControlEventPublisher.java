@@ -10,6 +10,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventCreationListener;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -21,19 +22,23 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 public class SourceControlEventPublisher
 {
+  private final ProductLicense productLicense;
+
   private final SourceControlEventDAO sourceControlEventDAO;
 
-  private final ProductLicense productLicense;
+  private final SourceControlInstanceManager sourceControlInstanceManager;
 
   private SourceControlEventCreationListener sourceControlEventCreationListener;
 
   @Inject
   public SourceControlEventPublisher(
       ProductLicense productLicense,
-      SourceControlEventDAO sourceControlEventDAO)
+      SourceControlEventDAO sourceControlEventDAO,
+      SourceControlInstanceManager sourceControlInstanceManager)
   {
     this.productLicense = productLicense;
     this.sourceControlEventDAO = sourceControlEventDAO;
+    this.sourceControlInstanceManager = sourceControlInstanceManager;
   }
 
   public void setSourceControlEventListener(SourceControlEventCreationListener sourceControlEventCreationListener) {
@@ -47,10 +52,8 @@ public class SourceControlEventPublisher
    */
   public void publishEvent(SourceControlEvent event) {
     if (null != event && checkLicense()) {
-      if (StringUtils.isBlank(event.getScmUsername())) {
-        event.setScmUsername("temp-user-1");
-        // todo - lookup user
-      }
+      populateScmUsernameIfMissing(event);
+      populateInstanceIdIfProcessingEvents(event);
       sourceControlEventDAO.insert(event);
       if (null != sourceControlEventCreationListener) {
         sourceControlEventCreationListener.onNewEvent(event);
@@ -72,6 +75,18 @@ public class SourceControlEventPublisher
 
   public boolean doesRemediationEventExistForBranch(String applicationId, String branchName) {
     return sourceControlEventDAO.hasRemediationEventForBranch(applicationId, branchName);
+  }
+
+  private void populateInstanceIdIfProcessingEvents(SourceControlEvent event) {
+    event.setInstanceId(sourceControlInstanceManager.canProcessEvents() ? sourceControlInstanceManager
+        .getSourceControlInstanceId() : null);
+  }
+
+  private void populateScmUsernameIfMissing(SourceControlEvent event) {
+    if (StringUtils.isBlank(event.getScmUsername())) {
+      event.setScmUsername("temp-user-1");
+      // todo - lookup user
+    }
   }
 
   private boolean checkLicense() {

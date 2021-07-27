@@ -62,7 +62,7 @@ public class SimultaneousEventSelectionRule
    * determines whether or not the given event can be pushed using the simultaneous events allowed count for the
    * given event's type.  However, there may be cases where the event types to process might be limited so we
    * want to be able to take advantage of the available event processing bandwidth.  Therefore, the strict parameter
-   * is made available to give the client the ability to more events of the same type when conditions warrant.
+   * is made available to give the client the ability to process more events of the same type when conditions warrant.
    *
    * @param useStrictCounts when true the defined maximum simultaneous event counts are used;  otherwise,
    *                        some additional simultaneous events are allowed

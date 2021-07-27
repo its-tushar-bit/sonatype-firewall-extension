@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.utils;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -84,5 +85,21 @@ public class DateUtils
     DateTimeFormatter timeFormatter =
         DateTimeFormatter.ofPattern(timeInHoursAndMinutes.contains(":") ? "HH:mm" : "HHmm");
     return LocalTime.parse(timeInHoursAndMinutes, timeFormatter);
+  }
+
+  /**
+   * returns the maximum date between two dates; null values are treated as earlier dates
+   * @return greater of two dates if both are non-null; the non-null date if only one is null; null if both are null
+   */
+  public static Date max(Date date1, Date date2) {
+    if (null == date1) {
+      return date2;
+    }
+    else {
+      if (null == date2) {
+        return date1;
+      }
+      return date1.before(date2) ? date2 : date1;
+    }
   }
 }

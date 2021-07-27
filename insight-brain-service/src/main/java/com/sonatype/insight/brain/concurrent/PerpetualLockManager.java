@@ -12,6 +12,7 @@ import javax.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.model.PerpetualLock;
+import com.sonatype.insight.brain.utils.DateUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -59,7 +60,8 @@ public class PerpetualLockManager
       txn.begin();
       perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, perpetualLockId);
       if (null != perpetualLock) {
-        acquired = reservePerpetualLock(txn, perpetualLockId, owner, expiration);
+        acquired = reservePerpetualLock(txn, perpetualLockId, owner,
+            DateUtils.max(perpetualLock.getExpirationTime(), expiration));
       }
       txn.commit();
     }

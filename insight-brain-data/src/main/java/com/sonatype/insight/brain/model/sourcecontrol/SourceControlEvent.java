@@ -65,6 +65,14 @@ public class  SourceControlEvent
 
   public static final String EVENT_STATUS_ERROR = "error";
 
+  public static final List<String> EVENT_STATUSES = ImmutableList.of(
+      EVENT_STATUS_NEW,
+      EVENT_STATUS_IN_PROGRESS,
+      EVENT_STATUS_PARTIALLY_COMPLETE,
+      EVENT_STATUS_COMPLETE,
+      EVENT_STATUS_ERROR
+  );
+
   public static final int EVENT_PRIORITY_HIGHER = 1;
 
   public static final int EVENT_PRIORITY_NORMAL = 2;

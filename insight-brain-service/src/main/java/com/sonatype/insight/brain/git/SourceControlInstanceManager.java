@@ -14,6 +14,8 @@ import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import static java.lang.System.currentTimeMillis;
+
 /**
  * At this moment all SCM operations are pinned to a single IQ instance.  In the future the plan is to distribute
  * this work across multiple instances in a clustered environment.
@@ -21,7 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
  * As such, this class is pretty simple to start with but will expand based on how the work is to be distributed.
  * - initially we could pin an IQ instance to a particular user/token
  * - eventually we want to leverage the full capabilities of clustered IQ and let any instance pick up any work
- *   that doesn't conflict with the work another instance is doing
+ * that doesn't conflict with the work another instance is doing
  */
 @Named
 @Singleton
@@ -29,9 +31,20 @@ public class SourceControlInstanceManager
 {
   private static final String SOURCE_CONTROL_ACCESS_LOCK = "source-control-access-c78943f1";
 
-  private static final long POLLING_LOCK_EXPIRATION_SECONDS = 75;
+  // must be greater than the polling interval so that the instance with the lock doesn't lose it before it
+  // has a chance to refresh it
+  private int instanceLockReservationTimeSeconds =
+      PullRequestPollingScheduler.PULL_REQUEST_MONITORING_INTERVAL_SECONDS + 5;
 
-  private static final long EVENT_PROCESSING_LOCK_EXPIRATION_SECONDS = 25;
+  private final PerpetualLockManager perpetualLockManager = new PerpetualLockManager();
+
+  private Boolean hasInstanceLock;
+
+  // must be lower than the polling interval - we want it to expire before the next polling interval so that
+  // it can be continually renewed
+  private int instanceLockCacheExpirationSeconds = instanceLockReservationTimeSeconds - 5;
+
+  private long instanceLockCacheExpirationTime = currentTimeMillis();
 
   // non-static for testing purposes
   private final String sourceControlInstanceId;
@@ -40,24 +53,56 @@ public class SourceControlInstanceManager
     sourceControlInstanceId = UUID.randomUUID().toString();
   }
 
-  private final PerpetualLockManager perpetualLockManager = new PerpetualLockManager();
-
-  public boolean canPoll() {
-    return perpetualLockManager
-        .tryAcquireLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId, POLLING_LOCK_EXPIRATION_SECONDS);
+  public String getSourceControlInstanceId() {
+    return sourceControlInstanceId;
   }
 
+  public boolean canPoll() {
+    return tryReserveInstanceLockWithCaching();
+  }
+
+  // event processing, which is on a shorter cycle, will always use the cached value; polling is responsible for
+  // maintaining the lock
   public boolean canProcessEvents() {
-    return perpetualLockManager.tryAcquireLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId,
-        EVENT_PROCESSING_LOCK_EXPIRATION_SECONDS);
+    return null != hasInstanceLock && hasInstanceLock;
+  }
+
+  private boolean tryReserveInstanceLockWithCaching() {
+    if (hasInstanceLockCacheExpired()) {
+      hasInstanceLock = tryReserveInstanceLock();
+      updateInstanceLockCacheExpirationTime();
+    }
+    return hasInstanceLock;
+  }
+
+  private boolean hasInstanceLockCacheExpired() {
+    return null == hasInstanceLock || instanceLockCacheExpirationTime <= currentTimeMillis();
+  }
+
+  private boolean tryReserveInstanceLock() {
+    return perpetualLockManager
+        .tryAcquireLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId, instanceLockReservationTimeSeconds);
+  }
+
+  private void updateInstanceLockCacheExpirationTime() {
+    instanceLockCacheExpirationTime = currentTimeMillis() + instanceLockCacheExpirationSeconds * 1_000;
   }
 
   @VisibleForTesting
   void releaseInstance() {
     perpetualLockManager.releasePerpetualLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId);
+    hasInstanceLock = null;
   }
 
-  public String getSourceControlInstanceId() {
-    return sourceControlInstanceId;
+  @VisibleForTesting
+  SourceControlInstanceManager setInstanceLockReservationSecondsForTesting(int reservationSeconds) {
+    instanceLockReservationTimeSeconds = reservationSeconds;
+    return this;
+  }
+
+  @VisibleForTesting
+  SourceControlInstanceManager setInstanceLockCacheExpirationForTesting(int cacheExpirationSeconds) {
+    instanceLockCacheExpirationSeconds = cacheExpirationSeconds;
+    return this;
   }
 }

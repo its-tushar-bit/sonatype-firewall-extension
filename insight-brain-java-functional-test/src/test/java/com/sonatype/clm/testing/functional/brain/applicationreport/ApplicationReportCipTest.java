@@ -166,13 +166,16 @@ public class ApplicationReportCipTest
     cipModal.closeButton().click();
     cipModal.getElement().shouldBe(hidden);
 
-    reportPage.resultRow(7).click();
+    reportPage.resultRow(13).click();
     cipModal.getElement().shouldBe(visible);
 
     cipModal.header().shouldHave(exactText("unknown.jar"));
-    cipModal.nextButton().shouldBe(enabled);
+    cipModal.nextButton().shouldBe(disabled);
     cipModal.dependencyIndicator().shouldNot(exist);
-    cipModal.previousButton().shouldBe(enabled).click();
+
+    cipModal.closeButton().click();
+    reportPage.resultRow(10).click();
+    cipModal.getElement().shouldBe(visible);
 
     cipModal.header().shouldHave(text("org.apache.tiles : tiles-core : 2.2.2"));
     cipModal.nextButton().shouldBe(enabled);
@@ -183,7 +186,7 @@ public class ApplicationReportCipTest
     cipModal.getElement().shouldBe(hidden);
 
     // test tab state while navigating with Next/Prev
-    reportPage.resultRow(5).click();
+    reportPage.resultRow(11).click();
     cipModal.getElement().shouldBe(visible);
     cipModal.tabLink(6).shouldHave(text("Vulnerabilities")).click();
 
@@ -222,7 +225,7 @@ public class ApplicationReportCipTest
     mockHdsResponseForRemediation();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     CipModal cipModal = reportPage.cipModal();
-    reportPage.resultRow(8).click();
+    reportPage.resultRow(6).click();
     cipModal.tabLink(2).shouldNotHave(ACTIVE_CLASS).click();
     SelenideElement viewTransitiveViolations = WaiverCip.viewTransitiveViolations();
     viewTransitiveViolations.shouldBe(visible);
@@ -268,7 +271,7 @@ public class ApplicationReportCipTest
     tempEntity.newInnerSourceComponent(packageUrl, app, "0.0.0");
 
     CipModal cipModal = reportPage.cipModal();
-    reportPage.resultRow(8).click();
+    reportPage.resultRow(6).click();
 
     cipModal.getElement().shouldBe(visible);
     cipModal.header().shouldHave(text("java2html : j2h : 1.3.1"));
@@ -917,7 +920,7 @@ public class ApplicationReportCipTest
   public void testClaimComponentTab() {
     mockHdsResponseForClaimedComponent();
     CipModal cipModal = reportPage.cipModal();
-    reportPage.resultRow(7).shouldHave(text("unknown.jar")).click();
+    reportPage.resultRow(13).shouldHave(text("unknown.jar")).click();
     cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).click();
     cipModal.tabLink(5).shouldHave(ACTIVE_CLASS);
     cipModal.tabLink(1).shouldNotHave(ACTIVE_CLASS);
@@ -974,7 +977,7 @@ public class ApplicationReportCipTest
     // close and reopen CIP to ensure claim persists/comes back
     // Close CIP, re-eval policies and re-open the CIP
     cipModal.closeButton().click();
-    reportPage.resultRow(7).shouldHave(text("unknown.jar")).click();
+    reportPage.resultRow(13).shouldHave(text("unknown.jar")).click();
     cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).click();
 
     claimComponentTab.group().input().shouldHave(value("groupId"));
@@ -995,8 +998,8 @@ public class ApplicationReportCipTest
     cipModal = reportPage.cipModal();
 
     // the new name pushes the component up in the results page
-    reportPage.resultRow(7).shouldHave(text("org.apache.tiles : tiles-core : 2.2.2"));
-    reportPage.resultRow(5).shouldHave(text("groupId : artifactId : extension : classifier : version")).click();
+    reportPage.resultRow(11).shouldHave(text("org.apache.tiles : tiles-core : 2.2.2"));
+    reportPage.resultRow(6).shouldHave(text("groupId : artifactId : extension : classifier : version")).click();
     cipModal.tabLink(7).shouldHave(exactText("CLAIM")).click(); // a few extra tabs have been added
     cipModal.header().shouldHave(text("groupId : artifactId : extension : classifier : version"));
     claimComponentTab.revokeBtn().shouldBe(enabled);
@@ -1023,16 +1026,16 @@ public class ApplicationReportCipTest
 
     // Revoke doesn't take effect in the report immediately, but does after re-eval
     cipModal.closeButton().click();
-    reportPage.resultRow(5).shouldHave(text("groupId : artifactId : extension : classifier : version"));
+    reportPage.resultRow(6).shouldHave(text("groupId : artifactId : extension : classifier : version"));
     reportPage.reevaluateButton().click();
     FormMask.seeAndWaitForDismissal();
-    reportPage.resultRow(7).shouldHave(text("unknown.jar"));
+    reportPage.resultRow(13).shouldHave(text("unknown.jar"));
   }
 
   @Test
   public void testClaimComponentTabDisplayRules() {
     CipModal cipModal = reportPage.cipModal();
-    reportPage.resultRow(6).click();
+    reportPage.resultRow(12).click();
     cipModal.tabLink(1).shouldHave(ACTIVE_CLASS);
     cipModal.tabLink(5).shouldNotHave(ACTIVE_CLASS).shouldHave(exactText("LICENSES"));
     cipModal.nextButton().click();
@@ -1045,7 +1048,7 @@ public class ApplicationReportCipTest
 
   private void testInnerSourceDependencyComponentHeader() {
     CipModal cipModal = reportPage.cipModal();
-    reportPage.resultRow(9).click();
+    reportPage.resultRow(8).click();
 
     cipModal.getElement().shouldBe(visible);
     cipModal.header().shouldHave(text("joda-time : joda-time : 1.3.1"));
@@ -1055,7 +1058,7 @@ public class ApplicationReportCipTest
         .shouldHave(exactText("Transitive Dependency"));
     cipModal.closeButton().click();
 
-    reportPage.resultRow(12).click();
+    reportPage.resultRow(7).click();
 
     cipModal.getElement().shouldBe(visible);
     cipModal.header().shouldHave(text("javax.inject : javax.inject : 1"));

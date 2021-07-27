@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { findIndex, isNil, pathOr, propEq, splitAt } from 'ramda';
+import { findIndex, isNil, propEq, splitAt } from 'ramda';
 
 import template from './applicationReportResults.html';
 import cipModalWrapper from './cipModalWrapper.html';
@@ -121,10 +121,6 @@ function ApplicationReportResultsController(
 
     getViewSbomUrl: function () {
       return CLMLocations.getViewSbomUrl(vm.metadata.application.id, vm.reportParameters.scanId);
-    },
-
-    getOwnerApplicationNameOrEmpty: function (component) {
-      return pathOr('', ['innerSourceData', 0, 'ownerApplicationName'], component);
     },
   });
 

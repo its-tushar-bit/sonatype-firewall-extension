@@ -323,6 +323,21 @@ describe('applicationReportReducer', function () {
       ];
       const aggregatedEntries = [
         {
+          policyThreatLevel: 0,
+          hash: 'a',
+          waived: undefined,
+          grandfathered: true,
+          innerSource: true,
+          innerSourceData: [
+            {
+              ownerApplicationId: '12345',
+              ownerApplicationName: 'myISApp',
+            },
+          ],
+          policyName: 'None',
+          derivedViolationState: 'grandfathered',
+        },
+        {
           policyThreatLevel: 10,
           hash: 'b',
           waived: false,
@@ -339,21 +354,6 @@ describe('applicationReportReducer', function () {
           ],
           waived: false,
           grandfathered: false,
-        },
-        {
-          policyThreatLevel: 0,
-          hash: 'a',
-          waived: undefined,
-          grandfathered: true,
-          innerSource: true,
-          innerSourceData: [
-            {
-              ownerApplicationId: '12345',
-              ownerApplicationName: 'myISApp',
-            },
-          ],
-          policyName: 'None',
-          derivedViolationState: 'grandfathered',
         },
       ];
       const newState = reduce(state, {
@@ -372,10 +372,6 @@ describe('applicationReportReducer', function () {
           aggregatedEntries,
           displayedEntries: [
             {
-              policyThreatLevel: 10,
-              hash: 'b',
-            },
-            {
               hash: 'a',
               grandfathered: true,
               innerSource: true,
@@ -386,6 +382,10 @@ describe('applicationReportReducer', function () {
                 },
               ],
               policyThreatLevel: 10,
+            },
+            {
+              policyThreatLevel: 10,
+              hash: 'b',
             },
             {
               hash: 'c',
@@ -409,14 +409,6 @@ describe('applicationReportReducer', function () {
         vulnerabilitiesPageEnabled: jasmine.anything(),
         isInnerSourceEnabled: true,
         other: otherObject,
-        sortFields: [
-          'innerSourceData.0.ownerApplicationName',
-          'innerSourceData.0.ownerComponentName',
-          'dependencyType',
-          '-policyThreatLevel',
-          'policyName',
-          'derivedComponentName',
-        ],
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified
     });

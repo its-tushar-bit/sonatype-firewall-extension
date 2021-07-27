@@ -174,21 +174,16 @@
             </tr>
           </thead>
           <tbody id="iq-application-report-results" class="iq-table--fixed__content iq-table--fixed__content--filtered">
-            <tr class="iq-table-row iq-clickable {{component.innerSource ? 'tm-inner-source' : component.innerSourceTDIndicator ? 'tm-inner-source-transitive' : ''}}"
+            <tr class="iq-table-row iq-clickable"
                 ng-repeat="component in vm.renderedEntries"
                 ng-click="vm.onRowClick($index)">
-              <td class="iq-cell iq-cell--application-report-policy-threat-level {{component.innerSourceTDIndicator ?
-                'iq-inner-source-td-indicator' : ''}}">
+              <td class="iq-cell iq-cell--application-report-policy-threat-level">
                 <span class="iq-threat-indication" threat-class="component.policyThreatLevel"></span>
                 <span class="iq-threat-number">{{component.policyThreatLevel}}</span>
               </td><!--
-           --><td class="iq-cell iq-cell--application-report-policy-name {{component.innerSourceTDIndicator ?
-                'iq-inner-source-td-indicator' : ''}}">
+           --><td class="iq-cell iq-cell--application-report-policy-name">
               {{component.policyName}}</td><!--
-              --><td class="iq-cell iq-cell--application-report-component-display {{component.innerSourceTDIndicator ?
-                  'iq-inner-source-td-indicator' : ''}}"
-                     data-tooltip="{{vm.getOwnerApplicationNameOrEmpty(component)}}"
-                     data-tooltip-append-to-body="true">
+              --><td class="iq-cell iq-cell--application-report-component-display">
                 <span class="iq-text-indicator iq-text-indicator--waived iq-pull-right" ng-show="component.waived">
                   Waived<i class="fa fa-check"></i>
                 </span>

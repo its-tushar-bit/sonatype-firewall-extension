@@ -262,16 +262,6 @@ function setSelectedReport(state, report) {
       ...getViolationCountsPerThreatLevel(report.allEntries),
     },
     isInnerSourceEnabled: report.isInnerSourceEnabled,
-    sortFields: report.isInnerSourceEnabled
-      ? [
-          'innerSourceData.0.ownerApplicationName',
-          'innerSourceData.0.ownerComponentName',
-          'dependencyType',
-          '-policyThreatLevel',
-          'policyName',
-          'derivedComponentName',
-        ]
-      : state.sortFields,
   });
 
   // if there is selected component, update selectedComponentIndex

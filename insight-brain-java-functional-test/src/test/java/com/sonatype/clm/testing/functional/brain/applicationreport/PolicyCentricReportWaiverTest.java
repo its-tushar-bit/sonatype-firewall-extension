@@ -248,8 +248,8 @@ public class PolicyCentricReportWaiverTest
 
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
     reportPage.resultRows().shouldHave(texts("All Components", "All Components", "All Components", "All Components",
-        "All Components", "None", "None", "All Components", "All Components", "All Components", "All Components",
-        "All Components", "All Components"));
+        "All Components", "All Components", "All Components", "All Components", "All Components", "All Components",
+        "All Components", "None", "None"));
   }
 
   @Test
@@ -274,8 +274,8 @@ public class PolicyCentricReportWaiverTest
     refreshOrOpen(ApplicationReportPage.url(app, scanId));
     reportPage.resultRows()
         .shouldHave(
-            texts("Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "None", "Waived", "Waived", "Waived",
-                "Waived", "Waived", "Waived"));
+            texts("Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived", "Waived",
+                "Waived", "Waived", "None"));
   }
 
   private void assertWaiver(ExistingWaiver waiver, String comment) {

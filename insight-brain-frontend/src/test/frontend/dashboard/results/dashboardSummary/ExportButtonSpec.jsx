@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../../enzymeUtils';
-import ExportButton from '../../../../../main/frontend/dashboard/results/dashboardSummary/ExportButton/ExportButton';
+import ExportButton from '../../../../../main/frontend/dashboard/results/dashboardSummary/ExportButton';
 
 describe('ExportButton', () => {
   let getMountedComponent;

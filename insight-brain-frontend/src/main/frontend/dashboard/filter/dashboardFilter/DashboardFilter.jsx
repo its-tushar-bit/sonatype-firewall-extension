@@ -249,7 +249,7 @@ export default function DashboardFilter(props) {
   );
 }
 
-DashboardFilter.propTypes = {
+export const dashboardFilterPropTypes = {
   loading: PropTypes.bool.isRequired,
   loadError: LoadWrapper.propTypes.error,
   loadErrorFilterName: PropTypes.string,
@@ -284,4 +284,8 @@ DashboardFilter.propTypes = {
   toggleFilter: PropTypes.func,
   toggleFilterSidebar: PropTypes.func,
   ...ManageFiltersDropdown.propTypes,
+};
+
+DashboardFilter.propTypes = {
+  ...dashboardFilterPropTypes,
 };

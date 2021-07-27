@@ -3,89 +3,84 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import dashboardFilterModule from '../../../../main/frontend/dashboard/filter/module';
+import reduce from '../../../../main/frontend/dashboard/filter/dashboardFilterReducer';
 
-describe('dashboardFilterReducer', function () {
-  var reduce, otherObject;
+describe('dashboardFilterReducer', () => {
+  let otherObject;
 
-  beforeEach(angular.mock.module(dashboardFilterModule.name));
-
-  beforeEach(inject(function ($injector) {
-    reduce = $injector.get('dashboardFilterReducer');
+  beforeEach(() => {
     otherObject = { value: 'test value' };
-  }));
+  });
 
-  describe('unknown action', function () {
-    it('returns original state', function () {
-      var state = Object.freeze({ foo: 'bar' });
-      var action = {
-        type: 'UNKNOWN',
-      };
-      var newState = reduce(state, action);
+  describe('unknown action', () => {
+    it('returns original state', () => {
+      const state = Object.freeze({ foo: 'bar' });
+      const newState = reduce(state, { type: 'UNKNOWN' });
+
       expect(newState).toBe(state);
     });
   });
 
-  describe('initial state', function () {
-    it('is used if no state is provided', function () {
-      var action = {
-        type: 'UNKNOWN',
-      };
-      var newState = reduce(undefined, action);
+  describe('initial state', () => {
+    it('is used if no state is provided', () => {
+      const newState = reduce(undefined, { type: 'UNKNOWN' });
       expect(newState).not.toBeUndefined();
     });
   });
 
-  describe('SET_DISPLAY_SAVE_FILTER_MODAL action', function () {
-    it('sets the showSaveFilterModal value to the payload', function () {
-      var state = Object.freeze({
+  describe('SET_DISPLAY_SAVE_FILTER_MODAL action', () => {
+    it('sets the showSaveFilterModal value to the payload', () => {
+      const state = Object.freeze({
         showSaveFilterModal: true,
         other: otherObject,
       });
-      var action = { type: 'SET_DISPLAY_SAVE_FILTER_MODAL', payload: false };
-      var newState = reduce(state, action);
-      expect(newState.showSaveFilterModal).toBe(false);
-      expect(newState.other).toBe(otherObject);
+      const { showSaveFilterModal, other } = reduce(state, {
+        type: 'SET_DISPLAY_SAVE_FILTER_MODAL',
+        payload: false,
+      });
+
+      expect(showSaveFilterModal).toBe(false);
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('LOAD_FILTER_REQUESTED action', function () {
-    it('sets loading to true and resets filter', function () {
-      var state = Object.freeze({
+  describe('LOAD_FILTER_REQUESTED action', () => {
+    it('sets loading to true and resets filter', () => {
+      const state = Object.freeze({
         loadError: 'error',
         loading: false,
         other: otherObject,
       });
-      var action = { type: 'LOAD_FILTER_REQUESTED' };
-      var newState = reduce(state, action);
-      expect(newState.loading).toBe(true);
-      expect(newState.loadError).toBeNull();
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      const { loading, loadError, other } = reduce(state, { type: 'LOAD_FILTER_REQUESTED' });
+
+      expect(loading).toBe(true);
+      expect(loadError).toBeNull();
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('LOAD_FILTER_FAILED action', function () {
-    it('sets loading to false and sets error', function () {
-      var state = Object.freeze({
+  describe('LOAD_FILTER_FAILED action', () => {
+    it('sets loading to false and sets error', () => {
+      const state = Object.freeze({
         loadError: null,
         loading: true,
         other: otherObject,
       });
-      var action = {
+      const { loading, loadError, other } = reduce(state, {
         type: 'LOAD_FILTER_FAILED',
         payload: 'load filter error',
-      };
-      var newState = reduce(state, action);
-      expect(newState.loadError).toBe('load filter error');
-      expect(newState.loading).toBe(false);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      expect(loadError).toBe('load filter error');
+      expect(loading).toBe(false);
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED action', function () {
-    var initState, action;
+  describe('FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED action', () => {
+    let initState, action;
 
-    beforeEach(function () {
+    beforeEach(() => {
       initState = {
         loading: true,
         other: otherObject,
@@ -166,52 +161,54 @@ describe('dashboardFilterReducer', function () {
       };
     });
 
-    it('does not set loading to false', function () {
-      var state = Object.freeze(initState);
-      var newState = reduce(state, action);
-      expect(newState.loading).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+    it('does not set loading to false', () => {
+      const state = Object.freeze(initState);
+      const { loading, other } = reduce(state, action);
+
+      expect(loading).toBe(true);
+      expect(other).toBe(otherObject);
     });
 
-    it('sets available filter options', function () {
-      var state = Object.freeze(initState);
-      var newState = reduce(state, action);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+    it('sets available filter options', () => {
+      const state = Object.freeze(initState);
+      const { other, applications, organizations, stages, categories } = reduce(state, action);
 
-      expect(newState.applications.length).toBe(action.payload.applications.length);
-      expect(newState.applications[0].id).toBe(action.payload.applications[0].id);
-      expect(newState.applications[1].id).toBe(action.payload.applications[1].id);
+      expect(other).toBe(otherObject);
+
+      expect(applications.length).toBe(action.payload.applications.length);
+      expect(applications[0].id).toBe(action.payload.applications[0].id);
+      expect(applications[1].id).toBe(action.payload.applications[1].id);
 
       // since we have an application but no permissions to the org add 1
       // and remove ROOT org
-      expect(newState.organizations.length).toBe(3);
-      expect(newState.organizations[0]).toBe(action.payload.organizations[0]);
-      expect(newState.organizations[1]).toBe(action.payload.organizations[1]);
+      expect(organizations.length).toBe(3);
+      expect(organizations[0]).toBe(action.payload.organizations[0]);
+      expect(organizations[1]).toBe(action.payload.organizations[1]);
       // no permission to org scenario
-      expect(newState.organizations[2].id).toBe(action.payload.applications[4].organizationId);
-      expect(newState.organizations[2].name).toBe(action.payload.applications[4].organizationName);
+      expect(organizations[2].id).toBe(action.payload.applications[4].organizationId);
+      expect(organizations[2].name).toBe(action.payload.applications[4].organizationName);
 
-      expect(newState.stages.length).toBe(MockData.getDashboardStageData().length);
-      expect(newState.stages[0].id).toBe(MockData.getDashboardStageData()[0].stageTypeId);
-      expect(newState.stages[0].name).toBe(MockData.getDashboardStageData()[0].stageName);
-      expect(newState.stages[1].id).toBe(MockData.getDashboardStageData()[1].stageTypeId);
-      expect(newState.stages[1].name).toBe(MockData.getDashboardStageData()[1].stageName);
+      expect(stages.length).toBe(MockData.getDashboardStageData().length);
+      expect(stages[0].id).toBe(MockData.getDashboardStageData()[0].stageTypeId);
+      expect(stages[0].name).toBe(MockData.getDashboardStageData()[0].stageName);
+      expect(stages[1].id).toBe(MockData.getDashboardStageData()[1].stageTypeId);
+      expect(stages[1].name).toBe(MockData.getDashboardStageData()[1].stageName);
 
       // one extra for uncategorized applications
-      expect(newState.categories.length).toBe(action.payload.categories.length + 1);
-      expect(newState.categories[0].id).toBe(null);
-      expect(newState.categories[0].name).toBe('uncategorized applications');
+      expect(categories.length).toBe(action.payload.categories.length + 1);
+      expect(categories[0].id).toBe(null);
+      expect(categories[0].name).toBe('uncategorized applications');
 
-      expect(newState.categories[1].id).toBe(action.payload.categories[0].id);
+      expect(categories[1].id).toBe(action.payload.categories[0].id);
       // populates owner
-      expect(newState.categories[1].owner).toBe(action.payload.organizations[0].name);
+      expect(categories[1].owner).toBe(action.payload.organizations[0].name);
     });
   });
 
-  describe('applyFilter', function () {
-    var initState, action, filterJson, initSelected;
+  describe('applyFilter', () => {
+    let initState, action, filterJson, initSelected;
 
-    beforeEach(function () {
+    beforeEach(() => {
       initSelected = Object.freeze({
         organizations: {},
         applications: {},
@@ -266,8 +263,89 @@ describe('dashboardFilterReducer', function () {
       };
     });
 
-    describe('FETCH_CURRENT_FILTER_FULFILLED action', function () {
-      beforeEach(function () {
+    const testApplyFilter = () => {
+      it('sets filtersAreDirty to false', () => {
+        initState.filtersAreDirty = true;
+        const state = Object.freeze(initState);
+        const { filtersAreDirty, other } = reduce(state, action);
+
+        expect(filtersAreDirty).toBe(false);
+        expect(other).toBe(otherObject);
+      });
+
+      describe('showAgeFilter', () => {
+        it('is set to true if isViolationsTab', () => {
+          initState.isViolationsTab = true;
+          const state = Object.freeze(initState);
+          expect(state.showAgeFilter).toBe(false);
+
+          const { showAgeFilter, other } = reduce(state, action);
+          expect(showAgeFilter).toBe(true);
+          expect(other).toBe(otherObject);
+        });
+
+        it('is set to false if not isViolationsTab', () => {
+          initState.isViolationsTab = false;
+          const state = Object.freeze(initState);
+          const { showAgeFilter, other } = reduce(state, action);
+
+          expect(showAgeFilter).toBe(false);
+          expect(other).toBe(otherObject);
+        });
+      });
+
+      it('sets selected and appliedFilter', () => {
+        const state = Object.freeze(initState);
+        const { other, selected, appliedFilter } = reduce(state, action);
+
+        expect(other).toBe(otherObject);
+
+        expect(selected.policyTypes).toEqual(new Set(['QUALITY', 'OTHER', 'SECURITY']));
+        expect(selected.stages).toEqual(new Set(['release', 'stage-release', 'build']));
+
+        // skips selected category ids that do not exist in vm.categories
+        expect(selected.categories).toEqual(new Set(['tagId1', null]));
+
+        // removes orgs that are not visible (not in state.organizations)
+        expect(selected.organizations).toEqual(new Set(['orgId1', 'orgId2']));
+
+        // adds missing applications for selected organization
+        expect(selected.applications).toEqual(
+          new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR'])
+        );
+
+        expect(selected.policyViolationStates).toEqual(new Set(['OPEN', 'WAIVED', 'GRANDFATHERED']));
+
+        expect(selected.maxDaysOld).toBe(90);
+        expect(selected.policyThreatLevels).toEqual([3, 6]);
+
+        // sets selected to appliedFilter
+        expect(selected).toBe(appliedFilter);
+      });
+
+      it('sets selected age to default if filter maxDaysOld value is not recognised', () => {
+        filterJson.maxDaysOld = 666;
+        const state = Object.freeze(initState);
+        const { selected } = reduce(state, action);
+
+        expect(selected.maxDaysOld).toBe(30);
+      });
+
+      it('does not set selected and appliedFilter if filter is not provided', () => {
+        const state = Object.freeze(initState);
+        const { selected, appliedFilter, other } = reduce(state, {
+          type: action.type,
+          payload: {},
+        });
+        expect(selected).toBe(initState.selected);
+        expect(appliedFilter).toBe(initState.appliedFilter);
+
+        expect(other).toBe(otherObject);
+      });
+    };
+
+    describe('FETCH_CURRENT_FILTER_FULFILLED action', () => {
+      beforeEach(() => {
         action = {
           type: 'FETCH_CURRENT_FILTER_FULFILLED',
           payload: {
@@ -277,37 +355,40 @@ describe('dashboardFilterReducer', function () {
         };
       });
 
-      it('sets loading to false', function () {
+      it('sets loading to false', () => {
         initState.loading = true;
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
-        expect(newState.loading).toBe(false);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
+        const state = Object.freeze(initState);
+        const { loading, other } = reduce(state, action);
+
+        expect(loading).toBe(false);
+        expect(other).toBe(otherObject);
       });
 
-      it('sets needsAcknowledgement', function () {
+      it('sets needsAcknowledgement', () => {
         initState.needsAcknowledgement = false;
         action.payload.needsAcknowledgement = true;
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
-        expect(newState.needsAcknowledgement).toBe(true);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
+        const state = Object.freeze(initState);
+        const { needsAcknowledgement, other } = reduce(state, action);
+
+        expect(needsAcknowledgement).toBe(true);
+        expect(other).toBe(otherObject);
       });
 
-      it('sets filterSidebarOpen to true if needsAcknowledgement', function () {
+      it('sets filterSidebarOpen to true if needsAcknowledgement', () => {
         initState.filterSidebarOpen = false;
         action.payload.needsAcknowledgement = true;
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
-        expect(newState.filterSidebarOpen).toBe(true);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
+        const state = Object.freeze(initState);
+        const { filterSidebarOpen, other } = reduce(state, action);
+
+        expect(filterSidebarOpen).toBe(true);
+        expect(other).toBe(otherObject);
       });
 
       testApplyFilter();
     });
 
-    describe('APPLY_FILTER_FULFILLED action', function () {
-      beforeEach(function () {
+    describe('APPLY_FILTER_FULFILLED action', () => {
+      beforeEach(() => {
         action = {
           type: 'APPLY_FILTER_FULFILLED',
           payload: {
@@ -317,162 +398,88 @@ describe('dashboardFilterReducer', function () {
         };
       });
 
-      it('always resets needsAcknowledgement', function () {
+      it('always resets needsAcknowledgement', () => {
         initState.needsAcknowledgement = true;
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
-        expect(newState.needsAcknowledgement).toBe(false);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
+        const state = Object.freeze(initState);
+        const { needsAcknowledgement, other } = reduce(state, action);
+
+        expect(needsAcknowledgement).toBe(false);
+        expect(other).toBe(otherObject);
       });
 
       testApplyFilter();
     });
-
-    function testApplyFilter() {
-      it('sets filtersAreDirty to false', function () {
-        initState.filtersAreDirty = true;
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
-        expect(newState.filtersAreDirty).toBe(false);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
-      });
-
-      describe('showAgeFilter', function () {
-        it('is set to true if isViolationsTab', function () {
-          initState.isViolationsTab = true;
-          var state = Object.freeze(initState);
-          expect(state.showAgeFilter).toBe(false);
-          var newState = reduce(state, action);
-          expect(newState.showAgeFilter).toBe(true);
-          expect(newState.other).toBe(otherObject); // other properties are not modified
-        });
-
-        it('is set to false if not isViolationsTab', function () {
-          initState.isViolationsTab = false;
-          var state = Object.freeze(initState);
-          var newState = reduce(state, action);
-          expect(newState.showAgeFilter).toBe(false);
-          expect(newState.other).toBe(otherObject); // other properties are not modified
-        });
-      });
-
-      it('sets selected and appliedFilter', function () {
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
-        expect(newState.selected.policyTypes).toEqual(new Set(['QUALITY', 'OTHER', 'SECURITY']));
-        expect(newState.selected.stages).toEqual(new Set(['release', 'stage-release', 'build']));
-
-        // skips selected category ids that do not exist in vm.categories
-        expect(newState.selected.categories).toEqual(new Set(['tagId1', null]));
-
-        // removes orgs that are not visible (not in state.organizations)
-        expect(newState.selected.organizations).toEqual(new Set(['orgId1', 'orgId2']));
-
-        // adds missing applications for selected organization
-        expect(newState.selected.applications).toEqual(
-          new Set(['applicationIdZ', 'applicationIdA', 'applicationIdQ', 'applicationIdR'])
-        );
-
-        expect(newState.selected.policyViolationStates).toEqual(new Set(['OPEN', 'WAIVED', 'GRANDFATHERED']));
-
-        expect(newState.selected.maxDaysOld).toBe(90);
-        expect(newState.selected.policyThreatLevels).toEqual([3, 6]);
-
-        // sets selected to appliedFilter
-        expect(newState.selected).toBe(newState.appliedFilter);
-      });
-
-      it('sets selected age to default if filter maxDaysOld value is not recognised', function () {
-        filterJson.maxDaysOld = 666;
-        var state = Object.freeze(initState);
-        var newState = reduce(state, action);
-        expect(newState.selected.maxDaysOld).toBe(30);
-      });
-
-      it('does not set selected and appliedFilter if filter is not provided', function () {
-        var noFilterAction = {
-          type: action.type,
-          payload: {},
-        };
-        var state = Object.freeze(initState);
-        var newState = reduce(state, noFilterAction);
-        expect(newState.selected).toBe(initState.selected);
-        expect(newState.appliedFilter).toBe(initState.appliedFilter);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
-      });
-    }
   });
 
-  describe('APPLY_FILTER_FAILED action', function () {
-    it('sets applyFilterError', function () {
-      var state = Object.freeze({ applyFilterError: null, other: otherObject });
-      var action = {
+  describe('APPLY_FILTER_FAILED action', () => {
+    it('sets applyFilterError', () => {
+      const state = Object.freeze({ applyFilterError: null, other: otherObject });
+
+      expect(state.applyFilterError).toBeNull();
+
+      const { applyFilterError, other } = reduce(state, {
         type: 'APPLY_FILTER_FAILED',
         payload: 'update filter error',
-      };
-      expect(state.applyFilterError).toBeNull();
-      var newState = reduce(state, action);
-      expect(newState.applyFilterError).toBe('update filter error');
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+
+      expect(applyFilterError).toBe('update filter error');
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('APPLY_FILTER_CANCELLED action', function () {
-    it('resets applyFilterError', function () {
+  describe('APPLY_FILTER_CANCELLED action', () => {
+    it('resets applyFilterError', () => {
       const state = Object.freeze({
         applyFilterError: 'Error',
         other: otherObject,
       });
-      const action = {
-        type: 'APPLY_FILTER_CANCELLED',
-      };
+
       expect(state.applyFilterError).toBe('Error');
-      const newState = reduce(state, action);
-      expect(newState.applyFilterError).toBeNull();
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+
+      const { applyFilterError, other } = reduce(state, {
+        type: 'APPLY_FILTER_CANCELLED',
+      });
+      expect(applyFilterError).toBeNull();
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('APPLY_FILTER_REQUESTED action', function () {
-    it('resets applyFilterError and loadErrorFilterName', function () {
-      var state = Object.freeze({
+  describe('APPLY_FILTER_REQUESTED action', () => {
+    it('resets applyFilterError and loadErrorFilterName', () => {
+      const state = Object.freeze({
         applyFilterError: 'apply filter error',
         loadErrorFilterName: 'test filter',
         other: otherObject,
       });
-      var action = {
-        type: 'APPLY_FILTER_REQUESTED',
-      };
-      var newState = reduce(state, action);
+      const newState = reduce(state, { type: 'APPLY_FILTER_REQUESTED' });
       expect(newState).toEqual({
         applyFilterError: null,
         loadErrorFilterName: null,
         other: otherObject,
       });
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      expect(newState.other).toBe(otherObject);
     });
   });
 
-  describe('APPLY_SAVED_FILTER_FAILED action', function () {
-    it('sets loadErrorFilterName to payload', function () {
-      var state = Object.freeze({
+  describe('APPLY_SAVED_FILTER_FAILED action', () => {
+    it('sets loadErrorFilterName to payload', () => {
+      const state = Object.freeze({
         loadErrorFilterName: null,
         other: otherObject,
       });
-      var action = {
+
+      const { loadErrorFilterName, other } = reduce(state, {
         type: 'APPLY_SAVED_FILTER_FAILED',
         payload: 'test filter name',
-      };
-      var newState = reduce(state, action);
-      expect(newState.loadErrorFilterName).toBe('test filter name');
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      });
+      expect(loadErrorFilterName).toBe('test filter name');
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('@@reduxUiRouter/onFinish action', function () {
-    var initState;
-    beforeEach(function () {
+  describe('@@reduxUiRouter/onFinish action', () => {
+    let initState;
+    beforeEach(() => {
       initState = {
         isViolationsTab: false,
         showAgeFilter: false,
@@ -483,10 +490,13 @@ describe('dashboardFilterReducer', function () {
       };
     });
 
-    describe('isViolationsTab', function () {
-      it('is set to true if router state is violations', function () {
-        var state = Object.freeze(initState);
-        var action = {
+    describe('isViolationsTab', () => {
+      it('is set to true if router state is violations', () => {
+        const state = Object.freeze(initState);
+
+        expect(state.isViolationsTab).toBe(false);
+
+        const { isViolationsTab, other } = reduce(state, {
           type: '@@reduxUiRouter/onFinish',
           payload: {
             toState: {
@@ -494,17 +504,18 @@ describe('dashboardFilterReducer', function () {
             },
             toParams: {},
           },
-        };
-        expect(state.isViolationsTab).toBe(false);
-        var newState = reduce(state, action);
-        expect(newState.isViolationsTab).toBe(true);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
+        });
+        expect(isViolationsTab).toBe(true);
+        expect(other).toBe(otherObject);
       });
 
-      it('is set to false if router state is not violations', function () {
+      it('is set to false if router state is not violations', () => {
         initState.isViolationsTab = true;
-        var state = Object.freeze(initState);
-        var action = {
+        const state = Object.freeze(initState);
+
+        expect(state.isViolationsTab).toBe(true);
+
+        const { isViolationsTab, other } = reduce(state, {
           type: '@@reduxUiRouter/onFinish',
           payload: {
             toState: {
@@ -512,18 +523,20 @@ describe('dashboardFilterReducer', function () {
             },
             toParams: {},
           },
-        };
-        expect(state.isViolationsTab).toBe(true);
-        var newState = reduce(state, action);
-        expect(newState.isViolationsTab).toBe(false);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
+        });
+
+        expect(isViolationsTab).toBe(false);
+        expect(other).toBe(otherObject);
       });
     });
 
-    describe('showAgeFilter', function () {
-      it('is set to true if isViolationsTab', function () {
-        var state = Object.freeze(initState);
-        var action = {
+    describe('showAgeFilter', () => {
+      it('is set to true if isViolationsTab', () => {
+        const state = Object.freeze(initState);
+
+        expect(state.showAgeFilter).toBe(false);
+
+        const { showAgeFilter, other } = reduce(state, {
           type: '@@reduxUiRouter/onFinish',
           payload: {
             toState: {
@@ -531,41 +544,41 @@ describe('dashboardFilterReducer', function () {
             },
             toParams: {},
           },
-        };
-        expect(state.showAgeFilter).toBe(false);
-        var newState = reduce(state, action);
-        expect(newState.showAgeFilter).toBe(true);
-        expect(newState.other).toBe(otherObject); // other properties are not modified
+        });
+
+        expect(showAgeFilter).toBe(true);
+        expect(other).toBe(otherObject);
       });
     });
   });
 
-  describe('TOGGLE_APPS_AND_ORGS action', function () {
-    it('sets selected orgs and apps and sets filtersAreDirty to true', function () {
-      var state = Object.freeze({
+  describe('TOGGLE_APPS_AND_ORGS action', () => {
+    it('sets selected orgs and apps and sets filtersAreDirty to true', () => {
+      const state = Object.freeze({
         other: otherObject,
         filtersAreDirty: false,
         selected: {},
       });
-      var action = {
+      const action = {
         type: 'TOGGLE_APPS_AND_ORGS',
         payload: {
           selectedOrganizations: new Set(['org1']),
           selectedApplications: new Set(['app1', 'app2']),
         },
       };
-      var newState = reduce(state, action);
-      expect(newState.selected.organizations).toBe(action.payload.selectedOrganizations);
-      expect(newState.selected.applications).toBe(action.payload.selectedApplications);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      const { selected, filtersAreDirty, other } = reduce(state, action);
+
+      expect(selected.organizations).toBe(action.payload.selectedOrganizations);
+      expect(selected.applications).toBe(action.payload.selectedApplications);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('SELECT_AGE action', function () {
-    var initState;
+  describe('SELECT_AGE action', () => {
+    let initState;
 
-    beforeEach(function () {
+    beforeEach(() => {
       initState = {
         other: otherObject,
         filtersAreDirty: false,
@@ -580,33 +593,35 @@ describe('dashboardFilterReducer', function () {
       };
     });
 
-    it('sets selected age and sets filtersAreDirty to true', function () {
-      var state = Object.freeze(initState);
-      var newState = reduce(state, {
+    it('sets selected age and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
         type: 'SELECT_AGE',
         payload: 1,
       });
-      expect(newState.selected.maxDaysOld).toBe(1);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+
+      expect(selected.maxDaysOld).toBe(1);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
     });
 
-    it('sets selected age to "all time" sets filtersAreDirty to true', function () {
-      var state = Object.freeze(initState);
-      var newState = reduce(state, {
+    it('sets selected age to "all time" sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const { selected, filtersAreDirty, other } = reduce(state, {
         type: 'SELECT_AGE',
         payload: null,
       });
-      expect(newState.selected.maxDaysOld).toBe(null);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+
+      expect(selected.maxDaysOld).toBe(null);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('TOGGLE_FILTER action', function () {
-    var initState;
+  describe('TOGGLE_FILTER action', () => {
+    let initState;
 
-    beforeEach(function () {
+    beforeEach(() => {
       initState = {
         other: otherObject,
         filtersAreDirty: false,
@@ -615,85 +630,90 @@ describe('dashboardFilterReducer', function () {
       };
     });
 
-    it('sets selected categories and sets filtersAreDirty to true', function () {
-      var state = Object.freeze(initState);
-      var action = {
+    it('sets selected categories and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const action = {
         type: 'TOGGLE_FILTER',
         payload: {
           filterName: 'categories',
           selectedIds: new Set(['cat1', 'cat2']),
         },
       };
-      var newState = reduce(state, action);
-      expect(newState.selected.categories).toBe(action.payload.selectedIds);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      const { selected, filtersAreDirty, other } = reduce(state, action);
+
+      expect(selected.categories).toBe(action.payload.selectedIds);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
     });
 
-    it('sets selected stages and sets filtersAreDirty to true', function () {
-      var state = Object.freeze(initState);
-      var action = {
+    it('sets selected stages and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const action = {
         type: 'TOGGLE_FILTER',
         payload: {
           filterName: 'stages',
           selectedIds: new Set(['stage1', 'stage2']),
         },
       };
-      var newState = reduce(state, action);
-      expect(newState.selected.stages).toBe(action.payload.selectedIds);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      const { selected, filtersAreDirty, other } = reduce(state, action);
+
+      expect(selected.stages).toBe(action.payload.selectedIds);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
     });
 
-    it('sets selected policyTypes and sets filtersAreDirty to true', function () {
-      var state = Object.freeze(initState);
-      var action = {
+    it('sets selected policyTypes and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const action = {
         type: 'TOGGLE_FILTER',
         payload: {
           filterName: 'policyTypes',
           selectedIds: new Set(['SECURITY', 'LICENSE']),
         },
       };
-      var newState = reduce(state, action);
-      expect(newState.selected.policyTypes).toBe(action.payload.selectedIds);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      const { selected, filtersAreDirty, other } = reduce(state, action);
+
+      expect(selected.policyTypes).toBe(action.payload.selectedIds);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
     });
 
-    it('sets selected policyViolationStates and sets filtersAreDirty to true', function () {
-      var state = Object.freeze(initState);
-      var action = {
+    it('sets selected policyViolationStates and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const action = {
         type: 'TOGGLE_FILTER',
         payload: {
           filterName: 'policyViolationStates',
           selectedIds: new Set(['OPEN', 'WAIVED']),
         },
       };
-      var newState = reduce(state, action);
-      expect(newState.selected.policyViolationStates).toBe(action.payload.selectedIds);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      const { selected, filtersAreDirty, other } = reduce(state, action);
+
+      expect(selected.policyViolationStates).toBe(action.payload.selectedIds);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
     });
 
-    it('sets selected policyThreatLevels and sets filtersAreDirty to true', function () {
-      var state = Object.freeze(initState);
-      var action = {
+    it('sets selected policyThreatLevels and sets filtersAreDirty to true', () => {
+      const state = Object.freeze(initState);
+      const action = {
         type: 'TOGGLE_FILTER',
         payload: {
           filterName: 'policyThreatLevels',
           selectedIds: [3, 8],
         },
       };
-      var newState = reduce(state, action);
-      expect(newState.selected.policyThreatLevels).toEqual([3, 8]);
-      expect(newState.filtersAreDirty).toBe(true);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      const { selected, filtersAreDirty, other } = reduce(state, action);
+
+      expect(selected.policyThreatLevels).toEqual([3, 8]);
+      expect(filtersAreDirty).toBe(true);
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('REVERT_FILTER action', function () {
-    it('sets selected filter to current appliedFilter, resets filtersAreDirty and loadErrorFilterName', function () {
-      var state = Object.freeze({
+  describe('REVERT_FILTER action', () => {
+    it('sets selected filter to current appliedFilter, resets filtersAreDirty and loadErrorFilterName', () => {
+      const state = Object.freeze({
         loadErrorFilterName: 'Test filter name',
         filtersAreDirty: true,
         appliedFilter: {
@@ -709,16 +729,17 @@ describe('dashboardFilterReducer', function () {
         selected: {},
         other: otherObject,
       });
-      var newState = reduce(state, { type: 'REVERT_FILTER' });
-      expect(newState.loadErrorFilterName).toBeNull();
-      expect(newState.filtersAreDirty).toBe(false);
-      expect(newState.selected).toEqual(state.appliedFilter);
-      expect(newState.other).toBe(otherObject); // other properties are not modified
+      const { loadErrorFilterName, filtersAreDirty, selected, other } = reduce(state, { type: 'REVERT_FILTER' });
+
+      expect(loadErrorFilterName).toBeNull();
+      expect(filtersAreDirty).toBe(false);
+      expect(selected).toEqual(state.appliedFilter);
+      expect(other).toBe(otherObject);
     });
   });
 
-  describe('TOGGLE_FILTER_SIDEBAR action', function () {
-    it('sets filterSidebarOpen to payload', function () {
+  describe('TOGGLE_FILTER_SIDEBAR action', () => {
+    it('sets filterSidebarOpen to payload', () => {
       const state = Object.freeze({
         filterSidebarOpen: true,
         other: otherObject,
@@ -733,8 +754,8 @@ describe('dashboardFilterReducer', function () {
       expect(reduce(newState, { type: 'TOGGLE_FILTER_SIDEBAR', payload: false }).filterSidebarOpen).toBe(false);
     });
 
-    describe('when filters are dirty', function () {
-      it('does not close filter sidebar', function () {
+    describe('when filters are dirty', () => {
+      it('does not close filter sidebar', () => {
         const state = Object.freeze({
           filterSidebarOpen: true,
           filtersAreDirty: true,
@@ -748,7 +769,7 @@ describe('dashboardFilterReducer', function () {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('opens filter sidebar', function () {
+      it('opens filter sidebar', () => {
         const state = Object.freeze({
           filterSidebarOpen: false,
           filtersAreDirty: true,
@@ -763,8 +784,8 @@ describe('dashboardFilterReducer', function () {
       });
     });
 
-    describe('when needsAcknowledgement is true', function () {
-      it('does not close filter sidebar', function () {
+    describe('when needsAcknowledgement is true', () => {
+      it('does not close filter sidebar', () => {
         const state = Object.freeze({
           filterSidebarOpen: true,
           needsAcknowledgement: true,
@@ -778,7 +799,7 @@ describe('dashboardFilterReducer', function () {
         expect(newState.other).toBe(otherObject); // other properties are not modified
       });
 
-      it('opens filter sidebar', function () {
+      it('opens filter sidebar', () => {
         const state = Object.freeze({
           filterSidebarOpen: false,
           needsAcknowledgement: true,

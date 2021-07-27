@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angular */
+import { react2angular } from 'react2angular';
+import withStoreProvider from '../reactAdapter/StoreProvider';
+import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 
-import dashboardResultsModule from './results/module';
 import dashboardUtilsModule from './utils/dashboard.utils.module';
-import dashboardFilterModule from './filter/module';
 import angularCommonModule from '../util/AngularCommon';
 import utilityModule from '../utility/utility.module';
 import storesModule from '../util/Stores';
@@ -16,6 +17,13 @@ import ComponentModule from './ComponentController';
 import ComponentDisplayModule from '../ComponentDisplay/module';
 import template from './dashboard.view.html';
 import componentTemplate from './component.html';
+import dashboardResultsActionsModule from './results/dashboardResultsActions';
+import DashboardHeaderContainer from './results/DashboardHeaderContainer';
+
+import dashboardResultsContainer from './results/dashboardResultsContainer';
+import DashboardViolationsContainer from './results/violations/DashboardViolationsContainer';
+import DashboardComponentsContainer from './results/components/DashboardComponentsContainer';
+import DashboardApplicationsContainer from './results/applications/DashboardApplicationsContainer';
 
 var dashboardModule = angular
   .module('dashboard.module', [
@@ -26,9 +34,23 @@ var dashboardModule = angular
     ComponentDisplayModule.name,
     dashboardUtilsModule.name,
     utilityModule.name,
-    dashboardFilterModule.name,
-    dashboardResultsModule.name,
+    dashboardResultsActionsModule.name,
   ])
+  .component('dashboardResultsContainer', dashboardResultsContainer)
+  .component(
+    'dashboardHeader',
+    react2angular(withStoreProvider(withRouterStateProvider(DashboardHeaderContainer)), [], ['$ngRedux', '$state'])
+  )
+  .component('violations', react2angular(withStoreProvider(DashboardViolationsContainer), [], ['$ngRedux']))
+  .component('components', react2angular(withStoreProvider(DashboardComponentsContainer), [], ['$ngRedux']))
+  .component(
+    'applications',
+    react2angular(
+      withStoreProvider(withRouterStateProvider(DashboardApplicationsContainer)),
+      [],
+      ['$ngRedux', '$state']
+    )
+  )
   .value('dashboardReducer', dashboardReducer); // add to angular so we can test it
 
 export default dashboardModule;

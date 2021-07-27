@@ -1,34 +1,6 @@
-<root-organization-migrate></root-organization-migrate>
-
-<!--
-We still wanna show Page title when loading,
-but with the current structure of the page the title had to be wrapped in load-wrapper.
--->
-<div ng-if="!vm.isFilterLoaded()" class="nx-page-title iq-page-title">
-  <h1 class="nx-h1">Results</h1>
-</div>
-
-<div load-wrapper="vm.loadFilterError" loading="vm.filterLoading" reload="vm.loadFilter()">
-  <dashboard-filter ng-if="vm.filterSidebarOpen"></dashboard-filter>
-  <div class="dashboard-summary iq-dashboard-summary">
-    <div class="nx-page-title iq-page-title">
-      <h1 class="nx-h1">Results</h1>
-      <div class="nx-btn-bar">
-      	<dashboard-results-export-button></dashboard-results-export-button>
-        <button id="filter-toggle" class="btn" ng-click="vm.toggleFilterSidebar(!vm.filterSidebarOpen)">
-          <i class="fa fa-filter"></i>Filter:
-          <span id="filter-toggle-dirty-asterisk" ng-show="vm.showDirtyAsterisk">*</span><!--
-          -->{{vm.appliedFilterName || vm.DEFAULT_FILTER_NAME}}
-        </button>
-      </div>
-    </div>
-    <dashboard-tabs></dashboard-tabs>
-  </div>
-</div>
-
+<dashboard-header></dashboard-header>
 <!--
 This had to be moved out of load-wrapper and handled with ng-if because of an issue with ui-view directive
 (see https://github.com/angular-ui/ui-router/issues/552)
-TODO: can be moved back to load-wrapper once Applications tab is migrated to react.
 -->
 <div ng-if="vm.isFilterLoaded()" class="nx-viewport-sized__container" ui-view></div>

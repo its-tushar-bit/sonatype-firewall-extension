@@ -38,10 +38,14 @@ export default function DashboardTabs(props) {
   );
 }
 
-DashboardTabs.propTypes = {
+export const dashboardTabsPropTypes = {
   currentTab: PropTypes.string.isRequired,
   violations: PropTypes.shape({ numResults: PropTypes.number }).isRequired,
   components: PropTypes.shape({ numResults: PropTypes.number }).isRequired,
   applications: PropTypes.shape({ numResults: PropTypes.number }).isRequired,
+};
+
+DashboardTabs.propTypes = {
+  ...dashboardTabsPropTypes,
   stateGo: PropTypes.func.isRequired,
 };

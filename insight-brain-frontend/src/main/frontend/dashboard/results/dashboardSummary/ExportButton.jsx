@@ -27,10 +27,14 @@ const ExportButton = ({ exportTitle, exportRequestData, exportUrl }) => {
   );
 };
 
-ExportButton.propTypes = {
+export const exportButtonPropTypes = {
   exportTitle: PropTypes.string,
   exportRequestData: PropTypes.any,
   exportUrl: PropTypes.string,
+};
+
+ExportButton.propTypes = {
+  ...exportButtonPropTypes,
 };
 
 export default ExportButton;

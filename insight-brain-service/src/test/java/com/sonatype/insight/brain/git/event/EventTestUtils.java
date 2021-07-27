@@ -14,4 +14,8 @@ public class EventTestUtils
   public static SourceControlEvent createEvent() {
     return new SourceControlEvent().withId(UUID.randomUUID().toString()).setApplicationId(UUID.randomUUID().toString());
   }
+
+  public static SourceControlEvent createEventForApp(String applicationId) {
+    return new SourceControlEvent().withId(UUID.randomUUID().toString()).setApplicationId(applicationId);
+  }
 }

@@ -5,12 +5,16 @@
  */
 package com.sonatype.insight.brain.concurrent;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.shiro.util.ThreadContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
@@ -24,6 +28,10 @@ public class LazyInitThreadPoolExecutor
   private final String nameFormat;
 
   private final long keepAliveTimeInSeconds;
+
+  // clear any data that might be in a pooled thread's ThreadContext before the thread is used?  by default, Shiro
+  // will propagate the security manager and subject to child threads, but only when the child threads are first created
+  private boolean shouldClearShiroThreadContextBeforeThreadStart;
 
   private volatile ThreadPoolExecutor threadPoolExecutor;
 
@@ -50,16 +58,22 @@ public class LazyInitThreadPoolExecutor
     return threadPoolExecutor;
   }
 
+  public LazyInitThreadPoolExecutor setShouldClearShiroThreadContextBeforeThreadStart(boolean shouldClearContext) {
+    this.shouldClearShiroThreadContextBeforeThreadStart = shouldClearContext;
+    return this;
+  }
+
   private ThreadPoolExecutor initThreadPoolExecutor() {
     ThreadFactory threadFactory = new ThreadFactoryBuilder()
         .setDaemon(true)
         .setNameFormat(nameFormat)
         .build();
-    ThreadPoolExecutor localThreadPoolExecutor = new ThreadPoolExecutor(
+    ThreadPoolExecutor localThreadPoolExecutor = new ResettingThreadPoolExecutor(
         threadPoolSize,
         threadPoolSize,
         keepAliveTimeInSeconds,
         TimeUnit.SECONDS,
+        shouldClearShiroThreadContextBeforeThreadStart,
         new LinkedBlockingQueue<>(taskQueueCapacity),
         threadFactory);
     localThreadPoolExecutor.allowCoreThreadTimeOut(true);
@@ -77,6 +91,39 @@ public class LazyInitThreadPoolExecutor
           currentThread().interrupt();
           break;
         }
+      }
+    }
+  }
+
+  private static class ResettingThreadPoolExecutor
+      extends ThreadPoolExecutor
+  {
+    private final Logger log = LoggerFactory.getLogger(ResettingThreadPoolExecutor.class);
+
+    private final boolean shouldClearShiroThreadContextBeforeThreadStart;
+
+    public ResettingThreadPoolExecutor(
+        int corePoolSize,
+        int maximumPoolSize,
+        long keepAliveTime,
+        TimeUnit unit,
+        boolean shouldClearShiroThreadContextBeforeThreadStart,
+        BlockingQueue<Runnable> workQueue,
+        ThreadFactory threadFactory)
+    {
+      super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
+      this.shouldClearShiroThreadContextBeforeThreadStart = shouldClearShiroThreadContextBeforeThreadStart;
+    }
+
+    @Override
+    protected void beforeExecute(Thread t, Runnable r) {
+      if (log.isTraceEnabled()) {
+        ThreadContext.getResources().forEach((k, v) -> {
+          log.trace("ThreadContext resource '{}' = {}", k, v);
+        });
+      }
+      if (shouldClearShiroThreadContextBeforeThreadStart) {
+        ThreadContext.remove();
       }
     }
   }

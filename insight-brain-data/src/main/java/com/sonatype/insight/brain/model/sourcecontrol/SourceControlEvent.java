@@ -461,4 +461,32 @@ public class  SourceControlEvent
     this.scanTriggerType = scanTriggerType;
     return this;
   }
+
+  public SourceControlEvent copyAsNew() {
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setBranchName(branchName)
+        .setCommitHash(commitHash)
+        .setCriticalComponentCount(criticalComponentCount)
+        .setEventPriority(eventPriority)
+        .setEventStatus(EVENT_STATUS_NEW)
+        .setEventType(eventType)
+        .setInitiator(initiator)
+        .setInstanceId(instanceId)
+        .setModerateComponentCount(moderateComponentCount)
+        .setPolicyEvaluationId(policyEvaluationId)
+        .setPolicyEvaluationOutcome(policyEvaluationOutcome)
+        .setPullRequestContents(pullRequestContents)
+        .setPullRequestNumber(pullRequestNumber)
+        .setRemediationVersion(remediationVersion)
+        .setScanId(scanId)
+        .setScanTriggerType(scanTriggerType)
+        .setScmUsername(scmUsername)
+        .setSevereComponentCount(severeComponentCount)
+        .setStageTypeId(stageTypeId)
+        .setStatusId(statusId)
+        .setUserAgent(userAgent);
+    event.setComponentIdentifier(getComponentIdentifier());
+    return event;
+  }
 }

@@ -36,6 +36,9 @@ public class SourceControlEventProcessor
   @VisibleForTesting
   static final int TASK_QUEUE_CAPACITY = THREAD_POOL_SIZE;
 
+  // want to keep the threads alive a little longer than the PR polling interval so they are available for reuse
+  private static final long CORE_THREAD_KEEP_ALIVE_SECONDS = 75L;
+
   @VisibleForTesting
   static final String REPO_ACCESS_LOCK_ERROR = "Unable to process event.  Could not acquire the repo access lock.";
 
@@ -57,7 +60,9 @@ public class SourceControlEventProcessor
   private final CurrentUser currentUser;
 
   private final LazyInitThreadPoolExecutor lazyInitThreadPoolExecutor =
-      new LazyInitThreadPoolExecutor(THREAD_POOL_SIZE, TASK_QUEUE_CAPACITY, "SourceControlEventProcessor-%s", 30L);
+      new LazyInitThreadPoolExecutor(THREAD_POOL_SIZE, TASK_QUEUE_CAPACITY, "SourceControlEventProcessor-%s",
+          CORE_THREAD_KEEP_ALIVE_SECONDS)
+          .setShouldClearShiroThreadContextBeforeThreadStart(true);
 
   @Inject
   public SourceControlEventProcessor(

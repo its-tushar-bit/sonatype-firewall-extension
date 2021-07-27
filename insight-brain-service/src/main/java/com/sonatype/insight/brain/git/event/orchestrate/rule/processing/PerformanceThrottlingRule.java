@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
  * priority API event (commit status update) falls below a certain threshold.
  */
 public class PerformanceThrottlingRule
+    implements EventProcessedListener
 {
   private static final Logger log = LoggerFactory.getLogger(PerformanceThrottlingRule.class);
 
@@ -40,6 +41,7 @@ public class PerformanceThrottlingRule
     return result;
   }
 
+  @Override
   public void onEventProcessed(SourceControlEvent event) {
     if (event.getEventType().equals(SourceControlEvent.STATUS_UPDATE_EVENT)) {
       // assume processing time is ok unless proven otherwise

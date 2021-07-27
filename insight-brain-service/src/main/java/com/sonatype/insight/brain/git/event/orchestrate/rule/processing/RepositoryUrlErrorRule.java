@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RepositoryUrlErrorRule
+    implements EventProcessedListener
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryUrlErrorRule.class);
 
@@ -65,6 +66,7 @@ public class RepositoryUrlErrorRule
     }
   }
 
+  @Override
   public void onEventProcessed(SourceControlEvent event) {
     appRepositoryUrlErrorMap.remove(event.getApplicationId());
   }

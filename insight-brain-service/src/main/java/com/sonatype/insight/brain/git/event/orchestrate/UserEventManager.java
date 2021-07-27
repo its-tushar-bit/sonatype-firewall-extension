@@ -18,10 +18,12 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.EventProcessedListener;
+import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.ApplicationScopeEventProcessingSuspensionRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.PerformanceThrottlingRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.EventCostSelectionRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.EventProcessingErrorRetryRule;
-import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.EventProcessingSuspensionRule;
+import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.UserScopeEventProcessingSuspensionRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.RepositoryUrlErrorRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SimultaneousEventSelectionRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SingleApplicationSelectionRule;
@@ -30,6 +32,7 @@ import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,11 +56,12 @@ public class UserEventManager
 
   private final Map<String, SourceControlEvent> eventsInProgress = new HashMap<>();
 
+  private final ApplicationScopeEventProcessingSuspensionRule applicationScopeEventProcessingSuspensionRule =
+      new ApplicationScopeEventProcessingSuspensionRule();
+
   private final EventCostSelectionRule eventCostSelectionRule = new EventCostSelectionRule();
 
   private final EventProcessingErrorRetryRule eventProcessingErrorRetryRule = new EventProcessingErrorRetryRule();
-
-  private final EventProcessingSuspensionRule eventProcessingSuspensionRule = new EventProcessingSuspensionRule();
 
   private final PerformanceThrottlingRule performanceThrottlingRule = new PerformanceThrottlingRule();
 
@@ -66,6 +70,11 @@ public class UserEventManager
   private final SimultaneousEventSelectionRule simultaneousEventSelectionRule = new SimultaneousEventSelectionRule();
 
   private final SingleApplicationSelectionRule singleApplicationSelectionRule = new SingleApplicationSelectionRule();
+
+  private final UserScopeEventProcessingSuspensionRule
+      userScopeEventProcessingSuspensionRule = new UserScopeEventProcessingSuspensionRule();
+
+  private final List<EventProcessedListener> eventProcessedListeners;
 
   private boolean backupTriggerEnabled = true;
 
@@ -83,6 +92,8 @@ public class UserEventManager
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
     repositoryUrlErrorRule = new RepositoryUrlErrorRule(sourceControlUtils);
+    eventProcessedListeners = ImmutableList.of(applicationScopeEventProcessingSuspensionRule,
+        eventProcessingErrorRetryRule, performanceThrottlingRule, repositoryUrlErrorRule);
     startBackupEventPushTrigger();
   }
 
@@ -100,8 +111,7 @@ public class UserEventManager
       log.debug("Event '{}' for application {} complete", event.getEventType(), event.getApplicationId());
       sourceControlEventDAO.markEventComplete(event.getId());
       eventsInProgress.remove(event.getApplicationId());
-      repositoryUrlErrorRule.onEventProcessed(event);
-      performanceThrottlingRule.onEventProcessed(event);
+      notifyEventProcessedListeners(event);
       pushEvents();
     }
   }
@@ -113,8 +123,7 @@ public class UserEventManager
           event.getApplicationId(), reason);
       sourceControlEventDAO.markEventPartiallyComplete(event.getId(), reason);
       eventsInProgress.remove(event.getApplicationId());
-      repositoryUrlErrorRule.onEventProcessed(event);
-      performanceThrottlingRule.onEventProcessed(event);
+      notifyEventProcessedListeners(event);
       pushEvents();
     }
   }
@@ -126,8 +135,6 @@ public class UserEventManager
           e.getMessage(), e);
       sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
       eventsInProgress.remove(event.getApplicationId());
-      // for now, we simply don't push events if the last event completed in error
-      // in the future we'll have to figure out what to do with these events, see INT-5378
       handleEventProcessingError(event, e);
     }
   }
@@ -145,9 +152,10 @@ public class UserEventManager
   }
 
   private void handleEventProcessingError(SourceControlEvent event, Exception e) {
-    eventProcessingSuspensionRule.onEventProcessingError(e);
+    applicationScopeEventProcessingSuspensionRule.onEventProcessingError(event, e);
+    userScopeEventProcessingSuspensionRule.onEventProcessingError(event, e);
     repositoryUrlErrorRule.onEventProcessingError(event, e);
-    if (eventProcessingErrorRetryRule.shouldRetry(e)) {
+    if (eventProcessingErrorRetryRule.shouldRetry(event, e)) {
       retryEvent(event);
     }
   }
@@ -160,11 +168,16 @@ public class UserEventManager
    * - if the allowed count < 0 that means there is no limit
    */
   private boolean canPushEvent(SourceControlEvent event, int eventPointsAvailable, boolean useStrictEventCounts) {
-    return eventProcessingSuspensionRule.canPushEvent(event)
-        && performanceThrottlingRule.canPushEvents()
-        && singleApplicationSelectionRule.canPushEvent(event, eventsInProgress)
+    return singleApplicationSelectionRule.canPushEvent(event, eventsInProgress)
         && eventCostSelectionRule.canPushEvent(event, eventPointsAvailable)
-        && simultaneousEventSelectionRule.canPushEvent(event, eventsInProgress, useStrictEventCounts);
+        && simultaneousEventSelectionRule.canPushEvent(event, eventsInProgress, useStrictEventCounts)
+        && applicationScopeEventProcessingSuspensionRule.canPushEvent(event)
+        && userScopeEventProcessingSuspensionRule.canPushEvent(event)
+        && performanceThrottlingRule.canPushEvents();
+  }
+
+  private void notifyEventProcessedListeners(final SourceControlEvent event) {
+    eventProcessedListeners.forEach(listener -> listener.onEventProcessed(event));
   }
 
   private void prioritizeEvent(SourceControlEvent event) {
@@ -179,17 +192,9 @@ public class UserEventManager
       log.trace("events suspended for testing");
       return;
     }
-    if (eventProcessingSuspensionRule.isEventProcessingSuspended()) {
-      log.trace("event processing suspended");
-      return;
-    }
     int eventPointsAvailable =
         eventCostSelectionRule.getAvailableEventPoints(new ArrayList<>(eventsInProgress.values()));
     for (List<SourceControlEvent> prioritizedEvents : prioritizedEventMap.values()) {
-      if (eventProcessingSuspensionRule.isEventProcessingSuspended()) {
-        log.trace("event processing suspended");
-        return;
-      }
       eventPointsAvailable = pushEvents(prioritizedEvents, eventPointsAvailable, true);
       if (eventPointsAvailable <= 0) {
         break;
@@ -241,11 +246,16 @@ public class UserEventManager
   }
 
   private void retryEvent(SourceControlEvent event) {
-    log.trace("todo {}", event.getApplicationId());
+    log.debug("Will retry source control event '{}' for application {}", event.getEventType(),
+        event.getApplicationId());
+    SourceControlEvent retryEvent = event.copyAsNew().setEventStatusDetails("retry");
+    sourceControlEventDAO.insert(retryEvent);
+    prioritizeEvent(retryEvent);
+    pushEvents();
   }
 
   /**
-   * The natural triggers for event processing (new events, completed events, loading events from DB on startup)
+   * The natural triggers for event processing (new events, completed events, error events)
    * are not sufficient in all cases to keep events from sitting idle (event suspension due to errors or performance,
    * for example).  Therefore, a simple timer will run periodically to ensure that events continue to flow with
    * minimal undesired interruption.
@@ -284,6 +294,13 @@ public class UserEventManager
   @VisibleForTesting
   UserEventManager setEventsSuspendedForTesting(boolean suspended) {
     eventsSuspendedForTesting = suspended;
+    return this;
+  }
+
+  @VisibleForTesting
+  UserEventManager setSuspensionTimeoutForTesting(int timeoutInSeconds) {
+    applicationScopeEventProcessingSuspensionRule.setTimeoutsForTesting(timeoutInSeconds);
+    userScopeEventProcessingSuspensionRule.setDefaultSuspensionTimeForTesting(timeoutInSeconds);
     return this;
   }
 }

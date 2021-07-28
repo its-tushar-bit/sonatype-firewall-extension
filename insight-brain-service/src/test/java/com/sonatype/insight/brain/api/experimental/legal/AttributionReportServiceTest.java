@@ -55,8 +55,8 @@ public class AttributionReportServiceTest
   @Test
   public void testGetAll_licensed() {
     AttributionReportTemplate reportTemplate1 = tempEntity
-        .newAttributionReportTemplate("report 1");
-    AttributionReportTemplate reportTemplate2 = tempEntity.newAttributionReportTemplate("report 2");
+        .createNewAttributionReportTemplate("report 1");
+    AttributionReportTemplate reportTemplate2 = tempEntity.createNewAttributionReportTemplate("report 2");
     List<AttributionReportTemplateDTO> allReports = attributionReportService
         .getAllAttributionReportTemplates();
     assertThat(allReports.size()).isEqualTo(2);

@@ -54,4 +54,10 @@ public class AttributionReportTemplateDAO
     final String sQuery = "DELETE FROM AttributionReportTemplate entity WHERE entity.id=?1";
     createQuery(sQuery, attributionReportId).executeUpdate();
   }
+
+  public AttributionReportTemplate getByTitle(String reportTemplateTitle) {
+    final String sQuery = "SELECT entity FROM AttributionReportTemplate entity" + //
+        " WHERE entity.documentTitle=?1";
+    return get(sQuery, reportTemplateTitle);
+  }
 }

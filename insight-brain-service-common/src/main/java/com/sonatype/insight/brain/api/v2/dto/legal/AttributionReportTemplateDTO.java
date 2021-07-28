@@ -50,9 +50,26 @@ public class AttributionReportTemplateDTO
     this.lastUpdatedAt = lastUpdatedAt;
   }
 
+  public AttributionReportTemplateDTO(
+      final String documentTitle,
+      final String header,
+      final String footer,
+      final boolean contents,
+      final boolean appendix)
+  {
+    this.documentTitle = documentTitle;
+    this.header = header;
+    this.footer = footer;
+    this.includeTableOfContents = contents;
+    this.includeAppendix = appendix;
+  }
+
   public static AttributionReportTemplateDTO fromReportTemplate(
       final AttributionReportTemplate attributionReportTemplate)
   {
+    if (attributionReportTemplate == null) {
+      return null;
+    }
     return new AttributionReportTemplateDTO(
         attributionReportTemplate.getId(),
         attributionReportTemplate.getDocumentTitle(),

@@ -2981,8 +2981,9 @@ public class TemporaryEntity
     return sourceControlPullRequest;
   }
 
-  public AttributionReportTemplate newAttributionReportTemplate(String docTitle) {
+  public AttributionReportTemplate createNewAttributionReportTemplate(String docTitle) {
     AttributionReportTemplate template = new AttributionReportTemplate(docTitle, null, null, true, true);
+    template.setId(uuid());
     attributionReportTemplateDAO.insert(template);
     return template;
   }

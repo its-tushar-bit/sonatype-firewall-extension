@@ -74,8 +74,7 @@ public class AttributionReportService
 
   @Authorize(permission = Permission.LEGAL_REVIEWER)
   public Optional<AttributionReportTemplateDTO> getAttributionReportTemplateById(
-      String id
-  )
+      String id)
   {
     LegalServiceUtil.checkLicense(productLicense, log);
     AttributionReportTemplate attributionReportTemplate = attributionReportTemplateDAO.getById(id);
@@ -107,5 +106,11 @@ public class AttributionReportService
   public void deleteAttributionReportById(final String attributionReportId) {
     LegalServiceUtil.checkLicense(productLicense, log);
     attributionReportTemplateDAO.deleteById(attributionReportId);
+  }
+
+  @Authorize(permission = Permission.LEGAL_REVIEWER)
+  public Optional<AttributionReportTemplate> getAttributionReportTemplateByTitle(final String reportTemplateTitle) {
+    LegalServiceUtil.checkLicense(productLicense, log);
+    return Optional.ofNullable(attributionReportTemplateDAO.getByTitle(reportTemplateTitle));
   }
 }

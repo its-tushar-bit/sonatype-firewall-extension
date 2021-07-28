@@ -11,6 +11,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -383,10 +384,13 @@ public class ApplicationReportCipTest
     VersionsCIP.rootAncestorLinks().shouldHaveSize(3);
     eyesWatcher.eyesCheck("Recommended Remediation");
     VersionsCIP.showMoreRootAncestorsToggle().shouldBe(visible).shouldHave(exactText("Show more")).click();
-    VersionsCIP.rootAncestorLinks().shouldHaveSize(4);
+    VersionsCIP.rootAncestorLinks().shouldHaveSize(5);
+    IntStream.range(1, 4).forEach(i -> VersionsCIP.rootAncestorLink(i).dependencyIndicator().shouldNot(exist));
+    IntStream.range(4, 6).forEach(
+        i -> VersionsCIP.rootAncestorLink(i).dependencyIndicator().shouldBe(visible).shouldHave(text("InnerSource")));
     VersionsCIP.showMoreRootAncestorsToggle().shouldBe(visible).shouldHave(exactText("Show less"));
     // navigate to root ancestor and back
-    VersionsCIP.rootAncestorLink(1).shouldHave(exactText("javancss : javancss : 29.50")).click();
+    VersionsCIP.rootAncestorLink(1).link().shouldHave(exactText("javancss : javancss : 29.50")).click();
     cipModal.header().shouldHave(text("javancss : javancss : 29.50"));
     cipModal.nextButton().shouldNotBe(visible);
     cipModal.previousButton().shouldNotBe(visible);

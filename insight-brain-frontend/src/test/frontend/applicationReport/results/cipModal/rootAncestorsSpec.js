@@ -405,6 +405,53 @@ describe('rootAncestorsComponent', function () {
     });
   });
 
+  describe('vm.isAnyDisplayedRootAncestorInnerSource', function () {
+    it('returns false if vm.rootAncestors is empty', function () {
+      vm.rootAncestors = [];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(false);
+    });
+
+    it('returns false if no vm.rootAncestors are InnerSource', function () {
+      vm.rootAncestors = [{ innerSource: false }];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(false);
+      vm.rootAncestors = [{ innerSource: false }, { innerSource: false }];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(false);
+    });
+
+    it('returns true if any vm.rootAncestors are InnerSource', function () {
+      vm.rootAncestors = [{ innerSource: true }];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(true);
+      vm.rootAncestors = [{ innerSource: false }, { innerSource: true }];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(true);
+      vm.rootAncestors = [{ innerSource: true }, { innerSource: false }];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(true);
+      vm.rootAncestors = [{ innerSource: true }, { innerSource: true }];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(true);
+    });
+
+    it('returns false if all InnerSource root ancestors are hidden', function () {
+      vm.showAll = false;
+      vm.rootAncestors = [
+        { innerSource: false },
+        { innerSource: false },
+        { innerSource: false },
+        { innerSource: true },
+      ];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(false);
+    });
+
+    it('returns true if any InnerSource root ancestors are not hidden', function () {
+      vm.showAll = true;
+      vm.rootAncestors = [
+        { innerSource: false },
+        { innerSource: false },
+        { innerSource: false },
+        { innerSource: true },
+      ];
+      expect(vm.isAnyDisplayedRootAncestorInnerSource()).toBe(true);
+    });
+  });
+
   describe('mapStateToThis', function () {
     it('sets selectedReport', function () {
       const state = {

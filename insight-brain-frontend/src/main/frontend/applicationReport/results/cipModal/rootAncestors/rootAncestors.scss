@@ -25,8 +25,16 @@
     font-size: 12px;
     line-height: 18px;
 
+    &__with-inner-source {
+      margin-bottom: 5px;
+    }
+
     .iq-component-display {
       display: inline;
+    }
+
+    .iq-dependency-indicator {
+      margin-left: 10px;
     }
   }
 

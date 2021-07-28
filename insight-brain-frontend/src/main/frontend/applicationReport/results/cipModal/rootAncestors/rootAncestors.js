@@ -48,6 +48,10 @@ function RootAncestorsController($scope, $ngRedux, applicationReportActions) {
       return vm.showAll ? vm.rootAncestors : take(SHOWN_ENTRIES_LIMIT, vm.rootAncestors);
     },
 
+    isAnyDisplayedRootAncestorInnerSource() {
+      return this.getDisplayedRootAncestors().some((rootAncestor) => rootAncestor.innerSource);
+    },
+
     isRootAncestorsSectionDisplayed() {
       return vm.rootAncestors && vm.rootAncestors.length > 0;
     },

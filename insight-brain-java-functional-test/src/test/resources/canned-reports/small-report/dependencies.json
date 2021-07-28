@@ -268,6 +268,17 @@
           "version" : "2.6"
         }
       }
+    }, {
+      "componentIdentifier" : {
+        "format" : "maven",
+        "coordinates" : {
+          "groupId" : "ch.qos.logback",
+          "artifactId" : "logback-access",
+          "version" : "0.6",
+          "extension": "jar",
+          "classifier": ""
+        }
+      }
     } ],
     "directDependency" : true
   }

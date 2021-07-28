@@ -6,10 +6,15 @@
   </div>
   <ul id="cip-root-ancestors-links" class="version-graph-list cip-root-ancestors__list">
     <li ng-repeat="rootAncestor in vm.getDisplayedRootAncestors() track by $index"
-        class="cip-root-ancestors__link truncate-ellipsis">
+        class="cip-root-ancestors__link truncate-ellipsis"
+        ng-class="vm.isAnyDisplayedRootAncestorInnerSource() ? 'cip-root-ancestors__link__with-inner-source' : ''">
       <a ng-click="vm.selectRootAncestor(rootAncestor)">
         <component-display component="rootAncestor"></component-display>
       </a>
+      <span ng-if="rootAncestor.innerSource"
+            class="iq-dependency-indicator iq-dependency-indicator--long inner-source">
+        InnerSource
+      </span>
     </li>
   </ul>
   <a id="cip-root-ancestors-toggle-show-more"

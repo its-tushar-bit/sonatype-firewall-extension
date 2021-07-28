@@ -5,6 +5,8 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
+import com.sonatype.clm.testing.functional.BasicElement;
+
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.support.ui.Select;
@@ -194,10 +196,26 @@ public class VersionsCIP
   }
 
   public static ElementsCollection rootAncestorLinks() {
-    return root().findAll("#cip-root-ancestors-links .cip-root-ancestors__link a");
+    return root().findAll("#cip-root-ancestors-links .cip-root-ancestors__link");
   }
 
-  public static SelenideElement rootAncestorLink(int i) {
-    return $(createSelector("#cip-root-ancestors-links", ".cip-root-ancestors__link", "a", nthChild(i)));
+  public static RootAncestor rootAncestorLink(int i) {
+    return new RootAncestor(createSelector("#cip-root-ancestors-links", ".cip-root-ancestors__link", nthChild(i)));
+  }
+
+  public static class RootAncestor
+      extends BasicElement<RootAncestor>
+  {
+    public RootAncestor(String... selectors) {
+      super(selectors);
+    }
+
+    public SelenideElement link() {
+      return child("a");
+    }
+
+    public SelenideElement dependencyIndicator() {
+      return child(".iq-dependency-indicator");
+    }
   }
 }

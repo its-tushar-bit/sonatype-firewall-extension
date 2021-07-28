@@ -23,17 +23,10 @@ import com.codeborne.selenide.Selenide;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
 
-/**
- * This test pass on Chrome + chromedriver v90+, but fail on v81 that is currently in use.
- *
- * {@literal @Ignore} annotation should be removed after https://issues.sonatype.org/browse/CLM-18612 story is complete
- */
-@Ignore
 public class LicenseDetailsTest
     extends AbstractFunctionalTest
 {

@@ -188,9 +188,9 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(1);
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(5);
+    rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Manage Waivers Unapplied Waiver"));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Manage Waivers Unapplied Waiver", ""));
 
     eyesWatcher.eyesCheck("component details violations tab violation table unapplied waiver");
 
@@ -211,9 +211,9 @@ public class ComponentDetailsTest
     policyViolationsTable.shouldBe(visible);
     policyViolationsTable.getRows().shouldHaveSize(1);
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHaveSize(5);
+    rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Manage Waivers 1 Active Waiver"));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Manage Waivers 1 Active Waiver", ""));
     eyesWatcher.eyesCheck("component details violations tab violation table active waiver");
 
     testGrandfatheringIndicator(componentDetailsPage);
@@ -267,7 +267,7 @@ public class ComponentDetailsTest
 
     PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
     policyViolationsTable.getRows().shouldHaveSize(1);
-    SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).last();
+    SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).get(4);
     indicatorsCell.shouldHave(text("Grandfathered"));
     eyesWatcher.eyesCheck("component details violations tab violation table grandfathered row");
   }

@@ -766,13 +766,6 @@ describe('ComponentOverviewTile', function () {
     expect(wrapper.find('#component-overview-tile-not-applicable')).toHaveText('2');
   });
 
-  it('renders the licenses', function () {
-    const wrapper = getShallowComponent();
-    expect(wrapper.find('#component-overview-tile-licenses')).toHaveText(
-      'License 1.0, License 2.0, License 1.0 or License 2.0'
-    );
-  });
-
   it('renders the highest license threat group', function () {
     const wrapper = getShallowComponent();
     const policyViolationIndicator = wrapper.find(NxPolicyViolationIndicator);

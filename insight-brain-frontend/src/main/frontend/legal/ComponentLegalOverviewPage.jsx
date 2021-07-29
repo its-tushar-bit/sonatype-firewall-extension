@@ -21,7 +21,7 @@ import {
 import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './obligation/LicenseObligationsTileContainer';
 import NoticeTextsTile from './files/notices/NoticeTextsTile';
-import { createSubtitle, formatLicenseMeta } from './legalUtility';
+import { createSubtitle } from './legalUtility';
 import LicenseFilesTile from './files/licenses/LicenseFilesTile';
 
 export default function ComponentLegalOverviewPage(props) {
@@ -73,8 +73,6 @@ export default function ComponentLegalOverviewPage(props) {
   const ownerType = applicationPublicId ? 'application' : 'organization';
   const ownerId = applicationPublicId || organizationId || 'ROOT_ORGANIZATION_ID';
 
-  const licenses = formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata);
-
   const isTextBasedObligation = (licenseObligation) => {
     return TEXT_BASED_OBLIGATIONS.indexOf(licenseObligation.name) >= 0;
   };
@@ -103,12 +101,7 @@ export default function ComponentLegalOverviewPage(props) {
         )}
         {component && (
           <div id="component-legal-overview-details">
-            <ComponentOverviewTile
-              applicationPublicId={applicationPublicId}
-              component={component}
-              licenses={licenses}
-              $state={$state}
-            />
+            <ComponentOverviewTile applicationPublicId={applicationPublicId} component={component} $state={$state} />
             <LicenseObligationsTileContainer
               ownerType={ownerType}
               ownerId={ownerId}

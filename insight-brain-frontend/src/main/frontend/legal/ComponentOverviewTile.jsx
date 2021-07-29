@@ -12,7 +12,7 @@ import { NxPolicyViolationIndicator } from '@sonatype/react-shared-components';
 import { inc, prop, reduceBy } from 'ramda';
 
 export default function ComponentOverviewTile(props) {
-  const { applicationPublicId, component, licenses, $state } = props;
+  const { applicationPublicId, component, $state } = props;
 
   const licenseLegalData = component.licenseLegalData;
   const obligations = component.licenseLegalData.obligations;
@@ -179,12 +179,6 @@ export default function ComponentOverviewTile(props) {
           </div>
           <div className="nx-grid-col">
             <dl className="nx-read-only">
-              <div className="license-component-overview__licenses">
-                <dt className="nx-read-only__label">Licenses</dt>
-                <dd id="component-overview-tile-licenses" className="nx-read-only__data license-names">
-                  {licenses.map((l) => l.licenseName).join(', ')}
-                </dd>
-              </div>
               <div className="license-component-overview__highest-threat">
                 <dt className="nx-read-only__label">Highest License Threat</dt>
                 <dd id="component-overview-tile-highest-license-threat-group" className="nx-read-only__data">

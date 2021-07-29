@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import reduce from '../../../../main/frontend/configuration/proxy/proxyConfigReducer';
+import reduce, { FAKE_PASSWORD } from '../../../../main/frontend/configuration/proxy/proxyConfigReducer';
 
 describe('proxyConfigReducer', () => {
   let otherObject;
@@ -140,6 +140,72 @@ describe('proxyConfigReducer', () => {
 
       expect(submitMaskState).toBe(null);
       expect(other).toBe(otherObject); // other properties are not modified
+    });
+  });
+
+  describe('PROXY_CONFIG_RESET_FORM action', () => {
+    it('resets form inputs state to initial and leaves licensed value as is', () => {
+      const state = Object.freeze({
+        formState: {
+          hostname: { value: 'host.name' },
+          port: { value: '8080' },
+          username: { value: '' },
+          password: { value: '' },
+          excludeHosts: { value: 'host.a,host.b' },
+        },
+        isDirty: true,
+        hasAllRequiredData: true,
+        licensed: true,
+      });
+
+      const { licensed, formState, isDirty, hasAllRequiredData } = reduce(state, {
+        type: 'PROXY_CONFIG_RESET_FORM',
+      });
+
+      expect(licensed).toBe(true);
+
+      expect(formState.hostname.value).toBe('');
+      expect(formState.port.value).toBe('');
+      expect(formState.username.value).toBe('');
+      expect(formState.password.value).toBe('');
+      expect(formState.excludeHosts.value).toBe('');
+      expect(isDirty).toBe(false);
+      expect(hasAllRequiredData).toBe(false);
+    });
+
+    it('sets form inputs state to server data and leaves licensed value as is', () => {
+      const state = Object.freeze({
+        other: otherObject,
+        formState: {
+          hostname: { value: 'host.name' },
+          port: { value: '8080' },
+          username: { value: '' },
+          password: { value: '' },
+          excludeHosts: { value: 'host.a,host.b' },
+        },
+        serverData: {
+          hostname: 'old.host.name',
+          port: '80',
+          username: 'userName',
+        },
+        isDirty: true,
+        hasAllRequiredData: true,
+        licensed: true,
+      });
+
+      const { licensed, other, formState, isDirty } = reduce(state, {
+        type: 'PROXY_CONFIG_RESET_FORM',
+      });
+
+      expect(licensed).toBe(true);
+      expect(formState.hostname.value).toBe(state.serverData.hostname);
+      expect(formState.port.value).toBe(state.serverData.port);
+      expect(formState.username.value).toBe(state.serverData.username);
+      expect(formState.password.value).toBe(FAKE_PASSWORD);
+      expect(formState.excludeHosts.value).toBe('');
+      expect(isDirty).toBe(false);
+
+      expect(other).toBe(otherObject);
     });
   });
 

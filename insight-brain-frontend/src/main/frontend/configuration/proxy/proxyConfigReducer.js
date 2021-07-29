@@ -157,7 +157,24 @@ function loadFulfilled(payload, state) {
   });
 }
 
-const resetForm = (_, state) => (state.serverData ? loadFulfilled(state.serverData, state) : initialState);
+const resetForm = (_, state) => {
+  if (state.serverData) {
+    return setFormStateFromServerData({
+      ...state,
+      loading: false,
+      isDirty: false,
+      ...clearedErrors,
+      submitMaskState: initialState.submitMaskState,
+      serverData: state.serverData,
+      mustReenterPassword: false,
+    });
+  }
+
+  return {
+    ...initialState,
+    licensed: state.licensed,
+  };
+};
 
 function loadFailed(payload, state) {
   return {

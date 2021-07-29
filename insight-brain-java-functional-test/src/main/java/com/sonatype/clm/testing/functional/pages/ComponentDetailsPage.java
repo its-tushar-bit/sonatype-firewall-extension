@@ -21,15 +21,11 @@ public class ComponentDetailsPage
   private static final String BASE_URL = "/applicationReport/{applicationPublicId}/{scanId}/componentDetails/{hash}";
 
   public static String url(Application app, String scanId, String hash) {
-    return urlToRemediation(app, scanId, hash);
+    return urlToOverview(app, scanId, hash);
   }
 
-  public static String urlToRemediation(Application app, String scanId, String hash) {
-    return BaseUrl.resolvePageUrl(BASE_URL + "/remediation", app.getPublicId(), scanId, hash);
-  }
-
-  public static String urlToComponentInfo(Application app, String scanId, String hash) {
-    return BaseUrl.resolvePageUrl(BASE_URL + "/info", app.getPublicId(), scanId, hash);
+  public static String urlToOverview(Application app, String scanId, String hash) {
+    return BaseUrl.resolvePageUrl(BASE_URL + "/overview", app.getPublicId(), scanId, hash);
   }
 
   public static String urlToViolations(Application app, String scanId, String hash) {
@@ -68,28 +64,24 @@ public class ComponentDetailsPage
     return children(".nx-tab");
   }
 
-  public SelenideElement remediationTab() {
+  public SelenideElement overviewTab() {
     return this.tabs().get(0);
   }
 
-  public SelenideElement componentInfoTab() {
+  public SelenideElement violationsTab() {
     return this.tabs().get(1);
   }
 
-  public SelenideElement violationsTab() {
+  public SelenideElement securityTab() {
     return this.tabs().get(2);
   }
 
-  public SelenideElement securityTab() {
+  public SelenideElement legalTab() {
     return this.tabs().get(3);
   }
 
-  public SelenideElement legalTab() {
-    return this.tabs().get(4);
-  }
-
   public SelenideElement auditTab() {
-    return this.tabs().get(5);
+    return this.tabs().get(4);
   }
 
   public ViolationsTabContent violationsTabContent() {

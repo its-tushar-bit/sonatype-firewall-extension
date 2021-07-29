@@ -6,12 +6,12 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import {
+  NxLoadError,
+  NxLoadingSpinner,
   NxStatefulTabs,
   NxTab,
   NxTabList,
   NxTabPanel,
-  NxLoadingSpinner,
-  NxLoadError,
 } from '@sonatype/react-shared-components';
 
 import BackButton from '../react/BackButton';
@@ -26,8 +26,9 @@ import {
 } from './ComponentDetailsHeader';
 import { ComponentDetailsFooter, propTypes as footerPropTypes } from './ComponentDetailsFooter';
 import { PolicyViolationsContainer } from './violations';
+import { OverviewContainer } from './overview';
 
-const tabIdPerIndex = ['remediation', 'info', 'violations', 'security', 'legal', 'audit'];
+const tabIdPerIndex = ['overview', 'violations', 'security', 'legal', 'audit'];
 
 export default function ComponentDetails({
   componentDetails,
@@ -84,18 +85,14 @@ export default function ComponentDetails({
 
         <NxStatefulTabs defaultActiveTab={tabIdPerIndex.indexOf(activeTabId)} onTabSelect={handleTabChange}>
           <NxTabList aria-label="Component detail tabs">
-            <NxTab>Remediation</NxTab>
-            <NxTab>Component Info</NxTab>
+            <NxTab>Overview</NxTab>
             <NxTab>Policy Violations</NxTab>
             <NxTab>Security</NxTab>
             <NxTab>Legal</NxTab>
             <NxTab>Audit Log</NxTab>
           </NxTabList>
           <NxTabPanel>
-            <PlaceholderTabContent tabIndex={0}>Remediation</PlaceholderTabContent>
-          </NxTabPanel>
-          <NxTabPanel>
-            <PlaceholderTabContent tabIndex={1}>Component Info</PlaceholderTabContent>
+            <OverviewContainer />
           </NxTabPanel>
           <NxTabPanel>
             <PolicyViolationsContainer />

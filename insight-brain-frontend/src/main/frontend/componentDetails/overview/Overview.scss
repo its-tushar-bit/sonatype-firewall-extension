@@ -1,0 +1,28 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+@import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+
+.iq-component-information-tile {
+  > .nx-tile-content {
+    .iq-inline-definition-list {
+      .iq-inline-definition-list__item {
+        display: flex;
+        padding-bottom: var(--nx-spacing-2x);
+
+        dt {
+          @include regular();
+
+          white-space: nowrap;
+        }
+
+        dd {
+          @include semi-bold();
+        }
+      }
+    }
+  }
+}

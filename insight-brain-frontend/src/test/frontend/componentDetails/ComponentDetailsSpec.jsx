@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import * as enzymeUtils from '../enzymeUtils';
-import { NxStatefulTabs, NxTab, NxLoadError, NxLoadingSpinner } from '@sonatype/react-shared-components';
+import { NxLoadError, NxLoadingSpinner, NxStatefulTabs, NxTab } from '@sonatype/react-shared-components';
 
 import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
 import { ComponentDetailsFooter } from '../../../main/frontend/componentDetails/ComponentDetailsFooter';
@@ -13,6 +13,7 @@ import BackButton from '../../../main/frontend/react/BackButton';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
 import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
 import * as violationsTab from '../../../main/frontend/componentDetails/violations/PolicyViolationsContainer';
+import * as overviewTab from '../../../main/frontend/componentDetails/overview/OverviewContainer';
 
 describe('ComponentDetails', function () {
   let minimalProps,
@@ -36,7 +37,7 @@ describe('ComponentDetails', function () {
 
     minimalProps = {
       componentDetails: null,
-      activeTabId: 'remediation',
+      activeTabId: 'overview',
       loadComponentDetails: loadComponentDetailsSpy,
       onTabChange: onTabChangeSpy,
       pagination: null,
@@ -74,7 +75,7 @@ describe('ComponentDetails', function () {
       expect(tabBar).not.toExist();
     });
 
-    it('renders 6 tabs with the appropriate names when there is componentDetails prop', function () {
+    it('renders 5 tabs with the appropriate names when there is componentDetails prop', function () {
       const component = getShallowComponent({
           componentDetails: {
             name: 'Mock Component Name',
@@ -87,18 +88,18 @@ describe('ComponentDetails', function () {
 
       const tabs = tabBar.find(NxTab);
 
-      expect(tabs.at(0)).toHaveProp('children', 'Remediation');
-      expect(tabs.at(1)).toHaveProp('children', 'Component Info');
-      expect(tabs.at(2)).toHaveProp('children', 'Policy Violations');
-      expect(tabs.at(3)).toHaveProp('children', 'Security');
-      expect(tabs.at(4)).toHaveProp('children', 'Legal');
-      expect(tabs.at(5)).toHaveProp('children', 'Audit Log');
+      expect(tabs.at(0)).toHaveProp('children', 'Overview');
+      expect(tabs.at(1)).toHaveProp('children', 'Policy Violations');
+      expect(tabs.at(2)).toHaveProp('children', 'Security');
+      expect(tabs.at(3)).toHaveProp('children', 'Legal');
+      expect(tabs.at(4)).toHaveProp('children', 'Audit Log');
     });
 
     it('calls onTabChange action with the appropriate activeTabId when clicking on a tab', function () {
       // Mock containers so that `getMountedComponent` doesn't complain.
       spyOn(fullAuditLog, 'default').and.returnValue(<div>auditLog</div>);
       spyOn(violationsTab, 'PolicyViolationsContainer').and.returnValue(<div>violations</div>);
+      spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
 
       let component = getMountedComponent({
           componentDetails: {
@@ -110,18 +111,15 @@ describe('ComponentDetails', function () {
         tabs = tabBar.find(NxTab);
 
       tabs.at(1).simulate('click');
-      expect(onTabChangeSpy).toHaveBeenCalledWith('info');
-
-      tabs.at(2).simulate('click');
       expect(onTabChangeSpy).toHaveBeenCalledWith('violations');
 
-      tabs.at(3).simulate('click');
+      tabs.at(2).simulate('click');
       expect(onTabChangeSpy).toHaveBeenCalledWith('security');
 
-      tabs.at(4).simulate('click');
+      tabs.at(3).simulate('click');
       expect(onTabChangeSpy).toHaveBeenCalledWith('legal');
 
-      tabs.at(5).simulate('click');
+      tabs.at(4).simulate('click');
       expect(onTabChangeSpy).toHaveBeenCalledWith('audit');
 
       /** Starting on another tab to be able to check the listener on the default 0 tab */
@@ -131,19 +129,21 @@ describe('ComponentDetails', function () {
           name: 'Mock Component Name',
           hash: 'some-crazy-hash',
         },
-        activeTabId: 'info',
+        activeTabId: 'security',
         onTabChange: onTabChangeInInfoSpy,
       })),
         (tabBar = component.find(NxStatefulTabs)),
         (tabs = tabBar.find(NxTab));
 
       tabs.at(0).simulate('click');
-      expect(onTabChangeInInfoSpy).toHaveBeenCalledWith('remediation');
+      expect(onTabChangeInInfoSpy).toHaveBeenCalledWith('overview');
     });
 
     it('does not call onTabChange when clicking on the same tab twice', function () {
       // Mock `AuditLogContainer` so that `getMountedComponent` doesn't complain.
       spyOn(fullAuditLog, 'default').and.returnValue(<div>hello</div>);
+      spyOn(violationsTab, 'PolicyViolationsContainer').and.returnValue(<div>violations</div>);
+      spyOn(overviewTab, 'OverviewContainer').and.returnValue(<div>overview</div>);
 
       const component = getMountedComponent({
           componentDetails: {

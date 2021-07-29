@@ -12,3 +12,55 @@ export const formatDate = (date, format = STANDARD_DATE_FORMAT) => {
   }
   return moment(date).format(format);
 };
+
+// Copied from our AngularCommon library
+export const formatTimeAgo = (date) => {
+  if (!date) {
+    return '';
+  }
+
+  let diff, unit, val;
+
+  diff = new Date().getTime() - date;
+
+  if (diff > 12 * 30 * 24 * 60 * 60 * 1000) {
+    val = diff / (12 * 30 * 24 * 60 * 60 * 1000);
+    unit = 'year';
+  } else if (diff > 30 * 24 * 60 * 60 * 1000) {
+    val = diff / (30 * 24 * 60 * 60 * 1000);
+    unit = 'month';
+  } else if (diff > 24 * 60 * 60 * 1000) {
+    val = diff / (24 * 60 * 60 * 1000);
+    unit = 'day';
+  } else if (diff > 60 * 60 * 1000) {
+    val = diff / (60 * 60 * 1000);
+    unit = 'hour';
+  } else if (diff > 60 * 1000) {
+    val = diff / (60 * 1000);
+    unit = 'minute';
+  } else {
+    return 'seconds ago';
+  }
+  val = Math.floor(val);
+  if (val > 1) {
+    unit += 's';
+  }
+  return val + ' ' + unit + ' ago';
+};
+
+export const formatTimeAgoUpToDay = (date) => {
+  const timeAgoDateInString = formatTimeAgo(date);
+  return reduceStringDateToDay(timeAgoDateInString);
+};
+
+// Copied from our AngularCommon library
+export const reduceStringDateToDay = (timeAgoDateInString) => {
+  if (
+    timeAgoDateInString.indexOf('seconds ago') > -1 ||
+    timeAgoDateInString.indexOf('minute') > -1 ||
+    timeAgoDateInString.indexOf('hour') > -1
+  ) {
+    return 'Less than a day ago';
+  }
+  return timeAgoDateInString;
+};

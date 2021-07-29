@@ -97,7 +97,7 @@ public class ComponentDetailsTest
       waitUntilUrl(ComponentDetailsPage.url(app, SCAN_ID, HASH));
       ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
       componentDetailsPage.header().title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-      componentDetailsPage.tabs().shouldHaveSize(6);
+      componentDetailsPage.tabs().shouldHaveSize(5);
       SelenideElement backButton = componentDetailsPage.backButton();
       backButton.shouldHave(text("Back to Application Report"));
       backButton.click();
@@ -147,7 +147,7 @@ public class ComponentDetailsTest
     SelenideElement firstViolation = violations.first();
     firstViolation.click();
 
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
   }
 
   @Test
@@ -156,9 +156,6 @@ public class ComponentDetailsTest
     reportPage.reportTitle().shouldHave(text("ApplicationReportTest Build Report"));
 
     ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
-
-    componentDetailsPage.componentInfoTab().click();
-    waitUntilUrl(ComponentDetailsPage.urlToComponentInfo(app, SCAN_ID, HASH));
 
     componentDetailsPage.violationsTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToViolations(app, SCAN_ID, HASH));
@@ -172,8 +169,8 @@ public class ComponentDetailsTest
     componentDetailsPage.auditTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToAudit(app, SCAN_ID, HASH));
 
-    componentDetailsPage.remediationTab().click();
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+    componentDetailsPage.overviewTab().click();
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
   }
 
   @Test
@@ -261,7 +258,7 @@ public class ComponentDetailsTest
     reportPage.aggregateByComponentToggle().click();
     SelenideElement firstGrandfatheredViolation = reportPage.resultRows().first();
     firstGrandfatheredViolation.click();
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
 
     navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
 
@@ -401,7 +398,7 @@ public class ComponentDetailsTest
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement firstViolation = violations.first();
     firstViolation.click();
-    waitUntilUrl(ComponentDetailsPage.urlToRemediation(app, SCAN_ID, HASH));
+    waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
     return new ComponentDetailsPage();
   }
 

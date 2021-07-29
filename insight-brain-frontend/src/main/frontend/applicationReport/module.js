@@ -100,19 +100,13 @@ function routes($stateProvider, $urlRouterProvider) {
         title: 'Component Details',
       },
       params: {
-        tabId: 'remediation',
+        tabId: 'overview',
       },
     })
-    .state('applicationReport.componentDetails.remediation', {
-      url: '/remediation',
+    .state('applicationReport.componentDetails.overview', {
+      url: '/overview',
       params: {
-        tabId: 'remediation',
-      },
-    })
-    .state('applicationReport.componentDetails.info', {
-      url: '/info',
-      params: {
-        tabId: 'info',
+        tabId: 'overview',
       },
     })
     .state('applicationReport.componentDetails.violations', {
@@ -148,7 +142,7 @@ function routes($stateProvider, $urlRouterProvider) {
     .when('/applicationReport/{publicId}/{scanId}?unknownjs', '/applicationReport/{publicId}/{scanId}/policy?unknownjs')
     .when(
       '/applicationReport/{publicId}/{scanId}/componentDetails/{hash}',
-      '/applicationReport/{publicId}/{scanId}/componentDetails/{hash}/remediation'
+      '/applicationReport/{publicId}/{scanId}/componentDetails/{hash}/overview'
     );
 }
 

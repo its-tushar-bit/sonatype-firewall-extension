@@ -58,6 +58,10 @@ public class ActionsSection
     return $$(createSelector(ROOT_SELECTOR, "th:nth-child(n+2):nth-child(-n+8)"));
   }
 
+  public SelenideElement quarantineWarningMessage() {
+    return $("#quarantine-warning-message");
+  }
+
   public static class Stage
   {
     private String rootSelector;

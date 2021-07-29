@@ -13,6 +13,8 @@ export default function PolicyEditorActionsDirective() {
     scope: {
       actions: '=',
       disabled: '=?editorDisabled',
+      originalProxyStageAction: '<',
+      isRootOrg: '<',
     },
     bindToController: true,
   };

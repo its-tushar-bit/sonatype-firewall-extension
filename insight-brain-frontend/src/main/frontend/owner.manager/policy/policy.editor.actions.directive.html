@@ -69,7 +69,7 @@
                     tooltip="{{ !vm.isEnforcementSupportedForStage(actionStage.stageTypeId) ? 'Actions are not supported by your license' : '' }}"
                     value="'fail'"><!--
          --><i class="fa fa-exclamation-circle fail size-16px" ng-if="vm.actions[actionStage.stageTypeId] === 'fail'">
-            </i>
+          </i>
           </iq-radio>
         </td>
         <td class="iq-cell"></td>
@@ -77,4 +77,10 @@
       </tr>
     </tbody>
   </table>
+  <div id="quarantine-warning-message"
+       ng-if="vm.shouldShowQuarantineWarning()"
+       class="iq-alert iq-alert--form-item">
+    <i class="fa fa-warning"></i>This will quarantine all new components that violate this policy going forward and may
+    cause build failures.
+  </div>
 </div>

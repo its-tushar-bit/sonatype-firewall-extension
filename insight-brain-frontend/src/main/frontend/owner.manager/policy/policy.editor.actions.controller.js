@@ -12,6 +12,7 @@ export default function PolicyEditorActionsController($q, StageTypeStore, Produc
   vm.isEnforcementSupported = undefined;
   vm.isFirewallSupported = undefined;
   vm.isEnforcementSupportedForStage = ProductFeatures.isEnforcementSupportedForStage;
+  vm.shouldShowQuarantineWarning = shouldShowQuarantineWarning;
 
   vm.doLoad();
 
@@ -31,6 +32,10 @@ export default function PolicyEditorActionsController($q, StageTypeStore, Produc
     );
 
     delete vm.loadError;
+  }
+
+  function shouldShowQuarantineWarning() {
+    return vm.actions['proxy'] === 'fail' && vm.originalProxyStageAction !== 'fail' && vm.isRootOrg;
   }
 }
 

@@ -35,4 +35,54 @@ describe('policy.editor.actions.controller.spec.js', function () {
 
     expect(vm.actionStages.length).toBe(6);
   });
+
+  describe('vm.shouldShowQuarantineWarning', function () {
+    it('returns false when root org and action is not fail', function () {
+      inject(function ($controller) {
+        vm = $controller(
+          'policy.editor.actions.controller',
+          {},
+          { actions: [{ proxy: 'fail' }, { build: undefined }], isRootOrg: true, originalProxyStageAction: 'warn' }
+        );
+      });
+      vm.actions['proxy'] = 'warn';
+      expect(vm.shouldShowQuarantineWarning()).toBe(false);
+    });
+
+    it('returns false when root org and action not changed to fail', function () {
+      inject(function ($controller) {
+        vm = $controller(
+          'policy.editor.actions.controller',
+          {},
+          { actions: [{ proxy: 'warn' }, { build: undefined }], isRootOrg: true, originalProxyStageAction: 'fail' }
+        );
+      });
+      vm.actions['proxy'] = 'fail';
+      expect(vm.shouldShowQuarantineWarning()).toBe(false);
+    });
+
+    it('returns true when root org and action changed to fail', function () {
+      inject(function ($controller) {
+        vm = $controller(
+          'policy.editor.actions.controller',
+          {},
+          { actions: [{ proxy: 'warn' }, { build: undefined }], isRootOrg: true, originalProxyStageAction: 'warn' }
+        );
+      });
+      vm.actions['proxy'] = 'fail';
+      expect(vm.shouldShowQuarantineWarning()).toBe(true);
+    });
+
+    it('returns false when not root org', function () {
+      inject(function ($controller) {
+        vm = $controller(
+          'policy.editor.actions.controller',
+          {},
+          { actions: [{ proxy: 'warn' }, { build: undefined }], isRootOrg: false, originalProxyStageAction: 'warn' }
+        );
+      });
+      vm.actions['proxy'] = 'fail';
+      expect(vm.shouldShowQuarantineWarning()).toBe(false);
+    });
+  });
 });

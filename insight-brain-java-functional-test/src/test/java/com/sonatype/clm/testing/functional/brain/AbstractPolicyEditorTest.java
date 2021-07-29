@@ -1000,11 +1000,19 @@ public abstract class AbstractPolicyEditorTest
   private void testEditPolicy_actionsSection(Policy policy) {
     ActionsSection actionsTable = PolicyEditorPage.actionsSection();
 
+    actionsTable.quarantineWarningMessage().shouldNotBe(visible);
+    actionsTable.proxy().failRadio().click();
+    actionsTable.proxy().failRadio().shouldBe(selected);
+    actionsTable.proxy().warnRadio().shouldNotBe(selected);
+    actionsTable.proxy().noActionRadio().shouldNotBe(selected);
+    actionsTable.quarantineWarningMessage().shouldNotBe(visible);
+
     // Set proxy to warn, operate to fail
     actionsTable.proxy().warnRadio().click();
     actionsTable.proxy().warnRadio().shouldBe(selected);
     actionsTable.proxy().failRadio().shouldNotBe(selected);
     actionsTable.proxy().noActionRadio().shouldNotBe(selected);
+    actionsTable.quarantineWarningMessage().shouldNotBe(visible);
 
     actionsTable.operate().noActionRadio().click();
     actionsTable.operate().noActionRadio().shouldBe(selected);
@@ -1418,6 +1426,15 @@ public abstract class AbstractPolicyEditorTest
     icon.shouldNotHave(warnClass());
     actionsTable.build().warnRadio().click();
     icon.shouldHave(warnClass());
+
+    actionsTable.quarantineWarningMessage().shouldNotBe(visible);
+    actionsTable.proxy().failRadio().click();
+    actionsTable.proxy().failRadio().shouldBe(selected);
+    actionsTable.proxy().warnRadio().shouldNotBe(selected);
+    actionsTable.proxy().noActionRadio().shouldNotBe(selected);
+    actionsTable.quarantineWarningMessage().shouldNotBe(visible);
+    actionsTable.proxy().noActionRadio().click();
+    actionsTable.quarantineWarningMessage().shouldNotBe(visible);
   }
 
   private void testCreatePolicy_notificationsSection() {

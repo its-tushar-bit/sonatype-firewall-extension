@@ -43,6 +43,7 @@ export default function PolicyEditorController(
   vm.readOnly = undefined;
   vm.isRootOrg = CLMContextLocations.isRootOrg();
   vm.isGrandfatheringSupported = undefined;
+  vm.originalProxyStageAction = undefined;
 
   vm.doLoad();
 
@@ -78,7 +79,7 @@ export default function PolicyEditorController(
         vm.isGrandfatheringSupported = ProductFeatures.isAvailable('policy-grandfathering');
         if (results.length > 2) {
           vm.dirtyPolicy = results[2].$clone();
-
+          vm.originalProxyStageAction = vm.dirtyPolicy.actions['proxy'];
           policyStores.some(function (owner, index) {
             if (owner.policies.indexOf(results[2]) !== -1) {
               vm.readOnly = index !== 0;
@@ -187,6 +188,7 @@ export default function PolicyEditorController(
         } else {
           originalCategories = angular.copy(vm.categories);
           originalHasPolicyCategories = vm.hasPolicyCategories;
+          vm.originalProxyStageAction = vm.dirtyPolicy.actions['proxy'];
           vm.policyEditor.$setPristine();
           $rootScope.$broadcast(EventNameConstant.UPDATE_SCROLLSPY, {
             resetScroll: true,

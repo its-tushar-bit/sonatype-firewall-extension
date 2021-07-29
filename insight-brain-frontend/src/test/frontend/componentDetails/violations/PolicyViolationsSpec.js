@@ -6,6 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import PolicyViolations from '../../../../main/frontend/componentDetails/violations/PolicyViolations';
 import PolicyViolationsTable from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTable';
+import PolicyViolationDetailPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailPopover';
 
 describe('PolicyViolations', () => {
   let minimalProps, getShallow, getMounted;
@@ -24,6 +25,8 @@ describe('PolicyViolations', () => {
       loadPolicyViolationsInformation: jasmine.createSpy('loadPolicyViolationsInformation'),
       loadError: null,
       loading: false,
+      showViolationsDetail: false,
+      setShowViolationsDetail: jasmine.createSpy('setShowViolationsDetail'),
     };
 
     getShallow = enzymeUtils.getShallowComponent(PolicyViolations, minimalProps);
@@ -94,6 +97,17 @@ describe('PolicyViolations', () => {
 
       const violationsTable = getShallow({ violations: originViolations }).find(PolicyViolationsTable);
       expect(violationsTable).toHaveProp('violations', expectedViolationsInOrder);
+    });
+  });
+
+  describe('renders a PolicyViolationDetail', () => {
+    it('renders a PolicyViolationDetail component when the flag is active', () => {
+      let violationsDetail;
+      violationsDetail = getShallow().find(PolicyViolationDetailPopover);
+      expect(violationsDetail).not.toExist();
+
+      violationsDetail = getShallow({ ...minimalProps, showViolationsDetail: true }).find(PolicyViolationDetailPopover);
+      expect(violationsDetail).toExist();
     });
   });
 });

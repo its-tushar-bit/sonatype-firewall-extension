@@ -9,7 +9,14 @@ import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@son
 
 import PolicyViolationsTableRow, { violationPropTypes } from './PolicyViolationsTableRow';
 
-export default function PolicyViolationsTable({ violations, error, loading, retryHandler, goToWaivers }) {
+export default function PolicyViolationsTable({
+  violations,
+  error,
+  loading,
+  retryHandler,
+  goToWaivers,
+  setShowViolationsDetail,
+}) {
   return (
     <NxTable className="iq-policy-violations-table">
       <NxTableHead>
@@ -19,11 +26,17 @@ export default function PolicyViolationsTable({ violations, error, loading, retr
           <NxTableCell>Constraint Name</NxTableCell>
           <NxTableCell>Condition</NxTableCell>
           <NxTableCell />
+          <NxTableCell />
         </NxTableRow>
       </NxTableHead>
       <NxTableBody emptyMessage="No policy violations" error={error} isLoading={loading} retryHandler={retryHandler}>
         {violations.map((violation) => (
-          <PolicyViolationsTableRow key={violation.policyViolationId} violation={violation} goToWaivers={goToWaivers} />
+          <PolicyViolationsTableRow
+            key={violation.policyViolationId}
+            violation={violation}
+            goToWaivers={goToWaivers}
+            setShowViolationsDetail={setShowViolationsDetail}
+          />
         ))}
       </NxTableBody>
     </NxTable>
@@ -36,4 +49,5 @@ PolicyViolationsTable.propTypes = {
   loading: PropTypes.bool,
   retryHandler: PropTypes.func,
   goToWaivers: PropTypes.func,
+  setShowViolationsDetail: PropTypes.func,
 };

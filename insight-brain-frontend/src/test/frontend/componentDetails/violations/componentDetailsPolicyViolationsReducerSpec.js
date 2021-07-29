@@ -19,6 +19,31 @@ describe('componentDetailsPolicyViolationsReducer', () => {
     });
   });
 
+  describe('componentDetailsPolicyViolations/setShowViolationsDetail action', () => {
+    it('sets the showViolationsDetail flag a value', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        showViolationsDetail: false,
+      });
+
+      let newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/setShowViolationsDetail',
+        payload: true,
+      });
+
+      expect(newState.showViolationsDetail).toBe(true);
+      expect(newState.other).toBe(stateConstantObject);
+
+      newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/setShowViolationsDetail',
+        payload: false,
+      });
+
+      expect(newState.showViolationsDetail).toBe(false);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+  });
+
   describe('componentDetailsPolicyViolations/load/pending action', () => {
     it('sets the loading flag to true', () => {
       const state = Object.freeze({

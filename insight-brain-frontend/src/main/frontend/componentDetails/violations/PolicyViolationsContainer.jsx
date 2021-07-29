@@ -10,17 +10,19 @@ import { actions } from './PolicyViolationsRedux';
 import { selectComponentDetailsViolationsSlice, selectComponentViolations } from './PolicyViolationsSelectors';
 
 function mapStateToProps(state) {
-  const { loading, loadError } = selectComponentDetailsViolationsSlice(state);
+  const { loading, loadError, showViolationsDetail } = selectComponentDetailsViolationsSlice(state);
 
   return {
     violations: selectComponentViolations(state),
     loading,
     loadError,
+    showViolationsDetail,
   };
 }
 
 const mapDispatchToProps = {
   loadPolicyViolationsInformation: actions.load,
+  setShowViolationsDetail: actions.setShowViolationsDetail,
   goToWaivers: actions.goToWaivers,
 };
 

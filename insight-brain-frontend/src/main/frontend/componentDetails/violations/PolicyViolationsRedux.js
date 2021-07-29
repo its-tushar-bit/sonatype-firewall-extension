@@ -11,6 +11,7 @@ import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 import { getComponentWaivers, getReportPolicyThreatsUrl } from '../../util/CLMLocation';
 import { Messages } from '../../util/CommonServices';
 import { stateGo } from '../../reduxUiRouter/routerActions';
+import { propSet } from '../../util/reduxToolkitUtil';
 
 const REDUCER_NAME = 'componentDetailsPolicyViolations';
 
@@ -19,6 +20,7 @@ const initialState = {
   waivers: null,
   loading: false,
   loadError: null,
+  showViolationsDetail: false,
 };
 
 const loadRequested = (state) => {
@@ -106,7 +108,9 @@ const goToWaivers = (policyViolationId) => {
 const componentDetailsViolationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
-  reducers: {},
+  reducers: {
+    setShowViolationsDetail: propSet('showViolationsDetail'),
+  },
   extraReducers: {
     [load.pending]: loadRequested,
     [load.fulfilled]: loadFulfilled,

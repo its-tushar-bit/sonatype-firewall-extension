@@ -39,12 +39,13 @@ describe('PolicyViolationsTable', () => {
       headerRow = tHeader.find(NxTableRow),
       headers = headerRow.find(NxTableCell);
 
-    expect(headers.length).toEqual(5);
+    expect(headers.length).toEqual(6);
     expect(headers.at(0)).toHaveProp('children', 'Threat');
     expect(headers.at(1)).toHaveProp('children', 'Policy/Action');
     expect(headers.at(2)).toHaveProp('children', 'Constraint Name');
     expect(headers.at(3)).toHaveProp('children', 'Condition');
     expect(headers.at(4)).not.toHaveProp('children');
+    expect(headers.at(5)).not.toHaveProp('children');
   });
 
   describe('Table body', () => {

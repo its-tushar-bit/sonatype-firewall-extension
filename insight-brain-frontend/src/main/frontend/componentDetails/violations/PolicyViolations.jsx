@@ -8,9 +8,18 @@ import * as PropTypes from 'prop-types';
 import { sort } from 'ramda';
 
 import PolicyViolationsTable from './PolicyViolationsTable';
+import PolicyViolationDetailPopover from './PolicyViolationDetailPopover';
 
 export default function PolicyViolations(props) {
-  const { violations, loadPolicyViolationsInformation, loading, loadError, goToWaivers } = props;
+  const {
+    violations,
+    loadPolicyViolationsInformation,
+    loading,
+    loadError,
+    goToWaivers,
+    showViolationsDetail,
+    setShowViolationsDetail,
+  } = props;
   useEffect(() => {
     loadPolicyViolationsInformation();
   }, []);
@@ -25,10 +34,14 @@ export default function PolicyViolations(props) {
     retryHandler: loadPolicyViolationsInformation,
     loading,
     goToWaivers,
+    setShowViolationsDetail,
   };
 
   return (
     <section id="component-details-policy-violations" className="nx-tile">
+      {showViolationsDetail && (
+        <PolicyViolationDetailPopover onClose={() => setShowViolationsDetail(false)}>OMG</PolicyViolationDetailPopover>
+      )}
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Policy Violations</h2>
@@ -47,4 +60,6 @@ PolicyViolations.propTypes = {
   goToWaivers: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
+  showViolationsDetail: PropTypes.bool.isRequired,
+  setShowViolationsDetail: PropTypes.func.isRequired,
 };

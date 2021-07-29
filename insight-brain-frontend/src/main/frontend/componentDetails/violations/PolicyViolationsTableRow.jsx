@@ -15,7 +15,7 @@ import {
   NxTableRow,
   NxThreatIndicator,
 } from '@sonatype/react-shared-components';
-import { faFlag, faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
+import { faChevronRight, faFlag, faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
 
@@ -24,7 +24,7 @@ const ACTION_ICON_CATEGORY = {
   warn: 'severe',
 };
 
-export default function PolicyViolationsTableRow({ violation, goToWaivers }) {
+export default function PolicyViolationsTableRow({ violation, goToWaivers, setShowViolationsDetail }) {
   const { policyThreatLevel, policyName, constraints, actions, grandfathered, waived, policyViolationId } = violation;
   const [firstConstraint] = constraints;
   const reasons = flatten(
@@ -36,6 +36,12 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers }) {
   });
 
   const goToWaiversForViolation = (policyViolationId) => () => goToWaivers(policyViolationId);
+
+  const showViolationsDetail = (e) => {
+    if (!e.target.closest('button')) {
+      setShowViolationsDetail(true);
+    }
+  };
 
   const renderActionsAsList = (actions = []) => {
     if (actions.length === 0) {
@@ -59,7 +65,7 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers }) {
   };
 
   return (
-    <NxTableRow className={rowClassNames}>
+    <NxTableRow className={rowClassNames} isClickable onClick={showViolationsDetail}>
       <NxTableCell className={classnames({ disabled: isRemediated })}>
         <NxThreatIndicator policyThreatLevel={policyThreatLevel} />
         <span className="nx-threat-number">{policyThreatLevel}</span>
@@ -87,6 +93,9 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers }) {
           </NxButton>
         )}
         <PolicyViolationsGrandfatheringAndWaiverIndicators violation={violation} />
+      </NxTableCell>
+      <NxTableCell>
+        <NxFontAwesomeIcon icon={faChevronRight} />
       </NxTableCell>
     </NxTableRow>
   );
@@ -120,6 +129,7 @@ export const violationPropTypes = {
 PolicyViolationsTableRow.propTypes = {
   violation: PropTypes.shape(violationPropTypes),
   goToWaivers: PropTypes.func.isRequired,
+  setShowViolationsDetail: PropTypes.func,
 };
 
 /* Helper component for grandfathering and waiver indicators. */

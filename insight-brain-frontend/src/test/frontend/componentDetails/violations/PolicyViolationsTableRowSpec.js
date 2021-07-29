@@ -12,10 +12,11 @@ import ViolationExclamation from '../../../../main/frontend/react/ViolationExcla
 import ActiveWaiversIndicator from '../../../../main/frontend/violation/ActiveWaiversIndicator';
 
 describe('PolicyViolationsTableRow', () => {
-  let minimalProps, getShallow, goToWaiversSpy;
+  let minimalProps, getShallow, goToWaiversSpy, getMounted, setShowViolationsDetailSpy;
 
   beforeEach(function () {
     goToWaiversSpy = jasmine.createSpy('goToWaiversForViolation');
+    setShowViolationsDetailSpy = jasmine.createSpy('setShowViolationsDetail');
     minimalProps = {
       violation: {
         policyViolationId: 'policyViolationId',
@@ -37,9 +38,27 @@ describe('PolicyViolationsTableRow', () => {
         applicableWaivers: [],
       },
       goToWaivers: goToWaiversSpy,
+      setShowViolationsDetail: setShowViolationsDetailSpy,
     };
 
     getShallow = enzymeUtils.getShallowComponent(PolicyViolationsTableRow, minimalProps);
+    getMounted = enzymeUtils.getMountedComponent(PolicyViolationsTableRow, minimalProps);
+  });
+
+  describe('clicks on a row and makes sure the waiver button still works', () => {
+    it('clicks on a row outside of the button and calls the setShowViolationsDetail action', () => {
+      const component = getMounted();
+      component.simulate('click');
+      expect(setShowViolationsDetailSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('clicks on a button inside of a row and the setShowViolationsDetail action is not called', () => {
+      const component = getShallow(),
+        btn = component.find(NxButton);
+      btn.simulate('click');
+      expect(goToWaiversSpy).toHaveBeenCalledTimes(1);
+      expect(setShowViolationsDetailSpy).toHaveBeenCalledTimes(0);
+    });
   });
 
   it('renders a Threat cell with the policyThreatLevel and an indicator related to the threat level', () => {

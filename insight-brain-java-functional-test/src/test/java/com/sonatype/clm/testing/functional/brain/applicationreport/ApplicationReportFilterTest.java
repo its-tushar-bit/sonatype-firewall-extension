@@ -231,7 +231,7 @@ public class ApplicationReportFilterTest
     dependencyTypeFilter.multiSelectList().shouldHaveSize(4);
     dependencyTypeFilter.unknown().click();
     dependencyTypeFilter.unknown().shouldBe(selected);
-    violations.shouldHaveSize(56);
+    violations.shouldHaveSize(55);
     dependencyTypeFilter.counter().shouldHave(exactText("1 of 3"));
 
     dependencyTypeFilter.transitive().click();

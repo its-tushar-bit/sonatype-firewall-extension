@@ -29,6 +29,7 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.AppReport
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQCoverageIndicator;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.IQGrandfatheringIndicator;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.ResultRow;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportRawDataPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportVulnerabilitiesPage;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
@@ -73,6 +74,7 @@ import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.DIRECT_DEPENDENCY_CLASS;
+import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.INNER_SOURCE_DEPENDENCY_CLASS;
 import static com.sonatype.clm.testing.functional.pages.ApplicationReportPage.TRANSITIVE_DEPENDENCY_CLASS;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -383,17 +385,21 @@ public class ApplicationReportTest
 
   @Test
   public void testDependencyIndicators() {
-    reportPage.rowsWithDependencyInfo().shouldHaveSize(5);
+    reportPage.rowsWithDependencyInfo().shouldHaveSize(6);
     reportPage.resultRow(5).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"))
-        .dependencyIndicator().shouldHave(DIRECT_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(DIRECT_DEPENDENCY_CLASS);
+    ResultRow resultRow = reportPage.resultRow(6).shouldHave(text("apache-taglibs : standard : 1.1.2"));
+    ElementsCollection dependencyIndicators = resultRow.dependencyIndicators().shouldHaveSize(2);
+    dependencyIndicators.get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS).shouldHave(text("T"));
+    dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS"));
     reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .dependencyIndicator().shouldHave(DIRECT_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS);
     reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
-        .dependencyIndicator().shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(57).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))
-        .dependencyIndicator().shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(58).shouldHave(text("org.springframework : spring-beans : 3.2.4.RELEASE"))
-        .dependencyIndicator().shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
+        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
   }
 
   @Test

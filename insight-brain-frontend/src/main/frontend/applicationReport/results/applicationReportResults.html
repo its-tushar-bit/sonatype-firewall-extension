@@ -202,6 +202,10 @@
                   <span ng-if="component.dependencyInfo.isDirectDependency && !component.innerSourceData">D</span>
                   <span ng-if="!component.dependencyInfo.isDirectDependency && !component.innerSourceData">T</span>
                 </div><!--
+                --><div ng-if="!component.innerSource && component.innerSourceData"
+                        class="iq-dependency-indicator inner-source">
+                  <span>IS</span>
+                </div><!--
              --><component-display component="component" truncate="true"></component-display>
               </td>
             </tr>

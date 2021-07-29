@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
@@ -29,6 +31,8 @@ public class ApplicationReportPage
   public static final Condition DIRECT_DEPENDENCY_CLASS = cssClass("direct");
 
   public static final Condition TRANSITIVE_DEPENDENCY_CLASS = cssClass("transitive");
+
+  public static final Condition INNER_SOURCE_DEPENDENCY_CLASS = cssClass("inner-source");
 
   private static final String DEPENDENCY_INDICATOR_SELECTOR = ".iq-dependency-indicator";
 
@@ -124,7 +128,12 @@ public class ApplicationReportPage
   }
 
   public ElementsCollection rowsWithDependencyInfo() {
-    return children(ROW_SELECTOR, DEPENDENCY_INDICATOR_SELECTOR);
+    return children(ROW_SELECTOR).filter(new Condition("hasDependencyIndicator") {
+      @Override
+      public boolean apply(WebElement webElement) {
+        return !webElement.findElements(By.cssSelector(DEPENDENCY_INDICATOR_SELECTOR)).isEmpty();
+      }
+    });
   }
 
   public CipModal cipModal() {
@@ -170,8 +179,8 @@ public class ApplicationReportPage
       return child(".iq-text-indicator--waived");
     }
 
-    public SelenideElement dependencyIndicator() {
-      return child(DEPENDENCY_INDICATOR_SELECTOR);
+    public ElementsCollection dependencyIndicators() {
+      return children(DEPENDENCY_INDICATOR_SELECTOR);
     }
   }
 

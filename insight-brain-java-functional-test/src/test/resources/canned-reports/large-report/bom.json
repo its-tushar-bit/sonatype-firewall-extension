@@ -842,7 +842,13 @@
     "createTime" : 1400690248000,
     "lastModifiedTime" : 1413088398000,
     "lastModifiedEntryTime" : 1400638284000,
-    "website" : null
+    "website" : null,
+    "innerSource": true,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "ApplicationReportTest"
+      }
+    ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",
@@ -915,7 +921,13 @@
     "createTime" : 1453455031000,
     "lastModifiedTime" : 1413088398000,
     "lastModifiedEntryTime" : 1153341882000,
-    "website" : null
+    "website" : null,
+    "innerSource": false,
+    "innerSourceData": [
+      {
+        "ownerApplicationName": "ApplicationReportTest"
+      }
+    ]
   }, {
     "componentIdentifier" : {
       "format" : "maven",

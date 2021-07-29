@@ -119,7 +119,15 @@ public class SourceControlEventProcessor
         managedEvent.getEventType(), managedEvent.getApplicationId());
 
     try {
-      checkRunsAsSystem(managedEvent.getId());
+      try {
+        checkRunsAsSystem(managedEvent.getId());
+      }
+      catch (Exception e) {
+        log.error("Unable to process event '{}' of type '{}' for application '{}' : {}", managedEvent.getId(),
+            managedEvent.getEventType(), managedEvent.getApplicationId(), e.getMessage(), e);
+        managedEvent.onError(e);
+        return;
+      }
 
       if (!acquireRepoAccess(managedEvent.getApplicationId())) {
         throw new RuntimeException(REPO_ACCESS_LOCK_ERROR);
@@ -143,9 +151,6 @@ public class SourceControlEventProcessor
         log.trace("Released repo access for event '{}' of type '{}' for application '{}'", managedEvent.getId(),
             managedEvent.getEventType(), managedEvent.getApplicationId());
       }
-    }
-    catch (Exception e) {
-      managedEvent.onError(e);
     }
     finally {
       notifyFinishedProcessingEvent(managedEvent.getSourceControlEvent());

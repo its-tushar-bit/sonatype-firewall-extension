@@ -28,7 +28,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Stubber;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
-import static com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventProcessor.REPO_ACCESS_LOCK_ERROR;
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -182,8 +181,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     // then:
-    verifyEventError(event, REPO_ACCESS_LOCK_ERROR);
-    assertThatLogMessagesEqual(
+    assertThatLogMessagesContain(
         debug("Unable to acquire repo access for application 'app1'")
     );
   }

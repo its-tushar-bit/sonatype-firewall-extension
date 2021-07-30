@@ -13,6 +13,8 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -29,6 +31,8 @@ import static java.lang.System.currentTimeMillis;
 @Singleton
 public class SourceControlInstanceManager
 {
+  private static final Logger log = LoggerFactory.getLogger(SourceControlInstanceManager.class);
+
   private static final String SOURCE_CONTROL_ACCESS_LOCK = "source-control-access-c78943f1";
 
   // must be greater than the polling interval so that the instance with the lock doesn't lose it before it
@@ -51,6 +55,7 @@ public class SourceControlInstanceManager
 
   public SourceControlInstanceManager() {
     sourceControlInstanceId = UUID.randomUUID().toString();
+    log.info("Created SourceControlInstanceManager with instance ID {}", sourceControlInstanceId);
   }
 
   public String getSourceControlInstanceId() {

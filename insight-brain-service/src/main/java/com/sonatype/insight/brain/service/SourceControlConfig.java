@@ -38,6 +38,25 @@ public class SourceControlConfig
   private String gitExecutable;
 
   /**
+   * Hidden config to customize the commit username for SCM features
+   * @since 1.TBD TODO
+   */
+  private String commitUsername;
+
+  /**
+   * Hidden config to customize the commit email address for SCM features
+   * @since 1.TBD TODO
+   */
+  private String commitEmail;
+
+  /**
+   * Hidden config to add the username to the repository clone URL.
+   * Used in conjunction with `commitEmail` to support Bitbucket Server 'Verified Committer' feature. See INT-4453.
+   * @since 1.TBD TODO
+   */
+  private boolean useUsernameInRepositoryCloneUrl;
+
+  /**
    * Return the {@link #cloneDirectory} as a {@link File}. If not set will default to {@link
    * #DEFAULT_SOURCE_CONTROL_CLONE_DIR}. If {@link #cloneDirectory} is not a fully qualified path then it will be
    * created under the {@link #sonatypeWorkDir} which needs to be set with {@link #setCloneDirectory(String)}. Note that
@@ -78,6 +97,30 @@ public class SourceControlConfig
 
   public void setGitExecutable(final String gitExecutable) {
     this.gitExecutable = gitExecutable;
+  }
+
+  public String getCommitUsername() {
+    return commitUsername;
+  }
+
+  public void setCommitUsername(final String commitUsername) {
+    this.commitUsername = commitUsername;
+  }
+
+  public String getCommitEmail() {
+    return commitEmail;
+  }
+
+  public void setCommitEmail(final String commitEmail) {
+    this.commitEmail = commitEmail;
+  }
+
+  public boolean getUseUsernameInRepositoryCloneUrl() {
+    return useUsernameInRepositoryCloneUrl;
+  }
+
+  public void setUseUsernameInRepositoryCloneUrl(final boolean useUsernameInRepositoryCloneUrl) {
+    this.useUsernameInRepositoryCloneUrl = useUsernameInRepositoryCloneUrl;
   }
 
   public Integer getPrCommentPurgeWindow() {

@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.File;
+import java.net.URISyntaxException;
 import java.util.Date;
 
 import com.sonatype.insight.brain.audit.AuditData;
@@ -14,6 +15,8 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
@@ -24,6 +27,7 @@ import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
 import com.google.inject.Inject;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,19 +51,23 @@ public class PullRequestTask
 
   private final SourceControlUtils sourceControlUtils;
 
+  private final SourceControlConfig sourceControlConfig;
+
   @Inject
   public PullRequestTask(
       final GitClientFactory gitClientFactory,
       final SourceControlPullRequestMetrics metrics,
       final GitApiFactory gitApiFactory,
       final AuditRecorder auditRecorder,
-      final SourceControlUtils sourceControlUtils)
+      final SourceControlUtils sourceControlUtils,
+      final InsightConfig insightConfig)
   {
     this.gitClientFactory = gitClientFactory;
     this.metrics = metrics;
     this.gitApiFactory = gitApiFactory;
     this.auditRecorder = auditRecorder;
     this.sourceControlUtils = sourceControlUtils;
+    this.sourceControlConfig = insightConfig.getSourceControl();
   }
 
   public void run(
@@ -76,6 +84,7 @@ public class PullRequestTask
     }
     String applicationId = pullRequestRemediationDetails.getApp().getId();
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
+    maybeUpdateRepoUrlWithUsername(gitRepositoryInfo);
 
     File checkoutDir = null;
     Date start = new Date();
@@ -90,8 +99,8 @@ public class PullRequestTask
           .withBaseBranch(gitRepositoryInfo.baseBranch)
           .withPullRequestBranchName(pullRequestRemediationDetails.getPullRequestBranchName())
           .withCommitMessage(pullRequestRemediationDetails.getTitle())
-          .withCommitter(DEFAULT_COMMITTER)
-          .withCommitterEmail(GitApi.DEFAULT_COMMITTER_EMAIL)
+          .withCommitter(getCommitterUsername())
+          .withCommitterEmail(getCommitterEmail())
           .withPullRequestContent(pullRequestRemediationDetails.getContents())
           .withPullRequestTitle(pullRequestRemediationDetails.getTitle())
           .withRemediationTarget(pullRequestRemediationDetails.getToBeRemediated())
@@ -129,6 +138,33 @@ public class PullRequestTask
       log.error(t.getMessage(), t);
       System.exit(1);
     }
+  }
+
+  private void maybeUpdateRepoUrlWithUsername(final GitRepositoryInfo gitRepositoryInfo) {
+    // This is designed for the Bitbucket Server 'Verified Committer' feature but is ultimately an agnostic way to add
+    // the username to the repo URL. Only will work on SCMs that require username.
+    if (gitRepositoryInfo.getProvider().requiresUsername() &&
+        sourceControlConfig.getUseUsernameInRepositoryCloneUrl()) {
+      try {
+        URIBuilder builder = new URIBuilder(gitRepositoryInfo.repositoryUrl).setUserInfo(gitRepositoryInfo.username);
+        gitRepositoryInfo.repositoryUrl = builder.build().toString();
+      }
+      catch (URISyntaxException e) {
+        log.error("Unable to add username to repository URL", e);
+      }
+    }
+  }
+
+  private String getCommitterUsername() {
+    return sourceControlConfig.getCommitUsername() != null
+        ? sourceControlConfig.getCommitUsername()
+        : DEFAULT_COMMITTER;
+  }
+
+  private String getCommitterEmail() {
+    return sourceControlConfig.getCommitEmail() != null
+        ? sourceControlConfig.getCommitEmail()
+        : GitApi.DEFAULT_COMMITTER_EMAIL;
   }
 }
 

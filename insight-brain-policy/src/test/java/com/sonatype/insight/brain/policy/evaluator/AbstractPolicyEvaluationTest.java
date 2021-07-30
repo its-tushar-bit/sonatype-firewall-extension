@@ -8,12 +8,15 @@ package com.sonatype.insight.brain.policy.evaluator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -23,6 +26,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -31,7 +35,9 @@ import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.lqa.LqaFormat;
 
+import com.google.common.collect.ImmutableMap;
 import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Rule;
 
@@ -192,5 +198,100 @@ public abstract class AbstractPolicyEvaluationTest
       }
     }
     return false;
+  }
+
+  public static Component forCoordinatesPackageUrl(String format, String... coord) {
+    ComponentIdentifier componentIdentifier;
+    switch (format) {
+      case ComponentIdentifier.FORMAT_MAVEN:
+        if (coord.length == 5) {
+          // this method takes maven coordinates in the order GAVCE, but we have them as GAVEC, so swap the last two
+          componentIdentifier =
+              ComponentIdentifier.createMavenCoordinates(coord[0], coord[1], coord[2], coord[4], coord[3]);
+        }
+        else {
+          componentIdentifier = ComponentIdentifier.createMavenCoordinates(coord[0], coord[1], coord[2]);
+        }
+        break;
+      case ComponentIdentifier.FORMAT_ANAME:
+        componentIdentifier = ComponentIdentifier.createAnameCoordinates(coord[1], coord[4], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_PYPI:
+        componentIdentifier = ComponentIdentifier.createPypiCoordinates(coord[1], coord[2], coord[4], coord[3]);
+        break;
+      case ComponentIdentifier.FORMAT_GOLANG:
+        componentIdentifier = ComponentIdentifier.createGolangCoordinates(coord[1], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_NPM:
+        componentIdentifier = ComponentIdentifier.createNpmCoordinates(coord[1], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_NUGET:
+        componentIdentifier = ComponentIdentifier.createNugetCoordinates(coord[1], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_RPM:
+        componentIdentifier = ComponentIdentifier.createRpmCoordinates(coord[1], coord[2], coord[4]);
+        break;
+      case ComponentIdentifier.FORMAT_RUBYGEMS:
+        componentIdentifier = ComponentIdentifier.createRubyGemsCoordinates(coord[1], coord[2], coord[4]);
+        break;
+      case ComponentIdentifier.FORMAT_SWIFT:
+        componentIdentifier = ComponentIdentifier.createSwiftCoordinates(coord[1], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_COCOAPODS:
+        componentIdentifier = ComponentIdentifier.createCocoapodsCoordinates(coord[1], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_PECOFF:
+        componentIdentifier = ComponentIdentifier.createPecoffCoordinates(coord[0], coord[1], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_TERRAFORM:
+        componentIdentifier = ComponentIdentifier.createTerraformCoordinates(coord[0], coord[1], coord[2]);
+        break;
+      case ComponentIdentifier.FORMAT_CONTAINER:
+        componentIdentifier = ComponentIdentifier.createContainerCoordinates(coord[0], coord[1], coord[2]);
+        break;
+      default:
+        componentIdentifier = createLqaComponentIdentifier(format, coord);
+    }
+    Component component = new Component(componentIdentifier);
+    component.setMatchState(MatchState.EXACT);
+    return component;
+  }
+
+  private static ComponentIdentifier createLqaComponentIdentifier(String format, String... coord) {
+    
+    LqaFormat lqaFormat = LqaFormat.getByLqaFormat(format);
+    if (lqaFormat != null) {
+      Map<String, String> coords;
+      switch (lqaFormat) {
+        case ALPINE:
+        case CRAN:
+        case CARGO:
+        case BOWER:
+        case CONDA:
+        case DRUPAL:
+          coords = ImmutableMap.of("name", coord[1], "version", coord[2]);
+          return new ComponentIdentifier(format, coords);
+        case CONAN:
+          coords = ImmutableMap.of("name", coord[1], "version", coord[2], "owner", coord[0], "channel", coord[3]);
+          return new ComponentIdentifier(format, coords);
+        case DEBIAN:
+        case COMPOSER:
+          coords = ImmutableMap.of("namespace", coord[0], "name", coord[1], "version", coord[2]);
+          return new ComponentIdentifier(format, coords);
+        default:
+          return createGenericComponentIdentifier(format, coord);
+      }
+    }
+    return createGenericComponentIdentifier(format, coord);
+  }
+  
+  private static ComponentIdentifier createGenericComponentIdentifier(String format, String... coord) {
+    Map<String, String> coordinates = new LinkedHashMap<>();
+    coordinates.put("namespace", coord[0]);
+    coordinates.put("name", coord[1]);
+    coordinates.put("version", coord[2]);
+    coordinates.put("type", coord[4]);
+    coordinates.put("qualifier", coord[4]);
+    return new ComponentIdentifier(format, coordinates);
   }
 }

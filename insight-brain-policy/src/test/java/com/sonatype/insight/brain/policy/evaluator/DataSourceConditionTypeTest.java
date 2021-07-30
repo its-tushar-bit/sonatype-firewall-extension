@@ -181,10 +181,10 @@ public class DataSourceConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 = ComponentFactory.forCoordinatesPackageUrl(format, "g", "a", "v", "q", "t");
+    Component component1 = forCoordinatesPackageUrl(format, "g", "a", "v", "q", "t");
     component1.setAnalyzerFeatures(analyzerFeatures1);
     components.add(component1);
-    Component component2 = ComponentFactory.forCoordinatesPackageUrl(format, "g", "a", "v", "q", "t");
+    Component component2 = forCoordinatesPackageUrl(format, "g", "a", "v", "q", "t");
     component2.setAnalyzerFeatures(analyzerFeatures2);
     components.add(component2);
 

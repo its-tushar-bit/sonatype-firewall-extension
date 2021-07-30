@@ -20,7 +20,9 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.PackageUrlConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.lqa.LqaFormat;
 
+import com.github.packageurl.PackageURL.StandardTypes;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -119,11 +121,9 @@ public class PackageUrlConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 =
-        ComponentFactory.forCoordinatesPackageUrl(format, "g1", "a1", "v1", "e1", "q1");
+    Component component1 = forCoordinatesPackageUrl(format, "g1", "a1", "v1", "e1", "q1");
     components.add(component1);
-    Component component2 =
-        ComponentFactory.forCoordinatesPackageUrl(format, "g2", "a2", "v2", "e2", "q2");
+    Component component2 = forCoordinatesPackageUrl(format, "g2", "a2", "v2", "e2", "q2");
     components.add(component2);
     Component component3 = new Component();
     components.add(component3);
@@ -144,10 +144,8 @@ public class PackageUrlConditionTypeTest
   public void testEvaluate_Maven_MatchGavecNotGavce() throws Exception {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e&classifier=c");
 
-    Component componentGavec = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
-    Component componentGavce = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "c", "e");
+    Component componentGavec = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+    Component componentGavce = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "c", "e");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGavec, componentGavce));
     assertThat(policyAlerts).hasSize(1);
@@ -164,10 +162,8 @@ public class PackageUrlConditionTypeTest
   public void testEvaluate_Maven_MatchGaveNotGavc() throws Exception {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e");
 
-    Component componentGave = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
-    Component componentGavc = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "e");
+    Component componentGave = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavc = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "e");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavc));
     assertThat(policyAlerts).hasSize(1);
@@ -184,16 +180,11 @@ public class PackageUrlConditionTypeTest
   public void testEvaluate_Maven_MatchGavAnyExtensionAnyClassifier() throws Exception {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v");
 
-    Component componentGav3 = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
-    Component componentGav5 = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "");
-    Component componentGave = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
-    Component componentGavc = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "c");
-    Component componentGavec = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+    Component componentGav3 = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
+    Component componentGav5 = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "");
+    Component componentGave = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavc = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "", "c");
+    Component componentGavec = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy,
         Arrays.asList(componentGav3, componentGav5, componentGave, componentGavc, componentGavec));
@@ -234,16 +225,10 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
-  public void testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates() throws Exception {
-    //Only Name
-    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/a",
-        "(matches package URL pkg:maven/*/a@*?classifier=*&type=*)");
+  public void testEvaluate_Maven_LegacyConditionsWithEmptyVCoordinates() throws Exception {
     //Only name and namespace
     testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/g/a",
         "(matches package URL pkg:maven/g/a@*?classifier=*&type=*)");
-    // Name and version
-    testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates("maven/a@v",
-        "(matches package URL pkg:maven/*/a@v?classifier=*&type=*)");
   }
 
   private void testEvaluate_Maven_LegacyConditionsWithEmptyGavCoordinates(
@@ -252,12 +237,9 @@ public class PackageUrlConditionTypeTest
   {
     Policy policy = createPolicy(coordinatesValue);
 
-    Component componentGav = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
-    Component componentGave = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
-    Component componentGavec = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+    Component componentGav = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v");
+    Component componentGave = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavec = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGav, componentGave, componentGavec));
     assertThat(policyAlerts).hasSize(3);
@@ -297,8 +279,7 @@ public class PackageUrlConditionTypeTest
   {
     Policy policy = createPolicy(coordinatesValue);
 
-    Component componentNqv = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_ANAME, "", "n", "v", "", "q");
+    Component componentNqv = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_ANAME, "", "n", "v", "", "q");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Collections.singletonList(componentNqv));
     assertThat(policyAlerts).hasSize(1);
@@ -314,10 +295,8 @@ public class PackageUrlConditionTypeTest
   public void testEvaluate_Maven_EmptyClassifier_Matches_EmptyClassifierValue() throws Exception {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e&classifier=");
 
-    Component componentGave = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
-    Component componentGavec = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+    Component componentGave = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavec = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
     assertThat(policyAlerts).hasSize(2);
@@ -334,10 +313,8 @@ public class PackageUrlConditionTypeTest
   public void testEvaluate_Maven_WildcardClassifierCoordinate_Matches_AnyClassifierValue() throws Exception {
     Policy policy = createPolicy(ComponentIdentifier.FORMAT_MAVEN + "/g/a@v?type=e&classifier=*");
 
-    Component componentGave = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
-    Component componentGavec = ComponentFactory
-        .forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
+    Component componentGave = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "");
+    Component componentGavec = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g", "a", "v", "e", "c");
 
     List<PolicyAlert> policyAlerts = evaluate(policy, Arrays.asList(componentGave, componentGavec));
     assertThat(policyAlerts).hasSize(2);
@@ -420,6 +397,106 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
+  public void testEvaluate_Swift_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_SWIFT + "/a2@v*");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_SWIFT, constraint, "(matches package URL pkg:swift/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Cocoapods_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_COCOAPODS + "/a2@v*");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_COCOAPODS, constraint,
+        "(matches package URL pkg:cocoapods/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Pecoff_MatchWildcard() {
+    Constraint constraint =
+        createConstraint(OPERATOR_MATCH, StandardTypes.GENERIC + "/a2@v*?nexustype=pecoff");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_PECOFF, constraint,
+        "(matches package URL pkg:generic/a2@v*?nexustype=pecoff)");
+  }
+
+  @Test
+  public void testEvaluate_Pecoff_Namespace_MatchWildcard() {
+    Constraint constraint =
+        createConstraint(OPERATOR_MATCH, StandardTypes.GENERIC + "/a2@v*?nexusnamespace=g2&nexustype=pecoff");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_PECOFF, constraint,
+        "(matches package URL pkg:generic/a2@v*?nexusnamespace=g2&nexustype=pecoff)");
+  }
+
+  @Test
+  public void testEvaluate_Terraform_MatchWildcard() {
+    Constraint constraint =
+        createConstraint(OPERATOR_MATCH, ComponentIdentifier.FORMAT_TERRAFORM + "/g2/a2@*");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_TERRAFORM, constraint,
+        "(matches package URL pkg:terraform/g2/a2@*)");
+  }
+
+  @Test
+  public void testEvaluate_Container_MatchWildcard() {
+    Constraint constraint =
+        createConstraint(OPERATOR_MATCH, StandardTypes.GENERIC + "/g2/a2@*?nexustype=container");
+    testEvaluate_MatchExact(ComponentIdentifier.FORMAT_CONTAINER, constraint,
+        "(matches package URL pkg:generic/g2/a2@*?nexustype=container)");
+  }
+
+  @Test
+  public void testEvaluate_Conan_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.CONAN.format + "/a2@v*?owner=g2&channel=e2");
+    testEvaluate_MatchExact(LqaFormat.CONAN.format, constraint,
+        "(matches package URL pkg:conan/a2@v*?channel=e2&owner=g2)");
+  }
+
+  @Test
+  public void testEvaluate_Composer_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.COMPOSER.format + "/g2/a2@v*");
+    testEvaluate_MatchExact(LqaFormat.COMPOSER.format, constraint, "(matches package URL pkg:composer/g2/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Conda_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.CONDA.format + "/a2@v*");
+    testEvaluate_MatchExact(LqaFormat.CONDA.format, constraint, "(matches package URL pkg:conda/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Cran_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.CRAN.format + "/a2@v*");
+    testEvaluate_MatchExact(LqaFormat.CRAN.format, constraint, "(matches package URL pkg:cran/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Cargo_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.CARGO.format + "/a2@v*");
+    testEvaluate_MatchExact(LqaFormat.CARGO.format, constraint, "(matches package URL pkg:cargo/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Bower_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.BOWER.format + "/a2@v*");
+    testEvaluate_MatchExact(LqaFormat.BOWER.format, constraint, "(matches package URL pkg:bower/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Alpine_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.ALPINE.format + "/a2@v*");
+    testEvaluate_MatchExact(LqaFormat.ALPINE.format, constraint, "(matches package URL pkg:alpine/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Debian_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.DEBIAN.format + "/g2/a2@v*");
+    testEvaluate_MatchExact(LqaFormat.DEBIAN.format, constraint, "(matches package URL pkg:deb/g2/a2@v*)");
+  }
+
+  @Test
+  public void testEvaluate_Drupal_MatchWildcard() {
+    Constraint constraint = createConstraint(OPERATOR_MATCH, LqaFormat.DRUPAL.format + "/a2@v*");
+    testEvaluate_MatchExact(LqaFormat.DRUPAL.format, constraint, "(matches package URL pkg:drupal/a2@v*)");
+  }
+
+  @Test
   public void testEvaluate_Unknown_MatchWildcard() {
     Constraint constraint =
         createConstraint(OPERATOR_MATCH, UNKNOWN_FORMAT + "/g2/a2@v*?qualifier=q2");
@@ -437,11 +514,9 @@ public class PackageUrlConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 =
-        ComponentFactory.forCoordinatesPackageUrl(format, "g1", "a1", "v1", "e1", "q1");
+    Component component1 = forCoordinatesPackageUrl(format, "g1", "a1", "v1", "e1", "q1");
     components.add(component1);
-    Component component2 =
-        ComponentFactory.forCoordinatesPackageUrl(format, "g2", "a2", "v2", "e2", "q2");
+    Component component2 = forCoordinatesPackageUrl(format, "g2", "a2", "v2", "e2", "q2");
     components.add(component2);
     Component component3 = new Component();
     components.add(component3);
@@ -535,11 +610,9 @@ public class PackageUrlConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 =
-        ComponentFactory.forCoordinatesPackageUrl(format, "g1", "a1", "v1", "e1", "q1");
+    Component component1 = forCoordinatesPackageUrl(format, "g1", "a1", "v1", "e1", "q1");
     components.add(component1);
-    Component component2 =
-        ComponentFactory.forCoordinatesPackageUrl(format, "g2", "a2", "v2", "e2", "q2");
+    Component component2 = forCoordinatesPackageUrl(format, "g2", "a2", "v2", "e2", "q2");
     components.add(component2);
     Component component3 = new Component();
     components.add(component3);
@@ -634,11 +707,9 @@ public class PackageUrlConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 =
-        ComponentFactory.forCoordinatesPackageUrl(format, "g1", "a1", "v1", "e1", "q1");
+    Component component1 = forCoordinatesPackageUrl(format, "g1", "a1", "v1", "e1", "q1");
     components.add(component1);
-    Component component2 =
-        ComponentFactory.forCoordinatesPackageUrl(format, "g2", "a2", "v2", "e2", "q2");
+    Component component2 = forCoordinatesPackageUrl(format, "g2", "a2", "v2", "e2", "q2");
     components.add(component2);
     Component component3 = new Component();
     components.add(component3);
@@ -664,9 +735,7 @@ public class PackageUrlConditionTypeTest
     policy.setAction(BuildStageType.ID, FailActionType.ID);
 
     List<Component> components = new ArrayList<>();
-    Component component1 =
-        ComponentFactory.forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN,
-            "g1", "test@test#", "v1");
+    Component component1 = forCoordinatesPackageUrl(ComponentIdentifier.FORMAT_MAVEN, "g1", "test@test#", "v1");
     components.add(component1);
 
     List<PolicyAlert> policyAlerts = evaluate(policy, components);
@@ -710,7 +779,7 @@ public class PackageUrlConditionTypeTest
   }
 
   @Test
-  public void testConvertIfNeeded() throws Exception {
+  public void testConvertIfNeeded() {
     convertIfNeededMaven();
     convertIfNeededAname();
     convertIfNeededPypi();
@@ -720,10 +789,14 @@ public class PackageUrlConditionTypeTest
     convertIfNeededRubygems();
     convertIfNeededNuget();
     convertIfNeededUnknown();
+    convertIfNeededCocoapods();
+    convertIfNeededSwift();
+    convertIfNeededPecoff();
+    convertIfNeededTerraform();
+    convertIfNeededContainer();
   }
 
   private void convertIfNeededMaven() {
-    assertConvertIfNeeded("pkg:maven/a", "pkg:maven/*/a@*?classifier=*&type=*");
     assertConvertIfNeeded("pkg:maven/g/a", "pkg:maven/g/a@*?classifier=*&type=*");
     assertConvertIfNeeded("pkg:maven/g/a@v", "pkg:maven/g/a@v?classifier=*&type=*");
     assertConvertIfNeeded("pkg:maven/g/a@v?type=e&classifier=", "pkg:maven/g/a@v?classifier=*&type=e");
@@ -731,7 +804,6 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:maven/g/a@v?classifier=", "pkg:maven/g/a@v?classifier=*&type=*");
     assertConvertIfNeeded("pkg:maven/g/a@v?type=&classifier=c", "pkg:maven/g/a@v?classifier=c&type=*");
     assertConvertIfNeeded("pkg:maven/g/a@v?type=&classifier=", "pkg:maven/g/a@v?classifier=*&type=*");
-    assertConvertIfNeeded("pkg:maven/a@v?type=&classifier=", "pkg:maven/*/a@v?classifier=*&type=*");
     assertConvertIfNeeded("pkg:maven/g/a@v?type=e&classifier=c", "pkg:maven/g/a@v?classifier=c&type=e");
     assertConvertIfNeeded("pkg:maven/G/A@v?Type=e&Classifier=c", "pkg:maven/G/A@v?classifier=c&type=e");
     assertConvertIfNeeded("pkg:maven/G/A@v?type=e&classifier=c", "pkg:maven/G/A@v?classifier=c&type=e");
@@ -806,6 +878,39 @@ public class PackageUrlConditionTypeTest
     assertConvertIfNeeded("pkg:gem/a/n@v", "pkg:gem/a/n@v?platform=*");
     assertConvertIfNeeded("pkg:gem/A/n@V", "pkg:gem/A/n@V?platform=*");
     assertConvertIfNeeded("pkg:gem/A/N@V", "pkg:gem/A/N@V?platform=*");
+  }
+
+  private void convertIfNeededCocoapods() {
+    assertConvertIfNeeded("pkg:cocoapods/n", "pkg:cocoapods/n@*");;
+    assertConvertIfNeeded("pkg:cocoapods/n@v", "pkg:cocoapods/n@v");;
+    assertConvertIfNeeded("pkg:cocoapods/n@V", "pkg:cocoapods/n@V");
+    assertConvertIfNeeded("pkg:cocoapods/N@V", "pkg:cocoapods/N@V");
+  }
+
+  private void convertIfNeededSwift() {
+    assertConvertIfNeeded("pkg:swift/n", "pkg:swift/n@*");;
+    assertConvertIfNeeded("pkg:swift/n@v", "pkg:swift/n@v");;
+    assertConvertIfNeeded("pkg:swift/n@V", "pkg:swift/n@V");
+    assertConvertIfNeeded("pkg:swift/N@V", "pkg:swift/N@V");
+  }
+
+  private void convertIfNeededPecoff() {
+    assertConvertIfNeeded("pkg:generic/n?nexustype=pecoff", "pkg:generic/n@*?nexustype=pecoff");
+    assertConvertIfNeeded("pkg:generic/n?nexusnamespace=a&nexustype=pecoff",
+        "pkg:generic/n@*?nexusnamespace=a&nexustype=pecoff");
+  }
+
+  private void convertIfNeededTerraform() {
+    assertConvertIfNeeded("pkg:terraform/n", "pkg:terraform/n@*");
+    assertConvertIfNeeded("pkg:terraform/n@v", "pkg:terraform/n@v");
+    assertConvertIfNeeded("pkg:terraform/a/n@v", "pkg:terraform/a/n@v");
+    assertConvertIfNeeded("pkg:terraform/A/n@V", "pkg:terraform/A/n@V");
+  }
+
+  private void convertIfNeededContainer() {
+    assertConvertIfNeeded("pkg:generic/n?nexustype=container", "pkg:generic/*/n@*?nexustype=container");
+    assertConvertIfNeeded("pkg:generic/n/n?nexustype=container", "pkg:generic/n/n@*?nexustype=container");
+    assertConvertIfNeeded("pkg:generic/n/n@v?nexustype=container", "pkg:generic/n/n@v?nexustype=container");
   }
 
   private void convertIfNeededUnknown() {

@@ -141,7 +141,8 @@ public class ThirdPartyDataService
     return thirdPartyApplicationReportDTO;
   }
 
-  private ComponentIdentifier getComponentIdentifier(final ThirdPartyFileCoordinate coord) {
+  //Visible for testing
+  ComponentIdentifier getComponentIdentifier(final ThirdPartyFileCoordinate coord) {
     ComponentIdentifier componentIdentifier = null;
     if (StringUtils.isNotBlank(coord.getPackageUrl())) {
       componentIdentifier = ComponentIdentifierAdapter.toComponentIdentifier(coord.getPackageUrl());

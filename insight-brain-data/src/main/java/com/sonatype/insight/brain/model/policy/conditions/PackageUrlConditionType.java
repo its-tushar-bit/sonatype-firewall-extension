@@ -69,10 +69,22 @@ public class PackageUrlConditionType
     if (StringUtils.isBlank(value)) {
       return value;
     }
-    // Since package URL lower cases namespaces and names for some types which are case sensitive
-    // Using generic type for wildcard conversion, so they are not changed and mixed cases are kept
-    String format = StringUtils.substringBetween(value, ":", "/");
-    String genericPackageUrl = StringUtils.replaceIgnoreCase(value, format, StandardTypes.GENERIC, 1);
+
+    PackageUrlIdentifier originalPurl = new PackageUrlIdentifier(value);
+    String genericPackageUrl;
+    String format;
+
+    if (value.contains(PackageUrlIdentifier.PURL_NEXUS_TYPE) && value.contains(StandardTypes.GENERIC)) {
+      //It means it's already a generic purl and the format is part of the of the qualifiers
+      format = originalPurl.getQualifiers().get(PackageUrlIdentifier.PURL_NEXUS_TYPE);
+      genericPackageUrl = value;
+    }
+    else {
+      // Since package URL lower cases namespaces and names for some types which are case sensitive
+      // Using generic type for wildcard conversion, so they are not changed and mixed cases are kept
+      format = originalPurl.getFormat();
+      genericPackageUrl = StringUtils.replaceIgnoreCase(value, format, StandardTypes.GENERIC, 1);
+    }
     return new PackageUrlIdentifier(genericPackageUrl).toWildcardedForm(format);
   }
 

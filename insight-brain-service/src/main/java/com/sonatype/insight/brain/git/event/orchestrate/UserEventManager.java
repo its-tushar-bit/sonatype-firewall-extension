@@ -18,13 +18,13 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.EventProcessedListener;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.ApplicationScopeEventProcessingSuspensionRule;
-import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.PerformanceThrottlingRule;
-import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.EventCostSelectionRule;
+import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.EventProcessedListener;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.EventProcessingErrorRetryRule;
-import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.UserScopeEventProcessingSuspensionRule;
+import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.PerformanceThrottlingRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.RepositoryUrlErrorRule;
+import com.sonatype.insight.brain.git.event.orchestrate.rule.processing.UserScopeEventProcessingSuspensionRule;
+import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.EventCostSelectionRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SimultaneousEventSelectionRule;
 import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SingleApplicationSelectionRule;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -99,7 +99,8 @@ public class UserEventManager
 
   public void addEvent(SourceControlEvent event) {
     synchronized (prioritizedEventMap) {
-      log.debug("New event '{}' for application {} received", event.getEventType(), event.getApplicationId());
+      log.debug("New event '{}' of type '{}' for application '{}' received", event.getId(), event.getEventType(),
+          event.getApplicationId());
       prioritizeEvent(event);
       pushEvents();
     }
@@ -108,7 +109,8 @@ public class UserEventManager
   @Override
   public void onEventCompleted(SourceControlEvent event) {
     synchronized (prioritizedEventMap) {
-      log.debug("Event '{}' for application {} complete", event.getEventType(), event.getApplicationId());
+      log.debug("Event '{}' of type '{}' for application '{}' complete", event.getId(), event.getEventType(),
+          event.getApplicationId());
       sourceControlEventDAO.markEventComplete(event.getId());
       eventsInProgress.remove(event.getApplicationId());
       notifyEventProcessedListeners(event);
@@ -119,8 +121,8 @@ public class UserEventManager
   @Override
   public void onEventPartiallyCompleted(SourceControlEvent event, String reason) {
     synchronized (prioritizedEventMap) {
-      log.debug("Event '{}' for application {} partially complete because {}", event.getEventType(),
-          event.getApplicationId(), reason);
+      log.debug("Event event '{}' of type '{}' for application '{}' partially complete because {}", event.getId(),
+          event.getEventType(), event.getApplicationId(), reason);
       sourceControlEventDAO.markEventPartiallyComplete(event.getId(), reason);
       eventsInProgress.remove(event.getApplicationId());
       notifyEventProcessedListeners(event);
@@ -131,8 +133,8 @@ public class UserEventManager
   @Override
   public void onEventError(SourceControlEvent event, Exception e) {
     synchronized (prioritizedEventMap) {
-      log.debug("Error processing event {} for application {}: {}", event.getEventType(), event.getApplicationId(),
-          e.getMessage(), e);
+      log.debug("Error processing event '{}' of type '{}' for application '{}': {}", event.getId(),
+          event.getEventType(), event.getApplicationId(), e.getMessage(), e);
       sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
       eventsInProgress.remove(event.getApplicationId());
       handleEventProcessingError(event, e);
@@ -184,7 +186,8 @@ public class UserEventManager
     List<SourceControlEvent> prioritizedEvents =
         prioritizedEventMap.computeIfAbsent(event.getEventPriority(), k -> new ArrayList<>());
     prioritizedEvents.add(event);
-    log.trace("Event '{}' for application {} prioritized", event.getEventType(), event.getApplicationId());
+    log.trace("Event '{}' of type '{}' for application '{}' prioritized", event.getId(), event.getEventType(),
+        event.getApplicationId());
   }
 
   private void pushEvents() {
@@ -242,11 +245,12 @@ public class UserEventManager
     sourceControlEventDAO.markEventInProgress(event.getId());
 
     sourceControlEventProcessor.processEvent(event, this);
-    log.debug("Sent application {} event {} for processing", event.getApplicationId(), event.getEventType());
+    log.debug("Sent event '{}' of type '{}' for application '{}' for processing", event.getId(), event.getEventType(),
+        event.getApplicationId());
   }
 
   private void retryEvent(SourceControlEvent event) {
-    log.debug("Will retry source control event '{}' for application {}", event.getEventType(),
+    log.debug("Will retry event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
         event.getApplicationId());
     SourceControlEvent retryEvent = event.copyAsNew().setEventStatusDetails("retry");
     sourceControlEventDAO.insert(retryEvent);

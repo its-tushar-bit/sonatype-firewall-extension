@@ -10,6 +10,9 @@ import java.net.URL;
 import java.util.Collections;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.OccurrencesSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
@@ -171,6 +174,36 @@ public class ComponentDetailsTest
 
     componentDetailsPage.overviewTab().click();
     waitUntilUrl(ComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
+  }
+
+  @Test
+  public void testOverviewTab_componentInformationTile() {
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+    componentDetailsPage.overviewTab().shouldBe(visible);
+    componentDetailsPage.overviewTabContent().shouldBe(visible);
+
+    GeneralInfoSection generalInfoSection =
+        componentDetailsPage.overviewTabContent().componentInformationTile().generalInfoSection();
+    generalInfoSection.shouldBe(visible);
+    generalInfoSection.getTypeItem().shouldHave(text("Type: maven"));
+    generalInfoSection.getNamingItems()
+        .shouldHave(exactTexts("Group: com.mycila", "Artifact: license-maven-plugin", "Version: 2.11"));
+
+    IdentificationInfoSection identificationInfoSection =
+        componentDetailsPage.overviewTabContent().componentInformationTile().identificationInfoSection();
+    identificationInfoSection.shouldBe(visible);
+    identificationInfoSection.getCatalogedDateItem().shouldHave(text("Cataloged: 6 years ago"));
+    identificationInfoSection.getMatchStateItem().shouldHave(text("Match State: exact"));
+    identificationInfoSection.getIdentificationSourceItem().shouldHave(text("Identification Source:"));
+    identificationInfoSection.getCategoryItem().shouldHave(text("Category:"));
+
+    OccurrencesSection occurrencesSection =
+        componentDetailsPage.overviewTabContent().componentInformationTile().occurrencesSection();
+    occurrencesSection.shouldBe(visible);
+    occurrencesSection.getFileMatchesItem().shouldHave(text("1"));
+
+    eyesWatcher.eyesCheck("component details overview tab component information");
   }
 
   @Test

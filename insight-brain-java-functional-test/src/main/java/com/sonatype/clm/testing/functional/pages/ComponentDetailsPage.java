@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.componentdetails.OverviewTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ViolationsTabContent;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.insight.brain.model.Application;
@@ -86,6 +87,10 @@ public class ComponentDetailsPage
 
   public ViolationsTabContent violationsTabContent() {
     return new ViolationsTabContent();
+  }
+
+  public OverviewTabContent overviewTabContent() {
+    return new OverviewTabContent();
   }
 
   public AuditLogContent auditLogContent() {

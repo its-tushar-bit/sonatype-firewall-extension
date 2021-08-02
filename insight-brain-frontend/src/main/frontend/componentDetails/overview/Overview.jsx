@@ -78,7 +78,7 @@ export default function Overview({ componentInformation }) {
   );
 
   return (
-    <section className="nx-tile iq-component-information-tile">
+    <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
           <h2 className="nx-h2">Component Information</h2>

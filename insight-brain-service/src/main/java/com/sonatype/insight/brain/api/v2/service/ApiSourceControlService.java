@@ -21,7 +21,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
@@ -88,7 +88,7 @@ public class ApiSourceControlService
 
   private final SourceControlPullRequestMetrics sourceControlPullRequestMetrics;
 
-  private final SourceControlEventPublisher sourceControlEventPublisher;
+  private final SourceControlEventDAO sourceControlEventDAO;
 
   @Inject
   public ApiSourceControlService(
@@ -102,7 +102,7 @@ public class ApiSourceControlService
       final ProductLicense productLicense,
       final TelemetrySender telemetrySender,
       final SourceControlPullRequestMetrics sourceControlPullRequestMetrics,
-      final SourceControlEventPublisher sourceControlEventPublisher)
+      final SourceControlEventDAO sourceControlEventDAO)
   {
     this.plexusCipher = plexusCipher;
     this.sourceControlDAO = sourceControlDAO;
@@ -114,7 +114,7 @@ public class ApiSourceControlService
     this.productLicense = productLicense;
     this.telemetrySender = telemetrySender;
     this.sourceControlPullRequestMetrics = sourceControlPullRequestMetrics;
-    this.sourceControlEventPublisher = sourceControlEventPublisher;
+    this.sourceControlEventDAO = sourceControlEventDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -270,7 +270,7 @@ public class ApiSourceControlService
         !storedSourceControl.getRepositoryUrl().equalsIgnoreCase(sourceControl.getRepositoryUrl());
     sourceControlDAO.update(sourceControl);
     if (hasRepositoryUrlChanged) {
-      sourceControlEventPublisher.clearEventsForApplicationAndPublishEvent(new SourceControlEvent()
+      sourceControlEventDAO.clearEventsAndInsert(new SourceControlEvent()
           .setApplicationId(ownerId)
           .setEventType(REPOSITORY_URL_UPDATED_EVENT)
           .setEventPriority(EVENT_PRIORITY_HIGHER));

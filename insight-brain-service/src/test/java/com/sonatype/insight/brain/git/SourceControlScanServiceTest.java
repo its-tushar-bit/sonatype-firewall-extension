@@ -68,6 +68,9 @@ public class SourceControlScanServiceTest
   @Mock
   private GitApiFactory mockGitApiFactory;
 
+  @Mock
+  private GitClientFactory mockGitClientFactory;
+
   private SourceControlUtils spySourceControlUtils;
 
   @Mock
@@ -143,7 +146,8 @@ public class SourceControlScanServiceTest
     sourceControlEvent = new SourceControlEvent();
     sourceControlEvent.setApplicationId(APP_ID);
 
-    spySourceControlUtils = spy(new SourceControlUtils(null, mockApplicationDAO, mockInsightWork, fileCleaner));
+    spySourceControlUtils =
+        spy(new SourceControlUtils(null, mockApplicationDAO, mockInsightWork, fileCleaner, mockGitClientFactory));
 
     service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO,
         proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner, mockAuditRecorder, insightConfig);

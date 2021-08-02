@@ -11,12 +11,14 @@ import java.nio.file.Files;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
+import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.GitApiClient;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -25,9 +27,11 @@ import org.junit.Test;
 import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +43,10 @@ public class SourceControlUtilsTest
   private static final String TOKEN = "token";
 
   private ApiSourceControlService mockSourceControlService;
+
+  private GitClientFactory mockGitClientFactory;
+
+  private GitApiClient mockGitClientApi;
 
   private Application application;
 
@@ -53,7 +61,11 @@ public class SourceControlUtilsTest
   @Override
   public void configure(Binder binder) {
     mockSourceControlService = mock(ApiSourceControlService.class);
+    mockGitClientFactory = mock(GitClientFactory.class);
+    mockGitClientApi = mock(GitApiClient.class);
     binder.bind(ApiSourceControlService.class).toInstance(mockSourceControlService);
+    binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
+    binder.bind(GitApiClient.class).toInstance(mockGitClientApi);
     super.configure(binder);
   }
 
@@ -313,5 +325,30 @@ public class SourceControlUtilsTest
         new GitRepositoryInfo("https://my.domain.com/organization/project", "user", TOKEN, GITHUB,
             "base-branch", true, true);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
+  }
+
+  @Test
+  public void testGetUserId() {
+    SourceControl sourceControl = new SourceControl.Builder()
+        .setOwnerId(application.getParentOwnerId())
+        .setRepositoryUrl(VALID_URL)
+        .setToken(TOKEN)
+        .setProvider(SourceControlProvider.GITHUB)
+        .setBaseBranch("base-branch")
+        .setEnablePullRequests(true)
+        .setEnableStatusChecks(true)
+        .build();
+
+    when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitClientApi);
+    when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
+    when(mockGitClientApi.getUserId()).thenReturn("scmUser");
+
+    String userId = sourceControlUtils.getScmUserIdForApplication(application.getId());
+
+    verify(mockSourceControlService, times(1)).getSourceControlByOwnerDecrypted(application.getId());
+    verify(mockGitClientFactory, times(1)).createApiClient(any());
+    verify(mockGitClientApi, times(1)).getUserId();
+    assertThat(userId).isNotNull();
+    assertThat(userId).isEqualTo("scmUser");
   }
 }

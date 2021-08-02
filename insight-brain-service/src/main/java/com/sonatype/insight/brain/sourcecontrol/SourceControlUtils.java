@@ -18,10 +18,12 @@ import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.bitbucket.BitbucketApiClientUtils;
 
 import com.google.common.base.Strings;
@@ -47,17 +49,21 @@ public class SourceControlUtils
 
   private final FileCleaner fileCleaner;
 
+  private final GitClientFactory gitClientFactory;
+
   @Inject
   public SourceControlUtils(
       ApiSourceControlService sourceControlService,
       ApplicationDAO applicationDAO,
       InsightWork insightWork,
-      FileCleaner fileCleaner)
+      FileCleaner fileCleaner,
+      GitClientFactory gitClientFactory)
   {
     this.sourceControlService = sourceControlService;
     this.applicationDAO = applicationDAO;
     this.insightWork = insightWork;
     this.fileCleaner = fileCleaner;
+    this.gitClientFactory = gitClientFactory;
   }
 
   /**
@@ -198,5 +204,12 @@ public class SourceControlUtils
   public boolean isBitbucketCloud(GitRepositoryInfo gitRepositoryInfo) {
     return gitRepositoryInfo.provider.equals(BITBUCKET) &&
         BitbucketApiClientUtils.isCloudHosted(gitRepositoryInfo.repositoryUrl);
+  }
+
+  public String getScmUserIdForApplication(String applicationId) {
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfoForApplication(applicationId);
+    GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
+
+    return gitApiClient.getUserId();
   }
 }

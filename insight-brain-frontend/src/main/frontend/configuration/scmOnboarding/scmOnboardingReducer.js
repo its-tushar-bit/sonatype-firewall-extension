@@ -322,6 +322,7 @@ const providerCloudDefaults = {
   github: 'https://github.com/',
   gitlab: 'https://gitlab.com/',
   bitbucket: 'https://bitbucket.org/',
+  azure: 'https://dev.azure.com/',
 };
 
 function initialHostUrlState(defaultHostUrl, scmProvider) {

@@ -524,7 +524,8 @@ public class ScmOnboardingTest
             "name", "test",
             "description", "",
             "private", false,
-            "clone_url", cloneUrl)
+            "clone_url", cloneUrl,
+            "ssh_url", "git@host" + repoUrl)
         )
     );
     mockRepoForPage(0, json);
@@ -1169,7 +1170,8 @@ public class ScmOnboardingTest
             "name", "test",
             "description", "",
             "private", false,
-            "clone_url", cloneUrl)
+            "clone_url", cloneUrl,
+            "ssh_url", "git@host" + repoUrl)
         )
     );
     mockRepoForPage(secondaryGitService, 0, json);
@@ -1436,7 +1438,8 @@ public class ScmOnboardingTest
             "name", "test",
             "description", "",
             "private", false,
-            "clone_url", cloneUrl)
+            "clone_url", cloneUrl,
+            "ssh_url", "git@host" + repoUrl)
         )
     );
     mockRepoForPage(0, json);
@@ -1590,7 +1593,8 @@ public class ScmOnboardingTest
             "name", "test",
             "description", "",
             "private", false,
-            "clone_url", secondaryGitService.baseUrl() + "/org/repo.git")
+            "clone_url", secondaryGitService.baseUrl() + "/org/repo.git",
+            "ssh_url", "git@host/org/repo.git")
         )
     );
     mockRepoForPage(secondaryGitService, 0, json);

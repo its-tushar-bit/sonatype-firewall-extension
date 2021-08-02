@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventCreationListener;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.StringUtils;
@@ -30,15 +31,19 @@ public class SourceControlEventPublisher
 
   private SourceControlEventCreationListener sourceControlEventCreationListener;
 
+  private final SourceControlUtils sourceControlUtils;
+
   @Inject
   public SourceControlEventPublisher(
       ProductLicense productLicense,
       SourceControlEventDAO sourceControlEventDAO,
-      SourceControlInstanceManager sourceControlInstanceManager)
+      SourceControlInstanceManager sourceControlInstanceManager,
+      SourceControlUtils sourceControlUtils)
   {
     this.productLicense = productLicense;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
+    this.sourceControlUtils = sourceControlUtils;
   }
 
   public void setSourceControlEventListener(SourceControlEventCreationListener sourceControlEventCreationListener) {
@@ -84,8 +89,7 @@ public class SourceControlEventPublisher
 
   private void populateScmUsernameIfMissing(SourceControlEvent event) {
     if (StringUtils.isBlank(event.getScmUsername())) {
-      event.setScmUsername("temp-user-1");
-      // todo - lookup user
+      event.setScmUsername(sourceControlUtils.getScmUserIdForApplication(event.getApplicationId()));
     }
   }
 

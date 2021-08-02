@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +21,7 @@ import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -39,17 +41,21 @@ public class SourceControlEventPublisherTest
 
   private SourceControlEventPublisher sourceControlEventPublisher;
 
+  @Mock
+  private SourceControlUtils mockSourceControlUtils;
+
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
     sourceControlEventPublisher = new SourceControlEventPublisher(mockProductLicense, mockSourceControlEventDAO,
-        mockSourceControlInstanceManager);
+        mockSourceControlInstanceManager, mockSourceControlUtils);
   }
 
   @Test
   public void testPublishEvent_licensedFeature() {
     // given: feature is licensed
     when(mockProductLicense.hasFeature(any())).thenReturn(true);
+    when(mockSourceControlUtils.getScmUserIdForApplication(any())).thenReturn("scmUser");
 
     // when: publish a null event
     sourceControlEventPublisher.publishEvent(null);
@@ -65,8 +71,12 @@ public class SourceControlEventPublisherTest
     // then: DAO tries to save event
     ArgumentCaptor<SourceControlEvent> eventCaptor = ArgumentCaptor.forClass(SourceControlEvent.class);
     verify(mockSourceControlEventDAO, times(1)).insert(eventCaptor.capture());
+    verify(mockSourceControlUtils, times(1)).getScmUserIdForApplication(anyString());
     SourceControlEvent persistedEvent = eventCaptor.getValue();
     assertThat(persistedEvent.getApplicationId()).isEqualTo(appId);
+
+    // and: scm user for event is updated
+    assertThat(persistedEvent.getScmUsername()).isEqualTo("scmUser");
   }
 
   @Test

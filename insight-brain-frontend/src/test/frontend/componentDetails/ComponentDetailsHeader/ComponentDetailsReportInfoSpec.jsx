@@ -12,6 +12,7 @@ describe('ComponentDetailsReportInfo', () => {
   let minimalProps;
   let getShallowComponent;
   let getShallowComponentNoProps;
+  let getMountedComponent;
 
   beforeEach(() => {
     minimalProps = {
@@ -20,6 +21,7 @@ describe('ComponentDetailsReportInfo', () => {
 
     getShallowComponent = enzymeUtils.getShallowComponent(ComponentDetailsReportInfo, minimalProps);
     getShallowComponentNoProps = enzymeUtils.getShallowComponent(ComponentDetailsReportInfo);
+    getMountedComponent = enzymeUtils.getMountedComponent(ComponentDetailsReportInfo, minimalProps);
   });
 
   it('merges the className attribute to the root element if className is passed as props', () => {
@@ -46,19 +48,18 @@ describe('ComponentDetailsReportInfo', () => {
 
   it('only renders Organization Name part if `organizationName` prop is passed', () => {
     const organizationName = 'My Organization';
-    const component = getShallowComponentNoProps({ organizationName });
+    const component = getMountedComponent({ applicationName: null, organizationName });
     expect(component).toIncludeText(organizationName);
-
-    const componentWithout = getShallowComponentNoProps({ applicationName: 'My Application' });
+    const componentWithout = getMountedComponent({ applicationName: 'My Application' });
     expect(componentWithout).not.toIncludeText(organizationName);
   });
 
   it('only renders Application Name part if `applicationName` prop is passed', () => {
     const applicationName = 'My Application';
-    const component = getShallowComponentNoProps({ applicationName });
+    const component = getMountedComponent({ applicationName, organizationName: null });
     expect(component).toIncludeText(applicationName);
 
-    const componentWithout = getShallowComponentNoProps({ organizationName: 'My Organization' });
+    const componentWithout = getMountedComponent({ applicationName: null, organizationName: 'My Organization' });
     expect(componentWithout).not.toIncludeText(applicationName);
   });
 
@@ -67,13 +68,13 @@ describe('ComponentDetailsReportInfo', () => {
     spyOn(dateUtils, 'formatDate').and.returnValue(formattedTimestamp);
     const reportTitle = 'Report Build';
     const reportTime = 1234562;
-    const component = getShallowComponent({ reportTitle, reportTime });
+    const component = getMountedComponent({ reportTitle, reportTime });
     expect(component).toIncludeText(formattedTimestamp);
 
-    const componentWithoutTitle = getShallowComponent({ reportTime });
+    const componentWithoutTitle = getMountedComponent({ reportTitle: null, reportTime });
     expect(componentWithoutTitle).not.toIncludeText(formattedTimestamp);
 
-    const componentWithoutTime = getShallowComponent({ reportTitle });
+    const componentWithoutTime = getMountedComponent({ reportTime: null, reportTitle });
     expect(componentWithoutTime).not.toIncludeText(formattedTimestamp);
   });
 });

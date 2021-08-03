@@ -7,7 +7,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import cx from 'classnames';
 import { faFile, faNetworkWired, faTerminal } from '@fortawesome/free-solid-svg-icons';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxOverflowTooltip, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import { formatDate } from '../../util/dateUtils';
 
@@ -25,25 +25,31 @@ export const ComponentDetailsReportInfo = ({
   return (
     <div {...props} className={cx('component-details-header__reportinfo', props.className)}>
       {!!organizationName && (
-        <span className="component-details-header__reportinfo-item">
-          <NxFontAwesomeIcon className="component-details-header__reportinfo-icon" icon={faNetworkWired} />
-          <span>{organizationName}</span>
-        </span>
+        <NxOverflowTooltip>
+          <span className="component-details-header__reportinfo-item nx-truncate-ellipsis">
+            <NxFontAwesomeIcon className="component-details-header__reportinfo-icon" icon={faNetworkWired} />
+            <span>{organizationName}</span>
+          </span>
+        </NxOverflowTooltip>
       )}
       {!!applicationName && (
-        <span className="component-details-header__reportinfo-item">
-          <NxFontAwesomeIcon className="component-details-header__reportinfo-icon" icon={faTerminal} />
-          <span>{applicationName}</span>
-        </span>
+        <NxOverflowTooltip>
+          <span className="component-details-header__reportinfo-item nx-truncate-ellipsis">
+            <NxFontAwesomeIcon className="component-details-header__reportinfo-icon" icon={faTerminal} />
+            <span>{applicationName}</span>
+          </span>
+        </NxOverflowTooltip>
       )}
       {!!reportTitle && reportTime && (
-        <span className="component-details-header__reportinfo-item">
-          <NxFontAwesomeIcon className="component-details-header__reportinfo-icon" icon={faFile} />
-          <span className="visual-testing-ignore">{`${reportTitle} ${formatDate(
-            reportTime,
-            'YYYY-MM-DD HH:mm:ss'
-          )}`}</span>
-        </span>
+        <NxOverflowTooltip>
+          <span className="component-details-header__reportinfo-item nx-truncate-ellipsis">
+            <NxFontAwesomeIcon className="component-details-header__reportinfo-icon" icon={faFile} />
+            <span className="visual-testing-ignore">{`${reportTitle} ${formatDate(
+              reportTime,
+              'YYYY-MM-DD HH:mm:ss'
+            )}`}</span>
+          </span>
+        </NxOverflowTooltip>
       )}
     </div>
   );

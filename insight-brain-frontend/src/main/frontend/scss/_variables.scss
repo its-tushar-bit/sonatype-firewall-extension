@@ -156,9 +156,6 @@ $iq-login-modal-zindex: $zindexModal + 20 !important;
 // sidebar manage filter dropdown higher than main content
 $iq-sidebar-zindex: 4;
 
-// dropdowns to appear above table headers
-$iq-dashboard-summary-zindex: 3;
-
 // box-shadow to appear over scrollable contents
 $iq-dashboard-headers-zindex: 2;
 

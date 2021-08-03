@@ -8,11 +8,8 @@ import { react2angular } from 'react2angular';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 
-import dashboardUtilsModule from './utils/dashboard.utils.module';
 import angularCommonModule from '../util/AngularCommon';
-import utilityModule from '../utility/utility.module';
 import storesModule from '../util/Stores';
-import dashboardReducer from './dashboardReducer';
 import ComponentModule from './ComponentController';
 import ComponentDisplayModule from '../ComponentDisplay/module';
 import template from './dashboard.view.html';
@@ -32,8 +29,6 @@ var dashboardModule = angular
     angularCommonModule.name,
     ComponentModule.name,
     ComponentDisplayModule.name,
-    dashboardUtilsModule.name,
-    utilityModule.name,
     dashboardResultsActionsModule.name,
   ])
   .component('dashboardResultsContainer', dashboardResultsContainer)
@@ -50,8 +45,7 @@ var dashboardModule = angular
       [],
       ['$ngRedux', '$state']
     )
-  )
-  .value('dashboardReducer', dashboardReducer); // add to angular so we can test it
+  );
 
 export default dashboardModule;
 

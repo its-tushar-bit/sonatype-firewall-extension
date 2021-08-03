@@ -203,3 +203,17 @@ tbody .iq-cell--application-report-component-display {
     margin-top: 6px;
   }
 }
+
+.iq-threat-indication {
+  display: inline-block;
+  height: 43px;
+  vertical-align: middle;
+  width: 8px;
+}
+
+.iq-threat-number {
+  @include semi-bold();
+
+  font-size: 16px;
+  margin-left: 8px;
+}

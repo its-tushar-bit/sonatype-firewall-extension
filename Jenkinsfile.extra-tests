@@ -53,6 +53,62 @@ def captureResultsAndCleanup(String artifactGlob = '**/target/*-reports/**') {
   deleteDir()
 }
 
+def checkIfJiraNeeded() {
+  // Only create the ticket on master and main failures.
+  if (currentBuild.currentResult != 'SUCCESS' && (currentBuild.fullProjectName.contains('master') || currentBuild.fullProjectName.contains('main'))) {
+    echo "The build is entering the unstable condition to create a jira ticket, current build #: ${currentBuild.displayName} ${currentBuild.number}"
+    createJiraTicket()
+  } else if (currentBuild.currentResult != 'SUCCESS') {
+    echo "The build is unstable but this is not on the main or master branch - no jira ticket is created as a result."
+  }
+}
+
+def createJiraTicket() {
+  def jiraCredentialId = 'clm-jenkins'
+
+  def commits = getBuildRecentCommits(currentBuild)
+
+  def commitMsg = ''
+  if (commits.size() > 0) {
+    commitMsg = commits[0].replace("\n", "\\n")
+  }
+
+  def newNext = """
+    {
+        "fields": {
+           "project":
+           {
+              "key": "CLM"
+           },
+           "labels": [
+                "master-build-failure"
+            ],
+           "summary": "Failure of Insight Brain Extra Tests Build ${currentBuild.displayName}",
+           "description": "This build had a failure. Please fix the failure and rebuild: ${currentBuild.absoluteUrl}. The latest commit is: $commitMsg",
+           "issuetype": {
+              "id": "1"
+           }
+       }
+    }
+    """
+
+
+  def newResponse = httpRequest url: "https://issues.sonatype.org/rest/api/2/issue/",
+      httpMode: 'POST',
+      requestBody: newNext,
+      acceptType: 'APPLICATION_JSON',
+      contentType: 'APPLICATION_JSON',
+      authentication: jiraCredentialId,
+      validResponseCodes: '100:404'
+  if (newResponse.status != 201) {
+        echo 'Status: '+newResponse.status
+        echo 'Response: '+newResponse.content
+    error("Failed to create a new ticket")
+  } else {
+      echo 'Response: '+newResponse.content
+  }
+}
+
 pipeline {
   agent none
   options {
@@ -189,5 +245,10 @@ pipeline {
         }
       }
     }
+  }
+  post {
+      always {
+          checkIfJiraNeeded()
+      }
   }
 }

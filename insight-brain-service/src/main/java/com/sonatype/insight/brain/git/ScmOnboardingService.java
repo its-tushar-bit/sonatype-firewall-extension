@@ -107,6 +107,8 @@ public class ScmOnboardingService
 
   private final InsightConfig insightConfig;
 
+  private final IqForScmLicenseChecker licenseChecker;
+
   @Inject
   public ScmOnboardingService(
       final SourceControlDAO sourceControlDAO,
@@ -120,7 +122,8 @@ public class ScmOnboardingService
       final GitApiClientFactory gitApiClientFactory,
       final TelemetrySender telemetrySender,
       final ScmApplicationNameConverter applicationNameConverter,
-      final InsightConfig insightConfig)
+      final InsightConfig insightConfig,
+      final IqForScmLicenseChecker licenseChecker)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
@@ -134,6 +137,7 @@ public class ScmOnboardingService
     this.telemetrySender = telemetrySender;
     this.applicationNameConverter = applicationNameConverter;
     this.insightConfig = insightConfig;
+    this.licenseChecker = licenseChecker;
   }
 
   @Authorize(permission = Permission.MANAGE_AUTOMATIC_SCM_CONFIGURATION)
@@ -386,8 +390,10 @@ public class ScmOnboardingService
     ApiSourceControlDTO apiSourceControlDTO =
         apiSourceControlService.addOrUpdateSourceControl(app.getPublicId(), cloneUrl, scmRepository.getDefaultBranch());
 
-    if (insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {
-      initiateSourceControlEvaluation(apiSourceControlDTO);
+    if (licenseChecker.isIqForScmSupported()) {
+      if (insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {
+        initiateSourceControlEvaluation(apiSourceControlDTO);
+      }
     }
 
     return scmRepository;

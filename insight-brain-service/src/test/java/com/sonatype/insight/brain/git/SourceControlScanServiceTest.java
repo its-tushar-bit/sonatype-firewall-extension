@@ -10,6 +10,7 @@ import java.io.IOException;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -19,6 +20,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
@@ -28,6 +30,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.SourceControlConfig;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.api.GitApi;
@@ -112,6 +115,10 @@ public class SourceControlScanServiceTest
 
   private ProprietaryConfig proprietaryConfig;
 
+  private TestProductLicense testProductLicense;
+
+  private IqForScmLicenseChecker licenseChecker;
+
   // subject
   private SourceControlScanService service;
 
@@ -149,7 +156,12 @@ public class SourceControlScanServiceTest
     spySourceControlUtils =
         spy(new SourceControlUtils(null, mockApplicationDAO, mockInsightWork, fileCleaner, mockGitClientFactory));
 
-    service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO,
+    TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
+    testProductLicense = new TestProductLicense(productLicenseManager);
+
+    licenseChecker = new IqForScmLicenseChecker(testProductLicense);
+
+    service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO, licenseChecker,
         proprietaryConfigService, policyEvaluateService, mockInsightWork, scanner, mockAuditRecorder, insightConfig);
 
     proprietaryConfig = new ProprietaryConfig();
@@ -290,6 +302,16 @@ public class SourceControlScanServiceTest
 
     // it does not evaluate the SCM repository content and it returns null
     assertThat(service.doSynchronousSourceControlScan(APP_ID, new Stage(Stage.ID_DEVELOP), "testBranchName")).isNull();
+  }
+
+  @Test
+  public void testDoSynchronousSourceControlScan_Unlicensed() throws Exception {
+    // given a product license without the automation and notifications features
+    testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION, LicensedFeature.NOTIFICATIONS);
+
+    // it does not evaluate the SCM repository content and it returns null
+    assertThat(service.doSynchronousSourceControlScan(APP_ID, new Stage(Stage.ID_DEVELOP), "testBranchName")).isNull();
+    assertThatLogMessagesEqual(debug("License does not support source control notification or automation features"));
   }
 }
 

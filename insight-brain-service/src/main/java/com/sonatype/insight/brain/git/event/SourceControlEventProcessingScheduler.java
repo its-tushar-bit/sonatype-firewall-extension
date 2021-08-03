@@ -14,11 +14,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -48,7 +47,7 @@ public class SourceControlEventProcessingScheduler
 
   private final SourceControlEventService sourceControlEventService;
 
-  private final ProductLicense productLicense;
+  private final IqForScmLicenseChecker licenseChecker;
 
   private final InsightConfig insightConfig;
 
@@ -64,9 +63,9 @@ public class SourceControlEventProcessingScheduler
   public SourceControlEventProcessingScheduler(
       SourceControlEventService sourceControlEventService,
       InsightConfig insightConfig,
-      ProductLicense productLicense)
+      IqForScmLicenseChecker licenseChecker)
   {
-    this(sourceControlEventService, insightConfig, productLicense, SOURCE_CONTROL_EVENT_PROCESSING_DELAY_SECONDS,
+    this(sourceControlEventService, insightConfig, licenseChecker, SOURCE_CONTROL_EVENT_PROCESSING_DELAY_SECONDS,
         SOURCE_CONTROL_EVENT_PROCESSING_INTERVAL_SECONDS);
   }
 
@@ -74,13 +73,13 @@ public class SourceControlEventProcessingScheduler
   SourceControlEventProcessingScheduler(
       SourceControlEventService sourceControlEventService,
       InsightConfig insightConfig,
-      ProductLicense productLicense,
+      IqForScmLicenseChecker licenseChecker,
       int sourceControlEventProcessingDelaySeconds,
       int sourceControlEventProcessingIntervalSeconds)
   {
     this.sourceControlEventService = sourceControlEventService;
     this.insightConfig = insightConfig;
-    this.productLicense = productLicense;
+    this.licenseChecker = licenseChecker;
     this.sourceControlEventProcessingDelaySeconds = sourceControlEventProcessingDelaySeconds;
     this.sourceControlEventProcessingIntervalSeconds = sourceControlEventProcessingIntervalSeconds;
   }
@@ -129,7 +128,7 @@ public class SourceControlEventProcessingScheduler
 
   // Visible for testing
   void processSourceControlEvents() {
-    if (checkLicense()) {
+    if (licenseChecker.isIqForScmSupported()) {
       log.debug("Commencing source control event processing cycle");
 
       try {
@@ -141,9 +140,5 @@ public class SourceControlEventProcessingScheduler
       }
       log.debug("Source control event processing cycle complete");
     }
-  }
-
-  private boolean checkLicense() {
-    return productLicense.hasFeature(LicensedFeature.AUTOMATION);
   }
 }

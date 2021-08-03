@@ -13,9 +13,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventCreationListener;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,8 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 public class SourceControlEventPublisher
 {
-  private final ProductLicense productLicense;
-
   private final SourceControlEventDAO sourceControlEventDAO;
 
   private final SourceControlInstanceManager sourceControlInstanceManager;
@@ -35,12 +31,10 @@ public class SourceControlEventPublisher
 
   @Inject
   public SourceControlEventPublisher(
-      ProductLicense productLicense,
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlInstanceManager sourceControlInstanceManager,
       SourceControlUtils sourceControlUtils)
   {
-    this.productLicense = productLicense;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
     this.sourceControlUtils = sourceControlUtils;
@@ -56,7 +50,7 @@ public class SourceControlEventPublisher
    * @param event the event to persist
    */
   public void publishEvent(SourceControlEvent event) {
-    if (null != event && checkLicense()) {
+    if (null != event) {
       populateScmUsernameIfMissing(event);
       populateInstanceIdIfProcessingEvents(event);
       sourceControlEventDAO.insert(event);
@@ -91,9 +85,5 @@ public class SourceControlEventPublisher
     if (StringUtils.isBlank(event.getScmUsername())) {
       event.setScmUsername(sourceControlUtils.getScmUserIdForApplication(event.getApplicationId()));
     }
-  }
-
-  private boolean checkLicense() {
-    return productLicense.hasFeature(LicensedFeature.AUTOMATION);
   }
 }

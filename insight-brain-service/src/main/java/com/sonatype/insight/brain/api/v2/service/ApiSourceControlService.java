@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
@@ -30,7 +31,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -38,7 +38,6 @@ import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -82,7 +81,7 @@ public class ApiSourceControlService
 
   private final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter;
 
-  private final ProductLicense productLicense;
+  private final IqForScmLicenseChecker licenseChecker;
 
   private final TelemetrySender telemetrySender;
 
@@ -99,7 +98,7 @@ public class ApiSourceControlService
       final AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO,
       final ApiSourceControlAdapter apiSourceControlAdapter,
       final ApiSourceControlMetricsAdapter apiSourceControlMetricsAdapter,
-      final ProductLicense productLicense,
+      final IqForScmLicenseChecker licenseChecker,
       final TelemetrySender telemetrySender,
       final SourceControlPullRequestMetrics sourceControlPullRequestMetrics,
       final SourceControlEventDAO sourceControlEventDAO)
@@ -111,7 +110,7 @@ public class ApiSourceControlService
     this.automaticSourceControlConfigurationDAO = automaticSourceControlConfigurationDAO;
     this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.apiSourceControlMetricsAdapter = apiSourceControlMetricsAdapter;
-    this.productLicense = productLicense;
+    this.licenseChecker = licenseChecker;
     this.telemetrySender = telemetrySender;
     this.sourceControlPullRequestMetrics = sourceControlPullRequestMetrics;
     this.sourceControlEventDAO = sourceControlEventDAO;
@@ -347,9 +346,8 @@ public class ApiSourceControlService
   }
 
   private void checkLicense() {
-    if (!(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)
-        || productLicense.hasFeature(LicensedFeature.AUTOMATION))) {
-      log.debug("License does not support SourceControl notification or automation features");
+    if (!licenseChecker.isIqForScmSupported()) {
+      log.debug("License does not support source control notification or automation features");
       throw new InvalidLicenseException();
     }
   }

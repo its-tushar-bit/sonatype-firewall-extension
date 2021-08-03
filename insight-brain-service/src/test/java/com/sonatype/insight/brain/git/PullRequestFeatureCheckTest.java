@@ -7,9 +7,7 @@
 package com.sonatype.insight.brain.git;
 
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -53,7 +51,7 @@ public class PullRequestFeatureCheckTest
   private PullRequestFeatureCheck pullRequestFeatureCheck;
 
   @Mock
-  private ProductLicense productLicense;
+  private IqForScmLicenseChecker licenseChecker;
 
   @Mock
   private PullRequestRepositoryValidator pullRequestRepositoryValidator;
@@ -64,19 +62,19 @@ public class PullRequestFeatureCheckTest
   @Before
   public void setup() {
     pullRequestFeatureCheck =
-        new PullRequestFeatureCheck(productLicense, pullRequestRepositoryValidator);
+        new PullRequestFeatureCheck(licenseChecker, pullRequestRepositoryValidator);
   }
 
   @Test
   public void testLicenseInvalid() {
-    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(false);
+    when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(false);
 
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
         new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitHubRepositoryInfo());
 
     assertThat(result).isFalse();
     assertThat(logOutput).atDebugLevel().contains(
-        "Pull request feature is not supported for this license");
+        "Remediation pull request feature is not supported for this license");
   }
 
   @Test
@@ -123,7 +121,7 @@ public class PullRequestFeatureCheckTest
   public void testBitBucketSupported() {
     GitRepositoryInfo gitRepositoryInfo = newBitBucketRepositoryInfo();
 
-    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
+    when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(true);
     when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(true);
 
     boolean result = pullRequestFeatureCheck
@@ -145,7 +143,7 @@ public class PullRequestFeatureCheckTest
   }
 
   private void ensureAppNotConfigured(final GitRepositoryInfo gitRepositoryInfo, String missingFields) {
-    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
+    when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(true);
 
     Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
@@ -168,7 +166,7 @@ public class PullRequestFeatureCheckTest
   public void testIsPullRequestAllowed() {
     GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
 
-    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
+    when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(true);
     when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(false);
 
     final Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
@@ -188,7 +186,7 @@ public class PullRequestFeatureCheckTest
   public void testHappyPath() {
     GitRepositoryInfo gitRepositoryInfo = newGitHubRepositoryInfo();
 
-    when(productLicense.hasFeature(LicensedFeature.AUTOMATION)).thenReturn(true);
+    when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(true);
     when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(true);
 
     boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(

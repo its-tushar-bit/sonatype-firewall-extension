@@ -63,6 +63,8 @@ public class GitCommitStatusServiceTest
 
   private TestProductLicense testProductLicense;
 
+  private IqForScmLicenseChecker licenseChecker;
+
   public GitCommitStatusServiceTest() {
     super(GitCommitStatusService.class);
   }
@@ -75,6 +77,8 @@ public class GitCommitStatusServiceTest
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);
+
+    licenseChecker = new IqForScmLicenseChecker(testProductLicense);
   }
 
   @Test
@@ -96,7 +100,7 @@ public class GitCommitStatusServiceTest
     // then : no source control event created
     verifyNoSourceControlEventCreated();
     assertThatLogMessagesEqual(
-        debug("License does not support Source Control notifications feature")
+        debug("License does not support source control notification feature")
     );
   }
 
@@ -557,7 +561,7 @@ public class GitCommitStatusServiceTest
           mockBaseUrl,
           mockApplicationDAO,
           mockGitClientFactory,
-          testProductLicense,
+          licenseChecker,
           mockSourceControlEventPublisher,
           mockAsyncEventBus
       );

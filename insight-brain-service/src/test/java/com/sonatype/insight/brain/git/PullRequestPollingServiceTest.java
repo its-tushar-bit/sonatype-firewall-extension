@@ -149,6 +149,27 @@ public class PullRequestPollingServiceTest
   }
 
   @Test
+  public void testFetchAndSendPullRequestsForCommenting_unlicensed() throws IOException {
+    // given: necessary ingredients to emit a discovered pull request event,
+    // but the license does not support PR commenting
+    final Date pullRequestCreateDate = new Date();
+    final Date pullRequestPollingTime = new Date(System.currentTimeMillis() - 3000);
+    PullRequestPollingService pollingService = new TestablePullRequestPollingServiceBuilder()
+        .forRepository("org7/repo7", SourceControlProvider.GITHUB)
+        .withApplication("appPost", "main-branch")
+        .withPollingTime(pullRequestPollingTime)
+        .withPullRequest(10, pullRequestCreateDate, "feature-branch", "main-branch", "feature-commit-xyz-1")
+        .unlicensed()
+        .build();
+
+    // when: fetch and send
+    pollingService.fetchAndSendPullRequestsForCommenting();
+
+    // then: no events are created
+    verify(sourceControlEventPublisher, never()).publishEvent(any(SourceControlEvent.class));
+  }
+
+  @Test
   public void testFetchAndSendPullRequestsForCommenting_MultipleAppsSameRepositoryUrl() throws IOException {
     // given:
     final Date pullRequestCreateDate = new Date();
@@ -559,7 +580,12 @@ public class PullRequestPollingServiceTest
     @Mock
     private PullRequestRepositoryValidator mockPullRequestRepositoryValidator;
 
+    @Mock
+    private IqForScmLicenseChecker mockLicenseChecker;
+
     private Class<? extends Exception> thrownException;
+
+    private boolean pullRequestCommentingSupported = true;
 
     PullRequestPollingService build() throws IOException {
       MockitoAnnotations.openMocks(this);
@@ -618,6 +644,8 @@ public class PullRequestPollingServiceTest
 
         doReturn(true).when(mockSourceControlInstanceManager).canPoll();
 
+        doReturn(pullRequestCommentingSupported).when(mockLicenseChecker).isPullRequestCommentingSupported();
+
         if (mockRepo.hasPolicyEvaluation) {
           doReturn(new PolicyEvaluation()).when(mockPolicyEvaluationDAO)
               .getLastByApplicationAndCommitHash(any(), any());
@@ -638,7 +666,7 @@ public class PullRequestPollingServiceTest
 
       return new PullRequestPollingService(mockApplicationDAO, mockPolicyEvaluationDAO, mockSourceControlDAO,
           mockSourceControlPullRequestDAO, sourceControlEventPublisher, mockSourceControlUtils, mockGitClientFactory,
-          mockPullRequestRepositoryValidator, mockSourceControlInstanceManager);
+          mockPullRequestRepositoryValidator, mockSourceControlInstanceManager, mockLicenseChecker);
     }
 
     private List<SourceControl> buildSourceControlList(MockRepo mockRepo) {
@@ -734,6 +762,11 @@ public class PullRequestPollingServiceTest
 
     TestablePullRequestPollingServiceBuilder withGitRepositoryInternal(boolean isGitRepositoryInternal) {
       currentMockRepo.isGitRepositoryInternal = isGitRepositoryInternal;
+      return this;
+    }
+
+    public TestablePullRequestPollingServiceBuilder unlicensed() {
+      pullRequestCommentingSupported = false;
       return this;
     }
   }

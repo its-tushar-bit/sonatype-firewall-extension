@@ -69,6 +69,8 @@ public class PullRequestCommentingEventHandlerTest
 
   private TestProductLicense testProductLicense;
 
+  private IqForScmLicenseChecker licenseChecker;
+
   @Before
   @Override
   public void setup() {
@@ -77,6 +79,7 @@ public class PullRequestCommentingEventHandlerTest
 
     TestProductLicenseManager productLicenseManager = new TestProductLicenseManager();
     testProductLicense = new TestProductLicense(productLicenseManager);
+    licenseChecker = new IqForScmLicenseChecker(testProductLicense);
   }
 
   @Test
@@ -121,7 +124,7 @@ public class PullRequestCommentingEventHandlerTest
 
     // then : a debug message is logged
     assertThatLogMessagesEqual(
-        debug("License does not support SourceControl automation features"));
+        debug("License does not support source control automation feature"));
 
     // and : processing stops there
     verify(mockSourceControlEventPublisher, never()).publishEvent(any());
@@ -599,7 +602,7 @@ public class PullRequestCommentingEventHandlerTest
           mockSourceControlUtils,
           mockSourceControlEventPublisher,
           mockAsyncEventBus,
-          testProductLicense,
+          licenseChecker,
           getInsightConfig(featureFlagEnabled),
           mockPullRequestPolicyEvaluationResolver,
           mockPolicyEvaluationDAO

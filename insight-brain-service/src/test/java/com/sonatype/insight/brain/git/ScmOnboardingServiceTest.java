@@ -33,12 +33,14 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -107,6 +109,9 @@ public class ScmOnboardingServiceTest
 
   @Mock
   private SourceControlEventPublisher mockSourceControlEventPublisher;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   private static final String ENC = "CMMDwoV";
 
@@ -537,6 +542,29 @@ public class ScmOnboardingServiceTest
     int batchCount = reposToImport.length;
     int totalPercent = (int)((prevImportedCount + batchCount) * 100.0 / totalRepoCount);
     assertTelemetry(batchPercent, batchCount, totalPercent, reposToImport.length);
+  }
+
+  @Test
+  public void testImportRepositories_unlicensed() throws Exception {
+    // given SCM imports are enabled, but IQ for SCM is not supported by license
+    testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION, LicensedFeature.NOTIFICATIONS);
+    automaticSourceControlConfigurationDAO.setSourceControlConfigurationEnabled(true);
+
+    // given an existing application which will match a repo which we'll import
+    tempEntity.newApplication("repo1__org", org.getId());
+
+    // and a list of repos to import
+    SCMRepository[] reposToImport = new SCMRepository[]{
+        new SCMRepository(SourceControlProvider.GITHUB, "http://localhost/org/repo1", false, "org", "repo1",
+            "a description")
+    };
+
+    // when the repos are imported
+    scmOnboardingService.importRepositories(org.getId(),
+        new ImportRepositoriesRequest(Arrays.asList(reposToImport), 50, 8));
+
+    // then no source control evaluation event was created
+    verifyNoManifestEvaluationEventsCreated();
   }
 
   @Test

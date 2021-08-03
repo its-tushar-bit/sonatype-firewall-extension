@@ -58,6 +58,8 @@ public class DefaultBranchMonitor
 
   private final SourceControlDAO sourceControlDAO;
 
+  private final IqForScmLicenseChecker licenseChecker;
+
   public boolean disableForTesting;
 
   private int intervalInHours;
@@ -67,12 +69,14 @@ public class DefaultBranchMonitor
       InsightConfig insightConfig,
       TaskScheduler taskScheduler,
       SourceControlEventPublisher sourceControlEventPublisher,
-      SourceControlDAO sourceControlDAO)
+      SourceControlDAO sourceControlDAO,
+      IqForScmLicenseChecker licenseChecker)
   {
     this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlDAO = sourceControlDAO;
+    this.licenseChecker = licenseChecker;
   }
 
   @Override
@@ -98,7 +102,9 @@ public class DefaultBranchMonitor
   @Override
   public void execute(JobExecutionContext context) {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      updateDefaultBranchScans();
+      if (licenseChecker.isIqForScmSupported()) {
+        updateDefaultBranchScans();
+      }
     }
     catch (Exception e) {
       log.error("Error when updating default branch source scans: {}", e.getMessage(), e);

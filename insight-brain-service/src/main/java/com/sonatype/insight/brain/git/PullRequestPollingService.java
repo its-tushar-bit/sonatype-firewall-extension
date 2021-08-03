@@ -72,6 +72,8 @@ public class PullRequestPollingService
 
   private final SourceControlInstanceManager sourceControlInstanceManager;
 
+  private final IqForScmLicenseChecker licenseChecker;
+
   @Inject
   public PullRequestPollingService(
       ApplicationDAO applicationDAO,
@@ -82,7 +84,8 @@ public class PullRequestPollingService
       SourceControlUtils sourceControlUtils,
       GitClientFactory gitClientFactory,
       PullRequestRepositoryValidator pullRequestRepositoryValidator,
-      SourceControlInstanceManager sourceControlInstanceManager)
+      SourceControlInstanceManager sourceControlInstanceManager,
+      IqForScmLicenseChecker licenseChecker)
   {
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -93,9 +96,15 @@ public class PullRequestPollingService
     this.gitClientFactory = gitClientFactory;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
+    this.licenseChecker = licenseChecker;
   }
 
   public void fetchAndSendPullRequestsForCommenting() {
+    if (!licenseChecker.isPullRequestCommentingSupported()) {
+      log.trace("License does not support source control automation feature");
+      return;
+    }
+
     // for now this is a global check;  future plan is to base this on specific tokens/repos/users, in which case
     // we can push this check down into this class' canPoll() method
     if (!sourceControlInstanceManager.canPoll()) {

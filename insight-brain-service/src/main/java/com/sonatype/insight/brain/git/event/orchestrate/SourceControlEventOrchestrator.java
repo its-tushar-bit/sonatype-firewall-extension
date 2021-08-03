@@ -20,6 +20,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.SystemRunnable;
@@ -84,6 +85,8 @@ public class SourceControlEventOrchestrator
 
   private final SourceControlUtils sourceControlUtils;
 
+  private final IqForScmLicenseChecker licenseChecker;
+
   private ScheduledExecutorService scheduledExecutorService;
 
   private int otherInstanceEventProcessingIntervalSeconds = 15;
@@ -97,6 +100,7 @@ public class SourceControlEventOrchestrator
       SourceControlEventProcessor sourceControlEventProcessor,
       SourceControlEventPublisher sourceControlEventPublisher,
       SourceControlInstanceManager sourceControlInstanceManager,
+      IqForScmLicenseChecker licenseChecker,
       SourceControlUtils sourceControlUtils)
   {
     this.insightConfig = insightConfig;
@@ -104,6 +108,7 @@ public class SourceControlEventOrchestrator
     this.sourceControlEventProcessor = sourceControlEventProcessor;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlInstanceManager = sourceControlInstanceManager;
+    this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
   }
 
@@ -158,16 +163,19 @@ public class SourceControlEventOrchestrator
    * - fetches all untagged new events and routes them to the appropriate UserEventManager for processing
    */
   private void fetchAndRouteEvents() {
-    synchronized (userEventManagerMap) {
-      sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), getInstanceId());
-      List<SourceControlEvent> sourceControlEvents =
-          sourceControlEventDAO.selectUnassignedNewEventsAndAssignToInstance(getInstanceId());
-      if (CollectionUtils.isNotEmpty(sourceControlEvents)) {
-        sourceControlEvents.forEach(this::assignEventForProcessing);
+    if (licenseChecker.isIqForScmSupported()) {
+      synchronized (userEventManagerMap) {
+        sourceControlEventDAO.resetStaleEvents(new Date(currentTimeMillis() - STALE_EVENT_CUTOFF_MS), getInstanceId());
+        List<SourceControlEvent> sourceControlEvents =
+            sourceControlEventDAO.selectUnassignedNewEventsAndAssignToInstance(getInstanceId());
+        if (CollectionUtils.isNotEmpty(sourceControlEvents)) {
+          sourceControlEvents.forEach(this::assignEventForProcessing);
+        }
+        log.debug(
+            "Fetched and routed {} events originating from other IQ instances for processing by this instance '{}'",
+            sourceControlEvents.size(), getInstanceId());
+        notifyRoutingComplete();
       }
-      log.debug("Fetched and routed {} events originating from other IQ instances for processing by this instance '{}'",
-          sourceControlEvents.size(), getInstanceId());
-      notifyRoutingComplete();
     }
   }
 

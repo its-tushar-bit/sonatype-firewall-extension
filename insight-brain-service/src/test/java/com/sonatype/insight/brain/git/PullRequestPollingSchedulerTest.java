@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.git;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
@@ -17,7 +16,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -33,7 +31,7 @@ public class PullRequestPollingSchedulerTest
   private PullRequestPollingService pullRequestPollingService;
 
   @Mock
-  private ProductLicense productLicense;
+  private IqForScmLicenseChecker licenseChecker;
 
   public PullRequestPollingSchedulerTest() {
     super(PullRequestPollingScheduler.class);
@@ -45,9 +43,9 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 2;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(true),
+        new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, getInsightConfig(true),
             delaySeconds, intervalSeconds);
-    when(productLicense.hasFeature(any())).thenReturn(true);
+    when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
 
     // when: start scheduler and wait (less than full initial delay)
     scheduler.start();
@@ -98,11 +96,11 @@ public class PullRequestPollingSchedulerTest
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(true),
+        new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, getInsightConfig(true),
             delaySeconds, intervalSeconds);
     doThrow(new RuntimeException("some runtime exception")).when(pullRequestPollingService)
         .fetchAndSendPullRequestsForCommenting();
-    when(productLicense.hasFeature(any())).thenReturn(true);
+    when(licenseChecker.isPullRequestCommentingSupported()).thenReturn(true);
 
     // when: start scheduler, wait (delay + 1 interval)
     scheduler.start();
@@ -160,7 +158,7 @@ public class PullRequestPollingSchedulerTest
   public void testPullRequestPollingScheduler_featureFlagOff() throws Exception {
     // given: valid scheduler instance but the feature flag is off
     PullRequestPollingScheduler scheduler =
-        new PullRequestPollingScheduler(pullRequestPollingService, productLicense, getInsightConfig(false),
+        new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, getInsightConfig(false),
             2, 1);
 
     // when: start scheduler and wait (less than full initial delay)
@@ -169,6 +167,25 @@ public class PullRequestPollingSchedulerTest
     // then: PR polling scheduler is not started
     assertThatLogMessagesEqual(
         info("Pull request commenting feature is disabled; Pull request polling scheduler is not started.")
+    );
+    verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
+
+    scheduler.stop();
+  }
+
+  @Test
+  public void testPullRequestPollingScheduler_unlicensed() throws Exception {
+    // given: valid scheduler instance but missing license feature
+    PullRequestPollingScheduler scheduler =
+        new PullRequestPollingScheduler(pullRequestPollingService, licenseChecker, getInsightConfig(true),
+            2, 1);
+
+    // when: start scheduler and wait (less than full initial delay)
+    scheduler.start();
+
+    // then: PR polling scheduler is started, but it does nothing
+    assertThatLogMessagesEqual(
+        info("Scheduled monitoring of SCM pull requests every 1 second(s) starting in 2 second(s)")
     );
     verify(pullRequestPollingService, never()).fetchAndSendPullRequestsForCommenting();
 

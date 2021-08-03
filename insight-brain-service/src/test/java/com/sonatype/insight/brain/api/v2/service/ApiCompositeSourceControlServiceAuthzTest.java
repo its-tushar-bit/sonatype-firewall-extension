@@ -10,7 +10,10 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -36,6 +39,9 @@ public class ApiCompositeSourceControlServiceAuthzTest
 
   @Inject
   public ApiCompositeSourceControlService sourceControlService;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Test
   public void testGetCompositeSourceControlByOwner_AuthorizedApp() {
@@ -67,6 +73,13 @@ public class ApiCompositeSourceControlServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testGetCompositeSourceControlByOwner_Unauthorized() {
     login();
+    sourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testGetCompositeSourceControlByOwner_InvalidLicense() {
+    testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION, LicensedFeature.NOTIFICATIONS);
+    grantReadPermission(app.getId());
     sourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
   }
 }

@@ -43,6 +43,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DefaultBranchMonitorTest
     extends AbstractComponentTest
@@ -59,10 +60,14 @@ public class DefaultBranchMonitorTest
   @Mock
   private SourceControlEventPublisher sourceControlEventPublisherMock;
 
+  @Mock
+  private IqForScmLicenseChecker mockLicenseChecker;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
+    binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
     super.configure(binder);
   }
 
@@ -73,6 +78,8 @@ public class DefaultBranchMonitorTest
 
   @Test
   public void testExecute() {
+    when(mockLicenseChecker.isIqForScmSupported()).thenReturn(true);
+
     DefaultBranchMonitor defaultBranchMonitorSpy = spy(defaultBranchMonitor);
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
@@ -84,6 +91,18 @@ public class DefaultBranchMonitorTest
     }
 
     verify(defaultBranchMonitorSpy).updateDefaultBranchScans();
+  }
+
+  @Test
+  public void testExecute_Unlicensed() throws Exception {
+    // mockLicenseChecker.isIqForScmSupported() returns false by default
+
+    DefaultBranchMonitor defaultBranchMonitorSpy = spy(defaultBranchMonitor);
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      defaultBranchMonitorSpy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(defaultBranchMonitorSpy, never()).updateDefaultBranchScans();
   }
 
   @Test

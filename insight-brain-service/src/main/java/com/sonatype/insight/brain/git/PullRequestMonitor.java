@@ -83,6 +83,8 @@ public class PullRequestMonitor
 
   private final SourceControlEventPublisher sourceControlEventPublisher;
 
+  private final IqForScmLicenseChecker licenseChecker;
+
   private ExecutorService executorService;
 
   public boolean disableForTesting;
@@ -94,6 +96,7 @@ public class PullRequestMonitor
       GitApiFactory gitApiFactory,
       SourceControlUtils sourceControlUtils,
       SourceControlEventPublisher sourceControlEventPublisher,
+      IqForScmLicenseChecker licenseChecker,
       ApplicationDAO applicationDAO,
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlPullRequestDAO sourceControlPullRequestDAO)
@@ -103,6 +106,7 @@ public class PullRequestMonitor
     this.gitApiFactory = gitApiFactory;
     this.sourceControlUtils = sourceControlUtils;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
+    this.licenseChecker = licenseChecker;
     this.applicationDAO = applicationDAO;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
@@ -140,7 +144,9 @@ public class PullRequestMonitor
   @Override
   public void execute(JobExecutionContext context) {
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forSystem()) {
-      updatePullRequestDetails();
+      if (licenseChecker.isIqForScmSupported()) {
+        updatePullRequestDetails();
+      }
     }
     catch (Exception e) {
       log.error("Error when updating pull request details: {}", e.getMessage(), e);

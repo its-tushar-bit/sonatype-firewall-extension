@@ -61,6 +61,8 @@ public class SourceControlScanService
 
   private final PolicyEvaluateService policyEvaluateService;
 
+  private final IqForScmLicenseChecker licenseChecker;
+
   private ProprietaryConfigService proprietaryConfigService;
 
   private final InsightWork work;
@@ -76,6 +78,7 @@ public class SourceControlScanService
       final GitApiFactory gitApiFactory,
       final SourceControlUtils sourceControlUtils,
       final ApplicationDAO applicationDAO,
+      final IqForScmLicenseChecker licenseChecker,
       final ProprietaryConfigService proprietaryConfigService,
       final PolicyEvaluateService policyEvaluateService,
       final InsightWork work,
@@ -86,6 +89,7 @@ public class SourceControlScanService
     this.gitApiFactory = gitApiFactory;
     this.sourceControlUtils = sourceControlUtils;
     this.applicationDAO = applicationDAO;
+    this.licenseChecker = licenseChecker;
     this.proprietaryConfigService = proprietaryConfigService;
     this.policyEvaluateService = policyEvaluateService;
     this.work = work;
@@ -132,6 +136,11 @@ public class SourceControlScanService
   public PolicyEvaluation doSynchronousSourceControlScan(String applicationId, Stage stage, String branchName)
       throws GitException, IOException
   {
+    if (!licenseChecker.isIqForScmSupported()) {
+      log.debug("License does not support source control notification or automation features");
+      return null;
+    }
+
     if (!insightConfig.isFeatureEnabled(InsightConfig.Feature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS)) {
       return null;
     }

@@ -17,13 +17,11 @@ import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.eventbus.Subscribe;
 import io.dropwizard.lifecycle.Managed;
@@ -51,7 +49,7 @@ public class PullRequestCommentingEventHandler
 
   private final AsyncEventBus asyncEventBus;
 
-  private final ProductLicense productLicense;
+  private final IqForScmLicenseChecker licenseChecker;
 
   private final InsightConfig insightConfig;
 
@@ -65,7 +63,7 @@ public class PullRequestCommentingEventHandler
       final SourceControlUtils sourceControlUtils,
       final SourceControlEventPublisher sourceControlEventPublisher,
       final AsyncEventBus asyncEventBus,
-      final ProductLicense productLicense,
+      final IqForScmLicenseChecker licenseChecker,
       final InsightConfig insightConfig,
       final PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver,
       final PolicyEvaluationDAO policyEvaluationDAO)
@@ -74,7 +72,7 @@ public class PullRequestCommentingEventHandler
     this.sourceControlUtils = sourceControlUtils;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.asyncEventBus = asyncEventBus;
-    this.productLicense = productLicense;
+    this.licenseChecker = licenseChecker;
     this.insightConfig = insightConfig;
     this.pullRequestPolicyEvaluationResolver = pullRequestPolicyEvaluationResolver;
     this.policyEvaluationDAO = policyEvaluationDAO;
@@ -102,8 +100,8 @@ public class PullRequestCommentingEventHandler
     if (!insightConfig.isFeatureEnabled(Feature.PR_COMMENTING)) {
       return;
     }
-    if (!checkLicense()) {
-      log.debug("License does not support SourceControl automation features");
+    if (!licenseChecker.isPullRequestCommentingSupported()) {
+      log.debug("License does not support source control automation feature");
       return;
     }
 
@@ -211,9 +209,5 @@ public class PullRequestCommentingEventHandler
       isOk = false;
     }
     return isOk;
-  }
-
-  private boolean checkLicense() {
-    return productLicense.hasFeature(LicensedFeature.AUTOMATION);
   }
 }

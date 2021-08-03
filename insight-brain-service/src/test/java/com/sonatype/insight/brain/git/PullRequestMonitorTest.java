@@ -73,11 +73,15 @@ public class PullRequestMonitorTest
   @Mock
   private SourceControlEventPublisher sourceControlEventPublisherMock;
 
+  @Mock
+  private IqForScmLicenseChecker mockLicenseChecker;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     binder.bind(GitApiFactory.class).toInstance(gitApiFactoryMock);
     binder.bind(SourceControlEventPublisher.class).toInstance(sourceControlEventPublisherMock);
+    binder.bind(IqForScmLicenseChecker.class).toInstance(mockLicenseChecker);
     super.configure(binder);
   }
 
@@ -111,6 +115,8 @@ public class PullRequestMonitorTest
 
   @Test
   public void testExecute() {
+    when(mockLicenseChecker.isIqForScmSupported()).thenReturn(true);
+
     PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
     doAnswer(invocationOnMock -> {
       assertThat(MDC.get(MDCUsernameScope.USERNAME)).isEqualTo(MDCUsernameScope.SYSTEM);
@@ -122,6 +128,18 @@ public class PullRequestMonitorTest
     }
 
     verify(pullRequestMonitorSpy).updatePullRequestDetails();
+  }
+
+  @Test
+  public void testExecute_Unlicensed() {
+    when(mockLicenseChecker.isIqForScmSupported()).thenReturn(false);
+
+    PullRequestMonitor pullRequestMonitorSpy = spy(pullRequestMonitor);
+    try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
+      pullRequestMonitorSpy.execute(mock(JobExecutionContext.class));
+    }
+
+    verify(pullRequestMonitorSpy, never()).updatePullRequestDetails();
   }
 
   @Test

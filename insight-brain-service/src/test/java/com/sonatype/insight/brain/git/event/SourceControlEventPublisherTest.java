@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.git.event;
 
-import java.util.UUID;
-
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
 import org.junit.Before;
@@ -31,9 +28,6 @@ import static org.mockito.Mockito.when;
 public class SourceControlEventPublisherTest
 {
   @Mock
-  private ProductLicense mockProductLicense;
-
-  @Mock
   private SourceControlEventDAO mockSourceControlEventDAO;
 
   @Mock
@@ -47,14 +41,13 @@ public class SourceControlEventPublisherTest
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    sourceControlEventPublisher = new SourceControlEventPublisher(mockProductLicense, mockSourceControlEventDAO,
+    sourceControlEventPublisher = new SourceControlEventPublisher(mockSourceControlEventDAO,
         mockSourceControlInstanceManager, mockSourceControlUtils);
   }
 
   @Test
   public void testPublishEvent_licensedFeature() {
-    // given: feature is licensed
-    when(mockProductLicense.hasFeature(any())).thenReturn(true);
+    // given:
     when(mockSourceControlUtils.getScmUserIdForApplication(any())).thenReturn("scmUser");
 
     // when: publish a null event
@@ -77,19 +70,6 @@ public class SourceControlEventPublisherTest
 
     // and: scm user for event is updated
     assertThat(persistedEvent.getScmUsername()).isEqualTo("scmUser");
-  }
-
-  @Test
-  public void testPublishEvent_unlicensedFeature() {
-    // given: an event to publish and product license not setup
-    final String appId = UUID.randomUUID().toString();
-    SourceControlEvent event = new SourceControlEvent().forStatusUpdate().setApplicationId(appId);
-
-    // when: publish an event
-    sourceControlEventPublisher.publishEvent(event);
-
-    // then: nothing saved to DB
-    verify(mockSourceControlEventDAO, never()).insert(any());
   }
 
   @Test

@@ -13,12 +13,14 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationEvaluationStatusDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlEvaluationRequestDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.DefaultPolicyEvaluateService;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -42,16 +44,20 @@ public class ApiSourceControlEvaluationService
 
   private final SourceControlUtils sourceControlUtils;
 
+  private final IqForScmLicenseChecker licenseChecker;
+
   @Inject
   public ApiSourceControlEvaluationService(
       final SourceControlEventPublisher sourceControlEventPublisher,
       final SourceControlUtils sourceControlUtils,
+      final IqForScmLicenseChecker licenseChecker,
       DefaultPolicyEvaluateService policyEvaluateService,
       ApplicationDAO applicationDAO)
   {
     super(applicationDAO, policyEvaluateService);
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.sourceControlUtils = sourceControlUtils;
+    this.licenseChecker = licenseChecker;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -60,6 +66,8 @@ public class ApiSourceControlEvaluationService
       ApiSourceControlEvaluationRequestDTO sourceControlEvaluationRequest,
       final String userAgent)
   {
+    checkLicense();
+
     validateRequest(sourceControlEvaluationRequest);
 
     final GitRepositoryInfo gitRepositoryInfo =
@@ -110,6 +118,13 @@ public class ApiSourceControlEvaluationService
 
     if (!Stage.isValidStageTypeId(sourceControlEvaluationRequest.stageId)) {
       throw new BadRequestException("Stage " + sourceControlEvaluationRequest.stageId + " is invalid.");
+    }
+  }
+
+  private void checkLicense() {
+    if (!licenseChecker.isIqForScmSupported()) {
+      log.debug("License does not support source control notification or automation features");
+      throw new InvalidLicenseException();
     }
   }
 }

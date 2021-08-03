@@ -18,9 +18,12 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Test;
@@ -37,6 +40,9 @@ public class ApiSourceControlEvaluationServiceTest
 
   @Inject
   private PasswordHandler passwordHandler;
+
+  @Inject
+  private TestProductLicense testProductLicense;
 
   @Test
   public void testDoManifestEvaluation() {
@@ -63,6 +69,14 @@ public class ApiSourceControlEvaluationServiceTest
     assertThat(sourceControlEvent.getEventType()).isEqualTo(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
     assertThat(sourceControlEvent.getScanTriggerType())
         .isEqualTo(ScanTriggerType.SOURCE_CONTROL_API);
+  }
+
+  @Test(expected = InvalidLicenseException.class)
+  public void testDoManifestEvaluation_Unlicensed() {
+    testProductLicense.setMissingFeatures(LicensedFeature.AUTOMATION, LicensedFeature.NOTIFICATIONS);
+
+    apiSourceControlEvaluationService.doSourceControlEvaluation("appId",
+        new ApiSourceControlEvaluationRequestDTO(Stage.ID_DEVELOP, "a-branch"), null /* userAgent */);
   }
 
   @Test

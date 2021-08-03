@@ -14,9 +14,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +31,16 @@ public class PullRequestFeatureCheck
 {
   private static final Logger log = LoggerFactory.getLogger(PullRequestFeatureCheck.class);
 
-  private final ProductLicense productLicense;
+  private final IqForScmLicenseChecker licenseChecker;
 
   private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Inject
   public PullRequestFeatureCheck(
-      final ProductLicense productLicense,
+      final IqForScmLicenseChecker licenseChecker,
       final PullRequestRepositoryValidator pullRequestRepositoryValidator)
   {
-    this.productLicense = productLicense;
+    this.licenseChecker = licenseChecker;
     this.pullRequestRepositoryValidator = pullRequestRepositoryValidator;
   }
 
@@ -57,8 +55,8 @@ public class PullRequestFeatureCheck
   public boolean isPullRequestFeatureSupported(
       final Application app, final GitRepositoryInfo gitRepoInfo)
   {
-    if (!isLicenseValid()) {
-      log.debug("Pull request feature is not supported for this license");
+    if (!licenseChecker.isPullRequestRemediationSupported()) {
+      log.debug("Remediation pull request feature is not supported for this license");
       return false;
     }
 
@@ -79,10 +77,6 @@ public class PullRequestFeatureCheck
     }
 
     return true;
-  }
-
-  private boolean isLicenseValid() {
-    return productLicense.hasFeature(LicensedFeature.AUTOMATION);
   }
 
   private boolean isApplicationConfiguredForPR(final GitRepositoryInfo gitRepositoryInfo) {

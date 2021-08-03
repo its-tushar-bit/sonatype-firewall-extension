@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -35,7 +36,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -75,7 +74,7 @@ public class ApiReportViolationsDiffService
 
   private final PolicyEvaluationDiffService policyEvaluationDiffService;
 
-  private final ProductLicense productLicense;
+  private final IqForScmLicenseChecker licenseChecker;
 
   private final ReportService reportService;
 
@@ -89,7 +88,7 @@ public class ApiReportViolationsDiffService
       final ApiApplicationAdapter applicationAdapter,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
-      final ProductLicense productLicense,
+      final IqForScmLicenseChecker licenseChecker,
       final ReportService reportService)
   {
     this.applicationDAO = applicationDAO;
@@ -97,7 +96,7 @@ public class ApiReportViolationsDiffService
     this.applicationAdapter = applicationAdapter;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
-    this.productLicense = productLicense;
+    this.licenseChecker = licenseChecker;
     this.reportService = reportService;
   }
 
@@ -293,8 +292,8 @@ public class ApiReportViolationsDiffService
   }
 
   private void checkLicense() {
-    if (!productLicense.hasFeature(LicensedFeature.AUTOMATION)) {
-      log.debug("License does not support SourceControl automation features");
+    if (!licenseChecker.isPullRequestCommentingSupported()) {
+      log.debug("License does not support source control automation features");
       throw new InvalidLicenseException();
     }
   }

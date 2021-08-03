@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.git.event;
 
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
 
@@ -15,7 +15,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -35,7 +34,7 @@ public class SourceControlEventProcessingSchedulerTest
   private SourceControlEventService sourceControlEventService;
 
   @Mock
-  private ProductLicense productLicense;
+  private IqForScmLicenseChecker licenseChecker;
 
   public SourceControlEventProcessingSchedulerTest() {
     super(SourceControlEventProcessingScheduler.class);
@@ -47,9 +46,9 @@ public class SourceControlEventProcessingSchedulerTest
     final int delaySeconds = 2;
     final int intervalSeconds = 1;
     SourceControlEventProcessingScheduler scheduler =
-        new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, productLicense,
+        new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, licenseChecker,
             delaySeconds, intervalSeconds);
-    when(productLicense.hasFeature(any())).thenReturn(true);
+    when(licenseChecker.isIqForScmSupported()).thenReturn(true);
     when(mockInsightConfig.isExperimentalFeatureEnabled(eq(Feature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
 
     // when: start scheduler and wait (less than full initial delay)
@@ -107,10 +106,10 @@ public class SourceControlEventProcessingSchedulerTest
     final int delaySeconds = 1;
     final int intervalSeconds = 1;
     SourceControlEventProcessingScheduler scheduler =
-        new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, productLicense,
+        new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, licenseChecker,
             delaySeconds, intervalSeconds);
     doThrow(new RuntimeException("some runtime exception")).when(sourceControlEventService).processEvents();
-    when(productLicense.hasFeature(any())).thenReturn(true);
+    when(licenseChecker.isIqForScmSupported()).thenReturn(true);
     when(mockInsightConfig.isExperimentalFeatureEnabled(eq(Feature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
 
     // when: start scheduler, wait (delay + 1 interval)
@@ -159,6 +158,29 @@ public class SourceControlEventProcessingSchedulerTest
         debug("Commencing source control event processing cycle"),
         debug("0 source control events submitted for execution"),
         debug("Source control event processing cycle complete")
+    );
+
+    // cleanup: stop the scheduler so as not to interfere with other tests
+    scheduler.stop();
+  }
+
+  @Test
+  public void testSourceControlEventProcessingScheduler_unlicensed() throws Exception {
+    // given: valid scheduler instance but missing license feature
+    final int delaySeconds = 1;
+    final int intervalSeconds = 1;
+    SourceControlEventProcessingScheduler scheduler =
+        new SourceControlEventProcessingScheduler(sourceControlEventService, mockInsightConfig, licenseChecker,
+            delaySeconds, intervalSeconds);
+    when(mockInsightConfig.isExperimentalFeatureEnabled(eq(Feature.ORCHESTRATED_EVENT_PROCESSING))).thenReturn(false);
+
+    // when: start scheduler, wait (delay + 1 interval)
+    scheduler.start();
+
+    // then : scheduler is started, but it does nothing
+    verify(sourceControlEventService, never()).processEvents();
+    assertThatLogMessagesEqual(
+        info("Scheduled processing of source control events every 1 second(s) starting in 1 second(s)")
     );
 
     // cleanup: stop the scheduler so as not to interfere with other tests

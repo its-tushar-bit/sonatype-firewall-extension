@@ -16,17 +16,16 @@ import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeValueDTO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
+import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -48,7 +47,7 @@ public class ApiCompositeSourceControlService
 
   private final ApplicationDAO applicationDAO;
 
-  private final ProductLicense productLicense;
+  private final IqForScmLicenseChecker licenseChecker;
 
   private final OrganizationDAO organizationDAO;
 
@@ -58,13 +57,13 @@ public class ApiCompositeSourceControlService
   public ApiCompositeSourceControlService(
       final SourceControlDAO sourceControlDAO,
       final ApplicationDAO applicationDAO,
-      final ProductLicense productLicense,
+      final IqForScmLicenseChecker licenseChecker,
       final OrganizationDAO organizationDAO,
       final PlexusCipher plexusCipher)
   {
     this.sourceControlDAO = sourceControlDAO;
     this.applicationDAO = applicationDAO;
-    this.productLicense = productLicense;
+    this.licenseChecker = licenseChecker;
     this.organizationDAO = organizationDAO;
     this.plexusCipher = plexusCipher;
   }
@@ -264,9 +263,8 @@ public class ApiCompositeSourceControlService
   }
 
   private void checkLicense() {
-    if (!(productLicense.hasFeature(LicensedFeature.NOTIFICATIONS) ||
-        productLicense.hasFeature(LicensedFeature.AUTOMATION))) {
-      log.debug("License does not support SourceControl notification features");
+    if (!licenseChecker.isIqForScmSupported()) {
+      log.debug("License does not support source control notification or automation features");
       throw new InvalidLicenseException();
     }
   }

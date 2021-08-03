@@ -14,11 +14,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
-import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -39,7 +37,7 @@ public class PullRequestPollingScheduler
 
   private final PullRequestPollingService pullRequestPollingService;
 
-  private final ProductLicense productLicense;
+  private final IqForScmLicenseChecker licenseChecker;
 
   private ScheduledExecutorService scheduledExecutorService;
 
@@ -54,23 +52,23 @@ public class PullRequestPollingScheduler
   @Inject
   public PullRequestPollingScheduler(
       final PullRequestPollingService pullRequestPollingService,
-      final ProductLicense productLicense,
+      final IqForScmLicenseChecker licenseChecker,
       final InsightConfig insightConfig)
   {
-    this(pullRequestPollingService, productLicense, insightConfig, PULL_REQUEST_MONITORING_DELAY_SECONDS,
+    this(pullRequestPollingService, licenseChecker, insightConfig, PULL_REQUEST_MONITORING_DELAY_SECONDS,
         PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
   }
 
   @VisibleForTesting
   PullRequestPollingScheduler(
       PullRequestPollingService pullRequestPollingService,
-      ProductLicense productLicense,
+      IqForScmLicenseChecker licenseChecker,
       final InsightConfig insightConfig,
       int pullRequestMonitoringDelaySeconds,
       int pullRequestMonitoringIntervalSeconds)
   {
     this.pullRequestPollingService = pullRequestPollingService;
-    this.productLicense = productLicense;
+    this.licenseChecker = licenseChecker;
     this.insightConfig = insightConfig;
     this.pullRequestMonitoringDelaySeconds = pullRequestMonitoringDelaySeconds;
     this.pullRequestMonitoringIntervalSeconds = pullRequestMonitoringIntervalSeconds;
@@ -125,7 +123,7 @@ public class PullRequestPollingScheduler
   }
 
   private void monitorPullRequestsForCommenting() {
-    if (checkLicense()) {
+    if (licenseChecker.isPullRequestCommentingSupported()) {
       log.debug("Commencing pull request polling cycle");
 
       try {
@@ -136,9 +134,5 @@ public class PullRequestPollingScheduler
       }
       log.debug("Pull request polling cycle complete");
     }
-  }
-
-  private boolean checkLicense() {
-    return productLicense.hasFeature(LicensedFeature.AUTOMATION);
   }
 }

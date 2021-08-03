@@ -18,12 +18,10 @@ import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.GitApiClient.StateType;
@@ -51,7 +49,7 @@ public class GitCommitStatusService
 
   private final GitClientFactory gitClientFactory;
 
-  private final ProductLicense productLicense;
+  private final IqForScmLicenseChecker licenseChecker;
 
   private final SourceControlUtils sourceControlUtils;
 
@@ -65,14 +63,14 @@ public class GitCommitStatusService
       final BaseUrl baseUrl,
       final ApplicationDAO applicationDAO,
       final GitClientFactory gitClientFactory,
-      ProductLicense productLicense,
+      final IqForScmLicenseChecker licenseChecker,
       SourceControlEventPublisher sourceControlEventPublisher,
       AsyncEventBus asyncEventBus)
   {
     this.baseUrl = baseUrl;
     this.applicationDAO = applicationDAO;
     this.gitClientFactory = gitClientFactory;
-    this.productLicense = productLicense;
+    this.licenseChecker = licenseChecker;
     this.sourceControlUtils = sourceControlUtils;
     this.sourceControlEventPublisher = sourceControlEventPublisher;
     this.asyncEventBus = asyncEventBus;
@@ -80,10 +78,11 @@ public class GitCommitStatusService
 
   @Subscribe
   public void onApplicationEvaluation(final ApplicationEvaluationEvent event) {
-    if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
-      log.debug("License does not support Source Control notifications feature");
+    if (!licenseChecker.isCommitStatusSupported()) {
+      log.debug("License does not support source control notification feature");
       return;
     }
+
     if (Strings.isNullOrEmpty(event.commitHash)) {
       return;
     }

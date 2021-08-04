@@ -11,6 +11,7 @@ import {
   WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
   WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
   WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
+  WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN,
 } from '../../../main/frontend/waivers/waiverActions';
 import { UI_ROUTER_ON_FINISH } from '../../../main/frontend/reduxUiRouter/routerActions';
 
@@ -161,6 +162,34 @@ describe('manageWaiversReducer', function () {
       expect(newState.loadingApplicableWaivers).toBe(false);
       expect(newState.loadApplicableWaiversError).toBe('load applicable waivers error');
       expect(newState.otherProp).toBe(state.otherProp);
+    });
+  });
+
+  describe('WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN action', function () {
+    it('sets isRequestWaiverPopoverShown to true', function () {
+      const state = {
+        isRequestWaiverPopoverShown: false,
+      };
+
+      const newState = reducer(state, {
+        type: WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN,
+        payload: true,
+      });
+
+      expect(newState.isRequestWaiverPopoverShown).toBe(true);
+    });
+
+    it('sets isRequestWaiverPopoverShown to false', function () {
+      const state = {
+        isRequestWaiverPopoverShown: true,
+      };
+
+      const newState = reducer(state, {
+        type: WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN,
+        payload: false,
+      });
+
+      expect(newState.isRequestWaiverPopoverShown).toBe(false);
     });
   });
 

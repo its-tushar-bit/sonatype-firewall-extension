@@ -86,13 +86,6 @@ function routes($stateProvider, $urlRouterProvider) {
         title: 'Application Report Vulnerabilities List',
       },
     })
-    .state('applicationReport.requestWaivers', {
-      url: '/requestwaivers/{violationId}',
-      component: 'requestWaivers',
-      data: {
-        title: 'Request Waivers',
-      },
-    })
     .state('applicationReport.componentDetails', {
       url: '/componentDetails/{hash}',
       component: 'componentDetails',

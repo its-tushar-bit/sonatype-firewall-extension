@@ -10,8 +10,6 @@ import {
   selectAggregatedComponentsList,
   selectSelectedComponentInAggregatedList,
   selectSelectedComponentIndexInAggregatedList,
-  selectPolicyViolationId,
-  selectPolicyViolation,
   selectLoadError,
   selectIsLoading,
 } from '../../../main/frontend/applicationReport/applicationReportSelectors';
@@ -246,20 +244,6 @@ describe('applicationReportSelectors', () => {
       const expected = -1;
       const actual = selectSelectedComponentIndexInAggregatedList(state);
       expect(actual).toEqual(expected);
-    });
-  });
-
-  describe('selectPolicyViolationId', () => {
-    it('selects the policy violation Id in the URL from the state', () => {
-      const actual = selectPolicyViolationId(mockState);
-      expect(actual).toEqual('some-policy-violation-id');
-    });
-  });
-
-  describe('selectPolicyViolation', () => {
-    it('selects the policy violation from the state', () => {
-      const actual = selectPolicyViolation(mockState);
-      expect(actual.policyViolationId).toEqual('some-policy-violation-id');
     });
   });
 

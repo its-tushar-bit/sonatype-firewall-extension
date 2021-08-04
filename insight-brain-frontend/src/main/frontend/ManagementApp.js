@@ -10,7 +10,6 @@ import directivesModule from './directives/module';
 import componentsModule from './components/module';
 import dashboardModule from './dashboard/dashboard.module';
 import componentDetailsModule from './componentDetails/module';
-import requestWaiversModule from './requestWaivers/module';
 import reduxConfigModule from './reduxConfig/module';
 import changeDefaultAdminPasswordModule from './changeDefaultAdminPasswordNotice/module';
 import applicationReportModule from './applicationReport/module';
@@ -51,7 +50,6 @@ export default angular
     reportModule.name,
     firewallModule.name,
     componentDetailsModule.name,
-    requestWaiversModule.name,
   ])
   .component('advancedSearch', react2angular(withStoreProvider(AdvancedSearchContainer), [], ['$ngRedux', '$state']))
   .component('systemNotice', react2angular(withStoreProvider(SystemNoticeContainer), [], ['$ngRedux']))

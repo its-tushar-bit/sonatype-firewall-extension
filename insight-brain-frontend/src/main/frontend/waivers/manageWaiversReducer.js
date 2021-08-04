@@ -13,6 +13,7 @@ import {
   WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
   WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
   WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
+  WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN,
 } from './waiverActions';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
@@ -22,6 +23,7 @@ export const initState = Object.freeze({
   loadingApplicableWaivers: false,
   loadApplicableWaiversError: null,
   hasPermissionForAppWaivers: null,
+  isRequestWaiverPopoverShown: false,
 });
 
 const setLoadError = (payload, state) => ({
@@ -55,6 +57,11 @@ const loadApplicableWaiversFailed = (payload, state) => ({
   loadApplicableWaiversError: payload,
 });
 
+const setIsRequestWaiverPopoverShown = (payload, state) => ({
+  ...state,
+  isRequestWaiverPopoverShown: payload,
+});
+
 const reducerActionMap = {
   [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED]: propSetConst('loadingManageWaiversData', true),
   [WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED]: setLoadError,
@@ -62,6 +69,7 @@ const reducerActionMap = {
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED]: loadApplicableWaiversRequested,
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED]: loadApplicableWaiversFulfilled,
   [WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED]: loadApplicableWaiversFailed,
+  [WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN]: setIsRequestWaiverPopoverShown,
   [UI_ROUTER_ON_FINISH]: always(initState),
 };
 

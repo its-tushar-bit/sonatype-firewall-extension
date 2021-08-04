@@ -7,7 +7,7 @@
 import { connect } from 'react-redux';
 import ListWaiversPage from './ListWaiversPage';
 import { pick } from 'ramda';
-import { loadManageWaiversData } from './waiverActions';
+import { loadManageWaiversData, setIsRequestWaiverPopoverShown } from './waiverActions';
 import { setWaiverToDelete, loadApplicableWaivers } from './waiverActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 
@@ -23,6 +23,7 @@ function mapStateToProps(state) {
         'hasPermissionForAppWaivers',
         'loadingApplicableWaivers',
         'loadApplicableWaiversError',
+        'isRequestWaiverPopoverShown',
       ],
       manageWaivers
     ),
@@ -34,6 +35,7 @@ const mapDispatchToProps = {
   loadManageWaiversData,
   setWaiverToDelete,
   loadApplicableWaivers,
+  setIsRequestWaiverPopoverShown,
   stateGo,
 };
 

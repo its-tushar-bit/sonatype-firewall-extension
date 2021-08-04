@@ -3,10 +3,23 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-request-waivers {
-  display: contents;
-}
-
 .iq-request-waivers-page__clipboard textarea.nx-text-input__input {
   min-height: 0;
+}
+
+.request-waivers-header__title {
+  @include container-horizontal;
+
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+
+  .request-waivers-header__title-text {
+    flex-grow: 1;
+  }
+
+  .nx-btn--icon-only {
+    @include nx-small-icon-btn;
+    margin-top: var(--nx-spacing-2x);
+  }
 }

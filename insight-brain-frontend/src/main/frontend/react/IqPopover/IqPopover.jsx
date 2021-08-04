@@ -36,7 +36,7 @@ IqPopover.propTypes = {
   children: PropTypes.node,
   className: PropTypes.string,
   onClose: PropTypes.func,
-  size: PropTypes.oneOf(['small', 'medium', 'large']),
+  size: PropTypes.oneOf(['small', 'medium', 'large', 'automatic']),
 };
 
 export const IqPopoverHeader = ({ children, className, ...props }) => {

@@ -32,6 +32,7 @@ export const WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME = 'WAIVERS_ADD_WAIVER_SET_EXPIRY
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED';
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED';
 export const WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED = 'WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED';
+export const WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN = 'WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN';
 export const WAIVERS_SET_WAIVER_TO_DELETE = 'WAIVERS_SET_WAIVER_TO_DELETE';
 export const WAIVERS_HIDE_DELETE_WAIVER_MODAL = 'WAIVERS_HIDE_DELETE_WAIVER_MODAL';
 export const WAIVERS_DELETE_WAIVER_REQUESTED = 'WAIVERS_DELETE_WAIVER_REQUESTED';
@@ -228,5 +229,11 @@ export function loadApplicableWaivers(policyViolationId) {
     return dispatch(fetchApplicableWaivers(policyViolationId))
       .then(compose(dispatch, loadApplicableWaiversFulfilled))
       .catch(compose(dispatch, loadApplicableWaiversFailed));
+  };
+}
+
+export function setIsRequestWaiverPopoverShown(flag) {
+  return function (dispatch) {
+    dispatch(payloadParamActionCreator(WAIVERS_SET_IS_REQUEST_WAIVER_POPOVER_SHOWN)(flag));
   };
 }

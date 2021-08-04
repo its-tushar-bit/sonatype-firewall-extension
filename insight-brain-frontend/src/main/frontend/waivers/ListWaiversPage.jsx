@@ -17,6 +17,7 @@ import { constraintViolationsPropType } from '../violation/PolicyViolationConstr
 import ListWaiversTable, { waiverType } from './ListWaiversTable';
 import DeleteWaiverModalContainer from './deleteWaiverModal/DeleteWaiverModalContainer';
 import ListWaiversBackButton from './ListWaiversBackButton';
+import RequestWaiversPopover from './requestWaiversPopover/RequestWaiversPopoverContainer';
 
 export default function ListWaiversPage(props) {
   const {
@@ -33,6 +34,8 @@ export default function ListWaiversPage(props) {
     setWaiverToDelete,
     loadApplicableWaivers,
     stateGo,
+    isRequestWaiverPopoverShown,
+    setIsRequestWaiverPopoverShown,
     ...backButtonProps
   } = props;
 
@@ -61,6 +64,10 @@ export default function ListWaiversPage(props) {
   return (
     <Fragment>
       {waiverToDelete && <DeleteWaiverModalContainer />}
+      <RequestWaiversPopover
+        isShown={isRequestWaiverPopoverShown}
+        onClose={() => setIsRequestWaiverPopoverShown(false)}
+      />
       <div id="list-waivers-page" className="nx-page-main list-waivers-page">
         <LoadWrapper
           loading={loadingManageWaiversData || !violationDetails}
@@ -112,6 +119,13 @@ export default function ListWaiversPage(props) {
                 <h2 className="nx-h2">Applicable Waivers</h2>
               </div>
               <div className="nx-tile__actions">
+                <NxButton
+                  variant="tertiary"
+                  onClick={() => setIsRequestWaiverPopoverShown(true)}
+                  id="request-waiver-btn"
+                >
+                  <span>Request Waiver</span>
+                </NxButton>
                 <NxTooltip
                   id="add-waiver-btn-tooltip"
                   title={hasPermissionForAppWaivers ? '' : 'Insufficient permissions to Add Waiver'}
@@ -153,12 +167,14 @@ export default function ListWaiversPage(props) {
 ListWaiversPage.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
   expiredWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),
-  loadManageWaiversDataError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
   loadingManageWaiversData: PropTypes.bool,
+  loadManageWaiversDataError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
+  isRequestWaiverPopoverShown: PropTypes.bool,
   loadApplicableWaiversError: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
   loadingApplicableWaivers: PropTypes.bool,
   loadManageWaiversData: PropTypes.func.isRequired,
   waiverToDelete: PropTypes.shape(waiverType),
+  setIsRequestWaiverPopoverShown: PropTypes.func.isRequired,
   setWaiverToDelete: PropTypes.func.isRequired,
   loadApplicableWaivers: PropTypes.func.isRequired,
   stateGo: PropTypes.func.isRequired,

@@ -48,7 +48,7 @@ public class ListWaiversPage
   public SelenideElement waiverDetailsTitle() {
     return child(".nx-tile-header--hrule h2");
   }
-
+ 
   public SelenideElement waiverListTitle() {
     return child(".nx-tile-header__title h2");
   }
@@ -83,6 +83,40 @@ public class ListWaiversPage
 
   public DeleteWaiverModal deleteWaiverModal() {
     return new DeleteWaiverModal();
+  }
+
+  public RequestWaiversPopover requestWaiversPopover() {
+    return new RequestWaiversPopover();
+  }
+
+  public SelenideElement requestWaiverButton() {
+    return child("#request-waiver-btn");
+  }
+
+  public class RequestWaiversPopover
+      extends BasicElement<RequestWaiversPopover>
+  {
+    private static final String ROOT_SELECTOR = "#request-waivers";
+
+    public SelenideElement root() {
+      return $(ROOT_SELECTOR);
+    }
+
+    public SelenideElement requestWaiverHeader() {
+      return child(".request-waivers-header__title-text");
+    }
+
+    public SelenideElement requestWaiverReadOnlyData() {
+      return child(".nx-read-only");
+    }
+
+    public SelenideElement requestWaiverPolicyViolationId() {
+      return child("#request-waivers-policy-violation-id");
+    }
+
+    public SelenideElement requestWaiverCancelButton() {
+      return child("#request-waivers-close-button");
+    }
   }
 
   public class WaiverListTable

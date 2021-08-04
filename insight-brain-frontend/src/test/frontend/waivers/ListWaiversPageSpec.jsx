@@ -203,10 +203,17 @@ describe('ListWaiversPage', function () {
     expect(component.find('#list-waivers-component-name')).toHaveText('filename');
   });
 
-  it('shows a button on the waiver list table header', function () {
+  it('shows a Request Waiver button on the waiver list table header', () => {
     const component = getShallowComponent();
     const buttonSection = component.find('.nx-tile__actions');
-    const button = buttonSection.find(NxButton);
+    const button = buttonSection.find(NxButton).at(0);
+    expect(button.find('span')).toHaveText('Request Waiver');
+  });
+
+  it('shows an Add Waiver button on the waiver list table header', () => {
+    const component = getShallowComponent();
+    const buttonSection = component.find('.nx-tile__actions');
+    const button = buttonSection.find(NxButton).at(1);
     expect(button.find('span')).toHaveText('Add Waiver');
     const icon = button.find(NxFontAwesomeIcon);
     expect(icon).toHaveProp('icon', faPlus);

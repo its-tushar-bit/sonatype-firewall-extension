@@ -6,29 +6,35 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { faCube, faSitemap, faTerminal } from '@fortawesome/free-solid-svg-icons';
-import { NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import { NxOverflowTooltip, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 
 import { getComponentName } from '../util/componentNameUtils';
 
 export default function ViolationDetailsSubtitle(props) {
   return (
     <div className="nx-tile-header__subtitle">
-      <span className="iq-violation-details__subtitle-part">
-        <span className="iq-inverse-icon-wrapper">
-          <NxFontAwesomeIcon icon={faSitemap} inverse />
+      <NxOverflowTooltip>
+        <span className="iq-violation-details__subtitle-part nx-truncate-ellipsis">
+          <span className="iq-inverse-icon-wrapper">
+            <NxFontAwesomeIcon icon={faSitemap} inverse />
+          </span>
+          <span>{props.organizationName}</span>
         </span>
-        <span>{props.organizationName}</span>
-      </span>
-      <span className="iq-violation-details__subtitle-part">
-        <span className="iq-inverse-icon-wrapper">
-          <NxFontAwesomeIcon icon={faTerminal} inverse />
+      </NxOverflowTooltip>
+      <NxOverflowTooltip>
+        <span className="iq-violation-details__subtitle-part nx-truncate-ellipsis">
+          <span className="iq-inverse-icon-wrapper">
+            <NxFontAwesomeIcon icon={faTerminal} inverse />
+          </span>
+          <span>{props.applicationName}</span>
         </span>
-        <span>{props.applicationName}</span>
-      </span>
-      <span className="iq-violation-details__subtitle-part">
-        <NxFontAwesomeIcon icon={faCube} />
-        <span>{getComponentName(props)}</span>
-      </span>
+      </NxOverflowTooltip>
+      <NxOverflowTooltip>
+        <span className="iq-violation-details__subtitle-part nx-truncate-ellipsis">
+          <NxFontAwesomeIcon icon={faCube} />
+          <span>{getComponentName(props)}</span>
+        </span>
+      </NxOverflowTooltip>
     </div>
   );
 }

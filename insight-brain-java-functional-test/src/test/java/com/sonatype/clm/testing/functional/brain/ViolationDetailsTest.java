@@ -118,7 +118,12 @@ public class ViolationDetailsTest
     eyesWatcher.eyesCheck();
 
     tile.headerTitle().shouldHave(text("Violation of Policy 1"));
-    tile.headerSubtitle().shouldHave(text("Org 1App 1Group1 : Artifact1 : Version1"));
+    ElementsCollection elements = tile.headerSubtitle().findAll(".iq-violation-details__subtitle-part");
+    elements.shouldHaveSize(3);
+    elements.get(0).shouldHave(text("Org 1"));
+    elements.get(1).shouldHave(text("App 1"));
+    elements.get(2).shouldHave(text("Group1 : Artifact1 : Version1"));
+
     tile.firstReported().shouldHave(text("2 days ago"));
     tile.lastReported().shouldHave(text("1 day ago"));
     tile.policyType().shouldHave(text("Security"));

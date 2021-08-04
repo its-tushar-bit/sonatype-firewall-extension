@@ -18,6 +18,8 @@ const REDUCER_NAME = 'componentDetailsPolicyViolations';
 const initialState = {
   violations: null,
   waivers: null,
+  showComponentWaiversPopover: false,
+  reloadComponentWaivers: false,
   loading: false,
   loadError: null,
   showViolationsDetail: false,
@@ -38,8 +40,10 @@ const loadFulfilled = (state, { payload }) => {
     waiversResult.waiversByOwner.map((waiversWithOwner) =>
       waiversWithOwner.waivers.map((waiver) => ({
         ...waiver,
-        type: waiversWithOwner.ownerType,
-        ownerName: waiversWithOwner.ownerName,
+        policyWaiverId: waiver.id,
+        scopeOwnerId: waiversWithOwner.ownerId,
+        scopeOwnerType: waiversWithOwner.ownerType,
+        scopeOwnerName: waiversWithOwner.ownerName,
       }))
     )
   );
@@ -67,7 +71,7 @@ const mapWaiversInformationToViolations = (componentWaivers, allViolations) => {
     ...violation,
     applicableWaivers: componentWaivers
       .filter((waiver) => waiverIsApplicableToViolation(waiver, violation))
-      .map((waiver) => waiver.id),
+      .map((waiver) => waiver.policyWaiverId),
   }));
 };
 
@@ -76,6 +80,15 @@ function loadFailed(state, { payload }) {
     ...state,
     loading: false,
     loadError: Messages.getHttpErrorMessage(payload),
+  };
+}
+
+function toggleComponentWaiversPopover(state) {
+  const newVal = !state.showComponentWaiversPopover;
+  return {
+    ...state,
+    showComponentWaiversPopover: newVal,
+    reloadComponentWaivers: newVal,
   };
 }
 
@@ -92,7 +105,6 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWith
     .then((results) => {
       const violationsResult = results[0].data;
       const waiversResult = results[1].data;
-
       return { violationsResult, waiversResult, hash };
     })
     .catch(rejectWithValue);
@@ -109,6 +121,7 @@ const componentDetailsViolationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
+    toggleComponentWaiversPopover,
     setShowViolationsDetail: propSet('showViolationsDetail'),
   },
   extraReducers: {

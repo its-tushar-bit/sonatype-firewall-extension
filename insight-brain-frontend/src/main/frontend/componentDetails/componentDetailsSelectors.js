@@ -48,6 +48,8 @@ export const selectComponentDetails = createSelector(
       : null
 );
 
+export const selectComponentName = createSelector(selectComponentDetails, prop('name'));
+
 export const selectActiveTabId = createSelector(selectRouterCurrentParams, prop('tabId'));
 
 // This selector requires a second parameter passed, usually these would be props from the component

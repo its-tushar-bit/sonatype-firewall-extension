@@ -9,3 +9,4 @@ import { prop } from 'ramda';
 export const selectComponentDetailsViolationsSlice = prop('componentDetailsPolicyViolations');
 
 export const selectComponentViolations = createSelector(selectComponentDetailsViolationsSlice, prop('violations'));
+export const selectComponentWaivers = createSelector(selectComponentDetailsViolationsSlice, prop('waivers'));

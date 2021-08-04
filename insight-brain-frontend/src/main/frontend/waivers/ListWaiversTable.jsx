@@ -25,6 +25,7 @@ import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfoTile';
 import NxExternalLink from '../react/NxExternalLink';
 import { Messages } from '../util/CommonServices';
+import { waiverType, displayWaiverScope } from '../util/waiverUtils';
 
 export default function ListWaiversTable(props) {
   const {
@@ -36,21 +37,6 @@ export default function ListWaiversTable(props) {
     loadApplicableWaiversError,
     reloadApplicableWaivers,
   } = props;
-
-  const displayWaiverScope = (waiver) => {
-    switch (waiver.scopeOwnerType) {
-      case 'root_organization': {
-        return 'Root Organization';
-      }
-      case 'organization': {
-        return `Organization - ${waiver.scopeOwnerName}`;
-      }
-      case 'application': {
-        return `Application - ${waiver.scopeOwnerName}`;
-      }
-    }
-    return null;
-  };
 
   const displayWaiverInTableRow = curry((isWaiverExpired, waiver) => {
     const rowClass = classnames({
@@ -113,17 +99,6 @@ export default function ListWaiversTable(props) {
     </NxTable>
   );
 }
-
-export const waiverType = {
-  comment: PropTypes.string,
-  createTime: PropTypes.string,
-  hash: PropTypes.string,
-  policyId: PropTypes.string,
-  policyWaiverId: PropTypes.string,
-  scopeOwnerId: PropTypes.string,
-  scopeOwnerName: PropTypes.string,
-  scopeOwnerType: PropTypes.string,
-};
 
 ListWaiversTable.propTypes = {
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(waiverType)),

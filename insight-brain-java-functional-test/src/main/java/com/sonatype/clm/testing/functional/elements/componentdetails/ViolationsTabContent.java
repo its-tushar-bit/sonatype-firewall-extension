@@ -7,6 +7,8 @@ package com.sonatype.clm.testing.functional.elements.componentdetails;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 
+import com.codeborne.selenide.SelenideElement;
+
 public class ViolationsTabContent
     extends BasicElement<ViolationsTabContent>
 {
@@ -18,5 +20,9 @@ public class ViolationsTabContent
 
   public PolicyViolationsTable policyViolationsTable() {
     return PolicyViolationsTable.getPolicyViolationsTableForParent(VIOLATIONS_TAB_SELECTOR);
+  }
+
+  public SelenideElement componentWaiversButton() {
+    return child("#component-details-view-waivers");
   }
 }

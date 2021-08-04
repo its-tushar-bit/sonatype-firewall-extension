@@ -4,24 +4,42 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { connect } from 'react-redux';
+import { pick } from 'ramda';
 
 import PolicyViolations from './PolicyViolations';
 import { actions } from './PolicyViolationsRedux';
-import { selectComponentDetailsViolationsSlice, selectComponentViolations } from './PolicyViolationsSelectors';
+import {
+  selectComponentDetailsViolationsSlice,
+  selectComponentViolations,
+  selectComponentWaivers,
+} from './PolicyViolationsSelectors';
+import { selectComponentName } from '../componentDetailsSelectors';
+import { setWaiverToDelete } from '../../waivers/waiverActions';
 
 function mapStateToProps(state) {
-  const { loading, loadError, showViolationsDetail } = selectComponentDetailsViolationsSlice(state);
-
-  return {
-    violations: selectComponentViolations(state),
+  const {
     loading,
     loadError,
     showViolationsDetail,
+    showComponentWaiversPopover,
+  } = selectComponentDetailsViolationsSlice(state);
+
+  return {
+    violations: selectComponentViolations(state),
+    waivers: selectComponentWaivers(state),
+    componentName: selectComponentName(state),
+    showComponentWaiversPopover,
+    loading,
+    loadError,
+    showViolationsDetail,
+    ...pick(['waiverToDelete'], state.deleteWaiver),
   };
 }
 
 const mapDispatchToProps = {
   loadPolicyViolationsInformation: actions.load,
+  toggleComponentWaiversPopover: actions.toggleComponentWaiversPopover,
+  setWaiverToDelete,
   setShowViolationsDetail: actions.setShowViolationsDetail,
   goToWaivers: actions.goToWaivers,
 };

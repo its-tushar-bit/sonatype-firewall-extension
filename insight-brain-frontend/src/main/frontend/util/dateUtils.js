@@ -5,8 +5,9 @@
  */
 import moment from 'moment';
 
-const STANDARD_DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss [UTC]Z';
-export const formatDate = (date, format = STANDARD_DATE_FORMAT) => {
+export const STANDARD_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss [UTC]Z';
+export const STANDARD_DATE_FORMAT = 'MM/DD/YYYY';
+export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {
   if (typeof date === 'undefined') {
     return '';
   }

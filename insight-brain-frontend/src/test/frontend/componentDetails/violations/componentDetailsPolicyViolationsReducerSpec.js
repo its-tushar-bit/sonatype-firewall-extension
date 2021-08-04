@@ -19,6 +19,57 @@ describe('componentDetailsPolicyViolationsReducer', () => {
     });
   });
 
+  describe('componentDetailsPolicyViolations/toggleComponentWaiversPopover action', () => {
+    it('toggles the value of showComponentWaiversPopover and reloadComponentWaivers', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        showComponentWaiversPopover: false,
+        reloadComponentWaivers: false,
+      });
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleComponentWaiversPopover',
+      });
+      expect(newState.showComponentWaiversPopover).toBe(true);
+      expect(newState.reloadComponentWaivers).toBe(true);
+      expect(newState.other).toBe(stateConstantObject);
+
+      const newState2 = reducer(newState, {
+        type: 'componentDetailsPolicyViolations/toggleComponentWaiversPopover',
+      });
+      expect(newState2.showComponentWaiversPopover).toBe(false);
+      expect(newState2.reloadComponentWaivers).toBe(false);
+      expect(newState2.other).toBe(stateConstantObject);
+    });
+
+    it('keeps showComponentWaiversPopover and showComponentWaiversPopover in sync', () => {
+      let state, newState;
+
+      // intentionally starting state out of sync
+      state = Object.freeze({
+        other: stateConstantObject,
+        showComponentWaiversPopover: false,
+        reloadComponentWaivers: true,
+      });
+      newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleComponentWaiversPopover',
+      });
+      expect(newState.showComponentWaiversPopover).toBe(true);
+      expect(newState.reloadComponentWaivers).toBe(true);
+
+      // intentionally starting state out of sync
+      state = Object.freeze({
+        other: stateConstantObject,
+        showComponentWaiversPopover: true,
+        reloadComponentWaivers: false,
+      });
+      newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleComponentWaiversPopover',
+      });
+      expect(newState.showComponentWaiversPopover).toBe(false);
+      expect(newState.reloadComponentWaivers).toBe(false);
+    });
+  });
+
   describe('componentDetailsPolicyViolations/setShowViolationsDetail action', () => {
     it('sets the showViolationsDetail flag a value', () => {
       const state = Object.freeze({
@@ -145,7 +196,7 @@ describe('componentDetailsPolicyViolationsReducer', () => {
               waivers: [{ id: 'waiverForApp1' }, { id: 'waiverForApp2' }],
             },
             {
-              owner: 'org1',
+              ownerId: 'org1',
               ownerName: 'org1Name',
               ownerType: 'organization',
               waivers: [{ id: 'waiverForOrg1' }, { id: 'waiverForOrg2' }],
@@ -161,10 +212,34 @@ describe('componentDetailsPolicyViolationsReducer', () => {
       });
 
       expect(newState.waivers).toEqual([
-        { id: 'waiverForApp1', type: 'application', ownerName: 'app1Name' },
-        { id: 'waiverForApp2', type: 'application', ownerName: 'app1Name' },
-        { id: 'waiverForOrg1', type: 'organization', ownerName: 'org1Name' },
-        { id: 'waiverForOrg2', type: 'organization', ownerName: 'org1Name' },
+        {
+          id: 'waiverForApp1',
+          policyWaiverId: 'waiverForApp1',
+          scopeOwnerId: 'app1',
+          scopeOwnerType: 'application',
+          scopeOwnerName: 'app1Name',
+        },
+        {
+          id: 'waiverForApp2',
+          policyWaiverId: 'waiverForApp2',
+          scopeOwnerType: 'application',
+          scopeOwnerId: 'app1',
+          scopeOwnerName: 'app1Name',
+        },
+        {
+          id: 'waiverForOrg1',
+          policyWaiverId: 'waiverForOrg1',
+          scopeOwnerId: 'org1',
+          scopeOwnerType: 'organization',
+          scopeOwnerName: 'org1Name',
+        },
+        {
+          id: 'waiverForOrg2',
+          policyWaiverId: 'waiverForOrg2',
+          scopeOwnerId: 'org1',
+          scopeOwnerType: 'organization',
+          scopeOwnerName: 'org1Name',
+        },
       ]);
     });
 

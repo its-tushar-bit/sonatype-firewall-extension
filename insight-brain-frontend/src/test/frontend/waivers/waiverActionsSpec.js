@@ -13,6 +13,8 @@ import {
   getApplicableWaiversUrl,
   getApplicationSummaryUrl,
   deleteWaiverUrl,
+  getReportPolicyThreatsUrl,
+  getComponentWaivers,
 } from '../../../main/frontend/util/CLMLocation';
 import { getPermissionContextTestUrl } from '../../../main/frontend/util/CLMContextLocation';
 import {
@@ -731,8 +733,11 @@ describe('waiverActions', function () {
   });
 
   describe('deleteWaiver', function () {
+    let state;
+
     beforeEach(function () {
-      const state = {
+      state = {
+        componentDetailsPolicyViolations: {},
         violation: {
           violationDetails: {
             policyViolationId: 'foo',
@@ -758,7 +763,7 @@ describe('waiverActions', function () {
     });
 
     describe('after a successful DELETE', function () {
-      it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads applicable waivers and hides success mask', function (done) {
+      it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads applicable waivers if reloadComponentWaivers is falsy', function (done) {
         const requestUrl = deleteWaiverUrl('application', 'ownerId', 'waiverId');
 
         mockAxiosCalls({
@@ -782,6 +787,60 @@ describe('waiverActions', function () {
             expect(store.getActions()[3].payload).toBe('applicableWaivers');
             expect(store.getActions()[4].type).toEqual(WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED);
             expect(store.getActions()[5].type).toBe(WAIVERS_DELETE_MASK_TIMER_DONE);
+            done();
+          }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        });
+
+        expect(store.getActions().length).toBe(1);
+        expect(store.getActions()[0].type).toBe(WAIVERS_DELETE_WAIVER_REQUESTED);
+      });
+
+      it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads component waivers if reloadComponentWaivers is truthy', function (done) {
+        state = {
+          ...state,
+          router: {
+            currentParams: {
+              hash: 'a-hash',
+              publicId: 'publicId',
+              scanId: 'scanId',
+            },
+          },
+          componentDetailsPolicyViolations: {
+            reloadComponentWaivers: true,
+          },
+        };
+        store = SpecUtil.mockReduxStore(state);
+        const requestUrl = deleteWaiverUrl('application', 'ownerId', 'waiverId');
+
+        mockAxiosCalls({
+          get: {
+            [getReportPolicyThreatsUrl('publicId', 'scanId')]: Promise.resolve({ data: 'reportPolicyThreats' }),
+            [getComponentWaivers('application', 'publicId', 'a-hash')]: Promise.resolve({ data: 'componentWaivers' }),
+          },
+          del: {
+            [requestUrl]: Promise.resolve(),
+          },
+        });
+
+        store.dispatch(deleteWaiver('application', 'ownerId', 'waiverId')).then(() => {
+          expect(axios.delete).toHaveBeenCalledWith(requestUrl);
+          setTimeout(() => {
+            const actionStore = store.getActions();
+            expect(actionStore.length).toBe(5);
+            expect(actionStore).toHaveActionTypesInOrder([
+              WAIVERS_DELETE_WAIVER_FULFILLED,
+              'componentDetailsPolicyViolations/load/pending',
+              'componentDetailsPolicyViolations/load/fulfilled',
+              WAIVERS_DELETE_MASK_TIMER_DONE,
+            ]);
+            expect(store.getActions()).toHaveAction({
+              type: 'componentDetailsPolicyViolations/load/fulfilled',
+              payload: {
+                violationsResult: 'reportPolicyThreats',
+                waiversResult: 'componentWaivers',
+                hash: 'a-hash',
+              },
+            });
             done();
           }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         });

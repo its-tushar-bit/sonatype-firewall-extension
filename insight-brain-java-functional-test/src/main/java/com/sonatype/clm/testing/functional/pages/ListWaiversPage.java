@@ -177,7 +177,7 @@ public class ListWaiversPage
     }
   }
 
-  public class DeleteWaiverModal
+  public static class DeleteWaiverModal
       extends BasicElement<DeleteWaiverModal>
   {
     private static final String ROOT_SELECTOR = "#delete-waiver-modal";

@@ -18,6 +18,8 @@ import { getApplicationSummaryUrl } from '../util/CLMLocation';
 import { fetchCrossStageViolation, fetchApplicableWaivers } from '../violation/violationActions';
 import { getExpiryTime } from '../util/waiverUtils';
 
+import { actions as policyViolationsActions } from '../componentDetails/violations/PolicyViolationsRedux';
+
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED';
 export const WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED = 'WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED';
@@ -201,14 +203,21 @@ const deleteWaiverMaskTimerDone = noPayloadActionCreator(WAIVERS_DELETE_MASK_TIM
 export function deleteWaiver(ownerType, ownerId, waiverId) {
   return (dispatch, getState) => {
     dispatch(deleteWaiverRequested());
-    const { policyViolationId } = path(['violation', 'violationDetails'], getState());
+
+    const { violation, componentDetailsPolicyViolations } = getState();
+    const { reloadComponentWaivers } = componentDetailsPolicyViolations;
+    const policyViolationId = path(['violationDetails', 'policyViolationId'], violation);
     const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
 
     return axios
       .delete(endpointUrl)
       .then(() => {
         dispatch(deleteWaiverFulfilled());
-        dispatch(loadApplicableWaivers(policyViolationId));
+        if (!reloadComponentWaivers) {
+          dispatch(loadApplicableWaivers(policyViolationId));
+        } else {
+          dispatch(policyViolationsActions.load());
+        }
         setTimeout(() => {
           dispatch(deleteWaiverMaskTimerDone());
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);

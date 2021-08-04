@@ -1,0 +1,46 @@
+/**
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@import '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+
+#component-waivers-container {
+  max-width: 80%;
+}
+
+.component-waivers-header__title {
+  @include container-horizontal;
+  z-index: 1;
+  display: flex;
+
+  .component-waivers-header__title-text {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  .component-waivers-header__title-close {
+    margin-left: auto;
+    margin-bottom: 0;
+  }
+}
+
+.iq-component-violations-waivers-table--scope,
+.iq-component-violations-waivers-table--comments,
+.iq-component-violations-waivers-table--component-name {
+  overflow-wrap: anywhere;
+  @supports not (overflow-wrap: anywhere) {
+    word-break: break-all;
+  }
+}
+
+.iq-component-violations-waivers-table--created {
+  min-width: 100px;
+}
+
+.iq-component-violations-waivers-table--scope,
+.iq-component-violations-waivers-table--policy-name,
+.iq-component-violations-waivers-table--constraints,
+.iq-component-violations-waivers-table--component-name {
+  min-width: 120px;
+}

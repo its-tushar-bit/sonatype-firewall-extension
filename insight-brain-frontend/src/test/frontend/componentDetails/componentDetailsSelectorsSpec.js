@@ -7,6 +7,7 @@ import {
   selectComponentDetails,
   selectComponentPagination,
   selectComponentViolations,
+  selectComponentName,
 } from '../../../main/frontend/componentDetails/componentDetailsSelectors';
 
 describe('componentDetailsSelectors', () => {
@@ -48,6 +49,7 @@ describe('componentDetailsSelectors', () => {
           },
           {
             hash: 'another-component-hash',
+            derivedComponentName: 'Component2',
           },
           {
             hash: 'and-another-component-hash',
@@ -68,6 +70,7 @@ describe('componentDetailsSelectors', () => {
           },
           {
             hash: 'another-component-hash',
+            derivedComponentName: 'Component2',
           },
         ],
         aggregatedEntries: [
@@ -195,5 +198,25 @@ describe('componentDetailsSelectors', () => {
         expect(actual).toEqual(expected);
       }
     );
+  });
+
+  describe('selectComponentName', () => {
+    it('returns the name prop of the selected component', () => {
+      let actual;
+      actual = selectComponentName(mockState);
+      expect(actual).toEqual('My Component');
+
+      const newState = {
+        ...mockState,
+        router: {
+          ...mockState.router,
+          currentParams: {
+            hash: 'another-component-hash',
+          },
+        },
+      };
+      actual = selectComponentName(newState);
+      expect(actual).toEqual('Component2');
+    });
   });
 });

@@ -3,16 +3,20 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { NxButton } from '@sonatype/react-shared-components';
+
 import * as enzymeUtils from '../../enzymeUtils';
 import PolicyViolations from '../../../../main/frontend/componentDetails/violations/PolicyViolations';
 import PolicyViolationsTable from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTable';
 import PolicyViolationDetailPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailPopover';
+import ComponentWaiversPopover from '../../../../main/frontend/componentDetails/violations/componentWaivers/ComponentWaiversPopover';
 
 describe('PolicyViolations', () => {
   let minimalProps, getShallow, getMounted;
 
   beforeEach(function () {
     minimalProps = {
+      waivers: [],
       violations: [
         {
           policyViolationId: 'policyViolationId',
@@ -22,9 +26,14 @@ describe('PolicyViolations', () => {
           constraints: [],
         },
       ],
+      componentName: 'componentName',
       loadPolicyViolationsInformation: jasmine.createSpy('loadPolicyViolationsInformation'),
       loadError: null,
       loading: false,
+      goToWaivers: jasmine.createSpy('goToWaivers'),
+      showComponentWaiversPopover: false,
+      toggleComponentWaiversPopover: jasmine.createSpy('toggleComponentWaiversPopover'),
+      setWaiverToDelete: jasmine.createSpy('setWaiverToDelete'),
       showViolationsDetail: false,
       setShowViolationsDetail: jasmine.createSpy('setShowViolationsDetail'),
     };
@@ -33,10 +42,47 @@ describe('PolicyViolations', () => {
     getMounted = enzymeUtils.getMountedComponent(PolicyViolations, minimalProps);
   });
 
+  describe('ComponentWaiversPopover', () => {
+    it('is rendered if showComponentWaiversPopover is true', () => {
+      let component = getShallow({ showComponentWaiversPopover: false });
+      let popover = component.find(ComponentWaiversPopover);
+      expect(popover).not.toExist();
+
+      component = getShallow({ showComponentWaiversPopover: true });
+      popover = component.find(ComponentWaiversPopover);
+      expect(popover).toExist();
+      expect(popover).toHaveProp('componentName', minimalProps.componentName);
+      expect(popover).toHaveProp('toggleComponentWaiversPopover', minimalProps.toggleComponentWaiversPopover);
+      expect(popover).toHaveProp('waivers', minimalProps.waivers);
+      expect(popover).toHaveProp('setWaiverToDelete', minimalProps.setWaiverToDelete);
+      expect(popover).toHaveProp('waiverToDelete', minimalProps.waiverToDelete);
+    });
+  });
+
   describe('loadPolicyViolationsInformation action', () => {
     it('calls loadPolicyViolationsInformation when the component renders', () => {
       getMounted();
       expect(minimalProps.loadPolicyViolationsInformation).toHaveBeenCalled();
+    });
+  });
+
+  describe('View All Component Waivers button', () => {
+    it('is rendered', () => {
+      const component = getShallow();
+      const button = component.find(NxButton);
+
+      expect(button).toHaveProp('id', 'component-details-view-waivers');
+      expect(button).toHaveProp('variant', 'tertiary');
+      expect(button).toHaveProp('onClick', minimalProps.toggleComponentWaiversPopover);
+      expect(button).toHaveText('View All Component Waivers');
+    });
+
+    it('calls `toggleComponentWaiversPopover` when clicked', () => {
+      const component = getShallow();
+      const button = component.find(NxButton);
+
+      button.simulate('click');
+      expect(minimalProps.toggleComponentWaiversPopover).toHaveBeenCalled();
     });
   });
 

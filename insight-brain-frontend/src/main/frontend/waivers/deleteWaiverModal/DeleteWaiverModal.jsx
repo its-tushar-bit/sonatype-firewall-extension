@@ -8,7 +8,7 @@ import React from 'react';
 import { NxButton, NxFontAwesomeIcon, NxLoadError, NxModal, NxSubmitMask } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 
-import { waiverType } from '../ListWaiversTable';
+import { waiverType } from '../../util/waiverUtils';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 export default function DeleteWaiverModal(props) {

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { getFutureDate } from './jsUtil';
+import * as PropTypes from 'prop-types';
 
 export const waiverExpirations = [
   { name: 'Never', value: 'never' }, // <select> doesn't handle null values, so use string instead
@@ -20,4 +21,33 @@ export const getExpiryTime = (expiration) => {
     return null;
   }
   return getFutureDate(expiration);
+};
+
+export const displayWaiverScope = (waiver) => {
+  switch (waiver.scopeOwnerType) {
+    case 'root_organization': {
+      return 'Root Organization';
+    }
+    case 'organization': {
+      return `Organization - ${waiver.scopeOwnerName}`;
+    }
+    case 'application': {
+      return `Application - ${waiver.scopeOwnerName}`;
+    }
+  }
+  return null;
+};
+
+export const waiverType = {
+  policyId: PropTypes.string,
+  policyName: PropTypes.string,
+  policyWaiverId: PropTypes.string,
+  scopeOwnerId: PropTypes.string,
+  scopeOwnerName: PropTypes.string,
+  scopeOwnerType: PropTypes.string,
+  hash: PropTypes.string,
+  createTime: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  comment: PropTypes.string,
+  constraintFacts: PropTypes.array,
+  constraintFactsJson: PropTypes.string,
 };

@@ -7,7 +7,10 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
@@ -19,6 +22,8 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.sonatype.clm.testing.functional.pages.AuditLogContent;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
+import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
@@ -48,6 +53,7 @@ import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -279,6 +285,43 @@ public class ComponentDetailsTest
     deleteWaiverModal.root().should(disappear);
 
     waiversForViolationPage.waiverListTable().noWaiversMessage().shouldBe(visible);
+  }
+
+  @Test
+  public void testPolicyViolationsTab_viewAllComponentWaivers() {
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/YYYY");
+    String dateString = dateFormat.format(Date.from(Instant.now()));
+    waiveFirstReportRow();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+
+    componentDetailsPage.violationsTabContent().componentWaiversButton().click();
+    ComponentWaiversPopover componentWaiversPopover = new ComponentWaiversPopover();
+    componentWaiversPopover.shouldBe(visible);
+    componentWaiversPopover.title().shouldHave(text("Component Waivers"));
+    componentWaiversPopover.closePopoverButton().shouldBe(visible);
+    componentWaiversPopover.closePopoverButton().click();
+    componentWaiversPopover.shouldBe(hidden);
+
+    componentDetailsPage.violationsTabContent().componentWaiversButton().click();
+    ComponentWaiversPopoverTable componentWaiversTable = componentWaiversPopover.componentWaiversPopoverTable();
+    componentWaiversTable.shouldBe(visible);
+    componentWaiversTable.getRows().shouldHaveSize(1);
+    SelenideElement row1 = componentWaiversTable.getRow(1);
+    ElementsCollection row1Cells = row1.findAll(".nx-cell");
+    row1Cells.shouldHave(texts("License-Banned", "License not approved in any situation",
+        dateString, "Application - ApplicationReportTest", "com.mycila : license-maven-plugin : 2.11", "- -", ""));
+    componentWaiversTable.deleteWaiverButton(1).click();
+
+    ListWaiversPage.DeleteWaiverModal deleteWaiverModal = componentWaiversPopover.deleteWaiverModal();
+    deleteWaiverModal.root().shouldBe(visible);
+    deleteWaiverModal.yesButton().click();
+    deleteWaiverModal.root().should(disappear);
+
+    componentWaiversTable.emptyTableMessage().shouldBe(visible);
+    componentWaiversTable.emptyTableMessage().shouldHave(text("No existing component waivers"));
   }
 
   /* Part of testPolicyViolationsTab_violationTableEntries. */

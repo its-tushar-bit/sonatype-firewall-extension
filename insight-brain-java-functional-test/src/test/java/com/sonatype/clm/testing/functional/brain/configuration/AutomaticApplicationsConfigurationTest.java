@@ -87,11 +87,11 @@ public class AutomaticApplicationsConfigurationTest
     // check that subsequent changes to the configuration are also persisted
     automaticApplicationsConfigurationPage.toggle().click();
     automaticApplicationsConfigurationPage.toggle().input().shouldNotBe(checked);
-    automaticApplicationsConfigurationPage.organization().chooseOption(new Option(1, org2.getName()));
+    automaticApplicationsConfigurationPage.organization().shouldBe(disabled);
     automaticApplicationsConfigurationPage.update().shouldNotBe(CLM.DISABLED).click();
     FormMask.seeAndWaitForDismissal();
     automaticApplicationsConfigurationPage.update().shouldBe(CLM.DISABLED);
-    verifyConfiguration(false, org2);
+    verifyConfiguration(false, org1);
   }
 
   private void verifyConfiguration(boolean enabled, Organization organization) {

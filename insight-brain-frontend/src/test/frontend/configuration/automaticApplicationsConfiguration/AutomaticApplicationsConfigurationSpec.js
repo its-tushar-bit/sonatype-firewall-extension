@@ -110,6 +110,18 @@ describe('AutomaticApplicationConfiguration', function () {
       dropdown.simulate('change', { target: { value: organizationId } });
       expect(setParentOrganization).toHaveBeenCalledWith(organizationId);
     });
+
+    it('disables select element when toggleAutomaticApplicationEnabled is disabled', function () {
+      const autoApplicationConfig = getShallow({
+        organizations,
+        formState: {
+          enabled: false,
+          parentOrganizationId: organizations[2].id,
+        },
+      });
+      const select = autoApplicationConfig.find('#parent-organization-selector');
+      expect(select).toHaveProp('disabled', true);
+    });
   });
 
   describe('cancel button', function () {

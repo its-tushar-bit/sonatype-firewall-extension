@@ -80,6 +80,7 @@ export default function AutomaticApplicationsConfiguration(props) {
                   id="parent-organization-selector"
                   value={parentOrganizationId}
                   onChange={handleParentOrganizationChange}
+                  disabled={!enabled}
                 >
                   {!parentOrganizationId && <option value="">--Select Organization--</option>}
                   {organizations.map((organization) => (

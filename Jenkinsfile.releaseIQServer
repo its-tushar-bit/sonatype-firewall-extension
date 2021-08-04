@@ -34,8 +34,11 @@ pipeline {
     }
     stage('Stage Release Binaries') {
       steps {
-        build(job: 'insight/insight-brain/release',
-          parameters: [string(name: 'version', value: params.releaseVersion)])
+        triggerBuildAndVerifySafeToContinuePipeline(
+          'insight/insight-brain/release',
+          [string(name: 'version', value: params.releaseVersion)],
+          true
+        )
       }
     }
     stage('Release Jira Version - IQ') {
@@ -75,11 +78,9 @@ pipeline {
     parallel {
       stage('Publish Docker Image') {
         steps {
-          build(
-            job: 'insight/insight-brain/docker/docker-nexus-iq-server',
-            parameters: [
-              run(name: 'releaseBuild', runId: env.runId)
-            ]
+          triggerBuildAndVerifySafeToContinuePipeline(
+            'insight/insight-brain/docker/docker-nexus-iq-server',
+            [run(name: 'releaseBuild', runId: env.runId)]
           )
         }
       }
@@ -127,6 +128,31 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/Release Notification',
           parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+      }
+    }
+  }
+}
+
+def triggerBuildAndVerifySafeToContinuePipeline(String buildName, List<?> params, boolean checkExtraTests = false) {
+  def job = build(job: buildName, parameters: params, propagate: false)
+
+  def result = job.getCurrentResult()
+  if (result == 'ABORTED' || result == 'FAILURE') {
+    error("Stopping IQ Release Pipeline")
+  }
+
+  // build can be unstable due to policy violation or test failure.
+  // we want to stop pipeline if unstable due to test failures
+  if (result == 'UNSTABLE') {
+    def failCount = getTestResults(job).failCount
+    if (failCount > 0) {
+      error("Stopping IQ Release Pipeline due to failing tests on ${buildName}")
+    }
+
+    if (checkExtraTests) {
+      failCount = getTestResultsForDownstreamJob(job, 'insight/insight-brain/extra-tests/master').failCount
+      if (failCount > 0) {
+        error("Stopping IQ Release Pipeline due to failing extra tests on ${buildName}")
       }
     }
   }

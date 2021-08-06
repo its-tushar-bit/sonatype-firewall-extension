@@ -1132,12 +1132,42 @@ describe('applicationReportService', function () {
               ],
             },
             {
+              hash: 'fooHash2',
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo2',
+                  version: '1',
+                },
+              },
+              innerSource: false,
+            },
+            {
               hash: 'barHash',
               componentIdentifier: {
                 format: 'maven',
                 coordinates: {
                   groupId: 'barGroup',
                   artifactId: 'bar',
+                  version: '2',
+                },
+              },
+              innerSource: false,
+              innerSourceData: [
+                {
+                  ownerApplicationName: 'app',
+                  ownerApplicationId: '123',
+                  innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
+                },
+              ],
+            },
+            {
+              hash: 'barHash2',
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar2',
                   version: '2',
                 },
               },
@@ -1168,6 +1198,15 @@ describe('applicationReportService', function () {
                     },
                   },
                 },
+                {
+                  componentIdentifier: {
+                    format: 'a-name',
+                    coordinates: {
+                      name: 'foo2',
+                      version: '1',
+                    },
+                  },
+                },
               ],
             },
             {
@@ -1189,6 +1228,16 @@ describe('applicationReportService', function () {
                     },
                   },
                 },
+                {
+                  componentIdentifier: {
+                    format: 'maven',
+                    coordinates: {
+                      groupId: 'barGroup',
+                      artifactId: 'bar2',
+                      version: '2',
+                    },
+                  },
+                },
               ],
             },
             {
@@ -1201,6 +1250,37 @@ describe('applicationReportService', function () {
                 },
               },
             },
+            {
+              componentIdentifier: {
+                format: 'maven',
+                coordinates: {
+                  groupId: 'barGroup',
+                  artifactId: 'bar2',
+                  version: '2',
+                },
+              },
+            },
+            {
+              componentIdentifier: {
+                format: 'a-name',
+                coordinates: {
+                  name: 'foo2',
+                  version: '1',
+                },
+              },
+              children: [
+                {
+                  componentIdentifier: {
+                    format: 'maven',
+                    coordinates: {
+                      groupId: 'barGroup',
+                      artifactId: 'bar',
+                      version: '2',
+                    },
+                  },
+                },
+              ],
+            },
           ],
         },
         result = applicationReportService.createReportEntries(
@@ -1211,7 +1291,7 @@ describe('applicationReportService', function () {
           dependencies
         ).policies;
 
-      expect(result.length).toEqual(3);
+      expect(result.length).toEqual(5);
 
       expect(result).toContain(
         jasmine.objectContaining({
@@ -1233,6 +1313,7 @@ describe('applicationReportService', function () {
           ],
           innerSourceTDIndicator: false,
           dependencyType: 'D',
+          isOnlyInnerSourceTransitiveDependency: false,
         })
       );
 
@@ -1258,6 +1339,33 @@ describe('applicationReportService', function () {
           innerSourceTDIndicator: true,
           derivedDependencyType: 'transitive',
           dependencyType: 'TD',
+          isOnlyInnerSourceTransitiveDependency: false,
+        })
+      );
+
+      expect(result).toContain(
+        jasmine.objectContaining({
+          hash: 'barHash2',
+          componentIdentifier: {
+            format: 'maven',
+            coordinates: {
+              groupId: 'barGroup',
+              artifactId: 'bar2',
+              version: '2',
+            },
+          },
+          innerSource: false,
+          innerSourceData: [
+            {
+              ownerApplicationName: 'app',
+              ownerApplicationId: '123',
+              innerSourceComponentPurl: 'pkg:maven/tranGroup/tran@2.0.0?type=jar',
+            },
+          ],
+          innerSourceTDIndicator: true,
+          derivedDependencyType: 'transitive',
+          dependencyType: 'TD',
+          isOnlyInnerSourceTransitiveDependency: true,
         })
       );
     });

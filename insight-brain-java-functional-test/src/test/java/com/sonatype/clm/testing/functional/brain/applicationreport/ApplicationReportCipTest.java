@@ -1063,7 +1063,7 @@ public class ApplicationReportCipTest
     cipModal.getElement().shouldBe(visible);
     cipModal.header().shouldHave(text("javax.inject : javax.inject : 1"));
     cipModal.previousButton().shouldBe(enabled);
-    cipModal.dependencyInnerSourceIndicator().shouldBe(visible);
+    cipModal.dependencyInnerSourceIndicator().shouldNotBe(visible);
     cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("direct"))
         .shouldHave(exactText("Direct Dependency"));
     cipModal.closeButton().click();

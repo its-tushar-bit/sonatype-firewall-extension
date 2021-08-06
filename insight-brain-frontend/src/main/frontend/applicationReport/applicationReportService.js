@@ -48,6 +48,7 @@ import { serializeComponentIdentifier } from '../util/componentIdentifierUtils';
 import { getComponentName } from '../util/componentNameUtils';
 import { getDeclaredLicensesDisplay, getObservedLicensesDisplay } from './licenseDisplayUtils';
 import DependencyInfoGenerator from './DependencyInfoGenerator';
+import { findRootAncestors } from './results/cipModal/rootAncestors/rootAncestors';
 
 const joinPathnames = join('\t'),
   toKey = (component) => component.hash || joinPathnames(component.pathnames || []),
@@ -215,6 +216,18 @@ function augmentInnerSourceIndicator(components) {
   return { policies: result, isInnerSourceEnabled: isInnerSourceEnabled };
 }
 
+function augmentIsOnlyInnerSourceTransitiveDependency(components) {
+  components.forEach((component) => {
+    const rootAncestors = findRootAncestors(component.dependencyInfo, components);
+    component.isOnlyInnerSourceTransitiveDependency = !!(
+      !component.innerSource &&
+      component.innerSourceData &&
+      !isNilOrEmpty(rootAncestors) &&
+      rootAncestors.every((rootAncestor) => rootAncestor.innerSource)
+    );
+  });
+}
+
 function addSerializedComponentIdentifier(entry) {
   const { componentIdentifier } = entry;
   if (!componentIdentifier) {
@@ -284,7 +297,10 @@ export function createReportEntries(
     ),
     nonViolatingComponentEntries = into([], nonViolatingEntriesTransducer, nonViolatingBomData);
 
-  return augmentInnerSourceIndicator(concat(augmentedViolationEntries, nonViolatingComponentEntries));
+  const components = concat(augmentedViolationEntries, nonViolatingComponentEntries);
+  const result = augmentInnerSourceIndicator(components);
+  augmentIsOnlyInnerSourceTransitiveDependency(components);
+  return result;
 }
 
 export function createRawDataEntries(

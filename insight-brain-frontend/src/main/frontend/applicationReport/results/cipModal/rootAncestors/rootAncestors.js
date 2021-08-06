@@ -72,7 +72,7 @@ export function mapStateToThis({ applicationReport }) {
 
 // For each componentId in dependencyInfo.rootAncestors, find last matching component in allEntries.
 // Note, allEntries represent non-aggregated list so there could be multiple entries with the same componentId.
-function findRootAncestors(dependencyInfo, allEntries) {
+export function findRootAncestors(dependencyInfo, allEntries) {
   if (!dependencyInfo || dependencyInfo.isDirectDependency || isNilOrEmpty(dependencyInfo.rootAncestors)) {
     return [];
   }

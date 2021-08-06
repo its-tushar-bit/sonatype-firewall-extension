@@ -13,6 +13,13 @@ import { faTrashAlt } from '@fortawesome/pro-solid-svg-icons';
 
 describe('ComponentWaiversPopover', function () {
   let minimalProps, getShallowComponent;
+  const waiverCreateTime = new Date(1627942284167);
+  const waiverCreateDate =
+    (waiverCreateTime.getMonth() + 1).toString().padStart(2, '0') +
+    '/' +
+    waiverCreateTime.getDate().toString().padStart(2, '0') +
+    '/' +
+    waiverCreateTime.getFullYear();
 
   beforeEach(function () {
     const waivers = [
@@ -25,7 +32,7 @@ describe('ComponentWaiversPopover', function () {
         scopeOwnerType: 'application',
         hash: 'hash-1',
         constraintFacts: [{ constraintName: 'constraint-1' }],
-        createTime: 1627942284167,
+        createTime: waiverCreateTime.getTime(),
       },
       {
         policyId: 'policyId2',
@@ -36,7 +43,7 @@ describe('ComponentWaiversPopover', function () {
         scopeOwnerType: 'organization',
         hash: null,
         constraintFacts: [{ constraintName: 'constraint-2' }],
-        createTime: 1627942284167,
+        createTime: waiverCreateTime.getTime(),
         comment: 'Some comment',
       },
     ];
@@ -77,7 +84,7 @@ describe('ComponentWaiversPopover', function () {
     expect(cellsRow1.length).toBe(7);
     expect(cellsRow1.at(0).dive()).toHaveText('policyName1');
     expect(cellsRow1.at(1).dive()).toHaveText('constraint-1');
-    expect(cellsRow1.at(2).dive()).toHaveText('08/02/2021');
+    expect(cellsRow1.at(2).dive()).toHaveText(waiverCreateDate);
     expect(cellsRow1.at(3).dive()).toHaveText('Application - owner1');
     expect(cellsRow1.at(4).dive()).toHaveText('A component name');
     expect(cellsRow1.at(5).dive()).toHaveText('- -');
@@ -88,7 +95,7 @@ describe('ComponentWaiversPopover', function () {
     expect(cellsRow2.length).toBe(7);
     expect(cellsRow2.at(0).dive()).toHaveText('policyName2');
     expect(cellsRow2.at(1).dive()).toHaveText('constraint-2');
-    expect(cellsRow2.at(2).dive()).toHaveText('08/02/2021');
+    expect(cellsRow2.at(2).dive()).toHaveText(waiverCreateDate);
     expect(cellsRow2.at(3).dive()).toHaveText('Organization - owner1');
     expect(cellsRow2.at(4).dive()).toHaveText('All');
     expect(cellsRow2.at(5).dive()).toHaveText('Some comment');

@@ -42,6 +42,7 @@ import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.B
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.BY_POLICY_WAIVER_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.OWNERS_PATH;
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -390,6 +391,55 @@ public class ApiPolicyWaiverResourceTest
 
     assertResponseStatus(204, response);
 
+    List<PolicyWaiver> allPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
+    assertThat(allPolicyWaivers).hasSize(1);
+    assertPolicyWaiver(app.getId(), policy, policyViolationTransitive, allPolicyWaivers.get(0),
+        waiverOptionsDTO.comment, policyViolationTransitive.getHash(), waiverOptionsDTO.expiryTime);
+  }
+  
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_ByComponentIdentifier() throws Exception {
+    testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent(request -> request.query("componentIdentifier",
+        ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e")));
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_ByPackageUrl() throws Exception {
+    testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent(
+        request -> request.query("packageUrl", "pkg:maven/g/direct@v?type=e"));
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_ByHash() throws Exception {
+    testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent(request -> request.query("hash", "hash1"));
+  }
+
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent(
+      UnaryOperator<HttpRequest> operator) throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
+    Policy policy = tempEntity.newPolicy(app);
+    ComponentIdentifier componentIdentifierTransitive =
+        ComponentIdentifier.createMavenCoordinates("g", "transitive", "v", "", "e");
+    PolicyViolation policyViolationTransitive =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, componentIdentifierTransitive, "hash2");
+    ReportTestUtils.createReportFile(app.getId(), policyEvaluation.getScanId(),
+        zipReportDir("/ApiPolicyWaiverResourceTest/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+    ReportTestUtils.createPolicyThreats(app.getId(), policyEvaluation.getScanId(),
+        getCLMServer().getInstance(InsightWork.class), Collections.singletonList(policyViolationTransitive));
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    waiverOptionsDTO.expiryTime = new Date(System.currentTimeMillis() + 1000);
+
+    HttpRequest request = restRequest()
+        .path(TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getPublicId(), BuildStageType.ID)
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON);
+
+    HttpResponse response = operator.apply(request).post();
+    assertResponseStatus(204, response);
     List<PolicyWaiver> allPolicyWaivers = new PolicyWaiverDAO().getByOwnerId(app.getId());
     assertThat(allPolicyWaivers).hasSize(1);
     assertPolicyWaiver(app.getId(), policy, policyViolationTransitive, allPolicyWaivers.get(0),

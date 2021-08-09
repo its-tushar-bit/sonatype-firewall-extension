@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,6 +45,7 @@ import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.B
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.BY_POLICY_WAIVER_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.OWNERS_PATH;
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -402,6 +404,47 @@ public class ApiPolicyWaiverResourceAuditTest
         new ComponentIdentifier(auditedComponentIdentifierMap.get("format").toString(),
             (Map<String, String>) auditedComponentIdentifierMap.get("coordinates"));
 
+    assertThat(auditedComponentIdentifier).isEqualTo(direct);
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent() throws Exception {
+    ReportTestUtils.createReportFile(app.getId(), policyEvaluation.getScanId(),
+        zipReportDir("/ApiPolicyWaiverResourceAuditTest/report", tempDir),
+        getCLMServer().getInstance(InsightWork.class));
+    ComponentIdentifier direct = ComponentIdentifier.createMavenCoordinates("g", "direct", "v", "", "e");
+    ComponentIdentifier transitive = ComponentIdentifier.createMavenCoordinates("g", "transitive", "v", "", "e");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, transitive, "hash2");
+    ReportTestUtils.createPolicyThreats(app.getId(), policyEvaluation.getScanId(),
+        getCLMServer().getInstance(InsightWork.class), Collections.singletonList(policyViolation));
+    ApiWaiverOptionsDTO waiverOptionsDTO = new ApiWaiverOptionsDTO();
+    waiverOptionsDTO.comment = "waiver comment";
+    waiverOptionsDTO.expiryTime = DateUtils.addDays(new Date(), 1);
+
+    restRequest().path(TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH)
+        .parameter(OwnerType.APPLICATION, app.getPublicId(), BuildStageType.ID)
+        .query("hash", "hash1")
+        .body(waiverOptionsDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    PolicyWaiver policyWaiver = new PolicyWaiverDAO().getByPolicyId(policy.getId()).get(0);
+    AuditDTO waiverAuditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER, null);
+    assertCustomData(waiverAuditDTO, "policyWaiverId", policyWaiver.getId());
+    assertCustomData(waiverAuditDTO, "policyId", policy.getId());
+    assertCustomData(waiverAuditDTO, "policyName", policy.getName());
+    assertCustomData(waiverAuditDTO, "comment", waiverOptionsDTO.comment);
+    assertCustomObject(waiverAuditDTO, "policyConstraints",
+        policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(Collectors.toList()));
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_TRANSITIVE_POLICY_VIOLATIONS_WAIVER, null);
+    assertApplicationData(auditDTO, app);
+    assertCustomData(auditDTO, "stageId", BuildStageType.ID);
+    assertCustomData(auditDTO, "comment", waiverOptionsDTO.comment);
+    assertCustomData(auditDTO, "expiryTime", waiverOptionsDTO.expiryTime.getTime());
+    assertCustomData(auditDTO, "componentHash", "hash1");
+    Map<String, ?> auditedComponentIdentifierMap = (Map<String, ?>) auditDTO.data.get("componentIdentifier");
+    ComponentIdentifier auditedComponentIdentifier =
+        new ComponentIdentifier(auditedComponentIdentifierMap.get("format").toString(),
+            (Map<String, String>) auditedComponentIdentifierMap.get("coordinates"));
     assertThat(auditedComponentIdentifier).isEqualTo(direct);
   }
 

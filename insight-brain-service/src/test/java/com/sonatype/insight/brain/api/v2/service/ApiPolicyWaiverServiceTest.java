@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -45,6 +46,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -57,7 +59,9 @@ import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUt
 import static com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -829,6 +833,167 @@ public class ApiPolicyWaiverServiceTest
         .contains("Unable to add waiver for PolicyViolation ID " + policyViolation.getId());
 
     assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_UnknownOwnerId() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
+            "doesNotExist", BuildStageType.ID, null, null, null, null)
+    ).withMessageContaining("Could not find an application with ID doesNotExist.");
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+        () -> apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+            "doesNotExist", BuildStageType.ID, null, null, null, null)
+    ).withMessageContaining("Cannot find organization with ID doesNotExist.");
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_UnknownStageId() {
+    assertThatExceptionOfType(InvalidStageException.class).isThrownBy(
+        () -> apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
+            app.getPublicId(), "doesNotExist", null, null, null, null)
+    ).withMessageContaining("Invalid stage id=doesNotExist");
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_NoWaiverOptions() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Component component = new Component(componentIdentifier);
+    component.setHash("hash");
+    Policy policy = tempEntity.newPolicy(org.getId());
+    PolicyViolation policyViolation =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, componentIdentifier, component.getHash());
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair =
+        Pair.of(component, Collections.singletonList(Pair.of(policyViolation, component)));
+    when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsByComponent(any(), any(), any(), any(), any()))
+        .thenReturn(pair);
+
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
+        app.getPublicId(), BuildStageType.ID, componentIdentifier, null, null, null);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(policyWaivers).hasSize(1);
+    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    assertThat(policyWaiver.getPolicyId()).isEqualTo(policy.getId());
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(policyViolation.getConstraintFactsJson());
+    assertThat(policyWaiver.getHash()).isEqualTo(policyViolation.getHash());
+    assertThat(policyWaiver.getComment()).isNull();
+    assertThat(policyWaiver.getExpiryTime()).isNull();
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Component component = new Component(componentIdentifier);
+    component.setHash("hash");
+    Policy policy = tempEntity.newPolicy(org.getId());
+    PolicyViolation policyViolation =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, componentIdentifier, component.getHash());
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair =
+        Pair.of(component, Collections.singletonList(Pair.of(policyViolation, component)));
+    when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsByComponent(any(), any(), any(), any(), any()))
+        .thenReturn(pair);
+    ApiWaiverOptionsDTO apiWaiverOptionsDTO = new ApiWaiverOptionsDTO();
+    apiWaiverOptionsDTO.comment = "comment";
+    apiWaiverOptionsDTO.expiryTime = DateUtils.addDays(new Date(), 1);
+
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
+        app.getPublicId(), BuildStageType.ID, componentIdentifier, null, null, apiWaiverOptionsDTO);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(policyWaivers).hasSize(1);
+    PolicyWaiver policyWaiver = policyWaivers.get(0);
+    assertThat(policyWaiver.getPolicyId()).isEqualTo(policy.getId());
+    assertThat(policyWaiver.getConstraintFactsJson()).isEqualTo(policyViolation.getConstraintFactsJson());
+    assertThat(policyWaiver.getHash()).isEqualTo(policyViolation.getHash());
+    assertThat(policyWaiver.getComment()).isEqualTo(apiWaiverOptionsDTO.comment);
+    assertThat(policyWaiver.getExpiryTime()).isEqualTo(apiWaiverOptionsDTO.expiryTime);
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_MultiplePolicyViolations_SameApp() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Component component = new Component(componentIdentifier);
+    component.setHash("hash");
+    Policy policy1 = tempEntity.newPolicy(org.getId());
+    Policy policy2 = tempEntity.newPolicy(org.getId());
+    PolicyViolation policyViolation1 =
+        tempEntity.newPolicyViolation(policyEvaluation, policy1, componentIdentifier, component.getHash());
+    PolicyViolation policyViolation2 =
+        tempEntity.newPolicyViolation(policyEvaluation, policy2, componentIdentifier, component.getHash());
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair =
+        Pair.of(component, Arrays.asList(Pair.of(policyViolation1, component), Pair.of(policyViolation2, component)));
+    when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsByComponent(any(), any(), any(), any(), any()))
+        .thenReturn(pair);
+    ApiWaiverOptionsDTO apiWaiverOptionsDTO = new ApiWaiverOptionsDTO();
+    apiWaiverOptionsDTO.comment = "comment";
+    apiWaiverOptionsDTO.expiryTime = DateUtils.addDays(new Date(), 1);
+
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
+        app.getPublicId(), BuildStageType.ID, componentIdentifier, null, null, apiWaiverOptionsDTO);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(app.getId());
+    assertThat(policyWaivers).hasSize(2);
+    PolicyWaiver policyWaiver1 =
+        policyWaivers.stream().filter(p -> p.getPolicyId().equals(policy1.getId())).findFirst().orElse(null);
+    assertThat(policyWaiver1).isNotNull();
+    assertThat(policyWaiver1.getConstraintFactsJson()).isEqualTo(policyViolation1.getConstraintFactsJson());
+    assertThat(policyWaiver1.getHash()).isEqualTo(policyViolation1.getHash());
+    assertThat(policyWaiver1.getComment()).isEqualTo(apiWaiverOptionsDTO.comment);
+    assertThat(policyWaiver1.getExpiryTime()).isEqualTo(apiWaiverOptionsDTO.expiryTime);
+    PolicyWaiver policyWaiver2 =
+        policyWaivers.stream().filter(p -> p.getPolicyId().equals(policy2.getId())).findFirst().orElse(null);
+    assertThat(policyWaiver2).isNotNull();
+    assertThat(policyWaiver2.getConstraintFactsJson()).isEqualTo(policyViolation2.getConstraintFactsJson());
+    assertThat(policyWaiver2.getHash()).isEqualTo(policyViolation2.getHash());
+    assertThat(policyWaiver2.getComment()).isEqualTo(apiWaiverOptionsDTO.comment);
+    assertThat(policyWaiver2.getExpiryTime()).isEqualTo(apiWaiverOptionsDTO.expiryTime);
+  }
+
+  @Test
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_MultiplePolicyViolations_DifferentApps() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    Component component = new Component(componentIdentifier);
+    component.setHash("hash");
+    Policy policy1 = tempEntity.newPolicy(org.getId());
+    Policy policy2 = tempEntity.newPolicy(org.getId());
+    Application application1 = tempEntity.newApplication(org.getId());
+    Application application2 = tempEntity.newApplication(org.getId());
+    PolicyEvaluation policyEvaluation1 =
+        tempEntity.newPolicyEvaluation(application1.getId(), BuildStageType.ID, "scanId1", new Date());
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(application2.getId(), BuildStageType.ID, "scanId2", new Date());
+    PolicyViolation policyViolation1 =
+        tempEntity.newPolicyViolation(policyEvaluation1, policy1, componentIdentifier, component.getHash());
+    PolicyViolation policyViolation2 =
+        tempEntity.newPolicyViolation(policyEvaluation2, policy2, componentIdentifier, component.getHash());
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair =
+        Pair.of(component, Arrays.asList(Pair.of(policyViolation1, component), Pair.of(policyViolation2, component)));
+    when(apiPolicyViolationServiceV2Mock.getTransitivePolicyViolationsByComponent(any(), any(), any(), any(), any()))
+        .thenReturn(pair);
+    ApiWaiverOptionsDTO apiWaiverOptionsDTO = new ApiWaiverOptionsDTO();
+    apiWaiverOptionsDTO.comment = "comment";
+    apiWaiverOptionsDTO.expiryTime = DateUtils.addDays(new Date(), 1);
+
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        org.getPublicId(), BuildStageType.ID, componentIdentifier, null, null, apiWaiverOptionsDTO);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getByOwnerId(org.getId());
+    assertThat(policyWaivers).hasSize(2);
+    PolicyWaiver policyWaiver1 =
+        policyWaivers.stream().filter(p -> p.getPolicyId().equals(policy1.getId())).findFirst().orElse(null);
+    assertThat(policyWaiver1).isNotNull();
+    assertThat(policyWaiver1.getConstraintFactsJson()).isEqualTo(policyViolation1.getConstraintFactsJson());
+    assertThat(policyWaiver1.getHash()).isEqualTo(policyViolation1.getHash());
+    assertThat(policyWaiver1.getComment()).isEqualTo(apiWaiverOptionsDTO.comment);
+    assertThat(policyWaiver1.getExpiryTime()).isEqualTo(apiWaiverOptionsDTO.expiryTime);
+    PolicyWaiver policyWaiver2 =
+        policyWaivers.stream().filter(p -> p.getPolicyId().equals(policy2.getId())).findFirst().orElse(null);
+    assertThat(policyWaiver2).isNotNull();
+    assertThat(policyWaiver2.getConstraintFactsJson()).isEqualTo(policyViolation2.getConstraintFactsJson());
+    assertThat(policyWaiver2.getHash()).isEqualTo(policyViolation2.getHash());
+    assertThat(policyWaiver2.getComment()).isEqualTo(apiWaiverOptionsDTO.comment);
+    assertThat(policyWaiver2.getExpiryTime()).isEqualTo(apiWaiverOptionsDTO.expiryTime);
   }
 
   private void assertNotExpiringPolicyWaiver(String ownerId, String comment, String hash) {

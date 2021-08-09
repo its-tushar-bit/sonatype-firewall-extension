@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -15,6 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -25,12 +28,15 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.InvalidStageException;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -75,6 +81,8 @@ public class ApiPolicyWaiverService
 
   private final OwnerDAO ownerDAO;
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   private final ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2;
 
   @Inject
@@ -84,6 +92,7 @@ public class ApiPolicyWaiverService
       PolicyDAO policyDAO,
       ApplicationDAO applicationDAO,
       OwnerDAO ownerDAO,
+      PolicyEvaluationDAO policyEvaluationDAO,
       ApiPolicyViolationServiceV2 apiPolicyViolationServiceV2)
   {
     this.telemetrySender = telemetrySender;
@@ -91,6 +100,7 @@ public class ApiPolicyWaiverService
     this.policyDAO = policyDAO;
     this.applicationDAO = applicationDAO;
     this.ownerDAO = ownerDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
     this.apiPolicyViolationServiceV2 = apiPolicyViolationServiceV2;
   }
 
@@ -304,6 +314,43 @@ public class ApiPolicyWaiverService
         .setComponentHash(component.getHash())
         .setComment(waiverDTO.comment).setData("expiryTime", waiverDTO.expiryTime);
 
+    createPolicyWaivers(owner, waiverDTO, policyViolations);
+  }
+
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
+  public void addWaiverToTransitivePolicyViolationsByOwnerStageComponent(
+      @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(AuthzContext.Key.ID) final String ownerId,
+      String stageId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash,
+      ApiWaiverOptionsDTO apiWaiverOptionsDTO)
+  {
+    Owner owner = IdUtils.getOwnerNotNull(ownerType, ownerId);
+    String stageIdLowercase = stageId.toLowerCase(Locale.ROOT);
+    if (!Stage.isValidStageTypeId(stageIdLowercase)) {
+      throw new InvalidStageException(stageId);
+    }
+    List<PolicyEvaluation> policyEvaluations = policyEvaluationDAO.getLastByApplicationIdsAndStageIds(
+        ownerDAO.getDescendantOrSelfApplicationIds(owner), Collections.singleton(stageIdLowercase));
+    Pair<Component, List<Pair<PolicyViolation, Component>>> pair = apiPolicyViolationServiceV2
+        .getTransitivePolicyViolationsByComponent(stageId, componentIdentifier, packageUrl, hash, policyEvaluations);
+    Component component = pair.getLeft();
+    List<PolicyViolation> policyViolations = pair.getRight().stream()
+        .map(Pair::getLeft)
+        .collect(Collectors.toList());
+    ApiWaiverOptionsDTO waiverDTO = apiWaiverOptionsDTO != null ? apiWaiverOptionsDTO : new ApiWaiverOptionsDTO();
+    AuditData.get()
+        .setStageId(stageId)
+        .setComponentIdentifier(component.getComponentIdentifier())
+        .setComponentHash(component.getHash())
+        .setComment(waiverDTO.comment)
+        .setData("expiryTime", waiverDTO.expiryTime);
+    createPolicyWaivers(owner, waiverDTO, policyViolations);
+  }
+
+  private void createPolicyWaivers(Owner owner, ApiWaiverOptionsDTO waiverDTO, List<PolicyViolation> policyViolations) {
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
       for (PolicyViolation policyViolation : policyViolations) {
@@ -320,7 +367,7 @@ public class ApiPolicyWaiverService
       }
       tx.commit();
       AuditData.get().commitSubEvents();
-      sendTelemetry(ownerType, ownerId);
+      sendTelemetry(owner.getType(), owner.getPublicId());
     }
   }
 

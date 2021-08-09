@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -409,6 +410,66 @@ public class ApiPolicyWaiverServiceAuthzTest
 
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(OwnerType.APPLICATION,
         app.getPublicId(), scanId, componentIdentifier, null, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_Application_Unauthenticated() {
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
+        app.getPublicId(), BuildStageType.ID, null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_Application_Unauthorized() {
+    login();
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
+        app.getPublicId(), BuildStageType.ID, null, null, null, null);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_Application_Authorized() {
+    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.APPLICATION,
+        app.getPublicId(), BuildStageType.ID, null, null, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_Organization_Unauthenticated() {
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        org.getPublicId(), BuildStageType.ID, null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_Organization_Unauthorized() {
+    login();
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        org.getPublicId(), BuildStageType.ID, null, null, null, null);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_Organization_Authorized() {
+    grantPermission(org.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        org.getPublicId(), BuildStageType.ID, null, null, null, null);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_RootOrganization_Unauthenticated() {
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID, null, null, null, null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_RootOrganization_Unauthorized() {
+    login();
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID, null, null, null, null);
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testAddWaiverToTransitivePolicyViolationsByOwnerStageComponent_RootOrganization_Authorized() {
+    grantPermission(Organization.ROOT_ORGANIZATION_ID, Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(OwnerType.ORGANIZATION,
+        Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID, null, null, null, null);
   }
 
   private void addPolicyWaiverWithDefaultOptions(OwnerType ownerType, String ownerId, String violationId) {

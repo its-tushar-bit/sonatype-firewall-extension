@@ -282,7 +282,6 @@ public class ApiPolicyViolationServiceV2
     return result;
   }
 
-  // Visible for testing
   Pair<Component, List<Pair<PolicyViolation, Component>>> getTransitivePolicyViolationsByComponent(
       String stageId,
       ComponentIdentifier componentIdentifier,

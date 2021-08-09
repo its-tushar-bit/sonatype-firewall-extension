@@ -49,6 +49,9 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
 
   static final String TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH = "transitive/{ownerType: application}/{ownerId}/{scanId}";
 
+  static final String TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH =
+      "transitive/{ownerType: application|organization}/{ownerId}/stages/{stageId}";
+
   @Inject
   public DefaultApiPolicyWaiverResource(ApiPolicyWaiverService apiPolicyWaiverService) {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
@@ -117,6 +120,23 @@ public class DefaultApiPolicyWaiverResource implements ApiPolicyWaiverResource
       ApiWaiverOptionsDTO apiWaiverOptionsDTO)
   {
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(ownerType, ownerId, scanId,
+        componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
+  }
+  
+  @Override
+  @POST
+  @Path(TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH)
+  @Audited(AuditEvent.CREATE_TRANSITIVE_POLICY_VIOLATIONS_WAIVER)
+  public void addWaiverToTransitivePolicyViolationsByOwnerStageComponent(
+      @PathParam("ownerType") final OwnerType ownerType,
+      @PathParam("ownerId") final String ownerId,
+      @PathParam("stageId") final String stageId,
+      @QueryParam("componentIdentifier") final ComponentIdentifier componentIdentifier,
+      @QueryParam("packageUrl") final String packageUrl,
+      @QueryParam("hash") final String hash,
+      ApiWaiverOptionsDTO apiWaiverOptionsDTO)
+  {
+    apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByOwnerStageComponent(ownerType, ownerId, stageId,
         componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
   }
 }

@@ -34,4 +34,13 @@ public interface ApiPolicyWaiverResource
       String packageUrl,
       String hash,
       ApiWaiverOptionsDTO apiWaiverOptionsDTO);
+
+  void addWaiverToTransitivePolicyViolationsByOwnerStageComponent(
+      OwnerType ownerType,
+      String ownerId,
+      String stageId,
+      ComponentIdentifier componentIdentifier,
+      String packageUrl,
+      String hash,
+      ApiWaiverOptionsDTO apiWaiverOptionsDTO);
 }

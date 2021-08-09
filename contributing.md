@@ -166,7 +166,7 @@ Merge (squash please) away, and follow through:
 
 Last but not least - tell us about your experience!
 
-* Contact `@Nicholas Blair`, `@Tim Levett`, or `@Brandon Sedgwick` directly via Slack
+* Contact `@Nicholas Blair`, `@Sanika Sudhalkar`, or `@Amirali Ghadiri` directly via Slack
 * Fill out our two question survey:
 
 [Contributing to Lifecycle](https://forms.gle/93VdqMXDXhjS5crFA)

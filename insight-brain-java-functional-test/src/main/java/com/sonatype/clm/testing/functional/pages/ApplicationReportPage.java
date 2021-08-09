@@ -36,6 +36,9 @@ public class ApplicationReportPage
 
   private static final String DEPENDENCY_INDICATOR_SELECTOR = ".iq-dependency-indicator";
 
+  private static final String TRANSITIVE_VIOLATIONS_COUNT_SELECTOR =
+      ".iq-transitive-violations-count";
+
   private static final String ROW_SELECTOR = ".iq-table--application-report tbody .iq-table-row";
 
   public static String url(Application app, String scanId) {
@@ -181,6 +184,10 @@ public class ApplicationReportPage
 
     public ElementsCollection dependencyIndicators() {
       return children(DEPENDENCY_INDICATOR_SELECTOR);
+    }
+
+    public ElementsCollection transitiveViolationsCount() {
+      return children(TRANSITIVE_VIOLATIONS_COUNT_SELECTOR);
     }
   }
 

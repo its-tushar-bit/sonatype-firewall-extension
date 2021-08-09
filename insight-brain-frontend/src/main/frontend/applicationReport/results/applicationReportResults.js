@@ -8,6 +8,7 @@ import { findIndex, isNil, propEq, splitAt } from 'ramda';
 import template from './applicationReportResults.html';
 import cipModalWrapper from './cipModalWrapper.html';
 import { stateGo } from '../../reduxUiRouter/routerActions';
+import { includes } from 'ramda';
 
 export default {
   template,
@@ -121,6 +122,25 @@ function ApplicationReportResultsController(
 
     getViewSbomUrl: function () {
       return CLMLocations.getViewSbomUrl(vm.metadata.application.id, vm.reportParameters.scanId);
+    },
+
+    getTransitiveViolationsCount: function (component) {
+      const transitiveComponentViolations = vm.selectedReport.allEntries.filter(
+        (e) =>
+          !!(
+            e.policyThreatLevel &&
+            !e.waived &&
+            !e.grandfathered &&
+            e.dependencyInfo &&
+            e.dependencyInfo.rootAncestors &&
+            includes(component.componentIdentifier, e.dependencyInfo.rootAncestors)
+          )
+      );
+      return (
+        transitiveComponentViolations.length +
+        ' transitive violation' +
+        (transitiveComponentViolations.length === 1 ? '' : 's')
+      );
     },
   });
 

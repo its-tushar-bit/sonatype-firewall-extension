@@ -384,6 +384,17 @@ public class ApplicationReportTest
   }
 
   @Test
+  public void testInnerSourceTransitiveViolationsCount() {
+    reportPage.aggregateByComponentToggle().shouldBeOn();
+    reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
+        .transitiveViolationsCount().shouldHaveSize(1).get(0).shouldHave(text("2 transitive violations"));
+    reportPage.aggregateByComponentToggle().click();
+    reportPage.aggregateByComponentToggle().shouldBeOff();
+    reportPage.resultRow(21).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
+        .transitiveViolationsCount().shouldHaveSize(0);
+  }
+
+  @Test
   public void testDependencyIndicators() {
     reportPage.rowsWithDependencyInfo().shouldHaveSize(6);
     reportPage.resultRow(5).shouldHave(text("apache-httpclient : commons-httpclient : 3.1"))

@@ -428,4 +428,175 @@ describe('applicationReportResults', function () {
       expect(vm.goToComponentDetailsPage).not.toHaveBeenCalled();
     });
   });
+
+  describe('getTransitiveViolationsCount()', function () {
+    it('returns a count of the transitive policy violations', () => {
+      vm.selectedReport = {
+        allEntries: [
+          {
+            // intentionally empty
+          },
+          {
+            policyThreatLevel: 1,
+          },
+          {
+            dependencyInfo: {},
+          },
+          {
+            policyThreatLevel: 1,
+            dependencyInfo: {},
+          },
+          {
+            policyThreatLevel: 1,
+            dependencyInfo: {
+              rootAncestors: [],
+            },
+          },
+          {
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'npm',
+                  coordinates: {
+                    packageId: 'name1',
+                    version: '1',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            policyThreatLevel: 0,
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'npm',
+                  coordinates: {
+                    packageId: 'name1',
+                    version: '1',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            waived: true,
+            policyThreatLevel: 1,
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'npm',
+                  coordinates: {
+                    packageId: 'name1',
+                    version: '1',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            grandfathered: true,
+            policyThreatLevel: 1,
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'npm',
+                  coordinates: {
+                    packageId: 'name1',
+                    version: '1',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            policyThreatLevel: 1,
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'npm',
+                  coordinates: {
+                    packageId: 'name1',
+                    version: '1',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            policyThreatLevel: 10,
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'npm',
+                  coordinates: {
+                    packageId: 'name1',
+                    version: '1',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            policyThreatLevel: 1,
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'npm',
+                  coordinates: {
+                    packageId: 'name2',
+                    version: '1',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            policyThreatLevel: 1,
+            dependencyInfo: {
+              rootAncestors: [
+                {
+                  format: 'npm',
+                  coordinates: {
+                    packageId: 'name1',
+                    version: '2',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+      const component1 = {
+        componentIdentifier: {
+          format: 'npm',
+          coordinates: {
+            packageId: 'name1',
+            version: '1',
+          },
+        },
+      };
+      const component2 = {
+        componentIdentifier: {
+          format: 'npm',
+          coordinates: {
+            packageId: 'name1',
+            version: '2',
+          },
+        },
+      };
+      const unknown = {
+        componentIdentifier: {
+          format: 'npm',
+          coordinates: {
+            packageId: 'unknown',
+            version: '1',
+          },
+        },
+      };
+      expect(vm.getTransitiveViolationsCount(component1)).toBe('2 transitive violations');
+      expect(vm.getTransitiveViolationsCount(component2)).toBe('1 transitive violation');
+      expect(vm.getTransitiveViolationsCount(unknown)).toBe('0 transitive violations');
+    });
+  });
 });

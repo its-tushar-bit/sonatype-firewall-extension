@@ -206,8 +206,13 @@
                         class="iq-dependency-indicator inner-source">
                   <span>IS</span>
                 </div><!--
-             --><component-display component="component" truncate="true"></component-display>
-              </td>
+             -->
+              <component-display component="component" truncate="true"></component-display>
+              <span class="iq-transitive-violations-count iq-text-indicator iq-pull-right"
+                    ng-if="vm.aggregate && component.innerSource">
+                {{vm.getTransitiveViolationsCount(component)}}
+              </span>
+            </td>
             </tr>
             <tr ng-if="vm.selectedReport.displayedEntries.length === 0" class="iq-table-row">
               <td class="iq-cell iq-cell--empty" colspan="3">No Results</td>

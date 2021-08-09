@@ -11,7 +11,7 @@ import {
   combineValidators,
   validateForm,
   validateNonEmpty,
-  validatePatternMatch,
+  validateEmailPatternMatch,
   validateNameCharacters,
   validateUsernameCharacters,
 } from '../../util/validationUtil';
@@ -105,7 +105,7 @@ const nameValidator = combineValidators([validateNonEmpty, validateDoubleWhitesp
 
 const emailValidator = combineValidators([
   validateNonEmpty,
-  validatePatternMatch(/[\w.]+@[\w.]+\.\w+/, 'Use valid format: abc@xyz.com'),
+  validateEmailPatternMatch('Use valid format: abc@xyz.com'),
 ]);
 
 const setInput = (fieldName, validator) => (payload, state) => {

@@ -6,6 +6,7 @@
 import {
   hasValidationErrors,
   validateHostname,
+  validateEmailPatternMatch,
   validateMaxLength,
   validateNonEmpty,
   validateForm,
@@ -71,6 +72,39 @@ describe('validationUtil', function () {
     it('returns null for valid hostnames', function () {
       expect(validateHostname('8.5.4.5')).toBe(null);
       expect(validateHostname('sonatype.com')).toBe(null);
+    });
+  });
+
+  describe(`validateEmailPatternMatch`, () => {
+    const errorMessage = 'Use valid format: abc@xyz.com';
+    it('allows a valid email address', () => {
+      expect(validateEmailPatternMatch(errorMessage, 'john@doe.com')).toBeNull();
+    });
+
+    it('allows hyphens in email address', () => {
+      expect(validateEmailPatternMatch(errorMessage, 'jane-john@doe-doe.com')).toBeNull();
+    });
+
+    it('allows subdomains in email address domain', () => {
+      expect(validateEmailPatternMatch(errorMessage, 'jane@john.doe-doe.com')).toBeNull();
+    });
+
+    it('allows plus sign in email address', () => {
+      expect(validateEmailPatternMatch(errorMessage, 'jane+1@doe.com')).toBeNull();
+    });
+
+    it('allows other obscure email addresses', () => {
+      expect(validateEmailPatternMatch(errorMessage, 'much."more\\ unusual"@example.com')).toBeNull();
+      expect(validateEmailPatternMatch(errorMessage, 'very.unusual."@".unusual.com@example.com')).toBeNull();
+      expect(
+        validateEmailPatternMatch(errorMessage, 'very."(),:;<>[]".VERY."very@\\\\ "very".unusual@strange.example.com')
+      ).toBeNull();
+      expect(validateEmailPatternMatch(errorMessage, 'quote”xyz@strange.example.com')).toBeNull();
+    });
+
+    it(`returns "${errorMessage}" error if email is invalid`, () => {
+      expect(validateEmailPatternMatch(errorMessage, '@.')).toBe(errorMessage);
+      expect(validateEmailPatternMatch(errorMessage, '.@')).toBe(errorMessage);
     });
   });
 

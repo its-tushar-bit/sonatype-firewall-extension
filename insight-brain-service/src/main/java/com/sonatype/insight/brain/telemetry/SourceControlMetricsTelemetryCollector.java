@@ -25,7 +25,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 public class SourceControlMetricsTelemetryCollector
     implements TelemetryCollector
 {
-  public static final String TOTAL_SC_WITH_PR_ENABLED = "total_source_control_entries_with_pr_enabled";
+  public static final String TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED = "total_source_control_entries_with_pr_enabled";
 
   public static final String TOTAL_APPLICATION_SC_ENTRIES = "total_source_control_applications";
 
@@ -81,7 +81,8 @@ public class SourceControlMetricsTelemetryCollector
     Map<String, Object> attributes = telemetryData.getAttributes();
 
     attributes
-        .put(TOTAL_SC_WITH_PR_ENABLED, String.valueOf(sourceControlDAO.getApplicationsWithPullReqsEnabled().size()));
+        .put(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED,
+            String.valueOf(sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled().size()));
     attributes.put(TOTAL_APPLICATION_SC_ENTRIES, String.valueOf(sourceControlDAO.getByApplication().size()));
     attributes.put(TOTAL_APPLICATIONS, String.valueOf(applicationDAO.getAll().size()));
 

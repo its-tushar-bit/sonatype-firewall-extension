@@ -33,8 +33,8 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.token = sourceControl.getToken();
     apiSourceControlDTO.provider = sourceControl.getProvider() == null ? null : sourceControl.getProvider().toString();
     apiSourceControlDTO.baseBranch = sourceControl.getBaseBranch();
-    apiSourceControlDTO.enablePullRequests = sourceControl.getEnablePullRequests();
-    apiSourceControlDTO.enableStatusChecks = sourceControl.getEnableStatusChecks();
+    apiSourceControlDTO.enablePullRequests = sourceControl.getRemediationPullRequestsEnabled();
+    apiSourceControlDTO.enableStatusChecks = sourceControl.getStatusChecksEnabled();
     return apiSourceControlDTO;
   }
 
@@ -59,8 +59,8 @@ public class ApiSourceControlAdapter
 
     SourceControl sourceControl = new SourceControl.Builder().setOwnerId(dto.ownerId)
         .setRepositoryUrl(dto.repositoryUrl).setUsername(dto.username).setToken(dto.token)
-        .setProvider(getSourceControlProvider(dto.provider)).setEnablePullRequests(dto.enablePullRequests)
-        .setEnableStatusChecks(dto.enableStatusChecks).setBaseBranch(dto.baseBranch).build();
+        .setProvider(getSourceControlProvider(dto.provider)).setRemediationPullRequestsEnabled(dto.enablePullRequests)
+        .setStatusChecksEnabled(dto.enableStatusChecks).setBaseBranch(dto.baseBranch).build();
     return sourceControl;
   }
 }

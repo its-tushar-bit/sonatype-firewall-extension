@@ -205,19 +205,19 @@ public class ApiCompositeSourceControlService
     );
 
     dto.enablePullRequests = collateCompositeDTO(
-        sourceControl.getEnablePullRequests(),
+        sourceControl.getRemediationPullRequestsEnabled(),
         parentName,
-        parentSourceControl.getEnablePullRequests(),
+        parentSourceControl.getRemediationPullRequestsEnabled(),
         grandParentName,
-        grandParentSourceControl.getEnablePullRequests()
+        grandParentSourceControl.getRemediationPullRequestsEnabled()
     );
 
     dto.enableStatusChecks = collateCompositeDTO(
-        sourceControl.getEnableStatusChecks(),
+        sourceControl.getStatusChecksEnabled(),
         parentName,
-        parentSourceControl.getEnableStatusChecks(),
+        parentSourceControl.getStatusChecksEnabled(),
         grandParentName,
-        grandParentSourceControl.getEnableStatusChecks()
+        grandParentSourceControl.getStatusChecksEnabled()
     );
   }
 

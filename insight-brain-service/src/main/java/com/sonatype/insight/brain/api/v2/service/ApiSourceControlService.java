@@ -368,8 +368,8 @@ public class ApiSourceControlService
       attributes.put("repository_url", HdsClientAnalytics.obfuscate(sourceControl.getRepositoryUrl()));
       attributes.put("provider", (sourceControl.getProvider() != null)
           ? sourceControl.getProvider().toString() : null);
-      attributes.put("enable_pull_requests", sourceControl.getEnablePullRequests());
-      attributes.put("enable_status_checks", sourceControl.getEnableStatusChecks());
+      attributes.put("remediation_pull_requests_enabled", sourceControl.getRemediationPullRequestsEnabled());
+      attributes.put("status_checks_enabled", sourceControl.getStatusChecksEnabled());
       attributes.put("base_branch", sourceControl.getBaseBranch());
     }
 

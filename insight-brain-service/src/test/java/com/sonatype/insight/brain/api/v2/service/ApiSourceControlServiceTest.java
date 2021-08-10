@@ -281,7 +281,7 @@ public class ApiSourceControlServiceTest
     }
     assertThat(decrypted).isEqualTo(TOKEN);
     assertTelemetry(METHOD.ADD, org.getId(), reloaded.getRepositoryUrl(),
-        null, reloaded.getEnablePullRequests(), reloaded.getEnableStatusChecks(),
+        null, reloaded.getRemediationPullRequestsEnabled(), reloaded.getStatusChecksEnabled(),
         reloaded.getBaseBranch());
   }
 
@@ -574,8 +574,8 @@ public class ApiSourceControlServiceTest
         for (final String baseBranch : branchOptions) {
           final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
               new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-                  .setEnableStatusChecks(enableStatusChecks)
-                  .setEnablePullRequests(enablePullRequest)
+                  .setStatusChecksEnabled(enableStatusChecks)
+                  .setRemediationPullRequestsEnabled(enablePullRequest)
                   .setBaseBranch(baseBranch)
                   .build());
           final Organization tmpOrg = tempEntity.newOrganization();
@@ -590,8 +590,8 @@ public class ApiSourceControlServiceTest
           expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(tmpOrg.getId()));
           expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(reloaded.getRepositoryUrl()));
           expectedAttributes.put("provider", null);
-          expectedAttributes.put("enable_pull_requests", enablePullRequest);
-          expectedAttributes.put("enable_status_checks", enableStatusChecks);
+          expectedAttributes.put("remediation_pull_requests_enabled", enablePullRequest);
+          expectedAttributes.put("status_checks_enabled", enableStatusChecks);
           expectedAttributes.put("base_branch", baseBranch);
 
           final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor =
@@ -645,8 +645,8 @@ public class ApiSourceControlServiceTest
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
     expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(repositoryUrl));
     expectedAttributes.put("provider", provider);
-    expectedAttributes.put("enable_pull_requests", enablePullRequests);
-    expectedAttributes.put("enable_status_checks", enableStatusChecks);
+    expectedAttributes.put("remediation_pull_requests_enabled", enablePullRequests);
+    expectedAttributes.put("status_checks_enabled", enableStatusChecks);
     expectedAttributes.put("base_branch", baseBranch);
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL);

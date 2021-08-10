@@ -415,7 +415,7 @@ public class ApplicationCloneService
 
     detachEntity(sourceControl);
     sourceControl.setOwnerId(clonedApp.getId());
-    sourceControl.setEnablePullRequests(false);
+    sourceControl.setRemediationPullRequestsEnabled(false);
     sourceControlDAO.insert(tx, sourceControl);
 
     log.info("Cloned source control {} to source control {}.", sourceSourceControlId, sourceControl.getId());

@@ -81,8 +81,8 @@ public class SourceControlUtils
 
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo(sourceControl.getRepositoryUrl(), sourceControl.getUsername(), sourceControl.getToken(),
-            sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getEnablePullRequests(),
-            sourceControl.getEnableStatusChecks());
+            sourceControl.getProvider(), sourceControl.getBaseBranch(),
+            sourceControl.getRemediationPullRequestsEnabled(), sourceControl.getStatusChecksEnabled());
 
     if (!gitRepositoryInfo.isDataComplete()) {
       // check at sub-organization level for missing fields
@@ -142,11 +142,11 @@ public class SourceControlUtils
     }
 
     if (gitRepositoryInfo.enableStatusChecks == null) {
-      gitRepositoryInfo.enableStatusChecks = orgSourceControl.getEnableStatusChecks();
+      gitRepositoryInfo.enableStatusChecks = orgSourceControl.getStatusChecksEnabled();
     }
 
     if (gitRepositoryInfo.enablePullRequests == null) {
-      gitRepositoryInfo.enablePullRequests = orgSourceControl.getEnablePullRequests();
+      gitRepositoryInfo.enablePullRequests = orgSourceControl.getRemediationPullRequestsEnabled();
     }
 
     if (Strings.isNullOrEmpty(gitRepositoryInfo.username)) {

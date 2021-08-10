@@ -694,9 +694,10 @@ public class TemporaryEntity
   public DashboardFilter newDashboardFilterLegacy(String username, String filterName, String filter) {
     String id = uuid();
     try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-        PreparedStatement statement = connection.prepareStatement("INSERT INTO dashboard_filter " + //
-            "(dashboard_filter_id, username, username_lowercase, name, name_lowercase_no_whitespace, filter_json) " + //
-            "VALUES (?1, ?2, ?3, ?4, ?5, ?6)")) {
+         PreparedStatement statement = connection.prepareStatement("INSERT INTO dashboard_filter " + //
+             "(dashboard_filter_id, username, username_lowercase, name, name_lowercase_no_whitespace, filter_json) " +
+             //
+             "VALUES (?1, ?2, ?3, ?4, ?5, ?6)")) {
       statement.setString(1, id);
       statement.setString(2, username);
       statement.setString(3, User.normalizeUsername(username));
@@ -948,10 +949,11 @@ public class TemporaryEntity
     return newMembershipMapping(contextId, roleId, username, MemberType.USER);
   }
 
-  public MembershipMapping newMembershipMapping(String contextId,
-                                                String roleId,
-                                                String memberName,
-                                                MemberType memberType)
+  public MembershipMapping newMembershipMapping(
+      String contextId,
+      String roleId,
+      String memberName,
+      MemberType memberType)
   {
     MembershipMapping membershipMapping = new MembershipMapping(contextId, roleId, memberName, memberType);
     membershipMappingDAO.insert(membershipMapping);
@@ -1023,11 +1025,12 @@ public class TemporaryEntity
     return newLicenseThreatGroup(null, ownerId, name, threatLevel, licenseIds);
   }
 
-  public LicenseThreatGroup newLicenseThreatGroup(String id,
-                                                  String ownerId,
-                                                  String name,
-                                                  int threatLevel,
-                                                  String... licenseIds)
+  public LicenseThreatGroup newLicenseThreatGroup(
+      String id,
+      String ownerId,
+      String name,
+      int threatLevel,
+      String... licenseIds)
   {
     LicenseThreatGroup ltg = new LicenseThreatGroup(ownerId, name, threatLevel);
     if (id != null) {
@@ -1047,9 +1050,10 @@ public class TemporaryEntity
     return newLicenseThreatGroupLicense(ownerId, licenseThreatGroupId, "Apache-2.0");
   }
 
-  public LicenseThreatGroupLicense newLicenseThreatGroupLicense(String ownerId,
-                                                                String licenseThreatGroupId,
-                                                                String licenseId)
+  public LicenseThreatGroupLicense newLicenseThreatGroupLicense(
+      String ownerId,
+      String licenseThreatGroupId,
+      String licenseId)
   {
     LicenseThreatGroupLicense licenseThreatGroupLicense = new LicenseThreatGroupLicense(ownerId, licenseThreatGroupId,
         licenseId);
@@ -1057,37 +1061,41 @@ public class TemporaryEntity
     return licenseThreatGroupLicense;
   }
 
-  public LicenseOverride newLicenseOverride(String ownerId,
-                                            ComponentIdentifier componentIdentifier,
-                                            LicenseOverrideStatus status,
-                                            Set<String> licenseIds)
+  public LicenseOverride newLicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      Set<String> licenseIds)
   {
     return newLicenseOverride(ownerId, componentIdentifier, status, licenseIds, "testing");
   }
 
-  public LicenseOverride newLicenseOverride(String ownerId,
-                                            ComponentIdentifier componentIdentifier,
-                                            LicenseOverrideStatus status,
-                                            String licenseId)
+  public LicenseOverride newLicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      String licenseId)
   {
     return newLicenseOverride(ownerId, componentIdentifier, status, licenseId, "testing");
   }
 
-  public LicenseOverride newLicenseOverride(String ownerId,
-                                            ComponentIdentifier componentIdentifier,
-                                            LicenseOverrideStatus status,
-                                            String licenseId,
-                                            String comment)
+  public LicenseOverride newLicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      String licenseId,
+      String comment)
   {
     return newLicenseOverride(ownerId, componentIdentifier, status,
         licenseId != null ? Collections.singleton(licenseId) : null, comment);
   }
 
-  public LicenseOverride newLicenseOverride(String ownerId,
-                                            ComponentIdentifier componentIdentifier,
-                                            LicenseOverrideStatus status,
-                                            Set<String> licenseIds,
-                                            String comment)
+  public LicenseOverride newLicenseOverride(
+      String ownerId,
+      ComponentIdentifier componentIdentifier,
+      LicenseOverrideStatus status,
+      Set<String> licenseIds,
+      String comment)
   {
     LicenseOverride override = new LicenseOverride(ownerId, componentIdentifier, status, licenseIds, comment);
     licenseOverrideDAO.insert(override);
@@ -1114,11 +1122,12 @@ public class TemporaryEntity
     return waiver;
   }
 
-  public PolicyWaiver newWaiver(String hash,
-                                String policyId,
-                                String ownerId,
-                                List<ConstraintFact> constraintFacts,
-                                String comment)
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String comment)
   {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     waiverDAO.insert(waiver);
@@ -1132,7 +1141,8 @@ public class TemporaryEntity
     return waiver;
   }
 
-  public PolicyWaiver newWaiver(String hash,
+  public PolicyWaiver newWaiver(
+      String hash,
       String policyId,
       String ownerId,
       List<ConstraintFact> constraintFacts,
@@ -1145,13 +1155,14 @@ public class TemporaryEntity
     return waiver;
   }
 
-  public PolicyWaiver newWaiver(String hash,
-                                String policyId,
-                                String ownerId,
-                                List<ConstraintFact> constraintFacts,
-                                String comment,
-                                Date createTime,
-                                Date expiryTime)
+  public PolicyWaiver newWaiver(
+      String hash,
+      String policyId,
+      String ownerId,
+      List<ConstraintFact> constraintFacts,
+      String comment,
+      Date createTime,
+      Date expiryTime)
   {
     PolicyWaiver waiver = new PolicyWaiver(hash, policyId, ownerId, constraintFacts, comment);
     waiver.setCreateTime(createTime);
@@ -1279,12 +1290,13 @@ public class TemporaryEntity
     return newPolicy(ownerId, name, threatLevel, null, null, null);
   }
 
-  public Policy newPolicy(String ownerId,
-                          String name,
-                          int threatLevel,
-                          String action,
-                          String stageTypeId,
-                          Notifications notifications)
+  public Policy newPolicy(
+      String ownerId,
+      String name,
+      int threatLevel,
+      String action,
+      String stageTypeId,
+      Notifications notifications)
   {
     Policy policy = new Policy(null /* id */, name);
     policy.setOwnerId(ownerId);
@@ -1451,12 +1463,13 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
-  public PolicyEvaluation newPolicyEvaluation(String applicationId,
-                                              String stageTypeId,
-                                              String scanId,
-                                              boolean isReevaluation,
-                                              boolean isForMonitoring,
-                                              Date time)
+  public PolicyEvaluation newPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      boolean isReevaluation,
+      boolean isForMonitoring,
+      Date time)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
         isForMonitoring, "system", ScanTriggerType.CLI);
@@ -1465,26 +1478,28 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
-  public PolicyEvaluation newPolicyEvaluation(String applicationId,
-                                              String stageTypeId,
-                                              String scanId,
-                                              boolean isReevaluation,
-                                              boolean isForMonitoring,
-                                              boolean isForObsoleteScan,
-                                              Date time)
+  public PolicyEvaluation newPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      boolean isReevaluation,
+      boolean isForMonitoring,
+      boolean isForObsoleteScan,
+      Date time)
   {
     return newPolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation, isForMonitoring, isForObsoleteScan,
         time, null);
   }
 
-  public PolicyEvaluation newPolicyEvaluation(String applicationId,
-                                              String stageTypeId,
-                                              String scanId,
-                                              boolean isReevaluation,
-                                              boolean isForMonitoring,
-                                              boolean isForObsoleteScan,
-                                              Date time,
-                                              String commitHash)
+  public PolicyEvaluation newPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      boolean isReevaluation,
+      boolean isForMonitoring,
+      boolean isForObsoleteScan,
+      Date time,
+      String commitHash)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
         isForMonitoring, "system", ScanTriggerType.CLI);
@@ -1495,15 +1510,16 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
-  public PolicyEvaluation newPolicyEvaluation(String applicationId,
-                                              String stageTypeId,
-                                              String scanId,
-                                              boolean isReevaluation,
-                                              boolean isForMonitoring,
-                                              boolean isForObsoleteScan,
-                                              Date time,
-                                              String commitHash,
-                                              ScanTriggerType scanTriggerType)
+  public PolicyEvaluation newPolicyEvaluation(
+      String applicationId,
+      String stageTypeId,
+      String scanId,
+      boolean isReevaluation,
+      boolean isForMonitoring,
+      boolean isForObsoleteScan,
+      Date time,
+      String commitHash,
+      ScanTriggerType scanTriggerType)
   {
     PolicyEvaluation policyEvaluation = new PolicyEvaluation(applicationId, stageTypeId, scanId, isReevaluation,
         isForMonitoring, "system", scanTriggerType);
@@ -1514,21 +1530,23 @@ public class TemporaryEntity
     return policyEvaluation;
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            ComponentIdentifier componentIdentifier,
-                                            String hash,
-                                            String reason)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      String reason)
   {
     return newPolicyViolation(evaluation, policy, componentIdentifier, hash, reason, null /* filename */);
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            ComponentIdentifier componentIdentifier,
-                                            String hash,
-                                            String reason,
-                                            String filename)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      String reason,
+      String filename)
   {
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
@@ -1551,13 +1569,14 @@ public class TemporaryEntity
     return policyViolation;
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            String groupId,
-                                            String artifactId,
-                                            String version,
-                                            String hash,
-                                            String reason)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      String groupId,
+      String artifactId,
+      String version,
+      String hash,
+      String reason)
   {
     ComponentIdentifier componentIdentifier = null;
     if (groupId != null) {
@@ -1571,23 +1590,25 @@ public class TemporaryEntity
         "Artifact1", "Version1");
   }
 
-  public PolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
-                                                  Policy policy,
-                                                  ComponentIdentifier componentIdentifier,
-                                                  String hash,
-                                                  PolicyWaiver policyWaiver)
+  public PolicyViolation newWaivedPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      PolicyWaiver policyWaiver)
   {
     return newWaivedPolicyViolation(evaluation, policy, policy.getThreatLevel(), policy.getThreatCategory(),
         componentIdentifier, hash, policyWaiver);
   }
 
-  public PolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
-                                                  Policy policy,
-                                                  int threatLevel,
-                                                  PolicyThreatCategory threatCategory,
-                                                  ComponentIdentifier componentIdentifier,
-                                                  String hash,
-                                                  PolicyWaiver policyWaiver)
+  public PolicyViolation newWaivedPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      int threatLevel,
+      PolicyThreatCategory threatCategory,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      PolicyWaiver policyWaiver)
   {
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
@@ -1606,16 +1627,18 @@ public class TemporaryEntity
     return policyViolation;
   }
 
-  public PolicyViolation newWaivedPolicyViolation(PolicyEvaluation evaluation,
-                                                  Policy policy,
-                                                  PolicyWaiver policyWaiver)
+  public PolicyViolation newWaivedPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      PolicyWaiver policyWaiver)
   {
     return newWaivedPolicyViolation(evaluation, policy,
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), "hash", policyWaiver);
   }
 
-  public PolicyViolation newGrandfatheredPolicyViolation(PolicyEvaluation evaluation,
-                                                         Policy policy)
+  public PolicyViolation newGrandfatheredPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy)
   {
     return newGrandfatheredPolicyViolation(evaluation, policy, ComponentIdentifier.createNpmCoordinates(uuid(), uuid()),
         newRandomHash());
@@ -1625,10 +1648,11 @@ public class TemporaryEntity
     return uuid().substring(0, 20);
   }
 
-  public PolicyViolation newGrandfatheredPolicyViolation(PolicyEvaluation evaluation,
-                                                         Policy policy,
-                                                         ComponentIdentifier componentIdentifier,
-                                                         String hash)
+  public PolicyViolation newGrandfatheredPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      ComponentIdentifier componentIdentifier,
+      String hash)
   {
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
@@ -1646,79 +1670,86 @@ public class TemporaryEntity
     return policyViolation;
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            int threatLevel,
-                                            PolicyThreatCategory category)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      int threatLevel,
+      PolicyThreatCategory category)
   {
     return newPolicyViolation(evaluation, policy, threatLevel, category, null /* groupId */, null /* artifactId */,
         null /* version */, "hash");
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            int threatLevel,
-                                            PolicyThreatCategory category,
-                                            String groupId,
-                                            String artifactId,
-                                            String version)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      int threatLevel,
+      PolicyThreatCategory category,
+      String groupId,
+      String artifactId,
+      String version)
   {
     return newPolicyViolation(evaluation, policy, threatLevel, category, groupId, artifactId, version, "hash");
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            int threatLevel,
-                                            PolicyThreatCategory category,
-                                            String groupId,
-                                            String artifactId,
-                                            String version,
-                                            String hash)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      int threatLevel,
+      PolicyThreatCategory category,
+      String groupId,
+      String artifactId,
+      String version,
+      String hash)
   {
     return newPolicyViolation(evaluation, policy, threatLevel, category, groupId, artifactId, version, hash, null);
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            String groupId,
-                                            String artifactId,
-                                            String version,
-                                            String hash)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      String groupId,
+      String artifactId,
+      String version,
+      String hash)
   {
     return newPolicyViolation(evaluation, policy, groupId, artifactId, version, hash, null);
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            ComponentIdentifier componentIdentifier,
-                                            String hash)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      ComponentIdentifier componentIdentifier,
+      String hash)
   {
     return newPolicyViolation(evaluation, policy, policy.getThreatLevel(), policy.getThreatCategory(),
         componentIdentifier, hash, null);
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            int threatLevel,
-                                            PolicyThreatCategory category,
-                                            String groupId,
-                                            String artifactId,
-                                            String version,
-                                            String hash,
-                                            String actionTypeId)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      int threatLevel,
+      PolicyThreatCategory category,
+      String groupId,
+      String artifactId,
+      String version,
+      String hash,
+      String actionTypeId)
   {
     return newPolicyViolation(evaluation, policy, threatLevel, category,
         groupId != null ? ComponentIdentifier.createMavenCoordinates(groupId, artifactId, version) : null, hash,
         actionTypeId);
   }
 
-  public PolicyViolation newPolicyViolation(PolicyEvaluation evaluation,
-                                            Policy policy,
-                                            int threatLevel,
-                                            PolicyThreatCategory category,
-                                            ComponentIdentifier componentIdentifier,
-                                            String hash,
-                                            String actionTypeId)
+  public PolicyViolation newPolicyViolation(
+      PolicyEvaluation evaluation,
+      Policy policy,
+      int threatLevel,
+      PolicyThreatCategory category,
+      ComponentIdentifier componentIdentifier,
+      String hash,
+      String actionTypeId)
   {
     Constraint constraint = policy.getConstraints().get(0);
     Condition condition = constraint.getConditions().get(0);
@@ -1735,43 +1766,47 @@ public class TemporaryEntity
     return policyViolation;
   }
 
-  public ApplicationComponent newApplicationComponent(String applicationId,
-                                                      String stageTypeId,
-                                                      String hash,
-                                                      ComponentIdentifier componentIdentifier)
+  public ApplicationComponent newApplicationComponent(
+      String applicationId,
+      String stageTypeId,
+      String hash,
+      ComponentIdentifier componentIdentifier)
   {
     return newApplicationComponent(applicationId, stageTypeId, hash, componentIdentifier, null /* pathnames */);
   }
 
-  public ApplicationComponent newApplicationComponent(String applicationId,
-                                                      String stageTypeId,
-                                                      String hash,
-                                                      MatchState matchState,
-                                                      boolean proprietary)
+  public ApplicationComponent newApplicationComponent(
+      String applicationId,
+      String stageTypeId,
+      String hash,
+      MatchState matchState,
+      boolean proprietary)
   {
     return newApplicationComponent(applicationId, stageTypeId, hash,
         ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1"), null, matchState, proprietary,
         new Date());
   }
 
-  public ApplicationComponent newApplicationComponent(String applicationId,
-                                                      String stageTypeId,
-                                                      String hash,
-                                                      ComponentIdentifier componentIdentifier,
-                                                      String pathnamesString)
+  public ApplicationComponent newApplicationComponent(
+      String applicationId,
+      String stageTypeId,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String pathnamesString)
   {
     return newApplicationComponent(applicationId, stageTypeId, hash, componentIdentifier, pathnamesString,
         MatchState.EXACT, false, new Date());
   }
 
-  public ApplicationComponent newApplicationComponent(String applicationId,
-                                                      String stageTypeId,
-                                                      String hash,
-                                                      ComponentIdentifier componentIdentifier,
-                                                      String pathnamesString,
-                                                      MatchState matchState,
-                                                      boolean proprietary,
-                                                      Date time)
+  public ApplicationComponent newApplicationComponent(
+      String applicationId,
+      String stageTypeId,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String pathnamesString,
+      MatchState matchState,
+      boolean proprietary,
+      Date time)
   {
     return newApplicationComponent(applicationId, stageTypeId, hash, componentIdentifier, pathnamesString, matchState,
         IdentificationSource.SONATYPE, proprietary, time);
@@ -1839,9 +1874,9 @@ public class TemporaryEntity
   public UserViewedProductNotification newUserViewedProductNotificationLegacy(String username, String notificationId) {
     String id = uuid();
     try (Connection connection = OperationalDataStoreProvider.getDataSource().getConnection();
-        PreparedStatement statement = connection.prepareStatement("INSERT INTO user_viewed_product_notification " + //
-            "(user_viewed_product_notification_id, username, username_lowercase, notification_id) " + //
-            "VALUES (?1, ?2, ?3, ?4)")) {
+         PreparedStatement statement = connection.prepareStatement("INSERT INTO user_viewed_product_notification " + //
+             "(user_viewed_product_notification_id, username, username_lowercase, notification_id) " + //
+             "VALUES (?1, ?2, ?3, ?4)")) {
       statement.setString(1, id);
       statement.setString(2, username);
       statement.setString(3, User.normalizeUsername(username));
@@ -1912,10 +1947,11 @@ public class TemporaryEntity
     return newRepository(repositoryManager, publicId, enabled, false);
   }
 
-  public Repository newRepository(RepositoryManager repositoryManager,
-                                  String publicId,
-                                  boolean enabled,
-                                  boolean quarantineEnabled)
+  public Repository newRepository(
+      RepositoryManager repositoryManager,
+      String publicId,
+      boolean enabled,
+      boolean quarantineEnabled)
   {
     Repository repository = new Repository(repositoryManager.getId(), publicId);
     repository.setEnabled(enabled);
@@ -1925,19 +1961,21 @@ public class TemporaryEntity
     return repository;
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
-                                                                int threatLevel,
-                                                                String pathname,
-                                                                ComponentIdentifier componentIdentifier)
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      String repositoryId,
+      int threatLevel,
+      String pathname,
+      ComponentIdentifier componentIdentifier)
   {
     return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, false, componentIdentifier);
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
-                                                                int threatLevel,
-                                                                String pathname,
-                                                                boolean waived,
-                                                                ComponentIdentifier componentIdentifier)
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      String repositoryId,
+      int threatLevel,
+      String pathname,
+      boolean waived,
+      ComponentIdentifier componentIdentifier)
   {
     return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, waived, "policyId", "policyName",
         componentIdentifier);
@@ -1953,40 +1991,43 @@ public class TemporaryEntity
         false, policyId, "policyName", null /* componentIdentifier */);
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
-                                                                int threatLevel,
-                                                                String pathname,
-                                                                boolean isWaived,
-                                                                String policyId,
-                                                                String policyName,
-                                                                ComponentIdentifier componentIdentifier)
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      String repositoryId,
+      int threatLevel,
+      String pathname,
+      boolean isWaived,
+      String policyId,
+      String policyName,
+      ComponentIdentifier componentIdentifier)
   {
     return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, null, policyId,
         policyName, componentIdentifier);
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
-                                                                int threatLevel,
-                                                                String pathname,
-                                                                boolean isWaived,
-                                                                String actionId,
-                                                                String policyId,
-                                                                String policyName,
-                                                                ComponentIdentifier componentIdentifier)
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      String repositoryId,
+      int threatLevel,
+      String pathname,
+      boolean isWaived,
+      String actionId,
+      String policyId,
+      String policyName,
+      ComponentIdentifier componentIdentifier)
   {
     return newRepositoryPolicyViolation(repositoryId, threatLevel, pathname, isWaived, actionId, policyId,
         policyName, componentIdentifier, new Date());
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId,
-                                                                int threatLevel,
-                                                                String pathname,
-                                                                boolean isWaived,
-                                                                String actionId,
-                                                                String policyId,
-                                                                String policyName,
-                                                                ComponentIdentifier componentIdentifier,
-                                                                Date time)
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      String repositoryId,
+      int threatLevel,
+      String pathname,
+      boolean isWaived,
+      String actionId,
+      String policyId,
+      String policyName,
+      ComponentIdentifier componentIdentifier,
+      Date time)
   {
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repositoryId, pathname, time, policyId,
         policyName, threatLevel, PolicyThreatCategory.LICENSE, "hash", componentIdentifier,
@@ -2026,11 +2067,12 @@ public class TemporaryEntity
     return policyViolation;
   }
 
-  public RepositoryPolicyViolation newRepositoryPolicyViolation(RepositoryComponent component,
-                                                                int threatLevel,
-                                                                boolean isWaived,
-                                                                String policyName,
-                                                                String actionId)
+  public RepositoryPolicyViolation newRepositoryPolicyViolation(
+      RepositoryComponent component,
+      int threatLevel,
+      boolean isWaived,
+      String policyName,
+      String actionId)
   {
     return newRepositoryPolicyViolation(component.getRepositoryId(), threatLevel, component.getPathname(), isWaived,
         actionId, uuid(), policyName, component.getComponentIdentifier());
@@ -2053,19 +2095,21 @@ public class TemporaryEntity
     return newRepositoryComponent(repositoryId, pathname, null, null);
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId,
-                                                    String pathname,
-                                                    Date quarantineTime,
-                                                    Date unquarantineTime)
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      String pathname,
+      Date quarantineTime,
+      Date unquarantineTime)
   {
     return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, new Date(), false);
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId,
-                                                    String pathname,
-                                                    Date quarantineTime,
-                                                    Date unquarantineTime,
-                                                    boolean isAutoUnquarantined)
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      String pathname,
+      Date quarantineTime,
+      Date unquarantineTime,
+      boolean isAutoUnquarantined)
   {
     return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, new Date(),
         isAutoUnquarantined);
@@ -2084,21 +2128,23 @@ public class TemporaryEntity
     return repositoryComponent;
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId,
-                                                    String pathname,
-                                                    Date quarantineTime,
-                                                    Date unquarantineTime,
-                                                    Date evalTime)
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      String pathname,
+      Date quarantineTime,
+      Date unquarantineTime,
+      Date evalTime)
   {
     return newRepositoryComponent(repositoryId, pathname, quarantineTime, unquarantineTime, evalTime, false);
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId,
-                                                    String pathname,
-                                                    Date quarantineTime,
-                                                    Date unquarantineTime,
-                                                    Date evalTime,
-                                                    boolean isAutoUnquarantined)
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      String pathname,
+      Date quarantineTime,
+      Date unquarantineTime,
+      Date evalTime,
+      boolean isAutoUnquarantined)
   {
     RepositoryComponent repositoryComponent = new RepositoryComponent(repositoryId, pathname, evalTime, "hash",
         ComponentIdentifier.createMavenCoordinates("g", "a", "v"), MatchState.EXACT.getId(),
@@ -2124,17 +2170,19 @@ public class TemporaryEntity
     return repositoryComponent;
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId,
-                                                    MatchState matchState,
-                                                    ComponentIdentifier identifier)
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      MatchState matchState,
+      ComponentIdentifier identifier)
   {
     return newRepositoryComponent(repositoryId, matchState, identifier, false);
   }
 
-  public RepositoryComponent newRepositoryComponent(String repositoryId,
-                                                    MatchState matchState,
-                                                    ComponentIdentifier identifier,
-                                                    boolean quarantined)
+  public RepositoryComponent newRepositoryComponent(
+      String repositoryId,
+      MatchState matchState,
+      ComponentIdentifier identifier,
+      boolean quarantined)
   {
     return newRepositoryComponent(repositoryId, matchState, uuid(), identifier, quarantined);
   }
@@ -2238,21 +2286,23 @@ public class TemporaryEntity
     return policyViolation;
   }
 
-  public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(String ownerId,
-                                                                        String hash,
-                                                                        String source,
-                                                                        String refrenceId,
-                                                                        SecurityVulnerabilityOverrideStatus status)
+  public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(
+      String ownerId,
+      String hash,
+      String source,
+      String refrenceId,
+      SecurityVulnerabilityOverrideStatus status)
   {
     return newSecurityVulnerabilityOverride(ownerId, hash, source, refrenceId, status, null /* comment */);
   }
 
-  public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(String ownerId,
-                                                                        String hash,
-                                                                        String source,
-                                                                        String refrenceId,
-                                                                        SecurityVulnerabilityOverrideStatus status,
-                                                                        String comment)
+  public SecurityVulnerabilityOverride newSecurityVulnerabilityOverride(
+      String ownerId,
+      String hash,
+      String source,
+      String refrenceId,
+      SecurityVulnerabilityOverrideStatus status,
+      String comment)
   {
     SecurityVulnerabilityOverride override = new SecurityVulnerabilityOverride(ownerId, hash, source, refrenceId,
         status, comment);
@@ -2348,9 +2398,10 @@ public class TemporaryEntity
     return newPolicyViolationAggregation(applicationId, timePeriodStart, MONTH);
   }
 
-  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
-                                                                  Date timePeriodStart,
-                                                                  TimePeriod timePeriod)
+  public PolicyViolationAggregation newPolicyViolationAggregation(
+      String applicationId,
+      Date timePeriodStart,
+      TimePeriod timePeriod)
   {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation();
     aggregation.setApplicationId(applicationId);
@@ -2367,19 +2418,20 @@ public class TemporaryEntity
    * Persist and return a new PolicyViolationAggregation with supplied violation counts per threat category
    *
    * @param securityViolationCounts counts for low, moderate, severe and critical security violations
-   * @param licenseViolationCounts counts for low, moderate, severe and critical license violations
-   * @param qualityViolationCounts counts for low, moderate, severe and critical quality violations
-   * @param otherViolationCounts counts for low, moderate, severe and critical other violations
-   * @param evaluationCount number of evaluations
+   * @param licenseViolationCounts  counts for low, moderate, severe and critical license violations
+   * @param qualityViolationCounts  counts for low, moderate, severe and critical quality violations
+   * @param otherViolationCounts    counts for low, moderate, severe and critical other violations
+   * @param evaluationCount         number of evaluations
    */
-  public PolicyViolationAggregation newPolicyViolationAggregation(String applicationId,
-                                                                  LocalDate timePeriodStart,
-                                                                  TimePeriod timePeriod,
-                                                                  List<Integer> securityViolationCounts,
-                                                                  List<Integer> licenseViolationCounts,
-                                                                  List<Integer> qualityViolationCounts,
-                                                                  List<Integer> otherViolationCounts,
-                                                                  int evaluationCount)
+  public PolicyViolationAggregation newPolicyViolationAggregation(
+      String applicationId,
+      LocalDate timePeriodStart,
+      TimePeriod timePeriod,
+      List<Integer> securityViolationCounts,
+      List<Integer> licenseViolationCounts,
+      List<Integer> qualityViolationCounts,
+      List<Integer> otherViolationCounts,
+      int evaluationCount)
   {
     PolicyViolationAggregation aggregation = new PolicyViolationAggregation();
     aggregation.setApplicationId(applicationId);
@@ -2397,9 +2449,10 @@ public class TemporaryEntity
     return aggregation;
   }
 
-  private void setPolicyViolationCounts(PolicyViolationAggregation aggregation,
-                                        PolicyThreatCategory threatCategory,
-                                        List<Integer> violationCounts)
+  private void setPolicyViolationCounts(
+      PolicyViolationAggregation aggregation,
+      PolicyThreatCategory threatCategory,
+      List<Integer> violationCounts)
   {
     aggregation.setDiscoveredCount(threatCategory, LOW, violationCounts.get(0));
     aggregation.setDiscoveredCount(threatCategory, MODERATE, violationCounts.get(1));
@@ -2407,11 +2460,12 @@ public class TemporaryEntity
     aggregation.setDiscoveredCount(threatCategory, CRITICAL, violationCounts.get(3));
   }
 
-  public SuccessMetricsReport newSuccessMetricsReport(String username,
-                                                      String metricsName,
-                                                      String scopeJson,
-                                                      boolean includeLatestData,
-                                                      Date createTime)
+  public SuccessMetricsReport newSuccessMetricsReport(
+      String username,
+      String metricsName,
+      String scopeJson,
+      boolean includeLatestData,
+      Date createTime)
   {
     SuccessMetricsReport successMetricsReport = new SuccessMetricsReport();
     successMetricsReport.setUsername(username);
@@ -2424,18 +2478,20 @@ public class TemporaryEntity
     return successMetricsReport;
   }
 
-  public SuccessMetricsReport newSuccessMetricsReport(String username,
-                                                      String metricsName,
-                                                      String scopeJson,
-                                                      Date createTime)
+  public SuccessMetricsReport newSuccessMetricsReport(
+      String username,
+      String metricsName,
+      String scopeJson,
+      Date createTime)
   {
     return newSuccessMetricsReport(username, metricsName, scopeJson, false, createTime);
   }
 
-  public SuccessMetricsReport newSuccessMetricsReport(String username,
-                                                      String metricsName,
-                                                      String scopeJson,
-                                                      boolean includeLatestData)
+  public SuccessMetricsReport newSuccessMetricsReport(
+      String username,
+      String metricsName,
+      String scopeJson,
+      boolean includeLatestData)
   {
     return newSuccessMetricsReport(username, metricsName, scopeJson, includeLatestData, null);
   }
@@ -2463,42 +2519,68 @@ public class TemporaryEntity
   }
 
   public SourceControl newSourceControl(String ownerId, String repositoryUrl) {
-    return newSourceControl(ownerId, repositoryUrl, null, null, null, true, true, "master", null);
+    return newSourceControl(ownerId, repositoryUrl, null, null, null, true, true, "master", null, null, null, null);
   }
 
   public SourceControl newSourceControl(String ownerId, String repositoryUrl, Date pullRequestPollTime) {
-    return newSourceControl(ownerId, repositoryUrl, null, null, null, true, true, "master", pullRequestPollTime);
+    return newSourceControl(ownerId, repositoryUrl, null, null, null, true, true, "master", pullRequestPollTime, null,
+        null, null);
   }
 
-  public SourceControl newSourceControl(String ownerId,
-                                        String repositoryUrl,
-                                        String token,
-                                        SourceControlProvider provider)
+  public SourceControl newSourceControl(
+      String ownerId,
+      String repositoryUrl,
+      String token,
+      SourceControlProvider provider)
   {
     return newSourceControl(ownerId, repositoryUrl, token, provider, null, null, "master");
   }
 
-  public SourceControl newSourceControl(String applicationId,
-                                        String repositoryUrl,
-                                        String token,
-                                        SourceControlProvider provider,
-                                        Boolean enablePullRequests,
-                                        Boolean enableStatusChecks,
-                                        String baseBranch)
+  public SourceControl newSourceControl(
+      String applicationId,
+      String repositoryUrl,
+      String token,
+      SourceControlProvider provider,
+      Boolean remediationPullRequestsEnabled,
+      Boolean statusChecksEnabled,
+      String baseBranch)
   {
-    return newSourceControl(applicationId, repositoryUrl, null, token, provider, enablePullRequests, enableStatusChecks,
-        baseBranch, null);
+    return newSourceControl(applicationId, repositoryUrl, null, token, provider, remediationPullRequestsEnabled,
+        statusChecksEnabled,
+        baseBranch, null, null, null, null);
   }
 
-  public SourceControl newSourceControl(String applicationId,
-                                        String repositoryUrl,
-                                        String username,
-                                        String token,
-                                        SourceControlProvider provider,
-                                        Boolean enablePullRequests,
-                                        Boolean enableStatusChecks,
-                                        String baseBranch,
-                                        Date pullRequestPollTime)
+  public SourceControl newSourceControl(
+      String applicationId,
+      String repositoryUrl,
+      String username,
+      String token,
+      SourceControlProvider provider,
+      Boolean remediationPullRequestsEnabled,
+      Boolean statusChecksEnabled,
+      String baseBranch,
+      Date pullRequestPollTime
+  )
+  {
+    return newSourceControl(applicationId, repositoryUrl, username, token, provider, remediationPullRequestsEnabled,
+        statusChecksEnabled, baseBranch, pullRequestPollTime, null, null,
+        null);
+  }
+
+  public SourceControl newSourceControl(
+      String applicationId,
+      String repositoryUrl,
+      String username,
+      String token,
+      SourceControlProvider provider,
+      Boolean remediationPullRequestsEnabled,
+      Boolean statusChecksEnabled,
+      String baseBranch,
+      Date pullRequestPollTime,
+      Boolean pullRequestCommentingEnabled,
+      Boolean sourceControlScansEnabled,
+      String sourceControlScanTarget
+  )
   {
     SourceControl sourceControl =
         new SourceControl.Builder()
@@ -2507,10 +2589,13 @@ public class TemporaryEntity
             .setUsername(username)
             .setToken(token)
             .setProvider(provider)
-            .setEnablePullRequests(enablePullRequests)
-            .setEnableStatusChecks(enableStatusChecks)
+            .setRemediationPullRequestsEnabled(remediationPullRequestsEnabled)
+            .setStatusChecksEnabled(statusChecksEnabled)
             .setBaseBranch(baseBranch)
             .setPullRequestPollTime(pullRequestPollTime)
+            .setPullRequestCommentingEnabled(pullRequestCommentingEnabled)
+            .setSourceControlScansEnabled(sourceControlScansEnabled)
+            .setSourceControlScanTarget(sourceControlScanTarget)
             .build();
     sourceControlDAO.insert(sourceControl);
     sourceControls.add(sourceControl);

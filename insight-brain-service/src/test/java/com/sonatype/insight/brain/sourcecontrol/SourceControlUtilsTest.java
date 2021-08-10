@@ -83,8 +83,8 @@ public class SourceControlUtilsTest
         .setToken(TOKEN)
         .setProvider(SourceControlProvider.GITHUB)
         .setBaseBranch("base-branch")
-        .setEnablePullRequests(true)
-        .setEnableStatusChecks(true)
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
         .build();
 
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
@@ -106,8 +106,8 @@ public class SourceControlUtilsTest
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getId())
         .setRepositoryUrl(VALID_URL)
-        .setEnablePullRequests(true)
-        .setEnableStatusChecks(true)
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
         .setBaseBranch("base-branch")
         .build();
 
@@ -142,8 +142,8 @@ public class SourceControlUtilsTest
         .setRepositoryUrl(VALID_URL)
         .setToken(null)
         .setProvider(null)
-        .setEnablePullRequests(true)
-        .setEnableStatusChecks(true)
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
         .setBaseBranch("base-branch")
         .build();
 
@@ -179,8 +179,8 @@ public class SourceControlUtilsTest
         .setOwnerId(application.getId())
         .setRepositoryUrl(VALID_URL)
         .setBaseBranch(null)
-        .setEnablePullRequests(true)
-        .setEnableStatusChecks(true)
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
         .build();
 
     SourceControl rootOrgSourceControl = new SourceControl.Builder()
@@ -272,8 +272,8 @@ public class SourceControlUtilsTest
         .setToken(TOKEN)
         .setProvider(SourceControlProvider.BITBUCKET)
         .setBaseBranch("base-branch")
-        .setEnablePullRequests(true)
-        .setEnableStatusChecks(true)
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
         .build();
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
 
@@ -335,8 +335,8 @@ public class SourceControlUtilsTest
         .setToken(TOKEN)
         .setProvider(SourceControlProvider.GITHUB)
         .setBaseBranch("base-branch")
-        .setEnablePullRequests(true)
-        .setEnableStatusChecks(true)
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
         .build();
 
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitClientApi);

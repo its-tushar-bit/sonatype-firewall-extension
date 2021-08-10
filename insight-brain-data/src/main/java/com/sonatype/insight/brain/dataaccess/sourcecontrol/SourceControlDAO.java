@@ -60,10 +60,10 @@ public class SourceControlDAO
           "  COALESCE(sc_app.token, sc_p.token, sc_gp.token) AS token, " +
           "  COALESCE(sc_app.provider, sc_p.provider, sc_gp.provider) AS provider, " +
           "  COALESCE(sc_app.base_branch, sc_p.base_branch, sc_gp.base_branch) AS base_branch, " +
-          "  COALESCE(sc_app.enable_pull_requests, sc_p.enable_pull_requests, sc_gp.enable_pull_requests) " +
-          " AS enable_pull_requests, " +
-          "  COALESCE(sc_app.enable_status_checks, sc_p.enable_status_checks, sc_gp.enable_status_checks) " +
-          " AS enable_status_checks, " +
+          "  COALESCE(sc_app.remediation_pull_requests_enabled, sc_p.remediation_pull_requests_enabled, " +
+          "   sc_gp.remediation_pull_requests_enabled) AS remediation_pull_requests_enabled, " +
+          "  COALESCE(sc_app.status_checks_enabled, sc_p.status_checks_enabled, sc_gp.status_checks_enabled) " +
+          "   AS status_checks_enabled, " +
           "  sc_app.pull_request_poll_time, " +
           "  sc_app.pull_request_error_count " +
           "FROM insight_brain_ods.application app " +
@@ -257,8 +257,8 @@ public class SourceControlDAO
     return getList(query);
   }
 
-  public List<SourceControl> getApplicationsWithPullReqsEnabled() {
-    // an application is enabled if it has a valid repository_url and enable_pull_requests is set at the
+  public List<SourceControl> getApplicationsWithRemediationPullRequestsEnabled() {
+    // an application is enabled if it has a valid repository_url and remediation_pull_requests_enabled is set at the
     // application, parent organization, or root organization level
 
     SourceControl scRootOrg = getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
@@ -273,32 +273,34 @@ public class SourceControlDAO
 
     return getByApplication()
         .stream()
-        .filter(application -> isPrEnabled(application, applicationsById, orgSourceControlsByOrgId, scRootOrg))
+        .filter(
+            application -> areRemediationPullRequestsEnabled(application, applicationsById, orgSourceControlsByOrgId,
+                scRootOrg))
         .collect(ImmutableList.toImmutableList());
   }
 
-  private boolean isPrEnabled(
+  private boolean areRemediationPullRequestsEnabled(
       final SourceControl sourceControl,
       final Map<String, Application> applicationsById,
       final Map<String, SourceControl> orgSourceControlsByOrgId,
       final SourceControl scRootOrg)
   {
-    if (sourceControl.getEnablePullRequests() != null) {
-      return sourceControl.getEnablePullRequests();
+    if (sourceControl.getRemediationPullRequestsEnabled() != null) {
+      return sourceControl.getRemediationPullRequestsEnabled();
     }
 
     // application did not define a value, so check organization
     String orgId = applicationsById.get(sourceControl.getOwnerId()).getOrganizationId();
     if (orgSourceControlsByOrgId.containsKey(orgId)) {
       SourceControl orgSourcControl = orgSourceControlsByOrgId.get(orgId);
-      if (orgSourcControl.getEnablePullRequests() != null) {
-        return orgSourcControl.getEnablePullRequests();
+      if (orgSourcControl.getRemediationPullRequestsEnabled() != null) {
+        return orgSourcControl.getRemediationPullRequestsEnabled();
       }
     }
 
     // organization did not define a value, check root org
-    if (scRootOrg != null && scRootOrg.getEnablePullRequests() != null) {
-      return scRootOrg.getEnablePullRequests();
+    if (scRootOrg != null && scRootOrg.getRemediationPullRequestsEnabled() != null) {
+      return scRootOrg.getRemediationPullRequestsEnabled();
     }
 
     // could not find a defined value
@@ -418,11 +420,11 @@ public class SourceControlDAO
 
   private void setDefaultsAsNecessary(SourceControl sourceControl) {
     if (isForRootOrganization(sourceControl)) {
-      if (null == sourceControl.getEnablePullRequests()) {
-        sourceControl.setEnablePullRequests(SourceControl.ENABLE_PULL_REQUESTS_BY_DEFAULT);
+      if (null == sourceControl.getRemediationPullRequestsEnabled()) {
+        sourceControl.setRemediationPullRequestsEnabled(SourceControl.ENABLE_REMEDIATION_PULL_REQUESTS_BY_DEFAULT);
       }
-      if (null == sourceControl.getEnableStatusChecks()) {
-        sourceControl.setEnableStatusChecks(SourceControl.ENABLE_STATUS_CHECKS_BY_DEFAULT);
+      if (null == sourceControl.getStatusChecksEnabled()) {
+        sourceControl.setStatusChecksEnabled(SourceControl.ENABLE_STATUS_CHECKS_BY_DEFAULT);
       }
     }
   }
@@ -549,8 +551,8 @@ public class SourceControlDAO
             sc.setToken((String) array[4]);
             sc.setProvider(SourceControlProvider.fromString((String) array[5]));
             sc.setBaseBranch((String) array[6]);
-            sc.setEnablePullRequests((Boolean) array[7]);
-            sc.setEnableStatusChecks((Boolean) array[8]);
+            sc.setRemediationPullRequestsEnabled((Boolean) array[7]);
+            sc.setStatusChecksEnabled((Boolean) array[8]);
             sc.setPullRequestPollTime(array[9] == null ? null : new Date(((Timestamp) array[9]).getTime()));
             sc.setPullRequestErrorCount((int) array[10]);
 

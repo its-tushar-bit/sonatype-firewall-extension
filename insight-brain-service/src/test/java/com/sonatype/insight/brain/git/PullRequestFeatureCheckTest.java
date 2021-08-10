@@ -42,9 +42,9 @@ public class PullRequestFeatureCheckTest
 
   private static final String BASE_BRANCH = "master";
 
-  private static final boolean DEFAULT_ENABLE_PR = true;
+  private static final boolean DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED = true;
 
-  private static final boolean DEFAULT_ENABLE_STATUS_CHECKS = true;
+  private static final boolean DEFAULT_STATUS_CHECKS_ENABLED = true;
 
   private static final String REPO_URL = "repo-url";
 
@@ -198,11 +198,11 @@ public class PullRequestFeatureCheckTest
 
   private GitRepositoryInfo newGitHubRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, null, TOKEN, SourceControlProvider.GITHUB,
-        BASE_BRANCH, DEFAULT_ENABLE_PR, DEFAULT_ENABLE_STATUS_CHECKS);
+        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_STATUS_CHECKS_ENABLED);
   }
 
   private GitRepositoryInfo newBitBucketRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, USERNAME, TOKEN, SourceControlProvider.BITBUCKET,
-        BASE_BRANCH, DEFAULT_ENABLE_PR, DEFAULT_ENABLE_STATUS_CHECKS);
+        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_STATUS_CHECKS_ENABLED);
   }
 }

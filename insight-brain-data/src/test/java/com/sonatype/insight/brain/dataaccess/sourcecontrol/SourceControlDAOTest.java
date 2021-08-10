@@ -327,15 +327,15 @@ public class SourceControlDAOTest
         .setOwnerId(ROOT_ORGANIZATION_ID)
         .setProvider(GITLAB)
         .setBaseBranch(baseBranch)
-        .setEnablePullRequests(null)
-        .setEnableStatusChecks(null)
+        .setRemediationPullRequestsEnabled(null)
+        .setStatusChecksEnabled(null)
         .build();
 
     sourceControlDAO.insert(sourceControl);
 
     SourceControl persistedSourceControl = sourceControlDAO.getById(sourceControl.getId());
-    assertThat(persistedSourceControl.getEnablePullRequests()).isTrue();
-    assertThat(persistedSourceControl.getEnableStatusChecks()).isTrue();
+    assertThat(persistedSourceControl.getRemediationPullRequestsEnabled()).isTrue();
+    assertThat(persistedSourceControl.getStatusChecksEnabled()).isTrue();
   }
 
   @Test
@@ -465,8 +465,8 @@ public class SourceControlDAOTest
     createRootOrgWithGitHubProvider();
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL)
-            .setToken("bar").setBaseBranch("base/branch").setEnablePullRequests(true)
-            .setEnableStatusChecks(true).build();
+            .setToken("bar").setBaseBranch("base/branch").setRemediationPullRequestsEnabled(true)
+            .setStatusChecksEnabled(true).build();
 
     assertThat(sourceControl.getId()).isNull();
     sourceControlDAO.insert(sourceControl);
@@ -478,21 +478,21 @@ public class SourceControlDAOTest
     assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("bar");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");
-    assertThat(sourceControl.getEnablePullRequests()).isTrue();
-    assertThat(sourceControl.getEnableStatusChecks()).isTrue();
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isTrue();
+    assertThat(sourceControl.getStatusChecksEnabled()).isTrue();
 
     sourceControl.setToken("baz");
     sourceControl.setBaseBranch("another");
-    sourceControl.setEnablePullRequests(false);
-    sourceControl.setEnableStatusChecks(false);
+    sourceControl.setRemediationPullRequestsEnabled(false);
+    sourceControl.setStatusChecksEnabled(false);
     sourceControlDAO.update(sourceControl);
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("baz");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("another");
-    assertThat(sourceControl.getEnablePullRequests()).isFalse();
-    assertThat(sourceControl.getEnableStatusChecks()).isFalse();
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isFalse();
+    assertThat(sourceControl.getStatusChecksEnabled()).isFalse();
 
     sourceControlDAO.delete(sourceControl);
     assertThat(sourceControlDAO.getById(sourceControl.getId())).isNull();
@@ -504,7 +504,7 @@ public class SourceControlDAOTest
 
     SourceControl sourceControl =
         new SourceControl.Builder().setOwnerId(org.getId()).setToken("bar")
-            .setEnablePullRequests(true).setEnableStatusChecks(true)
+            .setRemediationPullRequestsEnabled(true).setStatusChecksEnabled(true)
             .setBaseBranch("base/branch").build();
 
     assertThat(sourceControl.getId()).isNull();
@@ -516,21 +516,21 @@ public class SourceControlDAOTest
     assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("bar");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("base/branch");
-    assertThat(sourceControl.getEnablePullRequests()).isTrue();
-    assertThat(sourceControl.getEnableStatusChecks()).isTrue();
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isTrue();
+    assertThat(sourceControl.getStatusChecksEnabled()).isTrue();
 
     sourceControl.setToken("baz");
     sourceControl.setBaseBranch("another");
-    sourceControl.setEnablePullRequests(false);
-    sourceControl.setEnableStatusChecks(false);
+    sourceControl.setRemediationPullRequestsEnabled(false);
+    sourceControl.setStatusChecksEnabled(false);
     sourceControlDAO.update(sourceControl);
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getUsername()).isNull();
     assertThat(sourceControl.getToken()).isEqualTo("baz");
     assertThat(sourceControl.getBaseBranch()).isEqualTo("another");
-    assertThat(sourceControl.getEnablePullRequests()).isFalse();
-    assertThat(sourceControl.getEnableStatusChecks()).isFalse();
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isFalse();
+    assertThat(sourceControl.getStatusChecksEnabled()).isFalse();
 
     sourceControlDAO.delete(sourceControl);
     assertThat(sourceControlDAO.getById(sourceControl.getId())).isNull();
@@ -545,20 +545,20 @@ public class SourceControlDAOTest
 
     assertThat(sourceControl.getId()).isNull();
     assertThat(sourceControl.getBaseBranch()).isNull();
-    assertThat(sourceControl.getEnablePullRequests()).isNull();
-    assertThat(sourceControl.getEnableStatusChecks()).isNull();
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isNull();
+    assertThat(sourceControl.getStatusChecksEnabled()).isNull();
 
     sourceControlDAO.insert(sourceControl);
 
     assertThat(sourceControl.getId()).isNotNull();
     assertThat(sourceControl.getBaseBranch()).isNull();
-    assertThat(sourceControl.getEnablePullRequests()).isNull();
-    assertThat(sourceControl.getEnableStatusChecks()).isNull();
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isNull();
+    assertThat(sourceControl.getStatusChecksEnabled()).isNull();
 
     sourceControl = sourceControlDAO.getByIdNotNull(sourceControl.getId());
     assertThat(sourceControl.getBaseBranch()).isNull();
-    assertThat(sourceControl.getEnablePullRequests()).isNull();
-    assertThat(sourceControl.getEnableStatusChecks()).isNull();
+    assertThat(sourceControl.getRemediationPullRequestsEnabled()).isNull();
+    assertThat(sourceControl.getStatusChecksEnabled()).isNull();
   }
 
   @Test
@@ -705,7 +705,8 @@ public class SourceControlDAOTest
     sourceControlDAO.insert(buildAppSourceControlAndApp(org, 3, false));
     sourceControlDAO.insert(buildAppSourceControlAndApp(org, 4, false));
 
-    Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
+    Collection<SourceControl> enabledApplications =
+        sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled();
     assertThat(enabledApplications).extracting(SourceControl::getId).containsExactlyInAnyOrder(
         scExplicitlyEnabled.getId(), scDefault.getId(), scEnabledAtAppDisabledAtOrg.getId(),
         scDefaultAppDefaultOrg.getId());
@@ -742,7 +743,8 @@ public class SourceControlDAOTest
     SourceControl scDefaultAppDisabledOrg = buildAppSourceControlAndApp(orgNoPrs, 4, false);
     sourceControlDAO.insert(scDefaultAppDisabledOrg);
 
-    Collection<SourceControl> enabledApplications = sourceControlDAO.getApplicationsWithPullReqsEnabled();
+    Collection<SourceControl> enabledApplications =
+        sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled();
     assertThat(enabledApplications).extracting(SourceControl::getId)
         .hasSize(3)
         .containsExactlyInAnyOrder(scEnabledAtAppDisabledAtOrg.getId(), scEnabledAtOrg.getId(),
@@ -762,7 +764,7 @@ public class SourceControlDAOTest
     return new SourceControl.Builder()
         .setOwnerId(ownerId)
         .setRepositoryUrl("http://localhost/owner/app" + appNumber)
-        .setEnablePullRequests(enablePullRequests)
+        .setRemediationPullRequestsEnabled(enablePullRequests)
         .build();
   }
 
@@ -770,7 +772,7 @@ public class SourceControlDAOTest
     return new SourceControl.Builder()
         .setOwnerId(ownerId)
         .setToken("token")
-        .setEnablePullRequests(enablePullRequests)
+        .setRemediationPullRequestsEnabled(enablePullRequests)
         .build();
   }
 
@@ -790,24 +792,24 @@ public class SourceControlDAOTest
         .setOwnerId(ROOT_ORGANIZATION_ID)
         .setProvider(GITLAB)
         .setBaseBranch(baseBranch)
-        .setEnablePullRequests(false)
-        .setEnableStatusChecks(false)
+        .setRemediationPullRequestsEnabled(false)
+        .setStatusChecksEnabled(false)
         .build();
 
     sourceControlDAO.insert(sourceControl);
 
     SourceControl persistedSourceControl = sourceControlDAO.getById(sourceControl.getId());
-    assertThat(persistedSourceControl.getEnablePullRequests()).isFalse();
-    assertThat(persistedSourceControl.getEnableStatusChecks()).isFalse();
+    assertThat(persistedSourceControl.getRemediationPullRequestsEnabled()).isFalse();
+    assertThat(persistedSourceControl.getStatusChecksEnabled()).isFalse();
 
-    persistedSourceControl.setEnablePullRequests(null);
-    persistedSourceControl.setEnableStatusChecks(null);
+    persistedSourceControl.setRemediationPullRequestsEnabled(null);
+    persistedSourceControl.setStatusChecksEnabled(null);
 
     sourceControlDAO.update(persistedSourceControl);
 
     SourceControl updatedSourceControl = sourceControlDAO.getById(persistedSourceControl.getId());
-    assertThat(updatedSourceControl.getEnablePullRequests()).isTrue();
-    assertThat(updatedSourceControl.getEnableStatusChecks()).isTrue();
+    assertThat(updatedSourceControl.getRemediationPullRequestsEnabled()).isTrue();
+    assertThat(updatedSourceControl.getStatusChecksEnabled()).isTrue();
   }
 
   @Test
@@ -1178,8 +1180,8 @@ public class SourceControlDAOTest
     // Adjust for values inherited from parents
     expectedSourceControl.setProvider(rootSc.getProvider());
     expectedSourceControl.setBaseBranch(scOrg.getBaseBranch());
-    expectedSourceControl.setEnablePullRequests(scOrg.getEnablePullRequests());
-    expectedSourceControl.setEnableStatusChecks(scOrg.getEnableStatusChecks());
+    expectedSourceControl.setRemediationPullRequestsEnabled(scOrg.getRemediationPullRequestsEnabled());
+    expectedSourceControl.setStatusChecksEnabled(scOrg.getStatusChecksEnabled());
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
         "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
 
@@ -1205,8 +1207,8 @@ public class SourceControlDAOTest
     // Adjust values inherited from parents
     expectedSourceControl.setProvider(scRoot.getProvider());
     expectedSourceControl.setBaseBranch(scRoot.getBaseBranch());
-    expectedSourceControl.setEnablePullRequests(scRoot.getEnablePullRequests());
-    expectedSourceControl.setEnableStatusChecks(scRoot.getEnableStatusChecks());
+    expectedSourceControl.setRemediationPullRequestsEnabled(scRoot.getRemediationPullRequestsEnabled());
+    expectedSourceControl.setStatusChecksEnabled(scRoot.getStatusChecksEnabled());
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
         "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
 
@@ -1341,8 +1343,8 @@ public class SourceControlDAOTest
     assertThat(actualSC.getToken()).isEqualTo(expectedSC.getToken());
     assertThat(actualSC.getProvider()).isEqualTo(expectedSC.getProvider());
     assertThat(actualSC.getBaseBranch()).isEqualTo(expectedSC.getBaseBranch());
-    assertThat(actualSC.getEnablePullRequests()).isEqualTo(expectedSC.getEnablePullRequests());
-    assertThat(actualSC.getEnableStatusChecks()).isEqualTo(expectedSC.getEnableStatusChecks());
+    assertThat(actualSC.getRemediationPullRequestsEnabled()).isEqualTo(expectedSC.getRemediationPullRequestsEnabled());
+    assertThat(actualSC.getStatusChecksEnabled()).isEqualTo(expectedSC.getStatusChecksEnabled());
     assertThat(actualSC.getPullRequestPollTime()).isEqualTo(expectedSC.getPullRequestPollTime());
     assertThat(actualSC.getPullRequestErrorCount()).isEqualTo(expectedSC.getPullRequestErrorCount());
   }

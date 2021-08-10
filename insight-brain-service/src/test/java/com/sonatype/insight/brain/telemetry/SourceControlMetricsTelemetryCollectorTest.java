@@ -53,7 +53,7 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
 
   @Test
   public void test_collectData_emptyLists() {
-    when(sourceControlDAO.getApplicationsWithPullReqsEnabled()).thenReturn(new ArrayList<>());
+    when(sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled()).thenReturn(new ArrayList<>());
     when(sourceControlDAO.getByApplication()).thenReturn(new ArrayList<>());
     when(applicationDAO.getAll()).thenReturn(new ArrayList<>());
     when(metrics.computeStatsAndReset()).thenReturn(new AggregatedPRStats(Collections.emptyList()));
@@ -61,7 +61,7 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
     assertThat(collector.collectData().getAttributes())
         .isNotEmpty()
         .hasSize(13)
-        .containsOnly(entry(TOTAL_SC_WITH_PR_ENABLED, "0"),
+        .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "0"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "0"),
             entry(TOTAL_APPLICATIONS, "0"),
             entry(TOTAL_SC_PR_TIME_SPENT, "0"),
@@ -78,7 +78,7 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
 
   @Test
   public void test_collectData_fullLists() {
-    when(sourceControlDAO.getApplicationsWithPullReqsEnabled())
+    when(sourceControlDAO.getApplicationsWithRemediationPullRequestsEnabled())
         .thenReturn(Arrays.asList(
             new SourceControl.Builder().build(),
             new SourceControl.Builder().build()
@@ -100,7 +100,7 @@ public class SourceControlMetricsTelemetryCollectorTest extends AbstractComponen
     assertThat(collector.collectData().getAttributes())
         .isNotEmpty()
         .hasSize(13)
-        .containsOnly(entry(TOTAL_SC_WITH_PR_ENABLED, "2"),
+        .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "2"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "3"),
             entry(TOTAL_APPLICATIONS, "4"),
             entry(TOTAL_SC_PR_TIME_SPENT, "1"),

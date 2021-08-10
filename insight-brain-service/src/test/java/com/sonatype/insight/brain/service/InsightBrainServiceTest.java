@@ -147,7 +147,7 @@ public class InsightBrainServiceTest
           break;
         case SOURCE_CONTROL_METRICS:
           assertThat(telemetryDataReceived.getAttributes())
-              .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_SC_WITH_PR_ENABLED, "0")
+              .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "0")
               .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATION_SC_ENTRIES, "0")
               .containsEntry(SourceControlMetricsTelemetryCollector.TOTAL_APPLICATIONS, "0");
           break;

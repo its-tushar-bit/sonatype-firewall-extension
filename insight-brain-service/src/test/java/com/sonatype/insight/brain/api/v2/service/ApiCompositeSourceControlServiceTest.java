@@ -329,7 +329,7 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
 
     appSourceControl.setBaseBranch("BASE_BRANCH_APP");
-    appSourceControl.setEnablePullRequests(true);
+    appSourceControl.setRemediationPullRequestsEnabled(true);
     sourceControlDAO.update(appSourceControl);
 
     dto = apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());

@@ -378,8 +378,8 @@ public class ApplicationCloneServiceTest
     assertThat(clonedSourceControl.getToken()).isEqualTo(sourceSourceControl.getToken());
     assertThat(clonedSourceControl.getProvider()).isEqualTo(sourceSourceControl.getProvider());
     assertThat(clonedSourceControl.getBaseBranch()).isEqualTo(sourceSourceControl.getBaseBranch());
-    assertThat(clonedSourceControl.getEnablePullRequests()).isFalse();
-    assertThat(clonedSourceControl.getEnableStatusChecks()).isEqualTo(sourceSourceControl.getEnableStatusChecks());
+    assertThat(clonedSourceControl.getRemediationPullRequestsEnabled()).isFalse();
+    assertThat(clonedSourceControl.getStatusChecksEnabled()).isEqualTo(sourceSourceControl.getStatusChecksEnabled());
 
     // Assert the source objects were cloned, not moved.
     assertThat(new SourceControlDAO().getById(sourceSourceControl.getId())).isNotNull();

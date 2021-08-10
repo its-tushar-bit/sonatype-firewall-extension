@@ -28,7 +28,7 @@ public class SourceControl
 {
   public static final String FAKE_SECRET_KEY = "#~FAKE~SECRET~KEY~#";
 
-  public static final boolean ENABLE_PULL_REQUESTS_BY_DEFAULT = true;
+  public static final boolean ENABLE_REMEDIATION_PULL_REQUESTS_BY_DEFAULT = true;
 
   public static final boolean ENABLE_STATUS_CHECKS_BY_DEFAULT = true;
 
@@ -55,17 +55,26 @@ public class SourceControl
   @Column(name = "base_branch")
   private String baseBranch;
 
-  @Column(name = "enable_pull_requests")
-  private Boolean enablePullRequests;
+  @Column(name = "remediation_pull_requests_enabled")
+  private Boolean remediationPullRequestsEnabled;
 
-  @Column(name = "enable_status_checks")
-  private Boolean enableStatusChecks;
+  @Column(name = "status_checks_enabled")
+  private Boolean statusChecksEnabled;
 
   @Column(name = "pull_request_poll_time")
   private Date pullRequestPollTime;
 
   @Column(name = "pull_request_error_count")
   private int pullRequestErrorCount;
+
+  @Column(name = "pull_request_commenting_enabled")
+  private Boolean pullRequestCommentingEnabled;
+
+  @Column(name = "source_control_scans_enabled")
+  private Boolean sourceControlScansEnabled;
+
+  @Column(name = "source_control_scan_target")
+  private String sourceControlScanTarget;
 
   public SourceControl() {
   }
@@ -76,18 +85,24 @@ public class SourceControl
       final String username,
       final String token,
       final SourceControlProvider provider,
-      final Boolean enablePullRequests,
-      final Boolean enableStatusChecks,
-      final String baseBranch)
+      final Boolean pullRequestsEnabled,
+      final Boolean statusChecksEnabled,
+      final String baseBranch,
+      final Boolean pullRequestCommentingEnabled,
+      final Boolean sourceControlScansEnabled,
+      final String sourceControlScanTarget)
   {
     this.ownerId = ownerId;
     setRepositoryUrl(repositoryUrl);
     this.username = username;
     this.token = token;
     this.provider = provider;
-    this.enablePullRequests = enablePullRequests;
-    this.enableStatusChecks = enableStatusChecks;
+    this.remediationPullRequestsEnabled = pullRequestsEnabled;
+    this.statusChecksEnabled = statusChecksEnabled;
     this.baseBranch = baseBranch;
+    this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
+    this.sourceControlScansEnabled = sourceControlScansEnabled;
+    this.sourceControlScanTarget = sourceControlScanTarget;
   }
 
   @Override
@@ -151,20 +166,20 @@ public class SourceControl
     this.baseBranch = baseBranch;
   }
 
-  public Boolean getEnablePullRequests() {
-    return enablePullRequests;
+  public Boolean getRemediationPullRequestsEnabled() {
+    return remediationPullRequestsEnabled;
   }
 
-  public void setEnablePullRequests(final Boolean enablePullRequests) {
-    this.enablePullRequests = enablePullRequests;
+  public void setRemediationPullRequestsEnabled(final Boolean remediationPullRequestsEnabled) {
+    this.remediationPullRequestsEnabled = remediationPullRequestsEnabled;
   }
 
-  public Boolean getEnableStatusChecks() {
-    return enableStatusChecks;
+  public Boolean getStatusChecksEnabled() {
+    return statusChecksEnabled;
   }
 
-  public void setEnableStatusChecks(final Boolean enableStatusChecks) {
-    this.enableStatusChecks = enableStatusChecks;
+  public void setStatusChecksEnabled(final Boolean statusChecksEnabled) {
+    this.statusChecksEnabled = statusChecksEnabled;
   }
 
   public Date getPullRequestPollTime() {
@@ -183,6 +198,30 @@ public class SourceControl
     this.pullRequestErrorCount = errorCount;
   }
 
+  public Boolean getPullRequestCommentingEnabled() {
+    return pullRequestCommentingEnabled;
+  }
+
+  public void setPullRequestCommentingEnabled(final Boolean pullRequestCommentingEnabled) {
+    this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
+  }
+
+  public Boolean getSourceControlScansEnabled() {
+    return sourceControlScansEnabled;
+  }
+
+  public void setSourceControlScansEnabled(final Boolean sourceControlScansEnabled) {
+    this.sourceControlScansEnabled = sourceControlScansEnabled;
+  }
+
+  public String getSourceControlScanTarget() {
+    return sourceControlScanTarget;
+  }
+
+  public void setSourceControlScanTarget(final String sourceControlScanTarget) {
+    this.sourceControlScanTarget = sourceControlScanTarget;
+  }
+
   public static class Builder
   {
     private String ownerId;
@@ -195,13 +234,19 @@ public class SourceControl
 
     private SourceControlProvider provider;
 
-    private Boolean enablePullRequests;
+    private Boolean remediationPullRequestsEnabled;
 
-    private Boolean enableStatusChecks;
+    private Boolean statusChecksEnabled;
 
     private String baseBranch;
 
     private Date pullRequestPollTime;
+
+    private Boolean pullRequestCommentingEnabled;
+
+    private Boolean sourceControlScansEnabled;
+
+    private String sourceControlScanTarget;
 
     public Builder setOwnerId(final String ownerId) {
       this.ownerId = ownerId;
@@ -228,13 +273,13 @@ public class SourceControl
       return this;
     }
 
-    public Builder setEnablePullRequests(final Boolean enablePullRequests) {
-      this.enablePullRequests = enablePullRequests;
+    public Builder setRemediationPullRequestsEnabled(final Boolean remediationPullRequestsEnabled) {
+      this.remediationPullRequestsEnabled = remediationPullRequestsEnabled;
       return this;
     }
 
-    public Builder setEnableStatusChecks(final Boolean enableStatusChecks) {
-      this.enableStatusChecks = enableStatusChecks;
+    public Builder setStatusChecksEnabled(final Boolean statusChecksEnabled) {
+      this.statusChecksEnabled = statusChecksEnabled;
       return this;
     }
 
@@ -248,9 +293,25 @@ public class SourceControl
       return this;
     }
 
+    public Builder setPullRequestCommentingEnabled(final Boolean pullRequestCommentingEnabled) {
+      this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
+      return this;
+    }
+
+    public Builder setSourceControlScansEnabled(final Boolean sourceControlScansEnabled) {
+      this.sourceControlScansEnabled = sourceControlScansEnabled;
+      return this;
+    }
+
+    public Builder setSourceControlScanTarget(final String sourceControlScanTarget) {
+      this.sourceControlScanTarget = sourceControlScanTarget;
+      return this;
+    }
+
     public SourceControl build() {
       SourceControl sourceControl = new SourceControl(ownerId, repositoryUrl, username, token, provider,
-          enablePullRequests, enableStatusChecks, baseBranch);
+          remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestCommentingEnabled,
+          sourceControlScansEnabled, sourceControlScanTarget);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       return sourceControl;
     }
@@ -266,10 +327,13 @@ public class SourceControl
         ", token='MASKED" + '\'' +
         ", provider=" + provider +
         ", baseBranch='" + baseBranch + '\'' +
-        ", enablePullRequests=" + enablePullRequests +
-        ", enableStatusChecks=" + enableStatusChecks +
+        ", remediationPullRequestsEnabled=" + remediationPullRequestsEnabled +
+        ", statusChecksEnabled=" + statusChecksEnabled +
         ", pullRequestPollTime=" + pullRequestPollTime +
         ", pullRequestErrorCount=" + pullRequestErrorCount +
+        ", pullRequestCommentingEnabled=" + pullRequestCommentingEnabled +
+        ", sourceControlScansEnabled=" + sourceControlScansEnabled +
+        ", sourceControlScanTarget=" + sourceControlScanTarget +
         '}';
   }
 }

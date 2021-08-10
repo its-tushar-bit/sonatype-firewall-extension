@@ -36,14 +36,16 @@ export const ComponentWaiversTableRow = ({ waiver, setWaiverToDelete, componentN
       </NxTableCell>
       <NxTableCell className="iq-component-violations-waivers-table--comments">{waiver.comment || '- -'}</NxTableCell>
       <NxTableCell>
-        <NxButton
-          onClick={() => setWaiverToDelete(waiver)}
-          variant="icon-only"
-          title="Delete"
-          className="nx-btn--delete-waiver"
-        >
-          <NxFontAwesomeIcon icon={faTrashAlt} />
-        </NxButton>
+        <div className="nx-btn-bar">
+          <NxButton
+            onClick={() => setWaiverToDelete(waiver)}
+            variant="icon-only"
+            title="Delete"
+            className="nx-btn--delete-waiver"
+          >
+            <NxFontAwesomeIcon icon={faTrashAlt} />
+          </NxButton>
+        </div>
       </NxTableCell>
     </NxTableRow>
   );

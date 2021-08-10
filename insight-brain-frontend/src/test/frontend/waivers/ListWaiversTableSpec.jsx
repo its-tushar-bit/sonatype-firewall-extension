@@ -140,7 +140,7 @@ describe('ListWaiversTable', function () {
 
     expect(tableCells.at(3).childAt(0).text()).toBe(expiration);
     expect(tableCells.at(4).childAt(0).text()).toBe(comments);
-    assertDeleteWaiverBtn(tableCells.at(5), waiver);
+    assertDeleteWaiverBtn(tableCells.at(5).childAt(0), waiver);
   };
 
   it('renders an NxTableBody with active and expired waivers sorted by createTime desc', function () {

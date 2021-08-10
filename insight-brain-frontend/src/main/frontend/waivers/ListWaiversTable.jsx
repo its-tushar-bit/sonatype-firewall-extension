@@ -53,14 +53,16 @@ export default function ListWaiversTable(props) {
         <NxTableCell>{waiver.expiryTime ? moment(waiver.expiryTime).fromNow() : 'Does not expire'}</NxTableCell>
         <NxTableCell className="iq-waivers-table--comments">{waiver.comment || '- -'}</NxTableCell>
         <NxTableCell>
-          <NxButton
-            variant="icon-only"
-            key={key}
-            className="list-waivers-row__delete-btn"
-            onClick={() => setWaiverToDelete(waiver)}
-          >
-            <NxFontAwesomeIcon icon={faTrashAlt} />
-          </NxButton>
+          <div className="nx-btn-bar">
+            <NxButton
+              variant="icon-only"
+              key={key}
+              className="list-waivers-row__delete-btn"
+              onClick={() => setWaiverToDelete(waiver)}
+            >
+              <NxFontAwesomeIcon icon={faTrashAlt} />
+            </NxButton>
+          </div>
         </NxTableCell>
       </NxTableRow>
     );

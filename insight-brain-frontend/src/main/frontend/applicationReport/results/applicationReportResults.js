@@ -142,6 +142,15 @@ function ApplicationReportResultsController(
         (transitiveComponentViolations.length === 1 ? '' : 's')
       );
     },
+
+    getInnerSourceParentsTooltip: function (component) {
+      const componentWord = component.innerSourceParentsDerivedComponentNames.length > 1 ? 'components' : 'component';
+      let result = `This component was brought in by the following InnerSource ${componentWord}:`;
+      component.innerSourceParentsDerivedComponentNames.forEach((componentName) => {
+        result += `<br/>&#8226; ${componentName}`;
+      });
+      return result;
+    },
   });
 
   // rendering thousands of rows at once can cause a noticeable UI freeze while all the angular code runs.

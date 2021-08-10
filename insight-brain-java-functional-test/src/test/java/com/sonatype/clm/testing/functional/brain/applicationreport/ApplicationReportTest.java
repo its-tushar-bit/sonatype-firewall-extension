@@ -402,7 +402,10 @@ public class ApplicationReportTest
     ResultRow resultRow = reportPage.resultRow(6).shouldHave(text("apache-taglibs : standard : 1.1.2"));
     ElementsCollection dependencyIndicators = resultRow.dependencyIndicators().shouldHaveSize(2);
     dependencyIndicators.get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS).shouldHave(text("T"));
-    dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS"));
+    dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
+    Tooltip.get().shouldBe(visible)
+        .shouldHave(text("This component was brought in by the following InnerSource component:"))
+        .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"));
     reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
         .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS);
     reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))

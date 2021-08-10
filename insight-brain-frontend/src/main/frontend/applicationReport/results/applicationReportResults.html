@@ -203,7 +203,10 @@
                   <span ng-if="!component.dependencyInfo.isDirectDependency && !component.innerSourceData">T</span>
                 </div><!--
                 --><div ng-if="component.isOnlyInnerSourceTransitiveDependency"
-                        class="iq-dependency-indicator inner-source">
+                        class="iq-dependency-indicator inner-source"
+                        data-tooltip-html="vm.getInnerSourceParentsTooltip(component)"
+                        data-tooltip-class="iq-inner-source-transitive-tooltip"
+                        data-tooltip-append-to-body="true">
                   <span>IS</span>
                 </div><!--
              -->

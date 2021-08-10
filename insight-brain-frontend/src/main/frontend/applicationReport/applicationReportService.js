@@ -225,6 +225,9 @@ function augmentIsOnlyInnerSourceTransitiveDependency(components) {
       !isNilOrEmpty(rootAncestors) &&
       rootAncestors.every((rootAncestor) => rootAncestor.innerSource)
     );
+    if (component.isOnlyInnerSourceTransitiveDependency) {
+      component.innerSourceParentsDerivedComponentNames = map(prop('derivedComponentName'), rootAncestors);
+    }
   });
 }
 

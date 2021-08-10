@@ -1123,6 +1123,7 @@ describe('applicationReportService', function () {
                   version: '1',
                 },
               },
+              filename: 'foo-1.js',
               innerSource: true,
               innerSourceData: [
                 {
@@ -1363,6 +1364,7 @@ describe('applicationReportService', function () {
             },
           ],
           innerSourceTDIndicator: true,
+          innerSourceParentsDerivedComponentNames: ['foo-1.js'],
           derivedDependencyType: 'transitive',
           dependencyType: 'TD',
           isOnlyInnerSourceTransitiveDependency: true,

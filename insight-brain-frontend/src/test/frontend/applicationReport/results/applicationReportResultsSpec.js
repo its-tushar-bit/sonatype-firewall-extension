@@ -93,6 +93,27 @@ describe('applicationReportResults', function () {
     });
   });
 
+  describe('getInnerSourceParentsTooltip()', function () {
+    it('builds a tooltip for a transitive dependency from an InnerSource parent', () => {
+      const component = {
+        innerSourceParentsDerivedComponentNames: ['parent1 : v1'],
+      };
+      const tooltipText = vm.getInnerSourceParentsTooltip(component);
+      expect(tooltipText).toContain('This component was brought in by the following InnerSource component:');
+      expect(tooltipText).toContain('parent1 : v1');
+    });
+
+    it('builds a tooltip for a transitive dependency from multiple InnerSource parents', () => {
+      const component = {
+        innerSourceParentsDerivedComponentNames: ['parent1 : v1', 'parent2 : v1.0'],
+      };
+      const tooltipText = vm.getInnerSourceParentsTooltip(component);
+      expect(tooltipText).toContain('This component was brought in by the following InnerSource components:');
+      expect(tooltipText).toContain('parent1 : v1');
+      expect(tooltipText).toContain('parent2 : v1.0');
+    });
+  });
+
   describe('vm.selectedReport.displayedEntries watcher', function () {
     let $timeout;
 

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 import { NxInfoAlert, NxCodeSnippet, NxTextLink, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
@@ -11,6 +11,7 @@ import { NxInfoAlert, NxCodeSnippet, NxTextLink, NxButton, NxFontAwesomeIcon } f
 import IqPopover from '../../react/IqPopover/IqPopover';
 import { getRequestWaiverUrl } from '../../util/CLMLocation';
 import { extractViolationDetails } from '../../util/violationDetailsUtil';
+import { uriTemplate } from '../../util/urlUtil';
 
 const RequestWaivers = ({ isShown, onClose, violationDetails }) => {
   const { policyViolationId, policyName, constraintName, componentName, reasons = [] } = extractViolationDetails(
@@ -26,6 +27,10 @@ const RequestWaivers = ({ isShown, onClose, violationDetails }) => {
       {reason}
     </dd>
   ));
+
+  const policyViolationUrl = uriTemplate`/assets/#/violation/${policyViolationId}`;
+
+  const urlLinkEl = useRef();
 
   return (
     isShown && (
@@ -61,10 +66,19 @@ const RequestWaivers = ({ isShown, onClose, violationDetails }) => {
         <NxCodeSnippet
           label="Policy Violation ID"
           content={policyViolationId}
-          className="iq-request-waivers-page__clipboard"
+          className="iq-request-waivers-page__violation-id"
           id="request-waivers-policy-violation-id"
         />
-        <NxCodeSnippet label="Curl Example" content={curlExample} />
+        <NxCodeSnippet
+          label="Policy Violation Details Page"
+          content={policyViolationUrl}
+          className="iq-request-waivers-page__page-url"
+          onCopyUsingBtn={() => urlLinkEl.current.select()}
+        />
+        <NxTextLink href={policyViolationUrl}>
+          <input readOnly ref={urlLinkEl} value={policyViolationUrl} className="iq-request-waivers-page__link-input" />
+        </NxTextLink>
+        <NxCodeSnippet label="Curl Example" content={curlExample} className="iq-request-waivers-page__curl" />
       </IqPopover>
     )
   );

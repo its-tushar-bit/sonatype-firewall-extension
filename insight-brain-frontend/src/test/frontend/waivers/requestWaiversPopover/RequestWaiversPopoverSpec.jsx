@@ -3,11 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+import { NxInfoAlert, NxCodeSnippet, NxFontAwesomeIcon, NxButton, NxTextLink } from '@sonatype/react-shared-components';
+import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
+
 import * as enzymeUtils from '../../enzymeUtils';
-import { NxInfoAlert, NxCodeSnippet, NxFontAwesomeIcon, NxButton } from '@sonatype/react-shared-components';
 import requestWaiversPopover from '../../../../main/frontend/waivers/requestWaiversPopover/RequestWaiversPopover';
 import IqPopover from '../../../../main/frontend/react/IqPopover/IqPopover';
-import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
 describe('requestWaiversPopover', function () {
   let minimalProps, getShallowComponent, violationDetailsMock;
@@ -88,13 +89,19 @@ describe('requestWaiversPopover', function () {
 
   it('renders a NxCodeSnippet for policy violation id section', () => {
     const el = getShallowComponent();
-    const policyIdSection = el.find(NxCodeSnippet).first();
+    const policyIdSection = el.find(NxCodeSnippet).at(0);
     expect(policyIdSection).toHaveProp('label', 'Policy Violation ID');
+  });
+
+  it('renders a NxCodeSnippet for policy violation details page section', () => {
+    const el = getShallowComponent();
+    const policyIdSection = el.find(NxCodeSnippet).at(1);
+    expect(policyIdSection).toHaveProp('label', 'Policy Violation Details Page');
   });
 
   it('renders a NxCodeSnippet for curl example section', () => {
     const el = getShallowComponent();
-    const curlSection = el.find(NxCodeSnippet).last();
+    const curlSection = el.find(NxCodeSnippet).at(2);
     expect(curlSection).toHaveProp('label', 'Curl Example');
   });
 
@@ -120,18 +127,35 @@ describe('requestWaiversPopover', function () {
     });
 
     it('renders a NxCodeSnippet for policy violation id section', () => {
-      const policyIdSection = element.find(NxCodeSnippet).first();
+      const policyIdSection = element.find(NxCodeSnippet).at(0);
       expect(policyIdSection).toHaveProp('label', 'Policy Violation ID');
       expect(policyIdSection).toHaveProp('content', violationDetailsMock.policyViolationId);
     });
 
+    it('renders a NxCodeSnippet for policy violation details page section', () => {
+      const policyIdSection = element.find(NxCodeSnippet).at(1);
+      expect(policyIdSection).toHaveProp('label', 'Policy Violation Details Page');
+      expect(policyIdSection).toHaveProp('content', `/assets/#/violation/${violationDetailsMock.policyViolationId}`);
+    });
+
     it('renders a NxCodeSnippet for curl example section', () => {
-      const curlSection = element.find(NxCodeSnippet).last();
+      const curlSection = element.find(NxCodeSnippet).at(2);
       expect(curlSection).toHaveProp('label', 'Curl Example');
       expect(curlSection).toHaveProp(
         'content',
         'curl -X POST -u user:pass -H "Content-Type: text/plain; charset=UTF-8" /api/v2/policyWaiver/id/application --data-binary \'waiver comment (optional)\''
       );
+    });
+
+    it('renders a NxTextLink for policy violation details page url section', () => {
+      const policyPageLinkSection = element.find(NxTextLink).at(1);
+      expect(policyPageLinkSection).toHaveProp('href', `/assets/#/violation/${violationDetailsMock.policyViolationId}`);
+    });
+
+    it('renders an input for policy violation details page url section', () => {
+      const policyPageUrlSection = element.find('.iq-request-waivers-page__link-input').at(0);
+      expect(policyPageUrlSection).toHaveProp('value', `/assets/#/violation/${violationDetailsMock.policyViolationId}`);
+      expect(policyPageUrlSection).toHaveProp('readOnly', true);
     });
   });
 });

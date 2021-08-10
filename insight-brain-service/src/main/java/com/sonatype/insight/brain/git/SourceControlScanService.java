@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
@@ -207,9 +208,14 @@ public class SourceControlScanService
     File repositoryDirectory = sourceControlUtils.getCheckoutDirectory(application);
     ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
         application.getPublicId());
+
+    ScanConfiguration scanConfiguration = new ScanConfiguration();
+    scanConfiguration.setProperty("dirExcludes", "**/src/test");
+
     ScanMetadata scanMetadata = new ScanMetadata().withCommitHash(commitHash);
-    return scanner
-        .scan(repositoryDirectory, null, work.getScanDir(application.getId()), proprietaryConfig, scanMetadata);
+
+    return scanner.scan(repositoryDirectory, null, work.getScanDir(application.getId()), proprietaryConfig,
+        scanConfiguration, scanMetadata);
   }
 
   private void evaluate(SourceControlEvent event, Application application, ScanResult scanResult) {

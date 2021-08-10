@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
@@ -42,6 +43,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.zeroturnaround.exec.InvalidExitValueException;
@@ -55,6 +57,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -205,8 +208,8 @@ public class SourceControlScanServiceTest
     File scanDir = mock(File.class);
     scanResult.setScanFile(mock(File.class));
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanMetadata.class)))
-        .thenReturn(scanResult);
+    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+        any(ScanMetadata.class))).thenReturn(scanResult);
 
     // when we receive a source control scan event
     service.onSourceControlScan(sourceControlEvent);
@@ -244,8 +247,8 @@ public class SourceControlScanServiceTest
     File scanDir = mock(File.class);
     scanResult.setScanFile(mock(File.class));
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanMetadata.class)))
-        .thenReturn(scanResult);
+    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+        any(ScanMetadata.class))).thenReturn(scanResult);
 
     // Sparse checkout leaves no entry on working directory - exception thrown
     InvalidExitValueException innerException =
@@ -281,8 +284,9 @@ public class SourceControlScanServiceTest
     File scanDir = mock(File.class);
     scanResult.setScanFile(mock(File.class));
     when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanMetadata.class)))
-        .thenReturn(scanResult);
+    ArgumentCaptor<ScanConfiguration> scanConfigurationArgCaptor = ArgumentCaptor.forClass(ScanConfiguration.class);
+    when(scanner.scan(any(File.class), isNull(), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+        any(ScanMetadata.class))).thenReturn(scanResult);
 
     // and a policy evaluation
     Stage stage = new Stage(Stage.ID_DEVELOP);
@@ -293,6 +297,8 @@ public class SourceControlScanServiceTest
 
     // it evaluates the SCM repository content and it returns the expected policy evaluation
     assertThat(service.doSynchronousSourceControlScan(APP_ID, stage, "testBranchName")).isEqualTo(policyEvaluation);
+    verify(scanner, times(1)).scan(any(), any(), any(), any(), scanConfigurationArgCaptor.capture(), any());
+    assertThat(scanConfigurationArgCaptor.getValue().getProperties().get("dirExcludes")).isEqualTo("**/src/test");
   }
 
   @Test

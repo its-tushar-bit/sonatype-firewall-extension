@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
+import com.sonatype.insight.scan.model.ScanConfiguration;
 import com.sonatype.insight.scan.model.ScanItem;
 import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.insight.scan.model.io.ScanReader;
@@ -25,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ScannerTest extends InjectedTest
 {
@@ -122,19 +124,55 @@ public class ScannerTest extends InjectedTest
     ScanMetadata scanMetadata = new ScanMetadata().withCommitHash("commit-xyz");
 
     // when: perform the scan
-    ScanResult scanResult = scanner.scan(scanDir, null, tempDir.getRoot(), proprietaryConfig, scanMetadata);
+    ScanResult scanResult = scanner.scan(scanDir, null, tempDir.getRoot(), proprietaryConfig, null, scanMetadata);
 
     // then: scan contains expected results
     assertThat(scanResult.getScanFile()).isFile();
 
     Scan scan = scanReader.read(scanResult.getScanFile());
     assertThat(scan).isNotNull();
-    assertThat(scan.getItems()).hasSize(1);
-    ScanItem item = scan.getItems().get(0);
-    assertThat(item.getPath()).contains("requirements.txt");
+    assertThat(scan.getMetadata().getCommitHash()).isEqualTo(scanMetadata.getCommitHash());
+
+    assertThat(scan.getItems()).hasSize(3);
+
+    ScanItem item = findScanItem(scan, "sourceControlScan/requirements.txt");
     assertThat(item.getItems()).hasSize(0);
     assertThat(item.isProprietary()).isNull();
     assertThat(item.getContentType()).isEqualTo(ItemContentType.PYTHON_REQUIREMENTS);
-    assertThat(scan.getMetadata().getCommitHash()).isEqualTo(scanMetadata.getCommitHash());
+
+    findScanItem(scan, "sourceControlScan/src/test/a.txt");
+
+    findScanItem(scan, "sourceControlScan/testmodule/src/test/b.txt");
+  }
+
+  private ScanItem findScanItem(Scan scan, String path) {
+    for (ScanItem scanItem : scan.getItems()) {
+      if (path.equals(scanItem.getPath())) {
+        return scanItem;
+      }
+    }
+    fail("Did not find a scan item with path=" + path);
+    return null;
+  }
+
+  @Test
+  public void testScan_SourceControl_WithScanConfiguration() throws Exception {
+    // given: setup and configs what would be used by a client for a source control scan
+    File scanDir = new File("src/test/resources/ScannerTest/sourceControlScan");
+    ScanConfiguration scanConfiguration = new ScanConfiguration();
+    scanConfiguration.setProperty("dirExcludes", "**/src/test");
+
+    // when: perform the scan
+    ScanResult scanResult = scanner.scan(scanDir, null, tempDir.getRoot(), null /* proprietaryConfig */,
+        scanConfiguration, null /* scanMetadata */);
+
+    // then: scan contains expected results
+    assertThat(scanResult.getScanFile()).isFile();
+
+    Scan scan = scanReader.read(scanResult.getScanFile());
+    assertThat(scan.getItems()).hasSize(1);
+
+    ScanItem item = scan.getItems().get(0);
+    assertThat(item.getPath()).isEqualTo("sourceControlScan/requirements.txt");
   }
 }

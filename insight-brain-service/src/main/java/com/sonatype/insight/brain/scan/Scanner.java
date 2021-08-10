@@ -87,7 +87,7 @@ public class Scanner
   public ScanResult scan(File target, String filename, File scanDir, ProprietaryConfig proprietaryConfig)
       throws IOException
   {
-    return this.scan(target, filename, scanDir, proprietaryConfig, null);
+    return scan(target, filename, scanDir, proprietaryConfig, null /* scanConfiguration */, null /* scanMetadata */);
   }
 
   /**
@@ -101,6 +101,7 @@ public class Scanner
       String filename,
       File scanDir,
       ProprietaryConfig proprietaryConfig,
+      ScanConfiguration inputScanConfiguration,
       ScanMetadata scanMetadata)
       throws IOException
   {
@@ -111,8 +112,11 @@ public class Scanner
     scanResult.setScanFile(scanFile);
     try {
       Scan scan = new Scan();
-      scan.setConfiguration(new ScanConfiguration(getScanConfigProps(proprietaryConfig)));
+
+      ScanConfiguration scanConfiguration = buildScanConfiguration(proprietaryConfig, inputScanConfiguration);
+      scan.setConfiguration(scanConfiguration);
       scan.setMetadata(scanMetadata);
+
       try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
         writer.openScan(scan);
         writer.writeConfiguration(scan.getConfiguration());
@@ -161,7 +165,7 @@ public class Scanner
     try {
       Scan scan = new Scan();
       scan.setHasThirdPartyScanContent(true);
-      scan.setConfiguration(new ScanConfiguration(getScanConfigProps(proprietaryConfig)));
+      scan.setConfiguration(buildScanConfiguration(proprietaryConfig, null));
       try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
         writer.openScan(scan);
         writer.writeConfiguration(scan.getConfiguration());
@@ -201,7 +205,10 @@ public class Scanner
     return sha1.substring(0, Math.min(sha1.length(), 20));
   }
 
-  private Properties getScanConfigProps(ProprietaryConfig proprietaryConfig) throws IOException {
+  private ScanConfiguration buildScanConfiguration(
+      ProprietaryConfig proprietaryConfig,
+      ScanConfiguration inputScanConfiguration) throws IOException
+  {
     Properties props = new Properties();
     props.setProperty("fileIncludes", "");
     props.setProperty("fileExcludes", "");
@@ -214,6 +221,11 @@ public class Scanner
     }
     configLoader.loadDefaults(props, null);
     configLoader.resolveAliases(props);
-    return props;
+    
+    if (inputScanConfiguration != null) {
+      props.putAll(inputScanConfiguration.getProperties());
+    }
+
+    return new ScanConfiguration(props);
   }
 }

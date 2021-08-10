@@ -6,7 +6,10 @@
 package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.Date;
+import java.util.Objects;
 
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
@@ -14,6 +17,8 @@ import com.sonatype.insight.json.store.ApiDateFormat;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import static com.sonatype.clm.dto.model.policy.TriggerReference.Type.SECURITY_VULNERABILITY_REFID;
 
 /**
  * @since 1.76
@@ -67,6 +72,12 @@ public class ApiPolicyWaiverDTO
    */
   public String policyId;
 
+  /**
+   * @since 1.122
+   */
+  @JsonInclude(Include.NON_EMPTY)
+  public String vulnerabilityId;
+
   public static ApiPolicyWaiverDTO toDto(PolicyWaiver policyWaiver, Owner owner) {
     ApiPolicyWaiverDTO dto = new ApiPolicyWaiverDTO();
 
@@ -81,6 +92,16 @@ public class ApiPolicyWaiverDTO
       dto.scopeOwnerId = owner.getId();
       dto.scopeOwnerType = ScopeOwnerUtils.getScopeOwnerType(owner.getType(), owner.getId());
       dto.scopeOwnerName = owner.getName();
+    }
+
+    if (policyWaiver.getConstraintFacts() != null) {
+      policyWaiver.getConstraintFacts().stream()
+              .flatMap(constraintFact -> constraintFact.getConditionFacts().stream().map(ConditionFact::getReference))
+              .filter(Objects::nonNull)
+              .filter(triggerReference -> triggerReference.getType().equals(SECURITY_VULNERABILITY_REFID))
+              .map(TriggerReference::getValue)
+              .findFirst()
+              .ifPresent(vulnerabilityId -> dto.vulnerabilityId = vulnerabilityId);
     }
 
     return dto;

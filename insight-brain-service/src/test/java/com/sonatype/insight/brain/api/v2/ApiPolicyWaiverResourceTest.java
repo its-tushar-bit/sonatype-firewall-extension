@@ -16,6 +16,9 @@ import java.util.function.UnaryOperator;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -45,6 +48,7 @@ import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.T
 import static com.sonatype.insight.brain.api.v2.DefaultApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiPolicyWaiverResourceTest
@@ -73,8 +77,12 @@ public class ApiPolicyWaiverResourceTest
     Application application = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(application);
 
+    TriggerReference triggerReference = new TriggerReference(TriggerReference.Type.SECURITY_VULNERABILITY_REFID,
+            "vulnerability-1");
+    ConditionFact conditionFact = new ConditionFact("condition type id", 0, "summary", "reason", triggerReference);
+    ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);
     PolicyWaiver policyWaiver = tempEntity.newWaiver("hash", policy.getId(), application.getId(),
-        null, "a comment", today, aWeekFromNow);
+        singletonList(constraintFact), "a comment", today, aWeekFromNow);
 
     HttpResponse response = restRequest().path(OWNERS_PATH).parameter(OwnerType.APPLICATION, application.getId()).get();
 
@@ -94,6 +102,7 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.scopeOwnerName).isEqualTo(application.getName());
     assertThat(apiPolicyWaiverDTO.scopeOwnerType).isEqualTo(OwnerType.APPLICATION.toString());
     assertThat(apiPolicyWaiverDTO.expiryTime).isEqualTo(aWeekFromNow);
+    assertThat(apiPolicyWaiverDTO.vulnerabilityId).isEqualTo("vulnerability-1");
   }
 
   @Test

@@ -5,9 +5,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test01",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "policyId" : "3d0f45c7a0404a44ac50e259872659b8",
@@ -409,9 +409,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test02",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "policyId" : "3d0f45c7a0404a44ac50e259872659b8",

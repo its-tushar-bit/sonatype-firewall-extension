@@ -3,9 +3,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test01",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -49,9 +49,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test02",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -95,9 +95,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test01",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -141,9 +141,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test02",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -187,9 +187,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test01",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -233,9 +233,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test02",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -279,9 +279,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test01",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -325,9 +325,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test02",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -371,9 +371,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test01",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -417,9 +417,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test02",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -463,9 +463,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test01",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test01",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,
@@ -509,9 +509,9 @@
     "componentIdentifier" : {
       "format" : "terraform",
       "coordinates" : {
-        "Name" : "aws_s3_bucket.test02",
-        "Plan" : "plan.tfplan",
-        "Version" : "current"
+        "name" : "aws_s3_bucket.test02",
+        "plan" : "plan.tfplan",
+        "version" : "current"
       }
     },
     "groupId" : null,

@@ -9,9 +9,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test01",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test01",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0d8e3bd6ee4e6d50557a",
@@ -65,9 +65,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test01",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test01",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0d8e3bd6ee4e6d50557a",
@@ -121,9 +121,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test02",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test02",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0b21d00434253711ca98",
@@ -177,9 +177,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test02",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test02",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0b21d00434253711ca98",
@@ -233,9 +233,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test01",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test01",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0d8e3bd6ee4e6d50557a",
@@ -299,9 +299,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test01",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test01",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0d8e3bd6ee4e6d50557a",
@@ -365,9 +365,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test01",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test01",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0d8e3bd6ee4e6d50557a",
@@ -431,9 +431,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test01",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test01",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0d8e3bd6ee4e6d50557a",
@@ -497,9 +497,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test02",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test02",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0b21d00434253711ca98",
@@ -563,9 +563,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test02",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test02",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0b21d00434253711ca98",
@@ -629,9 +629,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test02",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test02",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0b21d00434253711ca98",
@@ -695,9 +695,9 @@
         "componentIdentifier" : {
           "format" : "terraform",
           "coordinates" : {
-            "Name" : "aws_s3_bucket.test02",
-            "Plan" : "plan.tfplan",
-            "Version" : "current"
+            "name" : "aws_s3_bucket.test02",
+            "plan" : "plan.tfplan",
+            "version" : "current"
           }
         },
         "hash" : "0b21d00434253711ca98",

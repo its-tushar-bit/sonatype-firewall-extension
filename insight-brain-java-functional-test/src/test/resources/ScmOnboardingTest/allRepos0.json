@@ -72,19 +72,18 @@
     "default_branch": "release"
   },
   {
-    "name": "nxrm-cli",
-    "description": "",
+    "name": "null-description",
+    "description": null,
     "private": false,
-    "clone_url": "https://localhost/sonatype-nexus-community/nxrm-cli.git",
-    "ssh_url": "git@localhost:sonatype-nexus-community/nxrm-cli.git",
+    "clone_url": "https://localhost/sonatype-nexus-community/null-description.git",
+    "ssh_url": "git@localhost:sonatype-nexus-community/null-description.git",
     "default_branch": "ignition"
   },
   {
-    "name": "ossindex-gradle-plugin",
-    "description": "",
+    "name": "missing-description",
     "private": false,
-    "clone_url": "https://localhost/sonatype-nexus-community/ossindex-gradle-plugin.git",
-    "ssh_url": "git@localhost:sonatype-nexus-community/ossindex-gradle-plugin.git",
+    "clone_url": "https://localhost/sonatype-nexus-community/missing-description.git",
+    "ssh_url": "git@localhost:sonatype-nexus-community/missing-description.git",
     "default_branch": "product"
   },
   {

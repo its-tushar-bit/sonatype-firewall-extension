@@ -136,6 +136,10 @@ export default function ResultsTable(props) {
   }
 
   function isRepositorySelectedByFilter(repository, filterName, filterValue) {
+    // under some cases, fields like 'description' may be null. In this case, treat them as if they were ''
+    if (!repository || !repository[filterName]) {
+      return !filterValue;
+    }
     return repository[filterName].toLowerCase().includes(filterValue.toLowerCase());
   }
 

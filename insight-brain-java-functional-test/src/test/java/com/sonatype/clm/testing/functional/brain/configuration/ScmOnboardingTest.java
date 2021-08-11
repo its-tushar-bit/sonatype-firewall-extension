@@ -553,9 +553,10 @@ public class ScmOnboardingTest
     scmOnboardingPage.repositoryCount().shouldBe(visible);
     scmOnboardingPage.selectedToImportCount().shouldBe(text("0 of 13 repositories"));
     scmOnboardingPage.resultsTableProject().shouldHave(exactTexts("ci-project-1",
-        "ci-project-16", "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
+        "ci-project-16", "create-react-app", "missing-description", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
-        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos"));
+        "nexus-webhook-example-collection", "null-description", "oysteR",
+        "prime-nexus-proxy-repos"));
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("depshield-ci",
         "sonatype-nexus-community");
   }
@@ -710,7 +711,8 @@ public class ScmOnboardingTest
     scmOnboardingPage.resultsTableProject().shouldHave(CollectionCondition.textsInAnyOrder(
         "create-react-app", "nexus-repository-p2", "nexus-repository-puppet",
         "nexus-repository-terraform", "nexus-repository-vgo", "nexus-scripting-examples",
-        "nexus-webhook-example-collection", "nxrm-cli", "ossindex-gradle-plugin", "oysteR", "prime-nexus-proxy-repos"));
+        "nexus-webhook-example-collection", "null-description", "missing-description", "oysteR",
+        "prime-nexus-proxy-repos"));
     assertThat(scmOnboardingPage.resultsTableNamespace().texts()).containsAnyOf("sonatype-nexus-community");
 
     // and the select all checkbox is checked

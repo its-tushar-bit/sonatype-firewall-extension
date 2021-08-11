@@ -75,7 +75,7 @@ const RequestWaivers = ({ isShown, onClose, violationDetails }) => {
           className="iq-request-waivers-page__page-url"
           onCopyUsingBtn={() => urlLinkEl.current.select()}
         />
-        <NxTextLink href={policyViolationUrl}>
+        <NxTextLink newTab href={policyViolationUrl}>
           <input readOnly ref={urlLinkEl} value={policyViolationUrl} className="iq-request-waivers-page__link-input" />
         </NxTextLink>
         <NxCodeSnippet label="Curl Example" content={curlExample} className="iq-request-waivers-page__curl" />

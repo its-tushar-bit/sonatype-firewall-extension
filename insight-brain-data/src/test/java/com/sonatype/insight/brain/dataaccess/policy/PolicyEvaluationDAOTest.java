@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.time.OffsetDateTime;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
@@ -863,6 +865,29 @@ public class PolicyEvaluationDAOTest
             new Date(date.getTime() - 1000), COMMIT_HASH);
     assertThat(dao.getLastByApplicationAndAbbreviatedCommitHash(app1.getId(), COMMIT_HASH.substring(0, 7)))
         .isNull();
+  }
+
+  @Test
+  public void testHasExternalPolicyEvaluations() {
+    final PolicyEvaluationDAO dao = new PolicyEvaluationDAO();
+
+    final Application app1 = tempEntity.newApplicationWithParent();
+    OffsetDateTime now = OffsetDateTime.now();
+    final Date cutoffDate = Date.from(now.minusDays(7).toInstant());
+
+    Date scanTime = Date.from(now.minusHours(2).toInstant());
+
+    // add internally triggered policy evaluation
+    tempEntity.newPolicyEvaluation(app1.getId(), StageTypes.SOURCE.getId(), "scan1", false, false, false,
+        scanTime, "commitHash1", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
+
+    assertThat(dao.hasExternalPolicyEvaluations(app1.getId(), cutoffDate)).isFalse();
+
+    // add externally triggered policy evaluation
+    tempEntity.newPolicyEvaluation(app1.getId(), Stage.ID_BUILD, "scan2", false, false, false,
+            scanTime, "commitHash2");
+
+    assertThat(dao.hasExternalPolicyEvaluations(app1.getId(), cutoffDate)).isTrue();
   }
 
   @Test

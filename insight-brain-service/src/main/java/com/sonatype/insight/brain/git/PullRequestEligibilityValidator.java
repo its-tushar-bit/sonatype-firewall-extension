@@ -37,7 +37,7 @@ public class PullRequestEligibilityValidator
    * @param pullRequest git #PullRequest to validate
    * @param gitRepositoryInfo info about the git repository; used to determine if the given pull request is for the
    *                          configured default branch
-   * @param sourceCommitPolicyEvaluation evaluation associated with the application;  this needs to be for the
+   * @param featureBranchPolicyEvaluation evaluation associated with the application;  this needs to be for the
    *                                     head commit for the PR in order to pass validation
    *
    * @return true iff:
@@ -50,7 +50,7 @@ public class PullRequestEligibilityValidator
       String applicationId,
       PullRequest pullRequest,
       GitRepositoryInfo gitRepositoryInfo,
-      PolicyEvaluation sourceCommitPolicyEvaluation)
+      PolicyEvaluation featureBranchPolicyEvaluation)
   {
     if (!pullRequestRepositoryValidator.isInternalRepository(gitRepositoryInfo) &&
         !pullRequest.isRepositoryPrivate()) {
@@ -70,12 +70,12 @@ public class PullRequestEligibilityValidator
       return false;
     }
 
-    if (!doesHeadCommitMatchPolicyEvaluationCommit(sourceCommitPolicyEvaluation.getCommitHash(),
+    if (!doesHeadCommitMatchPolicyEvaluationCommit(featureBranchPolicyEvaluation.getCommitHash(),
         pullRequest.getHeadCommitHash())) {
       log.debug(
           "The head commit hash '{}', for application '{}', PR '{}' does not match the commit on the policy " +
               "evaluation '{}'", pullRequest.getHeadCommitHash(), applicationId, pullRequest.getNumber(),
-          sourceCommitPolicyEvaluation.getCommitHash());
+          featureBranchPolicyEvaluation.getCommitHash());
       return false;
     }
 

@@ -26,6 +26,7 @@ import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -73,6 +74,30 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
   }
 
   @Test
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_noExistingPolicyEvaluation_externalEvaluationsExist()
+      throws GitException, IOException
+  {
+    // setup
+    final String applicationId = "app1";
+    final String commit = "commit-123";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+    PullRequestDefaultBranchPolicyEvaluationResolver policyEvaluationResolver =
+        new TestableDefaultBranchPolicyEvaluationBuilder()
+            .hasExternalPolicyEvaluations(true)
+            .build();
+
+    // when
+    PolicyEvaluation defaultBranchPolicyEvaluation =
+        policyEvaluationResolver.getOrPerformDefaultBranchPolicyEvaluation(applicationId, gitRepositoryInfo, commit);
+
+    // then: no record returned and no scan is triggered
+    assertThat(defaultBranchPolicyEvaluation).isNull();
+
+    verify(mockPullRequestInfoClient, times(1)).getCommitInfoFromScm(any(), any());
+    verify(mockSourceControlScanService, never()).doSynchronousSourceControlScan(eq(applicationId), any(), any());
+  }
+
+  @Test
   public void testGetOrPerformDefaultBranchPolicyEvaluation_externalPolicyEvaluation()
       throws GitException, IOException
   {
@@ -86,6 +111,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
         new TestableDefaultBranchPolicyEvaluationBuilder()
             .withDefaultBranchCommitHistoryPolicyEvaluation(policyEvaluation)
             .withBuildStagePolicyEvaluation(policyEvaluation)
+            .hasExternalPolicyEvaluations(true)
             .build();
 
     // when
@@ -115,6 +141,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
             .withDefaultBranchCommitHistoryPolicyEvaluation(releasePolicyEvaluation)
             .withReleaseStagePolicyEvaluation(releasePolicyEvaluation)
             .withBuildStagePolicyEvaluation(buildPolicyEvaluation)
+            .hasExternalPolicyEvaluations(true)
             .build();
 
     // when
@@ -142,9 +169,10 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
 
     PullRequestDefaultBranchPolicyEvaluationResolver policyEvaluationResolver =
         new TestableDefaultBranchPolicyEvaluationBuilder()
-            .withDefaultBranchCommitHistoryPolicyEvaluation(sourcePolicyEvaluation)
-            .withReleaseStagePolicyEvaluation(sourcePolicyEvaluation)
+            .withDefaultBranchCommitHistoryPolicyEvaluation(buildPolicyEvaluation)
+            .withSourceStagePolicyEvaluation(sourcePolicyEvaluation)
             .withBuildStagePolicyEvaluation(buildPolicyEvaluation)
+            .hasExternalPolicyEvaluations(true)
             .build();
 
     // when
@@ -175,14 +203,15 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
             .withDefaultBranchCommitHistoryPolicyEvaluation(releasePolicyEvaluation)
             .withReleaseStagePolicyEvaluation(releasePolicyEvaluation)
             .withSourceStagePolicyEvaluation(sourcePolicyEvaluation)
+            .hasExternalPolicyEvaluations(true)
             .build();
 
     // when
     PolicyEvaluation defaultBranchPolicyEvaluation =
         policyEvaluationResolver.getOrPerformDefaultBranchPolicyEvaluation(applicationId, gitRepositoryInfo, commit);
 
-    // then: the source policy evaluation is preferred over the release one
-    assertThat(defaultBranchPolicyEvaluation).isEqualTo(sourcePolicyEvaluation);
+    // then: the release policy evaluation is preferred over the release one
+    assertThat(defaultBranchPolicyEvaluation).isEqualTo(releasePolicyEvaluation);
 
     verify(mockPullRequestInfoClient, never()).getCommitInfoFromScm(any(), any());
     verify(mockSourceControlScanService, never()).doSynchronousSourceControlScan(eq(applicationId), any(), any());
@@ -242,6 +271,33 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
     verify(mockSourceControlScanService, times(1)).doSynchronousSourceControlScan(eq(applicationId), any(), any());
   }
 
+  @Test
+  public void testGetOrPerformDefaultBranchPolicyEvaluation_staleInternalPolicyEvaluation_externalEvaluationsExist()
+      throws GitException, IOException
+  {
+    // setup
+    final String applicationId = "app1";
+    final String commit = "commit-123";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+    PolicyEvaluation policyEvaluation =
+        createPolicyEvaluation(Stage.ID_SOURCE, ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
+
+    PullRequestDefaultBranchPolicyEvaluationResolver policyEvaluationResolver =
+        new TestableDefaultBranchPolicyEvaluationBuilder()
+            .withDefaultBranchCommitHistoryPolicyEvaluation(policyEvaluation)
+            .withSourceStagePolicyEvaluation(policyEvaluation)
+            .withHeadCommit("commit-456")
+            .hasExternalPolicyEvaluations(true)
+            .build();
+
+    // when
+    policyEvaluationResolver.getOrPerformDefaultBranchPolicyEvaluation(applicationId, gitRepositoryInfo, commit);
+
+    // then
+    verify(mockPullRequestInfoClient, never()).getCommitInfoFromScm(any(), any());
+    verify(mockSourceControlScanService, never()).doSynchronousSourceControlScan(eq(applicationId), any(), any());
+  }
+
   private GitRepositoryInfo createDefaultGitRepositoryInfo() {
     return new GitRepositoryInfo("https://gitlab.com/test/project1", "user", "token", SourceControlProvider.GITLAB,
         "master", true, true);
@@ -274,6 +330,8 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
     private PolicyEvaluation sourceStagePolicyEvaluation;
 
     private PolicyEvaluation releaseStagePolicyEvaluation;
+
+    private boolean hasExternalPolicyEvaluations = false;
 
     private String headCommit = "commit-123";
 
@@ -308,6 +366,11 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
       return this;
     }
 
+    TestableDefaultBranchPolicyEvaluationBuilder hasExternalPolicyEvaluations(boolean hasExternalPolicyEvaluations) {
+      this.hasExternalPolicyEvaluations = hasExternalPolicyEvaluations;
+      return this;
+    }
+
     PullRequestDefaultBranchPolicyEvaluationResolver build() throws GitException, IOException {
       final CommitInformation commitInformation = new CommitInformation();
       commitInformation.addCommit(new Commit("commit-456", new Date()));
@@ -316,7 +379,7 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
       doReturn(headCommit).when(mockGitCommitHistoryService).getLatestCommitForApplication(any());
 
       doReturn(Optional.ofNullable(defaultBranchCommitHistoryPolicyEvaluation)).when(mockGitCommitHistoryService)
-          .getLatestPolicyEvaluationForApplicationBaseBranch(any());
+          .getLatestPolicyEvaluationForApplicationBaseBranch(any(), anyBoolean());
 
       doReturn(buildStagePolicyEvaluation).when(mockPolicyEvaluationDAO)
           .getLastByApplicationIdCommitHashAndStageId(any(), any(), eq(Stage.ID_BUILD));
@@ -324,6 +387,8 @@ public class PullRequestDefaultBranchPolicyEvaluationResolverTest
           .getLastByApplicationIdCommitHashAndStageId(any(), any(), eq(Stage.ID_SOURCE));
       doReturn(releaseStagePolicyEvaluation).when(mockPolicyEvaluationDAO)
           .getLastByApplicationIdCommitHashAndStageId(any(), any(), eq(Stage.ID_RELEASE));
+      doReturn(hasExternalPolicyEvaluations).when(mockPolicyEvaluationDAO)
+          .hasExternalPolicyEvaluations(any(), any());
 
       doReturn(sourceStagePolicyEvaluation).when(mockSourceControlScanService)
           .doSynchronousSourceControlScan(any(), any(), any());

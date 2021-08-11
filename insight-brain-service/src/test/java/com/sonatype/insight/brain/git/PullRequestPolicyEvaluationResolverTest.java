@@ -206,7 +206,8 @@ public class PullRequestPolicyEvaluationResolverTest
     GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
 
     PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
-        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, commitHash)
+        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, commitHash,
+            true)
         .build();
 
     // when: resolve policy evaluations
@@ -222,7 +223,7 @@ public class PullRequestPolicyEvaluationResolverTest
   }
 
   @Test
-  public void testResolveForPullRequest_haveInternalExternalMismatch() throws GitException, IOException {
+  public void testResolveForPullRequest_haveExternalInternalMismatch() throws GitException, IOException {
     // given: an externally triggered default branch policy eval and an internally triggered feature branch policy eval
     final String defaultBranchPolicyEvaluationId = "default-policy-4";
     final String featureBranchPolicyEvaluationId = "feature-policy-4";
@@ -234,7 +235,38 @@ public class PullRequestPolicyEvaluationResolverTest
         // with an externally triggered default branch policy eval
         .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId,false)
         // with an internally triggered feature branch policy eval
-        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, featureCommit)
+        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, featureCommit,
+            true)
+        .withPullRequest(2, featureBranchName, featureCommit, true)
+        .build();
+
+    // when: resolve policy evaluations
+    PullRequestPolicyEvaluationsDTO policyEvaluationsDTO = pullRequestPolicyEvaluationResolver
+        .resolveForPullRequest(application.getId(), gitRepositoryInfo, 4, featureBranchName, featureCommit);
+
+    // then: result is empty
+    assertThat(policyEvaluationsDTO).isNull();
+    assertThatLogMessagesEqual(
+        debug("Cannot comment - internal/external policy evaluation mismatch for application " +
+            application.getPublicId() + " repository https://gitlab.com/test/project1")
+    );
+  }
+
+  @Test
+  public void testResolveForPullRequest_haveInternalExternalMismatch() throws GitException, IOException {
+    // given: an internally triggered default branch policy eval and an externally triggered feature branch policy eval
+    final String defaultBranchPolicyEvaluationId = "default-policy-4";
+    final String featureBranchPolicyEvaluationId = "feature-policy-4";
+    final String featureCommit = "commit123";
+    final String featureBranchName = "feature-branch";
+    GitRepositoryInfo gitRepositoryInfo = createDefaultGitRepositoryInfo();
+
+    PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
+        // with an internally triggered default branch policy eval
+        .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId,true)
+        // with an externally triggered feature branch policy eval
+        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, featureCommit,
+            false)
         .withPullRequest(2, featureBranchName, featureCommit, true)
         .build();
 
@@ -261,7 +293,8 @@ public class PullRequestPolicyEvaluationResolverTest
 
     PullRequestPolicyEvaluationResolver pullRequestPolicyEvaluationResolver = new TestablePolicyEvaluationResolver()
         .withDefaultBranchPolicyEvaluation(application.getId(), defaultBranchPolicyEvaluationId, true)
-        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, featureCommit)
+        .withFeatureBranchPolicyEvaluationForCommit(application.getId(), featureBranchPolicyEvaluationId, featureCommit,
+            true)
         .withPullRequest(2, featureBranchName, featureCommit, true)
         .build();
 
@@ -311,7 +344,7 @@ public class PullRequestPolicyEvaluationResolverTest
       policyEvaluation.setScanTriggerType(
           internallyTriggered ? ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING : ScanTriggerType.CLI);
       doReturn(Optional.of(policyEvaluation)).when(mockGitCommitHistoryService)
-          .getLatestPolicyEvaluationForApplicationBaseBranch(applicationId);
+          .getLatestPolicyEvaluationForApplicationBaseBranch(applicationId, !internallyTriggered);
       doReturn(policyEvaluation).when(mockDefaultBranchPolicyEvaluationResolver)
           .getOrPerformDefaultBranchPolicyEvaluation(eq(applicationId), any(), any());
       return this;
@@ -334,13 +367,15 @@ public class PullRequestPolicyEvaluationResolverTest
     private TestablePolicyEvaluationResolver withFeatureBranchPolicyEvaluationForCommit(
         String applicationId,
         String policyEvaluationId,
-        String commitHash)
+        String commitHash,
+        boolean internallyTriggered)
     {
       PolicyEvaluation policyEvaluation = new PolicyEvaluation();
       policyEvaluation.setApplicationId(applicationId);
       policyEvaluation.setId(policyEvaluationId);
       policyEvaluation.setCommitHash(commitHash);
-      policyEvaluation.setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
+      policyEvaluation.setScanTriggerType(
+          internallyTriggered ? ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST : ScanTriggerType.CLI);
       doReturn(policyEvaluation).when(mockPolicyEvaluationDAO)
           .getLastByApplicationAndCommitHash(applicationId, commitHash);
 

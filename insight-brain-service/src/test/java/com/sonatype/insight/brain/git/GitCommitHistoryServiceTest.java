@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -70,12 +71,19 @@ public class GitCommitHistoryServiceTest
     setupHistoryItemWithEvaluation(HISTORY_COMMIT_HASH);
 
     // when
-    final Optional<PolicyEvaluation> optionalEvaluation =
-        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(application.getId());
+    Optional<PolicyEvaluation> optionalEvaluation =
+        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
 
     // then
     assertThat(optionalEvaluation).isNotEmpty();
     assertThat(optionalEvaluation.get().getCommitHash()).isEqualTo(HISTORY_COMMIT_HASH);
+
+    // when
+    optionalEvaluation =
+        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), false);
+
+    // then
+    assertThat(optionalEvaluation).isEmpty();
   }
 
   @Test
@@ -93,7 +101,7 @@ public class GitCommitHistoryServiceTest
     // when
     final Optional<PolicyEvaluation> optionalEvaluation =
         gitCommitHistoryService
-            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId());
+            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
 
     // then
     assertThat(optionalEvaluation).isNotEmpty();
@@ -115,7 +123,7 @@ public class GitCommitHistoryServiceTest
     // when
     final Optional<PolicyEvaluation> optionalEvaluation =
         gitCommitHistoryService
-            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId());
+            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
 
     // then
     assertThat(optionalEvaluation).isEmpty();
@@ -133,7 +141,7 @@ public class GitCommitHistoryServiceTest
     // when
     final Optional<PolicyEvaluation> optionalEvaluation =
         gitCommitHistoryService
-            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId());
+            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
 
     // then
     assertThat(optionalEvaluation).isEmpty();
@@ -150,7 +158,7 @@ public class GitCommitHistoryServiceTest
     // when
     final Optional<PolicyEvaluation> optionalEvaluation =
         gitCommitHistoryService
-            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId());
+            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
 
     // then
     assertThat(optionalEvaluation).isEmpty();
@@ -171,7 +179,7 @@ public class GitCommitHistoryServiceTest
     // when
     final Optional<PolicyEvaluation> optionalEvaluation =
         gitCommitHistoryService
-            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId());
+            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
 
     // then
     assertThat(optionalEvaluation).isNotEmpty();
@@ -193,7 +201,7 @@ public class GitCommitHistoryServiceTest
     // when
     final Optional<PolicyEvaluation> optionalEvaluation =
         gitCommitHistoryService
-            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId());
+            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
 
     // then
     assertThat(optionalEvaluation).isNotEmpty();
@@ -214,11 +222,41 @@ public class GitCommitHistoryServiceTest
 
     // when
     final Optional<PolicyEvaluation> optionalEvaluation =
-        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(application.getId());
+        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
 
     // then
     assertThat(optionalEvaluation).isNotEmpty();
     assertThat(optionalEvaluation.get().getCommitHash()).isEqualTo("OLDER_COMMIT");
+  }
+
+  @Test
+  public void testGetTargetPolicyEvaluationForPullRequest_InternalAndExternalPolicyEvals() {
+    // given
+    policyEvaluation = setupPolicyEvaluation(COMMIT_HASH);
+    final PullRequest pullRequest = new GithubPullRequest();
+    pullRequest.setBase("ANOTHER_BRANCH");
+    pullRequest.setBaseCommitHash("ANOTHER_COMMIT");
+    final Date date = new Date();
+    setupHistoryItemWithEvaluation("COMMIT_WITH_EXTERNAL_PE", date);
+    setupHistoryItemWithoutEvaluation("OLDER_COMMIT", new Date(date.getTime() - 1000));
+    setupHistoryItemWithInternalEvaluation("COMMIT_WITH_INTERNAL_PE", new Date(date.getTime() - 2000));
+
+    // when
+    Optional<PolicyEvaluation> optionalEvaluation =
+        gitCommitHistoryService
+            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), true);
+
+    // then
+    assertThat(optionalEvaluation).isNotEmpty();
+    assertThat(optionalEvaluation.get().getCommitHash()).isEqualTo("COMMIT_WITH_EXTERNAL_PE");
+
+    // when
+    optionalEvaluation = gitCommitHistoryService
+            .getLatestPolicyEvaluationForApplicationBaseBranch(application.getId(), false);
+
+    // then
+    assertThat(optionalEvaluation).isNotEmpty();
+    assertThat(optionalEvaluation.get().getCommitHash()).isEqualTo("COMMIT_WITH_INTERNAL_PE");
   }
 
   @Test
@@ -820,6 +858,13 @@ public class GitCommitHistoryServiceTest
             localEvaluation.getId());
   }
 
+  private void setupHistoryItemWithInternalEvaluation(final String commitHash, final Date commitTime) {
+    final PolicyEvaluation localEvaluation = setupInternalPolicyEvaluation(commitHash);
+    tempEntity
+        .createSourceControlDefaultBranchCommitHistory(application.getId(), commitHash, commitTime,
+            localEvaluation.getId());
+  }
+
   private void setupHistoryItemWithoutEvaluation(final String commitHash, final Date commitTime) {
     tempEntity
         .createSourceControlDefaultBranchCommitHistory(application.getId(), commitHash, commitTime, null);
@@ -829,6 +874,12 @@ public class GitCommitHistoryServiceTest
     return tempEntity
         .newPolicyEvaluation(application.getId(), StageTypes.BUILD.getId(), SCAN_ID, false, false, false, new Date(),
             commitHash);
+  }
+
+  private PolicyEvaluation setupInternalPolicyEvaluation(final String commitHash) {
+    return tempEntity
+        .newPolicyEvaluation(application.getId(), StageTypes.BUILD.getId(), SCAN_ID, false, false, false, new Date(),
+            commitHash, ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING);
   }
 
   private Commit setupCommit(final String commitHash, final Date commitTime) {

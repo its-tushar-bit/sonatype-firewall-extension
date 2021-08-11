@@ -39,13 +39,16 @@ public class GitCommitHistoryService
     this.policyEvaluationDAO = policyEvaluationDAO;
   }
 
-  public Optional<PolicyEvaluation> getLatestPolicyEvaluationForApplicationBaseBranch(final String applicationId) {
+  public Optional<PolicyEvaluation> getLatestPolicyEvaluationForApplicationBaseBranch(
+      final String applicationId,
+      final boolean externallyTriggered)
+  {
     if (Strings.isNullOrEmpty(applicationId)) {
       return Optional.empty();
     }
 
     final SourceControlDefaultBranchCommitHistory sourceControlDefaultBranchCommitHistory =
-        commitHistoryDAO.getByApplicationIdForLatestCommitWithPolicyEvaluation(applicationId);
+        commitHistoryDAO.getForLatestCommitWithPolicyEvaluation(applicationId, externallyTriggered);
 
     if (sourceControlDefaultBranchCommitHistory != null) {
       return Optional

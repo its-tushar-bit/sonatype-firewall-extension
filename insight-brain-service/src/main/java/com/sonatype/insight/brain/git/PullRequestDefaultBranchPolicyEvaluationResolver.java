@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Optional;
 
@@ -30,6 +31,8 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
   private static final long INTERNAL_POLICY_EVALUATION_RECHECK_INTERVAL = 1000L * 60 * 90; // 90 minutes
 
   private static final Stage SOURCE_STAGE = new Stage(Stage.ID_SOURCE);
+
+  private static final int EXTERNAL_EVALUATION_WINDOW_IN_DAYS = 7;
 
   private final GitCommitHistoryService gitCommitHistoryService;
 
@@ -67,7 +70,12 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
       GitRepositoryInfo gitRepositoryInfo,
       String pullRequestHeadCommitHash) throws GitException, IOException
   {
-    PolicyEvaluation defaultBranchPolicyEvaluation = getLatestPolicyEvaluationForBaseBranch(applicationId);
+    OffsetDateTime dateTime = OffsetDateTime.now().minusDays(EXTERNAL_EVALUATION_WINDOW_IN_DAYS);
+    Date cutoffTime = Date.from(dateTime.toInstant());
+    boolean hasExternalPolicyEvaluations = policyEvaluationDAO.hasExternalPolicyEvaluations(applicationId, cutoffTime);
+
+    PolicyEvaluation defaultBranchPolicyEvaluation =
+        getLatestPolicyEvaluationForBaseBranch(applicationId, hasExternalPolicyEvaluations);
 
     if (shouldUpdateCommitHistory(defaultBranchPolicyEvaluation)) {
       CommitInformation commitInfo =
@@ -75,11 +83,12 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
 
       if (CollectionUtils.isNotEmpty(commitInfo.getCommits())) {
         gitCommitHistoryService.updateCommitHistoryForCommits(applicationId, commitInfo.getCommits());
-        defaultBranchPolicyEvaluation = getLatestPolicyEvaluationForBaseBranch(applicationId);
+        defaultBranchPolicyEvaluation =
+            getLatestPolicyEvaluationForBaseBranch(applicationId, hasExternalPolicyEvaluations);
       }
     }
 
-    if (isMissingOrStaleInternalPolicyEvaluation(defaultBranchPolicyEvaluation)) {
+    if (!hasExternalPolicyEvaluations && isMissingOrStaleInternalPolicyEvaluation(defaultBranchPolicyEvaluation)) {
       defaultBranchPolicyEvaluation = sourceControlScanService
           .doSynchronousSourceControlScan(applicationId, SOURCE_STAGE, gitRepositoryInfo.getBaseBranch());
     }
@@ -116,12 +125,15 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
    * commit that has a policy evaluation; otherwise just return the latest and allow the caller figure out what to
    * do with it
    */
-  private PolicyEvaluation getLatestPolicyEvaluationForBaseBranch(String applicationId) {
+  private PolicyEvaluation getLatestPolicyEvaluationForBaseBranch(
+      String applicationId,
+      boolean externallyTriggered)
+  {
     PolicyEvaluation policyEvaluation = null;
 
     // this represents the most recent commit with a policy evaluation
     Optional<PolicyEvaluation> latestPolicyEvaluation =
-        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(applicationId);
+        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(applicationId, externallyTriggered);
 
     if (latestPolicyEvaluation.isPresent()) {
       policyEvaluation = resolveForStage(latestPolicyEvaluation.get(), Stage.ID_BUILD);
@@ -139,13 +151,19 @@ public class PullRequestDefaultBranchPolicyEvaluationResolver
   /**
    * if the given policy evaluation is not for the given stage try to find one for the same commit that is
    */
-  private PolicyEvaluation resolveForStage(PolicyEvaluation latestBaseBranchPolicyEvaluation, String stageTypeId) {
-    if (!latestBaseBranchPolicyEvaluation.getStageTypeId().equalsIgnoreCase(stageTypeId)) {
-      return policyEvaluationDAO.getLastByApplicationIdCommitHashAndStageId(
-          latestBaseBranchPolicyEvaluation.getApplicationId(),
-          latestBaseBranchPolicyEvaluation.getCommitHash(),
-          stageTypeId);
+  private PolicyEvaluation resolveForStage(PolicyEvaluation policyEvaluation, String stageTypeId) {
+    if (!policyEvaluation.getStageTypeId().equalsIgnoreCase(stageTypeId)) {
+      final PolicyEvaluation policyEvaluationCandidate =
+          policyEvaluationDAO.getLastByApplicationIdCommitHashAndStageId(
+              policyEvaluation.getApplicationId(),
+              policyEvaluation.getCommitHash(),
+              stageTypeId);
+      if (policyEvaluationCandidate != null &&
+          policyEvaluationCandidate.wasInternallyTriggered() == policyEvaluation.wasInternallyTriggered()) {
+        return policyEvaluationCandidate;
+      }
+      return null;
     }
-    return latestBaseBranchPolicyEvaluation;
+    return policyEvaluation;
   }
 }

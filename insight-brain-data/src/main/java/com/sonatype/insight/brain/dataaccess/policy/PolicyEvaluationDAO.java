@@ -6,16 +6,19 @@
 package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.apache.commons.lang3.StringUtils;
@@ -299,6 +302,17 @@ public class PolicyEvaluationDAO
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
         " AND entity.isForMonitoring=false AND entity.isReevaluation=false";
     return getList(sQuery, applicationId, stageId);
+  }
+
+  private static final List<String> stageList = Arrays.asList(Stage.ID_SOURCE, Stage.ID_BUILD, Stage.ID_DEVELOP);
+
+  public boolean hasExternalPolicyEvaluations(String applicationId, Date cutoffTime) {
+    String sQuery = "SELECT COUNT(entity.id) FROM PolicyEvaluation entity" + //
+        " WHERE entity.applicationId=?1 AND entity.time>?2" + //
+        " AND entity.stageTypeId IN (?3)" +
+        " AND entity.scanTriggerType NOT IN (?4)";
+    return getSingle(Number.class, sQuery, applicationId, cutoffTime, stageList,
+        ScanTriggerType.internalScanTypes).intValue() > 0;
   }
 
   public List<PolicyEvaluation> getPrimaryForMonitoringByApplicationId(String applicationId) {

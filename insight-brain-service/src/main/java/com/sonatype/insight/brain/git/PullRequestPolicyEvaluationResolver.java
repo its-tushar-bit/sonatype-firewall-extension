@@ -102,7 +102,7 @@ public class PullRequestPolicyEvaluationResolver
           gitRepositoryInfo, possibleFeatureBranchPolicyEvaluation)) {
 
         if (null == defaultBranchPolicyEvaluation) {
-          defaultBranchPolicyEvaluation = getLatestPolicyEvaluationReportForBaseBranch(applicationId);
+          defaultBranchPolicyEvaluation = getLatestExternalPolicyEvaluationForBaseBranch(applicationId);
         }
 
         if (null != defaultBranchPolicyEvaluation) {
@@ -208,9 +208,9 @@ public class PullRequestPolicyEvaluationResolver
     return featureBranchPolicyEvaluation;
   }
 
-  private PolicyEvaluation getLatestPolicyEvaluationReportForBaseBranch(String applicationId) {
+  private PolicyEvaluation getLatestExternalPolicyEvaluationForBaseBranch(String applicationId) {
     Optional<PolicyEvaluation> policyEvaluation =
-        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(applicationId);
+        gitCommitHistoryService.getLatestPolicyEvaluationForApplicationBaseBranch(applicationId, true);
     return policyEvaluation.isPresent() ? policyEvaluation.get() : null;
   }
 

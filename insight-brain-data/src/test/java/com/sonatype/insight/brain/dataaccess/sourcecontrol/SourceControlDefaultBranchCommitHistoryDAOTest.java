@@ -15,6 +15,7 @@ import javax.persistence.EntityExistsException;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 
@@ -138,6 +139,39 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 
     // then : middle entry should be the one returned as it's now the newest with a policy eval
     assertThat(fetchedCommitHistory.getId()).isEqualTo(middleCommitNoEval.getId());
+  }
+
+  @Test
+  public void testGetForLatestCommitWithPolicyEvaluation() {
+    // given : several commit history entries with and without associated policy violations
+    String policyEvaluationId1 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan1", "commit1")
+        .getId();
+    SourceControlDefaultBranchCommitHistory oldestCommitWithEval =
+        tempEntity.newSourceControlDefaultBranchCommitHistory(
+            application.getId(), "commit1", createTime(-60), policyEvaluationId1);
+
+    String policyEvaluationId2 =
+        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan2", false, false, false, new Date(),
+                "commit2", ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING)
+            .getId();
+    SourceControlDefaultBranchCommitHistory newestCommitWithEval =
+        tempEntity.newSourceControlDefaultBranchCommitHistory(
+            application.getId(), "commit2", createTime(-30), policyEvaluationId2);
+
+    // when : fetch the latest commit with internal eval
+    SourceControlDefaultBranchCommitHistory fetchedCommitHistory =
+        defaultBranchCommitHistoryDAO.getForLatestCommitWithPolicyEvaluation(application.getId(), false);
+
+    // then : should be the newest entry
+    assertThat(fetchedCommitHistory.getId()).isEqualTo(newestCommitWithEval.getId());
+
+    // when : fetch the latest commit with external eval
+    fetchedCommitHistory =
+        defaultBranchCommitHistoryDAO.getForLatestCommitWithPolicyEvaluation(application.getId(), true);
+
+    // then : should be the oldest entry
+    assertThat(fetchedCommitHistory.getId()).isEqualTo(oldestCommitWithEval.getId());
   }
 
   @Test

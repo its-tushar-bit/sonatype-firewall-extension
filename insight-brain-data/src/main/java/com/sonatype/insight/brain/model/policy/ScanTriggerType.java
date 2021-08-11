@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.model.policy;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @since 1.105
  */
@@ -29,6 +32,10 @@ public enum ScanTriggerType
     this.displayName = displayName;
   }
 
+  static {
+
+  }
+
   public String getId() {
     return name();
   }
@@ -36,4 +43,10 @@ public enum ScanTriggerType
   public String getDisplayName() {
     return this.displayName;
   }
+
+  public static final List<ScanTriggerType> internalScanTypes = Arrays.asList(
+      SOURCE_CONTROL_INTERNAL_ONBOARDING,
+      SOURCE_CONTROL_INTERNAL_PULL_REQUEST,
+      SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING
+  );
 }

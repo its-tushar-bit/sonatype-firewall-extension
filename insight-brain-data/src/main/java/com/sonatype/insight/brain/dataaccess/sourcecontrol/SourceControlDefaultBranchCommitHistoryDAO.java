@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -98,6 +99,29 @@ public class SourceControlDefaultBranchCommitHistoryDAO
         "WHERE entity.applicationId=?1 AND entity.policyEvaluationId IS NOT NULL " +
         ORDER_BY_ENTITY_COMMIT_TIME_DESC;
     return createQuery(sQuery, applicationId).setMaxResults(1).get();
+  }
+
+  /**
+   * Fetch the default branch commit history entry for the latest commit that has a policy evaluation
+   *
+   * @param applicationId represents the application to which the default branch commit history pertains
+   * @param externallyTriggered specifies the type of policy evaluation
+   * @return the entry that has a policy evaluation with the most recent commit time or null if no such entry exists
+   */
+  public SourceControlDefaultBranchCommitHistory getForLatestCommitWithPolicyEvaluation(
+      final String applicationId,
+      final boolean externallyTriggered)
+  {
+    String sQuery = "SELECT h " +
+        "FROM SourceControlDefaultBranchCommitHistory h, PolicyEvaluation p " +
+        "WHERE h.policyEvaluationId = p.id " +
+        "AND h.applicationId=?1 AND p.scanTriggerType ";
+    if (externallyTriggered) {
+      sQuery += "NOT ";
+    }
+    sQuery += "IN (?2) ORDER BY h.commitTime DESC";
+
+    return createQuery(sQuery, applicationId, ScanTriggerType.internalScanTypes).forceSingleResult().get();
   }
 
   public void deleteByApplicationIdBeforeCommitTime(

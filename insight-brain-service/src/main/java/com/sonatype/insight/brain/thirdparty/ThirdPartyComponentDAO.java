@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -55,6 +56,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Weigher;
@@ -81,7 +83,8 @@ public class ThirdPartyComponentDAO
 
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyComponentDAO.class);
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final ObjectMapper MAPPER = new ObjectMapper()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   private final InsightWork work;
 
@@ -115,8 +118,8 @@ public class ThirdPartyComponentDAO
     Map<String, ThirdPartyReportComponentDTO> reportData = new HashMap<>();
     try {
       final ReportEntry tpBomEntry = Report.getEntry(reportFile, THIRD_PARTY_BOM_JSON_FILENAME);
-      final List<ThirdPartyBillOfMaterialsRowDTO> bomRows =
-          readData(tpBomEntry, new TypeReference<List<ThirdPartyBillOfMaterialsRowDTO>>() { });
+      final List<BillOfMaterialsRowDTO> bomRows =
+          readData(tpBomEntry, new TypeReference<List<BillOfMaterialsRowDTO>>() { });
       if (bomRows != null && !bomRows.isEmpty()) {
         ReportEntry tpSecurityReportEntry = Report.getEntry(reportFile, THIRD_PARTY_SECURITY_JSON_FILENAME);
         final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows =
@@ -357,12 +360,12 @@ public class ThirdPartyComponentDAO
   }
 
   private void prepareComponentData(
-      final List<ThirdPartyBillOfMaterialsRowDTO> bomRows,
+      final List<BillOfMaterialsRowDTO> bomRows,
       final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows,
       final List<ThirdPartyLicenseRowDTO> licenseRows,
       final Map<String, ThirdPartyReportComponentDTO> reportData)
   {
-    for (ThirdPartyBillOfMaterialsRowDTO bomRow : bomRows) {
+    for (BillOfMaterialsRowDTO bomRow : bomRows) {
       final ThirdPartyReportComponentDTO dto = new ThirdPartyReportComponentDTO(bomRow);
       if (securityRows != null && !securityRows.isEmpty()) {
         dto.securityRows.addAll(

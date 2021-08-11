@@ -70,5 +70,39 @@
       } ],
       "name" : "insight-module-model-1.0.0-SNAPSHOT.jar"
     }
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-innersource-child-2.0.0.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-innersource-child:jar:2.0.0" ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "9a8aa7d21754d585698e",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1598294268000,
+    "lastModifiedEntryTime" : 1598294270000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true
+    },
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Filename",
+        "value" : "insight-innersource-child-2.0.0.jar"
+      } ],
+      "name" : "insight-innersource-child-2.0.0.jar"
+    }
   }]
 }

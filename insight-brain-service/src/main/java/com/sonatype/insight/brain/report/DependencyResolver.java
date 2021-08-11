@@ -389,6 +389,7 @@ public class DependencyResolver
     bomObjectNode.put("identificationSource", IdentificationSource.PACKAGE_MANIFEST.getId());
 
     bomObjectNode.set("componentIdentifier", JsonUtils.asTree(componentIdentifier));
+    bomObjectNode.put("packageUrl", PackageUrlIdentifier.toPackageUrl(componentIdentifier));
 
     ComponentDisplayNameUtil.injectDisplayName(bomObjectNode);
 

@@ -428,6 +428,12 @@ public class DependencyResolverTest
 
     InnerSourceComponent model =
         tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model", appInnerSource);
+    ComponentIdentifier modelId = ComponentIdentifier.createMavenCoordinates(
+        "com.sonatype.insight.scan", "insight-module-model", "1.0.0-SNAPSHOT", "", "jar");
+    tempEntity.newInnerSourceComponent(
+        "pkg:maven/com.sonatype.insight.scan/insight-innersource-child", appInnerSource);
+    ComponentIdentifier childId = ComponentIdentifier.createMavenCoordinates(
+        "com.sonatype.insight.scan", "insight-innersource-child", "2.0.0", "", "jar");
     tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-unknown-components/dependencies.json");
@@ -438,10 +444,14 @@ public class DependencyResolverTest
     DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender).resolve();
 
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
-    assertInnerSourceInformation(bomJson, 1, 1, null, bomInnerSourceDependencies);
+    assertInnerSourceInformation(bomJson, 1, 2, null, bomInnerSourceDependencies);
 
+    assertUpdatedBomAttributeValue(bomJson, modelId, "packageUrl",
+        "pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
+    assertUpdatedBomAttributeValue(bomJson, childId, "packageUrl",
+        "pkg:maven/com.sonatype.insight.scan/insight-innersource-child@2.0.0?type=jar");
     assertTransitiveInnerSourceInformation(bomInnerSourceDependencies, appInnerSource);
-    assertSummaryCounters(summaryJson, dataJson, 1);
+    assertSummaryCounters(summaryJson, dataJson, 2);
 
     assertTelemetryInformation(app.getId(), Sets.newHashSet(model.getApplicationId()));
   }
@@ -961,5 +971,20 @@ public class DependencyResolverTest
 
   private JsonNode getJsonNodeInformation(String path) throws IOException {
     return objectMapper.readTree(getClass().getResource("/InnerSourceServiceTest/" + path));
+  }
+
+  private void assertUpdatedBomAttributeValue(JsonNode bomJson,
+      ComponentIdentifier lookupId, String fieldName,
+      String fieldValue) throws IOException
+  {
+    for (JsonNode dependency : bomJson.get("aaData")) {
+      ComponentIdentifier found = JsonUtils
+          .asPojo(dependency.get("componentIdentifier"), ComponentIdentifier.class);
+      if (lookupId.equals(found)) {
+        assertThat(dependency.get(fieldName).asText()).isEqualTo(fieldValue);
+        return;
+      }
+    }
+    fail("component identifier " + lookupId + " not found");
   }
 }

@@ -33,6 +33,17 @@
             "version" : "1.7.30"
           }
         }
+      }, {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "insight-innersource-child",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.sonatype.insight.scan",
+            "version" : "2.0.0"
+          }
+        }
       } ],
       "direct" : true
     }]

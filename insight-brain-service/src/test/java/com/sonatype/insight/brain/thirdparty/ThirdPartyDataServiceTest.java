@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -326,7 +327,7 @@ public class ThirdPartyDataServiceTest
   }
   
   private void assertBomContains(
-      final List<ThirdPartyBillOfMaterialsRowDTO> bom,
+      final List<BillOfMaterialsRowDTO> bom,
       final ThirdPartyFileCoordinate coordinate,
       final ThirdPartyFile... files)
   {

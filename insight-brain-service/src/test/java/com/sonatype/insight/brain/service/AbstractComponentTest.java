@@ -13,8 +13,11 @@ import java.util.Collection;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
+import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
+import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
@@ -79,6 +82,8 @@ public class AbstractComponentTest
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
 
+  private static final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO();
+
   protected static final String USERNAME = "testuser";
 
   @Mock
@@ -99,8 +104,17 @@ public class AbstractComponentTest
   @After
   public final void afterTest() {
     log.info("After: {}", testName.getMethodName());
+    releaseScmPerpetualLock();
     stopManagedComponents();
     tearDownSecurity();
+  }
+
+  private void releaseScmPerpetualLock() {
+    String perpetualLockId = SourceControlInstanceManager.SOURCE_CONTROL_ACCESS_LOCK;
+    PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockById(perpetualLockId);
+    if (perpetualLock != null) {
+      perpetualLockDAO.releasePerpetualLockForOwner(perpetualLockId, perpetualLock.getOwner());
+    }
   }
 
   protected void setUpTestLicenseThreatGroups() {

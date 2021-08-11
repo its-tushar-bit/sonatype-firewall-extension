@@ -60,6 +60,8 @@ public class PerpetualLockManager
       txn.begin();
       perpetualLock = perpetualLockDAO.getPerpetualLockByIdForUpdate(txn, perpetualLockId);
       if (null != perpetualLock) {
+        log.trace("Perpetual lock {} exists - owner: {}, exp. time: {}.", perpetualLockId, perpetualLock.getOwner(),
+            perpetualLock.getExpirationTime());
         acquired = reservePerpetualLock(txn, perpetualLockId, owner,
             DateUtils.max(perpetualLock.getExpirationTime(), expiration));
       }

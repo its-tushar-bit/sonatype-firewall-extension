@@ -33,7 +33,7 @@ public class SourceControlInstanceManager
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlInstanceManager.class);
 
-  private static final String SOURCE_CONTROL_ACCESS_LOCK = "source-control-access-c78943f1";
+  public static final String SOURCE_CONTROL_ACCESS_LOCK = "source-control-access-c78943f1";
 
   // must be greater than the polling interval so that the instance with the lock doesn't lose it before it
   // has a chance to refresh it
@@ -66,13 +66,11 @@ public class SourceControlInstanceManager
     return tryReserveInstanceLockWithCaching();
   }
 
-  // event processing, which is on a shorter cycle, will always use the cached value; polling is responsible for
-  // maintaining the lock
   public boolean canProcessEvents() {
-    return null != hasInstanceLock && hasInstanceLock;
+    return tryReserveInstanceLockWithCaching();
   }
 
-  private boolean tryReserveInstanceLockWithCaching() {
+  private synchronized boolean tryReserveInstanceLockWithCaching() {
     if (hasInstanceLockCacheExpired()) {
       hasInstanceLock = tryReserveInstanceLock();
       updateInstanceLockCacheExpirationTime();
@@ -94,7 +92,7 @@ public class SourceControlInstanceManager
   }
 
   @VisibleForTesting
-  void releaseInstance() {
+  synchronized void releaseInstance() {
     perpetualLockManager.releasePerpetualLock(SOURCE_CONTROL_ACCESS_LOCK, sourceControlInstanceId);
     hasInstanceLock = null;
   }

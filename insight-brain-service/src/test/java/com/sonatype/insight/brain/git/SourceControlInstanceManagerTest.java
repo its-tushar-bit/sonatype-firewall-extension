@@ -56,7 +56,6 @@ public class SourceControlInstanceManagerTest
     // given: two source control instance managers
 
     // then: polling must get the lock
-    assertThat(instanceManager1.canProcessEvents()).isFalse();
     assertThat(instanceManager1.canPoll()).isTrue();
     assertThat(instanceManager1.canProcessEvents()).isTrue();
     assertThat(instanceManager2.canProcessEvents()).isFalse();
@@ -65,11 +64,10 @@ public class SourceControlInstanceManagerTest
     instanceManager1.releaseInstance();
     Thread.sleep(1_100);
 
-    // then: polling has to get the lock before event processing can use it
-    assertThat(instanceManager2.canProcessEvents()).isFalse();
-    assertThat(instanceManager1.canProcessEvents()).isFalse();
+    // then: polling gets the lock and event processing can use it
     assertThat(instanceManager2.canPoll()).isTrue();
     assertThat(instanceManager2.canProcessEvents()).isTrue();
+    assertThat(instanceManager1.canProcessEvents()).isFalse();
   }
 
   @Test

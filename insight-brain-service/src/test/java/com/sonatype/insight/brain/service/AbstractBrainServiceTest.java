@@ -41,11 +41,14 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
+import com.sonatype.insight.brain.git.SourceControlInstanceManager;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.jira.JiraClient;
 import com.sonatype.insight.brain.jira.JiraClientFactory;
+import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -97,6 +100,8 @@ public abstract class AbstractBrainServiceTest
   }
 
   private static final ObjectMapper objectMapper = new ObjectMapper();
+
+  private static final PerpetualLockDAO perpetualLockDAO = new PerpetualLockDAO();
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -215,6 +220,15 @@ public abstract class AbstractBrainServiceTest
         taskScheduler.clear();
       }
       getCLMServer().resetDisableForTesting();
+    }
+    releaseScmPerpetualLock();
+  }
+
+  private void releaseScmPerpetualLock() {
+    String perpetualLockId = SourceControlInstanceManager.SOURCE_CONTROL_ACCESS_LOCK;
+    PerpetualLock perpetualLock = perpetualLockDAO.getPerpetualLockById(perpetualLockId);
+    if (perpetualLock != null) {
+      perpetualLockDAO.releasePerpetualLockForOwner(perpetualLockId, perpetualLock.getOwner());
     }
   }
 

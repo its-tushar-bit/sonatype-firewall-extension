@@ -65,12 +65,17 @@ function loadFailed(payload, state) {
 }
 
 function toggleAutomaticApplicationEnabled(_, state) {
-  const { formState } = state;
+  const {
+    formState,
+    serverData: { parentOrganizationId: initialOrg },
+  } = state;
+  const { parentOrganizationId: changedOrg } = formState;
   const enabled = !formState.enabled;
   return checkIsDirty({
     ...state,
     formState: {
       ...formState,
+      parentOrganizationId: enabled ? changedOrg : initialOrg,
       enabled,
     },
   });

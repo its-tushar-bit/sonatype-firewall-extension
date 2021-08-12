@@ -212,4 +212,30 @@ describe('AutomaticApplicationConfigurationReducer', function () {
       expect(newState.formState.parentOrganizationId).toBe(action.payload);
     });
   });
+  describe('when toggle is initially enabled and parent org is preselected, changing the parent org and clicking on toggle', function () {
+    let newState;
+
+    const INITIAL_PARENT_ID = automaticApplicationsConfiguration.parentOrganizationId;
+    const NEW_PARENT_ID = '2';
+
+    const toggleAction = { type: AUTOMATIC_APPLICATION_CONFIGURATION_TOGGLE_ENABLED };
+    const toggleNewParentSelectionAction = {
+      type: AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION,
+      payload: NEW_PARENT_ID,
+    };
+
+    const oldState = {
+      ...initialState,
+      formState: { ...automaticApplicationsConfiguration },
+      serverData: { ...automaticApplicationsConfiguration },
+    };
+
+    it('disables the toggle and reverts parent org to initial state ', function () {
+      newState = reducer(oldState, toggleNewParentSelectionAction);
+      expect(newState.formState.parentOrganizationId).toBe(NEW_PARENT_ID);
+
+      newState = reducer(oldState, toggleAction);
+      expect(newState.formState.parentOrganizationId).toBe(INITIAL_PARENT_ID);
+    });
+  });
 });

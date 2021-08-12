@@ -881,15 +881,15 @@ public class PackageUrlConditionTypeTest
   }
 
   private void convertIfNeededCocoapods() {
-    assertConvertIfNeeded("pkg:cocoapods/n", "pkg:cocoapods/n@*");;
-    assertConvertIfNeeded("pkg:cocoapods/n@v", "pkg:cocoapods/n@v");;
+    assertConvertIfNeeded("pkg:cocoapods/n", "pkg:cocoapods/n@*");
+    assertConvertIfNeeded("pkg:cocoapods/n@v", "pkg:cocoapods/n@v");
     assertConvertIfNeeded("pkg:cocoapods/n@V", "pkg:cocoapods/n@V");
     assertConvertIfNeeded("pkg:cocoapods/N@V", "pkg:cocoapods/N@V");
   }
 
   private void convertIfNeededSwift() {
-    assertConvertIfNeeded("pkg:swift/n", "pkg:swift/n@*");;
-    assertConvertIfNeeded("pkg:swift/n@v", "pkg:swift/n@v");;
+    assertConvertIfNeeded("pkg:swift/n", "pkg:swift/n@*");
+    assertConvertIfNeeded("pkg:swift/n@v", "pkg:swift/n@v");
     assertConvertIfNeeded("pkg:swift/n@V", "pkg:swift/n@V");
     assertConvertIfNeeded("pkg:swift/N@V", "pkg:swift/N@V");
   }

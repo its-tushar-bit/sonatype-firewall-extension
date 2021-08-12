@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityDAO;
@@ -27,6 +28,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -333,10 +335,12 @@ public class ThirdPartyDataServiceTest
   {
     assertThat(bom.stream().filter(component -> component.hash.equals(coordinate.getHash())).findFirst())
         .hasValueSatisfying(bomRow -> {
+          String expectedPurl = StringUtils.isNotEmpty(coordinate.getPackageUrl()) ?
+              coordinate.getPackageUrl() : PackageUrlIdentifier.toPackageUrl(bomRow.componentIdentifier);
           assertThat(bomRow.componentIdentifier).isEqualTo(handler.getComponentIdentifier(coordinate));
           assertThat(bomRow.createTime).isCloseTo(files[0].getCreated().getTime(), withinPercentage(0.001));
           assertThat(bomRow.matchState).isEqualTo(MatchState.EXACT.toString());
-          assertThat(bomRow.packageUrl).isEqualTo(coordinate.getPackageUrl());
+          assertThat(bomRow.packageUrl).isEqualTo(expectedPurl);
         });
   }
 }

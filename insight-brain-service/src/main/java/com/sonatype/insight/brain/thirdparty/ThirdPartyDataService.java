@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.application.BillOfMaterialsRowDTO;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
@@ -196,7 +197,8 @@ public class ThirdPartyDataService
     dto.createTime = scanTime.getTime();
     dto.matchState = MatchState.EXACT.toString();
     dto.identificationSource = coordinate.getSource();
-    dto.setPackageUrl(coordinate.getPackageUrl());
+    dto.setPackageUrl(StringUtils.isNotEmpty(coordinate.getPackageUrl()) ?
+        coordinate.getPackageUrl() : PackageUrlIdentifier.toPackageUrl(componentIdentifier));
     return dto;
   }
 

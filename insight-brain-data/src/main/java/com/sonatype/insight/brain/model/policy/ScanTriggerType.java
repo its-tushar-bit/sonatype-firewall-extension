@@ -32,10 +32,6 @@ public enum ScanTriggerType
     this.displayName = displayName;
   }
 
-  static {
-
-  }
-
   public String getId() {
     return name();
   }

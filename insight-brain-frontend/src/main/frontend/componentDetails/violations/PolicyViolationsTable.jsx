@@ -15,7 +15,7 @@ export default function PolicyViolationsTable({
   loading,
   retryHandler,
   goToWaivers,
-  setShowViolationsDetail,
+  setSelectedViolationId,
 }) {
   return (
     <NxTable className="iq-policy-violations-table">
@@ -35,7 +35,7 @@ export default function PolicyViolationsTable({
             key={violation.policyViolationId}
             violation={violation}
             goToWaivers={goToWaivers}
-            setShowViolationsDetail={setShowViolationsDetail}
+            setSelectedViolationId={setSelectedViolationId}
           />
         ))}
       </NxTableBody>
@@ -49,5 +49,5 @@ PolicyViolationsTable.propTypes = {
   loading: PropTypes.bool,
   retryHandler: PropTypes.func,
   goToWaivers: PropTypes.func,
-  setShowViolationsDetail: PropTypes.func,
+  setSelectedViolationId: PropTypes.func,
 };

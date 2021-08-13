@@ -50,9 +50,13 @@ describe('ViolationPageContainer', function () {
           error: null,
         },
       },
+      componentDetailsPolicyViolations: { selectedViolationId: 'foo' },
+      router: {
+        currentParams: {
+          id: 'foo',
+        },
+      },
     };
-
-    mock$State = { params: { id: 'foo' } };
 
     store = configureStore()(() => state);
     vdom = <ViolationPageContainer store={store} $state={mock$State} />;

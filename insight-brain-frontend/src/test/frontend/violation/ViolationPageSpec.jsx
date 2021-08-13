@@ -22,7 +22,6 @@ describe('ViolationPage', function () {
 
     minimalProps = {
       $state: {
-        params: { id: 'foo' },
         get: always({
           data: {
             title: 'asdf',
@@ -30,6 +29,7 @@ describe('ViolationPage', function () {
         }),
         href: always('qwerty'),
       },
+      selectedViolationId: 'foo',
       loadViolation: loadViolationSpy,
       fetchStageTypes: fetchStageTypesSpy,
       stateGo: stateGoSpy,
@@ -83,15 +83,13 @@ describe('ViolationPage', function () {
     expect(fetchStageTypesSpy).toHaveBeenCalledWith('dashboard');
   });
 
-  it('calls loadViolation whenever the $state id param changes', function () {
+  it('calls loadViolation whenever the selectedViolationId prop changes', function () {
     const component = getMountedComponent();
 
     expect(loadViolationSpy).toHaveBeenCalledWith('foo');
     expect(loadViolationSpy).not.toHaveBeenCalledWith('bar');
 
-    component.setProps({
-      $state: { ...minimalProps.$state, params: { id: 'bar' } },
-    });
+    component.setProps({ selectedViolationId: 'bar' });
 
     expect(loadViolationSpy).toHaveBeenCalledWith('bar');
   });
@@ -127,7 +125,7 @@ describe('ViolationPage', function () {
       policyThreatCategory: 'security',
     };
     const vulnerabilityDetails = { foo: 'bar' };
-    const tile = getShallowComponent({
+    let tile = getShallowComponent({
       vulnerabilityDetails,
       violationDetails,
       vulnerabilityDetailsError: 'Test Error',
@@ -140,6 +138,19 @@ describe('ViolationPage', function () {
     expect(tile.prop('vulnerabilityDetails')).toBe(vulnerabilityDetails);
     expect(tile.prop('error')).toBe('Test Error');
     expect(tile.prop('loading')).toBe(true);
+    expect(tile.prop('showTitle')).toBe(true);
+
+    tile = getShallowComponent({
+      vulnerabilityDetails,
+      violationDetails,
+      vulnerabilityDetailsError: 'Test Error',
+      vulnerabilityDetailsLoading: true,
+      isFromPolicyViolations: true,
+    })
+      .find(LoadWrapper)
+      .find(SecurityVulnerabilityDetailsTile);
+
+    expect(tile.prop('showTitle')).toBe(false);
   });
 
   it("does not render a SecurityVulnerabilityDetailsTile if it's not a security vulnerability", function () {

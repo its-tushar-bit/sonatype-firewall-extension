@@ -12,11 +12,12 @@ import ViolationExclamation from '../../../../main/frontend/react/ViolationExcla
 import ActiveWaiversIndicator from '../../../../main/frontend/violation/ActiveWaiversIndicator';
 
 describe('PolicyViolationsTableRow', () => {
-  let minimalProps, getShallow, goToWaiversSpy, getMounted, setShowViolationsDetailSpy;
+  let minimalProps, getShallow, goToWaiversSpy, getMounted, setShowViolationsDetailSpy, setViolationIdSpy;
 
   beforeEach(function () {
     goToWaiversSpy = jasmine.createSpy('goToWaiversForViolation');
     setShowViolationsDetailSpy = jasmine.createSpy('setShowViolationsDetail');
+    setViolationIdSpy = jasmine.createSpy('setSelectedViolationId');
     minimalProps = {
       violation: {
         policyViolationId: 'policyViolationId',
@@ -38,7 +39,7 @@ describe('PolicyViolationsTableRow', () => {
         applicableWaivers: [],
       },
       goToWaivers: goToWaiversSpy,
-      setShowViolationsDetail: setShowViolationsDetailSpy,
+      setSelectedViolationId: setViolationIdSpy,
     };
 
     getShallow = enzymeUtils.getShallowComponent(PolicyViolationsTableRow, minimalProps);
@@ -46,10 +47,11 @@ describe('PolicyViolationsTableRow', () => {
   });
 
   describe('clicks on a row and makes sure the waiver button still works', () => {
-    it('clicks on a row outside of the button and calls the setShowViolationsDetail action', () => {
+    it('clicks on a row outside of the button and calls the setSelectedViolationId action', () => {
       const component = getMounted();
       component.simulate('click');
-      expect(setShowViolationsDetailSpy).toHaveBeenCalledTimes(1);
+      expect(setViolationIdSpy).toHaveBeenCalledTimes(1);
+      expect(setViolationIdSpy).toHaveBeenCalledWith('policyViolationId');
     });
 
     it('clicks on a button inside of a row and the setShowViolationsDetail action is not called', () => {
@@ -58,6 +60,7 @@ describe('PolicyViolationsTableRow', () => {
       btn.simulate('click');
       expect(goToWaiversSpy).toHaveBeenCalledTimes(1);
       expect(setShowViolationsDetailSpy).toHaveBeenCalledTimes(0);
+      expect(setViolationIdSpy).toHaveBeenCalledTimes(0);
     });
   });
 

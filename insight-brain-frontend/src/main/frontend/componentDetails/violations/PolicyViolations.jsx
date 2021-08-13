@@ -8,8 +8,8 @@ import * as PropTypes from 'prop-types';
 import { sort } from 'ramda';
 import { NxButton } from '@sonatype/react-shared-components';
 import PolicyViolationsTable from './PolicyViolationsTable';
+import PolicyViolationDetailsPopover from './PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from './componentWaivers/ComponentWaiversPopover';
-import PolicyViolationDetailPopover from './PolicyViolationDetailPopover';
 import { waiverType } from '../../util/waiverUtils';
 
 export default function PolicyViolations({
@@ -24,8 +24,8 @@ export default function PolicyViolations({
   loadPolicyViolationsInformation,
   loading,
   loadError,
-  showViolationsDetail,
-  setShowViolationsDetail,
+  selectedViolationId,
+  setSelectedViolationId,
 }) {
   useEffect(() => {
     loadPolicyViolationsInformation();
@@ -36,28 +36,24 @@ export default function PolicyViolations({
     : [];
 
   const tableProps = {
-      violations: orderedViolations,
-      error: loadError,
-      retryHandler: loadPolicyViolationsInformation,
-      waivers,
-      loading,
-      goToWaivers,
-      setShowViolationsDetail,
-    },
-    viewAllComponentWaiversButton = (
-      <NxButton id="component-details-view-waivers" variant="tertiary" onClick={toggleComponentWaiversPopover}>
-        <span>View All Component Waivers</span>
-      </NxButton>
-    );
+    violations: orderedViolations,
+    error: loadError,
+    retryHandler: loadPolicyViolationsInformation,
+    waivers,
+    loading,
+    goToWaivers,
+    setSelectedViolationId,
+  };
+  const viewAllComponentWaiversButton = (
+    <NxButton id="component-details-view-waivers" variant="tertiary" onClick={toggleComponentWaiversPopover}>
+      <span>View All Component Waivers</span>
+    </NxButton>
+  );
 
   return (
     <Fragment>
       <section id="component-details-policy-violations" className="nx-tile">
-        {showViolationsDetail && (
-          <PolicyViolationDetailPopover onClose={() => setShowViolationsDetail(false)}>
-            OMG
-          </PolicyViolationDetailPopover>
-        )}
+        {selectedViolationId && <PolicyViolationDetailsPopover onClose={() => setSelectedViolationId('')} />}
         <header className="nx-tile-header">
           <div className="nx-tile-header__title">
             <h2 className="nx-h2">Policy Violations</h2>
@@ -91,8 +87,8 @@ PolicyViolations.propTypes = {
   toggleComponentWaiversPopover: PropTypes.func.isRequired,
   loadPolicyViolationsInformation: PropTypes.func.isRequired,
   goToWaivers: PropTypes.func.isRequired,
-  loading: PropTypes.bool.isRequired,
   loadError: PropTypes.string,
-  showViolationsDetail: PropTypes.bool.isRequired,
-  setShowViolationsDetail: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
+  setSelectedViolationId: PropTypes.func,
+  selectedViolationId: PropTypes.string,
 };

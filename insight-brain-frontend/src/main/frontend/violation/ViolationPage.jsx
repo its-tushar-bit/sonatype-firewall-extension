@@ -25,10 +25,12 @@ export default function ViolationPage(props) {
     vulnerabilityDetails,
     vulnerabilityDetailsError,
     activeWaivers,
+    selectedViolationId,
+    goToWaivers,
+    isFromPolicyViolations,
   } = props;
 
-  const { id } = $state.params,
-    error = props.violationDetailsError || props.stageTypesError;
+  const error = props.violationDetailsError || props.stageTypesError;
 
   const constraintViolations = violationDetails ? violationDetails.constraintViolations : [];
 
@@ -39,20 +41,32 @@ export default function ViolationPage(props) {
 
   useEffect(() => {
     load();
-  }, [id]);
+  }, [selectedViolationId]);
 
   function load() {
-    loadViolation(id);
+    loadViolation(selectedViolationId);
     fetchStageTypes('dashboard');
   }
 
   return (
     <div id="violation-page">
       <LoadWrapper error={error} loading={loading || !(violationDetails && stageTypes)} retryHandler={load}>
-        <ViolationDetailsTile {...{ $state, stageTypes, violationDetails, stateGo, activeWaivers }} />
+        <ViolationDetailsTile
+          {...{
+            $state,
+            stageTypes,
+            violationDetails,
+            stateGo,
+            activeWaivers,
+            goToWaivers,
+            selectedViolationId,
+            isFromPolicyViolations,
+          }}
+        />
         <PolicyViolationConstraintInfoTile constraintViolations={constraintViolations} />
         {isSecurityVulnerability && (
           <SecurityVulnerabilityDetailsTile
+            showTitle={!isFromPolicyViolations}
             vulnerabilityDetails={vulnerabilityDetails}
             error={vulnerabilityDetailsError}
             loading={vulnerabilityDetailsLoading}
@@ -64,14 +78,12 @@ export default function ViolationPage(props) {
   );
 }
 
-ViolationPage.propTypes = {
+export const violationPageTypes = {
   $state: PropTypes.shape({
-    params: PropTypes.shape({
-      id: PropTypes.string.isRequired,
-    }).isRequired,
     get: PropTypes.func.isRequired,
     href: PropTypes.func.isRequired,
   }).isRequired,
+  selectedViolationId: PropTypes.string.isRequired,
   loadViolation: PropTypes.func.isRequired,
   loadVulnerabilityDetails: PropTypes.func.isRequired,
   fetchStageTypes: PropTypes.func.isRequired,
@@ -88,4 +100,8 @@ ViolationPage.propTypes = {
   vulnerabilityDetails: PropTypes.object,
   vulnerabilityDetailsError: LoadWrapper.propTypes.error,
   activeWaivers: ViolationDetailsTile.propTypes.activeWaivers,
+  goToWaivers: PropTypes.func.isRequired,
+  isFromPolicyViolations: PropTypes.bool,
 };
+
+ViolationPage.propTypes = violationPageTypes;

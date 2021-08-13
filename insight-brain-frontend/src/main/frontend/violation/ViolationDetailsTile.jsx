@@ -25,7 +25,16 @@ const ownerIdTypeMap = {
 };
 
 export default function ViolationDetailsTile(props) {
-  const { $state, violationDetails, stageTypes, stateGo, activeWaivers } = props,
+  const {
+      $state,
+      violationDetails,
+      stageTypes,
+      stateGo,
+      activeWaivers,
+      goToWaivers,
+      selectedViolationId,
+      isFromPolicyViolations,
+    } = props,
     { applicationPublicId, policyName, threatLevel, policyOwner, stageData } = violationDetails,
     policyExists = !!policyOwner.ownerId,
     threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
@@ -48,11 +57,15 @@ export default function ViolationDetailsTile(props) {
       </dd>
     ),
     onManageWaiversClick = () => {
-      stateGo('listWaivers', {
-        violationId: $state.params.id,
-        type: $state.params.type,
-        sidebarReference: $state.params.sidebarReference,
-      });
+      if (isFromPolicyViolations) {
+        goToWaivers(selectedViolationId);
+      } else {
+        stateGo('listWaivers', {
+          violationId: selectedViolationId,
+          type: $state.params.type,
+          sidebarReference: $state.params.sidebarReference,
+        });
+      }
     },
     manageWaiversButton = (
       <NxButton id="violation-page-manage-waivers" variant="tertiary" onClick={onManageWaiversClick}>
@@ -208,11 +221,11 @@ ViolationDetailsTile.propTypes = {
     get: PropTypes.func.isRequired,
     href: PropTypes.func.isRequired,
     params: PropTypes.shape({
-      id: PropTypes.string,
       type: PropTypes.string,
       sidebarReference: PropTypes.string,
     }),
   }).isRequired,
+  selectedViolationId: PropTypes.string.isRequired,
   violationDetails: PropTypes.shape(violationDetailsPropTypes),
   stageTypes: PropTypes.arrayOf(
     PropTypes.shape({
@@ -222,4 +235,6 @@ ViolationDetailsTile.propTypes = {
   ),
   stateGo: PropTypes.func.isRequired,
   activeWaivers: PropTypes.arrayOf(PropTypes.shape(applicableWaiverPropTypes)),
+  goToWaivers: PropTypes.func.isRequired,
+  isFromPolicyViolations: PropTypes.bool,
 };

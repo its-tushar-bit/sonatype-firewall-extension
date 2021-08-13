@@ -20,10 +20,9 @@ function mapStateToProps(state) {
   const {
     loading,
     loadError,
-    showViolationsDetail,
+    selectedViolationId,
     showComponentWaiversPopover,
   } = selectComponentDetailsViolationsSlice(state);
-
   return {
     violations: selectComponentViolations(state),
     waivers: selectComponentWaivers(state),
@@ -31,7 +30,7 @@ function mapStateToProps(state) {
     showComponentWaiversPopover,
     loading,
     loadError,
-    showViolationsDetail,
+    selectedViolationId,
     ...pick(['waiverToDelete'], state.deleteWaiver),
   };
 }
@@ -40,7 +39,7 @@ const mapDispatchToProps = {
   loadPolicyViolationsInformation: actions.load,
   toggleComponentWaiversPopover: actions.toggleComponentWaiversPopover,
   setWaiverToDelete,
-  setShowViolationsDetail: actions.setShowViolationsDetail,
+  setSelectedViolationId: actions.setSelectedViolationId,
   goToWaivers: actions.goToWaivers,
 };
 

@@ -10,8 +10,11 @@ import { loadViolation, loadVulnerabilityDetails } from './violationActions';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { fetchStageTypes } from '../stages/stagesActions';
 import ViolationPage from './ViolationPage';
+import { selectSelectedViolationId } from '../componentDetails/violations/PolicyViolationsSelectors';
+import { actions } from '../componentDetails/violations/PolicyViolationsRedux';
 
-function mapStateToProps({ stages, violation }) {
+function mapStateToProps(state) {
+  const { stages, violation } = state;
   const stageData = stages.dashboard;
 
   return {
@@ -29,6 +32,7 @@ function mapStateToProps({ stages, violation }) {
     ),
     stageTypes: stageData.stageTypes,
     stageTypesError: stageData.error,
+    selectedViolationId: selectSelectedViolationId(state),
   };
 }
 
@@ -37,6 +41,7 @@ const mapDispatchToProps = {
   loadVulnerabilityDetails,
   fetchStageTypes,
   stateGo,
+  goToWaivers: actions.goToWaivers,
 };
 
 const ViolationPageContainer = connect(mapStateToProps, mapDispatchToProps)(ViolationPage);

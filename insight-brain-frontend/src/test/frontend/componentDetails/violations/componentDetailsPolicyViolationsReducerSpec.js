@@ -70,27 +70,19 @@ describe('componentDetailsPolicyViolationsReducer', () => {
     });
   });
 
-  describe('componentDetailsPolicyViolations/setShowViolationsDetail action', () => {
-    it('sets the showViolationsDetail flag a value', () => {
+  describe('componentDetailsPolicyViolations/setSelectedViolationId action', () => {
+    it('sets the setSelectedViolationId a value', () => {
       const state = Object.freeze({
         other: stateConstantObject,
-        showViolationsDetail: false,
+        selectedViolationId: '',
       });
 
       let newState = reducer(state, {
-        type: 'componentDetailsPolicyViolations/setShowViolationsDetail',
-        payload: true,
+        type: 'componentDetailsPolicyViolations/setSelectedViolationId',
+        payload: 'newId',
       });
 
-      expect(newState.showViolationsDetail).toBe(true);
-      expect(newState.other).toBe(stateConstantObject);
-
-      newState = reducer(state, {
-        type: 'componentDetailsPolicyViolations/setShowViolationsDetail',
-        payload: false,
-      });
-
-      expect(newState.showViolationsDetail).toBe(false);
+      expect(newState.selectedViolationId).toBe('newId');
       expect(newState.other).toBe(stateConstantObject);
     });
   });

@@ -22,7 +22,7 @@ const initialState = {
   reloadComponentWaivers: false,
   loading: false,
   loadError: null,
-  showViolationsDetail: false,
+  selectedViolationId: '',
 };
 
 const loadRequested = (state) => {
@@ -122,7 +122,7 @@ const componentDetailsViolationsSlice = createSlice({
   initialState,
   reducers: {
     toggleComponentWaiversPopover,
-    setShowViolationsDetail: propSet('showViolationsDetail'),
+    setSelectedViolationId: propSet('selectedViolationId'),
   },
   extraReducers: {
     [load.pending]: loadRequested,

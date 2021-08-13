@@ -8,7 +8,7 @@ import { NxButton } from '@sonatype/react-shared-components';
 import * as enzymeUtils from '../../enzymeUtils';
 import PolicyViolations from '../../../../main/frontend/componentDetails/violations/PolicyViolations';
 import PolicyViolationsTable from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTable';
-import PolicyViolationDetailPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailPopover';
+import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from '../../../../main/frontend/componentDetails/violations/componentWaivers/ComponentWaiversPopover';
 
 describe('PolicyViolations', () => {
@@ -34,7 +34,7 @@ describe('PolicyViolations', () => {
       showComponentWaiversPopover: false,
       toggleComponentWaiversPopover: jasmine.createSpy('toggleComponentWaiversPopover'),
       setWaiverToDelete: jasmine.createSpy('setWaiverToDelete'),
-      showViolationsDetail: false,
+      selectedViolationId: '',
       setShowViolationsDetail: jasmine.createSpy('setShowViolationsDetail'),
     };
 
@@ -146,13 +146,13 @@ describe('PolicyViolations', () => {
     });
   });
 
-  describe('renders a PolicyViolationDetail', () => {
-    it('renders a PolicyViolationDetail component when the flag is active', () => {
+  describe('renders a PolicyViolationDetailsPopover', () => {
+    it('renders a PolicyViolationDetailsPopover component when the flag is active', () => {
       let violationsDetail;
-      violationsDetail = getShallow().find(PolicyViolationDetailPopover);
+      violationsDetail = getShallow().find(PolicyViolationDetailsPopover);
       expect(violationsDetail).not.toExist();
 
-      violationsDetail = getShallow({ ...minimalProps, showViolationsDetail: true }).find(PolicyViolationDetailPopover);
+      violationsDetail = getShallow({ selectedViolationId: 'ViolationId' }).find(PolicyViolationDetailsPopover);
       expect(violationsDetail).toExist();
     });
   });

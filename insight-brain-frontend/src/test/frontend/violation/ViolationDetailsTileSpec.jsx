@@ -21,6 +21,7 @@ describe('ViolationDetailsTile', function () {
     stateHrefMock,
     minimalProps,
     stateGoMock,
+    goToWaiversMock,
     getShallowComponent;
 
   beforeEach(function () {
@@ -36,6 +37,7 @@ describe('ViolationDetailsTile', function () {
     mockDate = new Date();
     dateCreatorMock = spyOn(window, 'Date').and.returnValue(mockDate);
     stateGoMock = jasmine.createSpy('stateGo');
+    goToWaiversMock = jasmine.createSpy('stateGo');
 
     getOwnerImageUrlMock = jasmine.createSpy('getOwnerImageUrl').and.returnValue('/rest/icon');
     stateGetMock = jasmine.createSpy('$state.get').and.returnValue('theState');
@@ -45,11 +47,11 @@ describe('ViolationDetailsTile', function () {
         get: stateGetMock,
         href: stateHrefMock,
         params: {
-          id: 'selectedViolationId',
           type: 'violation',
           sidebarReference: 'filter',
         },
       },
+      selectedViolationId: 'selectedViolationId',
       violationDetails: {
         policyViolationId: 'policyViolationId',
         policyName: 'pol',
@@ -86,6 +88,7 @@ describe('ViolationDetailsTile', function () {
       ],
       applicationPublicId: 'app1',
       stateGo: stateGoMock,
+      goToWaivers: goToWaiversMock,
       activeWaivers: [],
     };
 
@@ -192,6 +195,22 @@ describe('ViolationDetailsTile', function () {
         type: 'violation',
         sidebarReference: 'filter',
       });
+      expect(goToWaiversMock).toHaveBeenCalledTimes(0);
+    });
+
+    it('renders an nx-tile__actions section with an action button calling the goToWaivers func', function () {
+      const actions = getShallowComponent({
+          isFromPolicyViolations: true,
+        }).find('.nx-tile__actions'),
+        button = actions.find(NxButton);
+
+      expect(actions).toExist();
+      expect(button).toExist();
+      expect(button.text()).toContain('Manage Waivers');
+
+      button.simulate('click');
+      expect(goToWaiversMock).toHaveBeenCalledWith('selectedViolationId');
+      expect(stateGoMock).toHaveBeenCalledTimes(0);
     });
 
     describe('active waivers counter', function () {

@@ -24,7 +24,7 @@ const ACTION_ICON_CATEGORY = {
   warn: 'severe',
 };
 
-export default function PolicyViolationsTableRow({ violation, goToWaivers, setShowViolationsDetail }) {
+export default function PolicyViolationsTableRow({ violation, goToWaivers, setSelectedViolationId }) {
   const { policyThreatLevel, policyName, constraints, actions, grandfathered, waived, policyViolationId } = violation;
   const [firstConstraint] = constraints;
   const reasons = flatten(
@@ -39,7 +39,7 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers, setSh
 
   const showViolationsDetail = (e) => {
     if (!e.target.closest('button')) {
-      setShowViolationsDetail(true);
+      setSelectedViolationId(policyViolationId);
     }
   };
 
@@ -129,7 +129,7 @@ export const violationPropTypes = {
 PolicyViolationsTableRow.propTypes = {
   violation: PropTypes.shape(violationPropTypes),
   goToWaivers: PropTypes.func.isRequired,
-  setShowViolationsDetail: PropTypes.func,
+  setSelectedViolationId: PropTypes.func,
 };
 
 /* Helper component for grandfathering and waiver indicators. */

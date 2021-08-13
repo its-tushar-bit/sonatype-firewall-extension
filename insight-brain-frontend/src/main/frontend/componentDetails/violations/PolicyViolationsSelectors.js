@@ -5,8 +5,17 @@
  */
 import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
+import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 
 export const selectComponentDetailsViolationsSlice = prop('componentDetailsPolicyViolations');
 
 export const selectComponentViolations = createSelector(selectComponentDetailsViolationsSlice, prop('violations'));
 export const selectComponentWaivers = createSelector(selectComponentDetailsViolationsSlice, prop('waivers'));
+
+export const selectSelectedViolationId = createSelector(
+  selectComponentDetailsViolationsSlice,
+  selectRouterCurrentParams,
+  (componentDetailsPolicyViolations, routerCurrentParams) => {
+    return routerCurrentParams.id || componentDetailsPolicyViolations.selectedViolationId;
+  }
+);

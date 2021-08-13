@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import * as enzymeUtils from '../../enzymeUtils';
-import PolicyViolationDetailPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailPopover';
+import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailsPopover';
 
-describe('PolicyViolationsDetail', () => {
+describe('PolicyViolationDetails', () => {
   let minimalProps, getShallow;
 
   beforeEach(function () {
@@ -14,7 +14,7 @@ describe('PolicyViolationsDetail', () => {
       onClose: jasmine.createSpy('onClose'),
     };
 
-    getShallow = enzymeUtils.getShallowComponent(PolicyViolationDetailPopover, minimalProps);
+    getShallow = enzymeUtils.getShallowComponent(PolicyViolationDetailsPopover, minimalProps);
   });
 
   describe('onClose action', () => {

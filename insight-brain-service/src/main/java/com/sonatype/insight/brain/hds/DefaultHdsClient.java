@@ -312,19 +312,20 @@ public class DefaultHdsClient
         case 502:  // Bad Gateway
         case 504:  // Gateway Timeout
           throw new BadGatewayException(
-              "Could not contact Sonatype Data Services, please verify the network configuration of your Nexus IQ " +
-                  "Server. Sonatype Data Services error " + status + ": " + getErrorMessage(response));
+              "Could not contact Sonatype Data Services, please verify the network configuration of your Nexus IQ "
+                  + "Server. Sonatype Data Services error " + status
+                  + formatRequestId(" (request %s)", getRequestId(response)) + ": " + getErrorMessage(response));
         case 503:  // Service Unavailable
-          throw new BadGatewayException(
-              "The Sonatype Data Services are currently out of service, please retry in a bit. If the outage " +
-                  "persists, please verify the network configuration of your Nexus IQ Server " +
-                  "and contact Sonatype Support.");
+          throw new BadGatewayException("The Sonatype Data Services are currently out of service"
+              + formatRequestId(" (request %s)", getRequestId(response)) + ", please retry in a bit. If the outage "
+              + "persists, please verify the network configuration of your Nexus IQ Server "
+              + "and contact Sonatype Support.");
         default:
           // Since this is for any other errors, the error message may contain anything, so log it, but don't send it
           // back to the client.
           log.error("Sonatype Data Services error " + status + ": " + getErrorMessage(response));
-          throw new BadGatewayException("The Sonatype Data Services returned error " + status + 
-              ", please retry in a bit.");
+          throw new BadGatewayException("The Sonatype Data Services returned error " + status
+              + formatRequestId(" (request %s)", getRequestId(response)) + ", please retry in a bit.");
       }
     }
     catch (RuntimeException e) {
@@ -455,8 +456,10 @@ public class DefaultHdsClient
     log.debug("Starting request: {} {}", request.getMethod(), request.getURI());
     long start = System.currentTimeMillis();
     StatusLine statusLine = null;
+    String requestId = null;
     try {
       HttpResponse response = client.execute(request);
+      requestId = getRequestId(response);
       statusLine = response.getStatusLine();
       return response;
     }
@@ -476,14 +479,23 @@ public class DefaultHdsClient
       throw new BadGatewayException("The request to Sonatype Data Services failed, please retry in a bit.");
     }
     finally {
-      log.debug("Completed request in {} ms. {}", System.currentTimeMillis() - start,
-          statusLine != null ? statusLine.getStatusCode() : "");
+      log.debug("Completed request{} in {} ms. {}", formatRequestId(" %s", requestId),
+          System.currentTimeMillis() - start, statusLine != null ? statusLine.getStatusCode() : "");
     }
   }
 
   private <T> T execute(HttpUriRequest request, Class<T> clazz) {
     HttpResponse response = execute(request);
     return fromHttpResponse(response, clazz);
+  }
+
+  private String getRequestId(HttpResponse response) {
+    Header header = response.getFirstHeader("X-Amz-Cf-Id");
+    return header != null ? header.getValue() : null;
+  }
+
+  private String formatRequestId(String format, String requestId) {
+    return requestId != null ? String.format(format, requestId) : "";
   }
 
   private HttpPost createPostRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {

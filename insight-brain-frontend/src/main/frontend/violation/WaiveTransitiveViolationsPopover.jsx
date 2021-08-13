@@ -10,7 +10,9 @@ import {
   NxButton,
   NxFontAwesomeIcon,
   NxFormGroup,
+  NxInfoAlert,
   NxLoadError,
+  NxTextLink,
   NxStatefulTextInput,
   NxSubmitMask,
 } from '@sonatype/react-shared-components';
@@ -104,6 +106,12 @@ export default function WaiveTransitiveViolationsPopover(props) {
           </dd>
         </div>
       </dl>
+      <NxInfoAlert>
+        Get access to more Scoping options using our API. For more information, view the&nbsp;
+        <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/transitive-violations-rest-api" external>
+          Documentation
+        </NxTextLink>
+      </NxInfoAlert>
       <NxFormGroup label="Waiver Expiration" isRequired>
         <select
           id="waive-transitive-violations-expirations"

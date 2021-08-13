@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxBackButton } from '@sonatype/react-shared-components';
+import { NxBackButton, NxWarningAlert, useToggle } from '@sonatype/react-shared-components';
 import ComponentOverviewTile from './ComponentOverviewTile';
 import LicenseDetailsTile from './LicenseDetailsTile';
 import CopyrightStatementsTile from './copyright/CopyrightStatementsTile';
@@ -18,7 +18,7 @@ import {
   licenseLegalMetadataPropType,
   licenseObligationsPropType,
 } from './advancedLegalPropTypes';
-import { TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
+import { TEXT_BASED_OBLIGATIONS, SUPPORTED_COMPONENTS_ECOSYSTEM } from './advancedLegalConstants';
 import LicenseObligationsTileContainer from './obligation/LicenseObligationsTileContainer';
 import NoticeTextsTile from './files/notices/NoticeTextsTile';
 import { createSubtitle } from './legalUtility';
@@ -42,6 +42,7 @@ export default function ComponentLegalOverviewPage(props) {
     showNoticesModal,
     showLicenseFilesModal,
     showLicensesModal,
+    ecosystem,
     $state,
 
     //actions
@@ -81,6 +82,11 @@ export default function ComponentLegalOverviewPage(props) {
     <LicenseObligationAttributionTileContainer key={index} name={licenseObligation.name} />
   );
 
+  const [isEcosystemSupportWarningOpen, dismissEcosystemSupportWarning] = useToggle(true);
+
+  const isComponentEcosystemSupported = () =>
+    SUPPORTED_COMPONENTS_ECOSYSTEM.find((supportedEcosystem) => supportedEcosystem === ecosystem);
+
   const backHref =
     applicationPublicId && stageTypeId
       ? $state.href($state.get('legal.applicationDetails'), {
@@ -94,10 +100,17 @@ export default function ComponentLegalOverviewPage(props) {
       <LoadWrapper loading={loading} error={error} retryHandler={load}>
         <NxBackButton href={backHref} text="Back" />
         {component && (
-          <div className="nx-page-title">
-            <h1 className="nx-h1">{component.displayName}</h1>
-            {createSubtitle(availableScopes)}
-          </div>
+          <React.Fragment>
+            <div className="nx-page-title">
+              <h1 className="nx-h1">{component.displayName}</h1>
+              {createSubtitle(availableScopes)}
+            </div>
+            {!isComponentEcosystemSupported() && isEcosystemSupportWarningOpen && (
+              <NxWarningAlert onClose={dismissEcosystemSupportWarning}>
+                {"This component's ecosystem is not currently supported by the Advanced Legal Pack."}
+              </NxWarningAlert>
+            )}
+          </React.Fragment>
         )}
         {component && (
           <div id="component-legal-overview-details">
@@ -200,5 +213,6 @@ ComponentLegalOverviewPage.propTypes = {
   showLicenseFilesModal: PropTypes.bool.isRequired,
   setShowLicensesModal: PropTypes.func.isRequired,
   showLicensesModal: PropTypes.bool.isRequired,
+  ecosystem: PropTypes.string,
   $state: PropTypes.object.isRequired,
 };

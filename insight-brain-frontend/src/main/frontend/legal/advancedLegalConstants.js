@@ -90,3 +90,5 @@ export const statusTagPropsMap = {
   Overridden: 'purple',
   Selected: 'indigo',
 };
+
+export const SUPPORTED_COMPONENTS_ECOSYSTEM = ['gem', 'maven', 'npm', 'nuget', 'pypi', 'rpm', 'a-name'];

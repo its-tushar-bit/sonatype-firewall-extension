@@ -5,7 +5,7 @@
  */
 import * as enzymeUtils from '../enzymeUtils';
 import React from 'react';
-import { NxBackButton } from '@sonatype/react-shared-components';
+import { NxBackButton, NxWarningAlert } from '@sonatype/react-shared-components';
 import ComponentOverviewTile from '../../../main/frontend/legal/ComponentOverviewTile';
 import LicenseDetailsTile from '../../../main/frontend/legal/LicenseDetailsTile';
 import CopyrightStatementsTile from '../../../main/frontend/legal/copyright/CopyrightStatementsTile';
@@ -108,6 +108,7 @@ describe('ComponentLegalOverviewPage', function () {
       obligations,
       availableScopes,
       component,
+      ecosystem: 'maven',
       hash: '1e48256a2341047e7d72',
     };
 
@@ -232,5 +233,16 @@ describe('ComponentLegalOverviewPage', function () {
   it('renders the NoticeTextsTile', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(NoticeTextsTile)).toExist();
+  });
+
+  it('renders a warning alert when the packages ecosystem is not supported', function () {
+    const customMinimalProps = { ...minimalProps, ecosystem: 'NotSupportedEcosystem' };
+    const component = enzymeUtils.getShallowComponent(ComponentLegalOverviewPage, customMinimalProps)();
+    expect(component.find(NxWarningAlert)).toExist();
+  });
+
+  it('does not render a warning alert when the packages ecosystem is supported', function () {
+    const wrapper = getShallowComponent();
+    expect(wrapper.find(NxWarningAlert)).not.toExist();
   });
 });

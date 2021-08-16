@@ -625,7 +625,7 @@ describe('waiverActions', function () {
   });
 
   describe('returnToAddWaiverOriginPage', function () {
-    it('dispatches STATE_GO with the policyViolationId obtained from the url', function () {
+    it('dispatches STATE_GO with the route to ViolationDetails when router comes from violation details', function () {
       store.dispatch(returnToAddWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(STATE_GO);
@@ -663,15 +663,15 @@ describe('waiverActions', function () {
       });
     });
 
-    it('dispatches STATE_GO with the route to the violation details when router comes from a detail', function () {
+    it('dispatches STATE_GO with the route to ComponentDetails when router comes from component details', function () {
       const state = {
         router: {
-          prevState: { name: 'sidebarView.violation' },
+          prevState: { name: 'applicationReport.violationWaivers' },
           prevParams: {
-            violationId: 'policyViolationId',
-            sidebarId: undefined,
-            sidebarReference: 'filter',
-            type: 'violation',
+            hash: 'hash',
+            publicId: 'publicId',
+            scanId: 'scanId',
+            violationId: 'violationId',
           },
           currentParams: { violationId: 'policyViolationId' },
         },
@@ -682,14 +682,19 @@ describe('waiverActions', function () {
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
-        to: 'listWaivers',
-        params: { violationId: 'policyViolationId' },
+        to: 'applicationReport.violationWaivers',
+        params: {
+          hash: 'hash',
+          publicId: 'publicId',
+          scanId: 'scanId',
+          violationId: 'violationId',
+        },
         options: undefined,
       });
     });
 
     it(
-      'dispatches STATE_GO with the route to the violation details when router comes from a ' +
+      'dispatches STATE_GO with the route to the ViolationDetails when router comes from a ' +
         'different page than expected workflows',
       function () {
         const state = {

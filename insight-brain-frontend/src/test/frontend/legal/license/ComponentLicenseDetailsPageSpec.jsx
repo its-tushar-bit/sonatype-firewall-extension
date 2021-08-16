@@ -113,7 +113,7 @@ describe('ComponentLicenseDetailsPage', function () {
 
   it('calls setShowLicensesModal', function () {
     const wrapper = getShallowComponent();
-    const editButton = wrapper.find('#edit-license-files');
+    const editButton = wrapper.find('#edit-licenses');
     expect(setShowLicensesModalSpy).not.toHaveBeenCalled();
     editButton.simulate('click');
     expect(setShowLicensesModalSpy).toHaveBeenCalledWith(true);

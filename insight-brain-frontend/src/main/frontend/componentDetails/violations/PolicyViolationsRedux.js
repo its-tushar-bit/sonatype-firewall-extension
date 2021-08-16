@@ -48,9 +48,11 @@ const loadFulfilled = (state, { payload }) => {
     )
   );
 
+  const violations = componentViolationInformation.allViolations || componentViolationInformation.activeViolations;
+
   return {
     ...state,
-    violations: mapWaiversInformationToViolations(componentWaivers, componentViolationInformation.allViolations),
+    violations: mapWaiversInformationToViolations(componentWaivers, violations),
     waivers: componentWaivers,
     loading: false,
     loadError: null,

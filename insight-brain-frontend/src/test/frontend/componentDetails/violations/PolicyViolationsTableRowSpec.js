@@ -6,6 +6,7 @@
 import * as enzymeUtils from '../../enzymeUtils';
 import { faFlag } from '@fortawesome/pro-solid-svg-icons';
 import { NxButton, NxFontAwesomeIcon, NxTableCell, NxThreatIndicator } from '@sonatype/react-shared-components';
+import { omit } from 'ramda';
 
 import PolicyViolationsTableRow from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTableRow';
 import ViolationExclamation from '../../../../main/frontend/react/ViolationExclamation';
@@ -197,6 +198,25 @@ describe('PolicyViolationsTableRow', () => {
         btn = waiversAndGrandfatheringCell.find(NxButton);
 
       expect(btn).not.toExist();
+    });
+
+    it('renders a disabled manage waivers button if the violation is missing policyViolationId', () => {
+      const component = getShallow({ violation: omit(['policyViolationId'], minimalProps.violation) }),
+        rowCells = component.find(NxTableCell),
+        waiversAndGrandfatheringCell = rowCells.at(4),
+        btn = waiversAndGrandfatheringCell.find(NxButton);
+
+      expect(btn).toExist();
+      expect(btn.hasClass('disabled')).toBe(true);
+    });
+
+    it('renders a tooltip when hovering over the manage waivers button if the violation is missing policyViolationId', () => {
+      const component = getShallow({ violation: omit(['policyViolationId'], minimalProps.violation) }),
+        rowCells = component.find(NxTableCell),
+        waiversAndGrandfatheringCell = rowCells.at(4),
+        btn = waiversAndGrandfatheringCell.find(NxButton);
+
+      expect(btn.parent()).toHaveProp('title', 'Re-evaluate this report to enable the Manage Waivers functionality.');
     });
 
     it('renders a grandfathering indicator if the violation has been grandfathered', () => {

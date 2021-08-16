@@ -291,6 +291,62 @@ describe('componentDetailsPolicyViolationsReducer', () => {
         { policyViolationId: 'violation2ForComponentHash', applicableWaivers: [] },
       ]);
     });
+    it('enhances old report violations with their applicable waivers information', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+      });
+
+      const payload = {
+        violationsResult: {
+          aaData: [
+            {
+              hash: 'componentHash',
+              activeViolations: [
+                {
+                  policyViolationId: 'violation1ForComponentHash',
+                  policyId: 'policyIdForViolation',
+                  constraintFactsJson: '{factsSerializedAsJson}',
+                },
+                { policyViolationId: 'violation2ForComponentHash' },
+              ],
+            },
+          ],
+        },
+        waiversResult: {
+          waiversByOwner: [
+            {
+              owner: 'org1',
+              ownerName: 'org1Name',
+              ownerType: 'organization',
+              waivers: [
+                { id: 'waiverForOrg1' },
+                {
+                  id: 'waiverForOrg2',
+                  policyId: 'policyIdForViolation',
+                  constraintFactsJson: '{factsSerializedAsJson}',
+                },
+              ],
+            },
+          ],
+        },
+        hash: 'componentHash',
+      };
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/load/fulfilled',
+        payload,
+      });
+
+      expect(newState.violations).toEqual([
+        {
+          policyViolationId: 'violation1ForComponentHash',
+          policyId: 'policyIdForViolation',
+          constraintFactsJson: '{factsSerializedAsJson}',
+          applicableWaivers: ['waiverForOrg2'],
+        },
+        { policyViolationId: 'violation2ForComponentHash', applicableWaivers: [] },
+      ]);
+    });
   });
 
   describe('componentDetailsPolicyViolations/load/rejected action', () => {

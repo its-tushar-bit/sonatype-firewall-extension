@@ -5,8 +5,8 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { sort } from 'ramda';
-import { NxButton } from '@sonatype/react-shared-components';
+import { sort, isNil } from 'ramda';
+import { NxButton, NxWarningAlert } from '@sonatype/react-shared-components';
 import PolicyViolationsTable from './PolicyViolationsTable';
 import PolicyViolationDetailsPopover from './PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from './componentWaivers/ComponentWaiversPopover';
@@ -35,6 +35,8 @@ export default function PolicyViolations({
     ? sort((threatA, threatB) => threatB.policyThreatLevel - threatA.policyThreatLevel, violations)
     : [];
 
+  const containsOldViolations = orderedViolations.some((violation) => isNil(violation.policyViolationId));
+
   const tableProps = {
     violations: orderedViolations,
     error: loadError,
@@ -53,6 +55,11 @@ export default function PolicyViolations({
   return (
     <Fragment>
       <section id="component-details-policy-violations" className="nx-tile">
+        {containsOldViolations && (
+          <NxWarningAlert>
+            Re-evaluate this report to enable the <b>Manage Waivers</b> functionality.
+          </NxWarningAlert>
+        )}
         {selectedViolationId && <PolicyViolationDetailsPopover onClose={() => setSelectedViolationId('')} />}
         <header className="nx-tile-header">
           <div className="nx-tile-header__title">

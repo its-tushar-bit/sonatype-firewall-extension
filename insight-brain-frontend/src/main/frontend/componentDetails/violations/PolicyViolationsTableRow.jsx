@@ -14,6 +14,7 @@ import {
   NxTableCell,
   NxTableRow,
   NxThreatIndicator,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { faChevronRight, faFlag, faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
@@ -33,6 +34,12 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers, setSe
   const isRemediated = grandfathered || waived;
   const rowClassNames = classnames('iq-policy-violation-row', {
     'iq-policy-violation-row--remediated': isRemediated,
+  });
+  const manageWaiversToolTipTitle = !policyViolationId
+    ? 'Re-evaluate this report to enable the Manage Waivers functionality.'
+    : '';
+  const manageWaiversButtonClassNames = classnames('iq-policy-violation__manage-waivers-btn', {
+    disabled: !policyViolationId,
   });
 
   const goToWaiversForViolation = (policyViolationId) => () => goToWaivers(policyViolationId);
@@ -83,14 +90,16 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers, setSe
       </NxTableCell>
       <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
         {!grandfathered && (
-          <NxButton
-            variant="tertiary"
-            className="iq-policy-violation__manage-waivers-btn"
-            onClick={goToWaiversForViolation(policyViolationId)}
-          >
-            <NxFontAwesomeIcon icon={faFlag} />
-            <span>Manage Waivers</span>
-          </NxButton>
+          <NxTooltip title={manageWaiversToolTipTitle}>
+            <NxButton
+              variant="tertiary"
+              className={manageWaiversButtonClassNames}
+              {...(policyViolationId && { onClick: goToWaiversForViolation(policyViolationId) })}
+            >
+              <NxFontAwesomeIcon icon={faFlag} />
+              <span>Manage Waivers</span>
+            </NxButton>
+          </NxTooltip>
         )}
         <PolicyViolationsGrandfatheringAndWaiverIndicators violation={violation} />
       </NxTableCell>

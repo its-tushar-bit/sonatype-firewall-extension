@@ -17,6 +17,7 @@ import {
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
   ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
+  ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
   ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
   ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
@@ -311,6 +312,15 @@ const saveLicensesRequested = (_, state) =>
     state
   );
 
+const saveLicensesSucceeded = (payload, state) => {
+  return updateLicenseFilesLegalData(
+    {
+      saveLicensesSubmitMask: true,
+    },
+    state
+  );
+};
+
 const saveLicensesFailed = (payload, state) =>
   updateLicenseFilesLegalData(
     {
@@ -368,6 +378,7 @@ export const advancedLegalFileReducerActionMap = {
   [ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE]: saveNoticesSubmitMaskDone,
   [ADVANCED_LEGAL_SET_SHOW_LICENSE_FILES_MODAL]: setShowLicenseFilesModal,
   [ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED]: saveLicensesRequested,
+  [ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED]: saveLicensesSucceeded,
   [ADVANCED_LEGAL_SAVE_LICENSES_FAILED]: saveLicensesFailed,
   [ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE]: saveLicensesSubmitMaskDone,
   [ADVANCED_LEGAL_SET_SHOW_LICENSES_MODAL]: setShowLicensesModal,

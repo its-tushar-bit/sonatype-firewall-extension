@@ -6,15 +6,18 @@
 import React, { useEffect } from 'react';
 import { availableScopesPropType, componentPropType, licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
 import LoadWrapper from '../../react/LoadWrapper';
-import { NxBackButton } from '@sonatype/react-shared-components';
+import { NxBackButton, NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { backToComponentOverviewUrl, createSubtitle } from '../legalUtility';
 import LicenseList from './LicenseList';
 import ComponentLicenseOverviewTile from './ComponentLicenseOverviewTile';
 import LicenseFullDetailsTile from './LicenseFullDetailsTile';
+import { faPen } from '@fortawesome/pro-solid-svg-icons';
+import LicensesModalContainer from './LicensesModalContainer';
 
 export default function ComponentLicenseDetailsPage(props) {
   const {
+    setShowLicensesModal,
     loading,
     error,
     availableScopes,
@@ -34,10 +37,13 @@ export default function ComponentLicenseDetailsPage(props) {
     loadComponentAndLicenseDetails(ownerType, ownerId, hash, licenseIndex);
   }
 
+  const showLicensesModal = component && component.licenseLegalData.showLicensesModal;
+
   useEffect(load, [ownerType, ownerId, hash, licenseIndex]);
 
   return (
     <main className="nx-page-main nx-viewport-sized">
+      {showLicensesModal && <LicensesModalContainer />}
       <LoadWrapper loading={loading} error={error} retryHandler={load}>
         <NxBackButton
           href={backToComponentOverviewUrl($state, ownerType, ownerId, stageTypeId, hash)}
@@ -45,6 +51,12 @@ export default function ComponentLicenseDetailsPage(props) {
         />
         <div className="nx-page-title">
           <h1 className="nx-h1">Licenses</h1>
+          <div className="nx-btn-bar">
+            <NxButton id="edit-licenses" variant="tertiary" onClick={() => setShowLicensesModal(true)}>
+              <NxFontAwesomeIcon icon={faPen} />
+              <span>Edit Licenses</span>
+            </NxButton>
+          </div>
           {createSubtitle(availableScopes, component)}
         </div>
         <ComponentLicenseOverviewTile component={component} />
@@ -69,6 +81,7 @@ export default function ComponentLicenseDetailsPage(props) {
 }
 
 ComponentLicenseDetailsPage.propTypes = {
+  setShowLicensesModal: PropTypes.func.isRequired,
   loading: PropTypes.bool,
   error: PropTypes.string,
   availableScopes: availableScopesPropType,

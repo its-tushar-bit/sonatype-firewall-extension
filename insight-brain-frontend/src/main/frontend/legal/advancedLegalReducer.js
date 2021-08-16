@@ -7,10 +7,8 @@ import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED,
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
-  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FAILED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
 } from './advancedLegalActions';
 import { ACTIONABLE_OBLIGATIONS, TEXT_BASED_OBLIGATIONS } from './advancedLegalConstants';
 import { COPYRIGHT_OVERRIDE_SAVE_FULFILLED } from './copyright/copyrightOverrideFormActions';
@@ -28,16 +26,6 @@ const initialState = {
     error: null,
   },
 };
-
-function loadComponentRequested() {
-  return {
-    ...initialState,
-    component: {
-      loading: true,
-      error: null,
-    },
-  };
-}
 
 function loadComponentFulfilled(payload, state) {
   const newObligations = payload.component.licenseLegalData.obligations
@@ -168,16 +156,6 @@ function loadComponentFailed(payload, state) {
   };
 }
 
-function loadAvailableScopesRequested(_, state) {
-  return {
-    ...state,
-    availableScopes: {
-      loading: true,
-      error: null,
-    },
-  };
-}
-
 function loadAvailableScopesFulfilled(payload, state) {
   return {
     ...state,
@@ -215,10 +193,8 @@ function saveCopyrightOverrideFulfilled(payload, state) {
 }
 
 const reducerActionMap = {
-  [ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED]: loadComponentRequested,
   [ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED]: loadComponentFulfilled,
   [ADVANCED_LEGAL_LOAD_COMPONENT_FAILED]: loadComponentFailed,
-  [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED]: loadAvailableScopesRequested,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED]: loadAvailableScopesFulfilled,
   [ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FAILED]: loadAvailableScopesFailed,
   [COPYRIGHT_OVERRIDE_SAVE_FULFILLED]: saveCopyrightOverrideFulfilled,

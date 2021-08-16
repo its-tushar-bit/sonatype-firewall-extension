@@ -19,6 +19,7 @@ import {
   ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
   ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
   ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
+  ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
   ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
   ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
@@ -412,7 +413,7 @@ describe('advancedLegalFileReducer', function () {
   });
 
   describe('ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED action', function () {
-    it('clears the licenses error and closes the notices submit mask', function () {
+    it('clears the licenses error and closes the licenses submit mask', function () {
       const state = {
         component: {
           component: {
@@ -428,6 +429,24 @@ describe('advancedLegalFileReducer', function () {
       });
       expect(newState.component.component.licenseLegalData.licensesError).toBeNull();
       expect(newState.component.component.licenseLegalData.saveLicensesSubmitMask).toBeFalsy();
+    });
+  });
+
+  describe('ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED action', function () {
+    it('sets the licenses submit mask to  true', function () {
+      const state = {
+        component: {
+          component: {
+            licenseLegalData: {
+              saveLicensesSubmitMask: false,
+            },
+          },
+        },
+      };
+      const newState = reduce(state, {
+        type: ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED,
+      });
+      expect(newState.component.component.licenseLegalData.saveLicensesSubmitMask).toEqual(true);
     });
   });
 

@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import ComponentLicenseDetailsPage from './ComponentLicenseDetailsPage';
 import { pick } from 'ramda';
 import { loadComponentAndLicenseDetails } from './componentLicenseDetailsActions';
+import { setShowLicensesModal } from '../files/advancedLegalFileActions';
 
 function mapStateToProps({ advancedLegal, componentLicenseDetails, router }) {
   const component = advancedLegal.component || {};
@@ -26,6 +27,7 @@ function mapStateToProps({ advancedLegal, componentLicenseDetails, router }) {
 
 const mapDispatchToProps = {
   loadComponentAndLicenseDetails,
+  setShowLicensesModal,
 };
 
 const ComponentLicenseDetailsContainer = connect(mapStateToProps, mapDispatchToProps)(ComponentLicenseDetailsPage);

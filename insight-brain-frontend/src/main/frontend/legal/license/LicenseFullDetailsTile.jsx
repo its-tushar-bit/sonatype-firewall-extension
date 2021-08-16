@@ -139,7 +139,7 @@ export default function LicenseFullDetailsTile(props) {
             <dl className="nx-read-only" id="license-full-details-tile__obligations-container">
               {obligations.map((obligation, index) => {
                 const texts = obligation.obligationTexts.map((obligationText) =>
-                  createObligationContentTexts(obligationText)
+                  createObligationContentTexts(obligationText, index)
                 );
                 return (
                   <div key={index}>

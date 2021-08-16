@@ -14,7 +14,7 @@ import {
   ADVANCED_LEGAL_SAVE_LICENSE_FILES_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_LICENSES_FAILED,
   ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED,
-  ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE,
+  ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED,
   ADVANCED_LEGAL_SAVE_NOTICES_FAILED,
   ADVANCED_LEGAL_SAVE_NOTICES_REQUESTED,
   ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE,
@@ -34,9 +34,7 @@ import {
 } from '../../../../main/frontend/util/CLMLocation';
 import {
   ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED,
-  ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED,
   ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED,
-  ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED,
 } from '../../../../main/frontend/legal/advancedLegalActions';
 
 describe('advancedLegalFileActions', function () {
@@ -112,6 +110,7 @@ describe('advancedLegalFileActions', function () {
     const ownerId = 'ownerId';
     const postBody = {};
     const hash = 'hash123';
+    const closeModalFn = jasmine.createSpy();
 
     beforeEach(function () {
       initialState = {
@@ -137,7 +136,7 @@ describe('advancedLegalFileActions', function () {
       };
     });
 
-    it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE actions on success', function (done) {
+    it('dispatches ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED actions on success', function (done) {
       store = SpecUtil.mockReduxStore(initialState);
       mockAxiosCalls({
         post: {
@@ -148,18 +147,16 @@ describe('advancedLegalFileActions', function () {
           [getLicenseLegalComponentUrl('application', 'app', hash)]: Promise.resolve({ data: 'getData2' }),
         },
       });
-      store.dispatch(saveLicenses({ ownerType, ownerId, postBody, hash })).then(() => {
+      store.dispatch(saveLicenses({ ownerType, ownerId, postBody, hash, closeModalFn })).then(() => {
         setTimeout(() => {
           const actions = store.getActions();
           expect(axios.post).toHaveBeenCalledWith('/rest/licenseOverride/application/ownerId', postBody);
           expect(axios.get).toHaveBeenCalledWith('/api/v2/licenseLegalMetadata/application/app/component?hash=hash123');
           expect(axios.get).toHaveBeenCalledWith('/rest/owner/application/app/hierarchy');
-          expect(actions.length).toBe(6);
-          expect(actions[1].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_REQUESTED);
-          expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_REQUESTED);
-          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
-          expect(actions[4].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
-          expect(actions[5].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE);
+          expect(actions.length).toBe(4);
+          expect(actions[1].type).toBe(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
+          expect(actions[2].type).toBe(ADVANCED_LEGAL_LOAD_AVAILABLE_SCOPES_FULFILLED);
+          expect(actions[3].type).toBe(ADVANCED_LEGAL_LOAD_COMPONENT_FULFILLED);
           done();
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       });

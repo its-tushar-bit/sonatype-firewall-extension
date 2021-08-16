@@ -32,6 +32,7 @@ export const ADVANCED_LEGAL_SAVE_NOTICES_SUCCEEDED = 'ADVANCED_LEGAL_SAVE_NOTICE
 export const ADVANCED_LEGAL_SAVE_NOTICES_FAILED = 'ADVANCED_LEGAL_SAVE_NOTICES_FAILED';
 export const ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE';
 export const ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED = 'ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED';
+export const ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED = 'ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED';
 export const ADVANCED_LEGAL_SAVE_LICENSES_FAILED = 'ADVANCED_LEGAL_SAVE_LICENSES_FAILED';
 export const ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE = 'ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE';
 export const ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED =
@@ -54,6 +55,7 @@ const saveNoticesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_NOTICES_
 const saveNoticesSubmitMaskDone = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_NOTICES_SUBMIT_MASK_DONE);
 
 const saveLicensesRequested = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_REQUESTED);
+const saveLicensesSucceeded = noPayloadActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_SUCCEEDED);
 const saveLicensesFailed = payloadParamActionCreator(ADVANCED_LEGAL_SAVE_LICENSES_FAILED);
 
 const licenseModalHierarchyFulfilled = payloadParamActionCreator(ADVANCED_LEGAL_LOAD_LICENSE_MODAL_HIERARCHY_FULFILLED);
@@ -84,12 +86,6 @@ export function loadLicenseModalInformation({ ownerType, ownerId, componentIdent
   };
 }
 
-function startLicenseSubmitMaskTimer(dispatch) {
-  setTimeout(() => {
-    dispatch({ type: ADVANCED_LEGAL_SAVE_LICENSES_SUBMIT_MASK_DONE });
-  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-}
-
 export function saveLicenses({ ownerType, ownerId, postBody, hash }) {
   return (dispatch, getState) => {
     dispatch(saveLicensesRequested());
@@ -101,7 +97,7 @@ export function saveLicenses({ ownerType, ownerId, postBody, hash }) {
       .then(() => {
         dispatch(loadAvailableScopes(visitedScope.type, visitedScope.publicId));
         dispatch(loadComponent(visitedScope.type, visitedScope.publicId, hash));
-        startLicenseSubmitMaskTimer(dispatch);
+        dispatch(saveLicensesSucceeded());
       })
       .catch((error) => {
         dispatch(saveLicensesFailed(error));

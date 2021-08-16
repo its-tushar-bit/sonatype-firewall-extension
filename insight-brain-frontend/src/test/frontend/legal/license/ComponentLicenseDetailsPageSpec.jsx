@@ -12,12 +12,14 @@ import LicenseFullDetailsTile from '../../../../main/frontend/legal/license/Lice
 import LicenseList from '../../../../main/frontend/legal/license/LicenseList';
 import { mount } from 'enzyme/build';
 import { licenseState } from './licenseCommonState';
+import LicensesModalContainer from '../../../../main/frontend/legal/license/LicensesModalContainer';
 
 describe('ComponentLicenseDetailsPage', function () {
-  let minimalProps, loadComponentAndLicenseDetailsSpy, getShallowComponent, $state;
+  let minimalProps, loadComponentAndLicenseDetailsSpy, setShowLicensesModalSpy, getShallowComponent, $state;
 
   beforeEach(function () {
     loadComponentAndLicenseDetailsSpy = jasmine.createSpy('loadComponentAndLicenseDetails');
+    setShowLicensesModalSpy = jasmine.createSpy('setShowLicensesModal');
     $state = jasmine.createSpyObj('$state', ['get', 'href']);
     $state.get.and.callFake((stateName) => stateName);
     $state.href.and.callFake((stateName, stateParams) => {
@@ -40,6 +42,7 @@ describe('ComponentLicenseDetailsPage', function () {
     minimalProps = {
       ...licenseState,
       availableScopes,
+      setShowLicensesModal: setShowLicensesModalSpy,
       $state,
       licenseIndex: 1,
       loadComponentAndLicenseDetails: loadComponentAndLicenseDetailsSpy,
@@ -87,5 +90,32 @@ describe('ComponentLicenseDetailsPage', function () {
   it('renders the LicenseFullDetailsTile', function () {
     const wrapper = getShallowComponent();
     expect(wrapper.find(LicenseFullDetailsTile)).toExist();
+  });
+
+  it('renders a LicensesModalContainer if showLicensesModal is true', function () {
+    const wrapper = getShallowComponent();
+    expect(wrapper.find(LicensesModalContainer)).not.toExist();
+  });
+
+  it('does not render a LicensesModalContainer if showLicensesModal is false', function () {
+    const props = {
+      component: {
+        ...licenseState.component,
+        licenseLegalData: {
+          showLicensesModal: true,
+          ...licenseState.component.licenseLegalData,
+        },
+      },
+    };
+    const wrapper = getShallowComponent(props);
+    expect(wrapper.find(LicensesModalContainer)).toExist();
+  });
+
+  it('calls setShowLicensesModal', function () {
+    const wrapper = getShallowComponent();
+    const editButton = wrapper.find('#edit-license-files');
+    expect(setShowLicensesModalSpy).not.toHaveBeenCalled();
+    editButton.simulate('click');
+    expect(setShowLicensesModalSpy).toHaveBeenCalledWith(true);
   });
 });

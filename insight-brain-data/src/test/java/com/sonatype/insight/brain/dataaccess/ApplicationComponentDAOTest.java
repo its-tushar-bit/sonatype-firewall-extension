@@ -578,6 +578,21 @@ public class ApplicationComponentDAOTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     Application app = tempEntity.newApplicationWithParent();
 
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash1", componentIdentifier);
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash1", componentIdentifier);
+    ApplicationComponent applicationComponent3 =
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier);
+
+    ApplicationComponent appComponent = dao.getLastByComponentIdentifier(componentIdentifier);
+
+    assertApplicationComponent(applicationComponent3, appComponent);
+  }
+
+  @Test
+  public void testGetLastByComponentIdentifier() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+    Application app = tempEntity.newApplicationWithParent();
+
     assertThat(dao.getByApplicationIdAndComponentIdentifier(app.getId(), componentIdentifier)).isEmpty();
   }
 

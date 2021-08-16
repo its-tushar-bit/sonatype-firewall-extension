@@ -132,6 +132,14 @@ public class ApplicationComponentDAO
     return createQuery(sQuery, hash).forceSingleResult().get();
   }
 
+  public ApplicationComponent getLastByComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    String sQuery = "SELECT entity FROM ApplicationComponent entity" + //
+        " WHERE entity.componentIdFormat=?1 AND entity.componentIdCoordinatesJson=?2" +
+        " ORDER BY entity.time DESC";
+    return createQuery(sQuery, componentIdentifier.getFormat(),
+        ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates())).forceSingleResult().get();
+  }
+
   public List<ApplicationComponent> getByApplicationIdsAndStageTypeIdsSince(Set<String> applicationIds,
                                                                             Set<String> stageTypeIds,
                                                                             Date date)
@@ -227,11 +235,11 @@ public class ApplicationComponentDAO
   /**
    * Queries the combination of applications IDs and stage type IDs where the components found in the last evaluation
    * have a review of the license legal obligations already started or not.
-   * 
+   *
    * A license legal obligations review is considered started in an application and stage type when there is a least one
    * entry for a component in {@ComponentObligation} whether at the application, organization or root organization scope
    * while a not started review is when there is not a single entry.
-   * 
+   *
    * @param applicationIds  Applications IDs where the query can be made.
    * @param stageTypeIds    Stage type IDs where the query can be made.
    * @param isReviewStarted {@code true} to query the applications and stage types where the review already started,

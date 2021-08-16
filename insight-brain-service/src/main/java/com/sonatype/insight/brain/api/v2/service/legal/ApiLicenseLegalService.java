@@ -704,7 +704,7 @@ public class ApiLicenseLegalService
       final String componentHash)
   {
     if (componentIdentifier.isAname()) {
-      final List<String> componentAggregateHashes = getAggregateHashes(componentHash);
+      final List<String> componentAggregateHashes = getAggregateHashes(componentIdentifier);
       if (componentAggregateHashes.isEmpty()) {
         return Collections.emptySet();
       }
@@ -719,12 +719,16 @@ public class ApiLicenseLegalService
     }
   }
 
-  private List<String> getAggregateHashes(final String componentHash) {
-    if (componentHash == null) {
+  private List<String> getAggregateHashes(final ComponentIdentifier componentIdentifier) {
+    if (componentIdentifier == null) {
       return Collections.emptyList();
     }
-    final ApplicationComponent lastByHash = applicationComponentDAO.getLastByHash(componentHash);
-    return aggregateFileDAO.getByApplicationComponentId(lastByHash.getId()).stream()
+    final ApplicationComponent lastByComponentIdentifier =
+        applicationComponentDAO.getLastByComponentIdentifier(componentIdentifier);
+    if (lastByComponentIdentifier == null) {
+      return Collections.emptyList();
+    }
+    return aggregateFileDAO.getByApplicationComponentId(lastByComponentIdentifier.getId()).stream()
         .map(AggregateFile::getHash)
         .collect(Collectors.toList());
   }
@@ -851,10 +855,10 @@ public class ApiLicenseLegalService
   Map<ComponentIdentifier, Set<ComponentLegalCommentDTO>> getAnameComponentLegalComments(
       final Map<ComponentIdentifier, String> componentIdentifiers)
   {
-    final Set<AnameAggregateFileGroup> aNameComponents = componentIdentifiers.entrySet().stream()
-        .filter(entry -> entry.getKey().isAname())
-        .map(entry -> new AnameAggregateFileGroup(entry.getKey(),
-            getAggregateHashes(entry.getValue())))
+    final Set<AnameAggregateFileGroup> aNameComponents = componentIdentifiers.keySet().stream()
+        .filter(ComponentIdentifier::isAname)
+        .map(s -> new AnameAggregateFileGroup(s,
+            getAggregateHashes(s)))
         .collect(Collectors.toCollection(LinkedHashSet::new));
 
     return apiLicenseLegalHdsService.getAnameComponentLegalComments(

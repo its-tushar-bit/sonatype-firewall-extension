@@ -74,7 +74,6 @@ function config({ entryPath, outputPath, cssOutputPath, env, externals }) {
       { from: 'cip/cip-claim-component.html', transform: true },
       { from: 'brain.client.js', transform: true },
       { from: 'reports.*', transform: true },
-      { from: 'configuration/license/eula.html', transform: false },
       { from: '**/*.{ttf,woff,png,svg,gif,jpg,ico}', transform: false },
     ],
     plugins = [

@@ -406,8 +406,13 @@ public class ApplicationReportTest
     Tooltip.get().shouldBe(visible)
         .shouldHave(text("This component was brought in by the following InnerSource component:"))
         .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"));
-    reportPage.resultRow(16).shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
-        .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS);
+    dependencyIndicators = reportPage.resultRow(16)
+        .shouldHave(text("org.springframework.security : spring-security-config : 3.2.4.RELEASE"))
+        .dependencyIndicators().shouldHaveSize(2);
+    dependencyIndicators.get(0).shouldHave(DIRECT_DEPENDENCY_CLASS).shouldHave(text("D")).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Direct Dependency"));
+    dependencyIndicators.get(1).shouldHave(INNER_SOURCE_DEPENDENCY_CLASS).shouldHave(text("IS")).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("InnerSource"));
     reportPage.resultRow(26).shouldHave(text("org.springframework : spring-core : 3.2.8.RELEASE"))
         .dependencyIndicators().shouldHaveSize(1).get(0).shouldHave(TRANSITIVE_DEPENDENCY_CLASS);
     reportPage.resultRow(57).shouldHave(text("org.springframework : spring-aop : 3.2.8.RELEASE"))

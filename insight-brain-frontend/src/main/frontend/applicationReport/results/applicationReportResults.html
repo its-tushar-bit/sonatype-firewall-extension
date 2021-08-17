@@ -193,14 +193,18 @@
                 </span>
                 <div ng-if="component.dependencyInfo"
                      class="iq-dependency-indicator"
-                     data-tooltip="{{component.innerSource ? 'InnerSource' :
-                                     component.dependencyInfo.isDirectDependency ? 'Direct Dependency' : 'Transitive Dependency'}}"
+                     data-tooltip="{{component.dependencyInfo.isDirectDependency ? 'Direct Dependency' : 'Transitive Dependency'}}"
                      data-tooltip-append-to-body="true"
-                     ng-class="component.innerSource ? 'inner-source' :
-                               component.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
+                     ng-class="component.dependencyInfo.isDirectDependency ? 'direct' : 'transitive'">
+                  <span ng-if="component.dependencyInfo.isDirectDependency">D</span>
+                  <span ng-if="!component.dependencyInfo.isDirectDependency">T</span>
+                </div>
+                <div ng-if="component.innerSource"
+                     class="iq-dependency-indicator inner-source"
+                     data-tooltip="InnerSource"
+                     data-tooltip-append-to-body="true"
+                     ng-class="inner-source">
                   <span ng-if="component.innerSourceDependencyType">{{component.innerSourceDependencyType.shortLabel}}</span>
-                  <span ng-if="component.dependencyInfo.isDirectDependency && !component.innerSourceData">D</span>
-                  <span ng-if="!component.dependencyInfo.isDirectDependency && !component.innerSourceData">T</span>
                 </div><!--
                 --><div ng-if="component.isOnlyInnerSourceTransitiveDependency"
                         class="iq-dependency-indicator inner-source"

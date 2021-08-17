@@ -277,8 +277,9 @@ public class ApplicationReportCipTest
     cipModal.header().shouldHave(text("java2html : j2h : 1.3.1"));
     cipModal.nextButton().shouldBe(enabled);
     cipModal.previousButton().shouldBe(enabled);
-    cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("inner-source"))
-        .shouldHave(exactText("InnerSource"));
+    cipModal.dependencyInnerSourceIndicator().shouldBe(visible);
+    cipModal.dependencyIndicator().shouldBe(visible).shouldHave(cssClass("direct"))
+        .shouldHave(exactText("Direct Dependency"));
     cipModal.ownerApplication().shouldHave(text(app.getName()));
     cipModal.latestReportLink().shouldHave(exactText("View Latest Report"));
     cipModal.innerSourceAlertInfo().shouldHave(exactText("InnerSource components are software components that are " +

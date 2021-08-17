@@ -3,12 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { findIndex, isNil, propEq, splitAt } from 'ramda';
+import { findIndex, includes, isNil, propEq, splitAt } from 'ramda';
 
 import template from './applicationReportResults.html';
 import cipModalWrapper from './cipModalWrapper.html';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import { includes } from 'ramda';
 
 export default {
   template,

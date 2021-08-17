@@ -524,14 +524,6 @@ export function getComponentWaivers(ownerType, ownerId, hash) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/component/${hash}`;
 }
 
-export function getLicenseSummaryUrl() {
-  return uriTemplate`/rest/product/license`;
-}
-
-export function getLicenseUploadUrl() {
-  return uriTemplate`/api/v2/product/license`;
-}
-
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -583,9 +575,13 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getValidateLicenseUrl,
 
-      getLicenseSummaryUrl,
+      getLicenseSummaryUrl: function () {
+        return baseUrl.get() + '/rest/product/license';
+      },
 
-      getLicenseUploadUrl,
+      getLicenseUploadUrl: function () {
+        return baseUrl.get() + '/api/v2/product/license';
+      },
 
       evaluatePolicyUrl: function (applicationPublicId, scanId) {
         return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationPublicId) + '/evaluate?scanId=' + scanId;

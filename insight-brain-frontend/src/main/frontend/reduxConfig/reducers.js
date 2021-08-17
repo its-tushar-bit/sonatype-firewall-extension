@@ -52,7 +52,6 @@ import userConfigurationReducer from '../security/users/usersReducer';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsRedux';
 import addSuccessMetricsReportReducer from '../labs/successMetrics/addSuccessMetricsReport/addSuccessMetricsReportReducer';
 import componentDetailsViolationsReducer from '../componentDetails/violations/PolicyViolationsRedux';
-import productLicenseReducer from '../configuration/license/productLicenseReducer';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -103,5 +102,4 @@ export default combineReducers({
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
   addSuccessMetricsReport: addSuccessMetricsReportReducer,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,
-  productLicense: productLicenseReducer,
 });

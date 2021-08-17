@@ -3,6 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+product-license {
+  display: contents;
+}
 
 .iq-license-info {
   flex: 1 1 33%;
@@ -29,43 +32,23 @@
   }
 }
 
-.iq-product-license__specifications {
-  grid-template:
-    'expiration-date  days-remaining     licensed-applications'
-    'license-types licensed-developers        fingerprint';
-
-  grid-template-columns: 20% 25% auto;
+#uninstall-license {
+  margin-left: 3px;
 }
 
-.iq-product-license__expiration-date {
-  grid-area: expiration-date;
-}
-
-.iq-product-license__license-types {
-  grid-area: license-types;
-}
-
-.iq-product-license__days-remaining {
-  grid-area: days-remaining;
-}
-
-.iq-product-license__licensed-developers {
-  grid-area: licensed-developers;
-}
-
-.iq-product-license__licensed-applications {
-  grid-area: licensed-applications;
-}
-
-.iq-product-license__fingerprint {
-  grid-area: fingerprint;
-  word-break: break-all;
-}
-
-form.iq-license-footer-form {
+#license-form {
+  display: inline-block;
   margin: 0;
 }
 
-.iq-product-license-details-footer--no-license {
-  margin-top: 24px;
+#license {
+  p {
+    width: $iq-paragraph-width-maximum;
+  }
+}
+
+#eulaModal {
+  .iq-scrollable {
+    max-height: calc(100vh - 200px);
+  }
 }

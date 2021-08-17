@@ -64,7 +64,8 @@ public class ProductLicenseTest
     ProductLicensePage.licensedDevelopers().shouldBe(visible);
     ProductLicensePage.licensedApplications().shouldNotBe(visible);
 
-    ProductLicensePage.licensedDevelopersRows().shouldHave(texts("Lifecycle — 50", "Firewall — 45"));
+    // NOTE: the emdashes are added in CSS and apparently don't show up here
+    ProductLicensePage.licensedDevelopersRows().shouldHave(texts("Lifecycle50", "Firewall45"));
     ProductLicensePage.licensedApplications().shouldBe(hidden);
     ProductLicensePage.products().shouldHave(texts("Nexus Lifecycle", "Nexus Firewall"));
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
@@ -197,7 +198,6 @@ public class ProductLicenseTest
     new GettingStartedPage().shouldBe(visible);
 
     refreshOrOpen(ProductLicensePage.url());
-    refreshOrOpen(ProductLicensePage.url());
     ProductLicensePage.fingerprint().shouldBe(visible).should(matchText(FINGERPRINT_PATTERN));
     ProductLicensePage.installLicenseBtn().shouldBe(visible).shouldHave(text("Update License"));
   }
@@ -212,7 +212,7 @@ public class ProductLicenseTest
     eulaModal.shouldBe(visible);
     eulaModal.header().shouldHave(text("End User License Agreement"));
     eulaModal.eula().shouldHave(text("READ THIS AGREEMENT CAREFULLY"));
-    eulaModal.acceptBtn().shouldBe(visible).click();
+    eulaModal.acceptBtn().shouldBe(visible).sendKeys("\n");
 
     FormMask.seeAndWaitForDismissal();
   }

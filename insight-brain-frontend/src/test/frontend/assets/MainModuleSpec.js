@@ -284,6 +284,29 @@ describe('mainModuleSpec', function () {
     }));
   });
 
+  describe('on licenseInstalled event', function () {
+    let $httpBackend;
+
+    beforeEach(inject(function (_$httpBackend_, CLMLocations) {
+      $httpBackend = _$httpBackend_;
+
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getValidateLicenseUrl())).respond({});
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getSessionUrl())).respond({ username: 'myname' });
+      $httpBackend.expectGET(SpecUtil.toRegExp(CLMLocations.getProductFeaturesUrl())).respond(['dashboard']);
+    }));
+
+    it('fires "REDIRECTED" telemetry event', inject(function (initService, $state) {
+      initService.start();
+      $httpBackend.flush();
+      $state.current.name = 'someOtherState';
+      scope.$digest();
+      scope.$emit('licenseInstalled');
+      expect(telemetryServiceMock.submitData).toHaveBeenCalledWith('REDIRECTED', {
+        pageNavigatedFrom: 'someOtherState',
+      });
+    }));
+  });
+
   describe('on beforeunload event', function () {
     let $httpBackend, $window;
 

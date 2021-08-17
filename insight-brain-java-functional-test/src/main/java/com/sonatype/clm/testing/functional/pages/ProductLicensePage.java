@@ -53,11 +53,11 @@ public class ProductLicensePage
   }
 
   public static ElementsCollection licensedDevelopersRows() {
-    return $$("#license-licensed-developers > dd");
+    return $$("#license-licensed-developers > div");
   }
 
   public static SelenideElement installLicenseBtn() {
-    return $("#install-license-btn");
+    return $("label[for=license-input]");
   }
 
   public static SelenideElement installLicenseFileUpload() {
@@ -88,15 +88,15 @@ public class ProductLicensePage
     }
 
     public SelenideElement header() {
-      return child(".nx-modal-header");
+      return child(".iq-modal-header");
     }
 
     public SelenideElement eula() {
-      return child(".nx-modal-content");
+      return child(".iq-modal-content");
     }
 
     public SelenideElement acceptBtn() {
-      return child(".nx-btn--primary");
+      return child(".btn-primary");
     }
   }
 
@@ -108,15 +108,15 @@ public class ProductLicensePage
     }
 
     public SelenideElement uninstallBtn() {
-      return child(".nx-form__submit-btn");
+      return child(".btn-primary");
     }
 
     public SelenideElement retryBtn() {
-      return child(".nx-load-error__retry");
+      return child(".btn-error");
     }
 
     public SelenideElement errorMessage() {
-      return child(".nx-alert--error");
+      return child(".iq-alert--error");
     }
   }
 }

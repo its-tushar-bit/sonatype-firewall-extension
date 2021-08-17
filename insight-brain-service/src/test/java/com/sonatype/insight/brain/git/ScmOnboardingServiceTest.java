@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -264,10 +263,8 @@ public class ScmOnboardingServiceTest
   }
 
   private String getResourceAsString(String filename) throws IOException {
-    StringWriter writer = new StringWriter();
-    IOUtils.copy(getClass().getResourceAsStream("/" + ScmOnboardingServiceTest.class.getSimpleName() + "/" + filename),
-        writer, StandardCharsets.UTF_8);
-    return writer.toString();
+    return IOUtils.toString(getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/" + filename),
+        StandardCharsets.UTF_8);
   }
 
   private void mockRepoForPage(WireMockRule gitService, int page, String json) {

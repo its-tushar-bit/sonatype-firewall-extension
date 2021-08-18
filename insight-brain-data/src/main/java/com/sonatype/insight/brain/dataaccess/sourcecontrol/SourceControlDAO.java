@@ -378,7 +378,7 @@ public class SourceControlDAO
       return Collections.emptyList();
     }
 
-    repositoryUrl = repositoryUrl.toLowerCase(Locale.ENGLISH);
+    repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
     String sQuery = "SELECT entity FROM SourceControl entity WHERE entity.repositoryUrl=?1";
     if (tx == null) {
       return getList(sQuery, repositoryUrl);

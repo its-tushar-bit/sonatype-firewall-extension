@@ -77,11 +77,11 @@
     "ssh_url": "git@localhost:sonatype-nexus-community/ossindex-gradle-plugin.git"
   },
   {
-    "name": "oysteR",
+    "name": "MixedCase",
     "description": "",
     "private": false,
-    "clone_url": "https://localhost/sonatype-nexus-community/oysteR.git",
-    "ssh_url": "git@localhost:sonatype-nexus-community/oysteR.git"
+    "clone_url": "https://localhost/org/MixedCase.git",
+    "ssh_url": "git@localhost:org/MixedCase.git"
   },
   {
     "name": "prime-nexus-proxy-repos",

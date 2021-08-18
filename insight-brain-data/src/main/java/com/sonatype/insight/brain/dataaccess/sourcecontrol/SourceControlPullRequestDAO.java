@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -27,12 +27,12 @@ public class SourceControlPullRequestDAO
   }
 
   void deleteByRepositoryUrl(TransactionContext tx, String repositoryUrl) {
-    repositoryUrl = repositoryUrl.trim().toLowerCase(Locale.ENGLISH);
+    repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl).trim();
     getByRepositoryUrl(tx, repositoryUrl).forEach(entity -> delete(tx, entity));
   }
 
   private List<SourceControlPullRequest> getByRepositoryUrl(TransactionContext tx, String repositoryUrl) {
-    repositoryUrl = repositoryUrl.trim().toLowerCase(Locale.ENGLISH);
+    repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl).trim();
     String sQuery = "SELECT entity FROM SourceControlPullRequest entity WHERE entity.repositoryUrl=?1";
     return getList(tx, sQuery, repositoryUrl);
   }

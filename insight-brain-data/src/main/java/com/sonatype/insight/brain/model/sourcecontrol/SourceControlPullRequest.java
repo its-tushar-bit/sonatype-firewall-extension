@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.sourcecontrol;
 
 import java.util.Date;
-import java.util.Locale;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -91,7 +90,8 @@ public class SourceControlPullRequest
     }
 
     if (repositoryUrl != null) {
-      repositoryUrl = repositoryUrl.trim().toLowerCase(Locale.ENGLISH);
+      repositoryUrl = repositoryUrl.trim();
+      repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
     }
     this.repositoryUrl = repositoryUrl;
   }

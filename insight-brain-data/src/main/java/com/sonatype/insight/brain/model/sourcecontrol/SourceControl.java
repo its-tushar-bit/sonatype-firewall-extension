@@ -127,11 +127,15 @@ public class SourceControl
     return repositoryUrl;
   }
 
-  public void setRepositoryUrl(String repositoryUrl) {
+  public static String normalizeRepositoryUrl(String repositoryUrl) {
     if (repositoryUrl != null) {
       repositoryUrl = repositoryUrl.toLowerCase(Locale.ENGLISH);
     }
-    this.repositoryUrl = repositoryUrl;
+    return repositoryUrl;
+  }
+
+  public void setRepositoryUrl(String repositoryUrl) {
+    this.repositoryUrl = normalizeRepositoryUrl(repositoryUrl);
   }
 
   public String getUsername() {

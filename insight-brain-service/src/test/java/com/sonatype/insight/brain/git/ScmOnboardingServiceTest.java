@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -223,6 +224,33 @@ public class ScmOnboardingServiceTest
     SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
     assertThat(repositories.availableRepositories.size()).isEqualTo(11);
     assertThat(repositories.totalRepositories).isEqualTo(13);
+
+    // and: no source control evaluation events
+    verifyNoManifestEvaluationEventsCreated();
+  }
+
+  @Test
+  public void testLoadRepositories_trimExistingConfiguredRepositories_MixedCase() throws Exception {
+    // configure urls to point to our mock git server, as these are used to guess at a base api url
+    String repoUrl = "https://localhost/org/MixedCase.git";
+    String repo = "/org/MixedCase.git";
+    String repoReplacementUrl = gitService.baseUrl().replace("localhost", "admin:admin123@localhost") + repo;
+
+    mockRepoForPage(gitService, 0, getResourceAsString(PAGE_0).replaceFirst(repoUrl, repoReplacementUrl));
+    mockRepoForPage(gitService, 1, getResourceAsString(PAGE_1));
+
+    // given the repo with mixed case url is already configured for SCM
+    tempEntity.newSourceControl(app.getId(), gitService.baseUrl() + repo, new Date());
+
+    // then loading repositories returns the trimmed results (i.e. not including the already configured one)
+    SCMRepositories repositories = scmOnboardingService.loadRepositories(org.getId(), gitService.baseUrl());
+    assertThat(repositories.totalRepositories).isEqualTo(13);
+    assertThat(repositories.availableRepositories.size()).isEqualTo(12);
+    assertThat(repositories.availableRepositories.stream() //
+        .map(scmRepo -> scmRepo.getHttpCloneUrl().toLowerCase(Locale.ENGLISH)) //
+        .filter(url -> url.contains("mixedcase")) //
+        .findAny().isPresent()) //
+            .isFalse();
 
     // and: no source control evaluation events
     verifyNoManifestEvaluationEventsCreated();

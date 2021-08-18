@@ -266,7 +266,7 @@ public class ScmOnboardingService
             .collect(Collectors.toList());
 
     return allRepositories.stream()
-        .filter(repo -> !existing.contains(repo.getHttpCloneUrl()))
+        .filter(repo -> !existing.contains(SourceControl.normalizeRepositoryUrl(repo.getHttpCloneUrl())))
         .collect(Collectors.toList());
   }
 

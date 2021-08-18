@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -431,7 +432,7 @@ public class ApplicationDAO
    */
   public List<Application> getByRepositoryUrl(String repositoryUrl) {
     if (repositoryUrl != null) {
-      repositoryUrl = repositoryUrl.toLowerCase(Locale.ENGLISH);
+      repositoryUrl = SourceControl.normalizeRepositoryUrl(repositoryUrl);
     }
     final String sQuery = "SELECT app FROM Application app, SourceControl sc " +
         " WHERE app.id = sc.ownerId AND sc.repositoryUrl = ?1";

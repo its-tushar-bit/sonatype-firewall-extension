@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.Query;
 
@@ -32,6 +33,7 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.Sets;
+import org.awaitility.Awaitility;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -574,12 +576,14 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetByApplicationIdAndComponentIdentifier_Empty() {
+  public void testLastByComponentIdentifier() throws InterruptedException {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     Application app = tempEntity.newApplicationWithParent();
 
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash1", componentIdentifier);
+    Awaitility.await().timeout(10, TimeUnit.MILLISECONDS);
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash1", componentIdentifier);
+    Awaitility.await().timeout(10, TimeUnit.MILLISECONDS);
     ApplicationComponent applicationComponent3 =
         tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier);
 
@@ -589,7 +593,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
-  public void testGetLastByComponentIdentifier() {
+  public void testGetByApplicationIdAndComponentIdentifier_Empty() {
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     Application app = tempEntity.newApplicationWithParent();
 

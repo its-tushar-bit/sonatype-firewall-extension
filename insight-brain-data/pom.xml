@@ -149,6 +149,11 @@
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-saml-servlet-filter-adapter</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

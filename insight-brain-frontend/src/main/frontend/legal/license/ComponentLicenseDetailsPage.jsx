@@ -59,7 +59,7 @@ export default function ComponentLicenseDetailsPage(props) {
           </div>
           {createSubtitle(availableScopes, component)}
         </div>
-        <ComponentLicenseOverviewTile component={component} />
+        <ComponentLicenseOverviewTile component={component} licenseLegalMetadata={licenseLegalMetadata} />
         <div id="component-license-details-content" className="nx-viewport-sized__container">
           <LicenseList
             ownerType={ownerType}

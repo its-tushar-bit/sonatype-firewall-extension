@@ -89,14 +89,14 @@ describe('LicenseDetailsTile component', function () {
     let licenseLinks = wrapper.find('.license-details-tile__effective-licenses .nx-text-link span');
     expect(licenseLinks.length).toBe(4);
     expect(licenseLinks.at(0)).toHaveText('License-1.0');
-    expect(licenseLinks.at(1)).toHaveText('License-2.0');
-    expect(licenseLinks.at(2)).toHaveText('License-1.0');
+    expect(licenseLinks.at(1)).toHaveText('License-1.0');
+    expect(licenseLinks.at(2)).toHaveText('License-2.0');
     expect(licenseLinks.at(3)).toHaveText('License-2.0');
 
     licenseLinks = wrapper.find('.license-details-tile__observed-licenses .nx-text-link span');
     expect(licenseLinks.length).toBe(3);
-    expect(licenseLinks.at(0)).toHaveText('License-2.0');
-    expect(licenseLinks.at(1)).toHaveText('License-1.0');
+    expect(licenseLinks.at(0)).toHaveText('License-1.0');
+    expect(licenseLinks.at(1)).toHaveText('License-2.0');
     expect(licenseLinks.at(2)).toHaveText('License-2.0');
 
     licenseLinks = wrapper.find('.license-details-tile__declared-licenses .nx-text-link span');
@@ -110,14 +110,14 @@ describe('LicenseDetailsTile component', function () {
     let licenseLinks = wrapper.find('.license-details-tile__effective-licenses a.nx-text-link');
     expect(licenseLinks.length).toBe(4);
     expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
-    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
-    expect(licenseLinks.at(2)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(2)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
     expect(licenseLinks.at(3)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
 
     licenseLinks = wrapper.find('.license-details-tile__observed-licenses a.nx-text-link');
     expect(licenseLinks.length).toBe(3);
-    expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
-    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(0)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":0}');
+    expect(licenseLinks.at(1)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
     expect(licenseLinks.at(2)).toHaveProp('href', 'legal.componentLicenseDetails-{"licenseIndex":1}');
 
     licenseLinks = wrapper.find('.license-details-tile__declared-licenses a.nx-text-link');

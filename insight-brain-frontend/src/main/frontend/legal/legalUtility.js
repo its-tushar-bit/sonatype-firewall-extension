@@ -153,7 +153,7 @@ export function findSimilarLicenseIndex(licenseId, licenseLegalMetadata) {
 
 /**
  * Given a license type name, a component and the licenseLegalMetadata, returns an array of the license name, id, isMulti flag, and an array of single licenses ids from the component's
- * effective license IDs.
+ * effective license IDs. The resulting collection has an ascending order by licenseName property.
  *  example:
  * [{
  *    licenseId: id,
@@ -165,20 +165,22 @@ export function findSimilarLicenseIndex(licenseId, licenseLegalMetadata) {
 export function formatLicenseMeta(licenseType, component, licenseLegalMetadata) {
   if (component) {
     const licenses = component.licenseLegalData[licenseType];
-    return licenseLegalMetadata.reduce((accumulated, l) => {
-      if (licenses.includes(l.licenseId)) {
-        return [
-          ...accumulated,
-          {
-            licenseId: l.licenseId,
-            licenseName: l.licenseName,
-            isMulti: l.isMulti,
-            singleLicenseIds: l.singleLicenseIds,
-          },
-        ];
-      }
-      return accumulated;
-    }, []);
+    return licenseLegalMetadata
+      .reduce((accumulated, l) => {
+        if (licenses.includes(l.licenseId)) {
+          return [
+            ...accumulated,
+            {
+              licenseId: l.licenseId,
+              licenseName: l.licenseName,
+              isMulti: l.isMulti,
+              singleLicenseIds: l.singleLicenseIds,
+            },
+          ];
+        }
+        return accumulated;
+      }, [])
+      .sort((a, b) => a.licenseName.localeCompare(b.licenseName));
   }
   return [];
 }

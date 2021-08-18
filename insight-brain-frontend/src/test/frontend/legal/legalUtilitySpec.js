@@ -99,16 +99,16 @@ describe('legalUtility', function () {
           singleLicenseIds: [],
         },
         {
-          licenseId: 'License-2.0',
-          licenseName: 'License-2.0 Name',
-          isMulti: false,
-          singleLicenseIds: [],
-        },
-        {
           licenseId: 'License-1.0-License-2.0',
           licenseName: 'License-1.0 or License-2.0',
           isMulti: true,
           singleLicenseIds: ['License-1.0', 'License-2.0'],
+        },
+        {
+          licenseId: 'License-2.0',
+          licenseName: 'License-2.0 Name',
+          isMulti: false,
+          singleLicenseIds: [],
         },
       ]);
     });

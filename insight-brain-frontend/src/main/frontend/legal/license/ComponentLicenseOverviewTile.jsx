@@ -4,10 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { componentPropType } from '../advancedLegalPropTypes';
+import { componentPropType, licenseLegalMetadataPropType } from '../advancedLegalPropTypes';
+import { formatLicenseMeta } from '../legalUtility';
 
 export default function ComponentLicenseOverviewTile(props) {
-  const { component } = props;
+  const { component, licenseLegalMetadata } = props;
 
   const EMPTY = {
     declaredLicenses: [],
@@ -15,6 +16,10 @@ export default function ComponentLicenseOverviewTile(props) {
     effectiveLicenses: [],
   };
   const licenseLegalData = component ? component.licenseLegalData : EMPTY;
+  const createLicensesList = (licenses) => licenses.map((license) => license.licenseName).join(', ');
+  const effectiveLicenses = createLicensesList(formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata));
+  const declaredLicenses = createLicensesList(formatLicenseMeta('declaredLicenses', component, licenseLegalMetadata));
+  const observedLicenses = createLicensesList(formatLicenseMeta('observedLicenses', component, licenseLegalMetadata));
 
   return (
     <section id="component-license-overview-tile" className="nx-tile">
@@ -28,7 +33,7 @@ export default function ComponentLicenseOverviewTile(props) {
                 key="component-license-overview__declared-licenses"
                 className="nx-read-only__data"
               >
-                {licenseLegalData.declaredLicenses.join(', ')}
+                {declaredLicenses}
               </dd>
             </dl>
           </div>
@@ -40,7 +45,7 @@ export default function ComponentLicenseOverviewTile(props) {
                 key="component-license-overview__observed-licenses"
                 className="nx-read-only__data"
               >
-                {licenseLegalData.observedLicenses.join(', ')}
+                {observedLicenses}
               </dd>
             </dl>
           </div>
@@ -52,7 +57,7 @@ export default function ComponentLicenseOverviewTile(props) {
                 key="component-license-overview__effective-licenses"
                 className="nx-read-only__data"
               >
-                {licenseLegalData.effectiveLicenses.join(', ')}
+                {effectiveLicenses}
               </dd>
             </dl>
           </div>
@@ -76,4 +81,5 @@ export default function ComponentLicenseOverviewTile(props) {
 
 ComponentLicenseOverviewTile.propTypes = {
   component: componentPropType,
+  licenseLegalMetadata: licenseLegalMetadataPropType,
 };

@@ -152,6 +152,7 @@ export const InitModule = angular
     'ProductLicense',
     'unsavedChangesModalService',
     '$ngRedux',
+    '$transitions',
     function (
       $rootScope,
       ProductFeatures,
@@ -175,7 +176,8 @@ export const InitModule = angular
       Messages,
       ProductLicense,
       unsavedChangesModalService,
-      $ngRedux
+      $ngRedux,
+      $transitions
     ) {
       var savedState = null,
         cancelPreLoginStateHandler,
@@ -252,14 +254,14 @@ export const InitModule = angular
           }
         }
 
-        function unlicensedStateChangeHandler(event, toState) {
-          if (not(contains(toState.name, ['productlicense', 'proxyConfig']))) {
-            event.preventDefault();
+        function unlicensedStateChangeHandler(transition) {
+          if (not(contains(transition.to().name, ['productlicense', 'proxyConfig']))) {
+            return false;
           }
         }
 
         function onLicenseFailure(err) {
-          cancelUnlicensedStateChangeHandler = $rootScope.$on('$stateChangeStart', unlicensedStateChangeHandler);
+          cancelUnlicensedStateChangeHandler = $transitions.onStart({}, unlicensedStateChangeHandler);
 
           if (err.status === 402) {
             $state.go('productlicense');
@@ -295,11 +297,15 @@ export const InitModule = angular
         $rootScope.error = 'Unable to initialize the application';
       }
 
-      $rootScope.$on('licenseInstalled', function () {
+      $transitions.onStart({ from: 'productlicense', to: 'gettingStarted' }, () => {
+        const {
+          productLicense: { installed },
+        } = $ngRedux.getState();
+
+        if (!installed) return;
+
         // Stop preventing state changes.  Otherwise, the navigation to the Getting Started page cannot be performed
-        if (cancelUnlicensedStateChangeHandler) {
-          cancelUnlicensedStateChangeHandler();
-        }
+        if (cancelUnlicensedStateChangeHandler) cancelUnlicensedStateChangeHandler();
 
         $state.go('gettingStarted');
         gettingStartedUsageTelemetryService.submitData(REDIRECTED_ACTION, {

@@ -45,7 +45,7 @@ export default function LicenseDetailsTile(props) {
       const multipleLicenseNamesLength = multipleLicenseNames.length;
       return multipleLicenseNames.sort().map((licenseName, multiIndex) => {
         return (
-          <Fragment key={multiIndex}>
+          <React.Fragment key={multiIndex}>
             <NxTextLink
               href={$state.href(licenseDetailsTargetState(), {
                 ownerType,
@@ -58,7 +58,7 @@ export default function LicenseDetailsTile(props) {
               {licenseName}
             </NxTextLink>
             {multipleLicenseNamesLength > multiIndex + 1 ? <span>{' or '}</span> : null}
-          </Fragment>
+          </React.Fragment>
         );
       });
     }
@@ -89,10 +89,10 @@ export default function LicenseDetailsTile(props) {
     const licensesLength = licensesList.length;
     return isLicensePresent(licensesList) ? (
       licensesList.map((item, index) => (
-        <Fragment key={index}>
+        <React.Fragment key={index}>
           {createItem(item)}
           {licensesLength > index + 1 ? <span>{', '}</span> : null}
-        </Fragment>
+        </React.Fragment>
       ))
     ) : (
       <span>None found</span>

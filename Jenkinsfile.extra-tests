@@ -71,9 +71,7 @@ def createJiraTicket() {
   def commitMsg = ''
   if (commits.size() > 0) {
     commitMsg = commits[0].replace("\n", "\\n")
-  }
-
-  def newNext = """
+    def newNext = """
     {
         "fields": {
            "project":
@@ -88,24 +86,26 @@ def createJiraTicket() {
            "issuetype": {
               "id": "1"
            }
-       }
+        }
     }
     """
 
-
-  def newResponse = httpRequest url: "https://issues.sonatype.org/rest/api/2/issue/",
+    def newResponse = httpRequest url: "https://issues.sonatype.org/rest/api/2/issue/",
       httpMode: 'POST',
       requestBody: newNext,
       acceptType: 'APPLICATION_JSON',
       contentType: 'APPLICATION_JSON',
       authentication: jiraCredentialId,
       validResponseCodes: '100:404'
-  if (newResponse.status != 201) {
+    if (newResponse.status != 201) {
         echo 'Status: '+newResponse.status
         echo 'Response: '+newResponse.content
-    error("Failed to create a new ticket")
+        error("Failed to create a new ticket")
+    } else {
+        echo 'Response: '+newResponse.content
+    }
   } else {
-      echo 'Response: '+newResponse.content
+        echo 'Commit message was empty - no tickets will be created'
   }
 }
 

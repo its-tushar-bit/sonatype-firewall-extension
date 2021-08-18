@@ -5,12 +5,16 @@
  */
 import React, { Fragment, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { sort, isNil } from 'ramda';
-import { NxButton, NxWarningAlert } from '@sonatype/react-shared-components';
+import { isNil, sort } from 'ramda';
+import { NxButton, NxFontAwesomeIcon, NxWarningAlert } from '@sonatype/react-shared-components';
+import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
+
+import { waiverType } from '../../util/waiverUtils';
+import IqPopover from '../../react/IqPopover/IqPopover';
 import PolicyViolationsTable from './PolicyViolationsTable';
 import PolicyViolationDetailsPopover from './PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from './componentWaivers/ComponentWaiversPopover';
-import { waiverType } from '../../util/waiverUtils';
+import RequestWaivers from '../../waivers/requestWaiversPopover/RequestWaiversPopover';
 
 export default function PolicyViolations({
   violations,
@@ -18,14 +22,20 @@ export default function PolicyViolations({
   componentName,
   setWaiverToDelete,
   waiverToDelete,
-  goToWaivers,
   showComponentWaiversPopover,
   toggleComponentWaiversPopover,
   loadPolicyViolationsInformation,
   loading,
   loadError,
-  selectedViolationId,
-  setSelectedViolationId,
+  showViolationsDetailPopover,
+  toggleShowViolationsDetailPopover,
+  showAddWaiverPopover,
+  toggleAddWaiverPopover,
+  showRequestWaiverPopover,
+  toggleRequestWaiverPopover,
+  hasPermissionToAddWaivers,
+  setSelectedPolicyViolationId,
+  selectedViolationDetail,
 }) {
   useEffect(() => {
     loadPolicyViolationsInformation();
@@ -38,18 +48,36 @@ export default function PolicyViolations({
   const containsOldViolations = orderedViolations.some((violation) => isNil(violation.policyViolationId));
 
   const tableProps = {
-    violations: orderedViolations,
-    error: loadError,
-    retryHandler: loadPolicyViolationsInformation,
-    waivers,
-    loading,
-    goToWaivers,
-    setSelectedViolationId,
-  };
-  const viewAllComponentWaiversButton = (
-    <NxButton id="component-details-view-waivers" variant="tertiary" onClick={toggleComponentWaiversPopover}>
-      <span>View All Component Waivers</span>
-    </NxButton>
+      violations: orderedViolations,
+      error: loadError,
+      retryHandler: loadPolicyViolationsInformation,
+      waivers,
+      loading,
+      toggleShowViolationsDetailPopover,
+      toggleAddWaiverPopover,
+      toggleRequestWaiverPopover,
+      hasPermissionToAddWaivers,
+      setSelectedPolicyViolationId,
+    },
+    viewAllComponentWaiversButton = (
+      <NxButton id="component-details-view-waivers" variant="tertiary" onClick={toggleComponentWaiversPopover}>
+        <span>View All Component Waivers</span>
+      </NxButton>
+    );
+
+  // This function should be replaced by the proper addWaiverPopover component with CLM-18969
+  // Currently using inline styles to avoid creating a disposable css file. USING INLINE STYLES IS NOT RECOMMENDED!
+  const renderAddWaiverPopover = () => (
+    <IqPopover size="medium" onClose={toggleAddWaiverPopover}>
+      <IqPopover.Header>
+        <div style={{ display: 'flex' }}>
+          <h3 style={{ flex: 1 }}>Add Waiver</h3>
+          <NxButton style={{ marginLeft: 'auto' }} onClick={toggleAddWaiverPopover} variant="icon-only" title="Close">
+            <NxFontAwesomeIcon icon={faArrowToRight} />
+          </NxButton>
+        </div>
+      </IqPopover.Header>
+    </IqPopover>
   );
 
   return (
@@ -57,10 +85,12 @@ export default function PolicyViolations({
       <section id="component-details-policy-violations" className="nx-tile">
         {containsOldViolations && (
           <NxWarningAlert>
-            Re-evaluate this report to enable the <b>Manage Waivers</b> functionality.
+            Re-evaluate this report to enable <b>waivers functionality</b>.
           </NxWarningAlert>
         )}
-        {selectedViolationId && <PolicyViolationDetailsPopover onClose={() => setSelectedViolationId('')} />}
+        {showViolationsDetailPopover && (
+          <PolicyViolationDetailsPopover onClose={() => toggleShowViolationsDetailPopover()} />
+        )}
         <header className="nx-tile-header">
           <div className="nx-tile-header__title">
             <h2 className="nx-h2">Policy Violations</h2>
@@ -80,6 +110,14 @@ export default function PolicyViolations({
           waiverToDelete={waiverToDelete}
         />
       )}
+      {showAddWaiverPopover ? renderAddWaiverPopover() : null}
+      {showRequestWaiverPopover && (
+        <RequestWaivers
+          isShown={showRequestWaiverPopover}
+          onClose={toggleRequestWaiverPopover}
+          violationDetails={selectedViolationDetail}
+        />
+      )}
     </Fragment>
   );
 }
@@ -93,9 +131,15 @@ PolicyViolations.propTypes = {
   showComponentWaiversPopover: PropTypes.bool.isRequired,
   toggleComponentWaiversPopover: PropTypes.func.isRequired,
   loadPolicyViolationsInformation: PropTypes.func.isRequired,
-  goToWaivers: PropTypes.func.isRequired,
-  loadError: PropTypes.string,
   loading: PropTypes.bool.isRequired,
-  setSelectedViolationId: PropTypes.func,
-  selectedViolationId: PropTypes.string,
+  loadError: PropTypes.string,
+  showViolationsDetailPopover: PropTypes.bool.isRequired,
+  showAddWaiverPopover: PropTypes.bool.isRequired,
+  showRequestWaiverPopover: PropTypes.bool.isRequired,
+  toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
+  toggleAddWaiverPopover: PropTypes.func.isRequired,
+  toggleRequestWaiverPopover: PropTypes.func.isRequired,
+  hasPermissionToAddWaivers: PropTypes.bool.isRequired,
+  setSelectedPolicyViolationId: PropTypes.func.isRequired,
+  selectedViolationDetail: RequestWaivers.propTypes.violationDetails,
 };

@@ -12,17 +12,23 @@ import { getComponentWaivers, getReportPolicyThreatsUrl } from '../../util/CLMLo
 import { Messages } from '../../util/CommonServices';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import { propSet } from '../../util/reduxToolkitUtil';
+import { getAddWaiverPermissionForApplicationPromiseBuilder } from '../../waivers/waiverActions';
+import { selectApplicationReportMetaData } from '../../applicationReport/applicationReportSelectors';
 
 const REDUCER_NAME = 'componentDetailsPolicyViolations';
 
 const initialState = {
   violations: null,
   waivers: null,
-  showComponentWaiversPopover: false,
-  reloadComponentWaivers: false,
   loading: false,
   loadError: null,
-  selectedViolationId: '',
+  showComponentWaiversPopover: false,
+  reloadComponentWaivers: false,
+  showViolationsDetailPopover: false,
+  showAddWaiverPopover: false,
+  showRequestWaiverPopover: false,
+  hasPermissionToAddWaivers: false,
+  selectedPolicyViolationId: null,
 };
 
 const loadRequested = (state) => {
@@ -33,7 +39,7 @@ const loadRequested = (state) => {
 };
 
 const loadFulfilled = (state, { payload }) => {
-  const { violationsResult = { aaData: [] }, waiversResult = { waiversByOwner: [] }, hash } = payload;
+  const { violationsResult = { aaData: [] }, waiversResult = { waiversByOwner: [] }, permissionResult, hash } = payload;
 
   const componentViolationInformation = violationsResult.aaData.find((violation) => violation.hash === hash);
   const componentWaivers = flatten(
@@ -56,6 +62,7 @@ const loadFulfilled = (state, { payload }) => {
     waivers: componentWaivers,
     loading: false,
     loadError: null,
+    hasPermissionToAddWaivers: permissionResult,
   };
 };
 
@@ -96,18 +103,23 @@ function toggleComponentWaiversPopover(state) {
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWithValue }) => {
   const { publicId, scanId, hash } = selectRouterCurrentParams(getState());
+  const {
+    application: { id },
+  } = selectApplicationReportMetaData(getState());
   const applicationOwnerType = 'application';
 
   const promises = [
     axios.get(getReportPolicyThreatsUrl(publicId, scanId)),
     axios.get(getComponentWaivers(applicationOwnerType, publicId, hash)),
+    getAddWaiverPermissionForApplicationPromiseBuilder(id),
   ];
 
   return Promise.all(promises)
     .then((results) => {
       const violationsResult = results[0].data;
       const waiversResult = results[1].data;
-      return { violationsResult, waiversResult, hash };
+      const permissionResult = results[2].data.length === 1;
+      return { violationsResult, waiversResult, permissionResult, hash };
     })
     .catch(rejectWithValue);
 });
@@ -119,12 +131,22 @@ const goToWaivers = (policyViolationId) => {
   };
 };
 
+const toggleBooleanProp = (propName) => (state) => {
+  return {
+    ...state,
+    [propName]: !state[propName],
+  };
+};
+
 const componentDetailsViolationsSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
     toggleComponentWaiversPopover,
-    setSelectedViolationId: propSet('selectedViolationId'),
+    setSelectedPolicyViolationId: propSet('selectedPolicyViolationId'),
+    toggleShowViolationsDetailPopover: toggleBooleanProp('showViolationsDetailPopover'),
+    toggleAddWaiverPopover: toggleBooleanProp('showAddWaiverPopover'),
+    toggleRequestWaiverPopover: toggleBooleanProp('showRequestWaiverPopover'),
   },
   extraReducers: {
     [load.pending]: loadRequested,

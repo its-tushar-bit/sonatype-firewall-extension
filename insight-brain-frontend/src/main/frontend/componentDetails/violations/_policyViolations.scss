@@ -7,6 +7,11 @@
 @import '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
 .iq-policy-violations-table {
+  &.nx-table {
+    // overflow override to properly display dropdowns on the final row
+    overflow: visible;
+  }
+
   > tbody {
     .nx-table-row {
       .nx-cell {
@@ -35,15 +40,20 @@
     }
 
     .iq-policy-violation-row {
-      --actions-and-indicators--min-size: 170px;
+      --actions-and-indicators--min-size: 180px;
 
-      .iq-policy-violation__manage-waivers-btn {
+      .iq-policy-violation__request-waivers-btn,
+      .iq-policy-violation__waivers-dropdown-btn {
         font-size: var(--nx-font-size-s);
         padding: var(--nx-spacing-base);
         min-width: var(--actions-and-indicators--min-size);
         margin-bottom: var(--nx-spacing-2x);
         margin-left: auto;
         margin-right: auto;
+
+        &.disabled {
+          pointer-events: none;
+        }
       }
 
       .iq-policy-violation-row__policy-name-and-action-cell {

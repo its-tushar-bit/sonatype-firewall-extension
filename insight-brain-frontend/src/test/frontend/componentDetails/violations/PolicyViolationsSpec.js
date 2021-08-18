@@ -6,17 +6,19 @@
 import { NxButton } from '@sonatype/react-shared-components';
 
 import * as enzymeUtils from '../../enzymeUtils';
+import { IqPopover } from '../../../../main/frontend/react/IqPopover';
 import PolicyViolations from '../../../../main/frontend/componentDetails/violations/PolicyViolations';
 import PolicyViolationsTable from '../../../../main/frontend/componentDetails/violations/PolicyViolationsTable';
 import PolicyViolationDetailsPopover from '../../../../main/frontend/componentDetails/violations/PolicyViolationDetailsPopover';
 import ComponentWaiversPopover from '../../../../main/frontend/componentDetails/violations/componentWaivers/ComponentWaiversPopover';
+import RequestWaivers from '../../../../main/frontend/waivers/requestWaiversPopover/RequestWaiversPopover';
 
 describe('PolicyViolations', () => {
   let minimalProps, getShallow, getMounted;
 
   beforeEach(function () {
     minimalProps = {
-      waivers: [],
+      waivers: ['exampleWaiver'],
       violations: [
         {
           policyViolationId: 'policyViolationId',
@@ -34,8 +36,15 @@ describe('PolicyViolations', () => {
       showComponentWaiversPopover: false,
       toggleComponentWaiversPopover: jasmine.createSpy('toggleComponentWaiversPopover'),
       setWaiverToDelete: jasmine.createSpy('setWaiverToDelete'),
-      selectedViolationId: '',
-      setShowViolationsDetail: jasmine.createSpy('setShowViolationsDetail'),
+      showViolationsDetailPopover: false,
+      toggleShowViolationsDetailPopover: jasmine.createSpy('toggleShowViolationsDetailPopover'),
+      showAddWaiverPopover: false,
+      toggleAddWaiverPopover: jasmine.createSpy('toggleAddWaiverPopover'),
+      showRequestWaiverPopover: false,
+      toggleRequestWaiverPopover: jasmine.createSpy('toggleRequestWaiverPopover'),
+      hasPermissionToAddWaivers: true,
+      setSelectedPolicyViolationId: jasmine.createSpy('setSelectedPolicyViolationId'),
+      selectedViolationDetail: { policyViolationId: 'selectedViolationId' },
     };
 
     getShallow = enzymeUtils.getShallowComponent(PolicyViolations, minimalProps);
@@ -93,15 +102,27 @@ describe('PolicyViolations', () => {
 
       expect(violationsTable).toExist();
       expect(violationsTable).toHaveProp('violations', minimalProps.violations);
+      expect(violationsTable).toHaveProp('waivers', minimalProps.waivers);
       expect(violationsTable).toHaveProp('loading', false);
       expect(violationsTable).toHaveProp('error', null);
       expect(violationsTable).toHaveProp('retryHandler', minimalProps.loadPolicyViolationsInformation);
+      expect(violationsTable).toHaveProp(
+        'toggleShowViolationsDetailPopover',
+        minimalProps.toggleShowViolationsDetailPopover
+      );
+      expect(violationsTable).toHaveProp('toggleAddWaiverPopover', minimalProps.toggleAddWaiverPopover);
+      expect(violationsTable).toHaveProp('toggleRequestWaiverPopover', minimalProps.toggleRequestWaiverPopover);
+      expect(violationsTable).toHaveProp('setSelectedPolicyViolationId', minimalProps.setSelectedPolicyViolationId);
+      expect(violationsTable).toHaveProp('hasPermissionToAddWaivers', true);
 
       violationsTable = getShallow({ loading: true }).find(PolicyViolationsTable);
       expect(violationsTable).toHaveProp('loading', true);
 
       violationsTable = getShallow({ loadError: 'some error' }).find(PolicyViolationsTable);
       expect(violationsTable).toHaveProp('error', 'some error');
+
+      violationsTable = getShallow({ hasPermissionToAddWaivers: false }).find(PolicyViolationsTable);
+      expect(violationsTable).toHaveProp('hasPermissionToAddWaivers', false);
     });
 
     it('orders the violations by policyThreatLevel to pass them to the table', () => {
@@ -152,8 +173,36 @@ describe('PolicyViolations', () => {
       violationsDetail = getShallow().find(PolicyViolationDetailsPopover);
       expect(violationsDetail).not.toExist();
 
-      violationsDetail = getShallow({ selectedViolationId: 'ViolationId' }).find(PolicyViolationDetailsPopover);
+      violationsDetail = getShallow({ showViolationsDetailPopover: true }).find(PolicyViolationDetailsPopover);
       expect(violationsDetail).toExist();
+    });
+  });
+
+  describe('Add waiver popover', () => {
+    it('renders the popover when showAddWaiverPopover is true', () => {
+      let component = getShallow({ showAddWaiverPopover: false });
+      let addWaiverPopover = component.find(IqPopover);
+      expect(addWaiverPopover).not.toExist();
+
+      component = getShallow({ showAddWaiverPopover: true });
+      addWaiverPopover = component.find(IqPopover);
+
+      expect(addWaiverPopover).toExist();
+      expect(addWaiverPopover).toHaveProp('onClose', minimalProps.toggleAddWaiverPopover);
+    });
+  });
+
+  describe('Request waiver popover', () => {
+    it('renders the popover when showRequestWaiverPopover is true', () => {
+      let component = getShallow({ showRequestWaiverPopover: false });
+      let requestWaiverPopover = component.find(RequestWaivers);
+      expect(requestWaiverPopover).not.toExist();
+
+      component = getShallow({ showRequestWaiverPopover: true });
+      requestWaiverPopover = component.find(RequestWaivers);
+
+      expect(requestWaiverPopover).toExist();
+      expect(requestWaiverPopover).toHaveProp('onClose', minimalProps.toggleRequestWaiverPopover);
     });
   });
 });

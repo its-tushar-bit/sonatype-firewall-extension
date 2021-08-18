@@ -226,7 +226,7 @@ public class ComponentDetailsTest
     ElementsCollection rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Manage Waivers Unapplied Waiver", ""));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Unapplied Waiver", ""));
 
     eyesWatcher.eyesCheck("component details violations tab violation table unapplied waiver");
 
@@ -249,42 +249,10 @@ public class ComponentDetailsTest
     rowCells = policyViolationsTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHaveSize(6);
     rowCells.shouldHave(exactTexts("10", "License-Banned", "License not approved in any situation",
-        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "Manage Waivers 1 Active Waiver", ""));
+        "Found licenses in the 'Banned' license threat group ('AGPL-3.0')", "1 Active Waiver", ""));
     eyesWatcher.eyesCheck("component details violations tab violation table active waiver");
 
     testGrandfatheringIndicator(componentDetailsPage);
-  }
-
-  @Test
-  public void testPolicyViolationsTab_manageWaiversPage() {
-    waiveFirstReportRow();
-    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
-    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
-
-    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
-
-    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
-    policyViolationsTable.shouldBe(visible);
-    policyViolationsTable.getRows().shouldHaveSize(1);
-    SelenideElement manageWaiversButton = policyViolationsTable.getManageWaiversButton(1);
-    manageWaiversButton.click();
-
-    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
-    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
-    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
-    waiversForViolationPage.componentName().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
-    ListWaiversPage.WaiverListRow waiverRow = waiversForViolationPage.waiverListTable().row(1);
-    waiverRow.shouldBe(visible);
-    waiverRow.components().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-    waiverRow.deleteButton().click();
-
-    ListWaiversPage.DeleteWaiverModal deleteWaiverModal = waiversForViolationPage.deleteWaiverModal();
-    deleteWaiverModal.root().shouldBe(visible);
-    deleteWaiverModal.yesButton().click();
-    deleteWaiverModal.root().should(disappear);
-
-    waiversForViolationPage.waiverListTable().noWaiversMessage().shouldBe(visible);
   }
 
   @Test

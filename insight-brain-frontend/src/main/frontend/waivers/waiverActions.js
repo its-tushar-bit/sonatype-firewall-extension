@@ -180,9 +180,12 @@ function loadOwnerContextHierarchy(ownerType, ownerId, policyId) {
 function loadPermissionForAppWaivers(applicationPublicId) {
   return axios
     .get(getApplicationSummaryUrl(applicationPublicId))
-    .then(({ data }) => axios.put(getPermissionContextTestUrl('application', data.id), ['WAIVE_POLICY_VIOLATIONS']))
+    .then(({ data }) => getAddWaiverPermissionForApplicationPromiseBuilder(data.id))
     .then(({ data }) => data.length === 1);
 }
+
+export const getAddWaiverPermissionForApplicationPromiseBuilder = (internalApplicationId) =>
+  axios.put(getPermissionContextTestUrl('application', internalApplicationId), ['WAIVE_POLICY_VIOLATIONS']);
 
 /**
  * Flattens the Org/Apps hierarchy

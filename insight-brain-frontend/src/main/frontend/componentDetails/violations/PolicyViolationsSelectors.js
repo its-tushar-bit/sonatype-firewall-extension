@@ -7,6 +7,8 @@ import { createSelector } from '@reduxjs/toolkit';
 import { prop } from 'ramda';
 import { selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
 
+import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
+
 export const selectComponentDetailsViolationsSlice = prop('componentDetailsPolicyViolations');
 
 export const selectComponentViolations = createSelector(selectComponentDetailsViolationsSlice, prop('violations'));
@@ -16,6 +18,48 @@ export const selectSelectedViolationId = createSelector(
   selectComponentDetailsViolationsSlice,
   selectRouterCurrentParams,
   (componentDetailsPolicyViolations, routerCurrentParams) => {
-    return routerCurrentParams.id || componentDetailsPolicyViolations.selectedViolationId;
+    return routerCurrentParams.id || componentDetailsPolicyViolations.selectedPolicyViolationId;
   }
 );
+
+const selectSelectedComponentPolicyViolationId = createSelector(
+  selectComponentDetailsViolationsSlice,
+  prop('selectedPolicyViolationId')
+);
+
+export const selectSelectedViolationDetail = createSelector(
+  selectSelectedComponentPolicyViolationId,
+  selectSelectedComponent,
+  selectComponentViolations,
+  (selectedPolicyViolationId, selectedComponent, violations = []) => {
+    if (!selectedPolicyViolationId) {
+      return null;
+    }
+
+    return violationToWaiverOperationViolationDetailAdapter(
+      violations.find((violation) => violation.policyViolationId === selectedPolicyViolationId),
+      selectedComponent.derivedComponentName
+    );
+  }
+);
+
+const violationToWaiverOperationViolationDetailAdapter = (violation, derivedComponentName) => {
+  if (!violation) {
+    return null;
+  }
+
+  const { policyViolationId, policyName, policyThreatLevel, constraints } = violation;
+  const { constraintName, conditions = [] } = constraints[0];
+  const violationVulnerabilityId =
+    conditions.length && conditions[0].conditionTriggerReference ? conditions[0].conditionTriggerReference.value : null;
+  const reasons = conditions.map((condition) => ({ reason: condition.conditionReason }));
+
+  return {
+    threatLevel: policyThreatLevel,
+    constraintViolations: [{ constraintName, reasons }],
+    policyViolationId,
+    policyName,
+    derivedComponentName,
+    violationVulnerabilityId,
+  };
+};

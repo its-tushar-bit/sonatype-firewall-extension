@@ -14,8 +14,11 @@ export default function PolicyViolationsTable({
   error,
   loading,
   retryHandler,
-  goToWaivers,
-  setSelectedViolationId,
+  toggleShowViolationsDetailPopover,
+  toggleAddWaiverPopover,
+  toggleRequestWaiverPopover,
+  hasPermissionToAddWaivers,
+  setSelectedPolicyViolationId,
 }) {
   return (
     <NxTable className="iq-policy-violations-table">
@@ -34,8 +37,11 @@ export default function PolicyViolationsTable({
           <PolicyViolationsTableRow
             key={violation.policyViolationId}
             violation={violation}
-            goToWaivers={goToWaivers}
-            setSelectedViolationId={setSelectedViolationId}
+            toggleShowViolationsDetailPopover={toggleShowViolationsDetailPopover}
+            toggleAddWaiverPopover={toggleAddWaiverPopover}
+            toggleRequestWaiverPopover={toggleRequestWaiverPopover}
+            hasPermissionToAddWaivers={hasPermissionToAddWaivers}
+            setSelectedPolicyViolationId={setSelectedPolicyViolationId}
           />
         ))}
       </NxTableBody>
@@ -48,6 +54,9 @@ PolicyViolationsTable.propTypes = {
   error: PropTypes.string,
   loading: PropTypes.bool,
   retryHandler: PropTypes.func,
-  goToWaivers: PropTypes.func,
-  setSelectedViolationId: PropTypes.func,
+  toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
+  toggleAddWaiverPopover: PropTypes.func.isRequired,
+  toggleRequestWaiverPopover: PropTypes.func.isRequired,
+  hasPermissionToAddWaivers: PropTypes.bool.isRequired,
+  setSelectedPolicyViolationId: PropTypes.func.isRequired,
 };

@@ -7,56 +7,56 @@ import axios from 'axios';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import {
-  getOwnerContextHierarchyUrl,
+  deleteWaiverUrl,
   getAddPolicyViolationWaiverUrl,
-  getViolationDetailsUrl,
   getApplicableWaiversUrl,
   getApplicationSummaryUrl,
-  deleteWaiverUrl,
-  getReportPolicyThreatsUrl,
   getComponentWaivers,
+  getOwnerContextHierarchyUrl,
+  getReportPolicyThreatsUrl,
+  getViolationDetailsUrl,
 } from '../../../main/frontend/util/CLMLocation';
 import { getPermissionContextTestUrl } from '../../../main/frontend/util/CLMContextLocation';
 import {
-  WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED,
-  WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED,
-  WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED,
-  WAIVERS_SAVE_WAIVER_REQUESTED,
-  WAIVERS_SAVE_WAIVER_FULFILLED,
-  WAIVERS_SAVE_WAIVER_FAILED,
-  WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
-  WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT,
-  WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE,
-  WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
-  WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME,
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED,
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED,
-  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED,
-  WAIVERS_DELETE_WAIVER_REQUESTED,
-  WAIVERS_DELETE_WAIVER_FULFILLED,
-  WAIVERS_DELETE_WAIVER_FAILED,
-  WAIVERS_SET_WAIVER_TO_DELETE,
-  WAIVERS_HIDE_DELETE_WAIVER_MODAL,
-  WAIVERS_DELETE_MASK_TIMER_DONE,
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
-  WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
-  saveWaiver,
+  deleteWaiver,
+  hideDeleteWaiverModal,
   loadAddWaiverData,
-  setWaiverComment,
+  loadApplicableWaivers,
+  loadManageWaiversData,
+  returnToAddWaiverOriginPage,
+  saveWaiver,
   setApplyToAllComponents,
   setExpiryTime,
+  setWaiverComment,
   setWaiverScope,
-  returnToAddWaiverOriginPage,
-  loadManageWaiversData,
-  deleteWaiver,
   setWaiverToDelete,
-  hideDeleteWaiverModal,
-  loadApplicableWaivers,
+  WAIVERS_ADD_WAIVER_SET_APPLY_TO_ALL_COMPONENTS,
+  WAIVERS_ADD_WAIVER_SET_EXPIRY_TIME,
+  WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT,
+  WAIVERS_ADD_WAIVER_SET_WAIVER_SCOPE,
+  WAIVERS_ADD_WAIVER_SUBMIT_MASK_TIMER_DONE,
+  WAIVERS_DELETE_MASK_TIMER_DONE,
+  WAIVERS_DELETE_WAIVER_FAILED,
+  WAIVERS_DELETE_WAIVER_FULFILLED,
+  WAIVERS_DELETE_WAIVER_REQUESTED,
+  WAIVERS_HIDE_DELETE_WAIVER_MODAL,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_FAILED,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED,
+  WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_FAILED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_FULFILLED,
+  WAIVERS_LOAD_APPLICABLE_WAIVERS_REQUESTED,
+  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FAILED,
+  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_FULFILLED,
+  WAIVERS_LOAD_MANAGE_WAIVERS_DATA_REQUESTED,
+  WAIVERS_SAVE_WAIVER_FAILED,
+  WAIVERS_SAVE_WAIVER_FULFILLED,
+  WAIVERS_SAVE_WAIVER_REQUESTED,
+  WAIVERS_SET_WAIVER_TO_DELETE,
 } from '../../../main/frontend/waivers/waiverActions';
 import {
-  VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
+  VIOLATION_FETCH_CROSS_STAGE_VIOLATION_FULFILLED,
 } from '../../../main/frontend/violation/violationActions';
 import { STATE_GO } from '../../../main/frontend/reduxUiRouter/routerActions';
 import { getFutureDate } from '../../../main/frontend/util/jsUtil';
@@ -801,6 +801,8 @@ describe('waiverActions', function () {
       });
 
       it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads component waivers if reloadComponentWaivers is truthy', function (done) {
+        const permissionContextTestUrl = getPermissionContextTestUrl('application', 'app');
+
         state = {
           ...state,
           router: {
@@ -813,6 +815,7 @@ describe('waiverActions', function () {
           componentDetailsPolicyViolations: {
             reloadComponentWaivers: true,
           },
+          applicationReport: { metadata: { application: { id: 'app' } } },
         };
         store = SpecUtil.mockReduxStore(state);
         const requestUrl = deleteWaiverUrl('application', 'ownerId', 'waiverId');
@@ -824,6 +827,11 @@ describe('waiverActions', function () {
           },
           del: {
             [requestUrl]: Promise.resolve(),
+          },
+          put: {
+            [permissionContextTestUrl]: Promise.resolve({
+              data: ['WAIVE_POLICY_VIOLATIONS'],
+            }),
           },
         });
 
@@ -843,6 +851,7 @@ describe('waiverActions', function () {
               payload: {
                 violationsResult: 'reportPolicyThreats',
                 waiversResult: 'componentWaivers',
+                permissionResult: true,
                 hash: 'a-hash',
               },
             });

@@ -70,23 +70,6 @@ describe('componentDetailsPolicyViolationsReducer', () => {
     });
   });
 
-  describe('componentDetailsPolicyViolations/setSelectedViolationId action', () => {
-    it('sets the setSelectedViolationId a value', () => {
-      const state = Object.freeze({
-        other: stateConstantObject,
-        selectedViolationId: '',
-      });
-
-      let newState = reducer(state, {
-        type: 'componentDetailsPolicyViolations/setSelectedViolationId',
-        payload: 'newId',
-      });
-
-      expect(newState.selectedViolationId).toBe('newId');
-      expect(newState.other).toBe(stateConstantObject);
-    });
-  });
-
   describe('componentDetailsPolicyViolations/load/pending action', () => {
     it('sets the loading flag to true', () => {
       const state = Object.freeze({
@@ -133,6 +116,52 @@ describe('componentDetailsPolicyViolationsReducer', () => {
 
       expect(newState.loading).toBe(false);
       expect(newState.loadError).toBe(null);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+
+    it('sets the hasPermissionToAddWaivers to the permissionResult property in the payload', () => {
+      let state = Object.freeze({
+        other: stateConstantObject,
+        hasPermissionToAddWaivers: false,
+      });
+
+      let payload = {
+        violationsResult: {
+          aaData: [
+            {
+              hash: 'componentHash',
+              allViolations: [
+                { policyViolationId: 'violation1ForComponentHash' },
+                { policyViolationId: 'violation2ForComponentHash' },
+              ],
+            },
+          ],
+        },
+        permissionResult: true,
+        hash: 'componentHash',
+      };
+
+      let newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/load/fulfilled',
+        payload,
+      });
+      expect(newState.hasPermissionToAddWaivers).toBe(true);
+      expect(newState.other).toBe(stateConstantObject);
+
+      state = Object.freeze({
+        other: stateConstantObject,
+        hasPermissionToAddWaivers: true,
+      });
+
+      payload = {
+        ...payload,
+        permissionResult: false,
+      };
+      newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/load/fulfilled',
+        payload,
+      });
+      expect(newState.hasPermissionToAddWaivers).toBe(false);
       expect(newState.other).toBe(stateConstantObject);
     });
 
@@ -364,6 +393,106 @@ describe('componentDetailsPolicyViolationsReducer', () => {
 
       expect(newState.loading).toBe(false);
       expect(newState.loadError).toBe('loadError');
+      expect(newState.other).toBe(stateConstantObject);
+    });
+  });
+
+  describe('toggleAddWaiverPopover', () => {
+    it('toggles the showAddWaiverPopover between true to false', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        showAddWaiverPopover: true,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleAddWaiverPopover',
+      });
+      expect(newState.showAddWaiverPopover).toBe(false);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+
+    it('toggles the showAddWaiverPopover between false to true', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        showAddWaiverPopover: false,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleAddWaiverPopover',
+      });
+      expect(newState.showAddWaiverPopover).toBe(true);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+  });
+
+  describe('toggleRequestWaiverPopover', () => {
+    it('toggles the showRequestWaiverPopover between true to false', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        showRequestWaiverPopover: true,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleRequestWaiverPopover',
+      });
+      expect(newState.showRequestWaiverPopover).toBe(false);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+
+    it('toggles the showRequestWaiverPopover between false to true', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        showRequestWaiverPopover: false,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleRequestWaiverPopover',
+      });
+      expect(newState.showRequestWaiverPopover).toBe(true);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+  });
+
+  describe('toggleShowViolationsDetailPopover', () => {
+    it('toggles the showViolationsDetailPopover between true to false', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        showViolationsDetailPopover: true,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleShowViolationsDetailPopover',
+      });
+      expect(newState.showViolationsDetailPopover).toBe(false);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+
+    it('toggles the showViolationsDetailPopover between false to true', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        showViolationsDetailPopover: false,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/toggleShowViolationsDetailPopover',
+      });
+      expect(newState.showViolationsDetailPopover).toBe(true);
+      expect(newState.other).toBe(stateConstantObject);
+    });
+  });
+
+  describe('setSelectedPolicyViolationId', () => {
+    it('sets the selectedPolicyViolationId to the received payload', () => {
+      const state = Object.freeze({
+        other: stateConstantObject,
+        selectedPolicyViolationId: null,
+      });
+
+      const newState = reducer(state, {
+        type: 'componentDetailsPolicyViolations/setSelectedPolicyViolationId',
+        payload: 'oneViolationToRuleThemAll',
+      });
+      expect(newState.selectedPolicyViolationId).toBe('oneViolationToRuleThemAll');
       expect(newState.other).toBe(stateConstantObject);
     });
   });

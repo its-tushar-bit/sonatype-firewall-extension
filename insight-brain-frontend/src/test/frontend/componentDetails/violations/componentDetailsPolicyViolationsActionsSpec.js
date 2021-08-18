@@ -8,6 +8,7 @@ import axios from 'axios';
 import { actions } from '../../../../main/frontend/componentDetails/violations/PolicyViolationsRedux';
 import { getComponentWaivers, getReportPolicyThreatsUrl } from '../../../../main/frontend/util/CLMLocation';
 import { omit } from 'ramda';
+import { getPermissionContextTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
 
 describe('componentDetailsPolicyViolationsActions', () => {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
@@ -22,6 +23,7 @@ describe('componentDetailsPolicyViolationsActions', () => {
           hash: 'currentComponentHash',
         },
       },
+      applicationReport: { metadata: { application: { id: 'internalAppId' } } },
     };
     store = SpecUtil.mockReduxStore(state);
   });
@@ -34,6 +36,11 @@ describe('componentDetailsPolicyViolationsActions', () => {
         get: {
           [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.resolve({}),
           [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({}),
+        },
+        put: {
+          [getPermissionContextTestUrl('application', 'internalAppId')]: Promise.resolve({
+            data: ['WAIVE_POLICY_VIOLATIONS'],
+          }),
         },
       });
 
@@ -50,7 +57,7 @@ describe('componentDetailsPolicyViolationsActions', () => {
       );
     });
 
-    it('dispatches a componentDetailsPolicyViolations/load/fulfilled action after successful GET requests', (done) => {
+    it('dispatches a componentDetailsPolicyViolations/load/fulfilled action after successful requests', (done) => {
       const violationData = [{ policyViolationId: 'violation1' }];
       const waiversData = [{ id: 'waiver1' }];
       mockAxiosCalls({
@@ -58,6 +65,11 @@ describe('componentDetailsPolicyViolationsActions', () => {
           [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.resolve({ data: violationData }),
           [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({
             data: waiversData,
+          }),
+        },
+        put: {
+          [getPermissionContextTestUrl('application', 'internalAppId')]: Promise.resolve({
+            data: [],
           }),
         },
       });
@@ -70,6 +82,7 @@ describe('componentDetailsPolicyViolationsActions', () => {
         payload: {
           violationsResult: violationData,
           waiversResult: waiversData,
+          permissionResult: false,
           hash: 'currentComponentHash',
         },
       };
@@ -82,12 +95,17 @@ describe('componentDetailsPolicyViolationsActions', () => {
       });
     });
 
-    it('dispatches a componentDetailsPolicyViolations/load/rejected action after an error occurs in the GET requests', (done) => {
+    it('dispatches a componentDetailsPolicyViolations/load/rejected action after an error occurs in the requests', (done) => {
       mockAxiosCalls({
         get: {
           [getReportPolicyThreatsUrl('appPublicId', 'currentScanId')]: Promise.reject('errorMessage'),
           [getComponentWaivers('application', 'appPublicId', 'currentComponentHash')]: Promise.resolve({
             data: [{ id: 'waiver1' }],
+          }),
+        },
+        put: {
+          [getPermissionContextTestUrl('application', 'internalAppId')]: Promise.resolve({
+            data: ['WAIVE_POLICY_VIOLATIONS'],
           }),
         },
       });

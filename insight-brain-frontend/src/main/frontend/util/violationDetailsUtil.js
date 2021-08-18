@@ -12,12 +12,20 @@ export const extractViolationDetails = (violationDetails) => {
     return {};
   }
 
-  const { componentIdentifier, constraintViolations, policyName, policyViolationId, threatLevel } = violationDetails;
+  const {
+    componentIdentifier,
+    constraintViolations,
+    policyName,
+    policyViolationId,
+    threatLevel,
+    derivedComponentname,
+    violationVulnerabilityId,
+  } = violationDetails;
 
   const { constraintName, reasons } = constraintViolations[0],
-    vulnerabilityId = path([0, 'reference', 'value'], reasons),
+    vulnerabilityId = violationVulnerabilityId || path([0, 'reference', 'value'], reasons),
     threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
-    componentName = getComponentName(violationDetails),
+    componentName = derivedComponentname || getComponentName(violationDetails),
     artifactName = getArtifactName(violationDetails);
 
   return {

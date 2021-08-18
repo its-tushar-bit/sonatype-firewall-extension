@@ -11,12 +11,13 @@ import ViolationExclamation from '../../react/ViolationExclamation';
 import {
   NxButton,
   NxFontAwesomeIcon,
+  NxStatefulSegmentedButton,
   NxTableCell,
   NxTableRow,
   NxThreatIndicator,
   NxTooltip,
 } from '@sonatype/react-shared-components';
-import { faChevronRight, faFlag, faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
+import { faChevronRight, faHistory, faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 import classnames from 'classnames';
 import ActiveWaiversIndicator from '../../violation/ActiveWaiversIndicator';
 
@@ -25,7 +26,14 @@ const ACTION_ICON_CATEGORY = {
   warn: 'severe',
 };
 
-export default function PolicyViolationsTableRow({ violation, goToWaivers, setSelectedViolationId }) {
+export default function PolicyViolationsTableRow({
+  violation,
+  toggleShowViolationsDetailPopover,
+  toggleAddWaiverPopover,
+  toggleRequestWaiverPopover,
+  hasPermissionToAddWaivers,
+  setSelectedPolicyViolationId,
+}) {
   const { policyThreatLevel, policyName, constraints, actions, grandfathered, waived, policyViolationId } = violation;
   const [firstConstraint] = constraints;
   const reasons = flatten(
@@ -35,18 +43,11 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers, setSe
   const rowClassNames = classnames('iq-policy-violation-row', {
     'iq-policy-violation-row--remediated': isRemediated,
   });
-  const manageWaiversToolTipTitle = !policyViolationId
-    ? 'Re-evaluate this report to enable the Manage Waivers functionality.'
-    : '';
-  const manageWaiversButtonClassNames = classnames('iq-policy-violation__manage-waivers-btn', {
-    disabled: !policyViolationId,
-  });
 
-  const goToWaiversForViolation = (policyViolationId) => () => goToWaivers(policyViolationId);
-
-  const showViolationsDetail = (e) => {
-    if (!e.target.closest('button')) {
-      setSelectedViolationId(policyViolationId);
+  const setPolicyViolationIdToShow = (e) => {
+    if (!e.target.closest('button') && policyViolationId) {
+      setSelectedPolicyViolationId(policyViolationId);
+      toggleShowViolationsDetailPopover();
     }
   };
 
@@ -72,7 +73,7 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers, setSe
   };
 
   return (
-    <NxTableRow className={rowClassNames} isClickable onClick={showViolationsDetail}>
+    <NxTableRow className={rowClassNames} isClickable onClick={setPolicyViolationIdToShow}>
       <NxTableCell className={classnames({ disabled: isRemediated })}>
         <NxThreatIndicator policyThreatLevel={policyThreatLevel} />
         <span className="nx-threat-number">{policyThreatLevel}</span>
@@ -89,18 +90,13 @@ export default function PolicyViolationsTableRow({ violation, goToWaivers, setSe
           })}
       </NxTableCell>
       <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell">
-        {!grandfathered && (
-          <NxTooltip title={manageWaiversToolTipTitle}>
-            <NxButton
-              variant="tertiary"
-              className={manageWaiversButtonClassNames}
-              {...(policyViolationId && { onClick: goToWaiversForViolation(policyViolationId) })}
-            >
-              <NxFontAwesomeIcon icon={faFlag} />
-              <span>Manage Waivers</span>
-            </NxButton>
-          </NxTooltip>
-        )}
+        <PolicyViolationsWaiverButtons
+          violation={violation}
+          openAddWaiverPopover={toggleAddWaiverPopover}
+          openRequestWaiverPopover={toggleRequestWaiverPopover}
+          hasPermissionToAddWaivers={hasPermissionToAddWaivers}
+          setSelectedPolicyViolationId={setSelectedPolicyViolationId}
+        />
         <PolicyViolationsGrandfatheringAndWaiverIndicators violation={violation} />
       </NxTableCell>
       <NxTableCell>
@@ -137,8 +133,11 @@ export const violationPropTypes = {
 
 PolicyViolationsTableRow.propTypes = {
   violation: PropTypes.shape(violationPropTypes),
-  goToWaivers: PropTypes.func.isRequired,
-  setSelectedViolationId: PropTypes.func,
+  toggleShowViolationsDetailPopover: PropTypes.func,
+  toggleAddWaiverPopover: PropTypes.func.isRequired,
+  toggleRequestWaiverPopover: PropTypes.func.isRequired,
+  hasPermissionToAddWaivers: PropTypes.bool.isRequired,
+  setSelectedPolicyViolationId: PropTypes.func.isRequired,
 };
 
 /* Helper component for grandfathering and waiver indicators. */
@@ -175,3 +174,74 @@ const PolicyViolationsGrandfatheringAndWaiverIndicators = ({ violation }) => {
 
 PolicyViolationsTableRow.indicators = PolicyViolationsGrandfatheringAndWaiverIndicators;
 PolicyViolationsGrandfatheringAndWaiverIndicators.propTypes = { violation: PropTypes.shape(violationPropTypes) };
+
+const PolicyViolationsWaiverButtons = ({
+  violation,
+  openAddWaiverPopover,
+  openRequestWaiverPopover,
+  hasPermissionToAddWaivers,
+  setSelectedPolicyViolationId,
+}) => {
+  const { policyViolationId, grandfathered, waived, applicableWaivers = [] } = violation;
+  const isGrandfatheredOrWaived = grandfathered || waived || applicableWaivers.length > 0;
+  if (isGrandfatheredOrWaived) {
+    return null;
+  }
+
+  const openRequestWaiverPopoverHandler = () => {
+    setSelectedPolicyViolationId(policyViolationId);
+    openRequestWaiverPopover();
+  };
+  const openAddWaiverPopoverHandler = () => {
+    setSelectedPolicyViolationId(policyViolationId);
+    openAddWaiverPopover();
+  };
+  const unavailableWaiverActionsTooltip = !policyViolationId
+    ? 'Re-evaluate this report to enable waivers functionality.'
+    : '';
+
+  if (!hasPermissionToAddWaivers) {
+    const requestButtonClassnames = classnames('iq-policy-violation__request-waivers-btn', {
+      disabled: !policyViolationId,
+    });
+    return (
+      <NxTooltip title={unavailableWaiverActionsTooltip}>
+        <div>
+          <NxButton variant="tertiary" className={requestButtonClassnames} onClick={openRequestWaiverPopoverHandler}>
+            <span>Request Waiver</span>
+          </NxButton>
+        </div>
+      </NxTooltip>
+    );
+  }
+
+  const segmentedButtonClassnames = classnames('iq-policy-violation__waivers-dropdown-btn', {
+    disabled: !policyViolationId,
+  });
+  return (
+    <NxTooltip title={unavailableWaiverActionsTooltip}>
+      <div>
+        <NxStatefulSegmentedButton
+          className={segmentedButtonClassnames}
+          variant="tertiary"
+          onClick={openAddWaiverPopoverHandler}
+          buttonContent="Add Waiver"
+          disabled={!policyViolationId}
+        >
+          <button className="nx-dropdown-button" onClick={openRequestWaiverPopoverHandler}>
+            <span>Request Waiver</span>
+          </button>
+        </NxStatefulSegmentedButton>
+      </div>
+    </NxTooltip>
+  );
+};
+
+PolicyViolationsTableRow.waiverButtons = PolicyViolationsWaiverButtons;
+PolicyViolationsWaiverButtons.propTypes = {
+  violation: PropTypes.shape(violationPropTypes),
+  openAddWaiverPopover: PropTypes.func.isRequired,
+  openRequestWaiverPopover: PropTypes.func.isRequired,
+  hasPermissionToAddWaivers: PropTypes.bool.isRequired,
+  setSelectedPolicyViolationId: PropTypes.func.isRequired,
+};

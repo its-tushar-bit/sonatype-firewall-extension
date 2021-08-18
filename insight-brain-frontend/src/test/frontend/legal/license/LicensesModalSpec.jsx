@@ -42,6 +42,12 @@ describe('LicensesModal', function () {
         singleLicenseIds: ['License-1.0', 'License-2.0'],
         isMulti: true,
       },
+      {
+        licenseId: 'License-2.0 or License-3.0',
+        licenseName: 'License-2.0 or License-3.0',
+        singleLicenseIds: ['License-2.0', 'License-3.0'],
+        isMulti: true,
+      },
     ];
 
     const component = {
@@ -196,8 +202,8 @@ describe('LicensesModal', function () {
       const wrapper = getMountedComponent({
         component: {
           licenseLegalData: {
-            effectiveLicenses: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0'],
-            observedLicenses: ['License-2.0', 'License-1.0-License-2.0'],
+            effectiveLicenses: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0', 'License-2.0 or License-3.0'],
+            observedLicenses: ['License-2.0', 'License-1.0-License-2.0', 'License-2.0 or License-3.0'],
             declaredLicenses: ['License-1.0-License-2.0'],
             effectiveLicenseStatus: 'Selected',
             hierarchy: [
@@ -223,6 +229,10 @@ describe('LicensesModal', function () {
       expect(statusGroup.find('option').length).toEqual(6);
       const licenseDiv = wrapper.find('.nx-scrollable--edit-license-modal-licenses');
       expect(licenseDiv).toExist();
+      expect(licenseDiv.children().length).toEqual(3);
+      expect(licenseDiv.childAt(0).prop('id')).toEqual('License-1.0');
+      expect(licenseDiv.childAt(1).prop('id')).toEqual('License-2.0');
+      expect(licenseDiv.childAt(2).prop('id')).toEqual('License-3.0');
       const scopeGroup = formGroups.at(2);
       let scopeSelect = scopeGroup.find('#edit-licenses-scope-selection');
       expect(scopeSelect).toHaveProp('value', 'ROOT_ORGANIZATION_ID');

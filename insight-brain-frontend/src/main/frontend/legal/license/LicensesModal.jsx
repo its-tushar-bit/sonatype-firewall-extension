@@ -180,11 +180,12 @@ export default function LicensesModal(props) {
   function getSelectedLicensesOptions() {
     return [
       ...new Set(
-        union(declaredLicenses, observedLicenses).map((license) => {
-          const licenseMetadata =
-            licenseLegalMetadata[findSingleLicenseIndex(license || '', licenseLegalMetadata || [])];
-          return licenseMetadata.licenseId;
-        })
+        union(declaredLicenses, observedLicenses)
+          .map((license) => {
+            const licenseMetadata = licenseLegalMetadata.find((metadata) => metadata.licenseId === license);
+            return licenseMetadata.isMulti ? licenseMetadata.singleLicenseIds : licenseMetadata.licenseId;
+          })
+          .flat()
       ),
     ].sort();
   }

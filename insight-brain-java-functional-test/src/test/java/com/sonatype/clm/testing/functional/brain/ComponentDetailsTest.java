@@ -16,6 +16,7 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.OccurrencesSection;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.reports.LicenseCIP;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
@@ -26,6 +27,7 @@ import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover;
 import com.sonatype.clm.testing.functional.pages.ComponentWaiversPopover.ComponentWaiversPopoverTable;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ListWaiversPage;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.clm.testing.functional.utils.WaiverApplierForReport;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -57,6 +59,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.exist;
 
 public class ComponentDetailsTest
     extends AbstractFunctionalTest
@@ -253,6 +256,108 @@ public class ComponentDetailsTest
     eyesWatcher.eyesCheck("component details violations tab violation table active waiver");
 
     testGrandfatheringIndicator(componentDetailsPage);
+  }
+
+  @Test
+  public void testPolicyViolationsTab_ViewDetailsPopover() {
+    waiveFirstReportRow();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    SelenideElement row = policyViolationsTable.getRows().first();
+    row.click();
+    PolicyViolationDetailPopover violationDetailPopover = new PolicyViolationDetailPopover();
+    violationDetailPopover.shouldBe(visible);
+    SelenideElement closeButton = violationDetailPopover.getCloseButton();
+    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
+    eyesWatcher.eyesCheck("policy violation details popover");
+
+    tile.headerTitle().shouldHave(text("Violation of License-Banned"));
+    ElementsCollection elements = tile.headerSubtitle().findAll(".iq-violation-details__subtitle-part");
+    elements.shouldHaveSize(3);
+    elements.get(0).shouldHave(text("Test Organization"));
+    elements.get(1).shouldHave(text("ApplicationReportTest"));
+    elements.get(2).shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+
+    tile.firstReported().shouldHave(text("Just now"));
+    tile.lastReported().shouldHave(text("Just now"));
+    tile.policyType().shouldHave(text("License"));
+    tile.threatLevel().shouldHave(text("10"));
+    tile.policyOwnerLink().shouldHave(text("Test Organization"));
+
+    tile.stages().shouldHaveSize(5);
+
+    tile.stage(0).shouldHave(text("Source"));
+    tile.stage(0).icon().should(exist);
+    tile.stage(0).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(1).shouldHave(text("Build 1min"));
+    tile.stage(1).icon().shouldNot(exist);
+    tile.stage(1).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(2).shouldHave(text("Stage"));
+    tile.stage(2).icon().should(exist);
+    tile.stage(2).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(3).shouldHave(text("Release"));
+    tile.stage(3).icon().should(exist);
+    tile.stage(3).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(4).shouldHave(text("Operate"));
+    tile.stage(4).icon().should(exist);
+    tile.stage(4).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    closeButton.click();
+    violationDetailPopover.shouldNotBe(visible);
+
+    row.click();
+    violationDetailPopover.shouldBe(visible);
+    SelenideElement manageWaiversButton = violationDetailPopover.getManageWaiversButton();
+
+    manageWaiversButton.click();
+
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
+    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
+    waiversForViolationPage.componentName().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
+  }
+
+  @Test
+  public void testPolicyViolationsTab_manageWaiversPage() {
+    waiveFirstReportRow();
+    refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));
+    ComponentDetailsPage componentDetailsPage = openComponentDetailsPageForFirstViolation();
+
+    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
+
+    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
+    policyViolationsTable.shouldBe(visible);
+    policyViolationsTable.getRows().shouldHaveSize(1);
+    SelenideElement manageWaiversButton = policyViolationsTable.getManageWaiversButton(1);
+    manageWaiversButton.click();
+
+    ListWaiversPage waiversForViolationPage = new ListWaiversPage();
+    waiversForViolationPage.title().shouldHave(text("Waivers for Violation"));
+    waiversForViolationPage.backButton().shouldHave(text("Back to Component Details"));
+    waiversForViolationPage.componentName().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+    waiversForViolationPage.waiverListTable().rows().shouldHaveSize(1);
+    ListWaiversPage.WaiverListRow waiverRow = waiversForViolationPage.waiverListTable().row(1);
+    waiverRow.shouldBe(visible);
+    waiverRow.components().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+    waiverRow.deleteButton().click();
+
+    ListWaiversPage.DeleteWaiverModal deleteWaiverModal = waiversForViolationPage.deleteWaiverModal();
+    deleteWaiverModal.root().shouldBe(visible);
+    deleteWaiverModal.yesButton().click();
+    deleteWaiverModal.root().should(disappear);
+
+    waiversForViolationPage.waiverListTable().noWaiversMessage().shouldBe(visible);
   }
 
   @Test

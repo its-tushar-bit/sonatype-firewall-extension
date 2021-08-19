@@ -14,7 +14,7 @@ import ViolationPageContainer from '../../violation/ViolationPageContainer';
 export default function PolicyViolationDetailsPopover({ onClose }) {
   const uiRouterState = useRouterState();
   return (
-    <IqPopover size="automatic" onClose={onClose}>
+    <IqPopover size="automatic" onClose={onClose} id="component-details-policy-violations-popover">
       <IqPopover.Header id="policy-violation-detail-header" className="policy-violation-detail-header">
         <div className="policy-violation-detail-header__title">
           <h2 className="nx-h2">Violation Detail</h2>

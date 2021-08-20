@@ -153,7 +153,7 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
       throw new ExitException(1, message);
     }
     for (String scanTarget : params.getScanTargets()) {
-      if (isContainerTargetSoSkipFileExistsCheck(scanTarget)) {
+      if (isContainerTargetSoSkipFileExistsCheck(scanTarget) || isIacTargetSoSkipFileExistsCheck(scanTarget)) {
         continue;
       }
 
@@ -169,6 +169,10 @@ public abstract class AbstractPolicyEvaluator<P extends AbstractParameters>
 
   private boolean isContainerTargetSoSkipFileExistsCheck(final String scanTarget) {
     return scanTarget.startsWith("container:");
+  }
+
+  private boolean isIacTargetSoSkipFileExistsCheck(final String scanTarget) {
+    return scanTarget.startsWith("iac:");
   }
 
   protected ClientScanResult scan(

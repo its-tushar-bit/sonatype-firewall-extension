@@ -46,7 +46,7 @@ public class PullRequestCommentPurger
    */
   private static final int DEFAULT_COMMENT_PURGE_WINDOW_IN_DAYS = 180;
 
-  private static final int DEFAULT_EVENT_PURGE_WINDOW_IN_DAYS = 5;
+  private static final int DEFAULT_EVENT_PURGE_WINDOW_IN_DAYS = 14;
 
   private final SourceControlPullRequestCommentDAO sourceControlPullRequestCommentDAO;
 

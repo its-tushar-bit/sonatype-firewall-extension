@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import javax.persistence.Query;
 
@@ -33,7 +32,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.postgres.PostgresServer;
 
 import com.google.common.collect.Sets;
-import org.awaitility.Awaitility;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -83,16 +81,17 @@ public class ApplicationComponentDAOTest
     assertThat(appComponent).isNull();
   }
 
-  private void assertApplicationComponent(String applicationId,
-                                          String stageTypeId,
-                                          Date time,
-                                          String hash,
-                                          ComponentIdentifier componentIdentifier,
-                                          String matchStateId,
-                                          String identificationSourceId,
-                                          boolean proprietary,
-                                          String pathnames,
-                                          ApplicationComponent actual)
+  private void assertApplicationComponent(
+      String applicationId,
+      String stageTypeId,
+      Date time,
+      String hash,
+      ComponentIdentifier componentIdentifier,
+      String matchStateId,
+      String identificationSourceId,
+      boolean proprietary,
+      String pathnames,
+      ApplicationComponent actual)
   {
     assertThat(actual.getApplicationId()).isEqualTo(applicationId);
     assertThat(actual.getStageTypeId()).isEqualTo(stageTypeId);
@@ -580,12 +579,13 @@ public class ApplicationComponentDAOTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     Application app = tempEntity.newApplicationWithParent();
 
-    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash1", componentIdentifier);
-    Awaitility.await().timeout(10, TimeUnit.MILLISECONDS);
-    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash1", componentIdentifier);
-    Awaitility.await().timeout(10, TimeUnit.MILLISECONDS);
+    tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash1", componentIdentifier, null,
+        MatchState.EXACT, IdentificationSource.SONATYPE, false, new Date(1));
+    tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash1", componentIdentifier, null,
+        MatchState.EXACT, IdentificationSource.SONATYPE, false, new Date(100));
     ApplicationComponent applicationComponent3 =
-        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier);
+        tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier, null,
+            MatchState.EXACT, IdentificationSource.SONATYPE, false, new Date(1000));
 
     ApplicationComponent appComponent = dao.getLastByComponentIdentifier(componentIdentifier);
 

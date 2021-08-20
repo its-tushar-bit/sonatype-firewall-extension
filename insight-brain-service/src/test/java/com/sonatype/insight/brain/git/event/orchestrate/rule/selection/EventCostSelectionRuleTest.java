@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.git.event.orchestrate.rule.selection.EventCostSelectionRule.MAX_IN_PROGRESS_EVENT_POINTS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EventCostSelectionRuleTest
@@ -20,28 +20,30 @@ public class EventCostSelectionRuleTest
   @Test
   public void testEventCostSelectionRule() {
     // given: no events in progress
-    List<SourceControlEvent> inProgressEvents = new ArrayList<>();
-    EventCostSelectionRule rule = new EventCostSelectionRule();
+    for (SourceControlProvider provider : SourceControlProvider.values()) {
+      List<SourceControlEvent> inProgressEvents = new ArrayList<>();
+      EventCostSelectionRule rule = new EventCostSelectionRule(provider);
 
-    // no events in progress should return max points available
-    assertThat(rule.getAvailableEventPoints(inProgressEvents)).isEqualTo(MAX_IN_PROGRESS_EVENT_POINTS);
+      // no events in progress should return max points available
+      assertThat(rule.getAvailableEventPoints(inProgressEvents)).isEqualTo(rule.maxInProgressEventPoints);
 
-    // check each event type individually
-    SourceControlEvent.EVENT_TYPES.forEach(type -> {
-      inProgressEvents.clear();
-      SourceControlEvent event = new SourceControlEvent().setEventType(type);
-      inProgressEvents.add(event);
+      // check each event type individually
+      SourceControlEvent.EVENT_TYPES.forEach(type -> {
+        inProgressEvents.clear();
+        SourceControlEvent event = new SourceControlEvent().setEventType(type);
+        inProgressEvents.add(event);
 
-      // make sure each event can be pushed in isolation
-      assertThat(rule.canPushEvent(event, MAX_IN_PROGRESS_EVENT_POINTS)).isTrue();
+        // make sure each event can be pushed in isolation
+        assertThat(rule.canPushEvent(event, rule.maxInProgressEventPoints)).isTrue();
 
-      // make sure event can be pushed if cost = available
-      int eventCost = rule.getEventCost(event);
-      assertThat(eventCost).isGreaterThanOrEqualTo(0);
-      assertThat(rule.canPushEvent(event, eventCost)).isTrue();
+        // make sure event can be pushed if cost = available
+        int eventCost = rule.getEventCost(event);
+        assertThat(eventCost).isGreaterThanOrEqualTo(0);
+        assertThat(rule.canPushEvent(event, eventCost)).isTrue();
 
-      // make sure event cannot be pushed if cost > available
-      assertThat(rule.canPushEvent(event, eventCost - 1)).isFalse();
-    });
+        // make sure event cannot be pushed if cost > available
+        assertThat(rule.canPushEvent(event, eventCost - 1)).isFalse();
+      });
+    }
   }
 }

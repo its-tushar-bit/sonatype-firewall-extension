@@ -5,12 +5,13 @@
  */
 package com.sonatype.insight.brain.git.event.orchestrate.rule.selection;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,41 +23,17 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.STATUS_UPDATE_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 
 public class SimultaneousEventSelectionRule
 {
   private static final Logger log = LoggerFactory.getLogger(SimultaneousEventSelectionRule.class);
 
-  /**
-   * defines the number of events of the given type that can be processed simultaneously;  this is an arbitrary
-   * number but is based on the cost for the given event type;  in other words, we want fewer higher cost events
-   * to run simultaneously
-   */
-  private static final ImmutableMap<String, Integer> SIMULTANEOUS_EVENTS_ALLOWED =
-      ImmutableMap.<String, Integer>builder()
-          .put(APPLICATION_EVALUATION_EVENT, 2)
-          .put(DISCOVERED_PULL_REQUEST_EVENT, 2)
-          .put(REMEDIATION_PULL_REQUEST_EVENT, 1)
-          .put(REPOSITORY_URL_UPDATED_EVENT, -1)
-          .put(SOURCE_CONTROL_EVALUATION_EVENT, 8)
-          .put(STATUS_UPDATE_EVENT, 8)
-          .put(UPDATED_PULL_REQUEST_EVENT, 1)
-          .build();
+  private final SimultaneousEventLimitDataTable simultaneousEventLimitDataTable;
 
-  /**
-   * to better take advantage of the available event processing bandwidth we can flex the allowed event counts up
-   * in case there are a lot of events of the same event type
-   */
-  private static final ImmutableMap<String, Integer> EXTRA_SIMULTANEOUS_EVENTS_ALLOWED =
-      ImmutableMap.<String, Integer>builder()
-          .put(APPLICATION_EVALUATION_EVENT, 2)
-          .put(DISCOVERED_PULL_REQUEST_EVENT, 1)
-          .put(REMEDIATION_PULL_REQUEST_EVENT, 1)
-          .put(REPOSITORY_URL_UPDATED_EVENT, -1)
-          .put(SOURCE_CONTROL_EVALUATION_EVENT, 2)
-          .put(STATUS_UPDATE_EVENT, 2)
-          .put(UPDATED_PULL_REQUEST_EVENT, 1)
-          .build();
+  public SimultaneousEventSelectionRule(SourceControlProvider sourceControlProvider) {
+    this.simultaneousEventLimitDataTable = new SimultaneousEventLimitDataTable(sourceControlProvider);
+  }
 
   /**
    * determines whether or not the given event can be pushed using the simultaneous events allowed count for the
@@ -99,11 +76,74 @@ public class SimultaneousEventSelectionRule
 
   @VisibleForTesting
   int getAllowedEventCount(SourceControlEvent event, boolean useStrictCounts) {
-    return SIMULTANEOUS_EVENTS_ALLOWED.get(event.getEventType())
-        + (useStrictCounts ? 0 : EXTRA_SIMULTANEOUS_EVENTS_ALLOWED.get(event.getEventType()));
+    return simultaneousEventLimitDataTable.getAllowedEventCount(event, useStrictCounts);
   }
 
   private long countSimilarEvents(SourceControlEvent event, Map<String, SourceControlEvent> eventsInProgress) {
     return eventsInProgress.values().stream().filter(e -> e.getEventType().equals(event.getEventType())).count();
+  }
+
+  private static class SimultaneousEventLimitDataTable
+  {
+    private final Map<String, SimultaneousEventLimit> eventLimits = new HashMap<>();
+
+    private final SourceControlProvider sourceControlProvider;
+
+    private String eventTypePointer;
+
+    private SimultaneousEventLimitDataTable(SourceControlProvider sourceControlProvider) {
+      this.sourceControlProvider = sourceControlProvider;
+      initialize();
+    }
+
+    /**
+     * defines the number of events of the given type that can be processed simultaneously;  this is an arbitrary
+     * number but is based on the cost for the given event type;  in other words, we want fewer higher cost events
+     * to run simultaneously
+     */
+    private void initialize() {
+      limit(APPLICATION_EVALUATION_EVENT, 2, 2)
+          .limit(DISCOVERED_PULL_REQUEST_EVENT, 2, 1)
+          .limit(REMEDIATION_PULL_REQUEST_EVENT, 4, 2).adjust(GITHUB, 1, 1)
+          .limit(REPOSITORY_URL_UPDATED_EVENT, -1, -1)
+          .limit(SOURCE_CONTROL_EVALUATION_EVENT, 8, 2)
+          .limit(STATUS_UPDATE_EVENT, 8, 2)
+          .limit(UPDATED_PULL_REQUEST_EVENT, 1, 2).adjust(GITHUB, 1, 1);
+    }
+
+    int getAllowedEventCount(SourceControlEvent event, boolean useStrictCounts) {
+      SimultaneousEventLimit eventLimit = eventLimits.get(event.getEventType());
+      return eventLimit.allowed + (useStrictCounts ? 0 : eventLimit.extra);
+    }
+
+    private SimultaneousEventLimitDataTable limit(String eventType, int allowed, int extra) {
+      eventTypePointer = eventType;
+      eventLimits.put(eventType, new SimultaneousEventLimit(allowed, extra));
+      return this;
+    }
+
+    private SimultaneousEventLimitDataTable adjust(
+        SourceControlProvider provider,
+        int allowed,
+        int extra)
+    {
+      // filter out adjustments for providers we don't care about
+      if (provider == sourceControlProvider) {
+        eventLimits.put(eventTypePointer, new SimultaneousEventLimit(allowed, extra));
+      }
+      return this;
+    }
+  }
+
+  private static class SimultaneousEventLimit
+  {
+    int allowed;
+
+    int extra;
+
+    SimultaneousEventLimit(int allowed, int extra) {
+      this.allowed = allowed;
+      this.extra = extra;
+    }
   }
 }

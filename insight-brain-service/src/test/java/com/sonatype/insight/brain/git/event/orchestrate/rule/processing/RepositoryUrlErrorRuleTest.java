@@ -93,6 +93,33 @@ public class RepositoryUrlErrorRuleTest
     assertThat(rule.canPushEvent(event)).isTrue();
   }
 
+  @Test
+  public void testCanPushEvent_errorMessageIndicatesUrlProblem() {
+    RepositoryUrlErrorRule rule = new RepositoryUrlErrorRule(mockSourceControlUtils);
+    rule.URL_ERROR_MESSAGES.forEach(message -> {
+      // given: an event with repository info
+      SourceControlEvent event = createEventWithRepositoryInfo(SourceControlEvent.STATUS_UPDATE_EVENT,
+          "http://scm.com/project-1/repo-" + UUID.randomUUID().toString());
+      assertThat(rule.canPushEvent(event)).isTrue();
+      exceedUrlErrorLimit(rule, event, message);
+      assertThat(rule.canPushEvent(event)).isFalse();
+    });
+  }
+
+  @Test
+  public void testCanPushEvent_errorMessageNotAboutUrlProblem() {
+    RepositoryUrlErrorRule rule = new RepositoryUrlErrorRule(mockSourceControlUtils);
+    SourceControlEvent event = createEventWithRepositoryInfo(SourceControlEvent.STATUS_UPDATE_EVENT,
+        "http://scm.com/project-1/repo-X");
+    assertThat(rule.canPushEvent(event)).isTrue();
+
+    // when: generate a number of errors not related to the URL
+    exceedUrlErrorLimit(rule, event, "something broke");
+
+    // then:  we can still push the event (per this rule anyway)
+    assertThat(rule.canPushEvent(event)).isTrue();
+  }
+
   private void exhaustUrlErrorsAndAssert(RepositoryUrlErrorRule rule, SourceControlEvent event) {
     for (int i = 1; i < RepositoryUrlErrorRule.REPO_URL_ERROR_THRESHOLD; i++) {
       rule.onEventProcessingError(event, new UnknownHostException("host not known"));
@@ -103,6 +130,12 @@ public class RepositoryUrlErrorRuleTest
   private void exceedUrlErrorLimit(RepositoryUrlErrorRule rule, SourceControlEvent event) {
     for (int i = 0; i < RepositoryUrlErrorRule.REPO_URL_ERROR_THRESHOLD; i++) {
       rule.onEventProcessingError(event, new UnknownHostException("host not known"));
+    }
+  }
+
+  private void exceedUrlErrorLimit(RepositoryUrlErrorRule rule, SourceControlEvent event, String message) {
+    for (int i = 0; i < RepositoryUrlErrorRule.REPO_URL_ERROR_THRESHOLD; i++) {
+      rule.onEventProcessingError(event, new Exception(message));
     }
   }
 

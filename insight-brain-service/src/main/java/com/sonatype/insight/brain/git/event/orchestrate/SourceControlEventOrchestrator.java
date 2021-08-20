@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -151,8 +152,11 @@ public class SourceControlEventOrchestrator
 
   private void assignEventForProcessing(SourceControlEvent event) {
     log.debug("Routing event '{}' for application {} for processing", event.getEventType(), event.getApplicationId());
+    GitRepositoryInfo gitRepositoryInfo =
+        sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
     UserEventManager userEventManager = userEventManagerMap.computeIfAbsent(event.getScmUsername(),
-        k -> new UserEventManager(sourceControlEventDAO, sourceControlEventProcessor, sourceControlUtils));
+        k -> new UserEventManager(sourceControlEventDAO, sourceControlEventProcessor, gitRepositoryInfo.getProvider(),
+            sourceControlUtils));
     userEventManager.addEvent(event);
   }
 

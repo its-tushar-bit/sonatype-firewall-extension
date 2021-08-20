@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.git.event.orchestrate.rule.selection.SingleApp
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.SystemRunnable;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -54,12 +55,14 @@ public class UserEventManager
 
   private final SortedMap<Integer, List<SourceControlEvent>> prioritizedEventMap = new TreeMap<>();
 
+  private final List<SourceControlEvent> retryEventBucket = new ArrayList<>();
+
   private final Map<String, SourceControlEvent> eventsInProgress = new HashMap<>();
 
   private final ApplicationScopeEventProcessingSuspensionRule applicationScopeEventProcessingSuspensionRule =
       new ApplicationScopeEventProcessingSuspensionRule();
 
-  private final EventCostSelectionRule eventCostSelectionRule = new EventCostSelectionRule();
+  private final EventCostSelectionRule eventCostSelectionRule;
 
   private final EventProcessingErrorRetryRule eventProcessingErrorRetryRule = new EventProcessingErrorRetryRule();
 
@@ -67,7 +70,7 @@ public class UserEventManager
 
   private final RepositoryUrlErrorRule repositoryUrlErrorRule;
 
-  private final SimultaneousEventSelectionRule simultaneousEventSelectionRule = new SimultaneousEventSelectionRule();
+  private final SimultaneousEventSelectionRule simultaneousEventSelectionRule;
 
   private final SingleApplicationSelectionRule singleApplicationSelectionRule = new SingleApplicationSelectionRule();
 
@@ -87,11 +90,14 @@ public class UserEventManager
   public UserEventManager(
       SourceControlEventDAO sourceControlEventDAO,
       SourceControlEventProcessor sourceControlEventProcessor,
+      SourceControlProvider sourceControlProvider,
       SourceControlUtils sourceControlUtils)
   {
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlEventProcessor = sourceControlEventProcessor;
+    eventCostSelectionRule = new EventCostSelectionRule(sourceControlProvider);
     repositoryUrlErrorRule = new RepositoryUrlErrorRule(sourceControlUtils);
+    this.simultaneousEventSelectionRule = new SimultaneousEventSelectionRule(sourceControlProvider);
     eventProcessedListeners = ImmutableList.of(applicationScopeEventProcessingSuspensionRule,
         eventProcessingErrorRetryRule, performanceThrottlingRule, repositoryUrlErrorRule);
     startBackupEventPushTrigger();
@@ -99,8 +105,8 @@ public class UserEventManager
 
   public void addEvent(SourceControlEvent event) {
     synchronized (prioritizedEventMap) {
-      log.debug("New event '{}' of type '{}' for application '{}' received", event.getId(), event.getEventType(),
-          event.getApplicationId());
+      log.debug("New source control event '{}' of type '{}' for application '{}' received", event.getId(),
+          event.getEventType(), event.getApplicationId());
       prioritizeEvent(event);
       pushEvents();
     }
@@ -109,11 +115,12 @@ public class UserEventManager
   @Override
   public void onEventCompleted(SourceControlEvent event) {
     synchronized (prioritizedEventMap) {
-      log.debug("Event '{}' of type '{}' for application '{}' complete", event.getId(), event.getEventType(),
-          event.getApplicationId());
+      log.debug("Source control event '{}' of type '{}' for application '{}' complete", event.getId(),
+          event.getEventType(), event.getApplicationId());
       sourceControlEventDAO.markEventComplete(event.getId());
       eventsInProgress.remove(event.getApplicationId());
       notifyEventProcessedListeners(event);
+      processRetryEvents();
       pushEvents();
     }
   }
@@ -121,11 +128,12 @@ public class UserEventManager
   @Override
   public void onEventPartiallyCompleted(SourceControlEvent event, String reason) {
     synchronized (prioritizedEventMap) {
-      log.debug("Event event '{}' of type '{}' for application '{}' partially complete because {}", event.getId(),
-          event.getEventType(), event.getApplicationId(), reason);
+      log.debug("Source control event event '{}' of type '{}' for application '{}' partially complete because {}",
+          event.getId(), event.getEventType(), event.getApplicationId(), reason);
       sourceControlEventDAO.markEventPartiallyComplete(event.getId(), reason);
       eventsInProgress.remove(event.getApplicationId());
       notifyEventProcessedListeners(event);
+      processRetryEvents();
       pushEvents();
     }
   }
@@ -133,7 +141,7 @@ public class UserEventManager
   @Override
   public void onEventError(SourceControlEvent event, Exception e) {
     synchronized (prioritizedEventMap) {
-      log.debug("Error processing event '{}' of type '{}' for application '{}': {}", event.getId(),
+      log.debug("Error processing source control event '{}' of type '{}' for application '{}': {}", event.getId(),
           event.getEventType(), event.getApplicationId(), e.getMessage(), e);
       sourceControlEventDAO.markEventHasError(event.getId(), e.getMessage());
       eventsInProgress.remove(event.getApplicationId());
@@ -186,13 +194,13 @@ public class UserEventManager
     List<SourceControlEvent> prioritizedEvents =
         prioritizedEventMap.computeIfAbsent(event.getEventPriority(), k -> new ArrayList<>());
     prioritizedEvents.add(event);
-    log.trace("Event '{}' of type '{}' for application '{}' prioritized", event.getId(), event.getEventType(),
-        event.getApplicationId());
+    log.trace("Source control event '{}' of type '{}' for application '{}' prioritized", event.getId(),
+        event.getEventType(), event.getApplicationId());
   }
 
   private void pushEvents() {
     if (eventsSuspendedForTesting) {
-      log.trace("events suspended for testing");
+      log.trace("Source control events suspended for testing");
       return;
     }
     int eventPointsAvailable =
@@ -222,7 +230,7 @@ public class UserEventManager
 
     for (SourceControlEvent event : events) {
       if (!repositoryUrlErrorRule.canPushEvent(event)) {
-        log.trace("Repository URL error limit exceeded for '{}'", event.getEventType());
+        log.trace("Repository URL error limit exceeded for source control event '{}'", event.getEventType());
         sourceControlEventDAO.markEventHasError(event.getId(), "Repository URL error limit exceeded");
         ignoredEvents.add(event);
         continue;
@@ -245,17 +253,32 @@ public class UserEventManager
     sourceControlEventDAO.markEventInProgress(event.getId());
 
     sourceControlEventProcessor.processEvent(event, this);
-    log.debug("Sent event '{}' of type '{}' for application '{}' for processing", event.getId(), event.getEventType(),
-        event.getApplicationId());
+    log.debug("Sent source control event '{}' of type '{}' for application '{}' for processing", event.getId(),
+        event.getEventType(), event.getApplicationId());
   }
 
   private void retryEvent(SourceControlEvent event) {
-    log.debug("Will retry event '{}' of type '{}' for application '{}'", event.getId(), event.getEventType(),
-        event.getApplicationId());
+    log.debug("Will retry source control event '{}' of type '{}' for application '{}'", event.getId(),
+        event.getEventType(), event.getApplicationId());
     SourceControlEvent retryEvent = event.copyAsNew().setEventStatusDetails("retry");
     sourceControlEventDAO.insert(retryEvent);
-    prioritizeEvent(retryEvent);
-    pushEvents();
+    retryEventBucket.add(retryEvent);
+  }
+
+  private void processRetryEvents() {
+    List<SourceControlEvent> retryNowEvents = new ArrayList<>();
+    retryEventBucket.forEach(retryEvent -> {
+      if (applicationScopeEventProcessingSuspensionRule.canPushEvent(retryEvent)) {
+        retryNowEvents.add(retryEvent);
+      }
+    });
+
+    retryEventBucket.removeAll(retryNowEvents);
+    retryNowEvents.forEach(event -> {
+      log.debug("Retrying source control event '{}' for application '{}'", event.getEventType(),
+          event.getApplicationId());
+      prioritizeEvent(event);
+    });
   }
 
   /**
@@ -271,6 +294,7 @@ public class UserEventManager
         if (backupTriggerEnabled && shouldTriggerEventProcessing()) {
           synchronized (prioritizedEventMap) {
             log.trace("timer triggered event processing");
+            processRetryEvents();
             pushEvents();
           }
         }
@@ -281,7 +305,7 @@ public class UserEventManager
     });
     scheduledExecutorService.scheduleAtFixedRate(sourceControlEventProcessingTask, BACKUP_TRIGGER_STARTUP_DELAY_SECONDS,
         BACKUP_TRIGGER_INTERVAL_SECONDS, TimeUnit.SECONDS);
-    log.info("Scheduled source control event heartbeat to run every {} second(s) starting in {} second(s)",
+    log.info("Scheduled backup source control event processing to run every {} second(s) starting in {} second(s)",
         BACKUP_TRIGGER_INTERVAL_SECONDS, BACKUP_TRIGGER_STARTUP_DELAY_SECONDS);
   }
 

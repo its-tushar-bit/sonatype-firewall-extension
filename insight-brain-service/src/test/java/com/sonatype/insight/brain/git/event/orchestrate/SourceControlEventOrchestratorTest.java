@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
 import org.junit.Before;
@@ -28,6 +29,9 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Stubber;
 
+import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -74,6 +78,10 @@ public class SourceControlEventOrchestratorTest
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+    GitRepositoryInfo gitRepositoryInfo =
+        new GitRepositoryInfo("https://gitlab.org/organization/project", "user", "token", GITLAB,
+            "base-branch", true, true);
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEvent user1Event =
         new SourceControlEvent().forRemediationPullRequest().withId("user1Event").setScmUsername("user1")
@@ -106,6 +114,10 @@ public class SourceControlEventOrchestratorTest
         mockSourceControlInstanceManager, mockIqForScmLicenseChecker, mockSourceControlUtils
     );
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+    GitRepositoryInfo gitRepositoryInfo =
+        new GitRepositoryInfo("https://bitbucket.org/organization/project", "user", "token", BITBUCKET,
+            "base-branch", true, true);
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEvent user1Event1 =
         new SourceControlEvent().forRemediationPullRequest().withId("user1Event1").setScmUsername("user1")
@@ -154,6 +166,10 @@ public class SourceControlEventOrchestratorTest
     // given: orchestrator configured to run scheduled executor and fetch events from DB
     when(mockInsightConfig.isExperimentalFeatureEnabled(Feature.ORCHESTRATED_EVENT_PROCESSING)).thenReturn(true);
     when(mockSourceControlInstanceManager.canProcessEvents()).thenReturn(true);
+    GitRepositoryInfo gitRepositoryInfo =
+        new GitRepositoryInfo("https://azure.org/organization/project", "user", "token", AZURE,
+            "base-branch", true, true);
+    when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(
         mockInsightConfig, mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlEventPublisher,

@@ -27,7 +27,7 @@ public class PerformanceThrottlingRule
   @VisibleForTesting
   static final int EVENT_SUSPENSION_SECONDS = 3;
 
-  private static final int ACCEPTABLE_DURATION_WINDOW_MULTIPLICATION_FACTOR = 5;
+  private static final int ACCEPTABLE_DURATION_WINDOW_MULTIPLICATION_FACTOR = 10;
 
   private static final LocalDateTime IN_THE_PAST = LocalDateTime.now().minusSeconds(1);
 
@@ -52,15 +52,21 @@ public class PerformanceThrottlingRule
       // tweak the min timing down if it falls below our initial setting but is above the absolute minimum
       if (0 < eventDurationMs && eventDurationMs < TIMING_CUTOFF_MS) {
         minCommitStatusTimingMs = TIMING_CUTOFF_MS;
+        log.trace("Commit status event duration canary time adjusted to minimum");
       }
       else if (TIMING_CUTOFF_MS < eventDurationMs && eventDurationMs < minCommitStatusTimingMs) {
         minCommitStatusTimingMs = eventDurationMs;
+        log.trace("Commit status event duration canary time adjusted to {} seconds",
+            durationToTimeStr(eventDurationMs));
       }
       else if (eventDurationMs > getAcceptableDurationMilliseconds()) {
         eventSuspensionExpirationTime = LocalDateTime.now().plusSeconds(EVENT_SUSPENSION_SECONDS);
         log.debug("Commit status event duration of {} seconds exceeded canary limit of {} seconds.  " +
-            "Suspending event processing for {} seconds",  durationToTimeStr(eventDurationMs),
+                "Suspending event processing for {} seconds", durationToTimeStr(eventDurationMs),
             getAcceptableDurationSeconds(), EVENT_SUSPENSION_SECONDS);
+      }
+      else {
+        log.trace("Commit status event duration of {} seconds within limits", durationToTimeStr(eventDurationMs));
       }
     }
   }

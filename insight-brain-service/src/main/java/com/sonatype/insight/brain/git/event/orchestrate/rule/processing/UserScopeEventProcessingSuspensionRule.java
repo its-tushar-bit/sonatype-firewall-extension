@@ -41,6 +41,7 @@ public class UserScopeEventProcessingSuspensionRule
   public void onEventProcessingError(SourceControlEvent event, Exception e) {
     if (null != e && StringUtils.isNotBlank(e.getMessage()) && e.getMessage().contains("abuse detection")) {
       suspendScmNotificationEventProcessingFoxXSeconds(event, defaultSuspensionTimeInSeconds);
+      log.debug("Notification event processing suspended for {} seconds", defaultSuspensionTimeInSeconds);
     }
   }
 

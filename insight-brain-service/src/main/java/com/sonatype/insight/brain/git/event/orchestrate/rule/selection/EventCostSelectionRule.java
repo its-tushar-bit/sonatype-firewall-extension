@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.git.event.orchestrate.rule.selection;
 import java.util.List;
 
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -21,12 +23,18 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.STATUS_UPDATE_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 
 public class EventCostSelectionRule
 {
   private static final Logger log = LoggerFactory.getLogger(EventCostSelectionRule.class);
 
-  public static final int MAX_IN_PROGRESS_EVENT_POINTS = 32;
+  public static final int GITHUB_MAX_IN_PROGRESS_EVENT_POINTS = 32;
+
+  public static final int DEFAULT_MAX_IN_PROGRESS_EVENT_POINTS = 48;
+
+  @VisibleForTesting
+  final int maxInProgressEventPoints;
 
   /**
    * event point costs are arbitrary but at the same time are based on an analysis of the number of SCM interactions
@@ -34,16 +42,16 @@ public class EventCostSelectionRule
    * with the status update event being the reference value since status update is a single, simple API call.
    *
    * Here's the thought that went into selecting the event points:
-   *   - status update : single API call
-   *   - source control evaluation : git pull + scan/evaluation
-   *   - remediation PR : clone + push + 2 API calls
-   *   - app eval : clone + multiple API calls (possible PR comment + multiple line comments)
-   *   - discovered PR : app eval activity + possible source control scans for source and target branches
-   *   - updated PR : discovered PR activity + possible delete line comment API calls
+   * - status update : single API call
+   * - source control evaluation : git pull + scan/evaluation
+   * - remediation PR : clone + push + 2 API calls
+   * - app eval : clone + multiple API calls (possible PR comment + multiple line comments)
+   * - discovered PR : app eval activity + possible source control scans for source and target branches
+   * - updated PR : discovered PR activity + possible delete line comment API calls
    */
   private static final ImmutableMap<String, Integer> EVENT_COST_POINTS = ImmutableMap.<String, Integer>builder()
-      .put(APPLICATION_EVALUATION_EVENT, 6)
-      .put(DISCOVERED_PULL_REQUEST_EVENT, 8)
+      .put(APPLICATION_EVALUATION_EVENT, 8)
+      .put(DISCOVERED_PULL_REQUEST_EVENT, 12)
       .put(REMEDIATION_PULL_REQUEST_EVENT, 4)
       .put(REPOSITORY_URL_UPDATED_EVENT, 0)
       .put(SOURCE_CONTROL_EVALUATION_EVENT, 2)
@@ -52,6 +60,11 @@ public class EventCostSelectionRule
       .build();
 
   public static final int REMEDIATION_PR_EVENT_POINTS = EVENT_COST_POINTS.get(REMEDIATION_PULL_REQUEST_EVENT);
+
+  public EventCostSelectionRule(SourceControlProvider sourceControlProvider) {
+    maxInProgressEventPoints = GITHUB == sourceControlProvider ?
+        GITHUB_MAX_IN_PROGRESS_EVENT_POINTS : DEFAULT_MAX_IN_PROGRESS_EVENT_POINTS;
+  }
 
   /**
    * determines whether or not there are sufficient points available for the given event
@@ -71,9 +84,9 @@ public class EventCostSelectionRule
    */
   public int getAvailableEventPoints(List<SourceControlEvent> eventsInProgress) {
     if (CollectionUtils.isEmpty(eventsInProgress)) {
-      return MAX_IN_PROGRESS_EVENT_POINTS;
+      return maxInProgressEventPoints;
     }
-    int availableEventPoints = MAX_IN_PROGRESS_EVENT_POINTS;
+    int availableEventPoints = maxInProgressEventPoints;
     for (SourceControlEvent event : eventsInProgress) {
       availableEventPoints -= getEventCost(event);
     }

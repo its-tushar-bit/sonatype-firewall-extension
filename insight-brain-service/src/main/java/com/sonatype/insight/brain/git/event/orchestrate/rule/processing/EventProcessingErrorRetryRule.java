@@ -13,6 +13,8 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.nexus.scm.api.access.control.ExclusiveAccessRequestTimeoutException;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -23,6 +25,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public class EventProcessingErrorRetryRule
     implements EventProcessedListener
 {
+  private static final Logger log = LoggerFactory.getLogger(EventProcessingErrorRetryRule.class);
+
   @VisibleForTesting
   static final int EVENT_PROCESSING_RETRY_COUNT = 2;
 
@@ -41,7 +45,11 @@ public class EventProcessingErrorRetryRule
     if (null == event || null == e) {
       return false;
     }
-    return isRetryableException(e) && isBelowRetryThreshold(event);
+    boolean shouldRetry = isRetryableException(e) && isBelowRetryThreshold(event);
+    log.debug("Will retry event '{}' for application {} = {}", event.getEventType(), event.getApplicationId(),
+        shouldRetry);
+
+    return shouldRetry;
   }
 
   private boolean isBelowRetryThreshold(SourceControlEvent event) {

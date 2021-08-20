@@ -42,10 +42,16 @@ public class ApplicationScopeEventProcessingSuspensionRule
   public void onEventProcessingError(SourceControlEvent event, Exception e) {
     if (e instanceof UnknownHostException) {
       suspendApplicationEventProcessingForXSeconds(event.getApplicationId(), unknownHostSuspensionSeconds);
+      log.debug("Event processing for application {} event '{}' suspended for {} seconds due to UnknownHostException",
+          event.getApplicationId(), event.getEventType(), unknownHostSuspensionSeconds);
     }
     else if (e instanceof ExclusiveAccessRequestTimeoutException) {
       suspendApplicationEventProcessingForXSeconds(event.getApplicationId(),
           exclusiveAccessRequestTimeoutSuspensionSeconds);
+      log.debug(
+          "Event processing for application {} event '{}' suspended for {} seconds due to " +
+              "ExclusiveAccessRequestTimeoutException",
+          event.getApplicationId(), event.getEventType(), exclusiveAccessRequestTimeoutSuspensionSeconds);
     }
   }
 

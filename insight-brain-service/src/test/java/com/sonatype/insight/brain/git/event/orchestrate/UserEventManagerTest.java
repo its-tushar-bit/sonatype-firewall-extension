@@ -6,10 +6,12 @@
 package com.sonatype.insight.brain.git.event.orchestrate;
 
 import java.net.UnknownHostException;
+import java.util.UUID;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +20,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
+import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -43,28 +49,31 @@ public class UserEventManagerTest
 
   @Test
   public void testAddEvent_eventPushed() {
-    // given: an event that should push immediately
-    SourceControlEvent event = new SourceControlEvent()
-        .forStatusUpdate()
-        .withId("event-1")
-        .setApplicationId("app-1");
+    for (SourceControlProvider provider : SourceControlProvider.values()) {
+      // given: an event that should push immediately
+      SourceControlEvent event = new SourceControlEvent()
+          .forStatusUpdate()
+          .withId(UUID.randomUUID().toString())
+          .setApplicationId("app-1");
 
-    UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlUtils);
+      UserEventManager userEventManager =
+          new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, provider,
+              mockSourceControlUtils);
 
-    // when: add the event
-    userEventManager.addEvent(event);
+      // when: add the event
+      userEventManager.addEvent(event);
 
-    // then: it should mark in progress and push to processing
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
-    verify(mockSourceControlEventProcessor, times(1)).processEvent(eq(event), eq(userEventManager));
+      // then: it should mark in progress and push to processing
+      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
+      verify(mockSourceControlEventProcessor, times(1)).processEvent(eq(event), eq(userEventManager));
+    }
   }
 
   @Test
   public void testOnEventCompleted_queuedEventPushed() {
     // given: event manager with an event queued up
     UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlUtils)
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, GITLAB, mockSourceControlUtils)
             .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
@@ -94,7 +103,7 @@ public class UserEventManagerTest
   public void testOnEventPartiallyCompleted_queuedEventPushed() {
     // given: event manager with an event queued up
     UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlUtils)
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, GITHUB, mockSourceControlUtils)
             .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
@@ -125,7 +134,7 @@ public class UserEventManagerTest
   public void testOnEventError_errorEventNoRetry() {
     // given: event manager with an event queued up
     UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlUtils)
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, AZURE, mockSourceControlUtils)
             .setEventsSuspendedForTesting(true);
 
     SourceControlEvent event = new SourceControlEvent()
@@ -152,8 +161,8 @@ public class UserEventManagerTest
   @Test
   public void testOnEventError_errorEventWithRetry() throws InterruptedException {
     // given: event manager
-    UserEventManager userEventManager =
-        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, mockSourceControlUtils)
+    UserEventManager userEventManager = new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor,
+        BITBUCKET, mockSourceControlUtils)
             .setSuspensionTimeoutForTesting(1);
 
     // capture the retry event we expect to be inserted into the DB

@@ -13,13 +13,14 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.git.event.EventTestUtils.createEvent;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SimultaneousEventSelectionRuleTest
 {
   @Test
   public void testCanPushEvent() {
-    SimultaneousEventSelectionRule simultaneousEventSelectionRule = new SimultaneousEventSelectionRule();
+    SimultaneousEventSelectionRule simultaneousEventSelectionRule = new SimultaneousEventSelectionRule(GITHUB);
 
     // iterate over each event type
     SourceControlEvent.EVENT_TYPES.forEach(targetEventType -> {

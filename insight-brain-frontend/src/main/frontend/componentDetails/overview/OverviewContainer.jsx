@@ -7,10 +7,14 @@ import { connect } from 'react-redux';
 
 import Overview from './Overview';
 import { selectSelectedComponent } from '../../applicationReport/applicationReportSelectors';
+import { selectComponentAncestors } from '../componentDetailsSelectors';
+import { selectCurrentRouteName } from '../../reduxUiRouter/routerSelectors';
 
 function mapStateToProps(state) {
   return {
     componentInformation: selectSelectedComponent(state),
+    ancestors: selectComponentAncestors(state),
+    routeName: selectCurrentRouteName(state),
   };
 }
 

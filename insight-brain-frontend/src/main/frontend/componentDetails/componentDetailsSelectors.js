@@ -3,10 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { path, prop } from 'ramda';
+import { path, prop, equals } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import {
   selectAllComponentsList,
+  selectDisplayedComponentList,
   selectApplicationReportMetaData,
   selectSelectedComponent,
   selectSelectedComponentIndexInAggregatedList,
@@ -83,5 +84,37 @@ export const selectComponentViolations = createSelector(
   selectAllComponentsList,
   ({ hash }, components = []) => {
     return components.filter((component) => component.hash === hash && component.policyThreatLevel);
+  }
+);
+
+export const selectComponentAncestors = createSelector(
+  selectSelectedComponent,
+  selectDisplayedComponentList,
+  (componentInformation, components) => {
+    if (componentInformation.directDependency || !componentInformation.dependencyInfo) {
+      return [];
+    }
+
+    const ancestors = componentInformation.dependencyInfo.rootAncestors;
+    if (ancestors === undefined || ancestors === null || ancestors.length === 0) {
+      return [];
+    }
+
+    const allComponents = components
+      .filter((component) => component.componentIdentifier != null)
+      .flatMap(({ componentIdentifier, hash, derivedComponentName }) => ({
+        componentIdentifier,
+        hash,
+        derivedComponentName,
+      }));
+
+    return allComponents.filter(({ componentIdentifier }) =>
+      ancestors.some((ancestor) => {
+        const componentCoordinates = componentIdentifier.coordinates;
+        const ancestorCoordinates = ancestor.coordinates;
+
+        return componentIdentifier.format === ancestor.format && equals(componentCoordinates, ancestorCoordinates);
+      })
+    );
   }
 );

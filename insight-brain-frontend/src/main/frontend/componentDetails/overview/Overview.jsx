@@ -8,8 +8,9 @@ import * as PropTypes from 'prop-types';
 import { join } from 'ramda';
 
 import { formatTimeAgoUpToDay } from '../../util/dateUtils';
+import { RiskRemediation } from './riskRemediation/RiskRemediation';
 
-export default function Overview({ componentInformation }) {
+export default function Overview({ componentInformation, ancestors, routeName }) {
   const {
     componentIdentifier,
     displayName,
@@ -18,6 +19,7 @@ export default function Overview({ componentInformation }) {
     identificationSource,
     componentCategories = [],
     pathnames,
+    directDependency,
   } = componentInformation;
 
   const isUnknown = !matchState || matchState === 'unknown';
@@ -77,7 +79,7 @@ export default function Overview({ componentInformation }) {
     </dl>
   );
 
-  return (
+  const overviewComponentInformationTile = (
     <section id="overview-component-information-tile" className="nx-tile iq-component-information-tile">
       <header className="nx-tile-header">
         <div className="nx-tile-header__title">
@@ -108,6 +110,13 @@ export default function Overview({ componentInformation }) {
       </div>
     </section>
   );
+
+  return (
+    <div>
+      {overviewComponentInformationTile}
+      <RiskRemediation directDependency={directDependency} ancestors={ancestors} routeName={routeName} />
+    </div>
+  );
 }
 
 Overview.propTypes = {
@@ -127,5 +136,23 @@ Overview.propTypes = {
       })
     ),
     pathnames: PropTypes.arrayOf(PropTypes.string).isRequired,
+    directDependency: PropTypes.bool.isRequired,
   }),
+  routeName: PropTypes.string.isRequired,
+  ancestors: PropTypes.arrayOf(
+    PropTypes.shape({
+      hash: PropTypes.string.isRequired,
+      derivedComponentName: PropTypes.string.isRequired,
+      componentIdentifier: PropTypes.shape({
+        format: PropTypes.string.isRequired,
+        coordinates: PropTypes.shape({
+          artifactId: PropTypes.string.isRequired,
+          classifier: PropTypes.string,
+          extension: PropTypes.string.isRequired,
+          groupId: PropTypes.string.isRequired,
+          version: PropTypes.string.isRequired,
+        }),
+      }),
+    })
+  ),
 };

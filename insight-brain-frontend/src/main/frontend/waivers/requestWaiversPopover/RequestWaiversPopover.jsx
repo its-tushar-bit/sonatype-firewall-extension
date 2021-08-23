@@ -66,17 +66,22 @@ const RequestWaivers = ({ isShown, onClose, violationDetails }) => {
         <NxCodeSnippet
           label="Policy Violation ID"
           content={policyViolationId}
-          className="iq-request-waivers-page__violation-id"
+          className="visual-testing-ignore iq-request-waivers-page__violation-id"
           id="request-waivers-policy-violation-id"
         />
         <NxCodeSnippet
           label="Policy Violation Details Page"
           content={policyViolationUrl}
-          className="iq-request-waivers-page__page-url"
+          className="visual-testing-ignore iq-request-waivers-page__page-url"
           onCopyUsingBtn={() => urlLinkEl.current.select()}
         />
         <NxTextLink newTab href={policyViolationUrl}>
-          <input readOnly ref={urlLinkEl} value={policyViolationUrl} className="iq-request-waivers-page__link-input" />
+          <input
+            readOnly
+            ref={urlLinkEl}
+            value={policyViolationUrl}
+            className="visual-testing-ignore iq-request-waivers-page__link-input"
+          />
         </NxTextLink>
         <NxCodeSnippet label="Curl Example" content={curlExample} className="iq-request-waivers-page__curl" />
       </IqPopover>

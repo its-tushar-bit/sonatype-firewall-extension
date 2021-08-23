@@ -193,12 +193,14 @@ export default function ComponentOverviewTile(props) {
                   )}
                 </dd>
               </div>
-              <div className="license-component-overview__stages">
-                <dt className="nx-read-only__label">Stages</dt>
-                <dd id="component-overview-tile-stages" className="nx-read-only__data">
-                  {component.stageScans ? component.stageScans.map(createStageScan) : 'N/A'}
-                </dd>
-              </div>
+              {applicationPublicId && (
+                <div className="license-component-overview__stages">
+                  <dt className="nx-read-only__label">Stages</dt>
+                  <dd id="component-overview-tile-stages" className="nx-read-only__data">
+                    {component.stageScans ? component.stageScans.map(createStageScan) : 'N/A'}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
         </div>

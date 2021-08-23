@@ -773,11 +773,17 @@ describe('ComponentOverviewTile', function () {
     expect(policyViolationIndicator).toHaveText('MyLtg');
   });
 
-  it('renders the stages', function () {
-    const wrapper = getShallowComponent();
+  it('renders the stages if we have an applicationPublicId', function () {
+    const wrapper = getShallowComponent({ applicationPublicId: 'appId' });
+    expect(wrapper.find('.license-component-overview__stages')).toExist();
     expect(wrapper.find('#component-overview-tile-build')).toHaveText('Build ' + 'terseAgo ' + getTimeDaysAgo(1));
     expect(wrapper.find('#component-overview-tile-stage-release')).toHaveText('Stage');
     expect(wrapper.find('#component-overview-tile-release')).toHaveText('Release');
     expect(wrapper.find('#component-overview-tile-operate')).toHaveText('Operate');
+  });
+
+  it('does not render the stages if we are not on the application view', function () {
+    const wrapper = getShallowComponent({ applicationPublicId: undefined });
+    expect(wrapper.find('.license-component-overview__stages')).not.toExist();
   });
 });

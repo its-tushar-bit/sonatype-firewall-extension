@@ -44,7 +44,7 @@ export default function ProductLicenseInfo({ license }) {
         <dl className="nx-read-only nx-read-only--grid iq-product-license__specifications">
           <div className="nx-read-only__item iq-product-license__expiration-date">
             <dt className="nx-read-only__label">Expiration Date</dt>
-            <dd className="nx-read-only__data" id="license-expiry-date">
+            <dd className="nx-read-only__data visual-testing-ignore" id="license-expiry-date">
               {formatDate(license.expiryTimestamp, EXPIRATION_DATE_FORMAT)}
             </dd>
           </div>

@@ -18,14 +18,14 @@ export const extractViolationDetails = (violationDetails) => {
     policyName,
     policyViolationId,
     threatLevel,
-    derivedComponentname,
+    derivedComponentName,
     violationVulnerabilityId,
   } = violationDetails;
 
   const { constraintName, reasons } = constraintViolations[0],
     vulnerabilityId = violationVulnerabilityId || path([0, 'reference', 'value'], reasons),
     threatLevelCategory = categoryByPolicyThreatLevel[threatLevel],
-    componentName = derivedComponentname || getComponentName(violationDetails),
+    componentName = derivedComponentName || getComponentName(violationDetails),
     artifactName = getArtifactName(violationDetails);
 
   return {

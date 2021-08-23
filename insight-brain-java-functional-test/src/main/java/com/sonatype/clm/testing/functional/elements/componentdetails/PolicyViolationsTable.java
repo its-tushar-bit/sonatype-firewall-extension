@@ -33,7 +33,19 @@ public class PolicyViolationsTable
     return child("tbody > tr:nth-child(" + rowIndex + ")");
   }
 
-  public SelenideElement getManageWaiversButton(int rowIndex) {
-    return getRow(rowIndex).find(".iq-policy-violation__manage-waivers-btn");
+  public SelenideElement waiversDropdownButton(int rowIndex) {
+    return getRow(rowIndex).find(".iq-policy-violation__waivers-dropdown-btn");
+  }
+
+  public SelenideElement waiversDropdownArrow(int rowIndex) {
+    return waiversDropdownButton(rowIndex).find("button.nx-segmented-btn__dropdown-btn");
+  }
+
+  public SelenideElement requestWaiverDropdownButton(int rowIndex) {
+    return waiversDropdownButton(rowIndex).find("button.nx-dropdown-button");
+  }
+
+  public SelenideElement addWaiverButton(int rowIndex) {
+    return waiversDropdownButton(rowIndex).find("button.nx-segmented-btn__main-btn");
   }
 }

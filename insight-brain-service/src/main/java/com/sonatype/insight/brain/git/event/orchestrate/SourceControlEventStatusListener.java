@@ -14,4 +14,6 @@ public interface SourceControlEventStatusListener
   void onEventError(SourceControlEvent sourceControlEvent, Exception e);
 
   void onEventPartiallyCompleted(SourceControlEvent sourceControlEvent, String reason);
+
+  void onEventStarted(SourceControlEvent sourceControlEvent);
 }

@@ -31,7 +31,7 @@ public class SourceControlEventProcessor
   private static final Logger log = LoggerFactory.getLogger(SourceControlEventProcessor.class);
 
   @VisibleForTesting
-  static final int THREAD_POOL_SIZE = 25;
+  static final int THREAD_POOL_SIZE = 50;
 
   @VisibleForTesting
   static final int TASK_QUEUE_CAPACITY = THREAD_POOL_SIZE;
@@ -128,6 +128,8 @@ public class SourceControlEventProcessor
         managedEvent.onError(e);
         return;
       }
+
+      managedEvent.onEventStarted();
 
       if (!acquireRepoAccess(managedEvent.getApplicationId())) {
         throw new RuntimeException(REPO_ACCESS_LOCK_ERROR);
@@ -306,6 +308,10 @@ public class SourceControlEventProcessor
 
     public void onPartiallyComplete(String reason) {
       sourceControlEventStatusListener.onEventPartiallyCompleted(sourceControlEvent, reason);
+    }
+
+    public void onEventStarted() {
+      sourceControlEventStatusListener.onEventStarted(sourceControlEvent);
     }
   }
 }

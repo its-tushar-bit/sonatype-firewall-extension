@@ -64,7 +64,6 @@ public class UserEventManagerTest
       userEventManager.addEvent(event);
 
       // then: it should mark in progress and push to processing
-      verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
       verify(mockSourceControlEventProcessor, times(1)).processEvent(eq(event), eq(userEventManager));
     }
   }
@@ -95,7 +94,6 @@ public class UserEventManagerTest
 
     // then: completed event should be marked as such and queued event should be sent for processing
     verify(mockSourceControlEventDAO, times(1)).markEventComplete(eq(completedEvent.getId()));
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
     verify(mockSourceControlEventProcessor, times(1)).processEvent(eq(event), eq(userEventManager));
   }
 
@@ -126,8 +124,36 @@ public class UserEventManagerTest
 
     // then: completed event should be marked as such and queued event should be sent for processing
     verify(mockSourceControlEventDAO, times(1)).markEventPartiallyComplete(eq(completedEvent.getId()), eq(reason));
-    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(event.getId()));
     verify(mockSourceControlEventProcessor, times(1)).processEvent(eq(event), eq(userEventManager));
+  }
+
+  @Test
+  public void testOnEventStarted_queuedEventNotPushed() {
+    // given: event manager with an event queued up
+    UserEventManager userEventManager =
+        new UserEventManager(mockSourceControlEventDAO, mockSourceControlEventProcessor, GITLAB, mockSourceControlUtils)
+            .setEventsSuspendedForTesting(true);
+
+    SourceControlEvent event = new SourceControlEvent()
+        .forDiscoveredPullRequest()
+        .withId("event-123")
+        .setApplicationId("app-123");
+
+    userEventManager.addEvent(event);
+    verify(mockSourceControlEventProcessor, never()).processEvent(eq(event), eq(userEventManager));
+    userEventManager.setEventsSuspendedForTesting(false);
+
+    // when: report an event started
+    SourceControlEvent startedEvent = new SourceControlEvent()
+        .forUpdatedPullRequest()
+        .withId("started")
+        .setApplicationId("app-started");
+
+    userEventManager.onEventStarted(startedEvent);
+
+    // then: started event should be marked as such and queued event should NOT be sent for processing
+    verify(mockSourceControlEventDAO, times(1)).markEventInProgress(eq(startedEvent.getId()));
+    verify(mockSourceControlEventProcessor, never()).processEvent(eq(event), eq(userEventManager));
   }
 
   @Test

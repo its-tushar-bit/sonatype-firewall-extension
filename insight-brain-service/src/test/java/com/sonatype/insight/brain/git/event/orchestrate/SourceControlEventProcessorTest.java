@@ -91,6 +91,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     verify(mockPullRequestCommentingEventHandler, times(1)).onApplicationEvaluation(eq(event));
+    verifyEventStarted(event);
     verifyEventCompleted(event);
   }
 
@@ -101,6 +102,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     verify(mockPullRequestCommentingEventHandler, times(1)).onDiscoveredPullRequest(eq(event));
+    verifyEventStarted(event);
     verifyEventCompleted(event);
   }
 
@@ -111,6 +113,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     verify(mockPullRequestRemediationService, times(1)).onRemediateComponent(eq(event));
+    verifyEventStarted(event);
     verifyEventCompleted(event);
   }
 
@@ -121,6 +124,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     verify(mockSourceControlService, times(1)).onRepositoryUrlUpdated(eq(event));
+    verifyEventStarted(event);
     verifyEventCompleted(event);
   }
 
@@ -131,6 +135,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     verify(mockSourceControlScanService, times(1)).onSourceControlScan(eq(event));
+    verifyEventStarted(event);
     verifyEventCompleted(event);
   }
 
@@ -141,6 +146,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     verify(mockGitCommitStatusService, times(1)).onSendCommitStatus(eq(event));
+    verifyEventStarted(event);
     verifyEventCompleted(event);
   }
 
@@ -151,6 +157,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     verify(mockPullRequestCommentingEventHandler, times(1)).onUpdatedPullRequest(eq(event));
+    verifyEventStarted(event);
     verifyEventCompleted(event);
   }
 
@@ -162,6 +169,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     verify(mockPullRequestCommentingEventHandler, never()).onUpdatedPullRequest(any());
+    verifyEventNotStarted(event);
     verifyEventError(event,
         "SourceControlEvent with ID " + event.getId() + " processed as user 'JohnDoe' instead of 'system'");
   }
@@ -181,6 +189,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     // then:
+    verifyEventStarted(event);
     assertThatLogMessagesContain(
         debug("Unable to acquire repo access for application 'app1'")
     );
@@ -201,6 +210,7 @@ public class SourceControlEventProcessorTest
     processEventAndWaitForCompletion(event);
 
     // then:
+    verifyEventStarted(event);
     verifyEventCompleted(event);
     assertThatLogMessagesEqual(
         debug(getProcessedEventMessage(event)),
@@ -229,6 +239,14 @@ public class SourceControlEventProcessorTest
 
   private void verifyEventCompleted(SourceControlEvent event) {
     verify(mockStatusListener, times(1)).onEventCompleted(eq(event));
+  }
+
+  private void verifyEventStarted(SourceControlEvent event) {
+    verify(mockStatusListener, times(1)).onEventStarted(eq(event));
+  }
+
+  private void verifyEventNotStarted(SourceControlEvent event) {
+    verify(mockStatusListener, never()).onEventStarted(eq(event));
   }
 
   private void verifyEventError(SourceControlEvent event, String errorMessage) {

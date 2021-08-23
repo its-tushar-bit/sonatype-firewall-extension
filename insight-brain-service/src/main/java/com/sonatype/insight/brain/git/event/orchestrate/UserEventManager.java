@@ -149,6 +149,11 @@ public class UserEventManager
     }
   }
 
+  @Override
+  public void onEventStarted(SourceControlEvent event) {
+    sourceControlEventDAO.markEventInProgress(event.getId());
+  }
+
   public void stop() {
     if (null != scheduledExecutorService) {
       scheduledExecutorService.shutdown();
@@ -249,12 +254,16 @@ public class UserEventManager
   }
 
   private void pushEvent(SourceControlEvent event) {
-    eventsInProgress.put(event.getApplicationId(), event);
-    sourceControlEventDAO.markEventInProgress(event.getId());
-
-    sourceControlEventProcessor.processEvent(event, this);
-    log.debug("Sent source control event '{}' of type '{}' for application '{}' for processing", event.getId(),
-        event.getEventType(), event.getApplicationId());
+    try {
+      sourceControlEventProcessor.processEvent(event, this);
+      eventsInProgress.put(event.getApplicationId(), event);
+      log.debug("Sent source control event '{}' of type '{}' for application '{}' for processing", event.getId(),
+          event.getEventType(), event.getApplicationId());
+    }
+    catch (Exception e) {
+      log.debug("Unable to process source control event '{}' of type '{}' for application '{}' because {}",
+          event.getId(), event.getEventType(), event.getApplicationId(), e.getMessage(), e);
+    }
   }
 
   private void retryEvent(SourceControlEvent event) {

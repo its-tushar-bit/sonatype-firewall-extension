@@ -123,11 +123,14 @@ export default function LicensesModal(props) {
     );
   };
 
-  const createOptionFromValue = (value) => (
-    <option id={`edit-license-status-option-${value}`} key={value} value={value}>
-      {value}
-    </option>
-  );
+  const createOptionFromValue = (value) => {
+    const displayValue = value.inheritable ? `Inherit Status (${value.status})` : value.status;
+    return (
+      <option id={`edit-license-status-option-${displayValue}`} key={displayValue} value={value.status}>
+        {displayValue}
+      </option>
+    );
+  };
 
   const toggleCheckbox = (license) => {
     if (checkedLicenses.has(license)) {
@@ -153,8 +156,9 @@ export default function LicensesModal(props) {
   };
 
   const getStatusOptions = () => {
-    const inheritedStatus = getInheritableStatus();
-    return [...EDIT_LICENSE_MODAL_STATUS_OPTIONS, ...(canInherit ? [`Inherit Status (${inheritedStatus})`] : [])];
+    const basicStatusOptions = EDIT_LICENSE_MODAL_STATUS_OPTIONS.map((status) => ({ status, inheritable: false }));
+    const inheritStatusOption = canInherit ? [{ status: getInheritableStatus(), inheritable: true }] : [];
+    return [...basicStatusOptions, ...inheritStatusOption];
   };
 
   const populateLicenseOptions = (statusSelection) => {

@@ -200,6 +200,7 @@ describe('LicensesModal', function () {
     });
     it('renders the form correctly for selected state', () => {
       const wrapper = getMountedComponent({
+        ownerId: 'orgPublicId',
         component: {
           licenseLegalData: {
             effectiveLicenses: ['License-1.0', 'License-2.0', 'License-1.0-License-2.0', 'License-2.0 or License-3.0'],
@@ -216,7 +217,10 @@ describe('LicensesModal', function () {
                 ownerId: 'orgPublicId',
               },
               {
-                licenseOverride: 'anOverride3',
+                licenseOverride: {
+                  comment: 'anOverride3',
+                  status: 'CONFIRMED',
+                },
                 ownerId: 'ROOT_ORGANIZATION_ID',
               },
             ],
@@ -227,6 +231,13 @@ describe('LicensesModal', function () {
       const statusGroup = formGroups.at(0);
       expect(statusGroup.find('select')).toHaveProp('value', 'Selected');
       expect(statusGroup.find('option').length).toEqual(6);
+      expect(statusGroup.find('option').at(0).prop('value')).toEqual('Open');
+      expect(statusGroup.find('option').at(1).prop('value')).toEqual('Acknowledged');
+      expect(statusGroup.find('option').at(2).prop('value')).toEqual('Overridden');
+      expect(statusGroup.find('option').at(3).prop('value')).toEqual('Selected');
+      expect(statusGroup.find('option').at(4).prop('value')).toEqual('Confirmed');
+      expect(statusGroup.find('option').at(5).prop('value')).toEqual('Confirmed');
+      expect(statusGroup.find('option').at(5).childAt(0).text()).toEqual('Inherit Status (Confirmed)');
       const licenseDiv = wrapper.find('.nx-scrollable--edit-license-modal-licenses');
       expect(licenseDiv).toExist();
       expect(licenseDiv.children().length).toEqual(3);

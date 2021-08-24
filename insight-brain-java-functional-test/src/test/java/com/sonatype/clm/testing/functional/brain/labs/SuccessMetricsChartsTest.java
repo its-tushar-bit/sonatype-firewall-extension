@@ -19,7 +19,7 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ComponentCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Header;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationTrendTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationsByCategoryTile;
@@ -202,19 +202,19 @@ public class SuccessMetricsChartsTest
   }
 
   @Test
-  public void testSummaryStatementTile() {
+  public void testHeader() {
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage().shouldBeFullyLoaded();
 
     successMetricsChartsPage.should(appear);
-    SummaryStatementTile.root().shouldBe(visible);
+    Header.root().shouldBe(visible);
     eyesWatcher.eyesCheck();
-    SummaryStatementTile.title().shouldHave(text("Test"));
+    Header.title().shouldHave(text("Test"));
     String reportUpdated = DateTimeFormat.forPattern("MMM d, YYYY").withLocale(Locale.ENGLISH)
         .print(Ordering.natural().max(LocalDate.now().withDayOfMonth(1), LocalDate.now().withDayOfWeek(1)));
-    SummaryStatementTile.averages()
+    Header.description()
         .shouldHave(text("This report contains data for 2 applications, evaluated over the"
             + " past 4 months, aggregated and deduplicated over the source, build, stage release, release, and operate"
-            + " stages. Last updated " + reportUpdated + "."));
+            + " stages. Last updated " + reportUpdated));
   }
 
   @Test
@@ -489,9 +489,9 @@ public class SuccessMetricsChartsTest
 
     successMetricsChartsPage.should(appear);
     ApplicationCountsTile.root().shouldHave(visible);
-    ApplicationCountsTile.activeApplicationsCount().shouldBe(visible).shouldHave(text("2"));
-    ApplicationCountsTile.totalViolatingApplicationsCount().shouldBe(visible).shouldHave(text("2"));
-    ApplicationCountsTile.totalCriticalViolatingApplicationsCount().shouldBe(visible).shouldHave(text("1"));
+    ApplicationCountsTile.description().shouldBe(visible).shouldHave(text("2 applications contained violations"));
+    ApplicationCountsTile.description().shouldHave(text("2 out of"));
+    ApplicationCountsTile.description().shouldBe(visible).shouldHave(text("1 contained critical violations."));
     ApplicationCountsTile.securityViolatingApplicationsCount().shouldBe(visible).shouldHave(text("1"));
     ApplicationCountsTile.securityCriticalViolatingApplicationsCount().shouldBe(visible).shouldHave(text("1"));
     ApplicationCountsTile.licenseViolatingApplicationsCount().shouldBe(visible).shouldHave(text("2"));

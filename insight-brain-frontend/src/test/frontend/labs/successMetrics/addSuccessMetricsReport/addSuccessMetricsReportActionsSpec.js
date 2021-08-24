@@ -31,13 +31,15 @@ describe('addSuccessMetricsReportActions', () => {
 
   beforeEach(() => {
     state = {
-      addSuccessMetricsReport: {
-        reportName: { trimmedValue: 'report name' },
-        includeLatestData: true,
-        isAllApplications: true,
-        selectedOrgsAndApps: {
-          organization: new Set([]),
-          application: new Set([]),
+      successMetrics: {
+        addSuccessMetricsReport: {
+          reportName: { trimmedValue: 'report name' },
+          includeLatestData: true,
+          isAllApplications: true,
+          selectedOrgsAndApps: {
+            organization: new Set([]),
+            application: new Set([]),
+          },
         },
       },
     };
@@ -102,6 +104,7 @@ describe('addSuccessMetricsReportActions', () => {
           includeLatestData: true,
           scope: {},
         };
+
         const [{ type: actionType }] = actions;
         expect(actionType).toBe(ADD_SUCCESS_METRICS_REPORT_SUBMIT_REQUESTED);
         expect(spy).toHaveBeenCalledWith(submitUrl, body);
@@ -109,13 +112,15 @@ describe('addSuccessMetricsReportActions', () => {
 
       it('calls service with organizationIds and with applicationIds', () => {
         state = {
-          addSuccessMetricsReport: {
-            reportName: { trimmedValue: 'report name' },
-            includeLatestData: true,
-            isAllApplications: false,
-            selectedOrgsAndApps: {
-              organizations: new Set([]),
-              applications: new Set([]),
+          successMetrics: {
+            addSuccessMetricsReport: {
+              reportName: { trimmedValue: 'report name' },
+              includeLatestData: true,
+              isAllApplications: false,
+              selectedOrgsAndApps: {
+                organizations: new Set([]),
+                applications: new Set([]),
+              },
             },
           },
         };

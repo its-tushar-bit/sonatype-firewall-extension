@@ -131,3 +131,17 @@ const getScatterPlot = curry(function getScatterPlot(
 
   return new Components.Group([linePlot, scatterPlot]);
 });
+
+export const renderChart = (chart, element) => {
+  const render = () => {
+    if (chart && chart.renderTo) chart.renderTo(element);
+  };
+
+  render();
+
+  window.addEventListener('resize', render);
+
+  return () => {
+    window.removeEventListener('resize', render);
+  };
+};

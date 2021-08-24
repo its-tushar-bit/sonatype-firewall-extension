@@ -6,12 +6,13 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
-import com.sonatype.clm.testing.functional.elements.ActionList;
-import com.sonatype.clm.testing.functional.elements.ErrorBox;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
 public class SuccessMetricsReportListPage
     extends BasicElement<SuccessMetricsReportListPage>
@@ -20,7 +21,7 @@ public class SuccessMetricsReportListPage
     return BaseUrl.resolvePageUrl("/labs/successMetrics");
   }
 
-  private static final String ROOT_SELECTOR = "success-metrics-report-list";
+  private static final String ROOT_SELECTOR = "#success-metrics-report-list";
 
   public static final Condition EMPTY_TEXT = Condition.text("No reports have been created.");
 
@@ -28,12 +29,16 @@ public class SuccessMetricsReportListPage
     super(ROOT_SELECTOR);
   }
 
-  public ActionList successMetricsChartActionItems() {
-    return new ActionList(ROOT_SELECTOR, ".iq-list");
+  public ElementsCollection reports() {
+    return children(".nx-list__item.nx-list__item--link");
   }
 
-  public ErrorBox errorBox() {
-    return new ErrorBox(childSelector(".iq-alert"));
+  public SuccessMetricsListItem report(int num) {
+    return new SuccessMetricsListItem(childSelector(".nx-list__item.nx-list__item--link", nthChild(num + 1)));
+  }
+
+  public AlertError errorBox() {
+    return new AlertError(childSelector(".nx-alert--error"));
   }
 
   public SelenideElement addSuccessMetricsBtn() {
@@ -41,10 +46,37 @@ public class SuccessMetricsReportListPage
   }
 
   public SelenideElement emptyDescriptor() {
-    return child("li.iq-list__item--empty");
+    return child("li.nx-list__item--empty");
   }
 
   public SelenideElement subheaderDashboardLink() {
     return child(".nx-page-title__description a");
+  }
+
+  public class SuccessMetricsListItem
+      extends BasicElement<SuccessMetricsListItem>
+  {
+    public SuccessMetricsListItem(String... selectors) {
+      super(selectors);
+    }
+
+    public SelenideElement chevron() {
+      return child(".fa-angle-right.nx-chevron");
+    }
+
+    public SelenideElement link() {
+      return child("a");
+    }
+  }
+  
+  public class AlertError extends BasicElement<AlertError>
+  {
+    public AlertError(String... selector) {
+      super(selector);
+    }
+
+    public SelenideElement retryButton() {
+      return child("button");
+    }
   }
 }

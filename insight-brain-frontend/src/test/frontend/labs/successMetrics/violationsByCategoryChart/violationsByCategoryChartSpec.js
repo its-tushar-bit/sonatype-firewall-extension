@@ -3,16 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
-import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
+import ViolationsByCategoryChart from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/violationsByCategoryChart/ViolationsByCategoryChart';
+import { getShallowComponent } from '../../../enzymeUtils';
 
-describe('violations-by-category-chart component', function () {
-  beforeEach(angular.mock.module(successMetricsModule.name, legacyConfigurationModule.name));
+describe('violationsByCategoryChart', () => {
+  let violationsByCategoryData, component;
 
-  let vm;
-
-  beforeEach(inject(function ($componentController) {
-    const violationsByCategoryData = [
+  beforeEach(() => {
+    violationsByCategoryData = [
       {
         timePeriodName: '9 Apr',
         security: null,
@@ -99,16 +97,15 @@ describe('violations-by-category-chart component', function () {
       },
     ];
 
-    vm = $componentController('violationsByCategoryChart', null, {
-      violationsByCategoryData,
-    });
-  }));
-
-  it('creates the Violation By Category chart with passed-in data', function () {
-    expect(vm.violationsByCategoryChart).toBeDefined();
+    const getShallow = getShallowComponent(ViolationsByCategoryChart, { violationsByCategoryData });
+    component = getShallow();
   });
 
-  it('sets vm.weekCount from the size of the dataset', function () {
-    expect(vm.weekCount).toBe(3);
+  it('renders description', () => {
+    const description = component.find('.nx-tile-header__subtitle');
+    expect(description).toHaveText(`Open violations over the past 3 weeks by policy type.`);
+  });
+  it('renders chart container', () => {
+    expect(component.find('#bycategory-chart-container')).toExist();
   });
 });

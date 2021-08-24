@@ -48,8 +48,8 @@ public class SuccessMetricsChartsNavigationTest
     labsNavigationButton.shouldBe(visible).shouldNotHave(CLASS_ACTIVE).click();
     successMetricsPage.should(appear);
     labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);
-    successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(1);
-    successMetricsPage.successMetricsChartActionItems().element(0).click();
+    successMetricsPage.reports().shouldHaveSize(1);
+    successMetricsPage.report(0).link().click();
     successMetricsChartsPage.should(appear);
     successMetricsChartsPage.noDataInfoPane().shouldBe(visible).shouldHave(NO_DATA_INFO_TEXT_MONTHLY);
     labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);

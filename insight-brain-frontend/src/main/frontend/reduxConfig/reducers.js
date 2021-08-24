@@ -50,8 +50,8 @@ import automaticApplicationsConfigurationReducer from '../configuration/automati
 import transitiveViolationsReducer from '../violation/transitiveViolationsReducer';
 import userConfigurationReducer from '../security/users/usersReducer';
 import waiveTransitiveViolationsReducer from '../violation/waiveTransitiveViolationsRedux';
-import addSuccessMetricsReportReducer from '../labs/successMetrics/addSuccessMetricsReport/addSuccessMetricsReportReducer';
 import componentDetailsViolationsReducer from '../componentDetails/violations/PolicyViolationsRedux';
+import successMetricsReportSlice from '../labs/successMetrics/successMetricsReportSlice';
 import productLicenseReducer from '../configuration/license/productLicenseReducer';
 
 export default combineReducers({
@@ -101,7 +101,7 @@ export default combineReducers({
   automaticApplicationsConfiguration: automaticApplicationsConfigurationReducer,
   transitiveViolations: transitiveViolationsReducer,
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
-  addSuccessMetricsReport: addSuccessMetricsReportReducer,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,
+  successMetrics: successMetricsReportSlice,
   productLicense: productLicenseReducer,
 });

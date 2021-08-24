@@ -70,7 +70,7 @@ export function submit(closeFn) {
         isAllApplications,
         selectedOrgsAndApps: { organizations, applications },
       },
-    } = getState();
+    } = getState().successMetrics;
     const body = {
       name,
       includeLatestData,

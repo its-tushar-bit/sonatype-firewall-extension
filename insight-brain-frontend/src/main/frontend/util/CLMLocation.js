@@ -524,6 +524,14 @@ export function getComponentWaivers(ownerType, ownerId, hash) {
   return uriTemplate`/rest/policyWaiver/${ownerType}/${ownerId}/component/${hash}`;
 }
 
+export const getSuccessMetricsChartDataUrl = (successMetricsReportId) =>
+  uriTemplate`/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/chartData`;
+
+export const getSuccessMetricsComponentCountsUrl = (successMetricsReportId) =>
+  uriTemplate`/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/componentCounts`;
+
+export const getSuccessMetricsReportUrl = (successMetricsId) =>
+  uriTemplate`/rest/successMetrics/report/${successMetricsId}`;
 export function getLicenseSummaryUrl() {
   return uriTemplate`/rest/product/license`;
 }
@@ -797,16 +805,13 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getSuccessMetricsConfigUrl,
 
-      getSuccessMetricsChartDataUrl: (successMetricsReportId) =>
-        `${baseUrl.get()}/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/chartData`,
+      getSuccessMetricsChartDataUrl,
 
-      getSuccessMetricsComponentCountsUrl: (successMetricsReportId) =>
-        `${baseUrl.get()}/rest/successMetrics/report/${encodeURIComponent(successMetricsReportId)}/componentCounts`,
+      getSuccessMetricsComponentCountsUrl,
 
       getSuccessMetricsReportsUrl,
 
-      getSuccessMetricsReportUrl: (successMetricsId) =>
-        `${baseUrl.get()}/rest/successMetrics/report/${successMetricsId}`,
+      getSuccessMetricsReportUrl,
 
       getAutomaticApplicationsConfigurationUrl,
       getAdvancedSearchConfigUrl: () => `${baseUrl.get()}/rest/search/advanced/status`,

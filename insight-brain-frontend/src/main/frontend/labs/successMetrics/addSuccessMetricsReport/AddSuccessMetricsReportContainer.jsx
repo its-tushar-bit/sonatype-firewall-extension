@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import AddSuccessMetricsReport from './AddSuccessMetricsReport';
 import * as addSuccessMetricsReportActions from './addSuccessMetricsReportActions';
 
-function mapStateProp({ addSuccessMetricsReport }, { close, dismiss, reports }) {
+function mapStateProp({ successMetrics: { addSuccessMetricsReport } }, { close, dismiss, reports }) {
   return {
     ...addSuccessMetricsReport,
     close,

@@ -14,7 +14,7 @@ import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ComponentCountsTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Header;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationsByCategoryTile;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -82,13 +82,13 @@ public class SuccessMetricsChartsSingleApplicationTest
   }
 
   @Test
-  public void testSummaryStatementTile() {
+  public void testHeader() {
     SuccessMetricsReportPage successMetricsReportPage = new SuccessMetricsReportPage();
 
     successMetricsReportPage.should(appear);
-    SummaryStatementTile.root().shouldBe(visible);
-    SummaryStatementTile.title().shouldHave(text("Test"));
-    SummaryStatementTile.averages()
+    Header.root().shouldBe(visible);
+    Header.title().shouldHave(text("Test"));
+    Header.description()
         .shouldHave(text("This report contains data for 1 application, evaluated over the "
             + "past 3 months, aggregated and deduplicated over the source, build, stage release, release, and operate "
             + "stages."));

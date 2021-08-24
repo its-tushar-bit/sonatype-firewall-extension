@@ -135,3 +135,12 @@ $iq-chart-horizontal-bar-min-width: 490px;
   vertical-align: middle;
   width: 60px;
 }
+
+.iq-chart--horizontal-bar .iq-chart__container {
+  background-color: #fefefe;
+  box-sizing: border-box;
+  display: inline-block;
+  vertical-align: top;
+  width: calc(60% - 8px);
+  max-width: calc(100% - 506px);
+}

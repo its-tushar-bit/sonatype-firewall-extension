@@ -12,7 +12,7 @@ import com.sonatype.clm.testing.functional.pages.AddSuccessMetricsModal;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.MttrTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Header;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ViolationAveragesTile;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -73,8 +73,8 @@ public class SuccessMetricsIncludeLatestDataTest
         .shouldHave(AddSuccessMetricsModal.ON_LOAD_WARNING_TEXT);
     addSuccessMetricsModal.createBtn().click();
 
-    successMetricsReportListPage.successMetricsChartActionItems().elements().shouldHaveSize(1);
-    successMetricsReportListPage.successMetricsChartActionItems().element(0).shouldHave(text("Test Latest Data"))
+    successMetricsReportListPage.reports().shouldHaveSize(1);
+    successMetricsReportListPage.report(0).shouldHave(text("Test Latest Data")).link()
         .click();
 
     successMetricsChartsPage.shouldBe(visible);
@@ -86,9 +86,9 @@ public class SuccessMetricsIncludeLatestDataTest
     // With latest data flag the new violation should appear immediately.
     refresh();
     successMetricsChartsPage.noDataInfoPane().shouldBe(hidden);
-    SummaryStatementTile.months().shouldBe(visible).shouldHave(text("1 month"));
-    ViolationAveragesTile.averageEvaluations().shouldHave(text("1"));
-    ViolationAveragesTile.averagePolicyViolations().shouldHave(text("1"));
+    Header.description().shouldBe(visible).shouldHave(text("1 month"));
+    ViolationAveragesTile.averages().shouldHave(text("Lifecycle performed an average of 1"));
+    ViolationAveragesTile.averages().shouldHave(text("1 policy violations"));
     MttrTile.root().shouldBe(visible);
   }
 }

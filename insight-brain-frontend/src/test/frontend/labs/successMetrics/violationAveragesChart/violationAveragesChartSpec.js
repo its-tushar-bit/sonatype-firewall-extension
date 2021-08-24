@@ -3,87 +3,68 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-/* global describe, beforeEach, it, expect, inject */
-import { Component } from 'plottable';
-import successMetricsModule from '../../../../../main/frontend/labs/successMetrics/module';
-import legacyConfigurationModule from '../../../../../main/frontend/LegacyConfigurationModule';
+import ViolationAveragesChart from '../../../../../main/frontend/labs/successMetrics/successMetricsReport/violationAveragesChart/ViolationAveragesChart';
+import { getShallowComponent } from '../../../enzymeUtils';
 
-describe('violation-averages-chart component', function () {
-  beforeEach(angular.mock.module(successMetricsModule.name, legacyConfigurationModule.name));
+describe('violationAveragesChart', () => {
+  let averages, isSingleApplicationReport, activeApplicationCount, monthCount, component;
 
-  var getVm;
-
-  beforeEach(inject(function ($componentController) {
-    getVm = function (averagesData) {
-      return $componentController('violationAveragesChart', null, {
-        averagesData: averagesData,
-      });
-    };
-  }));
-
-  it('sets the numeric values from the averagesData', function () {
-    var averagesData = {
-        securityViolations: {
-          averageDiscovered: 5,
-          averageDiscoveredCritical: 0,
-        },
-        licenseViolations: {
-          averageDiscovered: 7,
-          averageDiscoveredCritical: 1,
-        },
-        qualityViolations: {
-          averageDiscovered: 15,
-          averageDiscoveredCritical: 0,
-        },
-        otherViolations: {
-          averageDiscovered: 2,
-          averageDiscoveredCritical: 2,
-        },
-        totalViolations: {
-          averageDiscovered: 29,
-          averageDiscoveredCritical: 3,
-        },
+  beforeEach(() => {
+    isSingleApplicationReport = false;
+    activeApplicationCount = 7;
+    monthCount = 3;
+    averages = {
+      evaluationCount: 3,
+      securityViolations: {
+        averageDiscovered: 1,
+        averageDiscoveredCritical: 1,
       },
-      vm = getVm(averagesData);
+      licenseViolations: {
+        averageDiscovered: 12,
+        averageDiscoveredCritical: 8,
+      },
+      qualityViolations: {
+        averageDiscovered: 6,
+        averageDiscoveredCritical: 2,
+      },
+      otherViolations: {
+        averageDiscovered: 12,
+        averageDiscoveredCritical: 11,
+      },
+      totalViolations: {
+        averageDiscovered: 31,
+        averageDiscoveredCritical: 22,
+      },
+    };
 
-    expect(vm.averageDiscoveredSecurity).toEqual(5);
-    expect(vm.averageDiscoveredLicense).toEqual(7);
-    expect(vm.averageDiscoveredQuality).toEqual(15);
-    expect(vm.averageDiscoveredOther).toEqual(2);
-    expect(vm.averageDiscoveredTotal).toEqual(29);
-
-    expect(vm.averageDiscoveredSecurityCritical).toEqual(0);
-    expect(vm.averageDiscoveredLicenseCritical).toEqual(1);
-    expect(vm.averageDiscoveredQualityCritical).toEqual(0);
-    expect(vm.averageDiscoveredOtherCritical).toEqual(2);
-    expect(vm.averageDiscoveredTotalCritical).toEqual(3);
+    const getShallow = getShallowComponent(ViolationAveragesChart, {
+      averages,
+      isSingleApplicationReport,
+      activeApplicationCount,
+      monthCount,
+    });
+    component = getShallow();
   });
 
-  it('sets vm.chart to a Plottable component', function () {
-    var averagesData = {
-        securityViolations: {
-          averageDiscovered: 5,
-          averageDiscoveredCritical: 0,
-        },
-        licenseViolations: {
-          averageDiscovered: 0,
-          averageDiscoveredCritical: 7,
-        },
-        qualityViolations: {
-          averageDiscovered: 15,
-          averageDiscoveredCritical: 0,
-        },
-        otherViolations: {
-          averageDiscovered: 2,
-          averageDiscoveredCritical: 2,
-        },
-        totalViolations: {
-          averageDiscovered: 22,
-          averageDiscoveredCritical: 9,
-        },
-      },
-      vm = getVm(averagesData);
+  it('renders description', () => {
+    const averageEvaluationsRounded = Math.round(averages.evaluationCount);
+    const averageDiscoveredTotal = averages.totalViolations.averageDiscovered;
+    const averageDiscoveredTotalCritical = averages.totalViolations.averageDiscoveredCritical;
 
-    expect(vm.chart instanceof Component).toBe(true);
+    const description = component.find('.nx-tile-header__subtitle');
+    expect(description).toHaveText(
+      `Lifecycle performed an average of ${averageEvaluationsRounded} evaluation${
+        averageEvaluationsRounded === 1 ? '' : 's'
+      } per month on ${activeApplicationCount} application${
+        isSingleApplicationReport ? '' : 's'
+      } over the past ${monthCount} ${
+        monthCount === 1 ? 'month' : 'months'
+      }. Lifecycle found an average of ${averageDiscoveredTotal.toFixed(0)} policy violations${
+        isSingleApplicationReport ? ',' : ' per application,'
+      } ${averageDiscoveredTotalCritical.toFixed(0)} of which were critical.`
+    );
+  });
+  it('renders chart container', () => {
+    expect(component.find('#violation-averages-chart')).toExist();
   });
 });

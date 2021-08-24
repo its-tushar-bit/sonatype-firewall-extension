@@ -13,7 +13,7 @@ import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.ApplicationCountsTile;
-import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.SummaryStatementTile;
+import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.Header;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsReportListPage;
 import com.sonatype.clm.testing.functional.pages.SuccessMetricsConfigurationPage;
 import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
@@ -106,15 +106,14 @@ public class SuccessMetricsConfigurationTest
     // ... the success metrics list page,
     refreshOrOpen(SuccessMetricsReportListPage.url());
     waitUntilUrl(SuccessMetricsReportListPage.url());
-    successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(0);
+    successMetricsPage.reports().shouldHaveSize(0);
     successMetricsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
-    successMetricsPage.errorBox().retryButton().shouldBe(hidden);
     successMetricsPage.addSuccessMetricsBtn().shouldBe(hidden);
 
     // ... and the success metrics details page for root org
     refreshOrOpen(successMetricsChartsPageUrl);
     waitUntilUrl(successMetricsChartsPageUrl);
-    SummaryStatementTile.root().shouldNot(exist);
+    Header.root().shouldNot(exist);
     ApplicationCountsTile.root().shouldNot(exist);
     successMetricsChartsPage.errorBox().shouldBe(visible).shouldHave(text(SUCCESS_METRICS_DISABLED_TEXT));
     successMetricsChartsPage.errorBox().retryButton().shouldBe(hidden);
@@ -133,8 +132,8 @@ public class SuccessMetricsConfigurationTest
 
     // ... the success metrics list page,
     successMetricsPage.errorBox().shouldBe(hidden);
-    successMetricsPage.successMetricsChartActionItems().elements().shouldHaveSize(1);
-    successMetricsPage.successMetricsChartActionItems().element(0).click();
+    successMetricsPage.reports().shouldHaveSize(1);
+    successMetricsPage.report(0).link().click();
 
     // ... and the success metrics details page for root org
     waitUntilUrl(successMetricsChartsPageUrl);

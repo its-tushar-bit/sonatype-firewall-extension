@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.ErrorBox;
-import com.sonatype.clm.testing.functional.elements.IqBackButton;
 import com.sonatype.clm.testing.functional.elements.ViolationTrendPlot;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.sonatype.clm.testing.functional.utils.SelectorUtils;
@@ -53,12 +52,12 @@ public class SuccessMetricsReportPage
   }
 
   public SuccessMetricsReportPage shouldBeFullyLoaded() {
-    SummaryStatementTile.title().should(exist);
+    Header.title().should(exist);
     ViolationTrendTile.title().should(exist);
     ViolationsByCategoryTile.title().should(exist);
     ViolationAveragesTile.title().should(exist);
     MttrTile.chart().should(exist);
-    ApplicationCountsTile.activeApplicationsCount().should(exist);
+    ApplicationCountsTile.description().should(exist);
     ComponentCountsTile.averages().should(exist);
 
     // attempt to stabilize the applitools tests for this page by giving it a chance to adjust chart sizes after the
@@ -68,12 +67,12 @@ public class SuccessMetricsReportPage
     return this;
   }
 
-  public IqBackButton backButton() {
-    return new IqBackButton(ROOT_SELECTOR);
+  public SelenideElement backButton() {
+    return child(".nx-back-button a");
   }
 
   public ErrorBox errorBox() {
-    return new ErrorBox(childSelector(".iq-alert.iq-alert--error"));
+    return new ErrorBox(childSelector(".nx-alert.nx-alert--error"));
   }
 
   public SelenideElement noDataInfoPane() {
@@ -81,7 +80,7 @@ public class SuccessMetricsReportPage
   }
 
   public SelenideElement deleteBtn() {
-    return child("#delete-success-metrics-report");
+    return child("#delete-report-button");
   }
 
   public static String url(String successMetricsId) {
@@ -92,65 +91,37 @@ public class SuccessMetricsReportPage
     return Condition.text("You are about to delete " + successMetricsName + ". This action cannot be undone.");
   }
 
-  public static class SummaryStatementTile
+  public static class Header
   {
-    private static final String ROOT = "summary-statement-tile";
+    private static final String ROOT = "#success-metrics-header";
 
     public static SelenideElement root() {
       return $(ROOT);
     }
 
     public static SelenideElement title() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-tile-header--chart"));
+      return $(SelectorUtils.createSelector(ROOT, ".nx-h1"));
     }
 
-    public static SelenideElement averages() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
-    }
-
-    public static SelenideElement activeApplicationsCount() {
-      return $("#active-applications-count");
-    }
-
-    public static SelenideElement averageEvaluations() {
-      return $("#average-evaluations");
-    }
-
-    public static SelenideElement averagePolicyViolations() {
-      return $("#average-policy-violations");
-    }
-
-    public static SelenideElement averageCriticalPolicyViolations() {
-      return $("#average-critical-policy-violations");
-    }
-
-    public static SelenideElement months() {
-      return $(SelectorUtils.createSelector(ROOT, "#success-metrics-summary-months"));
+    public static SelenideElement description() {
+      return $(SelectorUtils.createSelector(ROOT, ".nx-page-title__description"));
     }
   }
 
   public static class ViolationAveragesTile
   {
-    private static final String ROOT = "violation-averages-chart";
+    private static final String ROOT = "#violation-averages-chart";
 
     public static SelenideElement root() {
       return $(ROOT);
     }
 
     public static SelenideElement title() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart-title"));
+      return $(SelectorUtils.createSelector(ROOT, ".nx-tile-header__title .nx-h2"));
     }
 
     public static SelenideElement averages() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
-    }
-
-    public static SelenideElement averageEvaluations() {
-      return $("#average-evaluations");
-    }
-
-    public static SelenideElement averagePolicyViolations() {
-      return $("#average-policy-violations");
+      return $(SelectorUtils.createSelector(ROOT, ".nx-tile-header__subtitle"));
     }
 
     public static SelenideElement averageCriticalPolicyViolations() {
@@ -160,18 +131,14 @@ public class SuccessMetricsReportPage
 
   public static class ApplicationCountsTile
   {
-    private static final String ROOT = "application-counts-chart";
+    private static final String ROOT = "#application-counts-chart";
 
     public static SelenideElement root() {
       return $(ROOT);
     }
 
-    public static SelenideElement activeApplicationsCount() {
-      return $("#application-counts-num-active");
-    }
-
-    public static SelenideElement totalViolatingApplicationsCount() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages", "#num-violating-total"));
+    public static SelenideElement description() {
+      return $(SelectorUtils.createSelector(ROOT, ".nx-tile-header__subtitle"));
     }
 
     public static SelenideElement securityViolatingApplicationsCount() {
@@ -192,10 +159,6 @@ public class SuccessMetricsReportPage
     public static SelenideElement otherViolatingApplicationsCount() {
       return $(SelectorUtils.createSelector(ROOT, ".iq-chart__bar-label:nth-child(4)", "span:first-child",
           ".iq-chart__highlight"));
-    }
-
-    public static SelenideElement totalCriticalViolatingApplicationsCount() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages", "#num-violating-critical"));
     }
 
     public static SelenideElement securityCriticalViolatingApplicationsCount() {
@@ -221,39 +184,40 @@ public class SuccessMetricsReportPage
 
   public static class MttrTile
   {
-    private static final String ROOT = "mttr-chart";
+    private static final String ROOT = "#mttr-chart";
 
     public static SelenideElement root() {
       return $(ROOT);
     }
 
     public static SelenideElement chart() {
-      return $(SelectorUtils.createSelector(ROOT, "iq-render-plottable"));
+      return $(SelectorUtils.createSelector(ROOT, "#mttr-chart-container"));
     }
     
     public static ElementsCollection mttrPoints() {
-      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".scatter-plot", "path"));
+      return $$(SelectorUtils.createSelector(ROOT, "#mttr-chart-container", ".scatter-plot", "path"));
     }
 
     public static ElementsCollection mttrLines() {
-      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".line-plot", "path"));
+      return $$(SelectorUtils.createSelector(ROOT, "#mttr-chart-container", ".line-plot", "path"));
     }
 
     public static ElementsCollection mttrXAxisLabels() {
-      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".x-axis", ".tick-label-container", "text"));
+      return $$(SelectorUtils.createSelector(ROOT, "#mttr-chart-container", ".x-axis", 
+      ".tick-label-container", "text"));
     }
   }
 
   public static class ComponentCountsTile
   {
-    private static final String ROOT = "component-counts-chart";
+    private static final String ROOT = "#component-counts-chart";
 
     public static SelenideElement root() {
       return $(ROOT);
     }
 
     public static SelenideElement averages() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
+      return $(SelectorUtils.createSelector(ROOT, ".nx-tile-header__subtitle"));
     }
 
     public static ElementsCollection componentsInMostApplications() {
@@ -267,40 +231,41 @@ public class SuccessMetricsReportPage
 
   public static class ViolationsByCategoryTile
   {
-    private static final String ROOT = "violations-by-category-chart";
+    private static final String ROOT = "#violations-by-category-chart";
 
     public static SelenideElement root() {
       return $(ROOT);
     }
 
     public static SelenideElement title() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart-title"));
+      return $(SelectorUtils.createSelector(ROOT, ".nx-tile-header__title .nx-h2"));
     }
 
     public static SelenideElement description() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
+      return $(SelectorUtils.createSelector(ROOT, ".nx-tile-header__subtitle"));
     }
 
     public static SelenideElement chart() {
-      return $(SelectorUtils.createSelector(ROOT, "iq-render-plottable"));
+      return $(SelectorUtils.createSelector(ROOT, "#bycategory-chart-container"));
     }
 
     public static ElementsCollection points() {
-      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".scatter-plot", "path"));
+      return $$(SelectorUtils.createSelector(ROOT, "#bycategory-chart-container", ".scatter-plot", "path"));
     }
 
     public static ElementsCollection lines() {
-      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".line-plot", "path"));
+      return $$(SelectorUtils.createSelector(ROOT, "#bycategory-chart-container", ".line-plot", "path"));
     }
 
     public static ElementsCollection xAxisLabels() {
-      return $$(SelectorUtils.createSelector(ROOT, "iq-render-plottable", ".x-axis", ".tick-label-container", "text"));
+      return $$(SelectorUtils.createSelector(ROOT, "#bycategory-chart-container", 
+      ".x-axis", ".tick-label-container", "text"));
     }
   }
 
   public static class ViolationTrendTile
   {
-    private static final String ROOT = "violation-trends-chart";
+    private static final String ROOT = "#violation-trends-chart";
 
     public static final String HEIGHT_ATTR = "height";
 
@@ -347,11 +312,11 @@ public class SuccessMetricsReportPage
     }
 
     public static SelenideElement title() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart-title"));
+      return $(SelectorUtils.createSelector(ROOT, ".nx-tile-header__title .nx-h2"));
     }
 
     public static SelenideElement description() {
-      return $(SelectorUtils.createSelector(ROOT, ".iq-chart__averages"));
+      return $(SelectorUtils.createSelector(ROOT, ".nx-tile-header__subtitle"));
     }
 
     public static ViolationTrendPlot allViolationsPlot() {

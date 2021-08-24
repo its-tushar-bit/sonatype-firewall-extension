@@ -96,3 +96,12 @@
 #policy-violation-close-btn {
   font-size: var(--nx-font-size-heading-2);
 }
+
+#component-details-policy-violations-popover {
+  .iq-popover__content {
+    .nx-tile-header,
+    .nx-tile-content {
+      padding-left: 0px;
+    }
+  }
+}

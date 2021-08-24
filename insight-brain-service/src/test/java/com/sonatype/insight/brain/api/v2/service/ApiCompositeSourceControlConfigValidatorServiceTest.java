@@ -47,8 +47,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
   @Test
   public void testValidateSourceControlConfig_ValidApplication() throws Exception {
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
     when(pullRequestRepositoryValidator.isPrivateRepository(any())).thenReturn(true);
@@ -79,8 +78,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
   @Test
   public void testValidateSourceControlConfig_privateRepo() throws IOException {
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
     when(pullRequestRepositoryValidator.isPrivateRepository(any())).thenReturn(true);
@@ -98,8 +96,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
   @Test
   public void testValidateSourceControlConfig_publicRepo() throws IOException {
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo(null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
     when(pullRequestRepositoryValidator.isPrivateRepository(any())).thenReturn(false);
@@ -119,8 +116,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
   @Test
   public void testValidateSourceControlConfig_privateRepoUncheckedException() throws Exception {
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo("*/target");
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
     when(pullRequestRepositoryValidator.isPrivateRepository(any()))
@@ -142,8 +138,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
   @Test
   public void testValidateSourceControlConfig_invalidPermissions() throws Exception {
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo("*/target");
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
     when(pullRequestRepositoryValidator.isPrivateRepository(any())).thenReturn(true);
@@ -158,5 +153,10 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
     assertThat(result.getRepoPrivate().isValid()).isTrue();
     assertThat(result.getTokenPermissions().isValid()).isFalse();
     assertThat(result.getTokenPermissions().getMessage()).isEqualTo("Invalid permissions");
+  }
+
+  private GitRepositoryInfo getGitRepositoryInfo(String scanTarget) {
+    return new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true, true, true,
+        scanTarget);
   }
 }

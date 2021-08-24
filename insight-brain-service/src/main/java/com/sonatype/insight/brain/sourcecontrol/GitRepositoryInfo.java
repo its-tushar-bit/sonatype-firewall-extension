@@ -16,16 +16,22 @@ public class GitRepositoryInfo
                            final String token,
                            final SourceControlProvider provider,
                            final String baseBranch,
-                           final Boolean enablePullRequests,
-                           final Boolean enableStatusChecks)
+                           final Boolean remediationPullRequestsEnabled,
+                           final Boolean statusChecksEnabled,
+                           final Boolean pullRequestCommentingEnabled,
+                           final Boolean sourceControlScansEnabled,
+                           final String sourceControlScanTarget)
   {
     this.repositoryUrl = repositoryUrl;
     this.username = username;
     this.token = token;
-    this.baseBranch = baseBranch;
-    this.enablePullRequests = enablePullRequests;
-    this.enableStatusChecks = enableStatusChecks;
     this.provider = provider;
+    this.baseBranch = baseBranch;
+    this.remediationPullRequestsEnabled = remediationPullRequestsEnabled;
+    this.statusChecksEnabled = statusChecksEnabled;
+    this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
+    this.sourceControlScansEnabled = sourceControlScansEnabled;
+    this.sourceControlScanTarget = sourceControlScanTarget;
   }
 
   public String repositoryUrl;
@@ -34,13 +40,19 @@ public class GitRepositoryInfo
 
   public String token;
 
+  public SourceControlProvider provider;
+
   public String baseBranch;
 
-  public Boolean enablePullRequests;
+  public Boolean remediationPullRequestsEnabled;
 
-  public Boolean enableStatusChecks;
+  public Boolean statusChecksEnabled;
 
-  public SourceControlProvider provider;
+  public Boolean pullRequestCommentingEnabled;
+
+  public Boolean sourceControlScansEnabled;
+
+  public String sourceControlScanTarget;
 
   public String getRepositoryUrl() {
     return repositoryUrl;
@@ -54,20 +66,32 @@ public class GitRepositoryInfo
     return token;
   }
 
+  public SourceControlProvider getProvider() {
+    return provider;
+  }
+
   public String getBaseBranch() {
     return baseBranch;
   }
 
-  public Boolean getEnablePullRequests() {
-    return enablePullRequests;
+  public Boolean getRemediationPullRequestsEnabled() {
+    return remediationPullRequestsEnabled;
   }
 
-  public Boolean getEnableStatusChecks() {
-    return enableStatusChecks;
+  public Boolean getStatusChecksEnabled() {
+    return statusChecksEnabled;
   }
 
-  public SourceControlProvider getProvider() {
-    return provider;
+  public Boolean getPullRequestCommentingEnabled() {
+    return pullRequestCommentingEnabled;
+  }
+
+  public Boolean getSourceControlScansEnabled() {
+    return sourceControlScansEnabled;
+  }
+
+  public String getSourceControlScanTarget() {
+    return sourceControlScanTarget;
   }
 
   public boolean isDataComplete() {
@@ -75,7 +99,10 @@ public class GitRepositoryInfo
         || StringUtils.isBlank(repositoryUrl)
         || StringUtils.isBlank(token)
         || (provider.requiresUsername() && StringUtils.isBlank(username))
-        || enablePullRequests == null
-        || enableStatusChecks == null);
+        || remediationPullRequestsEnabled == null
+        || statusChecksEnabled == null
+        || pullRequestCommentingEnabled == null
+        || sourceControlScansEnabled == null
+        || sourceControlScanTarget == null);
   }
 }

@@ -76,39 +76,37 @@ public class SourceControlUtilsTest
   }
 
   @Test
-  public void testGetGitRepositoryInfoForApplication_ProviderAndTokenFromApplication() {
+  public void testGetGitRepositoryInfoForApplication_repositoryValuesDefinedInApplication() {
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getParentOwnerId())
         .setRepositoryUrl(VALID_URL)
         .setToken(TOKEN)
         .setProvider(SourceControlProvider.GITHUB)
         .setBaseBranch("base-branch")
-        .setRemediationPullRequestsEnabled(true)
-        .setStatusChecksEnabled(true)
+        .setRemediationPullRequestsEnabled(false)
+        .setStatusChecksEnabled(false)
+        .setPullRequestCommentingEnabled(true)
+        .setSourceControlScansEnabled(true)
+        .setSourceControlScanTarget("/target/*")
         .build();
 
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
 
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
 
-    assertThat(value).isNotNull();
-    assertThat(value.token).isEqualTo(TOKEN);
-    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
     verify(mockSourceControlService, never()).getSourceControlByOwnerDecrypted(application.getOrganizationId());
     verify(mockSourceControlService, never()).getSourceControlByOwnerDecrypted(Organization.ROOT_ORGANIZATION_ID);
-
-    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
+    assertGitRepositoryInfoValues(value);
   }
 
   @Test
-  public void testGetGitRepositoryInfoForApplication_ProviderAndTokenFromOrganization() {
+  public void testGetGitRepositoryInfoForApplication_inheritRepositoryValuesFromFromOrganization() {
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getId())
         .setRepositoryUrl(VALID_URL)
-        .setRemediationPullRequestsEnabled(true)
-        .setStatusChecksEnabled(true)
-        .setBaseBranch("base-branch")
+        .setRemediationPullRequestsEnabled(false)
+        .setStatusChecksEnabled(false)
         .build();
 
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId()))).thenReturn(sourceControl);
@@ -116,8 +114,14 @@ public class SourceControlUtilsTest
     SourceControl orgSourceControl = new SourceControl.Builder()
         .setOwnerId(org.getId())
         .setRepositoryUrl(null)
+        .setBaseBranch("base-branch")
         .setToken(TOKEN)
         .setProvider(SourceControlProvider.GITHUB)
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
+        .setPullRequestCommentingEnabled(true)
+        .setSourceControlScansEnabled(true)
+        .setSourceControlScanTarget("/target/*")
         .build();
 
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getOrganizationId())))
@@ -125,26 +129,21 @@ public class SourceControlUtilsTest
 
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
 
-    assertThat(value).isNotNull();
-    assertThat(value.token).isEqualTo(TOKEN);
-    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getOrganizationId());
     verify(mockSourceControlService, never()).getSourceControlByOwnerDecrypted(org.getParentOrganizationId());
-
-    assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
+    assertGitRepositoryInfoValues(value);
   }
 
   @Test
-  public void testGetGitRepositoryInfoForApplication_ProviderAndTokenFromRootOrganization() {
+  public void testGetGitRepositoryInfoForApplication_inheritRepositoryValuesFromRootOrganization() {
     SourceControl sourceControl = new SourceControl.Builder()
         .setOwnerId(application.getId())
         .setRepositoryUrl(VALID_URL)
         .setToken(null)
         .setProvider(null)
-        .setRemediationPullRequestsEnabled(true)
-        .setStatusChecksEnabled(true)
-        .setBaseBranch("base-branch")
+        .setRemediationPullRequestsEnabled(false)
+        .setStatusChecksEnabled(false)
         .build();
 
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(application.getId())))
@@ -157,6 +156,12 @@ public class SourceControlUtilsTest
         .setOwnerId(org.getParentOrganizationId())
         .setToken(TOKEN)
         .setProvider(SourceControlProvider.GITHUB)
+        .setBaseBranch("base-branch")
+        .setRemediationPullRequestsEnabled(true)
+        .setStatusChecksEnabled(true)
+        .setPullRequestCommentingEnabled(true)
+        .setSourceControlScansEnabled(true)
+        .setSourceControlScanTarget("/target/*")
         .build();
 
     when(mockSourceControlService.getSourceControlByOwnerDecrypted(eq(Organization.ROOT_ORGANIZATION_ID)))
@@ -164,10 +169,23 @@ public class SourceControlUtilsTest
 
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
 
-    assertThat(value.token).isEqualTo(TOKEN);
-    assertThat(value.provider).isEqualTo(SourceControlProvider.GITHUB);
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(application.getId());
     verify(mockSourceControlService).getSourceControlByOwnerDecrypted(org.getParentOrganizationId());
+    assertGitRepositoryInfoValues(value);
+  }
+
+  private void assertGitRepositoryInfoValues(GitRepositoryInfo gitRepositoryInfo) {
+    assertThat(gitRepositoryInfo).isNotNull();
+    // values from application
+    assertThat(gitRepositoryInfo.remediationPullRequestsEnabled).isFalse();
+    assertThat(gitRepositoryInfo.statusChecksEnabled).isFalse();
+    // values inherited from organization/root organization if applicable
+    assertThat(gitRepositoryInfo.token).isEqualTo(TOKEN);
+    assertThat(gitRepositoryInfo.provider).isEqualTo(SourceControlProvider.GITHUB);
+    assertThat(gitRepositoryInfo.pullRequestCommentingEnabled).isTrue();
+    assertThat(gitRepositoryInfo.sourceControlScansEnabled).isTrue();
+    assertThat(gitRepositoryInfo.sourceControlScanTarget).isEqualTo("/target/*");
+    assertThat(gitRepositoryInfo.baseBranch).isEqualTo("base-branch");
 
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
   }
@@ -311,19 +329,19 @@ public class SourceControlUtilsTest
     // BB cloud
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.org/organization/project", "user", TOKEN, BITBUCKET,
-            "base-branch", true, true);
+            "base-branch", true, true, true, true, null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isTrue();
 
     // BB server
     gitRepositoryInfo =
         new GitRepositoryInfo("https://my.domain.com/organization/project", "user", TOKEN, BITBUCKET,
-            "base-branch", true, true);
+            "base-branch", true, true, true, true, null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
 
     // Not BB
     gitRepositoryInfo =
         new GitRepositoryInfo("https://my.domain.com/organization/project", "user", TOKEN, GITHUB,
-            "base-branch", true, true);
+            "base-branch", true, true, true, true, null);
     assertThat(sourceControlUtils.isBitbucketCloud(gitRepositoryInfo)).isFalse();
   }
 

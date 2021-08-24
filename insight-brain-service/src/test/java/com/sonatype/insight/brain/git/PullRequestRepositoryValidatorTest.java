@@ -64,7 +64,7 @@ public class PullRequestRepositoryValidatorTest
     String repoUrl = String.format(TEST_REPO_URL, GITHUB_COM);
 
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoUrl, GITHUB);
-    gitRepositoryInfo.enablePullRequests = false;
+    gitRepositoryInfo.remediationPullRequestsEnabled = false;
 
     assertThat(
         pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
@@ -189,10 +189,13 @@ public class PullRequestRepositoryValidatorTest
   }
 
   private GitRepositoryInfo newGitRepositoryInfo(final String repoUrl, final SourceControlProvider provider) {
-    boolean enablePullRequests = true;
-    boolean enableStatusChecks = true;
+    boolean remediationPullRequestEnabled = true;
+    boolean statusChecksEnabled = true;
+    boolean pullRequestCommentingEnabled = true;
+    boolean sourceControlScansEnabled = true;
+    String sourceControlScanTarget = null;
     String username = provider.requiresUsername() ? "username" : null;
-    return new GitRepositoryInfo(repoUrl, username, "token", provider, "baseBranch", enablePullRequests,
-        enableStatusChecks);
+    return new GitRepositoryInfo(repoUrl, username, "token", provider, "baseBranch", remediationPullRequestEnabled,
+        statusChecksEnabled, pullRequestCommentingEnabled, sourceControlScansEnabled, sourceControlScanTarget);
   }
 }

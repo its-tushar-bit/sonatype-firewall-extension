@@ -18,7 +18,7 @@ import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
-import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
+import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
@@ -60,7 +60,7 @@ public class PolicyAlertScmNotifierTest
   private static final String NAME = "reponame";
 
   @Mock
-  private PullRequestFeatureCheck pullRequestFeatureCheck;
+  private RemediationPullRequestFeatureCheck remediationPullRequestFeatureCheck;
 
   @Mock
   private PullRequestCommentingRemediationService mockPullRequestCommentingRemediationService;
@@ -90,7 +90,7 @@ public class PolicyAlertScmNotifierTest
   @Before
   public void setup() {
     scmNotifier =
-        new PolicyAlertScmNotifier(pullRequestFeatureCheck, mockPullRequestCommentingRemediationService,
+        new PolicyAlertScmNotifier(remediationPullRequestFeatureCheck, mockPullRequestCommentingRemediationService,
             new PolicyAlertSourceCodeOrganizer(), baseUrl, sourceControlUtils, mockPullRequestRemediationService,
             mockSourceControlEventPublisher);
     Organization organization = tempEntity.newOrganization();
@@ -104,7 +104,8 @@ public class PolicyAlertScmNotifierTest
         .thenReturn(gitRepositoryInfo);
 
     // and feature is disabled
-    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(application, gitRepositoryInfo)).thenReturn(false);
+    when(remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(application, gitRepositoryInfo))
+        .thenReturn(false);
 
     // when we send notifications
     scmNotifier.sendNotifications(application, "scanId", new Stage("build"), buildPolicyNotifications());
@@ -134,7 +135,8 @@ public class PolicyAlertScmNotifierTest
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId())).thenReturn(gitRepositoryInfo);
 
     // and feature is enabled
-    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(application, gitRepositoryInfo)).thenReturn(true);
+    when(remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(application, gitRepositoryInfo))
+        .thenReturn(true);
 
     // and a component with an unsupported format
     ComponentIdentifier componentWithUnsupportedFormat = ComponentIdentifier.createNugetCoordinates("foo", "1.2.3");
@@ -160,7 +162,7 @@ public class PolicyAlertScmNotifierTest
         .thenReturn(gitRepositoryInfo);
 
     // and feature is enabled
-    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
+    when(remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
         application, gitRepositoryInfo)).thenReturn(true);
 
     // and there are no suggested remediations
@@ -186,12 +188,12 @@ public class PolicyAlertScmNotifierTest
   public void test_remediationEventForBranchAlreadyExists() throws Exception {
     // given we have repository info for an application
     GitRepositoryInfo githubRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true, true, true, null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(githubRepositoryInfo);
 
     // and feature is enabled
-    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
+    when(remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
         application, githubRepositoryInfo)).thenReturn(true);
 
     // and there are suggested remediations
@@ -225,12 +227,12 @@ public class PolicyAlertScmNotifierTest
   public void test_pullRequestEventCreated() throws Exception {
     // given we have repository info for an application
     GitRepositoryInfo githubRepositoryInfo =
-        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true, true, true, null);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(application.getId()))
         .thenReturn(githubRepositoryInfo);
 
     // and feature is enabled
-    when(pullRequestFeatureCheck.isPullRequestFeatureSupported(
+    when(remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
         application, githubRepositoryInfo)).thenReturn(true);
 
     // and there are suggested remediations

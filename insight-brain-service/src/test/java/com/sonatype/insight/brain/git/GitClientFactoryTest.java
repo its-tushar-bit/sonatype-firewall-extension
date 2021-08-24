@@ -20,7 +20,8 @@ public class GitClientFactoryTest
   @Override
   protected void pingUrl(String url) throws Exception {
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(url + "org/project", null, "token", SourceControlProvider.GITHUB, "master", false, false);
+        new GitRepositoryInfo(url + "org/project", null, "token", SourceControlProvider.GITHUB, "master", false, false,
+            false, false, null);
     gitClientFactory.createApiClient(gitRepositoryInfo).isRepositoryPrivate();
   }
 }

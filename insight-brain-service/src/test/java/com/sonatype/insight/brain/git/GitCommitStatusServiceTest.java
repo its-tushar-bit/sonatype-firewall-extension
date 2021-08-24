@@ -470,15 +470,21 @@ public class GitCommitStatusServiceTest
 
     private String baseBranch = "master";
 
-    private boolean enablePullRequests = true;
+    private boolean remediationPullRequestsEnabled = true;
 
-    private boolean enableStatusChecks = true;
+    private boolean statusChecksEnabled = true;
 
     private boolean skipRepositoryInfo = false;
 
     private String statusMessage = "status message";
 
     private String baseUrl = "http://localhost:8070";
+
+    private boolean pullRequestCommentingEnabled = true;
+
+    private boolean sourceControlScansEnabled = true;
+
+    private String sourceControlScanTarget = null;
 
     private String expectedRequestState = SUCCESS_STATE;
 
@@ -525,7 +531,8 @@ public class GitCommitStatusServiceTest
       if (!skipRepositoryInfo) {
         String repositoryUrl = format("http://%s.com/%s/%s", null != provider ? provider.toString() : null, org, repo);
         gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, username, token, provider, baseBranch,
-            enablePullRequests, enableStatusChecks);
+            remediationPullRequestsEnabled, statusChecksEnabled, pullRequestCommentingEnabled,
+            sourceControlScansEnabled, sourceControlScanTarget);
         doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
       }
 

@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PullRequestFeatureCheckTest
+public class RemediationPullRequestFeatureCheckTest
 {
   private static final String PUBLIC_ID = "abc123";
 
@@ -46,9 +46,15 @@ public class PullRequestFeatureCheckTest
 
   private static final boolean DEFAULT_STATUS_CHECKS_ENABLED = true;
 
+  private static final boolean DEFAULT_PULL_REQUEST_COMMENTING_ENABLED = true;
+
+  private static final boolean DEFAULT_SOURCE_CONTROL_SCANS_ENABLED = true;
+
+  private static final String DEFAULT_SOURCE_CONTROL_SCAN_TARGET = null;
+
   private static final String REPO_URL = "repo-url";
 
-  private PullRequestFeatureCheck pullRequestFeatureCheck;
+  private RemediationPullRequestFeatureCheck remediationPullRequestFeatureCheck;
 
   @Mock
   private IqForScmLicenseChecker licenseChecker;
@@ -57,19 +63,19 @@ public class PullRequestFeatureCheckTest
   private PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Rule
-  public LogOutput logOutput = new LogOutput(PullRequestFeatureCheck.class);
+  public LogOutput logOutput = new LogOutput(RemediationPullRequestFeatureCheck.class);
 
   @Before
   public void setup() {
-    pullRequestFeatureCheck =
-        new PullRequestFeatureCheck(licenseChecker, pullRequestRepositoryValidator);
+    remediationPullRequestFeatureCheck =
+        new RemediationPullRequestFeatureCheck(licenseChecker, pullRequestRepositoryValidator);
   }
 
   @Test
   public void testLicenseInvalid() {
     when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(false);
 
-    boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
+    boolean result = remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
         new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitHubRepositoryInfo());
 
     assertThat(result).isFalse();
@@ -90,19 +96,19 @@ public class PullRequestFeatureCheckTest
     logOutput.clear();
 
     gitRepositoryInfo.repositoryUrl = REPO_URL;
-    gitRepositoryInfo.enableStatusChecks = false;
-    gitRepositoryInfo.enablePullRequests = null;
+    gitRepositoryInfo.statusChecksEnabled = false;
+    gitRepositoryInfo.remediationPullRequestsEnabled = null;
     ensureAppNotConfigured(gitRepositoryInfo, null);
     assertThat(logOutput).atDebugLevel().contains("Pull Requests have been explicitly disabled");
     logOutput.clear();
 
-    gitRepositoryInfo.enableStatusChecks = true;
-    gitRepositoryInfo.enablePullRequests = null;
+    gitRepositoryInfo.statusChecksEnabled = true;
+    gitRepositoryInfo.remediationPullRequestsEnabled = null;
     ensureAppNotConfigured(gitRepositoryInfo, null);
     assertThat(logOutput).atDebugLevel().contains("Pull Requests have been explicitly disabled");
     logOutput.clear();
 
-    gitRepositoryInfo.enablePullRequests = true;
+    gitRepositoryInfo.remediationPullRequestsEnabled = true;
     gitRepositoryInfo.provider = null;
     ensureAppNotConfigured(gitRepositoryInfo, "Provider");
     logOutput.clear();
@@ -124,7 +130,7 @@ public class PullRequestFeatureCheckTest
     when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(true);
     when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(true);
 
-    boolean result = pullRequestFeatureCheck
+    boolean result = remediationPullRequestFeatureCheck
         .isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
 
     assertThat(result).isTrue();
@@ -146,7 +152,7 @@ public class PullRequestFeatureCheckTest
     when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(true);
 
     Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
-    boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
+    boolean result = remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
         app, gitRepositoryInfo);
 
     assertThat(result).isFalse();
@@ -173,7 +179,7 @@ public class PullRequestFeatureCheckTest
     app.setId(APP_ID);
 
     boolean result =
-        pullRequestFeatureCheck.isPullRequestFeatureSupported(
+        remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
             app, gitRepositoryInfo);
 
     assertThat(result).isFalse();
@@ -189,7 +195,7 @@ public class PullRequestFeatureCheckTest
     when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(true);
     when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(true);
 
-    boolean result = pullRequestFeatureCheck.isPullRequestFeatureSupported(
+    boolean result = remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
         new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
 
     assertThat(result).isTrue();
@@ -198,11 +204,15 @@ public class PullRequestFeatureCheckTest
 
   private GitRepositoryInfo newGitHubRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, null, TOKEN, SourceControlProvider.GITHUB,
-        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_STATUS_CHECKS_ENABLED);
+        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_STATUS_CHECKS_ENABLED,
+        DEFAULT_PULL_REQUEST_COMMENTING_ENABLED, DEFAULT_SOURCE_CONTROL_SCANS_ENABLED,
+        DEFAULT_SOURCE_CONTROL_SCAN_TARGET);
   }
 
   private GitRepositoryInfo newBitBucketRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, USERNAME, TOKEN, SourceControlProvider.BITBUCKET,
-        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_STATUS_CHECKS_ENABLED);
+        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_STATUS_CHECKS_ENABLED,
+        DEFAULT_PULL_REQUEST_COMMENTING_ENABLED, DEFAULT_SOURCE_CONTROL_SCANS_ENABLED,
+        DEFAULT_SOURCE_CONTROL_SCAN_TARGET);
   }
 }

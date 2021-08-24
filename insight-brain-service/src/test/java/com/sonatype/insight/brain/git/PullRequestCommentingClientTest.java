@@ -62,8 +62,7 @@ public class PullRequestCommentingClientTest
   public void createOrUpdateCommentInGitSCM_prCommentCreated() throws IOException {
     // given: PR related data without comment (Default test data)
     String applicationId = "app1";
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("repoUrl", "username", "token", SourceControlProvider.GITLAB, "baseBranch", true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
     PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
@@ -98,10 +97,9 @@ public class PullRequestCommentingClientTest
 
   @Test
   public void createOrUpdateCommentInGitSCM_updateCommentWithoutVersion() throws IOException {
-    // given: PR related data with comment created without versionç
+    // given: PR related data with comment created without version
     String applicationId = "app1";
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("repoUrl", "username", "token", SourceControlProvider.GITLAB, "baseBranch", true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
     PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
@@ -145,8 +143,7 @@ public class PullRequestCommentingClientTest
   public void createOrUpdateCommentInGitSCM_updateCommentWithVersion() throws IOException {
     // given: PR related data with comment created with version
     String applicationId = "app1";
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("repoUrl", "username", "token", SourceControlProvider.GITLAB, "baseBranch", true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
     PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
@@ -190,8 +187,7 @@ public class PullRequestCommentingClientTest
   public void createOrUpdateCommentInGitSCM_updateCommentGeneratesHTTPNotFoundException() throws IOException {
     // given: PR related data with comment created with version
     String applicationId = "app1";
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("repoUrl", "username", "token", SourceControlProvider.GITLAB, "baseBranch", true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
     PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
@@ -232,8 +228,7 @@ public class PullRequestCommentingClientTest
   public void createOrUpdateCommentInGitSCM_updateCommentGeneratesHTTPException() throws IOException {
     // given: PR related data with comment created with version
     String applicationId = "app1";
-    GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo("repoUrl", "username", "token", SourceControlProvider.GITLAB, "baseBranch", true, true);
+    GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfo();
     int pullRequestNumber = 1;
     String commentText = "Comment text";
     PullRequestCommentTelemetry prCommentTelemetry = new PullRequestCommentTelemetry("app1", 1);
@@ -287,5 +282,10 @@ public class PullRequestCommentingClientTest
 
   private void setupGitClientFactory() {
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitClientApi);
+  }
+
+  private GitRepositoryInfo getGitRepositoryInfo() {
+    return new GitRepositoryInfo("repoUrl", "username", "token", SourceControlProvider.GITLAB, "baseBranch", true, true,
+        true, true, null);
   }
 }

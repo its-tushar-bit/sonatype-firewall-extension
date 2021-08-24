@@ -722,15 +722,15 @@ public class PullRequestFeedbackDetailsTest
     //setup gitRepositoryInfo
     githubGitRepositoryInfo =
         new GitRepositoryInfo("https://github.com/sonatype/enhanced-commit-information", null, "token",
-            SourceControlProvider.GITHUB, "master", true, true);
+            SourceControlProvider.GITHUB, "master", true, true, true, true, null);
 
     gitlabGitRepositoryInfo =
         new GitRepositoryInfo("https://gitlab.com/sonatype/enhanced-commit-information", null, "token",
-            SourceControlProvider.GITLAB, "master", true, true);
+            SourceControlProvider.GITLAB, "master", true, true, true, true, null);
 
     bitbucketGitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", "user", "token",
-            SourceControlProvider.BITBUCKET, "master", true, true);
+            SourceControlProvider.BITBUCKET, "master", true, true, true, true, null);
 
     //setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(

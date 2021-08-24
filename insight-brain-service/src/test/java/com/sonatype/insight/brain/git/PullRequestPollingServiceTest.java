@@ -708,7 +708,7 @@ public class PullRequestPollingServiceTest
               currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null);
       currentMockRepo.sourceControl.setId(UUID.randomUUID().toString());
       currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, username, "token",
-          currentMockRepo.sourceControlProvider, defaultBranch, true, true);
+          currentMockRepo.sourceControlProvider, defaultBranch, true, true, true, true, null);
       return this;
     }
 

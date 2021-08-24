@@ -560,9 +560,15 @@ public class PullRequestCommentingEventHandlerTest
 
     private String baseBranch = "master";
 
-    private boolean enablePullRequests = true;
+    private boolean remediationPullRequestsEnabled = true;
 
-    private boolean enableStatusChecks = true;
+    private boolean statusChecksEnabled = true;
+
+    private boolean pullRequestCommentingEnabled = true;
+
+    private boolean sourceControlScansEnabled = true;
+
+    private String sourceControlScanTarget = null;
 
     private GitRepositoryInfo gitRepositoryInfo;
 
@@ -585,7 +591,8 @@ public class PullRequestCommentingEventHandlerTest
           .when(mockSourceControlUtils).isBitbucketCloud(any(GitRepositoryInfo.class));
 
       gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, username, token, provider, baseBranch,
-          enablePullRequests, enableStatusChecks);
+          remediationPullRequestsEnabled, statusChecksEnabled, pullRequestCommentingEnabled, sourceControlScansEnabled,
+          sourceControlScanTarget);
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 
       doReturn(null != pullRequestPolicyEvaluationsDTOs ? pullRequestPolicyEvaluationsDTOs : new ArrayList<>())

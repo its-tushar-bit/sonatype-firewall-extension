@@ -1175,13 +1175,17 @@ public class SourceControlDAOTest
     SourceControl rootSc = tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB);
     SourceControl expectedSourceControl = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null,
         null, null, null, null);
-    SourceControl scOrg = tempEntity.newSourceControl(app.getOrganizationId(), null, null, null, false,
-        false, "branchParentOrg");
+    SourceControl scOrg =
+        tempEntity.newSourceControl(app.getOrganizationId(), null, null, null, SourceControlProvider.GITLAB, false,
+            false, "branchParentOrg", null, true, true, "/target/*");
     // Adjust for values inherited from parents
     expectedSourceControl.setProvider(rootSc.getProvider());
     expectedSourceControl.setBaseBranch(scOrg.getBaseBranch());
     expectedSourceControl.setRemediationPullRequestsEnabled(scOrg.getRemediationPullRequestsEnabled());
     expectedSourceControl.setStatusChecksEnabled(scOrg.getStatusChecksEnabled());
+    expectedSourceControl.setPullRequestCommentingEnabled(true);
+    expectedSourceControl.setSourceControlScansEnabled(true);
+    expectedSourceControl.setSourceControlScanTarget("/target/*");
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
         "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST);
 
@@ -1200,8 +1204,8 @@ public class SourceControlDAOTest
     LocalDateTime now = LocalDateTime.now();
     Date scanTime = toDate(now.minusHours(INTERVAL_IN_HOURS + 1));
     SourceControl scRoot =
-        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITLAB, null,
-            null, "branchRootOrg");
+        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, SourceControlProvider.GITLAB, true,
+            true, "branchRootOrg", null, true, true, "/target/*");
     SourceControl expectedSourceControl = tempEntity.newSourceControl(app.getId(), "http://a.com/org/repo", null,
         null, null, null, null);
     // Adjust values inherited from parents
@@ -1209,6 +1213,9 @@ public class SourceControlDAOTest
     expectedSourceControl.setBaseBranch(scRoot.getBaseBranch());
     expectedSourceControl.setRemediationPullRequestsEnabled(scRoot.getRemediationPullRequestsEnabled());
     expectedSourceControl.setStatusChecksEnabled(scRoot.getStatusChecksEnabled());
+    expectedSourceControl.setPullRequestCommentingEnabled(true);
+    expectedSourceControl.setSourceControlScansEnabled(true);
+    expectedSourceControl.setSourceControlScanTarget("/target/*");
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.SOURCE.getId(), "scanId", false, false, false, scanTime,
         "commitHash123", ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING);
 

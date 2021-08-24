@@ -19,7 +19,7 @@ import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
-import com.sonatype.insight.brain.git.PullRequestFeatureCheck;
+import com.sonatype.insight.brain.git.RemediationPullRequestFeatureCheck;
 import com.sonatype.insight.brain.git.PullRequestRemediationService;
 import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
@@ -48,7 +48,7 @@ public class PolicyAlertScmNotifier
 
   private static final String POLICY_ALERT = "policy alert";
 
-  private final PullRequestFeatureCheck pullRequestFeatureCheck;
+  private final RemediationPullRequestFeatureCheck remediationPullRequestFeatureCheck;
 
   private final PullRequestCommentingRemediationService remediationService;
 
@@ -74,13 +74,13 @@ public class PolicyAlertScmNotifier
   /**
    * notifier for sending to hosted git source control manager service
    *
-   * @param pullRequestFeatureCheck        service to check if pull request feature is enabled
+   * @param remediationPullRequestFeatureCheck        service to check if pull request feature is enabled
    * @param remediationService             service to lookup suggested remediations
    * @param policyAlertSourceCodeOrganizer service to aggregate policy alerts
    */
   @Inject
   public PolicyAlertScmNotifier(
-      final PullRequestFeatureCheck pullRequestFeatureCheck,
+      final RemediationPullRequestFeatureCheck remediationPullRequestFeatureCheck,
       final PullRequestCommentingRemediationService remediationService,
       final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer,
       final BaseUrl baseUrl,
@@ -88,7 +88,7 @@ public class PolicyAlertScmNotifier
       final PullRequestRemediationService pullRequestRemediationService,
       final SourceControlEventPublisher sourceControlEventPublisher)
   {
-    this.pullRequestFeatureCheck = pullRequestFeatureCheck;
+    this.remediationPullRequestFeatureCheck = remediationPullRequestFeatureCheck;
     this.remediationService = remediationService;
     this.policyAlertSourceCodeOrganizer = policyAlertSourceCodeOrganizer;
     this.baseUrl = baseUrl;
@@ -117,7 +117,7 @@ public class PolicyAlertScmNotifier
       return;
     }
 
-    if (!pullRequestFeatureCheck.isPullRequestFeatureSupported(app, gitRepositoryInfo)) {
+    if (!remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(app, gitRepositoryInfo)) {
       return;
     }
 

@@ -123,7 +123,7 @@ public class BitbucketCodeInsightsServiceTest
         zipReportDir("/BitbucketCodeInsightsServiceTest/to-report", tempDir), insightWork);
 
     gitRepositoryInfo = new GitRepositoryInfo("https://foo.com", "username", "token", BITBUCKET, "baseBranch", true,
-        true);
+        true, true, true, null);
 
     //setup evaluations
     defaultBranchPolicyEvaluation = tempEntity

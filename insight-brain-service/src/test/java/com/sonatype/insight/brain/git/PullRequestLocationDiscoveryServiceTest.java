@@ -67,7 +67,7 @@ public class PullRequestLocationDiscoveryServiceTest
 
   private GitRepositoryInfo gitRepositoryInfo =
       new GitRepositoryInfo("https://github.com/org/proj", "user", "token", SourceControlProvider.GITHUB,
-          "master", true, true);
+          "master", true, true, true, true, null);
 
   private String branch = "branch";
 

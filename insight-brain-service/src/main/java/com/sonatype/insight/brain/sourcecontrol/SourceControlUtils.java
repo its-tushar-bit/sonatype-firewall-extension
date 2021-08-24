@@ -82,7 +82,9 @@ public class SourceControlUtils
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo(sourceControl.getRepositoryUrl(), sourceControl.getUsername(), sourceControl.getToken(),
             sourceControl.getProvider(), sourceControl.getBaseBranch(),
-            sourceControl.getRemediationPullRequestsEnabled(), sourceControl.getStatusChecksEnabled());
+            sourceControl.getRemediationPullRequestsEnabled(), sourceControl.getStatusChecksEnabled(),
+            sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlScansEnabled(),
+            sourceControl.getSourceControlScanTarget());
 
     if (!gitRepositoryInfo.isDataComplete()) {
       // check at sub-organization level for missing fields
@@ -141,12 +143,12 @@ public class SourceControlUtils
       return;
     }
 
-    if (gitRepositoryInfo.enableStatusChecks == null) {
-      gitRepositoryInfo.enableStatusChecks = orgSourceControl.getStatusChecksEnabled();
+    if (gitRepositoryInfo.statusChecksEnabled == null) {
+      gitRepositoryInfo.statusChecksEnabled = orgSourceControl.getStatusChecksEnabled();
     }
 
-    if (gitRepositoryInfo.enablePullRequests == null) {
-      gitRepositoryInfo.enablePullRequests = orgSourceControl.getRemediationPullRequestsEnabled();
+    if (gitRepositoryInfo.remediationPullRequestsEnabled == null) {
+      gitRepositoryInfo.remediationPullRequestsEnabled = orgSourceControl.getRemediationPullRequestsEnabled();
     }
 
     if (Strings.isNullOrEmpty(gitRepositoryInfo.username)) {
@@ -163,6 +165,18 @@ public class SourceControlUtils
 
     if (gitRepositoryInfo.provider == null) {
       gitRepositoryInfo.provider = orgSourceControl.getProvider();
+    }
+
+    if (gitRepositoryInfo.pullRequestCommentingEnabled == null) {
+      gitRepositoryInfo.pullRequestCommentingEnabled = orgSourceControl.getPullRequestCommentingEnabled();
+    }
+
+    if (gitRepositoryInfo.sourceControlScansEnabled == null) {
+      gitRepositoryInfo.sourceControlScansEnabled = orgSourceControl.getSourceControlScansEnabled();
+    }
+
+    if (gitRepositoryInfo.sourceControlScanTarget == null) {
+      gitRepositoryInfo.sourceControlScanTarget = orgSourceControl.getSourceControlScanTarget();
     }
   }
 

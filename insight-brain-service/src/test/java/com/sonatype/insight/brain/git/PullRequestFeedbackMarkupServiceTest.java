@@ -131,7 +131,7 @@ public class PullRequestFeedbackMarkupServiceTest
     //setup gitRepositoryInfo
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("http://example.com/project/repository", null, "token",
-            SourceControlProvider.GITHUB, "master", true, true);
+            SourceControlProvider.GITHUB, "master", true, true, true, true, null);
 
     //setup source control component details
     SourceControlComponentDetails componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(

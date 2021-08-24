@@ -2536,30 +2536,28 @@ public class TemporaryEntity
     return newSourceControl(ownerId, repositoryUrl, token, provider, null, null, "master");
   }
 
-  public SourceControl newSourceControl(
-      String applicationId,
-      String repositoryUrl,
-      String token,
-      SourceControlProvider provider,
-      Boolean remediationPullRequestsEnabled,
-      Boolean statusChecksEnabled,
-      String baseBranch)
+  public SourceControl newSourceControl(String applicationId,
+                                        String repositoryUrl,
+                                        String token,
+                                        SourceControlProvider provider,
+                                        Boolean remediationPullRequestsEnabled,
+                                        Boolean statusChecksEnabled,
+                                        String baseBranch)
   {
     return newSourceControl(applicationId, repositoryUrl, null, token, provider, remediationPullRequestsEnabled,
-        statusChecksEnabled,
-        baseBranch, null, null, null, null);
+        statusChecksEnabled, baseBranch, null, null, null,
+        null);
   }
 
-  public SourceControl newSourceControl(
-      String applicationId,
-      String repositoryUrl,
-      String username,
-      String token,
-      SourceControlProvider provider,
-      Boolean remediationPullRequestsEnabled,
-      Boolean statusChecksEnabled,
-      String baseBranch,
-      Date pullRequestPollTime
+  public SourceControl newSourceControl(String applicationId,
+                                        String repositoryUrl,
+                                        String username,
+                                        String token,
+                                        SourceControlProvider provider,
+                                        Boolean remediationPullRequestsEnabled,
+                                        Boolean statusChecksEnabled,
+                                        String baseBranch,
+                                        Date pullRequestPollTime
   )
   {
     return newSourceControl(applicationId, repositoryUrl, username, token, provider, remediationPullRequestsEnabled,
@@ -2567,20 +2565,19 @@ public class TemporaryEntity
         null);
   }
 
-  public SourceControl newSourceControl(
-      String applicationId,
-      String repositoryUrl,
-      String username,
-      String token,
-      SourceControlProvider provider,
-      Boolean remediationPullRequestsEnabled,
-      Boolean statusChecksEnabled,
-      String baseBranch,
-      Date pullRequestPollTime,
-      Boolean pullRequestCommentingEnabled,
-      Boolean sourceControlScansEnabled,
-      String sourceControlScanTarget
-  )
+  public SourceControl newSourceControl(String applicationId,
+                                        String repositoryUrl,
+                                        String username,
+                                        String token,
+                                        SourceControlProvider provider,
+                                        Boolean remediationPullRequestsEnabled,
+                                        Boolean statusChecksEnabled,
+                                        String baseBranch,
+                                        Date pullRequestPollTime,
+                                        Boolean pullRequestCommentingEnabled,
+                                        Boolean sourceControlScansEnabled,
+                                        String sourceControlScanTarget
+                                        )
   {
     SourceControl sourceControl =
         new SourceControl.Builder()

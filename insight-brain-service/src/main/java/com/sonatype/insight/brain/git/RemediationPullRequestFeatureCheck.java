@@ -27,16 +27,16 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  */
 @Named
 @Singleton
-public class PullRequestFeatureCheck
+public class RemediationPullRequestFeatureCheck
 {
-  private static final Logger log = LoggerFactory.getLogger(PullRequestFeatureCheck.class);
+  private static final Logger log = LoggerFactory.getLogger(RemediationPullRequestFeatureCheck.class);
 
   private final IqForScmLicenseChecker licenseChecker;
 
   private final PullRequestRepositoryValidator pullRequestRepositoryValidator;
 
   @Inject
-  public PullRequestFeatureCheck(
+  public RemediationPullRequestFeatureCheck(
       final IqForScmLicenseChecker licenseChecker,
       final PullRequestRepositoryValidator pullRequestRepositoryValidator)
   {
@@ -83,7 +83,7 @@ public class PullRequestFeatureCheck
     if (gitRepositoryInfo == null) {
       return false;
     }
-    if (!isTrue(gitRepositoryInfo.enablePullRequests)) {
+    if (!isTrue(gitRepositoryInfo.remediationPullRequestsEnabled)) {
       log.debug("Pull Requests have been explicitly disabled");
       return false;
     }

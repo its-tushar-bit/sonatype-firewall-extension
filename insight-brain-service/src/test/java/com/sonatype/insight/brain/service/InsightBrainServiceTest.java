@@ -83,7 +83,8 @@ public class InsightBrainServiceTest
   private static final TelemetryPurpose[] EXPECTED_TELEMETRY_PURPOSES = {
       TelemetryPurpose.HIERARCHY_METRICS, TelemetryPurpose.POLICY_STATUS_OVERRIDE, TelemetryPurpose.DATABASE,
       TelemetryPurpose.CONFIGURATION_PROPERTIES, TelemetryPurpose.REALM, TelemetryPurpose.SOURCE_CONTROL_METRICS,
-      TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT};
+      TelemetryPurpose.SOURCE_CONTROL_RATE_LIMITS, TelemetryPurpose.ROLE_USAGE, TelemetryPurpose.RUNTIME_ENVIRONMENT,
+      TelemetryPurpose.REPOSITORY_CONFIGURATION};
 
   @Rule
   public LogOutput logOutput = new LogOutput(InsightBrainService.class);
@@ -179,6 +180,9 @@ public class InsightBrainServiceTest
         case RUNTIME_ENVIRONMENT:
           assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
           break;
+        case REPOSITORY_CONFIGURATION:
+          assertThat(telemetryDataReceived.getAttributes()).isNotEmpty();
+          break;
         default:
           fail("Unexpected telemetry purpose: " + telemetryPurpose);
           break;
@@ -265,7 +269,7 @@ public class InsightBrainServiceTest
     responses.clear();
     telemetryScheduler.getTelemetryRunnable().run();
     temporarilyEnableQuartzTelemetry();
-    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(10));
+    await().atMost(5, SECONDS).untilAsserted(() -> assertThat(responses).hasSize(11));
     Date expectedMaxCreateTime = new Date();
     Collection<TelemetryData> allTelemetryData =
         assertTelemetry(responses, expectedMinCreateTime, expectedMaxCreateTime);

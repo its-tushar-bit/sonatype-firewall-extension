@@ -56,10 +56,13 @@ public class ApiCompositeSourceControlConfigValidatorService
     try {
       if (!pullRequestRepositoryValidator.isInternalRepository(gitInfo) &&
           !pullRequestRepositoryValidator.isPrivateRepository(gitInfo)) {
-        result.setRepoPrivate(new ValidationResult(false, "Repository must be private or internal"));
-        return result;
+        result.setRepoPrivate(new ValidationResult(false,
+            "Repository must be private or internal to enable all SCM features. " +
+                "Support for public repositories is limited."));
       }
-      result.setRepoPrivate(new ValidationResult(true));
+      else {
+        result.setRepoPrivate(new ValidationResult(true));
+      }
     }
     catch (UncheckedIOException e) {
       result.setRepoPrivate(new ValidationResult(false, "Unable to connect to repo: " + e.getMessage()));

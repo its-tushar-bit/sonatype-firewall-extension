@@ -78,20 +78,43 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
   }
 
   @Test
-  public void testValidateSourceControlConfig_privateRepo() {
+  public void testValidateSourceControlConfig_privateRepo() throws IOException {
+    GitRepositoryInfo gitRepositoryInfo =
+        new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
+    when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
+    when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
+    when(pullRequestRepositoryValidator.isPrivateRepository(any())).thenReturn(true);
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
+
+    ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
+
+    assertThat(result).isNotNull();
+    assertThat(result.getConfigurationComplete().isValid()).isTrue();
+    assertThat(result.getRepoPrivate().isValid()).isTrue();
+    assertThat(result.getTokenPermissions().isValid()).isTrue();
+  }
+
+  @Test
+  public void testValidateSourceControlConfig_publicRepo() throws IOException {
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo(null, null, null, SourceControlProvider.GITHUB, null, true, true);
     when(sourceControlUtils.getGitRepositoryInfoForApplication(anyString())).thenReturn(gitRepositoryInfo);
     when(pullRequestRepositoryValidator.isInternalRepository(any())).thenReturn(false);
     when(pullRequestRepositoryValidator.isPrivateRepository(any())).thenReturn(false);
+    GitApiClient mockClient = mock(GitApiClient.class);
+    when(gitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockClient);
+    when(mockClient.validateTokenPermissions()).thenReturn(new ValidationResult(true));
 
     ConfigurationValidationResult result = service.validateSourceControlConfig("1234");
 
     assertThat(result).isNotNull();
     assertThat(result.getConfigurationComplete().isValid()).isTrue();
     assertThat(result.getRepoPrivate().isValid()).isFalse();
-    assertThat(result.getRepoPrivate().getMessage()).isEqualTo("Repository must be private or internal");
-    assertThat(result.getTokenPermissions()).isNull();
+    assertThat(result.getRepoPrivate().getMessage()).isEqualTo("Repository must be private or internal to enable all" +
+        " SCM features. Support for public repositories is limited.");
+    assertThat(result.getTokenPermissions().isValid()).isTrue();
   }
 
   @Test

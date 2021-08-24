@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import HelpMenu from './HelpMenu/HelpMenu';
 import SystemPreferencesMenu from './SystemPreferencesMenu/SystemPreferencesMenu';
@@ -36,19 +36,22 @@ export const MenuBar = ({
   }
 
   return (
-    <div id="menu-bar" className="nx-global-header__actions menu-bar">
-      <HelpMenu majorMinorVersion={majorMinorVersion} />
-      <NotificationsMenuContainer />
-      {hasAnyPermissions && (
-        <SystemPreferencesMenu
-          permissions={permissions}
-          isWebhooksSupported={isWebhooksSupported}
-          dataInsightsEnabled={isLabsDataInsightsEnabled}
-          isSourceControlSupported={isSourceControlSupported}
-        />
-      )}
-      <UserMenu userActions={userActions} />
-    </div>
+    <Fragment>
+      <div id="menu-bar__back-button-container" />
+      <div id="menu-bar" className="nx-global-header__actions menu-bar">
+        <HelpMenu majorMinorVersion={majorMinorVersion} />
+        <NotificationsMenuContainer />
+        {hasAnyPermissions && (
+          <SystemPreferencesMenu
+            permissions={permissions}
+            isWebhooksSupported={isWebhooksSupported}
+            dataInsightsEnabled={isLabsDataInsightsEnabled}
+            isSourceControlSupported={isSourceControlSupported}
+          />
+        )}
+        <UserMenu userActions={userActions} />
+      </div>
+    </Fragment>
   );
 };
 

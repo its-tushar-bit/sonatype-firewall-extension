@@ -16,6 +16,7 @@ import java.util.List;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.GeneralInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationInfoSection;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.OccurrencesSection;
@@ -117,7 +118,9 @@ public class ComponentDetailsTest
       ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
       componentDetailsPage.header().title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
       componentDetailsPage.tabs().shouldHaveSize(5);
-      SelenideElement backButton = componentDetailsPage.backButton();
+
+      SelenideElement backButton =  MainHeader.backButton();
+      backButton.shouldBe(visible);
       backButton.shouldHave(text("Back to Application Report"));
       backButton.click();
 
@@ -241,7 +244,7 @@ public class ComponentDetailsTest
     eyesWatcher.eyesCheck("component details violations tab violation table unapplied waiver");
 
     // Reevaluate to apply the waiver and apply appropriate filter to show in the report
-    componentDetailsPage.backButton().click();
+    MainHeader.backButton().click();
     waitUntilUrl(ApplicationReportPage.url(app, SCAN_ID));
     reportPage.reevaluateButton().click();
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID, true));

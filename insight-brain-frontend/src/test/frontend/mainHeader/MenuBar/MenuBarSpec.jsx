@@ -38,4 +38,9 @@ describe('MenuBar', function () {
     const componentWithoutPermissions = getShallowComponent({ permissions: {} });
     expect(componentWithoutPermissions.find(SystemPreferencesMenu).length).toBe(0);
   });
+
+  it('should render the back button container', () => {
+    const componentWithPermissions = getShallowComponent();
+    expect(componentWithPermissions.find('div#menu-bar__back-button-container')).toExist();
+  });
 });

@@ -100,4 +100,8 @@ public class MainHeader
   public static SelenideElement loginButton() {
     return $("#header-login-button");
   }
+
+  public static SelenideElement backButton() {
+    return $("#menu-bar__back-button-container .nx-text-link");
+  }
 }

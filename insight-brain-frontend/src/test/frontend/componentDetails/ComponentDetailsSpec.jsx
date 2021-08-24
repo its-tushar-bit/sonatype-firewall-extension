@@ -9,11 +9,11 @@ import { NxLoadError, NxLoadingSpinner, NxStatefulTabs, NxTab } from '@sonatype/
 
 import ComponentDetails from '../../../main/frontend/componentDetails/ComponentDetails';
 import { ComponentDetailsFooter } from '../../../main/frontend/componentDetails/ComponentDetailsFooter';
-import BackButton from '../../../main/frontend/react/BackButton';
 import * as routerContext from '../../../main/frontend/react/RouterStateContext';
 import * as fullAuditLog from '../../../main/frontend/componentDetails/auditLog/AuditLogContainer';
 import * as violationsTab from '../../../main/frontend/componentDetails/violations/PolicyViolationsContainer';
 import * as overviewTab from '../../../main/frontend/componentDetails/overview/OverviewContainer';
+import MenuBarBackButton from '../../../main/frontend/mainHeader/MenuBar/MenuBarBackButton';
 
 describe('ComponentDetails', function () {
   let minimalProps,
@@ -53,12 +53,11 @@ describe('ComponentDetails', function () {
     expect(getShallowComponent()).toExist();
   });
 
-  it('renders a back button', () => {
+  it('renders a MenuBarBackButton', () => {
     const el = getShallowComponent(),
-      backBtn = el.find(BackButton);
+      backBtn = el.find(MenuBarBackButton);
 
     expect(backBtn).toHaveProp('stateName', 'applicationReport.policy');
-    expect(backBtn).toHaveProp('$state', stateMock);
   });
 
   it('calls loadComponentDetails if there is NO componentDetails in the state', () => {

@@ -14,8 +14,6 @@ import {
   NxTabPanel,
 } from '@sonatype/react-shared-components';
 
-import BackButton from '../react/BackButton';
-import { useRouterState } from '../react/RouterStateContext';
 import AuditLogContainer from './auditLog/AuditLogContainer';
 import {
   ComponentDetailsHeader,
@@ -27,6 +25,7 @@ import {
 import { ComponentDetailsFooter, propTypes as footerPropTypes } from './ComponentDetailsFooter';
 import { PolicyViolationsContainer } from './violations';
 import { OverviewContainer } from './overview';
+import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 
 const tabIdPerIndex = ['overview', 'violations', 'security', 'legal', 'audit'];
 
@@ -39,7 +38,6 @@ export default function ComponentDetails({
   loadError,
   loading,
 }) {
-  const uiRouterState = useRouterState();
   const customError = loadError || 'Error getting component details.';
 
   useEffect(() => {
@@ -50,7 +48,7 @@ export default function ComponentDetails({
   if (loadError || loading || !componentDetails) {
     return (
       <main className="nx-page-main nx-viewport-sized iq-component-details-page iq-component-details-page--loading">
-        <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
+        <MenuBarBackButton stateName="applicationReport.policy" />
         <div className="iq-component-details-page__error">
           {loading ? <NxLoadingSpinner /> : <NxLoadError error={customError} retryHandler={loadComponentDetails} />}
         </div>
@@ -71,7 +69,7 @@ export default function ComponentDetails({
   return (
     <main className="nx-page-main nx-viewport-sized iq-component-details-page">
       <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
-        <BackButton stateName="applicationReport.policy" $state={uiRouterState} />
+        <MenuBarBackButton stateName="applicationReport.policy" />
         <ComponentDetailsHeader>
           <Title id="component-details-title">{name}</Title>
           <ComponentDetailsReportInfo {...metadata} />

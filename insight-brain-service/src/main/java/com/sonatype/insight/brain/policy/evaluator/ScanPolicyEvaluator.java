@@ -194,19 +194,6 @@ public class ScanPolicyEvaluator
     return evaluate(application, scanId, stage, scanTriggerType, true /* forMonitoring */);
   }
 
-  private void checkRunAsSystem(ScanTriggerType scanTriggerType) {
-    // See https://issues.sonatype.org/browse/INT-5413
-    if (ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING.equals(scanTriggerType) || //
-        ScanTriggerType.SOURCE_CONTROL_INTERNAL_DEFAULT_BRANCH_MONITORING.equals(scanTriggerType) || //
-        ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST.equals(scanTriggerType)) {
-      String username = currentUser.getUsernameOrSystem();
-      if (!CurrentUser.SYSTEM.equals(username)) {
-        throw new IllegalStateException("Policy evaluation with ScanTriggerType " + scanTriggerType
-            + " processed as user '" + username + "' instead of '" + CurrentUser.SYSTEM + "'");
-      }
-    }
-  }
-
   private ScanPolicyEvaluatorResults evaluate(
       final Application application,
       final String scanId,
@@ -221,7 +208,6 @@ public class ScanPolicyEvaluator
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException(stage.getStageTypeId());
     }
-    checkRunAsSystem(scanTriggerType);
 
     AuditData.get().setStageId(stage.getStageTypeId());
     final File reportFile;
@@ -346,8 +332,6 @@ public class ScanPolicyEvaluator
       PolicyViolationTelemetryCollector telemetryCollector,
       File reportFile) throws IOException
   {
-    checkRunAsSystem(scanTriggerType);
-
     String appId = app.getId();
     long start = System.currentTimeMillis();
     PolicyEvaluationDAO policyEvaluationDAO = new PolicyEvaluationDAO();

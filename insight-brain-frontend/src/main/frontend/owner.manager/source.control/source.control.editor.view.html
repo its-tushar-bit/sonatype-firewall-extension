@@ -221,37 +221,37 @@
         </div>
         <div class="iq-form-row">
           <div class="iq-form-group">
-            <label for="editor-source-control-enable-remediation-pull-requests"
+            <label for="editor-source-control-enable-pull-requests"
                    class="iq-label"
                    ng-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"><!--
           -->Pull Requests
             </label>
-            <div class="iq-form-group" id="editor-source-control-enable-remediation-pull-requests">
-              <div id="source-control-remediation-pull-request-unavailable"
+            <div class="iq-form-group" id="editor-source-control-enable-pull-requests">
+              <div id="source-control-pull-request-unavailable"
                    class="iq-alert iq-alert--info"
                    ng-if="!vm.isPullRequestsSupported()">
                    <i class="fa fa-info-circle"></i>{{vm.getPullRequestsNotAvailableMessage()}}
               </div>
               <fieldset class="iq-radio-group" ng-if="vm.isPullRequestsSupported()">
-                <iq-radio id="editor-source-control-remediation-pull-request-inherit"
-                          name="enableRemediationPullRequests"
-                          model="vm.dirtySourceControl.remediationPullRequestsEnabled"
+                <iq-radio id="editor-source-control-pull-request-inherit"
+                          name="enablePullRequests"
+                          model="vm.dirtySourceControl.enablePullRequests"
                           value="null"
                           is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
                           ng-if="!vm.isRootOrg"
                           is-required="vm.isRootOrg && vm.isPullRequestsSupported()"><!--
-                       -->{{vm.remediationPullRequestsInheritText}}
+                       -->{{vm.pullRequestsInheritText}}
                 </iq-radio>
-                <iq-radio id="editor-source-control-remediation-pull-request-enable"
-                          name="enableRemediationPullRequests"
-                          model="vm.dirtySourceControl.remediationPullRequestsEnabled"
+                <iq-radio id="editor-source-control-pull-request-enable"
+                          name="enablePullRequests"
+                          model="vm.dirtySourceControl.enablePullRequests"
                           value="true"
                           is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
                           is-required="vm.isRootOrg && vm.isPullRequestsSupported()">Enabled
                 </iq-radio>
-                <iq-radio id="editor-source-control-remediation-pull-request-disable"
-                          name="enableRemediationPullRequests"
-                          model="vm.dirtySourceControl.remediationPullRequestsEnabled"
+                <iq-radio id="editor-source-control-pull-request-disable"
+                          name="enablePullRequests"
+                          model="vm.dirtySourceControl.enablePullRequests"
                           value="false"
                           is-disabled="!vm.isProviderSpecifiedAndPullRequestsSupported()"
                           is-required="vm.isRootOrg && vm.isPullRequestsSupported()">Disabled

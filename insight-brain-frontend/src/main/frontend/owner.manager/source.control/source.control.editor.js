@@ -50,7 +50,7 @@ function SourceControlEditorController(
   vm.shouldShowProviderWarning = undefined;
   vm.canCollapseAdvanced = canCollapseAdvanced;
   vm.statusChecksInheritText = undefined;
-  vm.remediationPullRequestsInheritText = undefined;
+  vm.enablePullRequestsInheritText = undefined;
   vm.usernameInheritText = undefined;
   vm.baseBranchInheritText = undefined;
   vm.isPullRequestsSupported = isPullRequestsSupported;
@@ -159,12 +159,12 @@ function SourceControlEditorController(
       vm.shouldShowProviderWarning = vm.isApp && !vm.effectiveProvider();
       vm.showAdvanced = !vm.isApp || !canCollapseAdvanced();
       vm.statusChecksInheritText = getInheritText(
-        vm.dirtySourceControl.statusChecksEnabledInheritFrom,
-        vm.dirtySourceControl.statusChecksEnabledInheritedValue ? 'Enabled' : 'Disabled'
+        vm.dirtySourceControl.enableStatusChecksInheritFrom,
+        vm.dirtySourceControl.enableStatusChecksInheritedValue ? 'Enabled' : 'Disabled'
       );
-      vm.remediationPullRequestsInheritText = getInheritText(
-        vm.dirtySourceControl.remediationPullRequestsEnabledInheritFrom,
-        vm.dirtySourceControl.remediationPullRequestsEnabledInheritedValue ? 'Enabled' : 'Disabled'
+      vm.pullRequestsInheritText = getInheritText(
+        vm.dirtySourceControl.enablePullRequestsInheritFrom,
+        vm.dirtySourceControl.enablePullRequestsInheritedValue ? 'Enabled' : 'Disabled'
       );
       vm.baseBranchInheritText = getInheritText(
         vm.dirtySourceControl.baseBranchInheritFrom,
@@ -288,13 +288,13 @@ function SourceControlEditorController(
     model.baseBranchInheritFrom = compositeSourceControl.baseBranch.parentName;
     model.baseBranchInheritedValue = compositeSourceControl.baseBranch.parentValue;
 
-    model.remediationPullRequestsEnabled = compositeSourceControl.remediationPullRequestsEnabled.value;
-    model.remediationPullRequestsEnabledInheritFrom = compositeSourceControl.remediationPullRequestsEnabled.parentName;
-    model.remediationPullRequestsEnabledInheritedValue = compositeSourceControl.remediationPullRequestsEnabled.parentValue;
+    model.enablePullRequests = compositeSourceControl.enablePullRequests.value;
+    model.enablePullRequestsInheritFrom = compositeSourceControl.enablePullRequests.parentName;
+    model.enablePullRequestsInheritedValue = compositeSourceControl.enablePullRequests.parentValue;
 
-    model.statusChecksEnabled = compositeSourceControl.statusChecksEnabled.value;
-    model.statusChecksEnabledInheritFrom = compositeSourceControl.statusChecksEnabled.parentName;
-    model.statusChecksEnabledInheritedValue = compositeSourceControl.statusChecksEnabled.parentValue;
+    model.enableStatusChecks = compositeSourceControl.enableStatusChecks.value;
+    model.enableStatusChecksInheritFrom = compositeSourceControl.enableStatusChecks.parentName;
+    model.enableStatusChecksInheritedValue = compositeSourceControl.enableStatusChecks.parentValue;
 
     return model;
   }
@@ -304,8 +304,8 @@ function SourceControlEditorController(
 
     sourceControl.ownerId = model.ownerId;
     sourceControl.id = model.id;
-    sourceControl.remediationPullRequestsEnabled = getRemediationPullRequestsEnabledFlagFromModel(model);
-    sourceControl.statusChecksEnabled = true;
+    sourceControl.enablePullRequests = getPullRequestsEnabledFlagFromModel(model);
+    sourceControl.enableStatusChecks = true;
 
     if (vm.isApp) {
       sourceControl.repositoryUrl = model.repositoryUrl;
@@ -428,12 +428,12 @@ function SourceControlEditorController(
       : 'This feature is not supported by your licence';
   }
 
-  function getRemediationPullRequestsEnabledFlagFromModel(model) {
+  function getPullRequestsEnabledFlagFromModel(model) {
     if (!vm.isRootOrg || isPullRequestsSupported()) {
-      return model.remediationPullRequestsEnabled;
+      return model.enablePullRequests;
     }
 
-    return vm.originalSourceControl.remediationPullRequestsEnabled === null ? true : vm.originalSourceControl.remediationPullRequestsEnabled;
+    return vm.originalSourceControl.enablePullRequests === null ? true : vm.originalSourceControl.enablePullRequests;
   }
 
   function getBaseBranchValueFromModel(model) {

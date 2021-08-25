@@ -713,7 +713,7 @@ public class SourceControlDAOTest
   }
 
   @Test
-  public void testGetApplicationsWithRemediationPullRequestsEnabled_enabledAtOrgAndApp() {
+  public void testGetApplicationsWithPullReqsEnabled_enabledAtOrgAndApp() {
     createRootOrgWithGitHubProvider();
     // create SCM entries for organizations, with PR enabled flag set
     Organization orgNullPrs = tempEntity.newOrganization();
@@ -754,25 +754,25 @@ public class SourceControlDAOTest
   private SourceControl buildAppSourceControlAndApp(
       Organization organization,
       int appNumber,
-      Boolean remediationPullRequestsEnabled)
+      Boolean enablePullRequests)
   {
     return buildAppSourceControl(tempEntity.newApplication(organization.getId()).getId(), appNumber,
-        remediationPullRequestsEnabled);
+        enablePullRequests);
   }
 
-  private SourceControl buildAppSourceControl(String ownerId, int appNumber, Boolean remediationPullRequestsEnabled) {
+  private SourceControl buildAppSourceControl(String ownerId, int appNumber, Boolean enablePullRequests) {
     return new SourceControl.Builder()
         .setOwnerId(ownerId)
         .setRepositoryUrl("http://localhost/owner/app" + appNumber)
-        .setRemediationPullRequestsEnabled(remediationPullRequestsEnabled)
+        .setRemediationPullRequestsEnabled(enablePullRequests)
         .build();
   }
 
-  private SourceControl buildOrgSourceControl(String ownerId, Boolean remediationPullRequestsEnabled) {
+  private SourceControl buildOrgSourceControl(String ownerId, Boolean enablePullRequests) {
     return new SourceControl.Builder()
         .setOwnerId(ownerId)
         .setToken("token")
-        .setRemediationPullRequestsEnabled(remediationPullRequestsEnabled)
+        .setRemediationPullRequestsEnabled(enablePullRequests)
         .build();
   }
 

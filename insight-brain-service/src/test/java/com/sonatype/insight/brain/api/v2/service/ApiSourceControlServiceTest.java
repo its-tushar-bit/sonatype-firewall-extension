@@ -297,7 +297,7 @@ public class ApiSourceControlServiceTest
             org.getId(), validSourceControl);
     sourceControl.token = "updatedToken";
     assertTelemetry(METHOD.ADD, org.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.remediationPullRequestsEnabled,
+        sourceControl.provider, sourceControl.enablePullRequests, sourceControl.enablePullRequests,
         sourceControl.baseBranch);
 
     final ApiSourceControlDTO updatedScm =
@@ -305,7 +305,7 @@ public class ApiSourceControlServiceTest
             org.getId(), sourceControl);
     assertThat(updatedScm.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertTelemetry(METHOD.UPDATE, org.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.remediationPullRequestsEnabled,
+        sourceControl.provider, sourceControl.enablePullRequests, sourceControl.enablePullRequests,
         sourceControl.baseBranch);
 
     final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);
@@ -348,13 +348,13 @@ public class ApiSourceControlServiceTest
         .addSourceControlByOwner(OwnerType.ORGANIZATION, org.getId(), validSourceControl);
     assertThat(sourceControlService.getAll()).hasSize(2);
     assertTelemetry(METHOD.ADD, org.getId(), sourceControl.repositoryUrl, sourceControl.provider,
-        sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
+        sourceControl.enablePullRequests, sourceControl.enableStatusChecks,
         sourceControl.baseBranch);
 
     sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
     assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.DELETE, org.getId(), sourceControl.repositoryUrl, sourceControl.provider,
-        sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
+        sourceControl.enablePullRequests, sourceControl.enableStatusChecks,
         sourceControl.baseBranch);
   }
 
@@ -369,13 +369,13 @@ public class ApiSourceControlServiceTest
         .addSourceControlByOwner(OwnerType.ORGANIZATION, app.getId(), validSourceControl);
     assertThat(sourceControlService.getAll()).hasSize(2);
     assertTelemetry(METHOD.ADD, app.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
+        sourceControl.provider, sourceControl.enablePullRequests, sourceControl.enableStatusChecks,
         sourceControl.baseBranch);
 
     sourceControlService.deleteSourceControlByOwner(OwnerType.ORGANIZATION, app.getId());
     assertThat(sourceControlService.getAll()).hasSize(1);
     assertTelemetry(METHOD.DELETE, app.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.statusChecksEnabled,
+        sourceControl.provider, sourceControl.enablePullRequests, sourceControl.enableStatusChecks,
         sourceControl.baseBranch);
   }
 
@@ -569,13 +569,13 @@ public class ApiSourceControlServiceTest
     final Boolean[] booleanOptions = new Boolean[]{true, false, null};
     final String[] branchOptions = new String[]{"branchA", "", null};
 
-    for (final Boolean remediationPullRequestsEnabled : booleanOptions) {
-      for (final Boolean statusChecksEnabled : booleanOptions) {
+    for (final Boolean enablePullRequest : booleanOptions) {
+      for (final Boolean enableStatusChecks : booleanOptions) {
         for (final String baseBranch : branchOptions) {
           final ApiSourceControlDTO validSourceControl = apiSourceControlAdapter.convertToDTO(
               new SourceControl.Builder().setOwnerId(org.getId()).setToken(TOKEN)
-                  .setStatusChecksEnabled(statusChecksEnabled)
-                  .setRemediationPullRequestsEnabled(remediationPullRequestsEnabled)
+                  .setStatusChecksEnabled(enableStatusChecks)
+                  .setRemediationPullRequestsEnabled(enablePullRequest)
                   .setBaseBranch(baseBranch)
                   .build());
           final Organization tmpOrg = tempEntity.newOrganization();
@@ -590,8 +590,8 @@ public class ApiSourceControlServiceTest
           expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(tmpOrg.getId()));
           expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(reloaded.getRepositoryUrl()));
           expectedAttributes.put("provider", null);
-          expectedAttributes.put("remediation_pull_requests_enabled", remediationPullRequestsEnabled);
-          expectedAttributes.put("status_checks_enabled", statusChecksEnabled);
+          expectedAttributes.put("remediation_pull_requests_enabled", enablePullRequest);
+          expectedAttributes.put("status_checks_enabled", enableStatusChecks);
           expectedAttributes.put("base_branch", baseBranch);
 
           final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor =
@@ -633,8 +633,8 @@ public class ApiSourceControlServiceTest
                                final String ownerId,
                                final String repositoryUrl,
                                final String provider,
-                               final Boolean remediationPullRequestsEnabled,
-                               final Boolean statusChecksEnabled,
+                               final Boolean enablePullRequests,
+                               final Boolean enableStatusChecks,
                                final String baseBranch)
   {
     final ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
@@ -645,8 +645,8 @@ public class ApiSourceControlServiceTest
     expectedAttributes.put("owner_id", HdsClientAnalytics.obfuscate(ownerId));
     expectedAttributes.put("repository_url", HdsClientAnalytics.obfuscate(repositoryUrl));
     expectedAttributes.put("provider", provider);
-    expectedAttributes.put("remediation_pull_requests_enabled", remediationPullRequestsEnabled);
-    expectedAttributes.put("status_checks_enabled", statusChecksEnabled);
+    expectedAttributes.put("remediation_pull_requests_enabled", enablePullRequests);
+    expectedAttributes.put("status_checks_enabled", enableStatusChecks);
     expectedAttributes.put("base_branch", baseBranch);
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL);
@@ -789,7 +789,7 @@ public class ApiSourceControlServiceTest
     tempEntity.newSourceControlEvent(app, new PolicyEvaluation());
 
     //when : update with constant repo url
-    persistedSourceControlDTO.remediationPullRequestsEnabled = true;
+    persistedSourceControlDTO.enablePullRequests = true;
     sourceControlService.updateSourceControlByOwner(
         OwnerType.APPLICATION,
         app.getId(),

@@ -32,7 +32,7 @@ public class PullRequestLineFeedback
     extends PullRequestDetailsBase
 {
   private static Logger log = LoggerFactory.getLogger(PullRequestLineFeedback.class);
-  
+
   private final List<PolicyViolation> violations;
 
   private final String displayName;
@@ -103,7 +103,7 @@ public class PullRequestLineFeedback
     final Map<String, Object> componentFeedbackList =
         getComponentFeedbackList(displayName, violations, baseUrl, remediationVersionDTO, provider);
     return TemplateUtils
-        .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown()), componentFeedbackList);
+        .render(getLineFeedbackTemplate(provider.supportsEmbeddedHtmlInMarkdown(baseUrl)), componentFeedbackList);
   }
 
   /**

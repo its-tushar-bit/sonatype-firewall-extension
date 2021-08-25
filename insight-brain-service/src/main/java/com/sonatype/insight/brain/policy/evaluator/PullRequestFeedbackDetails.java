@@ -84,13 +84,13 @@ public class PullRequestFeedbackDetails
   private final PolicyEvaluation defaultBranchEvaluation;
 
   private final PolicyViolationDiff<PolicyViolation> diff;
-  
+
   private final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap;
-  
+
   private final List<PullRequestLineCommentDTO> pullRequestLineComments;
-  
+
   private final GitRepositoryInfo gitRepositoryInfo;
-  
+
   private final int pullRequestNumber;
 
   private final String baseUrl;
@@ -119,7 +119,7 @@ public class PullRequestFeedbackDetails
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final List<PullRequestLineCommentDTO> pullRequestLineComments,
       final GitRepositoryInfo gitRepositoryInfo,
-      final int pullRequestNumber, 
+      final int pullRequestNumber,
       final Application app,
       final String baseUrl)
   {
@@ -164,17 +164,17 @@ public class PullRequestFeedbackDetails
    */
   private String constructContents() throws IOException {
     //Policy violations grouped by component hash, any component not in the bom will not be considered
-    final Map<String, List<PolicyViolation>> componentPolicyViolationsMap = diff.hasAppeared() ? 
+    final Map<String, List<PolicyViolation>> componentPolicyViolationsMap = diff.hasAppeared() ?
         getComponentPolicyViolationsMap(diff.getAppeared()) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
     final List<Map<String, Object>> newComponentFeedbackList = getNewComponentFeedbackList(componentPolicyViolationsMap,
         remediationVersionMap, pullRequestLineComments, gitRepositoryInfo, pullRequestNumber, baseUrl);
     newViolationsComponentCount = newComponentFeedbackList.size();
 
-    final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = diff.hasCleared() ? 
+    final Map<String, List<PolicyViolation>> fixedComponentPolicyViolationsMap = diff.hasCleared() ?
         getComponentPolicyViolationsMap(diff.getCleared()) : Collections.emptyMap();
     //Get a map containing the PR feedback for each of the components
-    final List<Map<String, Object>> fixedComponentFeedbackList = 
+    final List<Map<String, Object>> fixedComponentFeedbackList =
         getFixedComponentFeedbackList(fixedComponentPolicyViolationsMap, baseUrl);
     clearedViolationsComponentCount = fixedComponentFeedbackList.size();
 
@@ -186,7 +186,7 @@ public class PullRequestFeedbackDetails
   }
 
   private Template getPolicyTemplate() {
-    if (gitRepositoryInfo.provider.supportsEmbeddedHtmlInMarkdown()) {
+    if (gitRepositoryInfo.provider.supportsEmbeddedHtmlInMarkdown(baseUrl)) {
       return policyViolationDiffMDEmbeddedHtmlTemplate;
     }
     return policyViolationDiffMDMinimalHtmlTemplate;
@@ -202,7 +202,7 @@ public class PullRequestFeedbackDetails
         .filter(policyViolation -> sourceControlComponentDetails.getComponentInfo(policyViolation.getHash()) != null)
         .collect(Collectors.groupingBy(AbstractPolicyViolation::getHash));
   }
-  
+
   /**
    * Gets a list of feedback items for each of the components with fixed violations
    *
@@ -313,7 +313,7 @@ public class PullRequestFeedbackDetails
     }
     return link;
   }
-  
+
   private static String createLink(
       final GitRepositoryInfo gitRepositoryInfo,
       final Integer prNumber,
@@ -358,7 +358,7 @@ public class PullRequestFeedbackDetails
     ComponentIdentifier identifier = null;
     if (violationList != null && !violationList.isEmpty()) {
       identifier = violationList.get(0).getComponentIdentifier();
-    } 
+    }
     return identifier;
   }
 

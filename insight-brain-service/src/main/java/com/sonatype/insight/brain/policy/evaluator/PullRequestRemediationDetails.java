@@ -202,7 +202,7 @@ public class PullRequestRemediationDetails
         .put("provider", provider)
         .build();
 
-    return TemplateUtils.render(getPolicyTemplate(provider), model);
+    return TemplateUtils.render(getPolicyTemplate(provider, baseUrl), model);
   }
 
   /**
@@ -281,8 +281,8 @@ public class PullRequestRemediationDetails
         coordinates.get(MAVEN_GROUP_ID), coordinates.get(MAVEN_ARTIFACT_ID), coordinates.get(VERSION));
   }
 
-  private Template getPolicyTemplate(SourceControlProvider provider) {
-    if (provider.supportsEmbeddedHtmlInMarkdown()) {
+  private Template getPolicyTemplate(final SourceControlProvider provider, final String baseUrl) {
+    if (provider.supportsEmbeddedHtmlInMarkdown(baseUrl)) {
       return policyThreatsMDEmbeddedHtmlTemplate;
     }
     return policyThreatsMDMinimalTemplate;

@@ -23,12 +23,14 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxThreatCounter;
+import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.RequestWaiveTransitiveViolationsPopover;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.ComponentDetailsHeader;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.TransitiveViolationsRow;
 import com.sonatype.clm.testing.functional.pages.TransitiveViolationsPage.TransitiveViolationsTable;
+import com.sonatype.clm.testing.functional.pages.ViolationDetailsPage;
 import com.sonatype.clm.testing.functional.pages.WaiveTransitiveViolationsPopover;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -58,6 +60,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -332,6 +335,54 @@ public class TransitiveViolationsTest
   }
 
   @Test
+  public void testPolicyViolationDetails_InitialState() {
+    visitPolicyViolationDetailsPopover();
+    ViolationDetailsPage.ViolationDetailsTile tile = new ViolationDetailsPage().detailsTile();
+
+    tile.headerTitle().shouldHave(text("Violation of aPolicyX"));
+    ElementsCollection elements = tile.headerSubtitle().findAll(".iq-violation-details__subtitle-part");
+    elements.shouldHaveSize(3);
+    elements.get(0).shouldHave(text("Test Org"));
+    elements.get(1).shouldHave(text("Test App"));
+    elements.get(2).shouldHave(text("g : ZtransitiveY : e : v"));
+
+    tile.policyType().shouldHave(text("Security"));
+    tile.threatLevel().shouldHave(text("10"));
+    tile.policyOwnerLink().shouldHave(text("Test App"));
+
+    tile.stages().shouldHaveSize(5);
+
+    tile.stage(0).shouldHave(text("Source"));
+    tile.stage(0).icon().should(exist);
+    tile.stage(0).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(1).shouldHave(text("Build"));
+    tile.stage(1).icon().should(exist);
+    tile.stage(1).shouldNotBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(2).shouldHave(text("Stage"));
+    tile.stage(2).icon().should(exist);
+    tile.stage(2).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(3).shouldHave(text("Release"));
+    tile.stage(3).icon().should(exist);
+    tile.stage(3).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    tile.stage(4).shouldHave(text("Operate"));
+    tile.stage(4).icon().should(exist);
+    tile.stage(4).shouldBe(ViolationDetailsPage.ViolationDetailsStage.unused());
+
+    eyesWatcher.eyesCheck();
+  }
+
+  @Test
+  public void testPolicyViolationDetails_Cancel() {
+    PolicyViolationDetailPopover policyViolationDetailPopover = visitPolicyViolationDetailsPopover();
+    policyViolationDetailPopover.getCloseButton().click();
+    policyViolationDetailPopover.shouldNotBe(Condition.visible);
+  }
+
+  @Test
   public void testWaiveTransitiveViolations_Save() {
     WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = visitWaivePopover();
     testWaiveTransitiveViolations_Save(waiveTransitiveViolationsPopover, null, null);
@@ -417,6 +468,14 @@ public class TransitiveViolationsTest
     WaiveTransitiveViolationsPopover waiveTransitiveViolationsPopover = new WaiveTransitiveViolationsPopover();
     waiveTransitiveViolationsPopover.shouldBe(Condition.visible);
     return waiveTransitiveViolationsPopover;
+  }
+
+  private PolicyViolationDetailPopover visitPolicyViolationDetailsPopover() {
+    TransitiveViolationsPage transitiveViolationsPage = visitPage();
+    transitiveViolationsPage.transitiveViolationsTable().row(1).click();
+    PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+    policyViolationDetailPopover.shouldBe(Condition.visible);
+    return policyViolationDetailPopover;
   }
 
   private String getExpectedDateTime(Date time) {

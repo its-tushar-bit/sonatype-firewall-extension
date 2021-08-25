@@ -78,7 +78,7 @@ export default function WaiveTransitiveViolationsPopover(props) {
   };
 
   return (
-    <IqPopover id="waive-transitive-violations-popover" onClose={toggleWaiveTransitiveViolations}>
+    <IqPopover id="waive-transitive-violations-popover" size="automatic" onClose={toggleWaiveTransitiveViolations}>
       <IqPopover.Header className="transitive-violations-popover-header">
         <div className="transitive-violations-popover-header__title">
           <h2 className="nx-h2 transitive-violations-popover-header__title-text">

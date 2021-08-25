@@ -21,7 +21,14 @@ import { faExclamationCircle, faExclamationTriangle } from '@fortawesome/pro-sol
 import { capitalize } from '../util/jsUtil';
 
 export default function TransitiveViolationsPageTable(props) {
-  const { stageTypeId, componentTransitivePolicyViolations, setSortingParameters, setFilteringParameters } = props;
+  const {
+    stageTypeId,
+    componentTransitivePolicyViolations,
+    setSortingParameters,
+    setFilteringParameters,
+    setSelectedPolicyViolationId,
+    toggleShowViolationsDetailPopover,
+  } = props;
 
   const getThreatColorClass = (threatLevel) => {
     return threatLevel > 7
@@ -55,9 +62,18 @@ export default function TransitiveViolationsPageTable(props) {
     return undefined;
   };
 
+  const selectPolicyViolation = (policyViolationId) => {
+    setSelectedPolicyViolationId(policyViolationId);
+    toggleShowViolationsDetailPopover();
+  };
+
   const createRow = (transitivePolicyViolation) => {
     return (
-      <NxTableRow key={transitivePolicyViolation.policyViolationId}>
+      <NxTableRow
+        key={transitivePolicyViolation.policyViolationId}
+        isClickable
+        onClick={() => selectPolicyViolation(transitivePolicyViolation.policyViolationId)}
+      >
         <NxTableCell>
           <NxThreatIndicator policyThreatLevel={transitivePolicyViolation.threatLevel} />
           <span className="nx-threat-number">{transitivePolicyViolation.threatLevel}</span>
@@ -146,4 +162,6 @@ TransitiveViolationsPageTable.propTypes = {
   componentTransitivePolicyViolations: componentTransitivePolicyViolationsPropType.isRequired,
   setSortingParameters: PropTypes.func.isRequired,
   setFilteringParameters: PropTypes.func.isRequired,
+  setSelectedPolicyViolationId: PropTypes.func.isRequired,
+  toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
 };

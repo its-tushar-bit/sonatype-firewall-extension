@@ -9,6 +9,7 @@ import sidebarView from '../sidebarNav/sidebarView';
 import SidebarNavListContainer from '../sidebarNav/SidebarNavListContainer';
 import withStoreProvider from '../reactAdapter/StoreProvider';
 import TransitiveViolationsPageContainer from './TransitiveViolationsPageContainer';
+import withRouterStateProvider from '../reactAdapter/RouterStateProvider';
 
 export default angular
   .module('violationPage', [])
@@ -17,7 +18,11 @@ export default angular
   .component('violationPage', react2angular(withStoreProvider(ViolationPageContainer), [], ['$ngRedux', '$state']))
   .component(
     'transitiveViolationsPageContainer',
-    react2angular(withStoreProvider(TransitiveViolationsPageContainer), [], ['$ngRedux', '$state'])
+    react2angular(
+      withStoreProvider(withRouterStateProvider(TransitiveViolationsPageContainer)),
+      [],
+      ['$ngRedux', '$state']
+    )
   )
   .config(routes);
 

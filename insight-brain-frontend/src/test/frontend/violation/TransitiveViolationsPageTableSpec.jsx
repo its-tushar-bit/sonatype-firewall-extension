@@ -10,11 +10,19 @@ import { faExclamationCircle, faExclamationTriangle } from '@fortawesome/pro-sol
 import TransitiveViolationsPageTable from '../../../main/frontend/violation/TransitiveViolationsPageTable';
 
 describe('TransitiveViolationsPageTable', function () {
-  let minimalProps, spySetSortingParameters, spySetFilteringParameters, getMountedComponent, getShallowComponent;
+  let minimalProps,
+    spySetSortingParameters,
+    spySetFilteringParameters,
+    spySetSelectedPolicyViolationId,
+    spyToggleShowViolationsDetailPopover,
+    getMountedComponent,
+    getShallowComponent;
 
   beforeEach(function () {
     spySetSortingParameters = jasmine.createSpy('spySetSortingParameters');
     spySetFilteringParameters = jasmine.createSpy('spySetFilteringParameters');
+    spySetSelectedPolicyViolationId = jasmine.createSpy('spySetSelectedPolicyViolationId');
+    spyToggleShowViolationsDetailPopover = jasmine.createSpy('spyToggleShowViolationsDetailPopover');
     minimalProps = {
       stageTypeId: 'someStageTypeId',
       componentTransitivePolicyViolations: {
@@ -36,6 +44,8 @@ describe('TransitiveViolationsPageTable', function () {
       },
       setSortingParameters: spySetSortingParameters,
       setFilteringParameters: spySetFilteringParameters,
+      setSelectedPolicyViolationId: spySetSelectedPolicyViolationId,
+      toggleShowViolationsDetailPopover: spyToggleShowViolationsDetailPopover,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(TransitiveViolationsPageTable, minimalProps);
     getMountedComponent = enzymeUtils.getMountedComponent(TransitiveViolationsPageTable, minimalProps);
@@ -126,6 +136,14 @@ describe('TransitiveViolationsPageTable', function () {
       expect(cells.at(0).html()).toContain('0');
       expect(cells.at(1).html()).toContain('somePolicyName');
       expect(cells.at(2).html()).toContain('someDisplayName');
+    });
+
+    it('selects the policy violation and triggers the display of the details popover', function () {
+      const wrapper = getShallowComponentWithTransitivePolicyViolation();
+      const row = wrapper.findWhere((node) => node.key() === 'somePolicyViolationId').at(0);
+      row.simulate('click');
+      expect(spySetSelectedPolicyViolationId).toHaveBeenCalledWith('somePolicyViolationId');
+      expect(spyToggleShowViolationsDetailPopover).toHaveBeenCalled();
     });
   });
 

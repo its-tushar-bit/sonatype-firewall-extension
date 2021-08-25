@@ -17,6 +17,8 @@ import { ComponentDetailsReportInfo } from '../componentDetails/ComponentDetails
 import { ComponentDetailsHeader, ComponentDetailsTags, Title } from '../componentDetails/ComponentDetailsHeader';
 import WaiveTransitiveViolationsPopoverContainer from './WaiveTransitiveViolationsPopoverContainer';
 import RequestWaiveTransitiveViolationsPopoverContainer from './RequestWaiveTransitiveViolationsPopoverContainer';
+import PolicyViolationDetailsPopover from '../componentDetails/violations/PolicyViolationDetailsPopover';
+import { useRouterState } from '../react/RouterStateContext';
 
 export default function TransitiveViolationsPage(props) {
   const {
@@ -24,12 +26,12 @@ export default function TransitiveViolationsPage(props) {
     ownerId,
     hash,
     scanId,
-    $state,
     availableScopes,
     reportMetadata,
     componentTransitivePolicyViolations,
     isRequestWaiveTransitiveViolationsOpen,
     isWaiveTransitiveViolationsOpen,
+    showViolationsDetailPopover,
     loadAvailableScopes,
     loadTransitiveViolations,
     setSortingParameters,
@@ -37,6 +39,8 @@ export default function TransitiveViolationsPage(props) {
     loadReportMetadata,
     toggleRequestWaiveTransitiveViolations,
     toggleWaiveTransitiveViolations,
+    setSelectedPolicyViolationId,
+    toggleShowViolationsDetailPopover,
   } = props;
 
   function load() {
@@ -49,8 +53,10 @@ export default function TransitiveViolationsPage(props) {
 
   useEffect(load, [ownerType, ownerId, scanId, hash]);
 
+  const routerState = useRouterState();
+
   const getBackHref = () => {
-    return $state.href($state.get('applicationReport.policy'), {
+    return routerState.href(routerState.get('applicationReport.policy'), {
       publicId: ownerId,
       scanId: scanId,
     });
@@ -111,8 +117,13 @@ export default function TransitiveViolationsPage(props) {
                     componentTransitivePolicyViolations={componentTransitivePolicyViolations}
                     setFilteringParameters={setFilteringParameters}
                     setSortingParameters={setSortingParameters}
+                    setSelectedPolicyViolationId={setSelectedPolicyViolationId}
+                    toggleShowViolationsDetailPopover={toggleShowViolationsDetailPopover}
                   />
                 </div>
+                {showViolationsDetailPopover && (
+                  <PolicyViolationDetailsPopover onClose={toggleShowViolationsDetailPopover} />
+                )}
               </div>
             </section>
           </Fragment>
@@ -127,12 +138,12 @@ TransitiveViolationsPage.propTypes = {
   ownerId: PropTypes.string,
   hash: PropTypes.string,
   scanId: PropTypes.string,
-  $state: PropTypes.object.isRequired,
   availableScopes: availableScopesPropType.isRequired,
   reportMetadata: reportMetadataPropType.isRequired,
   componentTransitivePolicyViolations: componentTransitivePolicyViolationsPropType.isRequired,
   isRequestWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
   isWaiveTransitiveViolationsOpen: PropTypes.bool.isRequired,
+  showViolationsDetailPopover: PropTypes.bool.isRequired,
   loadAvailableScopes: PropTypes.func.isRequired,
   loadTransitiveViolations: PropTypes.func.isRequired,
   setSortingParameters: PropTypes.func.isRequired,
@@ -140,4 +151,6 @@ TransitiveViolationsPage.propTypes = {
   loadReportMetadata: PropTypes.func.isRequired,
   toggleRequestWaiveTransitiveViolations: PropTypes.func.isRequired,
   toggleWaiveTransitiveViolations: PropTypes.func.isRequired,
+  setSelectedPolicyViolationId: PropTypes.func.isRequired,
+  toggleShowViolationsDetailPopover: PropTypes.func.isRequired,
 };

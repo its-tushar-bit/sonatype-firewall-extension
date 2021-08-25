@@ -25,7 +25,11 @@ export default function RequestWaiveTransitiveViolationsPopover(props) {
     'curl -u admin:admin123 -X POST ' + getWaiveTransitiveViolationsUrl(availableScopes.data[0].publicId, scanId, hash);
 
   return (
-    <IqPopover id="request-waive-transitive-violations-popover" onClose={toggleRequestWaiveTransitiveViolations}>
+    <IqPopover
+      id="request-waive-transitive-violations-popover"
+      size="automatic"
+      onClose={toggleRequestWaiveTransitiveViolations}
+    >
       <IqPopover.Header className="transitive-violations-popover-header">
         <div className="transitive-violations-popover-header__title">
           <h2 className="nx-h2 transitive-violations-popover-header__title-text">

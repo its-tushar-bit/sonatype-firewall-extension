@@ -12,10 +12,11 @@ import { NxBackButton } from '@sonatype/react-shared-components';
 import LoadWrapper from '../../../main/frontend/react/LoadWrapper';
 import WaiveTransitiveViolationsPopoverContainer from '../../../main/frontend/violation/WaiveTransitiveViolationsPopoverContainer';
 import RequestWaiveTransitiveViolationsPopoverContainer from '../../../main/frontend/violation/RequestWaiveTransitiveViolationsPopoverContainer';
+import * as routerContext from '../../../main/frontend/react/RouterStateContext';
+import PolicyViolationDetailsPopover from '../../../main/frontend/componentDetails/violations/PolicyViolationDetailsPopover';
 
 describe('TransitiveViolationsPage', function () {
   let minimalProps,
-    spy$State,
     spyLoadAvailableScopes,
     spyLoadReportMetadata,
     spyLoadTransitiveViolations,
@@ -23,16 +24,19 @@ describe('TransitiveViolationsPage', function () {
     spySetFilteringParameters,
     spyToggleRequestWaiveTransitiveViolations,
     spyToggleWaiveTransitiveViolations,
+    spySetSelectedPolicyViolationId,
+    spyToggleShowViolationsDetailPopover,
     getShallowComponent;
 
   beforeEach(function () {
-    spy$State = jasmine.createSpyObj('$state', ['get', 'href']);
-    spy$State.get.and.callFake((stateName) => stateName);
-    spy$State.href.and.callFake((stateName, stateParams) => {
-      if (stateParams) {
-        return `${stateName}-${JSON.stringify(stateParams)}`;
-      }
-      return stateName;
+    spyOn(routerContext, 'useRouterState').and.returnValue({
+      get: jasmine.createSpy('get').and.callFake((stateName) => stateName),
+      href: jasmine.createSpy('href').and.callFake((stateName, stateParams) => {
+        if (stateParams) {
+          return `${stateName}-${JSON.stringify(stateParams)}`;
+        }
+        return stateName;
+      }),
     });
     spyLoadAvailableScopes = jasmine.createSpy('spyLoadAvailableScopes');
     spyLoadReportMetadata = jasmine.createSpy('spyLoadReportMetadata');
@@ -41,12 +45,13 @@ describe('TransitiveViolationsPage', function () {
     spySetFilteringParameters = jasmine.createSpy('spySetFilteringParameters');
     spyToggleRequestWaiveTransitiveViolations = jasmine.createSpy('spyToggleRequestWaiveTransitiveViolations');
     spyToggleWaiveTransitiveViolations = jasmine.createSpy('spyToggleWaiveTransitiveViolations');
+    spySetSelectedPolicyViolationId = jasmine.createSpy('spySetSelectedPolicyViolationId');
+    spyToggleShowViolationsDetailPopover = jasmine.createSpy('spyToggleShowViolationsDetailPopover');
     minimalProps = {
       ownerType: 'someOwnerType',
       ownerId: 'someOwnerId',
       scanId: 'someScanId',
       hash: 'someHash',
-      $state: spy$State,
       availableScopes: {
         loading: false,
         error: null,
@@ -85,6 +90,7 @@ describe('TransitiveViolationsPage', function () {
       },
       isRequestWaiveTransitiveViolationsOpen: false,
       isWaiveTransitiveViolationsOpen: false,
+      showViolationsDetailPopover: false,
       loadAvailableScopes: spyLoadAvailableScopes,
       loadReportMetadata: spyLoadReportMetadata,
       loadTransitiveViolations: spyLoadTransitiveViolations,
@@ -92,6 +98,8 @@ describe('TransitiveViolationsPage', function () {
       setFilteringParameters: spySetFilteringParameters,
       toggleRequestWaiveTransitiveViolations: spyToggleRequestWaiveTransitiveViolations,
       toggleWaiveTransitiveViolations: spyToggleWaiveTransitiveViolations,
+      setSelectedPolicyViolationId: spySetSelectedPolicyViolationId,
+      toggleShowViolationsDetailPopover: spyToggleShowViolationsDetailPopover,
     };
     getShallowComponent = enzymeUtils.getShallowComponent(TransitiveViolationsPage, minimalProps);
   });
@@ -220,7 +228,7 @@ describe('TransitiveViolationsPage', function () {
         'href',
         'applicationReport.policy-{"publicId":"someOwnerId","scanId":"someScanId"}'
       );
-      expect(spy$State.href).toHaveBeenCalled();
+      expect(routerContext.useRouterState().href).toHaveBeenCalled();
     });
   });
 
@@ -343,5 +351,21 @@ describe('TransitiveViolationsPage', function () {
     });
     const requestWaiveTransitiveViolationsButton = component.find('#transitive-violations-page-request-waive');
     expect(requestWaiveTransitiveViolationsButton).toHaveProp('disabled', false);
+  });
+
+  it('does not show the policy violation details popover when showViolationsDetailPopover is false', function () {
+    const wrapper = getShallowComponent();
+    const policyViolationDetailsPopover = wrapper.find(PolicyViolationDetailsPopover);
+    expect(policyViolationDetailsPopover).not.toExist();
+  });
+
+  it('shows the policy violation details popover when showViolationsDetailPopover is true', function () {
+    const wrapper = getShallowComponent({
+      ...minimalProps,
+      showViolationsDetailPopover: true,
+    });
+    const policyViolationDetailsPopover = wrapper.find(PolicyViolationDetailsPopover);
+    expect(policyViolationDetailsPopover).toExist();
+    expect(policyViolationDetailsPopover.prop('onClose')).toBe(spyToggleShowViolationsDetailPopover);
   });
 });

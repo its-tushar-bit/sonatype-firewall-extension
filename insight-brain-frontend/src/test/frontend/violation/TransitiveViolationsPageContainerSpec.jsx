@@ -19,7 +19,9 @@ describe('TransitiveViolationsPageContainer', function () {
     setSortingParametersActionMock,
     setFilteringParametersActionMock,
     toggleRequestWaiveTransitiveViolationsMock,
-    toggleWaiveTransitiveViolationsMock;
+    toggleWaiveTransitiveViolationsMock,
+    setSelectedPolicyViolationIdMock,
+    toggleShowViolationsDetailPopoverMock;
 
   beforeEach(function () {
     state = {
@@ -37,6 +39,9 @@ describe('TransitiveViolationsPageContainer', function () {
         componentTransitivePolicyViolations: 'someComponentTransitivePolicyViolations',
         isRequestWaiveTransitiveViolationsOpen: 'someIsRequestWaiveTransitiveViolationsOpen',
         isWaiveTransitiveViolationsOpen: 'someIsWaiveTransitiveViolationsOpen',
+      },
+      componentDetailsPolicyViolations: {
+        showViolationsDetailPopover: 'someValueToShowThePopover',
       },
     };
     loadAvailableScopesActionMock = jasmine
@@ -58,6 +63,12 @@ describe('TransitiveViolationsPageContainer', function () {
     toggleWaiveTransitiveViolationsMock = jasmine
       .createSpy('toggleWaiveTransitiveViolationsMock')
       .and.returnValue({ type: 'BAR7' });
+    setSelectedPolicyViolationIdMock = jasmine
+      .createSpy('setSelectedPolicyViolationIdMock')
+      .and.returnValue({ type: 'BAR8' });
+    toggleShowViolationsDetailPopoverMock = jasmine
+      .createSpy('toggleShowViolationsDetailPopoverMock')
+      .and.returnValue({ type: 'BAR9' });
     TransitiveViolationsPageContainer = require('inject-loader!../../../main/frontend/violation/TransitiveViolationsPageContainer')(
       {
         './transitiveViolationsActions': {
@@ -68,6 +79,12 @@ describe('TransitiveViolationsPageContainer', function () {
           setFilteringParameters: setFilteringParametersActionMock,
           toggleRequestWaiveTransitiveViolations: toggleRequestWaiveTransitiveViolationsMock,
           toggleWaiveTransitiveViolations: toggleWaiveTransitiveViolationsMock,
+        },
+        '../componentDetails/violations/PolicyViolationsRedux': {
+          actions: {
+            setSelectedPolicyViolationId: setSelectedPolicyViolationIdMock,
+            toggleShowViolationsDetailPopover: toggleShowViolationsDetailPopoverMock,
+          },
         },
       }
     ).default;
@@ -86,6 +103,7 @@ describe('TransitiveViolationsPageContainer', function () {
     expect(wrapper).toHaveProp('componentTransitivePolicyViolations', 'someComponentTransitivePolicyViolations');
     expect(wrapper).toHaveProp('isRequestWaiveTransitiveViolationsOpen', 'someIsRequestWaiveTransitiveViolationsOpen');
     expect(wrapper).toHaveProp('isWaiveTransitiveViolationsOpen', 'someIsWaiveTransitiveViolationsOpen');
+    expect(wrapper).toHaveProp('showViolationsDetailPopover', 'someValueToShowThePopover');
   });
 
   it('correctly maps the action creators to the TransitiveViolationsPageContainer props', function () {
@@ -125,6 +143,16 @@ describe('TransitiveViolationsPageContainer', function () {
     expect(toggleWaiveTransitiveViolationsActionCreator).toEqual(jasmine.any(Function));
     toggleWaiveTransitiveViolationsActionCreator('test');
     expect(store.getActions()[6]).toEqual({ type: 'BAR7' });
+
+    const setSelectedPolicyViolationIdActionCreator = wrapper.prop('setSelectedPolicyViolationId');
+    expect(setSelectedPolicyViolationIdActionCreator).toEqual(jasmine.any(Function));
+    setSelectedPolicyViolationIdActionCreator('test');
+    expect(store.getActions()[7]).toEqual({ type: 'BAR8' });
+
+    const toggleShowViolationsDetailPopoverActionCreator = wrapper.prop('toggleShowViolationsDetailPopover');
+    expect(toggleShowViolationsDetailPopoverActionCreator).toEqual(jasmine.any(Function));
+    toggleShowViolationsDetailPopoverActionCreator('test');
+    expect(store.getActions()[8]).toEqual({ type: 'BAR9' });
   });
 
   it('renders the TransitiveViolationsPage component', function () {

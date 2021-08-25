@@ -29,8 +29,11 @@ transitive-violations-page-container {
     margin-bottom: var(--nx-spacing-4x);
   }
 
-  .nx-viewport-sized__container > .iq-popover {
-    width: 760px;
+  #request-waive-transitive-violations-popover,
+  #waive-transitive-violations-popover {
+    > .iq-popover__content .nx-alert {
+      width: 690px;
+    }
   }
 
   .iq-popover {
@@ -47,6 +50,17 @@ transitive-violations-page-container {
 
     .iq-popover__content {
       padding-top: var(--nx-spacing-6x);
+    }
+  }
+
+  #component-details-policy-violations-popover {
+    .iq-popover__content {
+      padding-top: 0px;
+    }
+
+    .iq-waiver-indicator,
+    .nx-tile__actions {
+      display: none;
     }
   }
 }

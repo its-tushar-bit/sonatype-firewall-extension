@@ -16,8 +16,9 @@ import {
   toggleRequestWaiveTransitiveViolations,
   toggleWaiveTransitiveViolations,
 } from './transitiveViolationsActions';
+import { actions } from '../componentDetails/violations/PolicyViolationsRedux';
 
-function mapStateToProps({ router, transitiveViolations }) {
+function mapStateToProps({ router, transitiveViolations, componentDetailsPolicyViolations }) {
   return {
     ...pick(['ownerType', 'ownerId', 'scanId', 'hash'], router.currentParams),
     ...pick(
@@ -30,6 +31,7 @@ function mapStateToProps({ router, transitiveViolations }) {
       ],
       transitiveViolations
     ),
+    showViolationsDetailPopover: componentDetailsPolicyViolations.showViolationsDetailPopover,
   };
 }
 
@@ -41,6 +43,8 @@ const mapDispatchToProps = {
   setFilteringParameters,
   toggleRequestWaiveTransitiveViolations,
   toggleWaiveTransitiveViolations,
+  setSelectedPolicyViolationId: actions.setSelectedPolicyViolationId,
+  toggleShowViolationsDetailPopover: actions.toggleShowViolationsDetailPopover,
 };
 
 const TransitiveViolationsPageContainer = connect(mapStateToProps, mapDispatchToProps)(TransitiveViolationsPage);

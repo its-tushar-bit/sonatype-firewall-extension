@@ -760,6 +760,8 @@ public class DependencyResolverTest
       final Set<InnerSourceData> innerSourceData) throws Exception
   {
     JsonNode bomNode = findNodeById(bomJson, componentIdentifier);
+    assertThat(objectMapper.treeToValue(bomNode.get("componentIdentifier"), ComponentIdentifier.class)).isEqualTo(
+        componentIdentifier);
     assertThat(bomNode.get("directDependency").asBoolean()).isEqualTo(isDirect);
     assertThat(bomNode.get("innerSource").asBoolean()).isEqualTo(isInnerSource);
     Set<ComponentIdentifier> actualParentIds = null;

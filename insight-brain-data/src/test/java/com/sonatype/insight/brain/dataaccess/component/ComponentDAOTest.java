@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -27,6 +28,9 @@ import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverr
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -228,6 +232,29 @@ public class ComponentDAOTest
     assertThat(component.getObservedMultiLicenseIds())
         .containsExactlyInAnyOrder("Apache-2.0-GPL-3.0", "Apache-2.0-GPL-2.0");
     assertLicenseThreatGroups(component.getLicenseThreatGroups(), "My group 1", "My group 2", "My group 3");
+  }
+
+  @Test
+  public void testGetComponent_UnknownComponent_WithComponentIdentifier() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectNode bom = objectMapper.createObjectNode();
+    ArrayNode aaData = objectMapper.createArrayNode();
+    ObjectNode component = objectMapper.createObjectNode();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
+    component.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier));
+    component.put("matchState", MatchState.UNKNOWN.getId());
+    ComponentDisplayName componentDisplayName = new ComponentDisplayName();
+    componentDisplayName.add("Filename", "unknown.jar");
+    componentDisplayName.setName("unknown.jar");
+    component.set("displayName", objectMapper.valueToTree(componentDisplayName));
+    component.put("proprietary", false);
+    aaData.add(objectMapper.valueToTree(component));
+    bom.set("aaData", aaData);
+
+    List<Component> components =
+        new ComponentDAO(application).getAll(null, null, objectMapper.writeValueAsBytes(bom), null);
+
+    assertThat(components).extracting(Component::getComponentIdentifier).containsExactly(componentIdentifier);
   }
 
   @Test

@@ -37,6 +37,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.util.ComponentIdentifierHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections.CollectionUtils;
@@ -63,6 +64,8 @@ public class DependencyResolver
   private static final String FIELD_DIRECT_DEPENDENCY = "directDependency";
 
   private static final String FIELD_INNER_SOURCE = "innerSource";
+
+  private static final String FIELD_COMPONENT_IDENTIFIER = "componentIdentifier";
 
   private static final String PURL_PREFIX = "pkg:";
 
@@ -407,6 +410,9 @@ public class DependencyResolver
   {
     findBomComponent(componentId)
         .ifPresent(bomObjectNode -> {
+          if (!bomObjectNode.hasNonNull(FIELD_COMPONENT_IDENTIFIER)) {
+            bomObjectNode.set(FIELD_COMPONENT_IDENTIFIER, new ObjectMapper().valueToTree(componentId));
+          }
           bomObjectNode
               .put(FIELD_DIRECT_DEPENDENCY, bomObjectNode.path(FIELD_DIRECT_DEPENDENCY).asBoolean(false) || isDirect);
           bomObjectNode

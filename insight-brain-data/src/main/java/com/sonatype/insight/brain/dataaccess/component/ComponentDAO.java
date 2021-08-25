@@ -237,9 +237,8 @@ public class ComponentDAO
           }
           component.setDisplayName(JsonUtils.getTypeToString(componentJson.path(DISPLAY_NAME_FIELD),
               ComponentDisplayName.class));
+          component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
           if (!matchState.equals(MatchState.UNKNOWN)) {
-            component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));
-
             Integer relativePopularity = null;
             final JsonNode relativePopularityJson = componentJson.get("relativePopularity");
             if (!relativePopularityJson.isNull()) {

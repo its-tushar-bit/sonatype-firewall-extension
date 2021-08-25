@@ -21,13 +21,7 @@ public class ApiCompositeSourceControlDTO
 
   public ApiCompositeValueDTO<String> baseBranch = new ApiCompositeValueDTO<>();
 
-  public ApiCompositeValueDTO<Boolean> remediationPullRequestsEnabled = new ApiCompositeValueDTO<>();
+  public ApiCompositeValueDTO<Boolean> enablePullRequests = new ApiCompositeValueDTO<>();
 
-  public ApiCompositeValueDTO<Boolean> statusChecksEnabled = new ApiCompositeValueDTO<>();
-
-  public ApiCompositeValueDTO<Boolean> pullRequestCommentingEnabled = new ApiCompositeValueDTO<>();
-
-  public ApiCompositeValueDTO<Boolean> sourceControlScansEnabled = new ApiCompositeValueDTO<>();
-
-  public ApiCompositeValueDTO<String> sourceControlScanTarget = new ApiCompositeValueDTO<>();
+  public ApiCompositeValueDTO<Boolean> enableStatusChecks = new ApiCompositeValueDTO<>();
 }

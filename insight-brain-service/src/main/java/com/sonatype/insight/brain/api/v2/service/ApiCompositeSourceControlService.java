@@ -204,7 +204,7 @@ public class ApiCompositeSourceControlService
         grandParentSourceControl.getBaseBranch()
     );
 
-    dto.remediationPullRequestsEnabled = collateCompositeDTO(
+    dto.enablePullRequests = collateCompositeDTO(
         sourceControl.getRemediationPullRequestsEnabled(),
         parentName,
         parentSourceControl.getRemediationPullRequestsEnabled(),
@@ -212,36 +212,12 @@ public class ApiCompositeSourceControlService
         grandParentSourceControl.getRemediationPullRequestsEnabled()
     );
 
-    dto.statusChecksEnabled = collateCompositeDTO(
+    dto.enableStatusChecks = collateCompositeDTO(
         sourceControl.getStatusChecksEnabled(),
         parentName,
         parentSourceControl.getStatusChecksEnabled(),
         grandParentName,
         grandParentSourceControl.getStatusChecksEnabled()
-    );
-
-    dto.pullRequestCommentingEnabled = collateCompositeDTO(
-        sourceControl.getPullRequestCommentingEnabled(),
-        parentName,
-        parentSourceControl.getPullRequestCommentingEnabled(),
-        grandParentName,
-        grandParentSourceControl.getPullRequestCommentingEnabled()
-    );
-
-    dto.sourceControlScansEnabled = collateCompositeDTO(
-        sourceControl.getSourceControlScansEnabled(),
-        parentName,
-        parentSourceControl.getSourceControlScansEnabled(),
-        grandParentName,
-        grandParentSourceControl.getSourceControlScansEnabled()
-    );
-
-    dto.sourceControlScanTarget = collateCompositeDTO(
-        sourceControl.getSourceControlScanTarget(),
-        parentName,
-        parentSourceControl.getSourceControlScanTarget(),
-        grandParentName,
-        grandParentSourceControl.getSourceControlScanTarget()
     );
   }
 

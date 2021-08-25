@@ -80,9 +80,6 @@ public class ApiCompositeSourceControlServiceTest
   @Test
   public void testGetCompositeSourceControlByOwner_RootOrg() {
     rootOrgSourcecontrol.setToken(TOKEN);
-    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
-    rootOrgSourcecontrol.setSourceControlScansEnabled(true);
-    rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -98,24 +95,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
+    assertThat(dto.enableStatusChecks.value).isTrue();
+    assertThat(dto.enableStatusChecks.parentName).isNull();
+    assertThat(dto.enableStatusChecks.parentValue).isNull();
+    assertThat(dto.enablePullRequests.value).isTrue();
+    assertThat(dto.enablePullRequests.parentName).isNull();
+    assertThat(dto.enablePullRequests.parentValue).isNull();
     assertThat(dto.baseBranch.value).isEqualTo("master");
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isFalse();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isTrue();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isEqualTo("target/*");
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
@@ -135,36 +123,25 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isNull();
+    assertThat(dto.enableStatusChecks.parentValue).isNull();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isNull();
+    assertThat(dto.enablePullRequests.parentValue).isNull();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_Organization() {
     rootOrgSourcecontrol.setToken(TOKEN);
     rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
-    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
-    rootOrgSourcecontrol.setSourceControlScansEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
+
     final SourceControl orgSourceControl =
-        tempEntity.newSourceControl(org.getId(), null, null, TOKEN, null, false,
-            null, null, null, true, true, "/target/*");
+        tempEntity.newSourceControl(org.getId(), null, TOKEN, null, false, null, null);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, org.getId());
@@ -181,24 +158,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isFalse();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isFalse();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enablePullRequests.parentValue).isTrue();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isTrue();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlScansEnabled.value).isTrue();
-    assertThat(dto.sourceControlScansEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScansEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlScanTarget.value).isEqualTo("/target/*");
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
@@ -222,24 +190,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isFalse();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isNull();
+    assertThat(dto.enableStatusChecks.parentValue).isNull();
+    assertThat(dto.enablePullRequests.value).isFalse();
+    assertThat(dto.enablePullRequests.parentName).isNull();
+    assertThat(dto.enablePullRequests.parentValue).isNull();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
@@ -259,33 +218,21 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isNull();
+    assertThat(dto.enableStatusChecks.parentValue).isNull();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isNull();
+    assertThat(dto.enablePullRequests.parentValue).isNull();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_OrganizationNotConfigured() {
     rootOrgSourcecontrol.setToken(TOKEN);
     rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
-    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
-    rootOrgSourcecontrol.setSourceControlScansEnabled(true);
-    rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -303,24 +250,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enablePullRequests.parentValue).isTrue();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScansEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
   }
 
   @Test
@@ -343,24 +281,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isFalse();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isFalse();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enablePullRequests.parentValue).isTrue();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.baseBranch.parentValue).isEqualTo("master");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
@@ -389,30 +318,18 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
+    assertThat(dto.enableStatusChecks.value).isTrue();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.enablePullRequests.parentValue).isFalse();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
 
     appSourceControl.setBaseBranch("BASE_BRANCH_APP");
     appSourceControl.setRemediationPullRequestsEnabled(true);
-    appSourceControl.setPullRequestCommentingEnabled(false);
-    appSourceControl.setSourceControlScansEnabled(true);
-    appSourceControl.setSourceControlScanTarget("target/*");
     sourceControlDAO.update(appSourceControl);
 
     dto = apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
@@ -429,33 +346,21 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
+    assertThat(dto.enableStatusChecks.value).isTrue();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isTrue();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.enablePullRequests.parentValue).isFalse();
     assertThat(dto.baseBranch.value).isEqualTo("BASE_BRANCH_APP");
     assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isFalse();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isTrue();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isEqualTo("target/*");
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNoOrgSourceControl() {
     rootOrgSourcecontrol.setToken(TOKEN);
     rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
-    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
-    rootOrgSourcecontrol.setSourceControlScansEnabled(true);
-    rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final SourceControl appSourceControl =
@@ -476,31 +381,21 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
+    assertThat(dto.enableStatusChecks.value).isTrue();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enablePullRequests.parentValue).isTrue();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScansEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNoRootOrgSourceControl() {
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, null, TOKEN, SourceControlProvider.GITLAB, false,
-        null, null, null, true, true, "/target/*");
+    tempEntity.newSourceControl(parentOrg.getId(), null, TOKEN, SourceControlProvider.GITLAB, false, null, null);
     final SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null, null, true, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
@@ -520,33 +415,21 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
+    assertThat(dto.enableStatusChecks.value).isTrue();
+    assertThat(dto.enableStatusChecks.parentName).isNull();
+    assertThat(dto.enableStatusChecks.parentValue).isNull();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.enablePullRequests.parentValue).isFalse();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sourceControlScansEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNotConfigured() {
     rootOrgSourcecontrol.setToken(TOKEN);
     rootOrgSourcecontrol.setBaseBranch("BASE_BRANCH");
-    rootOrgSourcecontrol.setPullRequestCommentingEnabled(false);
-    rootOrgSourcecontrol.setSourceControlScansEnabled(true);
-    rootOrgSourcecontrol.setSourceControlScanTarget("target/*");
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
@@ -567,24 +450,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.enablePullRequests.parentValue).isFalse();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isFalse();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScansEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("target/*");
   }
 
   @Test
@@ -608,24 +482,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isTrue();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
+    assertThat(dto.enableStatusChecks.value).isTrue();
+    assertThat(dto.enableStatusChecks.parentName).isNull();
+    assertThat(dto.enableStatusChecks.parentValue).isNull();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isNull();
+    assertThat(dto.enablePullRequests.parentValue).isNull();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
@@ -649,31 +514,21 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.statusChecksEnabled.parentValue).isTrue();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isTrue();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enableStatusChecks.parentValue).isTrue();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(dto.enablePullRequests.parentValue).isTrue();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(dto.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationOrgSourceControlOnly() {
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
-    tempEntity.newSourceControl(parentOrg.getId(), null, null, TOKEN, SourceControlProvider.GITLAB, false,
-        null, null, null, true, true, "/target/*");
+    tempEntity.newSourceControl(parentOrg.getId(), null, TOKEN, SourceControlProvider.GITLAB, false, null, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO dto = apiCompositeSourceControlService
@@ -691,24 +546,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(dto.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isFalse();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isNull();
+    assertThat(dto.enableStatusChecks.parentValue).isNull();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isEqualTo(parentOrg.getName());
+    assertThat(dto.enablePullRequests.parentValue).isFalse();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sourceControlScansEnabled.parentValue).isTrue();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isEqualTo(parentOrg.getName());
-    assertThat(dto.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
   }
 
   @Test
@@ -730,24 +576,15 @@ public class ApiCompositeSourceControlServiceTest
     assertThat(dto.token.value).isNull();
     assertThat(dto.token.parentName).isNull();
     assertThat(dto.token.parentValue).isNull();
-    assertThat(dto.statusChecksEnabled.value).isNull();
-    assertThat(dto.statusChecksEnabled.parentName).isNull();
-    assertThat(dto.statusChecksEnabled.parentValue).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.value).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentName).isNull();
-    assertThat(dto.remediationPullRequestsEnabled.parentValue).isNull();
+    assertThat(dto.enableStatusChecks.value).isNull();
+    assertThat(dto.enableStatusChecks.parentName).isNull();
+    assertThat(dto.enableStatusChecks.parentValue).isNull();
+    assertThat(dto.enablePullRequests.value).isNull();
+    assertThat(dto.enablePullRequests.parentName).isNull();
+    assertThat(dto.enablePullRequests.parentValue).isNull();
     assertThat(dto.baseBranch.value).isNull();
     assertThat(dto.baseBranch.parentName).isNull();
     assertThat(dto.baseBranch.parentValue).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.value).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentName).isNull();
-    assertThat(dto.pullRequestCommentingEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScansEnabled.value).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentName).isNull();
-    assertThat(dto.sourceControlScansEnabled.parentValue).isNull();
-    assertThat(dto.sourceControlScanTarget.value).isNull();
-    assertThat(dto.sourceControlScanTarget.parentName).isNull();
-    assertThat(dto.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test

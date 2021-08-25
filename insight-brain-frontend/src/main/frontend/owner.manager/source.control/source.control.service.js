@@ -102,7 +102,7 @@ function getDataFromSourceControl(ownerType, ownerId, sourceControl) {
     statusChecksEnabled: sourceControl.statusChecksEnabled,
     pullRequestCommentingEnabled: sourceControl.pullRequestCommentingEnabled,
     sourceControlScansEnabled: sourceControl.sourceControlScansEnabled,
-    sourceControlScanTarget: sourceControl.sourceControlScanTarget,
+    sourceControlScanTarget: sourceControl.sourceControlScanTarget
   };
   if (ownerType === 'application') {
     data.repositoryUrl = sourceControl.repositoryUrl;

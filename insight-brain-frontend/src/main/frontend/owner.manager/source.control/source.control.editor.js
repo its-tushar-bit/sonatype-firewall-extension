@@ -290,8 +290,7 @@ function SourceControlEditorController(
 
     model.remediationPullRequestsEnabled = compositeSourceControl.remediationPullRequestsEnabled.value;
     model.remediationPullRequestsEnabledInheritFrom = compositeSourceControl.remediationPullRequestsEnabled.parentName;
-    model.remediationPullRequestsEnabledInheritedValue =
-      compositeSourceControl.remediationPullRequestsEnabled.parentValue;
+    model.remediationPullRequestsEnabledInheritedValue = compositeSourceControl.remediationPullRequestsEnabled.parentValue;
 
     model.statusChecksEnabled = compositeSourceControl.statusChecksEnabled.value;
     model.statusChecksEnabledInheritFrom = compositeSourceControl.statusChecksEnabled.parentName;
@@ -434,9 +433,7 @@ function SourceControlEditorController(
       return model.remediationPullRequestsEnabled;
     }
 
-    return vm.originalSourceControl.remediationPullRequestsEnabled === null
-      ? true
-      : vm.originalSourceControl.remediationPullRequestsEnabled;
+    return vm.originalSourceControl.remediationPullRequestsEnabled === null ? true : vm.originalSourceControl.remediationPullRequestsEnabled;
   }
 
   function getBaseBranchValueFromModel(model) {

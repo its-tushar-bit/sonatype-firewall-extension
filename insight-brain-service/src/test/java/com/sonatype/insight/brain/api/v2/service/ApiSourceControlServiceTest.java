@@ -297,7 +297,8 @@ public class ApiSourceControlServiceTest
             org.getId(), validSourceControl);
     sourceControl.token = "updatedToken";
     assertTelemetry(METHOD.ADD, org.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.remediationPullRequestsEnabled,
+        sourceControl.provider, sourceControl.remediationPullRequestsEnabled,
+        sourceControl.remediationPullRequestsEnabled,
         sourceControl.baseBranch);
 
     final ApiSourceControlDTO updatedScm =
@@ -305,7 +306,8 @@ public class ApiSourceControlServiceTest
             org.getId(), sourceControl);
     assertThat(updatedScm.token).isEqualTo(SourceControl.FAKE_SECRET_KEY);
     assertTelemetry(METHOD.UPDATE, org.getId(), sourceControl.repositoryUrl,
-        sourceControl.provider, sourceControl.remediationPullRequestsEnabled, sourceControl.remediationPullRequestsEnabled,
+        sourceControl.provider, sourceControl.remediationPullRequestsEnabled,
+        sourceControl.remediationPullRequestsEnabled,
         sourceControl.baseBranch);
 
     final SourceControl reloaded = sourceControlDAO.getByIdNotNull(sourceControl.id);

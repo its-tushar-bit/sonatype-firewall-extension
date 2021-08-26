@@ -44,7 +44,6 @@ import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.apache.commons.collections4.MapUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,10 +196,8 @@ public class ApiSearchServiceV2
       final String candidateHash)
   {
     ApiDependencyDataDTO dependencyData = new ApiDependencyDataDTO();
-    boolean isEnabledComponentSearchApiWithInnerSource = MapUtils.emptyIfNull(insightConfig.getExperimentalFeatures())
-        .getOrDefault(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true);
 
-    if (!isEnabledComponentSearchApiWithInnerSource) {
+    if (!insightConfig.isExperimentalFeatureEnabled(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE)) {
       return null;
     }
 

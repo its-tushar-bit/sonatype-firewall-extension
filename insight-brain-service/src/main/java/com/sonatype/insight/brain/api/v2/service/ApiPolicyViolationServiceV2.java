@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -192,14 +191,8 @@ public class ApiPolicyViolationServiceV2
     return apiPolicyViolationDTOs;
   }
 
-  public boolean isInnerSourceTransitiveWaiverEnabled() {
-    Map<String, Boolean> experimentalFeatures = insightConfig.getExperimentalFeatures();
-    return experimentalFeatures != null ? experimentalFeatures
-        .getOrDefault(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag(), false) : false;
-  }
-
   public void ensureInnerSourceTransitiveWaiverEnabled() {
-    if (!isInnerSourceTransitiveWaiverEnabled()) {
+    if (!insightConfig.isExperimentalFeatureEnabled(Feature.INNER_SOURCE_TRANSITIVE_WAIVER)) {
       throw new UnauthorizedException(Feature.INNER_SOURCE_TRANSITIVE_WAIVER.getFlag() + " feature is disabled.");
     }
   }

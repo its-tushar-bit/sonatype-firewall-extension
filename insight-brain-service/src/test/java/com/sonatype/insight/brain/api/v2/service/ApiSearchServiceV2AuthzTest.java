@@ -12,8 +12,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSearchResultsDTOV2;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.error.exception.NotFoundException;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Binder;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -26,6 +28,9 @@ public class ApiSearchServiceV2AuthzTest
 {
   @Inject
   private ApiSearchServiceV2 searchService;
+
+  @Inject
+  private InsightConfig insightConfig;
 
   @Mock
   private ReportService reportServiceMock;
@@ -43,6 +48,8 @@ public class ApiSearchServiceV2AuthzTest
 
   @Test
   public void testSearchComponent() {
+    insightConfig
+        .setExperimentalFeatures(ImmutableMap.of(Feature.COMPONENT_SEARCH_API_WITH_INNERSOURCE.getFlag(), true));
     String stage = Stage.ID_BUILD;
     String hash = "1249e25aebb15358bedd";
     String scanId = "search-test";

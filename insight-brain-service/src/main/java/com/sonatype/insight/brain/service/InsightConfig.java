@@ -948,26 +948,33 @@ public class InsightConfig
 
   public enum Feature implements com.sonatype.insight.license.model.Feature
   {
-    CODE_INSIGHTS("codeInsights"), //
-    COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource"), //
-    DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring"), //
-    DEPENDENCY_DATA_IN_API("dependencyDataInApi"), //
-    INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver"), //
-    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations"), //
-    ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing"), //
-    PR_COMMENT_MONITORING("prCommentMonitoring"), //
-    PR_COMMENTING("prCommenting"), //
-    PR_LINE_COMMENTING("prLineCommenting"), //
-    SCM_ONBOARDING("scmOnboarding");
+    CODE_INSIGHTS("codeInsights", false), //
+    COMPONENT_SEARCH_API_WITH_INNERSOURCE("componentSearchApiWithInnerSource", true), //
+    DEFAULT_BRANCH_MONITORING("defaultBranchMonitoring", false), //
+    DEPENDENCY_DATA_IN_API("dependencyDataInApi", true), //
+    INNER_SOURCE_TRANSITIVE_WAIVER("innerSourceTransitiveWaiver", true), //
+    INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS("internalSourceControlPolicyEvaluations", false), //
+    ORCHESTRATED_EVENT_PROCESSING("orchestratedEventProcessing", false), //
+    PR_COMMENT_MONITORING("prCommentMonitoring", false), //
+    PR_COMMENTING("prCommenting", false), //
+    PR_LINE_COMMENTING("prLineCommenting", false), //
+    SCM_ONBOARDING("scmOnboarding", false);
 
-    private String flag;
+    private final String flag;
+    
+    private final boolean enabledByDefault;
 
-    Feature(final String flag) {
+    Feature(final String flag, final boolean enabledByDefault) {
       this.flag = flag;
+      this.enabledByDefault = enabledByDefault;
     }
 
     public String getFlag() {
       return flag;
+    }
+
+    public boolean isEnabledByDefault() {
+      return enabledByDefault;
     }
   }
 

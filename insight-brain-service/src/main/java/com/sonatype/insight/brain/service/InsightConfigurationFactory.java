@@ -19,6 +19,7 @@ import javax.validation.Validator;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.service.InsightConfig.Feature;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.access.spi.IAccessEvent;
@@ -98,6 +99,7 @@ public class InsightConfigurationFactory
       InsightConfig insightConfig = super.build(provider, path);
       setDefaultRequestLogSettings(insightConfig);
       setDefaultLogSettings(insightConfig);
+      setDefaultExperimentalFeatureFlags(insightConfig);
       return insightConfig;
     }
     catch (ConfigurationParsingException e) {
@@ -244,5 +246,16 @@ public class InsightConfigurationFactory
     auditLogAppenders.add(auditLogAppender);
     setIndependentJsonLogSettings(auditLogger);
     return auditLogger;
+  }
+
+  private void setDefaultExperimentalFeatureFlags(InsightConfig insightConfig) {
+    if (insightConfig.getExperimentalFeatures() == null) {
+      insightConfig.setExperimentalFeatures(new HashMap<>());
+    }
+    for (Feature feature : Feature.values()) {
+      if (feature.isEnabledByDefault()) {
+        insightConfig.getExperimentalFeatures().putIfAbsent(feature.getFlag(), true);
+      }
+    }
   }
 }

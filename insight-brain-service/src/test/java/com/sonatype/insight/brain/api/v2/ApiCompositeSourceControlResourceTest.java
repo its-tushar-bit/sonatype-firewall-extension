@@ -46,9 +46,9 @@ public class ApiCompositeSourceControlResourceTest
   public void setup() {
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
-    rootOrgSourceControl = tempEntity
-        .newSourceControl(ROOT_ORGANIZATION_ID, null, null, "TOKEN", SourceControlProvider.GITHUB, null, null,
-            "BASE_BRANCH", null);
+    rootOrgSourceControl =
+        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, "TOKEN", SourceControlProvider.GITHUB, null,
+            null, "BASE_BRANCH", null, true, true, "/target/*");
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
 
@@ -76,15 +76,24 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(result.token.parentName).isNull();
     assertThat(result.token.parentValue).isNull();
-    assertThat(result.enableStatusChecks.value).isTrue();
-    assertThat(result.enableStatusChecks.parentName).isNull();
-    assertThat(result.enableStatusChecks.parentValue).isNull();
-    assertThat(result.enablePullRequests.value).isTrue();
-    assertThat(result.enablePullRequests.parentName).isNull();
-    assertThat(result.enablePullRequests.parentValue).isNull();
+    assertThat(result.statusChecksEnabled.value).isTrue();
+    assertThat(result.statusChecksEnabled.parentName).isNull();
+    assertThat(result.statusChecksEnabled.parentValue).isNull();
+    assertThat(result.remediationPullRequestsEnabled.value).isTrue();
+    assertThat(result.remediationPullRequestsEnabled.parentName).isNull();
+    assertThat(result.remediationPullRequestsEnabled.parentValue).isNull();
     assertThat(result.baseBranch.value).isEqualTo("BASE_BRANCH");
     assertThat(result.baseBranch.parentName).isNull();
     assertThat(result.baseBranch.parentValue).isNull();
+    assertThat(result.pullRequestCommentingEnabled.value).isTrue();
+    assertThat(result.pullRequestCommentingEnabled.parentName).isNull();
+    assertThat(result.pullRequestCommentingEnabled.parentValue).isNull();
+    assertThat(result.sourceControlScansEnabled.value).isTrue();
+    assertThat(result.sourceControlScansEnabled.parentName).isNull();
+    assertThat(result.sourceControlScansEnabled.parentValue).isNull();
+    assertThat(result.sourceControlScanTarget.value).isEqualTo("/target/*");
+    assertThat(result.sourceControlScanTarget.parentName).isNull();
+    assertThat(result.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
@@ -109,22 +118,31 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.token.value).isNull();
     assertThat(result.token.parentName).isNull();
     assertThat(result.token.parentValue).isNull();
-    assertThat(result.enableStatusChecks.value).isNull();
-    assertThat(result.enableStatusChecks.parentName).isNull();
-    assertThat(result.enableStatusChecks.parentValue).isNull();
-    assertThat(result.enablePullRequests.value).isNull();
-    assertThat(result.enablePullRequests.parentName).isNull();
-    assertThat(result.enablePullRequests.parentValue).isNull();
+    assertThat(result.statusChecksEnabled.value).isNull();
+    assertThat(result.statusChecksEnabled.parentName).isNull();
+    assertThat(result.statusChecksEnabled.parentValue).isNull();
+    assertThat(result.remediationPullRequestsEnabled.value).isNull();
+    assertThat(result.remediationPullRequestsEnabled.parentName).isNull();
+    assertThat(result.remediationPullRequestsEnabled.parentValue).isNull();
     assertThat(result.baseBranch.value).isNull();
     assertThat(result.baseBranch.parentName).isNull();
     assertThat(result.baseBranch.parentValue).isNull();
+    assertThat(result.pullRequestCommentingEnabled.value).isNull();
+    assertThat(result.pullRequestCommentingEnabled.parentName).isNull();
+    assertThat(result.pullRequestCommentingEnabled.parentValue).isNull();
+    assertThat(result.sourceControlScansEnabled.value).isNull();
+    assertThat(result.sourceControlScansEnabled.parentName).isNull();
+    assertThat(result.sourceControlScansEnabled.parentValue).isNull();
+    assertThat(result.sourceControlScanTarget.value).isNull();
+    assertThat(result.sourceControlScanTarget.parentName).isNull();
+    assertThat(result.sourceControlScanTarget.parentValue).isNull();
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_Organization() throws Exception {
     final SourceControl orgSourceControl =
-        tempEntity.newSourceControl(org.getId(), null, null, "TOKEN", null, false, null, null, null);
-
+        tempEntity.newSourceControl(org.getId(), null, null, "TOKEN", null, false,
+            null, null, null, false, false, null);
     final HttpResponse response = restRequest()
         .path(DefaultApiCompositeSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
@@ -142,15 +160,24 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(result.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(result.enableStatusChecks.value).isNull();
-    assertThat(result.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(result.enableStatusChecks.parentValue).isTrue();
-    assertThat(result.enablePullRequests.value).isFalse();
-    assertThat(result.enablePullRequests.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(result.enablePullRequests.parentValue).isTrue();
+    assertThat(result.statusChecksEnabled.value).isNull();
+    assertThat(result.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.statusChecksEnabled.parentValue).isTrue();
+    assertThat(result.remediationPullRequestsEnabled.value).isFalse();
+    assertThat(result.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.remediationPullRequestsEnabled.parentValue).isTrue();
     assertThat(result.baseBranch.value).isNull();
     assertThat(result.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
+    assertThat(result.pullRequestCommentingEnabled.value).isFalse();
+    assertThat(result.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.pullRequestCommentingEnabled.parentValue).isTrue();
+    assertThat(result.sourceControlScansEnabled.value).isFalse();
+    assertThat(result.sourceControlScansEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.sourceControlScansEnabled.parentValue).isTrue();
+    assertThat(result.sourceControlScanTarget.value).isNull();
+    assertThat(result.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
   }
 
   @Test
@@ -158,7 +185,8 @@ public class ApiCompositeSourceControlResourceTest
     final Organization parentOrg = organizationDAO.getById(app.getOrganizationId());
     tempEntity.newSourceControl(parentOrg.getId(), null, "TOKEN", null, false, null, null);
     final SourceControl appSourceControl =
-        tempEntity.newSourceControl(app.getId(), VALID_URL, null, "TOKEN", null, null, true, null, null);
+        tempEntity.newSourceControl(app.getId(), VALID_URL, null, "TOKEN", null, null,
+            true, null, null, false, false, null);
 
     final HttpResponse response = restRequest()
         .path(DefaultApiCompositeSourceControlResource.BY_OWNER)
@@ -177,15 +205,24 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.token.value).isEqualTo(FAKE_SECRET_KEY);
     assertThat(result.token.parentName).isEqualTo(parentOrg.getName());
     assertThat(result.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(result.enableStatusChecks.value).isTrue();
-    assertThat(result.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(result.enableStatusChecks.parentValue).isTrue();
-    assertThat(result.enablePullRequests.value).isNull();
-    assertThat(result.enablePullRequests.parentName).isEqualTo(parentOrg.getName());
-    assertThat(result.enablePullRequests.parentValue).isFalse();
+    assertThat(result.statusChecksEnabled.value).isTrue();
+    assertThat(result.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.statusChecksEnabled.parentValue).isTrue();
+    assertThat(result.remediationPullRequestsEnabled.value).isNull();
+    assertThat(result.remediationPullRequestsEnabled.parentName).isEqualTo(parentOrg.getName());
+    assertThat(result.remediationPullRequestsEnabled.parentValue).isFalse();
     assertThat(result.baseBranch.value).isNull();
     assertThat(result.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
+    assertThat(result.pullRequestCommentingEnabled.value).isFalse();
+    assertThat(result.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.pullRequestCommentingEnabled.parentValue).isTrue();
+    assertThat(result.sourceControlScansEnabled.value).isFalse();
+    assertThat(result.sourceControlScansEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.sourceControlScansEnabled.parentValue).isTrue();
+    assertThat(result.sourceControlScanTarget.value).isNull();
+    assertThat(result.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
   }
 
   @Test
@@ -207,14 +244,23 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.token.value).isNull();
     assertThat(result.token.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.token.parentValue).isEqualTo(FAKE_SECRET_KEY);
-    assertThat(result.enableStatusChecks.value).isNull();
-    assertThat(result.enableStatusChecks.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(result.enableStatusChecks.parentValue).isTrue();
-    assertThat(result.enablePullRequests.value).isNull();
-    assertThat(result.enablePullRequests.parentName).isEqualTo(rootOrganization.getName());
-    assertThat(result.enablePullRequests.parentValue).isTrue();
+    assertThat(result.statusChecksEnabled.value).isNull();
+    assertThat(result.statusChecksEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.statusChecksEnabled.parentValue).isTrue();
+    assertThat(result.remediationPullRequestsEnabled.value).isNull();
+    assertThat(result.remediationPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.remediationPullRequestsEnabled.parentValue).isTrue();
     assertThat(result.baseBranch.value).isNull();
     assertThat(result.baseBranch.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.baseBranch.parentValue).isEqualTo("BASE_BRANCH");
+    assertThat(result.pullRequestCommentingEnabled.value).isNull();
+    assertThat(result.pullRequestCommentingEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.pullRequestCommentingEnabled.parentValue).isTrue();
+    assertThat(result.sourceControlScansEnabled.value).isNull();
+    assertThat(result.sourceControlScansEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.sourceControlScansEnabled.parentValue).isTrue();
+    assertThat(result.sourceControlScanTarget.value).isNull();
+    assertThat(result.sourceControlScanTarget.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.sourceControlScanTarget.parentValue).isEqualTo("/target/*");
   }
 }

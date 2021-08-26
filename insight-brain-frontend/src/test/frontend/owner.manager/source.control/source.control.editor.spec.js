@@ -7,7 +7,7 @@ import sourceControlModule from '../../../../main/frontend/owner.manager/source.
 import utilityModule from '../../../../main/frontend/utility/utility.module';
 import ownerManagerModule from '../../../../main/frontend/owner.manager/owner.manager.module';
 
-describe('source.control.editor.spec', function () {
+fdescribe('source.control.editor.spec', function () {
   const ROOT_ORGANIZATION_ID = 'rootOrganizationId';
   const SUB_ORGANIZATION_ID = 'subOrganizationId';
   const APPLICATION_ID = 'applicationId';
@@ -119,12 +119,12 @@ describe('source.control.editor.spec', function () {
         parentName: null,
         parentValue: null,
       },
-      enableStatusChecks: {
+      statusChecksEnabled: {
         value: true,
         parentName: null,
         parentValue: null,
       },
-      enablePullRequests: {
+      remediationPullRequestsEnabled: {
         value: null,
         parentName: null,
         parentValue: null,
@@ -151,12 +151,12 @@ describe('source.control.editor.spec', function () {
       providerInheritFrom: null,
       providerInheritValue: null,
       repositoryUrl: null,
-      enablePullRequests: null,
-      enablePullRequestsInheritedValue: null,
-      enablePullRequestsInheritFrom: null,
-      enableStatusChecks: true,
-      enableStatusChecksInheritedValue: null,
-      enableStatusChecksInheritFrom: null,
+      remediationPullRequestsEnabled: null,
+      remediationPullRequestsEnabledInheritedValue: null,
+      remediationPullRequestsEnabledInheritFrom: null,
+      statusChecksEnabled: true,
+      statusChecksEnabledInheritedValue: null,
+      statusChecksEnabledInheritFrom: null,
     };
 
     beforeEach(inject(function () {
@@ -338,8 +338,8 @@ describe('source.control.editor.spec', function () {
           ownerId: ROOT_ORGANIZATION_ID,
           id: null,
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: null,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: null,
+          statusChecksEnabled: true,
         };
 
         getByIdDeferred.resolve({
@@ -391,8 +391,8 @@ describe('source.control.editor.spec', function () {
           ownerId: ROOT_ORGANIZATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: null,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: null,
+          statusChecksEnabled: true,
         };
 
         getByIdDeferred.resolve({
@@ -452,8 +452,8 @@ describe('source.control.editor.spec', function () {
           ownerId: ROOT_ORGANIZATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: null,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: null,
+          statusChecksEnabled: true,
         };
 
         getByIdDeferred.resolve({
@@ -555,7 +555,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to enablePullRequests', function () {
+      it('returns true when changes have been applied to remediationPullRequestsEnabled', function () {
         getByIdDeferred.resolve({
           name: 'rootOrganizationName',
           id: ROOT_ORGANIZATION_ID,
@@ -570,7 +570,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
-        vm.dirtySourceControl.enablePullRequests = 'false';
+        vm.dirtySourceControl.remediationPullRequestsEnabled = 'false';
         vm.dirtySourceControl.provider = 'github';
 
         expect(vm.isDirty()).toBeTruthy();
@@ -1034,12 +1034,12 @@ describe('source.control.editor.spec', function () {
         parentName: 'Root Organization',
         parentValue: 'PARENT_BRANCH',
       },
-      enableStatusChecks: {
+      statusChecksEnabled: {
         value: true,
         parentName: null,
         parentValue: null,
       },
-      enablePullRequests: {
+      remediationPullRequestsEnabled: {
         value: null,
         parentName: 'Root Organization',
         parentValue: true,
@@ -1066,12 +1066,12 @@ describe('source.control.editor.spec', function () {
       providerInheritFrom: 'Root Organization',
       providerInheritValue: 'gitlab',
       repositoryUrl: null,
-      enablePullRequests: null,
-      enablePullRequestsInheritedValue: true,
-      enablePullRequestsInheritFrom: 'Root Organization',
-      enableStatusChecks: true,
-      enableStatusChecksInheritedValue: null,
-      enableStatusChecksInheritFrom: null,
+      remediationPullRequestsEnabled: null,
+      remediationPullRequestsEnabledInheritedValue: true,
+      remediationPullRequestsEnabledInheritFrom: 'Root Organization',
+      statusChecksEnabled: true,
+      statusChecksEnabledInheritedValue: null,
+      statusChecksEnabledInheritFrom: null,
     };
 
     beforeEach(inject(function () {
@@ -1265,12 +1265,12 @@ describe('source.control.editor.spec', function () {
           providerInheritFrom: 'Root Organization',
           providerInheritValue: 'gitlab',
           repositoryUrl: null,
-          enablePullRequests: null,
-          enablePullRequestsInheritedValue: true,
-          enablePullRequestsInheritFrom: 'Root Organization',
-          enableStatusChecks: null,
-          enableStatusChecksInheritedValue: null,
-          enableStatusChecksInheritFrom: null,
+          remediationPullRequestsEnabled: null,
+          remediationPullRequestsEnabledInheritedValue: true,
+          remediationPullRequestsEnabledInheritFrom: 'Root Organization',
+          statusChecksEnabled: null,
+          statusChecksEnabledInheritedValue: null,
+          statusChecksEnabledInheritFrom: null,
         };
 
         const retrievedCompositeSourceControl = {
@@ -1297,12 +1297,12 @@ describe('source.control.editor.spec', function () {
             parentName: 'Root Organization',
             parentValue: 'PARENT_BRANCH',
           },
-          enableStatusChecks: {
+          statusChecksEnabled: {
             value: null,
             parentName: null,
             parentValue: null,
           },
-          enablePullRequests: {
+          remediationPullRequestsEnabled: {
             value: null,
             parentName: 'Root Organization',
             parentValue: true,
@@ -1316,8 +1316,8 @@ describe('source.control.editor.spec', function () {
           baseBranch: null,
           ownerId: SUB_ORGANIZATION_ID,
           id: null,
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
         };
 
         getByIdDeferred.resolve({
@@ -1335,7 +1335,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(retrievedSourceControlModel);
 
         vm.dirtySourceControl = angular.copy(retrievedSourceControlModel);
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
@@ -1369,8 +1369,8 @@ describe('source.control.editor.spec', function () {
           ownerId: SUB_ORGANIZATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
         };
 
         getByIdDeferred.resolve({
@@ -1390,7 +1390,7 @@ describe('source.control.editor.spec', function () {
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.resolve();
@@ -1399,7 +1399,7 @@ describe('source.control.editor.spec', function () {
           id: SUB_ORGANIZATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        compositeSourceControlCopy.enablePullRequests.value = true;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.value = true;
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         // when
@@ -1425,8 +1425,8 @@ describe('source.control.editor.spec', function () {
           ownerId: SUB_ORGANIZATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
         };
 
         getByIdDeferred.resolve({
@@ -1445,7 +1445,7 @@ describe('source.control.editor.spec', function () {
 
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
         saveResourceDefer.reject({ status: '400', data: 'bad request' });
@@ -1623,7 +1623,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to enablePullRequests', function () {
+      it('returns true when changes have been applied to remediationPullRequestsEnabled', function () {
         getByIdDeferred.resolve({
           name: 'subOrganizationName',
           id: SUB_ORGANIZATION_ID,
@@ -1638,7 +1638,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
-        vm.dirtySourceControl.enablePullRequests = 'false';
+        vm.dirtySourceControl.remediationPullRequestsEnabled = 'false';
 
         expect(vm.isDirty()).toBeTruthy();
       });
@@ -1722,8 +1722,8 @@ describe('source.control.editor.spec', function () {
     describe('statusChecksInheritText', function () {
       it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enableStatusChecks.parentName = null;
-        compositeSourceControlCopy.enableStatusChecks.parentValue = null;
+        compositeSourceControlCopy.statusChecksEnabled.parentName = null;
+        compositeSourceControlCopy.statusChecksEnabled.parentValue = null;
 
         getByIdDeferred.resolve({
           name: 'subOrganizationName',
@@ -1738,8 +1738,8 @@ describe('source.control.editor.spec', function () {
 
       it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enableStatusChecks.parentName = 'Org';
-        compositeSourceControlCopy.enableStatusChecks.parentValue = true;
+        compositeSourceControlCopy.statusChecksEnabled.parentName = 'Org';
+        compositeSourceControlCopy.statusChecksEnabled.parentValue = true;
 
         getByIdDeferred.resolve({
           name: 'subOrganizationName',
@@ -1754,8 +1754,8 @@ describe('source.control.editor.spec', function () {
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enableStatusChecks.parentName = 'Org';
-        compositeSourceControlCopy.enableStatusChecks.parentValue = false;
+        compositeSourceControlCopy.statusChecksEnabled.parentName = 'Org';
+        compositeSourceControlCopy.statusChecksEnabled.parentValue = false;
 
         getByIdDeferred.resolve({
           name: 'subOrganizationName',
@@ -1769,11 +1769,11 @@ describe('source.control.editor.spec', function () {
       });
     });
 
-    describe('pullRequestsInheritText', function () {
+    describe('remediationPullRequestsInheritText', function () {
       it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enablePullRequests.parentName = null;
-        compositeSourceControlCopy.enablePullRequests.parentValue = null;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentName = null;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = null;
 
         getByIdDeferred.resolve({
           name: 'subOrganizationName',
@@ -1783,13 +1783,13 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit (Not Configured)');
+        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit (Not Configured)');
       });
 
       it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enablePullRequests.parentName = 'Org';
-        compositeSourceControlCopy.enablePullRequests.parentValue = true;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentName = 'Org';
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = true;
 
         getByIdDeferred.resolve({
           name: 'subOrganizationName',
@@ -1799,13 +1799,13 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
+        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
       });
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enablePullRequests.parentName = 'Org';
-        compositeSourceControlCopy.enablePullRequests.parentValue = false;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentName = 'Org';
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = false;
 
         getByIdDeferred.resolve({
           name: 'subOrganizationName',
@@ -1815,7 +1815,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
+        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
       });
     });
 
@@ -1895,12 +1895,12 @@ describe('source.control.editor.spec', function () {
         parentName: 'Root Organization',
         parentValue: 'PARENT_BRANCH',
       },
-      enableStatusChecks: {
+      statusChecksEnabled: {
         value: true,
         parentName: null,
         parentValue: null,
       },
-      enablePullRequests: {
+      remediationPullRequestsEnabled: {
         value: null,
         parentName: 'Root Organization',
         parentValue: true,
@@ -1927,12 +1927,12 @@ describe('source.control.editor.spec', function () {
       providerInherit: true,
       providerInheritValue: 'gitlab',
       repositoryUrl: null,
-      enablePullRequests: null,
-      enablePullRequestsInheritedValue: true,
-      enablePullRequestsInheritFrom: 'Root Organization',
-      enableStatusChecks: true,
-      enableStatusChecksInheritedValue: null,
-      enableStatusChecksInheritFrom: null,
+      remediationPullRequestsEnabled: null,
+      remediationPullRequestsEnabledInheritedValue: true,
+      remediationPullRequestsEnabledInheritFrom: 'Root Organization',
+      statusChecksEnabled: true,
+      statusChecksEnabledInheritedValue: null,
+      statusChecksEnabledInheritFrom: null,
     };
 
     beforeEach(inject(function () {
@@ -2127,12 +2127,12 @@ describe('source.control.editor.spec', function () {
           providerInherit: true,
           providerInheritValue: 'gitlab',
           repositoryUrl: null,
-          enablePullRequests: null,
-          enablePullRequestsInheritedValue: true,
-          enablePullRequestsInheritFrom: 'Sub Organization',
-          enableStatusChecks: null,
-          enableStatusChecksInheritedValue: null,
-          enableStatusChecksInheritFrom: null,
+          remediationPullRequestsEnabled: null,
+          remediationPullRequestsEnabledInheritedValue: true,
+          remediationPullRequestsEnabledInheritFrom: 'Sub Organization',
+          statusChecksEnabled: null,
+          statusChecksEnabledInheritedValue: null,
+          statusChecksEnabledInheritFrom: null,
         };
 
         const retrievedCompositeSourceControl = {
@@ -2159,12 +2159,12 @@ describe('source.control.editor.spec', function () {
             parentName: 'Root Organization',
             parentValue: 'PARENT_BRANCH',
           },
-          enableStatusChecks: {
+          statusChecksEnabled: {
             value: null,
             parentName: null,
             parentValue: null,
           },
-          enablePullRequests: {
+          remediationPullRequestsEnabled: {
             value: null,
             parentName: 'Sub Organization',
             parentValue: true,
@@ -2179,8 +2179,8 @@ describe('source.control.editor.spec', function () {
           baseBranch: null,
           ownerId: APPLICATION_ID,
           id: null,
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
         };
 
         getByIdDeferred.resolve({
@@ -2198,7 +2198,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.originalSourceControl).toEqual(retrievedSourceControlModel);
 
         vm.dirtySourceControl = angular.copy(retrievedSourceControlModel);
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
@@ -2233,8 +2233,8 @@ describe('source.control.editor.spec', function () {
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
           repositoryUrl: REPOSITORY_URL,
         };
 
@@ -2255,7 +2255,7 @@ describe('source.control.editor.spec', function () {
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
@@ -2265,7 +2265,7 @@ describe('source.control.editor.spec', function () {
           id: APPLICATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        compositeSourceControlCopy.enablePullRequests.value = true;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.value = true;
         compositeSourceControlCopy.repositoryUrl = REPOSITORY_URL;
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2293,8 +2293,8 @@ describe('source.control.editor.spec', function () {
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
           repositoryUrl: SSH_REPOSITORY_URL,
         };
 
@@ -2315,7 +2315,7 @@ describe('source.control.editor.spec', function () {
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = SSH_REPOSITORY_URL;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
@@ -2325,7 +2325,7 @@ describe('source.control.editor.spec', function () {
           id: APPLICATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        compositeSourceControlCopy.enablePullRequests.value = true;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.value = true;
         compositeSourceControlCopy.repositoryUrl = SSH_REPOSITORY_URL;
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2353,8 +2353,8 @@ describe('source.control.editor.spec', function () {
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
           repositoryUrl: REPOSITORY_URL,
         };
 
@@ -2374,7 +2374,7 @@ describe('source.control.editor.spec', function () {
 
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
@@ -2398,7 +2398,7 @@ describe('source.control.editor.spec', function () {
       it('clears any SCM test results after a save', function () {
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL + '-changed';
 
         vm.scmConfigValidationResult = { body: 'sample' };
@@ -2419,8 +2419,8 @@ describe('source.control.editor.spec', function () {
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
           repositoryUrl: REPOSITORY_URL,
         };
 
@@ -2441,7 +2441,7 @@ describe('source.control.editor.spec', function () {
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
         getByIdDeferred = $q.defer();
         getSourceControlDeferred = $q.defer();
@@ -2451,7 +2451,7 @@ describe('source.control.editor.spec', function () {
           id: APPLICATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        compositeSourceControlCopy.enablePullRequests.value = true;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.value = true;
         compositeSourceControlCopy.repositoryUrl = REPOSITORY_URL;
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2479,8 +2479,8 @@ describe('source.control.editor.spec', function () {
           ownerId: APPLICATION_ID,
           id: 'ID',
           baseBranch: 'BASE_BRANCH',
-          enablePullRequests: true,
-          enableStatusChecks: true,
+          remediationPullRequestsEnabled: true,
+          statusChecksEnabled: true,
           repositoryUrl: REPOSITORY_URL,
         };
 
@@ -2501,7 +2501,7 @@ describe('source.control.editor.spec', function () {
         let sourceControlModelCopy = angular.copy(sourceControlModel);
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
         vm.dirtySourceControl = sourceControlModelCopy;
-        vm.dirtySourceControl.enablePullRequests = true;
+        vm.dirtySourceControl.remediationPullRequestsEnabled = true;
         vm.dirtySourceControl.repositoryUrl = REPOSITORY_URL;
         vm.originalSourceControl.repositoryUrl = REPOSITORY_URL;
         getByIdDeferred = $q.defer();
@@ -2512,7 +2512,7 @@ describe('source.control.editor.spec', function () {
           id: APPLICATION_ID,
         });
         loadProductFeaturesDefer.resolve({});
-        compositeSourceControlCopy.enablePullRequests.value = true;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.value = true;
         compositeSourceControlCopy.repositoryUrl = REPOSITORY_URL;
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
@@ -2739,7 +2739,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.isDirty()).toBeTruthy();
       });
 
-      it('returns true when changes have been applied to enablePullRequests', function () {
+      it('returns true when changes have been applied to remediationPullRequestsEnabled', function () {
         getByIdDeferred.resolve({
           name: 'applicationName',
           id: APPLICATION_ID,
@@ -2754,7 +2754,7 @@ describe('source.control.editor.spec', function () {
         expect(vm.dirtySourceControl).toEqual(sourceControlModel);
         expect(vm.originalSourceControl).toEqual(sourceControlModel);
 
-        vm.dirtySourceControl.enablePullRequests = 'false';
+        vm.dirtySourceControl.remediationPullRequestsEnabled = 'false';
 
         expect(vm.isDirty()).toBeTruthy();
       });
@@ -3298,8 +3298,8 @@ describe('source.control.editor.spec', function () {
     describe('statusChecksInheritText', function () {
       it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enableStatusChecks.parentName = null;
-        compositeSourceControlCopy.enableStatusChecks.parentValue = null;
+        compositeSourceControlCopy.statusChecksEnabled.parentName = null;
+        compositeSourceControlCopy.statusChecksEnabled.parentValue = null;
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3314,8 +3314,8 @@ describe('source.control.editor.spec', function () {
 
       it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enableStatusChecks.parentName = 'Org';
-        compositeSourceControlCopy.enableStatusChecks.parentValue = true;
+        compositeSourceControlCopy.statusChecksEnabled.parentName = 'Org';
+        compositeSourceControlCopy.statusChecksEnabled.parentValue = true;
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3330,8 +3330,8 @@ describe('source.control.editor.spec', function () {
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enableStatusChecks.parentName = 'Org';
-        compositeSourceControlCopy.enableStatusChecks.parentValue = false;
+        compositeSourceControlCopy.statusChecksEnabled.parentName = 'Org';
+        compositeSourceControlCopy.statusChecksEnabled.parentValue = false;
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3345,11 +3345,11 @@ describe('source.control.editor.spec', function () {
       });
     });
 
-    describe('pullRequestsInheritText', function () {
+    describe('remediationPullRequestsInheritText', function () {
       it('should return "Inherit (Not Configured)" if not defined elsewhere', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enablePullRequests.parentName = null;
-        compositeSourceControlCopy.enablePullRequests.parentValue = null;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentName = null;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = null;
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3359,13 +3359,13 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit (Not Configured)');
+        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit (Not Configured)');
       });
 
       it('should return "Inherit from Org (Enabled)" if enabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enablePullRequests.parentName = 'Org';
-        compositeSourceControlCopy.enablePullRequests.parentValue = true;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentName = 'Org';
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = true;
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3375,13 +3375,13 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
+        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit from Org (Enabled)');
       });
 
       it('should return "Inherit from Org (Disabled)" if disabled on org', function () {
         let compositeSourceControlCopy = angular.copy(compositeSourceControl);
-        compositeSourceControlCopy.enablePullRequests.parentName = 'Org';
-        compositeSourceControlCopy.enablePullRequests.parentValue = false;
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentName = 'Org';
+        compositeSourceControlCopy.remediationPullRequestsEnabled.parentValue = false;
 
         getByIdDeferred.resolve({
           name: 'applicationName',
@@ -3391,7 +3391,7 @@ describe('source.control.editor.spec', function () {
         getSourceControlDeferred.resolve(compositeSourceControlCopy);
 
         $scope.$digest();
-        expect(vm.pullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
+        expect(vm.remediationPullRequestsInheritText).toEqual('Inherit from Org (Disabled)');
       });
     });
 

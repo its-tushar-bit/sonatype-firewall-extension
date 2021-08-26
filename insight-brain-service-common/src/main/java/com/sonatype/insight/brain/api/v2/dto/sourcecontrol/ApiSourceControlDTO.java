@@ -21,7 +21,13 @@ public class ApiSourceControlDTO
 
   public String baseBranch;
 
-  public Boolean enablePullRequests;
+  public Boolean remediationPullRequestsEnabled;
 
-  public Boolean enableStatusChecks;
+  public Boolean statusChecksEnabled;
+
+  public Boolean pullRequestCommentingEnabled;
+
+  public Boolean sourceControlScansEnabled;
+
+  public String sourceControlScanTarget;
 }

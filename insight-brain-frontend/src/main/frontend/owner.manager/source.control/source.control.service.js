@@ -98,8 +98,11 @@ function getDataFromSourceControl(ownerType, ownerId, sourceControl) {
     username: sourceControl.username,
     token: sourceControl.token,
     baseBranch: sourceControl.baseBranch,
-    enablePullRequests: sourceControl.enablePullRequests,
-    enableStatusChecks: sourceControl.enableStatusChecks,
+    remediationPullRequestsEnabled: sourceControl.remediationPullRequestsEnabled,
+    statusChecksEnabled: sourceControl.statusChecksEnabled,
+    pullRequestCommentingEnabled: sourceControl.pullRequestCommentingEnabled,
+    sourceControlScansEnabled: sourceControl.sourceControlScansEnabled,
+    sourceControlScanTarget: sourceControl.sourceControlScanTarget,
   };
   if (ownerType === 'application') {
     data.repositoryUrl = sourceControl.repositoryUrl;

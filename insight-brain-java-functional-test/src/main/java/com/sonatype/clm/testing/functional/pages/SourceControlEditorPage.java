@@ -128,16 +128,16 @@ public class SourceControlEditorPage
     return $("#source-control-advanced-section");
   }
 
-  public static IqRadio pullRequestsInheritRadio() {
-    return new IqRadio($("#editor-source-control-pull-request-inherit"));
+  public static IqRadio remediationPullRequestsInheritRadio() {
+    return new IqRadio($("#editor-source-control-remediation-pull-request-inherit"));
   }
 
-  public static IqRadio pullRequestsEnableRadio() {
-    return new IqRadio($("#editor-source-control-pull-request-enable"));
+  public static IqRadio remediationPullRequestsEnableRadio() {
+    return new IqRadio($("#editor-source-control-remediation-pull-request-enable"));
   }
 
-  public static IqRadio pullRequestsDisableRadio() {
-    return new IqRadio($("#editor-source-control-pull-request-disable"));
+  public static IqRadio remediationPullRequestsDisableRadio() {
+    return new IqRadio($("#editor-source-control-remediation-pull-request-disable"));
   }
 
   public static IqRadio baseBranchInheritRadio() {
@@ -156,8 +156,8 @@ public class SourceControlEditorPage
     return $("#source-control-advanced-settings-trigger");
   }
 
-  public static SelenideElement pullRequestNotSupportedAlert() {
-    return $("#source-control-pull-request-unavailable");
+  public static SelenideElement remediationPullRequestNotSupportedAlert() {
+    return $("#source-control-remediation-pull-request-unavailable");
   }
 
   public static SelenideElement defaultBranchNotSupportedAlert() {

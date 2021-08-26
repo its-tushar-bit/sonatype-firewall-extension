@@ -311,12 +311,12 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert()
         .shouldHave(text("This feature is not supported by your licence"));
-    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.pullRequestNotSupportedAlert()
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
         .shouldHave(text("This feature is not supported by your licence"));
-    SourceControlEditorPage.pullRequestsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
@@ -328,12 +328,12 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert()
         .shouldHave(text("This feature is not supported by your licence"));
-    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldBe(visible);
-    SourceControlEditorPage.pullRequestNotSupportedAlert()
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldBe(visible);
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert()
         .shouldHave(text("This feature is not supported by your licence"));
-    SourceControlEditorPage.pullRequestsInheritRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsEnableRadio().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestsDisableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchOverrideRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchInheritRadio().shouldNotBe(visible);
     SourceControlEditorPage.baseBranchInput().shouldNotBe(visible);
@@ -446,10 +446,10 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.advancedSettingsTree().shouldNotBe(visible);
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
-    SourceControlEditorPage.pullRequestsDisableRadio().shouldBe(visible, disabled);
-    SourceControlEditorPage.pullRequestsEnableRadio().shouldBe(visible, disabled);
-    SourceControlEditorPage.pullRequestsInheritRadio().shouldBe(visible, disabled, selected);
-    SourceControlEditorPage.pullRequestsInheritRadio().shouldHave(text("Inherit (Not Configured)"));
+    SourceControlEditorPage.remediationPullRequestsDisableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.remediationPullRequestsEnableRadio().shouldBe(visible, disabled);
+    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldBe(visible, disabled, selected);
+    SourceControlEditorPage.remediationPullRequestsInheritRadio().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.baseBranchInheritRadio().shouldBe(visible, disabled, selected);
     SourceControlEditorPage.baseBranchInheritRadio().shouldHave(text("Inherit (Not Configured)"));
     SourceControlEditorPage.baseBranchOverrideRadio().shouldBe(visible, disabled);
@@ -457,7 +457,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().shouldBe(visible, disabled);
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
   }
 
@@ -483,7 +483,7 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.repositoryUrlControls().shouldNotBe(visible);
     SourceControlEditorPage.advancedSettings().shouldBe(visible);
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
-    SourceControlEditorPage.pullRequestNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.remediationPullRequestNotSupportedAlert().shouldNotBe(visible);
     SourceControlEditorPage.advancedSectionRule().shouldNotBe(visible);
   }
 }

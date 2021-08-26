@@ -32,7 +32,7 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
 
   it('renders dependency information tile if it is not a direct dependency', () => {
     const component = getMounted(),
-      dependencyInfoTile = component.find('.iq-remediation');
+      dependencyInfoTile = component.find('.iq-dependency-information');
 
     expect(dependencyInfoTile).not.toBeNull();
     const ancestorsList = dependencyInfoTile.find('li');
@@ -41,7 +41,7 @@ describe('ComponentDetailsOverviewRiskRemediation', () => {
 
   it('does not render dependency information tile if it is a direct dependency', () => {
     const component = getMounted({ directDependency: true }),
-      dependencyInfoTile = component.find('.iq-remediation');
+      dependencyInfoTile = component.find('.iq-dependency-information');
 
     expect(dependencyInfoTile.length).toBe(0);
   });

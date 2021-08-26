@@ -39,7 +39,7 @@ export const RiskRemediation = ({ directDependency, ancestors, routeName }) => {
   const compareVersionsSection = (
     <section className="iq-compare-versions nx-tile">
       <header className="nx-tile-header">
-        <h3 className="nx-h3 nx-grid-header__title">Compare Versions TODO</h3>
+        <h3 className="nx-h3 nx-tile-header__title">Compare Versions TODO</h3>
       </header>
       <div className="nx-tile-content">
         <NxTable>
@@ -105,7 +105,7 @@ export const RiskRemediation = ({ directDependency, ancestors, routeName }) => {
   const versionExplorerSection = (
     <section className="iq-version-explorer nx-tile">
       <header className="nx-tile-header">
-        <h3 className="nx-h3 nx-grid-header__title">Version Explorer</h3>
+        <h3 className="nx-h3 nx-tile-header__title">Version Explorer</h3>
       </header>
       <div className="nx-tile-content">
         <h3>TODO</h3>
@@ -135,7 +135,7 @@ export const RiskRemediation = ({ directDependency, ancestors, routeName }) => {
   );
 
   const dependencyInformationSection = (
-    <section className="iq-remediation nx-tile">
+    <section className="iq-dependency-information nx-tile">
       <header className="nx-tile-header">
         <h3 className="nx-h3 nx-tile-header__title">Dependency Information</h3>
       </header>

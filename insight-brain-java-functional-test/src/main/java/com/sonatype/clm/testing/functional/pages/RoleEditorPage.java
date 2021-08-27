@@ -77,13 +77,13 @@ public class RoleEditorPage extends BasicElement<RoleEditorPage>
   }
 
   public ElementsCollection permissions(String categoryName) {
-    return children(".test-permissions-" + categoryName, ".iq-role-editor-permission-group__col", ".toggle-checkbox");
+    return children(".test-permissions-" + categoryName, ".iq-role-editor-permission-group__col", ".nx-toggle--no-gap");
   }
 
   public NxToggle permission(String categoryName, int num, boolean firstColumn) {
     return new NxToggle(childSelector( ".test-permissions-" + categoryName,
         ".iq-role-editor-permission-group__col", nthChild(firstColumn ? 1 : 2),
-        ".toggle-checkbox", nthChild(num + 1)));
+        ".nx-toggle--no-gap", nthChild(num + 1)));
   }
 
   public class Permission extends BasicElement<Permission> 

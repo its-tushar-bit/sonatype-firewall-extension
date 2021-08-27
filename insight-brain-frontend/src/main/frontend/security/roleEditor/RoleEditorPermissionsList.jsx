@@ -12,7 +12,7 @@ function RoleEditorPermissionsList({ permissionsList, displayName: displayNamePr
   function permissionMapper(category, { allowed, displayName, description, id }) {
     return (
       <NxToggle
-        className="toggle-checkbox"
+        className="nx-toggle--no-gap"
         isChecked={allowed}
         onChange={() => toggleValue({ category, id })}
         disabled={readonly}

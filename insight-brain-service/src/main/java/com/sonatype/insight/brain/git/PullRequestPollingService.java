@@ -279,10 +279,7 @@ public class PullRequestPollingService
               pullRequests.addAll(pullRequestResults);
             }
 
-            // if we've gotten back fewer than requested that means we've exhausted the available PRs and are now
-            // 'up to date';  thus, advance the poll time to now;  this is especially important for SCM providers
-            // that don't support org-wide PR fetching by token (see INT-3398)
-            if (pullRequestResults.isEmpty() || pullRequestResults.size() < PULL_REQUESTS_PER_MONITOR_CYCLE) {
+            if (pullRequestResults.isEmpty()) {
               pollingTracker.onPullRequestProcessed(sourceControl.getId(), org, repo, token, now);
             }
             else {

@@ -33,6 +33,11 @@ export function ApplicationReportFilterController($scope, $ngRedux, applicationR
       { id: true, name: 'Proprietary' },
     ],
 
+    availableInnerSourceFilterOptions: [
+      { id: false, name: 'Non-InnerSource' },
+      { id: true, name: 'InnerSource' },
+    ],
+
     availableMatchStateFilterOptions: [
       { id: 'exact', name: 'Exact' },
       { id: 'similar', name: 'Similar' },
@@ -102,6 +107,10 @@ export function ApplicationReportFilterController($scope, $ngRedux, applicationR
 
     setProprietaryFilterOptions(selectedIds) {
       vm.setExactValueFilter('proprietary', selectedIds);
+    },
+
+    setInnerSourceFilterOptions(selectedIds) {
+      vm.setExactValueFilter('derivedInnerSource', selectedIds);
     },
 
     setMatchStateFilterOptions(selectedIds) {

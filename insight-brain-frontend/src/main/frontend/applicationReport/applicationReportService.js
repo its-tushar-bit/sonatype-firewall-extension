@@ -285,10 +285,15 @@ export function createReportEntries(
     return 'unknown';
   }
 
+  function getDerivedInnerSource(entry) {
+    return entry.innerSource || entry.innerSourceData != null;
+  }
+
   function addDependencyInfo(entry) {
     const dependencyInfo = dependencyInfoGenerator.getDependencyInfo(entry);
     const derivedDependencyType = getDerivedDependencyType(dependencyInfo);
-    const entryWithDerivedDependencyType = { ...entry, derivedDependencyType };
+    const derivedInnerSource = getDerivedInnerSource(entry);
+    const entryWithDerivedDependencyType = { ...entry, derivedDependencyType, derivedInnerSource };
     return dependencyInfo ? { ...entryWithDerivedDependencyType, dependencyInfo } : entryWithDerivedDependencyType;
   }
 

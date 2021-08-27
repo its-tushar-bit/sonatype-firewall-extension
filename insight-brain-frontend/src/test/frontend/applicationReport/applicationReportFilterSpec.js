@@ -52,6 +52,14 @@ describe('applicationReportFilter component', function () {
     expect(ids).toContain(false);
   });
 
+  it('sets the availableInnerSourceFilterOptions', function () {
+    const ids = controller.availableInnerSourceFilterOptions.map(({ id }) => id);
+    expect(ids.length).toBe(2);
+
+    expect(ids).toContain(true);
+    expect(ids).toContain(false);
+  });
+
   it('sets the availableMatchStateFilterOptions', function () {
     const ids = controller.availableMatchStateFilterOptions.map(({ id }) => id);
     expect(ids.length).toBe(3);
@@ -88,6 +96,16 @@ describe('applicationReportFilter component', function () {
       controller.setProprietaryFilterOptions(selectedIds);
 
       expect(controller.setExactValueFilter).toHaveBeenCalledWith('proprietary', selectedIds);
+    });
+  });
+
+  describe('setInnerSourceFilterOptions', function () {
+    it('calls setExactValueFilter with a fieldName of "derivedInnerSource"', function () {
+      const selectedIds = new Set([true]);
+
+      controller.setInnerSourceFilterOptions(selectedIds);
+
+      expect(controller.setExactValueFilter).toHaveBeenCalledWith('derivedInnerSource', selectedIds);
     });
   });
 

@@ -14,6 +14,13 @@
                                on-change="vm.setProprietaryFilterOptions(selected)">
       Proprietary
     </iq-tree-view-multi-select>
+    <iq-tree-view-multi-select id="inner-source-filter"
+                               name="inner-source-filter"
+                               available="vm.availableInnerSourceFilterOptions"
+                               selected="vm.exactValueFilters.derivedInnerSource"
+                               on-change="vm.setInnerSourceFilterOptions(selected)">
+      InnerSource
+    </iq-tree-view-multi-select>
     <iq-tree-view-multi-select id="match-state-filter"
                                name="match-state-filter"
                                available="vm.availableMatchStateFilterOptions"

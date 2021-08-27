@@ -24,6 +24,10 @@ public class ApplicationReportFilter
     return new ProprietaryFilter(childSelector("#proprietary-filter"));
   }
 
+  public InnerSourceFilter innerSourceFilter() {
+    return new InnerSourceFilter(childSelector("#inner-source-filter"));
+  }
+
   public MatchStateFilter matchStateFilter() {
     return new MatchStateFilter(childSelector("#match-state-filter"));
   }
@@ -52,6 +56,22 @@ public class ApplicationReportFilter
     }
 
     public IqCheckbox proprietary() {
+      return super.checkboxItem(3);
+    }
+  }
+
+  public static class InnerSourceFilter
+      extends IqTreeViewMultiSelect
+  {
+    public InnerSourceFilter(String selector) {
+      super(selector);
+    }
+
+    public IqCheckbox nonInnerSource() {
+      return super.checkboxItem(2);
+    }
+
+    public IqCheckbox innerSource() {
       return super.checkboxItem(3);
     }
   }

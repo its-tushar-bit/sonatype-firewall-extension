@@ -10,6 +10,7 @@ import java.net.URL;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.DependencyTypeFilter;
+import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.InnerSourceFilter;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.MatchStateFilter;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.PolicyTypeFilter;
 import com.sonatype.clm.testing.functional.elements.ApplicationReportFilter.ProprietaryFilter;
@@ -153,6 +154,27 @@ public class ApplicationReportFilterTest
 
     violations.shouldHaveSize(61);
     proprietaryFilter.twisty().click();
+
+    // InnerSource filter
+    InnerSourceFilter innerSourceFilter = reportPage.filterPanel().innerSourceFilter();
+    innerSourceFilter.counter().shouldHave(exactText("2"));
+    innerSourceFilter.multiSelectList().shouldBe(empty);
+    innerSourceFilter.twisty().click();
+    innerSourceFilter.multiSelectList().shouldHaveSize(3);
+
+    innerSourceFilter.innerSource().click();
+    innerSourceFilter.innerSource().shouldBe(selected);
+    innerSourceFilter.nonInnerSource().shouldNotBe(selected);
+    innerSourceFilter.counter().shouldHave(exactText("1 of 2"));
+    violations.shouldHaveSize(3);
+    violations.first().shouldHave(text("apache-taglibs : standard : 1.1.2"));
+
+    innerSourceFilter.nonInnerSource().click();
+    innerSourceFilter.nonInnerSource().shouldBe(selected);
+    innerSourceFilter.counter().shouldHave(exactText("2 of 2"));
+    violations.shouldHaveSize(61);
+    violations.first().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+    innerSourceFilter.twisty().click();
 
     // match state filter
     MatchStateFilter matchStateFilter = reportPage.filterPanel().matchStateFilter();
